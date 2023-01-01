@@ -192,7 +192,7 @@ export class InventoryWindow extends BaseCraftWindow {
             // use the cached skin image, if available
             const img = Qubatch.world.players.getMyself()?.skinImage;
             // it doesn't return a promise when an image is supplied
-            this.skinViewer.loadSkin(img || skin.file, {model})?.then(drawOneFrame);
+            this.skinViewer.loadSkin(img || skin.file, {model})?.then(() => drawOneFrame());
             if (img) {
                 drawOneFrame();
             }

@@ -1,4 +1,5 @@
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
+import { isBlockRoughlyWithinPickatRange } from "../../www/js/block_helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { InventoryComparator } from "../../www/js/inventory_comparator.js";
@@ -6,7 +7,7 @@ import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_
     CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD
 } from "../../www/js/constant.js";
 import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS, 
-    INVENTORY_CHANGE_CLEAR_DRAG_ITEM, INVENTORY_CHANGE_SHIFT_SPREAD } from "../../www/js/inventory.js";
+    INVENTORY_CHANGE_CLOSE_WINDOW, INVENTORY_CHANGE_SHIFT_SPREAD } from "../../www/js/inventory.js";
 import { Treasure_Sets } from "./treasure_sets.js";
 
 const CHANGE_RESULT_FLAG_CHEST = 1;
@@ -21,16 +22,23 @@ export class WorldChestManager {
     }
 
     /**
-     * Returns a vaild chest by pos, or throws an exception
+     * Returns a vaild chest by pos, or throws an exception.
+     * Optionally, it can return null if the chunk is mising.
      * @param {Vector} pos
-     * @returns Chest
+     * @param {Boolean} nullIfNotLoaded - if it's true and the chunk is missing,
+     *      then instead of throwing an exception, it return null. The default is false.
+     * @returns {TBlock} chest
      */
-    async get(pos) {
+    async get(pos, nullIfNotLoaded = false) {
         const tblock = this.world.getBlock(pos);
-        if(!tblock || tblock.id < 1) {
-            throw `error_chest_not_found|${pos.x},${pos.y},${pos.z}`;
+        if(!tblock || tblock.id < 0) {
+            if(nullIfNotLoaded) {
+                return null;
+            } else {
+                throw `error_chest_not_found|${pos.x},${pos.y},${pos.z}`;
+            }
         }
-        if(!tblock.material?.is_chest || !tblock.extra_data) {
+        if(!tblock.material?.chest || !tblock.extra_data) {
             throw 'error_block_is_not_chest';
         }
         if(tblock.extra_data.generate) {
@@ -41,25 +49,35 @@ export class WorldChestManager {
     }
 
     /**
-     * Returns a vaild chest by pos, or null
      * @param {Vector} pos
-     * @returns Chest|null
+     * @returns {Object} {
+     *   chest: ?TBlock   // if the chest is loaded and valid
+     *   error: ?String   // otherwise
+     * }
      */
-    async getOrNull(pos) {
+    async getChestOrError(pos) {
         const tblock = this.world.getBlock(pos);
-        if (!tblock || tblock.id < 1 ||
-            !tblock.material?.is_chest || !tblock.extra_data
-        ) {
-            return null;
+        if (!tblock || tblock.id < 0) {
+            return { error: `error_chest_not_found|${pos.x},${pos.y},${pos.z}` };
+        }
+        if (!tblock.material?.chest || !tblock.extra_data) {
+            return { error: 'error_block_is_not_chest' };
         }
         if (tblock.extra_data.generate) {
             const params = await this.generateChest(pos, tblock.rotate, tblock.extra_data.params);
             tblock.extra_data = params.item.extra_data;
         }
-        return tblock;
+        return { chest: tblock };
     }
 
-    //
+    /**
+     * The genneral alrorithm:
+     * - checks correctness of various conditions;
+     * - rearranges the server inventory according to the state of the client's inventory before the last change;
+     * - applies the change described by the client to the server chests and inventory;
+     * - saves and sends the changes.
+     * @param {Object} params - see BaseChestWindow.confirmAction(), BaseChestWindow.lastChange
+     */
     async confirmPlayerAction(player, params) {
 
         function combineChests(chest, secondChest) {
@@ -74,45 +92,96 @@ export class WorldChestManager {
             return result;
         }
 
-        var incorrectParams = false;
+        let error = null;
+        let forceClose = false;
+        let changeApplied = 0;
 
         // load both chests at the same time
         const pos = params.chest.pos;
-        const tblockPromise = this.getOrNull(pos);
+        const promise = this.getChestOrError(pos);
         var secondPos = null;
         var secondTblock = null;
         if (params.secondChest) {
             secondPos = params.secondChest.pos;
-            secondTblock = await this.getOrNull(secondPos);
-            incorrectParams |= secondTblock == null || secondTblock.material.name !== 'CHEST';
-        }            
-        const tblock = await tblockPromise;
-        incorrectParams |= tblock == null;
+            const secondResult = await this.getChestOrError(secondPos);
+            secondTblock = secondResult?.chest;
+            if (secondTblock == null || secondTblock.material.name !== 'CHEST') {
+                error = secondResult.error || 'error_block_is_not_chest';
+                forceClose = true;
+            }
+        }
+        const tblockResult = await promise;
+        const tblock = tblockResult?.chest;
+        if (tblock == null) {
+            error = tblockResult.error;
+            forceClose = true;
+        }
+        // if there are 2 chests, they must be of type CHEST, and touch each other
         if (tblock && secondPos) {
             // We don't check if the halves match, because even if they don't, there
             // is no reason to cancel the action. We only theck that they're both
             // non-ender chests near each other.
-            incorrectParams |= tblock.material.name !== 'CHEST' || 
-                tblock.posworld.distanceSqr(secondPos) !== 1;
+            if (tblock.material.name !== 'CHEST') {
+                error = 'error_chest_not_found';
+                forceClose = true;
+            }
+            forceClose |= tblock.posworld.distanceSqr(secondPos) !== 1;
         }
 
         // check the distance to the chests
-        const maxDist = player.game_mode.getPickatDistance() +
-            CHEST_INTERACTION_MARGIN_BLOCKS + CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD;
-        const eyePos = player.getEyePos();
-        const chestCenter = new Vector(pos).addScalarSelf(0.5, 0.5, 0.5);
-        const chestCenter2 = secondPos
-            ? new Vector(secondPos).addScalarSelf(0.5, 0.5, 0.5)
-            : null;
-        incorrectParams |= eyePos.distance(chestCenter) > maxDist &&
-            (!chestCenter2 || eyePos.distance(chestCenter2) > maxDist);
+        if (!isBlockRoughlyWithinPickatRange(player,
+            CHEST_INTERACTION_MARGIN_BLOCKS + CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD,
+            pos, secondPos)
+        ) {
+            error = 'error_chest_too_far';
+            forceClose = true;
+        }
 
-        if (incorrectParams) {
+        const rearrangeInventoryAs = params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW
+            // Make sure the last inventry change made by the client isn't lost.
+            ? params.inventory_slots
+            // Allow the client to rearrange its inventory freely before the current change,
+            // as long as the quantities match. This allows a clinet to rearrange its inventory
+            // without sending commands, as long as it doesn't affect the chest.
+            : params.change.prevInventory;
+        if (rearrangeInventoryAs) {
+            const rearrangedInventory = InventoryComparator.rearrangeLikeOtherList(
+                player.inventory.items, rearrangeInventoryAs);
+            if (rearrangedInventory) {
+                if (!InventoryComparator.listsExactEqual(player.inventory.items, rearrangedInventory)) {
+                    changeApplied |= CHANGE_RESULT_FLAG_INVENTORY;
+                    player.inventory.items = rearrangedInventory;
+                }
+            } else {
+                error = 'error_inventory_mismatch';
+            }
+        }
+
+        if (forceClose || error) {
             player.inventory.moveOrDropFromDragSlot();
             await player.inventory.refresh(true);
-            // Don't send the chests content. We expect the window to close when a block modifier comes.
-            // Closing if the form also takes care of dragged item.
-            throw 'error_chest_not_found';
+            if (forceClose) {
+                player.currentChests = null;
+                player.sendPackets([{ 
+                    name: ServerClient.CMD_CHEST_FORCE_CLOSE,
+                    data: { chestSessionId: params.chestSessionId }
+                }]);
+            } else if (params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW) {
+                player.currentChests = null;
+            } else {
+                // the player doesn't close the window, but he has some mistmatch, so send him also the correct chests
+                this.sendContentToPlayers([player], tblock);
+                if (secondTblock) {
+                    this.sendContentToPlayers([player], secondTblock);
+                }
+            }
+            throw error || 'error_incorrect_value';
+        }
+
+        // update the current chests for this player
+        player.currentChests = [pos];
+        if (secondPos) {
+            player.currentChests.push(secondPos);
         }
         
         const is_ender_chest = tblock.material.name == 'ENDER_CHEST';
@@ -132,14 +201,14 @@ export class WorldChestManager {
 
         const chestSlotsCount = secondTblock
             ? 2 * DEFAULT_CHEST_SLOT_COUNT
-            : tblock.properties.chest_slots;
-        const inputChestSlotsCount = chestSlotsCount - tblock.properties.readonly_chest_slots;
+            : tblock.properties.chest.slots;
+        const inputChestSlotsCount = chestSlotsCount - tblock.properties.chest.readonly_slots;
 
         var srvCombinedChestSlots = combineChests(chest, secondChest);
         var cliCombinedChestSlots = combineChests(params.chest, params.secondChest);
 
         const oldSimpleInventory = InventoryComparator.groupToSimpleItems(player.inventory.items);
-        const changeApplied = this.applyClientChange(srvCombinedChestSlots, cliCombinedChestSlots, 
+        changeApplied |= this.applyClientChange(srvCombinedChestSlots, cliCombinedChestSlots, 
                 player.inventory.items, params.inventory_slots, params.change, player,
                 inputChestSlotsCount, secondPos != null);
         const inventoryEqual = InventoryComparator.listsExactEqual(
@@ -168,10 +237,10 @@ export class WorldChestManager {
 
         // Notify the player if the chest change result differs from expected.
         if (!InventoryComparator.listsExactEqual(srvCombinedChestSlots, cliCombinedChestSlots)) {
-            this.sendContentToPlayers([player], pos);
+            this.sendContentToPlayers([player], tblock);
             // Send both chests, even if only one differs. It's rare and doesn't matter.
             if (secondPos) {
-                this.sendContentToPlayers([player], secondPos);
+                this.sendContentToPlayers([player], secondTblock);
             }
         }
         if (changeApplied & CHANGE_RESULT_FLAG_CHEST) {
@@ -186,7 +255,7 @@ export class WorldChestManager {
                 }
             }
             // Notify the other players about the chest change
-            this.sendChestToPlayers(pos, [player.session.user_id]);
+            this.sendChestToPlayers(tblock, [player.session.user_id]);
             // Save to DB
             if (is_ender_chest) {
                 await player.saveEnderChest(chest);
@@ -208,16 +277,19 @@ export class WorldChestManager {
                 }
             }
             // Notify the other players about the chest change
-            this.sendChestToPlayers(secondPos, [player.session.user_id]);
+            this.sendChestToPlayers(secondTblock, [player.session.user_id]);
             // Save to DB
             await this.world.db.saveChestSlots({
                 pos: secondPos,
                 slots: secondChest.slots
             });
         }
+        if (params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW) {
+            player.currentChests = null;
+        }
     }
 
-    // Validates the client change to a chest/inventory, and tries to apply on the server
+    // Validates the client change to a chest/inventory, and tries to apply it on the server
     applyClientChange(srvChest, cliChest, srvInv, cliInv, change, player, inputChestSlotsCount, twoChests) {
 
         const that = this
@@ -305,7 +377,7 @@ export class WorldChestManager {
         const cliDrag = cliInv[INVENTORY_DRAG_SLOT_INDEX];
 
         // The same result as in client PlayerInventory.clearDragItem()
-        if (change.type === INVENTORY_CHANGE_CLEAR_DRAG_ITEM) {
+        if (change.type === INVENTORY_CHANGE_CLOSE_WINDOW) {
             if (!srvDrag) {
                 return 0;
             }
@@ -502,10 +574,8 @@ export class WorldChestManager {
     }
 
     // Send block item
-    // @todo without slots
-    async sendItem(block_pos, chest) {
-        const chunk_addr = getChunkAddr(block_pos);
-        const chunk = this.world.chunks.get(chunk_addr);
+    async sendItem(chest) {
+        const chunk = this.world.chunks.get(chest.chunk_addr);
         if(chunk) {
             const item = {
                 id:         chest.id,
@@ -514,19 +584,19 @@ export class WorldChestManager {
             };
             const packets = [{
                 name: ServerClient.CMD_BLOCK_SET,
-                data: {pos: block_pos, item: item}
+                data: {pos: chest.posworld, item: item}
             }];
             chunk.sendAll(packets, []);
         }
     }
 
     //
-    async sendContentToPlayers(players, block_pos) {
-        const tblock = this.world.getBlock(block_pos);
+    async sendContentToPlayers(players, tblock) {
         if(!tblock || tblock.id < 0) {
             return false;
         }
-        if(tblock.material.name == 'ENDER_CHEST') {
+        const mat = tblock.material;
+        if(mat.name == 'ENDER_CHEST') {
             if(players.length == 1) {
                 const player = players[0];
                 const c = await player.loadEnderChest();
@@ -547,7 +617,7 @@ export class WorldChestManager {
                     console.error('error_ender_chest_empty_for_player');
                 }
             }
-        } else {
+        } else if (mat.chest.private) {
             if(!tblock.extra_data || !tblock.extra_data.slots) {
                 return false;
             }
@@ -563,24 +633,46 @@ export class WorldChestManager {
                 }];
                 player.sendPackets(packets);
             }
+        } else {
+            this.sendItem(tblock);
         }
         return true;
     }
 
-    sendChestToPlayers(pos, except_player_ids) {
-        const chunk_addr = getChunkAddr(pos);
-        const chunk = this.world.chunks.get(chunk_addr);
+    /**
+     * @param {TBlock} tblock of the chest
+     * @param {Int []} except_player_ids - ids of excluded players, optional
+     */
+    sendChestToPlayers(tblock, except_player_ids = null) {
+        const chunk = this.world.chunks.get(tblock.chunk_addr);
         if(chunk) {
+            const pos = tblock.posworld;
             const players = [];
             for(let p of Array.from(chunk.connections.values())) {
                 if(except_player_ids && Array.isArray(except_player_ids)) {
                     if(except_player_ids.indexOf(p.session.user_id) >= 0) {
                         continue;
                     }
-                    players.push(p);
                 }
+                if (tblock.material.chest.private) {
+                    if (!p.currentChests) {
+                        continue;
+                    }
+                    const ind = p.currentChests.findIndex((it) => pos.equal(it));
+                    if (ind < 0) {
+                        continue;
+                    }
+                    if (!isBlockRoughlyWithinPickatRange(p, 
+                        CHEST_INTERACTION_MARGIN_BLOCKS + CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD,
+                        pos)
+                    ) {
+                        p.currentChests.splice(ind, 1);
+                        continue;
+                    }
+                }
+                players.push(p);
             }
-            this.sendContentToPlayers(players, pos);
+            this.sendContentToPlayers(players, tblock);
         }
     }
 

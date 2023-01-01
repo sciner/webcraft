@@ -415,7 +415,7 @@ class DestroyBlocks {
             }
         }
         //
-        if(tblock.material.is_chest) {
+        if(tblock.material.chest) {
             if(tblock.hasTag('store_items_in_chest')) {
                 const di = drop_items[0]
                 di.extra_data = {...tblock.extra_data}
@@ -581,7 +581,7 @@ export class WorldAction {
             if(!mat.can_auto_drop) {
                 return false;
             }
-            if((!mat.is_chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) || tblock.id == BLOCK.TNT.id) {
+            if((!mat.chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) || tblock.id == BLOCK.TNT.id) {
                 return false;
             }
             const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
@@ -595,7 +595,7 @@ export class WorldAction {
                     { id: mat.id, count: 1 }
                 ]
             }
-            if(mat.is_chest) {
+            if(mat.chest) {
                 if(tblock.hasTag('store_items_in_chest')) {
                     const di = drop_item.items[0]
                     di.extra_data = {...tblock.extra_data}
@@ -1141,7 +1141,7 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
         return false;
     }
     // if is chest
-    if(world_material.is_chest) {
+    if(world_material.chest) {
         const entity_id = world_block ? world_block.entity_id : null;
         actions.load_chest = {
             block_id:   world_material.id,
@@ -1152,18 +1152,6 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
     } else {
         switch(world_material.id) {
             case BLOCK.CRAFTING_TABLE.id: {
-                actions.open_window = world_material.window;
-                break;
-            }
-            case BLOCK.FURNACE.id: {
-                actions.open_window = world_material.window;
-                break;
-            }
-            case BLOCK.BREWING_STAND.id: {
-                actions.open_window = world_material.window;
-                break;
-            }
-            case BLOCK.CHARGING_STATION.id: {
                 actions.open_window = world_material.window;
                 break;
             }

@@ -257,24 +257,33 @@ export class CraftTableInventorySlot extends CraftTableSlot {
      * @param {Float} x - screen poition x
      * @param {Float} y - screen poition y
      * @param {BaseChestWindow} ct - parent window
+     * @param {Object} options - optonal parameters:
+     *  { readonly, onMouseEnterBackroundColor, disableIfLoading }
      */
-    constructor(x, y, w, h, id, title, text, ct, slot_index, readonly) {
+    constructor(x, y, w, h, id, title, text, ct, slot_index, options = null) {
         
         super(x, y, w, h, id, title, text, ct, slot_index);
 
-        this.readonly = readonly;
+        this.options = options || {};
 
         // Custom drawing
         this.onMouseEnter = function() {
-            this.style.background.color = '#ffffff55';
+            if (this.options.disableIfLoading && this.ct.loading) {
+                return;
+            }
+            this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55';
         }
 
         this.onMouseLeave = function() {
+            // don't disable it if loading
             this.style.background.color = '#00000000';
         }
 
         // Drag
         this.onMouseDown = function(e) {
+            if (this.options.disableIfLoading && this.ct.loading) {
+                return;
+            }
             const that        = this;
             const player      = Qubatch.player;
             const targetItem  = this.getInventoryItem();
@@ -322,6 +331,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         case 'frmEnderChest':
                         case 'frmFurnace':
                         case 'frmChargingStation': {
+                            if (this.ct.loading) {
+                                break; // prevent spreading to the slots that are not ready
+                            }
                             let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;
@@ -357,9 +369,12 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
 
         // if slot is readonly
-        if(!readonly) {
+        if(!this.readonly) {
             // Drop
             this.onDrop = function(e) {
+                if (this.options.disableIfLoading && this.ct.loading) {
+                    return;
+                }
                 let player      = Qubatch.player;
                 let that        = this;
                 let drag        = e.drag;
@@ -477,8 +492,15 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         this.getInventory().clearDragItem();
                     }
                 }
+                if (dropData.item.count === 0) {
+                    player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
+                }
             }
         }
+    }
+
+    get readonly() {
+        return !!this.options.readonly;
     }
 
     /**

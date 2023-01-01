@@ -189,7 +189,11 @@ export class ServerChunk {
         //
         const afterLoad = ([ml, fluid]) => {
             if(!ml.obj && ml.compressed) {
-                ml.obj = decompressWorldModifyChunk(ml.compressed)
+                ml.obj = decompressWorldModifyChunk(ml.compressed);
+                if (ml.private_compressed) {
+                    const private_obj = decompressWorldModifyChunk(ml.private_compressed);
+                    Object.assign(ml.obj, private_obj);
+                }
             }
             this.modify_list = ml;
             this.ticking = new Map();
@@ -309,7 +313,10 @@ export class ServerChunk {
         if(ml.compressed) {
             data.modify_list.compressed = ml.compressed.toString('base64');
         } else {
-            data.modify_list.obj = ml.obj;
+            // Old code: "else" branch executes only if (ml.obj == null), so we might as well not assign it.
+            // We shouldn't send it in any case, because it contains private modifiers.
+
+            // data.modify_list.obj = ml.obj;
         }
         return this.world.sendSelected([{name, data}], player_ids, []);
     }
@@ -318,8 +325,10 @@ export class ServerChunk {
     compressModifyList() {
         const ml = this.modify_list;
         if(ml.obj) {
-            ml.compressed = Buffer.from(compressWorldModifyChunk(ml.obj, true));
-            this.world.db.saveCompressedWorldModifyChunk(this.addr, ml.compressed);
+            const compressed = compressWorldModifyChunk(ml.obj, true);
+            ml.compressed = Buffer.from(compressed.public);
+            ml.private_compressed = compressed.private ? Buffer.from(compressed.private) : null;
+            this.world.db.saveCompressedWorldModifyChunk(this.addr, ml.compressed, ml.private_compressed);
         }
     }
 
@@ -1010,6 +1019,7 @@ export class ServerChunk {
         if(!ml.obj) ml.obj = {};
         ml.obj[pos.getFlatIndexInChunk()] = item;
         ml.compressed = null;
+        ml.private_compressed = null;
         if(item) {
             // calculate random ticked blocks
             if(this.getBlock(pos)?.material?.random_ticker) {

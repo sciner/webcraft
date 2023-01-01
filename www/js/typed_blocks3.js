@@ -827,6 +827,10 @@ export class TBlock {
         return this.vec.add(this.tb.coord);
     }
 
+    get chunk_addr() {
+        return this.tb.addr;
+    }
+
     get has_oxygen() {
         if(!this.material.has_oxygen) {
             return false;

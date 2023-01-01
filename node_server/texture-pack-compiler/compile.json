@@ -2447,7 +2447,9 @@
             "tags": [
                 "no_drop_ao"
             ],
-            "chest_slots": 5,
+            "chest": {
+                "slots": 5
+            },
             "ticking": {
                 "type": "brewing"
             },
@@ -3003,8 +3005,10 @@
             "sound": "madcraft:block.stone",
             "window": "frmFurnace",
             "is_entity": true,
-            "chest_slots": 3,
-            "readonly_chest_slots": 1,
+            "chest": {
+                "slots": 3,
+                "readonly_slots": 1
+            },
             "is_dynamic_light": true,
             "ticking": {
                 "type": "furnace"
@@ -3033,7 +3037,9 @@
             "sound": "madcraft:block.stone",
             "window": "frmNotImplemented",
             "is_entity": true,
-            "chest_slots": 9,
+            "chest": {
+                "slots": 9
+            },
             "material": {
                 "id": "stone"
             },
@@ -3051,7 +3057,9 @@
             "sound": "madcraft:block.stone",
             "window": "frmNotImplemented",
             "is_entity": true,
-            "chest_slots": 9,
+            "chest": {
+                "slots": 9
+            },
             "material": {
                 "id": "stone"
             },
@@ -3098,7 +3106,10 @@
             "width": 0.875,
             "height": 0.875,
             "is_entity": true,
-            "chest_slots": 27,
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
             "transparent": true,
             "style": "chest",
             "sound": "madcraft:block.chest",
@@ -3118,7 +3129,9 @@
             "name": "ENDER_CHEST",
             "window": "frmEnderChest",
             "is_entity": true,
-            "chest_slots": 27,
+            "chest": {
+                "slots": 27
+            },
             "style": "chest",
             "transparent": true,
             "sound": "madcraft:block.ender_chest",
@@ -3142,7 +3155,10 @@
             "name": "BARREL",
             "window": "frmBarrel",
             "is_entity": true,
-            "chest_slots": 27,
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
             "transparent": true,
             "sound": "madcraft:block.barrel",
             "can_rotate": true,
@@ -4941,8 +4957,10 @@
             "sound": "madcraft:block.stone",
             "window": "frmNotImplemented",
             "is_entity": true,
-            "chest_slots": 3,
-            "readonly_chest_slots": 1,
+            "chest": {
+                "slots": 3,
+                "readonly_slots": 1
+            },
             "can_rotate": true,
             "material": {
                 "id": "stone"
@@ -5177,7 +5195,9 @@
             "window": "frmChargingStation",
             "sound": "madcraft:block.charging_station",
             "is_entity": true,
-            "chest_slots": 7,
+            "chest": {
+                "slots": 7
+            },
             "can_rotate": true,
             "material": {
                 "id": "iron"

@@ -6,7 +6,7 @@ export const INVENTORY_CHANGE_NONE = 0;
 // it may be adding or subtracting drag item from a slot, if slotIndex >= 0
 export const INVENTORY_CHANGE_SLOTS = 1;
 export const INVENTORY_CHANGE_MERGE_SMALL_STACKS = 2;
-export const INVENTORY_CHANGE_CLEAR_DRAG_ITEM = 3;
+export const INVENTORY_CHANGE_CLOSE_WINDOW = 3;
 export const INVENTORY_CHANGE_SHIFT_SPREAD = 4;
 
 export class Inventory {

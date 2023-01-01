@@ -32,6 +32,7 @@ import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_t
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
+import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -703,12 +704,20 @@ export class ServerWorld {
                     this.chunkBecameModified(chunk_addr);
                     // 3.
                     if (chunk && chunk.tblocks && isLoaded) {
+                        let sanitizedParams = params;
+                        const sanitizedItem = shallowCloneAndSanitizeIfPrivate(params.item);
+                        if (sanitizedItem) {
+                            // I'm not sure if params are used anywhere else, so shallow clone them to be safe.
+                            sanitizedParams = {...params};
+                            sanitizedParams.item = sanitizedItem;
+                        }
+
                         const block_pos = new Vector(params.pos).flooredSelf();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
                         const cps = getChunkPackets(params.pos);
                         cps.packets.push({
                             name: ServerClient.CMD_BLOCK_SET,
-                            data: params
+                            data: sanitizedParams
                         });
                         // 0. Play particle animation on clients
                         if (!ignore_check_air) {

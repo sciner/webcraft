@@ -38,6 +38,7 @@ export class ServerClient {
     static CMD_LOAD_CHEST               = 45; // player -> server
     static CMD_CHEST_CONTENT            = 46; // server -> player (when player request chest content)
     static CMD_CHEST_CONFIRM            = 47; // player -> server (player change chest content)
+    static CMD_CHEST_FORCE_CLOSE        = 108; // server -> player (a server tells the client to close the chest window)
 
     //
     static CMD_CHANGE_POS_SPAWN         = 63; // player -> server (request to change spawn point)
@@ -93,6 +94,8 @@ export class ServerClient {
     static CMD_FLUID_DELTA              = 105;
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
+
+    // NEXT UNUSED COMMAND INDEX        = 109
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
