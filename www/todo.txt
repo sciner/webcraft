@@ -8,7 +8,7 @@
 - button:
 - cake:                   Это торт, который можно съесть
 - can_put_into_pot:       Может быть установлено в горшок
-- can_set_on_wall:
+- rotate_by_pos_n_5:
 - carpet:
 - dirt:
 - door:                   Дверь, которую можно открыть

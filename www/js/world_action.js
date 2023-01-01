@@ -58,12 +58,12 @@ function calcRotateByPosN(rot, pos_n) {
 }
 
 // Calc rotate
-function calcRotate(rotate, n, can_set_on_wall) {
+function calcRotate(rotate, n, rotate_by_pos_n_5) {
     rotate = new Vector(rotate);
     rotate.x = 0;
     rotate.y = 0;
     // top normal
-    if (!can_set_on_wall || (can_set_on_wall && Math.abs(n.y) === 1)) {
+    if (!rotate_by_pos_n_5 || (rotate_by_pos_n_5 && Math.abs(n.y) === 1)) {
         rotate.x = BLOCK.getCardinalDirection(rotate);
         rotate.z = 0;
         rotate.y = n.y; // mark that is up
@@ -767,6 +767,31 @@ export class WorldAction {
 
 }
 
+/**
+ * @param {*} pos 
+ * @param {object} mat 
+ * @param {boolean} to_top 
+ * @param {boolean} check_opposite 
+ * @returns 
+ */
+function simplifyPos(world, pos, mat, to_top, check_opposite = true) {
+    if(pos.n.y === 0 && !mat.layering && !mat.tags.includes('rotate_by_pos_n') && !mat.tags.includes('rotate_by_pos_n_5') && !mat.tags.includes('rotate_by_pos_n_6') && !mat.tags.includes('rotate_by_pos_n_xyz') && !mat.tags.includes('trapdoor') && !mat.tags.includes('stairs')) {
+        const side_y = to_top ? -1 : 1
+        const tblock = world.getBlock(new Vector(pos).addScalarSelf(pos.n.x, side_y, pos.n.z))
+        if(tblock.canPlaceOnTopOrBottom(to_top)) {
+            pos.x += pos.n.x
+            pos.y += side_y
+            pos.z += pos.n.z
+            pos.n.x = 0
+            pos.n.y = -side_y
+            pos.n.z = 0
+        } else if(check_opposite) {
+            return simplifyPos(world, pos, mat, !to_top, false)
+        }
+    }
+    return false
+}
+
 // Called to perform an action based on the player's block selection and input.
 export async function doBlockAction(e, world, player, current_inventory_item) {
 
@@ -904,8 +929,13 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
             }
         } else {
+
+            // Change n side and pos
+            simplifyPos(world, pos, mat_block, pos.point.y < .5, true)
+
             // Calc orientation
-            let orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
+            let orientation = calcBlockOrientation(mat_block, player.rotate, pos.n)
+
             // Check if replace
             const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
             if(replaceBlock) {
@@ -933,7 +963,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
             // Запрет установки блока на блоки, которые занимает игрок
             if (mat_block.passable == 0 && 
-                !(orientation.y == 0 && mat_block.tags.includes("can_set_on_wall"))
+                !(orientation.y == 0 && mat_block.tags.includes("rotate_by_pos_n_5"))
             ) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
@@ -962,6 +992,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 return actions;
             }
 
+            // некоторые блоки нельзя ставить на стены (например LANTERN)
             if(pos.n.y === 0 && mat_block.tags.includes('cant_place_on_wall')) {
                 console.error('cant_place_on_wall');
                 return actions;
@@ -1035,7 +1066,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 //
 function calcBlockOrientation(mat_block, rotate, n) {
     let resp = null;
-    const can_set_on_wall = mat_block.tags.includes('can_set_on_wall');
+    const rotate_by_pos_n_5 = mat_block.tags.includes('rotate_by_pos_n_5');
     if(mat_block.tags.includes('rotate_by_pos_n')) {
         resp = calcRotateByPosN(rotate, n);
         if(mat_block.tags.includes('rotate_by_pos_n_xyz')) {
@@ -1044,7 +1075,7 @@ function calcBlockOrientation(mat_block, rotate, n) {
             if(resp.x == 22) resp.set(13, 0, 0);
         }
     } else {
-        resp = calcRotate(rotate, n, can_set_on_wall);
+        resp = calcRotate(rotate, n, rotate_by_pos_n_5);
     }
     return resp;
 };
@@ -2081,15 +2112,18 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
 // Факелы можно ставить только на определенные виды блоков!
 async function restrictTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(mat_block.model_name != 'torch') {
-        return false;
+        return false
     }
-    return !replace_block && (
+    let resp = !replace_block && (
         (pos.n.y < 0) ||
-        (world_material.width && world_material.width != 1) ||
-        (world_material.height && world_material.height != 1) ||
-        ['default', 'fence', 'wall'].indexOf(world_material.model_name) < 0 ||
-        (['fence', 'wall'].indexOf(world_material.model_name) >= 0 && pos.n.y != 1)
-    );
+        !(world_block.canPlaceOnTopOrBottom(true))
+    )
+    if(!resp && pos.n.y == 0) {
+        resp = !(
+            world_material.is_solid || world_material.is_simple_qube
+        )
+    }
+    return resp
 }
 
 // use shears

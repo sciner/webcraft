@@ -68,12 +68,16 @@ export default class style {
             return;
         }
 
-        matrix = mat4.create();
-        mat4.rotateY(matrix, matrix, Math.PI);
+        matrix = mat4.create()
+        mat4.rotateY(matrix, matrix, Math.PI)
 
-        style.applyRotate(model, block, neighbours, matrix)
+        // reset state and restore groups visibility
+        model.resetBehaviorChanges()
 
         const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color)
+
+        // calc rotate matrix
+        style.applyRotate(model, block, neighbours, matrix)
 
         // const animation_name = 'walk';
         // model.playAnimation(animation_name, performance.now() / 1000);
@@ -127,8 +131,6 @@ export default class style {
         const bb = mat.bb
         const behavior = bb.behavior || bb.model
         const rotate = tblock.rotate
-
-        model.resetBehaviorChanges()
 
         switch(behavior) {
             case 'torch': {

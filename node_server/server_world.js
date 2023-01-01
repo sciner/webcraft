@@ -33,6 +33,7 @@ import { WorldOreGenerator } from "./world/ore_generator.js";
 import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
+import { TBlock } from "../www/js/typed_blocks3.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -562,7 +563,7 @@ export class ServerWorld {
     /**
      * Returns block on world pos, or null.
      * @param {Vector} pos
-     * @returns {object}
+     * @returns {TBlock}
      */
     getBlock(pos, resultBlock = null) {
         const chunk = this.chunks.getByPos(pos);

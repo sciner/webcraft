@@ -53,7 +53,7 @@
             },
             "tags":[
                 "no_set_on_top",
-                "can_set_on_wall",
+                "rotate_by_pos_n_5",
                 "no_drop_ao"
             ],
             "bb": {
@@ -272,7 +272,7 @@
             },
             "tags": [
                 "ladder",
-                "can_set_on_wall"
+                "rotate_by_pos_n_5"
             ],
             "bb": {
                 "model": "ladder",
