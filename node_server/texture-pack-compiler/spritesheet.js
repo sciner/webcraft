@@ -52,25 +52,9 @@ export class Spritesheet extends Spritesheet_Base {
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir);
             }
-
-            // if(this.id != 'default' || !subtexture_id) {
-                const filename = `/textures/${this.id}${subtexture_id}.png`;
-                resp.push(filename);
-                item.cnv.saveAsSync(`${this.options.output_dir}${filename}`);
-            //}
-
-            /*
-            // Auto generate normal map
-            if(this.id == 'default') {
-                if(subtexture_id) {
-                    // do nothing
-                } else {
-                    const filename_nmap = `/textures/${this.id}${subtexture_id}_n.png`;
-                    generateNormalMap(item.cnv, 32).saveAsSync(`${this.options.output_dir}${filename_nmap}`)
-                }
-            }
-            */
-
+            const filename = `/textures/${this.id}${subtexture_id}.png`;
+            resp.push(filename);
+            item.cnv.saveAsSync(`${this.options.output_dir}${filename}`);
         }
         return resp;
     }
