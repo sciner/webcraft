@@ -1,18 +1,22 @@
-import { DIRECTION, IndexedColor, mat4ToRotate, Vector } from '../helpers.js';
+import { DIRECTION, IndexedColor, mat4ToRotate, Vector, calcRotateMatrix } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BLOCK, FakeTBlock } from '../blocks.js';
 import { Resources } from '../resources.js';
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
 
-import { default as default_style } from '../block_style/default.js';
+import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
 import { default as pot_style } from '../block_style/pot.js';
 import { TBlock } from '../typed_blocks3.js';
 import { BBModel_Model } from '../bbmodel/model.js';
+import { CubeSym } from '../core/CubeSym.js';
 
-const {mat4, vec3} = glMatrix;
+const {mat3, mat4, vec3} = glMatrix;
 const lm = IndexedColor.WHITE;
+
+const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
+const pivotObj = new Vector(0.5, .5, 0.5)
 
 let models = null;
 Resources.loadBBModels().then((res) => {
@@ -40,10 +44,37 @@ export default class style {
 
         const bb = tblock.material.bb
         const behavior = bb.behavior || bb.model
-        const styleVariant = BLOCK.styles.get(behavior);
 
-        if(styleVariant?.aabb) {
-            return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
+        switch(behavior) {
+            case 'chain': {
+                const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE
+                const aabb = new AABB()
+                aabb.set(0, 0, 0, 0, 0, 0)
+                aabb
+                    .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
+                    .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
+                    .div(TX_SIZE)
+                // Rotate
+                if(tblock.getCardinalDirection) {
+                    const cardinal_direction = tblock.getCardinalDirection()
+                    const matrix = CubeSym.matrices[cardinal_direction]
+                    // on the ceil
+                    if(tblock.rotate && tblock.rotate.y == -1) {
+                        if(tblock.hasTag('rotate_by_pos_n')) {
+                            aabb.translate(0, 1 - aabb.y_max, 0)
+                        }
+                    }
+                    aabb.applyMatrix(matrix, pivotObj)
+                }
+                return [aabb]
+            }
+            default: {
+                const styleVariant = BLOCK.styles.get(behavior)
+                if(styleVariant?.aabb) {
+                    return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
+                }
+                break
+            }
         }
 
         const aabb = new AABB();
@@ -81,7 +112,7 @@ export default class style {
 
         // const animation_name = 'walk';
         // model.playAnimation(animation_name, performance.now() / 1000);
-        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix);
+        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix)
 
         // Draw debug stand
         // style.drawDebugStand(vertices, pos, lm, null);
@@ -108,6 +139,21 @@ export default class style {
                 switch(bb.rotate.type) {
                     case 'cardinal_direction': {
                         style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
+                        break
+                    }
+                    case 'three': {
+                        if(tblock instanceof TBlock) {
+                            const cd = tblock.getCardinalDirection()
+                            const mx = calcRotateMatrix(tblock.material, tblock.rotate, cd, matrix)
+                            // хак со сдвигом матрицы в центр блока
+                            const v = vec3.create()
+                            v[1] = 0.5
+                            vec3.transformMat4(v, v, mx)
+                            mx[12] += - v[0]
+                            mx[13] += 0.5 - v[1]
+                            mx[14] += - v[2]
+                            mat4.copy(matrix, mx)
+                        }
                         break
                     }
                 }

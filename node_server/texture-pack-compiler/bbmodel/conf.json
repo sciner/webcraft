@@ -20,7 +20,8 @@
         {"name": "chest", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "anvil", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "tnt", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "ladder", "shift": {"x": 8, "y": 0, "z": -8}}
+        {"name": "ladder", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "chain", "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -280,26 +281,37 @@
                 "rotate": {"type": "cardinal_direction"}
             },
             "can_rotate": true
-        }
-    ],
-    "_blocks": [
+        },
         {
-            "id": 416,
-            "name": "BB_BABOCHKA",
-            "sound": "madcraft:block.wood",
+            "id": 617,
+            "name": "CHAIN",
             "style": "bbmodel",
+            "passable": 0,
             "transparent": true,
             "can_rotate": true,
-            "spawnable": false,
-            "material": {
-                "id": "wood"
+            "aabb_size": {"x": 4.5, "y": 16, "z": 4.5},
+            "_inventory": {
+                "style": "extruder",
+                "texture": "item/chain.png"
             },
-            "tags":[
-                "no_drop_ao"
+            "_aabb_size": {"x": 4.5, "y": 16, "z": 4.5},
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "iron"
+            },
+            "tags": [
+                "no_drop_ao",
+                "no_random_pos",
+                "rotate_by_pos_n"
             ],
             "texture": {
-                "id": "babochka",
-                "side": "block/quartz_block_side.png"
+                "id": "chain",
+                "side": "block/chain.png"
+            },
+            "bb": {
+                "model": "chain",
+                "behavior": "chain",
+                "rotate": {"type": "three"}
             }
         }
     ]

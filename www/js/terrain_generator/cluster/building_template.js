@@ -100,7 +100,11 @@ export class BuilgingTemplate {
             if(block.block_id > 0) {
                 block.mat = bm.fromId(block.block_id)
                 if(block.mat.chest) {
+                    const type = block.extra_data?.type ?? null
                     block.extra_data = {slots: {}}
+                    if(type) {
+                        block.extra_data.type = type
+                    }
                 }
                 all_blocks.set(block.move, block)
             }
