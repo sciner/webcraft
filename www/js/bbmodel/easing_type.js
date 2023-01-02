@@ -6,74 +6,71 @@
 
 export const EasingType = new Map()
 
-EasingType.set('linear', (result, a, b, percent, args) => easyLinear(result, a, b, percent, linear, args))
-EasingType.set('step', (result, a, b, percent, args) => easyLinear(result, a, b, percent, step, args))
+EasingType.set('linear', (percent, args) => easyLinear(percent, linear, args))
+EasingType.set('step', (percent, args) => easyLinear(percent, step, args))
 
-EasingType.set('easeInCubic', (result, a, b, percent, args) => easeIn(result, a, b, percent, cubic, args))
-EasingType.set('easeOutCubic', (result, a, b, percent, args) => easeOut(result, a, b, percent, cubic, args))
-EasingType.set('easeInOutCubic', (result, a, b, percent, args) => easeInOut(result, a, b, percent, cubic, args))
+EasingType.set('easeInCubic', (percent, args) => easeIn(percent, cubic, args))
+EasingType.set('easeOutCubic', (percent, args) => easeOut(percent, cubic, args))
+EasingType.set('easeInOutCubic', (percent, args) => easeInOut(percent, cubic, args))
 
-EasingType.set('easeInBounce', (result, a, b, percent, args) => easeIn(result, a, b, percent, bounce, args))
-EasingType.set('easeOutBounce', (result, a, b, percent, args) => easeOut(result, a, b, percent, bounce, args))
-EasingType.set('easeInOutBounce', (result, a, b, percent, args) => easeInOut(result, a, b, percent, bounce, args))
+EasingType.set('easeInBounce', (percent, args) => easeIn(percent, bounce, args))
+EasingType.set('easeOutBounce', (percent, args) => easeOut(percent, bounce, args))
+EasingType.set('easeInOutBounce', (percent, args) => easeInOut(percent, bounce, args))
 
-EasingType.set('easeInBack', (result, a, b, percent, args) => easeIn(result, a, b, percent, back, args))
-EasingType.set('easeOutBack', (result, a, b, percent, args) => easeOut(result, a, b, percent, back, args))
-EasingType.set('easeInOutBack', (result, a, b, percent, args) => easeInOut(result, a, b, percent, back, args))
+EasingType.set('easeInBack', (percent, args) => easeIn(percent, back, args))
+EasingType.set('easeOutBack', (percent, args) => easeOut(percent, back, args))
+EasingType.set('easeInOutBack', (percent, args) => easeInOut(percent, back, args))
 
-EasingType.set('easeInSine', (result, a, b, percent, args) => easeIn(result, a, b, percent, sine, args))
-EasingType.set('easeOutSine', (result, a, b, percent, args) => easeOut(result, a, b, percent, sine, args))
-EasingType.set('easeInOutSine', (result, a, b, percent, args) => easeInOut(result, a, b, percent, sine, args))
+EasingType.set('easeInSine', (percent, args) => easeIn(percent, sine, args))
+EasingType.set('easeOutSine', (percent, args) => easeOut(percent, sine, args))
+EasingType.set('easeInOutSine', (percent, args) => easeInOut(percent, sine, args))
 
-EasingType.set('easeInQuad', (result, a, b, percent, args) => easeIn(result, a, b, percent, quadratic, args))
-EasingType.set('easeOutQuad', (result, a, b, percent, args) => easeOut(result, a, b, percent, quadratic, args))
-EasingType.set('easeInOutQuad', (result, a, b, percent, args) => easeInOut(result, a, b, percent, quadratic, args))
+EasingType.set('easeInQuad', (percent, args) => easeIn(percent, quadratic, args))
+EasingType.set('easeOutQuad', (percent, args) => easeOut(percent, quadratic, args))
+EasingType.set('easeInOutQuad', (percent, args) => easeInOut(percent, quadratic, args))
 
-EasingType.set('easeInCirc', (result, a, b, percent, args) => easeIn(result, a, b, percent, circle, args))
-EasingType.set('easeOutCirc', (result, a, b, percent, args) => easeOut(result, a, b, percent, circle, args))
-EasingType.set('easeInOutCirc', (result, a, b, percent, args) => easeInOut(result, a, b, percent, circle, args))
+EasingType.set('easeInCirc', (percent, args) => easeIn(percent, circle, args))
+EasingType.set('easeOutCirc', (percent, args) => easeOut(percent, circle, args))
+EasingType.set('easeInOutCirc', (percent, args) => easeInOut(percent, circle, args))
 
-EasingType.set('easeInQuart', (result, a, b, percent, args) => easeIn(result, a, b, percent, pow(4), args))
-EasingType.set('easeOutQuart', (result, a, b, percent, args) => easeOut(result, a, b, percent, pow(4), args))
-EasingType.set('easeInOutQuart', (result, a, b, percent, args) => easeInOut(result, a, b, percent, pow(4), args))
+EasingType.set('easeInQuart', (percent, args) => easeIn(percent, pow(4), args))
+EasingType.set('easeOutQuart', (percent, args) => easeOut(percent, pow(4), args))
+EasingType.set('easeInOutQuart', (percent, args) => easeInOut(percent, pow(4), args))
 
-EasingType.set('easeInQuint', (result, a, b, percent, args) => easeIn(result, a, b, percent, pow(4), args))
-EasingType.set('easeOutQuint', (result, a, b, percent, args) => easeOut(result, a, b, percent, pow(5), args))
-EasingType.set('easeInOutQuint', (result, a, b, percent, args) => easeInOut(result, a, b, percent, pow(5), args))
+EasingType.set('easeInQuint', (percent, args) => easeIn(percent, pow(4), args))
+EasingType.set('easeOutQuint', (percent, args) => easeOut(percent, pow(5), args))
+EasingType.set('easeInOutQuint', (percent, args) => easeInOut(percent, pow(5), args))
 
-EasingType.set('easeInExpo', (result, a, b, percent, args) => easeIn(result, a, b, percent, exp, args))
-EasingType.set('easeOutExpo', (result, a, b, percent, args) => easeOut(result, a, b, percent, exp, args))
-EasingType.set('easeInOutExpo', (result, a, b, percent, args) => easeInOut(result, a, b, percent, exp, args))
+EasingType.set('easeInExpo', (percent, args) => easeIn(percent, exp, args))
+EasingType.set('easeOutExpo', (percent, args) => easeOut(percent, exp, args))
+EasingType.set('easeInOutExpo', (percent, args) => easeInOut(percent, exp, args))
 
-EasingType.set('easeInElastic', (result, a, b, percent, args) => easeIn(result, a, b, percent, elastic, args))
-EasingType.set('easeOutElastic', (result, a, b, percent, args) => easeOut(result, a, b, percent, elastic, args))
-EasingType.set('easeInOutElastic', (result, a, b, percent, args) => easeInOut(result, a, b, percent, elastic, args))
+EasingType.set('easeInElastic', (percent, args) => easeIn(percent, elastic, args))
+EasingType.set('easeOutElastic', (percent, args) => easeOut(percent, elastic, args))
+EasingType.set('easeInOutElastic', (percent, args) => easeInOut(percent, elastic, args))
 
-EasingType.set('catmullRom', (result, a, b, percent, args) => easeInOut(result, a, b, percent, catmullRom, args))
+EasingType.set('catmullRom', (percent, args) => easeInOut(percent, catmullRom, args))
 
-function easyLinear(result, a, b, percent, func, args) {
-    const value = func(percent, ...args)
-    result.lerpFrom(a, b, value);
+function easyLinear(percent, func, args) {
+    return func(percent, ...args)
 }
 
-function easeIn(result, a, b, percent, func, args) {
-    const value = func(percent, ...args)
-    result.lerpFrom(a, b, value);
+function easeIn(percent, func, args) {
+    return func(percent, ...args)
 }
 
-function easeOut(result, a, b, percent, func, args) {
-    const value = 1 - func(1 - percent, ...args)
-    result.lerpFrom(a, b, value);
+function easeOut(percent, func, args) {
+    return 1 - func(1 - percent, ...args)
 }
 
-function easeInOut(result, a, b, percent, func, args) {
+function easeInOut(percent, func, args) {
     let value
     if (percent < 0.5) {
         value = func(percent * 2, ...args) / 2
     } else {
         value = 1 - func((1 - percent) * 2, ...args) / 2
     }
-    result.lerpFrom(a, b, value);
+    return value;
 }
 
 // Math functions

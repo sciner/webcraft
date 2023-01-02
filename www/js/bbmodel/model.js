@@ -113,11 +113,13 @@ export class BBModel_Model {
                     }
 
                     const func = EasingType.get(func_name)
+                    let t = 0;
                     if(func) {
-                        func(point, current_point, next_point, percent, args || [])
+                        t = func(percent, args || [])
                     } else {
                         throw 'error_not_supported_keyframe_interpolation_method';
                     }
+                    point.lerpFrom(current_point, next_point, t);
 
                     group.animations.push({channel_name, point})
 
@@ -224,9 +226,17 @@ export class BBModel_Model {
                     }
                     // pase data points
                     for(let i = 0; i < keyframe.data_points.length; i++) {
-                        keyframe.data_points[i] = new Vector(keyframe.data_points[i]);
-                        if(keyframe.channel == 'position') {
-                            keyframe.data_points[i].divScalar(16);
+                        const dp = keyframe.data_points[i] =
+                            new Vector(
+                                +keyframe.data_points[i].x,
+                                +keyframe.data_points[i].y,
+                                +keyframe.data_points[i].z,
+                            );
+                        if(keyframe.channel === 'position') {
+                            dp.divScalar(16);
+                        } else if (keyframe.channel === 'rotation') {
+                            dp.y = -dp.y;
+                            //dp.z = -dp.z;
                         }
                     }
                     channel.push(keyframe);
@@ -392,31 +402,35 @@ export class BBModel_Model {
 
         // rotation
         const rotation = el.rotation;
-        if(Array.isArray(rotation)) {
-            resp.rot.set(
-                rotation[0],
-                -rotation[1],
-                -rotation[2]
-            );
-        } else if(rotation && 'angle' in rotation) {
+        if (rotation) {
+            if (Array.isArray(rotation)) {
+                resp.rot.set(
+                    rotation[0],
+                    rotation[1],
+                    rotation[2]
+                );
+            } else if ('angle' in rotation) {
 
-            const angle = rotation.angle;
+                const angle = rotation.angle;
 
-            switch(rotation.axis) {
-                case 'x': {
-                    resp.rot.x = angle;
-                    break;
+                switch (rotation.axis) {
+                    case 'x': {
+                        resp.rot.x = angle;
+                        break;
+                    }
+                    case 'y': {
+                        resp.rot.y = angle;
+                        break;
+                    }
+                    case 'z': {
+                        resp.rot.z = angle;
+                        break;
+                    }
                 }
-                case 'y': {
-                    resp.rot.y = -angle;
-                    break;
-                }
-                case 'z': {
-                    resp.rot.z = -angle;
-                    break;
-                }
+
             }
-
+            resp.rot.y *= -1;
+            resp.rot.z *= -1;
         }
 
         return resp;
