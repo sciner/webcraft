@@ -39,25 +39,13 @@ export default class Mesh_Object_Rain {
     constructor(render, type, chunkManager) {
 
         this.life           = 1;
-        this.type           = type;
+        this.type           = null;
         this.chunkManager   = chunkManager;
         this.player         = render.player;
-        
-        // Material (rain)
-        const mat = render.defaultShader.materials.doubleface_transparent;
-
-        // Material
-        this.material = mat.getSubMat(render.renderBackend.createTexture({
-            source: Resources.weather[type],
-            blendMode: BLEND_MODES.MULTIPLY,
-            minFilter: 'nearest',
-            magFilter: 'nearest'
-        }));
-        
-        if (this.type == 'rain') {
-            this.sound_id = Qubatch.sounds.play('madcraft:environment', 'rain', null, true);  
-        }
-
+        this.prev_type      = null;
+        this.material       = null;
+        this.render         = render;
+        this.sound_id       = null;
     }
 
     /**
@@ -67,7 +55,30 @@ export default class Mesh_Object_Rain {
      * @returns 
      */
     createBuffer(c) {
-
+        const biome = Qubatch.player.getOverChunkBiomeId();
+        // @todo не понятно какие биомы снежные
+        const type = [31, 30, 26, 12].includes(biome) ? 'snow' : 'rain';
+        if (type != this.prev_type) {
+            if (this.sound_id) {
+                Qubatch.sounds.stop(this.sound_id);
+                this.sound_id = null;
+            }
+            if (type == 'rain') {
+                this.sound_id = Qubatch.sounds.play('madcraft:environment', 'rain', null, true);
+            }
+            // Material (rain)
+            const mat = this.render.defaultShader.materials.doubleface_transparent;
+            // Material
+            this.material = mat.getSubMat(this.render.renderBackend.createTexture({
+                source: Resources.weather[type],
+                blendMode: BLEND_MODES.MULTIPLY,
+                minFilter: 'nearest',
+                magFilter: 'nearest'
+            }));
+            this.prev_type = type;
+            this.type = type;
+        }
+        
         const snow      = this.type == 'snow';
         const vertices  = [];
         const lm        = new IndexedColor((snow ? SNOW_SPEED_X : 0), snow ? SNOW_SPEED : RAIN_SPEED, 0);
