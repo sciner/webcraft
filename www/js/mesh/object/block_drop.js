@@ -237,8 +237,10 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             mx = matrix
         }
 
-        // this.mesh_group.draw(render, this.pos, mx, null);
-        Qubatch.player.arm.draw(render, this.pos, mx, null);
+        this.mesh_group.draw(render, this.pos, mx, null);
+
+        // TODO: Включить, чтобы рисовалась рука BBMODEL
+        // Qubatch.player.arm.draw(render, this.pos, mx, null);
 
     }
 
