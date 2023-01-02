@@ -39,7 +39,7 @@ export class Mesh_Object_BBModel {
         this.start_time     = performance.now();
         this.resource_pack  = render.world.block_manager.resource_pack_manager.get('bbmodel');
 
-        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/regular/terrain/${model.name}`);
+        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/regular/terrain/${model.model._properties.texture_id}`);
         this.vertices       = [];
         this.buffer         = new GeometryTerrain(this.vertices);
         this.redraw();

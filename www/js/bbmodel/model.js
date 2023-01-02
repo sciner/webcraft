@@ -113,14 +113,12 @@ export class BBModel_Model {
                     }
 
                     const func = EasingType.get(func_name)
-                    let t = 0;
-                    if(func) {
-                        t = func(percent, args || [])
-                    } else {
-                        throw 'error_not_supported_keyframe_interpolation_method';
+                    if(!func) {
+                        throw `error_not_supported_keyframe_interpolation_method|${next_keyframe.easing}`
                     }
-                    point.lerpFrom(current_point, next_point, t);
 
+                    const t = func(percent, args || [])
+                    point.lerpFrom(current_point, next_point, t)
                     group.animations.push({channel_name, point})
 
                 }

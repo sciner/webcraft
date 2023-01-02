@@ -5,23 +5,17 @@
     },
     "textures": {},
     "bbmodels": [
-        {"name": "garbage_monster", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "bookshelf", "shift": {"x": 8, "y": 0, "z": -8}},
-        {"name": "black_big_can", "shift": {"x": 8, "y": 0, "z": -8}},
-        {"name": "reaper", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "mini_dragon", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "babochka", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "eset", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "torch", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "fence", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "pot", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "stairs", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "shulker", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "chest", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "anvil", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "tnt", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "ladder", "shift": {"x": 8, "y": 0, "z": -8}},
-        {"name": "chain", "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "arm",         "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "ladder",      "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "torch",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "fence",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "pot",         "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "stairs",      "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "shulker",     "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "chest",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "anvil",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "tnt",         "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "chain",       "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -65,10 +59,6 @@
                     {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.5}]},
                     {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.25}]}
                 ]
-            },
-            "texture": {
-                "id": "torch",
-                "side": "block/torch.png"
             }
         },
         {
@@ -86,11 +76,7 @@
             },
             "tags":[
                 "no_drop_ao"
-            ],
-            "texture": {
-                "id": "fence",
-                "side": "block/oak_planks.png"
-            }
+            ]
         },
         {
             "id": 650,
@@ -110,11 +96,6 @@
             "bb": {
                 "model": "pot",
                 "behavior": "pot"
-            },
-            "texture": {
-                "id": "pot",
-                "side": "block/flower_pot.png",
-                "down": "block/dirt.png"
             }
         },
         {
@@ -134,10 +115,6 @@
                 "model": "stairs",
                 "behavior": "stairs",
                 "_rotate": {"type": "cardinal_direction"}
-            },
-            "texture": {
-                "id": "stairs",
-                "side": "block/oak_planks.png"
             }
         },
         {
@@ -161,10 +138,6 @@
                 "model": "chest",
                 "behavior": "chest",
                 "rotate": {"type": "cardinal_direction"}
-            },
-            "texture": {
-                "id": "chest",
-                "side": "block/oak_planks.png"
             }
         },
         {
@@ -190,11 +163,7 @@
             },
             "tags": [
                 "store_items_in_chest"
-            ],
-            "texture": {
-                "id": "shulker",
-                "side": "block/oak_planks.png"
-            }
+            ]
         },
         {
             "id": 195,
@@ -206,13 +175,6 @@
             "can_rotate": true,
             "material": {
                 "id": "iron"
-            },
-            "texture": {
-                "id": "anvil",
-                "up": "block/anvil_top.png",
-                "side": "block/anvil.png",
-                "north": "block/chipped_anvil_top.png",
-                "south": "block/damaged_anvil_top.png"
             },
             "bb": {
                 "model": "anvil",
@@ -236,12 +198,6 @@
                 "id": "stone"
             },
             "redstone": {},
-            "texture": {
-                "id": "tnt",
-                "up": "block/tnt_top.png",
-                "down": "block/tnt_bottom.png",
-                "side": "block/tnt_side.png"
-            },
             "bb": {
                 "model": "tnt",
                 "behavior": "tnt"
@@ -266,10 +222,6 @@
             "sound": "madcraft:block.wood",
             "material": {
                 "id": "wood"
-            },
-            "texture": {
-                "id": "ladder",
-                "side": "block/ladder.png"
             },
             "tags": [
                 "ladder",
@@ -304,10 +256,6 @@
                 "no_random_pos",
                 "rotate_by_pos_n"
             ],
-            "texture": {
-                "id": "chain",
-                "side": "block/chain.png"
-            },
             "bb": {
                 "model": "chain",
                 "behavior": "chain",

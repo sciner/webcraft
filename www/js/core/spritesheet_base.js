@@ -247,6 +247,18 @@ export class Spritesheet_Base {
         }
     }
 
+    clearMapPlaces(places) {
+        for(let place of places) {
+            const {x, y, width, height} = place
+            for(let i = 0; i < width; i++) {
+                for(let j = 0; j < height; j++) {
+                    const index = this.XYToIndex(x + i, y + j);
+                    this.map[index] = null
+                }
+            }
+        }
+    }
+
     RGBToHSL(r, g, b) {
         r /= 255;
         g /= 255;
