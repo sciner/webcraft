@@ -9,6 +9,80 @@ import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
 
+export class HelpSlot extends Label {
+
+    constructor(x, y, sz, id, ct) {
+        super(x, y, sz, sz, id, null, null);
+        this.ct = ct;
+        this.item = null;
+    }
+    
+    setItem(id) {
+        this.item = id;
+    }
+    
+    //
+    get tooltip() {
+        let resp = null;
+        if(this.item) {
+            const block = BLOCK.fromId(this.item);
+            if(block) {
+                resp = block.name.replaceAll('_', ' ') + ` (#${this.item})`;
+            }
+        }
+        return resp;
+    }
+    
+    // Draw slot
+    draw(ctx, ax, ay) {
+        if (this.ct.lblResultSlot.item) {
+            return;
+        }
+        for(const slot of this.ct.craft.slots) {
+            if (slot.item) {
+                return;
+            }
+        } 
+        this.applyStyle(ctx, ax, ay);
+        this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
+        this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
+        super.draw(ctx, ax, ay);
+    }
+
+    // Draw item
+    drawItem(ctx, item, x, y, width, height) {
+        
+        const image = Qubatch.player.inventory.inventory_image;
+
+        if(!image || !item) {
+            return;
+        }
+        
+        const size = image.width;
+        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
+        const zoom = this.zoom;
+        const mat = BLOCK.fromId(item);
+
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. Draw icon
+        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
+        const dest_icon_size = 40 * zoom;
+        ctx.drawImage(
+            image,
+            icon.x,
+            icon.y,
+            icon.width,
+            icon.height,
+            x + width / 2 - dest_icon_size / 2,
+            y + height / 2 - dest_icon_size / 2,
+            dest_icon_size,
+            dest_icon_size
+        );
+    }
+
+}
+
 export class CraftTableSlot extends Label {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
@@ -35,10 +109,14 @@ export class CraftTableSlot extends Label {
     }
 
     setItem(item) {
-        if(this.slot_index !== null) {
+        if(this.slot_index !== null) {   
             Qubatch.player.inventory.setItem(this.slot_index, item);
         } else {
             this.item = item;
+            // @todo странная штука, но зато наслеуется
+            if (this.ct.area) {
+                this.ct.setHelperSlots(null);
+            }
         }
     }
 
@@ -257,24 +335,33 @@ export class CraftTableInventorySlot extends CraftTableSlot {
      * @param {Float} x - screen poition x
      * @param {Float} y - screen poition y
      * @param {BaseChestWindow} ct - parent window
+     * @param {Object} options - optonal parameters:
+     *  { readonly, onMouseEnterBackroundColor, disableIfLoading }
      */
-    constructor(x, y, w, h, id, title, text, ct, slot_index, readonly) {
+    constructor(x, y, w, h, id, title, text, ct, slot_index, options = null) {
         
         super(x, y, w, h, id, title, text, ct, slot_index);
 
-        this.readonly = readonly;
+        this.options = options || {};
 
         // Custom drawing
         this.onMouseEnter = function() {
-            this.style.background.color = '#ffffff55';
+            if (this.options.disableIfLoading && this.ct.loading) {
+                return;
+            }
+            this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55';
         }
 
         this.onMouseLeave = function() {
+            // don't disable it if loading
             this.style.background.color = '#00000000';
         }
 
         // Drag
         this.onMouseDown = function(e) {
+            if (this.options.disableIfLoading && this.ct.loading) {
+                return;
+            }
             const that        = this;
             const player      = Qubatch.player;
             const targetItem  = this.getInventoryItem();
@@ -285,6 +372,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(e.drag.getItem()) {
                 return;
             }
+            
             let dragItem = targetItem;
             // right button (divide to 2)
             if(e.button_id == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
@@ -322,6 +410,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         case 'frmEnderChest':
                         case 'frmFurnace':
                         case 'frmChargingStation': {
+                            if (this.ct.loading) {
+                                break; // prevent spreading to the slots that are not ready
+                            }
                             let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;
@@ -357,9 +448,12 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
 
         // if slot is readonly
-        if(!readonly) {
+        if(!this.readonly) {
             // Drop
             this.onDrop = function(e) {
+                if (this.options.disableIfLoading && this.ct.loading) {
+                    return;
+                }
                 let player      = Qubatch.player;
                 let that        = this;
                 let drag        = e.drag;
@@ -477,8 +571,15 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         this.getInventory().clearDragItem();
                     }
                 }
+                if (dropData.item.count === 0) {
+                    player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
+                }
             }
         }
+    }
+
+    get readonly() {
+        return !!this.options.readonly;
     }
 
     /**
@@ -812,6 +913,37 @@ export class BaseCraftWindow extends Window {
             }
         } catch(e) {
             debugger
+        }
+    }
+    
+    // слоты помощи в крафте
+    addHelpSlots() {
+        const size = this.area.size.width;
+        const sx = (size == 2) ? 196 : 60.5;
+        const sy = (size == 2) ? 36 : 34.5;
+        this.help_slots = [];
+        for (let i = 0; i < size; i++) {
+            for (let j = 0; j < size; j++) {
+                const slot = new HelpSlot((sx + 36 * j) * this.zoom, (sy + 36 * i) * this.zoom, 32 * this.zoom, 'help_' + i + '_' + j, this);
+                this.help_slots.push(slot);
+                this.add(slot);
+            }
+        }
+    }
+    
+    // показываем помощь
+    setHelperSlots(recipe) {
+        const size = this.area.size.width;
+        for (let i = 0; i < size * size; i++) {
+            this.help_slots[i].setItem(null);
+        }
+        if (recipe) {
+            const adapter = recipe.adaptivePattern[size];
+            if (adapter) {
+                for (let i = 0; i < adapter.array_id.length; i++) {
+                    this.help_slots[i + adapter.start_index].setItem(adapter.array_id[i]);
+                }
+            }
         }
     }
 

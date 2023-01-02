@@ -25,7 +25,7 @@ export class BBModel_Child {
         arr[0] /= TX_SIZE;
         arr[1] /= TX_SIZE;
         arr[2] /= TX_SIZE;
-        quat.fromEuler(tempQuat, rot.x, rot.y, rot.z, "xyz");
+        quat.fromEuler(tempQuat, rot.x, rot.y, rot.z, "zyx");
         mat4.fromRotationTranslationScaleOrigin(matrix, tempQuat, zeroArr, oneArr, arr);
     }
 

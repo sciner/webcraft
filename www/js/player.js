@@ -24,6 +24,7 @@ const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 const SNEAK_HEIGHT                      = .78; // in percent
 const SNEAK_CHANGE_PERIOD               = 150; // in msec
+const MOVING_MIN_BLOCKS_PER_SECOND      = 0.1; // the minimum actual speed at which moving animation is played
 
 export const PLAYER_STATUS_DEAD         = 0;
 /* A player with this status is alive, but doesn't move or interat with the world
@@ -694,7 +695,9 @@ export class Player {
                 }
             }
             this.lerpPos.roundSelf(8);
-            this.moving     = !this.lerpPos.round(3).equal(this.posO.round(3)) && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);
+            const minMovingDist = delta * MOVING_MIN_BLOCKS_PER_SECOND;
+            this.moving     = this.lerpPos.distanceSqr(this.posO) > minMovingDist * minMovingDist
+                && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);
             this.running    = this.controls.sprint;
             this.in_water_o = this.in_water;
             this.isOnLadder = pc.player_state.isOnLadder;

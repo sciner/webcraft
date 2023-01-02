@@ -1,5 +1,5 @@
 import { Button, Label } from "../../tools/gui/wm.js";
-import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
+import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot, HelpSlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE, INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
@@ -81,10 +81,14 @@ export class InventoryWindow extends BaseCraftWindow {
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(306 * this.zoom, 54 * this.zoom);
         
+        // слоты (лабел) для подсказок
+        this.addHelpSlots();
+        
         // Обработчик открытия формы
         this.onShow = function() {
             Qubatch.releaseMousePointer();
             this.previewSkin();
+            this.setHelperSlots(null);
         }
 
         // Обработчик закрытия формы
@@ -111,7 +115,7 @@ export class InventoryWindow extends BaseCraftWindow {
         }
 
         // Add labels to window
-        let lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create);
+        const lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create);
         ct.add(lbl1);
 
         // Add close button
@@ -192,7 +196,7 @@ export class InventoryWindow extends BaseCraftWindow {
             // use the cached skin image, if available
             const img = Qubatch.world.players.getMyself()?.skinImage;
             // it doesn't return a promise when an image is supplied
-            this.skinViewer.loadSkin(img || skin.file, {model})?.then(drawOneFrame);
+            this.skinViewer.loadSkin(img || skin.file, {model})?.then(() => drawOneFrame());
             if (img) {
                 drawOneFrame();
             }
@@ -242,9 +246,9 @@ export class InventoryWindow extends BaseCraftWindow {
             console.error('createCraftSlots() already created');
             return;
         }
-        let sx          = 194 * this.zoom;
-        let sy          = 34 * this.zoom;
-        let xcnt        = 2;
+        const sx          = 194 * this.zoom;
+        const sy          = 34 * this.zoom;
+        const xcnt        = 2;
         this.craft = {
             slots: [null, null, null, null]
         };

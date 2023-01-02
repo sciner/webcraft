@@ -447,11 +447,20 @@ export class Window {
         this.onShow(args);
     }
     hide() {
+        const wasVisible = this.visible;
         this.visible = false;
         this.resetHover();
-        this.onHide();
+        this.onHide(wasVisible);
         if(typeof Qubatch !== 'undefined' && Qubatch.hud) {
             Qubatch.hud.prevDrawTime = 0;
+        }
+    }
+    hideAndSetupMousePointer() {
+        this.hide();
+        try {
+            Qubatch.setupMousePointer(true);
+        } catch(e) {
+            console.error(e);
         }
     }
     resetHover() {
@@ -482,7 +491,7 @@ export class Window {
                 visible_windows.push(w);
             }
         }
-        visible_windows.sort((a, b) => b.z - a.z);
+        visible_windows.sort((a, b) => a.z - b.z);
         for(let w of visible_windows) {
             let old_hover = w.hover;
             w.hover = false;
@@ -508,7 +517,7 @@ export class Window {
             }
         }
         if(entered.length + leaved.length > 0) {
-            // console.log(entered.length, leaved.length, entered[0]);
+             //console.log(entered.length, leaved.length, entered[0]);
             if(entered.length > 0) {
                 //if(entered[0]?.tooltip) {
                     // @todo possible bug
@@ -817,6 +826,15 @@ export class Window {
             }
 
         }
+    }
+    // fill background color
+    fillBackground(ctx, ax, ay, color) {
+        ctx.fillStyle = color
+        let x = ax + this.x;
+        let y = ay + this.y;
+        let w = this.width;
+        let h = this.height;
+        ctx.fillRect(x, y, w, h);
     }
     onUpdate() {
         // It's called every interation of the game loop for visible windows. Override it in the subclasses.

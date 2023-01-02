@@ -827,6 +827,10 @@ export class TBlock {
         return this.vec.add(this.tb.coord);
     }
 
+    get chunk_addr() {
+        return this.tb.addr;
+    }
+
     get has_oxygen() {
         if(!this.material.has_oxygen) {
             return false;
@@ -1124,6 +1128,28 @@ export class TBlock {
         this.entity_id = obj?.entity_id || null;
         this.power = obj?.power || null;
         this.rotate = obj?.rotate || null;
+    }
+
+    /**
+     * @param { boolean} top
+     */
+    canPlaceOnTopOrBottom(top = true) {
+        if(this.id < 1) return false
+        const mat = this.material
+        if(mat.is_solid || ['fence', 'beacon'].includes(mat.style)) return true
+        const extra_data = this.extra_data
+        const point = this.extra_data?.point
+        if(point && (top ? point.y >= .5 : point.y < .5)) {
+            if(mat.tags.includes('trapdoor') && extra_data?.opened) {
+                return false
+            }
+            return true
+        }
+        //
+        if(mat.tags.includes('rotate_by_pos_n_6')) {
+            return this.rotate.y != 0
+        }
+        return false
     }
 
 }

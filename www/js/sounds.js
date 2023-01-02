@@ -51,6 +51,9 @@ export class Sounds {
             this.add(item);
         }
 
+        // to prvent Howler from periodically suspend itself, which also suspends Tracker_Player
+        Howler.autoSuspend = false;
+
         Sounds.instance = this;
     }
 

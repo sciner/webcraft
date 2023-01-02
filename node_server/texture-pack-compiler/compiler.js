@@ -65,7 +65,7 @@ export class Compiler {
         // Predefined textures
         for(let texture of this.compile_data.predefined_textures) {
             const spritesheet = this.getSpritesheet(texture.spritesheet_id);
-            const tex = await spritesheet.loadTex(texture.image);
+            const tex = await spritesheet.loadTex(texture.image, DEFAULT_TEXTURE_SUFFIXES);
             const {sx, sy} = await spritesheet.drawTexture(tex.texture, texture.x, texture.y, texture.has_mask);
             // отрисовать картинку в маске с переводом всех непрозрачных пикселей в черный цвет
             if(texture.diff_to_mask || texture.diff_to_source) {
@@ -216,7 +216,7 @@ export class Compiler {
                         const has_mask = tags.includes('mask_biome') || tags.includes('mask_color');
                         const compile = block.compile;
                         if(!tex) {
-                            const img = await spritesheet.loadTex(value);
+                            const img = await spritesheet.loadTex(value, DEFAULT_TEXTURE_SUFFIXES);
                             //
                             if(img.texture.width == 16) {
                                 const scale = 2;
@@ -283,7 +283,7 @@ export class Compiler {
                                     }
                                 }
                             } else if(block.name == BLOCK_NAMES.MOB_SPAWN) {
-                                const img_glow = (await spritesheet.loadTex('block/spawner_glow.png')).texture;
+                                const img_glow = (await spritesheet.loadTex('block/spawner_glow.png', DEFAULT_TEXTURE_SUFFIXES)).texture;
                                 spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask);
                                 spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y + 1, has_mask);
                                 spritesheet.drawTexture(img_glow, tex.pos.x, tex.pos.y + 1, has_mask);
@@ -320,7 +320,7 @@ export class Compiler {
                             //
                             if(compile.layers) {
                                 for(let layer of compile.layers) {
-                                    const layer_img = await spritesheet.loadTex(layer.image);
+                                    const layer_img = await spritesheet.loadTex(layer.image, DEFAULT_TEXTURE_SUFFIXES);
                                     ctx.drawImage(this.imageOverlay(layer_img.texture, layer.overlay_color, w, h), x, y, w, h);
                                 }
                             }
@@ -381,7 +381,7 @@ export class Compiler {
                         const pos_arr = value.split('|');
                         tex = {pos: {x: parseFloat(pos_arr[0]), y: parseFloat(pos_arr[1])}};
                     } else {
-                        const img = await spritesheet.loadTex(value);
+                        const img = await spritesheet.loadTex(value, DEFAULT_TEXTURE_SUFFIXES);
                         tex = spritesheet.textures.get(value);
                         if(!tex) {
                             tex = {pos: spritesheet.findPlace(block, 1, 1)};
@@ -405,7 +405,7 @@ export class Compiler {
                     const spritesheet = this.getSpritesheet('default');
                     for(let i in block.stage_textures) {
                         const value = block.stage_textures[i];
-                        const img = await spritesheet.loadTex(value);
+                        const img = await spritesheet.loadTex(value, DEFAULT_TEXTURE_SUFFIXES);
                         let tex = spritesheet.textures.get(value);
                         if(!tex) {
                             tex = {pos: spritesheet.findPlace(block, 1, 1)};
@@ -427,7 +427,7 @@ export class Compiler {
                     for(let k of ['dot', 'line']) {
                         for(let i in block.redstone.textures[k]) {
                             const value = block.redstone.textures[k][i];
-                            const img = await spritesheet.loadTex(value);
+                            const img = await spritesheet.loadTex(value, DEFAULT_TEXTURE_SUFFIXES);
                             let tex = spritesheet.textures.get(value);
                             if(!tex) {
                                 tex = {pos: spritesheet.findPlace(block, 2, 1)};

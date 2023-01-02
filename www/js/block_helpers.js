@@ -67,3 +67,21 @@ RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.S] = new Vector(1, 0, 0);
 RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.W] = new Vector(0, 0, -1);
 RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.N] = new Vector(-1, 0, 0);
 RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.E] = new Vector(0, 0, 1);
+
+/**
+ * It tests whether a player is to far away to interct with a block, or both blocks.
+ * It's not exactly like pickat, and uses a margin to avoid false negatives.
+ */
+export function isBlockRoughlyWithinPickatRange(player, margin, pos, pos2 = null) {
+    const maxDist = player.game_mode.getPickatDistance() + margin;
+    const eyePos = player.getEyePos();
+    const blockCenter = new Vector(pos).addScalarSelf(0.5, 0.5, 0.5);
+    if (eyePos.distance(blockCenter) <= maxDist) {
+        return true;
+    }
+    if (pos2) {
+        blockCenter.copyFrom(pos2).addScalarSelf(0.5, 0.5, 0.5);
+        return eyePos.distance(blockCenter) <= maxDist;
+    }
+    return false;
+}

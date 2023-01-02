@@ -385,7 +385,7 @@ export class CompileData {
             {id: 522, type: 'creeper', skin: 'base'},
             {id: 523, type: 'pig', skin: 'base'},
             {id: 524, type: 'horse', skin: 'creamy'},
-            {id: 525, type: 'donkey', skin: 'base'},
+            {id: 525, type: 'horse', skin: 'base'},
             {id: 651, type: 'fox', skin: 'base'},
             {id: 1448, type: 'skeleton', skin: 'base'},
             {id: 1449, type: 'axolotl', skin: 'base'},

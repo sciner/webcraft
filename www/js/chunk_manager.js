@@ -769,7 +769,7 @@ export class ChunkManager {
                 id:         mat.id,
                 extra_data: null
             };
-            if(mat.is_chest) {
+            if(mat.chest) {
                 item.extra_data = { can_destroy: true, slots: {} };
             } else if(mat.tags.includes('sign')) {
                 item.extra_data = {

@@ -61,9 +61,13 @@ export class WorldMobManager {
         const chunk_addr = getChunkAddr(params.pos);
         const chunk = world.chunks.get(chunk_addr);
         if(chunk) {
-            const mob = await Mob.create(world, params);
-            chunk.addMob(mob);
-            return mob;
+            try {
+                const mob = await Mob.create(world, params);
+                chunk.addMob(mob);
+                return mob;
+            } catch(e) {
+                console.error('error_create_mob', e);
+            }
         } else {
             console.error('Chunk for mob not found');
         }

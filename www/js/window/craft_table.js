@@ -52,6 +52,7 @@ export class CraftTable extends BaseCraftWindow {
         // onShow
         this.onShow = function() {
             Qubatch.releaseMousePointer();
+            this.setHelperSlots(null);
         }
 
         // Ширина / высота слота
@@ -65,6 +66,9 @@ export class CraftTable extends BaseCraftWindow {
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(246 * this.zoom, 68 * this.zoom);
+        
+        // слоты (лабел) для подсказок
+        this.addHelpSlots();
 
         // Обработчик закрытия формы
         this.onHide = function() {
@@ -128,6 +132,7 @@ export class CraftTable extends BaseCraftWindow {
             let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);
             frmRecipe.toggleVisibility();
+            this.setHelperSlots(null);
         }
         ct.add(btnRecipes);
     }
@@ -149,14 +154,12 @@ export class CraftTable extends BaseCraftWindow {
             slots: [null, null, null, null, null, null, null, null, null]
         };
         for(let i = 0; i < ct.craft.slots.length; i++) {
-            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
+            const options = {
+                onMouseEnterBackroundColor: '#ffffff33'
+            };
+            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
+                'lblCraftRecipeSlot' + i, null, '' + i, this, null, options);
             lblSlot.is_craft_slot = true;
-            lblSlot.onMouseEnter = function() {
-                this.style.background.color = '#ffffff33';
-            }
-            lblSlot.onMouseLeave = function() {
-                this.style.background.color = '#00000000';
-            }
             ct.add(this.craft.slots[i] = lblSlot);
         }
     }
