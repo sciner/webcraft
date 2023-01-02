@@ -164,48 +164,6 @@ export class CraftTable extends BaseCraftWindow {
         }
     }
 
-    // собираем и проверяем шаблон
-    checkRecipe(area_size) {
-        let pattern_array = [];
-        for(let slot of this.craft.slots) {
-            if(!slot.item) {
-                if(pattern_array.length > 0) {
-                    pattern_array.push(null);
-                }
-            } else {
-                pattern_array.push(slot.item.id);
-            }
-        }
-        pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array, area_size);
-        let craft_result = this.lblResultSlot.recipe?.result || null;
-        if(!craft_result) {
-            let pattern_array2 = [];
-            // 2. Mirrored
-            for(let i = 0; i < 3; i++) {
-                for(let j = 2; j >= 0; j--) {
-                    let slot = this.craft.slots[i * 3 + j];
-                    if(!slot.item) {
-                        if(pattern_array.length > 0) {
-                            pattern_array2.push(null);
-                        }
-                    } else {
-                        pattern_array2.push(slot.item.id);
-                    }
-                }
-            }
-            pattern_array2 = pattern_array2.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-            this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array2, area_size);
-            craft_result = this.lblResultSlot.recipe?.result || null;
-        }
-        if(!craft_result) {
-            return this.lblResultSlot.setItem(null);
-        }
-        const resultBlock = BLOCK.convertItemToInventoryItem(BLOCK.fromId(craft_result.item_id), null, true)
-        resultBlock.count = craft_result.count;
-        this.lblResultSlot.setItem(resultBlock);
-    }
-
     getSlots() {
         return this.craft.slots;
     }

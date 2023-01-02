@@ -6,7 +6,7 @@ import {default as runes} from "../vendors/runes.js";
 
 const MAX_SIZE = 3;
 
-class Recipe {
+export class Recipe {
 
     constructor(recipe, variant_index, size, keys) {
 
@@ -15,14 +15,13 @@ class Recipe {
         this.size = size;
         this.fixPattern(this.pattern, keys);
 
-        //
-        this.adaptivePattern = {};
+        this.adaptivePatterns = {};
         for(let sz of [2, 3]) {
-            this.adaptivePattern[sz] = this.calcAdaptivePattern(this.pattern, keys, sz, sz);
+            this.adaptivePatterns[sz] = this.calcAdaptivePatterns(keys, sz, sz);
         }
 
         // Need resources
-        this.calcNeedResources(this.adaptivePattern[3].array_id);
+        this.calcNeedResources(this.adaptivePatterns[3][0]);
 
         //if(this.id == '8dafbca0-e5a4-46b3-8673-49c6e5e3a909') {
         //    console.log(this.pattern, this.adaptivePattern)
@@ -55,73 +54,186 @@ class Recipe {
         }
     }
 
-    // Need resources
-    calcNeedResources(pattern_array) {
+    /**
+     * @param adaptivePattern
+     * @returns {Array} resources - contains objects {
+     *      item_id: Array of Int
+     *      count: Int
+     *  }, see {@link Inventory.hasResources}
+     */
+    calcNeedResources(adaptivePattern) {
+        const { array_keys, array_id } = adaptivePattern;
         this.need_resources = new Map();
-        for(let item_id of pattern_array) {
-            if(!item_id) {
+        for(let i = 0; i < array_id.length; i++) {
+            const key = array_keys[i];
+            if(!key) {
                 continue;
             }
-            if(!this.need_resources.has(item_id)) {
-                this.need_resources.set(item_id, {
-                    item_id: item_id,   
+            if(!this.need_resources.has(key)) {
+                this.need_resources.set(key, {
+                    item_id: array_id[i],   
                     count: 0
                 });
             }
-            this.need_resources.get(item_id).count++;
+            this.need_resources.get(key).count++;
         }
-        this.need_resources = Array.from(this.need_resources, ([name, value]) => (value));
+        this.need_resources = [...this.need_resources.values()];
     }
 
     /**
-     * 
-     * @param {*} recipe 
-     * @param {*} pattern 
-     * @param {*} rows 
-     * @param {*} cols 
-     * @returns 
+     * Calculates an array of adaptive patterns for craft slots with the given number
+     * of columns. It may contain 1 or 2 elements (the second one is mirrored).
+     * @param keys
+     * @param {Int} rows - the maximum number of craft slot rows
+     * @param {Int} cols - the number of craft slots columns
+     * @returns a non-empty array of patterns, or null if there are no patterns.
      */
-    calcAdaptivePattern(pattern, keys, rows = 3, cols = 3) {
+    calcAdaptivePatterns(keys, rows, cols) {
 
-        // 1. check pattern size
-        for(let i in pattern) {
-            const rn = runes(pattern[i].trimRight());
-            if(rn.length > 0 && pattern.length - i > rows) return null;
-            if(rn.length > cols) return null;
+        function addAdaptivePattern() {
+            const array_id = [];
+            const array_keys = [];
+            let gap = 0;
+            for(let i = minRow; i <= maxRow; i++) {
+                for(let j = 0; j < cols; j++) {
+                    if (i * cols + j < start_index) {
+                        continue; // skip elements before the beginning of the 1st string
+                    }
+                    const key = rn[i][j];
+                    if (key !== ' ') {
+                        while(gap) {
+                            array_keys.push(null);
+                            array_id.push(null);
+                            gap--;
+                        }
+                        array_keys.push(key);
+                        array_id.push(keys[key]);
+                    } else {
+                        gap++;
+                    }
+                }
+            }
+            const adaptivePattern = { array_keys, array_id, start_index, filledWidth, filledHeight };
+            result.push(adaptivePattern);
         }
 
-        let array = [];
-        let start_index = -1;
+        // Array of Strings -> Array of Array of Runes (each rune = 1 complex unicode character?)
+        const rn = this.pattern.map(it => runes(it));
 
-        // 2. search start index
-        for(let i in pattern) {
-            const rn = runes(pattern[i]);
-            if(pattern.length - i > rows) continue;
-            for(let j = 0; j < rn.length; j++) {
-                if(j > cols - 1) continue;
-                array.push(rn[j]);
-                if(start_index < 0 && rn[j] != ' ') {
-                    start_index = (i - (pattern.length - rows)) * cols + j;
+        // Find actual the pattern size. We expect it to padded by spaces to MAX_SIZE x MAX_SIZE.
+        let minRow = Infinity;
+        let minCol = Infinity;
+        let maxRow = 0;
+        let maxCol = 0;
+        for(let i = 0; i < MAX_SIZE; i++) {
+            for(let j = 0; j < MAX_SIZE; j++) {
+                const key = rn[i][j];
+                if (key !== ' ') {
+                    if(!keys.hasOwnProperty(key)) {
+                        throw `error_invalid_recipe_pattern_key|${key}`;
+                    }
+                    minRow = Math.min(minRow, i);
+                    minCol = Math.min(minCol, j);
+                    maxRow = Math.max(maxRow, i);
+                    maxCol = Math.max(maxCol, j);
                 }
             }
         }
+        const start_index = minRow * cols + minCol;
 
-        array = array.join('').trim().split('');
+        // Check if it's not too big
+        const filledWidth = maxCol - minCol + 1;
+        const filledHeight = maxRow - minRow + 1;
+        if (filledHeight > rows || filledWidth > cols) {
+            return null;
+        }
 
-        //
-        const array_id = [];
-        array.map(function(key) {
-            if(key == ' ') {
-                array_id.push(null);
-            } else {
-                if(!keys.hasOwnProperty(key)) {
-                    throw `error_invalid_recipe_pattern_key|${key}`;
-                }
-                array_id.push(keys[key]);
+        const result = [];
+        addAdaptivePattern();
+        // try to mirror
+        let differs = false;
+        for(let i = minRow; i <= maxRow; i++) {
+            const row = rn[i];
+            for(let dj = 0; dj < (filledWidth * 0.5 | 0); dj++) {
+                const a = row[minCol + dj];
+                const b = row[maxCol - dj];
+                differs ||= (a !== b);
+                row[minCol + dj] = b;
+                row[maxCol - dj] = a;
             }
-        });
+        }
+        if (differs) {
+            addAdaptivePattern();
+        }
 
-        return {array, array_id, start_index};
+        return result;
+    }
+
+    /**
+     * @param {Array of Int} item_ids - for each crafting slot, id of its item, or null
+     * @param {Object} area_size - {width, height}
+     * @return {Object} - an object that contains all the necessary information to search
+     *  or match recipes to the given slots.
+     */
+    static craftingSlotsToSearchPattern(item_ids, area_size) {
+        const width = area_size.width;
+        // find the filled part size in the same way as in adaptive patterns
+        let minRow = Infinity;
+        let minCol = Infinity;
+        let maxRow = 0;
+        let maxCol = 0;
+        let end_index = null;
+        for(let i = 0; i < item_ids.length; i++) {
+            if (item_ids[i]) {
+                end_index = i;
+                const row = i / width | 0;
+                const col = i % width;
+                minRow = Math.min(minRow, row);
+                minCol = Math.min(minCol, col);
+                maxRow = Math.max(maxRow, row);
+                maxCol = Math.max(maxCol, col);
+            }
+        }
+        // form a short pattern, in the same was in adpative patterns
+        const start_index = minRow * width + minCol;
+        return end_index !== null ? {
+            start_index,
+            width,
+            height:         area_size.height,
+            filledWidth:    maxCol - minCol + 1,
+            filledHeight:   maxRow - minRow + 1,
+            array_id:       item_ids.slice(start_index, end_index + 1),
+            full_array_ids: item_ids
+        } : {
+            start_index,
+            width,
+            height:         area_size.height,
+            filledWidth:    0,
+            filledHeight:   0,
+            array_id:       [],
+            full_array_ids: item_ids
+        };
+    }
+
+    /**
+     * Finds an adaptive pattern (see {@link calcAdaptivePatterns}) that matches
+     * the given search pattern (see {@link craftingSlotsToSearchPattern}).
+     */
+    findAdaptivePattern(searchPattern) {
+        const {width, filledWidth, filledHeight, array_id} = searchPattern;
+        for(let ap of this.adaptivePatterns[width]) {
+            // test pattern
+            if (// if the filled area size matches (without this check, we might get false positives with cyclic horizontal shifts)
+                ap.filledHeight === filledHeight && ap.filledWidth === filledWidth &&
+                // and the elements match
+                ap.array_id.length === array_id.length &&
+                ap.array_id.every((ids, index) =>
+                    ids ? ids.includes(array_id[index]) : (array_id[index] === null)
+                )
+            ) {
+                return ap;
+            }
+        }
     }
 
 }
@@ -134,15 +246,14 @@ export class RecipeManager {
             list: [],
             grouped: [],
             map: new Map(),
-            searchRecipe: function(pattern_array, area_size) {
+            /**
+             * @param {Array of Int} pattern_array - array of item ids, one per slot of the input area.
+             * @param {Object} area_size {width, height}
+             */
+            searchRecipe: function(searchPattern) {
                 for(let recipe of this.list) {
-                    const ap = recipe.adaptivePattern[area_size.width];
-                    if(ap) {
-                        if(ap.array_id.length == pattern_array.length) {
-                            if(ap.array_id.every((val, index) => val === pattern_array[index])) {
-                                return recipe;
-                            }
-                        }
+                    if (recipe.findAdaptivePattern(searchPattern)) {
+                        return recipe;
                     }
                 }
                 return null;
@@ -199,6 +310,13 @@ export class RecipeManager {
                 recipe.result.item_id = result_block.id;
                 // Key variants
                 let keys_variants = [];
+                const blockNameToId = (block_name) => {
+                    let block = BLOCK.fromName(block_name);
+                    if(block.id == BLOCK.DUMMY.id) {
+                        throw `Invalid recipe key name '${block_name}'`;
+                    }
+                    return block.id;
+                }
                 const makeKeyVariants = (recipe_keys) => {
                     let keys = {};
                     for(let key of Object.keys(recipe_keys)) {
@@ -206,20 +324,23 @@ export class RecipeManager {
                         if(!value.hasOwnProperty('item')) {
                             throw 'Recipe key not have valid property `item` or `tag`';
                         }
-                        if(Array.isArray(value.item)) {
-                            for(let name of value.item) {
-                                let n = {...recipe_keys};
-                                n[key] = {item: name};
-                                makeKeyVariants(n)
+                        // To enable generation of a variant for each ingredient type, specify its property "same": true.
+                        // It creates a requirement that all ingredients of this key must be the same.
+                        // By default, it's disabled.
+                        const item = value.item;
+                        if (Array.isArray(item)) {
+                            if (value.same) {
+                                for(let name of item) {
+                                    let n = {...recipe_keys};
+                                    n[key] = {item: name};
+                                    makeKeyVariants(n);
+                                }
+                                return;
                             }
-                            return;
+                            keys[key] = item.map(it => blockNameToId(it));
+                        } else {
+                            keys[key] = [blockNameToId(item)];
                         }
-                        let block_name = value.item;
-                        let block = BLOCK.fromName(block_name);
-                        if(block.id == BLOCK.DUMMY.id) {
-                            throw `Invalid recipe key name '${block_name}'`;
-                        }
-                        keys[key] = block.id;
                     }
                     keys_variants.push(keys);
                 }
@@ -256,19 +377,6 @@ export class RecipeManager {
                 throw 'Invalid recipe type ' + recipe.type;
             }
         }
-    }
-
-    // Compare two patterns for equals
-    patternsIsEqual(p1, p2) {
-        if(p1.length != p2.length) {
-            return false;
-        }
-        for(let i of p1) {
-            if(p1[i] != p2[i]) {
-                return false;
-            }
-        }
-        return true;
     }
     
     md5s(text) {
@@ -402,7 +510,11 @@ export class RecipeManager {
             });
         }
         //
-        this.addOrePieces(recipes);
+        for (let block of BLOCK.getAll()) {
+            this.addOrePieces(recipes, block);
+            this.addStairs(recipes, block);
+            this.addPlanks(recipes, block);
+        }
         //
         for(let item of recipes) {
             if(!('id' in item)) {
@@ -421,16 +533,13 @@ export class RecipeManager {
         callback();
     }
 
-    addOrePieces(recipes) {
-        for (let piece of BLOCK.list.values()) {
-            if (!piece.piece_of) {
-                continue;
-            }
+    addOrePieces(recipes, piece) {
+        if (piece.piece_of) {
             const pieceName = piece.name;
             const ingotName = piece.piece_of;
             const ingot = BLOCK[ingotName];
             if (!ingot) {
-                continue;
+                return;
             }
             recipes.push({
                 "id": this.md5s(ingotName + '_TO_' + pieceName),
@@ -464,6 +573,86 @@ export class RecipeManager {
         }
     }
 
+    addStairs(recipes, resultBlock) {
+        const item = this.getAutoIngredients(resultBlock, '_STAIRS', 'stairs',
+            // Don't auto-detect '_BRICK' and '_BRICKS' to avoid confusion with NETHER.
+            // 'S' is for ***_BRICKS -> ***_BRICK_STAIRS, ***_TILES -> ***_TILE_STAIRS
+            [''], ['', 'S', '_PLANKS', '_PILLAR'],
+            // to distinguish between 'BRICK' and 'BRICKS', 'NETHER_BRICK' and 'NETHER_BRICKS'
+            { ignoreItems: true });
+        if (item) {
+            recipes.push({
+                "id": this.md5s(resultBlock.name),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "W  ",
+                    "WW ",
+                    "WWW"
+                ],
+                "key": {
+                    "W": { "item": item }
+                },
+                "result": {
+                    "item": "madcraft:" + resultBlock.name.toLowerCase(),
+                    "count": 4
+                }
+            });
+        }
+    }
+
+    addPlanks(recipes, resultBlock) {
+        const item = this.getAutoIngredients(resultBlock, '_PLANKS', 'planks',
+            ['', 'STRIPPED_'], ['_LOG', '_WOOD', '_STEM', '_HYPHAE']);
+        if (item) {
+            recipes.push({
+                "id": this.md5s(resultBlock.name),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "   ",
+                    "   ",
+                    "W  "
+                ],
+                "key": {
+                    "W": { "item": item }
+                },
+                "result": {
+                    "item": "madcraft:" + resultBlock.name.toLowerCase(),
+                    "count": 4
+                }
+            });
+        }
+    }
+
+    // Options: { ignoreItems }
+    getAutoIngredients(resultBlock, resultSuffix, configName, prefixes, suffixes, options = {}) {
+        const resultName = resultBlock.name;
+        if (!resultName.endsWith(resultSuffix)) {
+            return;
+        }
+        let item = null;
+        if (configName && resultBlock.recipes) {
+            item = resultBlock.recipes[configName] ?? null;
+            if (this.isItemDisabled(item)) {
+                return null;
+            }
+        }
+        if (!item) {
+            const nameBase = resultName.substring(0, resultName.length - resultSuffix.length);
+            for(let prefix of prefixes) {
+                for(let suffix of suffixes) {
+                    const ingredient = BLOCK[prefix + nameBase + suffix];
+                    if (!ingredient ||
+                        options.ignoreItems && ingredient.item
+                    ) {
+                        continue;
+                    }
+                    item = this.addToItem(item, ingredient.name);
+                }
+            }
+        }
+        return item ? this.preprocessItem(item) : null;
+    }
+
     // Group
     group() {
         const map = new Map();
@@ -486,4 +675,41 @@ export class RecipeManager {
         }
     }
 
+    preprocessIngredientName(name) {
+        if (name.includes(':')) {
+            return name;
+        }
+        return 'madcraft:' + name.toLowerCase();
+    }
+
+    // A helper method. Adds one more block name to to an item (possibly null).
+    // Returns a new item or a modified sorure item.
+    addToItem(item, name) {
+        name = this.preprocessIngredientName(name);
+        if (item == null) {
+            return name;
+        }
+        if (Array.isArray(item)) {
+            item.push(name);
+            return item;
+        }
+        return [item, name];
+    }
+
+    preprocessItem(item) {
+        if (item != null) {
+            if (Array.isArray(item)) {
+                for(let i = 0; i < item.length; i++) {
+                    item[i] = this.preprocessIngredientName(item[i]);
+                }
+            } else {
+                item = this.preprocessIngredientName(item);
+            }
+        }
+        return item;
+    }
+
+    isItemDisabled(item) {
+        return Array.isArray(item) && item.length === 0;
+    }
 }

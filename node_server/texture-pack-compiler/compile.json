@@ -1858,20 +1858,6 @@
             "texture": "block/mossy_cobblestone.png"
         },
         {
-            "id": 520,
-            "name": "MOSS_COBBLESTONE_STAIRS",
-            "style": "stairs",
-            "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
-            "material": {
-                "id": "stone"
-            },
-            "texture": "block/mossy_cobblestone.png",
-            "can_rotate": true
-        },
-        {
             "id": 56,
             "name": "DIAMOND_ORE",
             "sound": "madcraft:block.stone",
@@ -2393,20 +2379,6 @@
             "can_rotate": true
         },
         {
-            "id": 114,
-            "name": "NETHER_STAIRS",
-            "sound": "madcraft:block.stone",
-            "style": "stairs",
-            "material": {
-                "id": "netherrack"
-            },
-            "tags": [
-                "stairs"
-            ],
-            "texture": "block/nether_bricks.png",
-            "can_rotate": true
-        },
-        {
             "id": 122,
             "name": "QUARTZ_BLOCK",
             "sound": "madcraft:block.stone",
@@ -2709,19 +2681,6 @@
             "can_rotate": true
         },
         {
-            "id": 155,
-            "name": "QUARTZ",
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "quartz"
-            },
-            "texture": {
-                "up": "block/quartz_block_top.png",
-                "side": "block/quartz_block_side.png",
-                "down": "block/quartz_block_bottom.png"
-            }
-        },
-        {
             "id": 156,
             "name": "QUARTZ_STAIRS",
             "sound": "madcraft:block.stone",
@@ -2732,6 +2691,9 @@
             "tags": [
                 "stairs"
             ],
+            "recipes": {
+                "stairs": ["QUARTZ_BLOCK", "CHISELED_QUARTZ_BLOCK", "QUARTZ_PILLAR"]
+            },
             "texture": "block/quartz_block_top.png",
             "can_rotate": true
         },
@@ -6253,7 +6215,7 @@
             "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
-                "id": "stone"
+                "id": "quartz"
             },
             "height": 0.5,
             "layering": {
@@ -7023,7 +6985,7 @@
             "name": "QUARTZ_PILLAR",
             "sound": "madcraft:block.stone",
             "material": {
-                "id": "stone"
+                "id": "quartz"
             },
             "tags": [
                 "can_put_into_pot",
@@ -8625,6 +8587,19 @@
                 "id": "netherite"
             },
             "texture": "item/netherite_scrap.png"
+        },
+        {
+            "id": 497,
+            "name": "CRIMSON_PLANKS",
+            "sound": "madcraft:block.wood",
+            "tags": [
+                "can_put_into_pot",
+                "plank"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/crimson_planks.png"
         },
         {
             "id": 275,

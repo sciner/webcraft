@@ -5,6 +5,7 @@ import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
 import { Label, Window } from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
+import { Recipe } from "../recipes.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
@@ -285,7 +286,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
             }
             //
             that.used_recipes.push(recipe_id);
-            that.parent.checkRecipe(this.parent.area.size);
+            that.parent.checkRecipe();
         }
 
         // Drag & drop
@@ -310,7 +311,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
                     }
                 }
                 that.used_recipes.push(recipe_id);
-                that.parent.checkRecipe(this.parent.area.size);
+                that.parent.checkRecipe();
                 const next_item = this.getItem();
                 if(!e.shiftKey || !next_item || next_item.id != dragItem.id) {
                     break;
@@ -522,7 +523,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                                     player.inventory.setItem(v.index, null);
                                 }
                             }
-                            this.parent.lastChange.type = INVENTORY_CHANGE_MERGE_SMALL_STACKS;
+                            if (this.parent.lastChange) { // present in chests, not in craft windows
+                                this.parent.lastChange.type = INVENTORY_CHANGE_MERGE_SMALL_STACKS;
+                            }
                         }
                         return;
                     }
@@ -682,7 +685,7 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
     // Вызывается после изменения любой из её ячеек
     setItem(item) {
         super.setItem(item);
-        this.parent.checkRecipe(this.parent.area.size);
+        this.parent.checkRecipe();
     }
 
 }
@@ -834,6 +837,17 @@ export class BaseCraftWindow extends Window {
         }
     }
 
+    clearCraftSlotIfPosible(slot) {
+        let item = slot.getItem();
+        if(item) {
+            if (!this.inventory.increment(slot.item)) {
+                return false;
+            }
+            slot.setItem(null);
+        }
+        return true;
+    }
+
     clearCraft() {
         // Drag
         this.inventory.clearDragItem(true);
@@ -842,27 +856,23 @@ export class BaseCraftWindow extends Window {
         //
         for(let slot of this.craft.slots) {
             if(slot) {
-                let item = slot.getItem();
-                if(item) {
-                    this.inventory.increment(slot.item);
-                    slot.setItem(null);
-                }
+                this.clearCraftSlotIfPosible(slot);
             }
         }
     }
 
+    getCraftSlotItemsArray() {
+        return this.craft.slots.map(it => it?.item);
+    }
+
     //
-    getCurrentSlotsPattern() {
-        const current_slots_pattern = [];
+    getCurrentSlotsSearchPattern() {
+        const item_ids = [];
         for(let slot of this.craft.slots) {
             const item = slot.getItem();
-            if(item) {
-                current_slots_pattern.push(item.id);
-            } else {
-                current_slots_pattern.push(' ');
-            }
+            item_ids.push(item?.id || null);
         }
-        return current_slots_pattern.join('').trim('').split('').map(value => value.trim() ? parseInt(value) : null);
+        return Recipe.craftingSlotsToSearchPattern(item_ids, this.area.size);
     }
 
     // Автоматически расставить рецепт в слотах по указанному рецепту
@@ -874,45 +884,46 @@ export class BaseCraftWindow extends Window {
         if(recipe.size.height > this.area.size.height) {
             return false;
         }
-        const pattern = recipe.adaptivePattern[this.area.size.width];
-        let slot_index = pattern.start_index;
-        // Clear current craft recipe slots and result
-        // Compare current slots recipe with new, then clear if not equals
-        const current_slots_pattern = this.getCurrentSlotsPattern();
-        if(this.recipes.patternsIsEqual(current_slots_pattern, pattern)) {
-            // Find first item in craft slots
-            for(let i in this.craft.slots) {
-                const slot = this.craft.slots[i];
-                const item = slot.getItem();
-                if(item) {
-                    slot_index = parseInt(i);
-                    break;
-                }
-            }
-        } else {
+        const searchPattern = this.getCurrentSlotsSearchPattern();
+        // Search for a best matching pattern
+        let pattern = recipe.findAdaptivePattern(searchPattern);
+        if (!pattern) {
             this.clearCraft();
+            // if we can't find the exact match, use the 1st pattern
+            pattern = recipe.adaptivePatterns[this.area.size.width][0];
         }
-        // Fill craft slots from recipe
+        let slot_index = pattern.start_index;
+
+        // Here the slots may contain: pattern items, empty items that should be set to pattern,
+        // and garbage that we couldn't clear because there is no space. Try to add 1 to each slot, excluding garbage.
         try {
-            for(let item_id of pattern.array_id) {
-                const slot = this.craft.slots[slot_index];
-                let item = slot.getItem();
-                if(item_id) {
-                    if(!item) {
-                        item = BLOCK.convertItemToInventoryItem(BLOCK.fromId(item_id), null, true);
-                        item.count = 0;
-                    }
-                    const count = 1;
-                    item.count += count;
-                    Qubatch.player.inventory.decrementByItemID(item_id, count, true);
-                } else {
-                    item = null;
+            for(let item_ids of pattern.array_id) {
+                const slot = this.craft.slots[slot_index++];
+                if(!item_ids) {
+                    continue; // not in pattern
                 }
-                slot.setItem(item);
-                slot_index++;
+                let item = slot.getItem();
+                if (item) {
+                    // if it's not a garbage that we couldn't clear because there is no space
+                    if (item_ids.includes(item.id)) {
+                        const missing = Qubatch.player.inventory.decrementByItemID(item.id, 1, true);
+                        item.count += (1 - missing);
+                    }
+                } else {
+                    for (let item_id of item_ids) {
+                        const missing = Qubatch.player.inventory.decrementByItemID(item_id, 1, true);
+                        if (!missing) {
+                            item = BLOCK.convertItemToInventoryItem(BLOCK.fromId(item_id), null, true);
+                            item.count = 1;
+                            break;
+                        }
+                    }
+                    slot.setItem(item);
+                }
             }
         } catch(e) {
             debugger
+            throw e;
         }
     }
     
@@ -938,13 +949,30 @@ export class BaseCraftWindow extends Window {
             this.help_slots[i].setItem(null);
         }
         if (recipe) {
-            const adapter = recipe.adaptivePattern[size];
+            let adapter = recipe.adaptivePatterns[size];
             if (adapter) {
+                adapter = adapter[0];
                 for (let i = 0; i < adapter.array_id.length; i++) {
-                    this.help_slots[i + adapter.start_index].setItem(adapter.array_id[i]);
+                    const ids = adapter.array_id[i];
+                    this.help_slots[i + adapter.start_index].setItem(ids ? ids[0] : null);
                 }
             }
         }
     }
 
+    /**
+     * Finds a recipe that matches the current slots.
+     * Sets up the craft result slot depending on it.
+     */
+    checkRecipe() {
+        const searchPattern = this.getCurrentSlotsSearchPattern();
+        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(searchPattern);
+        let craft_result = this.lblResultSlot.recipe?.result || null;
+        if(!craft_result) {
+            return this.lblResultSlot.setItem(null);
+        }
+        const resultBlock = BLOCK.convertItemToInventoryItem(BLOCK.fromId(craft_result.item_id), null, true)
+        resultBlock.count = craft_result.count;
+        this.lblResultSlot.setItem(resultBlock);
+    }
 }

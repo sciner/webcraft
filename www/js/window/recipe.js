@@ -26,6 +26,7 @@ export class RecipeSlot extends Window {
         this.onMouseDown = function(e) {
             this.ct.craft_window.setHelperSlots(null);
             if(!this.can_make) {
+                this.ct.craft_window.clearCraft();
                 this.ct.craft_window.setHelperSlots(e.target.recipe);
                 return;
             }
@@ -40,7 +41,8 @@ export class RecipeSlot extends Window {
     }
 
     canMake(recipe) {
-        return Qubatch.player.inventory.hasResources(recipe.need_resources).length == 0;
+        return Qubatch.player.inventory.hasResources(recipe.need_resources,
+            this.ct.craft_window.getCraftSlotItemsArray()).length == 0;
     }
 
     update() {
@@ -291,7 +293,9 @@ export class RecipeWindow extends Window {
         }
         const canMake = (recipes) => {
             for(const recipe of [recipes, ...recipes.subrecipes]) {
-                if(Qubatch.player.inventory.hasResources(recipe.need_resources).length == 0) {
+                if(Qubatch.player.inventory.hasResources(recipe.need_resources,
+                    this.craft_window.getCraftSlotItemsArray()).length == 0
+                ) {
                     return true
                 }
             }
@@ -316,7 +320,7 @@ export class RecipeWindow extends Window {
             if (!canMake(recipe) && this.only_can) {
                 continue;
             }
-            if (!recipe.adaptivePattern[size]) {
+            if (!recipe.adaptivePatterns[size]) {
                 continue;
             }
             const block = BLOCK.fromId(recipe.result.item_id);

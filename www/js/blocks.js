@@ -187,6 +187,7 @@ export class BLOCK {
 
     static list                     = new Map();
     static styles                   = new Map();
+    static list_arr                 = []; // see also getAll()
     static spawn_eggs               = [];
     static ao_invisible_blocks      = [];
     static resource_pack_manager    = null;
