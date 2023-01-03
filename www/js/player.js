@@ -247,7 +247,7 @@ export class Player {
         //    Qubatch.render.destroyBlock({id: 202}, pos, false);
         //}, 10);
 
-        this.arm = new PlayerArm(this)
+        this.arm = new PlayerArm(this, Qubatch.render)
 
         return true;
     }
@@ -1089,7 +1089,7 @@ export class Player {
         return this.getYRot();
     }
 
-    getAttackAnim(pPartialTicks, delta) {
+    getAttackAnim(pPartialTicks, delta, changeMineTime = true) {
 
         // this.mineTime = itsme.swingProgress;
         if(!this.inMiningProcess && !this.inItemUseProcess && 
@@ -1098,7 +1098,9 @@ export class Player {
             return 0;
         }
 
-        this.mineTime += delta / this.inhand_animation_duration;
+        if(changeMineTime) {
+            this.mineTime += delta / this.inhand_animation_duration;
+        }
 
         if (this.mineTime >= 1) {
             this.mineTime = 0;

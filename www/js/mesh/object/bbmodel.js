@@ -53,7 +53,7 @@ export class Mesh_Object_BBModel {
         this.animation_name = name;
     }
 
-    redraw() {
+    redraw(delta) {
         this.vertices = [];
         const mx = mat4.create();
         mat4.rotateY(mx, mx, this.rotate.z + Math.PI);
@@ -72,7 +72,7 @@ export class Mesh_Object_BBModel {
         // apply animations
         if(this.animation_name || this.animation_name_o != this.animation_name) {
             this.animation_name_o = this.animation_name;
-            this.redraw();
+            this.redraw(delta);
         }
 
         // this.updateLightTex(render);
