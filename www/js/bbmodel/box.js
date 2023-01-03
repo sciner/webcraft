@@ -29,8 +29,14 @@ export class BBModel_Box extends BBModel_Child {
      */
     pushVertices(vertices, pos, lm, parentMatrix) {
         const worldMatrix = mat4.multiply(tempMat, parentMatrix, this.matrix);
+        const model = this.model
+        const faces = model.selected_texture_name ? this.faces_palette?.get(model.selected_texture_name) : this.faces
+        if(!faces) {
+            debugger
+            throw 'error_no_faces'
+        }
         default_style.pushPART(vertices, {
-            faces:      this.faces,
+            faces:      faces,
             size:       this.size,
             translate:  this.translate,
             lm:         lm,

@@ -17,6 +17,74 @@ export class BBModel_Model {
         this._group_stack = [];
         this.root = new BBModel_Group('_main', new Vector(0, 0, 0), new Vector(0, 0, 0));
         this._group_stack.push(this.root);
+        this.selected_texture_name = null
+    }
+
+    /**
+     * @param {string} texture_name 
+     */
+    selectTextureFromPalette(texture_name) {
+        if(!this.all_textures) {
+            this.makeTexturePalette()
+        }
+        const texture = this.all_textures.get(texture_name)
+        if(texture) {
+            this.selected_texture_name = texture_name
+        } else {
+            throw 'error_invalid_palette'
+        }
+    }
+
+    makeTexturePalette() {
+        const model = this.model
+        this.all_textures = new Map()
+        const w = model.resolution.width
+        const h = model.resolution.height
+        const names = []
+        for(let place of model._properties.places) {
+            const t = {
+                u: place.x * w,
+                v: place.y * h,
+                w: place.tex.x_size * w,
+                h: place.tex.y_size * h
+            }
+            names.push(place.tex.name)
+            this.all_textures.set(place.tex.name, t)
+            this.all_textures.set(place.tex.id + '', t)
+        }
+        //
+        const makeElementPelette = (group) => {
+            for(const child of group.children) {
+                if(child instanceof BBModel_Group) {
+                    makeElementPelette(child)
+                } else if(!child.faces_palette) {
+                    child.faces_palette = new Map()
+                    for(let palette_name of names) {
+                        const faces = {}
+                        const palette_item = this.all_textures.get(palette_name)
+                        for(let fk in child.faces) {
+                            const face = child.faces[fk]
+                            const t = this.all_textures.get(face.texture_id + '')
+                            if(!t) {
+                                debugger
+                                throw 'error_invalid_texture'
+                            }
+                            faces[fk] = {
+                                ...face,
+                                uv: [
+                                    face.uv[0] - t.u + palette_item.u,
+                                    face.uv[1] - t.v + palette_item.v,
+                                    face.uv[2],
+                                    face.uv[3]
+                                ]
+                            }
+                        }
+                        child.faces_palette.set(palette_name, faces)
+                    }
+                }
+            }
+        }
+        makeElementPelette(this.root)
     }
 
     /**
@@ -338,6 +406,8 @@ export class BBModel_Model {
         const size  = to.subSelf(from);
         const box   = new BBModel_Box(size, from.addSelf(FIX_POS).addSelf(size.div(VEC_2)));
 
+        box.model = this
+
         //
         this.addChildToCurrentGroup(box);
 
@@ -354,6 +424,7 @@ export class BBModel_Model {
                 tx_cnt:     1,
                 tx_size:    1024,
                 autoUV:     false,
+                texture_id: face.texture,
                 uv:         face.uv,
                 flag:       flag,
                 texture:    [.5, .5, 1, 1]
@@ -453,6 +524,8 @@ export class BBModel_Model {
         for(let group of this.root.children) {
             group.visibility = group.orig_visibility
         }
+        // 3.
+        this.selected_texture_name = null
     }
 
     /**

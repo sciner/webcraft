@@ -76,24 +76,28 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
             }
         }
 
-        // fill "texture" property
-        for(let block of this.conf.blocks) {
-            if(!block.bb) {
-                throw `error_block_must_contain_bb|${block.name}`
+        if(this.conf.blocks) {
+
+            // fill "texture" property
+            for(let block of this.conf.blocks) {
+                if(!block.bb) {
+                    throw `error_block_must_contain_bb|${block.name}`
+                }
+                const model = this.models.get(block.bb.model)
+                if(!model) {
+                    throw `error_block_model_not_found|${block.name}`
+                }
+                const first_place = model._properties.places[0]
+                block.texture = {
+                    id: model._properties.texture_id,
+                    side: `${first_place.x}|${first_place.y}`
+                }
             }
-            const model = this.models.get(block.bb.model)
-            if(!model) {
-                throw `error_block_model_not_found|${block.name}`
-            }
-            const first_place = model._properties.places[0]
-            block.texture = {
-                id: model._properties.texture_id,
-                side: `${first_place.x}|${first_place.y}`
-            }
+
         }
 
         // compile blocks
-        const blocks = await compiler.compileBlocks(this.conf.blocks)
+        const blocks = this.conf.blocks ? await compiler.compileBlocks(this.conf.blocks) : []
 
         fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(blocks, null, 4));
         delete(this.conf.blocks);

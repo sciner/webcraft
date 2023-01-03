@@ -220,6 +220,7 @@ export default class style {
                 if(!BLOCK.canFenceConnect(neighbours.WEST)) hide_group_names.push('west')
                 if(!BLOCK.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
+                model.selectTextureFromPalette(mat.name)
                 break
             }
             case 'pot': {
