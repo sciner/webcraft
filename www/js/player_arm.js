@@ -1,23 +1,28 @@
 import { Vector } from "./helpers.js"
+import { Resources } from "./resources.js";
+import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
-import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
-const { mat4, vec3, quat } = glMatrix;
+// import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
+// const { mat4, vec3, quat } = glMatrix;
 
 export class PlayerArm {
 
     /**
-     * 
+     * @param { import("./player.js").ServerPlayer } player
+     * @param { import("./render.js").ServerPlayer } render
      */
-    constructor(player) {
+    constructor(player, render) {
 
-        const arm = Qubatch.render.addBBModel(new Vector(0, 0, 0), 'arm', new Vector(0, 0, 0), 'atack_sword+')
+        const model = Resources._bbmodels.get('arm')
+        const arm = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model)
+        // arm.setAnimation('atack_sword')
+
         const orig_draw = arm.draw.bind(arm)
 
         this.mesh = arm
 
         const draw = function(render, delta) {
-            arm.apos.set(0, .1, 0)
-            arm.rotate.z = -Math.PI/2
+            arm.apos.set(0, .1, -.35)
             return orig_draw(render, delta)
         }
 

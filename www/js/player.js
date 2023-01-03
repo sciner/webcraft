@@ -247,7 +247,7 @@ export class Player {
         //    Qubatch.render.destroyBlock({id: 202}, pos, false);
         //}, 10);
 
-        this.arm = new PlayerArm(this)
+        this.arm = new PlayerArm(this, Qubatch.render)
 
         return true;
     }
