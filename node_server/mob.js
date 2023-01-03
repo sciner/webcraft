@@ -165,6 +165,14 @@ export class Mob {
             // throw 'error_no_mob_chunk';
         }
     }
+    
+    setDamage(val, type_damage, actor) {
+        this.#brain.onDamage(actor, val);
+    }
+    
+    setUseItem(item_id, actor) {
+        return this.#brain.onUse(actor, item_id);
+    }
 
     async punch(server_player, params) {
         if(params.button_id == MOUSE.BUTTON_RIGHT) {

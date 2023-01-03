@@ -51,6 +51,7 @@ export const RENDER_EAT_FOOD_DURATION       = 1800;
 // player
 export const PLAYER_ZOOM                    = 1;
 export const PLAYER_HEIGHT                  = 1.7 * PLAYER_ZOOM;
+export const PLAYER_WIDTH                   = 0.7 * PLAYER_ZOOM;
 export const SNEAK_MINUS_Y_MUL              = 0.2 * PLAYER_ZOOM; // decrease player height to this percent value
 export const PLAYER_DIAMETER                = 0.7;
 export const PLAYER_RADIUS                  = PLAYER_DIAMETER / 2;

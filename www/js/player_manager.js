@@ -63,6 +63,7 @@ export class PlayerManager extends AbstractPlayerManager {
 
         player.distance = data.dist;
         player.armor = data.armor;
+        player.health = data.health;
 
         if(data.pos) {
             player.sitting = data.sitting;

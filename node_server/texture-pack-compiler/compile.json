@@ -481,6 +481,9 @@
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
+            "power": 59,
+            "damage": 2.5,
+            "speed": 1,
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
@@ -501,7 +504,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 200,
+            "power": 131,
+            "damage": 3.5,
+            "speed": 1,
             "material": {
                 "id": "stone"
             },
@@ -519,7 +524,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 300,
+            "power": 250,
+            "damage": 4.5,
+            "speed": 1,
             "material": {
                 "id": "iron"
             },
@@ -537,7 +544,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 200,
+            "power": 32,
+            "damage": 2.5,
+            "speed": 1,
             "material": {
                 "id": "gold"
             },
@@ -555,7 +564,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 500,
+            "power": 1561,
+            "damage": 5.5,
+            "speed": 1,
             "material": {
                 "id": "diamond"
             },
@@ -573,7 +584,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 1000,
+            "power": 2031,
+            "damage": 6.5,
+            "speed": 1,
             "material": {
                 "id": "netherite"
             },
@@ -588,6 +601,9 @@
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
+            "power": 59,
+            "damage": 1,
+            "speed": 1,
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
@@ -608,7 +624,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 200,
+            "power": 131,
+            "damage": 1,
+            "speed": 2,
             "material": {
                 "id": "stone"
             },
@@ -626,7 +644,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 300,
+            "power": 250,
+            "damage": 1,
+            "speed": 3,
             "material": {
                 "id": "iron"
             },
@@ -644,7 +664,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 200,
+            "power": 32,
+            "damage": 1,
+            "speed": 1,
             "material": {
                 "id": "gold"
             },
@@ -662,7 +684,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 500,
+            "power": 1561,
+            "damage": 1,
+            "speed": 4,
             "material": {
                 "id": "diamond"
             },
@@ -680,7 +704,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 1000,
+            "power": 2031,
+            "damage": 1,
+            "speed": 4,
             "material": {
                 "id": "netherite"
             },
@@ -696,6 +722,9 @@
             "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
+            "power": 60,
+            "damage": 7,
+            "speed": 0.8,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
             "material": {
@@ -714,7 +743,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 200,
+            "power": 132,
+            "damage": 9,
+            "speed": 0.8,
             "material": {
                 "id": "stone"
             },
@@ -731,7 +762,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 300,
+            "power": 251,
+            "damage": 9,
+            "speed": 0.9,
             "material": {
                 "id": "iron"
             },
@@ -748,7 +781,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 200,
+            "power": 33,
+            "damage": 7,
+            "speed": 1,
             "material": {
                 "id": "gold"
             },
@@ -765,7 +800,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 500,
+            "power": 1462,
+            "damage": 9,
+            "speed": 1,
             "material": {
                 "id": "diamond"
             },
@@ -782,7 +819,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 1000,
+            "power": 2031,
+            "damage": 10,
+            "speed": 1,
             "material": {
                 "id": "netherite"
             },
@@ -798,7 +837,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
-            "power": 100,
+            "power": 59,
+            "damage": 2,
+            "speed": 1.2,
             "material": {
                 "id": "wood"
             },
@@ -814,7 +855,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 200,
+            "power": 131,
+            "damage": 3,
+            "speed": 1.2,
             "material": {
                 "id": "stone"
             },
@@ -830,7 +873,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 300,
+            "power": 250,
+            "damage": 4,
+            "speed": 1.2,
             "material": {
                 "id": "iron"
             },
@@ -846,7 +891,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 200,
+            "power": 32,
+            "damage": 2,
+            "speed": 1.2,
             "material": {
                 "id": "gold"
             },
@@ -862,7 +909,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 500,
+            "power": 1561,
+            "damage": 5,
+            "speed": 1.2,
             "material": {
                 "id": "diamond"
             },
@@ -878,7 +927,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 1000,
+            "power": 2031,
+            "damage": 6,
+            "speed": 1.2,
             "material": {
                 "id": "netherite"
             },
@@ -4061,6 +4112,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
+            "power": 59,
+            "damage": 4,
+            "speed": 1.6,
             "material": {
                 "id": "wood"
             },
@@ -4077,7 +4131,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 200,
+            "power": 131,
+            "damage": 5,
+            "speed": 1.6,
             "material": {
                 "id": "stone"
             },
@@ -4094,7 +4150,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 300,
+            "power": 250,
+            "damage": 6,
+            "speed": 1.6,
             "material": {
                 "id": "iron"
             },
@@ -4111,7 +4169,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 200,
+            "power": 32,
+            "damage": 4,
+            "speed": 1.6,
             "material": {
                 "id": "gold"
             },
@@ -4128,7 +4188,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 500,
+            "power": 1561,
+            "damage": 7,
+            "speed": 1.6,
             "material": {
                 "id": "diamond"
             },
@@ -4145,7 +4207,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 1000,
+            "power": 2031,
+            "damage": 8,
+            "speed": 1.6,
             "material": {
                 "id": "netherite"
             },

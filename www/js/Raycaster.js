@@ -19,13 +19,15 @@ export class RaycasterResult {
      * @param {Vector} side
      */
     constructor(pos, leftTop, side, aabb, block_id) {
-        this.aabb = aabb || null;
-        this.n = side || 0;
+        this.mob      = null;
+        this.player   = null;
+        this.aabb     = aabb || null;
+        this.n        = side || 0;
         this.block_id = block_id || 0;
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
-        this.point = 0;
+        this.x        = 0;
+        this.y        = 0;
+        this.z        = 0;
+        this.point    = 0;
         if (pos) {
             this.x = leftTop.x;
             this.y = leftTop.y;
@@ -157,6 +159,40 @@ export class Raycaster {
         }
         return resp;
     }
+    
+    // Player raycaster
+    intersectPlayer(pos, dir, max_distance) {
+        const resp = {
+            player_distance: null,
+            player: null
+        };
+        if(Qubatch?.world?.players) {
+            for (const [_, player] of Qubatch.world.players.list) { 
+                // @todo не передаются количество жизней isAlive();
+                player.raycasted = false;
+                if(!player.aabb || !player.isAlive()) {
+                    continue;
+                }
+                if(player.tPos.distance(pos) > max_distance) {
+                    continue;
+                }
+                if(this.intersectBox(player.aabb, pos, dir)) {
+                    const dist = player.tPos.distance(pos);
+                    if(resp.entity) {
+                        if(dist < resp.distance) {
+                            resp.player = player;
+                            resp.player_distance = dist;
+                        }
+                    } else {
+                        resp.player = player;
+                        resp.player_distance = dist;
+                    }
+                }
+            }
+        }
+        return resp;
+    }
+    
 
     /**
      * @param {Vector} pos
@@ -296,10 +332,10 @@ export class Raycaster {
             }
         }
 
-        let {mob_distance, mob} = this.intersectMob(origin, dir, pickat_distance);
-        if(mob) {
-            if(res) {
-                let res_vec = new Vector(res.x + .5, res.y + .5, res.z + .5);
+        const {mob_distance, mob} = this.intersectMob(origin, dir, pickat_distance);
+        if (mob) {
+            if (res) {
+                const res_vec = new Vector(res.x + .5, res.y + .5, res.z + .5);
                 if(mob_distance < res_vec.distance(origin)) {
                     mob.raycasted = true;
                 }
@@ -311,6 +347,23 @@ export class Raycaster {
                 res.mob = mob;
             }
         }
+        
+        const {player_distance, player} = this.intersectPlayer(origin, dir, pickat_distance);
+        if (player) {
+            if(res) {
+                const res_vec = new Vector(res.x + .5, res.y + .5, res.z + .5);
+                if (player_distance < res_vec.distance(origin)) {
+                    player.raycasted = true;
+                }
+            } else {
+                player.raycasted = true;
+            }
+            if(player.raycasted) {
+                res = new RaycasterResult(pos, leftTop, side);
+                res.player = player;
+            }
+        }
+        
         if (fluidVal > 0) {
             if (!res) {
                 res = new RaycasterResult();

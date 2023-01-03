@@ -16,7 +16,7 @@ const half = new Vector(0.5, 0.5, 0.5);
 
 export class PickAt {
 
-    constructor(world, render, onTarget, onInterractMob, onInteractFluid) {
+    constructor(world, render, onTarget, onInteractEntity, onInteractFluid) {
         this.world              = world;
         this.render             = render;
         //
@@ -39,7 +39,7 @@ export class PickAt {
         this.targetDescription  = null;
         this.visibleBlockHUD    = null;
         this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
-        this.onInterractMob     = onInterractMob;
+        this.onInteractEntity   = onInteractEntity;
         this.onInteractFluid    = onInteractFluid;
         //
         const modelMatrix = this.modelMatrix = mat4.create();
@@ -142,11 +142,12 @@ export class PickAt {
         let damage_block = this.damage_block;
         target_block.visible = !!bPos && !bPos.mob;
         if(bPos && bPos.point) {
-            if(bPos.mob) {
-                if(this.onInterractMob instanceof Function) {
+            if(bPos.player || bPos.mob) {
+                if(this.onInteractEntity instanceof Function) {
                     if(this.damage_block.event) {
-                        this.damage_block.event.interractMobID = bPos.mob.id;
-                        this.onInterractMob(this.damage_block.event);
+                        this.damage_block.event.interactPlayerID = bPos?.player?.id;
+                        this.damage_block.event.interactMobID = bPos?.mob?.id;
+                        this.onInteractEntity(this.damage_block.event);
                         this.damage_block.event = null;
                     }
                 }
