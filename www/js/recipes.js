@@ -541,10 +541,7 @@ export class RecipeManager {
     }
 
     /**
-     * @param {Object} template {
-     *   suffix: String or Array(String)
-     *   ignore: String or Array(String), default []
-     * }
+     * @param {Object} template - see doc/recipes.md
      * @returns {Array} - entries (blocks with additional data) that match the template.
      */
     getResultTemplateEntries(template, template_name) {
@@ -575,20 +572,7 @@ export class RecipeManager {
     /**
      * @param {Object} resultBlock
      * @param {nameBase} - the name of resultBlock without its suffix
-     * @param {Object} template - the value of item in the template. Supported properties: {
-     *   prefix: String or Array(String), default ''
-     *   suffix: String or Array(String), default ''
-     *   ignore: String or Array(String), default []
-     *   ignore_items: Boolean, default false
-     *   manual: { // name of ingredients for the given block; auto-serach isn't used
-     *     <blcok_name>: String or Array(String)
-     *   }
-     *   additional: { // names of aditional ingredients for each result block
-     *     <blcok_name>: String or Array(String)
-     *   }
-     * }
-     * ignore and ignore_items takes prioriy over automatically found names (prefixes and suffixes).
-     * Names in "manual" and "additional" must exist and take priority over eveything else.
+     * @param {Object} template - the value of item in the template. See doc/recipes.md
      * @return a recipe item (i.e. a string or array of strings) consisting of blocks that match the arguments.
      */
     getIngredientTemplateItem(resultBlock, nameBase, template) {
