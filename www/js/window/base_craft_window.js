@@ -873,7 +873,7 @@ export class BaseCraftWindow extends Window {
     }
 
     // Автоматически расставить рецепт в слотах по указанному рецепту
-    autoRecipe(recipe) {
+    autoRecipe(recipe, shiftKey) {
         // Validate area size
         if(recipe.size.width > this.area.size.width) {
             return false;
@@ -892,24 +892,25 @@ export class BaseCraftWindow extends Window {
         const start_index = pattern.start_index;
         let slot_index = pattern.start_index;
 
-        // check if we can add 1 to each slot, using only the same item_ids as already placed.
-        const canUseIds = ObjectHelpers.deepClone(pattern.array_id, 2);
-        for(let i = 0; i < canUseIds.length; i++) {
-            const item = this.craft.slots[start_index + i].getItem();
-            if (item && canUseIds[i]) {
-                // we use filter because there may be garbage in the slot
-                canUseIds[i] = canUseIds[i].filter(it => it === item.id);
+        // if shiftKey was pressed, repeat addin 1 to eah slot until we run out of resources
+        do {
+            // check if we can add 1 to each slot, using only the same item_ids as already placed.
+            const canUseIds = ObjectHelpers.deepClone(pattern.array_id, 2);
+            for(let i = 0; i < canUseIds.length; i++) {
+                const item = this.craft.slots[start_index + i].getItem();
+                if (item && canUseIds[i]) {
+                    // we use filter because there may be garbage in the slot
+                    canUseIds[i] = canUseIds[i].filter(it => it === item.id);
+                }
             }
-        }
-        const needResources = Recipe.calcNeedResources(canUseIds);
-        if (Qubatch.player.inventory.hasResources(needResources).length) {
-            // if we can't add at least 1 to each slot, except those filled with garbage
-            return;
-        }
+            const needResources = Recipe.calcNeedResources(canUseIds);
+            if (Qubatch.player.inventory.hasResources(needResources).length) {
+                // if we can't add at least 1 to each slot, except those filled with garbage
+                return;
+            }
 
-        // Here the slots may contain: pattern items, empty items that should be set to pattern,
-        // and garbage that we couldn't clear because there is no space. Try to add 1 to each slot, excluding garbage.
-        try {
+            // Here the slots may contain: pattern items, empty items that should be set to pattern,
+            // and garbage that we couldn't clear because there is no space. Try to add 1 to each slot, excluding garbage.
             slot_index = pattern.start_index;
             for(let item_ids of pattern.array_id) {
                 const slot = this.craft.slots[slot_index++];
@@ -935,10 +936,7 @@ export class BaseCraftWindow extends Window {
                     slot.setItem(item);
                 }
             }
-        } catch(e) {
-            debugger
-            throw e;
-        }
+        } while (shiftKey);
     }
     
     // слоты помощи в крафте

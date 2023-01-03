@@ -32,7 +32,7 @@ export class RecipeSlot extends Window {
             }
             for(const recipe of [this.recipe, ...this.recipe.subrecipes]) {
                 if(this.canMake(recipe)) {
-                    this.parent.craft_window.autoRecipe(recipe);
+                    this.parent.craft_window.autoRecipe(recipe, e.shiftKey);
                     this.parent.paginator.update();
                     break;
                 }
