@@ -190,8 +190,8 @@ export class BaseChestWindow extends Window {
             lastChange.slotPrevItem = item ? { ...item } : null;
             const dargItem = Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             lastChange.dragPrevItem = dargItem ? { ...dargItem } : null;
-            // We need only shallow copies of elements (to preserve count), but use the existing cloning method:
-            lastChange.prevInventory = ObjectHelpers.deepClone(Qubatch.player.inventory.items);
+            // We need only shallow copies of elements (to preserve count)
+            lastChange.prevInventory = ObjectHelpers.deepClone(Qubatch.player.inventory.items, 2);
         }
 
         //

@@ -197,6 +197,7 @@ export class BLOCK {
     static SOLID_BLOCK_ID           = [];
     static TICKING_BLOCKS           = new Map();
     static BLOCK_BY_ID              = [];
+    static bySuffix                 = {}; // map of arrays
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -473,6 +474,13 @@ export class BLOCK {
         return facings4[0];
     }
 
+    static fromNameOrNull(name) {
+        if(name.indexOf(':') >= 0) {
+            name = name.split(':')[1].toUpperCase();
+        }
+        return this.hasOwnProperty(name) ? this[name] : null;
+    }
+
     // Returns a block structure for the given id.
     static fromName(name) {
         if(name.indexOf(':') >= 0) {
@@ -483,6 +491,21 @@ export class BLOCK {
         }
         console.error('Warning: name missing in BLOCK ' + name);
         return this.DUMMY;
+    }
+
+    static getBySuffix(suffix) {
+        // if it's the standard suffix (the most common case), it's already mapped
+        if (suffix.lastIndexOf('_') === 0) {
+            return this.bySuffix[suffix] || [];
+        }
+        // it's a non-standard suffix
+        const res = [];
+        for(let b of this.list_arr) {
+            if (b.name.endsWith(suffix)) {
+                res.push(b);
+            }
+        }
+        return res;
     }
 
     // Возвращает True если блок является растением
@@ -557,6 +580,7 @@ export class BLOCK {
         BLOCK.BLOCK_BY_ID            = new Array(1024);
         BLOCK.BLOCK_BY_TAGS          = new Map();
         BLOCK.list_arr               = [];
+        BLOCK.bySuffix               = {};
     }
 
     // parseBlockTransparent...
@@ -1209,6 +1233,13 @@ export class BLOCK {
         BLOCK.list_arr = [];
         for(let b of all_blocks) {
             BLOCK.list_arr.push(b);
+            // add to bySuffix
+            const suffixInd = b.name.lastIndexOf('_');
+            if (suffixInd) {
+                const suffix = b.name.substring(suffixInd);
+                this.bySuffix[suffix] = this.bySuffix[suffix] ?? [];
+                this.bySuffix[suffix].push(b);
+            }
         }
     }
 

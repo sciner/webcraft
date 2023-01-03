@@ -1797,6 +1797,11 @@ export class ArrayHelpers {
         }
         return res;
     }
+
+    // Returns Array or null as is. Non-null scalars are wraped into an array.
+    static scalarToArray(v) {
+        return (v == null || Array.isArray(v)) ? v : [v];
+    }
 }
 
 // Helper methods for working with an object, an Array or a Map in the same way.
@@ -2281,30 +2286,36 @@ export class ObjectHelpers {
     }
 
     // For now, it supports only plain objects, Array, primitives and Vector.
-    static deepClone(v) {
+    static deepClone(v, depth = Infinity) {
         if (v == null) {
             return v;
         }
         // Splitting this function into 3 increases(!) performance
         // Probably because JIT can infer static types in deepCloneArray() and deepCloneObject()
         if (Array.isArray(v)) {
-            return this.deepCloneArray(v);
+            return this.deepCloneArray(v, depth);
         }
         if (typeof v === 'object') {
-            return this.deepCloneObject(v);
+            return this.deepCloneObject(v, depth);
         }
         return v;
     }
     
-    static deepCloneArray(v) {
+    static deepCloneArray(v, depth = Infinity) {
+        if (--depth < 0) {
+            return v;
+        }
         const res = new Array(v.length);
         for(let i = 0; i < v.length; i++) {
-            res[i] = this.deepClone(v[i]);
+            res[i] = this.deepClone(v[i], depth);
         }
         return res;
     }
     
-    static deepCloneObject(v) {
+    static deepCloneObject(v, depth = Infinity) {
+        if (--depth < 0) {
+            return v;
+        }
         if (v instanceof Vector) {
             return new Vector(v);
         }
@@ -2312,7 +2323,7 @@ export class ObjectHelpers {
         for(let key in v) {
             // Don't check hasOwnProperty(key) here, because it's not checked anywhere.
             // If something is added to Object.prototype, the entire project is screwed.
-            res[key] = this.deepClone(v[key]);
+            res[key] = this.deepClone(v[key], depth);
         }
         return res;
     }

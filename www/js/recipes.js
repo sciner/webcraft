@@ -1,7 +1,7 @@
 import {RecipeWindow} from "./window/index.js";
 import {COLOR_PALETTE, Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
-import { md5 } from "./helpers.js";
+import { md5, ArrayHelpers } from "./helpers.js";
 import {default as runes} from "../vendors/runes.js";
 
 const MAX_SIZE = 3;
@@ -21,7 +21,8 @@ export class Recipe {
         }
 
         // Need resources
-        this.calcNeedResources(this.adaptivePatterns[3][0]);
+        const pat = this.adaptivePatterns[3][0];
+        this.need_resources = Recipe.calcNeedResources(pat.array_id, pat.array_keys);
 
         //if(this.id == '8dafbca0-e5a4-46b3-8673-49c6e5e3a909') {
         //    console.log(this.pattern, this.adaptivePattern)
@@ -55,34 +56,44 @@ export class Recipe {
     }
 
     /**
-     * @param adaptivePattern
+     * @param {Array of Arrays of Int} array_id - adaptivePatterns.array_id
+     * @param {Array of String} array_keys - adaptivePatterns.array_keys
      * @returns {Array} resources - contains objects {
      *      item_id: Array of Int
      *      count: Int
      *  }, see {@link Inventory.hasResources}
      */
-    calcNeedResources(adaptivePattern) {
-        const { array_keys, array_id } = adaptivePattern;
-        this.need_resources = new Map();
+    static calcNeedResources(array_id, array_keys = null) {
+        if (array_keys == null) {
+            array_keys = new Array(array_id.size);
+            for(let i = 0; i < array_id.length; i++) {
+                array_keys[i] = array_id[i]?.join();
+            }    
+        }
+        const need_resources = new Map();
         for(let i = 0; i < array_id.length; i++) {
             const key = array_keys[i];
             if(!key) {
                 continue;
             }
-            if(!this.need_resources.has(key)) {
-                this.need_resources.set(key, {
-                    item_id: array_id[i],   
+            if(!need_resources.has(key)) {
+                need_resources.set(key, {
+                    item_ids: array_id[i],   
                     count: 0
                 });
             }
-            this.need_resources.get(key).count++;
+            need_resources.get(key).count++;
         }
-        this.need_resources = [...this.need_resources.values()];
+        const arr = [...need_resources.values()];
+        // Sort by the number of ids ascending: if multiple entries have the same id,
+        // in Invetory.hasResources we must first exhaust the entries that have no alternative ids,
+        // i.e. the ones with fewer ids. It's a srictly correct solution, but it should mostly work.
+        return arr.sort((a, b) => a.item_ids.length - b.item_ids.length);
     }
 
     /**
      * Calculates an array of adaptive patterns for craft slots with the given number
-     * of columns. It may contain 1 or 2 elements (the second one is mirrored).
+     * of columns. It may contain 0, 1 or 2 elements (the second one is mirrored).
      * @param keys
      * @param {Int} rows - the maximum number of craft slot rows
      * @param {Int} cols - the number of craft slots columns
@@ -120,13 +131,27 @@ export class Recipe {
         // Array of Strings -> Array of Array of Runes (each rune = 1 complex unicode character?)
         const rn = this.pattern.map(it => runes(it));
 
+        // Reduce the pattern size if necessary
+        while (rn.length > rows) {  // remove top rows
+            if (rn[0].find(it => it != ' ')) {
+                return [];
+            }
+            rn.shift();
+        }
+        for(let i = 0; i < rows; i++) { // remove right columns
+            const removed = rn[i].splice(cols);
+            if (removed.find(it => it != ' ')) {
+                return [];
+            }
+        }
+
         // Find actual the pattern size. We expect it to padded by spaces to MAX_SIZE x MAX_SIZE.
         let minRow = Infinity;
         let minCol = Infinity;
         let maxRow = 0;
         let maxCol = 0;
-        for(let i = 0; i < MAX_SIZE; i++) {
-            for(let j = 0; j < MAX_SIZE; j++) {
+        for(let i = 0; i < rows; i++) {
+            for(let j = 0; j < cols; j++) {
                 const key = rn[i][j];
                 if (key !== ' ') {
                     if(!keys.hasOwnProperty(key)) {
@@ -140,13 +165,8 @@ export class Recipe {
             }
         }
         const start_index = minRow * cols + minCol;
-
-        // Check if it's not too big
         const filledWidth = maxCol - minCol + 1;
         const filledHeight = maxRow - minRow + 1;
-        if (filledHeight > rows || filledWidth > cols) {
-            return null;
-        }
 
         const result = [];
         addAdaptivePattern();
@@ -234,6 +254,7 @@ export class Recipe {
                 return ap;
             }
         }
+        return null;
     }
 
 }
@@ -405,7 +426,7 @@ export class RecipeManager {
                 ],
                 "key": {
                     "W": {"item": [`madcraft:${color}_wool`]},
-                    "P": {"item": ["madcraft:oak_planks", "madcraft:birch_planks", "madcraft:spruce_planks", "madcraft:acacia_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]}
+                    "P": {"item": ["special:planks"]}
                 },
                 "result": {
                     "item": `madcraft:${name}`,
@@ -454,67 +475,10 @@ export class RecipeManager {
                 }
             });
         }
-        // chairs and stools
-        const logs = {
-            oak: 'oak_log',
-            birch: 'birch_log',
-            spruce: 'spruce_log',
-            acacia: 'acacia_log',
-            jungle: 'jungle_log',
-            dark_oak: 'dark_oak_log',
-            crimson: 'crimson_stem',
-            warped: 'warped_stem'
-        };
-        for(let k in logs) {
-            const log_name = logs[k];
-            recipes.push({
-                "id": this.md5s(`${k}_chair`),
-                "type": "madcraft:crafting_shaped",
-                "pattern": [
-                    "L",
-                    "LL",
-                    "SS"
-                ],
-                "key": {
-                    "L": {
-                        "item": `madcraft:${log_name}`
-                    },
-                    "S": {
-                        "item": "madcraft:stick"
-                    }
-                },
-                "result": {
-                    "item": `madcraft:${k}_chair`,
-                    "count": 1
-                }
-            });
-            recipes.push({
-                "id": this.md5s(`${k}_stool`),
-                "type": "madcraft:crafting_shaped",
-                "pattern": [
-                    " L",
-                    "SS"
-                ],
-                "key": {
-                    "L": {
-                        "item": `madcraft:${log_name}`
-                    },
-                    "S": {
-                        "item": "madcraft:stick"
-                    }
-                },
-                "result": {
-                    "item": `madcraft:${k}_stool`,
-                    "count": 1
-                }
-            });
-        }
         //
-        for (let block of BLOCK.getAll()) {
-            this.addOrePieces(recipes, block);
-            this.addStairs(recipes, block);
-            this.addPlanks(recipes, block);
-        }
+        this.addOrePieces(recipes);
+        this.generateTemplates(recipes);
+        this.replaceSpecialItems(recipes);
         //
         for(let item of recipes) {
             if(!('id' in item)) {
@@ -533,13 +497,16 @@ export class RecipeManager {
         callback();
     }
 
-    addOrePieces(recipes, piece) {
-        if (piece.piece_of) {
+    addOrePieces(recipes) {
+        for (let piece of BLOCK.list.values()) {
+            if (!piece.piece_of) {
+                continue;
+            }
             const pieceName = piece.name;
             const ingotName = piece.piece_of;
             const ingot = BLOCK[ingotName];
             if (!ingot) {
-                return;
+                continue;
             }
             recipes.push({
                 "id": this.md5s(ingotName + '_TO_' + pieceName),
@@ -573,76 +540,82 @@ export class RecipeManager {
         }
     }
 
-    addStairs(recipes, resultBlock) {
-        const item = this.getAutoIngredients(resultBlock, '_STAIRS', 'stairs',
-            // Don't auto-detect '_BRICK' and '_BRICKS' to avoid confusion with NETHER.
-            // 'S' is for ***_BRICKS -> ***_BRICK_STAIRS, ***_TILES -> ***_TILE_STAIRS
-            [''], ['', 'S', '_PLANKS', '_PILLAR'],
-            // to distinguish between 'BRICK' and 'BRICKS', 'NETHER_BRICK' and 'NETHER_BRICKS'
-            { ignoreItems: true });
-        if (item) {
-            recipes.push({
-                "id": this.md5s(resultBlock.name),
-                "type": "madcraft:crafting_shaped",
-                "pattern": [
-                    "W  ",
-                    "WW ",
-                    "WWW"
-                ],
-                "key": {
-                    "W": { "item": item }
-                },
-                "result": {
-                    "item": "madcraft:" + resultBlock.name.toLowerCase(),
-                    "count": 4
+    /**
+     * @param {Object} template {
+     *   suffix: String or Array(String)
+     *   ignore: String or Array(String), default []
+     * }
+     * @returns {Array} - entries (blocks with additional data) that match the template.
+     */
+    getResultTemplateEntries(template, template_name) {
+        const suffixes = this.preprocessTemplateList(template.suffix);
+        if (suffixes == null) {
+            throw `Result template in "${template_name}" has no suffixes`;
+        }
+        if (template.prefix != null || template.ignore_items || template.manual || template.additional) {
+            throw `Result template in "${template_name}" has unsupported properties`;
+        }
+        const ignore = this.preprocessTemplateList(template.ignore, true);
+        const result = [];
+        for(const suffix of suffixes) {
+            let bySuffix = BLOCK.getBySuffix(suffix);
+            for(const block of bySuffix) {
+                if (ignore.includes(block.name)) {
+                    continue;
                 }
-            });
-        }
-    }
-
-    addPlanks(recipes, resultBlock) {
-        const item = this.getAutoIngredients(resultBlock, '_PLANKS', 'planks',
-            ['', 'STRIPPED_'], ['_LOG', '_WOOD', '_STEM', '_HYPHAE']);
-        if (item) {
-            recipes.push({
-                "id": this.md5s(resultBlock.name),
-                "type": "madcraft:crafting_shaped",
-                "pattern": [
-                    "   ",
-                    "   ",
-                    "W  "
-                ],
-                "key": {
-                    "W": { "item": item }
-                },
-                "result": {
-                    "item": "madcraft:" + resultBlock.name.toLowerCase(),
-                    "count": 4
-                }
-            });
-        }
-    }
-
-    // Options: { ignoreItems }
-    getAutoIngredients(resultBlock, resultSuffix, configName, prefixes, suffixes, options = {}) {
-        const resultName = resultBlock.name;
-        if (!resultName.endsWith(resultSuffix)) {
-            return;
-        }
-        let item = null;
-        if (configName && resultBlock.recipes) {
-            item = resultBlock.recipes[configName] ?? null;
-            if (this.isItemDisabled(item)) {
-                return null;
+                result.push({
+                    block,
+                    nameBase: block.name.substring(0, block.name.length - suffix.length)
+                });
             }
         }
-        if (!item) {
-            const nameBase = resultName.substring(0, resultName.length - resultSuffix.length);
-            for(let prefix of prefixes) {
-                for(let suffix of suffixes) {
+        return result;
+    }
+
+    /**
+     * @param {Object} resultBlock
+     * @param {nameBase} - the name of resultBlock without its suffix
+     * @param {Object} template - the value of item in the template. Supported properties: {
+     *   prefix: String or Array(String), default ''
+     *   suffix: String or Array(String), default ''
+     *   ignore: String or Array(String), default []
+     *   ignore_items: Boolean, default false
+     *   manual: { // name of ingredients for the given block; auto-serach isn't used
+     *     <blcok_name>: String or Array(String)
+     *   }
+     *   additional: { // names of aditional ingredients for each result block
+     *     <blcok_name>: String or Array(String)
+     *   }
+     * }
+     * ignore and ignore_items takes prioriy over automatically found names (prefixes and suffixes).
+     * Names in "manual" and "additional" must exist and take priority over eveything else.
+     * @return a recipe item (i.e. a string or array of strings) consisting of blocks that match the arguments.
+     */
+    getIngredientTemplateItem(resultBlock, nameBase, template) {
+
+        const that = this;
+        function addManual(name) {
+            const ingredient = BLOCK.fromNameOrNull(name);
+            if (!ingredient) {
+                throw 'Invalid block name in a template ' + name;
+            }
+            item = that.addToItem(item, ingredient.name);
+        }
+
+        // building the result
+        let item = null;
+        if (template.manual) {
+            const manual = this.preprocessTemplateList(template.additional[resultBlock.name], true);
+            for(const name of manual) {
+                addManual(name);
+            }
+        } else {
+            for(const prefix of template.prefix) {
+                for(const suffix of template.suffix) {
                     const ingredient = BLOCK[prefix + nameBase + suffix];
                     if (!ingredient ||
-                        options.ignoreItems && ingredient.item
+                        template.ignore_items && ingredient.item ||
+                        template.ignore.includes(ingredient.name)
                     ) {
                         continue;
                     }
@@ -650,7 +623,123 @@ export class RecipeManager {
                 }
             }
         }
+        if (template.additional) {
+            const additional = this.preprocessTemplateList(template.additional[resultBlock.name], true);
+            for(const name of additional) {
+                addManual(name);
+            }
+        }
         return item ? this.preprocessItem(item) : null;
+    }
+
+    generateTemplates(recipes) {
+        
+        function isItemTemplate(item) {
+            return typeof item === 'object' && !Array.isArray(item);
+        }
+
+        let i = 0;
+        while(i < recipes.length) {
+            const srcRecipe = recipes[i];
+            if (!srcRecipe.template) {
+                i++;
+                continue;
+            }
+            // aditional validation & preprocessing
+            if (!isItemTemplate(srcRecipe.result.item)) {
+                throw 'error_template_result_is_not_template';
+            }
+            for(const key in srcRecipe.key) {
+                const item = srcRecipe.key[key].item;
+                if (!isItemTemplate(item)) {
+                    continue;
+                }
+                item.prefix = this.preprocessTemplateList(item.prefix, '');
+                item.suffix = this.preprocessTemplateList(item.suffix, '');
+                item.ignore = this.preprocessTemplateList(item.ignore, true);
+                for(const name of item.ignore) {
+                    if (!BLOCK.fromNameOrNull(name)) {
+                        throw 'Invalid block name in a template ' + name;
+                    }
+                }
+            }
+            // replace this recipe with a group of generated recipes
+            const newRecipes = [];
+            const resultEntries = this.getResultTemplateEntries(srcRecipe.result.item, srcRecipe.name);
+            for(const resultEntry of resultEntries) {
+                const recipe = { ...srcRecipe };
+                recipe.key = { ...recipe.key };
+                // fill ingredients templates
+                let empty = false;
+                let hasTemplateIngredient = false;
+                for(let key in recipe.key) {
+                    const template = recipe.key[key].item;
+                    if (isItemTemplate(template)) {
+                        // generating an item based on a template
+                        hasTemplateIngredient = true;
+                        const item = this.getIngredientTemplateItem(resultEntry.block, resultEntry.nameBase, template);
+                        if (item == null) {
+                            empty = true;
+                            break;
+                        }
+                        recipe.key[key] = { ...recipe.key[key], item };
+                    }
+                }
+                // finalize the new recipe
+                if (!hasTemplateIngredient) {
+                    throw 'Template has no template ingredients: ' + srcRecipe.name;
+                }
+                if (!empty) {
+                    const lowerName = resultEntry.block.name.toLowerCase();
+                    // add themplate andme to the item name because there may be multiple templated for the item
+                    recipe.id = this.md5s(recipe.template + ' ' + lowerName);
+                    recipe.result = {
+                        ...recipe.result,
+                        item: "madcraft:" + lowerName
+                    };
+                    newRecipes.push(recipe);
+                }
+            }
+            // replace the source recipe with generated ones
+            recipes.splice(i, 1, ...newRecipes);
+            i += newRecipes.length;
+        }
+    }
+
+    replaceSpecialItems(recipes) {
+
+        const that = this;
+        function bySuffix(suffix, filter = it => true) {
+            return that.preprocessItem(
+                BLOCK.getBySuffix(suffix).filter(filter).map(it => it.name));
+        }
+
+        const specialItems = { 
+            'special:planks':       bySuffix('_PLANKS'),
+            'special:wooden_slab':  bySuffix('_SLAB', it => it.material.id === 'wood'),
+            'special:log':          bySuffix('_LOG'),
+            'special:stem':         bySuffix('_STEM'),
+            'special:wood':         bySuffix('_WOOD'),
+            'special:hyphae':       bySuffix('_HYPHAE')
+        };
+        for(let recipe of recipes) {
+            for(let key in recipe.key) {
+                let item = recipe.key[key].item;
+                if (Array.isArray(item)) {
+                    let i = 0;
+                    while (i < item.length) {
+                        const replacement = specialItems[item[i]];
+                        if (replacement) {
+                            item.splice(i, 1, ...replacement);
+                        }
+                        i++;
+                    }
+                } else {
+                    item = specialItems[item] ?? item;
+                }
+                recipe.key[key].item = item;
+            }
+        }
     }
 
     // Group
@@ -709,7 +798,18 @@ export class RecipeManager {
         return item;
     }
 
-    isItemDisabled(item) {
-        return Array.isArray(item) && item.length === 0;
+    preprocessTemplateList(list, force = false) {
+        if (list == null) {
+            if (force === false) { // treat '' as true
+                return null;
+            }
+            list = typeof force === 'string' ? [force] : [];
+        }
+        return ArrayHelpers.scalarToArray(list).map(it => it.toUpperCase());
     }
+
+    isBlockConfigTemplateDisabled(conf) {
+        return Array.isArray(conf) && conf.length === 0;
+    }
+
 }

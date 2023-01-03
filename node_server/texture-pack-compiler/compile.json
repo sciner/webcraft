@@ -2691,9 +2691,6 @@
             "tags": [
                 "stairs"
             ],
-            "recipes": {
-                "stairs": ["QUARTZ_BLOCK", "CHISELED_QUARTZ_BLOCK", "QUARTZ_PILLAR"]
-            },
             "texture": "block/quartz_block_top.png",
             "can_rotate": true
         },

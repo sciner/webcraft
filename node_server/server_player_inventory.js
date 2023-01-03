@@ -58,8 +58,8 @@ export class ServerPlayerInventory extends Inventory {
                 // run triggers
                 if(this.player.onCrafted) {
                     const recipeMan = await InventoryComparator.getRecipeManager();
-                    for(let recipe_id of used_recipes) {
-                        const recipe = recipeMan.getRecipe(recipe_id);
+                    for(let used_recipe of used_recipes) {
+                        const recipe = recipeMan.getRecipe(used_recipe.recipe_id);
                         this.player.onCrafted(recipe, {
                             block_id: recipe.result.item_id,
                             count: recipe.result.count

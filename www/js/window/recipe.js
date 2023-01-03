@@ -320,7 +320,7 @@ export class RecipeWindow extends Window {
             if (!canMake(recipe) && this.only_can) {
                 continue;
             }
-            if (!recipe.adaptivePatterns[size]) {
+            if (!recipe.adaptivePatterns[size].length) {
                 continue;
             }
             const block = BLOCK.fromId(recipe.result.item_id);

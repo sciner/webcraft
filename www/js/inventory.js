@@ -296,10 +296,7 @@ export class Inventory {
                 if(!item) {
                     continue;
                 }
-                const matches = Array.isArray(resource.item_id)
-                    ? resource.item_id.includes(item.id)
-                    : resource.item_id === item.id;
-                if(matches) {
+                if(resource.item_ids.includes(item.id)) {
                     if(item.count >= count) {
                         count = 0;
                         break;

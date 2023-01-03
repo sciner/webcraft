@@ -77,25 +77,40 @@ export class InventoryComparator {
         if(!equal && Array.isArray(used_recipes)) {
             try {
                 // Apply all recipes
-                for(let recipe_id of used_recipes) {
+                for(let used_recipe of used_recipes) {
+                    const recipe_id = used_recipe.recipe_id;
                     // Get recipe by ID
                     const recipe = rm.getRecipe(recipe_id);
                     if(!recipe) {
                         throw 'error_recipe_not_found|' + recipe_id;
                     }
                     // Spending resources
-                    for(let nr of recipe.need_resources) {
-                        let used_item = old_simple.get(nr.item_id);
+                    const need_resources = ObjectHelpers.deepClone(recipe.need_resources, 2);
+                    for(let item_id of used_recipe.item_ids) {
+                        // check that the item_id is used in the recipe is actually in the recipe
+                        const resource = need_resources.find(it => 
+                            it.count && it.item_ids.includes(item_id)
+                        );
+                        if (!resource) {
+                            throw `error_item_not_found_in_recipe|${recipe_id},${item_id}`;
+                        }
+                        resource.count--;
+                        // check that the item is in the inventory
+                        let used_item = old_simple.get(item_id);
                         if(!used_item) {
                             throw 'error_recipe_item_not_found_in_inventory|' + recipe_id;
                         }
-                        used_item.count -= nr.count;
+                        used_item.count--;
                         if(used_item.count < 0) {
                             throw 'error_recipe_item_not_enough';
                         }
                         if(used_item.count == 0) {
                             old_simple.delete(nr.item_id);
                         }
+                    }
+                    // Check that all the items in the recipe are used
+                    if (need_resources.find(it => it.count)) {
+                        throw 'error_not_all_recipe_items_are_used|' + recipe_id;
                     }
                     // Append result item
                     let result_item = BLOCK.fromId(recipe.result.item_id);

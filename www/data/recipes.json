@@ -1,5 +1,26 @@
 [
     {
+        "template": "planks",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "W  "
+        ],
+        "key": {
+            "W": {
+                "item": {
+                    "prefix": ["", "STRIPPED_"],
+                    "suffix": ["_LOG", "_WOOD", "_STEM", "_HYPHAE"]
+                }
+            }
+        },
+        "result": {
+            "item": { "suffix": "_PLANKS" },
+            "count": 4
+        }
+    },
+    {
         "id": "d6838b56-ab15-4393-bfde-06133639b24b",
         "type": "madcraft:crafting_shaped",
         "pattern": [
@@ -9,7 +30,7 @@
         ],
         "key": {
             "W": {
-                "item": ["madcraft:oak_planks", "madcraft:birch_planks", "madcraft:spruce_planks", "madcraft:acacia_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
+                "item": "special:planks"
             }
         },
         "result": {
@@ -18,7 +39,33 @@
         }
     },
     {
-        "id": "d453c7cd-03dc-493b-bea2-770b432ded2c",
+        "template": "stairs",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "B  ",
+            "BB ",
+            "BBB"
+        ],
+        "key": {
+            "B": {
+                "item": {
+                    "suffix": ["", "S", "_PLANKS", "_BLOCK", "_PILLAR"],
+                    "additional": {
+                        "QUARTZ_STAIRS": "CHISELED_QUARTZ_BLOCK"
+                    },
+                    "ignore_items": true,
+                    "_comment": "ignore_items to distinguish between 'BRICK' and 'BRICKS', 'NETHER_BRICK' and 'NETHER_BRICKS'",
+                    "_comment2": "don't use CHISELED_ prfix because in Minecraft some CHISELED_ can't be used to make stairs"
+                }
+            }
+        },
+        "result": {
+            "item": { "suffix": "_STAIRS" },
+            "count": 4
+        }
+    },
+    {
+        "template": "slab",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -27,32 +74,21 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:oak_planks"
+                "item": {
+                    "prefix": ["", "CHISELED_"],
+                    "suffix": ["", "S", "_PLANKS", "_BLOCK", "_PILLAR"],
+                    "ignore": "CHISELED_STONE_BRICKS",
+                    "ignore_items": true,
+                    "_comment": "ignore_items to distinguish between 'BRICK' and 'BRICKS', 'NETHER_BRICK' and 'NETHER_BRICKS'"
+                }
             }
         },
         "result": {
-            "item": "madcraft:oak_slab",
+            "item": { "suffix": "_SLAB" },
             "count": 6
         }
     },
-    {
-        "id": "94ea9b4b-ca81-4ef4-88ae-d33ec9df6823",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "   ",
-            "   ",
-            "BBB"
-        ],
-        "key": {
-            "B": {
-                "item": "madcraft:bricks"
-            }
-        },
-        "result": {
-            "item": "madcraft:brick_slab",
-            "count": 6
-        }
-    },
+
     {
         "id": "11183f08-2d57-45b6-bba5-6335db8a1c6b",
         "type": "madcraft:crafting_shaped",
@@ -80,7 +116,7 @@
         ],
         "key": {
             "P": {
-                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
+                "item": "special:planks"
             }
         },
         "result": {
@@ -139,7 +175,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
+                "item": "special:planks"
             }
         },
         "result": {
@@ -181,7 +217,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
+                "item": "special:planks"
             }
         },
         "result": {
@@ -223,7 +259,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
+                "item": "special:planks"
             }
         },
         "result": {
@@ -241,7 +277,7 @@
         ],
         "key": {
             "#": {
-                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
+                "item": "special:planks"
             }
         },
         "result": {
@@ -250,7 +286,7 @@
         }
     },
     {
-        "id": "6963bc48-3b26-42cf-afcf-121670aaea12",
+        "template": "fence",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -259,82 +295,19 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:birch_planks"
+                "item": { "suffix": "_PLANKS" }
             },
             "S": {
                 "item": "madcraft:stick"
             }
         },
         "result": {
-            "item": "madcraft:birch_fence",
+            "item": { "suffix": "_FENCE" },
             "count": 3
         }
     },
     {
-        "id": "c13046d2-427a-447c-be69-1ff3ffd4e94b",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "",
-            "PSP",
-            "PSP"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:oak_planks"
-            },
-            "S": {
-                "item": "madcraft:stick"
-            }
-        },
-        "result": {
-            "item": "madcraft:oak_fence",
-            "count": 3
-        }
-    },
-    {
-        "id": "0d6f4808-95d1-4c99-a3c1-19fa5651614e",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "",
-            "PSP",
-            "PSP"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:acacia_planks"
-            },
-            "S": {
-                "item": "madcraft:stick"
-            }
-        },
-        "result": {
-            "item": "madcraft:acacia_fence",
-            "count": 3
-        }
-    },
-    {
-        "id": "5e572c96-d9c4-4856-a5db-653532293780",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "",
-            "PSP",
-            "PSP"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:spruce_planks"
-            },
-            "S": {
-                "item": "madcraft:stick"
-            }
-        },
-        "result": {
-            "item": "madcraft:spruce_fence",
-            "count": 3
-        }
-    },
-    {
-        "id": "763a5d78-c7a9-4916-b408-38b94a9caedd",
+        "template": "trapdoor",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -343,65 +316,11 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:birch_planks"
+                "item": { "suffix": "_PLANKS" }
             }
         },
         "result": {
-            "item": "madcraft:birch_trapdoor",
-            "count": 2
-        }
-    },
-    {
-        "id": "0c62a90f-d126-43bb-a66a-89974b6a0c9c",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "",
-            "PPP",
-            "PPP"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:oak_planks"
-            }
-        },
-        "result": {
-            "item": "madcraft:oak_trapdoor",
-            "count": 2
-        }
-    },
-    {
-        "id": "4e7cc47f-e8b4-4329-957f-b6035caa7104",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "",
-            "PPP",
-            "PPP"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:acacia_planks"
-            }
-        },
-        "result": {
-            "item": "madcraft:acacia_trapdoor",
-            "count": 2
-        }
-    },
-    {
-        "id": "67ca9e36-294c-4460-9154-6e6418aabec6",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "",
-            "PPP",
-            "PPP"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:spruce_planks"
-            }
-        },
-        "result": {
-            "item": "madcraft:spruce_trapdoor",
+            "item": { "suffix": "_TRAPDOOR" },
             "count": 2
         }
     },
@@ -490,7 +409,7 @@
         ],
         "key": {
             "#": {
-                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
+                "item": "special:planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -859,7 +778,7 @@
         }
     },
     {
-        "id": "13fb9342-1a5c-4e14-8463-8428dcbafb3a",
+        "template": "door",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -868,124 +787,16 @@
         ],
         "key": {
             "#": {
-                "item": "madcraft:oak_planks"
+                "item": { "suffix": ["_PLANKS", "_INGOT"] }
             }
         },
         "result": {
-            "item": "madcraft:oak_door",
+            "item": { "suffix": "_DOOR" },
             "count": 1
         }
     },
     {
-        "id": "11f8b8c2-bdb8-40e9-b845-86f86f9769ba",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "##",
-            "##",
-            "##"
-        ],
-        "key": {
-            "#": {
-                "item": "madcraft:acacia_planks"
-            }
-        },
-        "result": {
-            "item": "madcraft:acacia_door",
-            "count": 1
-        }
-    },
-    {
-        "id": "bfa2c40a-1bda-4c29-bdf5-1c3c6b013468",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "##",
-            "##",
-            "##"
-        ],
-        "key": {
-            "#": {
-                "item": "madcraft:spruce_planks"
-            }
-        },
-        "result": {
-            "item": "madcraft:spruce_door",
-            "count": 1
-        }
-    },
-    {
-        "id": "5c502aaf-2217-4a5a-8867-40eece978c7f",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "##",
-            "##",
-            "##"
-        ],
-        "key": {
-            "#": {
-                "item": "madcraft:birch_planks"
-            }
-        },
-        "result": {
-            "item": "madcraft:birch_door",
-            "count": 1
-        }
-    },
-    {
-        "id": "a8a868a4-37d0-4558-af2d-0ed27ceeaacc",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "##",
-            "##",
-            "##"
-        ],
-        "key": {
-            "#": {
-                "item": "madcraft:dark_oak_planks"
-            }
-        },
-        "result": {
-            "item": "madcraft:dark_oak_door",
-            "count": 1
-        }
-    },
-    {
-        "id": "8169861c-092b-466b-96bf-9a3150a7b5a0",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "##",
-            "##",
-            "##"
-        ],
-        "key": {
-            "#": {
-                "item": "madcraft:jungle_planks"
-            }
-        },
-        "result": {
-            "item": "madcraft:jungle_door",
-            "count": 1
-        }
-    },
-    {
-        "id": "63689732-4ffd-44e9-8af4-11bdbdfb5d70",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "##",
-            "##",
-            "##"
-        ],
-        "key": {
-            "#": {
-                "item": "madcraft:iron_ingot"
-            }
-        },
-        "result": {
-            "item": "madcraft:iron_door",
-            "count": 1
-        }
-    },
-    {
-        "id": "9cff6beb-9939-4e77-9880-8dd7cad44b6c",
+        "template": "sign",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "PPP",
@@ -994,77 +805,14 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:birch_planks"
+                "item": { "suffix": "_PLANKS" }
             },
             "S": {
                 "item": "madcraft:stick"
             }
         },
         "result": {
-            "item": "madcraft:birch_sign",
-            "count": 3
-        }
-    },
-    {
-        "id": "5381c21a-475d-4810-bfba-a41c658770f2",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "PPP",
-            "PPP",
-            " S "
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:oak_planks"
-            },
-            "S": {
-                "item": "madcraft:stick"
-            }
-        },
-        "result": {
-            "item": "madcraft:oak_sign",
-            "count": 3
-        }
-    },
-    {
-        "id": "2eaf3d45-27d7-4f49-8fea-38b5a6cfe8df",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "PPP",
-            "PPP",
-            " S "
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:acacia_planks"
-            },
-            "S": {
-                "item": "madcraft:stick"
-            }
-        },
-        "result": {
-            "item": "madcraft:acacia_sign",
-            "count": 3
-        }
-    },
-    {
-        "id": "0973808f-a022-4b43-8fd3-de6338661cb3",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "PPP",
-            "PPP",
-            " S "
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:spruce_planks"
-            },
-            "S": {
-                "item": "madcraft:stick"
-            }
-        },
-        "result": {
-            "item": "madcraft:spruce_sign",
+            "item": { "suffix": "_SIGN" },
             "count": 3
         }
     },
@@ -1077,7 +825,7 @@
             "PPP"
         ],
         "key": {
-            "P": {"item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]},
+            "P": {"item": "special:planks"},
             "#": {"item": "madcraft:diamond"}
         },
         "result": {
@@ -1096,7 +844,7 @@
         "key": {
             "S": {"item": "madcraft:stick"},
             "C": {"item": "madcraft:coal"},
-            "P": {"item": ["madcraft:oak_log", "madcraft:birch_log", "madcraft:spruce_log", "madcraft:acacia_log", "madcraft:jungle_log", "madcraft:dark_oak_log"]}
+            "P": {"item": ["special:log", "special:stem", "special:wood", "special:hyphae"]}
         },
         "result": {
             "item": "madcraft:campfire",
@@ -1414,7 +1162,7 @@
         ],
         "key": {
             "S": {
-                "item": ["madcraft:birch_slab", "madcraft:oak_slab", "madcraft:acacia_slab", "madcraft:spruce_slab", "madcraft:jungle_slab", "madcraft:dark_oak_slab"]
+                "item": "special:wooden_slab"
             },
             "B": {
                 "item": "madcraft:bookshelf"
@@ -1764,6 +1512,51 @@
         },
         "result": {
             "item": "madcraft:diamond_boots",
+            "count": 1
+        }
+    },
+    {
+        "template": "chair",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "L",
+            "LL",
+            "SS"
+        ],
+        "key": {
+            "L": {
+                "item": {
+                    "suffix": ["_LOG", "_STEM"]
+                }
+            },
+            "S": {
+                "item": "madcraft:stick"
+            }
+        },
+        "result": {
+            "item": { "suffix": "_CHAIR" },
+            "count": 1
+        }
+    },
+    {
+        "template": "stool",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            " L",
+            "SS"
+        ],
+        "key": {
+            "L": {
+                "item": {
+                    "suffix": ["_LOG", "_STEM"]
+                }
+            },
+            "S": {
+                "item": "madcraft:stick"
+            }
+        },
+        "result": {
+            "item": { "suffix": "_STOOL" },
             "count": 1
         }
     }
