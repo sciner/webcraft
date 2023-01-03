@@ -491,6 +491,11 @@ export class Renderer {
                     texture_id = texture.id;
                 }
                 const tex = resource_pack.textures.get(texture_id);
+                if(!tex) {
+                    console.error(material)
+                    debugger
+                    throw 'error_empty_tex'
+                }
                 // let imageData = tex.imageData;
                 const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
 
