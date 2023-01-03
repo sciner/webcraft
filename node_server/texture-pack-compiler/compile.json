@@ -2122,7 +2122,7 @@
             "texture": "block/birch_planks.png"
         },
         {
-            "_id": 85,
+            "id": 85,
             "name": "OAK_FENCE",
             "transparent": true,
             "style": "fence",
@@ -2891,7 +2891,7 @@
             }
         },
         {
-            "_id": 4,
+            "id": 4,
             "name": "TNT",
             "sound": "madcraft:block.grass",
             "material": {
@@ -3123,7 +3123,7 @@
             "can_rotate": true
         },
         {
-            "_id": 50,
+            "id": 50,
             "name": "TORCH",
             "width": 0.125,
             "height": 0.625,
@@ -3151,7 +3151,7 @@
             "can_rotate": true
         },
         {
-            "_id": 54,
+            "id": 54,
             "name": "CHEST",
             "window": "frmChest",
             "width": 0.875,
@@ -3170,9 +3170,9 @@
             },
             "texture": {
                 "id": "entity",
-                "side": "entity/chest/christmas.png",
-                "left": "entity/chest/christmas_left.png",
-                "right": "entity/chest/christmas_right.png"
+                "side": "entity/chest/normal.png",
+                "left": "entity/chest/normal_left.png",
+                "right": "entity/chest/normal_right.png"
             }
         },
         {
@@ -3225,7 +3225,7 @@
             }
         },
         {
-            "_id": 65,
+            "id": 65,
             "name": "LADDER",
             "width": 0.0625,
             "align": [
@@ -4297,7 +4297,7 @@
             }
         },
         {
-            "_id": 617,
+            "id": 617,
             "name": "CHAIN",
             "style": "planting",
             "transparent": true,
@@ -4938,7 +4938,7 @@
             }
         },
         {
-            "_id": 650,
+            "id": 650,
             "name": "FLOWER_POT",
             "style": "pot",
             "sound": "madcraft:block.stone",
@@ -7166,7 +7166,7 @@
             "texture": "block/shroomlight.png"
         },
         {
-            "_id": 195,
+            "id": 195,
             "transparent": true,
             "name": "ANVIL",
             "sound": "madcraft:block.stone",

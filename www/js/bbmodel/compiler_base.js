@@ -63,7 +63,8 @@ export class BBModel_Compiler_Base {
                 texture:    image,
                 x_size:     Math.min(Math.ceil(image.width / tx_sz), tx_cnt),
                 y_size:     Math.min(Math.ceil(image.height / tx_sz), tx_cnt),
-                id:         this.calcTextureID(index, texture)
+                id:         this.calcTextureID(index, texture),
+                name:       texture?.name ?? null
             }
         }
         throw 'error_unrecognize_texture_format';
@@ -154,6 +155,8 @@ export class BBModel_Compiler_Base {
                                 //
                                 const uvw = uvx2 - uvx1
                                 const uvh = uvy2 - uvy1
+
+                                face.texture = texture_item.texture_id + ''
 
                                 face.uv = [
                                     ((texture_item.x * tx_sz + uvx1 + uvw / 2)),
