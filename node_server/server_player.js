@@ -817,25 +817,31 @@ export class ServerPlayer extends Player {
                     if (mob.setUseItem(this.state.hands.right.id, this)) {
                         if (item?.power) {
                             this.inventory.decrement_instrument();
+                        } else {
+                            this.inventory.decrement();
                         }
                     }
                 }
             }
             // удары
             if (button_id == MOUSE.BUTTON_LEFT) {
-                // уменьшаем прочнось
-                if (item?.power) {
-                    this.inventory.decrement_instrument();
-                }
-                if (player_id) {
+                if (player_id && world.rules.getValue('pvp')) {
                     // наносим урон по игроку
                     const player = world.players.get(player_id);
                     player.setDamage(damage);
+                    // уменьшаем прочнось
+                    if (item?.power) {
+                        this.inventory.decrement_instrument();
+                    }
                 }
                 if (mob_id) {
                     // наносим урон по мобу
                     const mob = world.mobs.get(mob_id);
                     mob.setDamage(damage, null, this);
+                    // уменьшаем прочнось
+                    if (item?.power) {
+                        this.inventory.decrement_instrument();
+                    }
                 }
             }
         }
