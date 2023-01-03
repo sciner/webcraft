@@ -25,8 +25,12 @@ export class BBModel_Compiler_Base {
         })
     }
 
+    createTextureID() {
+        return 'bbmodel_texture_' + new String(this.spritesheets.length + 1)
+    }
+
     createSpritesheet(tx_cnt, resolution, options) {
-        const id = 'bbmodel_texture_' + new String(this.spritesheets.length + 1)
+        const id = this.createTextureID()
         const spritesheet = new Spritesheet_Base(id, tx_cnt, resolution, options)
         this.spritesheets.push(spritesheet)
         return spritesheet
