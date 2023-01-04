@@ -46,7 +46,7 @@
                 "model": "torch",
                 "behavior": "torch",
                 "rotate": {"type": "cardinal_direction", "when": {"state": "wall"}},
-                "particles": [
+                "_particles": [
                     {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.5}]},
                     {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.25}]}
                 ]

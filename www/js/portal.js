@@ -70,7 +70,7 @@ export class WorldPortal {
     static suitablePortalFloorMaterial(mat) {
         return (mat.passable == 0) &&
             (!mat.transparent) &&
-            ['default', 'cube'].includes(mat.model_name) &&
+            ['default', 'cube'].includes(mat.style_name) &&
             !('width' in mat) && !('height' in mat);
     }
 

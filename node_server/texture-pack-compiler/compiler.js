@@ -135,7 +135,7 @@ export class Compiler {
 
     makeModelName(block) {
         if(!block.style) block.style = 'default'
-        block.model_name = block.bb?.model ?? (block.style || 'default')
+        block.style_name = block.bb?.model ?? (block.style || 'default')
     }
 
     //
@@ -162,7 +162,7 @@ export class Compiler {
 
             // Auto add tags
             const tags = block.tags = block.tags || [];
-            if(['stairs'].indexOf(block.model_name) >= 0 || block.layering?.slab) {
+            if(['stairs'].indexOf(block.style_name) >= 0 || block.layering?.slab) {
                 block.tags.push('no_drop_ao');
             }
             if(tags.includes('log') && !block.coocked_item) {

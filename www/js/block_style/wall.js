@@ -98,12 +98,12 @@ export default class style {
 
         //
         const checkDiag = (n1, n2) => {
-            if(neighbours.UP?.material?.model_name != 'wall') {
+            if(neighbours.UP?.material?.style_name != 'wall') {
                 return false;
             }
             if(neighbours[n1].tb) {
                 const east_neighbours = neighbours[n1].tb.getNeighbours(neighbours[n1], null, BLOCK_CACHE);
-                return east_neighbours[n2] && east_neighbours[n2].material.model_name == 'wall';
+                return east_neighbours[n2] && east_neighbours[n2].material.style_name == 'wall';
             }
             return false;
         };

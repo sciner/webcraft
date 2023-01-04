@@ -128,11 +128,11 @@ export class FSMBrain {
         const pos = position.floored();
         const world = this.mob.getWorld()
         let block = world.getBlock(pos);
-        if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.model_name == 'planting'))) {
+        if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style_name == 'planting'))) {
             block = world.getBlock(pos.offset(0, -1, 0)); 
             if (block && block.id != BLOCK.AIR.id) {
                 block = world.getBlock(pos.offset(0, 1, 0));
-                if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.model_name == 'planting'))) {
+                if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style_name == 'planting'))) {
                     return true;
                 }
             }
@@ -176,7 +176,7 @@ export class FSMBrain {
         this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
         this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
-        this.is_wall = (ahead.id != 0 && ahead.id != -1 && ahead.material.model_name != 'planting' && ahead.material.model_name != 'chicken_nest') || (alegs.material.model_name == 'fence');
+        this.is_wall = (ahead.id != 0 && ahead.id != -1 && ahead.material.style_name != 'planting' && ahead.material.style_name != 'chicken_nest') || (alegs.material.style_name == 'fence');
         this.is_fire = (alegs.id == BLOCK.FIRE.id || alegs.id == BLOCK.CAMPFIRE.id);
         this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.time_fire == 0;
         this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);

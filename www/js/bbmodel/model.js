@@ -1,8 +1,9 @@
 import { IndexedColor, isScalar, Vector } from "../helpers.js";
-import { BBModel_Box } from "./box.js";
+import { EasingType } from "./easing_type.js";
+import { BBModel_Cube } from "./cube.js";
 import { BBModel_Child } from "./child.js";
 import { BBModel_Group } from "./group.js";
-import { EasingType } from "./easing_type.js";
+import { BBModel_Locator } from "./locator.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
@@ -10,14 +11,15 @@ const FIX_POS = new Vector(8, -8, -8);
 //
 export class BBModel_Model {
 
-    constructor(model) {
-        this.model = model;
-        this.elements = new Map();
-        this.groups = new Map();
-        this._group_stack = [];
-        this.root = new BBModel_Group('_main', new Vector(0, 0, 0), new Vector(0, 0, 0));
-        this._group_stack.push(this.root);
+    constructor(json) {
+        this.json = json
+        this.elements = new Map()
+        this.groups = new Map()
+        this._group_stack = []
+        this.root = new BBModel_Group('_main', new Vector(0, 0, 0), new Vector(0, 0, 0))
+        this._group_stack.push(this.root)
         this.selected_texture_name = null
+        this.particle_locators = []
     }
 
     /**
@@ -36,10 +38,10 @@ export class BBModel_Model {
     }
 
     makeTexturePalette() {
-        const model = this.model
+        const model_json = this.json
         this.all_textures = new Map()
         const names = []
-        for(let place of model._properties.places) {
+        for(let place of model_json._properties.places) {
             const t = {
                 u: place.x * 32,
                 v: place.y * 32,
@@ -92,8 +94,8 @@ export class BBModel_Model {
      * @param {IndexedColor} lm 
      * @param {float[]} matrix 
      */
-    draw(vertices, pos, lm, matrix) {
-        this.root.pushVertices(vertices, pos, lm, matrix);
+    draw(vertices, pos, lm, matrix, emmit_particles_func) {
+        this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func);
     }
 
     /**
@@ -210,11 +212,11 @@ export class BBModel_Model {
     //
     parse() {
         const origin = new Vector(0, 0, 0);
-        const model = this.model;
+        const model_json = this.json;
         //
-        if(model.elements) {
-            for(let i = 0; i < model.elements.length; i++) {
-                const element = model.elements[i];
+        if(model_json.elements) {
+            for(let i = 0; i < model_json.elements.length; i++) {
+                const element = model_json.elements[i];
                 this.elements.set(i, element);
                 const uuid = element.uuid;
                 if(uuid) {
@@ -223,24 +225,24 @@ export class BBModel_Model {
             }
         }
         //
-        if(model.groups) {
-            for(let group of model.groups) {
+        if(model_json.groups) {
+            for(let group of model_json.groups) {
                 if(isScalar(group)) {
                     this.addElement(origin, this.getElement(group));
                 } else {
                     this.addGroup(origin, group);
                 }
             }
-        } else if(model.outliner) {
-            for(let group of model.outliner) {
+        } else if(model_json.outliner) {
+            for(let group of model_json.outliner) {
                 if(isScalar(group)) {
                     this.addElement(origin, this.getElement(group));
                 } else {
                     this.addGroup(origin, group);
                 }
             }
-        } else if(model.elements) {
-            for(let element of model.elements) {
+        } else if(model_json.elements) {
+            for(let element of model_json.elements) {
                 this.addElement(origin, element);
             }
         }
@@ -254,7 +256,7 @@ export class BBModel_Model {
 
         this.animations = new Map();
 
-        const animations = JSON.parse(JSON.stringify(this.model.animations ?? {}));
+        const animations = JSON.parse(JSON.stringify(this.json.animations ?? {}));
 
         for(let ak in animations) {
 
@@ -390,47 +392,55 @@ export class BBModel_Model {
             return false;
         }
 
-        const flag  = 0
         const from  = new Vector().copy(el.from)
         const to    = new Vector().copy(el.to)
 
         //
-        const shift = this.model._properties?.shift
+        const shift = this.json._properties?.shift
         if(shift) {
             from.addSelf(shift)
             to.addSelf(shift)
         }
 
-        const size  = to.subSelf(from);
-        const box   = new BBModel_Box(size, from.addSelf(FIX_POS).addSelf(size.div(VEC_2)));
+        const size = to.subSelf(from);
+        const translate = from.addSelf(FIX_POS).addSelf(size.div(VEC_2))
+        translate.x = 16 - translate.x
 
-        box.model = this
+        let child
+
+        switch(el.type) {
+            case 'cube': {
+                child = new BBModel_Cube(this, el, size, translate)
+                break
+            }
+            case 'locator': {
+                child = new BBModel_Locator(this, el, size, translate)
+                this.addParticleLocator(child)
+                break
+            }
+            default: {
+                throw `error_invalid_bbmodel_element_type|${el.type}`
+            }
+        }
+
+        // Add rotation
+        if('rotation' in el) {
+            const {rot, pivot} = this.parsePivotAndRot(el)
+            child.rot = rot
+            child.pivot = pivot
+        }
 
         //
-        this.addChildToCurrentGroup(box);
+        this.addChildToCurrentGroup(child)
+        child.updateLocalTransform()
 
-        box.translate.x = 16 - box.translate.x;
-        if('rotation' in el) {
-            const {rot, pivot} = this.parsePivotAndRot(el);
-            box.rot = rot;
-            box.pivot = pivot;
-        }
+    }
 
-        for(let f in el.faces) {
-            const face = el.faces[f];
-            box.faces[f] = {
-                tx_cnt:     1,
-                tx_size:    1024,
-                autoUV:     false,
-                texture_id: face.texture,
-                uv:         face.uv,
-                flag:       flag,
-                texture:    [.5, .5, 1, 1]
-            };
-        }
-
-        box.updateLocalTransform();
-
+    /**
+     * @param {BBModel_Locator} element 
+     */
+    addParticleLocator(element) {
+        this.particle_locators.push(element)
     }
 
     //
@@ -456,7 +466,7 @@ export class BBModel_Model {
         const origin = el.rotation?.origin ?? el.origin;
         if(origin) {
             resp.pivot.copy(origin)
-            const shift = this.model._properties?.shift
+            const shift = this.json._properties?.shift
             if(shift) {
                 resp.pivot.addSelf(shift)
             }

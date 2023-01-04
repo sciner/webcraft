@@ -56,14 +56,29 @@ export class Mesh_Effect_Manager {
      * 
      */
     createBlockEmitter(args) {
-        for(let i = 0; i < args.pos.length; i++) {
-            const em = this.effects.get(args.type);
-            if(!em) {
-                throw 'error_invalid_particle';
+        if(args.type) {
+            for(let i = 0; i < args.pos.length; i++) {
+                const em = this.effects.get(args.type)
+                if(!em) {
+                    throw 'error_invalid_particle'
+                }
+                const pos = new Vector(args.pos[i])
+                const emitter = new em(pos, args)
+                this.block_emitters.set(args.block_pos, emitter)
             }
-            const pos = new Vector(args.pos[i]);
-            const emitter = new em(pos, args);
-            this.block_emitters.set(args.block_pos, emitter);
+        } else if(args.list) {
+            const emmiters = []
+            for(let item of args.list) {
+                const em = this.effects.get(item.type)
+                if(!em) {
+                    throw 'error_invalid_particle'
+                }
+                const pos = new Vector(item.pos)
+                emmiters.push(new em(pos, item.args))
+            }
+            if(emmiters.length) {
+                this.block_emitters.set(args.block_pos, emmiters)
+            }
         }
     }
 
@@ -145,18 +160,32 @@ export class Mesh_Effect_Manager {
         this.emitters.length = len;
 
         for(let emitter of this.block_emitters) {
-            if(player_pos.distance(emitter.pos) < emitter.max_distance) {
-                const particles = emitter.emit();
-                if (!particles) {
-                    continue;
+            if(Array.isArray(emitter)) {
+                for(let i = 0; i < emitter.length; i++) {
+                    this.runEmmiter(emitter[i], player_pos)
                 }
-                for(let particle of particles) {
-                    const mesh = this.getChunkEffectMesh(emitter.chunk_addr, particle.material_key);
-                    mesh.add(particle);
-                }
+            } else {
+                this.runEmmiter(emitter, player_pos)
             }
         }
 
+    }
+
+    /**
+     * @param {*} emitter 
+     * @param {Vector} player_pos 
+     */
+    runEmmiter(emitter, player_pos) {
+        if(player_pos.distance(emitter.pos) < emitter.max_distance) {
+            const particles = emitter.emit()
+            if (!particles) {
+                return
+            }
+            for(let particle of particles) {
+                const mesh = this.getChunkEffectMesh(emitter.chunk_addr, particle.material_key)
+                mesh.add(particle)
+            }
+        }
     }
 
 }

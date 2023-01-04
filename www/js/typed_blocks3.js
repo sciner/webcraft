@@ -1136,7 +1136,7 @@ export class TBlock {
     canPlaceOnTopOrBottom(top = true) {
         if(this.id < 1) return false
         const mat = this.material
-        if(mat.is_solid || ['fence', 'beacon'].includes(mat.model_name)) return true
+        if(mat.is_solid || ['fence', 'beacon'].includes(mat.style_name)) return true
         const extra_data = this.extra_data
         const point = this.extra_data?.point
         if(point && (top ? point.y >= .5 : point.y < .5)) {
