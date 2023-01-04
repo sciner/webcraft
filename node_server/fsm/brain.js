@@ -1,4 +1,3 @@
-import { CHUNK_STATE_BLOCKS_GENERATED } from "../server_chunk.js";
 import { FSMStack } from "./stack.js";
 import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
@@ -20,7 +19,7 @@ export class FSMBrain {
     #chunk_addr = new Vector();
 
     /**
-     * @param {Mob} mob 
+     * @param {Mob} mob
      */
     constructor(mob) {
         this.mob = mob;
@@ -49,7 +48,7 @@ export class FSMBrain {
         const world = this.mob.getWorld();
         this.#chunk_addr = getChunkAddr(this.mob.pos, this.#chunk_addr);
         const chunk = world.chunks.get(this.#chunk_addr);
-        if (chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+        if (chunk && chunk.isReady()) {
             this.onLive();
             this.stack.tick(delta, this);
         }
@@ -114,22 +113,22 @@ export class FSMBrain {
         pc.tick(delta);// * (this.timer_panick > 0 ? 4 : 1));
         this.mob.pos.copyFrom(pc.player.entity.position);
     }
-    
-    
+
+
     // угол между таргетом и мобом
     angleTo(target) {
         const pos = this.mob.pos;
         const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
-    
+
     // на этом месте можно стоять
     isStandAt(position) {
         const pos = position.floored();
         const world = this.mob.getWorld()
         let block = world.getBlock(pos);
         if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style_name == 'planting'))) {
-            block = world.getBlock(pos.offset(0, -1, 0)); 
+            block = world.getBlock(pos.offset(0, -1, 0));
             if (block && block.id != BLOCK.AIR.id) {
                 block = world.getBlock(pos.offset(0, 1, 0));
                 if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style_name == 'planting'))) {
@@ -153,7 +152,7 @@ export class FSMBrain {
     get height() {
         return this.pc.physics.playerHeight;
     }
-    
+
     // контроль жизней и состяния моба
     onLive() {
         const mob = this.mob;
@@ -184,16 +183,16 @@ export class FSMBrain {
         // стоит в лаве
         if (this.in_lava) {
             if (this.timer_lava_damage <= 0) {
-                this.timer_lava_damage = MUL_1_SEC; 
+                this.timer_lava_damage = MUL_1_SEC;
                 this.onDamage(null, 2, EnumDamage.LAVA);
             } else {
                 this.timer_lava_damage--;
             }
-            this.time_fire = Math.max(10 * MUL_1_SEC, this.time_fire); 
+            this.time_fire = Math.max(10 * MUL_1_SEC, this.time_fire);
         } else {
             this.timer_lava_damage = 0;
         }
-        // стоит в огне или на свете 
+        // стоит в огне или на свете
         if (this.in_fire || (world.getLight() > 11 && !this.resistance_light)) {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
@@ -207,12 +206,12 @@ export class FSMBrain {
                 this.timer_water_damage++;
             }
         } else {
-            this.timer_water_damage = 0; 
+            this.timer_water_damage = 0;
         }
-        // горение 
+        // горение
         if (this.time_fire > 0) {
             if (this.timer_fire_damage >= MUL_1_SEC) {
-                this.timer_fire_damage = 0; 
+                this.timer_fire_damage = 0;
                 this.onDamage(null, 1, EnumDamage.FIRE);
             } else {
                 this.timer_fire_damage++;
@@ -234,10 +233,10 @@ export class FSMBrain {
         if (this.timer_panick > 0) {
             this.timer_panick--;
         }
-        
+
         this.onFind();
     }
-        
+
     // поиск игроков или мобов
     onFind() {
         if (this.target || !this.targets || this.targets.length == 0 || this.distance_view < 1) {
@@ -258,7 +257,7 @@ export class FSMBrain {
             this.target = player;
         }
     }
-    
+
     // идти за игроком, если в руках нужный предмет
     doCatch(delta) {
         this.timer_panick = 0;
@@ -285,7 +284,7 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     // просто стоит на месте
     doStand(delta) {
         // нашел цель
@@ -312,7 +311,7 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     // просто ходит
     doForward(delta) {
         const mob = this.mob;
@@ -347,7 +346,7 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     // поиск суши
     doFindGround(delta) {
         const mob = this.mob;
@@ -371,16 +370,16 @@ export class FSMBrain {
                 mob.rotate.z += (Math.random()  * Math.PI / 12);
             }
         }
-        
+
         if (this.to) {
             const dist = mob.pos.distance(this.to);
             mob.rotate.z = this.angleTo(this.to);
             if (dist < 0.5) {
                 this.stack.replaceState(this.doStand);
-                return;  
+                return;
             }
         }
-        
+
         this.updateControl({
             yaw: mob.rotate.z,
             forward: this.to ? true : false,
@@ -390,7 +389,7 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     /**
     * Нанесен урон по мобу
     * actor - игрок или пероснаж
@@ -418,7 +417,7 @@ export class FSMBrain {
             mob.save();
         }
     }
-    
+
     // паника моба от урона
     onPanic() {
         const mob = this.mob;
@@ -427,7 +426,7 @@ export class FSMBrain {
         mob.rotate.z = 2 * Math.random() * Math.PI;
         this.stack.replaceState(this.doStand);
     }
-    
+
     /**
     * Моба убили
     * actor - игрок или пероснаж
@@ -435,7 +434,7 @@ export class FSMBrain {
     */
     onKill(actor, type_damage) {
     }
-    
+
     /**
     * Использовать предмет на мобе
     * actor - игрок
@@ -443,5 +442,5 @@ export class FSMBrain {
     */
     onUse(actor, item){
     }
-    
+
 }

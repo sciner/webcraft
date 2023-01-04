@@ -1,5 +1,4 @@
 import { getChunkAddr, Vector } from "../www/js/helpers.js";
-import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 
 export class PrismarineServerFakeChunkManager {
     constructor(world) {
@@ -8,7 +7,7 @@ export class PrismarineServerFakeChunkManager {
     }
     getChunk(chunk_addr) {
         let chunk = this.world.chunks.get(chunk_addr);
-        if (chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+        if (chunk && chunk.isReady()) {
             return chunk;
         } else {
             return null;
