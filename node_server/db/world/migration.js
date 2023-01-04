@@ -861,6 +861,16 @@ export class DBWorldMigration {
             'ALTER TABLE world_modify_chunks ADD COLUMN "private_data_blob" BLOB default NULL'
         ]});
 
+        migrations.push({version: 91, queries: [
+            `UPDATE world_modify SET block_id = 9 WHERE block_id IN (114, 155, 520)`,
+            `UPDATE world_modify SET
+                params = REPLACE(REPLACE(REPLACE(params, '"id":114,', '"id":9,'), '"id":155,', '"id":9,'), '"id":520,', '"id":9,'),
+                extra_data = REPLACE(REPLACE(REPLACE(extra_data, '"id":114,', '"id":9,'), '"id":155,', '"id":9,'), '"id":520,', '"id":9,')
+                WHERE extra_data IS NOT NULL`,
+            `UPDATE user SET inventory = REPLACE(REPLACE(REPLACE(inventory, '"id":114,', '"id":9,'), '"id":155,', '"id":9,'), '"id":520,', '"id":9,');`,
+            ...update_world_modify_chunks,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
