@@ -1559,5 +1559,23 @@
             "item": { "suffix": "_STOOL" },
             "count": 1
         }
+    },
+    {
+        "id": "9bab6b14-639a-4348-a6ed-6771f93d581b",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "WWW",
+            "WWW",
+            "WWW"
+        ],
+        "key": {
+            "W": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:gold_block",
+            "count": 1
+        }
     }
 ]

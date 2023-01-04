@@ -646,6 +646,28 @@ export class RecipeManager {
                         throw 'Invalid block name in a template ' + name;
                     }
                 }
+                // ensure keys = capital block names; check that such blocks exist
+                for(const map of [item.manual, item.additional]) {
+                    if (map) {
+                        for(let key in map) {
+                            const oldKey = key;
+                            if (key.startsWith("madcraft:")) {
+                                key = key.substring(9);
+                            }
+                            key = key.toUpperCase();
+                            if (key !== oldKey) {
+                                if (map[key]) {
+                                    throw ```Template keys conflict in "manual" or "additional": ${oldKey} ${key}```
+                                }
+                                map[key] = map[oldKey];
+                                delete map[oldKey];
+                            }
+                            if (!BLOCK[key]) {
+                                throw ```Unknown block in template: ${oldKey}```
+                            }
+                        }
+                    }
+                }
             }
             // replace this recipe with a group of generated recipes
             const newRecipes = [];
