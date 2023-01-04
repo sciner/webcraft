@@ -1,6 +1,6 @@
 import { BLOCK } from "../../blocks.js";
 import { AABB } from '../../core/AABB.js';
-import { Mth, Vector } from "../../helpers.js";
+import { Mth, Vector, QUAD_FLAGS } from "../../helpers.js";
 
 // physics
 const Cd                = 0.47; // dimensionless
@@ -13,6 +13,8 @@ const aabb          = new AABB();
 const _ppos         = new Vector(0, 0, 0);
 const _next_pos     = new Vector(0, 0, 0);
 const _block_pos    = new Vector(0, 0, 0);
+
+export const PARTICLE_FLAG_BOUNCE_CEILING = QUAD_FLAGS.NEXT_UNUSED_FLAG;
 
 /**
  * The basic particle of the effect with the implementation of physics
@@ -46,6 +48,7 @@ export class Mesh_Effect_Particle {
 
         // render
         this.pp             = args.pp ?? 0;
+        // flags may contain QUAD_FLAGS or PARTICLE_FLAG_*** constants
         this.flags          = args.flags ?? 0;
         this.material_key   = args.material_key;
         this.texture        = args.texture;
@@ -168,7 +171,9 @@ export class Mesh_Effect_Particle {
                         }
                         if(_ppos.y > aabb.y_min && this.pos_o.y < aabb.y_min) {
                             _next_pos.y = aabb.y_min - 1/500;
-                            if(this.ag.x == 0 && this.ag.z == 0) {
+                            if ((this.flags & PARTICLE_FLAG_BOUNCE_CEILING) && this.velocity.y > 0) {
+                                this.velocity.y = -this.velocity.y;
+                            } else if(this.ag.x == 0 && this.ag.z == 0) {
                                 this.freezed = true;
                             }
                         }
