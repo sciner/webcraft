@@ -78,7 +78,8 @@ export class Renderer {
             BACKEND, {
                 antialias: false,
                 depth: true,
-                premultipliedAlpha: false
+                premultipliedAlpha: false,
+                powerPreference: "high-performance"
             });
         this.meshes = new MeshManager();
 
