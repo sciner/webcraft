@@ -25,8 +25,12 @@ export class BBModel_Compiler_Base {
         })
     }
 
+    createTextureID() {
+        return 'bbmodel_texture_' + new String(this.spritesheets.length + 1)
+    }
+
     createSpritesheet(tx_cnt, resolution, options) {
-        const id = 'bbmodel_texture_' + new String(this.spritesheets.length + 1)
+        const id = this.createTextureID()
         const spritesheet = new Spritesheet_Base(id, tx_cnt, resolution, options)
         this.spritesheets.push(spritesheet)
         return spritesheet
@@ -84,7 +88,14 @@ export class BBModel_Compiler_Base {
                 for(let i in textures) {
                     const tex = await this.loadModelTexture(i, textures[i], tx_sz, tx_cnt)
                     const pos = spritesheet.findPlace(true, tex.x_size, tex.y_size)
-                    places.push({...pos, width: tex.x_size, height: tex.y_size, tex})
+                    places.push({
+                        ...pos,
+                        width: tex.x_size,
+                        height: tex.y_size,
+                        image_width: tex.texture.width,
+                        image_height: tex.texture.height,
+                        tex
+                    })
                 }
                 return {spritesheet, places}
             } catch(e) {

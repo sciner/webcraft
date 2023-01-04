@@ -15,17 +15,14 @@
         {"name": "chest",       "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "anvil",       "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "tnt",         "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "chain",       "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "chain",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "sign",        "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
             "id": 50,
             "name": "TORCH",
             "sound": "madcraft:block.wood",
-            "inventory": {
-                "style": "bbmodel"
-            },
-            "style": "bbmodel",
             "transparent": true,
             "passable": 1,
             "is_fire": true,
@@ -50,8 +47,8 @@
                 "behavior": "torch",
                 "rotate": {"type": "cardinal_direction", "when": {"state": "wall"}},
                 "particles": [
-                    {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.5}]},
-                    {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.25}]}
+                    {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.5}]},
+                    {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.25}]}
                 ]
             }
         },
@@ -59,7 +56,6 @@
             "id": 189,
             "name": "BIRCH_FENCE",
             "sound": "madcraft:block.wood",
-            "style": "bbmodel",
             "transparent": true,
             "material": {
                 "id": "wood"
@@ -76,7 +72,6 @@
             "id": 85,
             "name": "OAK_FENCE",
             "sound": "madcraft:block.wood",
-            "style": "bbmodel",
             "transparent": true,
             "material": {
                 "id": "wood"
@@ -93,7 +88,6 @@
             "id": 188,
             "name": "ACACIA_FENCE",
             "sound": "madcraft:block.wood",
-            "style": "bbmodel",
             "transparent": true,
             "material": {
                 "id": "wood"
@@ -110,7 +104,6 @@
             "id": 536,
             "name": "DARK_OAK_FENCE",
             "sound": "madcraft:block.wood",
-            "style": "bbmodel",
             "transparent": true,
             "material": {
                 "id": "wood"
@@ -127,7 +120,6 @@
             "id": 191,
             "name": "SPRUCE_FENCE",
             "sound": "madcraft:block.wood",
-            "style": "bbmodel",
             "transparent": true,
             "material": {
                 "id": "wood"
@@ -144,7 +136,6 @@
             "id": 537,
             "name": "JUNGLE_FENCE",
             "sound": "madcraft:block.wood",
-            "style": "bbmodel",
             "transparent": true,
             "material": {
                 "id": "wood"
@@ -160,10 +151,6 @@
         {
             "id": 650,
             "name": "FLOWER_POT",
-            "style": "bbmodel",
-            "inventory": {
-                "style": "bbmodel"
-            },
             "sound": "madcraft:block.stone",
             "transparent": true,
             "mining_time": 0,
@@ -183,7 +170,6 @@
         {
             "_id": 53,
             "name": "OAK_STAIRS",
-            "style": "bbmodel",
             "sound": "madcraft:block.wood",
             "can_rotate": true,
             "transparent": true,
@@ -202,10 +188,6 @@
         {
             "id": 54,
             "name": "CHEST",
-            "style": "bbmodel",
-            "inventory": {
-                "style": "bbmodel"
-            },
             "window": "frmChest",
             "support_style": "chest",
             "is_entity": true,
@@ -228,16 +210,15 @@
         {
             "id": 1370,
             "name": "MAGENTA_SHULKER",
-            "window": "frmChest",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
             "is_entity": true,
+            "window": "frmChest",
             "chest": {
                 "slots": 27,
                 "private": true
             },
-            "style": "bbmodel",
-            "max_in_stack": 1,
-            "sound": "madcraft:block.chest",
-            "can_rotate": true,
             "material": {
                 "id": "stone"
             },
@@ -256,7 +237,6 @@
             "name": "ANVIL",
             "sound": "madcraft:block.stone",
             "window": "frmAnvil",
-            "style": "bbmodel",
             "can_rotate": true,
             "material": {
                 "id": "iron"
@@ -277,12 +257,11 @@
             "id": 4,
             "name": "TNT",
             "sound": "madcraft:block.grass",
-            "style": "bbmodel",
             "transparent": true,
+            "redstone": {},
             "material": {
                 "id": "stone"
             },
-            "redstone": {},
             "bb": {
                 "model": "tnt",
                 "behavior": "tnt"
@@ -299,12 +278,12 @@
             "id": 65,
             "name": "LADDER",
             "width": 0.0625,
+            "can_rotate": true,
+            "transparent": true,
+            "sound": "madcraft:block.wood",
             "align": [
                 "back"
             ],
-            "style": "bbmodel",
-            "transparent": true,
-            "sound": "madcraft:block.wood",
             "material": {
                 "id": "wood"
             },
@@ -316,16 +295,11 @@
                 "model": "ladder",
                 "behavior": "ladder",
                 "rotate": {"type": "cardinal_direction"}
-            },
-            "can_rotate": true
+            }
         },
         {
             "id": 617,
             "name": "CHAIN",
-            "style": "bbmodel",
-            "inventory": {
-                "style": "bbmodel"
-            },
             "passable": 0,
             "transparent": true,
             "can_rotate": true,
@@ -344,6 +318,151 @@
                 "behavior": "chain",
                 "rotate": {"type": "three"}
             }
+        },
+        {
+            "id": 642,
+            "name": "BIRCH_SIGN",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "can_rotate": true,
+            "tags": [
+                "sign",
+                "rotate_x16",
+                "no_drop_ao",
+                "rotate_by_pos_n_5"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 643,
+            "name": "OAK_SIGN",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "can_rotate": true,
+            "tags": [
+                "sign",
+                "rotate_x16",
+                "no_drop_ao",
+                "rotate_by_pos_n_5"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 644,
+            "name": "ACACIA_SIGN",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "can_rotate": true,
+            "tags": [
+                "sign",
+                "rotate_x16",
+                "no_drop_ao",
+                "rotate_by_pos_n_5"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 645,
+            "name": "SPRUCE_SIGN",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "can_rotate": true,
+            "tags": [
+                "sign",
+                "rotate_x16",
+                "no_drop_ao",
+                "rotate_by_pos_n_5"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 646,
+            "name": "DARK_OAK_SIGN",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "can_rotate": true,
+            "tags": [
+                "sign",
+                "rotate_x16",
+                "no_drop_ao",
+                "rotate_by_pos_n_5"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 647,
+            "name": "JUNGLE_SIGN",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "can_rotate": true,
+            "tags": [
+                "sign",
+                "rotate_x16",
+                "no_drop_ao",
+                "rotate_by_pos_n_5"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
         }
+
     ]
 }

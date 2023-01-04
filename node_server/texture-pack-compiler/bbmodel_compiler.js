@@ -83,6 +83,15 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                 if(!block.bb) {
                     throw `error_block_must_contain_bb|${block.name}`
                 }
+                //
+                block.style = block.style ?? 'bbmodel'
+                block.inventory = block.inventory ?? {
+                    'style': 'bbmodel'
+                }
+                if(block.bb.rotate && !Array.isArray(block.bb.rotate)) {
+                    block.bb.rotate = [block.bb.rotate]
+                }
+                //
                 const model = this.models.get(block.bb.model)
                 if(!model) {
                     throw `error_block_model_not_found|${block.name}`

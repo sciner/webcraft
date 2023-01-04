@@ -5,6 +5,15 @@ import { Resources } from "../resources.js";
 import { BBModel_Compiler_Base } from "./compiler_base.js";
 import { BBModel_Model } from "./model.js";
 
+class FastCompiller extends BBModel_Compiler_Base {
+
+    createTextureID() {
+        const resp = randomUUID()
+        return resp
+    }
+
+}
+
 export class BBModel_DropPaste {
 
     /** 
@@ -71,7 +80,12 @@ export class BBModel_DropPaste {
                         deletePrevious()
 
                         const json = JSON.parse(this.result)
-                        const compiler = new BBModel_Compiler_Base(options)
+
+                        json._properties = {
+                            shift: new Vector(0, 0, 0)
+                        }
+
+                        const compiler = new FastCompiller(options)
                         const {spritesheet} = await compiler.prepareModel(json, json.name, options)
 
                         /**
@@ -86,6 +100,9 @@ export class BBModel_DropPaste {
                         model.name = randomUUID() // json?.name ?? file.name
                         Resources._bbmodels.set(model.name, model)
                         previous_bbmodels.push(model.name)
+
+                        json._properties.texture_id = spritesheet.id
+                        json._properties.places = []
 
                         // Create textures
                         for(const [subtexture_id, item] of spritesheet.canvases) {
@@ -112,13 +129,10 @@ export class BBModel_DropPaste {
                             }
 
                             console.debug(`Register resource_pack texture: "${model.name}"`, textureInfo)
-                            resource_pack.textures.set(model.name, textureInfo)
+                            resource_pack.textures.set(spritesheet.id, textureInfo)
 
                         }
 
-                        /**
-                         * @type {Vector}
-                         */
                         const animations = Array.from(model.animations.keys())
                         if(animations.length == 0) animations.push(null)
 

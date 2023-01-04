@@ -134,28 +134,35 @@ export default class style {
         const bb = mat.bb
 
         // Rotate
-        if(bb.rotate) {
-            if(style.checkWhen(model, tblock, bb.rotate.when)) {
-                switch(bb.rotate.type) {
-                    case 'cardinal_direction': {
-                        style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
-                        break
-                    }
-                    case 'three': {
-                        if(tblock instanceof TBlock) {
-                            const cd = tblock.getCardinalDirection()
-                            const mx = calcRotateMatrix(tblock.material, tblock.rotate, cd, matrix)
-                            // хак со сдвигом матрицы в центр блока
-                            const v = vec3.create()
-                            v[1] = 0.5
-                            vec3.transformMat4(v, v, mx)
-                            mx[12] += - v[0]
-                            mx[13] += 0.5 - v[1]
-                            mx[14] += - v[2]
-                            mat4.copy(matrix, mx)
+        if(bb.rotate && tblock.rotate) {
+            for(let rot of bb.rotate) {
+                if(style.checkWhen(model, tblock, rot.when)) {
+                    switch(rot.type) {
+                        case 'cardinal_direction': {
+                            style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
+                            break
                         }
-                        break
+                        case 'y360': {
+                            mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 2) / 4) * (2 * Math.PI))
+                            break
+                        }
+                        case 'three': {
+                            if(tblock instanceof TBlock) {
+                                const cd = tblock.getCardinalDirection()
+                                const mx = calcRotateMatrix(tblock.material, tblock.rotate, cd, matrix)
+                                // хак со сдвигом матрицы в центр блока
+                                const v = vec3.create()
+                                v[1] = 0.5
+                                vec3.transformMat4(v, v, mx)
+                                mx[12] += - v[0]
+                                mx[13] += 0.5 - v[1]
+                                mx[14] += - v[2]
+                                mat4.copy(matrix, mx)
+                            }
+                            break
+                        }
                     }
+                    break
                 }
             }
         }
@@ -183,6 +190,13 @@ export default class style {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
                 model.hideAllExcept(model.state)
+                break
+            }
+            case 'sign': {
+                const on_wall = rotate && !rotate.y
+                model.state = on_wall ? 'wall' : 'floor'
+                model.hideAllExcept(model.state)
+                model.selectTextureFromPalette(mat.name)
                 break
             }
             case 'chest': {
