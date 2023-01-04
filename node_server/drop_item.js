@@ -2,7 +2,6 @@ import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { PrismarinePlayerControl } from "../www/vendors/prismarine-physics/using.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
-import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 
 export const MOTION_MOVED = 0;
 export const MOTION_JUST_STOPPED = 1;
@@ -116,7 +115,7 @@ export class DropItem {
             if(this.motion === MOTION_MOVED) {
                 this.motion = MOTION_JUST_STOPPED;
                 const chunk = this.getChunk();
-                if(chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+                if(chunk && chunk.isReady()) {
                     this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
                 }
             } else {

@@ -1,4 +1,4 @@
-import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
+import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_STATE } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
@@ -11,12 +11,6 @@ import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../w
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
-
-export const CHUNK_STATE_NEW               = 0;
-export const CHUNK_STATE_LOADING           = 1;
-export const CHUNK_STATE_LOADED            = 2;
-export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
-export const CHUNK_STATE_UNLOADED          = 4;
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -139,11 +133,15 @@ export class ServerChunk {
         //if(['npc'].indexOf(world.info.generator.id) >= 0) {
         //    this.mobGenerator = new MobGenerator(this);
         //}
-        this.setState(CHUNK_STATE_NEW);
+        this.setState(CHUNK_STATE.NEW);
         this.dataChunk      = null;
         this.fluid          = null;
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
         this.blocksUpdatedByListeners = [];
+    }
+
+    isReady() {
+        return this.load_state === CHUNK_STATE.READY;
     }
 
     get addrHash() { // maybe replace it with a computed string, if it's used often
@@ -153,11 +151,11 @@ export class ServerChunk {
     get maxBlockX() {
         return this.coord.x + (CHUNK_SIZE_X - 1);
     }
-    
+
     get maxBlockY() {
         return this.coord.y + (CHUNK_SIZE_Y - 1);
     }
-    
+
     get maxBlockZ() {
         return this.coord.z + (CHUNK_SIZE_Z - 1);
     }
@@ -182,10 +180,10 @@ export class ServerChunk {
 
     // Load state from DB
     load() {
-        if(this.load_state > CHUNK_STATE_NEW) {
+        if(this.load_state > CHUNK_STATE.NEW) {
             return;
         }
-        this.setState(CHUNK_STATE_LOADING);
+        this.setState(CHUNK_STATE.LOADING_DATA);
         //
         const afterLoad = ([ml, fluid]) => {
             if(!ml.obj && ml.compressed) {
@@ -197,7 +195,7 @@ export class ServerChunk {
             }
             this.modify_list = ml;
             this.ticking = new Map();
-            this.setState(CHUNK_STATE_LOADED);
+            this.setState(CHUNK_STATE.LOADING_BLOCKS);
             // Send requet to worker for create blocks structure
             this.world.chunks.postWorkerMessage(['createChunk',
                 [
@@ -236,11 +234,11 @@ export class ServerChunk {
 
     // Добавление игрока, которому после прогрузки чанка нужно будет его отправить
     addPlayerLoadRequest(player) {
-        if(this.load_state < CHUNK_STATE_LOADED) {
+        if(this.load_state < CHUNK_STATE.LOADING_BLOCKS) {
             return this.preq.set(player.session.user_id, player);
         }
         this.sendToPlayers([player.session.user_id]);
-        if(this.load_state > CHUNK_STATE_LOADED) {
+        if(this.load_state > CHUNK_STATE.LOADING_BLOCKS) {
             this.sendMobs([player.session.user_id]);
             this.sendDropItems([player.session.user_id]);
         }
@@ -357,7 +355,7 @@ export class ServerChunk {
         }];
         this.sendAll(packets, []);
     }
-    
+
     sendFluidDelta(buf) {
         const packets = [{
             name: ServerClient.CMD_FLUID_DELTA,
@@ -429,13 +427,13 @@ export class ServerChunk {
             this.delayedCalls.deserialize(serializedDelayedCalls);
         }
         this.mobs = await mobPrpmise;
-        this.drop_items = await drop_itemsPromise; 
+        this.drop_items = await drop_itemsPromise;
         // fluid
-        if(this.load_state === CHUNK_STATE_UNLOADED) {
+        if(this.load_state >= CHUNK_STATE.UNLOADING) {
             return;
         }
         this.fluid.queue.init();
-        this.setState(CHUNK_STATE_BLOCKS_GENERATED);
+        this.setState(CHUNK_STATE.READY);
         // Scan ticking blocks
         this.scanTickingBlocks(args.ticking_blocks);
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
@@ -509,7 +507,7 @@ export class ServerChunk {
 
     // It's slightly faster than getBlock().
     getMaterial(pos, y, z, fromOtherChunks = false) {
-        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
+        if(this.load_state !== CHUNK_STATE.READY) {
             return this.getChunkManager().DUMMY.material;
         }
 
@@ -542,7 +540,7 @@ export class ServerChunk {
     // If the argument after the coordiantes (y or fromOtherChunks) is true,
     // it can return blocks from chunks outside its boundary.
     getBlock(pos, y, z, resultBlock = null, fromOtherChunks = false) {
-        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
+        if(this.load_state !== CHUNK_STATE.READY) {
             return this.getChunkManager().DUMMY;
         }
 
@@ -598,10 +596,10 @@ export class ServerChunk {
     }
 
     /**
-     * @param {Vector} item_pos 
-     * @param {*} item 
-     * @param {*} previous_item 
-     * @param {int} radius 
+     * @param {Vector} item_pos
+     * @param {*} item
+     * @param {*} previous_item
+     * @param {int} radius
      */
     checkDestroyNearUncertainStones(item_pos, item, previous_item, radius) {
 
@@ -717,10 +715,10 @@ export class ServerChunk {
     }
 
     /**
-     * @param {*} tblock 
-     * @param {*} neighbour 
-     * @param {*} previous_neighbour 
-     * @returns 
+     * @param {*} tblock
+     * @param {*} neighbour
+     * @param {*} previous_neighbour
+     * @returns
      */
     onNeighbourChanged(tblock, neighbour, previous_neighbour) {
 
@@ -754,7 +752,7 @@ export class ServerChunk {
 
         // Different behavior, depending on whether the neighbor was destroyed or created
         if(neighbour_destroyed) {
-            
+
             if (tblock.id == BLOCK.SNOW.id && neighbourPos.y < pos.y) {
                 return createDrop(tblock, true);
             }
@@ -792,7 +790,7 @@ export class ServerChunk {
                             case 3: drop = neighbourPos.x < pos.x; break;
                         }
                     } else if (roty == 1) {
-                        drop = neighbourPos.y < pos.y; 
+                        drop = neighbourPos.y < pos.y;
                     }
                     if(drop) {
                         return createDrop(tblock);
@@ -1053,7 +1051,7 @@ export class ServerChunk {
     // Random tick
     randomTick(tick_number, world_light, check_count) {
 
-        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED || !this.tblocks || this.randomTickingBlockCount <= 0) {
+        if(this.load_state !== CHUNK_STATE.READY || !this.tblocks || this.randomTickingBlockCount <= 0) {
             return false;
         }
 
@@ -1105,7 +1103,7 @@ export class ServerChunk {
         const tblock = this.getBlock(pos, tmp_onFluidEvent_TBlock);
         const fluidY = isFluidChangeAbove ? pos.y + 1 : pos.y;
         const fluidValue = this.getFluidValue(pos.x, fluidY, pos.z);
-        
+
         if (isFluidChangeAbove) {
             var listeners = this.world.blockListeners.fluidAboveChangeListeners[tblock.id];
             if (listeners) {
@@ -1166,7 +1164,7 @@ export class ServerChunk {
         if (!chunkManager) {
             return;
         }
-        this.setState(CHUNK_STATE_UNLOADED);
+        this.setState(CHUNK_STATE.UNLOADING);
         if (this.delayedCalls.length) {
             chunkManager.chunks_with_delayed_calls.delete(this);
         }
