@@ -545,15 +545,17 @@ export class RecipeManager {
      * @returns {Array} - entries (blocks with additional data) that match the template.
      */
     getResultTemplateEntries(template, template_name) {
-        const suffixes = this.preprocessTemplateList(template.suffix);
-        if (suffixes == null) {
-            throw `Result template in "${template_name}" has no suffixes`;
+        let suffixes = this.preprocessTemplateList(template.suffix);
+        let additional = this.preprocessTemplateList(template.additional);
+        if (suffixes == null && additional == null) {
+            throw `Result template in "${template_name}" has neither suffixes nor additional`;
         }
-        if (template.prefix != null || template.ignore_items || template.manual || template.additional) {
+        if (template.prefix != null || template.ignore_items || template.ignore_blocks || template.manual) {
             throw `Result template in "${template_name}" has unsupported properties`;
         }
         const ignore = this.preprocessTemplateList(template.ignore, true);
         const result = [];
+        suffixes = suffixes ?? [];
         for(const suffix of suffixes) {
             let bySuffix = BLOCK.getBySuffix(suffix);
             for(const block of bySuffix) {
@@ -565,6 +567,14 @@ export class RecipeManager {
                     nameBase: block.name.substring(0, block.name.length - suffix.length)
                 });
             }
+        }
+        additional = additional ?? [];
+        for(const name of additional) {
+            const block = BLOCK.fromNameOrNull(name);
+            if (block == null) {
+                throw 'Unknwon block in the template result: ' + name;
+            }
+            result.push({ block, nameBase: name });
         }
         return result;
     }
@@ -599,6 +609,7 @@ export class RecipeManager {
                     const ingredient = BLOCK[prefix + nameBase + suffix];
                     if (!ingredient ||
                         template.ignore_items && ingredient.item ||
+                        template.ignore_blocks && !ingredient.item ||
                         template.ignore.includes(ingredient.name)
                     ) {
                         continue;
@@ -629,7 +640,7 @@ export class RecipeManager {
                 i++;
                 continue;
             }
-            // aditional validation & preprocessing
+            // additional validation & preprocessing
             if (!isItemTemplate(srcRecipe.result.item)) {
                 throw 'error_template_result_is_not_template';
             }

@@ -105,7 +105,7 @@ export class InventoryComparator {
                             throw 'error_recipe_item_not_enough';
                         }
                         if(used_item.count == 0) {
-                            old_simple.delete(nr.item_id);
+                            old_simple.delete(item_id);
                         }
                     }
                     // Check that all the items in the recipe are used

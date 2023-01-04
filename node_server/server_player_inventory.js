@@ -60,6 +60,9 @@ export class ServerPlayerInventory extends Inventory {
                     const recipeMan = await InventoryComparator.getRecipeManager();
                     for(let used_recipe of used_recipes) {
                         const recipe = recipeMan.getRecipe(used_recipe.recipe_id);
+                        if (!recipe) { // it may happen in creative mode if the client sends invalid recipes
+                            throw 'error_recipe_not_found|' + used_recipe.recipe_id;
+                        }
                         this.player.onCrafted(recipe, {
                             block_id: recipe.result.item_id,
                             count: recipe.result.count
