@@ -2,7 +2,7 @@ import { CHUNK_SIZE_X } from "../../../chunk_const.js";
 import { ChunkManager } from "../../../chunk_manager.js";
 import { GRASS_PALETTE_OFFSET } from "../../../constant.js";
 import { DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from "../../../helpers.js";
-import { Mesh_Effect_Particle } from "../particle.js";
+import { Mesh_Effect_Particle, PARTICLE_FLAG_BOUNCE_CEILING } from "../particle.js";
 
 const _pos_floored = new Vector(0, 0, 0);
 const _lm_grass = new IndexedColor(0, 0, 0);
@@ -34,7 +34,7 @@ export default class emitter {
         this.tx_cnt         = block.tx_cnt;
         this.material       = material;
         this.pp             = pp;
-        this.flags          = flags;
+        this.flags          = flags | PARTICLE_FLAG_BOUNCE_CEILING;
         this.ticks          = 0;
 
     }
