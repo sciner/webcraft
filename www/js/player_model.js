@@ -284,13 +284,11 @@ export class PlayerModel extends MobModel {
 
         this.sceneTree[0].addChild(this.nametag);
         this.nametag.scale.set([0.005, 1, 0.005]);
-        this.nametag.position[2] = 
-            (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head'))
-            .pivot[2] + 0.6;
         
         this.nametag.updateMatrix();
 
         this.changeSlots(this.activeSlotsData);
+        console.log(this.armor.head)
     }
 
     update(render, camPos, delta, speed) {
@@ -306,6 +304,8 @@ export class PlayerModel extends MobModel {
         }
 
         this.nametag.visible = !this.sneak && !this.hide_nametag;
+        const head_y =  (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head')).pivot[2];
+        this.nametag.position[2] =  head_y + ((!this.armor.head) ? 0.6 : 0.8);
 
         if (!this.nametag.visible) {
             return;
