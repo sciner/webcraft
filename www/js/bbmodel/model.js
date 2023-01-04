@@ -38,17 +38,13 @@ export class BBModel_Model {
     makeTexturePalette() {
         const model = this.model
         this.all_textures = new Map()
-        const rw = model.resolution.width
-        const rh = model.resolution.height
         const names = []
         for(let place of model._properties.places) {
-            const xscale = rw / place.image_width
-            const yscale = rh / place.image_height
             const t = {
-                u: place.x * (rw * xscale),
-                v: place.y * (rh * yscale),
-                w: place.tex.x_size * (rw * xscale),
-                h: place.tex.y_size * (rh * yscale)
+                u: place.x * 32,
+                v: place.y * 32,
+                w: place.tex.x_size * 32,
+                h: place.tex.y_size * 32
             }
             names.push(place.tex.name)
             this.all_textures.set(place.tex.name, t)
