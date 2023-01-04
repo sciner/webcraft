@@ -32,11 +32,11 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                 console.error(`BBModel file not found ${path}`);
                 continue;
             }
-            const model = JSON.parse(fs.readFileSync(path));
-            model._properties = {
+            const model_json = JSON.parse(fs.readFileSync(path));
+            model_json._properties = {
                 shift: bb.shift
             }
-            this.models.set(bb.name, model);
+            this.models.set(bb.name, model_json);
             list.push(bb);
         }
         this.conf.bbmodels = list;

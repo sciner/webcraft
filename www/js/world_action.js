@@ -425,7 +425,7 @@ class DestroyBlocks {
             }
         }
         //
-        if(tblock.material.model_name == 'cover' && tblock.extra_data) {
+        if(tblock.material.style_name == 'cover' && tblock.extra_data) {
             const existing_faces = Object.keys(tblock.extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
             const dcount = existing_faces.length
             if(dcount > 1 && drop_items.length == 1) {
@@ -903,7 +903,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
         
         // Другие действия с инструментами/предметами в руке
-        if(mat_block.item && mat_block.model_name != 'planting') {
+        if(mat_block.item && mat_block.style_name != 'planting') {
             // Use intruments
             for(let func of [useFlintAndSteel, useShovel, useHoe, useAxe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
@@ -939,7 +939,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // Check if replace
             const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
             if(replaceBlock) {
-                if(world_material.previous_part || world_material.next_part || current_inventory_item.model_name == 'ladder') {
+                if(world_material.previous_part || world_material.next_part || current_inventory_item.style_name == 'ladder') {
                     return actions;
                 }
                 pos.n.x = 0;
@@ -1036,7 +1036,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 }
             }
             // Auto open edit window if sign
-            if(mat_block.model_name == 'sign') {
+            if(mat_block.style_name == 'sign') {
                 actions.open_window = {
                     id: 'frmEditSign',
                     args: {pos: new Vector(pos)}
@@ -1440,8 +1440,8 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
         return false;
     }
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const is_stool = world_material.model_name == 'stool';
-    const is_chair = world_material.model_name == 'chair';
+    const is_stool = world_material.style_name == 'stool';
+    const is_chair = world_material.style_name == 'chair';
     const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair || is_stool;
     if(!block_for_sittings || (mat_block && !is_chair && !is_stool)) {
         return false;
@@ -1848,7 +1848,7 @@ async function putKelp(e, world, pos, player, world_block, world_material, mat_b
 
 //
 async function putPlate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if (!world_material || !mat_block || mat_block.model_name != 'cover') {
+    if (!world_material || !mat_block || mat_block.style_name != 'cover') {
         return false;
     }
     const orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
@@ -1923,7 +1923,7 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
 
 // Open fence gate
 async function openFenceGate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if (!world_material || world_material.model_name != 'fence_gate') {
+    if (!world_material || world_material.style_name != 'fence_gate') {
         return false;
     }
     if(!extra_data) {
@@ -2061,11 +2061,11 @@ async function restrictOnlyFullFace(e, world, pos, player, world_block, world_ma
 
 // Проверка места под лестницу/лианы
 async function restrictLadder(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
-    if(['ladder'].indexOf(mat_block.model_name) < 0) {
+    if(['ladder'].indexOf(mat_block.style_name) < 0) {
         return false;
     }
     // Лианы можно ставить на блоки с прозрачностью
-    if(world_material.transparent && world_material.model_name != 'default') {
+    if(world_material.transparent && world_material.style_name != 'default') {
         return true;
     }
     //
@@ -2111,7 +2111,7 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
 
 // Факелы можно ставить только на определенные виды блоков!
 async function restrictTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
-    if(mat_block.model_name != 'torch') {
+    if(mat_block.style_name != 'torch') {
         return false
     }
     let resp = !replace_block && (
@@ -2141,10 +2141,10 @@ async function useShears(e, world, pos, player, world_block, world_material, mat
 
 //
 async function useTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(!mat_block || mat_block.model_name != 'torch') {
+    if(!mat_block || mat_block.style_name != 'torch') {
         return false;
     }
-    if(world_material.name == 'CAMPFIRE' || world_material.model_name == 'candle') {
+    if(world_material.name == 'CAMPFIRE' || world_material.style_name == 'candle') {
         extra_data = extra_data || {};
         extra_data.active = true;
         actions.addBlocks([{pos: world_block.posworld.clone(), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
@@ -2394,7 +2394,7 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
 // Add candle
 function addCandle(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const add = !e.shiftKey &&
-                (world_material && (world_material.model_name == 'candle')) &&
+                (world_material && (world_material.style_name == 'candle')) &&
                 (current_inventory_item && current_inventory_item.id == world_material.id);
     if(!add) {
         return false;
@@ -2420,7 +2420,7 @@ function prePlaceRail(world, pos, new_item, actions) {
 // Set furniture upholstery
 async function setFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(mat_block.tags.includes('wool')) {
-        if(['chair', 'stool'].includes(world_material.model_name)) {
+        if(['chair', 'stool'].includes(world_material.style_name)) {
             if(extra_data.is_head) {
                 pos = new Vector(0, -1, 0).add(pos);
                 world_block = world.getBlock(pos);
@@ -2442,7 +2442,7 @@ async function setFurnitureUpholstery(e, world, pos, player, world_block, world_
 
 // Remove furniture upholstery
 async function removeFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(world_material && ['chair', 'stool'].includes(world_material.model_name)) {
+    if(world_material && ['chair', 'stool'].includes(world_material.style_name)) {
         if(extra_data.is_head) {
             pos = new Vector(0, -1, 0).add(pos);
             world_block = world.getBlock(pos);

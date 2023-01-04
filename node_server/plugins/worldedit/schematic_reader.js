@@ -231,7 +231,7 @@ export class SchematicReader {
         if(new_block.id == 0) {
             return new_block;
         }
-        if(b.item || b.model_name == 'extruder' || b.model_name == 'text') {
+        if(b.item || b.style_name == 'extruder' || b.style_name == 'text') {
             return null;
         }
         if(b.chest) {
@@ -402,7 +402,7 @@ export class SchematicReader {
                         new_block.rotate = SIX_VECS[props.facing].clone();
                     } else {
                         new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
-                        if(['stairs', 'door', 'cocoa', 'anvil'].indexOf(b.model_name) >= 0) {
+                        if(['stairs', 'door', 'cocoa', 'anvil'].indexOf(b.style_name) >= 0) {
                             new_block.rotate.x = (new_block.rotate.x + 2) % 4;
                         }
                         new_block.rotate.y = 0;
@@ -436,7 +436,7 @@ export class SchematicReader {
                 }
             }
             // bed
-            if(b.model_name == 'bed') {
+            if(b.style_name == 'bed') {
                 if('part' in props) {
                     const is_head = props.part == 'head';
                     setExtraData('is_head', is_head);
@@ -480,7 +480,7 @@ export class SchematicReader {
                 }
             }
             // torch
-            if(b.model_name == 'torch') {
+            if(b.style_name == 'torch') {
                 if(block.on_wall) {
                     new_block.rotate.y = 0;
                 }

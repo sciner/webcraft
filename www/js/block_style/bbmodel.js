@@ -1,27 +1,21 @@
-import { DIRECTION, IndexedColor, mat4ToRotate, Vector, calcRotateMatrix } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, IndexedColor, mat4ToRotate, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BLOCK, FakeTBlock } from '../blocks.js';
-import { Resources } from '../resources.js';
-import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
+import { TBlock } from '../typed_blocks3.js';
+import { BBModel_Model } from '../bbmodel/model.js';
+import { CubeSym } from '../core/CubeSym.js';
 
 import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
 import { default as pot_style } from '../block_style/pot.js';
-import { TBlock } from '../typed_blocks3.js';
-import { BBModel_Model } from '../bbmodel/model.js';
-import { CubeSym } from '../core/CubeSym.js';
 
-const {mat3, mat4, vec3} = glMatrix;
+import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js";
+const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
 const pivotObj = new Vector(0.5, .5, 0.5)
-
-let models = null;
-Resources.loadBBModels().then((res) => {
-    models = res;
-})
 
 // Block model
 export default class style {
@@ -43,7 +37,7 @@ export default class style {
     static computeAABB(tblock, for_physic, world, neighbours, expanded) {
 
         const bb = tblock.material.bb
-        const behavior = bb.behavior || bb.model
+        const behavior = bb.behavior || bb.model.name
 
         switch(behavior) {
             case 'chain': {
@@ -93,7 +87,7 @@ export default class style {
         /**
          * @type {BBModel_Model}
          */
-        const model = models.get(bb.model)
+        const model = bb.model
 
         if(!model) {
             return;
@@ -111,14 +105,33 @@ export default class style {
         style.applyRotate(model, block, neighbours, matrix)
 
         // const animation_name = 'walk';
-        // model.playAnimation(animation_name, performance.now() / 1000);
-        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix)
+        // model.playAnimation(animation_name, performance.now() / 1000)
+
+        const particles = []
+
+        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix, (type, pos, args) => {
+            if(typeof worker == 'undefined') {
+                return
+            }
+            const p = new Vector(pos)
+            const arr = p.toArray()
+            vec3.transformMat4(arr, arr, matrix)
+            p.set(arr[0], arr[1], arr[2]).addScalarSelf(.5, 0, .5)
+            particles.push({pos: p.addSelf(block.posworld), type, args})
+        })
+
+        if(particles.length > 0) {
+            worker.postMessage(['add_animated_block', {
+                block_pos:  block.posworld,
+                list: particles
+            }]);
+        }
 
         // Draw debug stand
         // style.drawDebugStand(vertices, pos, lm, null);
 
         // Add particles for block
-        style.addParticles(model, block, matrix)
+        // style.addParticles(model, block, matrix)
 
         if(emmited_blocks.length > 0) {
             return emmited_blocks
@@ -147,6 +160,7 @@ export default class style {
                             break
                         }
                         case 'three': {
+                            // rotation only in three axes X, Y or Z
                             if(tblock instanceof TBlock) {
                                 const cd = tblock.getCardinalDirection()
                                 const mx = calcRotateMatrix(tblock.material, tblock.rotate, cd, matrix)
@@ -182,7 +196,7 @@ export default class style {
         const emmited_blocks = []
         const mat = tblock.material
         const bb = mat.bb
-        const behavior = bb.behavior || bb.model
+        const behavior = bb.behavior || bb.model.name
         const rotate = tblock.rotate
 
         switch(behavior) {
@@ -317,11 +331,10 @@ export default class style {
         }
     }
 
-    /**
+    /*
      * @param {BBModel_Model} model 
-     * @param {TBlock} tblock 
-     * @returns 
-     */
+     * @param {TBlock} tblock
+     * @param {*} matrix
     static addParticles(model, tblock, matrix) {
         if(typeof worker == 'undefined') {
             return
@@ -350,6 +363,7 @@ export default class style {
             }
         }
     }
+    */
 
     /**
      * @param {BBModel_Model} model
