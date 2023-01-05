@@ -200,6 +200,12 @@ export default class style {
         const rotate = tblock.rotate
 
         switch(behavior) {
+            case 'lantern': {
+                const on_ceil = rotate?.y == -1;
+                model.state = on_ceil ? 'ceil' : 'floor'
+                model.hideAllExcept(model.state)
+                break
+            }
             case 'torch': {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
