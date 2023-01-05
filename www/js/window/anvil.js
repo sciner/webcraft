@@ -80,7 +80,7 @@ class AnvilSlot extends CraftTableSlot {
                             item.extra_data = {label: ""};
                         }
                         item.extra_data.label = label;
-                        item.entity_id = randomUUID();
+                        item.entity_id = first_item?.entity_id ?? randomUUID();
                         this.ct.lbl_edit.buffer = [];
                     }
                 } else {

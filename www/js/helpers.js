@@ -2349,37 +2349,37 @@ export class ObjectHelpers {
      * 
      * Maybe add support for Map, Set, primitive arrays.
      */
-    static deepEqual(a, b) {
+    static deepEqual(a, b, exceptKeys = null) {
         if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') {
             return a === b;
         }
         return Array.isArray(a)
-            ? Array.isArray(b) && this.deepEqualArray(a, b)
-            : this.deepEqualObject(a, b);
+            ? Array.isArray(b) && this.deepEqualArray(a, b, exceptKeys)
+            : this.deepEqualObject(a, b, exceptKeys);
     }
 
-    static deepEqualArray(a, b) {
+    static deepEqualArray(a, b, exceptKeys = null) {
         if (a.length !== b.length) {
             return false;
         }
         for(let i = 0; i < a.length; i++) {
-            if (!this.deepEqual(a[i], b[i])) {
+            if (!this.deepEqual(a[i], b[i], exceptKeys)) {
                 return false;
             }
         }
         return true;
     }
 
-    static deepEqualObject(a, b) {
+    static deepEqualObject(a, b, exceptKeys = null) {
         for (let key in a) {
             // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
             // but for real game objects it seems unnecesssary.
-            if (!this.deepEqual(a[key], b[key])) {
+            if (!(exceptKeys && exceptKeys[key] || this.deepEqual(a[key], b[key], exceptKeys))) {
                 return false;
             }
         }
         for (let key in b) {
-            if (!(key in a)) {
+            if (!(exceptKeys && exceptKeys[key] || key in a)) {
                 return false;
             }
         }
@@ -2390,8 +2390,9 @@ export class ObjectHelpers {
      * Deep compares the selected properties of two objects.
      * For the nested objects, all properties are compared.
      * @param {Object} propsObj - an object that has true-like values for properties being compared.
+     * @param {Object} exceptKeys - contains true for keys that must not be compared (in all levels)
      */
-    static deepEqualObjectProps(a, b, propsObj) {
+    static deepEqualObjectProps(a, b, propsObj, exceptKeys = null) {
         if (a == null || b == null) {
             return a === b;
         }
@@ -2399,12 +2400,14 @@ export class ObjectHelpers {
             throw new Error('unsupported');
         }
         for (let key in a) {
-            if (propsObj[key] && !this.deepEqual(a[key], b[key])) {
+            if (propsObj[key] &&
+                !(exceptKeys && exceptKeys[key] || this.deepEqual(a[key], b[key], exceptKeys))
+            ) {
                 return false;
             }
         }
         for (let key in b) {
-            if (propsObj[key] && !(key in a)) {
+            if (propsObj[key] && !(exceptKeys && exceptKeys[key] || key in a)) {
                 return false;
             }
         }
@@ -2414,7 +2417,7 @@ export class ObjectHelpers {
     /**
      * Deep compares two objects or arrays, but for their elememnts {@link deepEqualObjectProps} is used.
      */
-    static deepEqualCollectionElementProps(a, b, propsObj) {
+    static deepEqualCollectionElementProps(a, b, propsObj, exceptKeys = null) {
         if (a == null || b == null) {
             return a === b;
         }
@@ -2423,7 +2426,7 @@ export class ObjectHelpers {
                 return false;
             }
             for(let i = 0; i < a.length; i++) {
-                if (!this.deepEqualObjectProps(a[i], b[i], propsObj)) {
+                if (!this.deepEqualObjectProps(a[i], b[i], propsObj, exceptKeys)) {
                     return false;
                 }
             }
@@ -2433,12 +2436,12 @@ export class ObjectHelpers {
             throw new Error('unsupported'); // implement it if necessary
         }
         for (var key in a) {
-            if (!this.deepEqualObjectProps(a[key], b[key], propsObj)) {
+            if (!(exceptKeys && exceptKeys[key] || this.deepEqualObjectProps(a[key], b[key], propsObj, exceptKeys))) {
                 return false;
             }
         }
         for (var key in b) {
-            if (!(key in a)) {
+            if (!(exceptKeys && exceptKeys[key] || key in a)) {
                 return false;
             }
         }

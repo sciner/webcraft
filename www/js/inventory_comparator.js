@@ -1,4 +1,4 @@
-import {BLOCK, ITEM_INVENTORY_PROPS_OBJ, ITEM_INVENTORY_KEY_PROPS} from "./blocks.js";
+import {BLOCK, ITEM_INVENTORY_PROPS_OBJ, ITEM_INVENTORY_KEY_PROPS, ITEM_INVENTORY_EXCEPT_KEYS_OBJ} from "./blocks.js";
 import {RecipeManager} from "./recipes.js";
 import {ObjectHelpers} from "./helpers.js"
 
@@ -42,13 +42,13 @@ export class InventoryComparator {
         const old_flat = new Map();
         for(let [_, item] of old_simple) {
             if(item.extra_data || item.entity_id) {
-                old_flat.set(InventoryComparator.flatStringifyObject(item));
+                old_flat.set(InventoryComparator.flatStringifyObject(item, ITEM_INVENTORY_EXCEPT_KEYS_OBJ));
             }
         }
         // new flat
         for(let [_, item] of new_simple) {
             if(item.extra_data || item.entity_id) {
-                const new_flat = InventoryComparator.flatStringifyObject(item);
+                const new_flat = InventoryComparator.flatStringifyObject(item, ITEM_INVENTORY_EXCEPT_KEYS_OBJ);
                 if(!old_flat.has(new_flat)) {
                     return false;
                 }
@@ -151,7 +151,9 @@ export class InventoryComparator {
                     equal = false;
                     break;
                 }
-                if(!ObjectHelpers.deepEqualObjectProps(old_item, item, ITEM_INVENTORY_PROPS_OBJ)) {
+                if(!ObjectHelpers.deepEqualObjectProps(old_item, item, ITEM_INVENTORY_PROPS_OBJ,
+                    ITEM_INVENTORY_EXCEPT_KEYS_OBJ)
+                ) {
                     console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], 2, null));
                     equal = false;
                     break;
@@ -271,11 +273,11 @@ export class InventoryComparator {
     }
 
     // Объект приводится к плоскому виду с сортировкой свойств по названию
-    static flatStringifyObject(obj) {
+    static flatStringifyObject(obj, exceptKeys = null) {
         const flattenObject = function(ob) {
             const toReturn = {};
             for (var i in ob) {
-                if (!ob.hasOwnProperty(i)) {
+                if (!ob.hasOwnProperty(i) || exceptKeys && exceptKeys[i]) {
                     continue;
                 }
                 if ((typeof ob[i]) == 'object') {
