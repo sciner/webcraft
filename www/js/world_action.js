@@ -930,14 +930,17 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
         } else {
 
+            const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
+
             // Change n side and pos
-            simplifyPos(world, pos, mat_block, pos.point.y < .5, true)
+            if(!replaceBlock) {
+                simplifyPos(world, pos, mat_block, pos.point.y < .5, true)
+            }
 
             // Calc orientation
             let orientation = calcBlockOrientation(mat_block, player.rotate, pos.n)
 
             // Check if replace
-            const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
             if(replaceBlock) {
                 if(world_material.previous_part || world_material.next_part || current_inventory_item.style_name == 'ladder') {
                     return actions;
@@ -1134,6 +1137,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
         const pb_block = world.getBlock(pb.pos);
         // Если блок не заменяемый, то ничего не устанавливаем вообще
         if(!BLOCK.canReplace(pb_block.id, pb_block.extra_data, mat_block.id)) {
+            console.error(pb_block.material.name, mat_block.name)
             actions.error = 'error_block_cannot_be_replace';
             return false;
         }

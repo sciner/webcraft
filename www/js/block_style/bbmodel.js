@@ -113,10 +113,7 @@ export default class style {
             if(typeof worker == 'undefined') {
                 return
             }
-            const p = new Vector(pos)
-            const arr = p.toArray()
-            vec3.transformMat4(arr, arr, matrix)
-            p.set(arr[0], arr[1], arr[2]).addScalarSelf(.5, 0, .5)
+            const p = new Vector(pos).addScalarSelf(.5, 0, .5)
             particles.push({pos: p.addSelf(block.posworld), type, args})
         })
 
