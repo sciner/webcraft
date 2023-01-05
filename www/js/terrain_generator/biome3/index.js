@@ -1,43 +1,25 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
-import { BLOCK } from '../../blocks.js';
 import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from "../default.js";
-
-import { GENERATOR_OPTIONS, TerrainMapManager2 } from "./terrain/manager.js";
-
+import { IndexedColor } from "../../helpers.js";
 import { createNoise2D } from '../../../vendors/simplex-noise.js';
 import { Chunk } from "../../worker/chunk.js";
 import { NoiseFactory } from "./NoiseFactory.js";
-
-import Biome3LayerOverworld from "./layers/overworld.js";
 import { ClusterManager } from "../cluster/manager.js";
-import { IndexedColor } from "../../helpers.js";
-
-// Randoms
-const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-const a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
+import { GENERATOR_OPTIONS } from "./terrain/manager.js";
+import { Biome3LayerManager } from "./layer_manager.js";
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
 
-const DEFAULT_CELL = {
+export const DEFAULT_CELL = {
     dirt_color: DEFAULT_DIRT_COLOR,
     water_color: DEFAULT_WATER_COLOR,
     biome: new Default_Terrain_Map_Cell({
     code: 'flat'
 })};
 
-const EMPTY_LAYER = {maps: new Map()}
-
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
-
-    /**
-     * @type {TerrainMapManager2}
-     */
-    maps;
 
     constructor(world, seed, world_id, options) {
 
@@ -47,8 +29,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         super(seed, world_id, options, noise2d, null)
         this.world = world
         this.tempAlea = al
+        this.block_manager = BLOCK
 
         this.clusterManager = new ClusterManager(world.chunkManager, seed, 2)
+
+        this.layer
 
     }
 
@@ -62,9 +47,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         // this.n3d = createNoise3D(new alea(seed))
 
-        this.layers = []
-        this.layers.push({bottom: -5, up: 0, obj: new Biome3LayerOverworld(this)})
-        this.layers.push({bottom: 0, up: 5, obj: new Biome3LayerOverworld(this)})
+        this.layers = new Biome3LayerManager(this)
+        this.layers.init([
+            {type: 'overworld', bottom: 5, up: 10},
+            {type: 'overworld', bottom: 0, up: 5}
+        ])
+
     }
 
     /**
@@ -76,49 +64,28 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         this.noise3d.scoreCounter = 0;
 
-        const seed = this.seed + chunk.id;
-        const rnd = new alea(seed);
-
-        let generated = false
-        let map = null
-
-        chunk.layer = EMPTY_LAYER
-
-        for(let layer of this.layers) {
-            if(chunk.addr.y >= layer.bottom && chunk.addr.y < layer.up) {
-                chunk.addr.y -= layer.bottom
-                chunk.coord.y -= layer.bottom * CHUNK_SIZE_Y
-                map = layer.obj.generate(chunk, seed, rnd)
-                chunk.layer = layer.obj
-                chunk.addr.y += layer.bottom
-                chunk.coord.y += layer.bottom * CHUNK_SIZE_Y
-                generated = true
-                break
-            }
-        }
-
-        if(!generated) {
-            if(chunk.addr.y < 0)  {
-                for(let x = 0; x < chunk.size.x; x++) {
-                    for(let z = 0; z < chunk.size.z; z++) {
-                        for(let y = 0; y < chunk.size.y; y++) {
-                            chunk.setBlockIndirect(x, y, z, BLOCK.STONE.id)
-                        }
-                    }
-                }
-            }
-        }
+        const chunk_seed = this.seed + chunk.id
+        const rnd = new alea(chunk_seed)
+        const map = this.layers.generateChunk(chunk, chunk_seed, rnd)
 
         chunk.genValue = this.noise3d.scoreCounter
 
-        return map || new Default_Terrain_Map(
+        return map
+
+    }
+
+    /**
+     * @param {*} chunk 
+     * @returns {Default_Terrain_Map}
+     */
+    generateDefaultMap(chunk) {
+        return new Default_Terrain_Map(
             chunk.addr,
             chunk.size,
             chunk.addr.mul(chunk.size),
             {WATER_LINE: 63},
             Array(chunk.size.x * chunk.size.z).fill(DEFAULT_CELL)
         )
-
     }
 
 }
