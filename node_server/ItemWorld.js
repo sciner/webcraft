@@ -1,4 +1,5 @@
 import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED} from "./drop_item.js";
+import {CHUNK_STATE} from "../www/js/chunk_const.js"
 
 import {ServerClient} from "../www/js/server_client.js";
 
