@@ -30,7 +30,6 @@ import { GameRule } from "./game_rule.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
-import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
 import { TBlock } from "../www/js/typed_blocks3.js";
@@ -247,7 +246,7 @@ export class ServerWorld {
                     // проверка места для спауна
                     const under = this.getBlock(spawn_pos.offset(0, -1, 0));
                     // под ногами только твердый, целый блок
-                    if (under && (under.id != 0 || under.material.model_name == 'planting')) {
+                    if (under && (under.id != 0 || under.material.style_name == 'planting')) {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
                         // проверям что область для спауна это воздух или вода
@@ -696,7 +695,7 @@ export class ServerWorld {
                         all.push(this.db.blockSet(this, server_player, params));
                     }
 
-                    let isLoaded = chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED;
+                    let isLoaded = chunk && chunk.isReady();
                     if (chunk && !isLoaded) {
                         // TODO: wtf to do here? we are loading info from the database currently!
                         console.log(`Potential problem with setting a block and loading chunk pos=${params.pos} item=${params.item}`);

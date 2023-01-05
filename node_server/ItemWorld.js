@@ -1,5 +1,4 @@
 import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED} from "./drop_item.js";
-import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 
 import {ServerClient} from "../www/js/server_client.js";
 
@@ -37,7 +36,7 @@ export class ItemWorld {
         }
         if (ITEM_MERGE_RADIUS >= 0) {
             for(let chunk of this.chunksItemMergingQueue) {
-                if (chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+                if (chunk.isReady()) {
                     this.#mergeItems(chunk);
                 }
             }
@@ -50,7 +49,7 @@ export class ItemWorld {
         this.#nonPendingItems.length = 0;
         /* The first pendingLength items of mergeableItems are from the current chunk
         and just stopped. They must be checked for posible merging with all nearby items.
-        At the end of mergeableItems are other stationary items from the this and 
+        At the end of mergeableItems are other stationary items from the this and
         neighboring chunks. They can be checked for merging with the items from the 1st group. */
         for(let [_, item] of chunk.drop_items) {
             if(item.motion === MOTION_JUST_STOPPED) {
@@ -68,7 +67,7 @@ export class ItemWorld {
             if(!portal.toRegion)
                 continue;
             const otherChunk = portal.toRegion.rev;
-            if(!otherChunk || otherChunk.load_state !== CHUNK_STATE_BLOCKS_GENERATED)
+            if(!otherChunk || otherChunk.load_state !== CHUNK_STATE.READY)
                 continue;
             for(let [_, item] of otherChunk.drop_items) {
                 if(item.motion !== MOTION_MOVED) {
@@ -128,7 +127,7 @@ export class ItemWorld {
                     data: [dropItemA.entity_id]
                 }];
                 chunkA.sendAll(packetsA, []);
-                
+
                 // increment dropItemB count
                 dropItemB.items[indexB].count += dropItemA.items[0].count;
                 this.world.db.updateDropItem(dropItemB);

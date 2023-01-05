@@ -1399,6 +1399,8 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.FLAG_MULTIPLY_COLOR = 1 << 13;
     QUAD_FLAGS.FLAG_LEAVES = 1 << 14;
     QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
+    // Starting from this flag, we can add new flags to fields that contain QUAD_FLAGS, e.g. Mesh_Effect_Particle.flags
+    QUAD_FLAGS.NEXT_UNUSED_FLAG = 1 << 16;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
@@ -1680,6 +1682,18 @@ export class StringHelpers {
         }
         return hash;
     }
+
+    // indexTrim
+    static trim(str, ch) {
+        var start = 0, 
+            end = str.length;
+        while(start < end && str[start] === ch)
+            ++start;
+        while(end > start && str[end - 1] === ch)
+            --end;
+        return (start > 0 || end < str.length) ? str.substring(start, end) : str;
+    }
+
 }
 
 export class ArrayHelpers {
@@ -1796,6 +1810,11 @@ export class ArrayHelpers {
             res[v] = value;
         }
         return res;
+    }
+
+    // Returns Array or null as is. Non-null scalars are wraped into an array.
+    static scalarToArray(v) {
+        return (v == null || Array.isArray(v)) ? v : [v];
     }
 }
 
@@ -2281,30 +2300,36 @@ export class ObjectHelpers {
     }
 
     // For now, it supports only plain objects, Array, primitives and Vector.
-    static deepClone(v) {
+    static deepClone(v, depth = Infinity) {
         if (v == null) {
             return v;
         }
         // Splitting this function into 3 increases(!) performance
         // Probably because JIT can infer static types in deepCloneArray() and deepCloneObject()
         if (Array.isArray(v)) {
-            return this.deepCloneArray(v);
+            return this.deepCloneArray(v, depth);
         }
         if (typeof v === 'object') {
-            return this.deepCloneObject(v);
+            return this.deepCloneObject(v, depth);
         }
         return v;
     }
     
-    static deepCloneArray(v) {
+    static deepCloneArray(v, depth = Infinity) {
+        if (--depth < 0) {
+            return v;
+        }
         const res = new Array(v.length);
         for(let i = 0; i < v.length; i++) {
-            res[i] = this.deepClone(v[i]);
+            res[i] = this.deepClone(v[i], depth);
         }
         return res;
     }
     
-    static deepCloneObject(v) {
+    static deepCloneObject(v, depth = Infinity) {
+        if (--depth < 0) {
+            return v;
+        }
         if (v instanceof Vector) {
             return new Vector(v);
         }
@@ -2312,7 +2337,7 @@ export class ObjectHelpers {
         for(let key in v) {
             // Don't check hasOwnProperty(key) here, because it's not checked anywhere.
             // If something is added to Object.prototype, the entire project is screwed.
-            res[key] = this.deepClone(v[key]);
+            res[key] = this.deepClone(v[key], depth);
         }
         return res;
     }

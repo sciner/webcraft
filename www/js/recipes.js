@@ -1,12 +1,12 @@
 import {RecipeWindow} from "./window/index.js";
 import {COLOR_PALETTE, Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
-import { md5 } from "./helpers.js";
+import { md5, ArrayHelpers } from "./helpers.js";
 import {default as runes} from "../vendors/runes.js";
 
 const MAX_SIZE = 3;
 
-class Recipe {
+export class Recipe {
 
     constructor(recipe, variant_index, size, keys) {
 
@@ -15,14 +15,14 @@ class Recipe {
         this.size = size;
         this.fixPattern(this.pattern, keys);
 
-        //
-        this.adaptivePattern = {};
+        this.adaptivePatterns = {};
         for(let sz of [2, 3]) {
-            this.adaptivePattern[sz] = this.calcAdaptivePattern(this.pattern, keys, sz, sz);
+            this.adaptivePatterns[sz] = this.calcAdaptivePatterns(keys, sz, sz);
         }
 
         // Need resources
-        this.calcNeedResources(this.adaptivePattern[3].array_id);
+        const pat = this.adaptivePatterns[3][0];
+        this.need_resources = Recipe.calcNeedResources(pat.array_id, pat.array_keys);
 
         //if(this.id == '8dafbca0-e5a4-46b3-8673-49c6e5e3a909') {
         //    console.log(this.pattern, this.adaptivePattern)
@@ -55,73 +55,206 @@ class Recipe {
         }
     }
 
-    // Need resources
-    calcNeedResources(pattern_array) {
-        this.need_resources = new Map();
-        for(let item_id of pattern_array) {
-            if(!item_id) {
+    /**
+     * @param {Array of Arrays of Int} array_id - adaptivePatterns.array_id
+     * @param {Array of String} array_keys - adaptivePatterns.array_keys
+     * @returns {Array} resources - contains objects {
+     *      item_id: Array of Int
+     *      count: Int
+     *  }, see {@link Inventory.hasResources}
+     */
+    static calcNeedResources(array_id, array_keys = null) {
+        if (array_keys == null) {
+            array_keys = new Array(array_id.size);
+            for(let i = 0; i < array_id.length; i++) {
+                array_keys[i] = array_id[i]?.join();
+            }    
+        }
+        const need_resources = new Map();
+        for(let i = 0; i < array_id.length; i++) {
+            const key = array_keys[i];
+            if(!key) {
                 continue;
             }
-            if(!this.need_resources.has(item_id)) {
-                this.need_resources.set(item_id, {
-                    item_id: item_id,   
+            if(!need_resources.has(key)) {
+                need_resources.set(key, {
+                    item_ids: array_id[i],   
                     count: 0
                 });
             }
-            this.need_resources.get(item_id).count++;
+            need_resources.get(key).count++;
         }
-        this.need_resources = Array.from(this.need_resources, ([name, value]) => (value));
+        const arr = [...need_resources.values()];
+        // Sort by the number of ids ascending: if multiple entries have the same id,
+        // in Invetory.hasResources we must first exhaust the entries that have no alternative ids,
+        // i.e. the ones with fewer ids. It's a srictly correct solution, but it should mostly work.
+        return arr.sort((a, b) => a.item_ids.length - b.item_ids.length);
     }
 
     /**
-     * 
-     * @param {*} recipe 
-     * @param {*} pattern 
-     * @param {*} rows 
-     * @param {*} cols 
-     * @returns 
+     * Calculates an array of adaptive patterns for craft slots with the given number
+     * of columns. It may contain 0, 1 or 2 elements (the second one is mirrored).
+     * @param keys
+     * @param {Int} rows - the maximum number of craft slot rows
+     * @param {Int} cols - the number of craft slots columns
+     * @returns a non-empty array of patterns, or null if there are no patterns.
      */
-    calcAdaptivePattern(pattern, keys, rows = 3, cols = 3) {
+    calcAdaptivePatterns(keys, rows, cols) {
 
-        // 1. check pattern size
-        for(let i in pattern) {
-            const rn = runes(pattern[i].trimRight());
-            if(rn.length > 0 && pattern.length - i > rows) return null;
-            if(rn.length > cols) return null;
+        function addAdaptivePattern() {
+            const array_id = [];
+            const array_keys = [];
+            let gap = 0;
+            for(let i = minRow; i <= maxRow; i++) {
+                for(let j = 0; j < cols; j++) {
+                    if (i * cols + j < start_index) {
+                        continue; // skip elements before the beginning of the 1st string
+                    }
+                    const key = rn[i][j];
+                    if (key !== ' ') {
+                        while(gap) {
+                            array_keys.push(null);
+                            array_id.push(null);
+                            gap--;
+                        }
+                        array_keys.push(key);
+                        array_id.push(keys[key]);
+                    } else {
+                        gap++;
+                    }
+                }
+            }
+            const adaptivePattern = { array_keys, array_id, start_index, filledWidth, filledHeight };
+            result.push(adaptivePattern);
         }
 
-        let array = [];
-        let start_index = -1;
+        // Array of Strings -> Array of Array of Runes (each rune = 1 complex unicode character?)
+        const rn = this.pattern.map(it => runes(it));
 
-        // 2. search start index
-        for(let i in pattern) {
-            const rn = runes(pattern[i]);
-            if(pattern.length - i > rows) continue;
-            for(let j = 0; j < rn.length; j++) {
-                if(j > cols - 1) continue;
-                array.push(rn[j]);
-                if(start_index < 0 && rn[j] != ' ') {
-                    start_index = (i - (pattern.length - rows)) * cols + j;
-                }
+        // Reduce the pattern size if necessary
+        while (rn.length > rows) {  // remove top rows
+            if (rn[0].find(it => it != ' ')) {
+                return [];
+            }
+            rn.shift();
+        }
+        for(let i = 0; i < rows; i++) { // remove right columns
+            const removed = rn[i].splice(cols);
+            if (removed.find(it => it != ' ')) {
+                return [];
             }
         }
 
-        array = array.join('').trim().split('');
-
-        //
-        const array_id = [];
-        array.map(function(key) {
-            if(key == ' ') {
-                array_id.push(null);
-            } else {
-                if(!keys.hasOwnProperty(key)) {
-                    throw `error_invalid_recipe_pattern_key|${key}`;
+        // Find actual the pattern size. We expect it to padded by spaces to MAX_SIZE x MAX_SIZE.
+        let minRow = Infinity;
+        let minCol = Infinity;
+        let maxRow = 0;
+        let maxCol = 0;
+        for(let i = 0; i < rows; i++) {
+            for(let j = 0; j < cols; j++) {
+                const key = rn[i][j];
+                if (key !== ' ') {
+                    if(!keys.hasOwnProperty(key)) {
+                        throw `error_invalid_recipe_pattern_key|${key}`;
+                    }
+                    minRow = Math.min(minRow, i);
+                    minCol = Math.min(minCol, j);
+                    maxRow = Math.max(maxRow, i);
+                    maxCol = Math.max(maxCol, j);
                 }
-                array_id.push(keys[key]);
             }
-        });
+        }
+        const start_index = minRow * cols + minCol;
+        const filledWidth = maxCol - minCol + 1;
+        const filledHeight = maxRow - minRow + 1;
 
-        return {array, array_id, start_index};
+        const result = [];
+        addAdaptivePattern();
+        // try to mirror
+        let differs = false;
+        for(let i = minRow; i <= maxRow; i++) {
+            const row = rn[i];
+            for(let dj = 0; dj < (filledWidth * 0.5 | 0); dj++) {
+                const a = row[minCol + dj];
+                const b = row[maxCol - dj];
+                differs ||= (a !== b);
+                row[minCol + dj] = b;
+                row[maxCol - dj] = a;
+            }
+        }
+        if (differs) {
+            addAdaptivePattern();
+        }
+
+        return result;
+    }
+
+    /**
+     * @param {Array of Int} item_ids - for each crafting slot, id of its item, or null
+     * @param {Object} area_size - {width, height}
+     * @return {Object} - an object that contains all the necessary information to search
+     *  or match recipes to the given slots.
+     */
+    static craftingSlotsToSearchPattern(item_ids, area_size) {
+        const width = area_size.width;
+        // find the filled part size in the same way as in adaptive patterns
+        let minRow = Infinity;
+        let minCol = Infinity;
+        let maxRow = 0;
+        let maxCol = 0;
+        let end_index = null;
+        for(let i = 0; i < item_ids.length; i++) {
+            if (item_ids[i]) {
+                end_index = i;
+                const row = i / width | 0;
+                const col = i % width;
+                minRow = Math.min(minRow, row);
+                minCol = Math.min(minCol, col);
+                maxRow = Math.max(maxRow, row);
+                maxCol = Math.max(maxCol, col);
+            }
+        }
+        // form a short pattern, in the same was in adpative patterns
+        const start_index = minRow * width + minCol;
+        return end_index !== null ? {
+            start_index,
+            width,
+            height:         area_size.height,
+            filledWidth:    maxCol - minCol + 1,
+            filledHeight:   maxRow - minRow + 1,
+            array_id:       item_ids.slice(start_index, end_index + 1),
+            full_array_ids: item_ids
+        } : {
+            start_index,
+            width,
+            height:         area_size.height,
+            filledWidth:    0,
+            filledHeight:   0,
+            array_id:       [],
+            full_array_ids: item_ids
+        };
+    }
+
+    /**
+     * Finds an adaptive pattern (see {@link calcAdaptivePatterns}) that matches
+     * the given search pattern (see {@link craftingSlotsToSearchPattern}).
+     */
+    findAdaptivePattern(searchPattern) {
+        const {width, filledWidth, filledHeight, array_id} = searchPattern;
+        for(let ap of this.adaptivePatterns[width]) {
+            // test pattern
+            if (// if the filled area size matches (without this check, we might get false positives with cyclic horizontal shifts)
+                ap.filledHeight === filledHeight && ap.filledWidth === filledWidth &&
+                // and the elements match
+                ap.array_id.length === array_id.length &&
+                ap.array_id.every((ids, index) =>
+                    ids ? ids.includes(array_id[index]) : (array_id[index] === null)
+                )
+            ) {
+                return ap;
+            }
+        }
+        return null;
     }
 
 }
@@ -134,15 +267,14 @@ export class RecipeManager {
             list: [],
             grouped: [],
             map: new Map(),
-            searchRecipe: function(pattern_array, area_size) {
+            /**
+             * @param {Array of Int} pattern_array - array of item ids, one per slot of the input area.
+             * @param {Object} area_size {width, height}
+             */
+            searchRecipe: function(searchPattern) {
                 for(let recipe of this.list) {
-                    const ap = recipe.adaptivePattern[area_size.width];
-                    if(ap) {
-                        if(ap.array_id.length == pattern_array.length) {
-                            if(ap.array_id.every((val, index) => val === pattern_array[index])) {
-                                return recipe;
-                            }
-                        }
+                    if (recipe.findAdaptivePattern(searchPattern)) {
+                        return recipe;
                     }
                 }
                 return null;
@@ -199,6 +331,13 @@ export class RecipeManager {
                 recipe.result.item_id = result_block.id;
                 // Key variants
                 let keys_variants = [];
+                const blockNameToId = (block_name) => {
+                    let block = BLOCK.fromName(block_name);
+                    if(block.id == BLOCK.DUMMY.id) {
+                        throw `Invalid recipe key name '${block_name}'`;
+                    }
+                    return block.id;
+                }
                 const makeKeyVariants = (recipe_keys) => {
                     let keys = {};
                     for(let key of Object.keys(recipe_keys)) {
@@ -206,20 +345,23 @@ export class RecipeManager {
                         if(!value.hasOwnProperty('item')) {
                             throw 'Recipe key not have valid property `item` or `tag`';
                         }
-                        if(Array.isArray(value.item)) {
-                            for(let name of value.item) {
-                                let n = {...recipe_keys};
-                                n[key] = {item: name};
-                                makeKeyVariants(n)
+                        // To enable generation of a variant for each ingredient type, specify its property "same": true.
+                        // It creates a requirement that all ingredients of this key must be the same.
+                        // By default, it's disabled.
+                        const item = value.item;
+                        if (Array.isArray(item)) {
+                            if (value.same) {
+                                for(let name of item) {
+                                    let n = {...recipe_keys};
+                                    n[key] = {item: name};
+                                    makeKeyVariants(n);
+                                }
+                                return;
                             }
-                            return;
+                            keys[key] = item.map(it => blockNameToId(it));
+                        } else {
+                            keys[key] = [blockNameToId(item)];
                         }
-                        let block_name = value.item;
-                        let block = BLOCK.fromName(block_name);
-                        if(block.id == BLOCK.DUMMY.id) {
-                            throw `Invalid recipe key name '${block_name}'`;
-                        }
-                        keys[key] = block.id;
                     }
                     keys_variants.push(keys);
                 }
@@ -257,19 +399,6 @@ export class RecipeManager {
             }
         }
     }
-
-    // Compare two patterns for equals
-    patternsIsEqual(p1, p2) {
-        if(p1.length != p2.length) {
-            return false;
-        }
-        for(let i of p1) {
-            if(p1[i] != p2[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
     
     md5s(text) {
         const guid = md5(text);
@@ -297,7 +426,7 @@ export class RecipeManager {
                 ],
                 "key": {
                     "W": {"item": [`madcraft:${color}_wool`]},
-                    "P": {"item": ["madcraft:oak_planks", "madcraft:birch_planks", "madcraft:spruce_planks", "madcraft:acacia_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]}
+                    "P": {"item": ["special:planks"]}
                 },
                 "result": {
                     "item": `madcraft:${name}`,
@@ -346,63 +475,10 @@ export class RecipeManager {
                 }
             });
         }
-        // chairs and stools
-        const logs = {
-            oak: 'oak_log',
-            birch: 'birch_log',
-            spruce: 'spruce_log',
-            acacia: 'acacia_log',
-            jungle: 'jungle_log',
-            dark_oak: 'dark_oak_log',
-            crimson: 'crimson_stem',
-            warped: 'warped_stem'
-        };
-        for(let k in logs) {
-            const log_name = logs[k];
-            recipes.push({
-                "id": this.md5s(`${k}_chair`),
-                "type": "madcraft:crafting_shaped",
-                "pattern": [
-                    "L",
-                    "LL",
-                    "SS"
-                ],
-                "key": {
-                    "L": {
-                        "item": `madcraft:${log_name}`
-                    },
-                    "S": {
-                        "item": "madcraft:stick"
-                    }
-                },
-                "result": {
-                    "item": `madcraft:${k}_chair`,
-                    "count": 1
-                }
-            });
-            recipes.push({
-                "id": this.md5s(`${k}_stool`),
-                "type": "madcraft:crafting_shaped",
-                "pattern": [
-                    " L",
-                    "SS"
-                ],
-                "key": {
-                    "L": {
-                        "item": `madcraft:${log_name}`
-                    },
-                    "S": {
-                        "item": "madcraft:stick"
-                    }
-                },
-                "result": {
-                    "item": `madcraft:${k}_stool`,
-                    "count": 1
-                }
-            });
-        }
         //
         this.addOrePieces(recipes);
+        this.generateTemplates(recipes);
+        this.replaceSpecialItems(recipes);
         //
         for(let item of recipes) {
             if(!('id' in item)) {
@@ -464,6 +540,225 @@ export class RecipeManager {
         }
     }
 
+    /**
+     * @param {Object} template - see doc/recipes.md
+     * @returns {Array} - entries (blocks with additional data) that match the template.
+     */
+    getResultTemplateEntries(template, template_name) {
+        let suffixes = this.preprocessTemplateList(template.suffix);
+        let additional = this.preprocessTemplateList(template.additional);
+        if (suffixes == null && additional == null) {
+            throw `Result template in "${template_name}" has neither suffixes nor additional`;
+        }
+        if (template.prefix != null || template.ignore_items || template.ignore_blocks || template.manual) {
+            throw `Result template in "${template_name}" has unsupported properties`;
+        }
+        const ignore = this.preprocessTemplateList(template.ignore, true);
+        const result = [];
+        suffixes = suffixes ?? [];
+        for(const suffix of suffixes) {
+            let bySuffix = BLOCK.getBySuffix(suffix);
+            for(const block of bySuffix) {
+                if (ignore.includes(block.name)) {
+                    continue;
+                }
+                result.push({
+                    block,
+                    nameBase: block.name.substring(0, block.name.length - suffix.length)
+                });
+            }
+        }
+        additional = additional ?? [];
+        for(const name of additional) {
+            const block = BLOCK.fromNameOrNull(name);
+            if (block == null) {
+                throw 'Unknwon block in the template result: ' + name;
+            }
+            result.push({ block, nameBase: name });
+        }
+        return result;
+    }
+
+    /**
+     * @param {Object} resultBlock
+     * @param {nameBase} - the name of resultBlock without its suffix
+     * @param {Object} template - the value of item in the template. See doc/recipes.md
+     * @return a recipe item (i.e. a string or array of strings) consisting of blocks that match the arguments.
+     */
+    getIngredientTemplateItem(resultBlock, nameBase, template) {
+
+        const that = this;
+        function addManual(name) {
+            const ingredient = BLOCK.fromNameOrNull(name);
+            if (!ingredient) {
+                throw 'Invalid block name in a template ' + name;
+            }
+            item = that.addToItem(item, ingredient.name);
+        }
+
+        // building the result
+        let item = null;
+        if (template.manual) {
+            const manual = this.preprocessTemplateList(template.additional[resultBlock.name], true);
+            for(const name of manual) {
+                addManual(name);
+            }
+        } else {
+            for(const prefix of template.prefix) {
+                for(const suffix of template.suffix) {
+                    const ingredient = BLOCK[prefix + nameBase + suffix];
+                    if (!ingredient ||
+                        template.ignore_items && ingredient.item ||
+                        template.ignore_blocks && !ingredient.item ||
+                        template.ignore.includes(ingredient.name)
+                    ) {
+                        continue;
+                    }
+                    item = this.addToItem(item, ingredient.name);
+                }
+            }
+        }
+        if (template.additional) {
+            const additional = this.preprocessTemplateList(template.additional[resultBlock.name], true);
+            for(const name of additional) {
+                addManual(name);
+            }
+        }
+        return item ? this.preprocessItem(item) : null;
+    }
+
+    generateTemplates(recipes) {
+        
+        function isItemTemplate(item) {
+            return typeof item === 'object' && !Array.isArray(item);
+        }
+
+        let i = 0;
+        while(i < recipes.length) {
+            const srcRecipe = recipes[i];
+            if (!srcRecipe.template) {
+                i++;
+                continue;
+            }
+            // additional validation & preprocessing
+            if (!isItemTemplate(srcRecipe.result.item)) {
+                throw 'error_template_result_is_not_template';
+            }
+            for(const key in srcRecipe.key) {
+                const item = srcRecipe.key[key].item;
+                if (!isItemTemplate(item)) {
+                    continue;
+                }
+                item.prefix = this.preprocessTemplateList(item.prefix, '');
+                item.suffix = this.preprocessTemplateList(item.suffix, '');
+                item.ignore = this.preprocessTemplateList(item.ignore, true);
+                for(const name of item.ignore) {
+                    if (!BLOCK.fromNameOrNull(name)) {
+                        throw 'Invalid block name in a template ' + name;
+                    }
+                }
+                // ensure keys = capital block names; check that such blocks exist
+                for(const map of [item.manual, item.additional]) {
+                    if (map) {
+                        for(let key in map) {
+                            const oldKey = key;
+                            if (key.startsWith("madcraft:")) {
+                                key = key.substring(9);
+                            }
+                            key = key.toUpperCase();
+                            if (key !== oldKey) {
+                                if (map[key]) {
+                                    throw ```Template keys conflict in "manual" or "additional": ${oldKey} ${key}```
+                                }
+                                map[key] = map[oldKey];
+                                delete map[oldKey];
+                            }
+                            if (!BLOCK[key]) {
+                                throw ```Unknown block in template: ${oldKey}```
+                            }
+                        }
+                    }
+                }
+            }
+            // replace this recipe with a group of generated recipes
+            const newRecipes = [];
+            const resultEntries = this.getResultTemplateEntries(srcRecipe.result.item, srcRecipe.name);
+            for(const resultEntry of resultEntries) {
+                const recipe = { ...srcRecipe };
+                recipe.key = { ...recipe.key };
+                // fill ingredients templates
+                let empty = false;
+                let hasTemplateIngredient = false;
+                for(let key in recipe.key) {
+                    const template = recipe.key[key].item;
+                    if (isItemTemplate(template)) {
+                        // generating an item based on a template
+                        hasTemplateIngredient = true;
+                        const item = this.getIngredientTemplateItem(resultEntry.block, resultEntry.nameBase, template);
+                        if (item == null) {
+                            empty = true;
+                            break;
+                        }
+                        recipe.key[key] = { ...recipe.key[key], item };
+                    }
+                }
+                // finalize the new recipe
+                if (!hasTemplateIngredient) {
+                    throw 'Template has no template ingredients: ' + srcRecipe.name;
+                }
+                if (!empty) {
+                    const lowerName = resultEntry.block.name.toLowerCase();
+                    // add themplate andme to the item name because there may be multiple templated for the item
+                    recipe.id = this.md5s(recipe.template + ' ' + lowerName);
+                    recipe.result = {
+                        ...recipe.result,
+                        item: "madcraft:" + lowerName
+                    };
+                    newRecipes.push(recipe);
+                }
+            }
+            // replace the source recipe with generated ones
+            recipes.splice(i, 1, ...newRecipes);
+            i += newRecipes.length;
+        }
+    }
+
+    replaceSpecialItems(recipes) {
+
+        const that = this;
+        function bySuffix(suffix, filter = it => true) {
+            return that.preprocessItem(
+                BLOCK.getBySuffix(suffix).filter(filter).map(it => it.name));
+        }
+
+        const specialItems = { 
+            'special:planks':       bySuffix('_PLANKS'),
+            'special:wooden_slab':  bySuffix('_SLAB', it => it.material.id === 'wood'),
+            'special:log':          bySuffix('_LOG'),
+            'special:stem':         bySuffix('_STEM'),
+            'special:wood':         bySuffix('_WOOD'),
+            'special:hyphae':       bySuffix('_HYPHAE')
+        };
+        for(let recipe of recipes) {
+            for(let key in recipe.key) {
+                let item = recipe.key[key].item;
+                if (Array.isArray(item)) {
+                    let i = 0;
+                    while (i < item.length) {
+                        const replacement = specialItems[item[i]];
+                        if (replacement) {
+                            item.splice(i, 1, ...replacement);
+                        }
+                        i++;
+                    }
+                } else {
+                    item = specialItems[item] ?? item;
+                }
+                recipe.key[key].item = item;
+            }
+        }
+    }
+
     // Group
     group() {
         const map = new Map();
@@ -484,6 +779,54 @@ export class RecipeManager {
                 group.subrecipes.push(recipe);
             }
         }
+    }
+
+    preprocessIngredientName(name) {
+        if (name.includes(':')) {
+            return name;
+        }
+        return 'madcraft:' + name.toLowerCase();
+    }
+
+    // A helper method. Adds one more block name to to an item (possibly null).
+    // Returns a new item or a modified sorure item.
+    addToItem(item, name) {
+        name = this.preprocessIngredientName(name);
+        if (item == null) {
+            return name;
+        }
+        if (Array.isArray(item)) {
+            item.push(name);
+            return item;
+        }
+        return [item, name];
+    }
+
+    preprocessItem(item) {
+        if (item != null) {
+            if (Array.isArray(item)) {
+                for(let i = 0; i < item.length; i++) {
+                    item[i] = this.preprocessIngredientName(item[i]);
+                }
+            } else {
+                item = this.preprocessIngredientName(item);
+            }
+        }
+        return item;
+    }
+
+    preprocessTemplateList(list, force = false) {
+        if (list == null) {
+            if (force === false) { // treat '' as true
+                return null;
+            }
+            list = typeof force === 'string' ? [force] : [];
+        }
+        return ArrayHelpers.scalarToArray(list).map(it => it.toUpperCase());
+    }
+
+    isBlockConfigTemplateDisabled(conf) {
+        return Array.isArray(conf) && conf.length === 0;
     }
 
 }

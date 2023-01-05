@@ -166,7 +166,7 @@ export class DungeonGenerator {
                 if(!air) {
                     return false;
                 }
-                 if((air.id != 0 || air.fluid != 0) && air.material.model_name != 'planting' && air.id != BLOCK.SNOW.id) {
+                 if((air.id != 0 || air.fluid != 0) && air.material.style_name != 'planting' && air.id != BLOCK.SNOW.id) {
                     return false;
                 }
                 const ground = this.getBlock(chunk, i + x, y + 8, j + z);
@@ -178,7 +178,7 @@ export class DungeonGenerator {
         return true;
     }
     
-    // Проверям, что при возведении стены будет не менее 1 пустоты, размром с игрока
+    // Проверям, что при возведении стены будет не менее 1 пустоты, размером с игрока
     checkwallVerical(x, y, z) {
         const top = this.getBlock(chunk, x, y + 1, z);
         if (top && top.id == 0 && top.fluid == 0) {

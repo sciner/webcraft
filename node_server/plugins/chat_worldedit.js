@@ -644,7 +644,7 @@ export default class WorldEdit {
             }
             if(!b || b.id < 0) throw 'error_invalid_block';
             if(b.deprecated) throw 'error_block_is_deprecated';
-            if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.model_name) >= 0) throw 'error_this_block_cannot_be_setted';
+            if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
             //
             const block_id = b.id;
             const extra_data = BLOCK.makeExtraData(b, fake_pos, fake_orientation, null);

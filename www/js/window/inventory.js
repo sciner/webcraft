@@ -264,30 +264,6 @@ export class InventoryWindow extends BaseCraftWindow {
         }
     }
 
-    // собираем и проверяем шаблон
-    checkRecipe(area_size) {
-        let pattern_array = [];
-        for(let i in this.craft.slots) {
-            let slot = this.craft.slots[i];
-            if(!slot.item) {
-                if(pattern_array.length > 0) {
-                    pattern_array.push(null);
-                }
-            } else {
-                pattern_array.push(slot.item.id);
-            }
-        }
-        pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array, area_size);
-        let craft_result = this.lblResultSlot.recipe?.result || null;
-        if(!craft_result) {
-            return this.lblResultSlot.setItem(null);
-        }
-        const block = BLOCK.convertItemToInventoryItem(BLOCK.fromId(craft_result.item_id), null, true);
-        block.count = craft_result.count;
-        this.lblResultSlot.setItem(block);
-    }
-
     getSlots() {
         return this.inventory_slots;
     }

@@ -11,7 +11,6 @@ import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
 import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
-import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerPlayerEffects } from "./player/effects.js";
@@ -67,8 +66,8 @@ export class ServerPlayer extends Player {
         this.chunks                 = new VectorCollector();
         this.nearby_chunk_addrs     = new VectorCollector();
         this.#forward               = new Vector(0, 1, 0);
-        
-        
+
+
         /**
          * @type {ServerWorld}
          */
@@ -84,7 +83,7 @@ export class ServerPlayer extends Player {
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
         this.prev_near_players      = new Map();
-        
+
         // для проверки времени дейстия
         this.cast = {
             id: 0,
@@ -141,14 +140,14 @@ export class ServerPlayer extends Player {
     }
 
     /**
-     * 
-     * @param {string} session_id 
-     * @param {string} skin 
-     * @param {WebSocket} conn 
-     * @param {ServerWorld} world 
+     *
+     * @param {string} session_id
+     * @param {string} skin
+     * @param {WebSocket} conn
+     * @param {ServerWorld} world
      */
     async onJoin(session_id, skin_id, conn, world) {
-        
+
         if (EMULATED_PING) {
             console.log('Connect user with emulated ping:', EMULATED_PING);
         }
@@ -227,7 +226,7 @@ export class ServerPlayer extends Player {
         this.conn.close(1000, 'error_multiconnection');
         delete(this.conn);
     }
-    
+
     // Нанесение урона игроку
     setDamage(val, src) {
         this.damage.addDamage(val, src);
@@ -235,7 +234,7 @@ export class ServerPlayer extends Player {
 
     /**
      * sendPackets
-     * @param {NetworkMessage[]} packets 
+     * @param {NetworkMessage[]} packets
      */
     sendPackets(packets) {
 
@@ -265,12 +264,12 @@ export class ServerPlayer extends Player {
         let message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
         this.world.chat.sendSystemChatMessageToSelectedPlayers(message, [this.session.user_id]);
     }
-    
+
     /**
      * Change render dist
      * 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109),
      * 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
-     * @param {int} value 
+     * @param {int} value
      */
     changeRenderDist(value) {
         if(Number.isNaN(value)) {
@@ -303,7 +302,7 @@ export class ServerPlayer extends Player {
     }
 
     /**
-     * @param {ServerChunk} chunk 
+     * @param {ServerChunk} chunk
      */
     addChunk(chunk) {
         this.chunks.set(chunk.addr, chunk.addr);
@@ -438,7 +437,7 @@ export class ServerPlayer extends Player {
                 //    2567, /*10*/ 3031, 3607, 4203, 4843, 5523, 6203 /* 16 */][this.state.chunk_render_dist];
                 //    // const force_teleport = ++wait_info.attempt == max_attempts;
                 for(let chunk of this.world.chunks.getAround(wait_info.pos, this.state.chunk_render_dist)) {
-                    if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+                    if(chunk.isReady()) {
                         const new_portal = await WorldPortal.foundPortalFloorAndBuild(this.session.user_id, this.world, chunk, from_portal_type);
                         if(new_portal) {
                             wait_info.pos = new_portal.player_pos;
@@ -472,7 +471,7 @@ export class ServerPlayer extends Player {
         // check if there are any chunks not generated; remove generated chunks from the list
         var i = 0;
         while (i < this.safePosWaitingChunks.length) {
-            if (this.safePosWaitingChunks[i].load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+            if (this.safePosWaitingChunks[i].isReady()) {
                 this.safePosWaitingChunks[i] = this.safePosWaitingChunks[this.safePosWaitingChunks.length - 1];
                 --this.safePosWaitingChunks.length;
             } else {
@@ -485,7 +484,7 @@ export class ServerPlayer extends Player {
             var initialPos = this.safePosInitialOverride || this.state.pos_spawn;
             this.safePosInitialOverride = null;
             this.state.pos = this.world.chunks.findSafePos(initialPos, this.state.chunk_render_dist);
-            
+
             // change status
             this.status = PLAYER_STATUS_ALIVE;
             // send changes
@@ -496,7 +495,7 @@ export class ServerPlayer extends Player {
                     place_id: 'spawn'
                 }
             }, {
-                name: ServerClient.CMD_SET_STATUS_ALIVE, 
+                name: ServerClient.CMD_SET_STATUS_ALIVE,
                 data: {}
             }];
             this.world.packets_queue.add([this.session.user_id], packets);
@@ -543,9 +542,9 @@ export class ServerPlayer extends Player {
         if(this.status !== PLAYER_STATUS_ALIVE || !this.game_mode.mayGetDamaged()) {
             return false;
         }
-        
+
         this.damage.getDamage(tick);
-       
+
         if (this.live_level == 0 || this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
             const packets = [];
             if (this.state.indicators.live.value > this.live_level) {
@@ -574,7 +573,7 @@ export class ServerPlayer extends Player {
                     indicators: this.state.indicators
                 }
             });
-            
+
             this.world.sendSelected(packets, [this.session.user_id], []);
             // @todo notify all about change?
         }
@@ -714,7 +713,7 @@ export class ServerPlayer extends Player {
             }
         }
     }
-    
+
     // проверка использования item
     checkCastTime() {
         if (this.cast.time > 0) {
@@ -736,7 +735,7 @@ export class ServerPlayer extends Player {
             }
         }
     }
-    
+
     /*
     * установка истощения
     * exhaustion - уровень истощения
@@ -744,7 +743,7 @@ export class ServerPlayer extends Player {
     addExhaustion(exhaustion) {
         this.damage.addExhaustion(exhaustion);
     }
-    
+
     /*
     * установка сытости и насыщения
     * food - уровень еды
@@ -762,7 +761,7 @@ export class ServerPlayer extends Player {
 
     /**
      * Return ender chest content
-     * @returns 
+     * @returns
      */
     async loadEnderChest() {
         if(this.ender_chest) {
@@ -770,7 +769,7 @@ export class ServerPlayer extends Player {
         }
         return this.ender_chest = await this.world.db.loadEnderChest(this);
     }
-    
+
     /**
      * Сравнивает время разрушение блока на строне клиента и сервера. при совпадении возвращает true
      * @returns bool
@@ -789,7 +788,7 @@ export class ServerPlayer extends Player {
         mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
         mul -= mul * 0.2 * this.effects.getEffectLevel(Effect.MINING_FATIGUE); // усталость
         const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul;
-        const mining_time_client = performance.now() - this.mining_time_old; 
+        const mining_time_client = performance.now() - this.mining_time_old;
         this.mining_time_old = performance.now();
         this.addExhaustion(0.005);
         if ((mining_time_client - mining_time_server * 1000) >= -50) {

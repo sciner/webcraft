@@ -10,3 +10,12 @@ export const ALLOW_NEGATIVE_Y               = true;
 export const INVENTORY_ICON_COUNT_PER_TEX   = 32;
 export const INVENTORY_ICON_TEX_WIDTH       = 3200
 export const INVENTORY_ICON_TEX_HEIGHT      = 3200
+
+export const CHUNK_STATE = {
+    NEW: 0,
+    LOADING_DATA: 1,
+    LOADING_BLOCKS: 2,
+    READY: 3,
+    UNLOADING: 4,
+    DISPOSED: 5
+}

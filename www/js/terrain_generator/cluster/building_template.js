@@ -118,7 +118,7 @@ export class BuilgingTemplate {
             const markAsCheckSolid = (pos) => {
                 const block = all_blocks.get(pos)
                 if(block && block.block_id > 0) {
-                    if(!block.mat.is_solid && !['bed', 'door'].includes(block.mat.model_name)) {
+                    if(!block.mat.is_solid && !['bed', 'door'].includes(block.mat.style_name)) {
                         // если это не сплошной, то разрешаем его заменять сплошным блоком ландшафта
                         // (если такой будет на этой позиции)
                         block.check_is_solid = true
@@ -406,22 +406,22 @@ export class BuilgingTemplate {
                 delete(block.mat);
             }
 
-            if(['bed'].includes(mat.model_name)) {
+            if(['bed'].includes(mat.style_name)) {
                 rot2(block);
 
             } else if(mat.tags.includes('rotate_x8')) {
                 rotx8(block);
 
-            } else if(['sign'].includes(mat.model_name)) {
+            } else if(['sign'].includes(mat.style_name)) {
                 rot4(block);
 
             } else if(mat.tags.includes('rotate_by_pos_n')) {
                 rot1(block);
 
-            } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door', 'chest', 'lectern', 'fence_gate'].includes(mat.model_name)) {
+            } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door', 'chest', 'lectern', 'fence_gate'].includes(mat.style_name)) {
                 rot2(block);
 
-            } else if(['armor_stand'].includes(mat.model_name)) {
+            } else if(['armor_stand'].includes(mat.style_name)) {
                 rot3(block);
 
             } else if(mat.can_rotate && block.rotate) {

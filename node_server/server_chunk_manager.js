@@ -1,5 +1,5 @@
-import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
-import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
+import {ServerChunk} from "./server_chunk.js";
+import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
@@ -109,7 +109,7 @@ export class ServerChunkManager {
 
     chunkStateChanged(chunk, state_id) {
         switch(state_id) {
-            case CHUNK_STATE_BLOCKS_GENERATED: {
+            case CHUNK_STATE.READY: {
                 this.chunk_queue_gen_mobs.set(chunk.addr, chunk);
                 break;
             }
@@ -125,7 +125,7 @@ export class ServerChunkManager {
         if(this.chunk_queue_load.size > 0) {
             for(const [addr, chunk] of this.chunk_queue_load.entries()) {
                 this.chunk_queue_load.delete(addr);
-                if(chunk.load_state == CHUNK_STATE_NEW) {
+                if(chunk.load_state === CHUNK_STATE.NEW) {
                     chunk.load();
                 }
             }
@@ -134,7 +134,7 @@ export class ServerChunkManager {
         if(this.chunk_queue_gen_mobs.size > 0) {
             for(const [addr, chunk] of this.chunk_queue_gen_mobs.entries()) {
                 this.chunk_queue_gen_mobs.delete(addr);
-                if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+                if(chunk.load_state === CHUNK_STATE.READY) {
                     chunk.generateMobs();
                 }
             }
@@ -156,7 +156,7 @@ export class ServerChunkManager {
             }
         }
         for(let chunk of this.chunks_with_delayed_calls) {
-            if (chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+            if (chunk.isReady()) {
                 chunk.executeDelayedCalls();
             }
         }
@@ -177,7 +177,7 @@ export class ServerChunkManager {
         if(!this.random_chunks || tick_number % 20 == 0)  {
             this.random_chunks = [];
             for(let chunk of this.all) {
-                if(chunk.load_state != CHUNK_STATE_BLOCKS_GENERATED || !chunk.tblocks || chunk.randomTickingBlockCount <= 0) {
+                if(!chunk.isReady() || !chunk.tblocks || chunk.randomTickingBlockCount <= 0) {
                     continue;
                 }
                 this.random_chunks.push(chunk);
@@ -250,7 +250,7 @@ export class ServerChunkManager {
     }
 
     getOrAdd(addr) {
-        var chunk = this.get(addr) 
+        var chunk = this.get(addr)
         if (chunk == null) {
             chunk = new ServerChunk(this.world, addr)
             this.add(chunk);
@@ -258,10 +258,10 @@ export class ServerChunkManager {
         return chunk;
     }
 
-    // Returns a chunk with load_state === CHUNK_STATE_BLOCKS_GENERATED, or null
+    // Returns a chunk with load_state === CHUNK_STATE.READY, or null
     getReady(addr) {
         const chunk = this.all.get(addr);
-        return chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED ? chunk : null;
+        return chunk && chunk.load_state === CHUNK_STATE.READY ? chunk : null;
     }
 
     getByPos(pos) {
@@ -569,7 +569,7 @@ export class ServerChunkManager {
             // skip all the chunks below the top chunk
             do {
                 ++topChunkIndex;
-            } while(topChunkIndex < chunks.length && 
+            } while(topChunkIndex < chunks.length &&
                 chunks[topChunkIndex].addr.x === chunk.addr.x &&
                 chunks[topChunkIndex].addr.z === chunk.addr.z)
         }

@@ -421,7 +421,7 @@ export class HUD {
             if (this.draw_block_info && desc) {
                 this.block_text = 'Targeted block Id: ' + desc.block.id +
                     '\nName: ' + desc.material.name +
-                    '\nStyle: ' + desc.material.model_name +
+                    '\nStyle: ' + desc.material.style_name +
                     '\nWorld pos.: ' + desc.worldPos.toString() +
                     '\nPos. in chunk: ' + desc.posInChunk.toString() +
                     '\nChunk addr.: ' + desc.chunkAddr.toString();
