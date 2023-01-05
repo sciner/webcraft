@@ -240,12 +240,13 @@ async function createPainting(e, world, pos) {
 
 //
 function makeDropItem(block, item) {
-    if(block.hasTag('drop_as_entity')) {
-        item.extra_data = JSON.parse(JSON.stringify(block.extra_data));
-        item.entity_id = block.entity_id || randomUUID();
-        item.count = 1;
+    const extra_data = block.extra_data
+    if(extra_data || block.hasTag('drop_as_entity')) {
+        item.extra_data = JSON.parse(JSON.stringify(extra_data))
+        item.entity_id = block.entity_id || randomUUID()
+        item.count = 1
     }
-    return item;
+    return item
 }
 
 /**
@@ -416,11 +417,13 @@ class DestroyBlocks {
         }
         //
         if(tblock.material.chest) {
-            if(tblock.hasTag('store_items_in_chest')) {
-                const di = drop_items[0]
+            const di = drop_items[0]
+            if(!tblock.hasTag('store_items_in_chest')) {
                 di.extra_data = {...tblock.extra_data}
                 di.entity_id = tblock.entity_id || randomUUID()
             } else {
+                if('extra_data' in di) delete(di.extra_data)
+                if('entity_id' in di) delete(di.entity_id)
                 actions.dropChest(tblock)
             }
         }
