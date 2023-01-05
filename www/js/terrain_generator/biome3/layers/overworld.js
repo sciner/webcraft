@@ -57,42 +57,50 @@ export default class Biome3LayerOverworld {
         return 0.;
     }
 
+    /**
+     * @param {object} chunk 
+     * @param {string} seed 
+     * @param {*} rnd 
+     * @returns {TerrainMap2}
+     */
     generate(chunk, seed, rnd) {
 
         const cluster = chunk.cluster
 
-        chunk.timers.generate_maps = performance.now();
-        const maps = this.maps.generateAround(chunk, chunk.addr, true, true);
-        chunk.timers.generate_maps = performance.now() - chunk.timers.generate_maps;
+        // Generate maps around chunk
+        chunk.timers.generate_maps = performance.now()
+        const maps = this.maps.generateAround(chunk, chunk.addr, true, true)
+        chunk.timers.generate_maps = performance.now() - chunk.timers.generate_maps
 
-        const map = chunk.map = maps[4];
+        const map = chunk.map = maps[4]
 
-        chunk.timers.generate_chunk_data = performance.now();
-        this.generateChunkData(chunk, seed, rnd);
-        chunk.timers.generate_chunk_data = performance.now() - chunk.timers.generate_chunk_data;
+        // Generate chunk data
+        chunk.timers.generate_chunk_data = performance.now()
+        this.generateChunkData(chunk, seed, rnd)
+        chunk.timers.generate_chunk_data = performance.now() - chunk.timers.generate_chunk_data
 
         // Mines
-        chunk.timers.generate_mines = performance.now();
+        chunk.timers.generate_mines = performance.now()
         if(chunk.addr.y == 0) {
-            const mine = MineGenerator.getForCoord(this, chunk.coord);
+            const mine = MineGenerator.getForCoord(this, chunk.coord)
             mine.fillBlocks(chunk);
         }
-        chunk.timers.generate_mines = performance.now() - chunk.timers.generate_mines;
+        chunk.timers.generate_mines = performance.now() - chunk.timers.generate_mines
 
         // Dungeon
-        chunk.timers.generate_dungeon = performance.now();
-        this.dungeon.add(chunk);
-        chunk.timers.generate_dungeon = performance.now() - chunk.timers.generate_dungeon;
+        chunk.timers.generate_dungeon = performance.now()
+        this.dungeon.add(chunk)
+        chunk.timers.generate_dungeon = performance.now() - chunk.timers.generate_dungeon
 
         // Cluster
-        chunk.timers.generate_cluster = performance.now();
-        cluster.fillBlocks(this.maps, chunk, map, false, false);
-        chunk.timers.generate_cluster = performance.now() - chunk.timers.generate_cluster;
+        chunk.timers.generate_cluster = performance.now()
+        cluster.fillBlocks(this.maps, chunk, map, false, false)
+        chunk.timers.generate_cluster = performance.now() - chunk.timers.generate_cluster
 
         // Plant trees
-        chunk.timers.generate_trees = performance.now();
-        this.plantTrees(this.maps, chunk);
-        chunk.timers.generate_trees = performance.now() - chunk.timers.generate_trees;
+        chunk.timers.generate_trees = performance.now()
+        this.plantTrees(maps, chunk)
+        chunk.timers.generate_trees = performance.now() - chunk.timers.generate_trees
 
         return map
 
@@ -125,7 +133,7 @@ export default class Biome3LayerOverworld {
                 }
 
                 // Draw tree blocks into chunk
-                this.plantTree(this.world, tree, chunk, x, y, z, true);
+                this.generator.plantTree(this.world, tree, chunk, x, y, z, true);
 
             }
         }

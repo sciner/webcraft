@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from "../default.js";
 import { IndexedColor } from "../../helpers.js";
 import { createNoise2D } from '../../../vendors/simplex-noise.js';
@@ -47,8 +46,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         // this.n3d = createNoise3D(new alea(seed))
 
-        this.layers = new Biome3LayerManager(this)
-        this.layers.init([
+        this.layers = new Biome3LayerManager(this, [
             {type: 'overworld', bottom: 5, up: 10},
             {type: 'overworld', bottom: 0, up: 5}
         ])
@@ -62,7 +60,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
      */
     generate(chunk) {
 
-        this.noise3d.scoreCounter = 0;
+        this.noise3d.scoreCounter = 0
 
         const chunk_seed = this.seed + chunk.id
         const rnd = new alea(chunk_seed)

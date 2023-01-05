@@ -5,23 +5,28 @@ import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 
 export class Biome3LayerManager {
 
-    constructor(generator) {
+    constructor(generator, list) {
         
         this.generator = generator
-        this.layers = []
 
-        //
-        this.min_y = Infinity
-        this.max_y = -Infinity
-
-        //
         this.layer_types = new Map()
         this.layer_types.set('overworld', Biome3LayerOverworld)
         this.layer_types.set('stone', Biome3LayerStone)
 
+        // Make layers
+        this.makeLayers(list)
+
     }
 
-    init(list) {
+    /**
+     * Make layers
+     * @param {*} list 
+     */
+    makeLayers(list) {
+
+        this.layers = []
+        this.min_y = Infinity
+        this.max_y = -Infinity
 
         for(let item of list) {
             if(item.bottom < this.min_y) this.min_y = item.bottom
@@ -36,7 +41,11 @@ export class Biome3LayerManager {
 
     }
 
-    get(chunk) {
+    /**
+     * @param {object} chunk 
+     * @returns 
+     */
+    getLayer(chunk) {
 
         if(chunk.addr.y < this.min_y) return this.opaque_layer
         if(chunk.addr.y > this.max_y) return this.transparent_layer
@@ -51,9 +60,15 @@ export class Biome3LayerManager {
 
     }
 
+    /**
+     * @param {object} chunk 
+     * @param {string} chunk_seed 
+     * @param {*} rnd 
+     * @returns {Default_Terrain_Map}
+     */
     generateChunk(chunk, chunk_seed, rnd) {
         
-        const layer = this.get(chunk)
+        const layer = this.getLayer(chunk)
         chunk.layer = layer.obj
 
         chunk.addr.y -= layer.bottom
