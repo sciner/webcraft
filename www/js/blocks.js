@@ -14,6 +14,9 @@ export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'e
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 export const ITEM_INVENTORY_KEY_PROPS       = ['power', 'extra_data'];
 export const ITEM_INVENTORY_PROPS_OBJ       = ArrayHelpers.valuesToObjectKeys(ITEM_INVENTORY_PROPS);
+export const ITEM_INVENTORY_EXCEPT_KEYS_OBJ = {
+    'label': true // to allow renaming on anvil
+};
 
 export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
 export const shapePivot = new Vector(.5, .5, .5);
