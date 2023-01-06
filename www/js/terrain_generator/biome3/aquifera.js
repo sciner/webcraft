@@ -37,7 +37,7 @@ export class Aquifera {
         this.options = {
             y: {min: 20, max: 50},
             rad: {min: 28, max: 48},
-            chance: 1,
+            chance: .5,
             rad_mul: 1.5
         }
         // WARNING: x and z of size must be a multiple of 16
@@ -77,6 +77,9 @@ export class Aquifera {
      * @returns {boolean}
      */
     calcInside(xyz, out_params) {
+        if(this.is_empty) {
+            return out_params.inside = false
+        }
         //
         out_params.reset()
         //if(!this.hasColumn(xyz)) {

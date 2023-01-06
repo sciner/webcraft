@@ -151,7 +151,7 @@ export default class Biome3LayerOverworld {
                 maxY = Math.max(maxY, this.maps.getMaxY(cell));
             }
         }
-        if(chunk.map.aquifera) {
+        if(chunk.map.aquifera && !chunk.map.aquifera.is_empty) {
             maxY = Math.max(maxY, chunk.map.aquifera.pos.y + AQUIFERA_UP_PADDING)
         }
 
@@ -236,7 +236,7 @@ export default class Biome3LayerOverworld {
                             if(density < DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
                                 // generating a small amount of ore on the surface of the walls
                                 block_id = this.ore_generator.generate(xyz, block_id);
-                            } else if(block_id == BLOCK.STONE.id) {
+                            } else {
                                 block_id = BLOCK.UNCERTAIN_STONE.id
                             }
                         }

@@ -15,7 +15,7 @@
         {"name": "tiny_house2", "pos1": {"x": -176, "y": 1, "z": 2}, "pos2": {"x": -182, "y": 7, "z": -6}, "door_bottom": {"x": -179, "y": 2, "z": 0}},
         {"name": "tiny_mart", "pos1": {"x": -187, "y": 0, "z": 1}, "pos2": {"x": -201, "y": 4, "z": -10}, "door_bottom": {"x": -194, "y": 0, "z": 0}},
         {"name": "sand_house", "pos1": {"x": -206, "y": 0, "z": 1}, "pos2": {"x": -212, "y": 4, "z": -5}, "door_bottom": {"x": -209, "y": 1, "z": 0}},
-        {"name": "sand_house2", "pos1": {"x": -215, "y": 0, "z": 1}, "pos2": {"x": -221, "y": 5, "z": -5}, "door_bottom": {"x": -218, "y": 1, "z": 1}}
+        {"name": "underearth_tower", "pos1": {"x": -215, "y": -80, "z": 1}, "pos2": {"x": -221, "y": 5, "z": -5}, "door_bottom": {"x": -218, "y": 1, "z": 1}}
     ],
     "brains": [
         "default",

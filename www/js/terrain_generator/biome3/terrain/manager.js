@@ -425,7 +425,7 @@ export class TerrainMapManager2 {
             const caveDensity = map.caves.getPoint(xyz, cell, false, res);
             if(caveDensity !== null) {
                 res.dcaves = caveDensity
-                density = caveDensity;
+                density = caveDensity
             }
         }
 
