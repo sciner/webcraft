@@ -632,7 +632,7 @@ export class FluidChunkQueue {
                 // if emptied, we have to check all neibs supported by this cell
                 //TODO: refactor this
                 moreThan = (lvl & 7) + lower;
-                goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
+                goesSides = lvl === 0 || moreThan < 8 && neibChunk[1] && (neib[1] & FLUID_SOLID16) > 0;
             }
 
             let flowMask = 0, emptyMask = 0, emptyBest = 0;

@@ -25,7 +25,8 @@ export class ServerChunkManager {
         this.ticking_chunks         = new VectorCollector();
         this.chunks_with_delayed_calls = new Set();
         this.invalid_chunks_queue   = [];
-        this.unloaded_chunk_addrs   = [];
+        this.disposed_chunk_addrs   = [];
+        this.unloading_chunks       = new VectorCollector();
         //
         this.DUMMY = {
             id:         world.block_manager.DUMMY.id,
@@ -161,9 +162,9 @@ export class ServerChunkManager {
             }
         }
         // 4.
-        if(this.unloaded_chunk_addrs.length > 0) {
-            this.postWorkerMessage(['destructChunk', this.unloaded_chunk_addrs]);
-            this.unloaded_chunk_addrs = [];
+        if(this.disposed_chunk_addrs.length > 0) {
+            this.postWorkerMessage(['destructChunk', this.disposed_chunk_addrs]);
+            this.disposed_chunk_addrs.length = 0;
         }
     }
 
@@ -215,20 +216,34 @@ export class ServerChunkManager {
     }
 
     unloadInvalidChunks() {
-        const cnt = this.invalid_chunks_queue.length;
-        if(cnt == 0) {
+        const invChunks = this.invalid_chunks_queue;
+        if(invChunks.length === 0) {
             return false;
         }
         const p = performance.now();
-        while(this.invalid_chunks_queue.length > 0) {
-            const chunk = this.invalid_chunks_queue.pop();
-            if(chunk.connections.size == 0) {
+
+        let cnt = 0;
+        for (let i = 0; i < invChunks.length; i++) {
+            const chunk = invChunks[i];
+            if (chunk.connections.size === 0 && chunk.load_state <= CHUNK_STATE.READY) {
+                invChunks[cnt++] = chunk;
+
+                this.unloading_chunks.add(chunk.addr, chunk);
                 this.remove(chunk.addr);
+                this.removeTickingChunk(chunk.addr);
                 chunk.onUnload();
             }
         }
+        invChunks.length = cnt;
+        if (cnt === 0) {
+            return false;
+        }
+
+        this.dataWorld.removeChunks(invChunks);
+
         const elapsed = Math.round((performance.now() - p) * 10) / 10;
         console.debug(`Unload invalid chunks: ${cnt}; elapsed: ${elapsed} ms`);
+        return true;
     }
 
     add(chunk) {
@@ -400,8 +415,8 @@ export class ServerChunkManager {
     }
 
     chunkUnloaded(addr) {
-        this.unloaded_chunk_addrs.push(addr);
-        this.removeTickingChunk(addr);
+        this.unloading_chunks.delete(addr);
+        this.disposed_chunk_addrs.push(addr);
     }
 
     // Send command to server worker
