@@ -181,12 +181,22 @@ export class Building {
     }
 
     setY(y) {
-        this.door_bottom.y     = y;
-        this.entrance.y        = y - 1;
-        this.coord.y           = this.entrance.y + this.coord.y;
+
+        this.door_bottom.y     = y
+        this.entrance.y        = y - 1
+        this.coord.y           = this.entrance.y + this.coord.y
+
         const height           = this.aabb.height
-        this.aabb.y_min        = this.entrance.y - BUILDING_AABB_MARGIN;
-        this.aabb.y_max        = this.aabb.y_min + height;
+
+        if(this.entrance.y - BUILDING_AABB_MARGIN == 102) debugger
+
+        this.aabb.y_min        = this.entrance.y - BUILDING_AABB_MARGIN
+        this.aabb.y_max        = this.aabb.y_min + height
+
+        if(this.random_building) {
+            this.aabb.translate(0, -this.random_building.door_pos.y, 0)
+        }
+
     }
 
     /**

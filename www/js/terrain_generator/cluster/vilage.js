@@ -119,7 +119,7 @@ export class ClusterVilage extends ClusterBase {
                     {class: 'WaterWell',      max_count: 2,        chance: .1},
                     {class: 'Farmland',       max_count: Infinity, chance: .2},
                     {class: 'BuildingBlocks', max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
-                    {class: 'BuildingBlocks', max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', /*'farmer_house',*/ 'medium_house']},
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', /*'farmer_house',*/ 'medium_house', 'underearth_tower']},
                     {class: 'BuildingBlocks', max_count: Infinity, chance: .42, block_templates: ['tiny_mart']},
                     {class: 'BuildingBlocks', max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2'/*, 'sand_house'*/]},
                     // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
@@ -232,6 +232,8 @@ export class ClusterVilage extends ClusterBase {
 
         let t = performance.now();
 
+        const is_chunk = chunk.addr.equal(new Vector(-19480, 1, -82998))
+
         // each all buildings
         for(let b of this.buildings.values()) {
 
@@ -242,7 +244,7 @@ export class ClusterVilage extends ClusterBase {
                     b.findYOld(chunk, maps);
                 }
             }
-            
+
             // если строение частично или полностью находится в этом чанке
             if(b.entrance.y != Infinity && b.aabb.intersect(chunk.aabb)) {
                 this.drawBulding(chunk, maps, b);

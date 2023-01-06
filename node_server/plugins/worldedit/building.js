@@ -52,11 +52,49 @@ export class WorldEditBuilding {
                 await this.paste(chat, player, cmd, args)
                 break;
             }
+            case 'add': {
+                await this.add(chat, player, cmd, args)
+                break;
+            }
             case 'save': {
                 await this.save(chat, player, cmd, args)
                 break;
             }
         }
+    }
+
+    // Add new building to registry
+    async add(chat, player, cmd, args) {
+
+        //
+        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+            throw 'error_invalid_world';
+        }
+
+        const we = this.worldedit_instance
+        const name = args[2]
+
+        // getbuilding by name
+        if(this.list.get(name)) {
+            throw 'error_building_sa_name_exists'
+        }
+
+        // make quboid info
+        const qi = we.getCuboidInfo(player)
+
+        console.log(qi)
+
+        const pos2 = new Vector().set(
+            qi.pos1.x + qi.volx * qi.signx,
+            qi.pos1.y + qi.voly * qi.signy,
+            qi.pos1.z + qi.volz * qi.signz
+        );
+
+        const building = {"name": name, "pos1": qi.pos1, "pos2": pos2, "door_bottom": {"x": Math.round((qi.pos1.x + pos2.x) / 2), "y": qi.pos1.y, "z": Math.round((qi.pos1.z + pos2.z) / 2)}}
+
+        // TODO: append building_schemas
+        console.log(JSON.stringify(building))
+
     }
 
     // Copy building from current world and save result
