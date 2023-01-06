@@ -261,11 +261,11 @@ export class TypedBlocks3 {
 
     /**
      * Return saolid neighbours count
-     * 
+     *
      * @param {int} x
      * @param {int} y
      * @param {int} z
-     * 
+     *
      * @returns {int}
      */
     blockSolidNeighboursCount(x, y, z) {
@@ -604,6 +604,17 @@ export class TypedBlocks3 {
             }
     }
 
+    makeBedrockFacet(bounds) {
+        const {id} = this;
+        const {cx, cy, cz, shiftCoord, aabb, outerAABB} = this.dataChunk;
+        for (let x = bounds.x_min; x < bounds.x_max; x++)
+            for (let y = bounds.y_min; y < bounds.y_max; y++)
+                for (let z = bounds.z_min; z < bounds.z_max; z++) {
+                    let index = cx * x + cy * y + cz * z + shiftCoord;
+                    id[index] = 1;
+                }
+    }
+
     getInterpolatedLightValue(localVec) {
         let totalW = 0, totalCave = 0, totalDay = 0;
 
@@ -688,9 +699,22 @@ export class DataWorld {
         if (!chunk || !chunk.dataChunk || !chunk.dataChunk.portals) {
             return;
         }
+        const {portals, aabb} = chunk.dataChunk;
+        const tempRect = new AABB();
+        for (let i = 0; i < portals.length; i++) {
+            tempRect.setIntersect(aabb, portals[i].aabb);
+            portals[i].toRegion.rev.tblocks.makeBedrockFacet(tempRect);
+        }
         this.base.removeSub(chunk.dataChunk);
         if (this.chunkManager.fluidWorld) {
             this.chunkManager.fluidWorld.removeChunk(chunk);
+        }
+    }
+
+    //TODO: optimize this method!
+    removeChunks(chunkArray) {
+        for (let i = 0; i < chunkArray.length; i++) {
+            this.removeChunk(chunkArray[i]);
         }
     }
 
@@ -1171,7 +1195,7 @@ const CHUNK_CW = CHUNK_PADING * (CHUNK_CX + CHUNK_CY + CHUNK_CZ);
 /**
  * A class that provides access to the world blocks in the same area
  * on average as fast as the chunk does to its own blocks.
- * 
+ *
  * It caches the current chunk, so its instances can't be stored and reused
  * for any prolonged time; it must be re-created, or reset by calling init().
  */
@@ -1213,7 +1237,7 @@ export class BlockAccessor {
     /**
      * Allows a persistent refernce to the class to be used again.
      * It solves the problem of the remembered chunk being unloaded.
-     * 
+     *
      * @param {Vector, TBlock or BlockAccessor} initial - optional. Some point near the area
      *   where the class will be used. If it's provided, it slightly speeds up initialization.
      *   Passing {@link TBlock} or {@link BlockAccessor} is preferable.

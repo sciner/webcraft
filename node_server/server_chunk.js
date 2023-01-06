@@ -138,6 +138,7 @@ export class ServerChunk {
         this.fluid          = null;
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
         this.blocksUpdatedByListeners = [];
+        this.readyPromise  = Promise.resolve();
     }
 
     isReady() {
@@ -1159,7 +1160,7 @@ export class ServerChunk {
     }
 
     // Before unload chunk
-    async onUnload() {
+    onUnload() {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
@@ -1168,12 +1169,13 @@ export class ServerChunk {
         if (this.delayedCalls.length) {
             chunkManager.chunks_with_delayed_calls.delete(this);
         }
-        if (this.dataChunk) {
-            await this.world.db.fluid.flushChunk(this);
-            chunkManager.dataWorld.removeChunk(this);
-        }
-
         const promises = [];
+        if (this.readyPromise) {
+            promises.push(this.readyPromise);
+        }
+        if (this.dataChunk) {
+            promises.push(chunkManager.world.db.fluid.flushChunk(this))
+        }
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
@@ -1189,9 +1191,12 @@ export class ServerChunk {
         if (this.delayedCalls.length) {
             promises.push(this.world.db.saveChunkDelayedCalls(this));
         }
-        await Promise.all(promises);
-        // Need unload in worker
-        this.world.chunks.chunkUnloaded(this.addr);
+        this.readyPromise = Promise.all(promises).then(() => {
+            if (this.load_state === CHUNK_STATE.UNLOADING) {
+                this.load_state = CHUNK_STATE.DISPOSED;
+                chunkManager.chunkUnloaded(this.addr);
+            }
+        });
     }
 
 }
