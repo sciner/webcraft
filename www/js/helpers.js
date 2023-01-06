@@ -2349,37 +2349,37 @@ export class ObjectHelpers {
      * 
      * Maybe add support for Map, Set, primitive arrays.
      */
-    static deepEqual(a, b, exceptKeys = null) {
+    static deepEqual(a, b) {
         if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') {
             return a === b;
         }
         return Array.isArray(a)
-            ? Array.isArray(b) && this.deepEqualArray(a, b, exceptKeys)
-            : this.deepEqualObject(a, b, exceptKeys);
+            ? Array.isArray(b) && this.deepEqualArray(a, b)
+            : this.deepEqualObject(a, b);
     }
 
-    static deepEqualArray(a, b, exceptKeys = null) {
+    static deepEqualArray(a, b) {
         if (a.length !== b.length) {
             return false;
         }
         for(let i = 0; i < a.length; i++) {
-            if (!this.deepEqual(a[i], b[i], exceptKeys)) {
+            if (!this.deepEqual(a[i], b[i])) {
                 return false;
             }
         }
         return true;
     }
 
-    static deepEqualObject(a, b, exceptKeys = null) {
+    static deepEqualObject(a, b) {
         for (let key in a) {
             // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
             // but for real game objects it seems unnecesssary.
-            if (!(exceptKeys && exceptKeys[key] || this.deepEqual(a[key], b[key], exceptKeys))) {
+            if (!this.deepEqual(a[key], b[key])) {
                 return false;
             }
         }
         for (let key in b) {
-            if (!(exceptKeys && exceptKeys[key] || key in a)) {
+            if (!(key in a)) {
                 return false;
             }
         }
@@ -2387,61 +2387,101 @@ export class ObjectHelpers {
     }
 
     /**
-     * Deep compares the selected properties of two objects.
-     * For the nested objects, all properties are compared.
-     * @param {Object} propsObj - an object that has true-like values for properties being compared.
-     * @param {Object} exceptKeys - contains true for keys that must not be compared (in all levels)
+     * Deep compares two object by a schema. A schema can specify how each property is compared.
+     * @param a - the first object (or array, scalar)
+     * @param b - the second object (or array, scalar)
+     * @param schema - the schema. It may be an array, an object or a scalar. It matches the expected
+     *   structure of the source objects. If the source objects are arrays, it must be an array of 1 element.
+     * @param leafSchema - the schema that is used when {@link schema} has no corresponding value.
+     * @param {String} defaultKey - the name of a key that is supposed to be not present in {@link a}
+     *   and {@link b}, and is used in {@link schema} objects to define behavior for any key that
+     *   is not present in {@link schema}. The default value is chosen to be unlikely used as an object field.
+     * 
+     * Elements of the schema can be:
+     *  - an array, an object - matched recursively
+     *  - a function - is called for the source values and returns if they are equal
+     *  - scalar constants that define atching algorithm: true, false, 'deepEqual', 'typeof', '==', '==='.
+     * @example INVENTORY_ITEM_EQUAL_SCHEMA, INVENTORY_ITEM_EQUAL_SCHEMA_ANVIL
      */
-    static deepEqualObjectProps(a, b, propsObj, exceptKeys = null) {
-        if (a == null || b == null) {
-            return a === b;
+    static deepEqualSchema(a, b, schema, leafSchema = 'deepEqual', defaultKey = 'default:') {
+        if (schema == null) {
+            if (leafSchema == null) {
+                // IDK what semantics is best, so forbid this case for now
+                throw new Error('null leaf schema is not supported');
+            }
+            schema = leafSchema;
         }
-        if (typeof a !== 'object' || typeof b !== 'object') {
-            throw new Error('unsupported');
+        if (typeof schema === 'object') {
+            return Array.isArray(a)
+                ? Array.isArray(b) && this._deepEqualArraySchema(a, b, schema, leafSchema, defaultKey)
+                : this._deepEqualObjectSchema(a, b, schema, leafSchema, defaultKey);
         }
+        if (typeof schema === 'function') {
+            return schema(a, b);
+        }
+        switch(schema) {
+            case true:
+            case false:         return schema;
+            case 'deepEqual':   return this.deepEqual(a, b);
+            case 'typeof':      return a == null && b == null || typeof a === typeof b;
+            case '==':          return a == b;
+            case '===':         return a === b;
+            default: {
+                throw new Error('unknown schema value: ' + schema);
+            }
+        }
+    }
+
+    static _deepEqualArraySchema(a, b, schema, leafSchema, defaultKey) {
+        if (!Array.isArray(schema)) {
+            return false; // we are tyring to compare arrays, but the schema expects not an Array
+        }
+        if (schema.length !== 1) {
+            throw new Error('arays in schema must have length = 1');
+        }
+        const subSchema = schema[0];
+        if (a.length !== b.length) {
+            return false;
+        }
+        for(let i = 0; i < a.length; i++) {
+            if (!this.deepEqualSchema(a[i], b[i], subSchema, leafSchema, defaultKey)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static _deepEqualObjectSchema(a, b, schema, leafSchema, defaultKey) {
+        // we already know that (typeof schema === 'object')
+        if (Array.isArray(schema)) {
+            return false; // we are tyring to compare objects, but the schema expects not an object
+        }
+        const defaultSubSchema = schema[defaultKey];
+
+        const that = this;
+        function equalKey(key) {
+            if (key === defaultKey) {
+                console.warn(`defaultKey = ${console.warn} is in compared objects. Maybe use a different key?`);
+                /* Why we proceed with deepEqual: suppose a client sends some garbage in this field.
+                We must only accept it if the server object has this field. Using schema[key] or leafSchema may allow it to pass.
+                If the server object has such field (which it mustn't), at this at least allows equal client objects to pass.*/
+                return this.deepEqual(a[key], b[key]);
+            }
+            // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
+            // but for real game objects it seems unnecesssary.
+            const subSchema = schema[key] ?? defaultSubSchema;
+            return that.deepEqualSchema(a[key], b[key], subSchema, leafSchema, defaultKey);
+        }
+
         for (let key in a) {
-            if (propsObj[key] &&
-                !(exceptKeys && exceptKeys[key] || this.deepEqual(a[key], b[key], exceptKeys))
-            ) {
+            // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
+            // but for real game objects it seems unnecesssary.
+            if (!equalKey(key)) {
                 return false;
             }
         }
         for (let key in b) {
-            if (propsObj[key] && !(exceptKeys && exceptKeys[key] || key in a)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Deep compares two objects or arrays, but for their elememnts {@link deepEqualObjectProps} is used.
-     */
-    static deepEqualCollectionElementProps(a, b, propsObj, exceptKeys = null) {
-        if (a == null || b == null) {
-            return a === b;
-        }
-        if (Array.isArray(a)) {
-            if (!Array.isArray(b) || b.length !== a.length) {
-                return false;
-            }
-            for(let i = 0; i < a.length; i++) {
-                if (!this.deepEqualObjectProps(a[i], b[i], propsObj, exceptKeys)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        if (a instanceof Map || a instanceof Set) {
-            throw new Error('unsupported'); // implement it if necessary
-        }
-        for (var key in a) {
-            if (!(exceptKeys && exceptKeys[key] || this.deepEqualObjectProps(a[key], b[key], propsObj, exceptKeys))) {
-                return false;
-            }
-        }
-        for (var key in b) {
-            if (!(exceptKeys && exceptKeys[key] || key in a)) {
+            if (!(key in a) && !equalKey(key)) {
                 return false;
             }
         }
@@ -2500,6 +2540,8 @@ export function deepAssign(options) {
         return target;
     }
 }
+
+const DEFAULT_PROPERTIES_EQUAL_FN = (a, b) => ObjectHelpers.deepEqual(a, b);
 
 // digestMessage
 export async function digestMessage(message) {

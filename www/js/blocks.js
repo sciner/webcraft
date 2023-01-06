@@ -8,14 +8,29 @@ export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202, 415];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 export const POWER_NO                       = 0;
+export const ITEM_LABEL_MAX_LENGTH          = 19;
 
 // Свойства, которые могут сохраняться в БД
 export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'extra_data', 'rotate'];
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 export const ITEM_INVENTORY_KEY_PROPS       = ['power', 'extra_data'];
-export const ITEM_INVENTORY_PROPS_OBJ       = ArrayHelpers.valuesToObjectKeys(ITEM_INVENTORY_PROPS);
 export const ITEM_INVENTORY_EXCEPT_KEYS_OBJ = {
     'label': true // to allow renaming on anvil
+}
+// It assumes the 1st item is correct, and the 2nd item is suspicious
+export const INVENTORY_ITEM_EQUAL_SCHEMA = {
+    power: '===',
+    count: '===',
+    entity_id: '===',
+    extra_data: {
+        label: function(a, b) {
+            // allow renaming the item even if the server item has incorrect label length
+            return a === b || 
+                (a != null && b != null && typeof b === 'string' && b.length <= ITEM_LABEL_MAX_LENGTH);
+        },
+        'default:': 'deepEqual'
+    },
+    'default:': true // don't compare anything else
 };
 
 export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
