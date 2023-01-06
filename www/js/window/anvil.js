@@ -1,4 +1,4 @@
-import { BLOCK } from "../blocks.js";
+import { BLOCK, ITEM_LABEL_MAX_LENGTH } from "../blocks.js";
 import { Button, Label, TextEdit } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
@@ -218,7 +218,7 @@ export class AnvilWindow extends BaseCraftWindow {
         // this.lbl_edit = new TextBox(this.zoom);
         this.lbl_edit.word_wrap         = false;
         this.lbl_edit.focused           = true;
-        this.lbl_edit.max_length        = 19;
+        this.lbl_edit.max_length        = ITEM_LABEL_MAX_LENGTH;
         this.lbl_edit.max_lines         = 1;
         this.lbl_edit.style.color       = '#ffffff';
         this.lbl_edit.style.font.size   *= this.zoom * 1.1;

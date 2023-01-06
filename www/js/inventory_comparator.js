@@ -1,4 +1,4 @@
-import {BLOCK, ITEM_INVENTORY_PROPS_OBJ, ITEM_INVENTORY_KEY_PROPS, ITEM_INVENTORY_EXCEPT_KEYS_OBJ} from "./blocks.js";
+import {BLOCK, INVENTORY_ITEM_EQUAL_SCHEMA, ITEM_INVENTORY_KEY_PROPS, ITEM_INVENTORY_EXCEPT_KEYS_OBJ} from "./blocks.js";
 import {RecipeManager} from "./recipes.js";
 import {ObjectHelpers} from "./helpers.js"
 
@@ -59,11 +59,14 @@ export class InventoryComparator {
 
     /** Compares lists exactly - item stacks must match. */
     static listsExactEqual(listA, listB) {
-        return ObjectHelpers.deepEqualCollectionElementProps(listA, listB, ITEM_INVENTORY_PROPS_OBJ);
+        return ObjectHelpers.deepEqualSchema(listA, listB, [INVENTORY_ITEM_EQUAL_SCHEMA]);
     }
 
     /* Compares total quantities of each item, regardless of their invetory positions
-    and split between stacks. */
+    and split between stacks. 
+    
+    TODO: validate all fields in new_items, so the client doesn't push garbage to the server!
+    */
     static async checkEqual(old_items, new_items, used_recipes) {
 
         const rm = await InventoryComparator.getRecipeManager();
@@ -151,9 +154,7 @@ export class InventoryComparator {
                     equal = false;
                     break;
                 }
-                if(!ObjectHelpers.deepEqualObjectProps(old_item, item, ITEM_INVENTORY_PROPS_OBJ,
-                    ITEM_INVENTORY_EXCEPT_KEYS_OBJ)
-                ) {
+                if(!ObjectHelpers.deepEqualSchema(old_item, item, INVENTORY_ITEM_EQUAL_SCHEMA)) {
                     console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], 2, null));
                     equal = false;
                     break;
