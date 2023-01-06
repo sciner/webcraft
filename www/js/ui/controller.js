@@ -334,6 +334,10 @@ let gameCtrl = async function($scope, $timeout) {
             if(!('forced_joystick_control' in this.form)) {
                 this.form.forced_joystick_control = false;
             }
+            // draw improved blocks
+            if(!('draw_improved_blocks' in this.form)) {
+                this.form.draw_improved_blocks = true;
+            }
             // mouse sensitivity
             if(!('mouse_sensitivity' in this.form)) {
                 this.form.mouse_sensitivity = 100;

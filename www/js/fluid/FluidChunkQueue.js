@@ -291,10 +291,10 @@ export class FluidChunkQueue {
         bounds.copyFrom(fluidChunk.getLocalBounds());
         this.initInBounds(bounds);
         fluidChunk.events.initInBounds(bounds);
-        const {aabb, facetPortals} = fluidChunk.dataChunk;
+        const {facetPortals} = fluidChunk.dataChunk;
 
         for (let i = 0; i < facetPortals.length; i++) {
-            const {pos, rev} = facetPortals[i].toRegion;
+            const {pos, rev, aabb} = facetPortals[i].toRegion;
             bounds.setIntersect(facetPortals[i].aabb, aabb);
             //TODO: use correct bounds vars in fluids
             bounds.x_min -= pos.x;
