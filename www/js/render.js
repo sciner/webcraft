@@ -846,13 +846,13 @@ export class Renderer {
     }
 
     /**
-     * 
-     * @param {Vector} pos 
-     * @param {string} bbname 
-     * @param {Vector} rotate 
-     * @param {string} animation_name 
-     * @param {string} key 
-     * @returns 
+     *
+     * @param {Vector} pos
+     * @param {string} bbname
+     * @param {Vector} rotate
+     * @param {string} animation_name
+     * @param {string} key
+     * @returns
      */
     addBBModel(pos, bbname, rotate, animation_name, key) {
         const model = Resources._bbmodels.get(bbname)
@@ -1131,7 +1131,7 @@ export class Renderer {
         if(hotbar.last_damage_time && performance.now() - hotbar.last_damage_time < DAMAGE_TIME) {
             const percent = (performance.now() - hotbar.last_damage_time) / DAMAGE_TIME;
             let value = 0;
-            
+
             if(percent < .25) {
                 value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);
             } else {
@@ -1280,6 +1280,10 @@ export class Renderer {
         if(new_fov !== null) {
             this.setPerspective(new_fov, NEAR_DISTANCE, RENDER_DISTANCE);
         }
+    }
+
+    updateNightVision(val) {
+        this.globalUniforms.lightOverride = val ? 0xff: -1;
     }
 
     screenshot(callback) {
