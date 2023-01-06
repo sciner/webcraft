@@ -280,6 +280,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
+    // TODO validate and sanitize incorrect types, e.g. 'power' is an object or NaN
     static convertItemToInventoryItem(item, b, no_copy_extra_data = false) {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
