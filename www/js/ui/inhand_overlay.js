@@ -203,6 +203,7 @@ export class InHandOverlay {
         //TODO: remove it
         camera.use(globalUniforms, false);
         globalUniforms.brightness = Math.max(0.4, render.env.fullBrightness);
+        let globOverride = globalUniforms.lightOverride;
         globalUniforms.lightOverride = player.getInterpolatedHeadLight();
 
         let inHandLight = inHandItemMesh?.block_material?.light_power?.a || 0;
@@ -277,7 +278,7 @@ export class InHandOverlay {
         }
         renderBackend.endPass();
 
-        globalUniforms.lightOverride = -1;
+        globalUniforms.lightOverride = globOverride;
         globalUniforms.update();
     }
 
@@ -410,7 +411,7 @@ export class InHandOverlay {
 
         return;
         */
-        
+
         var isEating = false;
 
         // не смотрит в подзорную трубу
