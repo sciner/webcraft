@@ -610,12 +610,6 @@ export class TypedBlocks3 {
         for (let x = bounds.x_min; x < bounds.x_max; x++)
             for (let y = bounds.y_min; y < bounds.y_max; y++)
                 for (let z = bounds.z_min; z < bounds.z_max; z++) {
-                    // if (aabb.contains(x, y, z)) {
-                    //     console.log("WTF BEDROCK");
-                    // }
-                    // if (!outerAABB.contains(x, y, z)) {
-                    //     console.log("WTF BEDROCK 2");
-                    // }
                     let index = cx * x + cy * y + cz * z + shiftCoord;
                     id[index] = 1;
                 }
