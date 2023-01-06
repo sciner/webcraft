@@ -90,7 +90,7 @@ export class ServerWorld {
         await this.makeBuildingsWorld()
 
         // Server ore generator
-        this.ore_generator  = new WorldOreGenerator(this.info.ore_seed);
+        this.ore_generator  = new WorldOreGenerator(this.info.ore_seed, false)
         delete(this.info.ore_seed)
 
         //

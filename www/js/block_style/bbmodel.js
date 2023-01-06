@@ -71,9 +71,13 @@ export default class style {
             }
         }
 
-        const aabb = new AABB();
-        aabb.set(0, 0, 0, 1, 1, 1);
-        return [aabb];
+        const aabb = new AABB()
+        aabb.set(0, 0, 0, 1, 1, 1)
+
+        if(!for_physic) {
+            aabb.expand(1/100, 1/100, 1/100)
+        }
+        return [aabb]
 
     }
 

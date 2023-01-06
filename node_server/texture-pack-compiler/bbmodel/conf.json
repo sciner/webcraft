@@ -31,7 +31,8 @@
         {"name": "poor_diamond_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "poor_emerald_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "poor_gold_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poor_iron_ore",       "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "poor_iron_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "poor_coal_ore",       "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -346,6 +347,13 @@
             "name": "POOR_IRON_ORE",
             "bb": {
                 "model": "poor_iron_ore"
+            }
+        },
+        {
+            "id": 1031,
+            "name": "POOR_COAL_ORE",
+            "bb": {
+                "model": "poor_coal_ore"
             }
         }
     ]

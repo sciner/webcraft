@@ -8,7 +8,7 @@ export class WorldClientOreGenerator {
     /**
      * @param {string} seed 
      */
-    constructor(seed) {
+    constructor(seed, poor = true) {
         this.seed = seed.replaceAll('-', '')
         this.ores = [];
         this.random = new alea(seed)
@@ -19,12 +19,13 @@ export class WorldClientOreGenerator {
         const threshold = .8
         const threshold_less = .85
         const threshold_diamond_less = .85
-        
-        this.addOreLayer(20, 20,        scale_less, threshold_diamond_less, BLOCK.DIAMOND_ORE.id)
-        this.addOreLayer(30, 30,        scale_less, threshold_less, BLOCK.GOLD_ORE.id)
-        this.addOreLayer(50, 40,        scale, threshold, BLOCK.IRON_ORE.id)
+
+        this.addOreLayer(20, 20,        scale_less, threshold_diamond_less, poor ? BLOCK.POOR_DIAMOND_ORE.id : BLOCK.DIAMOND_ORE.id)
+        this.addOreLayer(30, 30,        scale_less, threshold_less, poor ? BLOCK.POOR_GOLD_ORE.id : BLOCK.GOLD_ORE.id)
+        this.addOreLayer(50, 40,        scale, threshold, poor ? BLOCK.POOR_IRON_ORE.id : BLOCK.IRON_ORE.id)
         this.addOreLayer(10, 20,        scale_less, threshold_less, BLOCK.REDSTONE_ORE.id)
-        this.addOreLayer(0, Infinity,   scale, threshold, BLOCK.COAL_ORE.id)
+        this.addOreLayer(0, Infinity,   scale, threshold, poor ? BLOCK.POOR_COAL_ORE.id : BLOCK.COAL_ORE.id)
+
     }
 
     addOreLayer(y, height, scale, threshold, ore_block_id) {
