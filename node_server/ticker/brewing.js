@@ -151,6 +151,17 @@ const recipes = [
         'bottle': BLOCK.RESPIRATION.id,
         'result': BLOCK['RESPIRATION_+'].id
     },
+    // ночное зрение
+    {
+        'product': BLOCK.GOLDEN_CARROT.id,
+        'bottle': BLOCK.AWKWARD.id,
+        'result': BLOCK.NIGHT_VISION.id
+    },
+    {
+        'product': BLOCK.REDSTONE_WIRE.id,
+        'bottle': BLOCK.NIGHT_VISION.id,
+        'result': BLOCK['NIGHT_VISION_+'].id
+    },
 ];
 
 function getResult(product, bottle) {

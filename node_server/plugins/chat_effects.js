@@ -25,11 +25,18 @@ export default class EffectsPlugin {
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
             if (cmd == '/effect') {
-                args = chat.parseCMD(args, ['string', 'int', 'int', 'int']);
-                const id = args[1];
-                const level = args[2];
-                const time = args[3];
-                player.effects.addEffects([{id: id, level: level, time: time}]);
+                args = chat.parseCMD(args, ['string', 'string', 'int', 'int', 'int']);
+                const action = args[1];
+                const id = args[2];
+                const level = args[3];
+                const time = args[4];
+                if (action == 'give') {
+                    player.effects.addEffects([{id: id, level: level, time: time}]);
+                } else if (action == 'clear') {
+                    player.effects.delEffects(id);
+                } else {
+                    this.sendMessage("/effect give [id] [leve] [time]", player);
+                }
                 return true;
             }
             return false;
