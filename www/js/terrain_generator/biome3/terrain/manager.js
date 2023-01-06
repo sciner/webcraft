@@ -568,6 +568,7 @@ export class TerrainMapManager2 {
         const map_manager = real_chunk.chunkManager.world.generator.maps
         map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord, map_manager);
 
+        // Aquifera
         map.aquifera = new Aquifera(chunk.coord)
 
         // 3. Find door Y position for cluster buildings

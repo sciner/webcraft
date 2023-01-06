@@ -110,7 +110,11 @@ export class WorkerWorld {
         const chunk = this.chunks.get(addr);
         if(chunk) {
             this.chunks.delete(addr);
-            this.generator.maps.delete(addr);
+            if(chunk.layer) {
+                chunk.layer.maps.delete(addr);
+            } else {
+                this.generator.maps?.delete(addr);
+            }
             chunk.destroy();
             return true;
         }
