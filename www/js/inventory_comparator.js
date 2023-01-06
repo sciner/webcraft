@@ -64,8 +64,7 @@ export class InventoryComparator {
 
     /* Compares total quantities of each item, regardless of their invetory positions
     and split between stacks. 
-    
-    TODO: validate all fields in new_items, so the client doesn't push garbage to the server!
+    Note: it's ok if the client sends extra garabe fields. They are cleared in Inventory.applyNewItems().
     */
     static async checkEqual(old_items, new_items, used_recipes) {
 
