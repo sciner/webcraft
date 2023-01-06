@@ -47,7 +47,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // this.n3d = createNoise3D(new alea(seed))
 
         this.layers = new Biome3LayerManager(this, [
-            {type: 'overworld', bottom: 5, up: 10},
             {type: 'overworld', bottom: 0, up: 5}
         ])
 
