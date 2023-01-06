@@ -714,7 +714,7 @@ export class DataWorld {
     //TODO: optimize this method!
     removeChunks(chunkArray) {
         for (let i = 0; i < chunkArray.length; i++) {
-            this.removeChunk(chunkArray);
+            this.removeChunk(chunkArray[i]);
         }
     }
 
