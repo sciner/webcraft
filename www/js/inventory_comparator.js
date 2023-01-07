@@ -59,7 +59,10 @@ export class InventoryComparator {
 
     /** Compares lists exactly - item stacks must match. */
     static listsExactEqual(listA, listB) {
-        return ObjectHelpers.deepEqualSchema(listA, listB, [INVENTORY_ITEM_EQUAL_SCHEMA]);
+        const schema = Array.isArray(listA)
+            ? [INVENTORY_ITEM_EQUAL_SCHEMA]
+            : { 'default:': INVENTORY_ITEM_EQUAL_SCHEMA };
+        return ObjectHelpers.deepEqualSchema(listA, listB, schema);
     }
 
     /* Compares total quantities of each item, regardless of their invetory positions
