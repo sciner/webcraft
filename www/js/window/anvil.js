@@ -12,12 +12,10 @@ class AnvilSlot extends CraftTableSlot {
 
         this.onMouseEnter = function() {
             this.style.background.color = '#ffffff55';
-            this.getResult();
         };
 
         this.onMouseLeave = function() {
             this.style.background.color = '#00000000';
-            this.getResult();
         };
         
         this.onMouseDown = function(e) { 
@@ -26,13 +24,12 @@ class AnvilSlot extends CraftTableSlot {
                 return;
             }
             if (this == ct.result_slot) {
-                this.getResult(true);
                 ct.first_slot.setItem(null);
                 ct.second_slot.setItem(null);
             }
             this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
             this.setItem(null);
-            this.getResult();
+            ct.updateResult();
         };
         
         this.onDrop = function(e) {
@@ -49,55 +46,15 @@ class AnvilSlot extends CraftTableSlot {
             
             // Если это первый слот
             if (this == ct.first_slot) {
-                const block = BLOCK.fromId(dropItem.id);
-                const label = (dropItem?.extra_data?.label) ? dropItem.extra_data.label : block.name;
+                const label = getCurrentLabel(dropItem);
                 ct.lbl_edit.setEditText(label);
             }
-            this.getResult();
+            ct.updateResult();
         };
     }
     
     getInventory() {
         return this.ct.inventory;
-    }
-    
-    getResult(create) {
-        const first_item = this.ct.first_slot.getItem();
-        const second_item = this.ct.second_slot.getItem();
-        const label = this.ct.lbl_edit.buffer.join('');
-        if (!first_item || first_item.count != 1) {
-            this.ct.lbl_edit.buffer = [];
-            this.ct.state = false;
-            this.ct.result_slot.setItem(null);
-        } else {
-            if (!second_item) {
-                if (!first_item?.extra_data?.label || first_item.extra_data.label != label) {
-                    this.ct.state = true;
-                    this.ct.result_slot.setItem(first_item);
-                    if (create) {
-                        const item = this.ct.result_slot.getItem();
-                        if (!item?.extra_data) {
-                            item.extra_data = {label: ""};
-                        }
-                        item.extra_data.label = label;
-                        item.entity_id = first_item?.entity_id ?? randomUUID();
-                        this.ct.lbl_edit.buffer = [];
-                    }
-                } else {
-                    this.ct.state = false;
-                    this.ct.result_slot.setItem(null);
-                }
-            } else {
-                if (second_item.id == first_item.id) {
-                    //to do починка
-                    this.ct.state = true;
-                    this.ct.result_slot.setItem(first_item);
-                } else {
-                    this.ct.state = false;
-                    this.ct.result_slot.setItem(null);
-                }
-            }
-        }
     }
     
 }
@@ -114,7 +71,6 @@ export class AnvilWindow extends BaseCraftWindow {
         this.style.background.image_size_mode = 'stretch';
 
         this.inventory = inventory;
-        this.state = false;
 
         const options = {
             background: {
@@ -198,6 +154,10 @@ export class AnvilWindow extends BaseCraftWindow {
             return false;
         }
     }
+
+    onPaste(str) {
+        this.lbl_edit.paste(str);
+    }
     
     createEdit() {
         
@@ -224,8 +184,45 @@ export class AnvilWindow extends BaseCraftWindow {
         this.lbl_edit.style.font.size   *= this.zoom * 1.1;
         this.lbl_edit.style.background  = options.background;
         this.lbl_edit.setBackground(options.background.image);
+        this.lbl_edit.onChange = () => this.updateResult();
         this.add(this.lbl_edit);
         
+    }
+
+    updateResult() {
+
+        function replaceItemLabel(item, label) {
+            const res = {...item};
+            res.extra_data = res.extra_data ? {...res.extra_data} : {};
+            res.extra_data.label = label;
+            return res;
+        }
+
+        const first_item = this.first_slot.getItem();
+        const second_item = this.second_slot.getItem();
+        const label = this.lbl_edit.buffer.join('');
+        if (!first_item) {
+            this.lbl_edit.buffer = [];
+            this.result_slot.setItem(null);
+        } else {
+            const firts_item_label = getCurrentLabel(first_item);
+            if (!second_item) {
+                if (firts_item_label !== label) {
+                    // replace the label even if we don't create the item to show tooltip
+                    const item = replaceItemLabel(first_item, label);
+                    this.result_slot.setItem(item);
+                } else {
+                    this.result_slot.setItem(null);
+                }
+            } else {
+                if (second_item.id == first_item.id) {
+                    //to do починка
+                    this.result_slot.setItem(first_item);
+                } else {
+                    this.result_slot.setItem(null);
+                }
+            }
+        }
     }
     
     createCraft(cell_size) {
@@ -241,7 +238,7 @@ export class AnvilWindow extends BaseCraftWindow {
     
     draw(ctx, ax, ay) {
         super.draw(ctx, ax, ay);
-        if(!this.state) {
+        if(this.result_slot.getItem() == null) {
             if(typeof this.style.background.image == 'object') {
                 const x = ax + this.x;
                 const y = ay + this.y;
@@ -264,3 +261,7 @@ export class AnvilWindow extends BaseCraftWindow {
     
 }
 
+function getCurrentLabel(item) {
+    const block = BLOCK.fromId(item.id);
+    return item.extra_data?.label ?? block.name;
+}
