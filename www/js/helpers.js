@@ -2412,6 +2412,9 @@ export class ObjectHelpers {
             schema = leafSchema;
         }
         if (typeof schema === 'object') {
+            if (a == null || b == null) {
+                return a == null && b == null;
+            }
             return Array.isArray(a)
                 ? Array.isArray(b) && this._deepEqualArraySchema(a, b, schema, leafSchema, defaultKey)
                 : this._deepEqualObjectSchema(a, b, schema, leafSchema, defaultKey);
