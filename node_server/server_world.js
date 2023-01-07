@@ -152,7 +152,8 @@ export class ServerWorld {
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
-        const block_road = {id: 8}
+        const block_road = {id: 98}
+        const block_smooth_stone = {id: 70}
         const block_num1 = {id: 209}
         const block_num2 = {id: 210}
 
@@ -163,8 +164,9 @@ export class ServerWorld {
 
         // make road
         for(let x = 10; x > -1000; x--) {
-            const pos = new Vector(x, 0, 3)
-            addBlock(pos, block_road)
+            addBlock(new Vector(x, 0, 3), block_road)
+            addBlock(new Vector(x, 0, 4), block_smooth_stone)
+            addBlock(new Vector(x, 0, 5), block_road)
         }
 
         // each all buildings
@@ -172,7 +174,9 @@ export class ServerWorld {
             addBlock(new Vector(schema.world.pos1), block_num1)
             addBlock(new Vector(schema.world.pos2), block_num2)
             // draw sign
-            addBlock(new Vector(schema.world.pos1.x, 1, 3), {id: 645, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(0, 1, 0)})
+            const sign_z = schema.world.pos1.z < 3 ? 3 : 5
+            const sign_rot_x = schema.world.pos1.z < 3 ? 0 : 2
+            addBlock(new Vector(schema.world.pos1.x, 1, sign_z), {id: 645, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(sign_rot_x, 1, 0)})
             // clear basement level
             for(let x = 0; x <= (schema.world.pos1.x - schema.world.pos2.x); x++) {
                 for(let z = 0; z <= (schema.world.pos1.z - schema.world.pos2.z); z++) {

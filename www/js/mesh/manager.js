@@ -25,11 +25,8 @@ export class MeshManager {
     }
 
     remove(key, render) {
-        const keys = Array.from(this.list.keys());
-        for(let i = 0; i < keys.length; i++) {
-            const k = keys[i];
+        for(const [k, item] of this.list.entries()) {
             if(k.indexOf(key) == 0) {
-                const item = this.list.get(k);
                 item.destroy(render);
                 this.list.delete(k);
             }
