@@ -33,6 +33,29 @@ export class ServerPlayerInventory extends Inventory {
         return true;
     }
 
+    /**
+     * @param {Array or Object} new_items - items from the client
+     * @param {Boolean} mustCheckEqual - if it's true, the change is accepted only if the items
+     *   are equal to the existing items, accoring to {@link InventoryComparator.checkEqual}
+     * @param {Array of objects} used_recipes - optional, see {@link InventoryComparator.checkEqual}
+     * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
+     * @return {Boolean} true if success
+     * 
+     * @todo make some validation even when {@link mustCheckEqual} === true, e.g. that there are no extra entities.
+     */
+    sanitizeAndValidateClinetItemsChange(new_items, mustCheckEqual, used_recipes, recipeManager) {
+        // sanitize and validate once here. The code everywhere else assumes they at least have valid format, existing ids, etc.
+        const invalidItem = InventoryComparator.sanitizeAndValidateInventoryItems(new_items);
+        if (invalidItem != null) {
+            console.log('Invalid item: ' + JSON.stringify(invalidItem));
+            return false;
+        }
+        if (mustCheckEqual) {
+            return InventoryComparator.checkEqual(this.items, new_items, used_recipes, recipeManager);
+        }
+        return true;
+    }
+
     // Игрок прислал новое состояние инвентаря, нужно его провалидировать и применить
     async newState(params) {
 
@@ -45,19 +68,16 @@ export class ServerPlayerInventory extends Inventory {
 
         // New state
         if('items' in state) {
-            let equal = this.player.game_mode.isCreative();
-            const old_items = this.items;
             const new_items = state.items;
-            if(!equal) {
-                equal = await InventoryComparator.checkEqual(old_items, new_items, used_recipes);
-            }
-            if(equal) {
+            const recipeMan = await InventoryComparator.getRecipeManager();
+            const mustCheckEqual = !this.player.game_mode.isCreative();
+            const changeIsValid = this.sanitizeAndValidateClinetItemsChange(new_items, mustCheckEqual, used_recipes, recipeMan);
+            if(changeIsValid) {
                 // apply new
                 this.applyNewItems(new_items, true);
                 console.log('New inventory state ... Accepted');
                 // run triggers
                 if(this.player.onCrafted) {
-                    const recipeMan = await InventoryComparator.getRecipeManager();
                     for(let used_recipe of used_recipes) {
                         const recipe = recipeMan.getRecipe(used_recipe.recipe_id);
                         if (!recipe) { // it may happen in creative mode if the client sends invalid recipes

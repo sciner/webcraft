@@ -137,22 +137,24 @@ export class WorldChestManager {
             forceClose = true;
         }
 
-        const rearrangeInventoryAs = params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW
+        const newInventoryItems = params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW
             // Make sure the last inventry change made by the client isn't lost.
             ? params.inventory_slots
             // Allow the client to rearrange its inventory freely before the current change,
             // as long as the quantities match. This allows a clinet to rearrange its inventory
             // without sending commands, as long as it doesn't affect the chest.
             : params.change.prevInventory;
-        if (rearrangeInventoryAs) {
-            const rearrangedInventory = InventoryComparator.rearrangeLikeOtherList(
-                player.inventory.items, rearrangeInventoryAs);
-            if (rearrangedInventory) {
-                if (!InventoryComparator.listsExactEqual(player.inventory.items, rearrangedInventory)) {
-                    changeApplied |= CHANGE_RESULT_FLAG_INVENTORY;
-                    player.inventory.items = rearrangedInventory;
+        if (newInventoryItems) {
+            try {
+                const changeIsValid = player.inventory.sanitizeAndValidateClinetItemsChange(newInventoryItems, true, null, null);
+                if(changeIsValid) {
+                    // apply new
+                    player.inventory.applyNewItems(newInventoryItems, false);
+                } else {
+                    error = 'error_inventory_mismatch';
                 }
-            } else {
+            } catch (e) {
+                console.log(e);
                 error = 'error_inventory_mismatch';
             }
         }

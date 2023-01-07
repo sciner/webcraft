@@ -100,7 +100,10 @@ export class CraftTableSlot extends Label {
             if(item.id) {
                 const block = BLOCK.fromId(item.id);
                 if(block) {
-                    resp = block.name.replaceAll('_', ' ') + ` (#${item.id})`;
+                    const label = item.extra_data?.label;
+                    resp = label
+                        ? `${label} (${block.name.replaceAll('_', ' ')}, #${item.id})`
+                        : block.name.replaceAll('_', ' ') + ` (#${item.id})`;
                 }
             } else {
 

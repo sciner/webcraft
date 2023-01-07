@@ -2392,32 +2392,36 @@ export class ObjectHelpers {
      * @param b - the second object (or array, scalar)
      * @param schema - the schema. It may be an array, an object or a scalar. It matches the expected
      *   structure of the source objects. If the source objects are arrays, it must be an array of 1 element.
-     * @param leafSchema - the schema that is used when {@link schema} has no corresponding value.
-     * @param {String} defaultKey - the name of a key that is supposed to be not present in {@link a}
-     *   and {@link b}, and is used in {@link schema} objects to define behavior for any key that
-     *   is not present in {@link schema}. The default value is chosen to be unlikely used as an object field.
-     * 
      * Elements of the schema can be:
      *  - an array, an object - matched recursively
      *  - a function - is called for the source values and returns if they are equal
      *  - scalar constants that define atching algorithm: true, false, 'deepEqual', 'typeof', '==', '==='.
+     * @param {Object} options - optional, properties:
+     *  - key_default - the name of the schema key that contains the value used for keys that are not
+     *   present in the schema. The default value is "default:". Change it if it may be in the source objects.
+     *  - key_firstCanAdd - similar to key_default, but the vaue of this key indicates if the first object is
+     *   alowed to declare object fields not present in the 2nd object.
+     *  - key_secondCanAdd - simila to key_firstCanAdd, but the objects are reversed.
+     *  - default the schema value used if neithir the schema[key] nor schema[key_default] is specified.
+     * @return {Boolean} true if objects match
      * @example INVENTORY_ITEM_EQUAL_SCHEMA, INVENTORY_ITEM_EQUAL_SCHEMA_ANVIL
      */
-    static deepEqualSchema(a, b, schema, leafSchema = 'deepEqual', defaultKey = 'default:') {
-        if (schema == null) {
-            if (leafSchema == null) {
-                // IDK what semantics is best, so forbid this case for now
-                throw new Error('null leaf schema is not supported');
-            }
-            schema = leafSchema;
-        }
+    static deepEqualSchema(a, b, schema, options = {}) {
+        // provide defaults for options to simplify and speed up furter code:
+        options.key_default         = options.key_default       ?? 'default:';
+        options.key_firstCanAdd     = options.key_firstCanAdd   ?? 'firstCanAdd:';
+        options.key_secondCanAdd    = options.key_secondCanAdd  ?? 'secondCanAdd:';
+        return this._deepEqualSchema(a, b, schema, options)
+    }
+
+    static _deepEqualSchema(a, b, schema, options) {
         if (typeof schema === 'object') {
             if (a == null || b == null) {
                 return a == null && b == null;
             }
             return Array.isArray(a)
-                ? Array.isArray(b) && this._deepEqualArraySchema(a, b, schema, leafSchema, defaultKey)
-                : this._deepEqualObjectSchema(a, b, schema, leafSchema, defaultKey);
+                ? Array.isArray(b) && this._deepEqualArraySchema(a, b, schema, options)
+                : this._deepEqualObjectSchema(a, b, schema, options);
         }
         if (typeof schema === 'function') {
             return schema(a, b);
@@ -2435,45 +2439,63 @@ export class ObjectHelpers {
         }
     }
 
-    static _deepEqualArraySchema(a, b, schema, leafSchema, defaultKey) {
+    static _deepEqualArraySchema(a, b, schema, options) {
         if (!Array.isArray(schema)) {
             return false; // we are tyring to compare arrays, but the schema expects not an Array
         }
         if (schema.length !== 1) {
             throw new Error('arays in schema must have length = 1');
         }
-        const subSchema = schema[0];
+        const subSchema = schema[0] ?? options.default;
+        if (subSchema == null) {
+            throw new Error('null in schema');
+        }
         if (a.length !== b.length) {
             return false;
         }
         for(let i = 0; i < a.length; i++) {
-            if (!this.deepEqualSchema(a[i], b[i], subSchema, leafSchema, defaultKey)) {
+            if (!this._deepEqualSchema(a[i], b[i], subSchema, options)) {
                 return false;
             }
         }
         return true;
     }
 
-    static _deepEqualObjectSchema(a, b, schema, leafSchema, defaultKey) {
+    static _deepEqualObjectSchema(a, b, schema, options) {
         // we already know that (typeof schema === 'object')
         if (Array.isArray(schema)) {
             return false; // we are tyring to compare objects, but the schema expects not an object
         }
-        const defaultSubSchema = schema[defaultKey];
-
+        const defaultSubSchema = schema[options.key_default] ?? options.default;
+        if (defaultSubSchema == null) {
+            throw new Error('null default in schema');
+        }
         const that = this;
         function equalKey(key) {
-            if (key === defaultKey) {
-                console.warn(`defaultKey = ${console.warn} is in compared objects. Maybe use a different key?`);
+            if (key === options.key_default || key === options.key_firstCanAdd || key === options.key_secondCanAdd) {
+                console.warn(`Special schema key = ${key} is in compared objects. Maybe use a different key?`);
                 /* Why we proceed with deepEqual: suppose a client sends some garbage in this field.
                 We must only accept it if the server object has this field. Using schema[key] or leafSchema may allow it to pass.
                 If the server object has such field (which it mustn't), at this at least allows equal client objects to pass.*/
-                return this.deepEqual(a[key], b[key]);
+                return that.deepEqual(a[key], b[key]);
             }
             // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
             // but for real game objects it seems unnecesssary.
             const subSchema = schema[key] ?? defaultSubSchema;
-            return that.deepEqualSchema(a[key], b[key], subSchema, leafSchema, defaultKey);
+            let av = a[key];
+            let bv = b[key];
+            // allow one object to declare a property of type Object if the other doesn't have it
+            if (av == null) {
+                // if the second (i.e. b) can add: it means if (a[key] == null and b[key] != null), we can assume a[key] to be {}
+                if (bv != null && subSchema && subSchema[options.key_secondCanAdd]) {
+                    av = {};
+                }
+            } else {
+                if (bv == null && subSchema && subSchema[options.key_firstCanAdd]) {
+                    bv = {};
+                }
+            }
+            return that._deepEqualSchema(av, bv, subSchema, options);
         }
 
         for (let key in a) {
@@ -2489,6 +2511,79 @@ export class ObjectHelpers {
             }
         }
         return true;
+    }
+
+    /**
+     * Returns an result similar to JSON.stringify, but:
+     * - the schema allows to specify which properties are included.
+     * - the keys are sorted, so the results don't depend on the order of keys in the source.
+     * @param obj - the source object
+     * @param schema - similar to the schema used in {@link deepEqualSchema}, but the leaf values can be
+     *  only true or false - to include or exclude a key from the result.
+     * @param options - optional, contain propeties:
+     *  - key_default - @see deepEqualSchema
+     *  - key_removeEmpty - similar to key_default, but that value specifies whether {} should be omitted.
+     *  - default - @see deepEqualSchema
+     *  - removeEmptyObjects - the value indicating whether '{}' should be omitted, used if schema[key_removeEmpty]
+     *   is not specified.
+     */
+    static sortedStringifySchema(obj, schema, options = {}) {
+        if (typeof schema === 'function') {
+            return schema(obj);
+        }
+        if (schema === false) {
+            // It doesn't make sense to call it with false.
+            // It should have beeen checked on the upper level.
+            throw new Error('schema === false for array elements');
+        }
+        // here schema is Object, Array or true.
+
+        if (obj == null) {
+            return 'null'; // for both null and undefined
+        }
+        if (typeof obj !== 'object') {
+            return JSON.stringify(obj);
+        }
+        const schemaIsObject = typeof schema === 'object';
+        if (Array.isArray(obj)) {
+            const subSchema = schemaIsObject ? (schema[0] ?? schema.default) : schema;
+            if (subSchema === false) {
+                return '[]';
+            }
+            const transformedArr = obj.map(it =>
+                this.sortedStringifySchema(it, subSchema, options)
+            );
+            return '[' + transformedArr.join(',') + ']';
+        }
+
+        // it's an object
+        const key_default = options.key_default ?? 'default:';
+        const key_removeEmpty = options.key_removeEmpty ?? 'removeEmpty:';
+        const keys = [];
+        for(const key in obj) {
+            // no need to check hasOwnProperty for practical cases
+            keys.push(key);
+        }
+        keys.sort();
+        let res = '{';
+        let needComma = false;
+        for(const key of keys) {
+            const subSchema = schemaIsObject ? (schema[key] ?? obj[key_default] ?? schema.default) : schema;
+            if (subSchema === false) {
+                continue;
+            }
+            const value = this.sortedStringifySchema(obj[key], subSchema, options);
+            if (value === '{}' && (subSchema[key_removeEmpty] || options.removeEmptyObjects)) {
+                continue;
+            }
+            if (needComma) {
+                res += ',';
+            }
+            // stringify the key to escape quotes in it
+            res += JSON.stringify(key) + ':' + value;
+            needComma = true;
+        }
+        return res + '}';
     }
 }
 

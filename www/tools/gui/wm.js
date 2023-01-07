@@ -981,6 +981,12 @@ export class TextEdit extends Window {
         super.draw(ctx, ax, ay);
     }
 
+    paste(str) {
+        for(let i in str) {
+            this.typeChar(null, str.charCodeAt(i), str[i]);
+        }
+    }
+
 }
 
 class Tooltip extends Label {
