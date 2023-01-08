@@ -33,6 +33,7 @@ import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
 import { TBlock } from "../www/js/typed_blocks3.js";
+import { Effect } from "../www/js/block_type/effect.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -123,6 +124,14 @@ export class ServerWorld {
         await this.restoreModifiedChunks();
         await this.db.fluid.restoreFluidChunks();
         await this.chunks.initWorker();
+
+        //
+        if(this.isBuildingWorld()) {
+            await this.rules.setValue('doDaylightCycle', 'false')
+            await this.rules.setValue('doWeatherCycle', 'false')
+            await this.rules.setValue('randomTickSpeed', '0')
+        }
+
         //
         this.saveWorldTimer = setInterval(() => {
             // let pn = performance.now();
@@ -137,12 +146,16 @@ export class ServerWorld {
         return this.db.getDefaultPlayerIndicators();
     }
 
+    isBuildingWorld() {
+        return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
+    }
+
     /**
      * @returns {boolean}
      */
     async makeBuildingsWorld() {
 
-        if(this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+        if(!this.isBuildingWorld()) {
             return false
         }
 
@@ -212,6 +225,9 @@ export class ServerWorld {
         await this.db.updateChunks(chunks_addr.keys());
         console.log('Building: compress chunks in db ...', performance.now() - t)
 
+        // reread info
+        this.info = await this.db.getWorld(this.info.guid)
+
         return true
 
     }
@@ -229,7 +245,7 @@ export class ServerWorld {
     autoSpawnHostileMobs() {
         const SPAWN_DISTANCE = 16;
         const good_light_for_spawn = this.getLight() > 6;
-        const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
+        const good_world_for_spawn = !this.isBuildingWorld();
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
         if(!auto_generate_mobs || !good_world_for_spawn || good_light_for_spawn) {
@@ -447,7 +463,11 @@ export class ServerWorld {
                 }
             }
         }]);
-        // 9. Check player visible chunks
+        // 9. Add night vision for building world
+        if(this.isBuildingWorld()) {
+            player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
+        }
+        // 10. Check player visible chunks
         this.chunks.checkPlayerVisibleChunks(player, true);
     }
 

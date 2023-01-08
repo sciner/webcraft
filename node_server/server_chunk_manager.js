@@ -175,6 +175,10 @@ export class ServerChunkManager {
         const check_count = Math.floor(this.world.rules.getValue('randomTickSpeed') * 2.5);
         let rtc = 0;
 
+        if(check_count == 0) {
+            return
+        }
+
         if(!this.random_chunks || tick_number % 20 == 0)  {
             this.random_chunks = [];
             for(let chunk of this.all) {

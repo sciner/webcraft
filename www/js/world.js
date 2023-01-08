@@ -7,6 +7,7 @@ import { Lang } from "./lang.js";
 import { Vector } from "./helpers.js";
 import { ChestHelpers } from "./block_helpers.js";
 import { BuilgingTemplate } from "./terrain_generator/cluster/building_template.js";
+import { WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 
 /**
  * World generation unfo passed from server
@@ -306,6 +307,10 @@ export class World {
     onBlockDestroy(pos, item) {
         // Destroy beacon ray
         Qubatch.render.meshes.remove('beacon/' + pos.toHash(), this);
+    }
+
+    isBuildingWorld() {
+        return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
     }
 
     get chunks() {

@@ -22,7 +22,7 @@ import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
@@ -775,7 +775,7 @@ export class Renderer {
 
         // buildings grid
         if(this.world.mobs.draw_debug_grid) {
-            if(this.world.info && this.world.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS) {
+            if(this.world.info && this.world.isBuildingWorld()) {
                 const _schema_coord = new Vector(0, 0, 0)
                 const _schema_size = new Vector(0, 0, 0)
                 for(const [name, schema] of BuilgingTemplate.schemas.entries()) {

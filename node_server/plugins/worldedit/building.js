@@ -4,7 +4,6 @@ import fs from "fs";
 import { BuilgingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { ServerClient } from "../../../www/js/server_client.js";
-import { WORLD_TYPE_BUILDING_SCHEMAS } from "../../../www/js/constant.js";
 
 //
 export class WorldEditBuilding {
@@ -71,7 +70,7 @@ export class WorldEditBuilding {
     async add(chat, player, cmd, args) {
 
         //
-        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+        if(!chat.world.isBuildingWorld()) {
             throw 'error_invalid_world';
         }
 
@@ -129,7 +128,7 @@ export class WorldEditBuilding {
     async save(chat, player, cmd, args) {
 
         //
-        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+        if(!chat.world.isBuildingWorld()) {
             throw 'error_invalid_world';
         }
 
@@ -252,7 +251,7 @@ export class WorldEditBuilding {
     goToBuilding(chat, player, cmd, args) {
 
         //
-        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+        if(!chat.world.isBuildingWorld()) {
             throw 'error_invalid_world';
         }
 
