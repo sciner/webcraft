@@ -34,7 +34,7 @@ export default class EffectsPlugin {
                     chat.sendSystemChatMessageToSelectedPlayers(`effect_add_ok|${effect.title}|${time}`, [player.session.user_id]);
                 } else if (action == 'clear') {
                     if (!effect && id != -1) {
-                        chat.sendSystemChatMessageToSelectedPlayers(`effect_not_found|${effect.title}`,[player.session.user_id]);
+                        chat.sendSystemChatMessageToSelectedPlayers(`effect_not_found|${effect.title}`, [player.session.user_id]);
                         return false;
                     }
                     player.effects.delEffects(id);
