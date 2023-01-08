@@ -1569,7 +1569,8 @@
         "key": {
             "L": {
                 "item": {
-                    "suffix": ["_DYE"]
+                    "suffix": ["_DYE"],
+                    "ignore": "SILVER_DYE"
                 }
             },
             "C": {
