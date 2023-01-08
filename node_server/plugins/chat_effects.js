@@ -56,7 +56,7 @@ export default class EffectsPlugin {
                     if (id == -1) {
                         this.sendMessage("Все эффекты удалены", player);
                     } else {
-                        this.sendMessage("Эффект " + effect.title + " удален", player);   
+                        chat.sendSystemChatMessageToSelectedPlayers(`effect_removed|${effect.title}`, [player.session.user_id]);   
                     }
                 }
                 return true;
