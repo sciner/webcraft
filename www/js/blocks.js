@@ -180,19 +180,20 @@ export function getBlockNeighbours(world, pos) {
 
 export class BLOCK {
 
-    static list                     = new Map();
-    static styles                   = new Map();
-    static list_arr                 = []; // see also getAll()
-    static spawn_eggs               = [];
-    static ao_invisible_blocks      = [];
-    static resource_pack_manager    = null;
-    static max_id                   = 0;
-    static MASK_BIOME_BLOCKS        = [];
-    static MASK_COLOR_BLOCKS        = [];
-    static SOLID_BLOCK_ID           = [];
-    static TICKING_BLOCKS           = new Map();
-    static BLOCK_BY_ID              = [];
-    static bySuffix                 = {}; // map of arrays
+    static list                             = new Map();
+    static styles                           = new Map();
+    static list_arr                         = []; // see also getAll()
+    static spawn_eggs                       = [];
+    static ao_invisible_blocks              = [];
+    static resource_pack_manager            = null;
+    static max_id                           = 0;
+    static MASK_BIOME_BLOCKS                = [];
+    static MASK_COLOR_BLOCKS                = [];
+    static SOLID_BLOCK_ID                   = [];
+    static TICKING_BLOCKS                   = new Map();
+    static BLOCK_BY_ID                      = [];
+    static bySuffix                         = {}; // map of arrays
+    static REMOVE_ONAIR_BLOCKS_IN_CLUSTER   = [] // this blocks must be removed over structures and buildings
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -755,6 +756,9 @@ export class BLOCK {
         }
         if(block.ticking) {
             BLOCK.TICKING_BLOCKS.set(block.id, block);
+        }
+        if(block.style_name == 'planting' || (block.layering && !block.layering.slab)) {
+            BLOCK.REMOVE_ONAIR_BLOCKS_IN_CLUSTER.push(block.id)
         }
         if(block.bb && isScalar(block.bb?.model)) {
             const bbmodels = await Resources.loadBBModels()

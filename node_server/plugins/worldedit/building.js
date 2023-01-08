@@ -20,29 +20,29 @@ export class WorldEditBuilding {
     // Load all buildings
     load() {
 
-        this.list = new Map();
-
-        const insert = (name, pos1, pos2, door_bottom) => {
-            const building = {
-                name: name,
-                world: {
-                    pos1: pos1,
-                    pos2: pos2,
-                    door_bottom: door_bottom
-                },
-                meta: null,
-                size: new Vector(0, 0, 0),
-                door_pos: new Vector(0, 0, 0),
-                blocks: [],
-                rot: []
-            }
-            this.list.set(building.name, building);
-        };
+        this.list = new Map()
 
         for(let schema of BuilgingTemplate.schemas.values()) {
-            insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.door_bottom)
+            this._insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.door_bottom, schema.meta ?? null)
         }
 
+    }
+
+    _insert(name, pos1, pos2, door_bottom, meta) {
+        const building = {
+            name: name,
+            world: {
+                pos1: pos1,
+                pos2: pos2,
+                door_bottom: door_bottom
+            },
+            meta: meta,
+            size: new Vector(0, 0, 0),
+            door_pos: new Vector(0, 0, 0),
+            blocks: [],
+            rot: []
+        }
+        this.list.set(building.name, building)
     }
 
     //
@@ -58,6 +58,10 @@ export class WorldEditBuilding {
             }
             case 'save': {
                 await this.save(chat, player, cmd, args)
+                break;
+            }
+            case 'go': {
+                this.goToBuilding(chat, player, cmd, args)
                 break;
             }
         }
@@ -76,24 +80,48 @@ export class WorldEditBuilding {
 
         // getbuilding by name
         if(this.list.get(name)) {
-            throw 'error_building_sa_name_exists'
+            throw 'error_building_same_name_exists'
         }
 
         // make quboid info
         const qi = we.getCuboidInfo(player)
 
-        console.log(qi)
+        const pos1 = new Vector(qi.pos1)
 
-        const pos2 = new Vector().set(
-            qi.pos1.x + qi.volx * qi.signx,
-            qi.pos1.y + qi.voly * qi.signy,
-            qi.pos1.z + qi.volz * qi.signz
-        );
+        const pos2 = new Vector(
+            qi.pos1.x + (qi.volx - 1) * qi.signx,
+            qi.pos1.y + (qi.voly - 1) * qi.signy,
+            qi.pos1.z + (qi.volz - 1) * qi.signz
+        )
 
-        const building = {"name": name, "pos1": qi.pos1, "pos2": pos2, "door_bottom": {"x": Math.round((qi.pos1.x + pos2.x) / 2), "y": qi.pos1.y, "z": Math.round((qi.pos1.z + pos2.z) / 2)}}
+        const door_bottom = new Vector(
+            Math.round((qi.pos1.x + pos2.x) / 2),
+            1,
+            Math.round((qi.pos1.z + pos2.z) / 2)
+        )
 
-        // TODO: append building_schemas
-        console.log(JSON.stringify(building))
+        const meta = {}
+
+        const building = {name, pos1, pos2, door_bottom, meta}
+
+        this._insert(building.name, building.pos1, building.pos2, building.door_bottom)
+
+        // append building_schemas        
+        const file_name = `./conf_world.json`
+        let conf_world = fs.readFileSync(file_name)
+        
+        if(conf_world) {
+            conf_world = JSON.parse(conf_world)
+            if(!conf_world) {
+                throw 'error_conf_world_corrupted'
+            }
+            conf_world.building_schemas.push(building)
+            fs.writeFileSync(file_name, JSON.stringify(conf_world, null, 4))
+        } else {
+            throw 'error_conf_world_not_found'
+        }
+
+        await this.save(chat, player, cmd, args)
 
     }
 
@@ -161,9 +189,9 @@ export class WorldEditBuilding {
         // export
         const file_name = `./data/building_schema/${building.name}.json`;
 
-        // Calling gzip method
+        // Write building to file
         const json = JSON.stringify(building)
-        fs.writeFileSync(file_name, json);
+        fs.writeFileSync(file_name, json)
 
         // Update in memory
         BuilgingTemplate.addSchema(building)
@@ -220,5 +248,25 @@ export class WorldEditBuilding {
         await we.cmd_paste(chat, player, cmd, args, copy_data);
 
     }
+
+    goToBuilding(chat, player, cmd, args) {
+
+        //
+        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+            throw 'error_invalid_world';
+        }
+
+        const we = this.worldedit_instance;
+        const name = args[2];
+
+        // getbuilding by name
+        const building = this.list.get(name)
+        if(!building) throw 'building_not_found';
+
+        const pos = new Vector(building.world.door_bottom.x + .5, 1, 4.5)
+        player.teleport({place_id: null, pos});
+
+    }
+
 
 }

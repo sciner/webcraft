@@ -16,10 +16,11 @@ export class BuildingBlocks extends Building {
     /**
      * @param { import("../base.js").ClusterBase } cluster
      * @param {*} chunk 
+     * @param {*} map
      */
-    draw(cluster, chunk) {
-        super.draw(cluster, chunk);
-        this.blocks.draw(cluster, chunk);
+    draw(cluster, chunk, map) {
+        super.draw(cluster, chunk, this.random_building.getMeta('draw_natural_basement', true))
+        this.blocks.draw(cluster, chunk, map)
     }
 
 }

@@ -29,6 +29,7 @@ import { ChunkManager } from "./chunk_manager.js";
 import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuilgingTemplate } from "./terrain_generator/cluster/building_template.js";
+import { AABB } from "./core/AABB.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -782,12 +783,18 @@ export class Renderer {
                     _schema_size.y = _schema_size.y * -1 + 1
                     _schema_coord.set(schema.world.pos2.x, schema.world.pos1.y - 1, schema.world.pos2.z)
                     _schema_coord.y++
+                    this.debugGeom.addAABB(new AABB(
+                        _schema_coord.x, _schema_coord.y, _schema_coord.z,
+                        _schema_coord.x + _schema_size.x, _schema_coord.y + _schema_size.y, _schema_coord.z + _schema_size.z
+                    ), {lineWidth: .15, colorBGRA: 0xFFFFFFFF})
+                    /*
                     this.debugGeom.addBlockGrid({
                         pos:        _schema_coord,
                         size:       _schema_size,
                         lineWidth:  .15,
                         colorBGRA:  0xFFFFFFFF,
                     })
+                    */
                 }
             }
         }

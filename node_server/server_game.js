@@ -78,6 +78,7 @@ export class ServerGame {
         for(let item of config.building_schemas) {
             try {
                 await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
+                    json.meta = json.meta ?? {}
                     json.world = {...json.world, ...item}
                     BuilgingTemplate.addSchema(json)
                 });
