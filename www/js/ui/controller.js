@@ -488,7 +488,7 @@ let gameCtrl = async function($scope, $timeout) {
             if(!world.info) {
                 debugger;
             }
-            const player = new Player(options);
+            const player = new Player(options, Qubatch.render);
             player.JoinToWorld(world, () => {
                 Qubatch.Started(player);
             });
