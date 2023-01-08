@@ -17,6 +17,19 @@ export class ServerPlayerEffects {
     save() {
     
     }
+
+    /*
+    * Удаляем еффекты
+    * id - id эффекта
+    */
+    delEffects(id) {
+        for (const eff of this.effects) {
+            if (eff.id == id || id == -1) {
+                eff.time = 0;
+                eff.level = 0;
+            }
+        }
+    }
    
    /*
     * Добавляет новый еффект на игрока

@@ -391,9 +391,7 @@
     vec4 aoVector = vec4(0.0);
 
     vec3 texSize;
-    if (u_lightOverride.z > 0.0) {
-        centerSample.xy = u_lightOverride.xy;
-    } else if (v_lightId < 0.5) {
+    if (v_lightId < 0.5) {
         texSize = vec3(1.0) / vec3(textureSize(u_lightTex[0], 0));
         centerSample = texture(u_lightTex[0], lightCoord * texSize);
         if (v_lightMode > 0.5) {
@@ -450,6 +448,10 @@
                 texture(u_lightTex[7], aoCoord2 * texSize).w, texture(u_lightTex[7], aoCoord3 * texSize).w);
         }
     }
+
+    if (u_lightOverride.z > 0.0) {
+        centerSample.xy = u_lightOverride.xy;
+    } 
 
     float caveSample = centerSample.x;
     float daySample = 1.0 - centerSample.y;
