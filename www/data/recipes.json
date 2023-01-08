@@ -1536,5 +1536,49 @@
             },
             "count": 9
         }
+    },
+    {
+        "id": "fa6b3cc4-10bc-4ab7-9a76-058ea33eaedd",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            " s ",
+            " h ",
+            "   "
+        ],
+        "key": {
+            "h": {
+                "item": "madcraft:honeycomb"
+            },
+            "s": {
+                "item": "madcraft:string"
+            }
+        },
+        "result": {
+            "item": "madcraft:candle",
+            "count": 1
+        }
+    },
+    {
+        "template": "candle",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "CL ",
+            "   ",
+            "   "
+        ],
+        "key": {
+            "L": {
+                "item": {
+                    "suffix": ["_DYE"]
+                }
+            },
+            "C": {
+                "item": "madcraft:candle"
+            }
+        },
+        "result": {
+            "item": { "suffix": "_CANDLE" },
+            "count": 1
+        }
     }
 ]

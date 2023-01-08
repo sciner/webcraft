@@ -8981,6 +8981,251 @@
                 "durability": 481,
                 "damage": 3
             }
+        },
+        {
+            "id": 417,
+            "name": "HONEYCOMB",
+            "style": "extruder",
+            "diagonal": true,
+            "texture": "item/honeycomb.png",
+            "item": {
+                "name": "ingridient"
+            },
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ]
+        },
+        {
+            "id": 418,
+            "name": "STRING",
+            "style": "extruder",
+            "diagonal": true,
+            "texture": "item/string.png",
+            "item": {
+                "name": "ingridient"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 419,
+            "name": "BLACK_DYE",
+            "style": "extruder",
+            "texture": "item/black_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 421,
+            "name": "WHITE_DYE",
+            "style": "extruder",
+            "texture": "item/white_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 422,
+            "name": "SILVER_DYE",
+            "style": "extruder",
+            "texture": "item/silver_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 423,
+            "name": "RED_DYE",
+            "style": "extruder",
+            "texture": "item/red_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 424,
+            "name": "PURPLE_DYE",
+            "style": "extruder",
+            "texture": "item/purple_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 425,
+            "name": "PINK_DYE",
+            "style": "extruder",
+            "texture": "item/pink_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 426,
+            "name": "ORANGE_DYE",
+            "style": "extruder",
+            "texture": "item/orange_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 427,
+            "name": "MAGENTA_DYE",
+            "style": "extruder",
+            "texture": "item/magenta_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 428,
+            "name": "LIME_DYE",
+            "style": "extruder",
+            "texture": "item/lime_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 429,
+            "name": "LIGHT_BLUE_DYE",
+            "style": "extruder",
+            "texture": "item/light_blue_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 430,
+            "name": "LIGHT_GRAY_DYE",
+            "style": "extruder",
+            "texture": "item/light_gray_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 431,
+            "name": "GRAY_DYE",
+            "style": "extruder",
+            "texture": "item/gray_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 432,
+            "name": "GREEN_DYE",
+            "style": "extruder",
+            "texture": "item/green_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 433,
+            "name": "CYAN_DYE",
+            "style": "extruder",
+            "texture": "item/cyan_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 434,
+            "name": "BROWN_DYE",
+            "style": "extruder",
+            "texture": "item/brown_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 435,
+            "name": "BLUE_DYE",
+            "style": "extruder",
+            "texture": "item/blue_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 436,
+            "name": "CANDLE",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "style": "candle",
+            "texture": "block/candle.png",
+            "material": {
+                "id": "clay"
+            },
+            "inventory": {
+                "scale": 3
+            },
+            "tags": [
+                "no_set_on_top",
+                "no_drop_ao"
+            ],
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
+            }
         }
         
     ]
