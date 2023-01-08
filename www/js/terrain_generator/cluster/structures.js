@@ -101,7 +101,7 @@ export class ClusterStructures extends ClusterBuildingBase {
     }
 
     fillBlocks(maps, chunk, map, fill_blocks, calc_building_y) {
-        super.fillBlocks(maps, chunk, map, true, calc_building_y)
+        super.fillBlocks(maps, chunk, map, false, calc_building_y)
     }
 
     nextDirection() {
