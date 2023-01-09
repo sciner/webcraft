@@ -42,7 +42,7 @@ export class Player {
     #forward = new Vector(0, 0, 0);
 
     /**
-     * @param {*} options 
+     * @param {*} options
      * @param { import("./render.js").Renderer } render
      */
     constructor(options, render) {
@@ -798,7 +798,7 @@ export class Player {
     }
 
     getInterpolatedHeadLight() {
-        if(this.render.globalUniforms.lightOverride == 0xff) {
+        if(this.render.globalUniforms.lightOverride === 0xff) {
             return 0xff
         }
         if (!this.headBlock || !this.headBlock.tb) {
