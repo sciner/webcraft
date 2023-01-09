@@ -186,6 +186,7 @@ export class Sounds {
                 const { lerpPos, forward } = this.#player;
                 const dist = lerpPos.distance(pos);
                 estimatedVolume *= this.voice_calculation(dist, maxDist);
+                console.log(dist)
             }
             
             // if volume ok, we can play sound 

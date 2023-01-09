@@ -5,12 +5,12 @@ import { AABB } from '../../core/AABB.js';
 import { Resources } from '../../resources.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import {impl as alea} from "../../../vendors/alea.js";
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID, PACKED_CELL_LENGTH } from "../../fluid/FluidConst.js";
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
 const SNOW_SPEED        = 42;
-const SNOW_SPEED_X      = 16;
+const SNOW_SPEED_X      = 0;
 const RAIN_RAD          = 8;
 const RAIN_START_Y      = 128;
 const RAIN_HEIGHT       = 128;
@@ -46,6 +46,16 @@ export default class Mesh_Object_Rain {
         this.material       = null;
         this.render         = render;
         this.sound_id       = null;
+
+        // Material (rain)
+        const mat = this.render.defaultShader.materials.doubleface_transparent;
+        // Material
+        this.material = mat.getSubMat(this.render.renderBackend.createTexture({
+            source: Resources.weather['rain'],
+            blendMode: BLEND_MODES.MULTIPLY,
+            minFilter: 'nearest',
+            magFilter: 'nearest'
+        }));
     }
 
     /**
@@ -55,7 +65,7 @@ export default class Mesh_Object_Rain {
      * @returns 
      */
     createBuffer(c) {
-        const biome = Qubatch.player.getOverChunkBiomeId();
+        /*const biome = Qubatch.player.getOverChunkBiomeId();
         // @todo не понятно какие биомы снежные
         const type = [31, 30, 26, 12].includes(biome) ? 'snow' : 'rain';
         if (type != this.prev_type) {
@@ -77,13 +87,13 @@ export default class Mesh_Object_Rain {
             }));
             this.prev_type = type;
             this.type = type;
-        }
+        }*/
         
-        const snow      = this.type == 'snow';
+        //const snow      = this.type == 'snow';
         const vertices  = [];
-        const lm        = new IndexedColor((snow ? SNOW_SPEED_X : 0), snow ? SNOW_SPEED : RAIN_SPEED, 0);
+        const lm        = new IndexedColor(0, 42, 0);
         const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
-        const pp        = lm.pack();
+        //const pp        = lm.pack();
 
         let quads       = 0;
 
@@ -95,8 +105,10 @@ export default class Mesh_Object_Rain {
         let chunk_addr = null;
         const chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
-        for(let [vec, height] of this.#_map.entries()) {
-
+        for (let [vec, height] of this.#_map.entries()) {
+            const is_snow = this.isSnowPosition(vec);
+            const lm = new IndexedColor(is_snow ? SNOW_SPEED_X : 0, is_snow ? SNOW_SPEED : RAIN_SPEED, 0);
+            const pp = lm.pack();
             chunk_addr = getChunkAddr(vec, chunk_addr).multiplyVecSelf(chunk_size);
             const rx = vec.x - chunk_addr.x;
             const rz = vec.z - chunk_addr.z;
@@ -108,9 +120,10 @@ export default class Mesh_Object_Rain {
             height += add;
             const x = vec.x - this.pos.x + (rnd * .2 - .1)
             const y = add + 1;
-            const z = vec.z - this.pos.z + (rnd * .2 - .1)
+            const z = vec.z - this.pos.z + (rnd * .2 - .1);
+            c[0] = is_snow ? 0.75 : 0.25;
             const c2 = [...c];
-            const uvSize0 = c[2];
+            const uvSize0 = c[2] / 2;
             const uvSize1 = -height * c[3];
             // SOUTH
             vertices.push(
@@ -310,6 +323,21 @@ export default class Mesh_Object_Rain {
      */
     isAlive() {
         return this.enabled;
+    }
+
+    // Снежный чанк или нет
+    isSnowPosition(vec) {
+        const pos = vec.floored();
+        let addr = null;
+        addr = getChunkAddr(pos.x, pos.y, pos.z, addr);
+        const chunk = this.chunkManager.getChunk(addr);
+        if(!chunk) {
+            return false;
+        }
+        const x = pos.x - addr.x * CHUNK_SIZE_X;
+        const z = pos.z - addr.z * CHUNK_SIZE_Z;
+        const cell_index = z * CHUNK_SIZE_X + x;
+        return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 5] : false;
     }
 
 }

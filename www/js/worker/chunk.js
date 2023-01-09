@@ -158,6 +158,7 @@ export class Chunk {
             packed[i * PACKED_CELL_LENGTH + 2] = Math.floor(cell.water_color.r + eps);
             packed[i * PACKED_CELL_LENGTH + 3] = Math.floor(cell.water_color.g + eps);
             packed[i * PACKED_CELL_LENGTH + 4] = Math.floor(cell.biome.id + eps);
+            packed[i * PACKED_CELL_LENGTH + 5] = cell.biome.is_snowy;
         }
         return packed;
     }
