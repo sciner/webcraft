@@ -89,6 +89,7 @@ void main() {
             color.rgb *= sunNormalLight;
         }
 
+        #include<caustic_pass_onwater>
         outColor = color;
 
         #include<fog_frag>

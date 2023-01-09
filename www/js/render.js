@@ -714,6 +714,7 @@ export class Renderer {
         camera.use(renderBackend.globalUniforms, true);
 
         globalUniforms.crosshairOn = this.crosshairOn;
+        globalUniforms.u_eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
         globalUniforms.update();
 
         this.debugGeom.clear();

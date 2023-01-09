@@ -51,6 +51,7 @@
     uniform float u_brightness;
     uniform float u_time;
     uniform vec2 u_resolution;
+    uniform float u_eyeinwater;
     uniform vec3 u_shift;
     uniform bool u_TestLightOn;
     uniform vec4 u_SunDir;
@@ -586,6 +587,23 @@
         * (1.0 - aoSample * 0.5);
     //  + cavePart * abs(caveNormal) / length(caveNormal);
     sunNormalLight = 1.0;
+#endif
+
+#ifdef caustic_pass_onwater
+    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    vec2 pc = (v_world_pos.xy + cam_period.xy) * 64.;
+
+    mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
+    vec3 a = vec3( pc / 4e2, (u_time / 1000.) / 4. ) * m,
+         b = a * m * .4,
+         c1 = b * m * .3;
+    vec4 k = vec4(pow(
+          min(min(   length(.5 - fract(a)), 
+                     length(.5 - fract(b))
+                  ), length(.5 - fract(c1)
+             )), 7.) * 25.);
+             
+    color.rgb += k.rgb / 2.;
 #endif
 
 // VERSION1

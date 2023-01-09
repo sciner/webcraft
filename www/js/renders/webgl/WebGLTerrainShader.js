@@ -33,6 +33,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
         this.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
         this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
+        this.u_eyeinwater       = gl.getUniformLocation(program, 'u_eyeinwater');
         this.u_TestLightOn      = gl.getUniformLocation(program, 'u_TestLightOn');
         this.u_SunDir           = gl.getUniformLocation(program, 'u_SunDir');
         this.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
@@ -129,6 +130,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform3i(this.u_camera_posi, px, pz, py);
 
         gl.uniform2fv(this.u_resolution, gu.resolution);
+        gl.uniform1f(this.u_eyeinwater, gu.u_eyeinwater);
         gl.uniform1f(this.u_TestLightOn, gu.testLightOn);
         gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
         gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);

@@ -155,8 +155,10 @@ void main() {
             if (cavePart > 0.0 && u_useNormalMap > 0.5 && u_SunDir.w < 0.5) {
                 #include<normal_light_pass>
             }
-            #include<caustic1_pass>
-            // include<caustic2_pass>
+            if(u_eyeinwater > 0.) {
+                #include<caustic1_pass>
+                // include<caustic2_pass>
+            }
             // Apply light
             color.rgb *= combinedLight * sunNormalLight;
         }
