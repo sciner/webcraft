@@ -291,10 +291,10 @@ export class FluidChunkQueue {
         bounds.copyFrom(fluidChunk.getLocalBounds());
         this.initInBounds(bounds);
         fluidChunk.events.initInBounds(bounds);
-        const {aabb, facetPortals} = fluidChunk.dataChunk;
+        const {facetPortals} = fluidChunk.dataChunk;
 
         for (let i = 0; i < facetPortals.length; i++) {
-            const {pos, rev} = facetPortals[i].toRegion;
+            const {pos, rev, aabb} = facetPortals[i].toRegion;
             bounds.setIntersect(facetPortals[i].aabb, aabb);
             //TODO: use correct bounds vars in fluids
             bounds.x_min -= pos.x;
@@ -632,7 +632,7 @@ export class FluidChunkQueue {
                 // if emptied, we have to check all neibs supported by this cell
                 //TODO: refactor this
                 moreThan = (lvl & 7) + lower;
-                goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
+                goesSides = lvl === 0 || moreThan < 8 && neibChunk[1] && (neib[1] & FLUID_SOLID16) > 0;
             }
 
             let flowMask = 0, emptyMask = 0, emptyBest = 0;

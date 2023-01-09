@@ -4,7 +4,7 @@ import { CHUNK_SIZE_X } from '../../chunk_const.js';
 import { DIRECTION, getChunkAddr, Vector } from "../../helpers.js";
 import { CLUSTER_SIZE, ClusterPoint } from "./base.js";
 import { BlockDrawer } from './block_drawer.js';
-import { getAheadMove } from './vilage.js';
+import { getAheadMove } from './building_cluster_base.js';
 
 export const BUILDING_AABB_MARGIN  = 3; // because building must calling to draw from neighbours chunks
 
@@ -63,15 +63,16 @@ export class Building {
     /**
      * @param { import("./base.js").ClusterBase } cluster
      * @param {*} chunk 
+     * @param {boolean} draw_natural_basement
      */
-    draw(cluster, chunk) {
-
+    draw(cluster, chunk, draw_natural_basement = true) {
         // natural basement
-        const height = 7;
-        const coord = new Vector(this.coord.x, this.coord.y - height - 1, this.coord.z);
-        const size = new Vector(this.size.x, height, this.size.z);
-        cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE);
-
+        if(draw_natural_basement) {
+            const height = 7;
+            const coord = new Vector(this.coord.x, this.coord.y - height - 1, this.coord.z)
+            const size = new Vector(this.size.x, height, this.size.z)
+            cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE)
+        }
     }
 
     // Стоги сена
@@ -181,12 +182,21 @@ export class Building {
     }
 
     setY(y) {
-        this.door_bottom.y     = y;
-        this.entrance.y        = y - 1;
-        this.coord.y           = this.entrance.y + this.coord.y;
+
+        this.door_bottom.y     = y
+        this.entrance.y        = y - 1
+        this.coord.y           = this.entrance.y + this.coord.y
+
         const height           = this.aabb.height
-        this.aabb.y_min        = this.entrance.y - BUILDING_AABB_MARGIN;
-        this.aabb.y_max        = this.aabb.y_min + height;
+
+        this.aabb.y_min        = this.entrance.y - BUILDING_AABB_MARGIN
+        this.aabb.y_max        = this.aabb.y_min + height
+
+        if(this.random_building) {
+            const bdpy = this.random_building.world.pos1.y // this.random_building.door_pos.y
+            this.aabb.translate(0, bdpy, 0)
+        }
+
     }
 
     /**

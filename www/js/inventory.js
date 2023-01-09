@@ -232,9 +232,13 @@ export class Inventory {
         this.refresh(true);
     }
 
-    // decrementByItemID
+    /**
+     * Decrements one or multiple items is visible slots by the given total amount,
+     * or, if the given amount is not present, decrements by as much as posible.
+     * @return {Int} 0, if there were enough items, ot the amount that was mising.
+     */
     decrementByItemID(item_id, count, dont_refresh) {
-        for(let i in this.items) {
+        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
             let item = this.items[i];
             if(!item || item.count < 1) {
                 continue;
@@ -242,6 +246,7 @@ export class Inventory {
             if(item.id == item_id) {
                 if(item.count >= count) {
                     item.count -= count;
+                    count = 0;
                     if(item.count < 1) {
                         this.items[i] = null;
                     }
@@ -256,6 +261,7 @@ export class Inventory {
         if(typeof dont_refresh === 'undefined' || !dont_refresh) {
             this.refresh(true);
         }
+        return count;
     }
 
     countItemId(item_id) {
@@ -267,34 +273,40 @@ export class Inventory {
         }
         return count;
     }
-
-    // Возвращает список того, чего и в каком количестве не хватает
-    // в текущем инвентаре по указанному списку
-    hasResources(resources) {
+    
+    /**
+     * Возвращает список того, чего и в каком количестве не хватает
+     * в (текущем инвентаре + дополнительном списке предметов) по указанному списку.
+     * @param {Array} resources - contains objects {
+     *      item_ids: Array of Int
+     *      count: Int
+     *  }, see {@link Recipe.calcNeedResources}
+     * @param {Array} additionalItems - optional additional items, g.e. from craft slots.
+     * @returns true if the inventory visible solts have enogh resources.
+     */
+    hasResources(resources, additionalItems = null) {
         const resp = [];
+        const maxI = INVENTORY_VISIBLE_SLOT_COUNT + (additionalItems?.length || 0);
         for(const resource of resources) {
-            const r = {
-                item_id: resource.item_id,
-                count: resource.count
-            };
-            // Each all items in inventoryy
-            for(let i = 0; i < 36; i++) {
-                const item = this.items[i];
+            let count = resource.count;
+            for(let i = 0; i < maxI; i++) {
+                const item = i < INVENTORY_VISIBLE_SLOT_COUNT
+                    ? this.items[i]
+                    : additionalItems[i - INVENTORY_VISIBLE_SLOT_COUNT];
                 if(!item) {
                     continue;
                 }
-                if(item.id == r.item_id) {
-                    if(item.count > r.count) {
-                        r.count = 0;
-                    } else {
-                        r.count -= item.count;
-                    }
-                    if(r.count <= 0) {
+                if(resource.item_ids.includes(item.id)) {
+                    if(item.count >= count) {
+                        count = 0;
                         break;
+                    } else {
+                        count -= item.count;
                     }
                 }
             }
-            if(r.count > 0) {
+            if(count > 0) {
+                const r = {...resource, count};
                 resp.push(r);
             }
         }

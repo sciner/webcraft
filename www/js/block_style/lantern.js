@@ -26,12 +26,17 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(block, for_physic, world, neighbours, expanded) {
         let y = 0;
+        const is_bb_model = block.material?.bb
         if(block.rotate.y == -1) {
-            y += 1 - HEIGHT - HEIGHT_INNER - CONNECT_HEIGHT_ON_CEIL;
+            if(is_bb_model) {
+                y += 1 - HEIGHT - HEIGHT_INNER - 3/16
+            } else {
+                y += 1 - HEIGHT - HEIGHT_INNER - CONNECT_HEIGHT_ON_CEIL
+            }
         }
-        let aabb = new AABB();
+        const aabb = new AABB();
         aabb.set(
             0 + .5 - WIDTH / 2,
             y,
@@ -40,7 +45,7 @@ export default class style {
             y + HEIGHT,
             0 + .5 + WIDTH / 2,
         );
-        let aabb2 = new AABB();
+        const aabb2 = new AABB();
         aabb2.set(
             0 + .5 - WIDTH_INNER / 2,
             y + HEIGHT,
@@ -49,6 +54,14 @@ export default class style {
             y + HEIGHT + HEIGHT_INNER,
             0 + .5 + WIDTH_INNER / 2,
         );
+
+        if(is_bb_model) {
+            const exp = .2/16
+            const expw = .35/16
+            aabb.expand(expw, exp, expw)
+            aabb2.expand(expw, exp, expw)
+        }
+
         return [aabb, aabb2];
     }
 

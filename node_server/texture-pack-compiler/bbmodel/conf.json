@@ -5,180 +5,137 @@
     },
     "textures": {},
     "bbmodels": [
-        {"name": "garbage_monster", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "bookshelf", "shift": {"x": 8, "y": 0, "z": -8}},
-        {"name": "black_big_can", "shift": {"x": 8, "y": 0, "z": -8}},
-        {"name": "reaper", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "mini_dragon", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "babochka", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "eset", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "torch", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "fence", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "pot", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "stairs", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "shulker", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "chest", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "anvil", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "tnt", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "ladder", "shift": {"x": 8, "y": 0, "z": -8}}
+        {"name": "arm",                 "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "ladder",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "torch",               "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "fence",               "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "pot",                 "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "stairs",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "shulker",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "chest",               "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "anvil",               "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "tnt",                 "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "chain",               "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "sign",                "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "lantern",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "soul_lantern",        "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "coal_ore",            "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "copper_ore",          "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "iron_ore",            "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "diamond_ore",         "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "redstone_ore",        "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "gold_ore",            "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "lapis_lazuli_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "emerald_ore",         "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "poor_copper_ore",     "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "poor_diamond_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "poor_emerald_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "poor_gold_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "poor_iron_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "poor_coal_ore",       "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
             "id": 50,
             "name": "TORCH",
             "sound": "madcraft:block.wood",
-            "_inventory_style": "extruder",
-            "__inventory": {
-                "style": "bbmodel",
-                "texture": {
-                    "id": "default",
-                    "texture": "block/torch.png",
-                    "_side": "24|31"
-                }
-            },
-            "style": "bbmodel",
-            "transparent": true,
-            "passable": 1,
-            "is_fire": true,
-            "can_rotate": true,
-            "mining_time": 0,
-            "light_power": {
-                "r": 253,
-                "g": 241,
-                "b": 131,
-                "a": 224
-            },
-            "material": {
-                "id": "wood"
-            },
-            "tags":[
-                "no_set_on_top",
-                "rotate_by_pos_n_5",
-                "no_drop_ao"
-            ],
             "bb": {
                 "model": "torch",
                 "behavior": "torch",
                 "rotate": {"type": "cardinal_direction", "when": {"state": "wall"}},
-                "particles": [
-                    {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.5}]},
-                    {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.25}]}
+                "_particles": [
+                    {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.5}]},
+                    {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.25}]}
                 ]
-            },
-            "texture": {
-                "id": "torch",
-                "side": "block/torch.png"
+            }
+        },
+        {
+            "id": 189,
+            "name": "BIRCH_FENCE",
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
             }
         },
         {
             "id": 85,
             "name": "OAK_FENCE",
-            "sound": "madcraft:block.wood",
-            "style": "bbmodel",
-            "transparent": true,
-            "material": {
-                "id": "wood"
-            },
             "bb": {
                 "model": "fence",
                 "behavior": "fence"
-            },
-            "tags":[
-                "no_drop_ao"
-            ],
-            "texture": {
-                "id": "fence",
-                "side": "block/oak_planks.png"
+            }
+        },
+        {
+            "id": 188,
+            "name": "ACACIA_FENCE",
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
+            }
+        },
+        {
+            "id": 536,
+            "name": "DARK_OAK_FENCE",
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
+            }
+        },
+        {
+            "id": 191,
+            "name": "SPRUCE_FENCE",
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
+            }
+        },
+        {
+            "id": 537,
+            "name": "JUNGLE_FENCE",
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
             }
         },
         {
             "id": 650,
             "name": "FLOWER_POT",
-            "style": "bbmodel",
-            "sound": "madcraft:block.stone",
-            "transparent": true,
-            "mining_time": 0,
-            "extra_data": {"item_id": null},
-            "tags": [
-                "pot",
-                "no_drop_ao"
-            ],
-            "material": {
-                "id": "stone"
-            },
             "bb": {
                 "model": "pot",
                 "behavior": "pot"
-            },
-            "texture": {
-                "id": "pot",
-                "side": "block/flower_pot.png",
-                "down": "block/dirt.png"
             }
         },
         {
             "_id": 53,
             "name": "OAK_STAIRS",
-            "style": "bbmodel",
-            "sound": "madcraft:block.wood",
-            "can_rotate": true,
-            "transparent": true,
-            "material": {
-                "id": "wood"
-            },
-            "tags": [
-                "stairs"
-            ],
             "bb": {
                 "model": "stairs",
                 "behavior": "stairs",
                 "_rotate": {"type": "cardinal_direction"}
-            },
-            "texture": {
-                "id": "stairs",
-                "side": "block/oak_planks.png"
             }
         },
         {
             "id": 54,
             "name": "CHEST",
-            "window": "frmChest",
             "support_style": "chest",
-            "is_entity": true,
-            "chest": {
-                "slots": 27,
-                "private": true
-            },
-            "transparent": true,
-            "style": "bbmodel",
-            "sound": "madcraft:block.chest",
-            "can_rotate": true,
-            "material": {
-                "id": "wood"
-            },
             "bb": {
                 "model": "chest",
                 "behavior": "chest",
                 "rotate": {"type": "cardinal_direction"}
-            },
-            "texture": {
-                "id": "chest",
-                "side": "block/oak_planks.png"
             }
         },
         {
             "id": 1370,
             "name": "MAGENTA_SHULKER",
-            "window": "frmChest",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
             "is_entity": true,
+            "window": "frmChest",
             "chest": {
                 "slots": 27,
                 "private": true
             },
-            "style": "bbmodel",
-            "max_in_stack": 1,
-            "sound": "madcraft:block.chest",
-            "can_rotate": true,
             "material": {
                 "id": "stone"
             },
@@ -189,117 +146,214 @@
             },
             "tags": [
                 "store_items_in_chest"
-            ],
-            "texture": {
-                "id": "shulker",
-                "side": "block/oak_planks.png"
-            }
+            ]
         },
         {
             "id": 195,
-            "transparent": true,
             "name": "ANVIL",
-            "sound": "madcraft:block.stone",
-            "window": "frmAnvil",
-            "style": "bbmodel",
-            "can_rotate": true,
-            "material": {
-                "id": "iron"
-            },
-            "texture": {
-                "id": "anvil",
-                "up": "block/anvil_top.png",
-                "side": "block/anvil.png",
-                "north": "block/chipped_anvil_top.png",
-                "south": "block/damaged_anvil_top.png"
-            },
             "bb": {
                 "model": "anvil",
                 "behavior": "anvil",
                 "rotate": {"type": "cardinal_direction"}
-            },
-            "extra_data": {
-                "damage": 0
-            },
-            "tags": [
-                "no_drop_ao"
-            ]
+            }
         },
         {
             "id": 4,
             "name": "TNT",
-            "sound": "madcraft:block.grass",
-            "style": "bbmodel",
             "transparent": true,
-            "material": {
-                "id": "stone"
-            },
-            "redstone": {},
-            "texture": {
-                "id": "tnt",
-                "up": "block/tnt_top.png",
-                "down": "block/tnt_bottom.png",
-                "side": "block/tnt_side.png"
-            },
             "bb": {
                 "model": "tnt",
                 "behavior": "tnt"
-            },
-            "extra_data": {
-                "explode": false,
-                "fuse": 0
-            },
-            "ticking": {
-                "type": "tnt"
             }
         },
         {
             "id": 65,
             "name": "LADDER",
-            "width": 0.0625,
-            "align": [
-                "back"
-            ],
-            "style": "bbmodel",
-            "transparent": true,
-            "sound": "madcraft:block.wood",
-            "material": {
-                "id": "wood"
-            },
-            "texture": {
-                "id": "ladder",
-                "side": "block/ladder.png"
-            },
-            "tags": [
-                "ladder",
-                "rotate_by_pos_n_5"
-            ],
             "bb": {
                 "model": "ladder",
                 "behavior": "ladder",
                 "rotate": {"type": "cardinal_direction"}
-            },
-            "can_rotate": true
-        }
-    ],
-    "_blocks": [
+            }
+        },
         {
-            "id": 416,
-            "name": "BB_BABOCHKA",
-            "sound": "madcraft:block.wood",
-            "style": "bbmodel",
-            "transparent": true,
-            "can_rotate": true,
-            "spawnable": false,
-            "material": {
-                "id": "wood"
-            },
-            "tags":[
-                "no_drop_ao"
-            ],
-            "texture": {
-                "id": "babochka",
-                "side": "block/quartz_block_side.png"
+            "id": 617,
+            "name": "CHAIN",
+            "bb": {
+                "model": "chain",
+                "behavior": "chain",
+                "rotate": {"type": "three"}
+            }
+        },
+        {
+            "id": 642,
+            "name": "BIRCH_SIGN",
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 643,
+            "name": "OAK_SIGN",
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 644,
+            "name": "ACACIA_SIGN",
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 645,
+            "name": "SPRUCE_SIGN",
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 646,
+            "name": "DARK_OAK_SIGN",
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 647,
+            "name": "JUNGLE_SIGN",
+            "bb": {
+                "model": "sign",
+                "behavior": "sign",
+                "rotate": [
+                    {"type": "cardinal_direction", "when": {"state": "wall"}},
+                    {"type": "y360", "when": {"state": "floor"}}
+                ]
+            }
+        },
+        {
+            "id": 652,
+            "name": "LANTERN",
+            "bb": {
+                "model": "lantern",
+                "behavior": "lantern"
+            }
+        },
+        {
+            "id": 154,
+            "name": "SOUL_LANTERN",
+            "bb": {
+                "model": "soul_lantern",
+                "behavior": "lantern"
+            }
+        },
+        {
+            "id": 16,
+            "name": "COAL_ORE",
+            "bb": {
+                "model": "coal_ore"
+            }
+        },
+        {
+            "id": 21,
+            "name": "LAPIS_LAZULI_ORE",
+            "bb": {
+                "model": "lapis_lazuli_ore"
+            }
+        },
+        {
+            "id": 56,
+            "name": "DIAMOND_ORE",
+            "bb": {
+                "model": "diamond_ore"
+            }
+        },
+        {
+            "id": 15,
+            "name": "IRON_ORE",
+            "bb": {
+                "model": "iron_ore"
+            }
+        },
+        {
+            "id": 73,
+            "name": "REDSTONE_ORE",
+            "bb": {
+                "model": "redstone_ore"
+            }
+        },
+        {
+            "id": 129,
+            "name": "EMERALD_ORE",
+            "bb": {
+                "model": "emerald_ore"
+            }
+        },
+        {
+            "id": 1027,
+            "name": "POOR_GOLD_ORE",
+            "bb": {
+                "model": "poor_gold_ore"
+            }
+        },
+        {
+            "id": 1035,
+            "name": "POOR_EMERALD_ORE",
+            "bb": {
+                "model": "emerald_ore"
+            }
+        },
+        {
+            "id": 1032,
+            "name": "POOR_DIAMOND_ORE",
+            "bb": {
+                "model": "poor_diamond_ore"
+            }
+        },
+        {
+            "id": 1035,
+            "name": "POOR_EMERALD_ORE",
+            "bb": {
+                "model": "poor_emerald_ore"
+            }
+        },
+        {
+            "id": 1029,
+            "name": "POOR_IRON_ORE",
+            "bb": {
+                "model": "poor_iron_ore"
+            }
+        },
+        {
+            "id": 1031,
+            "name": "POOR_COAL_ORE",
+            "bb": {
+                "model": "poor_coal_ore"
             }
         }
     ]

@@ -301,7 +301,8 @@ export class MineGenerator {
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             if(force_replace || !tblocks.getBlockId(x, y, z)) {
                 this.xyz_temp_coord.set(x, y, z).addSelf(chunk.coord);
-                if(!this.generator.getVoxelBuilding(this.xyz_temp_coord)) {
+                const has_voxel_buildings = !!this.generator.getVoxelBuilding
+                if(!has_voxel_buildings || !this.generator.getVoxelBuilding(this.xyz_temp_coord)) {
                     tblocks.setBlockId(x, y, z, block_type.id);
                     if(rotate || extra_data) {
                         tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)

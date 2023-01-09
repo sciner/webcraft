@@ -185,6 +185,7 @@ export class Chunk {
 
         // Light + AO
         let changed = false;
+        let changedDay = false;
         let pv1, pv2, pv3, pv4, pv5, pv6, pv7, pv8;
         let ind = 0, ind2 = lightChunk.outerLen * elemPerBlock;
 
@@ -201,6 +202,10 @@ export class Chunk {
                 result[ind++] = new_value;
                 if (prev_value != new_value) {
                     changed = true;
+                    
+                }
+                if ((prev_value & 0xf00) !== (new_value & 0xf00)) {
+                    changedDay = true;
                 }
                 this.result_crc_sum += new_value;
             } else {
@@ -218,7 +223,9 @@ export class Chunk {
                     if (pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
                         changed = true;
                     }
+                    
                 }
+                changedDay = changedDay || pv2 !== result[ind - 3];
                 this.result_crc_sum += (
                     result[ind - 4] +
                     result[ind - 3] +
@@ -254,6 +261,7 @@ export class Chunk {
                     changed = true;
                 }
             }
+            changedDay = changedDay || pv2 !== result[ind - 3];
             this.result_crc_sum += (
                 result[ind - 4] +
                 result[ind - 3] +
@@ -279,10 +287,12 @@ export class Chunk {
         //
         if (changed) {
             this.crc++;
-            this.groundLevel.calcMinLightY(is4444);
         } else {
             // TODO: find out why are there so many calcResults
             // console.log('WTF');
+        }
+        if (changedDay) {
+            this.groundLevel.calcMinLightY(is4444);
         }
     }
 }

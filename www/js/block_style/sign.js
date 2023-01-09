@@ -91,22 +91,13 @@ export default class style {
 
         const draw_bottom = block.rotate.y != 0;
 
-        let aabb = new AABB();
-        aabb.set(
-            x + .5 - CONNECT_X/2,
-            y + .6,
-            z + .5 - CONNECT_Z/2,
-            x + .5 + CONNECT_X/2,
-            y + .6 + CONNECT_HEIGHT,
-            z + .5 + CONNECT_Z/2,
-        );
+        const aabb = style.makeAABBSign(block, x, y, z)
 
         if(draw_bottom) {
             matrix = mat4.create();
-            mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI));
+            mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI))
         } else {
-            aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2);
-            matrix = CubeSym.matrices[CubeSym.dirAdd(Math.floor(block.rotate.x), CubeSym.ROT_Y2)];
+            matrix = CubeSym.matrices[CubeSym.dirAdd(Math.floor(block.rotate.x), CubeSym.ROT_Y2)]
         }
 
         // Center
@@ -160,31 +151,62 @@ export default class style {
             );
         }
 
+        const text_block = style.makeTextBlock(block, aabb, pivot, matrix, x, y, z)
+        if(text_block) {
+            return [text_block]
+        }
+
+        return null;
+
+    }
+
+    //
+    static makeAABBSign(tblock, x, y, z) {
+
+        const draw_bottom = tblock.rotate ? (tblock.rotate.y != 0) : true
+
+        const aabb = new AABB(
+            x + .5 - CONNECT_X / 2,
+            y + .6,
+            z + .5 - CONNECT_Z / 2,
+            x + .5 + CONNECT_X / 2,
+            y + .6 + CONNECT_HEIGHT,
+            z + .5 + CONNECT_Z / 2,
+        )
+
+        if(!draw_bottom) {
+            aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
+        }
+
+        return aabb
+
+    }
+
+    //
+    static makeTextBlock(tblock, aabb, pivot, matrix, x, y, z) {
         // Return text block
-        if(block.extra_data) {
-            let text = block.extra_data?.text;
+        if(tblock.extra_data) {
+            let text = tblock.extra_data?.text;
             if(text) {
                 const sign = [];
-                if(block.extra_data.username) sign.push(block.extra_data.username);
-                if(block.extra_data.dt) sign.push(new Date(block.extra_data.dt || Date.now()).toISOString().slice(0, 10));
-                return [new FakeTBlock(
+                if(tblock.extra_data.username) sign.push(tblock.extra_data.username);
+                if(tblock.extra_data.dt) sign.push(new Date(tblock.extra_data.dt || Date.now()).toISOString().slice(0, 10));
+                return new FakeTBlock(
                     BLOCK.TEXT.id,
                     {
-                        ...block.extra_data,
+                        ...tblock.extra_data,
                         aabb: aabb,
                         chars: AlphabetTexture.getStringUVs(text),
                         sign: sign.length > 0 ? AlphabetTexture.getStringUVs(sign.join(' | ')) : null
                     },
                     new Vector(x, y, z),
-                    block.rotate,
+                    tblock.rotate,
                     pivot,
                     matrix
-                )];
+                );
             }
         }
-
-        return null;
-
+        return null
     }
 
 }

@@ -45,11 +45,12 @@ export class ChunkManager {
 
         ChunkManager.instance = this;
 
-        this.#world                 = world;
-        this.chunks                 = new VectorCollectorFlat();
-        this.chunks_prepare         = new VectorCollector();
-        this.block_sets             = 0;
-        this.draw_debug_grid        = world.settings.chunks_draw_debug_grid;
+        this.#world                     = world;
+        this.chunks                     = new VectorCollectorFlat();
+        this.chunks_prepare             = new VectorCollector();
+        this.block_sets                 = 0;
+        this.draw_debug_grid            = world.settings.chunks_draw_debug_grid;
+        this.cluster_draw_debug_grid    = world.settings.cluster_draw_debug_grid;
 
         this.lightPool              = null;
         this.lightProps = {
@@ -755,7 +756,7 @@ export class ChunkManager {
         let all_blocks = BLOCK.getAll();
         const set_block_list = [];
         for(let mat of all_blocks) {
-            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || ['extruder', 'text'].includes(mat.model_name)) {
+            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || ['extruder', 'text'].includes(mat.style_name)) {
                 if(mat.name != 'BEDROCK') {
                     continue;
                 }
@@ -817,10 +818,22 @@ export class ChunkManager {
         Qubatch.setSetting('chunks_draw_debug_grid', this.draw_debug_grid);
     }
 
+    // Toggle cluster grid
+    toggleDebugClusterGrid() {
+        this.cluster_draw_debug_grid = !this.cluster_draw_debug_grid;
+        Qubatch.setSetting('cluster_draw_debug_grid', this.cluster_draw_debug_grid);
+    }
+
     // Set debug grid visibility
     setDebugGridVisibility(value) {
         this.draw_debug_grid = !value;
         this.toggleDebugGrid();
+    }
+
+    // Set debug cluster grid visibility
+    setDebugClusterGridVisibility(value) {
+        this.cluster_draw_debug_grid = !value;
+        this.toggleDebugClusterGrid();
     }
 
 }

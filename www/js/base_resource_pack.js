@@ -25,14 +25,18 @@ export class BaseResourcePack {
         this.manager = manager;
 
         const dir = (manager.settings?.resource_packs_basedir || '') + this.dir;
+        const draw_improved_blocks = !!manager.settings?.draw_improved_blocks
 
         return Promise.all([
             Helpers.fetchJSON(dir + '/conf.json', true, 'rp'),
             Helpers.fetchJSON(dir + '/blocks.json', true, 'rp')
-        ]).then(async ([conf, json]) => {
+        ]).then(async ([conf, blocks]) => {
             this.conf = conf;
-            for(let b of json) {
-                await this.BLOCK.add(this, b);
+            const import_blocks = conf.id != 'bbmodel' || draw_improved_blocks
+            if(import_blocks) {
+                for(let b of blocks) {
+                    await this.BLOCK.add(this, b);
+                }
             }
         })
     }

@@ -36,12 +36,13 @@ export class BBModel_Group extends BBModel_Child {
      * @param {Float32Array} vertices
      * @param {Vector} pos
      * @param {IndexedColor} lm
-     * @param {*} matrix
+     * @param {*} parent_matrix
+     * @param {*} emmit_particles_func
      */
-    pushVertices(vertices, pos, lm, parentMatrix) {
+    pushVertices(vertices, pos, lm, parent_matrix, emmit_particles_func) {
 
         const mx = mat4.create();
-        mat4.copy(mx, parentMatrix);
+        mat4.copy(mx, parent_matrix);
 
         this.playAnimations(mx);
 
@@ -51,7 +52,7 @@ export class BBModel_Group extends BBModel_Child {
             if(!part.visibility) {
                 continue
             }
-            part.pushVertices(vertices, pos, lm, mx);
+            part.pushVertices(vertices, pos, lm, mx, emmit_particles_func);
         }
     }
 

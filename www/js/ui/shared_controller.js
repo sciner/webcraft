@@ -213,7 +213,7 @@ export class Shared_Controller {
         if(!world.info) {
             debugger;
         }
-        const player = new Player(options);
+        const player = new Player(options, Qubatch.render);
         player.JoinToWorld(world, () => {
             Qubatch.Started(player);
         });

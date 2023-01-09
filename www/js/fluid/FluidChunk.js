@@ -324,9 +324,10 @@ export class FluidChunk {
 
         if (block_id === 200 || block_id === 202) {
             uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = FLUID_WATER_ID | FLUID_GENERATED_FLAG;
-        }
-        if (block_id === 170 || block_id === 171) {
+        } else if (block_id === 170 || block_id === 171) {
             uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = FLUID_LAVA_ID | FLUID_GENERATED_FLAG;
+        } else {
+            uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0
         }
 
         this.updateID++;

@@ -1,23 +1,22 @@
-import { DIRECTION, IndexedColor, mat4ToRotate, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, IndexedColor, mat4ToRotate, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BLOCK, FakeTBlock } from '../blocks.js';
-import { Resources } from '../resources.js';
-import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
+import { TBlock } from '../typed_blocks3.js';
+import { BBModel_Model } from '../bbmodel/model.js';
+import { CubeSym } from '../core/CubeSym.js';
 
-import { default as default_style } from '../block_style/default.js';
+import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
 import { default as pot_style } from '../block_style/pot.js';
-import { TBlock } from '../typed_blocks3.js';
-import { BBModel_Model } from '../bbmodel/model.js';
+import { default as sign_style } from '../block_style/sign.js';
 
-const {mat4, vec3} = glMatrix;
+import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js";
+const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
 
-let models = null;
-Resources.loadBBModels().then((res) => {
-    models = res;
-})
+const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
+const pivotObj = new Vector(0.5, .5, 0.5)
 
 // Block model
 export default class style {
@@ -39,16 +38,47 @@ export default class style {
     static computeAABB(tblock, for_physic, world, neighbours, expanded) {
 
         const bb = tblock.material.bb
-        const behavior = bb.behavior || bb.model
-        const styleVariant = BLOCK.styles.get(behavior);
+        const behavior = bb.behavior || bb.model.name
 
-        if(styleVariant?.aabb) {
-            return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
+        switch(behavior) {
+            case 'chain': {
+                const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE
+                const aabb = new AABB()
+                aabb.set(0, 0, 0, 0, 0, 0)
+                aabb
+                    .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
+                    .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
+                    .div(TX_SIZE)
+                // Rotate
+                if(tblock.getCardinalDirection) {
+                    const cardinal_direction = tblock.getCardinalDirection()
+                    const matrix = CubeSym.matrices[cardinal_direction]
+                    // on the ceil
+                    if(tblock.rotate && tblock.rotate.y == -1) {
+                        if(tblock.hasTag('rotate_by_pos_n')) {
+                            aabb.translate(0, 1 - aabb.y_max, 0)
+                        }
+                    }
+                    aabb.applyMatrix(matrix, pivotObj)
+                }
+                return [aabb]
+            }
+            default: {
+                const styleVariant = BLOCK.styles.get(behavior)
+                if(styleVariant?.aabb) {
+                    return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
+                }
+                break
+            }
         }
 
-        const aabb = new AABB();
-        aabb.set(0, 0, 0, 1, 1, 1);
-        return [aabb];
+        const aabb = new AABB()
+        aabb.set(0, 0, 0, 1, 1, 1)
+
+        if(!for_physic) {
+            aabb.expand(1/100, 1/100, 1/100)
+        }
+        return [aabb]
 
     }
 
@@ -62,7 +92,7 @@ export default class style {
         /**
          * @type {BBModel_Model}
          */
-        const model = models.get(bb.model)
+        const model = bb.model
 
         if(!model) {
             return;
@@ -79,15 +109,34 @@ export default class style {
         // calc rotate matrix
         style.applyRotate(model, block, neighbours, matrix)
 
+        //
+        style.postBehavior(x, y, z, model, block, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks)
+
         // const animation_name = 'walk';
-        // model.playAnimation(animation_name, performance.now() / 1000);
-        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix);
+        // model.playAnimation(animation_name, performance.now() / 1000)
+
+        const particles = []
+
+        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix, (type, pos, args) => {
+            if(typeof worker == 'undefined') {
+                return
+            }
+            const p = new Vector(pos).addScalarSelf(.5, 0, .5)
+            particles.push({pos: p.addSelf(block.posworld), type, args})
+        })
+
+        if(particles.length > 0) {
+            worker.postMessage(['add_animated_block', {
+                block_pos:  block.posworld,
+                list: particles
+            }]);
+        }
 
         // Draw debug stand
         // style.drawDebugStand(vertices, pos, lm, null);
 
         // Add particles for block
-        style.addParticles(model, block, matrix)
+        // style.addParticles(model, block, matrix)
 
         if(emmited_blocks.length > 0) {
             return emmited_blocks
@@ -103,14 +152,60 @@ export default class style {
         const bb = mat.bb
 
         // Rotate
-        if(bb.rotate) {
-            if(style.checkWhen(model, tblock, bb.rotate.when)) {
-                switch(bb.rotate.type) {
-                    case 'cardinal_direction': {
-                        style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
-                        break
+        if(bb.rotate && tblock.rotate) {
+            for(let rot of bb.rotate) {
+                if(style.checkWhen(model, tblock, rot.when)) {
+                    switch(rot.type) {
+                        case 'cardinal_direction': {
+                            style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
+                            break
+                        }
+                        case 'y360': {
+                            mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 2) / 4) * (2 * Math.PI))
+                            break
+                        }
+                        case 'three': {
+                            // rotation only in three axes X, Y or Z
+                            if(tblock instanceof TBlock) {
+                                const cd = tblock.getCardinalDirection()
+                                const mx = calcRotateMatrix(tblock.material, tblock.rotate, cd, matrix)
+                                // хак со сдвигом матрицы в центр блока
+                                const v = vec3.create()
+                                v[1] = 0.5
+                                vec3.transformMat4(v, v, mx)
+                                mx[12] += - v[0]
+                                mx[13] += 0.5 - v[1]
+                                mx[14] += - v[2]
+                                mat4.copy(matrix, mx)
+                            }
+                            break
+                        }
                     }
+                    break
                 }
+            }
+        }
+
+    }
+
+    static postBehavior(x, y, z, model, tblock, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks) {
+
+        const mat = tblock.material
+        const bb = mat.bb
+
+        switch(bb.behavior ?? bb.model.name) {
+            case 'sign': {
+                const m = mat4.create()
+                mat4.copy(m, matrix)
+                mat4.rotateY(m, m, Math.PI)
+                const aabb = sign_style.makeAABBSign(tblock, x, y, z)
+                const e = 0 // -1/30
+                aabb.expand(e, e, e)
+                const fblock = sign_style.makeTextBlock(tblock, aabb, pivot, m, x, y, z)
+                if(fblock) {
+                    emmited_blocks.push(fblock)
+                }
+                break
             }
         }
 
@@ -129,14 +224,27 @@ export default class style {
         const emmited_blocks = []
         const mat = tblock.material
         const bb = mat.bb
-        const behavior = bb.behavior || bb.model
+        const behavior = bb.behavior || bb.model.name
         const rotate = tblock.rotate
 
         switch(behavior) {
+            case 'lantern': {
+                const on_ceil = rotate?.y == -1;
+                model.state = on_ceil ? 'ceil' : 'floor'
+                model.hideAllExcept(model.state)
+                break
+            }
             case 'torch': {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
                 model.hideAllExcept(model.state)
+                break
+            }
+            case 'sign': {
+                const on_wall = rotate && !rotate.y
+                model.state = on_wall ? 'wall' : 'floor'
+                model.hideAllExcept(model.state)
+                model.selectTextureFromPalette(mat.name)
                 break
             }
             case 'chest': {
@@ -174,6 +282,7 @@ export default class style {
                 if(!BLOCK.canFenceConnect(neighbours.WEST)) hide_group_names.push('west')
                 if(!BLOCK.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
+                model.selectTextureFromPalette(mat.name)
                 break
             }
             case 'pot': {
@@ -256,11 +365,10 @@ export default class style {
         }
     }
 
-    /**
+    /*
      * @param {BBModel_Model} model 
-     * @param {TBlock} tblock 
-     * @returns 
-     */
+     * @param {TBlock} tblock
+     * @param {*} matrix
     static addParticles(model, tblock, matrix) {
         if(typeof worker == 'undefined') {
             return
@@ -289,6 +397,7 @@ export default class style {
             }
         }
     }
+    */
 
     /**
      * @param {BBModel_Model} model

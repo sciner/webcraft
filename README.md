@@ -174,3 +174,6 @@ The explosion emitter is an example of a one-time emitter, it counts how many ti
 ## Debug
 1. `F3` + `G` - toggle chunk borders OR by chat command `/chunkborders [true|false]`
 2. `F3` + `B` - toggle mobs borders OR by chat command `/mobborders [true|false]`
+
+## Performance
+To best performance use Chrome and turn on this flag `chrome://flags/#enable-webgl-draft-extensions` (this enable multidraw for chunks)

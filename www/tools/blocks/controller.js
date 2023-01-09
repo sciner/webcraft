@@ -39,14 +39,14 @@ let gameCtrl = async function($scope, $timeout) {
             };
             for(let i = 0; i < B.all.length; i++) {
                 const b = B.all[i];
-                let style = styles.get(b.model_name);
+                let style = styles.get(b.style_name);
                 if(!style) {
                     style = {
-                        name: b.model_name,
+                        name: b.style_name,
                         count: 0,
                         list: []
                     };
-                    styles.set(b.model_name, style);
+                    styles.set(b.style_name, style);
                 }
                 //
                 if(b.texture && ['base/regular/default', 'base/transparent/default', 'base/doubleface/default', 'base/doubleface_transparent/default'].indexOf(b.material_key) >= 0) {

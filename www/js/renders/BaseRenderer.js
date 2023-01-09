@@ -274,7 +274,6 @@ export class BaseMaterial {
         this.mipmap = options.mipmap || false;
         this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
         this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
-        this.lightOverride = -1;
     }
 
     changeLighTex(light) {

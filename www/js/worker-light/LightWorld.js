@@ -113,6 +113,9 @@ export class LightWorld {
             this.light.add(chunk, ind, Math.max(light, src), potential);
             // push ao
             const setAo = ((src & MASK_SRC_AO) !== (old_src & MASK_SRC_AO));
+            if (setAo) {
+                chunk.lastID++;
+            }
             //TODO: move it to adjust func
             if ((src & MASK_SRC_REST) !== (old_src & MASK_SRC_REST)) {
                 this.dayLightSrc.addWithChange(chunk, ind);

@@ -30,10 +30,10 @@ import { GameRule } from "./game_rule.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
-import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
 import { TBlock } from "../www/js/typed_blocks3.js";
+import { Effect } from "../www/js/block_type/effect.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -91,7 +91,7 @@ export class ServerWorld {
         await this.makeBuildingsWorld()
 
         // Server ore generator
-        this.ore_generator  = new WorldOreGenerator(this.info.ore_seed);
+        this.ore_generator  = new WorldOreGenerator(this.info.ore_seed, false)
         delete(this.info.ore_seed)
 
         //
@@ -124,6 +124,14 @@ export class ServerWorld {
         await this.restoreModifiedChunks();
         await this.db.fluid.restoreFluidChunks();
         await this.chunks.initWorker();
+
+        //
+        if(this.isBuildingWorld()) {
+            await this.rules.setValue('doDaylightCycle', 'false')
+            await this.rules.setValue('doWeatherCycle', 'false')
+            await this.rules.setValue('randomTickSpeed', '0')
+        }
+
         //
         this.saveWorldTimer = setInterval(() => {
             // let pn = performance.now();
@@ -138,12 +146,16 @@ export class ServerWorld {
         return this.db.getDefaultPlayerIndicators();
     }
 
+    isBuildingWorld() {
+        return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
+    }
+
     /**
      * @returns {boolean}
      */
     async makeBuildingsWorld() {
 
-        if(this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+        if(!this.isBuildingWorld()) {
             return false
         }
 
@@ -153,7 +165,8 @@ export class ServerWorld {
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
-        const block_road = {id: 8}
+        const block_road = {id: 98}
+        const block_smooth_stone = {id: 70}
         const block_num1 = {id: 209}
         const block_num2 = {id: 210}
 
@@ -164,8 +177,9 @@ export class ServerWorld {
 
         // make road
         for(let x = 10; x > -1000; x--) {
-            const pos = new Vector(x, 0, 3)
-            addBlock(pos, block_road)
+            addBlock(new Vector(x, 0, 3), block_road)
+            addBlock(new Vector(x, 0, 4), block_smooth_stone)
+            addBlock(new Vector(x, 0, 5), block_road)
         }
 
         // each all buildings
@@ -173,7 +187,9 @@ export class ServerWorld {
             addBlock(new Vector(schema.world.pos1), block_num1)
             addBlock(new Vector(schema.world.pos2), block_num2)
             // draw sign
-            addBlock(new Vector(schema.world.pos1.x, 1, 3), {id: 645, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(0, 1, 0)})
+            const sign_z = schema.world.pos1.z < 3 ? 3 : 5
+            const sign_rot_x = schema.world.pos1.z < 3 ? 0 : 2
+            addBlock(new Vector(schema.world.pos1.x, 1, sign_z), {id: 645, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(sign_rot_x, 1, 0)})
             // clear basement level
             for(let x = 0; x <= (schema.world.pos1.x - schema.world.pos2.x); x++) {
                 for(let z = 0; z <= (schema.world.pos1.z - schema.world.pos2.z); z++) {
@@ -209,6 +225,9 @@ export class ServerWorld {
         await this.db.updateChunks(chunks_addr.keys());
         console.log('Building: compress chunks in db ...', performance.now() - t)
 
+        // reread info
+        this.info = await this.db.getWorld(this.info.guid)
+
         return true
 
     }
@@ -226,7 +245,7 @@ export class ServerWorld {
     autoSpawnHostileMobs() {
         const SPAWN_DISTANCE = 16;
         const good_light_for_spawn = this.getLight() > 6;
-        const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
+        const good_world_for_spawn = !this.isBuildingWorld();
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
         if(!auto_generate_mobs || !good_world_for_spawn || good_light_for_spawn) {
@@ -247,7 +266,7 @@ export class ServerWorld {
                     // проверка места для спауна
                     const under = this.getBlock(spawn_pos.offset(0, -1, 0));
                     // под ногами только твердый, целый блок
-                    if (under && (under.id != 0 || under.material.model_name == 'planting')) {
+                    if (under && (under.id != 0 || under.material.style_name == 'planting')) {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
                         // проверям что область для спауна это воздух или вода
@@ -444,7 +463,11 @@ export class ServerWorld {
                 }
             }
         }]);
-        // 9. Check player visible chunks
+        // 9. Add night vision for building world
+        if(this.isBuildingWorld()) {
+            player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
+        }
+        // 10. Check player visible chunks
         this.chunks.checkPlayerVisibleChunks(player, true);
     }
 
@@ -696,7 +719,7 @@ export class ServerWorld {
                         all.push(this.db.blockSet(this, server_player, params));
                     }
 
-                    let isLoaded = chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED;
+                    let isLoaded = chunk && chunk.isReady();
                     if (chunk && !isLoaded) {
                         // TODO: wtf to do here? we are loading info from the database currently!
                         console.log(`Potential problem with setting a block and loading chunk pos=${params.pos} item=${params.item}`);
