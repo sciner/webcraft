@@ -137,54 +137,66 @@ export class ClusterBuildingBase extends ClusterBase {
      */
     drawBulding(chunk, maps, building, map) {
         
-        const START_X = chunk.coord.x - this.coord.x;
-        const START_Z = chunk.coord.z - this.coord.z;
-        
         if(building.hidden) {
-            return;
+            return
         }
 
-        for(let i = 0; i < building.size.x; i++) {
-            let bx = building.coord.x + i;
-            // if(bx < chunk.coord.x || bx > chunk.coord.x + chunk.size.x) continue;
-            for(let j = 0; j < building.size.z; j++) {
-                let bz = building.coord.z + j;
-                // if(bz < chunk.coord.z || bz > chunk.coord.z + chunk.size.z) continue;
-                const x = bx - chunk.coord.x;
-                const z = bz - chunk.coord.z;
-                // fix basement height
-                const pz = START_Z + z;
-                const px = START_X + x;
-                if(px >= 0 && pz >= 0 && px < CLUSTER_SIZE.x && pz < CLUSTER_SIZE.z) {
-                    let point = this.mask[pz * CLUSTER_SIZE.x + px];
-                    if(point && point.height && !point.height_fixed) {
-                        // забираем карту того участка, где дверь, чтобы определить точный уровень пола
-                        const vec = new Vector(building.coord.x + i, 0, building.coord.z + j);
-                        const map_addr = getChunkAddr(vec);
-                        let bi = maps.get(map_addr);
-                        if(bi) {
-                            // if map not smoothed
-                            if(!bi.smoothed) {
-                                // generate around maps and smooth current
-                                bi = maps.generateAround(chunk, map_addr, true, false)[4];
-                            }
-                            const entrance_x    = vec.x - bi.chunk.coord.x;
-                            const entrance_z    = vec.z - bi.chunk.coord.z;
-                            const cell          = bi.cells[entrance_z * CHUNK_SIZE_X + entrance_x];
-                            if(cell.biome.code == 'BEACH' || cell.biome.code == 'OCEAN') {
-                                building.hidden = true;
-                            }
-                            point.height = Math.max(Math.min(point.height, building.coord.y - cell.value2 + 1), 0);
-                            point.height_fixed = true;
-                        }
-                    }
-                }
-            }
-        }
+        // 
+        this.fixBuildingHeight(maps, chunk, building)
 
         // draw building
         if(!building.hidden) {
             building.draw(this, chunk, map)
+        }
+
+    }
+
+    //
+    fixBuildingHeight(maps, chunk, building) {
+
+        if(this.clusterManager.chunkManager.world.generator.layers) {
+            return false
+        }
+
+        const START_X = chunk.coord.x - this.coord.x;
+        const START_Z = chunk.coord.z - this.coord.z;
+
+        for(let i = 0; i < building.size.x; i++) {
+            const bx = building.coord.x + i
+            // if(bx < chunk.coord.x || bx > chunk.coord.x + chunk.size.x) continue;
+            for(let j = 0; j < building.size.z; j++) {
+                const bz = building.coord.z + j
+                // if(bz < chunk.coord.z || bz > chunk.coord.z + chunk.size.z) continue;
+                const x = bx - chunk.coord.x
+                const z = bz - chunk.coord.z
+                // fix basement height
+                const pz = START_Z + z
+                const px = START_X + x
+                if(px >= 0 && pz >= 0 && px < CLUSTER_SIZE.x && pz < CLUSTER_SIZE.z) {
+                    const mask_point = this.mask[pz * CLUSTER_SIZE.x + px]
+                    if(mask_point && mask_point.height && !mask_point.height_fixed) {
+                        // забираем карту того участка, где дверь, чтобы определить точный уровень пола
+                        const vec = new Vector(building.coord.x + i, 0, building.coord.z + j)
+                        const map_addr = getChunkAddr(vec)
+                        let bi = maps.get(map_addr)
+                        if(bi) {
+                            // if map not smoothed
+                            if(!bi.smoothed) {
+                                // generate around maps and smooth current
+                                bi = maps.generateAround(chunk, map_addr, true, false)[4]
+                            }
+                            const entrance_x    = vec.x - bi.chunk.coord.x
+                            const entrance_z    = vec.z - bi.chunk.coord.z
+                            const cell          = bi.cells[entrance_z * CHUNK_SIZE_X + entrance_x]
+                            if(cell.biome.code == 'BEACH' || cell.biome.code == 'OCEAN') {
+                                building.hidden = true
+                            }
+                            mask_point.height = Math.max(Math.min(mask_point.height, building.coord.y - cell.value2 + 1), 0)
+                            mask_point.height_fixed = true
+                        }
+                    }
+                }
+            }
         }
 
     }

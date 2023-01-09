@@ -178,8 +178,10 @@ export class BuilgingTemplate {
                     const block = all_blocks.get(move)
                     if(block && block.block_id > 0) {
                         if(block.mat?.is_solid) {
-                            move.y++
-                            all_blocks.set(move, {block_id, mat, move: move.clone(), is_cap_block: true})
+                            //if(move.y >= 80) {
+                                move.y++
+                                all_blocks.set(move, {block_id, mat, move: move.clone(), is_cap_block: true})
+                            //}
                         }
                         break
                     }

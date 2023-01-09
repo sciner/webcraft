@@ -24,15 +24,21 @@ export class ClusterStructures extends ClusterBuildingBase {
             crossroad: [],
             required: [],
             others: [
-                {class: BuildingBlocks, max_count: Infinity, chance: 1, block_templates: ['structure1', 'structure2', 'mine', 'underearth_tower', 'broken_castle']}
+                {class: BuildingBlocks, max_count: Infinity, chance: 1, block_templates: [
+                    'structure1', 'structure2', 'mine', 'underearth_tower', 'broken_castle',
+                    'house_dwarf', 'ornated_stone_tower_ruins'
+                ]}
             ]
         }, BLOCK)
 
         const cp = new ClusterPoint(20, 3, 2)
 
         //
-        let x = 10 + Math.floor(this.randoms.double() * 80)
-        let z = 40 + Math.floor(this.randoms.double() * 80)
+        // let x = 10 + Math.floor(this.randoms.double() * 80)
+        // let z = 40 + Math.floor(this.randoms.double() * 80)
+
+        let x = 20 //+ Math.floor(this.randoms.double() * 80)
+        let z = 90 //+ Math.floor(this.randoms.double() * 80)
 
         const size = new Vector(128, 5, 128)
         const entrance_pos = new Vector(x, Infinity, z)
@@ -101,7 +107,7 @@ export class ClusterStructures extends ClusterBuildingBase {
     }
 
     fillBlocks(maps, chunk, map, fill_blocks, calc_building_y) {
-        super.fillBlocks(maps, chunk, map, false, calc_building_y)
+        super.fillBlocks(maps, chunk, map, fill_blocks, calc_building_y)
     }
 
     nextDirection() {

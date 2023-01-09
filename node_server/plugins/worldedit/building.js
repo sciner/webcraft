@@ -29,13 +29,13 @@ export class WorldEditBuilding {
 
     _insert(name, pos1, pos2, door_bottom, meta) {
         const building = {
-            name: name,
+            name,
             world: {
-                pos1: pos1,
-                pos2: pos2,
-                door_bottom: door_bottom
+                pos1,
+                pos2,
+                door_bottom
             },
-            meta: meta,
+            meta,
             size: new Vector(0, 0, 0),
             door_pos: new Vector(0, 0, 0),
             blocks: [],
@@ -57,6 +57,10 @@ export class WorldEditBuilding {
             }
             case 'save': {
                 await this.save(chat, player, cmd, args)
+                break;
+            }
+            case 'select': {
+                await this.select(chat, player, cmd, args)
                 break;
             }
             case 'go': {
@@ -85,22 +89,36 @@ export class WorldEditBuilding {
         // make quboid info
         const qi = we.getCuboidInfo(player)
 
-        const pos1 = new Vector(qi.pos1)
-
-        const pos2 = new Vector(
+        const pos1_temp = new Vector(qi.pos1)
+        const pos2_temp = new Vector(
             qi.pos1.x + (qi.volx - 1) * qi.signx,
             qi.pos1.y + (qi.voly - 1) * qi.signy,
             qi.pos1.z + (qi.volz - 1) * qi.signz
         )
 
-        const door_bottom = new Vector(
-            Math.round((qi.pos1.x + pos2.x) / 2),
-            1,
-            Math.round((qi.pos1.z + pos2.z) / 2)
+        const pos1 = new Vector(
+            Math.max(pos1_temp.x, pos2_temp.x),
+            Math.min(pos1_temp.y, pos2_temp.y),
+            Math.max(pos1_temp.z, pos2_temp.z)
         )
 
-        const meta = {}
+        const pos2 = new Vector(
+            Math.min(pos1_temp.x, pos2_temp.x),
+            Math.max(pos1_temp.y, pos2_temp.y),
+            Math.min(pos1_temp.z, pos2_temp.z)
+        )
 
+        const door_bottom = new Vector(
+            Math.round((pos1.x + pos2.x) / 2),
+            1,
+            Math.round((pos1.z + pos2.z) / 2)
+        )
+
+        const meta = {
+            dt:                         new Date().toISOString(),
+            draw_natural_basement:      true,
+            air_column_from_basement:   true
+        }
         const building = {name, pos1, pos2, door_bottom, meta}
 
         this._insert(building.name, building.pos1, building.pos2, building.door_bottom)
@@ -121,6 +139,30 @@ export class WorldEditBuilding {
         }
 
         await this.save(chat, player, cmd, args)
+
+    }
+
+    // Select building
+    async select(chat, player, cmd, args) {
+
+        //
+        if(!chat.world.isBuildingWorld()) {
+            throw 'error_invalid_world';
+        }
+
+        const we = this.worldedit_instance
+        const name = args[2]
+
+        // getbuilding by name
+        const building = this.list.get(name)
+        if(!building) throw 'building_not_found'
+
+        player.pos1 = new Vector(building.world.pos1)
+        player.pos2 = new Vector(building.world.pos2)
+
+        // message to player chat
+        const msg = `${name} building selected`
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id])
 
     }
 

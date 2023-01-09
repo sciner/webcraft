@@ -16,11 +16,19 @@ export class BlockDrawer {
      * @param {*} map
      */
     draw(cluster, chunk, map) {
+
         const pos = new Vector(0, 0, 0);
         const block_coord = this.object.pos.clone().subSelf(chunk.coord);
         const dir = this.object.direction;
         const two2map = new VectorCollector()
         const _pos2d = new Vector();
+
+        // if(!globalThis.bstd) globalThis.bstd = 0
+        // globalThis.bstd += this.list.length
+        // console.log(globalThis.bstd, this.list.length)
+
+        // let p = performance.now()
+
         for(let i = 0; i < this.list.length; i++) {
             const item = this.list[i];
             pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.mirror_x, this.mirror_z)
@@ -32,6 +40,10 @@ export class BlockDrawer {
                 two2map.set(_pos2d, Math.max(two2map.get(_pos2d), pos.y))
             }
         }
+
+        // globalThis.bstd += (performance.now() - p)
+        // console.log(this.list.length)
+
         // IMPORTANT: Remove grass in air over setted blocks
         const BLOCK_AIR_ID = 0
         if(two2map.size > 0) {
@@ -50,6 +62,7 @@ export class BlockDrawer {
                 }
             }
         }
+
     }
 
     /**

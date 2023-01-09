@@ -7,7 +7,7 @@ import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "../../w
 import { WorldEditBuilding } from "./worldedit/building.js";
 import { BuilgingTemplate } from "../../www/js/terrain_generator/cluster/building_template.js";
 
-const MAX_SET_BLOCK         = 250000;
+const MAX_SET_BLOCK         = 250000 * 4;
 const MAX_BLOCKS_PER_PASTE  = 10000;
 
 export default class WorldEdit {

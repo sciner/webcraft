@@ -763,14 +763,26 @@ export class Renderer {
         }
 
         const overChunk = player.getOverChunk();
-        if (overChunk && this.world.chunkManager.draw_debug_grid) {
-            // this.debugGeom.addLine(player.blockPos, overChunk.coord, {});
-            this.debugGeom.addBlockGrid({
-                pos:        overChunk.coord,
-                size:       overChunk.size,
-                lineWidth:  .15,
-                colorBGRA:  0xFF00FF00,
-            })
+        if (overChunk) {
+            // chunk
+            if(this.world.chunkManager.draw_debug_grid) {
+                // this.debugGeom.addLine(player.blockPos, overChunk.coord, {});
+                this.debugGeom.addBlockGrid({
+                    pos:        overChunk.coord,
+                    size:       overChunk.size,
+                    lineWidth:  .15,
+                    colorBGRA:  0xFF00FF00,
+                })
+            }
+            // cluster
+            if(this.world.chunkManager.cluster_draw_debug_grid) {
+                const cluster_size = new Vector(128, 256, 128)
+                const cluster_coord = overChunk.coord.div(cluster_size).flooredSelf().multiplyVecSelf(cluster_size)
+                this.debugGeom.addAABB(new AABB(
+                    cluster_coord.x, cluster_coord.y, cluster_coord.z,
+                    cluster_coord.x + cluster_size.x, cluster_coord.y + cluster_size.y, cluster_coord.z + cluster_size.z
+                ), {lineWidth: .25, colorBGRA: 0xFFFFFFFF})
+            }
         }
 
         // buildings grid
