@@ -131,7 +131,7 @@ export class InventoryComparator {
      * @param {Array or Object} new_items - new, suspicious items
      * @param {Array of objects} used_recipes - array of {
      *   recipe_id: Int
-     *   used_items: Array of reslts of {@link toUsedSimpleItem}
+     *   used_items_keys: Array of item comparison keys
      *   count: Int
      * }
      * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
@@ -221,27 +221,6 @@ export class InventoryComparator {
         }
     }
 
-    /**
-     * Finds an item described by the result of {@link toUsedSimpleItem}.
-     * @param {Map} simple_items
-     * @param {Int|String} used_item
-     * @return [comparison_key, item], or null if there is no such item.
-     *  item.count in the result is irrelevant.
-     */
-    static getUsedSimpleItemEntry(simple_items, used_item) {
-        if (typeof used_item === 'string') {
-            const item = simple_items.get(used_item);
-            return item && [used_item, item];
-        } // else it's item id
-        // We assume only 1 such id exists, otherwise the client would have sent a string
-        for(const entry of simple_items) {
-            if (entry[1].id === used_item) {
-                return entry;
-            }
-        }
-        return null;
-    }
-
     static decrementSimpleItemsKey(simple_items, key, count) {
         const existing_item = simple_items.get(key);
         if (existing_item === null) {
@@ -255,27 +234,6 @@ export class InventoryComparator {
             }
         }
         return true;
-    }
-
-    /**
-     * Describes one item from the current inventory used in the recipe.
-     * @param {Map} simple_items
-     * @param {Object} item
-     * @return {Int|String} - if the item can be unambiguously identified by its id,
-     *  than it's item.id. Else it's the comparison key, see {@link InventoryComparator.makeItemCompareKey}.
-     * @see getUsedSimpleItemEntry to find the item
-     */
-    static toUsedSimpleItem(simple_items, item) {
-        let has = false;
-        for(const simpleItem of simple_items.values()) {
-            if (item.id === simpleItem.id) {
-                if (has) {
-                    return InventoryComparator.makeItemCompareKey(item);
-                }
-                has = true;
-            }
-        }
-        return item.id; 
     }
 
 }

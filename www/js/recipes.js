@@ -782,7 +782,7 @@ export class RecipeManager {
      * Returns teh resulting item.
      * @param {Object} used_recipe {
      *   recipe_id: String
-     *   used_items: Array  of reslts of {@link InventoryComparator.toUsedSimpleItem}
+     *   used_items_keys: Array of item comparison keys
      *   count: Int          // how many time it was applied
      * }
      * @param {Map} simple_items
@@ -797,7 +797,7 @@ export class RecipeManager {
         }
         // Find the items in the inventory, check and reduce their quantities
         const used_items = RecipeManager.getValidateAndDecrementUsedItems(
-            simple_items, used_recipe.used_items, used_recipe.count, recipe_id);
+            simple_items, used_recipe.used_items_keys, used_recipe.count, recipe_id);
         // check that these items match what recipe needs
         const need_resources = ObjectHelpers.deepClone(recipe.need_resources, 2);
         for(let used_item of used_items) {
@@ -816,7 +816,7 @@ export class RecipeManager {
         // Append the result item
         let result_item = BLOCK.fromId(recipe.result.item_id);
         result_item = BLOCK.convertItemToInventoryItem(result_item, result_item, true);
-        result_item.count = recipe.result.count * recipe_count;
+        result_item.count = recipe.result.count * used_recipe.count;
         InventoryComparator.addToSimpleItems(simple_items, result_item);
         return result_item;
     }
@@ -826,21 +826,21 @@ export class RecipeManager {
      * @return the items found (its count filed is irelevant).
      * @throws if failure
      */
-    static getValidateAndDecrementUsedItems(simple_items, used_items, recipe_count, recipe_id) {
+    static getValidateAndDecrementUsedItems(simple_items, used_items_keys, recipe_count, recipe_id) {
         recipe_count = Math.floor(recipe_count);
         if (typeof recipe_count !== 'number' || !(recipe_count > 0)) { // !(recipe_count < 0) is for NaN
             throw `error_incorrect_value|recipe_count=${recipe_count}`;
         }
         const res = [];
-        for(const used_item of used_items) {
-            const entry = InventoryComparator.getUsedSimpleItemEntry(simple_items, used_item);
-            if (!entry) {
+        for(const key of used_items_keys) {
+            const item = simple_items.get(key);
+            if (!item) {
                 throw 'error_recipe_item_not_found_in_inventory|' + recipe_id;
             }
-            if (!InventoryComparator.decrementSimpleItemsKey(simple_items, entry[0], recipe_count)) {
+            if (!InventoryComparator.decrementSimpleItemsKey(simple_items, key, recipe_count)) {
                 throw 'error_recipe_item_not_enough';
             }
-            res.push(entry[1]);
+            res.push(item);
         }
         return res;
     }

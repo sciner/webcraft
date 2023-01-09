@@ -310,21 +310,21 @@ export class CraftTableResultSlot extends CraftTableSlot {
     }
 
     // decrements the slots, and remembers the recipe used.
-    useRecipe(simple_items) {
+    useRecipe() {
         // this.recipe can be null in some partially implemented window subclasses
         const recipe_id = this.recipe?.id || null;
-        const used_items = this.parent.getAndDecrementUsedItems(simple_items, 1);
+        const used_items_keys = this.parent.getUsedItemsKeysAndDecrement(1);
         //
         const lastRecipe = this.used_recipes.length && this.used_recipes[this.used_recipes.length - 1];
         if (lastRecipe?.recipe_id === recipe_id &&
-            ObjectHelpers.deepEqual(lastRecipe.used_items, used_items)
+            ObjectHelpers.deepEqual(lastRecipe.used_items_keys, used_items_keys)
         ) {
             // increment the last used recipe count
             lastRecipe.count++;
         } else {
             this.used_recipes.push({
                 recipe_id,
-                used_items,
+                used_items_keys,
                 count: 1
             });
         }
@@ -362,7 +362,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 dragItem.count = remains;
             }
             //
-            that.useRecipe(this.parent.getSimpleItems());
+            that.useRecipe();
         }
 
         // Drag & drop
@@ -374,9 +374,8 @@ export class CraftTableResultSlot extends CraftTableSlot {
             // clear result slot
             this.setItem(null);
             // decrement craft slots
-            const simple_items = this.parent.getSimpleItems();
             while(true) {
-                this.useRecipe(simple_items);
+                this.useRecipe();
                 const next_item = this.getItem();
                 if(!e.shiftKey || !next_item || next_item.id != dragItem.id) {
                     break;
@@ -873,21 +872,20 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         return this.craft.slots.map(it => it?.item);
     }
 
-    // Returns used_items (an array of ids or strings - to send to the server), and decrements craft slots
-    getAndDecrementUsedItems(simple_items, count) {
-        const used_items = [];
+    // Returns used_items (an array item comparison keys - to send to the server), and decrements craft slots
+    getUsedItemsKeysAndDecrement(count) {
+        const result = [];
         for(let slot of this.craft.slots) {
             let item = slot.getItem();
-            if(item) {
-                const used_item = InventoryComparator.toUsedSimpleItem(simple_items, item);
-                used_items.push(used_item);
+            if (item) {
+                result.push(InventoryComparator.makeItemCompareKey(item));
                 item.count -= count;
                 if (item.count <= 0) {
                     slot.setItem(null);
                 }
             }
         }
-        return used_items;
+        return result;
     }
 
     getSimpleItems() {

@@ -71,7 +71,7 @@ export class AnvilRecipeManager {
     /**
      * @param {Object} {
      *   recipe_id: Int
-     *   used_items: Array of reslts of {@link toUsedSimpleItem}
+     *   used_items_keys: Array of item comparison keys
      *   count: Int
      *   label: String
      * }
@@ -87,7 +87,7 @@ export class AnvilRecipeManager {
         }
         // Find the items in the inventory, check and reduce their quantities
         const used_items = RecipeManager.getValidateAndDecrementUsedItems(
-            simple_items, used_recipe.used_items, used_recipe.count, recipe_id);
+            simple_items, used_recipe.used_items_keys, used_recipe.count, recipe_id);
         // the recipes use item.count, so set it now
         for(let i in used_items) {
             if (used_items[i]) {

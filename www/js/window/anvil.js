@@ -216,12 +216,11 @@ export class AnvilWindow extends BaseCraftWindow {
     }
 
     useRecipe() {
-        const simple_items = this.getSimpleItems();
         const count = this.first_slot.item.count;
-        const used_items = this.getAndDecrementUsedItems(simple_items, count);
+        const used_items_keys = this.getUsedItemsKeysAndDecrement(count);
         this.used_recipes.push({
             recipe_id: this.recipe.id,
-            used_items,
+            used_items_keys,
             count,
             label: this.lbl_edit.getEditText()
         });
