@@ -66,7 +66,7 @@ export class ServerChunkManager {
                 case 'blocks_generated': {
                     let chunk = this.get(args.addr);
                     if(chunk) {
-                        chunk.onBlocksGenerated(args);
+                        chunk.readyPromise = chunk.onBlocksGenerated(args);
                     }
                     break;
                 }
@@ -229,13 +229,18 @@ export class ServerChunkManager {
         let cnt = 0;
         for (let i = 0; i < invChunks.length; i++) {
             const chunk = invChunks[i];
-            if (chunk.connections.size === 0 && chunk.load_state <= CHUNK_STATE.READY) {
-                invChunks[cnt++] = chunk;
-
-                this.unloading_chunks.add(chunk.addr, chunk);
-                this.remove(chunk.addr);
-                this.removeTickingChunk(chunk.addr);
-                chunk.onUnload();
+            if (chunk.shouldUnload()) {
+                if (chunk.load_state <= CHUNK_STATE.LOADING_DATA) {
+                    // we didnt even load from database yet
+                    chunk.setState(CHUNK_STATE.DISPOSED);
+                    this.chunkUnloaded(chunk);
+                } else if (chunk.load_state === CHUNK_STATE.READY) {
+                    invChunks[cnt++] = chunk;
+                    this.unloading_chunks.add(chunk.addr, chunk);
+                    this.remove(chunk.addr);
+                    this.removeTickingChunk(chunk.addr);
+                    chunk.readyPromise = chunk.readyPromise.then(() => chunk.onUnload());
+                }
             }
         }
         invChunks.length = cnt;
@@ -347,7 +352,15 @@ export class ServerChunkManager {
                         player.nearby_chunk_addrs.set(addr, addr);
                         let chunk = this.get(addr);
                         if(!chunk) {
-                            chunk = new ServerChunk(this.world, addr);
+                            chunk = this.unloading_chunks.get(item.addr)
+                            if (chunk) {
+                                // RESTORE!!!
+                                this.unloading_chunks.delete(chunk);
+                                chunk.load_state = CHUNK_STATE.LOADING_BLOCKS;
+                                chunk.readyPromise = chunk.readyPromise.then(() => chunk.onRestore());
+                            } else {
+                                chunk = new ServerChunk(this.world, addr);
+                            }
                             this.add(chunk);
                         }
                         chunk.addPlayer(player);

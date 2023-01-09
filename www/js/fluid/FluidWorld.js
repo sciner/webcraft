@@ -33,17 +33,22 @@ export class FluidWorld {
     }
 
     addChunk(chunk) {
-        chunk.fluid = new FluidChunk({
-            dataChunk: chunk.dataChunk,
-            dataId: chunk.getDataTextureOffset ? chunk.getDataTextureOffset() : chunk.dataId,
-            parentChunk: chunk,
-            world: this
-        });
+        if (chunk.tblocks.fluid) {
+            // restore!
+            chunk.fluid = chunk.tblocks.fluid;
+            chunk.fluid.world = this;
+        } else {
+            chunk.fluid = new FluidChunk({
+                dataChunk: chunk.dataChunk,
+                dataId: chunk.getDataTextureOffset ? chunk.getDataTextureOffset() : chunk.dataId,
+                parentChunk: chunk,
+                world: this
+            });
+            chunk.tblocks.fluid = chunk.fluid;
+        }
         if (this.queue) {
             this.queue.addChunk(chunk.fluid);
         }
-
-        chunk.tblocks.fluid = chunk.fluid;
     }
 
     removeChunk(chunk) {
