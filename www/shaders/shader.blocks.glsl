@@ -587,3 +587,52 @@
     //  + cavePart * abs(caveNormal) / length(caveNormal);
     sunNormalLight = 1.0;
 #endif
+
+// VERSION1
+#ifdef caustic1_pass
+
+    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    vec2 vert = vec2(cam_period.z, cam_period.z) + vec2(v_world_pos.z, v_world_pos.z);
+    vec2 pc = (v_texcoord0.xy + v_world_pos.xy + cam_period.xy + vert.xy) * 64.;
+
+    mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
+    vec3 a = vec3( pc / 4e2, (u_time / 1000.) / 4. ) * m,
+         b = a * m * .4,
+         c1 = b * m * .3;
+    vec4 k = vec4(pow(
+          min(min(   length(.5 - fract(a)), 
+                     length(.5 - fract(b))
+                  ), length(.5 - fract(c1)
+             )), 7.) * 25.);
+             
+    color.rgb += k.rgb;
+
+#endif
+
+// VERSION2
+#ifdef caustic2_pass
+
+    #define TAU 6.28318530718
+    #define MAX_ITER 3
+
+	float time = (u_time / 1000.) + 23.0;
+    // uv should be the 0-1 uv of texture...
+	vec2 uv = v_texcoord0.xy * 50.; // / u_resolution.xy * 4.;
+    vec2 p = mod(uv * TAU, TAU) - 250.0;
+
+	vec2 i = vec2(p);
+	float c = 1.0;
+	float inten = .005;
+
+	for (int n = 0; n < MAX_ITER; n++) {
+		float t = time * (1.0 - (3.5 / float(n + 1)));
+		i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));
+		c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten), p.y / (cos(i.y + t) / inten)));
+	}
+	c /= float(MAX_ITER);
+	c = 1.17 - pow(c, 1.4);
+	vec3 colour = vec3(pow(abs(c), 8.0));
+    colour = clamp(colour + vec3(0.0, 0.35, 0.5), 0.0, 1.0);
+    color.rgb *= colour.rgb;
+
+#endif
