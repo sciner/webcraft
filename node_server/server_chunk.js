@@ -1194,7 +1194,7 @@ export class ServerChunk {
         this.readyPromise = Promise.all(promises).then(() => {
             if (this.load_state === CHUNK_STATE.UNLOADING) {
                 this.load_state = CHUNK_STATE.DISPOSED;
-                chunkManager.chunkUnloaded(this.addr);
+                chunkManager.chunkUnloaded({ addr: this.addr, uniqId: this.uniqId});
             }
         });
     }

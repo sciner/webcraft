@@ -387,7 +387,7 @@ export class Chunk {
         }
         this.lightTex = null;
         // run webworker method
-        chunkManager.destruct_chunks_queue.add(this.addr);
+        chunkManager.destruct_chunks_queue.add({addr: this.addr, uniqId: this.uniqId});
         // chunkManager.postWorkerMessage(['destructChunk', [this.addr]]);
         // chunkManager.postLightWorkerMessage(['destructChunk', [this.addr]]);
         // remove particles mesh

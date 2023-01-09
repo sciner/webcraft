@@ -418,9 +418,9 @@ export class ServerChunkManager {
         return resp;
     }
 
-    chunkUnloaded(addr) {
+    chunkUnloaded({addr, uniqId}) {
         this.unloading_chunks.delete(addr);
-        this.disposed_chunk_addrs.push(addr);
+        this.disposed_chunk_addrs.push({addr, uniqId});
     }
 
     // Send command to server worker
