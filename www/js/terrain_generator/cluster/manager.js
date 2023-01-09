@@ -49,13 +49,16 @@ export class ClusterManager {
             if(r <= .1) {
                 cluster = new ClusterPyramid(this, addr.clone(), biome);
             } else if(r < .6) {
-                cluster = new ClusterEmpty(this, addr.clone(), biome);
+                // empty
             } else {
                 cluster = new ClusterVilage(this, addr.clone(), biome);
             }
         }
-        this.all.set(addr, cluster);
-        return cluster;
+        if(!cluster) {
+            cluster = new ClusterEmpty(this, addr.clone(), biome);
+        }
+        this.all.set(addr, cluster)
+        return cluster
     }
 
 }
