@@ -53,12 +53,12 @@ export class ClusterBase {
      * @param {*} extra_data 
      * @param {boolean} check_is_solid 
      * @param {boolean} destroy_fluid  
-     * @param {boolean} is_cap_block 
+     * @param {boolean} candidate_for_cap_block 
      * @param {?object} map
      * 
      * @returns 
      */
-    setBlock(chunk, x, y, z, block_id, rotate, extra_data, check_is_solid = false, destroy_fluid = false, is_cap_block = false, map = null) {
+    setBlock(chunk, x, y, z, block_id, rotate, extra_data, check_is_solid = false, destroy_fluid = false, candidate_for_cap_block = false, map = null) {
         if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
             // ok
         } else {
@@ -74,10 +74,11 @@ export class ClusterBase {
                     block_id = cdl.blocks[layer_index]
                 }
             }
-            if(is_cap_block) {
+            if(candidate_for_cap_block) {
                 const cell = map.getCell(x, z)
                 const cap_block_id = cell.dirt_layer?.cap_block_id
-                if(cap_block_id) {
+                const existing_block_id = chunk.getBlockID(x, y, z)
+                if(cap_block_id && existing_block_id == 0) {
                     block_id = cap_block_id
                 } else {
                     return
