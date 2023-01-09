@@ -610,7 +610,7 @@
 #ifdef caustic1_pass
 
     vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
-    vec2 vert = vec2(cam_period.z, cam_period.z) + vec2(v_world_pos.z, v_world_pos.z);
+    vec2 vert = vec2(cam_period.z / 2., cam_period.z / 2.) + vec2(v_world_pos.z / 2., v_world_pos.z / 2.);
     vec2 pc = (v_texcoord0.xy + v_world_pos.xy + cam_period.xy + vert.xy) * 64.;
 
     mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);

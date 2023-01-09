@@ -972,6 +972,11 @@ export class Renderer {
         if(player.game_mode.isSpectator()) {
             return false;
         }
+
+        if(player.eyes_in_block?.is_water) {
+            return false
+        }
+
         const world = Qubatch.world;
         const TARGET_TEXTURES = [.5, .5, 1, 1];
         // Material (shadow)
