@@ -138,7 +138,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform1f(this.u_time, gu.time);
 
         if (gu.lightOverride >= 0) {
-            gl.uniform3f(this.u_lightOverride, ((gu.lightOverride & 0xff) / 255.0), ((gu.lightOverride >> 8) / 255.0),  1.0);
+            gl.uniform3f(this.u_lightOverride, ((gu.lightOverride & 0xff) / 255.0), (((gu.lightOverride >> 8) & 0xff) / 255.0),  1.0 + (gu.lightOverride >> 16));
         } else {
             gl.uniform3f(this.u_lightOverride, 0.0, 0.0, 0.0);
         }
