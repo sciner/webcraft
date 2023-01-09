@@ -1,10 +1,55 @@
-import {BLOCK, INVENTORY_ITEM_EQUAL_SCHEMA, INVENTORY_ITEM_STRINGIFY_KEY_SCHEMA} from "./blocks.js";
+import {BLOCK} from "./blocks.js";
 import {RecipeManager} from "./recipes.js";
-import {ObjectHelpers} from "./helpers.js"
+import {ObjectHelpers, ArrayOrMap} from "./helpers.js"
+import { AnvilRecipeManager } from "./recipes_anvil.js";
 
 export class InventoryComparator {
 
-    static rm = null;
+    // The values can be either classes, of async functions that return classes (for lazy initialization)
+    static recipeManagers = {
+        'crafting': 
+            async function() {
+                const rm = new RecipeManager();
+                await rm.load(() => {});
+                return rm;
+            },
+        'anvil': new AnvilRecipeManager()
+    };
+
+    static itemsEqual(itemA, itemB) {
+        return ObjectHelpers.deepEqual(itemA, itemB);
+    }
+
+    static itemsEqualExceptCount(itemA, itemB) {
+        if (itemA == null) {
+            return itemB == null;
+        }
+        return itemB != null &&
+            itemA.id === itemB.id &&
+            itemA.power === itemB.power &&
+            itemA.entity_id === itemB.entity_id &&
+            ObjectHelpers.deepEqual(itemA.extra_data, itemB.extra_data);
+    }
+
+    /**
+     * @param {Object} item
+     * @param {(Array of Int)|Int|Object} needs - array of item ids, an item id, or an item
+     */
+    static itemMatchesNeeds(item, needs) {
+        if (item == null) {
+            return false;
+        }
+        const type = typeof needs;
+        if (type === 'number') {
+            return item.id === needs;
+        }
+        if (type !== 'object') {
+            throw new Error("type !== 'object'");
+        }
+        return Array.isArray(needs)
+            ? needs.includes(item.id)
+            : this.itemsEqualExceptCount(item, needs);
+    }
 
     /**
      * Returns a string with the following property:
@@ -16,26 +61,60 @@ export class InventoryComparator {
             // если есть entity id, то нужно брать только это поле
             return item.entity_id;
         } else {
-            return ObjectHelpers.sortedStringifySchema(item, INVENTORY_ITEM_STRINGIFY_KEY_SCHEMA);
+            // id and power should be Int after sanitizaion, but stringiy them just in case
+            let res = 'i' + JSON.stringify(item.id);
+            if (item.power != null) {
+                res += ',p' + JSON.stringify(item.power);
+            }
+            if (item.extra_data != null) {
+                res += ',e' + ObjectHelpers.sortedStringify(item.extra_data);
+            }
+            return res;
         }
     }
 
     /** Compares lists exactly - item stacks must match. */
     static listsExactEqual(listA, listB) {
-        const schema = Array.isArray(listA)
-            ? [INVENTORY_ITEM_EQUAL_SCHEMA]
-            : { 'default:': INVENTORY_ITEM_EQUAL_SCHEMA };
-        return ObjectHelpers.deepEqualSchema(listA, listB, schema);
+        return ObjectHelpers.deepEqual(listA, listB);
     }
 
     /**
      * Sanitizes (see {@link BLOCK.sanitizeAndValidateInventoryItem}) and validates
      * the items from the client.
      * @param {Array or Object} list - the items
-     * @return null if success, or the first invlid item
-    */
-    static sanitizeAndValidateInventoryItems(list) {
-        for(let key of list) {
+     * @param {Object} keysObject - optional - provides keys that are being processed.
+     *   The values are boolean, indicating whether the key is non-optional.
+     * @return null if success, or the first invlid item or error message
+     */
+    static sanitizeAndValidateItems(list, keysObject = null) {
+        if (!list || typeof list !== 'object') {
+            return 'not a list';
+        }
+        const isArray = Array.isArray(list);
+        const keys = keysObject ?? list;
+        for(let key in keys) {
+            const item = list[key];
+            if (item != null) {
+                const new_item = BLOCK.sanitizeAndValidateInventoryItem(item);
+                if (!new_item) {
+                    return list[key];
+                }
+                list[key] = new_item;
+            } else {
+                const isMandatory = keysObject ? keysObject[key] : !isArray;
+                if (isMandatory) {
+                    return 'null value';
+                }
+            }
+        }
+        return null;
+    }
+
+    static sanitizeAndValidatePropertyItems(obj, arrayOfKeys) {
+        if (!obj || typeof obj !== 'object') {
+            return null;
+        }
+        for(let key of arrayOfKeys) {
             const new_item = BLOCK.sanitizeAndValidateInventoryItem(list[key]);
             if (!new_item) {
                 return list[key];
@@ -52,12 +131,13 @@ export class InventoryComparator {
      * @param {Array or Object} new_items - new, suspicious items
      * @param {Array of objects} used_recipes - array of {
      *   recipe_id: Int
-     *   item_ids: Array of Int
+     *   used_items: Array of reslts of {@link toUsedSimpleItem}
+     *   count: Int
      * }
-     * @param {RecipeManager} em - optional, used only if recipes are not null
+     * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
      * @return {Boolean} true if equal
      */
-    static checkEqual(old_items, new_items, used_recipes, rm) {
+    static checkEqual(old_items, new_items, used_recipes, recipeManager) {
         let old_simple = InventoryComparator.groupToSimpleItems(old_items);
         let new_simple = InventoryComparator.groupToSimpleItems(new_items);
 
@@ -65,57 +145,16 @@ export class InventoryComparator {
             try {
                 // Apply all recipes
                 for(let used_recipe of used_recipes) {
-                    const recipe_id = used_recipe.recipe_id;
-                    // Get recipe by ID
-                    const recipe = rm.getRecipe(recipe_id);
-                    if(!recipe) {
-                        throw 'error_recipe_not_found|' + recipe_id;
-                    }
-                    // Spending resources
-                    const need_resources = ObjectHelpers.deepClone(recipe.need_resources, 2);
-                    for(let item_id of used_recipe.item_ids) {
-                        // check that the item_id is used in the recipe is actually in the recipe
-                        const resource = need_resources.find(it => 
-                            it.count && it.item_ids.includes(item_id)
-                        );
-                        if (!resource) {
-                            throw `error_item_not_found_in_recipe|${recipe_id},${item_id}`;
-                        }
-                        resource.count--;
-                        // check that the item is in the inventory
-                        let used_item = old_simple.get(item_id);
-                        if(!used_item) {
-                            throw 'error_recipe_item_not_found_in_inventory|' + recipe_id;
-                        }
-                        used_item.count--;
-                        if(used_item.count < 0) {
-                            throw 'error_recipe_item_not_enough';
-                        }
-                        if(used_item.count == 0) {
-                            old_simple.delete(item_id);
-                        }
-                    }
-                    // Check that all the items in the recipe are used
-                    if (need_resources.find(it => it.count)) {
-                        throw 'error_not_all_recipe_items_are_used|' + recipe_id;
-                    }
-                    // Append result item
-                    let result_item = BLOCK.fromId(recipe.result.item_id);
-                    result_item = BLOCK.convertItemToInventoryItem(result_item, result_item, true);
-                    result_item.count = recipe.result.count;
-                    // Generate next simple state of inventory previous state
-                    old_items = Array.from(old_simple.values());
-                    old_items.push(result_item);
-                    // Group items to simple form
-                    old_simple = InventoryComparator.groupToSimpleItems(old_items);
+                    const result = recipeManager.applyUsedRecipeToSimpleItems(used_recipe, old_simple);
+                    used_recipe.result_item_id = result.id;
+                    used_recipe.result_count = result.count;
                 }
             } catch(e) {
                 console.log('error', e);
                 return false;
             }
         }
-
-        // Note: "extra_data" and "entity_id" are compared in compareSimpleItems(), see INVENTORY_ITEM_EQUAL_SCHEMA
+        // Note: "extra_data" and "entity_id" are compared in compareSimpleItems()
         return InventoryComparator.compareSimpleItems(old_simple, new_simple);
     }
 
@@ -130,7 +169,7 @@ export class InventoryComparator {
                 console.log(`* Item not found (${key}); item: ` + JSON.stringify(item));
                 return false;
             }
-            if(!ObjectHelpers.deepEqualSchema(old_item, item, INVENTORY_ITEM_EQUAL_SCHEMA)) {
+            if(!this.itemsEqualExceptCount(old_item, item)) {
                 console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], 2, null));
                 return false;
             }
@@ -144,35 +183,99 @@ export class InventoryComparator {
         return true;
     }
 
-    // getRecipeManager
-    static async getRecipeManager() {
-        if(InventoryComparator.rm) {
-            return InventoryComparator.rm;
+    // Supported types: 'crafting', 'anvil'
+    static async getRecipeManager(type) {
+        type = type ?? 'crafting';
+        let rm = this.recipeManagers[type];
+        if(typeof rm === 'function') {
+            rm = await rm();
+            this.recipeManagers[type] = rm;
         }
-        InventoryComparator.rm = new RecipeManager();
-        await InventoryComparator.rm.load(() => {});
-        return InventoryComparator.rm;
+        return rm;
     }
 
     /**
      * @param {Array or Object} - items
      * @return {Map} of shallow copies of items, grouped by {@link makeItemCompareKey}.
      */
-    static groupToSimpleItems(items) {
+    static groupToSimpleItems(items, additionalItems = null) {
         const resp = new Map();
-        for(let item of items) {
-            if(item) {
-                const new_item = {...item};
-                const key = InventoryComparator.makeItemCompareKey(new_item);
-                const existingValue = resp.get(key);
-                if(existingValue) {
-                    existingValue.count += new_item.count;
-                } else {
-                    resp.set(key, new_item);
-                }
+        for(let item of ArrayOrMap.values(items, null)) {
+            this.addToSimpleItems(resp, item);
+        }
+        if (additionalItems) {
+            for(let item of ArrayOrMap.values(additionalItems, null)) {
+                this.addToSimpleItems(resp, item);
             }
         }
         return resp;
+    }
+
+    static addToSimpleItems(simple_items, item) {
+        const key = InventoryComparator.makeItemCompareKey(item);
+        const existing_item = simple_items.get(key);
+        if(existing_item) {
+            existing_item.count += item.count;
+        } else {
+            simple_items.set(key, {...item});
+        }
+    }
+
+    /**
+     * Finds an item described by the result of {@link toUsedSimpleItem}.
+     * @param {Map} simple_items
+     * @param {Int|String} used_item
+     * @return [comparison_key, item], or null if there is no such item.
+     *  item.count in the result is irrelevant.
+     */
+    static getUsedSimpleItemEntry(simple_items, used_item) {
+        if (typeof used_item === 'string') {
+            const item = simple_items.get(used_item);
+            return item && [used_item, item];
+        } // else it's item id
+        // We assume only 1 such id exists, otherwise the client would have sent a string
+        for(const entry of simple_items) {
+            if (entry[1].id === used_item) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    static decrementSimpleItemsKey(simple_items, key, count) {
+        const existing_item = simple_items.get(key);
+        if (existing_item === null) {
+            return false;
+        }
+        existing_item.count -= count;
+        if (existing_item.count <= 0) {
+            simple_items.delete(key);
+            if (existing_item.count < 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Describes one item from the current inventory used in the recipe.
+     * @param {Map} simple_items
+     * @param {Object} item
+     * @return {Int|String} - if the item can be unambiguously identified by its id,
+     *  than it's item.id. Else it's the comparison key, see {@link InventoryComparator.makeItemCompareKey}.
+     * @see getUsedSimpleItemEntry to find the item
+     */
+    static toUsedSimpleItem(simple_items, item) {
+        let has = false;
+        for(const simpleItem of simple_items.values()) {
+            if (item.id === simpleItem.id) {
+                if (has) {
+                    return InventoryComparator.makeItemCompareKey(item);
+                }
+                has = true;
+            }
+        }
+        return item.id; 
     }
 
 }

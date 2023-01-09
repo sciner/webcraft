@@ -81,7 +81,7 @@ export async function loadMappedImports(resultMap,
 ) {
     // load missing unique imports into uniqueImports as promises
     const promises = [];
-    for(let list of ArrayOrMap.valuesExceptUndefined(resultMap)) {
+    for(let list of ArrayOrMap.values(resultMap)) {
         for(var i = 0; i < list.length; i++) {
             const fullImportString = list[i];
             if (uniqueImports[fullImportString]) {
@@ -104,7 +104,7 @@ export async function loadMappedImports(resultMap,
     }
     // await all promises and replace the strings with imported objects
     return await Promise.all(promises).then(async function () {
-        for(let list of ArrayOrMap.valuesExceptUndefined(resultMap)) {
+        for(let list of ArrayOrMap.values(resultMap)) {
             for(var i = 0; i < list.length; i++) {
                 const fullImportString = list[i];
                 var imp = uniqueImports[fullImportString];

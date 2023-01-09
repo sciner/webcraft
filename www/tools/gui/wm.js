@@ -987,6 +987,9 @@ export class TextEdit extends Window {
         }
     }
 
+    getEditText() {
+        return this.buffer.join('');
+    }
 }
 
 class Tooltip extends Label {

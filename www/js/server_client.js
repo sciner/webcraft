@@ -356,8 +356,8 @@ export class ServerClient {
     }
 
     // Save inventory
-    InventoryNewState(state, used_recipes) {
-        this.Send({name: ServerClient.CMD_INVENTORY_NEW_STATE, data: {state, used_recipes}});
+    InventoryNewState(state, used_recipes, recipe_manager_type = null) {
+        this.Send({name: ServerClient.CMD_INVENTORY_NEW_STATE, data: {state, used_recipes, recipe_manager_type}});
     }
 
     // Switch to next game mode

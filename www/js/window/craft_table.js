@@ -8,13 +8,12 @@ export class CraftTable extends BaseCraftWindow {
 
     constructor(inventory, recipes) {
 
-        super(0, 0, 352, 332, 'frmCraft', null, null);
+        super(0, 0, 352, 332, 'frmCraft', null, null, inventory);
 
         this.width *= this.zoom;
         this.height *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
-        this.inventory = inventory;
         this.recipes = recipes;
 
         // Craft area

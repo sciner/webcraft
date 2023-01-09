@@ -140,7 +140,7 @@ export class BlockListeners {
             importClassInstanceWithId,
             this.uniqueImports
         ).then((mappedImports) => {
-            for(var [blockId, list] of ArrayOrMap.entriesExceptUndefined(mappedImports)) {
+            for(var [blockId, list] of ArrayOrMap.entries(mappedImports)) {
                 // create callees
                 for(var i = 0; i < list.length; i++) {
                     const listener = list[i];

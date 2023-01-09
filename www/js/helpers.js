@@ -1816,9 +1816,33 @@ export class ArrayHelpers {
     static scalarToArray(v) {
         return (v == null || Array.isArray(v)) ? v : [v];
     }
+
+    static create(size, fill = null) {
+        const arr = new Array(size);
+        if (typeof fill === 'function') {
+            for(let i = 0; i < arr.length; i++) {
+                arr[i] = fill(i);
+            }
+        } else if (fill !== null) {
+            arr.fill(fill);
+        }
+        return arr;
+    }
 }
 
-// Helper methods for working with an object, an Array or a Map in the same way.
+/**
+ * Helper methods for working with an Object, Array or Map in the same way - like a map.
+ * 
+ * There are 2 modes when working with arrays:
+ * 1. By default, undefined vallues are used to mark empty elements. All other values can be stored and read.
+ * 2. If emptyValue parameter in methods is set to null, then:
+ *  - neither undefined, nor null can be put into the collection on purpose.
+ *  - both undefined and null are skipped during iteration.
+ *  - nulls are used to mark empty array elements.
+ * It assumes the user doesn't put undefined or emptyValue into a Map or an Object.
+ * 
+ * It can be optimized at the expense of code size.
+ */
 export class ArrayOrMap {
     
     static get(collection, key) {
@@ -1831,54 +1855,96 @@ export class ArrayOrMap {
         }
         if (collection instanceof Map) {
             collection.set(key, value);
-        } else if (Array.isArray(collection)) {
-            ArrayHelpers.growAndSet(collection, key, value);
         } else {
             collection[key] = value;
         }
     }
 
-    // Yields values expet undefined.
-    // We have to skip undefined because they're used in an array for mising entries.
-    static *valuesExceptUndefined(collection) {
+    static delete(collection, key, emptyValue = undefined) {
         if (collection instanceof Map) {
-            for(let v of collection.values()) {
-                if (v !== undefined) {
-                    yield v;
-                }
-            }
+            collection.delete(key);
         } else if (Array.isArray(collection)) {
-            for(var i = 0; i < collection.length; i++) {
-                if (collection[i] !== undefined) {
-                    yield collection[i];
-                }
+            if (collection.length > key) {
+                collection[key] = emptyValue;
             }
         } else {
+            delete collection[key];
+        }
+    }
+
+    /** Yields values expet undefined and {@link emptyValue}. */
+    static *values(collection, emptyValue = undefined) {
+        if (collection instanceof Map) {
+            yield *collection.values();
+        } else {
             for(let key in collection) {
-                if (collection.hasOwnProperty(key) && collection[key] !== undefined) {
-                    yield collection[key];
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    yield v;
                 }
             }
         }
     }
 
-    static *entriesExceptUndefined(collection) {
+    static *keys(collection, emptyValue = undefined) {
         if (collection instanceof Map) {
-            for(let entry of collection.entries()) {
-                if (entry[1] !== undefined) {
-                    yield v;
-                }
-            }
-        } else if (Array.isArray(collection)) {
-            for(var i = 0; i < collection.length; i++) {
-                if (collection[i] !== undefined) {
-                    yield [i, collection[i]];
-                }
-            }
+            yield *collection.keys();
         } else {
             for(let key in collection) {
-                if (collection.hasOwnProperty(key) && collection[key] !== undefined) {
-                    yield [key, collection[key]];
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    yield key;
+                }
+            }
+        }
+    }
+
+    /** The only difference with {@link keys} is that it retuens Object's keys as numbers. */
+    static *numericKeys(collection, emptyValue = undefined) {
+        if (collection instanceof Map) {
+            yield *collection.keys();
+        } else {
+            for(let key in collection) {
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    yield parseFloat(key);
+                }
+            }
+        }
+    }
+
+    /** 
+     * Yields [key, value], except those with values undefined and {@link emptyValue}.
+     * Note: the same muatble entry is reused.
+     */
+    static *entries(collection, emptyValue = undefined) {
+        if (collection instanceof Map) {
+            yield *collection.entries();
+        } else {
+            const entry = [null, null];
+            for(let key in collection) {
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    entry[0] = key;
+                    entry[1] = v;
+                    yield entry;
+                }
+            }
+        }
+    }
+
+    /** The only difference with {@link entries} is that it retuens Object's keys as numbers. */
+    static *numericEntries(collection, emptyValue = undefined) {
+        if (collection instanceof Map) {
+            yield *collection.entries();
+        } else {
+            const entry = [null, null];
+            for(let key in collection) {
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    entry[0] = parseFloat(key);
+                    entry[1] = v;
+                    yield entry;
                 }
             }
         }
@@ -2386,204 +2452,26 @@ export class ObjectHelpers {
         return true;
     }
 
-    /**
-     * Deep compares two object by a schema. A schema can specify how each property is compared.
-     * @param a - the first object (or array, scalar)
-     * @param b - the second object (or array, scalar)
-     * @param schema - the schema. It may be an array, an object or a scalar. It matches the expected
-     *   structure of the source objects. If the source objects are arrays, it must be an array of 1 element.
-     * Elements of the schema can be:
-     *  - an array, an object - matched recursively
-     *  - a function - is called for the source values and returns if they are equal
-     *  - scalar constants that define atching algorithm: true, false, 'deepEqual', 'typeof', '==', '==='.
-     * @param {Object} options - optional, properties:
-     *  - key_default - the name of the schema key that contains the value used for keys that are not
-     *   present in the schema. The default value is "default:". Change it if it may be in the source objects.
-     *  - key_firstCanAdd - similar to key_default, but the vaue of this key indicates if the first object is
-     *   alowed to declare object fields not present in the 2nd object.
-     *  - key_secondCanAdd - simila to key_firstCanAdd, but the objects are reversed.
-     *  - default the schema value used if neithir the schema[key] nor schema[key_default] is specified.
-     * @return {Boolean} true if objects match
-     * @example INVENTORY_ITEM_EQUAL_SCHEMA, INVENTORY_ITEM_EQUAL_SCHEMA_ANVIL
-     */
-    static deepEqualSchema(a, b, schema, options = {}) {
-        // provide defaults for options to simplify and speed up furter code:
-        options.key_default         = options.key_default       ?? 'default:';
-        options.key_firstCanAdd     = options.key_firstCanAdd   ?? 'firstCanAdd:';
-        options.key_secondCanAdd    = options.key_secondCanAdd  ?? 'secondCanAdd:';
-        return this._deepEqualSchema(a, b, schema, options)
-    }
-
-    static _deepEqualSchema(a, b, schema, options) {
-        if (typeof schema === 'object') {
-            if (a == null || b == null) {
-                return a == null && b == null;
-            }
-            return Array.isArray(a)
-                ? Array.isArray(b) && this._deepEqualArraySchema(a, b, schema, options)
-                : this._deepEqualObjectSchema(a, b, schema, options);
-        }
-        if (typeof schema === 'function') {
-            return schema(a, b);
-        }
-        switch(schema) {
-            case true:
-            case false:         return schema;
-            case 'deepEqual':   return this.deepEqual(a, b);
-            case 'typeof':      return a == null && b == null || typeof a === typeof b;
-            case '==':          return a == b;
-            case '===':         return a === b;
-            default: {
-                throw new Error('unknown schema value: ' + schema);
-            }
-        }
-    }
-
-    static _deepEqualArraySchema(a, b, schema, options) {
-        if (!Array.isArray(schema)) {
-            return false; // we are tyring to compare arrays, but the schema expects not an Array
-        }
-        if (schema.length !== 1) {
-            throw new Error('arays in schema must have length = 1');
-        }
-        const subSchema = schema[0] ?? options.default;
-        if (subSchema == null) {
-            throw new Error('null in schema');
-        }
-        if (a.length !== b.length) {
-            return false;
-        }
-        for(let i = 0; i < a.length; i++) {
-            if (!this._deepEqualSchema(a[i], b[i], subSchema, options)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    static _deepEqualObjectSchema(a, b, schema, options) {
-        // we already know that (typeof schema === 'object')
-        if (Array.isArray(schema)) {
-            return false; // we are tyring to compare objects, but the schema expects not an object
-        }
-        const defaultSubSchema = schema[options.key_default] ?? options.default;
-        if (defaultSubSchema == null) {
-            throw new Error('null default in schema');
-        }
-        const that = this;
-        function equalKey(key) {
-            if (key === options.key_default || key === options.key_firstCanAdd || key === options.key_secondCanAdd) {
-                console.warn(`Special schema key = ${key} is in compared objects. Maybe use a different key?`);
-                /* Why we proceed with deepEqual: suppose a client sends some garbage in this field.
-                We must only accept it if the server object has this field. Using schema[key] or leafSchema may allow it to pass.
-                If the server object has such field (which it mustn't), at this at least allows equal client objects to pass.*/
-                return that.deepEqual(a[key], b[key]);
-            }
-            // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
-            // but for real game objects it seems unnecesssary.
-            const subSchema = schema[key] ?? defaultSubSchema;
-            let av = a[key];
-            let bv = b[key];
-            // allow one object to declare a property of type Object if the other doesn't have it
-            if (av == null) {
-                // if the second (i.e. b) can add: it means if (a[key] == null and b[key] != null), we can assume a[key] to be {}
-                if (bv != null && subSchema && subSchema[options.key_secondCanAdd]) {
-                    av = {};
-                }
-            } else {
-                if (bv == null && subSchema && subSchema[options.key_firstCanAdd]) {
-                    bv = {};
-                }
-            }
-            return that._deepEqualSchema(av, bv, subSchema, options);
-        }
-
-        for (let key in a) {
-            // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
-            // but for real game objects it seems unnecesssary.
-            if (!equalKey(key)) {
-                return false;
-            }
-        }
-        for (let key in b) {
-            if (!(key in a) && !equalKey(key)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns an result similar to JSON.stringify, but:
-     * - the schema allows to specify which properties are included.
-     * - the keys are sorted, so the results don't depend on the order of keys in the source.
-     * @param obj - the source object
-     * @param schema - similar to the schema used in {@link deepEqualSchema}, but the leaf values can be
-     *  only true or false - to include or exclude a key from the result.
-     * @param options - optional, contain propeties:
-     *  - key_default - @see deepEqualSchema
-     *  - key_removeEmpty - similar to key_default, but that value specifies whether {} should be omitted.
-     *  - default - @see deepEqualSchema
-     *  - removeEmptyObjects - the value indicating whether '{}' should be omitted, used if schema[key_removeEmpty]
-     *   is not specified.
-     */
-    static sortedStringifySchema(obj, schema, options = {}) {
-        if (typeof schema === 'function') {
-            return schema(obj);
-        }
-        if (schema === false) {
-            // It doesn't make sense to call it with false.
-            // It should have beeen checked on the upper level.
-            throw new Error('schema === false for array elements');
-        }
-        // here schema is Object, Array or true.
-
+    // Returns a result similar to JSON.stringify, but the keys are sorted alphabetically.
+    static sortedStringify(obj) {
         if (obj == null) {
             return 'null'; // for both null and undefined
         }
         if (typeof obj !== 'object') {
             return JSON.stringify(obj);
         }
-        const schemaIsObject = typeof schema === 'object';
         if (Array.isArray(obj)) {
-            const subSchema = schemaIsObject ? (schema[0] ?? schema.default) : schema;
-            if (subSchema === false) {
-                return '[]';
-            }
-            const transformedArr = obj.map(it =>
-                this.sortedStringifySchema(it, subSchema, options)
-            );
+            const transformedArr = obj.map(it => this.sortedStringify(it));
             return '[' + transformedArr.join(',') + ']';
         }
-
         // it's an object
-        const key_default = options.key_default ?? 'default:';
-        const key_removeEmpty = options.key_removeEmpty ?? 'removeEmpty:';
-        const keys = [];
-        for(const key in obj) {
-            // no need to check hasOwnProperty for practical cases
-            keys.push(key);
-        }
-        keys.sort();
-        let res = '{';
-        let needComma = false;
-        for(const key of keys) {
-            const subSchema = schemaIsObject ? (schema[key] ?? obj[key_default] ?? schema.default) : schema;
-            if (subSchema === false) {
-                continue;
-            }
-            const value = this.sortedStringifySchema(obj[key], subSchema, options);
-            if (value === '{}' && (subSchema[key_removeEmpty] || options.removeEmptyObjects)) {
-                continue;
-            }
-            if (needComma) {
-                res += ',';
-            }
+        const keys = Object.keys(obj).sort();
+        for(let i = 0; i < keys.length; i++) {
+            const key = keys[i];
             // stringify the key to escape quotes in it
-            res += JSON.stringify(key) + ':' + value;
-            needComma = true;
+            keys[i] = JSON.stringify(key) + ':' + this.sortedStringify(obj[key]);
         }
-        return res + '}';
+        return '{' + keys.join(',') + '}';
     }
 }
 

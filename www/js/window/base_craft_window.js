@@ -1,14 +1,17 @@
 import {BLOCK} from "../blocks.js";
-import { Helpers, ObjectHelpers } from "../helpers.js";
+import { Helpers, ArrayHelpers, ObjectHelpers } from "../helpers.js";
 import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
-import { Label, Window } from "../../tools/gui/wm.js";
+import { Label } from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 import { Recipe } from "../recipes.js";
+import { InventoryComparator } from "../inventory_comparator.js";
+import { BaseInventoryWindow } from "./base_inventory_window.js"
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
+const DOUBLE_CLICK_TIME = 200.0;
 
 export class HelpSlot extends Label {
 
@@ -226,6 +229,67 @@ export class CraftTableSlot extends Label {
         this.slot_index = index;
     }
 
+    getInventory() {
+        return this.ct.inventory;
+    }
+
+    dropIncrementOrSwap(e, targetItem) {
+        const player    = Qubatch.player;
+        const drag      = e.drag;
+        // @todo check instanceof!
+        // if(dropData instanceof InventoryItem) {
+        const dropData  = drag.getItem();
+        if(!dropData.item) {
+            return;
+        }
+        const max_stack_count = BLOCK.getItemMaxStack(dropData.item);
+
+        // Если в текущей ячейке что-то есть
+        if(targetItem) {
+            // @todo
+            if(InventoryComparator.itemsEqualExceptCount(targetItem, dropData.item)) {
+                if(targetItem.count < max_stack_count) {
+                    if(e.button_id == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
+                        targetItem.count++;
+                        dropData.item.count--;
+                    } else {
+                        let new_count = targetItem.count + dropData.item.count;
+                        let remains = 0;
+                        if(new_count > max_stack_count) {
+                            remains = new_count - max_stack_count;
+                            new_count = max_stack_count;
+                        }
+                        targetItem.count = new_count;
+                        dropData.item.count = remains;
+                        if(dropData.item.count <= 0) {
+                            drag.clear();
+                        }
+                    }
+                    this.setItem(targetItem, e);
+                }
+            } else {
+                // поменять местами перетаскиваемый элемент и содержимое ячейки
+                this.setItem(dropData.item, e);
+                player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
+                dropData.item = targetItem;
+            }
+        } else {
+            // Перетаскивание в пустую ячейку
+            if(e.button_id == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
+                let newItem = {...dropData.item};
+                newItem.count = 1;
+                this.setItem(newItem, e);
+                dropData.item.count--;
+            } else {
+                this.setItem(dropData.item, e);
+                this.getInventory().clearDragItem();
+            }
+        }
+        if (dropData.item.count === 0) {
+            player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
+        }
+    }
+
 }
 
 //
@@ -246,23 +310,24 @@ export class CraftTableResultSlot extends CraftTableSlot {
     }
 
     // decrements the slots, and remembers the recipe used.
-    useRecipe() {
-        // Old code allows null here. Can it be null? Do we need decremente slots in that case?
+    useRecipe(simple_items) {
+        // this.recipe can be null in some partially implemented window subclasses
         const recipe_id = this.recipe?.id || null;
-        const item_ids = [];
-        // decrement craft slots
-        for(let slot of this.parent.craft.slots) {
-            let item = slot.getItem();
-            if(item) {
-                item_ids.push(item.id);
-                item.count--;
-                if(item.count == 0) {
-                    slot.setItem(null);
-                }
-            }
-        }
+        const used_items = this.parent.getAndDecrementUsedItems(simple_items, 1);
         //
-        this.used_recipes.push({ recipe_id, item_ids });
+        const lastRecipe = this.used_recipes.length && this.used_recipes[this.used_recipes.length - 1];
+        if (lastRecipe?.recipe_id === recipe_id &&
+            ObjectHelpers.deepEqual(lastRecipe.used_items, used_items)
+        ) {
+            // increment the last used recipe count
+            lastRecipe.count++;
+        } else {
+            this.used_recipes.push({
+                recipe_id,
+                used_items,
+                count: 1
+            });
+        }
         this.parent.checkRecipe();
     }
 
@@ -282,7 +347,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 return;
             }
             //
-            const max_stack_count = BLOCK.fromId(dropItem.id).max_in_stack;
+            const max_stack_count = BLOCK.getItemMaxStack(dropItem);
             if(dropItem.count + dragItem.count > max_stack_count) {
                 return;
             }
@@ -297,12 +362,11 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 dragItem.count = remains;
             }
             //
-            that.useRecipe();
+            that.useRecipe(this.parent.getSimpleItems());
         }
 
         // Drag & drop
         this.onMouseDown = function(e) {
-            let that = this;
             let dragItem = this.getItem();
             if(!dragItem) {
                 return;
@@ -310,20 +374,21 @@ export class CraftTableResultSlot extends CraftTableSlot {
             // clear result slot
             this.setItem(null);
             // decrement craft slots
+            const simple_items = this.parent.getSimpleItems();
             while(true) {
-                that.useRecipe();
+                this.useRecipe(simple_items);
                 const next_item = this.getItem();
                 if(!e.shiftKey || !next_item || next_item.id != dragItem.id) {
                     break;
                 }
-                const max_stack_count = BLOCK.fromId(dragItem.id).max_in_stack;
+                const max_stack_count = BLOCK.getItemMaxStack(dragItem);
                 if(dragItem.count + next_item.count > max_stack_count) {
                     break;
                 }
                 dragItem.count += next_item.count;
             }
             // set drag item
-            that.parent.inventory.setDragItem(that, dragItem, e.drag, that.width, that.height);
+            this.parent.inventory.setDragItem(this, dragItem, e.drag, this.width, this.height);
         }
     
     }
@@ -442,7 +507,6 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 dragItem = targetItem;
                 that.setItem(null, e);
             }
-            that.dragItem = dragItem;
             this.getInventory().setDragItem(this, dragItem, e.drag, that.width, that.height);
             this.prev_mousedown_time = performance.now();
             this.prev_mousedown_button = e.button_id;
@@ -456,7 +520,6 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     return;
                 }
                 let player      = Qubatch.player;
-                let that        = this;
                 let drag        = e.drag;
                 // @todo check instanceof!
                 // if(dropData instanceof InventoryItem) {
@@ -465,13 +528,10 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 if(!dropData) {
                     return;
                 }
-                let max_stack_count = BLOCK.fromId(dropData.item.id).max_in_stack;
-                if(dropData.item.entity_id || dropData.item.extra_data) {
-                    max_stack_count = 1;
-                }
+                const max_stack_count = BLOCK.getItemMaxStack(dropData.item);
                 // check if double click by left mouse button
                 const potential_double_click = this.prev_mousedown_time && (e.button_id === MOUSE.BUTTON_LEFT) && (this.prev_mousedown_button == MOUSE.BUTTON_LEFT) && !e.shiftKey;
-                const doubleClick = potential_double_click && (performance.now() - this.prev_mousedown_time < 200.0) && (max_stack_count > 1);
+                const doubleClick = potential_double_click && (performance.now() - this.prev_mousedown_time < DOUBLE_CLICK_TIME) && (max_stack_count > 1);
                 if(doubleClick) {
                     // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
                     // It gives the same result in chest_manager.js: applyClientChange()
@@ -482,8 +542,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         const list = [];
                         for(let i in slots) {
                             const item = slots[i]?.item;
-                            if (item && !item.entity_id && !item.extra_data &&
-                                item.id == dropData.item.id &&
+                            if (InventoryComparator.itemsEqualExceptCount(item, dropData.item) &&
                                 item.count != max_stack_count
                             ) {
                                 list.push({chest: 1, index: i, item: item});
@@ -493,8 +552,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         const inventory_items = player.inventory.items;
                         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
                             const item = inventory_items[i];
-                            if (item && !item.entity_id && !item.extra_data &&
-                                item.id == dropData.item.id &&
+                            if (InventoryComparator.itemsEqualExceptCount(item, dropData.item) &&
                                 item.count != max_stack_count
                             ) {
                                 list.push({chest: 0, index: i, item: item});
@@ -530,53 +588,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         return;
                     }
                 }
-                if(!dropData.item) {
-                    return;
-                }
-                // Если в текущей ячейке что-то есть
-                if(targetItem) {
-                    // @todo
-                    if(targetItem.id == dropData.item.id && (!targetItem.entity_id && !dropData.item.entity_id)) {
-                        if(targetItem.count < max_stack_count) {
-                            if(e.button_id == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
-                                targetItem.count++;
-                                dropData.item.count--;
-                            } else {
-                                let new_count = targetItem.count + dropData.item.count;
-                                let remains = 0;
-                                if(new_count > max_stack_count) {
-                                    remains = new_count - max_stack_count;
-                                    new_count = max_stack_count;
-                                }
-                                targetItem.count = new_count;
-                                dropData.item.count = remains;
-                                if(dropData.item.count <= 0) {
-                                    drag.clear();
-                                }
-                            }
-                            this.setItem(targetItem, e);
-                        }
-                    } else {
-                        // поменять местами перетаскиваемый элемент и содержимое ячейки
-                        this.setItem(dropData.item, e);
-                        player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
-                        dropData.item = targetItem;
-                    }
-                } else {
-                    // Перетаскивание в пустую ячейку
-                    if(e.button_id == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
-                        let newItem = {...dropData.item};
-                        newItem.count = 1;
-                        that.setItem(newItem, e);
-                        dropData.item.count--;
-                    } else {
-                        that.setItem(dropData.item, e);
-                        this.getInventory().clearDragItem();
-                    }
-                }
-                if (dropData.item.count === 0) {
-                    player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
-                }
+
+                this.dropIncrementOrSwap(e, targetItem);
             }
         }
     }
@@ -621,13 +634,13 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             throw 'Invalid srcListFirstIndexOffset';
         }
         if(!srcItem.entity_id && !srcItem.extra_data) {
-            const max_stack_count = BLOCK.fromId(srcItem.id).max_in_stack;
+            const max_stack_count = BLOCK.getItemMaxStack(srcItem);
             // 1. проход в поисках подобного
             if(srcItem.count > 0) {
                 for(let slot of target_list) {
                     if(slot instanceof CraftTableInventorySlot) {
                         const item = slot.getItem();
-                        if(!slot.readonly && item && item.id == srcItem.id) {
+                        if(!slot.readonly && InventoryComparator.itemsEqualExceptCount(item, srcItem)) {
                             let free_count = max_stack_count - item.count;
                             if(free_count > 0) {
                                 let count = Math.min(free_count, srcItem.count);
@@ -666,12 +679,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         let item = this.getInventoryItem();
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
-    }
-
-    getInventory() {
-        return this.ct.inventory;
-    }
-    
+    }    
 
     getInventoryItem() {
         return this.ct.inventory.items[this.slot_index] || this.item;
@@ -787,7 +795,7 @@ export class ArmorSlot extends CraftTableInventorySlot {
     
 }
 
-export class BaseCraftWindow extends Window {
+export class BaseCraftWindow extends BaseInventoryWindow {
 
     /**
     * Итоговый слот (то, что мы получим)
@@ -865,6 +873,27 @@ export class BaseCraftWindow extends Window {
         return this.craft.slots.map(it => it?.item);
     }
 
+    // Returns used_items (an array of ids or strings - to send to the server), and decrements craft slots
+    getAndDecrementUsedItems(simple_items, count) {
+        const used_items = [];
+        for(let slot of this.craft.slots) {
+            let item = slot.getItem();
+            if(item) {
+                const used_item = InventoryComparator.toUsedSimpleItem(simple_items, item);
+                used_items.push(used_item);
+                item.count -= count;
+                if (item.count <= 0) {
+                    slot.setItem(null);
+                }
+            }
+        }
+        return used_items;
+    }
+
+    getSimpleItems() {
+        return InventoryComparator.groupToSimpleItems(this.inventory.items, this.getCraftSlotItemsArray());
+    }
+
     //
     getCurrentSlotsSearchPattern() {
         const item_ids = [];
@@ -893,51 +922,52 @@ export class BaseCraftWindow extends Window {
             pattern = recipe.adaptivePatterns[this.area.size.width][0];
         }
         const start_index = pattern.start_index;
-        let slot_index = pattern.start_index;
 
         // if shiftKey was pressed, repeat addin 1 to eah slot until we run out of resources
         do {
-            // check if we can add 1 to each slot, using only the same item_ids as already placed.
-            const canUseIds = ObjectHelpers.deepClone(pattern.array_id, 2);
-            for(let i = 0; i < canUseIds.length; i++) {
+            // Find pattern slots that we can increent by 1, taking into account the items already placed.
+            const array_needs = [...pattern.array_id];
+            for(let i = 0; i < array_needs.length; i++) {
                 const item = this.craft.slots[start_index + i].getItem();
-                if (item && canUseIds[i]) {
-                    // we use filter because there may be garbage in the slot
-                    canUseIds[i] = canUseIds[i].filter(it => it === item.id);
+                // if there is an item in this slot, we can use only compatible items
+                if (item && array_needs[i]) {
+                    if (item.count == BLOCK.getItemMaxStack(item)) {
+                        // we don't need to increment it
+                        array_needs[i] = null;
+                    } else if (InventoryComparator.itemMatchesNeeds(item, array_needs[i])) {
+                        // we need to increment it, but only this spicific item fits
+                        array_needs[i] = item;
+                    } else {
+                        // we need to increment it, but nothing fits
+                        array_needs[i] = [];
+                    }
                 }
             }
-            const needResources = Recipe.calcNeedResources(canUseIds);
-            if (Qubatch.player.inventory.hasResources(needResources).length) {
-                // if we can't add at least 1 to each slot, except those filled with garbage
+            // For each needed resource, remember its slot index as its key
+            const needResourcesKeys = ArrayHelpers.create(array_needs.length, i => start_index + i);
+            const needResources = Recipe.calcNeedResources(array_needs, needResourcesKeys);
+            const hasResources = Qubatch.player.inventory.hasResources(needResources);
+            if (// if we can't increment every slot that needs it
+                hasResources.missing.length ||
+                // or there is no change
+                hasResources.has.length === 0
+            ) {
                 return;
             }
+            // Here the slots may contain: pattern items, empty items that should be set according to the pattern,
+            // and garbage that we couldn't clear because there is no space.
 
-            // Here the slots may contain: pattern items, empty items that should be set to pattern,
-            // and garbage that we couldn't clear because there is no space. Try to add 1 to each slot, excluding garbage.
-            slot_index = pattern.start_index;
-            for(let item_ids of pattern.array_id) {
-                const slot = this.craft.slots[slot_index++];
-                if(!item_ids) {
-                    continue; // not in pattern
-                }
-                let item = slot.getItem();
-                if (item) {
-                    // if it's not a garbage that we couldn't clear because there is no space
-                    if (item_ids.includes(item.id)) {
-                        const missing = Qubatch.player.inventory.decrementByItemID(item.id, 1, true);
-                        item.count += (1 - missing);
-                    }
+            // Put the found resources into the slots
+            for (const r of hasResources.has) {
+                const slot = this.craft.slots[r.key];
+                const item = slot.getItem();
+                if (item == null) {
+                    const inventoryItem = Qubatch.player.inventory.items[r.item_index];
+                    slot.setItem({...inventoryItem, count: 1});
                 } else {
-                    for (let item_id of item_ids) {
-                        const missing = Qubatch.player.inventory.decrementByItemID(item_id, 1, true);
-                        if (!missing) {
-                            item = BLOCK.convertItemToInventoryItem(BLOCK.fromId(item_id), null, true);
-                            item.count = 1;
-                            break;
-                        }
-                    }
-                    slot.setItem(item);
+                    item.count++;
                 }
+                Qubatch.player.inventory.decrementByIndex(r.item_index);
             }
         } while (shiftKey);
     }

@@ -13,32 +13,6 @@ export const ITEM_LABEL_MAX_LENGTH          = 19;
 // Свойства, которые могут сохраняться в БД
 export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'extra_data', 'rotate'];
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
-export const INVENTORY_ITEM_STRINGIFY_KEY_SCHEMA = {
-    power: true,
-    extra_data: {
-        label: false,
-        'removeEmpty:': true, // to compare items that differ only in label
-        'default:': true
-    },
-    'default:': false // don't compare anything else
-};
-// It assumes the 1st item is correct, and the 2nd item is suspicious
-export const INVENTORY_ITEM_EQUAL_SCHEMA = {
-    power: '===',
-    count: '===',
-    entity_id: '===',
-    extra_data: {
-        label: function(a, b) {
-            // the secon item can have the same label, or no label, any valid label
-            return a === b || b == null ||
-                (typeof b === 'string' && b.length <= ITEM_LABEL_MAX_LENGTH);
-        },
-        // allow the 2nd object to declare extra_data if the 1st one does't have it, e.g. to rename
-        'secondCanAdd:': true,
-        'default:': 'deepEqual'
-    },
-    'default:': true // don't compare anything else
-};
 
 export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
 export const shapePivot = new Vector(.5, .5, .5);
@@ -286,6 +260,13 @@ export class BLOCK {
         return resp;
     }
 
+    static getItemMaxStack(item) {
+        if (item.entity_id != null) {
+            return 1;
+        }
+        return this.BLOCK_BY_ID[item.id].max_in_stack;
+    }
+
     /**
      * It ensures that:
      * 1. The item id exists.
@@ -305,37 +286,33 @@ export class BLOCK {
      */
     static sanitizeAndValidateInventoryItem(item) {
         // id
-        if (!item || typeof item.id !== 'number') {
+        if (!item || typeof item !== 'object' || typeof item.id !== 'number') {
             return null;
         }
-        const b = this.BLOCK_BY_ID[id];
+        const b = this.BLOCK_BY_ID[item.id];
         if (!b) {
             return null;
         }
-        // count
-        let count = item.count;
-        if (typeof count !== 'number') {
-            count = 1;
-        } else {
-            const max_stack = b.is_entity
-                ? 1
-                : (b.max_in_stack ?? INVENTORY_STACK_DEFAULT_SIZE);
-            count = Math.floor(count);
-            if (item.count < 1 || item.count > max_stack) {
-                // It's probably better to not accept it than fix it, which may lead to losing items
-                return null;
-            }
-        }
         const resp = {
-            id: item.id,
-            count: count
+            id: item.id
         };
         // entity
-        if (b.is_entity) {
-            if (typeof item.entity_id === 'string') {
-                resp.entity_id = item.entity_id;
-            } else {
-                // TODO should we return null here?
+        // Allow it to be defined even if (b.is_entity == true), e.g. for a stack of chests
+        // Allow it to be undefined even if (b.is_entity == false), so that:
+        // - the game can assign entities to any item for any reason;
+        // - legacy items with entities don't get rejected
+        if (typeof item.entity_id === 'string') {
+            resp.entity_id = item.entity_id;
+        }
+        // count - after entity is validated
+        if (typeof item.count !== 'number') {
+            resp.count = 1;
+        } else {
+            const max_stack = this.getItemMaxStack(resp);
+            resp.count = Math.floor(item.count);
+            if (resp.count < 1 || resp.count > max_stack) {
+                // It's probably better to not accept it than fix it, which may lead to losing items
+                return null;
             }
         }
         // power

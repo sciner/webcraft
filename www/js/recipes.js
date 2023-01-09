@@ -1,8 +1,9 @@
 import {RecipeWindow} from "./window/index.js";
 import {COLOR_PALETTE, Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
-import { md5, ArrayHelpers } from "./helpers.js";
+import { md5, ArrayHelpers, ObjectHelpers } from "./helpers.js";
 import {default as runes} from "../vendors/runes.js";
+import { InventoryComparator } from "./inventory_comparator.js";
 
 const MAX_SIZE = 3;
 
@@ -56,39 +57,56 @@ export class Recipe {
     }
 
     /**
-     * @param {Array of Arrays of Int} array_id - adaptivePatterns.array_id
-     * @param {Array of String} array_keys - adaptivePatterns.array_keys
-     * @returns {Array} resources - contains objects {
-     *      item_id: Array of Int
-     *      count: Int
-     *  }, see {@link Inventory.hasResources}
+     * Prepares an result that can be used to find resources needed for the recipe from
+     * the inventory. Depending on the supplied keys, the resources may or may not be grouped.
+     * @param {Array of ((Array of Int)|Int|Object)} array_needs - array of needs, see
+     *   {@link InventoryComparator.itemMatchesNeeds}. It may contain nulls.
+     *   adaptivePatterns.array_id can be passed here.
+     * @param {Array of scalar} array_keys - keys used to group the needs. By default,
+     *   {@link ObjectHelpers.sortedStringify} are used as keys.
+     *   adaptivePatterns.array_keys can be passed here.
+     * @returns {Array} resources - contains objects, one per unique key {
+     *   needs       // the source need, see {@link InventoryComparator.itemMatchesNeeds}
+     *   count: Int  // how many needs have the same key
+     *   key: scalar
+     * }, see {@link Inventory.hasResources}
      */
-    static calcNeedResources(array_id, array_keys = null) {
-        if (array_keys == null) {
-            array_keys = new Array(array_id.size);
-            for(let i = 0; i < array_id.length; i++) {
-                array_keys[i] = array_id[i]?.join();
+    static calcNeedResources(array_needs, array_keys = null) {
+        if (!array_keys) {
+            array_keys = new Array(array_needs.size);
+            for(let i = 0; i < array_needs.length; i++) {
+                array_keys[i] = ObjectHelpers.sortedStringify(array_needs[i]);
             }    
         }
         const need_resources = new Map();
-        for(let i = 0; i < array_id.length; i++) {
-            const key = array_keys[i];
-            if(!key) {
+        for(let i = 0; i < array_needs.length; i++) {
+            if (!array_needs[i]) {
                 continue;
             }
-            if(!need_resources.has(key)) {
+            const key = array_keys[i];
+            if (!need_resources.has(key)) {
                 need_resources.set(key, {
-                    item_ids: array_id[i],   
-                    count: 0
+                    needs: array_needs[i],
+                    count: 0,
+                    key
                 });
             }
             need_resources.get(key).count++;
         }
         const arr = [...need_resources.values()];
-        // Sort by the number of ids ascending: if multiple entries have the same id,
-        // in Invetory.hasResources we must first exhaust the entries that have no alternative ids,
-        // i.e. the ones with fewer ids. It's a srictly correct solution, but it should mostly work.
-        return arr.sort((a, b) => a.item_ids.length - b.item_ids.length);
+
+        // Sort by decrement of how specific the need is. If multiple entries match, the more
+        // specific needs must be satisfied first.
+        function needsSpecificity(needs) {
+            if (Array.isArray(needs)) {
+                return needs.length;
+            } else if (typeof needs === 'number') {
+                return -1;
+            } else { // typeof needs === 'object'
+                return -2;
+            }
+        }
+        return arr.sort((a, b) => needsSpecificity(a.needs) - needsSpecificity(b.needs));
     }
 
     /**
@@ -193,7 +211,7 @@ export class Recipe {
      * @param {Array of Int} item_ids - for each crafting slot, id of its item, or null
      * @param {Object} area_size - {width, height}
      * @return {Object} - an object that contains all the necessary information to search
-     *  or match recipes to the given slots.
+     *  or match recipes to the given slots. It can be searched by {@link findAdaptivePattern}
      */
     static craftingSlotsToSearchPattern(item_ids, area_size) {
         const width = area_size.width;
@@ -757,6 +775,74 @@ export class RecipeManager {
                 recipe.key[key].item = item;
             }
         }
+    }
+
+    /**
+     * Subtracts the used resurces from the simple items, and adds the result to them.
+     * Returns teh resulting item.
+     * @param {Object} used_recipe {
+     *   recipe_id: String
+     *   used_items: Array  of reslts of {@link InventoryComparator.toUsedSimpleItem}
+     *   count: Int          // how many time it was applied
+     * }
+     * @param {Map} simple_items
+     * @throws if it's imposible
+     */
+    applyUsedRecipeToSimpleItems(used_recipe, simple_items) {
+        const recipe_id = used_recipe.recipe_id;
+        // Get recipe by ID
+        const recipe = this.getRecipe(recipe_id);
+        if(!recipe) {
+            throw 'error_recipe_not_found|' + recipe_id;
+        }
+        // Find the items in the inventory, check and reduce their quantities
+        const used_items = RecipeManager.getValidateAndDecrementUsedItems(
+            simple_items, used_recipe.used_items, used_recipe.count, recipe_id);
+        // check that these items match what recipe needs
+        const need_resources = ObjectHelpers.deepClone(recipe.need_resources, 2);
+        for(let used_item of used_items) {
+            const item_id = used_item.id;
+            const resource = need_resources.find(it => 
+                it.count && InventoryComparator.itemMatchesNeeds(used_item, it.needs)
+            );
+            if (!resource) {
+                throw `error_item_not_found_in_recipe|${recipe_id},${item_id}`;
+            }
+            resource.count--;
+        }
+        if (need_resources.find(it => it.count)) {
+            throw 'error_not_all_recipe_items_are_used|' + recipe_id;
+        }
+        // Append the result item
+        let result_item = BLOCK.fromId(recipe.result.item_id);
+        result_item = BLOCK.convertItemToInventoryItem(result_item, result_item, true);
+        result_item.count = recipe.result.count * recipe_count;
+        InventoryComparator.addToSimpleItems(simple_items, result_item);
+        return result_item;
+    }
+
+    /**
+     * Validates the used items, find them in the simple items, and subtracts them from simple items.
+     * @return the items found (its count filed is irelevant).
+     * @throws if failure
+     */
+    static getValidateAndDecrementUsedItems(simple_items, used_items, recipe_count, recipe_id) {
+        recipe_count = Math.floor(recipe_count);
+        if (typeof recipe_count !== 'number' || !(recipe_count > 0)) { // !(recipe_count < 0) is for NaN
+            throw `error_incorrect_value|recipe_count=${recipe_count}`;
+        }
+        const res = [];
+        for(const used_item of used_items) {
+            const entry = InventoryComparator.getUsedSimpleItemEntry(simple_items, used_item);
+            if (!entry) {
+                throw 'error_recipe_item_not_found_in_inventory|' + recipe_id;
+            }
+            if (!InventoryComparator.decrementSimpleItemsKey(simple_items, entry[0], recipe_count)) {
+                throw 'error_recipe_item_not_enough';
+            }
+            res.push(entry[1]);
+        }
+        return res;
     }
 
     // Group

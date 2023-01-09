@@ -1,6 +1,7 @@
-import { BLOCK, ITEM_LABEL_MAX_LENGTH } from "../blocks.js";
+import { ITEM_LABEL_MAX_LENGTH } from "../blocks.js";
 import { Button, Label, TextEdit } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 
 //
@@ -24,8 +25,7 @@ class AnvilSlot extends CraftTableSlot {
                 return;
             }
             if (this == ct.result_slot) {
-                ct.first_slot.setItem(null);
-                ct.second_slot.setItem(null);
+                ct.useRecipe();
             }
             this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
             this.setItem(null);
@@ -36,18 +36,15 @@ class AnvilSlot extends CraftTableSlot {
             if (this == ct.result_slot) {
                 return;
             }
-            const dragItem = this.getItem();
-            const dropItem = e.drag.getItem().item;
-            if(!dropItem) {
-                return;
-            }
-            this.setItem(dropItem, e);
-            this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
-            
+            const oldItem = this.getItem();
+            this.dropIncrementOrSwap(e, oldItem);
             // Если это первый слот
             if (this == ct.first_slot) {
-                const label = getCurrentLabel(dropItem);
-                ct.lbl_edit.setEditText(label);
+                const oldCurrentLabel = oldItem && AnvilRecipeManager.getCurrentLabel(oldItem);
+                const newCurrentLabel = AnvilRecipeManager.getCurrentLabel(this.getItem());
+                if (oldCurrentLabel !== newCurrentLabel) {
+                    ct.lbl_edit.setEditText(newCurrentLabel);
+                }
             }
             ct.updateResult();
         };
@@ -56,7 +53,7 @@ class AnvilSlot extends CraftTableSlot {
     getInventory() {
         return this.ct.inventory;
     }
-    
+
 }
 
 //
@@ -64,13 +61,15 @@ export class AnvilWindow extends BaseCraftWindow {
 
     constructor(inventory) {
         
-        super(10, 10, 350, 330, 'frmAnvil', null, null);
+        super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
         
         this.width *= this.zoom;
         this.height *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
-        this.inventory = inventory;
+        this.recipes = new AnvilRecipeManager();
+        this.used_recipes = [];
+        this.recipe = null; // the curent recipe
 
         const options = {
             background: {
@@ -113,7 +112,8 @@ export class AnvilWindow extends BaseCraftWindow {
         this.onHide = function() {
             this.inventory.clearDragItem();
             // Save inventory
-            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), []);
+            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.used_recipes, 'anvil');
+            this.used_recipes = [];
         }
         
         // Обработчик открытия формы
@@ -189,51 +189,42 @@ export class AnvilWindow extends BaseCraftWindow {
         
     }
 
-    updateResult() {
-
-        function replaceItemLabel(item, label) {
-            const res = {...item};
-            res.extra_data = res.extra_data ? {...res.extra_data} : {};
-            res.extra_data.label = label;
-            return res;
-        }
-
-        const first_item = this.first_slot.getItem();
-        const second_item = this.second_slot.getItem();
-        const label = this.lbl_edit.buffer.join('');
-        if (!first_item) {
-            this.lbl_edit.buffer = [];
-            this.result_slot.setItem(null);
-        } else {
-            const firts_item_label = getCurrentLabel(first_item);
-            if (!second_item) {
-                if (firts_item_label !== label) {
-                    // replace the label even if we don't create the item to show tooltip
-                    const item = replaceItemLabel(first_item, label);
-                    this.result_slot.setItem(item);
-                } else {
-                    this.result_slot.setItem(null);
-                }
-            } else {
-                if (second_item.id == first_item.id) {
-                    //to do починка
-                    this.result_slot.setItem(first_item);
-                } else {
-                    this.result_slot.setItem(null);
-                }
-            }
-        }
-    }
-    
     createCraft(cell_size) {
-        
+        this.craft = {
+            slots: [null, null]
+        };
         this.first_slot = new AnvilSlot(52 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this);
         this.second_slot = new AnvilSlot(150 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
         this.result_slot = new AnvilSlot(266 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
-        this.add(this.first_slot);
-        this.add(this.second_slot);
+        this.add(this.craft.slots[0] = this.first_slot);
+        this.add(this.craft.slots[1] = this.second_slot);
         this.add(this.result_slot);
-        
+    }
+
+    updateResult() {
+        const first_item = this.first_slot.getItem();
+        if (!first_item) {
+            this.lbl_edit.setEditText('');
+            this.result_slot.setItem(null);
+            return;
+        }
+        const second_item = this.second_slot.getItem();
+        const label = this.lbl_edit.getEditText();
+        const found = this.recipes.findRecipeAndResult(first_item, second_item, label);
+        this.result_slot.setItem(found?.result);
+        this.recipe = found?.recipe;
+    }
+
+    useRecipe() {
+        const simple_items = this.getSimpleItems();
+        const count = this.first_slot.item.count;
+        const used_items = this.getAndDecrementUsedItems(simple_items, count);
+        this.used_recipes.push({
+            recipe_id: this.recipe.id,
+            used_items,
+            count,
+            label: this.lbl_edit.getEditText()
+        });
     }
     
     draw(ctx, ax, ay) {
@@ -259,9 +250,4 @@ export class AnvilWindow extends BaseCraftWindow {
         
     }
     
-}
-
-function getCurrentLabel(item) {
-    const block = BLOCK.fromId(item.id);
-    return item.extra_data?.label ?? block.name;
 }
