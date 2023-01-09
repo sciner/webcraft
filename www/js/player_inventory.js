@@ -10,7 +10,7 @@ export class PlayerInventory extends Inventory {
 
     constructor(player, state, hud) {
         super(player, {current: {index: 0, index2: -1}, items: []});
-        this.hud            = hud;
+        this.hud = hud
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
@@ -25,7 +25,7 @@ export class PlayerInventory extends Inventory {
             // Вызывается при переключении активного слота в инвентаре
             player.resetMouseActivity();
             player.world.server.InventorySelect(this.current);
-            Qubatch.hud.refresh();
+            this.hud.refresh();
         };
         // Add this for draw on screen
         Qubatch.hotbar.setInventory(this);
@@ -38,19 +38,19 @@ export class PlayerInventory extends Inventory {
         this.items = inventory_state.items;
         this.refresh();
         // update drag UI if the dragged item changed
-        Qubatch.hud.wm.getVisibleWindowOrNull('frmChest')?.onInventorySetState();
+        this.hud.wm.getVisibleWindowOrNull('frmChest')?.onInventorySetState();
     }
 
     get inventory_window() {
-        return Qubatch.hud.wm.getWindow('frmInventory');
+        return this.hud.wm.getWindow('frmInventory');
     }
 
     // Open window
     open() {
         if(this.player.game_mode.isCreative()) {
-            Qubatch.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
+            this.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
         } else {
-            Qubatch.hud.wm.getWindow('frmInventory').toggleVisibility();
+            this.hud.wm.getWindow('frmInventory').toggleVisibility();
         }
     }
 
@@ -60,7 +60,7 @@ export class PlayerInventory extends Inventory {
         if(this.hud) {
             this.hud.refresh();
             try {
-                const frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
+                const frmRecipe = this.hud.wm.getWindow('frmRecipe');
                 frmRecipe.paginator.update();
             } catch(e) {
                 // do nothing
@@ -172,7 +172,7 @@ export class PlayerInventory extends Inventory {
     setDragItem(slot, item, drag, width, height) {
         this.items[INVENTORY_DRAG_SLOT_INDEX] = item;
         if(!drag) {
-            drag = Qubatch.hud.wm.drag;
+            drag = this.hud.wm.drag;
         }
         if(item) {
             drag.setItem({
@@ -188,7 +188,7 @@ export class PlayerInventory extends Inventory {
 
     // The same result as in chest_manager.js: applyClientChange()
     clearDragItem(move_to_inventory) {
-        const drag = Qubatch.hud.wm.drag;
+        const drag = this.hud.wm.drag;
         if(move_to_inventory) {
             let dragItem = drag.getItem();
             if(dragItem) {

@@ -52,15 +52,40 @@ export class ClusterBase {
      * @param {*} rotate 
      * @param {*} extra_data 
      * @param {boolean} check_is_solid 
+     * @param {boolean} destroy_fluid  
+     * @param {boolean} candidate_for_cap_block 
+     * @param {?object} map
+     * 
      * @returns 
      */
-    setBlock(chunk, x, y, z, block_id, rotate, extra_data, check_is_solid = false) {
+    setBlock(chunk, x, y, z, block_id, rotate, extra_data, check_is_solid = false, destroy_fluid = false, candidate_for_cap_block = false, map = null) {
         if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
             // ok
         } else {
             return false;
         }
-        chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid);
+        if(map) {
+            // IMPORTANT: replace structure dirt blocks
+            if(block_id == BLOCK.GRASS_BLOCK.id || block_id == BLOCK.DIRT.id) {
+                const cell = map.getCell(x, z)
+                const cdl = cell.dirt_layer
+                if(cdl) {
+                    const layer_index = Math.min(block_id == BLOCK.DIRT.id ? 1 : 0, cdl.blocks.length - 1)
+                    block_id = cdl.blocks[layer_index]
+                }
+            }
+            if(candidate_for_cap_block) {
+                const cell = map.getCell(x, z)
+                const cap_block_id = cell.dirt_layer?.cap_block_id
+                const existing_block_id = chunk.getBlockID(x, y, z)
+                if(cap_block_id && existing_block_id == 0) {
+                    block_id = cap_block_id
+                } else {
+                    return
+                }
+            }
+        }
+        chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid, destroy_fluid)
         if(BLOCK.TICKING_BLOCKS.has(block_id)) {
             chunk.addTickingBlock(chunk.coord.offset(x, y, z));
         }
@@ -365,17 +390,20 @@ export class ClusterBase {
                             let block_id = block.id;
                             // blocks
                             if(chunk.map && x >= 0 && z >= 0 && x < chunk.size.x && z < chunk.size.z) {
-                                const cell = chunk.map.cells[z * CHUNK_SIZE_X + x];
-                                if(cell?.dirt_layer) {
-                                    block_id = cell.dirt_layer.blocks[0];
-                                    if(k < size.y && cell.dirt_layer.blocks.length > 1) {
-                                        block_id = cell.dirt_layer.blocks[1];
+                                const cell = chunk.map.getCell(x, z)
+                                let dl = cell?.dirt_layer
+                                if(dl) {
+                                    block_id = dl.blocks[0]
+                                    if(k < size.y && dl.blocks.length > 1) {
+                                        block_id = dl.blocks[1]
                                     }
                                 } else if(cell.biome.dirt_layers) {
-                                    const l = cell.biome.dirt_layers[0]
-                                    block_id = l.blocks[Math.min(k, l.blocks.length - 1)];
-                                    if(l.cap_block_id && k == 0) {
-                                        this.setBlock(chunk, x, y + 1, z, l.cap_block_id);
+                                    dl = cell.biome.dirt_layers[0]
+                                    block_id = dl.blocks[Math.min(k, dl.blocks.length - 1)]
+                                }
+                                if(dl.cap_block_id) {
+                                    if(k == size.y) {
+                                        this.setBlock(chunk, x, y + 1, z, dl.cap_block_id)
                                     }
                                 }
                             }

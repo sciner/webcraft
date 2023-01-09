@@ -174,6 +174,18 @@ export class Chat extends TextBox {
             const cmd       = temp.shift();
             let no_send = false;
             switch(cmd.trim().toLowerCase()) {
+                case '/clusterborders': {
+                    if(temp.length && temp[0].trim().length > 0) {
+                        const value = temp[0].toLowerCase();
+                        if(['true', 'false'].includes(value)) {
+                            Qubatch.world.chunkManager.setDebugClusterGridVisibility(value == 'true');
+                        }
+                    } else {
+                        Qubatch.world.chunkManager.toggleDebugClusterGrid()
+                    }
+                    no_send = true;
+                    break;
+                }
                 case '/chunkborders': {
                     if(temp.length && temp[0].trim().length > 0) {
                         const value = temp[0].toLowerCase();

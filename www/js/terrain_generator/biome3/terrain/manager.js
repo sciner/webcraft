@@ -3,12 +3,11 @@ import { alea } from "../../default.js";
 import { Vector, VectorCollector } from "../../../helpers.js";
 import { BLOCK } from '../../../blocks.js';
 
-import { getAheadMove } from "../../cluster/vilage.js";
-
 import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 import { Aquifera, AquiferaParams } from "../aquifera.js";
+import { getAheadMove } from "../../cluster/building_cluster_base.js";
 
 export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
 export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева

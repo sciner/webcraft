@@ -3,7 +3,6 @@ import { getChunkAddr, Vector, VectorCollector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK } from "../typed_blocks3.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
-import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
@@ -21,6 +20,7 @@ export class ChunkManager {
     constructor(world) {
         this.world = world;
         this.destroyed = false;
+        this.block_manager = BLOCK
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],
@@ -294,15 +294,20 @@ export class Chunk {
      * @param {*} entity_id 
      * @param {*} power 
      * @param {boolean} check_is_solid - if true, it prevents replacing solid blocks
+     * @param {boolean} destroy_fluid
      * @returns 
      */
-    setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false) {
+    setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false, destroy_fluid = false) {
 
         this.genValue++
 
-        if (isFluidId(block_id)) {
+        if(isFluidId(block_id)) {
             this.fluid.setFluidIndirect(x, y, z, block_id);
-            return;
+            return
+        }
+
+        if(destroy_fluid) {
+            this.fluid.setFluidIndirect(x, y, z, 0)
         }
 
         const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;

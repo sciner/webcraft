@@ -17,12 +17,25 @@ export class ServerPlayerEffects {
     save() {
     
     }
+
+    /*
+    * Удаляем еффекты
+    * id - id эффекта
+    */
+    delEffects(id) {
+        for (const eff of this.effects) {
+            if (eff.id == id || id == -1) {
+                eff.time = 0;
+                eff.level = 0;
+            }
+        }
+    }
    
    /*
     * Добавляет новый еффект на игрока
     * effects - массив эффектов
     */
-    addEffects(effects) {
+    addEffects(effects, ret = false) {
         const player = this.player;
         const world = player.world;
         for (const effect of effects) {
@@ -43,7 +56,11 @@ export class ServerPlayerEffects {
                 });
             }
         }
-        world.sendSelected([{ name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}], [player.session.user_id]);
+        const packet = { name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}
+        if(ret) {
+            return packet
+        }
+        world.sendSelected([packet], [player.session.user_id]);
     }
     
     // проверка времени наложенных эффектов

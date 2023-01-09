@@ -22,13 +22,14 @@ import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuilgingTemplate } from "./terrain_generator/cluster/building_template.js";
+import { AABB } from "./core/AABB.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -713,6 +714,7 @@ export class Renderer {
         camera.use(renderBackend.globalUniforms, true);
 
         globalUniforms.crosshairOn = this.crosshairOn;
+        globalUniforms.u_eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
         globalUniforms.update();
 
         this.debugGeom.clear();
@@ -762,19 +764,31 @@ export class Renderer {
         }
 
         const overChunk = player.getOverChunk();
-        if (overChunk && this.world.chunkManager.draw_debug_grid) {
-            // this.debugGeom.addLine(player.blockPos, overChunk.coord, {});
-            this.debugGeom.addBlockGrid({
-                pos:        overChunk.coord,
-                size:       overChunk.size,
-                lineWidth:  .15,
-                colorBGRA:  0xFF00FF00,
-            })
+        if (overChunk) {
+            // chunk
+            if(this.world.chunkManager.draw_debug_grid) {
+                // this.debugGeom.addLine(player.blockPos, overChunk.coord, {});
+                this.debugGeom.addBlockGrid({
+                    pos:        overChunk.coord,
+                    size:       overChunk.size,
+                    lineWidth:  .15,
+                    colorBGRA:  0xFF00FF00,
+                })
+            }
+            // cluster
+            if(this.world.chunkManager.cluster_draw_debug_grid) {
+                const cluster_size = new Vector(128, 256, 128)
+                const cluster_coord = overChunk.coord.div(cluster_size).flooredSelf().multiplyVecSelf(cluster_size)
+                this.debugGeom.addAABB(new AABB(
+                    cluster_coord.x, cluster_coord.y, cluster_coord.z,
+                    cluster_coord.x + cluster_size.x, cluster_coord.y + cluster_size.y, cluster_coord.z + cluster_size.z
+                ), {lineWidth: .25, colorBGRA: 0xFFFFFFFF})
+            }
         }
 
         // buildings grid
         if(this.world.mobs.draw_debug_grid) {
-            if(this.world.info && this.world.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS) {
+            if(this.world.info && this.world.isBuildingWorld()) {
                 const _schema_coord = new Vector(0, 0, 0)
                 const _schema_size = new Vector(0, 0, 0)
                 for(const [name, schema] of BuilgingTemplate.schemas.entries()) {
@@ -782,12 +796,18 @@ export class Renderer {
                     _schema_size.y = _schema_size.y * -1 + 1
                     _schema_coord.set(schema.world.pos2.x, schema.world.pos1.y - 1, schema.world.pos2.z)
                     _schema_coord.y++
+                    this.debugGeom.addAABB(new AABB(
+                        _schema_coord.x, _schema_coord.y, _schema_coord.z,
+                        _schema_coord.x + _schema_size.x, _schema_coord.y + _schema_size.y, _schema_coord.z + _schema_size.z
+                    ), {lineWidth: .15, colorBGRA: 0xFFFFFFFF})
+                    /*
                     this.debugGeom.addBlockGrid({
                         pos:        _schema_coord,
                         size:       _schema_size,
                         lineWidth:  .15,
                         colorBGRA:  0xFFFFFFFF,
                     })
+                    */
                 }
             }
         }
@@ -952,6 +972,11 @@ export class Renderer {
         if(player.game_mode.isSpectator()) {
             return false;
         }
+
+        if(player.eyes_in_block?.is_water) {
+            return false
+        }
+
         const world = Qubatch.world;
         const TARGET_TEXTURES = [.5, .5, 1, 1];
         // Material (shadow)
