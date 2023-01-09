@@ -594,7 +594,7 @@
     vec2 pc = (v_world_pos.xy + cam_period.xy) * 64.;
 
     mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
-    vec3 a = vec3( pc / 4e2, (u_time / 1000.) / 4. ) * m,
+    vec3 a = vec3( pc / 4e2, (u_time / 2000.) / 4. ) * m,
          b = a * m * .4,
          c1 = b * m * .3;
     vec4 k = vec4(pow(
@@ -614,7 +614,7 @@
     vec2 pc = (v_texcoord0.xy + v_world_pos.xy + cam_period.xy + vert.xy) * 64.;
 
     mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
-    vec3 a = vec3( pc / 4e2, (u_time / 1000.) / 4. ) * m,
+    vec3 a = vec3( pc / 4e2, (u_time / 2000.) / 4. ) * m,
          b = a * m * .4,
          c1 = b * m * .3;
     vec4 k = vec4(pow(
