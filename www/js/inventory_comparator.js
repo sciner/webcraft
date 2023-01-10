@@ -1,6 +1,6 @@
 import {BLOCK} from "./blocks.js";
 import {RecipeManager} from "./recipes.js";
-import {ObjectHelpers, ArrayOrMap} from "./helpers.js"
+import {ObjectHelpers, ArrayOrMap, ArrayOrScalar} from "./helpers.js"
 import { AnvilRecipeManager } from "./recipes_anvil.js";
 
 export class InventoryComparator {
@@ -129,11 +129,12 @@ export class InventoryComparator {
      * regardless of their invetory positions and split between stacks.
      * @param {Array or Object} old_items - the server items, assumed to be correct
      * @param {Array or Object} new_items - new, suspicious items
-     * @param {Array of objects} used_recipes - array of {
+     * @param {Array of Object} used_recipes - the exact fields differ slight dependeing on
+     *   the recipe mamanger used, see {@link AnvilRecipeManager.applyUsedRecipe}, {@link RecipeManager.applyUsedRecipe}
      *   recipe_id: Int
-     *   used_items_keys: Array of item comparison keys
-     *   count: Int
-     * }
+     *   used_items_keys: Array of String   // item comparison keys
+     *   count: (Int|Array of Int)          // the number of used items
+     *   label: String                      // for anvil only
      * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
      * @return {Boolean} true if equal
      */
@@ -145,9 +146,50 @@ export class InventoryComparator {
             try {
                 // Apply all recipes
                 for(let used_recipe of used_recipes) {
-                    const result = recipeManager.applyUsedRecipeToSimpleItems(used_recipe, old_simple);
-                    used_recipe.result_item_id = result.id;
-                    used_recipe.result_count = result.count;
+                    const recipe_id = used_recipe.recipe_id;
+                    // Get recipe by ID
+                    const recipe = recipeManager.getRecipe(recipe_id);
+                    if(!recipe) {
+                        throw 'error_recipe_not_found|' + recipe_id;
+                    }
+                    // proeprocess and validate count
+                    ArrayOrScalar.setArrayLength(used_recipe.count);
+                    used_recipe.count = ArrayOrScalar.mapSelf(used_recipe.count, c => {
+                        c = Math.floor(c);
+                        if (typeof c !== 'number' || !(c > 0)) { // !(c < 0) is for NaN
+                            throw 'error_incorrect_value|count=' +c;
+                        }
+                        return c;
+                    });
+                    // validate and get the used items
+                    const used_items = [];
+                    for(const [i, key] of used_recipe.used_items_keys.entries) {
+                        // check the item, remove it them from the simple inventory
+                        let item = simple_items.get(key);
+                        let count = used_recipe.count;
+                        // if count for each item is important, set it to each item
+                        if (Array.isArray(count)) {
+                            count = count[i];
+                            item = { ...item, count };
+                        }
+                        if (!item) {
+                            throw 'error_recipe_item_not_found_in_inventory|' + recipe_id;
+                        }
+                        if (!InventoryComparator.decrementSimpleItemsKey(simple_items, key, count)) {
+                            throw 'error_recipe_item_not_enough';
+                        }
+                        res.push(item);
+                    }
+                    const result = recipeManager.applyUsedRecipe(used_recipe, recipe, used_items, old_simple);
+                    if (!result) {
+                        throw 'error_recipe_does_not_match_used_items';
+                    }
+                    InventoryComparator.addToSimpleItems(simple_items, result);
+                    // remember some info used when all recipes are applied
+                    used_recipe.onCraftedData = {
+                        block_id:   result.id,
+                        count:      result.count
+                    };
                 }
             } catch(e) {
                 console.log('error', e);

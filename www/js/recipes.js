@@ -1,7 +1,7 @@
 import {RecipeWindow} from "./window/index.js";
 import {COLOR_PALETTE, Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
-import { md5, ArrayHelpers, ObjectHelpers } from "./helpers.js";
+import { md5, ObjectHelpers, ArrayOrScalar } from "./helpers.js";
 import {default as runes} from "../vendors/runes.js";
 import { InventoryComparator } from "./inventory_comparator.js";
 
@@ -780,24 +780,18 @@ export class RecipeManager {
     /**
      * Subtracts the used resurces from the simple items, and adds the result to them.
      * Returns teh resulting item.
-     * @param {Object} used_recipe {
-     *   recipe_id: String
-     *   used_items_keys: Array of item comparison keys
-     *   count: Int          // how many time it was applied
-     * }
-     * @param {Map} simple_items
+     * @param {Object} used_recipe - see {@link InventoryComparator.checkEqual}, fields:
+     *   recipe_id: Int
+     *   used_items_keys: Array of String
+     *   count: Int
+     * @param {Object} recipe
+     * @param {Array of Item} used_items - the item.count is ignored, and used_recipe.count is for all items
      * @throws if it's imposible
      */
-    applyUsedRecipeToSimpleItems(used_recipe, simple_items) {
-        const recipe_id = used_recipe.recipe_id;
-        // Get recipe by ID
-        const recipe = this.getRecipe(recipe_id);
-        if(!recipe) {
-            throw 'error_recipe_not_found|' + recipe_id;
+    applyUsedRecipe(used_recipe, recipe, used_items) {
+        if (typeof used_recipe.count !== 'number') {
+            throw 'error_incorrect_value|used_recipe.count=' + used_recipe.count;
         }
-        // Find the items in the inventory, check and reduce their quantities
-        const used_items = RecipeManager.getValidateAndDecrementUsedItems(
-            simple_items, used_recipe.used_items_keys, used_recipe.count, recipe_id);
         // check that these items match what recipe needs
         const need_resources = ObjectHelpers.deepClone(recipe.need_resources, 2);
         for(let used_item of used_items) {
@@ -806,43 +800,18 @@ export class RecipeManager {
                 it.count && InventoryComparator.itemMatchesNeeds(used_item, it.needs)
             );
             if (!resource) {
-                throw `error_item_not_found_in_recipe|${recipe_id},${item_id}`;
+                throw `error_item_not_found_in_recipe|${recipe.id},${item_id}`;
             }
             resource.count--;
         }
         if (need_resources.find(it => it.count)) {
-            throw 'error_not_all_recipe_items_are_used|' + recipe_id;
+            throw 'error_not_all_recipe_items_are_used|' + recipe.id;
         }
         // Append the result item
         let result_item = BLOCK.fromId(recipe.result.item_id);
         result_item = BLOCK.convertItemToInventoryItem(result_item, result_item, true);
         result_item.count = recipe.result.count * used_recipe.count;
-        InventoryComparator.addToSimpleItems(simple_items, result_item);
         return result_item;
-    }
-
-    /**
-     * Validates the used items, find them in the simple items, and subtracts them from simple items.
-     * @return the items found (its count filed is irelevant).
-     * @throws if failure
-     */
-    static getValidateAndDecrementUsedItems(simple_items, used_items_keys, recipe_count, recipe_id) {
-        recipe_count = Math.floor(recipe_count);
-        if (typeof recipe_count !== 'number' || !(recipe_count > 0)) { // !(recipe_count < 0) is for NaN
-            throw `error_incorrect_value|recipe_count=${recipe_count}`;
-        }
-        const res = [];
-        for(const key of used_items_keys) {
-            const item = simple_items.get(key);
-            if (!item) {
-                throw 'error_recipe_item_not_found_in_inventory|' + recipe_id;
-            }
-            if (!InventoryComparator.decrementSimpleItemsKey(simple_items, key, recipe_count)) {
-                throw 'error_recipe_item_not_enough';
-            }
-            res.push(item);
-        }
-        return res;
     }
 
     // Group
@@ -908,7 +877,7 @@ export class RecipeManager {
             }
             list = typeof force === 'string' ? [force] : [];
         }
-        return ArrayHelpers.scalarToArray(list).map(it => it.toUpperCase());
+        return ArrayOrScalar.toArray(list).map(it => it.toUpperCase());
     }
 
     isBlockConfigTemplateDisabled(conf) {

@@ -1693,7 +1693,6 @@ export class StringHelpers {
             --end;
         return (start > 0 || end < str.length) ? str.substring(start, end) : str;
     }
-
 }
 
 export class ArrayHelpers {
@@ -1812,11 +1811,6 @@ export class ArrayHelpers {
         return res;
     }
 
-    // Returns Array or null as is. Non-null scalars are wraped into an array.
-    static scalarToArray(v) {
-        return (v == null || Array.isArray(v)) ? v : [v];
-    }
-
     static create(size, fill = null) {
         const arr = new Array(size);
         if (typeof fill === 'function') {
@@ -1827,6 +1821,51 @@ export class ArrayHelpers {
             arr.fill(fill);
         }
         return arr;
+    }
+}
+
+// Helper methods to work with an array or a scalar in the same way.
+export class ArrayOrScalar {
+    // Returns Array or null as is. Non-null scalars are wraped into an array.
+    static toArray(v) {
+        return (v == null || Array.isArray(v)) ? v : [v];
+    }
+
+    static length(v) {
+        return Array.isArray(v) ? v.length : v;
+    }
+
+    static get(v, index) {
+        return Array.isArray(v) ? v[index] : v;
+    }
+
+    static find(fn) {
+        return Array.isArray(v)
+            ? v.find(fn)
+            : (fn(v) ? v : null);
+    }
+
+    static map(v, fn) {
+        return Array.isArray(v) ? v.map(fn) : fn(v);
+    }
+
+    // Sets the length of an Array, but doesn't change a scalar
+    static setArrayLength(v, length) {
+        if (Array.isArray(v)) {
+            v.length = length;
+        }
+        return v;
+    }
+
+    static mapSelf(v, fn) {
+        if (Array.isArray(v)) {
+            for(let i = 0; i < v.length; i++) {
+                v[i] = fn(i);
+            }
+            return v;
+        } else {
+            return fn(v);
+        }
     }
 }
 

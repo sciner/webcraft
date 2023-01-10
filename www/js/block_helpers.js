@@ -1,5 +1,5 @@
-import { BLOCK } from "./blocks.js";
-import { ROTATE, Vector } from "./helpers.js";
+import { BLOCK, ITEM_LABEL_MAX_LENGTH } from "./blocks.js";
+import { ROTATE, Vector, ObjectHelpers } from "./helpers.js";
 
 export class ChestHelpers {
 
@@ -84,4 +84,52 @@ export function isBlockRoughlyWithinPickatRange(player, margin, pos, pos2 = null
         return eyePos.distance(blockCenter) <= maxDist;
     }
     return false;
+}
+
+export class ItemHelpers {
+
+    /**
+     * Validates and possibly changes (possibly to null) a label entered by a user.
+     * @return {?String} a valid value for label that can be passed to {@link setLabel}
+     * @throws if the string can't be used as label
+     * @todo better validation
+     */
+    static validateAndPreprocessLabel(label) {
+        // validate the label (it's for the server; the client validates before that)
+        if (typeof label !== 'string' ||
+            label.length > ITEM_LABEL_MAX_LENGTH
+        ) {
+            throw `error_incorrect_value|label=${label}`
+        }
+        label = label.trim(); 
+        return label !== '' ? label : null;
+    }
+
+    static getLabel(item) {
+        return item.extra_data?.label ?? BLOCK.getBlockTitle(item);
+    }
+    
+    static setLabel(item, label) {
+        if (label === BLOCK.getBlockTitle(item)) {
+            label = null;
+        }
+        this.setExtraDataField(item, 'label', label);
+    }
+
+    static setExtraDataField(item, fieldName, value) {
+        if (value != null) {
+            item.extra_data = item.extra_data ?? {};
+            item.extra_data[fieldName] = value;
+        } else if (item.extra_data) {
+            delete item.extra_data[fieldName];
+            if (ObjectHelpers.isEmpty(item.extra_data)) {
+                delete item.extra_data;
+            }
+        }
+    }
+
+    static incrementExtraDataField(item, fieldName, delta = 1) {
+        item.extra_data = item.extra_data ?? {};
+        item.extra_data[fieldName] = (item.extra_data[fieldName] ?? 0) + delta;
+    }
 }

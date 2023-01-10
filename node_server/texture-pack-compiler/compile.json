@@ -4608,7 +4608,7 @@
             "item": {"name": "ingot"},
             "style": "extruder",
             "material": {
-                "id": "iron"
+                "id": "gold"
             },
             "texture": "item/gold_ingot.png"
         },

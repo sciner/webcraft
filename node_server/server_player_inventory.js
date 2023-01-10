@@ -82,10 +82,7 @@ export class ServerPlayerInventory extends Inventory {
                         for(let used_recipe of used_recipes) {
                             // we know the recipe exists, because it was successfully applied and validated
                             const recipe = recipeMan.getRecipe(used_recipe.recipe_id);
-                            this.player.onCrafted(recipe, {
-                                block_id:   used_recipe.result_item_id,
-                                count:      used_recipe.result_count
-                            });
+                            this.player.onCrafted(recipe, used_recipe.onCraftedData);
                         }
                     }
                     return; // the state is accepted, don't send anything to the player

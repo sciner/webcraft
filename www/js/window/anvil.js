@@ -1,4 +1,5 @@
 import { ITEM_LABEL_MAX_LENGTH } from "../blocks.js";
+import { ItemHelpers } from "../block_helpers.js";
 import { Button, Label, TextEdit } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { AnvilRecipeManager } from "../recipes_anvil.js";
@@ -40,8 +41,8 @@ class AnvilSlot extends CraftTableSlot {
             this.dropIncrementOrSwap(e, oldItem);
             // Если это первый слот
             if (this == ct.first_slot) {
-                const oldCurrentLabel = oldItem && AnvilRecipeManager.getCurrentLabel(oldItem);
-                const newCurrentLabel = AnvilRecipeManager.getCurrentLabel(this.getItem());
+                const oldCurrentLabel = oldItem && ItemHelpers.getLabel(oldItem);
+                const newCurrentLabel = ItemHelpers.getLabel(this.getItem());
                 if (oldCurrentLabel !== newCurrentLabel) {
                     ct.lbl_edit.setEditText(newCurrentLabel);
                 }
@@ -69,7 +70,8 @@ export class AnvilWindow extends BaseCraftWindow {
 
         this.recipes = new AnvilRecipeManager();
         this.used_recipes = [];
-        this.recipe = null; // the curent recipe
+        this.current_recipe = null;
+        this.current_recipe_outCount = null;
 
         const options = {
             background: {
@@ -210,19 +212,24 @@ export class AnvilWindow extends BaseCraftWindow {
         }
         const second_item = this.second_slot.getItem();
         const label = this.lbl_edit.getEditText();
-        const found = this.recipes.findRecipeAndResult(first_item, second_item, label);
+        const outCount = [];
+        const found = this.recipes.findRecipeAndResult(first_item, second_item, label, outCount);
         this.result_slot.setItem(found?.result);
-        this.recipe = found?.recipe;
+        if (found) {
+            this.current_recipe = found.recipe;
+            this.current_recipe_outCount = outCount;
+        }
     }
 
     useRecipe() {
-        const count = this.first_slot.item.count;
+        const count = this.current_recipe_outCount;
+        // here we decrement or clear the ingredients slots
         const used_items_keys = this.getUsedItemsKeysAndDecrement(count);
         this.used_recipes.push({
-            recipe_id: this.recipe.id,
+            recipe_id: this.current_recipe.id,
             used_items_keys,
             count,
-            label: this.lbl_edit.getEditText()
+            label:  this.lbl_edit.getEditText()
         });
     }
     

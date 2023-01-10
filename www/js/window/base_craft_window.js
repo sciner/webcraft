@@ -1,5 +1,5 @@
 import {BLOCK} from "../blocks.js";
-import { Helpers, ArrayHelpers, ObjectHelpers } from "../helpers.js";
+import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar } from "../helpers.js";
 import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
@@ -875,11 +875,11 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     // Returns used_items (an array item comparison keys - to send to the server), and decrements craft slots
     getUsedItemsKeysAndDecrement(count) {
         const result = [];
-        for(let slot of this.craft.slots) {
+        for(let [i, slot] of this.craft.slots.entries()) {
             let item = slot.getItem();
             if (item) {
                 result.push(InventoryComparator.makeItemCompareKey(item));
-                item.count -= count;
+                item.count -= ArrayOrScalar.get(count, i);
                 if (item.count <= 0) {
                     slot.setItem(null);
                 }
