@@ -99,8 +99,8 @@ export class ChunkManager {
         // Destruct chunks queue
         this.destruct_chunks_queue = {
             list: [],
-            add(addr) {
-                this.list.push(addr.clone());
+            add({addr, uniqId}) {
+                this.list.push({addr: addr.clone(), uniqId});
             },
             clear: function() {
                 this.list = [];

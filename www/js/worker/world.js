@@ -106,9 +106,10 @@ export class WorkerWorld {
         // console.log(`Actual chunks count: ${this.chunks.size}`);
     }
 
-    destructChunk(addr) {
+    destructChunk(props) {
+        const {addr, uniqId} = props;
         const chunk = this.chunks.get(addr);
-        if(chunk) {
+        if(chunk && chunk.uniqId === uniqId) {
             this.chunks.delete(addr);
             if(chunk.layer) {
                 chunk.layer.maps.delete(addr);

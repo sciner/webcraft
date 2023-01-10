@@ -15,7 +15,8 @@ export const CHUNK_STATE = {
     NEW: 0,
     LOADING_DATA: 1,
     LOADING_BLOCKS: 2,
-    READY: 3,
-    UNLOADING: 4,
-    DISPOSED: 5
+    LOADING_MOBS: 3,
+    READY: 4,
+    UNLOADING: 5,
+    DISPOSED: 6
 }
