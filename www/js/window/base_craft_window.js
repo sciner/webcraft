@@ -108,9 +108,8 @@ export class CraftTableSlot extends Label {
                     resp = label
                         ? `${label} (${block.name.replaceAll('_', ' ')}, #${item.id})`
                         : block.name.replaceAll('_', ' ') + ` (#${item.id})`;
-                    const enchantments = item.extra_data?.enchantments ?? {};
-                    for(const id in enchantments) {
-                        resp += '\r' + Enchantments.byId[id].name + ' ' + StringHelpers.romanize(enchantments[id]);
+                    for(const [e, lvl] of Enchantments.ofItem(item)) {
+                        resp += '\r' + e.name + ' ' + StringHelpers.romanize(lvl);
                     }
                     if (item.extra_data?.anvil) {
                         resp += '\rAnvil uses: ' + item.extra_data?.anvil;

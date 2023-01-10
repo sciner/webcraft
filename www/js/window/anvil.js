@@ -120,6 +120,7 @@ export class AnvilWindow extends BaseCraftWindow {
         
         // Обработчик открытия формы
         this.onShow = function() {
+            this.lbl_edit.setEditText('');
             Qubatch.releaseMousePointer();
         }
         
