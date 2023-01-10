@@ -46,7 +46,7 @@ export class ChunkManager {
             this.chunkById[chunk.dataId] = null;
             this.list.splice(this.list.indexOf(chunk), 1);
             this.lightBase.removeSub(chunk.lightChunk);
-            
+
             this.world.groundLevel.onDeleteChunk(chunk);
         }
     }
@@ -133,5 +133,76 @@ export class LightWorld {
                 }
             }
         }
+    }
+
+    run({maxMs = 16}) {
+        const msLimit = maxMs;
+        const resultLimit = 5;
+        const startTime = performance.now();
+        let endTime = performance.now();
+        let endChunks = 0;
+        let ready;
+        do {
+            ready = 3;
+            if (this.light.doIter(10000)) {
+                ready--;
+            }
+            endTime = performance.now();
+            // if (endTime > startTime + msLimit) {
+            //     break;
+            // }
+            if (this.dayLightSrc.doIter(40000)) {
+                ready--;
+            }
+            // if (endTime > startTime + msLimit) {
+            //     break;
+            // }
+            endTime = performance.now();
+            if (this.dayLight.doIter(20000)) {
+                ready--;
+            }
+            endTime = performance.now();
+        } while (endTime < startTime + msLimit && ready > 0);
+        // if (endTime - startTime > 0.3) {
+        //     console.log(`Light took ${endTime - startTime}`);
+        // }
+
+        this.isEmptyQueue = ready === 0;
+        this.checkPotential();
+
+        this.chunkManager.list.forEach((chunk) => {
+            if (chunk.waveCounter !== 0)
+                return;
+            if (chunk.sentID === chunk.lastID)
+                return;
+            chunk.sentID = chunk.lastID;
+
+            chunk.calcResult(renderFormat === 'rgba4unorm', hasNormals);
+
+            // no need to send if no changes
+            if (chunk.crc != chunk.crcO) {
+                chunk.crcO = chunk.crc;
+                const is_zero = (chunk.result_crc_sum == 0 && (
+                    (!('result_crc_sumO' in chunk)) ||
+                    (chunk.result_crc_sumO == 0)
+                ));
+                chunk.result_crc_sumO = chunk.result_crc_sum;
+                if (!is_zero) {
+                    // console.log(8)
+                    worker.postMessage(['light_generated', {
+                        addr: chunk.addr,
+                        lightmap_buffer: chunk.lightResult.buffer,
+                        lightID: chunk.lastID,
+                        uniqId: chunk.uniqId,
+                    }]);
+                }
+                this.groundLevel.estimateIfNecessary();
+            }
+
+            endChunks++;
+            if (endChunks >= resultLimit) {
+                return;
+            }
+        })
     }
 }

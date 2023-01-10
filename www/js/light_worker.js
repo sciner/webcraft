@@ -6,7 +6,7 @@ let Vector = null;
 let LightConst = null;
 let LightWorld = null;
 let Chunk = null;
-let world = null;
+let worlds = null;
 
 function run() {
     const msLimit = 16;
@@ -131,7 +131,7 @@ async function preLoad() {
     console.debug('[LightWorker] Preloaded, load time:', performance.now() - start);
 }
 
-async function initWorld() {
+async function initWorlds() {
 
     if (!modulesReady) {
         await preLoad();
@@ -143,7 +143,7 @@ async function initWorld() {
         await onmessage(item);
     }
     msgQueue.length = 0;
-    worker.postMessage(['worker_inited', null]);
+    worker.postMessage([0, 'worker_inited', null]);
 
     setInterval(run, 20);
 }
@@ -153,19 +153,25 @@ async function onMessageFunc(e) {
     if (typeof e == 'object' && 'data' in e) {
         data = e.data;
     }
-    const cmd = data[0];
-    const args = data[1];
+    const world_id = data[0];
+    const cmd = data[1];
+    const args = data[2];
     if (cmd == 'init') {
         // Init modules
-        initWorld();
+        initWorlds();
         return;
     }
     if (!modulesReady) {
         return msgQueue.push(data);
     }
     //do stuff
+    const world = worlds.getOrCreate(world_id);
 
     switch (cmd) {
+        case 'destructWorld': {
+            worlds.dispose(world_id);
+            break;
+        }
         case 'initRender': {
             renderFormat = args.texFormat;
             hasNormals = !!args.hasNormals;
