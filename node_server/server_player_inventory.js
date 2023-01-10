@@ -70,9 +70,9 @@ export class ServerPlayerInventory extends Inventory {
                 const recipeMan = used_recipes.length && 
                     await InventoryComparator.getRecipeManager(params.recipe_manager_type);
                 // The only situation when we don't check equality (which includes applying recipes) is
-                // in the creative inventory, where there are no recipes.
-                const mustCheckEqual = !(used_recipes.length === 0 && this.player.game_mode.isCreative());
-                const changeIsValid = this.sanitizeAndValidateClinetItemsChange(new_items, mustCheckEqual, used_recipes, recipeMan);
+                // in the creative inventory, where there are no recipes, and the client explicitly asks for it.
+                const dontCheckEqual = params.dont_check_equal && used_recipes.length === 0 && this.player.game_mode.isCreative();
+                const changeIsValid = this.sanitizeAndValidateClinetItemsChange(new_items, !dontCheckEqual, used_recipes, recipeMan);
                 if(changeIsValid) {
                     // apply new
                     this.applyNewItems(new_items, true);

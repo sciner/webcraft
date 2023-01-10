@@ -112,7 +112,7 @@ export class AnvilWindow extends BaseCraftWindow {
         
         // Обработчик закрытия формы
         this.onHide = function() {
-            this.inventory.clearDragItem();
+            this.clearCraft();
             // Save inventory
             Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.used_recipes, 'anvil');
             this.used_recipes = [];
@@ -200,7 +200,7 @@ export class AnvilWindow extends BaseCraftWindow {
         this.result_slot = new AnvilSlot(266 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
         this.add(this.craft.slots[0] = this.first_slot);
         this.add(this.craft.slots[1] = this.second_slot);
-        this.add(this.result_slot);
+        this.add(this.lblResultSlot = this.result_slot);
     }
 
     updateResult() {

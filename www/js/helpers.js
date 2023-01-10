@@ -1693,6 +1693,18 @@ export class StringHelpers {
             --end;
         return (start > 0 || end < str.length) ? str.substring(start, end) : str;
     }
+
+    // converts to Roman number, from https://stackoverflow.com/questions/9083037/convert-a-number-into-a-roman-numeral-in-javascript
+    static romanize(num) {
+        var lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1},roman = '',i;
+        for ( i in lookup ) {
+          while ( num >= lookup[i] ) {
+            roman += i;
+            num -= lookup[i];
+          }
+        }
+        return roman;
+      }
 }
 
 export class ArrayHelpers {
@@ -1860,7 +1872,7 @@ export class ArrayOrScalar {
     static mapSelf(v, fn) {
         if (Array.isArray(v)) {
             for(let i = 0; i < v.length; i++) {
-                v[i] = fn(i);
+                v[i] = fn(v[i]);
             }
             return v;
         } else {

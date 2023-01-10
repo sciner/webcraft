@@ -153,7 +153,7 @@ export class InventoryComparator {
                         throw 'error_recipe_not_found|' + recipe_id;
                     }
                     // proeprocess and validate count
-                    ArrayOrScalar.setArrayLength(used_recipe.count);
+                    ArrayOrScalar.setArrayLength(used_recipe.count, used_recipe.used_items_keys.length);
                     used_recipe.count = ArrayOrScalar.mapSelf(used_recipe.count, c => {
                         c = Math.floor(c);
                         if (typeof c !== 'number' || !(c > 0)) { // !(c < 0) is for NaN
@@ -163,9 +163,9 @@ export class InventoryComparator {
                     });
                     // validate and get the used items
                     const used_items = [];
-                    for(const [i, key] of used_recipe.used_items_keys.entries) {
+                    for(const [i, key] of used_recipe.used_items_keys.entries()) {
                         // check the item, remove it them from the simple inventory
-                        let item = simple_items.get(key);
+                        let item = old_simple.get(key);
                         let count = used_recipe.count;
                         // if count for each item is important, set it to each item
                         if (Array.isArray(count)) {
@@ -175,16 +175,16 @@ export class InventoryComparator {
                         if (!item) {
                             throw 'error_recipe_item_not_found_in_inventory|' + recipe_id;
                         }
-                        if (!InventoryComparator.decrementSimpleItemsKey(simple_items, key, count)) {
+                        if (!InventoryComparator.decrementSimpleItemsKey(old_simple, key, count)) {
                             throw 'error_recipe_item_not_enough';
                         }
-                        res.push(item);
+                        used_items.push(item);
                     }
                     const result = recipeManager.applyUsedRecipe(used_recipe, recipe, used_items, old_simple);
                     if (!result) {
                         throw 'error_recipe_does_not_match_used_items';
                     }
-                    InventoryComparator.addToSimpleItems(simple_items, result);
+                    InventoryComparator.addToSimpleItems(old_simple, result);
                     // remember some info used when all recipes are applied
                     used_recipe.onCraftedData = {
                         block_id:   result.id,

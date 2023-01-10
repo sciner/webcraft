@@ -9035,6 +9035,16 @@
             "effects":[
                 {"id":12, "time": 480, "level": 1}
             ]
+        },
+        {
+            "id": 1041,
+            "name": "ENCHANTED_BOOK",
+            "style": "extruder",
+            "texture": "item/enchanted_book.png",
+            "item": {"name": "book"},
+            "material": {
+                "id": "wood"
+            }
         }
         
     ]

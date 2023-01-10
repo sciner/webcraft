@@ -128,6 +128,19 @@ export class ItemHelpers {
         }
     }
 
+    /** @return the existing value, or the newly set value */
+    static getOrSetExtraDataField(item, fieldName, value) {
+        const ex = item.extra_data && item.extra_data[fieldName];
+        if (ex != null) {
+            return ex;
+        }
+        if (typeof value === 'function') {
+            value = value();
+        }
+        this.setExtraDataField(value);
+        return value;
+    }
+
     static incrementExtraDataField(item, fieldName, delta = 1) {
         item.extra_data = item.extra_data ?? {};
         item.extra_data[fieldName] = (item.extra_data[fieldName] ?? 0) + delta;

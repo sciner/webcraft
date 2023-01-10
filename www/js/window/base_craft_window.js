@@ -1,5 +1,5 @@
 import {BLOCK} from "../blocks.js";
-import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar } from "../helpers.js";
+import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
 import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
@@ -8,6 +8,7 @@ import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
+import { Enchantments } from "../enchantments.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
@@ -107,6 +108,13 @@ export class CraftTableSlot extends Label {
                     resp = label
                         ? `${label} (${block.name.replaceAll('_', ' ')}, #${item.id})`
                         : block.name.replaceAll('_', ' ') + ` (#${item.id})`;
+                    const enchantments = item.extra_data?.enchantments ?? {};
+                    for(const [id, level] of Object.entries(enchantments)) {
+                        resp += '\r' + Enchantments.byId[id].name + ' ' + StringHelpers.romanize(level);
+                    }
+                    if (item.extra_data?.anvil) {
+                        resp += '\rAnvil uses: ' + item.extra_data?.anvil;
+                    }
                 }
             } else {
 

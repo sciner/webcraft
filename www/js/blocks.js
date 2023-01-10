@@ -198,6 +198,10 @@ export class BLOCK {
         if(!block || !('id' in block)) {
             return '';
         }
+        // check the label first, to avoid unnecessary work
+        if(block.extra_data?.label) {
+            return block.extra_data.label;
+        }
         let mat = null;
         if('name' in block && 'title' in block) {
             mat = block;
@@ -209,9 +213,6 @@ export class BLOCK {
             resp += ` (${mat.title})`;
         }
         resp = resp.replaceAll('_', ' ');
-        if(block.extra_data?.label) {
-            resp = block.extra_data?.label;
-        }
         return resp;
     }
 
