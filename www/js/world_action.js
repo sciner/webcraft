@@ -2,7 +2,7 @@ import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
     SpatialDeterministicRandom } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
-import { BLOCK, FakeTBlock } from "./blocks.js";
+import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT } from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
@@ -1014,6 +1014,43 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     new_item[prop] = current_inventory_item[prop];
                 }
             }
+
+            // Special behavior for some fields, see EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT
+            if (new_item.extra_data) {
+                let hasSpecialFields = false;
+                let hasOtherFields = false;
+                for(let key in new_item.extra_data) {
+                    if (EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT.includes(key)) {
+                        hasSpecialFields = true;
+                    } else {
+                        hasOtherFields = true;
+                    }
+                }
+                if (mat_block.is_entity) {
+                    if (!hasOtherFields) {
+                        // merge extra_data
+                        new_item.extra_data = Object.assign(
+                            BLOCK.makeExtraData(mat_block, pos, new_item.rotate, world),
+                            new_item.extra_data
+                        );
+                    }
+                } else {
+                    if (!hasOtherFields) {
+                        // allow it be overwritten by BLOCK.makeExtraData
+                        new_item.extra_data = null;
+                    } else if (hasSpecialFields) {
+                        // clone it without special fields
+                        const new_extra_data = {};
+                        for(let key in new_item.extra_data) {
+                            if (!EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT.includes(key)) {
+                                new_extra_data[key] = new_item.extra_data[key];
+                            }
+                        }
+                        new_item.extra_data = new_extra_data;
+                    }
+                }
+            }
+            
             new_item.extra_data = new_item.extra_data || BLOCK.makeExtraData(mat_block, pos, new_item.rotate, world);
             // If painting
             if(mat_block.id == BLOCK.PAINTING.id) {

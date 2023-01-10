@@ -367,7 +367,10 @@ export class BaseChestWindow extends BaseInventoryWindow {
                 // do we really need it?
                 this.inventory.player.stopAllActivity();
             }
-            this.lbl1.setText(this.options.title);
+            const title = this.world.getBlock(this.info.pos)?.extra_data?.label
+                ?? (this.secondInfo && this.world.getBlock(this.secondInfo.pos)?.extra_data?.label)
+                ?? this.options.title;
+            this.lbl1.setText(title);
         }
         // copy data slots to the UI slots
         const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo, this.chest.slots.length);

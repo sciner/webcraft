@@ -14,6 +14,17 @@ export const ITEM_LABEL_MAX_LENGTH          = 19;
 export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'extra_data', 'rotate'];
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 
+/**
+ * Normally if there is any extra data, it's retained when a block is placed, otherwise
+ * {@link BLOCK.makeExtraData} is called, see {@link doBlockAction}.
+ * 
+ * For these fields the semantics is different:
+ * 1. If block.is_entirty == true, they can be merged with {@link BLOCK.makeExtraData}.
+ * E.g. a chest retains its label, but also gets the default placed chest properties.
+ * 2. If block.is_entirty == false, they are purged.
+ */
+export const EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT = ['anvil', 'label'];
+
 export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
 export const shapePivot = new Vector(.5, .5, .5);
 
