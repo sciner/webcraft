@@ -1016,12 +1016,10 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     checkRecipe() {
         const searchPattern = this.getCurrentSlotsSearchPattern();
         this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(searchPattern);
-        let craft_result = this.lblResultSlot.recipe?.result || null;
-        if(!craft_result) {
+        if(!this.lblResultSlot.recipe) {
             return this.lblResultSlot.setItem(null);
         }
-        const resultBlock = BLOCK.convertItemToInventoryItem(BLOCK.fromId(craft_result.item_id), null, true)
-        resultBlock.count = craft_result.count;
+        const resultBlock = this.recipes.createResultItem(this.lblResultSlot.recipe);
         this.lblResultSlot.setItem(resultBlock);
     }
 }

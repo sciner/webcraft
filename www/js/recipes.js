@@ -807,10 +807,13 @@ export class RecipeManager {
         if (need_resources.find(it => it.count)) {
             throw 'error_not_all_recipe_items_are_used|' + recipe.id;
         }
-        // Append the result item
+        return this.createResultItem(recipe, used_recipe.count);
+    }
+
+    createResultItem(recipe, recipe_count = 1) {
         let result_item = BLOCK.fromId(recipe.result.item_id);
         result_item = BLOCK.convertItemToInventoryItem(result_item, result_item, true);
-        result_item.count = recipe.result.count * used_recipe.count;
+        result_item.count = recipe.result.count * recipe_count;
         return result_item;
     }
 

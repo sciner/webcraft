@@ -109,6 +109,7 @@ export class Enchantments {
             value.incompatible_ids = [];
             value.in_creative_inventory = value.in_creative_inventory ?? IN_CREATIVE_INVENTORY_DEFAULT;
             this.byName[value.name] = value;
+            this[value.name] = value; // for syntax convenience, like in BLOCK
             this.list.push(value);
         }
         for(let [i, list] of this.incompatible.entries()) {
