@@ -36,7 +36,7 @@ export class ClusterBase {
         this.id             = this.clusterManager.seed + '_' + addr.toHash();
         this.randoms        = new alea(`villages_${this.id}`);
         this.r              = new alea(`cluster_r_${this.id}`).double();
-        this.is_empty       = (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
+        this.is_empty       = false // (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
         this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
@@ -362,12 +362,28 @@ export class ClusterBase {
     //
     drawNaturalBasement(chunk, pos, size, block) {
 
-        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y + 1, pos.z + size.z)
-        if(!chunk.aabb.intersect(aabb)) return false
+        // console.log(pos.toHash())
+
+        //const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y - size.y + 1, pos.z + size.z)
+        //if(!chunk.aabb.intersect(aabb)) return false
 
         let bx = pos.x - chunk.coord.x;
         let by = pos.y - chunk.coord.y;
         let bz = pos.z - chunk.coord.z;
+
+        const ysign = Math.sign(size.y)
+        const height = Math.abs(size.y)
+        const m = 0
+
+        for(let x = -m; x < size.x + m; x++) {
+            for(let z = -m; z < size.z + m; z++) {
+                for(let y = 0; y < height; y++) {
+                    this.setBlock(chunk, x + bx, by + y * ysign, z + bz, BLOCK.WHITE_CONCRETE.id)
+                }
+            }
+        }
+
+        return
 
         const randoms = new alea(`natural_basement_${pos.x}_${pos.y}_${pos.z}`);
         const center = new Vector(bx + size.x/2, by + size.y, bz + size.z/2)

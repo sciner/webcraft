@@ -3,7 +3,7 @@ let Vector              = null;
 let Helpers             = null;
 let getChunkAddr        = null;
 let VectorCollector     = null;
-let BuilgingTemplate    = null;
+let BuildingTemplate    = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
 let worlds              = null;
@@ -57,7 +57,7 @@ async function preLoad () {
     });
 
     await import('./terrain_generator/cluster/building_template.js').then(module => {
-        BuilgingTemplate = module.BuilgingTemplate;
+        BuildingTemplate = module.BuildingTemplate;
     });
 
     await import('./resources.js').then(async module => {
@@ -283,7 +283,7 @@ async function onMessageFunc(e) {
         }
         case 'buildingSchemaAdd': {
             for(let schema of args.list) {
-                BuilgingTemplate.addSchema(schema)
+                BuildingTemplate.addSchema(schema)
             }
             break
         }

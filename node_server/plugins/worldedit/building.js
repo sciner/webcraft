@@ -1,7 +1,7 @@
 import { Vector, VectorCollector } from "../../../www/js/helpers.js";
 
 import fs from "fs";
-import { BuilgingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
@@ -21,7 +21,7 @@ export class WorldEditBuilding {
 
         this.list = new Map()
 
-        for(let schema of BuilgingTemplate.schemas.values()) {
+        for(let schema of BuildingTemplate.schemas.values()) {
             this._insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.door_bottom, schema.meta ?? null)
         }
 
@@ -235,7 +235,7 @@ export class WorldEditBuilding {
         fs.writeFileSync(file_name, json)
 
         // Update in memory
-        BuilgingTemplate.addSchema(building)
+        BuildingTemplate.addSchema(building)
 
         // Notify all players in all worlds
         for(let w of Qubatch.worlds.values()) {
@@ -270,7 +270,7 @@ export class WorldEditBuilding {
         const mirror_x = false;
         const mirror_z = false;
 
-        const building = BuilgingTemplate.fromSchema('e3290', BLOCK);
+        const building = BuildingTemplate.fromSchema('e3290', BLOCK);
 
         for(let block of building.rot[direction]) {
             const item = {

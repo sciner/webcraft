@@ -315,13 +315,14 @@ export class TerrainMap extends Default_Terrain_Map {
         TerrainMap._sums = new Array(SMOOTH_ROW_COUNT * VAL_COUNT);
     }
 
+    /*
     static getCell(x, z) {
         return TerrainMap._cells[(z * SMOOTH_ROW_COUNT) + x];
     }
 
     static setCell(x, z, value) {
         TerrainMap._cells[(z * SMOOTH_ROW_COUNT) + x] = value;
-    }
+    }*/
 
     static setPartial(x, z, cell) {
         x += SMOOTH_RAD * 2;
@@ -584,6 +585,17 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         this.humidity       = Math.round(humidity * 100000) / 100000;
         this.equator        = Math.round(equator * 100000) / 100000;
         this.dirt_block_id  = dirt_block_id;
+    }
+
+    /**
+     * Return map cell
+     * @param {int} x 
+     * @param {int} z
+     * 
+     * @returns {object}
+     */
+    getCell(x, z) {
+        return this.cells[z * CHUNK_SIZE_X + x]
     }
 
 }

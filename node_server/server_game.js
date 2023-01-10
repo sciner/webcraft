@@ -9,7 +9,7 @@ import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
 import { Helpers } from '../www/js/helpers.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
-import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 class FakeHUD {
     add() {}
@@ -81,7 +81,7 @@ export class ServerGame {
                     json.name = item.name
                     json.meta = json.meta ?? {}
                     json.world = {...json.world, ...item}
-                    BuilgingTemplate.addSchema(json)
+                    BuildingTemplate.addSchema(json)
                 });
             } catch(e) {
                 const schema = {
@@ -93,7 +93,7 @@ export class ServerGame {
                     },
                     blocks: []
                 }
-                BuilgingTemplate.addSchema(schema)
+                BuildingTemplate.addSchema(schema)
             }
         }
 

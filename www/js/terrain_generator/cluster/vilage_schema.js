@@ -226,7 +226,7 @@ export class VilageSchema {
 
     // Returns the coordinate of the door and its direction
     get_door_front_direction(x_dir, z_dir) {
-        return x_dir === 0 ? (z_dir < 0 ? DIRECTION.NORTH : DIRECTION.SOUTH) : (x_dir < 0 ?  DIRECTION.EAST : DIRECTION.WEST);
+        return x_dir === 0 ? (z_dir < 0 ? DIRECTION.SOUTH : DIRECTION.NORTH) : (x_dir < 0 ?  DIRECTION.WEST : DIRECTION.EAST)
     }
 
     put_building(x, z) {

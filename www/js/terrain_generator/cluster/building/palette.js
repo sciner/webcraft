@@ -1,11 +1,14 @@
 import { DIRECTION } from "../../../helpers.js";
 import { Building } from "../building.js";
-import { BuilgingTemplate } from "../building_template.js";
+import { BuildingTemplate } from "../building_template.js";
 
 // Palettes
 export class BuildingPalettes {
 
     constructor(cluster, rules, bm) {
+        /**
+         * @type {Object.<string, BuldingPalette>}
+        */
         this.list = {};
         for(let k in rules) {
             this.list[k] = new BuldingPalette(cluster, rules[k], bm);
@@ -56,6 +59,7 @@ export class BuldingPalette {
         const {cluster, bm} = this;
         const {size} = args;
         const r = cluster.randoms.double();
+        const door_direction = args.door_direction
 
         // each all buildings in this palette
         for(let i in this.buildings) {
@@ -73,7 +77,7 @@ export class BuldingPalette {
                 if(!b.class.variants) {
                     b.class.variants = [];
                     for(let schema of b.class.SIZE_LIST) {
-                        b.class.variants.push(new BuilgingTemplate(schema, bm))
+                        b.class.variants.push(new BuildingTemplate(schema, bm))
                     }
                 }
                 variants.push(...b.class.variants);
@@ -89,7 +93,7 @@ export class BuldingPalette {
                     for(let name of b.block_templates) {
                         let template = b.class.json_variants.get(name);
                         if(!template) {
-                            template = BuilgingTemplate.fromSchema(name, bm)
+                            template = BuildingTemplate.fromSchema(name, bm)
                             b.class.json_variants.set(name, template)
                         }
                         b.block_templates_compilled.push(template)
@@ -102,7 +106,7 @@ export class BuldingPalette {
             while(!found && variants.length) {
                 const index = (variants.length * args.seed) | 0;
                 random_building = variants[index];
-                if([DIRECTION.NORTH, DIRECTION.SOUTH].includes(args.door_direction)) {
+                if([DIRECTION.NORTH, DIRECTION.SOUTH].includes(door_direction)) {
                     // x
                     found = random_building.size.x <= size.x && random_building.size.z <= size.z;
                 } else {
@@ -123,10 +127,10 @@ export class BuldingPalette {
                 }
 
                 // calculate correct door position
-                Building.selectSize(random_building, args.seed, args.coord, args.size, args.entrance, args.door_bottom, args.door_direction, args.aabb);
+                Building.selectSize(random_building, args.seed, args.coord, args.size, args.entrance, args.door_bottom, door_direction, args.aabb);
 
                 // create object by pre-calculated arguments
-                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, args.door_direction, args.size, random_building);
+                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, door_direction, args.size, random_building);
 
             }
 

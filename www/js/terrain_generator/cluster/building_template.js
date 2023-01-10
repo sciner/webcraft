@@ -17,7 +17,7 @@ const PORCH_MAX_HALF_WIDTH = 1;
 const PORCH_CRATER_HEIGHT = 8;
 
 //
-export class BuilgingTemplate {
+export class BuildingTemplate {
 
     static schemas = new Map();
 
@@ -50,11 +50,13 @@ export class BuilgingTemplate {
         schema.world.pos1 = new Vector(schema.world.pos1)
         schema.world.pos2 = new Vector(schema.world.pos2)
         schema.world.door_bottom = new Vector(schema.world.door_bottom)
+        schema.door_pos = new Vector(schema.door_pos)
+        schema.size = new Vector(schema.size)
         this.schemas.set(schema.name, schema);
     }
 
     static fromSchema(name, bm) {
-        return new BuilgingTemplate(this.getSchema(name), bm)
+        return new BuildingTemplate(this.getSchema(name), bm)
     }
 
     static getSchema(name) {
@@ -163,7 +165,7 @@ export class BuilgingTemplate {
     rotateBuildingBlockVariants(bm, all_blocks) {
 
         // Rotate property
-        BuilgingTemplate.rotateBlocksProperty(all_blocks, this.rot, bm, [0, 1, 2, 3]);
+        BuildingTemplate.rotateBlocksProperty(all_blocks, this.rot, bm, [0, 1, 2, 3]);
 
     }
 

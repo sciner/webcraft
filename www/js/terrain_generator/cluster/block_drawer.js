@@ -23,15 +23,9 @@ export class BlockDrawer {
         const two2map = new VectorCollector()
         const _pos2d = new Vector();
 
-        // if(!globalThis.bstd) globalThis.bstd = 0
-        // globalThis.bstd += this.list.length
-        // console.log(globalThis.bstd, this.list.length)
-
-        // let p = performance.now()
-
         for(let i = 0; i < this.list.length; i++) {
             const item = this.list[i];
-            pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.mirror_x, this.mirror_z)
+            pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir, this.mirror_x, this.mirror_z)
             cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.is_cap_block, map)
             //
             if(pos.x >= 0 && pos.y >= 0 && pos.z >= 0 && pos.x < chunk.size.x && pos.y < chunk.size.y && pos.z < chunk.size.z) {
@@ -40,9 +34,6 @@ export class BlockDrawer {
                 two2map.set(_pos2d, Math.max(two2map.get(_pos2d), pos.y))
             }
         }
-
-        // globalThis.bstd += (performance.now() - p)
-        // console.log(this.list.length)
 
         // IMPORTANT: Remove grass in air over setted blocks
         const BLOCK_AIR_ID = 0

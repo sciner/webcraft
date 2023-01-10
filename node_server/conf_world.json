@@ -803,6 +803,29 @@
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "test",
+            "pos1": {
+                "x": -205,
+                "y": 9,
+                "z": 41
+            },
+            "pos2": {
+                "x": -215,
+                "y": 23,
+                "z": 32
+            },
+            "door_bottom": {
+                "x": -210,
+                "y": 9,
+                "z": 37
+            },
+            "meta": {
+                "dt": "2023-01-09T23:10:23.584Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
         }
     ]
 }

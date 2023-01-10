@@ -4,6 +4,7 @@ import { AABB } from '../../core/AABB.js';
 import { ClusterBase, ClusterPoint, CLUSTER_SIZE } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
+import { BuildingPalettes } from "./building/palette.js";
 
 //
 const entranceAhead = new Vector(0, 0, 0);
@@ -18,6 +19,11 @@ export const getAheadMove = (dir) => {
 
 // Building base cluster
 export class ClusterBuildingBase extends ClusterBase {
+
+    /**
+     * @type {BuildingPalettes}
+     */
+    building_palettes
 
     //
     constructor(clusterManager, addr, biome) {
@@ -141,13 +147,11 @@ export class ClusterBuildingBase extends ClusterBase {
             return
         }
 
-        // 
+        // for old version of terrain generator
         this.fixBuildingHeight(maps, chunk, building)
 
         // draw building
-        if(!building.hidden) {
-            building.draw(this, chunk, map)
-        }
+        building.draw(this, chunk, map)
 
     }
 

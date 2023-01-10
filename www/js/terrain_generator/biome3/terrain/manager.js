@@ -572,6 +572,7 @@ export class TerrainMapManager2 {
 
         // 3. Find door Y position for cluster buildings
         if(!map.cluster.is_empty && map.cluster.buildings) {
+
             for(const [_, building] of map.cluster.buildings.entries()) {
                 if(building.door_bottom && building.door_bottom.y == Infinity) {
 

@@ -19,14 +19,14 @@ export class StreetLight extends Building {
                 {move: new Vector(0, 2, 0), block_id: BLOCK.OAK_FENCE.id},
                 {move: new Vector(0, 3, 0), block_id: BLOCK.COBBLESTONE_WALL.id},
                 {move: new Vector(0, 4, 0), block_id: BLOCK.COBBLESTONE.id},
-                {move: new Vector(0, 4, -1), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.NORTH, 0, 0)},
-                {move: new Vector(0, 4, 1), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.SOUTH, 0, 0)},
-                {move: new Vector(-1, 4, 0), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.EAST, 0, 0)},
-                {move: new Vector(1, 4, 0), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.WEST, 0, 0)},
-                {move: new Vector(0, 3, -1), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.NORTH, -1, 0)},
-                {move: new Vector(0, 3, 1), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.SOUTH, -1, 0)},
-                {move: new Vector(-1, 3, 0), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.EAST, -1, 0)},
-                {move: new Vector(1, 3, 0), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.WEST, -1, 0)},
+                {move: new Vector(0, 4, -1), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.SOUTH, 0, 0)},
+                {move: new Vector(0, 4, 1), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.NORTH, 0, 0)},
+                {move: new Vector(-1, 4, 0), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.WEST, 0, 0)},
+                {move: new Vector(1, 4, 0), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.EAST, 0, 0)},
+                {move: new Vector(0, 3, -1), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.SOUTH, -1, 0)},
+                {move: new Vector(0, 3, 1), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.NORTH, -1, 0)},
+                {move: new Vector(-1, 3, 0), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.WEST, -1, 0)},
+                {move: new Vector(1, 3, 0), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.EAST, -1, 0)},
             ]);
         } else {
             this.blocks.list.push(...[
@@ -35,10 +35,10 @@ export class StreetLight extends Building {
                 {move: new Vector(0, 1, 0), block_id: BLOCK.OAK_FENCE.id},
                 {move: new Vector(0, 2, 0), block_id: BLOCK.OAK_FENCE.id},
                 {move: new Vector(0, 3, 0), block_id: BLOCK.GRAY_WOOL.id},
-                {move: new Vector(0, 3, -1), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.NORTH, 0, 0)},
-                {move: new Vector(0, 3, 1), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.SOUTH, 0, 0)},
-                {move: new Vector(-1, 3, 0), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.EAST, 0, 0)},
-                {move: new Vector(1, 3, 0), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.WEST, 0, 0)},
+                {move: new Vector(0, 3, -1), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.SOUTH, 0, 0)},
+                {move: new Vector(0, 3, 1), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.NORTH, 0, 0)},
+                {move: new Vector(-1, 3, 0), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.WEST, 0, 0)},
+                {move: new Vector(1, 3, 0), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.EAST, 0, 0)},
             ]);
         }
     }

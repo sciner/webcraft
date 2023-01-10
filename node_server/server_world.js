@@ -28,7 +28,7 @@ import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
 
 import { WorldAction } from "../www/js/world_action.js";
-import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
@@ -183,7 +183,7 @@ export class ServerWorld {
         }
 
         // each all buildings
-        for(let schema of BuilgingTemplate.schemas.values()) {
+        for(let schema of BuildingTemplate.schemas.values()) {
             addBlock(new Vector(schema.world.pos1), block_num1)
             addBlock(new Vector(schema.world.pos2), block_num2)
             // draw sign

@@ -44,7 +44,8 @@ export class ClusterManager {
                 cluster = new ClusterStructures(this, addr.clone(), biome)
             }
             */
-            cluster = new ClusterStructures(this, addr.clone(), biome)
+            // cluster = new ClusterStructures(this, addr.clone(), biome)
+            cluster = new ClusterVilage(this, addr.clone(), biome)
         } else {
             if(r <= .1) {
                 cluster = new ClusterPyramid(this, addr.clone(), biome);

@@ -13,16 +13,15 @@ export class WaterWell extends Building {
         size.y = 21;
 
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
-
         //
         cluster.road_block.reset();
         cluster.addRoadPlatform(coord, size, cluster.road_block);
 
         //
-        this.draw_entrance = false;
+        this.draw_entrance = true;
 
         // Blocks
-        const dir = door_direction;
+        const dir = (door_direction + 2) % 4;
         const mirror_x = false; // door_direction % 2 == 1;
 
         if(seed < .75) {
@@ -77,9 +76,9 @@ export class WaterWell extends Building {
                 {move: new Vector(1, 3, 1), block_id: BLOCK.COBBLESTONE.id},
                 //
                 {move: new Vector(1, 0, 0), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 0) % 4, 0, 0)},
-                {move: new Vector(2, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(2, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x ? 2 : 0)) % 4, 0, 0)},
                 {move: new Vector(1, 0, 2), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 2) % 4, 0, 0)},
-                {move: new Vector(0, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(0, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x ? 2 : 0)) % 4, 0, 0)},
             ]);
 
         }
@@ -97,7 +96,7 @@ export class WaterWell extends Building {
 
         cluster.drawQuboid(chunk, this.coord, this.size.add(new Vector(0, -1, 0)), BLOCK.AIR);
 
-        // 4 walls
+        // // 4 walls
         const walls_size = this.size.clone().addSelf(new Vector(0, -4, 0));
         cluster.draw4Walls(chunk, this.coord, walls_size, this.wallBlocks);
 
@@ -105,7 +104,7 @@ export class WaterWell extends Building {
         const q_size = walls_size.add(new Vector(-2, -2, -2));
         cluster.drawQuboid(chunk, q_pos, q_size, BLOCK.STILL_WATER);
 
-        // Draw blocks
+        // // Draw blocks
         this.blocks.draw(cluster, chunk);
 
     }
