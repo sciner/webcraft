@@ -69,7 +69,7 @@ export class BuldingPalette {
 
             //
             let found = false;
-            let random_building = null;
+            let building_template = null;
             const variants = [];
 
             // 1. Prepare variants from old format
@@ -105,13 +105,13 @@ export class BuldingPalette {
             // search random building size
             while(!found && variants.length) {
                 const index = (variants.length * args.seed) | 0;
-                random_building = variants[index];
+                building_template = variants[index];
                 if([DIRECTION.NORTH, DIRECTION.SOUTH].includes(door_direction)) {
                     // x
-                    found = random_building.size.x <= size.x && random_building.size.z <= size.z;
+                    found = building_template.size.x <= size.x && building_template.size.z <= size.z;
                 } else {
                     // z
-                    found = random_building.size.z <= size.x && random_building.size.x <= size.z;
+                    found = building_template.size.z <= size.x && building_template.size.x <= size.z;
                 }
                 if(!found) {
                     variants.splice(index, 1);
@@ -127,10 +127,10 @@ export class BuldingPalette {
                 }
 
                 // calculate correct door position
-                Building.selectSize(random_building, args.seed, args.coord, args.size, args.entrance, args.door_bottom, door_direction, args.aabb);
+                Building.selectSize(building_template, args.coord, args.size, args.entrance, args.door_bottom, door_direction, args.aabb);
 
                 // create object by pre-calculated arguments
-                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, door_direction, args.size, random_building);
+                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, door_direction, args.size, building_template);
 
             }
 

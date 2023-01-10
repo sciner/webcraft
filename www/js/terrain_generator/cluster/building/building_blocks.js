@@ -5,8 +5,8 @@ import { Building } from "../building.js";
 // 
 export class BuildingBlocks extends Building {
 
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_building) {
-        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_building)
+    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, building_template) {
+        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, building_template)
         this.chunks = new VectorCollector()
     }
 
@@ -20,7 +20,7 @@ export class BuildingBlocks extends Building {
         const prev_chunk_addr   = new Vector(Infinity, Infinity, Infinity)
         const actual_aabb       = new AABB().reset()
 
-        const blocks = this.random_building.rot[(dir + 2) % 4]
+        const blocks = this.building_template.rot[(dir + 2) % 4]
 
         let chunk
 
@@ -53,7 +53,7 @@ export class BuildingBlocks extends Building {
      * @param {*} map
      */
     draw(cluster, chunk, map) {
-        super.draw(cluster, chunk, this.random_building.getMeta('draw_natural_basement', true))
+        super.draw(cluster, chunk, this.building_template.getMeta('draw_natural_basement', true))
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []
         // draw chunk blocks

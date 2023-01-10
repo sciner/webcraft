@@ -61,7 +61,10 @@ export class BuildingTemplate {
 
     static getSchema(name) {
         const resp = this.schemas.get(name)
-        if(!resp) throw 'building_schema_not_found'
+        if(!resp) {
+            debugger
+            throw `building_schema_not_found|${name}`
+        }
         return resp
     }
 
@@ -508,10 +511,14 @@ export class BuildingTemplate {
         //
         const rot4 = (block) => {
             for(let i = 0; i < directions.length; i++) {
-                const direction = directions[i];
-                const rb = JSON.parse(JSON.stringify(block));
-                rb.rotate.x = (rb.rotate.x - direction + 4) % 4;
-                rot[direction].push(rb);
+                const direction = directions[i]
+                const rb = JSON.parse(JSON.stringify(block))
+                if(rb.rotate.y == 0) {
+                    rb.rotate.x = (rb.rotate.x + direction + 4) % 4
+                } else {
+                    rb.rotate.x = (rb.rotate.x - direction + 4) % 4
+                }
+                rot[direction].push(rb)
             }
         }
 
@@ -525,15 +532,15 @@ export class BuildingTemplate {
         }
 
         const rot_cover = (block) => {
-            const sides = ['north', 'east', 'south', 'west']
+            const sides = ['north', 'west', 'south', 'east']
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
                 const rb = JSON.parse(JSON.stringify(block))
                 rb.extra_data = {}
                 for(let k in block.extra_data) {
                     switch(k) {
-                        case 'west':
                         case 'east':
+                        case 'west':
                         case 'north':
                         case 'south': {
                             const new_index = sides.indexOf(k) + direction

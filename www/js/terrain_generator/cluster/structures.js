@@ -1,6 +1,5 @@
 import { DIRECTION, Vector } from "../../helpers.js";
 import { ClusterBuildingBase } from "./building_cluster_base.js";
-import { BuildingPalettes } from "./building/palette.js";
 import { BLOCK } from "../../blocks.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import { BuildingTemplate } from "./building_template.js";
@@ -24,66 +23,52 @@ export class ClusterStructures extends ClusterBuildingBase {
         const bm = BLOCK
 
         /*
-        let x = 20 //+ Math.floor(this.randoms.double() * 80)
-        let z = 90 //+ Math.floor(this.randoms.double() * 80)
-        // Building palettes
-        this.building_palettes = new BuildingPalettes(this, {
-            crossroad: [],
-            required: [],
-            others: [
-                {class: BuildingBlocks, max_count: Infinity, chance: 1, block_templates: [
-                    'test'
-                    // 'structure1', 'structure2', 'mine', 'underearth_tower', 'broken_castle',
-                    // 'house_dwarf', 'ornated_stone_tower_ruins'
-                ]}
-            ]
-        }, BLOCK)
-
-        const size1 = new Vector(128, 5, 128)
-        const entrance_pos1 = new Vector(x, Infinity, z)
-        const door_bottom1 = new Vector(x, Infinity, z)
-        const building1 = this.addBuilding(this.randoms.double(), x, z - size1.z, size1,
-            entrance_pos1, door_bottom1, DIRECTION.NORTH)
+            'test', 'structure1', 'structure2', 'mine', 'underearth_tower',
+            'broken_castle', 'house_dwarf', 'ornated_stone_tower_ruins'
         */
 
-        const template       = BuildingTemplate.fromSchema('medium_house', bm)
-        const coord          = new Vector(-841664, 0, 1143398) // this.coord.clone().add(new Vector(x, 0, z))
-        // const coord          = new Vector(-841676, 0, 1143357) // this.coord.clone().add(new Vector(x, 0, z))
-        const door_bottom    = new Vector(coord.x, Infinity, coord.z)
-        const door_direction = DIRECTION.SOUTH
+        for(let door_direction of [0, 1, 2, 3]) {
 
-        const building = new BuildingBlocks(this,
-            this.randoms.double(),
-            coord, // abs
-            null, // abs
-            null, // abs (y = infinity)
-            door_bottom, // abs
-            door_direction,
-            template.size.clone(),
-            template
-        )
+            const template       = BuildingTemplate.fromSchema('medium_house', bm) // medium_house mine
+            const coord          = new Vector(-841664 + door_direction * 16, 0, 1143398)
+            // const door_direction = DIRECTION.NORTH
 
-        this.buildings.set(building.coord, building)
+            const building = new BuildingBlocks(this,
+                this.randoms.double(),
+                coord,
+                null,
+                null,
+                null,
+                door_direction,
+                null,
+                template
+            )
 
-        if(building) {
+            this.buildings.set(building.coord, building)
 
-            // Fill near_mask
-            const margin = 3
-            for(const [pos, building] of this.buildings.entries()) {
-                for(let i = -margin; i < building.size.x + margin; i++) {
-                    for(let j = -margin; j < building.size.z + margin; j++) {
-                        const x = pos.x - this.coord.x + i
-                        const z = pos.z - this.coord.z + j
-                        if(x >= 0 && z >= 0 && x < this.size.x && z < this.size.z) {
-                            const nidx = z * this.size.x + x
-                            this.near_mask[nidx] = margin
+            if(building) {
+
+                // Fill near_mask
+                const margin = 3
+                for(const [pos, building] of this.buildings.entries()) {
+                    for(let i = -margin; i < building.size.x + margin; i++) {
+                        for(let j = -margin; j < building.size.z + margin; j++) {
+                            const x = pos.x - this.coord.x + i
+                            const z = pos.z - this.coord.z + j
+                            if(x >= 0 && z >= 0 && x < this.size.x && z < this.size.z) {
+                                const nidx = z * this.size.x + x
+                                this.near_mask[nidx] = margin
+                            }
                         }
                     }
                 }
+
+            } else {
+
+                this.mask.fill(null)
+
             }
 
-        } else {
-            this.mask.fill(null)
         }
 
         /*

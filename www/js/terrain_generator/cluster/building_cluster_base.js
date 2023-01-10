@@ -1,7 +1,7 @@
 import { CHUNK_SIZE_X } from "../../chunk_const.js";
 import { DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js";
 import { AABB } from '../../core/AABB.js';
-import { ClusterBase, ClusterPoint, CLUSTER_SIZE } from "./base.js";
+import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
 import { BuildingPalettes } from "./building/palette.js";
@@ -77,7 +77,7 @@ export class ClusterBuildingBase extends ClusterBase {
                 const x = dx + i;
                 const z = dz + j;
                 // Draw building basement over heightmap
-                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building);
+                this.mask[z * this.size.x + x] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building);
             }
         }
 
@@ -86,7 +86,7 @@ export class ClusterBuildingBase extends ClusterBase {
             let ahead = getAheadMove(building.door_direction);
             const ex = building.entrance.x - this.coord.x + ahead.x;
             const ez = building.entrance.z - this.coord.z + ahead.z;
-            this.mask[ez * CLUSTER_SIZE.x + ex] = new ClusterPoint(1, this.basement_block, 3, null, null);
+            this.mask[ez * this.size.x + ex] = new ClusterPoint(1, this.basement_block, 3, null, null);
         }
 
         return building
@@ -176,8 +176,8 @@ export class ClusterBuildingBase extends ClusterBase {
                 // fix basement height
                 const pz = START_Z + z
                 const px = START_X + x
-                if(px >= 0 && pz >= 0 && px < CLUSTER_SIZE.x && pz < CLUSTER_SIZE.z) {
-                    const mask_point = this.mask[pz * CLUSTER_SIZE.x + px]
+                if(px >= 0 && pz >= 0 && px < this.size.x && pz < this.size.z) {
+                    const mask_point = this.mask[pz * this.size.x + px]
                     if(mask_point && mask_point.height && !mask_point.height_fixed) {
                         // забираем карту того участка, где дверь, чтобы определить точный уровень пола
                         const vec = new Vector(building.coord.x + i, 0, building.coord.z + j)

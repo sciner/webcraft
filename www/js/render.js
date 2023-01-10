@@ -777,11 +777,11 @@ export class Renderer {
             }
             // cluster
             if(this.world.chunkManager.cluster_draw_debug_grid) {
-                const cluster_size = new Vector(128, 256, 128)
-                const cluster_coord = overChunk.coord.div(cluster_size).flooredSelf().multiplyVecSelf(cluster_size)
+                const CSZ = new Vector(256, 256, 256)
+                const cluster_coord = overChunk.coord.div(CSZ).flooredSelf().multiplyVecSelf(CSZ)
                 this.debugGeom.addAABB(new AABB(
                     cluster_coord.x, cluster_coord.y, cluster_coord.z,
-                    cluster_coord.x + cluster_size.x, cluster_coord.y + cluster_size.y, cluster_coord.z + cluster_size.z
+                    cluster_coord.x + CSZ.x, cluster_coord.y + CSZ.y, cluster_coord.z + CSZ.z
                 ), {lineWidth: .25, colorBGRA: 0xFFFFFFFF})
             }
         }

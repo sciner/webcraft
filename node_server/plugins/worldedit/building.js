@@ -212,7 +212,7 @@ export class WorldEditBuilding {
             const move = new Vector(
                 rel_door_bottom.x - bpos.x,
                 bpos.y - rel_door_bottom.y + building.door_pos.y - (basement_y - pos1.y),
-                rel_door_bottom.z - bpos.z + building.door_pos.z
+                rel_door_bottom.z - bpos.z // + building.door_pos.z
             );
             const block = {
                 move,
@@ -260,7 +260,7 @@ export class WorldEditBuilding {
         const name = args[1];
         const direction = Math.abs((args[2] | 0)) % 4;
 
-        // throw 'error_deprecated';
+        throw 'error_deprecated';
 
         const copy_data = {
             blocks: new VectorCollector(),
@@ -270,7 +270,7 @@ export class WorldEditBuilding {
         const mirror_x = false;
         const mirror_z = false;
 
-        const building = BuildingTemplate.fromSchema('e3290', BLOCK);
+        const building = BuildingTemplate.fromSchema(name, BLOCK);
 
         for(let block of building.rot[direction]) {
             const item = {

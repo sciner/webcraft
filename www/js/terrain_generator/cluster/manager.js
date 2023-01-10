@@ -3,9 +3,11 @@ import {ClusterVilage} from "./vilage.js";
 import {ClusterPyramid} from "./pyramid.js";
 import { ClusterStructures } from "./structures.js";
 import {ClusterEmpty} from "./empty.js";
-import {CLUSTER_SIZE} from "./base.js";
 import {impl as alea} from '../../../vendors/alea.js';
 import { TerrainMapManager2 } from "../biome3/terrain/manager.js";
+
+const CLUSTER_SIZE = new Vector(128, 256, 256)
+const CLUSTER_SIZE_V2 = new Vector(160, 256, 160)
 
 // ClusterManager
 export class ClusterManager {
@@ -16,6 +18,7 @@ export class ClusterManager {
         this.version = version;
         this.chunkManager = chunkManager;
         this.all = new VectorCollector();
+        this.size = new Vector(version == 2 ? CLUSTER_SIZE_V2 : CLUSTER_SIZE)
     }
 
     /**
@@ -25,8 +28,8 @@ export class ClusterManager {
      * @returns 
      */
     getForCoord(coord, map_manager) {
-        const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(CLUSTER_SIZE).flooredSelf();
-        const center_coord = addr.mul(CLUSTER_SIZE).addScalarSelf(CLUSTER_SIZE.x / 2, CLUSTER_SIZE.y / 2, CLUSTER_SIZE.z / 2)
+        const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(this.size).flooredSelf()
+        const center_coord = addr.mul(this.size).addScalarSelf(this.size.x / 2, this.size.y / 2, this.size.z / 2)
         const biome = map_manager?.calcBiome ? map_manager.calcBiome(center_coord) : null
         let cluster = this.all.get(addr);
         if(cluster) {

@@ -2,11 +2,9 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
-import { AABB } from "../../core/AABB.js";
 
-export const NEAR_MASK_MAX_DIST = 10;
-export const CLUSTER_SIZE       = new Vector(128, 256, 128);
-export const CLUSTER_PADDING    = 8;
+export const NEAR_MASK_MAX_DIST = 10
+export const CLUSTER_PADDING    = 8
 
 export class ClusterPoint {
 
@@ -27,17 +25,17 @@ export class ClusterPoint {
 export class ClusterBase {
 
     // constructor
-    constructor(clusterManager, addr) {
+    constructor(clusterManager, addr, size) {
         this.clusterManager = clusterManager;
         this.y_base         = 80;
         this.addr           = addr;
-        this.coord          = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
-        this.size           = CLUSTER_SIZE.clone();
+        this.size           = new Vector(clusterManager.size)
+        this.coord          = addr.clone().multiplyVecSelf(this.size);
         this.id             = this.clusterManager.seed + '_' + addr.toHash();
         this.randoms        = new alea(`villages_${this.id}`);
         this.r              = new alea(`cluster_r_${this.id}`).double();
         this.is_empty       = false // (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
-        this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.mask           = new Array(this.size.x * this.size.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
     }
@@ -145,8 +143,8 @@ export class ClusterBase {
             }
         }
         // make new mask
-        const new_mask = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
-        this.near_mask = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z).fill(255);
+        const new_mask = new Array(this.size.x * this.size.z);
+        this.near_mask = new Array(this.size.x * this.size.z).fill(255);
         for(let x = 0; x < this.size.x; x++) {
             for(let z = 0; z < this.size.z; z++) {
                 const index = z * this.size.x + x;
@@ -224,7 +222,7 @@ export class ClusterBase {
             for(let j = 0; j < CHUNK_SIZE_Z; j++) {
                 let x       = START_X + i;
                 let z       = START_Z + j;
-                let point   = this.mask[z * CLUSTER_SIZE.x + x];
+                let point   = this.mask[z * this.size.x + x];
                 if(point && point.height) {
                     if(point.block_id == 0) {
                         continue;
@@ -275,7 +273,7 @@ export class ClusterBase {
         x -= this.coord.x;
         // y -= this.coord.y;
         z -= this.coord.z;
-        const index = z * CLUSTER_SIZE.x + x;
+        const index = z * this.size.x + x;
         return this.near_mask[index] <= margin;
     }
 
@@ -286,7 +284,7 @@ export class ClusterBase {
         }
         x -= this.coord.x;
         z -= this.coord.z;
-        const index = z * CLUSTER_SIZE.x + x;
+        const index = z * this.size.x + x;
         return this.mask[index];
     }
 
@@ -319,9 +317,9 @@ export class ClusterBase {
                     const x = dx + i;
                     const z = dz + j;
                     if((i+j+coord.x+coord.z) % 20 == 0) {
-                        this.mask[z * CLUSTER_SIZE.x + x] = fence_point_torch;
+                        this.mask[z * this.size.x + x] = fence_point_torch;
                     } else {
-                        this.mask[z * CLUSTER_SIZE.x + x] = fence_point;
+                        this.mask[z * this.size.x + x] = fence_point;
                     }
                 }
             }
@@ -337,7 +335,7 @@ export class ClusterBase {
                 const x = dx + i - 1;
                 const z = dz + j - 1;
                 // Draw road around plot
-                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, road_block_palette.next().id, 1, null, null);
+                this.mask[z * this.size.x + x] = new ClusterPoint(1, road_block_palette.next().id, 1, null, null);
             }
         }
     }

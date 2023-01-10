@@ -72,8 +72,9 @@ export class ClusterVilage extends ClusterBuildingBase {
 
         const schema_options = {
             margin: CLUSTER_PADDING,
-            road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
-        };
+            road_damage_factor: ROAD_DAMAGE_FACTOR, // this.flat ? 0 : ROAD_DAMAGE_FACTOR
+            size: this.clusterManager.size.x
+        }
 
         let building_palette_options = {};
 

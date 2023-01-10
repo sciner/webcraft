@@ -7,7 +7,7 @@ import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
-import { Helpers } from '../www/js/helpers.js';
+import { Helpers, Vector } from '../www/js/helpers.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
@@ -78,12 +78,30 @@ export class ServerGame {
         for(let item of config.building_schemas) {
             try {
                 await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
+
+                    // fix
+                    // if(item.name == 'mine') {
+                    //     const fix = new Vector(-1, 10, 12)
+                    //     json.world.door_bottom.x += fix.x
+                    //     json.world.door_bottom.y += fix.y
+                    //     json.world.door_bottom.z += fix.z
+                    //     for(let block of json.blocks) {
+                    //         block.move.x += fix.x - 1
+                    //         block.move.y += fix.y
+                    //         block.move.z += fix.z
+                    //     }
+                    //     // fs.writeFileSync(`./data/building_schema/${item.name}.json`, JSON.stringify(json))
+                    // }
+
                     json.name = item.name
                     json.meta = json.meta ?? {}
+                    item.door_bottom = new Vector(json.world.door_bottom)
+
                     json.world = {...json.world, ...item}
                     BuildingTemplate.addSchema(json)
                 });
             } catch(e) {
+                throw e
                 const schema = {
                     name: item.name,
                     world: {
