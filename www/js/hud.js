@@ -475,7 +475,7 @@ export class HUD {
                     }
                 }*/
                 this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z; // + ' / ' + biome + '\n';
-                this.text += '\nCLUSTER: ' + Math.floor(chunk.coord.x/128) + ', ' + Math.floor(chunk.coord.z/128) + '\n'; // + ' / ' + biome + '\n';
+                this.text += '\nCLUSTER: ' + Math.floor(chunk.coord.x/160) + ', ' + Math.floor(chunk.coord.z/160) + '\n'; // + ' / ' + biome + '\n';
             }
         }
 

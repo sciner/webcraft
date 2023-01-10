@@ -41,7 +41,6 @@ import {ClusterVilage} from '../../js/terrain_generator/cluster/vilage.js';
 import {BuildingTemplate} from '../../js/terrain_generator/cluster/building_template.js';
 import {API_Client} from '../../js/ui/api.js';
 import { ClusterManager } from '../../js/terrain_generator/cluster/manager.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../js/chunk_const.js';
 
 const api = new API_Client()
 
@@ -64,7 +63,7 @@ await loadSchemas((r) => {
 
 //
 const WORLD_SEED = 1740540541
-const START_CLUSTER_ADDR = new Vector(-7, 0, -1)
+const START_CLUSTER_ADDR = new Vector(3709, 0, 1617)
 const DRAW_SCALE = 6
 
 //
@@ -76,16 +75,12 @@ const cm = new ClusterManager(null, WORLD_SEED, 2)
 class Sandbox {
 
     generate(vec) {
-        let attempts = 0;
+        let attempts = 0
         while(true) {
-            attempts++;
-            const addr = vec ? vec : new Vector(
-                (Math.random() * 999) | 0,
-                0,
-                (Math.random() * 999) | 0
-            );
-            let tm = performance.now();
-            this.cluster = cm.getForCoord(addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)), {})
+            attempts++
+            const tm = performance.now()
+            const coord = vec ? vec : new Vector(Math.random() * 999999, 0, Math.random() * 999999).floored()
+            this.cluster = cm.getForCoord(coord, {})
             cnv.width = this.cluster.size.x * DRAW_SCALE
             cnv.height = this.cluster.size.z * DRAW_SCALE
             // this.cluster = new ClusterVilage({seed: WORLD_SEED, version: 2, size: new Vector(256, 256, 256)}, addr);
@@ -94,7 +89,8 @@ class Sandbox {
             } else {
                 let text = (Math.round((performance.now() - tm) * 1000) / 1000) + ` ms`
                 text += `<br>attempts: ${attempts}`
-                text += `<br>addr: ${addr.toHash()}`
+                text += `<br>addr: ${this.cluster.addr.toHash()}`
+                text += `<br>coord: ${this.cluster.coord.toHash()}`
                 document.getElementById('timer').innerHTML = text
                 break
             }
@@ -160,4 +156,4 @@ class Sandbox {
 }
 
 const sandbox = globalThis.sandbox = new Sandbox();
-sandbox.generate(START_CLUSTER_ADDR);
+sandbox.generate(START_CLUSTER_ADDR.mul(new Vector(160, 0, 160)));
