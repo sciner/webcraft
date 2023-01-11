@@ -279,9 +279,40 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
     //console.log(tblock.material.material.id);
     //if (tblock.material.material.id == )
 
+    const checkInstrument = (item, drop) => {
+        if (!drop?.instrument) {
+            return true;
+        }
+        if (!item) {
+            return false;
+        }
+        for (const title of drop.instrument) {
+            const block = BLOCK.fromName(title);
+            if (block && block.id == item) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     const drop_item = tblock.material.drop_item;
-    console.log(Array.isArray(drop_item))
-    if(drop_item) {
+    // новый функционал
+    if (Array.isArray(drop_item)) {
+        for (const drop of drop_item) {
+            if (drop && checkInstrument(instrument, drop)) {
+                const block = BLOCK.fromName(drop?.name);
+                const chance = drop.chance ?? 1;
+                if(Math.random() < chance) {
+                    let count = drop.count ?? 1;
+                    if(count > 0) {
+                        const item = makeDropItem(tblock, {id: block.id, count: count});
+                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        return [item];
+                    }
+                }
+            }
+        }
+    } else if(drop_item) {
         const drop_block = BLOCK.fromName(drop_item?.name);
         if(drop_block) {
             const chance = drop_item.chance ?? 1;

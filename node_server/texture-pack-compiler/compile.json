@@ -1189,6 +1189,15 @@
             "material": {
                 "id": "gravel"
             },
+            "drop_item": [
+                {
+                    "name":"FLINT",
+                    "chance": 0.1
+                },
+                {
+                    "name":"GRAVEL"
+                }
+            ],
             "texture": "block/gravel.png"
         },
         {
@@ -1347,6 +1356,16 @@
             "name": "GOLD_ORE",
             "sound": "madcraft:block.stone",
             "coocked_item": {"name": "GOLD_INGOT", "count": 1},
+            "drop_item": [
+                {
+                    "name":"GOLD_NUGGET",
+                    "instrument": [
+                        "IRON_PICKAXE",
+                        "DIAMOND_PICKAXE",
+                        "NETHERITE_PICKAXE"
+                    ] 
+                }
+            ],
             "texture": "block/gold_ore.png",
             "material": {
                 "id": "gold"
