@@ -44,8 +44,8 @@ export class ClusterVilage extends ClusterBuildingBase {
             const resp = this.schema.generate(this.id);
                 this.timers.generate = performance.now() - t;
 
-                //
-                t = performance.now();
+            //
+            t = performance.now();
             this.mask = resp.mask;
             for(let house of resp.houses.values()) {
                 const size = new Vector(house.width, 5, house.depth)

@@ -6,8 +6,8 @@ import {ClusterEmpty} from "./empty.js";
 import {impl as alea} from '../../../vendors/alea.js';
 import { TerrainMapManager2 } from "../biome3/terrain/manager.js";
 
-const CLUSTER_SIZE = new Vector(128, 256, 256)
-export const CLUSTER_SIZE_V2 = new Vector(160, 256, 160)
+export const CLUSTER_SIZE = new Vector(128, 256, 256)
+export const CLUSTER_SIZE_V2 = new Vector(256, 200, 256)
 
 // ClusterManager
 export class ClusterManager {

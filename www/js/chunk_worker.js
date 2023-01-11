@@ -6,6 +6,10 @@ let VectorCollector     = null;
 let BuildingTemplate    = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
+
+/**
+ * @type { import("./worker/world.js").WorkerWorldManager }
+*/
 let worlds              = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
@@ -91,13 +95,7 @@ async function preLoad () {
 /**
 * @param {string} terrain_type
 */
-async function initWorld(
-    generator,
-    world_seed,
-    world_guid,
-    settings,
-    cache
-) {
+async function initWorld(generator, world_seed, world_guid, settings, cache) {
     if (cache) {
         Helpers.setCache(cache);
     }
