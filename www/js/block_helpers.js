@@ -120,7 +120,13 @@ export class ItemHelpers {
         if (value != null) {
             item.extra_data = item.extra_data ?? {};
             item.extra_data[fieldName] = value;
-        } else if (item.extra_data) {
+        } else {
+            this.deleteExtraDataField(item, fieldName);
+        }
+    }
+
+    static deleteExtraDataField(item, fieldName) {
+        if (item.extra_data) {
             delete item.extra_data[fieldName];
             if (ObjectHelpers.isEmpty(item.extra_data)) {
                 delete item.extra_data;
@@ -129,16 +135,26 @@ export class ItemHelpers {
     }
 
     /** @return the existing value, or the newly set value */
-    static getOrSetExtraDataField(item, fieldName, value) {
+    static getOrSetExtraDataField(item, fieldName, defaultValue) {
         const ex = item.extra_data && item.extra_data[fieldName];
         if (ex != null) {
             return ex;
         }
-        if (typeof value === 'function') {
-            value = value();
+        if (typeof defaultValue === 'function') {
+            defaultValue = value();
         }
-        this.setExtraDataField(value);
-        return value;
+        this.setExtraDataField(item, fieldName, defaultValue);
+        return defaultValue;
+    }
+
+    /** @return the existing value of type Object, or the newly set {} value */
+    static getOrSetExtraDataFieldObject(item, fieldName) {
+        item.extra_data = item.extra_data ?? {};
+        let result = item.extra_data[fieldName];
+        if (!result) {
+            item.extra_data[fieldName] = result = {};
+        }
+        return result;
     }
 
     static incrementExtraDataField(item, fieldName, delta = 1) {

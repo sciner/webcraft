@@ -1,4 +1,6 @@
 import { BLOCK } from "./blocks.js";
+import { ItemHelpers } from "./block_helpers.js";
+import { ObjectHelpers } from "./helpers.js";
 
 // helpers
 const SUFFIXES_ALL_ARMOR = ['_CAP', '_TUNIC', '_PANTS', '_BOOTS', '_HELMET', '_CHESTPLATE', '_LEGGINGS'];
@@ -18,7 +20,7 @@ export class Enchantments {
         id: String
         incompatible_ids: Array
 
-        ids are strings because is's the easist way to store them as keys of extra_data.enchantments.
+        ids are strings because it's the easist way to store them as keys of extra_data.enchantments.
 
         The original list: https://minecraft.fandom.com/wiki/Anvil_mechanics#Combining_items
     */
@@ -133,6 +135,26 @@ export class Enchantments {
     static hasIncompatible(item, enchantment) {
         const enchantments = item.extra_data?.enchantments;
         return (enchantments && enchantment.incompatible_ids.find(id => enchantments[id])) != null;
+    }
+
+    /** Sets the enchantment level, or removes the enchantment it if !(level > 0) */
+    static setLevelById(item, enchantmentId, level) {
+        if (level > 0) {
+            const enchantments = ItemHelpers.getOrSetExtraDataFieldObject(item, 'enchantments');
+            enchantments[enchantmentId] = level;
+        } else {
+            this.removeById(item, enchantmentId);
+        }
+    }
+
+    static removeById(item, enchantmentId) {
+        const enchantments = item.extra_data?.enchantments;
+        if (enchantments) {
+            delete enchantments[enchantmentId];
+            if (ObjectHelpers.isEmpty(enchantments)) {
+                ItemHelpers.deleteExtraDataField(item, 'enchantments');
+            }
+        }
     }
 
     // preprocess
