@@ -163,14 +163,14 @@ export class Mth {
      * It transforms a uniformly distributed number from in 0..1 into
      * a somewhat "normally-like" (but exactly normally) distributed
      * number ceneterd around 0.
-     * @param {Number} unifirmRandom01 - a uniformly distributed random 
+     * @param {Number} unifirmRandom01 - a uniformly distributed random
      *  number from 0 to 1
      * @param {Number} width - the maximum absolute value of results
-     * @param {Number} narrowness - the bigger the value, the narrower 
+     * @param {Number} narrowness - the bigger the value, the narrower
      *  the distribution. From 0 to 10.
      * @param {Number} flatness - the bigger the value, the wider is the
      * distribution, but it affects the central spike more than the borders. From 0 to 1.
-     * 
+     *
      * {narrowness: 4, flatness: 0} and {narrowness: 8, flatness: 0.5} have similar
      * density at the border, but the 1st one has a sharper cenral skike.
      */
@@ -340,7 +340,7 @@ export class VectorCollectorFlat {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      */
     get(vec) {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
@@ -604,7 +604,7 @@ export class Vector {
     static ZERO = new Vector(0.0, 0.0, 0.0);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
-    
+
     // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
     static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
     static {
@@ -690,6 +690,21 @@ export class Vector {
      */
     equal(vec) {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
+    }
+
+    applyCubeSymSelf(cubeSym, origin = Vector.ZERO) {
+        this.x -= origin.x;
+        this.y -= origin.y;
+        this.z -= origin.z;
+
+        const mat = CubeSym.matrices[cubeSym];
+        let newX = mat[0] * this.x + mat[1] * this.y + mat[2] * this.z;
+        let newY = mat[3] * this.x + mat[4] * this.y + mat[5] * this.z;
+        let newZ = mat[6] * this.x + mat[7] * this.y + mat[8] * this.z;
+
+        this.x = newX + origin.x;
+        this.y = newY + origin.y;
+        this.z = newZ + origin.z;
     }
 
     /**
@@ -1352,7 +1367,7 @@ export class IndexedColor {
     }
 
     /**
-     * @param {IndexedColor} ic 
+     * @param {IndexedColor} ic
      */
     copyFrom(ic) {
         this.r = ic.r;
@@ -1371,7 +1386,7 @@ export class IndexedColor {
     pack() {
         return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
     }
-    
+
     clone() {
         return new IndexedColor(this.r, this.g, this.b);
     }
@@ -1685,7 +1700,7 @@ export class StringHelpers {
 
     // indexTrim
     static trim(str, ch) {
-        var start = 0, 
+        var start = 0,
             end = str.length;
         while(start < end && str[start] === ch)
             ++start;
@@ -1820,7 +1835,7 @@ export class ArrayHelpers {
 
 // Helper methods for working with an object, an Array or a Map in the same way.
 export class ArrayOrMap {
-    
+
     static get(collection, key) {
         return collection instanceof Map ? collection.get(key) : collection[key];
     }
@@ -2064,10 +2079,10 @@ export function unixTime() {
 }
 
 /**
- * 
- * @param {string} seed 
- * @param {int} len 
- * @returns 
+ *
+ * @param {string} seed
+ * @param {int} len
+ * @returns
  */
 export function createFastRandom(seed, len = 512) {
     const random_alea = new alea(seed);
@@ -2314,7 +2329,7 @@ export class ObjectHelpers {
         }
         return v;
     }
-    
+
     static deepCloneArray(v, depth = Infinity) {
         if (--depth < 0) {
             return v;
@@ -2325,7 +2340,7 @@ export class ObjectHelpers {
         }
         return res;
     }
-    
+
     static deepCloneObject(v, depth = Infinity) {
         if (--depth < 0) {
             return v;
@@ -2346,7 +2361,7 @@ export class ObjectHelpers {
      * It deep compares own properties of the objects.
      * It's not perfect (e.g. it doesn't distnguisgh between absence of a property and an undefined value),
      * but it's good enough for real game use cases.
-     * 
+     *
      * Maybe add support for Map, Set, primitive arrays.
      */
     static deepEqual(a, b) {
@@ -2726,7 +2741,7 @@ export class SimpleShiftedMatrix {
  * Returns a random number based on world seed, block position, and some object.
  */
 export class SpatialDeterministicRandom {
-   
+
     /**
      * @param {Vector-like} pos
      * @param {Int or String} spice - a value to change the result (optional)
@@ -2774,7 +2789,7 @@ export class SpatialDeterministicRandom {
     /**
      * Generates int number from 0 (inclusive) to max (exclusive).
      * Note: the distribution is not uniform for very large numbers.
-     * 
+     *
      * @param {Vector-like} pos
      * @param {Int} max - the maximum value (exclusive)
      * @param {Int or String} spice - a value to change the result (optional)
@@ -2788,7 +2803,7 @@ export class SpatialDeterministicRandom {
     /**
      * Generates int in the given range.
      * Note: the distribution is not uniform for very large numbers.
-     * 
+     *
      * @param {Vector-like} pos
      * @param {Int} min - the minium value (inclusive)
      * @param {Int} max - the maximum value (inclusive)

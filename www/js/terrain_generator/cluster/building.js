@@ -19,13 +19,13 @@ const DEFAULT_DOOR_POS = new Vector(0, 0, 0);
 export class Building {
 
     /**
-     * @param {*} cluster 
-     * @param {*} seed 
-     * @param {Vector} coord 
+     * @param {*} cluster
+     * @param {*} seed
+     * @param {Vector} coord
      * @param {Vector} _entrance
-     * @param {int} door_direction 
-     * @param {Vector} _size 
-     * @param {*} building_template 
+     * @param {int} door_direction
+     * @param {Vector} _size
+     * @param {*} building_template
      */
     constructor(cluster, seed, coord, _entrance, door_direction, _size, building_template) {
 
@@ -90,7 +90,7 @@ export class Building {
 
     /**
      * @param { import("./base.js").ClusterBase } cluster
-     * @param {*} chunk 
+     * @param {*} chunk
      * @param {boolean} draw_natural_basement
      */
     draw(cluster, chunk, draw_natural_basement = true) {
@@ -122,7 +122,7 @@ export class Building {
     }
 
     /**
-     * @param {int[]} sizes 
+     * @param {int[]} sizes
      */
     static makeRandomSizeList(sizes) {
         const resp = [];
@@ -138,58 +138,49 @@ export class Building {
 
     /**
      * Limit building size
-     * 
-     * @param {*} building_template 
-     * @param {Vector} coord 
-     * @param {Vector} size 
-     * @param {Vector} entrance 
-     * @param {int} door_direction 
+     *
+     * @param {*} building_template
+     * @param {Vector} coord
+     * @param {Vector} size
+     * @param {Vector} entrance
+     * @param {int} door_direction
      */
     static selectSize(building_template, coord, size, entrance, door_direction) {
 
-        const door_pos = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS)
-        const building_size = new Vector(building_template.size)
-
         const MOVE_TO_BACK = 0 // door_pos.z // 1
-        const am = getAheadMove(door_direction).multiplyScalar(MOVE_TO_BACK)
-        coord.addSelf(am)
-        entrance.addSelf(am)
 
-        //
-        switch(door_direction) {
-            case DIRECTION.SOUTH: {
-                coord.z = coord.z + size.z - building_size.z
-                entrance.x = coord.x + building_size.x - door_pos.x - 1
-                break
-            }
-            case DIRECTION.NORTH: {
-                entrance.x = coord.x + door_pos.x
-                break
-            }
-            case DIRECTION.EAST: {
-                entrance.z = coord.z + (building_size.x - door_pos.z)
-                break
-            }
-            case DIRECTION.WEST: {
-                coord.x = coord.x + size.x - building_size.z
-                coord.z = coord.z + size.z - building_size.x
-                entrance.x = coord.x + building_size.z - 1
-                entrance.z = coord.z + door_pos.z - 1
-                break
-            }
-            default: {
-                throw `error_invalid_building_door_direction|${door_direction}`
-            }
+        // corner of building in the plot coords
+        let corner1 = new Vector(0, 0, MOVE_TO_BACK);
+        // diagonal of building, signed vector
+        let corner_to_diag = new Vector().copyFrom(building_template.size);
+        // door, relative to corner
+        let corner_to_door = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS);
+
+        if (door_direction) {
+            // rotate corner relative to plot center
+            corner1.applyCubeSymSelf(door_direction, new Vector(size.x * 0.5, 0, size.z * 0.5));
+            // diagonal is just a vector
+            corner_to_diag.applyCubeSymSelf(door_direction);
+            // door is BLOCK! rotation is around 0.5!
+            corner_to_door.applyCubeSymSelf(door_direction, new Vector(-0.5, 0, -0.5));
         }
 
-        size.x = building_size.x
-        size.z = building_size.z
+        entrance.x = coord.x + corner1.x + corner_to_door.x;
+        entrance.z = coord.z + corner1.z + corner_to_door.z;
 
+        // diagonal might become negative, that's fine
+        let west = Math.min(corner_to_diag.x, 0);
+        let south = Math.min(corner_to_diag.z, 0);
+        coord.x += corner1.x + west;
+        coord.z += corner1.z + south;
+
+        size.x = Math.abs(corner_to_diag.x);
+        size.z = Math.abs(corner_to_diag.z);
     }
 
     /**
      * For old style generators
-     * @param {*} chunk 
+     * @param {*} chunk
      * @deprecated
      */
     findYOld(chunk, maps) {
@@ -237,7 +228,7 @@ export class Building {
                 if(h == 0) {
                     continue;
                 }
-                this.cluster.mask[z * this.cluster.size.x + x] = new ClusterPoint(h, BLOCK.HAY_BLOCK.id, 1, null, null, 1); 
+                this.cluster.mask[z * this.cluster.size.x + x] = new ClusterPoint(h, BLOCK.HAY_BLOCK.id, 1, null, null, 1);
             }
         }
     }
