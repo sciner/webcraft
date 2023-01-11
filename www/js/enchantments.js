@@ -1,9 +1,17 @@
+import { BLOCK } from "./blocks.js";
+
 // helpers
 const SUFFIXES_ALL_ARMOR = ['_CAP', '_TUNIC', '_PANTS', '_BOOTS', '_HELMET', '_CHESTPLATE', '_LEGGINGS'];
 
 const IN_CREATIVE_INVENTORY_DEFAULT = true;
 
-// Contains all enchentments, and some static methods to read them from an item.
+/**
+ * Contains all enchentments, and some static methods to read them from an item.
+ * 
+ * Similar to {@link BLOCK}, Enchantments contains all enchantment names as properties, e.g. these are the same:
+ *   Enchantments['Feather Falling'].id
+ *   Enchantments.byName['Feather Falling'].id
+ */
 export class Enchantments {
 
     /* Fields are automaticaly added:
@@ -93,13 +101,38 @@ export class Enchantments {
         }
     }
 
+    /**
+     * @return the level of enchantment on the item by enchantment id,
+     * or 0 if there is no such enchantment on the item.
+     */
     static getLevelById(item, enchantmentId) {
         const enchantments = item.extra_data?.enchantments;
         return (enchantments && enchantments[enchantmentId]) ?? 0;
     }
 
+    static getLevel(item, enchantment) {
+        return this.getLevelById(item, enchantment.id);
+    }
+
+    /** Similar to {@link getLevelById}, but looks enchantment by name. */
     static getLevelByName(item, enchantmentName) {
         return this.getLevelById(item, this.byName[enchantmentName].id);
+    }
+
+    /** @return true if the the enchantment is compatible with a type of this item. */
+    static isCompatibleType(item, enchantment) {
+        if (item.id === BLOCK.ENCHANTED_BOOK.id) {
+            return true;
+        }
+        const blockName = BLOCK.fromId(item.id).name;
+        return enchantment.names?.includes(blockName) ||
+            enchantment.suffixes?.find(it => blockName.endsWith(it)) != null;
+    }
+
+    /** @return true if the item has any enchantments incompatible with this enchantment. */
+    static hasIncompatible(item, enchantment) {
+        const enchantments = item.extra_data?.enchantments;
+        return (enchantments && enchantment.incompatible_ids.find(id => enchantments[id])) != null;
     }
 
     // preprocess

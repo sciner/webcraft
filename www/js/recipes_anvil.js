@@ -142,15 +142,9 @@ export class AnvilRecipeManager {
 
                         // if we're adding a new enchantment, check compatibility
                         if (first_level == 0) {
-                            // check if it's compatible with the item
-                            if (first_item.id !== BLOCK.ENCHANTED_BOOK.id &&
-                                !enchantment.names?.includes(firstBlock.name) &&
-                                !enchantment.suffixes?.find(it => firstBlock.name.endsWith(it))
+                            if (!Enchantments.isCompatibleType(first_item, enchantment) ||
+                                Enchantments.hasIncompatible(first_item, enchantment)
                             ) {
-                                continue;
-                            }
-                            // check if there are incompatible enchantments
-                            if (enchantment.incompatible_ids.find(incId => first_enchantments[incId])) {
                                 continue;
                             }
                         }
