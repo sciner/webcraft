@@ -141,7 +141,7 @@ export class ItemHelpers {
             return ex;
         }
         if (typeof defaultValue === 'function') {
-            defaultValue = value();
+            defaultValue = defaultValue();
         }
         this.setExtraDataField(item, fieldName, defaultValue);
         return defaultValue;
