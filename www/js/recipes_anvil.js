@@ -63,7 +63,9 @@ export class AnvilRecipeManager {
                 if (!power || !maxPower || power >= maxPower) {
                     return null;
                 }
-                label = ItemHelpers.validateAndPreprocessLabel(label);
+                if (label !== false) {
+                    label = ItemHelpers.validateAndPreprocessLabel(label);
+                }
                 // find the expected repair ingredients
                 const firstBlockName = firstBlock.name;
                 let ingredients = REPAIR_BY_NAMES[firstBlockName];
@@ -98,8 +100,10 @@ export class AnvilRecipeManager {
                 const result = ObjectHelpers.deepClone(first_item);
                 result.count = 1;
                 result.power = Math.min(maxPower, power + powerIncrement);
-                ItemHelpers.setLabel(result, label);
-                ItemHelpers.incrementExtraDataField(result, 'anvil', 1);
+                if (label !== false) {
+                    ItemHelpers.setLabel(result, label);
+                }
+                ItemHelpers.incrementExtraDataField(result, 'age', 1);
                 return result;
             }
         );
@@ -115,7 +119,9 @@ export class AnvilRecipeManager {
                 if (second_item.id !== BLOCK.ENCHANTED_BOOK.id && second_item.id !== first_item.id) {
                     return null;
                 }
-                label = ItemHelpers.validateAndPreprocessLabel(label);
+                if (label !== false) {
+                    label = ItemHelpers.validateAndPreprocessLabel(label);
+                }
                 const result = ObjectHelpers.deepClone(first_item);
                 let changed = false;
 
@@ -174,8 +180,10 @@ export class AnvilRecipeManager {
                 outCount[1] = 1;
                 
                 result.count = 1;
-                ItemHelpers.setLabel(result, label);
-                ItemHelpers.incrementExtraDataField(result, 'anvil', 1);
+                if (label !== false) {
+                    ItemHelpers.setLabel(result, label);
+                }
+                ItemHelpers.incrementExtraDataField(result, 'age', 1);
                 return result;
             }
         );
@@ -215,7 +223,7 @@ export class AnvilRecipeManager {
      *   recipe_id: Int
      *   used_items_keys: Array of String
      *   count: Array of Int
-     *   label: String
+     *   label: (String|false) - if (label === false), it's not being changed
      * @param {Function} recipe
      * @param {Array of Item} used_items
      * @throws if it's imposible

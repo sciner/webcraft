@@ -106,11 +106,11 @@ export class ItemHelpers {
     }
 
     static getLabel(item) {
-        return item.extra_data?.label ?? BLOCK.getBlockTitle(item);
+        return item.extra_data?.label ?? BLOCK.fromId(item.id).title;
     }
     
     static setLabel(item, label) {
-        if (label === BLOCK.getBlockTitle(item)) {
+        if (label === BLOCK.fromId(item.id).title) {
             label = null;
         }
         this.setExtraDataField(item, 'label', label);

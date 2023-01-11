@@ -1696,15 +1696,35 @@ export class StringHelpers {
 
     // converts to Roman number, from https://stackoverflow.com/questions/9083037/convert-a-number-into-a-roman-numeral-in-javascript
     static romanize(num) {
-        var lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1},roman = '',i;
-        for ( i in lookup ) {
-          while ( num >= lookup[i] ) {
-            roman += i;
-            num -= lookup[i];
-          }
+        let lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1}, roman = '', i;
+        for (i in lookup) {
+            while (num >= lookup[i]) {
+                roman += i;
+                num -= lookup[i];
+            }
         }
         return roman;
-      }
+    }
+
+    static replaceCharAt(str, index, replacement) {
+        return str.charAt(index) !== replacement
+            ? str.substring(0, index) + replacement + str.substring(index + replacement.length)
+            : str;
+    }
+
+    static capitalizeChatAt(str, index) {
+        return this.replaceCharAt(str, index, str.charAt(index).toUpperCase());
+    }
+
+    static capitalizeFirstLetterOfEachWord(str) {
+        const re = /\W\w/g;
+        let res = str; // because we need an immutable string
+        let match;
+        while (match = re.exec(str)) {
+            res = this.capitalizeChatAt(res, match.index + 1);
+        }
+        return this.capitalizeChatAt(res, 0);
+    }
 }
 
 export class ArrayHelpers {

@@ -212,13 +212,19 @@ export class AnvilWindow extends BaseCraftWindow {
             return;
         }
         const second_item = this.second_slot.getItem();
-        const label = this.lbl_edit.getEditText();
+        let label = this.lbl_edit.getEditText();
+        if (label === ItemHelpers.getLabel(first_item)) {
+            // If it's the same, don't try to change, and don't validate it, so unchanged block titles
+            // longer than ITEM_LABEL_MAX_LENGTH don't get rejected.
+            label = false;
+        }
         const outCount = [];
         const found = this.recipes.findRecipeAndResult(first_item, second_item, label, outCount);
         this.result_slot.setItem(found?.result);
         if (found) {
             this.current_recipe = found.recipe;
             this.current_recipe_outCount = outCount;
+            this.current_recipe_label = label;
         }
     }
 
@@ -230,7 +236,7 @@ export class AnvilWindow extends BaseCraftWindow {
             recipe_id: this.current_recipe.id,
             used_items_keys,
             count,
-            label:  this.lbl_edit.getEditText()
+            label: this.current_recipe_label
         });
     }
     

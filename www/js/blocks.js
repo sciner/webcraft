@@ -3,6 +3,8 @@ import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
+import { StringHelpers } from "./helpers.js";
+import { Lang } from "./lang.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202, 415];
@@ -23,7 +25,7 @@ export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'e
  * E.g. a chest retains its label, but also gets the default placed chest properties.
  * 2. If block.is_entirty == false, they are purged.
  */
-export const EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT = ['anvil', 'label'];
+export const EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT = ['age', 'label'];
 
 export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
 export const shapePivot = new Vector(.5, .5, .5);
@@ -863,6 +865,12 @@ export class BLOCK {
             if(!block.hasOwnProperty(k)) {
                 block[k] = v;
             }
+        }
+        //
+        block.title = block.title ?? StringHelpers.capitalizeFirstLetterOfEachWord(
+            block.name.replaceAll('_', ' ').toLowerCase());
+        if (Lang.inited) { // it's not initialized in server worker, where translation isn't needed anyway
+            block.title = Lang.getOrUnchanged(block.title);
         }
         //
         block.drop_if_unlinked  = block.style_name == 'torch';
