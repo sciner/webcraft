@@ -11,6 +11,7 @@ import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../w
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
+import { ChunkLight } from "../www/js/light/ChunkLight.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -113,6 +114,7 @@ export class ServerChunk {
 
     constructor(world, addr) {
         this.world          = world;
+        this.chunkManager   = world.chunks;
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.addr           = new Vector(addr);
         this.coord          = this.addr.mul(this.size);
@@ -139,6 +141,8 @@ export class ServerChunk {
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
         this.blocksUpdatedByListeners = [];
         this.readyPromise  = Promise.resolve();
+
+        this.light = new ChunkLight(this);
     }
 
     isReady() {
@@ -410,6 +414,7 @@ export class ServerChunk {
             this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
             this._preloadFluidBuf = null;
         }
+        this.light.init();
         await this.onRestore(args);
     }
 
@@ -532,7 +537,7 @@ export class ServerChunk {
     }
 
     getChunkManager() {
-        return this.world.chunks;
+        return this.chunkManager;
     }
 
     // It's slightly faster than getBlock().
@@ -1223,11 +1228,15 @@ export class ServerChunk {
         }
         await Promise.all(promises);
         if (this.load_state === CHUNK_STATE.UNLOADING) {
-            this.setState(CHUNK_STATE.DISPOSED);
-            chunkManager.chunkUnloaded({ addr: this.addr, uniqId: this.uniqId});
+            this.dispose();
         }
     }
 
+    dispose() {
+        this.setState(CHUNK_STATE.DISPOSED);
+        this.light.dispose();
+        this.chunkManager.chunkUnloaded({ addr: this.addr, uniqId: this.uniqId});
+    }
 }
 
 const tmp_posVector         = new Vector();

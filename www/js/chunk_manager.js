@@ -259,7 +259,7 @@ export class ChunkManager {
                             // This happens occasionally after quick F8.
                             break;
                         }
-                        chunk.onLightGenerated(args);
+                        chunk.light.onGenerated(args);
                     }
                     break;
                 }

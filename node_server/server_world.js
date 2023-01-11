@@ -124,6 +124,7 @@ export class ServerWorld {
         await this.restoreModifiedChunks();
         await this.db.fluid.restoreFluidChunks();
         await this.chunks.initWorker();
+        await this.chunks.initWorkers(world_guid);
 
         //
         if(this.isBuildingWorld()) {

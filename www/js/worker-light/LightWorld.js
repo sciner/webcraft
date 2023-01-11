@@ -74,16 +74,20 @@ export class LightWorld {
 
         this.groundLevel = new WorldGroundLevel(this);
 
-        this.texFormat = 'rgba8';
-        this.hasNormals = false;
+        this.renderOptions = {
+            texFormat: 'rgba8',
+            hasNormals: false
+        }
 
         this.worker = worker;
         this.worldId = worldId;
+
+        this.curChunkIndex = 0;
     }
 
     setRenderOptions(args) {
-        this.texFormat = args.texFormat;
-        this.hasNormals = !!args.hasNormals;
+        this.renderOptions.texFormat = args.texFormat;
+        this.renderOptions.hasNormals = !!args.hasNormals;
         this.light.setNormals(this.hasNormals);
     }
 
@@ -188,14 +192,20 @@ export class LightWorld {
         this.isEmptyQueue = ready === 0;
         this.checkPotential();
 
-        this.chunkManager.list.forEach((chunk) => {
+        const {renderOptions} = this;
+        let {curChunkIndex} = this;
+        const chunkList = this.chunkManager.list;
+        for (let loop = chunkList.length - 1; loop >= 0; loop--) {
+            curChunkIndex = (curChunkIndex + 1) % chunkList.length;
+
+            const chunk = chunkList[curChunkIndex];
             if (chunk.waveCounter !== 0)
-                return;
+                continue;
             if (chunk.sentID === chunk.lastID)
-                return;
+                continue;
             chunk.sentID = chunk.lastID;
 
-            chunk.calcResult(this.texFormat === 'rgba4unorm', this.hasNormals);
+            chunk.calcResult(renderOptions.texFormat === 'rgba4unorm', renderOptions.hasNormals);
 
             // no need to send if no changes
             if (chunk.crc != chunk.crcO) {
@@ -219,9 +229,9 @@ export class LightWorld {
 
             endChunks++;
             if (endChunks >= resultLimit) {
-                return;
+                break;
             }
-        })
+        }
     }
 
     onMessage(msg) {

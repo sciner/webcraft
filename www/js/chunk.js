@@ -6,6 +6,7 @@ import {AABB} from './core/AABB.js';
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {fluidLightPower, FLUID_TYPE_MASK} from "./fluid/FluidConst.js";
+import {ChunkLight} from "./light/ChunkLight.js";
 
 let global_uniqId = 0;
 
@@ -28,11 +29,8 @@ export class Chunk {
         this.coord = this.addr.mul(this.size);
         this.id = this.addr.toHash();
 
-        // Light
-        this.lightTex = null;
-        this.lightData = null;
+        this.light = new ChunkLight(this);
         this.lightMats = new Map();
-        this._tempLightSource = null;
 
         // Fluid
         this.fluid_buf = null;
@@ -61,10 +59,6 @@ export class Chunk {
             this.coord.y + this.size.y,
             this.coord.z + this.size.z
         );
-
-        this._dataTextureOffset = 0;
-        this._dataTexture = null;
-        this._dataTextureDirty = false;
         // Run webworker method
         // console.log('2. createChunk: send', this.addr.toHash());
         chunkManager.postWorkerMessage(['createChunk', [
@@ -115,7 +109,7 @@ export class Chunk {
         }
         chunkManager.dataWorld.syncOuter(this);
         this.inited = true;
-        this.initLights();
+        this.light.init();
     }
 
     // onVerticesGenerated ... Webworker callback method
@@ -135,83 +129,13 @@ export class Chunk {
         }
     }
 
-    onLightGenerated(args) {
-        const chunkManager = this.getChunkManager();
-        const lp = chunkManager.lightProps;
-        const arrClass = lp.texFormat === 'rgb565unorm' || lp.texFormat === 'rgba4unorm'
-            ? Uint16Array : Uint8Array;
-        this.lightData = args.lightmap_buffer ? new arrClass(args.lightmap_buffer) : null;
-        this.tblocks.lightData = this.lightData;
-        if (this.lightTex !== null) {
-            this.lightTex.update(this.lightData)
-        }
-    }
-
-    genLightSourceBuf() {
-        const {size} = this;
-        const sz = size.x * size.y * size.z;
-        const light_source = new Uint8Array(sz);
-
-        let ind = 0;
-        let prev_block_id = Infinity, prev_fluid = Infinity;
-        let light_power_number = 0;
-        let block_material = null;
-
-        const {cx, cy, cz, cw} = this.dataChunk;
-        const {id} = this.tblocks;
-        const fluid = this.fluid.uint16View;
-
-        for (let y = 0; y < size.y; y++)
-            for (let z = 0; z < size.z; z++)
-                for (let x = 0; x < size.x; x++) {
-                    const index = cx * x + cy * y + cz * z + cw;
-                    const block_id = id[index];
-                    const fluid_type = fluid[index] & FLUID_TYPE_MASK;
-                    if (block_id !== prev_block_id || fluid_type !== prev_fluid) {
-                        block_material = BLOCK.BLOCK_BY_ID[block_id]
-                        if (block_material) {
-                            light_power_number = block_material.light_power_number;
-                        } else {
-                            console.error(`Block not found ${block_id}`);
-                        }
-                        if (fluid_type > 0) {
-                            light_power_number |= fluidLightPower(fluid_type);
-                        }
-
-                        prev_block_id = block_id;
-                        prev_fluid = fluid_type;
-                    }
-
-                    // dynamic light
-                    if (block_material && block_material.is_dynamic_light) {
-                        const tblock = this.getBlock(this.coord.x + x, this.coord.y + y, this.coord.z + z);
-                        if (tblock) {
-                            light_power_number = tblock.lightSource;
-                        }
-                    }
-
-                    light_source[ind++] = light_power_number;
-                }
-        return light_source;
-    }
-
-    initLights() {
-        if (!this.chunkManager.use_light) {
-            return false;
-        }
-        this.getChunkManager().postLightWorkerMessage(['createChunk',
-            {
-                addr: this.addr,
-                size: this.size,
-                uniqId: this.uniqId,
-                light_buffer: this.genLightSourceBuf().buffer,
-                dataId: this.getDataTextureOffset()
-            }]);
+    getDataTextureOffset() {
+        return this.light.getDataTextureOffset();
     }
 
     getLightTexture(render) {
         const cm = this.getChunkManager();
-        if (!this.lightData || !cm) {
+        if (!this.light.lightData || !cm) {
             return null;
         }
         const {lightProps} = cm;
@@ -225,28 +149,19 @@ export class Chunk {
             });
         }
 
-        if (!this.lightTex) {
-            const lightTex = this.lightTex = cm.lightPool.alloc({
+        if (!this.light.lightTex) {
+            const lightTex = this.light.lightTex = cm.lightPool.alloc({
                 width: this.size.x + 2,
                 height: this.size.z + 2,
                 depth: (this.size.y + 2) * lightProps.depthMul,
                 type: lightProps.texFormat,
                 filter: 'linear',
-                data: this.lightData
+                data: this.light.lightData
             })
-            this._dataTextureDirty = true;
+            this.light._dataTextureDirty = true;
         }
 
-        return this.lightTex;
-    }
-
-    getDataTextureOffset() {
-        if (!this._dataTexture) {
-            const cm = this.getChunkManager();
-            cm.chunkDataTexture.add(this);
-        }
-
-        return this._dataTextureOffset;
+        return this.light.lightTex;
     }
 
     prepareRender(render) {
@@ -256,14 +171,7 @@ export class Chunk {
         //TODO: if dist < 100?
         this.getLightTexture(render);
 
-        if (!this._dataTexture) {
-            const cm = this.getChunkManager();
-            cm.chunkDataTexture.add(this);
-        }
-
-        if (this._dataTextureDirty) {
-            this._dataTexture.writeChunkData(this);
-        }
+        this.light.prepareRender(render);
     }
 
     drawBufferVertices(render, resource_pack, group, mat, vertices) {
@@ -276,15 +184,15 @@ export class Chunk {
         mat = texMat;
         let dist = Qubatch.player.lerpPos.distance(this.coord);
         render.batch.setObjectDrawer(render.chunk);
-        if (this.lightData && dist < 108) {
+        if (this.light.lightData && dist < 108) {
             // in case light of chunk is SPECIAL
             this.getLightTexture(render);
-            if (this.lightTex) {
-                const base = this.lightTex.baseTexture || this.lightTex;
+            if (this.light.lightTex) {
+                const base = this.light.lightTex.baseTexture || this.light.lightTex;
                 if (base._poolLocation <= 0) {
                     mat = this.lightMats.get(key);
                     if (!mat) {
-                        mat = texMat.getLightMat(this.lightTex);
+                        mat = texMat.getLightMat(this.light.lightTex);
                         this.lightMats.set(key, mat);
                     }
                 }
@@ -371,9 +279,7 @@ export class Chunk {
             return;
         }
         this.chunkManager = null;
-        if (this._dataTexture) {
-            this._dataTexture.remove(this);
-        }
+        this.light.dispose();
         chunkManager.dataWorld.removeChunk(this);
         // destroy buffers
         for (let [_, v] of this.vertices) {
@@ -381,11 +287,11 @@ export class Chunk {
                 v.buffer.destroy();
             }
         }
-        const {lightTex} = this;
+        const {lightTex} = this.light;
         if (lightTex) {
             chunkManager.lightPool.dealloc(lightTex);
         }
-        this.lightTex = null;
+        this.light.lightTex = null;
         // run webworker method
         chunkManager.destruct_chunks_queue.add({addr: this.addr, uniqId: this.uniqId});
         // chunkManager.postWorkerMessage(['destructChunk', [this.addr]]);
@@ -405,7 +311,7 @@ export class Chunk {
         // run webworker method
         this.getChunkManager().postWorkerMessage(['buildVertices', {
             addrs: [this.addr],
-            offsets: [this.getDataTextureOffset()]
+            offsets: [this.light.getDataTextureOffset()]
         }]);
         return true;
     }
@@ -587,76 +493,12 @@ export class Chunk {
         }
     }
 
-    beginLightChanges() {
-        if (!this.chunkManager.use_light) {
-            return;
-        }
-        this._tempLightSource = this.genLightSourceBuf();
-    }
-
-    endLightChanges() {
-        if (!this.chunkManager.use_light) {
-            return;
-        }
-        const oldBuf = this._tempLightSource;
-        this._tempLightSource = null;
-        const newBuf = this.genLightSourceBuf();
-
-        const {size} = this;
-        let diff = [];
-        let ind = 0;
-        for (let y = 0; y < size.y; y++)
-            for (let z = 0; z < size.z; z++)
-                for (let x = 0; x < size.x; x++) {
-                    if (oldBuf[ind] !== newBuf[ind]) {
-                        diff.push(x, y, z, newBuf[ind]);
-                    }
-                    ind++;
-                }
-        if (diff.length > 0) {
-            this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
-                addr: this.addr,
-                dataId: this.getDataTextureOffset(),
-                list: diff
-            }]);
-        }
-    }
-
-    applyDiffToLight(diffFluidType) {
-        const diff = [];
-        const {cw, outerSize } = this.dataChunk;
-        let tblock = null;
-        let v = new Vector();
-
-        for (let i = 0; i < diffFluidType.length; i++) {
-            const index = diffFluidType[i];
-            let tmp = index - cw;
-            let x = tmp % outerSize.x;
-            tmp -= x;
-            tmp /= outerSize.x;
-            let z = tmp % outerSize.z;
-            tmp -= z;
-            tmp /= outerSize.z;
-            let y = tmp;
-            v.set(x, y, z);
-            tblock = this.tblocks.get(v, tblock);
-            diff.push(x, y, z, tblock.lightSource);
-        }
-        if (diff.length > 0) {
-            this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
-                addr: this.addr,
-                dataId: this.getDataTextureOffset(),
-                list: diff
-            }]);
-        }
-    }
-
     setFluid(buf) {
         if (this.inited) {
             this.fluid.markDirtyMesh();
             let diffFluidType = [];
             this.fluid.loadDbBuffer(buf, false, diffFluidType);
-            this.applyDiffToLight(diffFluidType);
+            this.light.applyDiffToLight(diffFluidType);
             this.chunkManager.fluidWorld.syncOuter(this.fluid);
         } else {
             this.fluid_buf = buf;
@@ -667,7 +509,7 @@ export class Chunk {
         if (this.inited) {
             let diffFluidType = [];
             this.fluid.applyDelta(buf, true, diffFluidType);
-            this.applyDiffToLight(diffFluidType);
+            this.light.applyDiffToLight(diffFluidType);
         } else {
             this.fluid_deltas.push(buf);
         }
