@@ -16,11 +16,11 @@ export class BuildingPalettes {
     }
 
     //
-    next(cluster, seed, door_direction, size, coord, aabb, entrance, door_bottom) {
+    next(cluster, seed, door_direction, size, coord, aabb, entrance) {
 
         // generate random building from palette
         let building = null;
-        const args = {cluster, seed, door_direction, size, coord, aabb, entrance, door_bottom};
+        const args = {cluster, seed, door_direction, size, coord, aabb, entrance}
 
         if(size.x == 1 && size.z == 1) {
             building = this.list.crossroad.next(args);
@@ -35,7 +35,7 @@ export class BuildingPalettes {
         }
 
         if(!building) {
-            throw 'error_proportional_fill_pattern';
+            throw 'error_proportional_fill_pattern'
         }
 
         return building
@@ -127,10 +127,10 @@ export class BuldingPalette {
                 }
 
                 // calculate correct door position
-                Building.selectSize(building_template, args.coord, args.size, args.entrance, args.door_bottom, door_direction, args.aabb);
+                Building.selectSize(building_template, args.coord, args.size, args.entrance, door_direction, args.aabb);
 
                 // create object by pre-calculated arguments
-                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, door_direction, args.size, building_template);
+                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, door_direction, args.size, building_template);
 
             }
 

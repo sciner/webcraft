@@ -5,8 +5,8 @@ import { Building } from "../building.js";
 // 
 export class BuildingBlocks extends Building {
 
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, building_template) {
-        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, building_template)
+    constructor(cluster, seed, coord, aabb, entrance, door_direction, size, building_template) {
+        super(cluster, seed, coord, aabb, entrance, door_direction, size, building_template)
         this.chunks = new VectorCollector()
     }
 

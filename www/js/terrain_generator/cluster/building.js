@@ -23,19 +23,16 @@ export class Building {
      * @param {*} seed 
      * @param {Vector} coord 
      * @param {AABB} _aabb 
-     * @param {Vector} _entrance 
-     * @param {Vector} _door_bottom 
+     * @param {Vector} _entrance
      * @param {int} door_direction 
      * @param {Vector} _size 
      * @param {*} building_template 
      */
-    constructor(cluster, seed, coord, _aabb, _entrance, _door_bottom, door_direction, _size, building_template) {
+    constructor(cluster, seed, coord, _aabb, _entrance, door_direction, _size, building_template) {
 
         // coord = new Vector(coord).add(building_template.door_pos)
 
-        _door_bottom = new Vector(coord)
-        _entrance = new Vector(_door_bottom).add(getAheadMove(door_direction))
-        _door_bottom.y = Infinity
+        _entrance = new Vector(_entrance)// .add(getAheadMove(door_direction))
         _entrance.y = Infinity
         _size = building_template ? new Vector(building_template.size) : _size
         _aabb = new AABB(
@@ -47,8 +44,6 @@ export class Building {
             coord.z + _size.z
         )
 
-        // Building.selectSize(building_template, coord, _size, _entrance, _door_bottom, door_direction, _aabb);
-
         // other props
         this.randoms            = new alea(coord.toHash())
         this.cluster            = cluster
@@ -59,7 +54,6 @@ export class Building {
         this.building_template   = building_template
         this.door_direction     = door_direction
         this.coord              = coord
-        this.door_bottom        = _door_bottom
         this.entrance           = _entrance
         this.aabb               = _aabb
         this.size               = _size
@@ -90,10 +84,9 @@ export class Building {
 
     // Translate position
     translate(vec) {
-        this.aabb.translate(vec.x, vec.y, vec.z);
-        this.coord.addSelf(vec);
-        this.entrance.addSelf(vec);
-        this.door_bottom.addSelf(vec);
+        this.aabb.translate(vec.x, vec.y, vec.z)
+        this.coord.addSelf(vec)
+        this.entrance.addSelf(vec)
     }
 
     /**
@@ -105,7 +98,7 @@ export class Building {
         // natural basement
         if(draw_natural_basement) {
             const height = 4
-            const dby = this.building_template ? this.building_template.world.door_bottom.y - 2 : 0 // 2 == 1 уровень ниже пола + изначально вход в конструкторе стоит на высоте 1 метра над землей
+            const dby = this.building_template ? this.building_template.world.entrance.y - 2 : 0 // 2 == 1 уровень ниже пола + изначально вход в конструкторе стоит на высоте 1 метра над землей
             const coord = new Vector(this.aabb.x_min, this.coord.y + dby, this.aabb.z_min)
             const size = new Vector(this.size.x, -height, this.size.z)
             cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE)
@@ -114,8 +107,7 @@ export class Building {
 
     setY(y) {
 
-        this.door_bottom.y     = y
-        this.entrance.y        = y - 1
+        this.entrance.y        = y // TODO: Maybe need substract 1
         this.coord.y           = this.entrance.y + this.coord.y
 
         const height           = this.aabb.height
@@ -152,10 +144,9 @@ export class Building {
      * @param {Vector} coord 
      * @param {Vector} size 
      * @param {Vector} entrance 
-     * @param {Vector} door_bottom 
      * @param {int} door_direction 
      */
-    static selectSize(building_template, coord, size, entrance, door_bottom, door_direction, aabb) {
+    static selectSize(building_template, coord, size, entrance, door_direction, aabb) {
 
         const door_pos = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS);
 
@@ -208,33 +199,30 @@ export class Building {
             }
         }
 
-        let dbx = door_bottom.x;
-        let dbz = door_bottom.z;
-
-        door_bottom.x = entrance.x
-        door_bottom.z = entrance.z
+        let dbx = entrance.x;
+        let dbz = entrance.z;
 
         //
         switch(door_direction) {
             case DIRECTION.NORTH: {
-                door_bottom.x += door_pos.x
+                entrance.x += door_pos.x
                 break;
             }
             case DIRECTION.SOUTH: {
-                door_bottom.x -= door_pos.x
+                entrance.x -= door_pos.x
                 break;
             }
             case DIRECTION.WEST: {
-                door_bottom.z -= door_pos.z
+                entrance.z -= door_pos.z
                 break;
             }
             case DIRECTION.EAST: {
-                door_bottom.z += door_pos.z
+                entrance.z += door_pos.z
                 break;
             }
         }
 
-        // aabb.translate(- door_bottom.x + dbx, 0, - door_bottom.z + dbz);
+        // aabb.translate(- entrance.x + dbx, 0, - entrance.z + dbz);
 
     }
 

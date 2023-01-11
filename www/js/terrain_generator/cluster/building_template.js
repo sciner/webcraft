@@ -49,7 +49,7 @@ export class BuildingTemplate {
     static addSchema(schema) {
         schema.world.pos1 = new Vector(schema.world.pos1)
         schema.world.pos2 = new Vector(schema.world.pos2)
-        schema.world.door_bottom = new Vector(schema.world.door_bottom)
+        schema.world.entrance = new Vector(schema.world.entrance)
         schema.door_pos = new Vector(schema.door_pos)
         schema.size = new Vector(schema.size)
         this.schemas.set(schema.name, schema);

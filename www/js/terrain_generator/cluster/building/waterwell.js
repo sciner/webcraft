@@ -7,12 +7,12 @@ export class WaterWell extends Building {
 
     static SIZE_LIST = [{size: {x: 3, z: 3}}];
 
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+    constructor(cluster, seed, coord, aabb, entrance, door_direction, size) {
 
         coord.y = -14;
         size.y = 21;
 
-        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        super(cluster, seed, coord, aabb, entrance, door_direction, size);
         //
         cluster.road_block.reset();
         cluster.addRoadPlatform(coord, size, cluster.road_block);

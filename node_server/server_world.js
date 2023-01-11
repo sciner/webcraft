@@ -202,11 +202,11 @@ export class ServerWorld {
             // fill blocks
             for(let b of schema.blocks) {
                 const item = {id: b.block_id};
-                const y = schema.world.door_bottom.y - schema.door_pos.y - 1
+                const y = schema.world.entrance.y - schema.door_pos.y - 1
                 const pos = new Vector(
-                    schema.world.door_bottom.x - b.move.x,
+                    schema.world.entrance.x - b.move.x,
                     schema.world.pos1.y + b.move.y - y,
-                    schema.world.door_bottom.z - b.move.z
+                    schema.world.entrance.z - b.move.z
                 )
                 if(b.extra_data) item.extra_data = b.extra_data
                 if(b.rotate) item.rotate = b.rotate

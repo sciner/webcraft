@@ -76,43 +76,29 @@ export class ServerGame {
 
         // Load building template schemas
         for(let item of config.building_schemas) {
-            try {
-                await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
+            await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
 
-                    // fix
-                    // if(item.name == 'mine') {
-                    //     const fix = new Vector(-1, 10, 12)
-                    //     json.world.door_bottom.x += fix.x
-                    //     json.world.door_bottom.y += fix.y
-                    //     json.world.door_bottom.z += fix.z
-                    //     for(let block of json.blocks) {
-                    //         block.move.x += fix.x - 1
-                    //         block.move.y += fix.y
-                    //         block.move.z += fix.z
-                    //     }
-                    //     // fs.writeFileSync(`./data/building_schema/${item.name}.json`, JSON.stringify(json))
-                    // }
+                // fix
+                // if(item.name == 'mine') {
+                //     const fix = new Vector(-1, 10, 12)
+                //     json.world.entrance.x += fix.x
+                //     json.world.entrance.y += fix.y
+                //     json.world.entrance.z += fix.z
+                //     for(let block of json.blocks) {
+                //         block.move.x += fix.x - 1
+                //         block.move.y += fix.y
+                //         block.move.z += fix.z
+                //     }
+                //     // fs.writeFileSync(`./data/building_schema/${item.name}.json`, JSON.stringify(json))
+                // }
 
-                    json.name = item.name
-                    json.meta = json.meta ?? {}
-                    item.door_bottom = new Vector(json.world.door_bottom)
+                json.name = item.name
+                json.meta = json.meta ?? {}
+                item.entrance = new Vector(json.world.entrance)
 
-                    json.world = {...json.world, ...item}
-                    BuildingTemplate.addSchema(json)
-                });
-            } catch(e) {
-                throw e
-                const schema = {
-                    name: item.name,
-                    world: {
-                        pos1: item.pos1,
-                        pos2: item.pos2,
-                        door_bottom: item.door_bottom
-                    },
-                    blocks: []
-                }
-                BuildingTemplate.addSchema(schema)
-            }
+                json.world = {...json.world, ...item}
+                BuildingTemplate.addSchema(json)
+            })
         }
 
         // Create websocket server

@@ -574,7 +574,7 @@ export class TerrainMapManager2 {
         if(!map.cluster.is_empty && map.cluster.buildings) {
 
             for(const [_, building] of map.cluster.buildings.entries()) {
-                if(building.door_bottom && building.door_bottom.y == Infinity) {
+                if(building.entrance && building.entrance.y == Infinity) {
 
                     xyz.copyFrom(building.entrance).addSelf(getAheadMove(building.door_direction))
 
@@ -587,7 +587,7 @@ export class TerrainMapManager2 {
                     this.noise3d.generate4(xyz, doorSearchSize);
 
                     for(let i = 0; i < 2; i++) {
-                        if(building.door_bottom.y != Infinity) {
+                        if(building.entrance.y != Infinity) {
                             break;
                         }
                         const biome = this.calcBiome(xyz);

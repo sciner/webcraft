@@ -801,7 +801,7 @@ export class Renderer {
                         _schema_coord.x + _schema_size.x, _schema_coord.y + _schema_size.y, _schema_coord.z + _schema_size.z
                     ), {lineWidth: .15, colorBGRA: 0xFFFFFFFF})
                     // door
-                    const dbtm = schema.world.door_bottom
+                    const dbtm = schema.world.entrance
                     this.debugGeom.addAABB(new AABB(
                         dbtm.x, dbtm.y, dbtm.z,
                         dbtm.x + 1, dbtm.y + 2, dbtm.z + 1

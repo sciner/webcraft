@@ -22,18 +22,18 @@ export class WorldEditBuilding {
         this.list = new Map()
 
         for(let schema of BuildingTemplate.schemas.values()) {
-            this._insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.door_bottom, schema.meta ?? null)
+            this._insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.entrance, schema.meta ?? null)
         }
 
     }
 
-    _insert(name, pos1, pos2, door_bottom, meta) {
+    _insert(name, pos1, pos2, entrance, meta) {
         const building = {
             name,
             world: {
                 pos1,
                 pos2,
-                door_bottom
+                entrance
             },
             meta,
             size: new Vector(0, 0, 0),
@@ -108,7 +108,7 @@ export class WorldEditBuilding {
             Math.min(pos1_temp.z, pos2_temp.z)
         )
 
-        const door_bottom = new Vector(
+        const entrance = new Vector(
             Math.round((pos1.x + pos2.x) / 2),
             1,
             Math.round((pos1.z + pos2.z) / 2)
@@ -119,9 +119,9 @@ export class WorldEditBuilding {
             draw_natural_basement:      true,
             air_column_from_basement:   true
         }
-        const building = {name, pos1, pos2, door_bottom, meta}
+        const building = {name, pos1, pos2, entrance, meta}
 
-        this._insert(building.name, building.pos1, building.pos2, building.door_bottom)
+        this._insert(building.name, building.pos1, building.pos2, building.entrance)
 
         // append building_schemas        
         const file_name = `./conf_world.json`
@@ -194,10 +194,10 @@ export class WorldEditBuilding {
         building.size = new Vector(copy_data.quboid.volx, copy_data.quboid.voly, copy_data.quboid.volz)
 
         const pos1 = building.world.pos1
-        const rel_door_bottom = building.world.door_bottom.sub(pos1)
+        const rel_entrance = building.world.entrance.sub(pos1)
 
         // calc door_pos
-        building.door_pos.set(-rel_door_bottom.x, rel_door_bottom.y, -rel_door_bottom.z);
+        building.door_pos.set(-rel_entrance.x, rel_entrance.y, -rel_entrance.z);
 
         // clear blocks
         building.blocks = [];
@@ -210,9 +210,9 @@ export class WorldEditBuilding {
             if([209, 210].includes(item.id)) continue;
             if(item.id == 0 && !copy_air) continue;
             const move = new Vector(
-                rel_door_bottom.x - bpos.x,
-                bpos.y - rel_door_bottom.y + building.door_pos.y - (basement_y - pos1.y),
-                rel_door_bottom.z - bpos.z // + building.door_pos.z
+                rel_entrance.x - bpos.x,
+                bpos.y - rel_entrance.y + building.door_pos.y - (basement_y - pos1.y),
+                rel_entrance.z - bpos.z // + building.door_pos.z
             );
             const block = {
                 move,
@@ -304,7 +304,7 @@ export class WorldEditBuilding {
         const building = this.list.get(name)
         if(!building) throw 'building_not_found';
 
-        const pos = new Vector(building.world.door_bottom.x + .5, 1, 4.5)
+        const pos = new Vector(building.world.entrance.x + .5, 1, 4.5)
         player.teleport({place_id: null, pos});
 
     }

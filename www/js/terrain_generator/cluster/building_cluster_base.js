@@ -51,12 +51,11 @@ export class ClusterBuildingBase extends ClusterBase {
      * @param {int} dz 
      * @param {Vector} size 
      * @param {Vector} entrance 
-     * @param {Vector} door_bottom 
      * @param {int} door_direction 
      * 
      * @returns 
      */
-    addBuilding(seed, dx, dz, size, entrance, door_bottom, door_direction) {
+    addBuilding(seed, dx, dz, size, entrance, door_direction) {
 
         const coord = new Vector(dx + this.coord.x, 1, dz + this.coord.z)
         if(this.buildings.has(coord)) {
@@ -64,7 +63,7 @@ export class ClusterBuildingBase extends ClusterBase {
         }
 
         const aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN)
-        const building = this.building_palettes.next(this, seed, door_direction, size, coord.clone(), aabb, entrance.addSelf(this.coord), door_bottom.addSelf(this.coord))
+        const building = this.building_palettes.next(this, seed, door_direction, size, coord.clone(), aabb, entrance.add(this.coord))
 
         //
         this.buildings.set(building.coord, building);
