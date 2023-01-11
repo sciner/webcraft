@@ -8,7 +8,7 @@ import { TerrainMapManager2 } from "../biome3/terrain/manager.js";
 
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
-export const CLUSTER_SIZE = new Vector(128, 256, 256)
+export const CLUSTER_SIZE = new Vector(128, 256, 128)
 export const CLUSTER_SIZE_V2 = new Vector(256, 200, 256)
 
 // ClusterManager
@@ -64,6 +64,9 @@ export class ClusterManager {
             cluster = new ClusterEmpty(this, addr.clone(), biome);
         }
         this.all.set(addr, cluster)
+        if(cluster.addr.equal(new Vector(21, 0, 19))) {
+            debugger
+        }
         return cluster
     }
 
