@@ -152,15 +152,16 @@ export class Building {
         // corner of building in the plot coords
         let corner1 = new Vector(0, 0, MOVE_TO_BACK);
         // diagonal of building, signed vector
-        let corner_to_diag = new Vector().copyFrom(building_template.size);
+        let signed_size = new Vector().copyFrom(building_template.size);
         // door, relative to corner
         let corner_to_door = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS);
 
         if (door_direction) {
             // rotate corner relative to plot center
-            corner1.applyCubeSymSelf(door_direction, new Vector(size.x * 0.5, 0, size.z * 0.5));
-            // diagonal is just a vector
-            corner_to_diag.applyCubeSymSelf(door_direction);
+            corner1.applyCubeSymSelf(door_direction);
+            signed_size.applyCubeSymSelf(door_direction);
+            if (signed_size.x < 0) corner1.x += size.x;
+            if (signed_size.z < 0) corner1.z += size.z;
             // door is BLOCK! rotation is around 0.5!
             corner_to_door.applyCubeSymSelf(door_direction, new Vector(-0.5, 0, -0.5));
         }
@@ -169,13 +170,13 @@ export class Building {
         entrance.z = coord.z + corner1.z + corner_to_door.z;
 
         // diagonal might become negative, that's fine
-        let west = Math.min(corner_to_diag.x, 0);
-        let south = Math.min(corner_to_diag.z, 0);
+        let west = Math.min(signed_size.x, 0);
+        let south = Math.min(signed_size.z, 0);
         coord.x += corner1.x + west;
         coord.z += corner1.z + south;
 
-        size.x = Math.abs(corner_to_diag.x);
-        size.z = Math.abs(corner_to_diag.z);
+        size.x = Math.abs(signed_size.x);
+        size.z = Math.abs(signed_size.z);
     }
 
     /**
