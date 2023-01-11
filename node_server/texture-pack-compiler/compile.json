@@ -1879,7 +1879,12 @@
             "id": 56,
             "name": "DIAMOND_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "DIAMOND", "count": 1, "chance": 1},
+            "drop_item": [
+                {
+                    "name":"DIAMOND",
+                    "instrument":"iron" 
+                }
+            ],
             "texture": "block/diamond_ore.png",
             "material": {
                 "id": "diamond"
