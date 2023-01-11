@@ -38,7 +38,7 @@ export class ClusterBase {
         this.mask           = new Array(this.size.x * this.size.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
-        this.corner         = Math.floor(this.randoms.double() * 4);
+        this.corner         = (clusterManager.version == 2) ? Math.floor(this.randoms.double() * 4) : undefined
     }
 
     /**
@@ -103,7 +103,7 @@ export class ClusterBase {
         if(this.is_empty) {
             return resp;
         }
-        let corner = this.corner // Math.floor(this.randoms.double() * 4);
+        const corner = this.corner ?? Math.floor(this.randoms.double() * 4)
         let min_x = this.size.x;
         let min_z = this.size.z;
         let max_x = 0;
@@ -143,9 +143,6 @@ export class ClusterBase {
                 break;
             }
         }
-
-        move_x = 0
-        move_z = 0
 
         // make new mask
         const new_mask = new Array(this.size.x * this.size.z);

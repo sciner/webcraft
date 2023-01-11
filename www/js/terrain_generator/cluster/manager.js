@@ -64,9 +64,6 @@ export class ClusterManager {
             cluster = new ClusterEmpty(this, addr.clone(), biome);
         }
         this.all.set(addr, cluster)
-        if(cluster.addr.equal(new Vector(21, 0, 19))) {
-            debugger
-        }
         return cluster
     }
 
