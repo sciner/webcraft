@@ -166,6 +166,10 @@ export class BuildingTemplate {
         this.createBiomeDirtCapBlocks(all_blocks, min, bm)
 
         // Call it only after DELETE_BLOCK_ID is deleted
+        // TODO: Этот код предназначался для создания пустоты перед дверью,
+        // чтобы дверь не заваливало блоками земли,
+        // но однако он также модифицирует размер строения, этого нельзя делать,
+        // т.к. от этого зависит фундамент и расчеты позиции строения
         // this.addAirMargins(all_blocks, min, bm)
 
         return {all_blocks, min}
@@ -543,6 +547,7 @@ export class BuildingTemplate {
         }
 
         const rot_cover = (block) => {
+            // TODO: Strange sides order, but working correct
             const sides = ['north', 'west', 'south', 'east']
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]

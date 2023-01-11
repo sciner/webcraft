@@ -42,7 +42,7 @@ export class ClusterVilage extends ClusterBuildingBase {
             let t = performance.now();
             this.schema = new VilageSchema(this, schema_options);
             const resp = this.schema.generate(this.id);
-                this.timers.generate = performance.now() - t;
+            this.timers.generate = performance.now() - t;
 
             //
             t = performance.now();
@@ -51,10 +51,6 @@ export class ClusterVilage extends ClusterBuildingBase {
                 const size = new Vector(house.width, 5, house.depth)
                 const entrance = new Vector(house.door.x, Infinity, house.door.z)
                 this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance.add(this.coord), house.door.direction)
-                // orig door position
-                const index = entrance.z * this.size.x + entrance.x              
-                resp.mask[index] = {block_id: 69}
-                // break
             }
             this.timers.add_buildings = performance.now() - t; t = performance.now();
 

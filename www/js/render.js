@@ -777,7 +777,7 @@ export class Renderer {
             }
             // cluster
             if(this.world.chunkManager.cluster_draw_debug_grid) {
-                const CSZ = new Vector(this.world.info.generator.cluster_size.x, this.world.info.generator.cluster_size.y, this.world.info.generator.cluster_size.z)
+                const CSZ = new Vector(this.world.info.generator.cluster_size)
                 const cluster_coord = overChunk.coord.div(CSZ).flooredSelf().multiplyVecSelf(CSZ)
                 this.debugGeom.addAABB(new AABB(
                     cluster_coord.x, cluster_coord.y, cluster_coord.z,

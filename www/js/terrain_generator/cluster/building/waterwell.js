@@ -18,7 +18,7 @@ export class WaterWell extends Building {
         cluster.addRoadPlatform(coord, size, cluster.road_block);
 
         //
-        this.draw_entrance = true;
+        this.draw_entrance = false;
 
         // Blocks
         const dir = (door_direction + 2) % 4;
@@ -96,7 +96,7 @@ export class WaterWell extends Building {
 
         cluster.drawQuboid(chunk, this.coord, this.size.add(new Vector(0, -1, 0)), BLOCK.AIR);
 
-        // // 4 walls
+        // 4 walls
         const walls_size = this.size.clone().addSelf(new Vector(0, -4, 0));
         cluster.draw4Walls(chunk, this.coord, walls_size, this.wallBlocks);
 
@@ -104,7 +104,7 @@ export class WaterWell extends Building {
         const q_size = walls_size.add(new Vector(-2, -2, -2));
         cluster.drawQuboid(chunk, q_pos, q_size, BLOCK.STILL_WATER);
 
-        // // Draw blocks
+        // Draw blocks
         this.blocks.draw(cluster, chunk);
 
     }

@@ -6,6 +6,8 @@ import {ClusterEmpty} from "./empty.js";
 import {impl as alea} from '../../../vendors/alea.js';
 import { TerrainMapManager2 } from "../biome3/terrain/manager.js";
 
+// TODO: This is must be moved to world generators on server
+// but in constructor of ClusterManager generator options is empty
 export const CLUSTER_SIZE = new Vector(128, 256, 256)
 export const CLUSTER_SIZE_V2 = new Vector(256, 200, 256)
 
