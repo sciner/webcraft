@@ -94,6 +94,8 @@ export class ChunkManager {
             };
         }
 
+        this.worldId = 'CLIENT';
+
         const that = this;
 
         // Destruct chunks queue
@@ -242,8 +244,9 @@ export class ChunkManager {
         }
         // Light worker messages receiver
         this.lightWorker.onmessage = function(e) {
-            let cmd = e.data[0];
-            let args = e.data[1];
+            let worldId = e.data[0];
+            let cmd = e.data[1];
+            let args = e.data[2];
             switch(cmd) {
                 case 'worker_inited': {
                     that.worker_inited = --that.worker_counter === 0;
@@ -351,7 +354,7 @@ export class ChunkManager {
     setLightTexFormat(texFormat, hasNormals) {
         this.lightProps.texFormat = texFormat;
         this.lightProps.depthMul = hasNormals ? 2 : 1;
-        this.lightWorker.postMessage(['initRender', { texFormat, hasNormals }]);
+        this.lightWorker.postMessage([this.worldId, 'initRender', { texFormat, hasNormals }])
     }
 
     /**
@@ -574,6 +577,7 @@ export class ChunkManager {
     // postLightWorkerMessage
     postLightWorkerMessage(data) {
         if(this.use_light) {
+            data.unshift(this.worldId);
             this.lightWorker.postMessage(data);
         }
     }

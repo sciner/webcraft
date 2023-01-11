@@ -3,84 +3,21 @@
  */
 let modulesReady = false;
 let Vector = null;
-let LightConst = null;
-let LightWorld = null;
-let Chunk = null;
+let LightWorkerWorldManager = null;
 let worlds = null;
 
+const RAF_MS = 16; //ms per one world update
+
 function run() {
-    const msLimit = 16;
-    const resultLimit = 5;
-    const startTime = performance.now();
-    let endTime = performance.now();
-    let endChunks = 0;
-    let ready;
-    do {
-        ready = 3;
-        if (world.light.doIter(10000)) {
-            ready--;
-        }
-        endTime = performance.now();
-        // if (endTime > startTime + msLimit) {
-        //     break;
-        // }
-        if (world.dayLightSrc.doIter(40000)) {
-            ready--;
-        }
-        // if (endTime > startTime + msLimit) {
-        //     break;
-        // }
-        endTime = performance.now();
-        if (world.dayLight.doIter(20000)) {
-            ready--;
-        }
-        endTime = performance.now();
-    } while (endTime < startTime + msLimit && ready > 0);
-    // if (endTime - startTime > 0.3) {
-    //     console.log(`Light took ${endTime - startTime}`);
-    // }
-
-    world.isEmptyQueue = ready === 0;
-    world.checkPotential();
-
-    world.chunkManager.list.forEach((chunk) => {
-        if (chunk.waveCounter !== 0)
-            return;
-        if (chunk.sentID === chunk.lastID)
-            return;
-        chunk.sentID = chunk.lastID;
-
-        chunk.calcResult(renderFormat === 'rgba4unorm', hasNormals);
-
-        // no need to send if no changes
-        if (chunk.crc != chunk.crcO) {
-            chunk.crcO = chunk.crc;
-            const is_zero = (chunk.result_crc_sum == 0 && (
-                (!('result_crc_sumO' in chunk)) ||
-                (chunk.result_crc_sumO == 0)
-            ));
-            chunk.result_crc_sumO = chunk.result_crc_sum;
-            if (!is_zero) {
-                // console.log(8)
-                worker.postMessage(['light_generated', {
-                    addr: chunk.addr,
-                    lightmap_buffer: chunk.lightResult.buffer,
-                    lightID: chunk.lastID,
-                    uniqId: chunk.uniqId,
-                }]);
-            }
-            world.groundLevel.estimateIfNecessary();
-        }
-
-        endChunks++;
-        if (endChunks >= resultLimit) {
-            return;
-        }
-    })
+    const now = performance.now();
+    try {
+        worlds.process({maxMs: RAF_MS});
+    } catch (e) {
+        console.error(e);
+    }
+    const passed = Math.ceil(performance.now() - now);
+    setTimeout(run, Math.max(0, RAF_MS - passed));
 }
-
-let renderFormat = 'rgba8';
-let hasNormals = false;
 
 const msgQueue = [];
 
@@ -117,14 +54,8 @@ async function preLoad() {
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
     });
-    await import('./worker-light/LightConst.js').then(module => {
-        LightConst = module;
-    });
-    await import('./worker-light/LightWorld.js').then(module => {
-        LightWorld = module.LightWorld;
-    });
-    await import('./worker-light/Chunk.js').then(module => {
-        Chunk = module.Chunk;
+    await import('./worker-light/LightWorkerWorldManager.js').then(module => {
+        LightWorkerWorldManager = module.LightWorkerWorldManager;
     });
     modulesReady = true;
 
@@ -132,13 +63,11 @@ async function preLoad() {
 }
 
 async function initWorlds() {
-
     if (!modulesReady) {
         await preLoad();
     }
 
-    world = new LightWorld(worker);
-    world.light.setNormals(hasNormals);
+    worlds = new LightWorkerWorldManager(worker);
     for (let item of msgQueue) {
         await onmessage(item);
     }
@@ -156,9 +85,8 @@ async function onMessageFunc(e) {
     const world_id = data[0];
     const cmd = data[1];
     const args = data[2];
-    if (cmd == 'init') {
-        // Init modules
-        initWorlds();
+    if (cmd === 'init') {
+        await initWorlds();
         return;
     }
     if (!modulesReady) {
@@ -173,46 +101,11 @@ async function onMessageFunc(e) {
             break;
         }
         case 'initRender': {
-            renderFormat = args.texFormat;
-            hasNormals = !!args.hasNormals;
-            if (world && world.light) {
-                world.light.setNormals(hasNormals);
-            }
+            worlds.setRenderOptions(args);
             break;
         }
-        case 'createChunk': {
-            let chunk = world.chunkManager.getChunk(args.addr);
-            if (chunk) {
-                chunk.removed = true;
-                world.chunkManager.delete(chunk);
-            }
-            chunk = new Chunk(world, args);
-            chunk.init();
-            world.chunkManager.add(chunk);
-            chunk.fillOuter();
-            break;
-        }
-        case 'destructChunk': {
-            for (let props of args) {
-                let chunk = world.chunkManager.getChunk(props.addr);
-                if (chunk && chunk.uniqId === props.uniqId) {
-                    chunk.removed = true;
-                    world.chunkManager.delete(chunk);
-                }
-            }
-            break;
-        }
-        case 'setChunkBlock': {
-            world.setChunkBlock(args);
-            break;
-        }
-        case 'setPotentialCenter': {
-            world.chunk_render_dist = args.chunk_render_dist;
-            if (args.pos) {
-                world.chunkManager.nextPotentialCenter = new Vector().copyFrom(args.pos).round();
-                world.checkPotential();
-            }
-            break;
+        default: {
+            world.onMessage([cmd, args]);
         }
     }
 }
