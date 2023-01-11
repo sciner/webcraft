@@ -148,73 +148,42 @@ export class Building {
     static selectSize(building_template, coord, size, entrance, door_direction) {
 
         const door_pos = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS)
-        const random_size = new Vector(building_template.size)
+        const building_size = new Vector(building_template.size)
 
-        // swap X and Z
-        if(door_direction % 2 == 1) {
-            random_size.swapXZSelf();
-            door_pos.swapXZSelf();
-        }
+        const MOVE_TO_BACK = 0 // door_pos.z // 1
+        const am = getAheadMove(door_direction).multiplyScalar(MOVE_TO_BACK)
+        coord.addSelf(am)
+        entrance.addSelf(am)
 
         //
         switch(door_direction) {
             case DIRECTION.SOUTH: {
-                coord.z += (size.z - random_size.z)
-                size.x = random_size.x
-                size.z = random_size.z
-                entrance.x = coord.x + random_size.x - 1
-                entrance.x -= door_pos.x
-                break;
+                coord.z = coord.z + size.z - building_size.z
+                entrance.x = coord.x + building_size.x - door_pos.x - 1
+                break
             }
             case DIRECTION.NORTH: {
-                size.x = random_size.x
-                size.z = random_size.z
-                entrance.x = coord.x
-                entrance.x += door_pos.x
-                break;
+                entrance.x = coord.x + door_pos.x
+                break
             }
             case DIRECTION.EAST: {
-                size.x = random_size.x
-                size.z = random_size.z
-                entrance.z = coord.z + random_size.z - 1
-                entrance.z -= door_pos.z
-                break;
+                entrance.z = coord.z + (building_size.x - door_pos.z)
+                break
             }
             case DIRECTION.WEST: {
-                coord.x += size.x - random_size.x
-                size.x = random_size.x
-                size.z = random_size.z
-                entrance.z = coord.z
-                entrance.z += door_pos.z
-                break;
+                coord.x = coord.x + size.x - building_size.z
+                coord.z = coord.z + size.z - building_size.x
+                entrance.x = coord.x + building_size.z - 1
+                entrance.z = coord.z + door_pos.z - 1
+                break
             }
             default: {
                 throw `error_invalid_building_door_direction|${door_direction}`
             }
         }
 
-        let dbx = entrance.x;
-        let dbz = entrance.z;
-
-        //
-        switch(door_direction) {
-            case DIRECTION.NORTH: {
-                entrance.x += door_pos.x
-                break;
-            }
-            case DIRECTION.SOUTH: {
-                entrance.x -= door_pos.x
-                break;
-            }
-            case DIRECTION.WEST: {
-                entrance.z -= door_pos.z
-                break;
-            }
-            case DIRECTION.EAST: {
-                entrance.z += door_pos.z
-                break;
-            }
-        }
+        size.x = building_size.x
+        size.z = building_size.z
 
     }
 

@@ -8,6 +8,7 @@ import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
+import { CLUSTER_SIZE_V2 } from "./terrain_generator/cluster/manager.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -475,7 +476,7 @@ export class HUD {
                     }
                 }*/
                 this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z; // + ' / ' + biome + '\n';
-                this.text += '\nCLUSTER: ' + Math.floor(chunk.coord.x/160) + ', ' + Math.floor(chunk.coord.z/160) + '\n'; // + ' / ' + biome + '\n';
+                this.text += '\nCLUSTER: ' + Math.floor(chunk.coord.x/CLUSTER_SIZE_V2.x) + ', ' + Math.floor(chunk.coord.z/CLUSTER_SIZE_V2.z) + '\n'; // + ' / ' + biome + '\n';
             }
         }
 

@@ -34,7 +34,7 @@ export class ClusterBase {
         this.id             = this.clusterManager.seed + '_' + addr.toHash();
         this.randoms        = new alea(`villages_${this.id}`);
         this.r              = new alea(`cluster_r_${this.id}`).double();
-        this.is_empty       = false // (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
+        this.is_empty       = false//!addr.equal(new Vector(3709, 0, 1617)) // (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
         this.mask           = new Array(this.size.x * this.size.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
@@ -143,6 +143,10 @@ export class ClusterBase {
                 break;
             }
         }
+
+        move_x = 0
+        move_z = 0
+
         // make new mask
         const new_mask = new Array(this.size.x * this.size.z);
         this.near_mask = new Array(this.size.x * this.size.z).fill(255);

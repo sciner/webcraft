@@ -696,13 +696,36 @@
             "name": "test",
             "pos1": {
                 "x": -205,
-                "y": 9,
+                "y": 1,
                 "z": 41
             },
             "pos2": {
                 "x": -215,
-                "y": 23,
+                "y": 15,
                 "z": 32
+            }
+        },
+        {
+            "name": "test2",
+            "pos1": {
+                "x": -226,
+                "y": 1,
+                "z": 36
+            },
+            "pos2": {
+                "x": -232,
+                "y": 4,
+                "z": 24
+            },
+            "entrance": {
+                "x": -229,
+                "y": 1,
+                "z": 30
+            },
+            "meta": {
+                "dt": "2023-01-11T18:01:03.046Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
             }
         }
     ]

@@ -66,9 +66,8 @@ export class BuldingPalette {
     next(args) {
 
         const {cluster, bm} = this;
-        const {size} = args;
-        const r = cluster.randoms.double();
-        const door_direction = args.door_direction
+        const {size, door_direction} = args
+        const r = cluster.randoms.double()
 
         // each all buildings in this palette
         for(let i in this.buildings) {

@@ -27,7 +27,18 @@ export class BuildingTemplate {
         if(!bm) debugger
 
         for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks']) {
-            if(prop in json) this[prop] = json[prop]
+            if(prop in json) {
+                switch(prop) {
+                    case 'door_pos':
+                    case 'size': {
+                        this[prop] = new Vector(json[prop])
+                        break
+                    }
+                    default: {
+                        this[prop] = json[prop]
+                    }
+                }
+            }
         }
 
         if(this.blocks) {
@@ -155,7 +166,7 @@ export class BuildingTemplate {
         this.createBiomeDirtCapBlocks(all_blocks, min, bm)
 
         // Call it only after DELETE_BLOCK_ID is deleted
-        this.addAirMargins(all_blocks, min, bm)
+        // this.addAirMargins(all_blocks, min, bm)
 
         return {all_blocks, min}
 

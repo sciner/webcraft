@@ -30,6 +30,7 @@ import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
+import { CLUSTER_SIZE_V2 } from "./terrain_generator/cluster/manager.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -777,7 +778,7 @@ export class Renderer {
             }
             // cluster
             if(this.world.chunkManager.cluster_draw_debug_grid) {
-                const CSZ = new Vector(256, 256, 256)
+                const CSZ = new Vector(CLUSTER_SIZE_V2.x, CLUSTER_SIZE_V2.y, CLUSTER_SIZE_V2.z)
                 const cluster_coord = overChunk.coord.div(CSZ).flooredSelf().multiplyVecSelf(CSZ)
                 this.debugGeom.addAABB(new AABB(
                     cluster_coord.x, cluster_coord.y, cluster_coord.z,

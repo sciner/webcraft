@@ -40,7 +40,7 @@ import {Vector} from '../../js/helpers.js';
 import {ClusterVilage} from '../../js/terrain_generator/cluster/vilage.js';
 import {BuildingTemplate} from '../../js/terrain_generator/cluster/building_template.js';
 import {API_Client} from '../../js/ui/api.js';
-import { ClusterManager } from '../../js/terrain_generator/cluster/manager.js';
+import { ClusterManager, CLUSTER_SIZE_V2 } from '../../js/terrain_generator/cluster/manager.js';
 
 const api = new API_Client()
 
@@ -63,7 +63,8 @@ await loadSchemas((r) => {
 
 //
 const WORLD_SEED = 1740540541
-const START_CLUSTER_ADDR = new Vector(3709, 0, 1617)
+// const START_CLUSTER_ADDR = new Vector(3709, 0, 1617)
+const START_CLUSTER_ADDR = new Vector(3707, 0, 1619)
 const DRAW_SCALE = 6
 
 //
@@ -90,7 +91,7 @@ class Sandbox {
                 let text = (Math.round((performance.now() - tm) * 1000) / 1000) + ` ms`
                 text += `<br>attempts: ${attempts}`
                 text += `<br>addr: ${this.cluster.addr.toHash()}`
-                text += `<br>coord: ${this.cluster.coord.toHash()}`
+                text += `<br>coord: ${this.cluster.coord.add(new Vector(this.cluster.size.x/2, 0, this.cluster.size.z/2)).toHash()}`
                 document.getElementById('timer').innerHTML = text
                 break
             }
@@ -140,6 +141,8 @@ class Sandbox {
         for(let b of this.cluster.buildings.values()) {
             ctx.fillStyle = "#0000ff55";
             ctx.fillRect((b.coord.z - cz) * DRAW_SCALE, (b.coord.x - cx) * DRAW_SCALE, b.size.z * DRAW_SCALE, b.size.x * DRAW_SCALE);
+            ctx.fillStyle = "#0000ffff";
+            ctx.fillRect((b.entrance.z - cz) * DRAW_SCALE, (b.entrance.x - cx) * DRAW_SCALE, 1 * DRAW_SCALE, 1 * DRAW_SCALE);
             //
             if(b.building_template?.right) {
                 ctx.fillStyle = "#00000055";
@@ -156,4 +159,4 @@ class Sandbox {
 }
 
 const sandbox = globalThis.sandbox = new Sandbox();
-sandbox.generate(START_CLUSTER_ADDR.mul(new Vector(160, 0, 160)));
+sandbox.generate(START_CLUSTER_ADDR.mul(CLUSTER_SIZE_V2));
