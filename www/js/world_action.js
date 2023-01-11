@@ -258,13 +258,21 @@ function makeDropItem(block, item) {
  *
  * @returns {object[]} dropped blocks
  */
-export function dropBlock(player, tblock, actions, force) {
+export function dropBlock(player, tblock, actions, force, hand) {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
     }*/
     if(tblock.material.tags.includes('no_drop')) {
         return [];
+    }
+
+    const mat_id = hand ? hand.id : null;
+    const block_id = tblock.id;
+    if ([BLOCK.REDSTONE_BLOCK.id, BLOCK.REDSTONE_ORE.id, BLOCK.EMERALD_BLOCK.id, BLOCK.EMERALD_ORE.id, BLOCK.GOLD_BLOCK.id, BLOCK.GOLD_ORE.id, BLOCK.DIAMOND_BLOCK.id, BLOCK.DIAMOND_ORE.id].includes(block_id)) {
+        if (![BLOCK.NETHERITE_PICKAXE.id, BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id].includes(mat_id)) {
+            return [];
+        }
     }
 
     const drop_item = tblock.material.drop_item;
@@ -335,11 +343,12 @@ class DestroyBlocks {
      * @param { import("../../node_server/server_player.js").ServerPlayer } player
      * @param { WorldAction } actions
      */
-    constructor(world, player, actions) {
-        this.cv         = new VectorCollector();
-        this.world      = world;
-        this.player     = player;
-        this.actions    = actions;
+    constructor(world, player, hand, actions) {
+        this.cv      = new VectorCollector();
+        this.world   = world;
+        this.player  = player;
+        this.actions = actions;
+        this.hand    = hand;
     }
 
     //
@@ -371,7 +380,7 @@ class DestroyBlocks {
         }
         // Drop block if need
         if(!no_drop) {
-            drop_items.push(...dropBlock(player, tblock, actions, false));
+            drop_items.push(...dropBlock(player, tblock, actions, false, this.hand));
         }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
@@ -799,7 +808,7 @@ function simplifyPos(world, pos, mat, to_top, check_opposite = true) {
 export async function doBlockAction(e, world, player, current_inventory_item) {
 
     const actions = new WorldAction(e.id);
-    const destroyBlocks = new DestroyBlocks(world, player, actions);
+    const destroyBlocks = new DestroyBlocks(world, player, current_inventory_item, actions);
 
     if(e.pos == false) {
         console.error('empty e.pos');
