@@ -88,7 +88,7 @@ export class LightWorld {
     setRenderOptions(args) {
         this.renderOptions.texFormat = args.texFormat;
         this.renderOptions.hasNormals = !!args.hasNormals;
-        this.light.setNormals(this.hasNormals);
+        this.light.setNormals(this.renderOptions.hasNormals);
     }
 
     getPotential(wx, wy, wz) {

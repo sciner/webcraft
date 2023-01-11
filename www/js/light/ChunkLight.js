@@ -136,7 +136,7 @@ export class ChunkLight {
         this._tempLightSource = null;
         const newBuf = this.genLightSourceBuf();
 
-        const {size} = this;
+        const {size} = chunk;
         let diff = [];
         let ind = 0;
         for (let y = 0; y < size.y; y++)
