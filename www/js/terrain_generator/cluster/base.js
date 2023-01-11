@@ -38,6 +38,7 @@ export class ClusterBase {
         this.mask           = new Array(this.size.x * this.size.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
+        this.corner         = Math.floor(this.randoms.double() * 4);
     }
 
     /**
@@ -102,7 +103,7 @@ export class ClusterBase {
         if(this.is_empty) {
             return resp;
         }
-        let corner = Math.floor(this.randoms.double() * 4);
+        let corner = this.corner // Math.floor(this.randoms.double() * 4);
         let min_x = this.size.x;
         let min_z = this.size.z;
         let max_x = 0;
@@ -150,6 +151,7 @@ export class ClusterBase {
                 const index = z * this.size.x + x;
                 const value = this.mask[index];
                 if(value && (Array.isArray(value.block_id) || value.block_id > 0)) {
+                    if(value == 69) debugger
                     const new_x = x + move_x;
                     const new_z = z + move_z;
                     const new_index = new_z * this.size.x + new_x;

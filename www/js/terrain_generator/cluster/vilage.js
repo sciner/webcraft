@@ -49,8 +49,11 @@ export class ClusterVilage extends ClusterBuildingBase {
             this.mask = resp.mask;
             for(let house of resp.houses.values()) {
                 const size = new Vector(house.width, 5, house.depth)
-                const entrance_pos = new Vector(house.door.x, Infinity, house.door.z)
-                this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance_pos, house.door.direction);
+                const entrance = new Vector(house.door.x, Infinity, house.door.z)
+                this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance.add(this.coord), house.door.direction)
+                // orig door position
+                const index = entrance.z * this.size.x + entrance.x              
+                resp.mask[index] = {block_id: 69}
             }
             this.timers.add_buildings = performance.now() - t; t = performance.now();
 

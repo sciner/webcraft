@@ -1,4 +1,4 @@
-import { DIRECTION } from "../../../helpers.js";
+import { DIRECTION, Vector } from "../../../helpers.js";
 import { Building } from "../building.js";
 import { BuildingTemplate } from "../building_template.js";
 
@@ -15,23 +15,32 @@ export class BuildingPalettes {
         }
     }
 
-    //
-    next(cluster, seed, door_direction, size, coord, aabb, entrance) {
+    /**
+     * @param {*} cluster
+     * @param {*} seed
+     * @param {int} door_direction
+     * @param {Vector} size
+     * @param {Vector} coord
+     * @param {Vector} entrance
+     * 
+     * @returns 
+     */
+    next(cluster, seed, door_direction, size, coord, entrance) {
 
         // generate random building from palette
-        let building = null;
-        const args = {cluster, seed, door_direction, size, coord, aabb, entrance}
+        let building = null
+        const args = {cluster, seed, door_direction, size, coord, entrance}
 
         if(size.x == 1 && size.z == 1) {
-            building = this.list.crossroad.next(args);
+            building = this.list.crossroad.next(args)
         }
 
         if(!building && this.list.required.buildings.length > 0) {
-            building = this.list.required.next(args);
+            building = this.list.required.next(args)
         }
 
         if(!building) {
-            building = this.list.others.next(args);
+            building = this.list.others.next(args)
         }
 
         if(!building) {
@@ -123,14 +132,14 @@ export class BuldingPalette {
 
                 b.max_count--;
                 if(b.max_count <= 0) {
-                    this.buildings.splice(i, 1);
+                    this.buildings.splice(i, 1)
                 }
 
                 // calculate correct door position
-                Building.selectSize(building_template, args.coord, args.size, args.entrance, door_direction, args.aabb);
+                Building.selectSize(building_template, args.coord, args.size, args.entrance, door_direction)
 
                 // create object by pre-calculated arguments
-                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, door_direction, args.size, building_template);
+                return new b.class(args.cluster, args.seed, args.coord, args.entrance, door_direction, args.size, building_template)
 
             }
 

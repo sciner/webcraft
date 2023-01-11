@@ -7,8 +7,8 @@ export class StreetLight extends Building {
 
     static SIZE_LIST = [{size: {x: 1, z: 1}}];
 
-    constructor(cluster, seed, coord, aabb, entrance, door_direction, size) {
-        super(cluster, seed, coord, aabb, entrance, door_direction, size);
+    constructor(cluster, seed, coord, entrance, door_direction, size) {
+        super(cluster, seed, coord, entrance, door_direction, size);
         this.draw_entrance = false;
 
         if(seed > .75) {

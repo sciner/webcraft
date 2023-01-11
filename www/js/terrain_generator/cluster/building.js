@@ -22,20 +22,19 @@ export class Building {
      * @param {*} cluster 
      * @param {*} seed 
      * @param {Vector} coord 
-     * @param {AABB} _aabb 
      * @param {Vector} _entrance
      * @param {int} door_direction 
      * @param {Vector} _size 
      * @param {*} building_template 
      */
-    constructor(cluster, seed, coord, _aabb, _entrance, door_direction, _size, building_template) {
+    constructor(cluster, seed, coord, _entrance, door_direction, _size, building_template) {
 
         // coord = new Vector(coord).add(building_template.door_pos)
 
         _entrance = new Vector(_entrance)// .add(getAheadMove(door_direction))
         _entrance.y = Infinity
         _size = building_template ? new Vector(building_template.size) : _size
-        _aabb = new AABB(
+        const aabb = new AABB(
             coord.x,
             coord.y,
             coord.z,
@@ -55,7 +54,7 @@ export class Building {
         this.door_direction     = door_direction
         this.coord              = coord
         this.entrance           = _entrance
-        this.aabb               = _aabb
+        this.aabb               = aabb
         this.size               = _size
         this.materials          = null
         this.draw_entrance      = true
@@ -146,15 +145,10 @@ export class Building {
      * @param {Vector} entrance 
      * @param {int} door_direction 
      */
-    static selectSize(building_template, coord, size, entrance, door_direction, aabb) {
+    static selectSize(building_template, coord, size, entrance, door_direction) {
 
-        const door_pos = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS);
-
-        if(building_template.size.y != undefined) {
-            aabb.y_max = aabb.y_min + building_template.size.y + BUILDING_AABB_MARGIN;
-        }
-
-        const random_size = new Vector(building_template.size);
+        const door_pos = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS)
+        const random_size = new Vector(building_template.size)
 
         // swap X and Z
         if(door_direction % 2 == 1) {
@@ -221,8 +215,6 @@ export class Building {
                 break;
             }
         }
-
-        // aabb.translate(- entrance.x + dbx, 0, - entrance.z + dbz);
 
     }
 
