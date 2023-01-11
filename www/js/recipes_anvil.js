@@ -36,13 +36,14 @@ export class AnvilRecipeManager {
 
         this.addRecipe('rename',
             function(first_item, second_item, label, outCount) {
-                if (first_item == null || second_item != null) {
+                if (first_item == null || second_item != null || label === false) {
                     return null;
                 }
-                label = ItemHelpers.validateAndPreprocessLabel(label);
-                if (ItemHelpers.getLabel(first_item) === label) {
-                    return null;
+                if (label !== null) {
+                    label = ItemHelpers.validateAndPreprocessLabel(label);
                 }
+                // We must not compare label with ItemHelpers.getLabel(first_item) here, because it depends
+                // on the user's locale. The result should be the same on the server.
 
                 outCount[0] = first_item.count;
 
@@ -63,7 +64,7 @@ export class AnvilRecipeManager {
                 if (!power || !maxPower || power >= maxPower) {
                     return null;
                 }
-                if (label !== false) {
+                if (label !== false && label !== null) {
                     label = ItemHelpers.validateAndPreprocessLabel(label);
                 }
                 // find the expected repair ingredients
@@ -119,7 +120,7 @@ export class AnvilRecipeManager {
                 if (second_item.id !== BLOCK.ENCHANTED_BOOK.id && second_item.id !== first_item.id) {
                     return null;
                 }
-                if (label !== false) {
+                if (label !== false && label !== null) {
                     label = ItemHelpers.validateAndPreprocessLabel(label);
                 }
                 const result = ObjectHelpers.deepClone(first_item);

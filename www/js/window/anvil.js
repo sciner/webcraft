@@ -217,6 +217,10 @@ export class AnvilWindow extends BaseCraftWindow {
             // If it's the same, don't try to change, and don't validate it, so unchanged block titles
             // longer than ITEM_LABEL_MAX_LENGTH don't get rejected.
             label = false;
+        } else if (label === BLOCK.fromId(first_item.id).title) {
+            // If it's the same as the title, clear the label instead.
+            // It must be checked here, not in the recipes, because it depeends on the user's locale.
+            label = null;
         }
         const outCount = [];
         const found = this.recipes.findRecipeAndResult(first_item, second_item, label, outCount);

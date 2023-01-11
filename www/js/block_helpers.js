@@ -110,9 +110,6 @@ export class ItemHelpers {
     }
     
     static setLabel(item, label) {
-        if (label === BLOCK.fromId(item.id).title) {
-            label = null;
-        }
         this.setExtraDataField(item, 'label', label);
     }
 
