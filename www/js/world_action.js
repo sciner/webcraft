@@ -268,16 +268,6 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
     }
 
     const instrument = current_inventory_item ? current_inventory_item.id : null;
-    /*const mat_id = hand ? hand.id : null;
-    const block_id = tblock.id;
-    if ([BLOCK.REDSTONE_BLOCK.id, BLOCK.REDSTONE_ORE.id, BLOCK.EMERALD_BLOCK.id, BLOCK.EMERALD_ORE.id, BLOCK.GOLD_BLOCK.id, BLOCK.GOLD_ORE.id, BLOCK.DIAMOND_BLOCK.id, BLOCK.DIAMOND_ORE.id].includes(block_id)) {
-        if (![BLOCK.NETHERITE_PICKAXE.id, BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id].includes(mat_id)) {
-            return [];
-        }
-    }*/
-
-    //console.log(tblock.material.material.id);
-    //if (tblock.material.material.id == )
 
     const checkInstrument = (item, drop) => {
         if (!drop?.instrument) {
@@ -286,9 +276,23 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
         if (!item) {
             return false;
         }
-        for (const title of drop.instrument) {
-            const block = BLOCK.fromName(title);
-            if (block && block.id == item) {
+        if (drop.instrument == "wood" || drop.instrument == "gold") {
+            if ([BLOCK.WOODEN_PICKAXE.id, BLOCK.GOLDEN_PICKAXE.id, BLOCK.STONE_PICKAXE.id, BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
+                return true;
+            }
+        }
+        if (drop.instrument == "stone") {
+            if ([BLOCK.STONE_PICKAXE.id, BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
+                return true;
+            }
+        }
+        if (drop.instrument == "iron") {
+            if ([BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
+                return true;
+            }
+        }
+        if (drop.instrument == "diamond") {
+            if ([BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
                 return true;
             }
         }
@@ -361,7 +365,6 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
             }
         // default drop item
         } else if(tblock.material.spawnable) {
-            console.log('test');
             items.push(makeDropItem(tblock, {id: tblock.id, count: 1}));
         }
         for(let item of items) {
