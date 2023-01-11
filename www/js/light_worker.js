@@ -175,18 +175,21 @@ async function onMessageFunc(e) {
             break;
         }
         case 'createChunk': {
-            if (!world.chunkManager.getChunk(args.addr)) {
-                let chunk = new Chunk(world, args);
-                chunk.init();
-                world.chunkManager.add(chunk);
-                chunk.fillOuter();
+            let chunk = world.chunkManager.getChunk(args.addr);
+            if (chunk) {
+                chunk.removed = true;
+                world.chunkManager.delete(chunk);
             }
+            chunk = new Chunk(world, args);
+            chunk.init();
+            world.chunkManager.add(chunk);
+            chunk.fillOuter();
             break;
         }
         case 'destructChunk': {
-            for (let addr of args) {
-                let chunk = world.chunkManager.getChunk(addr);
-                if (chunk) {
+            for (let props of args) {
+                let chunk = world.chunkManager.getChunk(props.addr);
+                if (chunk && chunk.uniqId === props.uniqId) {
                     chunk.removed = true;
                     world.chunkManager.delete(chunk);
                 }

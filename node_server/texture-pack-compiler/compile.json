@@ -1532,6 +1532,9 @@
             "material": {
                 "id": "plant"
             },
+            "compile": {
+                "filter": "brightness(110%)"
+            },
             "tags": [
                 "mask_biome"
             ]
@@ -3580,6 +3583,9 @@
                     "down": "block/tall_grass/tall_grass5_bottom.png"
                 }
             ],
+            "compile": {
+                "filter": "brightness(115%)"
+            },
             "tags": [
                 "mask_biome"
             ]

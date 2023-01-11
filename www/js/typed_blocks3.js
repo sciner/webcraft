@@ -706,6 +706,7 @@ export class DataWorld {
             portals[i].toRegion.rev.tblocks.makeBedrockFacet(tempRect);
         }
         this.base.removeSub(chunk.dataChunk);
+        chunk.dataChunk = null;
         if (this.chunkManager.fluidWorld) {
             this.chunkManager.fluidWorld.removeChunk(chunk);
         }
