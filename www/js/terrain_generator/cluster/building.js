@@ -106,7 +106,7 @@ export class Building {
 
     setY(y) {
 
-        this.entrance.y        = y // TODO: Maybe need substract 1
+        this.entrance.y        = y - 1
         this.coord.y           = this.entrance.y + this.coord.y
 
         const height           = this.aabb.height

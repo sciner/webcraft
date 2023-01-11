@@ -12,7 +12,7 @@ export class ClusterStructures extends ClusterBuildingBase {
         super(clusterManager, addr)
 
         this.max_height  = 1
-        this.is_empty = !addr.equal(new Vector(-6576, 0, 8932))
+        this.is_empty = !addr.equal(new Vector(-5261, 0, 7146))
 
         if(this.is_empty) {
             return
@@ -33,12 +33,11 @@ export class ClusterStructures extends ClusterBuildingBase {
             const coord          = new Vector(-841664 + door_direction * 16, 0, 1143398)
             // const door_direction = DIRECTION.NORTH
 
-            const building = new BuildingBlocks(this,
+            const building = new BuildingBlocks(
+                this,
                 this.randoms.double(),
                 coord,
-                null,
-                null,
-                null,
+                coord,
                 door_direction,
                 null,
                 template
