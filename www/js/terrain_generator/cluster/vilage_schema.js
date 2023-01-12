@@ -56,17 +56,18 @@ export class VilageSchema {
             }
         }
         //
-        const light_point = new ClusterPoint(1, 69, 3, null);
+        const light_point = new ClusterPoint(1, 69, 3, null)
+        // crossroad buildings
         for(let [vec, cr] of this.crossroads.entries()) {
             if(cr.cnt > 1) {
                 if(this.fill_house_map) {
                     this.mask[vec.z * this.settings.size + vec.x] = light_point;
                 }
-                let house = {
-                    x:          vec.x,
-                    z:          vec.z,
-                    width:      1,
-                    depth:      1,
+                const house = {
+                    x:          vec.x - 1,
+                    z:          vec.z - 1,
+                    width:      3,
+                    depth:      3,
                     crossroad:  true,
                     door:       {x: vec.x, z: vec.z, direction: DIRECTION.NORTH}
                 };
@@ -76,7 +77,7 @@ export class VilageSchema {
         //
         return {
             mask: this.mask,
-            houses: this.house_list
+            house_list: this.house_list
         }
     }
 

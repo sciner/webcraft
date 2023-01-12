@@ -576,7 +576,7 @@ export class TerrainMapManager2 {
             for(const [_, building] of map.cluster.buildings.entries()) {
                 if(building.entrance && building.entrance.y == Infinity) {
 
-                    xyz.copyFrom(building.entrance).addSelf(getAheadMove(building.door_direction).multiplyScalar(2))
+                    xyz.copyFrom(building.entrance).addSelf(getAheadMove(building.door_direction + 2).multiplyScalar(2))
 
                     const river_point = this.makeRiverPoint(xyz.x, xyz.z);
                     let free_height = 0;
@@ -598,11 +598,11 @@ export class TerrainMapManager2 {
                             if(density > DENSITY_AIR_THRESHOLD) {
                                 if(free_height >= BUILDING_MIN_Y_SPACE) {
                                     // set Y for door
-                                    building.setY(xyz.y + 1);
+                                    building.setY(xyz.y)
                                     // set building cell for biome info
                                     // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
                                     // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-                                    building.setBiome(biome, biome.temperature, biome.humidity);
+                                    building.setBiome(biome, biome.temperature, biome.humidity)
                                     break;
                                 }
                                 free_height = 0;

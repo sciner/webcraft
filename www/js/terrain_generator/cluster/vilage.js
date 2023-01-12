@@ -47,10 +47,10 @@ export class ClusterVilage extends ClusterBuildingBase {
             //
             t = performance.now();
             this.mask = resp.mask;
-            for(let house of resp.houses.values()) {
+            for(let house of resp.house_list.values()) {
                 const size = new Vector(house.width, 5, house.depth)
                 const entrance = new Vector(house.door.x, Infinity, house.door.z)
-                this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance.add(this.coord), house.door.direction)
+                this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance.add(this.coord), house.door.direction, !!house.crossroad)
             }
             this.timers.add_buildings = performance.now() - t; t = performance.now();
 
@@ -89,7 +89,7 @@ export class ClusterVilage extends ClusterBuildingBase {
 
             building_palette_options = {
                 crossroad: [
-                    {class: 'StreetLight', max_count: Infinity, chance: 1}
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: 1, block_templates: ['streetlight', 'streetlight2']}
                 ],
                 required: [
                     {class: 'WaterWell', max_count: 1, chance: 1},
@@ -119,7 +119,7 @@ export class ClusterVilage extends ClusterBuildingBase {
             // для старых генераторов (biome2, ...)
             building_palette_options = {
                 crossroad: [
-                    {class: 'StreetLight', max_count: Infinity, chance: 1}
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: 1, block_templates: ['streetlight', 'streetlight2']}
                 ],
                 required: [
                     {class: 'WaterWell', max_count: 1, chance: 1},

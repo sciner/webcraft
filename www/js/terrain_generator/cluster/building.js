@@ -1,8 +1,6 @@
 import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
-import { CHUNK_SIZE_X } from '../../chunk_const.js';
 import { AABB } from '../../core/AABB.js';
-import { CubeSym } from '../../core/CubeSym.js';
 import { DIRECTION, getChunkAddr, Vector } from "../../helpers.js";
 import { ClusterPoint } from "./base.js";
 import { BlockDrawer } from './block_drawer.js';
@@ -107,7 +105,7 @@ export class Building {
 
     setY(y) {
 
-        this.entrance.y        = y - 1
+        this.entrance.y        = y - 1 + this.coord.y
         this.coord.y           = this.entrance.y + this.coord.y
 
         const height           = this.building_template ? (this.building_template.size.y + BUILDING_AABB_MARGIN) : this.aabb.height
@@ -193,7 +191,8 @@ export class Building {
             return false;
         }
         // забираем карту того участка, где дверь, чтобы определить точный уровень пола
-        let value2 = 0;
+        let value2 = 0
+        let value2_changed = false
         for(let entrance of [this.entrance, this.entrance.clone().addSelf(getAheadMove(this.door_direction))]) {
             const map_addr = getChunkAddr(entrance);
             map_addr.y = 0;
@@ -206,14 +205,15 @@ export class Building {
                 }
                 const entrance_x    = entrance.x - entrance_map.chunk.coord.x;
                 const entrance_z    = entrance.z - entrance_map.chunk.coord.z;
-                const cell          = entrance_map.cells[entrance_z * CHUNK_SIZE_X + entrance_x];
+                const cell          = entrance_map.getCell(entrance_x, entrance_z);
                 if(cell.value2 > value2) {
-                    value2 = cell.value2;
+                    value2 = cell.value2
+                    value2_changed = true
                 }
             }
         }
-        if(value2 > 0) {
-            this.setY(value2)
+        if(value2_changed && value2 > this.cluster.clusterManager.chunkManager.world.generator.options.WATER_LINE) {
+            this.setY(value2 - 1)
             if(!this.biome) {
                 this.setBiome({}, 0, 0)
             }

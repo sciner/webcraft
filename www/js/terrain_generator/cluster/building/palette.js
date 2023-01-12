@@ -22,17 +22,20 @@ export class BuildingPalettes {
      * @param {Vector} size
      * @param {Vector} coord
      * @param {Vector} entrance
+     * @param {boolean} is_crossroad
      * 
      * @returns 
      */
-    next(cluster, seed, door_direction, size, coord, entrance) {
+    next(cluster, seed, door_direction, size, coord, entrance, is_crossroad = false) {
 
         // generate random building from palette
         let building = null
         const args = {cluster, seed, door_direction, size, coord, entrance}
 
-        if(size.x == 1 && size.z == 1) {
+        // crossroad buildings
+        if(is_crossroad) {
             building = this.list.crossroad.next(args)
+            building.draw_entrance = false
         }
 
         if(!building && this.list.required.buildings.length > 0) {

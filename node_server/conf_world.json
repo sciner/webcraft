@@ -505,7 +505,7 @@
                 "z": 0
             },
             "pos2": {
-                "x": -119,
+                "x": -118,
                 "y": 5,
                 "z": -6
             }
@@ -724,6 +724,52 @@
             },
             "meta": {
                 "dt": "2023-01-11T18:01:03.046Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "streetlight",
+            "pos1": {
+                "x": -155,
+                "y": 0,
+                "z": 10
+            },
+            "pos2": {
+                "x": -157,
+                "y": 5,
+                "z": 8
+            },
+            "entrance": {
+                "x": -156,
+                "y": 1,
+                "z": 9
+            },
+            "meta": {
+                "dt": "2023-01-12T14:54:16.589Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "streetlight2",
+            "pos1": {
+                "x": -159,
+                "y": 0,
+                "z": 10
+            },
+            "pos2": {
+                "x": -161,
+                "y": 7,
+                "z": 8
+            },
+            "entrance": {
+                "x": -160,
+                "y": 1,
+                "z": 9
+            },
+            "meta": {
+                "dt": "2023-01-12T14:57:49.988Z",
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }

@@ -380,8 +380,8 @@ export class TerrainMap extends Default_Terrain_Map {
                 if(!map || map.chunk.addr.x != addr.x || map.chunk.addr.z != addr.z) {
                     map = generator.maps_cache.get(addr); // get chunk map from cache
                 }
-                bi = BLOCK.getBlockIndex(px, 0, pz, bi);
-                const cell = map.cells[bi.z * CHUNK_SIZE_X + bi.x];
+                bi = BLOCK.getBlockIndex(px, 0, pz, bi)
+                const cell = map.getCell(bi.x, bi.z)
                 TerrainMap.setPartial(x, z, cell);
             }
         }

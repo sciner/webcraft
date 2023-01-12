@@ -9,6 +9,7 @@ import { BuildingPalettes } from "./building/palette.js";
 //
 const entranceAhead = new Vector(0, 0, 0);
 export const getAheadMove = (dir) => {
+    dir %= 4
     entranceAhead.set(0, 0, 0);
     if(dir == DIRECTION.NORTH) {entranceAhead.z++;}
     else if(dir == DIRECTION.SOUTH) {entranceAhead.z--;}
@@ -52,17 +53,18 @@ export class ClusterBuildingBase extends ClusterBase {
      * @param {Vector} size 
      * @param {Vector} entrance 
      * @param {int} door_direction 
+     * @param {boolean} is_crossroad
      * 
      * @returns 
      */
-    addBuilding(seed, door_x, door_z, size, entrance, door_direction) {
+    addBuilding(seed, door_x, door_z, size, entrance, door_direction, is_crossroad = false) {
 
         const coord = new Vector(door_x + this.coord.x, 1, door_z + this.coord.z)
         if(this.buildings.has(coord)) {
             return false
         }
 
-        const building = this.building_palettes.next(this, seed, door_direction, size, coord.clone(), entrance)
+        const building = this.building_palettes.next(this, seed, door_direction, size, coord.clone(), entrance, is_crossroad)
 
         //
         this.buildings.set(building.coord, building);
@@ -79,6 +81,7 @@ export class ClusterBuildingBase extends ClusterBase {
             }
         }
 
+        /*
         // 2. add entrance mask
         if(building.draw_entrance) {
             const ahead = getAheadMove(building.door_direction);
@@ -86,6 +89,7 @@ export class ClusterBuildingBase extends ClusterBase {
             const ez = building.entrance.z - this.coord.z + ahead.z
             this.mask[ez * this.size.x + ex] = new ClusterPoint(1, this.basement_block, 3, null, null)
         }
+        */
 
         return building
 
