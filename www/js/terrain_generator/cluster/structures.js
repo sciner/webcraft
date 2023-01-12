@@ -12,7 +12,7 @@ export class ClusterStructures extends ClusterBuildingBase {
         super(clusterManager, addr)
 
         this.max_height  = 1
-        this.is_empty = !addr.equal(new Vector(-5261, 0, 7146))
+        this.is_empty = false // !addr.equal(new Vector(-5261, 0, 7146))
 
         if(this.is_empty) {
             return
@@ -22,51 +22,52 @@ export class ClusterStructures extends ClusterBuildingBase {
 
         const bm = BLOCK
 
-        /*
-            'test', 'structure1', 'structure2', 'mine', 'underearth_tower',
+        const schemas = [
+            'structure1', 'structure2', 'mine', 'underearth_tower',
             'broken_castle', 'house_dwarf', 'ornated_stone_tower_ruins'
-        */
+        ]
 
-        for(let door_direction of [0, 1, 2, 3]) {
+        // randoms
+        const door_direction = Math.floor(this.randoms.double() * 4)
+        const schema_name = schemas[Math.floor(this.randoms.double() * schemas.length)]
 
-            const template       = BuildingTemplate.fromSchema('medium_house', bm) // medium_house mine
-            const coord          = new Vector(-841664 + door_direction * 16, 0, 1143398)
-            // const door_direction = DIRECTION.NORTH
+        const template       = BuildingTemplate.fromSchema(schema_name, bm)
+        const coord          = this.coord.clone()
 
-            const building = new BuildingBlocks(
-                this,
-                this.randoms.double(),
-                coord,
-                coord,
-                door_direction,
-                null,
-                template
-            )
+        coord.addScalarSelf(128, 0, 128)
 
-            this.buildings.set(building.coord, building)
+        const building = new BuildingBlocks(
+            this,
+            this.randoms.double(),
+            coord,
+            coord,
+            door_direction,
+            null,
+            template
+        )
 
-            if(building) {
+        this.buildings.set(building.coord, building)
 
-                // Fill near_mask
-                const margin = 3
-                for(const [pos, building] of this.buildings.entries()) {
-                    for(let i = -margin; i < building.size.x + margin; i++) {
-                        for(let j = -margin; j < building.size.z + margin; j++) {
-                            const x = pos.x - this.coord.x + i
-                            const z = pos.z - this.coord.z + j
-                            if(x >= 0 && z >= 0 && x < this.size.x && z < this.size.z) {
-                                const nidx = z * this.size.x + x
-                                this.near_mask[nidx] = margin
-                            }
+        if(building) {
+
+            // Fill near_mask
+            const margin = 3
+            for(const [pos, building] of this.buildings.entries()) {
+                for(let i = -margin; i < building.size.x + margin; i++) {
+                    for(let j = -margin; j < building.size.z + margin; j++) {
+                        const x = pos.x - this.coord.x + i
+                        const z = pos.z - this.coord.z + j
+                        if(x >= 0 && z >= 0 && x < this.size.x && z < this.size.z) {
+                            const nidx = z * this.size.x + x
+                            this.near_mask[nidx] = margin
                         }
                     }
                 }
-
-            } else {
-
-                this.mask.fill(null)
-
             }
+
+        } else {
+
+            this.mask.fill(null)
 
         }
 

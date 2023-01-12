@@ -773,6 +773,75 @@
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "streetlight3",
+            "pos1": {
+                "x": -163,
+                "y": 0,
+                "z": 10
+            },
+            "pos2": {
+                "x": -165,
+                "y": 7,
+                "z": 8
+            },
+            "entrance": {
+                "x": -164,
+                "y": 1,
+                "z": 9
+            },
+            "meta": {
+                "dt": "2023-01-12T19:45:47.063Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "waterwell",
+            "pos1": {
+                "x": -52,
+                "y": -29,
+                "z": 1
+            },
+            "pos2": {
+                "x": -54,
+                "y": 6,
+                "z": -1
+            },
+            "entrance": {
+                "x": -53,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-01-12T19:55:37.709Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "waterwell2",
+            "pos1": {
+                "x": -48,
+                "y": -28,
+                "z": 1
+            },
+            "pos2": {
+                "x": -50,
+                "y": 6,
+                "z": -1
+            },
+            "entrance": {
+                "x": -49,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-01-12T20:20:58.317Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": true
+            }
         }
     ]
 }
