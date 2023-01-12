@@ -106,8 +106,19 @@ export class SingleQueue {
 }
 
 export class MultiQueue {
+    static defaultPool = null;
+
+    static getDefaultPool(pageSize) {
+        if (this.defaultPool?.pageSize === pageSize) {
+            return this.defaultPool;
+        }
+        return null;
+    }
+
     constructor({pageSize = 1 << 12, pagePool = null, maxPriority = 400}) {
-        this.pagePool = pagePool || new QueuePagePool({pageSize});
+        this.pagePool = pagePool
+            || MultiQueue.getDefaultPool(pageSize)
+            || new QueuePagePool({pageSize});
 
         this.heap = []; // heap of queues
         this.freeQueueStack = [];

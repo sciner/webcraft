@@ -33,6 +33,8 @@ export class ServerGame {
         this.hotbar = new FakeHotbar();
         // load world queue
         this.timerLoadWorld = setTimeout(this.processWorldQueue.bind(this), 10);
+
+        this.lightWorker = null;
     }
 
     //
@@ -73,6 +75,7 @@ export class ServerGame {
             this.db = db
             global.Log = new GameLog(this.db);
         });
+        await this.initWorkers();
 
         // Load building template schemas
         for(let item of config.building_schemas) {
@@ -149,4 +152,38 @@ export class ServerGame {
         });
     }
 
+    initWorkers() {
+        return new Promise((resolve, reject) => {
+            let workerCounter = 1;
+
+            this.lightWorker = new Worker(globalThis.__dirname + '/../www/js/light_worker.js');
+            this.lightWorker.postMessage(['SERVER', 'init', null]);
+
+            this.lightWorker.on('message', (data) => {
+                if (data instanceof MessageEvent) {
+                    data = data.data;
+                }
+                const worldId = data[0];
+                const cmd = data[1];
+                const args = data[2];
+                switch (cmd) {
+                    case 'worker_inited': {
+                        --workerCounter;
+                        if (workerCounter === 0) {
+                            resolve();
+                        }
+                        break;
+                    }
+                    default: {
+                        const world = this.worlds.get(worldId);
+                        world.chunkManager.onLightWorkerMessage([cmd, args]);
+                    }
+                }
+            });
+            let onerror = (e) => {
+                debugger;
+            };
+            this.lightWorker.on('error', onerror);
+        });
+    }
 }

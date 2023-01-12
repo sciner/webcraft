@@ -89,11 +89,11 @@ export class FluidWorld {
             }
             if (use_light) {
                 //TODO: its slow!!!
-                chunk.beginLightChanges();
+                chunk.light.beginLightChanges();
             }
             chunk.fluid.setValue(x - chunk.coord.x, y - chunk.coord.y, z - chunk.coord.z, val);
             if (use_light) {
-                chunk.endLightChanges();
+                chunk.light.endLightChanges();
             }
         }
         //chunks

@@ -136,7 +136,7 @@ export class TypedBlocks3 {
         this.vertExtraLen = null;
         this.id = this.dataChunk.uint16View;
         this.fluid = null;
-        this.lightData = null;
+        this.light = null;
     }
 
     ensureVertices() {
@@ -895,6 +895,10 @@ export class TBlock {
             res |= fluidLightPower(fluidVal);
         }
         return res;
+    }
+
+    get lightData() {
+        return this.light?.lightData;
     }
 
     /**
