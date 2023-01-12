@@ -28,9 +28,7 @@ export class Building {
      */
     constructor(cluster, seed, coord, _entrance, door_direction, _size, building_template) {
 
-        // coord = new Vector(coord).add(building_template.door_pos)
-
-        _entrance = new Vector(_entrance)// .add(getAheadMove(door_direction))
+        _entrance = new Vector(_entrance)
         _entrance.y = Infinity
         _size = building_template ? new Vector(building_template.size) : _size
         const aabb = new AABB(
@@ -49,7 +47,7 @@ export class Building {
         this.seed               = seed
 
         //
-        this.building_template   = building_template
+        this.building_template  = building_template
         this.door_direction     = door_direction
         this.coord              = coord
         this.entrance           = _entrance
@@ -69,6 +67,15 @@ export class Building {
 
     get direction() {
         return this.door_direction;
+    }
+
+    get ahead_entrance() {
+        return this.entrance
+            .clone()
+            .addSelf(
+                getAheadMove(this.door_direction + 2)
+                    .multiplyScalar(2)
+            )
     }
 
     addBlocks() {}
@@ -93,6 +100,7 @@ export class Building {
      * @param {boolean} draw_natural_basement
      */
     draw(cluster, chunk, draw_natural_basement = true) {
+        // TODO: need to draw one block of air ahead door bottom
         // natural basement
         if(draw_natural_basement) {
             const height = 4
@@ -193,7 +201,7 @@ export class Building {
         // забираем карту того участка, где дверь, чтобы определить точный уровень пола
         let value2 = 0
         let value2_changed = false
-        for(let entrance of [this.entrance, this.entrance.clone().addSelf(getAheadMove(this.door_direction))]) {
+        for(let entrance of [this.entrance, this.ahead_entrance]) {
             const map_addr = getChunkAddr(entrance);
             map_addr.y = 0;
             let entrance_map = maps.get(map_addr);
