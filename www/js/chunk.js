@@ -86,6 +86,7 @@ export class Chunk {
             return;
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks.light = this.light;
         this.packedCells = args.packedCells || null;
         chunkManager.dataWorld.addChunk(this);
         if (args.tblocks) {

@@ -710,6 +710,7 @@ export class ServerWorld {
                     params.item = this.block_manager.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
+                        chunk?.light?.flushDelta();
                         modified_chunks.set(chunk_addr, true);
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
@@ -782,8 +783,13 @@ export class ServerWorld {
                             }
                         }
                         // 4. Store in chunk tblocks
+                        const oldLight = tblock.lightSource;
                         chunk.tblocks.delete(block_pos_in_chunk);
                         tblock.copyPropsFromPOJO(params.item);
+                        const newLight = tblock.lightSource;
+                        if (newLight !== oldLight) {
+                            chunk.light.currentDelta.push(tblock.index);
+                        }
                         // 5. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
@@ -828,6 +834,7 @@ export class ServerWorld {
                         // TODO: Chunk not found in pos
                     }
                 }
+                chunk?.light?.flushDelta();
                 if(create_block_list.length > 0) {
                     all.push(this.db.blockSetBulk(this, server_player, create_block_list));
                 }

@@ -405,6 +405,7 @@ export class ServerChunk {
             }
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks.light = this.light;
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);

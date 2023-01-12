@@ -231,17 +231,21 @@ export class FluidChunkQueue {
         this.pushTickIndex(ind, tick);
     }
 
-    assignGlobal(wx, wy, wz, ticks, forceVal) {
+    assignGlobal(wx, wy, wz, ticks, newVal) {
         const {fluidChunk} = this;
         const ind = fluidChunk.dataChunk.indexByWorld(wx, wy, wz);
         fluidChunk.updateID++;
         fluidChunk.markDirtyDatabase();
-        fluidChunk.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = forceVal;
+        const oldVal = fluidChunk.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID];
+        fluidChunk.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = newVal;
         const portals2 = fluidChunk.dataChunk.portals;
-        fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
+        fluidChunk.setValuePortals(ind, wx, wy, wz, newVal, portals2, portals2.length);
         this.pushTickIndex(ind, ticks);
         this.markDeltaIndex(ind);
-        fluidChunk.events.pushCoord(ind, wx, wy, wz, forceVal);
+        fluidChunk.events.pushCoord(ind, wx, wy, wz, newVal);
+        if ((oldVal & FLUID_TYPE_MASK) !== (newVal & FLUID_TYPE_MASK)) {
+            fluidChunk.parentChunk.light?.currentDelta.push(ind);
+        }
     }
 
     pushTickIndex(index, tick = 1) {
@@ -373,8 +377,14 @@ export class FluidChunkQueue {
         const {uint8View} = fluidChunk;
         for (let i = 0; i < assignNum; i++) {
             const ind = assignIndices[i];
-            uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = assignValues[ind];
+            const oldVal = uint8View[ind * FLUID_STRIDE + OFFSET_FLUID];
+            const newVal = assignValues[ind];
+            uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = newVal;
             qplace[ind] = qplace[ind] & ~QUEUE_PROCESS & ~curFlag;
+
+            if ((oldVal & FLUID_TYPE_MASK) !== (newVal & FLUID_TYPE_MASK)) {
+                fluidChunk.parentChunk.light?.currentDelta.push(ind);
+            }
         }
         this.swapLists();
         if (assignNum > 0) {
@@ -734,6 +744,7 @@ export class FluidChunkQueue {
             }
         }
         this.assignFinish();
+        fluidChunk.parentChunk.light?.flushDelta();
 
         //TODO: lavacast here
         if (lavaCast.length > 0) {

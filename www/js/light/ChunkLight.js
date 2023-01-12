@@ -11,6 +11,9 @@ export class ChunkLight {
         this._dataTextureOffset = -1;
         this._dataTextureDirty = false;
         this._tempLightSource = null;
+        this.lightData = null;
+
+        this.currentDelta = [];
     }
 
     onGenerated(args) {
@@ -175,7 +178,7 @@ export class ChunkLight {
             tmp /= outerSize.z;
             let y = tmp;
             v.set(x, y, z);
-            tblock = this.tblocks.get(v, tblock);
+            tblock = chunk.tblocks.get(v, tblock);
             diff.push(x, y, z, tblock.lightSource);
         }
         if (diff.length > 0) {
@@ -185,5 +188,14 @@ export class ChunkLight {
                 list: diff
             }]);
         }
+    }
+
+    flushDelta() {
+        if (this.currentDelta.length > 0) {
+            if (this.parentChunk.chunkManager.use_light) {
+                this.applyDiffToLight(this.currentDelta);
+            }
+        }
+        this.currentDelta.length = 0;
     }
 }
