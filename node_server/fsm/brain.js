@@ -193,9 +193,8 @@ export class FSMBrain {
             this.timer_lava_damage = 0;
         }
         // стоит в огне или на свете
-
         if (this.in_fire || (world.getLight() > 11
-            && (chunk.tblocks.lightData && (alegs.lightValue >> 8) === 0)
+            && (chunk.tblocks.lightData && (legs.lightValue >> 8) === 0)
             && !this.resistance_light)) {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
