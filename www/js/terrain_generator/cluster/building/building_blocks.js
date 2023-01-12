@@ -43,7 +43,7 @@ export class BuildingBlocks extends Building {
         }
 
         this.aabb.copyFrom(actual_aabb)
-        this.size.set(actual_aabb.width, actual_aabb.height, actual_aabb.depth);
+        this.size.copyFrom(actual_aabb.size)
 
     }
 

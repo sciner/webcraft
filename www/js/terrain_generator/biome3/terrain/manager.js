@@ -576,7 +576,7 @@ export class TerrainMapManager2 {
             for(const [_, building] of map.cluster.buildings.entries()) {
                 if(building.entrance && building.entrance.y == Infinity) {
 
-                    xyz.copyFrom(building.entrance).addSelf(getAheadMove(building.door_direction))
+                    xyz.copyFrom(building.entrance).addSelf(getAheadMove(building.door_direction).multiplyScalar(2))
 
                     const river_point = this.makeRiverPoint(xyz.x, xyz.z);
                     let free_height = 0;

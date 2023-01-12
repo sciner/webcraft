@@ -2,6 +2,7 @@ import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
 import { CHUNK_SIZE_X } from '../../chunk_const.js';
 import { AABB } from '../../core/AABB.js';
+import { CubeSym } from '../../core/CubeSym.js';
 import { DIRECTION, getChunkAddr, Vector } from "../../helpers.js";
 import { ClusterPoint } from "./base.js";
 import { BlockDrawer } from './block_drawer.js';
@@ -109,7 +110,7 @@ export class Building {
         this.entrance.y        = y - 1
         this.coord.y           = this.entrance.y + this.coord.y
 
-        const height           = this.aabb.height
+        const height           = this.building_template ? (this.building_template.size.y + BUILDING_AABB_MARGIN) : this.aabb.height
 
         this.aabb.y_min        = this.entrance.y - BUILDING_AABB_MARGIN
         this.aabb.y_max        = this.aabb.y_min + height
@@ -149,10 +150,13 @@ export class Building {
 
         const MOVE_TO_BACK = 0 // door_pos.z // 1
 
+        //TODO: FLIP TEST
+        // door_direction = CubeSym.add(door_direction, CubeSym.NEG_X);
+
         // corner of building in the plot coords
         let corner1 = new Vector(0, 0, MOVE_TO_BACK);
         // diagonal of building, signed vector
-        let signed_size = new Vector().copyFrom(building_template.size);
+        let signed_size = new Vector(building_template.size);
         // door, relative to corner
         let corner_to_door = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS);
 
@@ -209,13 +213,13 @@ export class Building {
             }
         }
         if(value2 > 0) {
+            this.setY(value2)
             if(!this.biome) {
-                this.setBiome({}, 0, 0);
+                this.setBiome({}, 0, 0)
             }
-            this.setY(value2);
-            return true;
+            return true
         }
-        return false;
+        return false
     }
 
     // Стоги сена
