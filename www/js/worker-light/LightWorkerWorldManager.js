@@ -1,4 +1,9 @@
 import { LightWorld } from "./LightWorld.js";
+import {MultiQueue, QueuePagePool} from "../light/MultiQueue.js";
+
+import {
+    defPageSize,
+} from './LightConst.js';
 
 export class LightWorkerWorldManager {
 
@@ -12,6 +17,8 @@ export class LightWorkerWorldManager {
             texFormat: 'rgba8',
             hasNormals: false
         }
+
+        MultiQueue.defaultPool = new QueuePagePool({pageSize: defPageSize});
     }
 
     setRenderOptions(go) {
