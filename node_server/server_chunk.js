@@ -778,7 +778,7 @@ export class ServerChunk {
         const roty = tblock.rotate?.y;
         const neighbourPos = neighbour.posworld;
         const require_support = tblock.material.support_style || tblock.material.style_name;
-        const neighbour_destroyed = neighbour.id == 0
+        const neighbour_destroyed = neighbour.id == 0;
 
         // Different behavior, depending on whether the neighbor was destroyed or created
         if(neighbour_destroyed) {
@@ -942,6 +942,7 @@ export class ServerChunk {
                     }
                     break;
                 }
+                
             }
 
         } else {
