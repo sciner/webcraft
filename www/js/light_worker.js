@@ -89,7 +89,7 @@ async function onMessageFunc(e) {
         await initWorlds();
         return;
     }
-    if (!modulesReady) {
+    if (!worlds) {
         return msgQueue.push(data);
     }
     //do stuff
