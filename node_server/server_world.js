@@ -665,7 +665,7 @@ export class ServerWorld {
                         Math.random() - Math.random(),
                         Math.random() * 0.75,
                         Math.random() - Math.random()
-                    ).normalize().multiplyScalar(0.375);
+                    ).normalize().multiplyScalarSelf(0.375);
                     this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
                 }
             }

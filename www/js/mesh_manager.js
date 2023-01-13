@@ -175,7 +175,7 @@ export class MeshManager {
                     (Math.random() - .5) * 2,
                     (Math.random() - .5) * 2
                 ).normalize()
-                .multiplyScalar(700);
+                .multiplyScalarSelf(700);
                 addParticle(p, new Particle(textures[texture_index], .5, false, 0, 0.0075 + (0.0075 * Math.random()), speed));
                 break;
             }
@@ -217,7 +217,7 @@ export class MeshManager {
                             (Math.random() - .5) * 2,
                             (Math.random() - .5) * 2
                         ).normalize()
-                        .multiplyScalar(100);
+                        .multiplyScalarSelf(100);
                     addParticle(ppos, new Particle(tex2, .5, true, 1, 0.0075 + (0.0075 * Math.random()), speed, flags, lm))
                 }
                 break;

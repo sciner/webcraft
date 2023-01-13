@@ -31,14 +31,6 @@ export class Building {
         _entrance = new Vector(_entrance)
         _entrance.y = Infinity
         _size = building_template ? new Vector(building_template.size) : _size
-        const aabb = new AABB(
-            coord.x,
-            coord.y,
-            coord.z,
-            coord.x + _size.x,
-            coord.y + _size.y,
-            coord.z + _size.z
-        )
 
         // other props
         this.randoms            = new alea(coord.toHash())
@@ -51,10 +43,17 @@ export class Building {
         this.door_direction     = door_direction
         this.coord              = coord
         this.entrance           = _entrance
-        this.aabb               = aabb
         this.size               = _size
         this.materials          = null
         this.draw_entrance      = true
+        this.aabb               = this.building_template ? this.getRealAABB() : new AABB(
+                                        coord.x,
+                                        coord.y,
+                                        coord.z,
+                                        coord.x + _size.x,
+                                        coord.y + _size.y,
+                                        coord.z + _size.z
+                                    )
 
         // blocks
         this.blocks = new BlockDrawer(this)
@@ -74,7 +73,7 @@ export class Building {
             .clone()
             .addSelf(
                 getAheadMove(this.door_direction + 2)
-                    .multiplyScalar(2)
+                    // .multiplyScalarSelf(1)
             )
     }
 
@@ -112,6 +111,10 @@ export class Building {
     }
 
     setY(y) {
+
+        if(this.building_template) {
+            y += 1 // this.building_template.door_pos.y
+        }
 
         this.entrance.y        = y - 1 + this.coord.y
         this.coord.y           = this.entrance.y + this.coord.y
@@ -187,6 +190,47 @@ export class Building {
 
         size.x = Math.abs(signed_size.x);
         size.z = Math.abs(signed_size.z);
+    }
+
+    getRealAABB() {
+        const coord = new Vector(0, 0, 0);
+        const size = new Vector(1, 0, 1)
+        const entrance = new Vector(0, 0, 0)
+        Building.selectSize(this.building_template, coord, size, entrance, this.door_direction)
+        coord.x += this.coord.x - entrance.x
+        coord.y = this.coord.y
+        coord.z += this.coord.z - entrance.z
+        return new AABB(coord.x, coord.y, coord.z, coord.x + this.size.x, coord.y + this.size.y, coord.z + this.size.z).translate(0, this.building_template.door_pos.y, 0)
+    }
+
+    /**
+     * @param {Vector} vec 
+     */
+    translateXZ(vec) {
+
+        // aabb
+        const aabb_y_min = this.aabb.y_min
+        const aabb_y_max = this.aabb.y_max
+        this.aabb.translate(vec.x, vec.y, vec.z)
+        this.aabb.y_min = aabb_y_min
+        this.aabb.y_max = aabb_y_max
+
+        // coord
+        const orig_coord_y = this.coord.y
+        this.coord.translate(vec.x, vec.y, vec.z)
+        this.coord.y = orig_coord_y
+
+        // entrance
+        const orig_entrance_y = this.entrance.y
+        this.entrance.translate(vec.x, vec.y, vec.z)
+        this.entrance.y = orig_entrance_y
+
+    }
+
+    moveXZTo(vec) {
+        const aabb = this.aabb // this.getRealAABB()
+        const diff = new Vector(aabb.x_min, aabb.y_min, aabb.z_min).subSelf(vec).multiplyScalarSelf(-1)
+        this.translateXZ(diff)
     }
 
     /**

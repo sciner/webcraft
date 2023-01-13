@@ -79,19 +79,19 @@ export class ServerGame {
             await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
 
                 // fix entrance
-                if(item.name == 'test22222') {
-                    const fix = new Vector(2, 0, 6)
-                    //item.pos1.y += fix.y
-                    //item.pos2.y += fix.y
-                    json.world.entrance.x += fix.x
-                    json.world.entrance.y += fix.y
-                    json.world.entrance.z += fix.z
+                if(item.name == 'test225') {
+                    const fix = new Vector(0, 1, 0)
+                    item.pos1.y -= fix.y
+                    item.pos2.y -= fix.y
+                    //json.world.entrance.x += fix.x
+                    // json.world.entrance.y += fix.y
+                    //json.world.entrance.z += fix.z
                     for(let block of json.blocks) {
                         block.move.x += fix.x
                         block.move.y += fix.y
                         block.move.z += fix.z
                     }
-                    // fs.writeFileSync(`./data/building_schema/${item.name}.json`, JSON.stringify(json))
+                     fs.writeFileSync(`./data/building_schema/${item.name}.json`, JSON.stringify(json))
                 }
 
                 json.name = item.name

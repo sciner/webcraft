@@ -1,5 +1,5 @@
 import { DIRECTION, Vector } from "../../helpers.js";
-import { ClusterBuildingBase } from "./building_cluster_base.js";
+import { ClusterBuildingBase, getAheadMove } from "./building_cluster_base.js";
 import { BLOCK } from "../../blocks.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import { BuildingTemplate } from "./building_template.js";
@@ -12,7 +12,7 @@ export class ClusterStructures extends ClusterBuildingBase {
         super(clusterManager, addr)
 
         this.max_height  = 1
-        this.is_empty = false // !addr.equal(new Vector(-5261, 0, 7146))
+        this.is_empty = false // !addr.equal(new Vector(-738, 0, -2139))
 
         if(this.is_empty) {
             return
@@ -24,30 +24,44 @@ export class ClusterStructures extends ClusterBuildingBase {
 
         const schemas = [
             'structure1', 'structure2', 'mine', 'underearth_tower',
-            'broken_castle', 'house_dwarf', 'ornated_stone_tower_ruins'
+            'broken_castle', 'house_dwarf', 'ornated_stone_tower_ruins',
+            'test2'
         ]
 
         // randoms
         const door_direction = Math.floor(this.randoms.double() * 4)
-        const schema_name = schemas[Math.floor(this.randoms.double() * schemas.length)]
+        const schema_name = 'mine' // schemas[Math.floor(this.randoms.double() * schemas.length)]
 
         const template       = BuildingTemplate.fromSchema(schema_name, bm)
-        const coord          = this.coord.clone()
+        const coord          = this.coord.clone().addScalarSelf(128, 0, 128)
 
-        coord.addScalarSelf(128, 0, 128)
+        for(let door_direction of [0, 1, 2, 3]) {
 
-        const building = new BuildingBlocks(
-            this,
-            this.randoms.double(),
-            coord,
-            coord,
-            door_direction,
-            null,
-            template
-        )
+            const xz = coord.clone()
 
-        this.buildings.set(building.coord, building)
+            const building = new BuildingBlocks(
+                this,
+                this.randoms.double(),
+                xz,
+                xz,
+                door_direction,
+                null,
+                template
+            )
 
+            // const aabb = building.getRealAABB()
+            const am = getAheadMove(door_direction).multiplyScalarSelf(16)
+            building.translateXZ(am)
+            console.log(building.entrance.toHash())
+            // building.moveXZTo(new Vector(-188928, 0, -547584))
+
+            // this.buildings.set(new Vector(door_direction, door_direction, door_direction), building)
+
+            this.buildings.set(building.coord, building)
+
+        }
+
+        /*
         if(building) {
 
             // Fill near_mask
@@ -70,6 +84,7 @@ export class ClusterStructures extends ClusterBuildingBase {
             this.mask.fill(null)
 
         }
+        */
 
         /*
         // TODO: DEBUG

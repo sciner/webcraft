@@ -1099,7 +1099,7 @@ export class Vector {
         return this;
     }
 
-    multiplyScalar(scalar) {
+    multiplyScalarSelf(scalar) {
         this.x *= scalar;
         this.y *= scalar;
         this.z *= scalar;
@@ -2866,6 +2866,6 @@ export function mat4ToRotate(matrix) {
     const _quat = quat.create();
     mat4.getRotation(_quat, matrix);
     getEuler(out, _quat)
-    out.swapXZSelf().divScalar(180).multiplyScalar(Math.PI)
+    out.swapXZSelf().divScalar(180).multiplyScalarSelf(Math.PI)
     return out
 }

@@ -47,6 +47,10 @@ export class BuildingBlocks extends Building {
 
     }
 
+    setY(y) {
+        super.setY(y)
+    }
+
     /**
      * @param { import("../base.js").ClusterBase } cluster
      * @param {*} chunk 

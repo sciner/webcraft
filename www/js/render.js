@@ -1194,7 +1194,7 @@ export class Renderer {
                     cam_rotate.x *= -1;
                 }
                 const view_vector = player.forward.clone();
-                view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
+                view_vector.multiplyScalarSelf(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
                 //
                 const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
                 cam_pos_new.moveToSelf(cam_rotate, d);

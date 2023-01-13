@@ -398,7 +398,7 @@ class DestroyBlocks {
                 connected_pos.addByCardinalDirectionSelf(head_pos, rot);
             } else {
                 if(tblock.extra_data?.is_head) {
-                    head_pos.multiplyScalar(-1);
+                    head_pos.multiplyScalarSelf(-1);
                 }
                 connected_pos.addSelf(head_pos);
             }
@@ -1152,7 +1152,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
                 connected_pos.addByCardinalDirectionSelf(head_pos, pb_block.rotate.x + 2);
             } else {
                 if(pb_block.extra_data?.is_head) {
-                    head_pos.multiplyScalar(-1);
+                    head_pos.multiplyScalarSelf(-1);
                 }
                 connected_pos.addSelf(head_pos);
             }
@@ -1973,7 +1973,7 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
     if(world_material.has_head) {
         const head_pos = new Vector(world_material.has_head.pos);
         if(extra_data.is_head) {
-            head_pos.multiplyScalar(-1);
+            head_pos.multiplyScalarSelf(-1);
         }
         const connected_pos = new Vector(pos).addSelf(head_pos);
         const block_connected = world.getBlock(connected_pos);
