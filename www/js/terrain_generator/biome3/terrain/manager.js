@@ -599,13 +599,12 @@ export class TerrainMapManager2 {
                         if(free_height >= BUILDING_MIN_Y_SPACE) {
                             // set Y for door
                             building.setY(xyz.y)
-                            console.log('ae', xyz.toHash())
                             // set building cell for biome info
                             // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
                             // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
                             const biome = this.calcBiome(xyz)
                             building.setBiome(biome, biome.temperature, biome.humidity)
-                            break;
+                            break
                         }
                         free_height = 0
                     }

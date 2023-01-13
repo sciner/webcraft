@@ -73,7 +73,6 @@ export class Building {
             .clone()
             .addSelf(
                 getAheadMove(this.door_direction + 2)
-                    // .multiplyScalarSelf(1)
             )
     }
 

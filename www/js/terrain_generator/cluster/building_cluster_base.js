@@ -59,15 +59,31 @@ export class ClusterBuildingBase extends ClusterBase {
      */
     addBuilding(seed, door_x, door_z, size, entrance, door_direction, is_crossroad = false) {
 
-        const coord = new Vector(door_x + this.coord.x, 1, door_z + this.coord.z)
+        const coord = new Vector(door_x + this.coord.x, 0, door_z + this.coord.z)
         if(this.buildings.has(coord)) {
             return false
         }
 
-        const building = this.building_palettes.next(this, seed, door_direction, size, coord.clone(), entrance, is_crossroad)
+        const building = this.building_palettes.next(this, seed, door_direction, size, coord, entrance, is_crossroad)
 
         //
         this.buildings.set(building.coord, building);
+
+        // 1. building mask
+        /*
+        const margin = 0
+        const pos = new Vector(building.aabb.x_min, 0, building.aabb.z_min)
+        for(let i = -margin; i < building.size.x + margin; i++) {
+            for(let j = -margin; j < building.size.z + margin; j++) {
+                const x = pos.x - this.coord.x + i
+                const z = pos.z - this.coord.z + j
+                if(x >= 0 && z >= 0 && x < this.size.x && z < this.size.z) {
+                    const nidx = z * this.size.x + x
+                    //this.mask[nidx] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building)
+                }
+            }
+        }
+        */
 
         // 1. building mask
         const new_door_x = building.coord.x - this.coord.x

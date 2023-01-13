@@ -1,8 +1,8 @@
-import { DIRECTION, Vector } from "../../helpers.js";
 import { ClusterBuildingBase, getAheadMove } from "./building_cluster_base.js";
 import { BLOCK } from "../../blocks.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import { BuildingTemplate } from "./building_template.js";
+import { Vector } from "../../helpers.js";
 
 //
 export class ClusterStructures extends ClusterBuildingBase {
@@ -30,7 +30,7 @@ export class ClusterStructures extends ClusterBuildingBase {
 
         // randoms
         const door_direction = Math.floor(this.randoms.double() * 4)
-        const schema_name = 'mine' // schemas[Math.floor(this.randoms.double() * schemas.length)]
+        const schema_name = 'domsmall' // schemas[Math.floor(this.randoms.double() * schemas.length)]
 
         const template       = BuildingTemplate.fromSchema(schema_name, bm)
         const coord          = this.coord.clone().addScalarSelf(128, 0, 128)
@@ -52,21 +52,18 @@ export class ClusterStructures extends ClusterBuildingBase {
             // const aabb = building.getRealAABB()
             const am = getAheadMove(door_direction).multiplyScalarSelf(16)
             building.translateXZ(am)
-            console.log(building.entrance.toHash())
-            // building.moveXZTo(new Vector(-188928, 0, -547584))
-
-            // this.buildings.set(new Vector(door_direction, door_direction, door_direction), building)
+            // building.moveXZTo(this.coord)
 
             this.buildings.set(building.coord, building)
 
         }
 
-        /*
-        if(building) {
+        if(this.buildings.size > 0) {
 
             // Fill near_mask
             const margin = 3
-            for(const [pos, building] of this.buildings.entries()) {
+            for(const [_, building] of this.buildings.entries()) {
+                const pos = new Vector(building.aabb.x_min, 0, building.aabb.z_min)
                 for(let i = -margin; i < building.size.x + margin; i++) {
                     for(let j = -margin; j < building.size.z + margin; j++) {
                         const x = pos.x - this.coord.x + i
@@ -84,33 +81,7 @@ export class ClusterStructures extends ClusterBuildingBase {
             this.mask.fill(null)
 
         }
-        */
 
-        /*
-        // TODO: DEBUG
-        for(let x = 0; x < this.size.x; x++) {
-            let z = 0
-            this.mask[z * this.size.x + x] = cp
-            z = this.size.z
-            this.mask[z * this.size.x + x] = cp
-        }
-        
-        for(let z = 0; z < this.size.z; z++) {
-            let x = 0
-            this.mask[z * this.size.x + x] = cp
-            x = this.size.x
-            this.mask[z * this.size.x + x] = cp
-        }
-        */
-
-    }
-
-    fillBlocks(maps, chunk, map, fill_blocks, calc_building_y) {
-        super.fillBlocks(maps, chunk, map, fill_blocks, calc_building_y)
-    }
-
-    nextDirection() {
-        return Math.floor(this.randoms.double() * 4)
     }
 
 }

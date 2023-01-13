@@ -99,7 +99,7 @@ export default class Biome3LayerOverworld {
 
         // Plant trees
         chunk.timers.generate_trees = performance.now()
-        // this.plantTrees(maps, chunk)
+        this.plantTrees(maps, chunk)
         chunk.timers.generate_trees = performance.now() - chunk.timers.generate_trees
 
         return map

@@ -26,7 +26,7 @@ export class BlockDrawer {
         for(let i = 0; i < this.list.length; i++) {
             const item = this.list[i];
             pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir, this.mirror_x, this.mirror_z)
-            cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.is_cap_block, map)
+            cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map)
             //
             if(pos.x >= 0 && pos.y >= 0 && pos.z >= 0 && pos.x < chunk.size.x && pos.y < chunk.size.y && pos.z < chunk.size.z) {
                 _pos2d.copyFrom(pos)

@@ -43,7 +43,7 @@ export class BuildingTemplate {
 
         if(this.blocks) {
             this.rot = [ [], [], [], [] ]
-            const {all_blocks, min} = this.prepareBlocks(bm)
+            const {all_blocks} = this.prepareBlocks(bm)
             this.rotateBuildingBlockVariants(bm, all_blocks)
         }
 
@@ -200,7 +200,7 @@ export class BuildingTemplate {
                         if(block.mat?.is_solid) {
                             //if(move.y >= 80) {
                                 move.y++
-                                all_blocks.set(move, {block_id, mat, move: move.clone(), is_cap_block: true})
+                                all_blocks.set(move, {block_id, mat, move: move.clone(), candidate_for_cap_block: true})
                             //}
                         }
                         break
@@ -546,6 +546,32 @@ export class BuildingTemplate {
             }
         }
 
+        const rot_rails = (block) => {
+            const rot_sides = [
+                [5, 2, 4, 3],
+                [0, 1, 0, 1],
+                [9, 8, 7, 6],
+            ];
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i]
+                const rb = JSON.parse(JSON.stringify(block))
+                let new_shape = 0
+                rb.extra_data = rb.extra_data ?? {}
+                if('shape' in rb.extra_data) {
+                    const shape = rb.extra_data.shape
+                    for(let i = 0; i < rot_sides.length; i++) {
+                        const rot_row = rot_sides[i]
+                        let index = rot_row.indexOf(shape)
+                        if(index >= 0) {
+                            new_shape = rot_row[(index + direction) % rot_row.length]
+                        }
+                    }
+                }
+                rb.extra_data.shape = new_shape
+                rot[direction].push(rb)
+            }
+        }
+
         const rot_cover = (block) => {
             // TODO: Strange sides order, but working correct
             const sides = ['north', 'west', 'south', 'east']
@@ -607,6 +633,9 @@ export class BuildingTemplate {
 
             } else if(['armor_stand'].includes(mat.style_name)) {
                 rot3(block);
+
+            } else if(['rails'].includes(mat.style_name)) {
+                rot_rails(block);
 
             } else if(mat.can_rotate && block.rotate) {
                 rot2(block);
