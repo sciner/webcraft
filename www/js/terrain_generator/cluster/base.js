@@ -379,7 +379,7 @@ export class ClusterBase {
         for(let x = -m; x < size.x + m; x++) {
             for(let z = -m; z < size.z + m; z++) {
                 for(let y = 0; y < height; y++) {
-                    this.setBlock(chunk, x + bx, by + y * ysign, z + bz, BLOCK.WHITE_CONCRETE.id)
+                    this.setBlock(chunk, x + bx, by + y * ysign, z + bz, BLOCK.GRASS_BLOCK.id)
                 }
             }
         }

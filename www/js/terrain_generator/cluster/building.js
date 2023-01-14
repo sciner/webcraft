@@ -102,7 +102,7 @@ export class Building {
         // natural basement
         if(draw_natural_basement) {
             const height = 4
-            const dby = this.building_template ? this.building_template.world.entrance.y - 2 : 0 // 2 == 1 уровень ниже пола + изначально вход в конструкторе стоит на высоте 1 метра над землей
+            const dby = 0 // this.building_template ? this.building_template.world.entrance.y - 2 : 0 // 2 == 1 уровень ниже пола + изначально вход в конструкторе стоит на высоте 1 метра над землей
             const coord = new Vector(this.aabb.x_min, this.coord.y + dby, this.aabb.z_min)
             const size = new Vector(this.size.x, -height, this.size.z)
             cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE)
