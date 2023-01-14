@@ -742,28 +742,41 @@ export class WorldAction {
             for(const [pos, block] of listBlockDestruction.entries()) {
                 if (pos.equal(vec_center)) { // просто удаляем центральный блок ( это tnt)
                     this.addBlocks([
-                        {pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}
+                        {
+                            pos: pos.clone(), 
+                            item: air, 
+                            action_id: ServerClient.BLOCK_ACTION_REPLACE
+                        }
                     ]);
                 } else if (block.tblock.id == BLOCK.TNT.id) {
-                    // просто удаляем tnt с шаносом поджигания и взрыва
-                    if (Math.random() < 0.7) {
-                        this.addBlocks([{
-                            pos: pos.clone(),
-                            item: {id: BLOCK.AIR.id},
-                            destroy_block_id: block.tblock.id,
-                            action_id: ServerClient.BLOCK_ACTION_DESTROY
-                        }]);
-                    } else if (block.tblock.extra_data.fuse == 0) {
+                    if (!block.tblock.extra_data.explode) {
                         this.addBlocks([
-                            {pos: pos.clone(), item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                            {
+                                pos: pos.clone(), 
+                                item: {
+                                    id: BLOCK.TNT.id, 
+                                    extra_data: {
+                                        explode: true, 
+                                        fuse: 8
+                                    }
+                                }, 
+                                action_id: ServerClient.BLOCK_ACTION_MODIFY
+                            }
                         ]);
                     }
                 } else {
                     this.addBlocks([
-                        {pos: pos.clone(), item: air, action_id: ServerClient.BLOCK_ACTION_REPLACE}
+                        {
+                            pos: pos.clone(), 
+                            item: air, 
+                            action_id: ServerClient.BLOCK_ACTION_REPLACE
+                        }
                     ]);
                     extruded_blocks.set(pos, 'extruded');
-                    createAutoDrop(block.tblock);
+                    // не вся часть блоков при взрыве динамита дропается
+                    if (Math.random() <= 0.7) {
+                        createAutoDrop(block.tblock);
+                    }
                 }
             }
         }
