@@ -169,7 +169,7 @@ export class Inventory {
             return;
         }
         const current_item_material = this.block_manager.fromId(this.current_item.id);
-        if(current_item_material.item?.instrument_id) {
+        if(current_item_material.power && current_item_material.item?.instrument_id) {
             this.current_item.power = Math.max(this.current_item.power - 1, 0);
             if(this.current_item.power <= 0) {
                 this.items[this.current.index] = null;

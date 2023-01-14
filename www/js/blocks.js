@@ -211,22 +211,11 @@ export class BLOCK {
         if(!block || !('id' in block)) {
             return '';
         }
-        // check the label first, to avoid unnecessary work
-        if(block.extra_data?.label) {
-            return block.extra_data.label;
-        }
-        let mat = null;
-        if('name' in block && 'title' in block) {
-            mat = block;
-        } else {
-            mat = BLOCK.fromId(block.id);
-        }
-        let resp = mat.name;
-        if(mat.title) {
-            resp += ` (${mat.title})`;
-        }
-        resp = resp.replaceAll('_', ' ');
-        return resp;
+        const label = block.extra_data?.label;
+        const mat = BLOCK.fromId(block.id);
+        return label
+            ? `${label} (${mat.title})`
+            : mat.title;
     }
 
     static getLightPower(material) {
