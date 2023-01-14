@@ -48,6 +48,9 @@ export default class style {
                 shapes.push(new AABB().set(0.9, 0, 0, 1, 1, 1));
             }
         }
+        if(shapes.length == 0) {
+            shapes.push(new AABB(0, 0, 0, 1, 1, 1))
+        }
         return shapes;
     }
 

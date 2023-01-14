@@ -111,7 +111,7 @@ export class WorldEditBuilding {
         const entrance = new Vector(
             Math.round((pos1.x + pos2.x) / 2),
             1,
-            Math.round((pos1.z + pos2.z) / 2)
+            pos1.z
         )
 
         const meta = {
