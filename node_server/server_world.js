@@ -244,11 +244,10 @@ export class ServerWorld {
     // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
     autoSpawnHostileMobs() {
         const SPAWN_DISTANCE = 16;
-        const good_light_for_spawn = this.getLight() > 6;
         const good_world_for_spawn = !this.isBuildingWorld();
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
-        if(!auto_generate_mobs || !good_world_for_spawn || good_light_for_spawn) {
+        if(!auto_generate_mobs || !good_world_for_spawn) {
             return;
         }
         // находим игроков
@@ -269,6 +268,12 @@ export class ServerWorld {
                     if (under && (under.id != 0 || under.material.style_name == 'planting')) {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
+                        if (this.getLight() > 6) {
+                            console.log((head.lightValue >> 8))
+                            if ((head.lightValue >> 8) != 0xFF) {
+                                return;
+                            }
+                        }
                         // проверям что область для спауна это воздух или вода
                         if (body && head && body.id == 0 && head.id == 0) {
                             // не спавним рядом с игроком
@@ -390,7 +395,7 @@ export class ServerWorld {
             }
             // Auto spawn hostile mobs
             if(this.ticks_stat.number % 100 == 0) {
-               // this.autoSpawnHostileMobs();
+                this.autoSpawnHostileMobs();
                 this.ticks_stat.add('auto_spawn_hostile_mobs');
             }
             // Save fluids
