@@ -1189,6 +1189,15 @@
             "material": {
                 "id": "gravel"
             },
+            "drop_item": [
+                {
+                    "name":"FLINT",
+                    "chance": 0.1
+                },
+                {
+                    "name":"GRAVEL"
+                }
+            ],
             "texture": "block/gravel.png"
         },
         {
@@ -1346,7 +1355,13 @@
             "id": 14,
             "name": "GOLD_ORE",
             "sound": "madcraft:block.stone",
-            "coocked_item": {"name": "GOLD_INGOT", "count": 1},
+            "coocked_item": {"name": "GOLD_ORE", "count": 1},
+            "drop_item": [
+                {
+                    "name":"GOLD_ORE",
+                    "instrument":"stone" 
+                }
+            ],
             "texture": "block/gold_ore.png",
             "material": {
                 "id": "gold"
@@ -1864,7 +1879,12 @@
             "id": 56,
             "name": "DIAMOND_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "DIAMOND", "count": 1, "chance": 1},
+            "drop_item": [
+                {
+                    "name":"DIAMOND",
+                    "instrument":"iron" 
+                }
+            ],
             "texture": "block/diamond_ore.png",
             "material": {
                 "id": "diamond"

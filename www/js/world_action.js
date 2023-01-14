@@ -258,7 +258,7 @@ function makeDropItem(block, item) {
  *
  * @returns {object[]} dropped blocks
  */
-export function dropBlock(player, tblock, actions, force) {
+export function dropBlock(player, tblock, actions, force, current_inventory_item) {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
@@ -267,8 +267,56 @@ export function dropBlock(player, tblock, actions, force) {
         return [];
     }
 
+    const instrument = current_inventory_item ? current_inventory_item.id : null;
+
+    const checkInstrument = (item, drop) => {
+        if (!drop?.instrument) {
+            return true;
+        }
+        if (!item) {
+            return false;
+        }
+        if (drop.instrument == "wood" || drop.instrument == "gold") {
+            if ([BLOCK.WOODEN_PICKAXE.id, BLOCK.GOLDEN_PICKAXE.id, BLOCK.STONE_PICKAXE.id, BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
+                return true;
+            }
+        }
+        if (drop.instrument == "stone") {
+            if ([BLOCK.STONE_PICKAXE.id, BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
+                return true;
+            }
+        }
+        if (drop.instrument == "iron") {
+            if ([BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
+                return true;
+            }
+        }
+        if (drop.instrument == "diamond") {
+            if ([BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     const drop_item = tblock.material.drop_item;
-    if(drop_item) {
+    // новый функционал
+    if (Array.isArray(drop_item)) {
+        for (const drop of drop_item) {
+            if (drop && checkInstrument(instrument, drop)) {
+                const block = BLOCK.fromName(drop?.name);
+                const chance = drop.chance ?? 1;
+                if(Math.random() < chance) {
+                    let count = drop.count ?? 1;
+                    if(count > 0) {
+                        const item = makeDropItem(tblock, {id: block.id, count: count});
+                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        return [item];
+                    }
+                }
+            }
+        }
+    } else if(drop_item) {
         const drop_block = BLOCK.fromName(drop_item?.name);
         if(drop_block) {
             const chance = drop_item.chance ?? 1;
@@ -335,11 +383,12 @@ class DestroyBlocks {
      * @param { import("../../node_server/server_player.js").ServerPlayer } player
      * @param { WorldAction } actions
      */
-    constructor(world, player, actions) {
-        this.cv         = new VectorCollector();
-        this.world      = world;
-        this.player     = player;
-        this.actions    = actions;
+    constructor(world, player, actions, current_inventory_item) {
+        this.cv      = new VectorCollector();
+        this.world   = world;
+        this.player  = player;
+        this.actions = actions;
+        this.current_inventory_item = current_inventory_item;
     }
 
     //
@@ -364,14 +413,14 @@ class DestroyBlocks {
             if(tblock.extra_data && tblock.extra_data.disc) {
                 const disc_id = tblock.extra_data.disc.id;
                 // Drop disc
-                drop_items.push(...dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false));
+                drop_items.push(...dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false, this.current_inventory_item));
                 // Stop play disc
                 actions.stop_disc.push({pos: tblock.posworld.clone()});
             }
         }
         // Drop block if need
         if(!no_drop) {
-            drop_items.push(...dropBlock(player, tblock, actions, false));
+            drop_items.push(...dropBlock(player, tblock, actions, false, this.current_inventory_item));
         }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
@@ -799,7 +848,7 @@ function simplifyPos(world, pos, mat, to_top, check_opposite = true) {
 export async function doBlockAction(e, world, player, current_inventory_item) {
 
     const actions = new WorldAction(e.id);
-    const destroyBlocks = new DestroyBlocks(world, player, actions);
+    const destroyBlocks = new DestroyBlocks(world, player, actions, current_inventory_item);
 
     if(e.pos == false) {
         console.error('empty e.pos');
