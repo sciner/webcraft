@@ -108,6 +108,11 @@ export class GameClass {
                 if(clipboardData) {
                     const pastedData = clipboardData.getData('Text');
                     if(pastedData) {
+                        for(const window of Qubatch.hud.wm.visibleWindows()) {
+                            if (window.onPaste && window.onPaste(pastedData)) {
+                                return true;
+                            }
+                        }
                         player.chat.pasteText(pastedData);
                     }
                 }

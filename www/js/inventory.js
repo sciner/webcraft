@@ -1,6 +1,8 @@
-import { Helpers, Vector} from "./helpers.js";
+import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, 
     INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS } from "./constant.js";
+import { BLOCK } from "./blocks.js"
+import { InventoryComparator } from "./inventory_comparator.js";
 
 export const INVENTORY_CHANGE_NONE = 0;
 // it may be adding or subtracting drag item from a slot, if slotIndex >= 0
@@ -99,7 +101,7 @@ export class Inventory {
             for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; i++) {
                 const item = this.items[i];
                 if(item) {
-                    if(item.id == mat.id && item?.entity_id == null && item?.extra_data == null) {
+                    if(InventoryComparator.itemsEqualExceptCount(item, mat)) {
                         if(item.count < item_max_count) {
                             if(item.count + mat.count <= item_max_count) {
                                 updated.set(i, Math.min(item.count + mat.count, item_max_count));
@@ -235,7 +237,6 @@ export class Inventory {
     /**
      * Decrements one or multiple items is visible slots by the given total amount,
      * or, if the given amount is not present, decrements by as much as posible.
-     * @return {Int} 0, if there were enough items, ot the amount that was mising.
      */
     decrementByItemID(item_id, count, dont_refresh) {
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
@@ -244,24 +245,41 @@ export class Inventory {
                 continue;
             }
             if(item.id == item_id) {
-                if(item.count >= count) {
-                    item.count -= count;
-                    count = 0;
-                    if(item.count < 1) {
-                        this.items[i] = null;
-                    }
+                count -= this.decrementByIndex(i, count);
+                if (count === 0) {
                     break;
-                } else {
-                    count -= item.count;
-                    item.count = 0;
-                    this.items[i] = null;
                 }
             }
         }
         if(typeof dont_refresh === 'undefined' || !dont_refresh) {
             this.refresh(true);
         }
-        return count;
+    }
+
+    /**
+     * Decrements the item count by {@link count} or by as much as posible, and removes the
+     * item from list if the count becomes 0.
+     * @param {Array|Object} list
+     * @param {Int} index
+     * @param {Int} count
+     * @return {Int} - the amount actually subtracted
+     */
+    static decrementByIndex(list, index, count = 1) {
+        const item = list[index];
+        if (item == null) {
+            return 0;
+        }
+        if (item.count > count) {
+            item.count -= count;
+            return count;
+        } else {
+            ArrayOrMap.delete(list, index, null);
+            return item.count;
+        }
+    }
+
+    decrementByIndex(index, count = 1) {
+        return Inventory.decrementByIndex(this.items, index, count);
     }
 
     countItemId(item_id) {
@@ -277,37 +295,43 @@ export class Inventory {
     /**
      * Возвращает список того, чего и в каком количестве не хватает
      * в (текущем инвентаре + дополнительном списке предметов) по указанному списку.
-     * @param {Array} resources - contains objects {
-     *      item_ids: Array of Int
-     *      count: Int
-     *  }, see {@link Recipe.calcNeedResources}
+     * @param {Array} resources - the array of needed resources, see {@link Recipe.calcNeedResources}
      * @param {Array} additionalItems - optional additional items, g.e. from craft slots.
-     * @returns true if the inventory visible solts have enogh resources.
+     * @returns {Object} with properties:
+     *  - missing: Array - mising resuces
+     *  - has: Array - the found resources
      */
     hasResources(resources, additionalItems = null) {
-        const resp = [];
-        const maxI = INVENTORY_VISIBLE_SLOT_COUNT + (additionalItems?.length || 0);
+        const resp = {
+            missing: [],
+            has: []
+        };
+        // combined array of items
+        const items = this.items.slice(0, INVENTORY_VISIBLE_SLOT_COUNT);
+        additionalItems && items.push(...additionalItems);
+        // array of mutable counts - no need to clone the the items themselves
+        const counts = items.map(item => item?.count);
+        // iterate the resources in order of decreasing needs specificity
         for(const resource of resources) {
             let count = resource.count;
-            for(let i = 0; i < maxI; i++) {
-                const item = i < INVENTORY_VISIBLE_SLOT_COUNT
-                    ? this.items[i]
-                    : additionalItems[i - INVENTORY_VISIBLE_SLOT_COUNT];
-                if(!item) {
-                    continue;
-                }
-                if(resource.item_ids.includes(item.id)) {
-                    if(item.count >= count) {
-                        count = 0;
+            for(let i = 0; i < items.length; i++) {
+                if (counts[i] && InventoryComparator.itemMatchesNeeds(items[i], resource.needs)) {
+                    const take_count = Math.min(counts[i], count);
+                    resp.has.push({
+                        ...resource,
+                        count: take_count,
+                        item_index: i
+                    });
+                    counts[i] -= take_count;
+                    count -= take_count;
+                    if (count === 0) {
                         break;
-                    } else {
-                        count -= item.count;
                     }
                 }
             }
             if(count > 0) {
                 const r = {...resource, count};
-                resp.push(r);
+                resp.missing.push(r);
             }
         }
         return resp;
@@ -394,8 +418,8 @@ export class Inventory {
                     } else {
                         // select if on hotbar
                         if(k == this.current.index) {
-                            const block = block_manager.fromId(cloned_block.id);
-                            item.count = Math.min(item.count + 1, block.max_in_stack);
+                            const maxStack = BLOCK.getItemMaxStack(cloned_block.id);
+                            item.count = Math.min(item.count + 1, maxStack);
                         }
                         this.select(k);
                         return this.refresh(false);

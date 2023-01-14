@@ -1709,6 +1709,37 @@ export class StringHelpers {
         return (start > 0 || end < str.length) ? str.substring(start, end) : str;
     }
 
+    // converts to Roman number, from https://stackoverflow.com/questions/9083037/convert-a-number-into-a-roman-numeral-in-javascript
+    static romanize(num) {
+        let lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1}, roman = '', i;
+        for (i in lookup) {
+            while (num >= lookup[i]) {
+                roman += i;
+                num -= lookup[i];
+            }
+        }
+        return roman;
+    }
+
+    static replaceCharAt(str, index, replacement) {
+        return str.charAt(index) !== replacement
+            ? str.substring(0, index) + replacement + str.substring(index + replacement.length)
+            : str;
+    }
+
+    static capitalizeChatAt(str, index) {
+        return this.replaceCharAt(str, index, str.charAt(index).toUpperCase());
+    }
+
+    static capitalizeFirstLetterOfEachWord(str) {
+        const re = /\W\w/g;
+        let res = str; // because we need an immutable string
+        let match;
+        while (match = re.exec(str)) {
+            res = this.capitalizeChatAt(res, match.index + 1);
+        }
+        return this.capitalizeChatAt(res, 0);
+    }
 }
 
 export class ArrayHelpers {
@@ -1827,13 +1858,77 @@ export class ArrayHelpers {
         return res;
     }
 
-    // Returns Array or null as is. Non-null scalars are wraped into an array.
-    static scalarToArray(v) {
-        return (v == null || Array.isArray(v)) ? v : [v];
+    static create(size, fill = null) {
+        const arr = new Array(size);
+        if (typeof fill === 'function') {
+            for(let i = 0; i < arr.length; i++) {
+                arr[i] = fill(i);
+            }
+        } else if (fill !== null) {
+            arr.fill(fill);
+        }
+        return arr;
     }
 }
 
-// Helper methods for working with an object, an Array or a Map in the same way.
+// Helper methods to work with an array or a scalar in the same way.
+export class ArrayOrScalar {
+    // Returns Array or null as is. Non-null scalars are wraped into an array.
+    static toArray(v) {
+        return (v == null || Array.isArray(v)) ? v : [v];
+    }
+
+    static length(v) {
+        return Array.isArray(v) ? v.length : v;
+    }
+
+    static get(v, index) {
+        return Array.isArray(v) ? v[index] : v;
+    }
+
+    static find(fn) {
+        return Array.isArray(v)
+            ? v.find(fn)
+            : (fn(v) ? v : null);
+    }
+
+    static map(v, fn) {
+        return Array.isArray(v) ? v.map(fn) : fn(v);
+    }
+
+    // Sets the length of an Array, but doesn't change a scalar
+    static setArrayLength(v, length) {
+        if (Array.isArray(v)) {
+            v.length = length;
+        }
+        return v;
+    }
+
+    static mapSelf(v, fn) {
+        if (Array.isArray(v)) {
+            for(let i = 0; i < v.length; i++) {
+                v[i] = fn(v[i]);
+            }
+            return v;
+        } else {
+            return fn(v);
+        }
+    }
+}
+
+/**
+ * Helper methods for working with an Object, Array or Map in the same way - like a map.
+ * 
+ * There are 2 modes when working with arrays:
+ * 1. By default, undefined vallues are used to mark empty elements. All other values can be stored and read.
+ * 2. If emptyValue parameter in methods is set to null, then:
+ *  - neither undefined, nor null can be put into the collection on purpose.
+ *  - both undefined and null are skipped during iteration.
+ *  - nulls are used to mark empty array elements.
+ * It assumes the user doesn't put undefined or emptyValue into a Map or an Object.
+ * 
+ * It can be optimized at the expense of code size.
+ */
 export class ArrayOrMap {
 
     static get(collection, key) {
@@ -1846,54 +1941,96 @@ export class ArrayOrMap {
         }
         if (collection instanceof Map) {
             collection.set(key, value);
-        } else if (Array.isArray(collection)) {
-            ArrayHelpers.growAndSet(collection, key, value);
         } else {
             collection[key] = value;
         }
     }
 
-    // Yields values expet undefined.
-    // We have to skip undefined because they're used in an array for mising entries.
-    static *valuesExceptUndefined(collection) {
+    static delete(collection, key, emptyValue = undefined) {
         if (collection instanceof Map) {
-            for(let v of collection.values()) {
-                if (v !== undefined) {
-                    yield v;
-                }
-            }
+            collection.delete(key);
         } else if (Array.isArray(collection)) {
-            for(var i = 0; i < collection.length; i++) {
-                if (collection[i] !== undefined) {
-                    yield collection[i];
-                }
+            if (collection.length > key) {
+                collection[key] = emptyValue;
             }
         } else {
+            delete collection[key];
+        }
+    }
+
+    /** Yields values expet undefined and {@link emptyValue}. */
+    static *values(collection, emptyValue = undefined) {
+        if (collection instanceof Map) {
+            yield *collection.values();
+        } else {
             for(let key in collection) {
-                if (collection.hasOwnProperty(key) && collection[key] !== undefined) {
-                    yield collection[key];
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    yield v;
                 }
             }
         }
     }
 
-    static *entriesExceptUndefined(collection) {
+    static *keys(collection, emptyValue = undefined) {
         if (collection instanceof Map) {
-            for(let entry of collection.entries()) {
-                if (entry[1] !== undefined) {
-                    yield v;
-                }
-            }
-        } else if (Array.isArray(collection)) {
-            for(var i = 0; i < collection.length; i++) {
-                if (collection[i] !== undefined) {
-                    yield [i, collection[i]];
-                }
-            }
+            yield *collection.keys();
         } else {
             for(let key in collection) {
-                if (collection.hasOwnProperty(key) && collection[key] !== undefined) {
-                    yield [key, collection[key]];
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    yield key;
+                }
+            }
+        }
+    }
+
+    /** The only difference with {@link keys} is that it retuens Object's keys as numbers. */
+    static *numericKeys(collection, emptyValue = undefined) {
+        if (collection instanceof Map) {
+            yield *collection.keys();
+        } else {
+            for(let key in collection) {
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    yield parseFloat(key);
+                }
+            }
+        }
+    }
+
+    /** 
+     * Yields [key, value], except those with values undefined and {@link emptyValue}.
+     * Note: the same muatble entry is reused.
+     */
+    static *entries(collection, emptyValue = undefined) {
+        if (collection instanceof Map) {
+            yield *collection.entries();
+        } else {
+            const entry = [null, null];
+            for(let key in collection) {
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    entry[0] = key;
+                    entry[1] = v;
+                    yield entry;
+                }
+            }
+        }
+    }
+
+    /** The only difference with {@link entries} is that it retuens Object's keys as numbers. */
+    static *numericEntries(collection, emptyValue = undefined) {
+        if (collection instanceof Map) {
+            yield *collection.entries();
+        } else {
+            const entry = [null, null];
+            for(let key in collection) {
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    entry[0] = parseFloat(key);
+                    entry[1] = v;
+                    yield entry;
                 }
             }
         }
@@ -2401,63 +2538,26 @@ export class ObjectHelpers {
         return true;
     }
 
-    /**
-     * Deep compares the selected properties of two objects.
-     * For the nested objects, all properties are compared.
-     * @param {Object} propsObj - an object that has true-like values for properties being compared.
-     */
-    static deepEqualObjectProps(a, b, propsObj) {
-        if (a == null || b == null) {
-            return a === b;
+    // Returns a result similar to JSON.stringify, but the keys are sorted alphabetically.
+    static sortedStringify(obj) {
+        if (obj == null) {
+            return 'null'; // for both null and undefined
         }
-        if (typeof a !== 'object' || typeof b !== 'object') {
-            throw new Error('unsupported');
+        if (typeof obj !== 'object') {
+            return JSON.stringify(obj);
         }
-        for (let key in a) {
-            if (propsObj[key] && !this.deepEqual(a[key], b[key])) {
-                return false;
-            }
+        if (Array.isArray(obj)) {
+            const transformedArr = obj.map(it => this.sortedStringify(it));
+            return '[' + transformedArr.join(',') + ']';
         }
-        for (let key in b) {
-            if (propsObj[key] && !(key in a)) {
-                return false;
-            }
+        // it's an object
+        const keys = Object.keys(obj).sort();
+        for(let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            // stringify the key to escape quotes in it
+            keys[i] = JSON.stringify(key) + ':' + this.sortedStringify(obj[key]);
         }
-        return true;
-    }
-
-    /**
-     * Deep compares two objects or arrays, but for their elememnts {@link deepEqualObjectProps} is used.
-     */
-    static deepEqualCollectionElementProps(a, b, propsObj) {
-        if (a == null || b == null) {
-            return a === b;
-        }
-        if (Array.isArray(a)) {
-            if (!Array.isArray(b) || b.length !== a.length) {
-                return false;
-            }
-            for(let i = 0; i < a.length; i++) {
-                if (!this.deepEqualObjectProps(a[i], b[i], propsObj)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        if (a instanceof Map || a instanceof Set) {
-            throw new Error('unsupported'); // implement it if necessary
-        }
-        for (var key in a) {
-            if (!this.deepEqualObjectProps(a[key], b[key], propsObj)) {
-                return false;
-            }
-        }
-        for (var key in b) {
-            if (!(key in a)) {
-                return false;
-            }
-        }
-        return true;
+        return '{' + keys.join(',') + '}';
     }
 }
 
@@ -2512,6 +2612,8 @@ export function deepAssign(options) {
         return target;
     }
 }
+
+const DEFAULT_PROPERTIES_EQUAL_FN = (a, b) => ObjectHelpers.deepEqual(a, b);
 
 // digestMessage
 export async function digestMessage(message) {

@@ -599,6 +599,17 @@ export class Window {
         }
         this.onWheel(e);
     }
+    measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
+        const lines = text.split("\r");
+        let width = 0;
+        let actualBoundingBoxDescent = 0;
+        for(const line of lines) {
+            const mt = ctx.measureText(line);
+            width = Math.max(width, mt.width);
+            actualBoundingBoxDescent += mt.actualBoundingBoxDescent * lineHeightMultiply + lineHeightAdd;
+        }
+        return { width, actualBoundingBoxDescent };
+    }
     calcPrintLines(original_text, ax, ay) {
         if(!this.word_wrap || !this.ctx) {
             return [original_text];
@@ -981,6 +992,15 @@ export class TextEdit extends Window {
         super.draw(ctx, ax, ay);
     }
 
+    paste(str) {
+        for(let i in str) {
+            this.typeChar(null, str.charCodeAt(i), str[i]);
+        }
+    }
+
+    getEditText() {
+        return this.buffer.join('');
+    }
 }
 
 class Tooltip extends Label {
@@ -998,6 +1018,7 @@ class Tooltip extends Label {
             top: 12,
             bottom: 10
         };
+        this.word_wrap = true;
         //
         this.need_update_size = false;
         this.setText(text);
@@ -1011,9 +1032,10 @@ class Tooltip extends Label {
         //
         if(this.need_update_size && this.autosize) {
             this.need_update_size = false;
-            let mt = ctx.measureText(this.text);
+            // The line hegit is imprecise here, TODO: make calculations the same as when drawing
+            let mt = this.measureMultilineText(ctx, this.text, 1.07, 2);
             this.width = mt.width + this.style.padding.left + this.style.padding.right;
-            this.height = mt.actualBoundingBoxDescent + this.style.padding.top + this.style.padding.bottom + 2;
+            this.height = mt.actualBoundingBoxDescent + this.style.padding.top + this.style.padding.bottom;
         }
         super.draw(ctx, ax, ay);
     }

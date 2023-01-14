@@ -33,48 +33,67 @@ export class ServerPlayerInventory extends Inventory {
         return true;
     }
 
+    /**
+     * @param {Array or Object} new_items - items from the client
+     * @param {Boolean} mustCheckEqual - if it's true, the change is accepted only if the items
+     *   are equal to the existing items, accoring to {@link InventoryComparator.checkEqual}
+     * @param {Array of objects} used_recipes - optional, see {@link InventoryComparator.checkEqual}
+     * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
+     * @return {Boolean} true if success
+     * 
+     * @todo make some validation even when {@link mustCheckEqual} === true, e.g. that there are no extra entities.
+     */
+    sanitizeAndValidateClinetItemsChange(new_items, mustCheckEqual, used_recipes, recipeManager) {
+        // sanitize and validate once here. The code everywhere else assumes they at least have valid format, existing ids, etc.
+        const invalidItem = InventoryComparator.sanitizeAndValidateItems(new_items);
+        if (invalidItem != null) {
+            console.log('Invalid item: ' + JSON.stringify(invalidItem));
+            return false;
+        }
+        if (mustCheckEqual) {
+            return InventoryComparator.checkEqual(this.items, new_items, used_recipes, recipeManager);
+        }
+        return true;
+    }
+
     // Игрок прислал новое состояние инвентаря, нужно его провалидировать и применить
     async newState(params) {
-
-        const state = params.state;
-        const used_recipes = params.used_recipes;
-
-        if(!state || !state?.items || !used_recipes) {
-            throw 'error_invalid_inventory_state_params';
-        }
-
-        // New state
-        if('items' in state) {
-            let equal = this.player.game_mode.isCreative();
-            const old_items = this.items;
-            const new_items = state.items;
-            if(!equal) {
-                equal = await InventoryComparator.checkEqual(old_items, new_items, used_recipes);
+        try {
+            const state = params.state;
+            const used_recipes = params.used_recipes;
+            if (!state || !state?.items || !used_recipes) {
+                throw 'error_invalid_inventory_state_params';
             }
-            if(equal) {
-                // apply new
-                this.applyNewItems(new_items, true);
-                console.log('New inventory state ... Accepted');
-                // run triggers
-                if(this.player.onCrafted) {
-                    const recipeMan = await InventoryComparator.getRecipeManager();
-                    for(let used_recipe of used_recipes) {
-                        const recipe = recipeMan.getRecipe(used_recipe.recipe_id);
-                        if (!recipe) { // it may happen in creative mode if the client sends invalid recipes
-                            throw 'error_recipe_not_found|' + used_recipe.recipe_id;
+            // New state
+            if('items' in state) {
+                const new_items = state.items;
+                const recipeMan = used_recipes.length && 
+                    await InventoryComparator.getRecipeManager(params.recipe_manager_type);
+                // The only situation when we don't check equality (which includes applying recipes) is
+                // in the creative inventory, where there are no recipes, and the client explicitly asks for it.
+                const dontCheckEqual = params.dont_check_equal && used_recipes.length === 0 && this.player.game_mode.isCreative();
+                const changeIsValid = this.sanitizeAndValidateClinetItemsChange(new_items, !dontCheckEqual, used_recipes, recipeMan);
+                if(changeIsValid) {
+                    // apply new
+                    this.applyNewItems(new_items, true);
+                    console.log('New inventory state ... Accepted');
+                    // run triggers
+                    if(this.player.onCrafted) {
+                        for(let used_recipe of used_recipes) {
+                            // we know the recipe exists, because it was successfully applied and validated
+                            const recipe = recipeMan.getRecipe(used_recipe.recipe_id);
+                            this.player.onCrafted(recipe, used_recipe.onCraftedData);
                         }
-                        this.player.onCrafted(recipe, {
-                            block_id: recipe.result.item_id,
-                            count: recipe.result.count
-                        });
                     }
+                    return; // the state is accepted, don't send anything to the player
                 }
-            } else {
-                // send current to player
-                console.error('New inventory state ... Rejected');
-                this.send();
             }
+        } catch (e) {
+            console.log(e);
         }
+        // the sate wasn't accpted, or there was an exception
+        console.error('New inventory state ... Rejected');
+        this.send();
     }
 
     // Drop item from hand

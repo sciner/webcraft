@@ -5,6 +5,7 @@ export const Lang = new Proxy(
     {
 
         default_code: 'en',
+        inited: false,
 
         async init() {
 
@@ -30,6 +31,7 @@ export const Lang = new Proxy(
                 }
             })
             this.code = found ? lang_code : this.default_code;
+            this.inited = true;
         },
 
         change(item) {
@@ -59,22 +61,21 @@ export const Lang = new Proxy(
                 // Oh well, but whatever...
             }
             return json_string;
-        }
+        },
 
-    },
-    {
-        get(target, prop) {
-            if(prop in target) {
-                return target[prop];
-            }
+        getOrUnchanged(prop) {
+            return this.getOrNull(prop) ?? prop;
+        },
+
+        getOrNull(prop) {
             if (prop.startsWith("!lang")) {
                 return prop.substr(5);
             }
             const args = prop.split('|');
             const key = args.shift();
-            const resp = target.strings[key];
+            const resp = this.strings[key];
             if(!resp) {
-                return `[${prop}]`;
+                return null;
             }
             //
             const fill = function(str, args) {
@@ -82,9 +83,9 @@ export const Lang = new Proxy(
                     const transPlace = '%t' + i;
                     if (str.indexOf(transPlace) >= 0) {
                         var v = args[i];
-                        const list = target.strings[v];
+                        const list = this.strings[v];
                         if (list) {
-                            v = list[target.code] || list[target.default_code] || v;
+                            v = list[this.code] || list[this.default_code] || v;
                         }
                         str = str.replace(transPlace, v);
                     }
@@ -93,10 +94,19 @@ export const Lang = new Proxy(
                 return str;
             };
             //
-            if(resp[target.code]) {
-                return fill(resp[target.code], args);
+            if(resp[this.code]) {
+                return fill(resp[this.code], args);
             }
-            return fill(resp[target.default_code], args) || `[${prop}]`;
+            return fill(resp[this.default_code], args);
+        }
+
+    },
+    {
+        get(target, prop) {
+            if(prop in target) {
+                return target[prop];
+            }
+            return target.getOrNull(prop) || `[${prop}]`;
         }
     }
 );

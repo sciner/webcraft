@@ -17,14 +17,13 @@ export class InventoryWindow extends BaseCraftWindow {
      */
     constructor(inventory, recipes) {
 
-        super(10, 10, 352, 332, 'frmInventory', null, null);
+        super(10, 10, 352, 332, 'frmInventory', null, null, inventory);
 
         this.width *= this.zoom;
         this.height *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
         this.recipes = recipes;
-        this.inventory = inventory;
 
         const options = {
             background: {
