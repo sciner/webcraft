@@ -17,7 +17,7 @@ const PORCH_MAX_HALF_WIDTH = 1;
 const PORCH_CRATER_HEIGHT = 8;
 
 //
-export class BuilgingTemplate {
+export class BuildingTemplate {
 
     static schemas = new Map();
 
@@ -27,12 +27,23 @@ export class BuilgingTemplate {
         if(!bm) debugger
 
         for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks']) {
-            if(prop in json) this[prop] = json[prop]
+            if(prop in json) {
+                switch(prop) {
+                    case 'door_pos':
+                    case 'size': {
+                        this[prop] = new Vector(json[prop])
+                        break
+                    }
+                    default: {
+                        this[prop] = json[prop]
+                    }
+                }
+            }
         }
 
         if(this.blocks) {
             this.rot = [ [], [], [], [] ]
-            const {all_blocks, min} = this.prepareBlocks(bm)
+            const {all_blocks} = this.prepareBlocks(bm)
             this.rotateBuildingBlockVariants(bm, all_blocks)
         }
 
@@ -49,17 +60,22 @@ export class BuilgingTemplate {
     static addSchema(schema) {
         schema.world.pos1 = new Vector(schema.world.pos1)
         schema.world.pos2 = new Vector(schema.world.pos2)
-        schema.world.door_bottom = new Vector(schema.world.door_bottom)
+        schema.world.entrance = new Vector(schema.world.entrance)
+        schema.door_pos = new Vector(schema.door_pos)
+        schema.size = new Vector(schema.size)
         this.schemas.set(schema.name, schema);
     }
 
     static fromSchema(name, bm) {
-        return new BuilgingTemplate(this.getSchema(name), bm)
+        return new BuildingTemplate(this.getSchema(name), bm)
     }
 
     static getSchema(name) {
         const resp = this.schemas.get(name)
-        if(!resp) throw 'building_schema_not_found'
+        if(!resp) {
+            debugger
+            throw `building_schema_not_found|${name}`
+        }
         return resp
     }
 
@@ -150,7 +166,11 @@ export class BuilgingTemplate {
         this.createBiomeDirtCapBlocks(all_blocks, min, bm)
 
         // Call it only after DELETE_BLOCK_ID is deleted
-        this.addAirMargins(all_blocks, min, bm)
+        // TODO: Этот код предназначался для создания пустоты перед дверью,
+        // чтобы дверь не заваливало блоками земли,
+        // но однако он также модифицирует размер строения, этого нельзя делать,
+        // т.к. от этого зависит фундамент и расчеты позиции строения
+        // this.addAirMargins(all_blocks, min, bm)
 
         return {all_blocks, min}
 
@@ -163,7 +183,7 @@ export class BuilgingTemplate {
     rotateBuildingBlockVariants(bm, all_blocks) {
 
         // Rotate property
-        BuilgingTemplate.rotateBlocksProperty(all_blocks, this.rot, bm, [0, 1, 2, 3]);
+        BuildingTemplate.rotateBlocksProperty(all_blocks, this.rot, bm, [0, 1, 2, 3]);
 
     }
 
@@ -180,7 +200,7 @@ export class BuilgingTemplate {
                         if(block.mat?.is_solid) {
                             //if(move.y >= 80) {
                                 move.y++
-                                all_blocks.set(move, {block_id, mat, move: move.clone(), is_cap_block: true})
+                                all_blocks.set(move, {block_id, mat, move: move.clone(), candidate_for_cap_block: true})
                             //}
                         }
                         break
@@ -506,10 +526,14 @@ export class BuilgingTemplate {
         //
         const rot4 = (block) => {
             for(let i = 0; i < directions.length; i++) {
-                const direction = directions[i];
-                const rb = JSON.parse(JSON.stringify(block));
-                rb.rotate.x = (rb.rotate.x - direction + 4) % 4;
-                rot[direction].push(rb);
+                const direction = directions[i]
+                const rb = JSON.parse(JSON.stringify(block))
+                if(rb.rotate.y == 0) {
+                    rb.rotate.x = (rb.rotate.x + direction + 4) % 4
+                } else {
+                    rb.rotate.x = (rb.rotate.x - direction + 4) % 4
+                }
+                rot[direction].push(rb)
             }
         }
 
@@ -522,16 +546,43 @@ export class BuilgingTemplate {
             }
         }
 
+        const rot_rails = (block) => {
+            const rot_sides = [
+                [5, 2, 4, 3],
+                [0, 1, 0, 1],
+                [9, 8, 7, 6],
+            ];
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i]
+                const rb = JSON.parse(JSON.stringify(block))
+                let new_shape = 0
+                rb.extra_data = rb.extra_data ?? {}
+                if('shape' in rb.extra_data) {
+                    const shape = rb.extra_data.shape
+                    for(let i = 0; i < rot_sides.length; i++) {
+                        const rot_row = rot_sides[i]
+                        let index = rot_row.indexOf(shape)
+                        if(index >= 0) {
+                            new_shape = rot_row[(index + direction) % rot_row.length]
+                        }
+                    }
+                }
+                rb.extra_data.shape = new_shape
+                rot[direction].push(rb)
+            }
+        }
+
         const rot_cover = (block) => {
-            const sides = ['north', 'east', 'south', 'west']
+            // TODO: Strange sides order, but working correct
+            const sides = ['north', 'west', 'south', 'east']
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
                 const rb = JSON.parse(JSON.stringify(block))
                 rb.extra_data = {}
                 for(let k in block.extra_data) {
                     switch(k) {
-                        case 'west':
                         case 'east':
+                        case 'west':
                         case 'north':
                         case 'south': {
                             const new_index = sides.indexOf(k) + direction
@@ -582,6 +633,9 @@ export class BuilgingTemplate {
 
             } else if(['armor_stand'].includes(mat.style_name)) {
                 rot3(block);
+
+            } else if(['rails'].includes(mat.style_name)) {
+                rot_rails(block);
 
             } else if(mat.can_rotate && block.rotate) {
                 rot2(block);

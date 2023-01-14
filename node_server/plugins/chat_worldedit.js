@@ -5,7 +5,7 @@ import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "../../www/js/fluid/FluidConst.js";
 import { WorldEditBuilding } from "./worldedit/building.js";
-import { BuilgingTemplate } from "../../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../../www/js/terrain_generator/cluster/building_template.js";
 
 const MAX_SET_BLOCK         = 250000 * 4;
 const MAX_BLOCKS_PER_PASTE  = 10000;
@@ -313,7 +313,7 @@ export default class WorldEdit {
         const rot = [[], [], [], []];
 
         // rotate blocks property
-        BuilgingTemplate.rotateBlocksProperty(new_blocks, rot, chat.world.block_manager, [dir])
+        BuildingTemplate.rotateBlocksProperty(new_blocks, rot, chat.world.block_manager, [dir])
 
         for(let i = 0; i < rot[dir].length; i++) {
             const item = rot[dir][i]

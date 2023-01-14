@@ -32,7 +32,10 @@
         {"name": "poor_emerald_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "poor_gold_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "poor_iron_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poor_coal_ore",       "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "poor_coal_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "carrot",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "brown_mushroom",      "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "red_mushroom",        "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -354,6 +357,34 @@
             "name": "POOR_COAL_ORE",
             "bb": {
                 "model": "poor_coal_ore"
+            }
+        },
+        {
+            "id": 635,
+            "name": "CARROT_SEEDS",
+            "bb": {
+                "model": "carrot",
+                "behavior": "age"
+            }
+        },
+        {
+            "id": 39,
+            "name": "BROWN_MUSHROOM",
+            "bb": {
+                "model": "brown_mushroom",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
+            }
+        },
+        {
+            "id": 40,
+            "name": "RED_MUSHROOM",
+            "bb": {
+                "model": "red_mushroom",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
             }
         }
     ]

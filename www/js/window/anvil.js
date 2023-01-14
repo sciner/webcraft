@@ -1,6 +1,8 @@
-import { BLOCK } from "../blocks.js";
+import { ITEM_LABEL_MAX_LENGTH } from "../blocks.js";
+import { ItemHelpers } from "../block_helpers.js";
 import { Button, Label, TextEdit } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 
 //
@@ -12,12 +14,10 @@ class AnvilSlot extends CraftTableSlot {
 
         this.onMouseEnter = function() {
             this.style.background.color = '#ffffff55';
-            this.getResult();
         };
 
         this.onMouseLeave = function() {
             this.style.background.color = '#00000000';
-            this.getResult();
         };
         
         this.onMouseDown = function(e) { 
@@ -26,80 +26,35 @@ class AnvilSlot extends CraftTableSlot {
                 return;
             }
             if (this == ct.result_slot) {
-                this.getResult(true);
-                ct.first_slot.setItem(null);
-                ct.second_slot.setItem(null);
+                ct.useRecipe();
             }
             this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
             this.setItem(null);
-            this.getResult();
+            ct.updateResult();
         };
         
         this.onDrop = function(e) {
             if (this == ct.result_slot) {
                 return;
             }
-            const dragItem = this.getItem();
-            const dropItem = e.drag.getItem().item;
-            if(!dropItem) {
-                return;
-            }
-            this.setItem(dropItem, e);
-            this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
-            
+            const oldItem = this.getItem();
+            this.dropIncrementOrSwap(e, oldItem);
             // Если это первый слот
             if (this == ct.first_slot) {
-                const block = BLOCK.fromId(dropItem.id);
-                const label = (dropItem?.extra_data?.label) ? dropItem.extra_data.label : block.name;
-                ct.lbl_edit.setEditText(label);
+                const oldCurrentLabel = oldItem && ItemHelpers.getLabel(oldItem);
+                const newCurrentLabel = ItemHelpers.getLabel(this.getItem());
+                if (oldCurrentLabel !== newCurrentLabel) {
+                    ct.lbl_edit.setEditText(newCurrentLabel);
+                }
             }
-            this.getResult();
+            ct.updateResult();
         };
     }
     
     getInventory() {
         return this.ct.inventory;
     }
-    
-    getResult(create) {
-        const first_item = this.ct.first_slot.getItem();
-        const second_item = this.ct.second_slot.getItem();
-        const label = this.ct.lbl_edit.buffer.join('');
-        if (!first_item || first_item.count != 1) {
-            this.ct.lbl_edit.buffer = [];
-            this.ct.state = false;
-            this.ct.result_slot.setItem(null);
-        } else {
-            if (!second_item) {
-                if (!first_item?.extra_data?.label || first_item.extra_data.label != label) {
-                    this.ct.state = true;
-                    this.ct.result_slot.setItem(first_item);
-                    if (create) {
-                        const item = this.ct.result_slot.getItem();
-                        if (!item?.extra_data) {
-                            item.extra_data = {label: ""};
-                        }
-                        item.extra_data.label = label;
-                        item.entity_id = randomUUID();
-                        this.ct.lbl_edit.buffer = [];
-                    }
-                } else {
-                    this.ct.state = false;
-                    this.ct.result_slot.setItem(null);
-                }
-            } else {
-                if (second_item.id == first_item.id) {
-                    //to do починка
-                    this.ct.state = true;
-                    this.ct.result_slot.setItem(first_item);
-                } else {
-                    this.ct.state = false;
-                    this.ct.result_slot.setItem(null);
-                }
-            }
-        }
-    }
-    
+
 }
 
 //
@@ -107,14 +62,16 @@ export class AnvilWindow extends BaseCraftWindow {
 
     constructor(inventory) {
         
-        super(10, 10, 350, 330, 'frmAnvil', null, null);
+        super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
         
         this.width *= this.zoom;
         this.height *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
-        this.inventory = inventory;
-        this.state = false;
+        this.recipes = new AnvilRecipeManager();
+        this.used_recipes = [];
+        this.current_recipe = null;
+        this.current_recipe_outCount = null;
 
         const options = {
             background: {
@@ -155,13 +112,15 @@ export class AnvilWindow extends BaseCraftWindow {
         
         // Обработчик закрытия формы
         this.onHide = function() {
-            this.inventory.clearDragItem();
+            this.clearCraft();
             // Save inventory
-            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), []);
+            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.used_recipes, 'anvil');
+            this.used_recipes = [];
         }
         
         // Обработчик открытия формы
         this.onShow = function() {
+            this.lbl_edit.setEditText('');
             Qubatch.releaseMousePointer();
         }
         
@@ -198,6 +157,10 @@ export class AnvilWindow extends BaseCraftWindow {
             return false;
         }
     }
+
+    onPaste(str) {
+        this.lbl_edit.paste(str);
+    }
     
     createEdit() {
         
@@ -218,30 +181,72 @@ export class AnvilWindow extends BaseCraftWindow {
         // this.lbl_edit = new TextBox(this.zoom);
         this.lbl_edit.word_wrap         = false;
         this.lbl_edit.focused           = true;
-        this.lbl_edit.max_length        = 19;
+        this.lbl_edit.max_length        = ITEM_LABEL_MAX_LENGTH;
         this.lbl_edit.max_lines         = 1;
         this.lbl_edit.style.color       = '#ffffff';
         this.lbl_edit.style.font.size   *= this.zoom * 1.1;
         this.lbl_edit.style.background  = options.background;
         this.lbl_edit.setBackground(options.background.image);
+        this.lbl_edit.onChange = () => this.updateResult();
         this.add(this.lbl_edit);
         
     }
-    
+
     createCraft(cell_size) {
-        
+        this.craft = {
+            slots: [null, null]
+        };
         this.first_slot = new AnvilSlot(52 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this);
         this.second_slot = new AnvilSlot(150 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
         this.result_slot = new AnvilSlot(266 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
-        this.add(this.first_slot);
-        this.add(this.second_slot);
-        this.add(this.result_slot);
-        
+        this.add(this.craft.slots[0] = this.first_slot);
+        this.add(this.craft.slots[1] = this.second_slot);
+        this.add(this.lblResultSlot = this.result_slot);
+    }
+
+    updateResult() {
+        const first_item = this.first_slot.getItem();
+        if (!first_item) {
+            this.lbl_edit.setEditText('');
+            this.result_slot.setItem(null);
+            return;
+        }
+        const second_item = this.second_slot.getItem();
+        let label = this.lbl_edit.getEditText();
+        if (label === ItemHelpers.getLabel(first_item)) {
+            // If it's the same, don't try to change, and don't validate it, so unchanged block titles
+            // longer than ITEM_LABEL_MAX_LENGTH don't get rejected.
+            label = false;
+        } else if (label === BLOCK.fromId(first_item.id).title) {
+            // If it's the same as the title, clear the label instead.
+            // It must be checked here, not in the recipes, because it depeends on the user's locale.
+            label = null;
+        }
+        const outCount = [];
+        const found = this.recipes.findRecipeAndResult(first_item, second_item, label, outCount);
+        this.result_slot.setItem(found?.result);
+        if (found) {
+            this.current_recipe = found.recipe;
+            this.current_recipe_outCount = outCount;
+            this.current_recipe_label = label;
+        }
+    }
+
+    useRecipe() {
+        const count = this.current_recipe_outCount;
+        // here we decrement or clear the ingredients slots
+        const used_items_keys = this.getUsedItemsKeysAndDecrement(count);
+        this.used_recipes.push({
+            recipe_id: this.current_recipe.id,
+            used_items_keys,
+            count,
+            label: this.current_recipe_label
+        });
     }
     
     draw(ctx, ax, ay) {
         super.draw(ctx, ax, ay);
-        if(!this.state) {
+        if(this.result_slot.getItem() == null) {
             if(typeof this.style.background.image == 'object') {
                 const x = ax + this.x;
                 const y = ay + this.y;
@@ -263,4 +268,3 @@ export class AnvilWindow extends BaseCraftWindow {
     }
     
 }
-

@@ -113,9 +113,10 @@ export class Brain extends FSMBrain {
             const rnd_count = ((Math.random() * 2) | 0) + 1;
             const drop_block = world.block_manager.fromName('WHITE_WOOL');
             actions.addDropItem({ pos: mob.pos, items: [{ id: drop_block.id, count: rnd_count }] });
-            actions.decrement_instrument = {id: id};
             world.actions_queue.add(actor, actions);
+            return true;
         }
+        return false;
     }
     
 }

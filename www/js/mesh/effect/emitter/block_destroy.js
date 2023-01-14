@@ -77,7 +77,7 @@ export default class emitter {
                 Math.random() - Math.random(),
                 1,
                 Math.random() - Math.random()
-            ).normSelf().multiplyScalar(force);
+            ).normSelf().multiplyScalarSelf(force);
 
             // случайный размер текстуры
             const tex_sz = ((Math.random() * (small ? .25/16 : 3/16) + 1/16) * scale) / this.tx_cnt;

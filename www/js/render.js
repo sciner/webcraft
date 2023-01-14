@@ -28,7 +28,7 @@ import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
-import { BuilgingTemplate } from "./terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
 
 const {mat3, mat4} = glMatrix;
@@ -777,11 +777,11 @@ export class Renderer {
             }
             // cluster
             if(this.world.chunkManager.cluster_draw_debug_grid) {
-                const cluster_size = new Vector(128, 256, 128)
-                const cluster_coord = overChunk.coord.div(cluster_size).flooredSelf().multiplyVecSelf(cluster_size)
+                const CSZ = new Vector(this.world.info.generator.cluster_size)
+                const cluster_coord = overChunk.coord.div(CSZ).flooredSelf().multiplyVecSelf(CSZ)
                 this.debugGeom.addAABB(new AABB(
                     cluster_coord.x, cluster_coord.y, cluster_coord.z,
-                    cluster_coord.x + cluster_size.x, cluster_coord.y + cluster_size.y, cluster_coord.z + cluster_size.z
+                    cluster_coord.x + CSZ.x, cluster_coord.y + CSZ.y, cluster_coord.z + CSZ.z
                 ), {lineWidth: .25, colorBGRA: 0xFFFFFFFF})
             }
         }
@@ -791,7 +791,7 @@ export class Renderer {
             if(this.world.info && this.world.isBuildingWorld()) {
                 const _schema_coord = new Vector(0, 0, 0)
                 const _schema_size = new Vector(0, 0, 0)
-                for(const [name, schema] of BuilgingTemplate.schemas.entries()) {
+                for(const [name, schema] of BuildingTemplate.schemas.entries()) {
                     _schema_size.copyFrom(schema.world.pos1).subSelf(schema.world.pos2).addScalarSelf(1, 0, 1)
                     _schema_size.y = _schema_size.y * -1 + 1
                     _schema_coord.set(schema.world.pos2.x, schema.world.pos1.y - 1, schema.world.pos2.z)
@@ -800,6 +800,12 @@ export class Renderer {
                         _schema_coord.x, _schema_coord.y, _schema_coord.z,
                         _schema_coord.x + _schema_size.x, _schema_coord.y + _schema_size.y, _schema_coord.z + _schema_size.z
                     ), {lineWidth: .15, colorBGRA: 0xFFFFFFFF})
+                    // door
+                    const dbtm = schema.world.entrance
+                    this.debugGeom.addAABB(new AABB(
+                        dbtm.x, dbtm.y, dbtm.z,
+                        dbtm.x + 1, dbtm.y + 2, dbtm.z + 1
+                    ), {lineWidth: .15, colorBGRA: 0xFFFF00FF})
                     /*
                     this.debugGeom.addBlockGrid({
                         pos:        _schema_coord,
@@ -1188,7 +1194,7 @@ export class Renderer {
                     cam_rotate.x *= -1;
                 }
                 const view_vector = player.forward.clone();
-                view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
+                view_vector.multiplyScalarSelf(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
                 //
                 const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
                 cam_pos_new.moveToSelf(cam_rotate, d);

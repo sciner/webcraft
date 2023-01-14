@@ -38,7 +38,9 @@ export class PlayerInventory extends Inventory {
         this.items = inventory_state.items;
         this.refresh();
         // update drag UI if the dragged item changed
-        this.hud.wm.getVisibleWindowOrNull('frmChest')?.onInventorySetState();
+        for(const w of this.hud.wm.visibleWindows()) {
+            w.onInventorySetState && w.onInventorySetState();
+        }
     }
 
     get inventory_window() {

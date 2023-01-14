@@ -209,15 +209,23 @@ export class Player {
         this.pickAt = new PickAt(this.world, this.render, async (...args) => {
             return await this.onPickAtTarget(...args);
         }, async (e) => {
-            // onInterractMob
-            const mob = Qubatch.world.mobs.get(e.interractMobID);
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
                 this.inAttackProcess = ATTACK_PROCESS_ONGOING;
                 this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
             }
-            if(mob) {
-                mob.punch(e);
-                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+            if (e.interactPlayerID) {
+                const player = Qubatch.world.players.get(e.interactPlayerID);
+                if (player) {
+                    player.punch(e);
+                }
+            }
+            if (e.interactMobID) {
+                const mob = Qubatch.world.mobs.get(e.interactMobID);
+                if (mob) {
+                    mob.punch(e);
+                }
+            }
+            if (e.interactMobID || e.interactPlayerID) {
                 this.world.server.Send({
                     name: ServerClient.CMD_PICKAT_ACTION,
                     data: e
@@ -474,7 +482,8 @@ export class Player {
         } else if(e.destroyBlock) {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
-            let mul           = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            let mul             =  Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            mul *= this.in_water ? 0.2 : 1;
             mul += mul * 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
             mul -= mul * 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
@@ -1021,7 +1030,7 @@ export class Player {
                     Qubatch.sounds.play('madcraft:block.player', action, null, false);
                     if(action != 'burp') {
                         // сдвиг точки, откуда происходит вылет частиц
-                        const dist = new Vector(.25, -.25, .25).multiplyScalar(this.scale);
+                        const dist = new Vector(.25, -.25, .25).multiplyScalarSelf(this.scale);
                         const pos = this.getEyePos().add(this.forward.mul(dist));
                         pos.y -= .65 * this.scale;
                         this.render.destroyBlock(material, pos, true, this.scale, this.scale);

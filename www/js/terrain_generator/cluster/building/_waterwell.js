@@ -7,13 +7,12 @@ export class WaterWell extends Building {
 
     static SIZE_LIST = [{size: {x: 3, z: 3}}];
 
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+    constructor(cluster, seed, coord, entrance, door_direction, size) {
 
         coord.y = -14;
         size.y = 21;
 
-        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
-
+        super(cluster, seed, coord, entrance, door_direction, size);
         //
         cluster.road_block.reset();
         cluster.addRoadPlatform(coord, size, cluster.road_block);
@@ -22,7 +21,7 @@ export class WaterWell extends Building {
         this.draw_entrance = false;
 
         // Blocks
-        const dir = door_direction;
+        const dir = (door_direction + 2) % 4;
         const mirror_x = false; // door_direction % 2 == 1;
 
         if(seed < .75) {
@@ -77,9 +76,9 @@ export class WaterWell extends Building {
                 {move: new Vector(1, 3, 1), block_id: BLOCK.COBBLESTONE.id},
                 //
                 {move: new Vector(1, 0, 0), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 0) % 4, 0, 0)},
-                {move: new Vector(2, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(2, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x ? 2 : 0)) % 4, 0, 0)},
                 {move: new Vector(1, 0, 2), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 2) % 4, 0, 0)},
-                {move: new Vector(0, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(0, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x ? 2 : 0)) % 4, 0, 0)},
             ]);
 
         }

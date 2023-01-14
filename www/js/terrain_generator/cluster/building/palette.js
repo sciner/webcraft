@@ -1,38 +1,53 @@
-import { DIRECTION } from "../../../helpers.js";
+import { DIRECTION, Vector } from "../../../helpers.js";
 import { Building } from "../building.js";
-import { BuilgingTemplate } from "../building_template.js";
+import { BuildingTemplate } from "../building_template.js";
 
 // Palettes
 export class BuildingPalettes {
 
     constructor(cluster, rules, bm) {
+        /**
+         * @type {Object.<string, BuldingPalette>}
+        */
         this.list = {};
         for(let k in rules) {
             this.list[k] = new BuldingPalette(cluster, rules[k], bm);
         }
     }
 
-    //
-    next(cluster, seed, door_direction, size, coord, aabb, entrance, door_bottom) {
+    /**
+     * @param {*} cluster
+     * @param {*} seed
+     * @param {int} door_direction
+     * @param {Vector} size
+     * @param {Vector} coord
+     * @param {Vector} entrance
+     * @param {boolean} is_crossroad
+     * 
+     * @returns 
+     */
+    next(cluster, seed, door_direction, size, coord, entrance, is_crossroad = false) {
 
         // generate random building from palette
-        let building = null;
-        const args = {cluster, seed, door_direction, size, coord, aabb, entrance, door_bottom};
+        let building = null
+        const args = {cluster, seed, door_direction, size, coord, entrance}
 
-        if(size.x == 1 && size.z == 1) {
-            building = this.list.crossroad.next(args);
+        // crossroad buildings
+        if(is_crossroad) {
+            building = this.list.crossroad.next(args)
+            building.draw_entrance = false
         }
 
         if(!building && this.list.required.buildings.length > 0) {
-            building = this.list.required.next(args);
+            building = this.list.required.next(args)
         }
 
         if(!building) {
-            building = this.list.others.next(args);
+            building = this.list.others.next(args)
         }
 
         if(!building) {
-            throw 'error_proportional_fill_pattern';
+            throw 'error_proportional_fill_pattern'
         }
 
         return building
@@ -54,8 +69,8 @@ export class BuldingPalette {
     next(args) {
 
         const {cluster, bm} = this;
-        const {size} = args;
-        const r = cluster.randoms.double();
+        const {size, door_direction} = args
+        const r = cluster.randoms.double()
 
         // each all buildings in this palette
         for(let i in this.buildings) {
@@ -65,7 +80,7 @@ export class BuldingPalette {
 
             //
             let found = false;
-            let random_building = null;
+            let building_template = null;
             const variants = [];
 
             // 1. Prepare variants from old format
@@ -73,7 +88,7 @@ export class BuldingPalette {
                 if(!b.class.variants) {
                     b.class.variants = [];
                     for(let schema of b.class.SIZE_LIST) {
-                        b.class.variants.push(new BuilgingTemplate(schema, bm))
+                        b.class.variants.push(new BuildingTemplate(schema, bm))
                     }
                 }
                 variants.push(...b.class.variants);
@@ -89,7 +104,7 @@ export class BuldingPalette {
                     for(let name of b.block_templates) {
                         let template = b.class.json_variants.get(name);
                         if(!template) {
-                            template = BuilgingTemplate.fromSchema(name, bm)
+                            template = BuildingTemplate.fromSchema(name, bm)
                             b.class.json_variants.set(name, template)
                         }
                         b.block_templates_compilled.push(template)
@@ -101,13 +116,13 @@ export class BuldingPalette {
             // search random building size
             while(!found && variants.length) {
                 const index = (variants.length * args.seed) | 0;
-                random_building = variants[index];
-                if([DIRECTION.NORTH, DIRECTION.SOUTH].includes(args.door_direction)) {
+                building_template = variants[index];
+                if([DIRECTION.NORTH, DIRECTION.SOUTH].includes(door_direction)) {
                     // x
-                    found = random_building.size.x <= size.x && random_building.size.z <= size.z;
+                    found = building_template.size.x <= size.x && building_template.size.z <= size.z;
                 } else {
                     // z
-                    found = random_building.size.z <= size.x && random_building.size.x <= size.z;
+                    found = building_template.size.z <= size.x && building_template.size.x <= size.z;
                 }
                 if(!found) {
                     variants.splice(index, 1);
@@ -119,14 +134,14 @@ export class BuldingPalette {
 
                 b.max_count--;
                 if(b.max_count <= 0) {
-                    this.buildings.splice(i, 1);
+                    this.buildings.splice(i, 1)
                 }
 
                 // calculate correct door position
-                Building.selectSize(random_building, args.seed, args.coord, args.size, args.entrance, args.door_bottom, args.door_direction, args.aabb);
+                Building.selectSize(building_template, args.coord, args.size, args.entrance, door_direction)
 
                 // create object by pre-calculated arguments
-                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, args.door_direction, args.size, random_building);
+                return new b.class(args.cluster, args.seed, args.coord, args.entrance, door_direction, args.size, building_template)
 
             }
 

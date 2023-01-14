@@ -481,6 +481,9 @@
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
+            "power": 59,
+            "damage": 2.5,
+            "speed": 1,
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
@@ -501,7 +504,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 200,
+            "power": 131,
+            "damage": 3.5,
+            "speed": 1,
             "material": {
                 "id": "stone"
             },
@@ -519,7 +524,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 300,
+            "power": 250,
+            "damage": 4.5,
+            "speed": 1,
             "material": {
                 "id": "iron"
             },
@@ -537,7 +544,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 200,
+            "power": 32,
+            "damage": 2.5,
+            "speed": 1,
             "material": {
                 "id": "gold"
             },
@@ -555,7 +564,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 500,
+            "power": 1561,
+            "damage": 5.5,
+            "speed": 1,
             "material": {
                 "id": "diamond"
             },
@@ -573,7 +584,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
-            "power": 1000,
+            "power": 2031,
+            "damage": 6.5,
+            "speed": 1,
             "material": {
                 "id": "netherite"
             },
@@ -588,6 +601,9 @@
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
+            "power": 59,
+            "damage": 1,
+            "speed": 1,
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
@@ -608,7 +624,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 200,
+            "power": 131,
+            "damage": 1,
+            "speed": 2,
             "material": {
                 "id": "stone"
             },
@@ -626,7 +644,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 300,
+            "power": 250,
+            "damage": 1,
+            "speed": 3,
             "material": {
                 "id": "iron"
             },
@@ -644,7 +664,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 200,
+            "power": 32,
+            "damage": 1,
+            "speed": 1,
             "material": {
                 "id": "gold"
             },
@@ -662,7 +684,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 500,
+            "power": 1561,
+            "damage": 1,
+            "speed": 4,
             "material": {
                 "id": "diamond"
             },
@@ -680,7 +704,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
-            "power": 1000,
+            "power": 2031,
+            "damage": 1,
+            "speed": 4,
             "material": {
                 "id": "netherite"
             },
@@ -696,6 +722,9 @@
             "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
+            "power": 60,
+            "damage": 7,
+            "speed": 0.8,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
             "material": {
@@ -714,7 +743,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 200,
+            "power": 132,
+            "damage": 9,
+            "speed": 0.8,
             "material": {
                 "id": "stone"
             },
@@ -731,7 +762,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 300,
+            "power": 251,
+            "damage": 9,
+            "speed": 0.9,
             "material": {
                 "id": "iron"
             },
@@ -748,7 +781,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 200,
+            "power": 33,
+            "damage": 7,
+            "speed": 1,
             "material": {
                 "id": "gold"
             },
@@ -765,7 +800,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 500,
+            "power": 1462,
+            "damage": 9,
+            "speed": 1,
             "material": {
                 "id": "diamond"
             },
@@ -782,7 +819,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
-            "power": 1000,
+            "power": 2031,
+            "damage": 10,
+            "speed": 1,
             "material": {
                 "id": "netherite"
             },
@@ -798,7 +837,9 @@
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
-            "power": 100,
+            "power": 59,
+            "damage": 2,
+            "speed": 1.2,
             "material": {
                 "id": "wood"
             },
@@ -814,7 +855,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 200,
+            "power": 131,
+            "damage": 3,
+            "speed": 1.2,
             "material": {
                 "id": "stone"
             },
@@ -830,7 +873,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 300,
+            "power": 250,
+            "damage": 4,
+            "speed": 1.2,
             "material": {
                 "id": "iron"
             },
@@ -846,7 +891,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 200,
+            "power": 32,
+            "damage": 2,
+            "speed": 1.2,
             "material": {
                 "id": "gold"
             },
@@ -862,7 +909,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 500,
+            "power": 1561,
+            "damage": 5,
+            "speed": 1.2,
             "material": {
                 "id": "diamond"
             },
@@ -878,7 +927,9 @@
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
             "diagonal": true,
             "style": "extruder",
-            "power": 1000,
+            "power": 2031,
+            "damage": 6,
+            "speed": 1.2,
             "material": {
                 "id": "netherite"
             },
@@ -1189,6 +1240,15 @@
             "material": {
                 "id": "gravel"
             },
+            "drop_item": [
+                {
+                    "name":"FLINT",
+                    "chance": 0.1
+                },
+                {
+                    "name":"GRAVEL"
+                }
+            ],
             "texture": "block/gravel.png"
         },
         {
@@ -1346,7 +1406,13 @@
             "id": 14,
             "name": "GOLD_ORE",
             "sound": "madcraft:block.stone",
-            "coocked_item": {"name": "GOLD_INGOT", "count": 1},
+            "coocked_item": {"name": "GOLD_ORE", "count": 1},
+            "drop_item": [
+                {
+                    "name":"GOLD_ORE",
+                    "instrument":"stone" 
+                }
+            ],
             "texture": "block/gold_ore.png",
             "material": {
                 "id": "gold"
@@ -1864,7 +1930,12 @@
             "id": 56,
             "name": "DIAMOND_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "DIAMOND", "count": 1, "chance": 1},
+            "drop_item": [
+                {
+                    "name":"DIAMOND",
+                    "instrument":"iron" 
+                }
+            ],
             "texture": "block/diamond_ore.png",
             "material": {
                 "id": "diamond"
@@ -4026,6 +4097,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
+            "power": 59,
+            "damage": 4,
+            "speed": 1.6,
             "material": {
                 "id": "wood"
             },
@@ -4042,7 +4116,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 200,
+            "power": 131,
+            "damage": 5,
+            "speed": 1.6,
             "material": {
                 "id": "stone"
             },
@@ -4059,7 +4135,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 300,
+            "power": 250,
+            "damage": 6,
+            "speed": 1.6,
             "material": {
                 "id": "iron"
             },
@@ -4076,7 +4154,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 200,
+            "power": 32,
+            "damage": 4,
+            "speed": 1.6,
             "material": {
                 "id": "gold"
             },
@@ -4093,7 +4173,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 500,
+            "power": 1561,
+            "damage": 7,
+            "speed": 1.6,
             "material": {
                 "id": "diamond"
             },
@@ -4110,7 +4192,9 @@
             "style": "extruder",
             "item": {"name": "instrument", "instrument_id": "sword"},
             "diagonal": true,
-            "power": 1000,
+            "power": 2031,
+            "damage": 8,
+            "speed": 1.6,
             "material": {
                 "id": "netherite"
             },
@@ -4608,7 +4692,7 @@
             "item": {"name": "ingot"},
             "style": "extruder",
             "material": {
-                "id": "iron"
+                "id": "gold"
             },
             "texture": "item/gold_ingot.png"
         },
@@ -8989,6 +9073,251 @@
             }
         },
         {
+            "id": 417,
+            "name": "HONEYCOMB",
+            "style": "extruder",
+            "diagonal": true,
+            "texture": "item/honeycomb.png",
+            "item": {
+                "name": "ingridient"
+            },
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ]
+        },
+        {
+            "id": 418,
+            "name": "STRING",
+            "style": "extruder",
+            "diagonal": true,
+            "texture": "item/string.png",
+            "item": {
+                "name": "ingridient"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 419,
+            "name": "BLACK_DYE",
+            "style": "extruder",
+            "texture": "item/black_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 421,
+            "name": "WHITE_DYE",
+            "style": "extruder",
+            "texture": "item/white_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 422,
+            "name": "SILVER_DYE",
+            "style": "extruder",
+            "texture": "item/silver_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 423,
+            "name": "RED_DYE",
+            "style": "extruder",
+            "texture": "item/red_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 424,
+            "name": "PURPLE_DYE",
+            "style": "extruder",
+            "texture": "item/purple_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 425,
+            "name": "PINK_DYE",
+            "style": "extruder",
+            "texture": "item/pink_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 426,
+            "name": "ORANGE_DYE",
+            "style": "extruder",
+            "texture": "item/orange_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 427,
+            "name": "MAGENTA_DYE",
+            "style": "extruder",
+            "texture": "item/magenta_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 428,
+            "name": "LIME_DYE",
+            "style": "extruder",
+            "texture": "item/lime_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 429,
+            "name": "LIGHT_BLUE_DYE",
+            "style": "extruder",
+            "texture": "item/light_blue_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 430,
+            "name": "LIGHT_GRAY_DYE",
+            "style": "extruder",
+            "texture": "item/light_gray_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 431,
+            "name": "GRAY_DYE",
+            "style": "extruder",
+            "texture": "item/gray_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 432,
+            "name": "GREEN_DYE",
+            "style": "extruder",
+            "texture": "item/green_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 433,
+            "name": "CYAN_DYE",
+            "style": "extruder",
+            "texture": "item/cyan_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 434,
+            "name": "BROWN_DYE",
+            "style": "extruder",
+            "texture": "item/brown_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 435,
+            "name": "BLUE_DYE",
+            "style": "extruder",
+            "texture": "item/blue_dye.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 436,
+            "name": "CANDLE",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "style": "candle",
+            "texture": "block/candle.png",
+            "material": {
+                "id": "clay"
+            },
+            "inventory": {
+                "scale": 3
+            },
+            "tags": [
+                "no_set_on_top",
+                "no_drop_ao"
+            ],
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
+            }
+        },
+        {
             "id": 299,
             "name": "NIGHT_VISION",
             "style": "extruder",
@@ -9035,6 +9364,16 @@
             "effects":[
                 {"id":12, "time": 480, "level": 1}
             ]
+        },
+        {
+            "id": 1041,
+            "name": "ENCHANTED_BOOK",
+            "style": "extruder",
+            "texture": "item/enchanted_book.png",
+            "item": {"name": "book"},
+            "material": {
+                "id": "wood"
+            }
         }
         
     ]

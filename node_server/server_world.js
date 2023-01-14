@@ -28,7 +28,7 @@ import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
 
 import { WorldAction } from "../www/js/world_action.js";
-import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
@@ -184,7 +184,7 @@ export class ServerWorld {
         }
 
         // each all buildings
-        for(let schema of BuilgingTemplate.schemas.values()) {
+        for(let schema of BuildingTemplate.schemas.values()) {
             addBlock(new Vector(schema.world.pos1), block_num1)
             addBlock(new Vector(schema.world.pos2), block_num2)
             // draw sign
@@ -203,12 +203,11 @@ export class ServerWorld {
             // fill blocks
             for(let b of schema.blocks) {
                 const item = {id: b.block_id};
-                const y = schema.world.door_bottom.y - schema.door_pos.y - 1
-                const z = schema.door_pos.z
+                const y = schema.world.entrance.y - schema.door_pos.y - 1
                 const pos = new Vector(
-                    schema.world.door_bottom.x - b.move.x,
+                    schema.world.entrance.x - b.move.x,
                     schema.world.pos1.y + b.move.y - y,
-                    schema.world.door_bottom.z - b.move.z + z
+                    schema.world.entrance.z - b.move.z
                 )
                 if(b.extra_data) item.extra_data = b.extra_data
                 if(b.rotate) item.rotate = b.rotate
@@ -672,7 +671,7 @@ export class ServerWorld {
                         Math.random() - Math.random(),
                         Math.random() * 0.75,
                         Math.random() - Math.random()
-                    ).normalize().multiplyScalar(0.375);
+                    ).normalize().multiplyScalarSelf(0.375);
                     this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
                 }
             }

@@ -1,13 +1,15 @@
 import { CHUNK_SIZE_X } from "../../chunk_const.js";
 import { DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js";
 import { AABB } from '../../core/AABB.js';
-import { ClusterBase, ClusterPoint, CLUSTER_SIZE } from "./base.js";
+import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
+import { BuildingPalettes } from "./building/palette.js";
 
 //
 const entranceAhead = new Vector(0, 0, 0);
 export const getAheadMove = (dir) => {
+    dir %= 4
     entranceAhead.set(0, 0, 0);
     if(dir == DIRECTION.NORTH) {entranceAhead.z++;}
     else if(dir == DIRECTION.SOUTH) {entranceAhead.z--;}
@@ -18,6 +20,11 @@ export const getAheadMove = (dir) => {
 
 // Building base cluster
 export class ClusterBuildingBase extends ClusterBase {
+
+    /**
+     * @type {BuildingPalettes}
+     */
+    building_palettes
 
     //
     constructor(clusterManager, addr, biome) {
@@ -41,47 +48,64 @@ export class ClusterBuildingBase extends ClusterBase {
      * Add building
      * 
      * @param {*} seed 
-     * @param {int} dx 
-     * @param {int} dz 
+     * @param {int} door_x 
+     * @param {int} door_z 
      * @param {Vector} size 
      * @param {Vector} entrance 
-     * @param {Vector} door_bottom 
      * @param {int} door_direction 
+     * @param {boolean} is_crossroad
      * 
      * @returns 
      */
-    addBuilding(seed, dx, dz, size, entrance, door_bottom, door_direction) {
+    addBuilding(seed, door_x, door_z, size, entrance, door_direction, is_crossroad = false) {
 
-        const coord = new Vector(dx + this.coord.x, 1, dz + this.coord.z)
+        const coord = new Vector(door_x + this.coord.x, 0, door_z + this.coord.z)
         if(this.buildings.has(coord)) {
             return false
         }
 
-        const aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN)
-        const building = this.building_palettes.next(this, seed, door_direction, size, coord.clone(), aabb, entrance.addSelf(this.coord), door_bottom.addSelf(this.coord))
+        const building = this.building_palettes.next(this, seed, door_direction, size, coord, entrance, is_crossroad)
 
         //
         this.buildings.set(building.coord, building);
 
         // 1. building mask
-        dx = building.coord.x - this.coord.x;
-        dz = building.coord.z - this.coord.z;
+        /*
+        const margin = 0
+        const pos = new Vector(building.aabb.x_min, 0, building.aabb.z_min)
+        for(let i = -margin; i < building.size.x + margin; i++) {
+            for(let j = -margin; j < building.size.z + margin; j++) {
+                const x = pos.x - this.coord.x + i
+                const z = pos.z - this.coord.z + j
+                if(x >= 0 && z >= 0 && x < this.size.x && z < this.size.z) {
+                    const nidx = z * this.size.x + x
+                    //this.mask[nidx] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building)
+                }
+            }
+        }
+        */
+
+        // 1. building mask
+        const new_door_x = building.coord.x - this.coord.x
+        const new_door_z = building.coord.z - this.coord.z
         for(let i = 0; i < building.size.x; i++) {
             for(let j = 0; j < building.size.z; j++) {
-                const x = dx + i;
-                const z = dz + j;
+                const x = new_door_x + i
+                const z = new_door_z + j
                 // Draw building basement over heightmap
-                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building);
+                this.mask[z * this.size.x + x] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building)
             }
         }
 
-        // 2. entrance mask
+        /*
+        // 2. add entrance mask
         if(building.draw_entrance) {
-            let ahead = getAheadMove(building.door_direction);
-            const ex = building.entrance.x - this.coord.x + ahead.x;
-            const ez = building.entrance.z - this.coord.z + ahead.z;
-            this.mask[ez * CLUSTER_SIZE.x + ex] = new ClusterPoint(1, this.basement_block, 3, null, null);
+            const ahead = getAheadMove(building.door_direction);
+            const ex = building.entrance.x - this.coord.x + ahead.x
+            const ez = building.entrance.z - this.coord.z + ahead.z
+            this.mask[ez * this.size.x + ex] = new ClusterPoint(1, this.basement_block, 3, null, null)
         }
+        */
 
         return building
 
@@ -141,13 +165,11 @@ export class ClusterBuildingBase extends ClusterBase {
             return
         }
 
-        // 
+        // for old version of terrain generator
         this.fixBuildingHeight(maps, chunk, building)
 
         // draw building
-        if(!building.hidden) {
-            building.draw(this, chunk, map)
-        }
+        building.draw(this, chunk, map)
 
     }
 
@@ -172,8 +194,8 @@ export class ClusterBuildingBase extends ClusterBase {
                 // fix basement height
                 const pz = START_Z + z
                 const px = START_X + x
-                if(px >= 0 && pz >= 0 && px < CLUSTER_SIZE.x && pz < CLUSTER_SIZE.z) {
-                    const mask_point = this.mask[pz * CLUSTER_SIZE.x + px]
+                if(px >= 0 && pz >= 0 && px < this.size.x && pz < this.size.z) {
+                    const mask_point = this.mask[pz * this.size.x + px]
                     if(mask_point && mask_point.height && !mask_point.height_fixed) {
                         // забираем карту того участка, где дверь, чтобы определить точный уровень пола
                         const vec = new Vector(building.coord.x + i, 0, building.coord.z + j)

@@ -1,5 +1,5 @@
 import {Vector} from "../../helpers.js";
-import {ClusterBase, ClusterPoint, CLUSTER_SIZE} from "./base.js";
+import {ClusterBase, ClusterPoint} from "./base.js";
 import { BLOCK } from "../../blocks.js";
 
 //
@@ -18,7 +18,7 @@ export class ClusterPyramid extends ClusterBase {
                     point = new ClusterPoint(height, block.id, 5, null);
                     points.set(height, point);
                 }
-                this.mask[z * CLUSTER_SIZE.x + x] = point;
+                this.mask[z * this.size.x + x] = point;
             };
             const rad = 32;
             const center = this.size.clone().divScalar(2);

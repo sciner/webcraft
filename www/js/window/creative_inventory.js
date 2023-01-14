@@ -1,6 +1,7 @@
 import {Button, Label, TextEdit, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
+import { Enchantments } from "../enchantments.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
@@ -43,15 +44,39 @@ class CreativeInventoryCollection extends Window {
             if('power' in b && (b.power !== 0)) {
                 block.power = b.power;
             }
-            if(filter_text) {
-                if(b.name.replaceAll('_', ' ').indexOf(filter_text) < 0 && b.id != filter_text) {
-                    continue;
-                }
+            if(!this.matchesFilter(b, filter_text)) {
+                continue;
             }
             all_blocks.push(block)
         }
+        this.addEnchantedBooks(all_blocks, filter_text);
         // Create slots
         this.initCollection(all_blocks);
+    }
+
+    matchesFilter(block, filter_text) {
+        return !filter_text || block.name.replaceAll('_', ' ').indexOf(filter_text) >= 0 || block.id == filter_text;
+    }
+
+    addEnchantedBooks(all_blocks, filter_text) {
+        const EB = BLOCK.ENCHANTED_BOOK;
+        if(!EB || !this.matchesFilter(EB, filter_text)) {
+            return;
+        }
+        for(const e of Enchantments.list) {
+            if (e.in_creative_inventory) {
+                for(let level = 1; level <= e.max_level; level++) {
+                    const block = {
+                        id: EB.id,
+                        extra_data: {
+                            enchantments: {}
+                        }
+                    };
+                    block.extra_data.enchantments[e.id] = level;
+                    all_blocks.push(block);
+                }
+            }
+        }
     }
 
     // Init collection
@@ -211,7 +236,7 @@ export class CreativeInventoryWindow extends Window {
         this.onHide = function() {
             this.inventory.clearDragItem();
             // Save inventory
-            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), []);
+            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [], null, true);
         }
 
         // Add close button

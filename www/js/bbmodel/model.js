@@ -64,6 +64,9 @@ export class BBModel_Model {
                         const palette_item = this.all_textures.get(palette_name)
                         for(let fk in child.faces) {
                             const face = child.faces[fk]
+                            if(face.texture_id === null) {
+                                continue
+                            }
                             const t = this.all_textures.get(face.texture_id + '')
                             if(!t) {
                                 debugger

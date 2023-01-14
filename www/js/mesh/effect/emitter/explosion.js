@@ -62,7 +62,7 @@ export default class emitter {
                     Math.random() - Math.random(),
                     Math.random() - Math.random(),
                     Math.random() - Math.random()
-                ).multiplyScalar(50),
+                ).multiplyScalarSelf(50),
                 pos:            this.pos.clone().addScalarSelf(
                     (Math.random() - Math.random()) * .3,
                     .35 + .25 * Math.random(),

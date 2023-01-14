@@ -38,55 +38,79 @@ for(let b of blocks) {
 
 import {Vector} from '../../js/helpers.js';
 import {ClusterVilage} from '../../js/terrain_generator/cluster/vilage.js';
+import {BuildingTemplate} from '../../js/terrain_generator/cluster/building_template.js';
+import {API_Client} from '../../js/ui/api.js';
+import { ClusterManager, CLUSTER_SIZE_V2 } from '../../js/terrain_generator/cluster/manager.js';
+
+const api = new API_Client()
+
+async function loadSchemas(callback) {
+    const form = {}
+    await api.call(this, '/api/Game/loadSchemas', form, (result) => {
+        if(callback) {
+            callback(result);
+        }
+    }, (e) => {
+        debugger
+    });
+}
+
+await loadSchemas((r) => {
+    for(let schema of r) {
+        BuildingTemplate.addSchema(schema)
+    }
+})
 
 //
-const WORLD_SEED = 1740540541;
-// const START_CLUSTER_ADDR = new Vector(921, 0, 498); // new Vector(240, 0, 807)
-const START_CLUSTER_ADDR = new Vector(-7, 0, -1);
+const WORLD_SEED = 1740540541
+// const START_CLUSTER_ADDR = new Vector(3709, 0, 1617)
+const START_CLUSTER_ADDR = new Vector(3707, 0, 1619)
+const DRAW_SCALE = 6
 
 //
 const cnv = document.getElementById('sandbox_canvas');
 const ctx = cnv.getContext('2d', { alpha: false });
 
+const cm = new ClusterManager(null, WORLD_SEED, 2)
+
 class Sandbox {
 
     generate(vec) {
-        let attempts = 0;
+        let attempts = 0
         while(true) {
-            attempts++;
-            const addr = vec ? vec : new Vector(
-                (Math.random() * 999) | 0,
-                0,
-                (Math.random() * 999) | 0
-            );
-            let tm = performance.now();
-            this.cluster = new ClusterVilage({seed: WORLD_SEED, version: 2}, addr);
-            if(this.cluster.is_empty) {
-                vec = null;
+            attempts++
+            const tm = performance.now()
+            const coord = vec ? vec : new Vector(Math.random() * 999999, 0, Math.random() * 999999).floored()
+            this.cluster = cm.getForCoord(coord, {})
+            cnv.width = this.cluster.size.x * DRAW_SCALE
+            cnv.height = this.cluster.size.z * DRAW_SCALE
+            // this.cluster = new ClusterVilage({seed: WORLD_SEED, version: 2, size: new Vector(256, 256, 256)}, addr);
+            if(this.cluster.is_empty || !(this.cluster instanceof ClusterVilage)) {
+                vec = null
             } else {
-                let text = (Math.round((performance.now() - tm) * 1000) / 1000) + ` ms`;
-                text += `<br>attempts: ${attempts}`;
-                text += `<br>addr: ${addr.toHash()}`;
-                document.getElementById('timer').innerHTML = text;
-                break;
+                let text = (Math.round((performance.now() - tm) * 1000) / 1000) + ` ms`
+                text += `<br>attempts: ${attempts}`
+                text += `<br>addr: ${this.cluster.addr.toHash()}`
+                text += `<br>coord: ${this.cluster.coord.add(new Vector(this.cluster.size.x/2, 0, this.cluster.size.z/2)).toHash()}`
+                document.getElementById('timer').innerHTML = text
+                break
             }
         }
-        this.settings = this.cluster.schema.settings;
-        this.draw();
+        this.settings = this.cluster.schema.settings
+        this.draw()
     }
 
     // Распечатка канваса
     draw() {
-        const scale = 4;
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, this.settings.size * scale, this.settings.size * scale);
+        ctx.fillRect(0, 0, this.settings.size * DRAW_SCALE, this.settings.size * DRAW_SCALE);
         // near mask
         let max_dist = this.cluster.max_dist;
         for(var x = 0; x < this.settings.size; x++) {
             for(var z = 0; z < this.settings.size; z++) {
                 const dist = this.cluster.near_mask[z * this.settings.size + x];
                 ctx.fillStyle = "rgba(255,15,0," + (1-Math.round(dist/max_dist*100)/100) + ")";
-                ctx.fillRect(z * scale, x * scale, 1 * scale, 1 * scale);
+                ctx.fillRect(z * DRAW_SCALE, x * DRAW_SCALE, 1 * DRAW_SCALE, 1 * DRAW_SCALE);
             }
         }
         //
@@ -106,7 +130,7 @@ class Sandbox {
                     }
                     ctx.fillStyle = "#00000011";
                 }
-                ctx.fillRect(z * scale, x * scale, 1 * scale, 1 * scale);
+                ctx.fillRect(z * DRAW_SCALE, x * DRAW_SCALE, 1 * DRAW_SCALE, 1 * DRAW_SCALE);
             }
         }
         //
@@ -116,21 +140,23 @@ class Sandbox {
         const cz = this.cluster.coord.z;
         for(let b of this.cluster.buildings.values()) {
             ctx.fillStyle = "#0000ff55";
-            ctx.fillRect((b.coord.z - cz) * scale, (b.coord.x - cx) * scale, b.size.z * scale, b.size.x * scale);
+            ctx.fillRect((b.coord.z - cz) * DRAW_SCALE, (b.coord.x - cx) * DRAW_SCALE, b.size.z * DRAW_SCALE, b.size.x * DRAW_SCALE);
+            ctx.fillStyle = "#0000ffff";
+            ctx.fillRect((b.entrance.z - cz) * DRAW_SCALE, (b.entrance.x - cx) * DRAW_SCALE, 1 * DRAW_SCALE, 1 * DRAW_SCALE);
             //
-            if(b.random_building?.right) {
+            if(b.building_template?.right) {
                 ctx.fillStyle = "#00000055";
-                ctx.fillRect((b.coord.z - cz + 1) * scale, (b.coord.x - cx + 1) * scale, (b.size.z - 2) * scale, (b.size.x - 2) * scale);
+                ctx.fillRect((b.coord.z - cz + 1) * DRAW_SCALE, (b.coord.x - cx + 1) * DRAW_SCALE, (b.size.z - 2) * DRAW_SCALE, (b.size.x - 2) * DRAW_SCALE);
             }
             //
             ctx.fillStyle = "#fff";
-            const right = b.random_building?.right ? ' R' : '';
+            const right = b.building_template?.right ? ' R' : '';
             const label = `${b.size.x}x${b.size.z}${right}`;
-            ctx.fillText(label, (b.coord.z - cz) * scale + 1, (b.coord.x - cx) * scale + 1);
+            ctx.fillText(label, (b.coord.z - cz) * DRAW_SCALE + 1, (b.coord.x - cx) * DRAW_SCALE + 1);
         }
     }
 
 }
 
 const sandbox = globalThis.sandbox = new Sandbox();
-sandbox.generate(START_CLUSTER_ADDR);
+sandbox.generate(START_CLUSTER_ADDR.mul(CLUSTER_SIZE_V2));
