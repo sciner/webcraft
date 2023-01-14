@@ -25,6 +25,7 @@
 			"to": [4, 14.5, 5.5],
 			"autouv": 0,
 			"color": 6,
+			"rotation": [180, 0, 180],
 			"origin": [0, -0.5, 0],
 			"faces": {
 				"north": {
@@ -64,6 +65,7 @@
 			"to": [3, 6.1, 3],
 			"autouv": 0,
 			"color": 2,
+			"rotation": [180, 0, 180],
 			"origin": [0, 0.1, 0],
 			"faces": {
 				"north": {
@@ -103,6 +105,7 @@
 			"to": [-6, 14.5, 4],
 			"autouv": 0,
 			"color": 6,
+			"rotation": [180, 0, 180],
 			"origin": [0, -0.5, 0],
 			"faces": {
 				"north": {
@@ -142,6 +145,7 @@
 			"to": [4, 10.5, 4],
 			"autouv": 0,
 			"color": 6,
+			"rotation": [180, 0, 180],
 			"origin": [0, -0.5, 0],
 			"faces": {
 				"north": {
@@ -177,12 +181,12 @@
 			"box_uv": false,
 			"rescale": false,
 			"locked": false,
-			"from": [-1, 10.7, -3.2],
-			"to": [6.8, 14.2, 4.5],
+			"from": [-8, 10.7, -3],
+			"to": [-0.2, 14.2, 4.7],
 			"autouv": 0,
 			"color": 6,
-			"rotation": [0, -45, 0],
-			"origin": [3.5, 12.2, -0.1],
+			"rotation": [180, 45, 180],
+			"origin": [-3.5, 12.2, 0.1],
 			"faces": {
 				"north": {
 					"uv": [32, 30, 40, 33.5],
@@ -217,12 +221,12 @@
 			"box_uv": false,
 			"rescale": false,
 			"locked": false,
-			"from": [1.4, 7.1, -2],
-			"to": [4.4, 12.1, 2],
+			"from": [-4.4, 7.1, -2],
+			"to": [-1.4, 12.1, 2],
 			"autouv": 0,
 			"color": 6,
-			"rotation": [0, 0, -30],
-			"origin": [2.9, 8.6, 0],
+			"rotation": [180, 0, -150],
+			"origin": [-2.9, 8.6, 0],
 			"faces": {
 				"north": {
 					"uv": [26, 36, 29, 41],
@@ -257,11 +261,12 @@
 			"box_uv": false,
 			"rescale": false,
 			"locked": false,
-			"from": [1, 0, -4],
-			"to": [6, 2, 4],
+			"from": [-5, 0, -4],
+			"to": [0, 2, 4],
 			"autouv": 0,
 			"color": 2,
-			"origin": [3, 0, 0],
+			"rotation": [180, 0, 180],
+			"origin": [-3, 0, 0],
 			"faces": {
 				"north": {
 					"uv": [20, 8, 25, 10],
@@ -296,11 +301,12 @@
 			"box_uv": false,
 			"rescale": false,
 			"locked": false,
-			"from": [-6, 0, -4],
-			"to": [-1, 2, 4],
+			"from": [2, 0, -4],
+			"to": [7, 2, 4],
 			"autouv": 0,
 			"color": 2,
-			"origin": [-4, 0, 0],
+			"rotation": [180, 0, 180],
+			"origin": [4, 0, 0],
 			"faces": {
 				"north": {
 					"uv": [5, 38, 10, 40],
@@ -335,12 +341,12 @@
 			"box_uv": false,
 			"rescale": false,
 			"locked": false,
-			"from": [-4, 14.5, 2],
-			"to": [-1, 16, 4],
+			"from": [-0.36808, 14.5, -0.24122],
+			"to": [2.63192, 16, 1.75878],
 			"autouv": 0,
 			"color": 3,
 			"rotation": [0, -20, 0],
-			"origin": [-2.5, 15.75, 3],
+			"origin": [1.13192, 15.75, 0.75878],
 			"faces": {
 				"north": {
 					"uv": [0, 48.5, 3, 50],
@@ -375,12 +381,12 @@
 			"box_uv": false,
 			"rescale": false,
 			"locked": false,
-			"from": [-1.96241, 14.84645, -2.87938],
-			"to": [-0.96241, 15.84645, 2.12062],
+			"from": [1.66951, 14.84645, -5.1206],
+			"to": [2.66951, 15.84645, -0.1206],
 			"autouv": 0,
 			"color": 3,
 			"rotation": [14.4328, -13.9954, -46.7808],
-			"origin": [-1.81596, 15.7, 1.12061],
+			"origin": [1.81596, 15.7, -1.12061],
 			"faces": {
 				"north": {
 					"uv": [14, 44.5, 15, 45.5],
@@ -412,17 +418,18 @@
 		}
 	],
 	"outliner": [
-		"3f88e4b8-92cd-d15d-1fb1-828ae38b8ad7",
-		"a1b01541-3fee-815a-5ced-6bec1993f267",
-		"51e68aaf-dedf-e7a0-e5d3-28c6e6f13e74",
-		"59704200-206c-37d4-fe26-6079d6383f96",
-		"a695730f-e8d9-3407-d979-a873c45c3764",
-		"79d641e0-ddfc-723b-07c5-cad9734c402c",
+		"a8a3dc14-2352-0f6f-ee06-946152797793",
 		"c75cf150-2646-d0b3-4f9e-e41a862446ff",
+		"79d641e0-ddfc-723b-07c5-cad9734c402c",
+		"a695730f-e8d9-3407-d979-a873c45c3764",
+		"59704200-206c-37d4-fe26-6079d6383f96",
+		"51e68aaf-dedf-e7a0-e5d3-28c6e6f13e74",
+		"a1b01541-3fee-815a-5ced-6bec1993f267",
+		"3f88e4b8-92cd-d15d-1fb1-828ae38b8ad7",
 		{
 			"name": "bone",
-			"origin": [-1.81596, 15.7, 1.12061],
-			"rotation": [0, -17.5, 0],
+			"origin": [1.81596, 15.7, -1.12061],
+			"rotation": [180, 17.5, 180],
 			"color": 0,
 			"uuid": "b4045447-9c6d-ccd1-71d6-4ef85aefad9e",
 			"export": true,
@@ -432,8 +439,7 @@
 			"visibility": true,
 			"autouv": 0,
 			"children": ["35bd8884-77f4-e7db-9282-a29e24d57e10", "4eef0ea9-f8e1-c501-d981-003cdf73d767"]
-		},
-		"a8a3dc14-2352-0f6f-ee06-946152797793"
+		}
 	],
 	"textures": [
 		{
