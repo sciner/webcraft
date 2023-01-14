@@ -40,7 +40,7 @@ export class ClusterManager {
         const rand = new alea(this.seed + '_' + addr.toHash());
         const r = rand.double();
         if(this.version == 2) {
-            if(r < 1.2) {
+            if(r < 0.2) {
                 cluster = new ClusterVilage(this, addr.clone(), biome)
             } else {
                 cluster = new ClusterStructures(this, addr.clone(), biome)

@@ -375,17 +375,15 @@ export class ClusterBase {
         const ysign = Math.sign(size.y)
         const height = Math.abs(size.y)
         const m = 0
-
         for(let x = -m; x < size.x + m; x++) {
             for(let z = -m; z < size.z + m; z++) {
                 for(let y = 0; y < height; y++) {
-                    this.setBlock(chunk, x + bx, by + y * ysign, z + bz, BLOCK.GRASS_BLOCK.id)
+                    this.setBlock(chunk, x + bx, by + y * ysign, z + bz, y == 0 ? BLOCK.GRASS_BLOCK.id : BLOCK.DIRT.id)
                 }
             }
         }
-
-        return
-
+        
+        /*
         const randoms = new alea(`natural_basement_${pos.x}_${pos.y}_${pos.z}`);
         const center = new Vector(bx + size.x/2, by + size.y, bz + size.z/2)
         const _vec = new Vector(0, 0, 0);
@@ -436,6 +434,8 @@ export class ClusterBase {
                 }
             }
         }
+        */
+
     }
 
     // Draw walls

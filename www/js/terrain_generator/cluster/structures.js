@@ -2,7 +2,7 @@ import { ClusterBuildingBase, getAheadMove } from "./building_cluster_base.js";
 import { BLOCK } from "../../blocks.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import { BuildingTemplate } from "./building_template.js";
-import { Vector } from "../../helpers.js";
+import { DIRECTION, Vector } from "../../helpers.js";
 
 //
 export class ClusterStructures extends ClusterBuildingBase {
@@ -12,7 +12,7 @@ export class ClusterStructures extends ClusterBuildingBase {
         super(clusterManager, addr)
 
         this.max_height  = 1
-        this.is_empty = false // !addr.equal(new Vector(-738, 0, -2139))
+        this.is_empty = false
 
         if(this.is_empty) {
             return
@@ -24,19 +24,17 @@ export class ClusterStructures extends ClusterBuildingBase {
 
         const schemas = [
             'structure1', 'structure2', 'mine', 'underearth_tower',
-            'broken_castle', 'house_dwarf', 'ornated_stone_tower_ruins',
-            'test2'
+            'broken_castle', 'ornated_stone_tower_ruins'
         ]
 
-        // randoms
-        const door_direction = Math.floor(this.randoms.double() * 4)
-        const schema_name = 'domsmall' // schemas[Math.floor(this.randoms.double() * schemas.length)]
+        /**
+         * @param {string} schema_name 
+         * @param {Vector} coord 
+         */
+        const addStructure = (schema_name, coord, door_direction) => {
 
-        const template       = BuildingTemplate.fromSchema(schema_name, bm)
-        const coord          = this.coord.clone().addScalarSelf(128, 0, 128)
-
-        for(let door_direction of [0, 1, 2, 3]) {
-
+            // randoms
+            const template       = BuildingTemplate.fromSchema(schema_name, bm)
             const xz = coord.clone()
 
             const building = new BuildingBlocks(
@@ -50,14 +48,48 @@ export class ClusterStructures extends ClusterBuildingBase {
             )
 
             // const aabb = building.getRealAABB()
-            const am = getAheadMove(door_direction).multiplyScalarSelf(16)
-            building.translateXZ(am)
+            // const am = getAheadMove(door_direction).multiplyScalarSelf(16)
+            // building.translateXZ(am)
             // building.moveXZTo(this.coord)
 
             this.buildings.set(building.coord, building)
 
         }
 
+        if(this.randoms.double() < .333) {
+
+            const coord = this.coord.clone().addScalarSelf(128, -10, 128)
+            const door_direction = Math.floor(this.randoms.double() * 4)
+            addStructure('house_dwarf', coord, door_direction)
+
+        } else {
+
+            for(let x = 32; x <= 224; x += 64) {
+                for(let z = 32; z <= 224; z += 64) {
+                    if(this.randoms.double() < .5) {
+
+                        x += Math.round((this.randoms.double() + this.randoms.double()) * 10)
+                        z += Math.round((this.randoms.double() + this.randoms.double()) * 10)
+
+                        // randoms
+                        const door_direction = Math.floor(this.randoms.double() * 4)
+                        const schema_name = schemas[Math.floor(this.randoms.double() * schemas.length)]
+                        const coord = this.coord.clone().addScalarSelf(x, 0, z)
+
+                        // const aabb = building.getRealAABB()
+                        // const am = getAheadMove(door_direction).multiplyScalarSelf(16)
+                        // building.translateXZ(am)
+                        // building.moveXZTo(this.coord)
+
+                        addStructure(schema_name, coord, door_direction)
+                        
+                    }
+                }
+            }
+
+        }
+
+        // If any structure added
         if(this.buildings.size > 0) {
 
             // Fill near_mask
