@@ -219,6 +219,10 @@ export class WorldEditBuilding {
         for(let [bpos, item] of copy_data.blocks.entries()) {
             if([209, 210].includes(item.id)) continue;
             if(item.id == 0 && !copy_air) continue;
+            // debug block ;)
+            // if(bpos.x + pos1.x == -253 && bpos.y + pos1.y == -17 && bpos.z + pos1.z == 31) {
+            //     debugger
+            // }
             const move = new Vector(
                 rel_entrance.x - bpos.x,
                 bpos.y - rel_entrance.y + building.door_pos.y - (basement_y - pos1.y),

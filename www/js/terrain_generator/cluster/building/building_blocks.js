@@ -39,6 +39,9 @@ export class BuildingBlocks extends Building {
                     this.chunks.set(chunk_addr, chunk)
                 }
             }
+
+            // if(item.move.x== -6 && item.move.y == -18 && item.move.z == 24) debugger
+
             chunk.push(item)
         }
 
