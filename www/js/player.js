@@ -209,15 +209,23 @@ export class Player {
         this.pickAt = new PickAt(this.world, this.render, async (...args) => {
             return await this.onPickAtTarget(...args);
         }, async (e) => {
-            // onInterractMob
-            const mob = Qubatch.world.mobs.get(e.interractMobID);
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
                 this.inAttackProcess = ATTACK_PROCESS_ONGOING;
                 this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
             }
-            if(mob) {
-                mob.punch(e);
-                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+            if (e.interactPlayerID) {
+                const player = Qubatch.world.players.get(e.interactPlayerID);
+                if (player) {
+                    player.punch(e);
+                }
+            }
+            if (e.interactMobID) {
+                const mob = Qubatch.world.mobs.get(e.interactMobID);
+                if (mob) {
+                    mob.punch(e);
+                }
+            }
+            if (e.interactMobID || e.interactPlayerID) {
                 this.world.server.Send({
                     name: ServerClient.CMD_PICKAT_ACTION,
                     data: e

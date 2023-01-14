@@ -9,7 +9,7 @@ import config from "./config.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL } from "../www/js/constant.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
@@ -96,6 +96,8 @@ export class ServerPlayer extends Player {
         this.currentChests          = null;
 
         this.sharedProps = new ServerPlayerSharedProps(this);
+        
+        this.timer_reload = performance.now();
     }
 
     init(init_info) {
@@ -351,7 +353,8 @@ export class ServerPlayer extends Player {
             sneak:    this.state.sneak,
             sitting:  this.state.sitting,
             lies:     this.state.lies,
-            armor:    this.inventory.exportArmorState()
+            armor:    this.inventory.exportArmorState(),
+            health:   this.state.indicators.live.value
         };
     }
 
@@ -793,6 +796,54 @@ export class ServerPlayer extends Player {
             return true;
         }
         return false;
+    }
+    
+    // использование предметов и оружия
+    onAttackEntity(button_id, mob_id, player_id) {
+        const item = BLOCK.fromId(this.state.hands.right.id);
+        const damage = item?.damage ? item.damage : 1;
+        const delay = item?.speed ? 200 / item.speed : 200;
+        const time = performance.now() - this.timer_reload;
+        this.timer_reload = performance.now();
+        // проверяем время последнего клика
+        if (time > delay) {
+            const world = this.world;
+            // использование предметов
+            if (button_id == MOUSE.BUTTON_RIGHT) {
+                if (mob_id) {
+                    const mob = world.mobs.get(mob_id);
+                    // если этот инструмент можно использовать на мобе, то уменьшаем прочнось
+                    if (mob.setUseItem(this.state.hands.right.id, this)) {
+                        if (item?.power) {
+                            this.inventory.decrement_instrument();
+                        } else {
+                            this.inventory.decrement();
+                        }
+                    }
+                }
+            }
+            // удары
+            if (button_id == MOUSE.BUTTON_LEFT) {
+                if (player_id && world.rules.getValue('pvp')) {
+                    // наносим урон по игроку
+                    const player = world.players.get(player_id);
+                    player.setDamage(damage);
+                    // уменьшаем прочнось
+                    if (item?.power) {
+                        this.inventory.decrement_instrument();
+                    }
+                }
+                if (mob_id) {
+                    // наносим урон по мобу
+                    const mob = world.mobs.get(mob_id);
+                    mob.setDamage(damage, null, this);
+                    // уменьшаем прочнось
+                    if (item?.power) {
+                        this.inventory.decrement_instrument();
+                    }
+                }
+            }
+        }
     }
 
 }

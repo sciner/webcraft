@@ -444,6 +444,7 @@ export class FSMBrain {
     * item - item
     */
     onUse(actor, item){
+        return false;
     }
 
 }

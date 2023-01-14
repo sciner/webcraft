@@ -112,4 +112,20 @@ export class Brain extends FSMBrain {
         world.actions_queue.add(actor, actions);
     }
     
+    // если использовали предмет
+    onUse(actor, id) {
+        if (!actor || !id){
+            return;
+        }
+        
+        const mob = this.mob;
+        const world = mob.getWorld();
+        
+        if (id == BLOCK.WHEAT_SEEDS.id) {
+            console.log('use');
+            return true;
+        }
+        return false;
+    }
+    
 }
