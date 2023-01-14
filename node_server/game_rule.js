@@ -7,7 +7,7 @@ export class GameRule {
         this.default_rules = {
             doDaylightCycle:    {default: true, type: 'boolean'}, // /gamerule doDaylightCycle false|true
             doWeatherCycle:     {default: true, type: 'boolean'},
-            pvp:                {default: false, type: 'boolean'},
+            pvp:                {default: true, type: 'boolean'},
             randomTickSpeed:    {default: 3, type: 'int'},
             difficulty:         {default: 1, type: 'int'},
             fluidTickRate:      {default: 5, min: 1, max: 1000000, type: 'int'},
