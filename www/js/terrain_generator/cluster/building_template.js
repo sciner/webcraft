@@ -480,7 +480,7 @@ export class BuildingTemplate {
         const ROT_N = [18, 22, 7, 13];
     
         //
-        const rot0 = (block) => {
+        const rot_none = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
                 rot[direction].push(block);
@@ -504,7 +504,7 @@ export class BuildingTemplate {
         }
 
         //
-        const rot2 = (block) => {
+        const rotate_x = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
                 const rb = JSON.parse(JSON.stringify(block));
@@ -578,22 +578,26 @@ export class BuildingTemplate {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
                 const rb = JSON.parse(JSON.stringify(block))
-                rb.extra_data = {}
-                for(let k in block.extra_data) {
-                    switch(k) {
-                        case 'east':
-                        case 'west':
-                        case 'north':
-                        case 'south': {
-                            const new_index = sides.indexOf(k) + direction
-                            const new_side_name = sides[new_index % sides.length]
-                            rb.extra_data[new_side_name] = block.extra_data[k]
-                            break
-                        }
-                        default: {
-                            rb.extra_data[k] = JSON.parse(JSON.stringify(block.extra_data[k]))
+                if(block.extra_data) {
+                    rb.extra_data = {}
+                    for(let k in block.extra_data) {
+                        switch(k) {
+                            case 'east':
+                            case 'west':
+                            case 'north':
+                            case 'south': {
+                                const new_index = sides.indexOf(k) + direction
+                                const new_side_name = sides[new_index % sides.length]
+                                rb.extra_data[new_side_name] = block.extra_data[k]
+                                break
+                            }
+                            default: {
+                                rb.extra_data[k] = JSON.parse(JSON.stringify(block.extra_data[k]))
+                            }
                         }
                     }
+                } else if (block.rotate) {
+                    rb.rotate.x = (rb.rotate.x + direction) % 4
                 }
                 rot[direction].push(rb)
             }
@@ -603,7 +607,7 @@ export class BuildingTemplate {
 
             // если это воздух, то просто прописываем его во все измерения
             if(block.block_id == 0) {
-                rot0(block);
+                rot_none(block);
                 continue
             }
 
@@ -614,34 +618,34 @@ export class BuildingTemplate {
             }
 
             if(['bed'].includes(mat.style_name)) {
-                rot2(block);
-
-            } else if(['cover'].includes(mat.style_name)) {
-                rot_cover(block);
-
-            } else if(mat.tags.includes('rotate_x8')) {
-                rotx8(block);
-
-            } else if(['sign'].includes(mat.style_name)) {
-                rot4(block);
-
-            } else if(mat.tags.includes('rotate_by_pos_n')) {
-                rot1(block);
+                rotate_x(block)
 
             } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door', 'chest', 'lectern', 'fence_gate'].includes(mat.style_name)) {
-                rot2(block);
+                rotate_x(block)
+
+            } else if(['cover'].includes(mat.style_name)) {
+                rot_cover(block)
+
+            } else if(mat.tags.includes('rotate_x8')) {
+                rotx8(block)
+
+            } else if(['sign'].includes(mat.style_name)) {
+                rot4(block)
+
+            } else if(mat.tags.includes('rotate_by_pos_n')) {
+                rot1(block)
 
             } else if(['armor_stand'].includes(mat.style_name)) {
-                rot3(block);
+                rot3(block)
 
             } else if(['rails'].includes(mat.style_name)) {
-                rot_rails(block);
+                rot_rails(block)
 
             } else if(mat.can_rotate && block.rotate) {
-                rot2(block);
+                rotate_x(block)
 
             } else {
-                rot0(block);
+                rot_none(block)
 
             }
 
