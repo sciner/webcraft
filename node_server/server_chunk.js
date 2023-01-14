@@ -141,6 +141,7 @@ export class ServerChunk {
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
         this.blocksUpdatedByListeners = [];
         this.readyPromise  = Promise.resolve();
+        this.safeTeleportMarker = 0;
 
         this.light = new ChunkLight(this);
     }
@@ -477,7 +478,7 @@ export class ServerChunk {
     }
 
     shouldUnload() {
-        if (this.connections.size > 0) {
+        if (this.connections.size + this.safeTeleportMarker > 0) {
             return false
         }
         if (this.load_state === CHUNK_STATE.LOADING_MOBS
@@ -948,7 +949,7 @@ export class ServerChunk {
                     }
                     break;
                 }
-                
+
             }
 
         } else {

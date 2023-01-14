@@ -349,11 +349,11 @@ export class ServerChunkManager {
     }
 
     // forces chunks visible to the player to load, and return their list
-    queryPlayerVisibleChunks(player, posOptioanl) {
+    queryPlayerVisibleChunks(player, posOptioanl, chunk_render_dist = 0) {
         var list = [];
         const pos = posOptioanl || player.state.pos;
         const chunk_addr = getChunkAddr(pos);
-        const chunk_render_dist = player.state.chunk_render_dist;
+        chunk_render_dist = chunk_render_dist || player.state.chunk_render_dist;
         const margin            = Math.max(chunk_render_dist + 1, 1);
         const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
         // Find new chunks
