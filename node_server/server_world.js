@@ -269,7 +269,7 @@ export class ServerWorld {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
                         if (this.getLight() > 6) {
-                            console.log((head.lightValue >> 8))
+                            // console.log((head.lightValue >> 8))
                             if ((head.lightValue >> 8) != 0xFF) {
                                 return;
                             }
