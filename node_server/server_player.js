@@ -78,6 +78,7 @@ export class ServerPlayer extends Player {
         this.checkDropItemTempVec   = new Vector();
         this.dt_connect             = new Date();
         this.safePosWaitingChunks   = [];
+        this.safeTeleportRenderDist = 2;
         this.safePosInitialOverride = null; // if its null, state.pos_spawn is used instead
         this.in_portal              = false;
         this.wait_portal            = null;
@@ -96,7 +97,7 @@ export class ServerPlayer extends Player {
         this.currentChests          = null;
 
         this.sharedProps = new ServerPlayerSharedProps(this);
-        
+
         this.timer_reload = performance.now();
     }
 
@@ -215,10 +216,15 @@ export class ServerPlayer extends Player {
         if(!this.conn) {
             return false;
         }
+        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
+            this.safePosWaitingChunks[i].safeTeleportMarker--;
+            this.world.chunks.invalidate(this.safePosWaitingChunks[i]);
+        }
         // remove player from chunks
         for(let addr of this.chunks) {
             this.world.chunks.get(addr)?.removePlayer(this);
         }
+        this.safePosWaitingChunks.length = 0;
         this.chunks.clear();
         // remove events handler
         PlayerEvent.removeHandler(this.session.user_id);
@@ -472,6 +478,7 @@ export class ServerPlayer extends Player {
         var i = 0;
         while (i < this.safePosWaitingChunks.length) {
             if (this.safePosWaitingChunks[i].isReady()) {
+                this.safePosWaitingChunks[i].safeTeleportMarker--;
                 this.safePosWaitingChunks[i] = this.safePosWaitingChunks[this.safePosWaitingChunks.length - 1];
                 --this.safePosWaitingChunks.length;
             } else {
@@ -483,7 +490,7 @@ export class ServerPlayer extends Player {
             // teleport
             var initialPos = this.safePosInitialOverride || this.state.pos_spawn;
             this.safePosInitialOverride = null;
-            this.state.pos = this.world.chunks.findSafePos(initialPos, this.state.chunk_render_dist);
+            this.state.pos = this.world.chunks.findSafePos(initialPos, this.safeTeleportRenderDist);
 
             // change status
             this.status = PLAYER_STATUS_ALIVE;
@@ -700,7 +707,10 @@ export class ServerPlayer extends Player {
             if (params.safe) {
                 this.status = PLAYER_STATUS_WAITING_DATA;
                 this.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
-                this.safePosWaitingChunks = world.chunks.queryPlayerVisibleChunks(this, new_pos);
+                this.safePosWaitingChunks = world.chunks.queryPlayerVisibleChunks(this, new_pos, this.safeTeleportRenderDist);
+                for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
+                    this.safePosWaitingChunks[i].safeTeleportMarker++;
+                }
                 this.safePosInitialOverride = new_pos;
             } else {
                 teleported_player.wait_portal = new WorldPortalWait(
@@ -797,7 +807,7 @@ export class ServerPlayer extends Player {
         }
         return false;
     }
-    
+
     // использование предметов и оружия
     onAttackEntity(button_id, mob_id, player_id) {
         const item = BLOCK.fromId(this.state.hands.right.id);
