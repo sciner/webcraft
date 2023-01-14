@@ -670,7 +670,7 @@ export class ServerPlayer extends Player {
             // teleport to place
             switch(params.place_id) {
                 case 'spawn': {
-                    new_pos = this.state.pos_spawn;
+                    new_pos = new Vector(this.state.pos_spawn)
                     break;
                 }
                 case 'random': {
@@ -700,6 +700,7 @@ export class ServerPlayer extends Player {
         }
         // If need to teleport
         if(new_pos) {
+            new_pos = new Vector(new_pos)
             if(Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
                 console.log('error_too_far');
                 throw 'error_too_far';
