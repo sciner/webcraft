@@ -172,7 +172,7 @@ void main() {
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
 
     v_lookVector = normalize(u_worldView * vec4(0.0, 0.0, 1.0, 0.0)).xyz;
-    // v_tangentNormal = (u_worldView * vec4(v_normal, 0.0)).xyz;
+    v_tangentNormal = (u_worldView * vec4(v_normal, 0.0)).xyz;
 
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
 

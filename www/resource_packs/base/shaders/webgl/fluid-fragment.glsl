@@ -6,10 +6,18 @@
 // fix  a `cutting` a blocks that under water partially 
 #define CAUSTIC_DISPLACEMENT_GAP .01
 
+// how many reflection in water when it exist
+#define WATER_REFLECTION_FACTOR 0.6
+
+// how fast reflection is fadeout to edges where not data
+#define WATER_REFLECTION_FADE 0.8
+
 #include<constants>
 
 #include<global_uniforms>
 #include<global_uniforms_frag>
+
+uniform mat4 uProjMatrix;
 
 uniform vec4 u_fluidUV[2];
 
@@ -69,6 +77,7 @@ float linearizeDepth(float z) {
 }
 
 void main() {
+
     vec2 size = vec2(textureSize(u_texture, 0));
     int fluidId = int(round(v_fluidAnim.x));
     vec2 fluidSubTexSize = u_fluidUV[fluidId].xy;
@@ -132,22 +141,33 @@ void main() {
 
     vec4 backTexture = texture(u_backTextureColor, colorBackUv, -0.5);
 
-    /*
-
-
-    float waterFogDensity = 3.0;
-
-    float fogFactor2 = exp2(-waterFogDensity * depthDiff);
-    vec4 waterFogColor = vec4(u_fogColor.rgb, 1.);
-    vec4 underwater =  mix(waterFogColor, backTexture, fogFactor2);
-    */
-
-	vec4 underwater =  backTexture;// mix(waterFogColor, backTexture, fogFactor2);
+	vec4 underwater =  backTexture;
 
     float mixFactor = 1.0;
 
+    vec3 ref = reflect(v_position, v_tangentNormal);
 
-    //outColor = vec4(fader, fader, fader, 1.0);
-    outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * underwater;
+    vec4 ndc = uProjMatrix * vec4(ref, 1.0);
+    ndc /= ndc.z;
+
+    vec2 ndc2d = (1. + ndc.xy) * 0.5 + offset * displaceErrorFactor;
+
+    // fix me
+    // projection problems
+    // we clip a lot of data
+    if (abs(v_normal.z) > 0.5) {
+        bool isIn = abs(ndc2d.x  - 0.5) < 0.5 && abs(ndc2d.y - 0.5) < 0.5 && v_tangentNormal.y > 0.5;
+
+        if (isIn) {
+            vec4 reflection = texture(u_backTextureColor, ndc2d, -0.5);
+
+            float factX = WATER_REFLECTION_FACTOR * (1. - smoothstep(WATER_REFLECTION_FADE, 1.0, ndc2d.y));
+            float factY = 1. - smoothstep(WATER_REFLECTION_FADE, 1.0, abs(0.5 - ndc2d.x) * 2.0);
+
+            underwater = mix(underwater, reflection, factX * factY);
+        } 
+
+        outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * underwater;
+    }
 
 }
