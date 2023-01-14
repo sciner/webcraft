@@ -599,7 +599,7 @@ export class ServerPlayer extends Player {
         //
         const pos_legs      = new Vector(this.state.pos).flooredSelf();
         const tblock_legs   = this.world.getBlock(pos_legs);
-        const portal_block  = tblock_legs.material?.is_portal ? tblock_legs : null;
+        const portal_block  = tblock_legs?.material?.is_portal ? tblock_legs : null;
         const in_portal     = !!portal_block;
         //
         if(in_portal != this.in_portal) {
