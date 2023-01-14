@@ -1,5 +1,5 @@
 //@ts-check
-import BaseRenderer, {BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
+import BaseRenderer, {BaseCubeGeometry, BaseRenderTarget, BaseTexture, CubeMesh} from "../BaseRenderer.js";
 import { BaseCubeShader } from "../BaseShader.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
@@ -309,11 +309,15 @@ export default class WebGLRenderer extends BaseRenderer {
         this._activeTextures = {};
         this._shader = null;
 
-        // test only
         /**
          * @type {WebGLRenderTarget | null}
          */
         this._mainFrame = null;
+
+        /**
+         * @type {WebGLRenderTarget | null}
+         */
+        this._grabPassFrame = null;
 
         this.depthState = {
             write: true,
@@ -459,6 +463,10 @@ export default class WebGLRenderer extends BaseRenderer {
      * @param {import("../BaseRenderer.js").PassOptions} options
      */
     beginPass(options = {}) {
+        if (!options.target) {
+            options.target = this._mainFrame;
+        }
+
         super.beginPass(options);
 
         const {
@@ -467,7 +475,7 @@ export default class WebGLRenderer extends BaseRenderer {
 
         gl.bindFramebuffer(
             gl.FRAMEBUFFER,
-            _target ? _target.framebuffer : this._mainFrame.framebuffer
+            _target ? _target.framebuffer : null
         );
 
         gl.viewport(..._viewport);
@@ -476,10 +484,8 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     endPass() {
-        if (!this._target) {
-            this._target = this._mainFrame;
+        if (this._target === this._mainFrame) {
             this.blitRenderTarget();
-            this._target = null;
         }
     }
 
@@ -572,6 +578,29 @@ export default class WebGLRenderer extends BaseRenderer {
 
     createCubeMap(options) {
         return new CubeMesh(new WebGLCubeShader(this, options), new WebGLCubeGeometry(this, options));
+    }
+
+    grabPass() {
+        const active = this._target || this._mainFrame;
+
+        if (!active) return null;
+
+        if (this._grabPassFrame && (this._grabPassFrame.width !== active.width || this._grabPassFrame.height !== active.height) ) {
+            this._grabPassFrame.destroy();
+            this._grabPassFrame = null;
+        }
+
+        if (!this._grabPassFrame) {
+            this._grabPassFrame = new WebGLRenderTarget(this, {
+                width: active.width,
+                height: active.height,
+                depth: active.options.depth,
+            })
+        }
+
+        this.blit(active, this._grabPassFrame);
+
+        return this._grabPassFrame;
     }
 
     /**

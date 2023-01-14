@@ -76,7 +76,9 @@ export class WebGLRenderTarget extends BaseRenderTarget {
         super.destroy();
 
         this.framebuffer && this.context.gl.deleteFramebuffer(this.framebuffer);
-        this.depthTexture && this.context.gl.deleteRenderbuffer(this.depthTexture);
+        
+        // this is real texture
+        // this.depthTexture && this.context.gl.deleteRenderbuffer(this.depthTexture);
         this.framebuffer = null;
         this.depthTexture = null;
     }

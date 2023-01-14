@@ -751,6 +751,13 @@ export default class BaseRenderer {
 
     resetAfter() {
     }
-}
+
+    /**
+     * Get current rendering result as copy for passing to shader
+     * @returns { BaseRenderTarget | null }
+     */
+    grabPass() {
+        return null;
+    }}
 
 BaseRenderer.ID = 0;
