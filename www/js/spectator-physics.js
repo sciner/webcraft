@@ -116,7 +116,7 @@ export class SpectatorPlayerControl {
         const mul = ((this.controls.sprint ? this.player_state.flying ? 1.15 : 1.5 : 1) * passable / 2.8) * mulx;
         this.player.entity.position.addScalarSelf(
             this.player_state.vel.x * delta * mul,
-            this.player_state.vel.y * delta,
+            this.player_state.vel.y * delta * (mul * 2),
             this.player_state.vel.z * delta * mul
         );
     }

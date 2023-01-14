@@ -68,10 +68,10 @@ export class DBWorldFluid {
         await this.saveFluids(-1);
     }
 
-    async flushChunk(chunk) {
-        if (chunk.fluid.databaseID !== chunk.fluid.updateID) {
-            chunk.fluid.databaseID = chunk.fluid.updateID;
-            await this.saveChunkFluid(chunk.addr, chunk.fluid.saveDbBuffer());
+    async flushChunk(fluidChunk) {
+        if (fluidChunk.databaseID !== fluidChunk.updateID) {
+            fluidChunk.databaseID = fluidChunk.updateID;
+            await this.saveChunkFluid(fluidChunk.parentChunk.addr, fluidChunk.saveDbBuffer());
         }
     }
 

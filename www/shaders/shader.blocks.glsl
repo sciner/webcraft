@@ -51,6 +51,7 @@
     uniform float u_brightness;
     uniform float u_time;
     uniform vec2 u_resolution;
+    uniform float u_eyeinwater;
     uniform vec3 u_shift;
     uniform bool u_TestLightOn;
     uniform vec4 u_SunDir;
@@ -391,63 +392,68 @@
     vec4 aoVector = vec4(0.0);
 
     vec3 texSize;
-    if (u_lightOverride.z > 0.0) {
+    if (u_lightOverride.z > 1.5) {
         centerSample.xy = u_lightOverride.xy;
-    } else if (v_lightId < 0.5) {
-        texSize = vec3(1.0) / vec3(textureSize(u_lightTex[0], 0));
-        centerSample = texture(u_lightTex[0], lightCoord * texSize);
-        if (v_lightMode > 0.5) {
-            aoVector = vec4(texture(u_lightTex[0], aoCoord0 * texSize).w, texture(u_lightTex[0], aoCoord1 * texSize).w,
-                texture(u_lightTex[0], aoCoord2 * texSize).w, texture(u_lightTex[0], aoCoord3 * texSize).w);
+    } else {
+        if (v_lightId < 0.5) {
+            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[0], 0));
+            centerSample = texture(u_lightTex[0], lightCoord * texSize);
+            if (v_lightMode > 0.5) {
+                aoVector = vec4(texture(u_lightTex[0], aoCoord0 * texSize).w, texture(u_lightTex[0], aoCoord1 * texSize).w,
+                    texture(u_lightTex[0], aoCoord2 * texSize).w, texture(u_lightTex[0], aoCoord3 * texSize).w);
+            }
+        } else if (v_lightId < 1.5) {
+            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[1], 0));
+            centerSample = texture(u_lightTex[1], lightCoord * texSize);
+            if (v_lightMode > 0.5) {
+                aoVector = vec4(texture(u_lightTex[1], aoCoord0 * texSize).w, texture(u_lightTex[1], aoCoord1 * texSize).w,
+                    texture(u_lightTex[1], aoCoord2 * texSize).w, texture(u_lightTex[1], aoCoord3 * texSize).w);
+            }
+        } else if (v_lightId < 2.5) {
+            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[2], 0));
+            centerSample = texture(u_lightTex[2], lightCoord * texSize);
+            if (v_lightMode > 0.5) {
+                aoVector = vec4(texture(u_lightTex[2], aoCoord0 * texSize).w, texture(u_lightTex[2], aoCoord1 * texSize).w,
+                    texture(u_lightTex[2], aoCoord2 * texSize).w, texture(u_lightTex[2], aoCoord3 * texSize).w);
+            }
+        } else if (v_lightId < 3.5) {
+            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[3], 0));
+            centerSample = texture(u_lightTex[3], lightCoord * texSize);
+            if (v_lightMode > 0.5) {
+                aoVector = vec4(texture(u_lightTex[3], aoCoord0 * texSize).w, texture(u_lightTex[3], aoCoord1 * texSize).w,
+                    texture(u_lightTex[3], aoCoord2 * texSize).w, texture(u_lightTex[3], aoCoord3 * texSize).w);
+            }
+        } else if (v_lightId < 4.5) {
+            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[4], 0));
+            centerSample = texture(u_lightTex[4], lightCoord * texSize);
+            if (v_lightMode > 0.5) {
+                aoVector = vec4(texture(u_lightTex[4], aoCoord0 * texSize).w, texture(u_lightTex[4], aoCoord1 * texSize).w,
+                    texture(u_lightTex[4], aoCoord2 * texSize).w, texture(u_lightTex[4], aoCoord3 * texSize).w);
+            }
+        } else if (v_lightId < 5.5) {
+            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[5], 0));
+            centerSample = texture(u_lightTex[5], lightCoord * texSize);
+            if (v_lightMode > 0.5) {
+                aoVector = vec4(texture(u_lightTex[5], aoCoord0 * texSize).w, texture(u_lightTex[5], aoCoord1 * texSize).w,
+                    texture(u_lightTex[5], aoCoord2 * texSize).w, texture(u_lightTex[5], aoCoord3 * texSize).w);
+            }
+        } else if (v_lightId < 6.5) {
+            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[6], 0));
+            centerSample = texture(u_lightTex[6], lightCoord * texSize);
+            if (v_lightMode > 0.5) {
+                aoVector = vec4(texture(u_lightTex[6], aoCoord0 * texSize).w, texture(u_lightTex[6], aoCoord1 * texSize).w,
+                    texture(u_lightTex[6], aoCoord2 * texSize).w, texture(u_lightTex[6], aoCoord3 * texSize).w);
+            }
+        } else if (v_lightId < 7.5) {
+            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[7], 0));
+            centerSample = texture(u_lightTex[7], lightCoord * texSize);
+            if (v_lightMode > 0.5) {
+                aoVector = vec4(texture(u_lightTex[7], aoCoord0 * texSize).w, texture(u_lightTex[7], aoCoord1 * texSize).w,
+                    texture(u_lightTex[7], aoCoord2 * texSize).w, texture(u_lightTex[7], aoCoord3 * texSize).w);
+            }
         }
-    } else if (v_lightId < 1.5) {
-        texSize = vec3(1.0) / vec3(textureSize(u_lightTex[1], 0));
-        centerSample = texture(u_lightTex[1], lightCoord * texSize);
-        if (v_lightMode > 0.5) {
-            aoVector = vec4(texture(u_lightTex[1], aoCoord0 * texSize).w, texture(u_lightTex[1], aoCoord1 * texSize).w,
-                texture(u_lightTex[1], aoCoord2 * texSize).w, texture(u_lightTex[1], aoCoord3 * texSize).w);
-        }
-    } else if (v_lightId < 2.5) {
-        texSize = vec3(1.0) / vec3(textureSize(u_lightTex[2], 0));
-        centerSample = texture(u_lightTex[2], lightCoord * texSize);
-        if (v_lightMode > 0.5) {
-            aoVector = vec4(texture(u_lightTex[2], aoCoord0 * texSize).w, texture(u_lightTex[2], aoCoord1 * texSize).w,
-                texture(u_lightTex[2], aoCoord2 * texSize).w, texture(u_lightTex[2], aoCoord3 * texSize).w);
-        }
-    } else if (v_lightId < 3.5) {
-        texSize = vec3(1.0) / vec3(textureSize(u_lightTex[3], 0));
-        centerSample = texture(u_lightTex[3], lightCoord * texSize);
-        if (v_lightMode > 0.5) {
-            aoVector = vec4(texture(u_lightTex[3], aoCoord0 * texSize).w, texture(u_lightTex[3], aoCoord1 * texSize).w,
-                texture(u_lightTex[3], aoCoord2 * texSize).w, texture(u_lightTex[3], aoCoord3 * texSize).w);
-        }
-    } else if (v_lightId < 4.5) {
-        texSize = vec3(1.0) / vec3(textureSize(u_lightTex[4], 0));
-        centerSample = texture(u_lightTex[4], lightCoord * texSize);
-        if (v_lightMode > 0.5) {
-            aoVector = vec4(texture(u_lightTex[4], aoCoord0 * texSize).w, texture(u_lightTex[4], aoCoord1 * texSize).w,
-                texture(u_lightTex[4], aoCoord2 * texSize).w, texture(u_lightTex[4], aoCoord3 * texSize).w);
-        }
-    } else if (v_lightId < 5.5) {
-        texSize = vec3(1.0) / vec3(textureSize(u_lightTex[5], 0));
-        centerSample = texture(u_lightTex[5], lightCoord * texSize);
-        if (v_lightMode > 0.5) {
-            aoVector = vec4(texture(u_lightTex[5], aoCoord0 * texSize).w, texture(u_lightTex[5], aoCoord1 * texSize).w,
-                texture(u_lightTex[5], aoCoord2 * texSize).w, texture(u_lightTex[5], aoCoord3 * texSize).w);
-        }
-    } else if (v_lightId < 6.5) {
-        texSize = vec3(1.0) / vec3(textureSize(u_lightTex[6], 0));
-        centerSample = texture(u_lightTex[6], lightCoord * texSize);
-        if (v_lightMode > 0.5) {
-            aoVector = vec4(texture(u_lightTex[6], aoCoord0 * texSize).w, texture(u_lightTex[6], aoCoord1 * texSize).w,
-                texture(u_lightTex[6], aoCoord2 * texSize).w, texture(u_lightTex[6], aoCoord3 * texSize).w);
-        }
-    } else if (v_lightId < 7.5) {
-        texSize = vec3(1.0) / vec3(textureSize(u_lightTex[7], 0));
-        centerSample = texture(u_lightTex[7], lightCoord * texSize);
-        if (v_lightMode > 0.5) {
-            aoVector = vec4(texture(u_lightTex[7], aoCoord0 * texSize).w, texture(u_lightTex[7], aoCoord1 * texSize).w,
-                texture(u_lightTex[7], aoCoord2 * texSize).w, texture(u_lightTex[7], aoCoord3 * texSize).w);
+        if (u_lightOverride.z > 0.5) {
+            centerSample.xy = u_lightOverride.xy;
         }
     }
 
@@ -581,4 +587,70 @@
         * (1.0 - aoSample * 0.5);
     //  + cavePart * abs(caveNormal) / length(caveNormal);
     sunNormalLight = 1.0;
+#endif
+
+#ifdef caustic_pass_onwater
+    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    vec2 pc = (v_world_pos.xy + cam_period.xy) * 64.;
+
+    mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
+    vec3 a = vec3( pc / 4e2, (u_time / 2000.) / 4. ) * m,
+         b = a * m * .4,
+         c1 = b * m * .3;
+    vec4 k = vec4(pow(
+          min(min(   length(.5 - fract(a)), 
+                     length(.5 - fract(b))
+                  ), length(.5 - fract(c1)
+             )), 7.) * 25.);
+             
+    color.rgb += k.rgb / 2.;
+#endif
+
+// VERSION1
+#ifdef caustic1_pass
+
+    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    vec2 vert = vec2(cam_period.z / 2., cam_period.z / 2.) + vec2(v_world_pos.z / 2., v_world_pos.z / 2.);
+    vec2 pc = (v_texcoord0.xy + v_world_pos.xy + cam_period.xy + vert.xy) * 64.;
+
+    mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
+    vec3 a = vec3( pc / 4e2, (u_time / 2000.) / 4. ) * m,
+         b = a * m * .4,
+         c1 = b * m * .3;
+    vec4 k = vec4(pow(
+          min(min(   length(.5 - fract(a)), 
+                     length(.5 - fract(b))
+                  ), length(.5 - fract(c1)
+             )), 7.) * 25.);
+             
+    color.rgb += k.rgb;
+
+#endif
+
+// VERSION2
+#ifdef caustic2_pass
+
+    #define TAU 6.28318530718
+    #define MAX_ITER 3
+
+	float time = (u_time / 1000.) + 23.0;
+    // uv should be the 0-1 uv of texture...
+	vec2 uv = v_texcoord0.xy * 50.; // / u_resolution.xy * 4.;
+    vec2 p = mod(uv * TAU, TAU) - 250.0;
+
+	vec2 i = vec2(p);
+	float c = 1.0;
+	float inten = .005;
+
+	for (int n = 0; n < MAX_ITER; n++) {
+		float t = time * (1.0 - (3.5 / float(n + 1)));
+		i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));
+		c += 1.0 / length(vec2(p.x / (sin(i.x + t) / inten), p.y / (cos(i.y + t) / inten)));
+	}
+	c /= float(MAX_ITER);
+	c = 1.17 - pow(c, 1.4);
+	vec3 colour = vec3(pow(abs(c), 8.0));
+    colour = clamp(colour + vec3(0.0, 0.35, 0.5), 0.0, 1.0);
+    color.rgb *= colour.rgb;
+
 #endif

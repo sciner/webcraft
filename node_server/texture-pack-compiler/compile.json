@@ -1583,6 +1583,9 @@
             "material": {
                 "id": "plant"
             },
+            "compile": {
+                "filter": "brightness(110%)"
+            },
             "tags": [
                 "mask_biome"
             ]
@@ -3631,6 +3634,9 @@
                     "down": "block/tall_grass/tall_grass5_bottom.png"
                 }
             ],
+            "compile": {
+                "filter": "brightness(115%)"
+            },
             "tags": [
                 "mask_biome"
             ]
@@ -9045,6 +9051,54 @@
                 "durability": 481,
                 "damage": 3
             }
+        },
+        {
+            "id": 299,
+            "name": "NIGHT_VISION",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 68, "g": 540, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":12, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 416,
+            "name": "NIGHT_VISION_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 68, "g": 540, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":12, "time": 480, "level": 1}
+            ]
         }
         
     ]

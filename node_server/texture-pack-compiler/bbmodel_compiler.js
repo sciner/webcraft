@@ -53,13 +53,13 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
 
         for(const [id, model] of this.models.entries()) {
 
-            console.log(`BBModel ... ${id}`, model.elements.length);
-
             if('textures' in model) {
                 const {spritesheet, places} = await this.prepareModel(model, id, this.options)
                 model._properties.texture_id = spritesheet.id
                 model._properties.places = places
             }
+
+            console.log(`BBModel ... ${id} ${model.elements.length} elements (${model.polygons} polygons)`)
 
             delete(model.textures);
             fs.writeFileSync(`${this.options.output_dir}/${id}.json`, JSON.stringify(model))

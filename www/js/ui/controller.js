@@ -298,7 +298,8 @@ let gameCtrl = async function($scope, $timeout) {
             beautiful_leaves: true,
             mipmap: false,
             mobs_draw_debug_grid: false,
-            chunks_draw_debug_grid: false
+            chunks_draw_debug_grid: false,
+            cluster_draw_debug_grid: false
         },
         lightMode: {
             list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
@@ -333,6 +334,10 @@ let gameCtrl = async function($scope, $timeout) {
             // forced Joystick control
             if(!('forced_joystick_control' in this.form)) {
                 this.form.forced_joystick_control = false;
+            }
+            // draw improved blocks
+            if(!('draw_improved_blocks' in this.form)) {
+                this.form.draw_improved_blocks = true;
             }
             // mouse sensitivity
             if(!('mouse_sensitivity' in this.form)) {
@@ -484,7 +489,7 @@ let gameCtrl = async function($scope, $timeout) {
             if(!world.info) {
                 debugger;
             }
-            const player = new Player(options);
+            const player = new Player(options, Qubatch.render);
             player.JoinToWorld(world, () => {
                 Qubatch.Started(player);
             });

@@ -16,6 +16,7 @@ export class WebGLLineShader extends BaseLineShader {
         this.uViewMatrix        = gl.getUniformLocation(program, 'uViewMatrix');
 
         this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
+        this.u_eyeinwater       = gl.getUniformLocation(program, 'u_eyeinwater');
         this.u_time             = gl.getUniformLocation(program, 'u_time');
 
         this.locateUniforms();
@@ -75,6 +76,8 @@ export class WebGLLineShader extends BaseLineShader {
 
         gl.uniform2fv(this.u_resolution, gu.resolution);
         gl.uniform1f(this.u_time, gu.time);
+        gl.uniform1f(this.u_eyeinwater, 1.);
+        
     }
 
     setStaticUniforms() {

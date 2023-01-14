@@ -120,6 +120,8 @@ export class BBModel_Compiler_Base {
      */
     async prepareModel(model, id, options) {
 
+        model.name = id
+
         const tx_sz = options.resolution
         const tx_cnt = options.tx_cnt
 
@@ -140,10 +142,13 @@ export class BBModel_Compiler_Base {
             textures.set(tex.id, texture_item)
         }
 
+        model.polygons = 0
+
         // each model elements
         for(let el of model.elements) {
             if(el.faces) {
                 for(let side in el.faces) {
+                    model.polygons += 2
                     const face = el.faces[side];
                     if('texture' in face && 'uv' in face) {
                         let face_texture_id = face.texture + '';

@@ -31,6 +31,8 @@ export class SchematicReader {
     // Read schematic file
     async read(orig_file_name) {
 
+        orig_file_name += ''
+
         let file_name = `./plugins/worldedit/schematics/${orig_file_name}`;
 
         // Check schem file exists and try extension append

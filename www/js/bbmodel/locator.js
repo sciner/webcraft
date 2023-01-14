@@ -1,7 +1,10 @@
 import { BBModel_Child } from "./child.js";
 import { StringHelpers, Vector } from "../helpers.js";
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+const {vec3} = glMatrix;
 
 const _emmiter_pos = new Vector(0, 0, 0)
+const tempVec3 = vec3.create();
 
 //
 export class BBModel_Locator extends BBModel_Child {
@@ -26,8 +29,11 @@ export class BBModel_Locator extends BBModel_Child {
      * @param {*} emmit_particles_func
      */
     pushVertices(vertices, pos, lm, parent_matrix, emmit_particles_func) {
-        _emmiter_pos.copy(this.json.position).divScalar(16)
-        _emmiter_pos.z = -_emmiter_pos.z
+        tempVec3[0] = -this.json.position[0] / 16;
+        tempVec3[1] = this.json.position[1] / 16;
+        tempVec3[2] = this.json.position[2] / 16;
+        vec3.transformMat4(tempVec3, tempVec3, parent_matrix);
+        _emmiter_pos.copy(tempVec3)
         emmit_particles_func(StringHelpers.trim(this.name, '_'), _emmiter_pos)
     }
 

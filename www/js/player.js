@@ -41,7 +41,12 @@ export class Player {
 
     #forward = new Vector(0, 0, 0);
 
-    constructor(options) {
+    /**
+     * @param {*} options
+     * @param { import("./render.js").Renderer } render
+     */
+    constructor(options, render) {
+        this.render = render
         this.inMiningProcess = false;
         this.inItemUseProcess = false;
         this.inAttackProcess = ATTACK_PROCESS_NONE;
@@ -71,7 +76,7 @@ export class Player {
 
     /**
      * @param { import("./world.js").World } world
-     * @param {*} cb 
+     * @param {*} cb
      */
     JoinToWorld(world, cb) {
         this.world = world;
@@ -151,7 +156,7 @@ export class Player {
         this.controls               = new PlayerControl(this.options);
         this.windows                = new PlayerWindowManager(this);
         if (this.status === PLAYER_STATUS_DEAD) {
-            this.setDie();            
+            this.setDie();
         }
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
@@ -166,7 +171,7 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         window.playerTemp = this;
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
-            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos, 
+            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos,
                 false, false, cmd.data.maxDist || DEFAULT_SOUND_MAX_DIST);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
@@ -194,14 +199,14 @@ export class Player {
                 Qubatch.hotbar.last_damage_time = performance.now();
             }
             this.indicators = cmd.data.indicators;
-            Qubatch.hud.refresh();
+            this.inventory.hud.refresh();
         });
         this.world.server.AddCmdListener([ServerClient.CMD_EFFECTS_STATE], (cmd) => {
             this.effects.effects = cmd.data.effects;
-            Qubatch.hud.refresh();
+            this.inventory.hud.refresh();
         });
         // pickAt
-        this.pickAt = new PickAt(this.world, Qubatch.render, async (...args) => {
+        this.pickAt = new PickAt(this.world, this.render, async (...args) => {
             return await this.onPickAtTarget(...args);
         }, async (e) => {
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
@@ -252,17 +257,17 @@ export class Player {
         //setInterval(() => {
         //    const pos = Qubatch.player.lerpPos.clone();
         //    pos.set(24.5, 4.5, 24.5);
-        //    Qubatch.render.destroyBlock({id: 202}, pos, false);
+        //    this.render.destroyBlock({id: 202}, pos, false);
         //}, 10);
 
-        this.arm = new PlayerArm(this, Qubatch.render)
+        this.arm = new PlayerArm(this, this.render)
 
         return true;
     }
 
     getOverChunk() {
         var overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
-        
+
         // legacy code, maybe not needed anymore:
         if (!overChunk) {
             // some kind of race F8+R
@@ -373,7 +378,7 @@ export class Player {
                     Qubatch.sounds.play(sound, action);
                     if(player.running) {
                         // play destroy particles
-                        Qubatch.render.destroyBlock(world_block.material, player.pos, true, this.scale, this.scale);
+                        this.render.destroyBlock(world_block.material, player.pos, true, this.scale, this.scale);
                     }
                 }
             }
@@ -419,7 +424,7 @@ export class Player {
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
                     const target_mat = this.pickAt.getTargetBlock(this)?.material;
-                    const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style_name == 'planting') ? true : false; 
+                    const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style_name == 'planting') ? true : false;
                     const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
                     if(!is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
@@ -485,7 +490,7 @@ export class Player {
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
-                    Qubatch.render.destroyBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
+                    this.render.destroyBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
                     Qubatch.sounds.play(block.sound, 'hit');
                     this.startArmSwingProgress();
                 }
@@ -612,7 +617,7 @@ export class Player {
     }
 
     /**
-     * @param {boolean} value 
+     * @param {boolean} value
      */
     setFlying(value) {
         let pc = this.getPlayerControl();
@@ -621,8 +626,8 @@ export class Player {
     }
 
     /**
-     * @param {int} value 
-     * @returns 
+     * @param {int} value
+     * @returns
      */
     changeSpectatorSpeed(value) {
         if(!this.game_mode.isSpectator()) {
@@ -650,8 +655,8 @@ export class Player {
 
     /**
      * Updates this local player (gravity, movement)
-     * @param {float} delta 
-     * @returns 
+     * @param {float} delta
+     * @returns
      */
     update(delta) {
 
@@ -794,12 +799,16 @@ export class Player {
                 // console.log(this.swimingDist);
             }
             // Update FOV
-            Qubatch.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
+            this.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
+            this.render.updateNightVision(this.getEffectLevel(Effect.NIGHT_VISION));
         }
         this.lastUpdate = performance.now();
     }
 
     getInterpolatedHeadLight() {
+        if(this.render.globalUniforms.lightOverride === 0xff) {
+            return 0xff
+        }
         if (!this.headBlock || !this.headBlock.tb) {
             return 0;
         }
@@ -808,7 +817,7 @@ export class Player {
     }
 
     /**
-     * @param {float} delta 
+     * @param {float} delta
      */
     checkBodyRot(delta) {
         const pc = this.getPlayerControl();
@@ -829,8 +838,8 @@ export class Player {
     }
 
     /**
-     * @param {string} name 
-     * @param {*[]} args 
+     * @param {string} name
+     * @param {*[]} args
      */
     triggerEvent(name, args) {
         switch(name) {
@@ -840,7 +849,7 @@ export class Player {
             }
             case 'legs_enter_to_water': {
                 Qubatch.sounds.play('madcraft:environment', 'water_splash');
-                Qubatch.render.addParticles({type: 'bubble', pos: this.pos});
+                this.render.addParticles({type: 'bubble', pos: this.pos});
                 break;
             }
             case 'swim_under_water': {
@@ -937,8 +946,8 @@ export class Player {
         this.running = false;
         this.controls.reset();
         this.updateModelProps();
-        Qubatch.hud.wm.closeAll();
-        Qubatch.hud.wm.getWindow('frmDie').show();
+        this.inventory.hud.wm.closeAll();
+        this.inventory.hud.wm.getWindow('frmDie').show();
     }
 
     // Start arm swing progress
@@ -1023,7 +1032,7 @@ export class Player {
                         const dist = new Vector(.25, -.25, .25).multiplyScalar(this.scale);
                         const pos = this.getEyePos().add(this.forward.mul(dist));
                         pos.y -= .65 * this.scale;
-                        Qubatch.render.destroyBlock(material, pos, true, this.scale, this.scale);
+                        this.render.destroyBlock(material, pos, true, this.scale, this.scale);
                     } else {
                         this.stopItemUse();
                     }
@@ -1100,7 +1109,7 @@ export class Player {
     getAttackAnim(pPartialTicks, delta) {
 
         // this.mineTime = itsme.swingProgress;
-        if(!this.inMiningProcess && !this.inItemUseProcess && 
+        if(!this.inMiningProcess && !this.inItemUseProcess &&
             this.inAttackProcess !== ATTACK_PROCESS_ONGOING && this.mineTime == 0
         ) {
             return 0;
@@ -1126,7 +1135,7 @@ export class Player {
     // TODO: хз что именно возвращать, возвращаю оставшееся время до конца текущей анимации
     getUseItemRemainingTicks() {
         // this.mineTime = itsme.swingProgress;
-        if(!this.inMiningProcess && !this.inItemUseProcess && 
+        if(!this.inMiningProcess && !this.inItemUseProcess &&
             this.inAttackProcess !== ATTACK_PROCESS_ONGOING && this.mineTime == 0
         ) {
             return 0;

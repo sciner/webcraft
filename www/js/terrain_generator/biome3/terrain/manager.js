@@ -3,12 +3,11 @@ import { alea } from "../../default.js";
 import { Vector, VectorCollector } from "../../../helpers.js";
 import { BLOCK } from '../../../blocks.js';
 
-import { getAheadMove } from "../../cluster/vilage.js";
-
 import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 import { Aquifera, AquiferaParams } from "../aquifera.js";
+import { getAheadMove } from "../../cluster/building_cluster_base.js";
 
 export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
 export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
@@ -425,7 +424,7 @@ export class TerrainMapManager2 {
             const caveDensity = map.caves.getPoint(xyz, cell, false, res);
             if(caveDensity !== null) {
                 res.dcaves = caveDensity
-                density = caveDensity;
+                density = caveDensity
             }
         }
 
@@ -568,6 +567,7 @@ export class TerrainMapManager2 {
         const map_manager = real_chunk.chunkManager.world.generator.maps
         map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord, map_manager);
 
+        // Aquifera
         map.aquifera = new Aquifera(chunk.coord)
 
         // 3. Find door Y position for cluster buildings

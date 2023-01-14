@@ -180,19 +180,20 @@ export function getBlockNeighbours(world, pos) {
 
 export class BLOCK {
 
-    static list                     = new Map();
-    static styles                   = new Map();
-    static list_arr                 = []; // see also getAll()
-    static spawn_eggs               = [];
-    static ao_invisible_blocks      = [];
-    static resource_pack_manager    = null;
-    static max_id                   = 0;
-    static MASK_BIOME_BLOCKS        = [];
-    static MASK_COLOR_BLOCKS        = [];
-    static SOLID_BLOCK_ID           = [];
-    static TICKING_BLOCKS           = new Map();
-    static BLOCK_BY_ID              = [];
-    static bySuffix                 = {}; // map of arrays
+    static list                             = new Map();
+    static styles                           = new Map();
+    static list_arr                         = []; // see also getAll()
+    static spawn_eggs                       = [];
+    static ao_invisible_blocks              = [];
+    static resource_pack_manager            = null;
+    static max_id                           = 0;
+    static MASK_BIOME_BLOCKS                = [];
+    static MASK_COLOR_BLOCKS                = [];
+    static SOLID_BLOCK_ID                   = [];
+    static TICKING_BLOCKS                   = new Map();
+    static BLOCK_BY_ID                      = [];
+    static bySuffix                         = {}; // map of arrays
+    static REMOVE_ONAIR_BLOCKS_IN_CLUSTER   = [] // this blocks must be removed over structures and buildings
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -619,31 +620,43 @@ export class BLOCK {
 
     // add
     static async add(resource_pack, block) {
+
         // Check duplicate ID
         if(!('name' in block) || !('id' in block)) {
             throw 'error_invalid_block';
         }
-        const existing_block = this.BLOCK_BY_ID[block.id] || null;
-        const replace_block = existing_block && (block.name == existing_block.name);
-        const original_props = Object.keys(block);
+
+        const existing_block = this.BLOCK_BY_ID[block.id] || null
+        const replace_block = existing_block && (block.name == existing_block.name)
+        const original_props = Object.keys(block)
+
         if(existing_block) {
             if(replace_block) {
                 for(let prop_name in existing_block) {
-                    if(original_props.indexOf(prop_name) < 0) {
-                        block[prop_name] = existing_block[prop_name];
+
+                    if(prop_name == 'tags') {
+                        if(block.tags && Array.isArray(block.tags) && block.tags.length == 0) {
+                            block.tags = existing_block.tags
+                        }
+                    }
+
+                    if(!original_props.includes(prop_name)) {
+                        const prop_value = existing_block[prop_name]
+                        block[prop_name] = prop_value
                     }
                 }
             } else {
-                console.error('Duplicate block id ', block.id, block);
+                console.error('Duplicate block id ', block.id, block)
             }
         }
+
         // Check block material
         await Block_Material.materials.checkBlock(resource_pack, block);
         if(!block.sound) {
             if(block.id > 0) {
                 if(!block.item) {
                     let material_id = null;
-                    if(['stone', 'grass', 'wood', 'glass', 'sand'].indexOf(block.material.id) >= 0) {
+                    if(['stone', 'grass', 'wood', 'glass', 'sand'].includes(block.material.id)) {
                         material_id = block.material.id;
                     } else {
                         switch(block.material.id) {
@@ -743,6 +756,9 @@ export class BLOCK {
         }
         if(block.ticking) {
             BLOCK.TICKING_BLOCKS.set(block.id, block);
+        }
+        if(block.style_name == 'planting' || (block.layering && !block.layering.slab)) {
+            BLOCK.REMOVE_ONAIR_BLOCKS_IN_CLUSTER.push(block.id)
         }
         if(block.bb && isScalar(block.bb?.model)) {
             const bbmodels = await Resources.loadBBModels()

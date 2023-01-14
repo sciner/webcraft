@@ -97,7 +97,7 @@ export class CaveGenerator {
             return DENSITY_AIR_THRESHOLD
         }
 
-        return DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD * .999
+        return DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD // * .999
 
     }
 

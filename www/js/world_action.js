@@ -240,12 +240,13 @@ async function createPainting(e, world, pos) {
 
 //
 function makeDropItem(block, item) {
-    if(block.hasTag('drop_as_entity')) {
-        item.extra_data = JSON.parse(JSON.stringify(block.extra_data));
-        item.entity_id = block.entity_id || randomUUID();
-        item.count = 1;
+    const extra_data = block.extra_data
+    if(extra_data || block.hasTag('drop_as_entity')) {
+        item.extra_data = JSON.parse(JSON.stringify(extra_data))
+        item.entity_id = block.entity_id || randomUUID()
+        item.count = 1
     }
-    return item;
+    return item
 }
 
 /**
@@ -416,11 +417,13 @@ class DestroyBlocks {
         }
         //
         if(tblock.material.chest) {
-            if(tblock.hasTag('store_items_in_chest')) {
-                const di = drop_items[0]
+            const di = drop_items[0]
+            if(!tblock.hasTag('store_items_in_chest')) {
                 di.extra_data = {...tblock.extra_data}
                 di.entity_id = tblock.entity_id || randomUUID()
             } else {
+                if('extra_data' in di) delete(di.extra_data)
+                if('entity_id' in di) delete(di.entity_id)
                 actions.dropChest(tblock)
             }
         }
@@ -930,14 +933,17 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
         } else {
 
+            const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
+
             // Change n side and pos
-            simplifyPos(world, pos, mat_block, pos.point.y < .5, true)
+            if(!replaceBlock) {
+                simplifyPos(world, pos, mat_block, pos.point.y < .5, true)
+            }
 
             // Calc orientation
             let orientation = calcBlockOrientation(mat_block, player.rotate, pos.n)
 
             // Check if replace
-            const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
             if(replaceBlock) {
                 if(world_material.previous_part || world_material.next_part || current_inventory_item.style_name == 'ladder') {
                     return actions;
@@ -1134,6 +1140,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
         const pb_block = world.getBlock(pb.pos);
         // Если блок не заменяемый, то ничего не устанавливаем вообще
         if(!BLOCK.canReplace(pb_block.id, pb_block.extra_data, mat_block.id)) {
+            console.error(pb_block.material.name, mat_block.name)
             actions.error = 'error_block_cannot_be_replace';
             return false;
         }

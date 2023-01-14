@@ -1,6 +1,7 @@
 import {Vector, VectorCollector} from "../../helpers.js";
 import {ClusterVilage} from "./vilage.js";
 import {ClusterPyramid} from "./pyramid.js";
+import { ClusterStructures } from "./structures.js";
 import {ClusterEmpty} from "./empty.js";
 import {CLUSTER_SIZE} from "./base.js";
 import {impl as alea} from '../../../vendors/alea.js';
@@ -34,22 +35,30 @@ export class ClusterManager {
         const rand = new alea(this.seed + '_' + addr.toHash());
         const r = rand.double();
         if(this.version == 2) {
+            /*
             if(r < .2) {
-                cluster = new ClusterVilage(this, addr.clone(), biome);
+                cluster = new ClusterVilage(this, addr.clone(), biome)
+                // cluster = new ClusterEmpty(this, addr.clone(), biome)
             } else {
-                cluster = new ClusterEmpty(this, addr.clone(), biome);
+                // cluster = new ClusterEmpty(this, addr.clone(), biome)
+                cluster = new ClusterStructures(this, addr.clone(), biome)
             }
+            */
+            cluster = new ClusterStructures(this, addr.clone(), biome)
         } else {
             if(r <= .1) {
                 cluster = new ClusterPyramid(this, addr.clone(), biome);
             } else if(r < .6) {
-                cluster = new ClusterEmpty(this, addr.clone(), biome);
+                // empty
             } else {
                 cluster = new ClusterVilage(this, addr.clone(), biome);
             }
         }
-        this.all.set(addr, cluster);
-        return cluster;
+        if(!cluster) {
+            cluster = new ClusterEmpty(this, addr.clone(), biome);
+        }
+        this.all.set(addr, cluster)
+        return cluster
     }
 
 }

@@ -6,8 +6,8 @@ import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 export class WorkerWorldManager {
 
     constructor() {
-        this.list = new Map();
-        this.all = [];
+        this.all = new Map();
+        this.list = [];
         this.curIndex = 0;
     }
 
@@ -15,50 +15,50 @@ export class WorkerWorldManager {
         // generator_codes = ['biome2', 'city', 'city2', 'flat'];
         const that = this;
         that.terrainGenerators = new Map();
-        const all = [];
+        const genPromises = [];
         // Load terrain generators
         for(let tg_code of generator_codes) {
-            all.push(import(`../terrain_generator/${tg_code}/index.js`).then(module => {
+            genPromises.push(import(`../terrain_generator/${tg_code}/index.js`).then(module => {
                 that.terrainGenerators.set(tg_code, module.default);
             }));
         }
-        await Promise.all(all);
+        await Promise.all(genPromises);
     }
 
     async add(g, seed, world_id) {
         const generator_options = g?.options || {};
         const generator_id = g.id;
         const key = generator_id + '/' + seed;
-        if(this.list.has(key)) {
-            return this.list.get(key);
+        if(this.all.has(key)) {
+            return this.all.get(key);
         }
         const world = new WorkerWorld();
         const generator_class = this.terrainGenerators.get(generator_id);
         await world.init(seed, world_id, generator_class, generator_options)
-        this.list.set(key, world);
-        this.all.push(world);
+        this.all.set(key, world);
+        this.list.push(world);
         return world;
     }
 
     process({maxMs = 20}) {
-        const {all} = this;
+        const {list} = this;
         let ind = this.curIndex;
         let looped = 0;
         let start = performance.now();
         let passed = 0;
 
-        if (all.length === 0) {
+        if (list.length === 0) {
             return;
         }
 
-        while (passed < maxMs && looped < all.length) {
-            let world = all[ind];
+        while (passed < maxMs && looped < list.length) {
+            let world = list[ind];
             if (world.process({maxMs: maxMs - passed}) > 1) {
                 looped = 0;
             } else {
                 looped++;
             }
-            ind = (ind + 1) % all.length;
+            ind = (ind + 1) % list.length;
             passed = performance.now() - start;
         }
         this.curIndex = ind;
@@ -106,11 +106,16 @@ export class WorkerWorld {
         // console.log(`Actual chunks count: ${this.chunks.size}`);
     }
 
-    destructChunk(addr) {
+    destructChunk(props) {
+        const {addr, uniqId} = props;
         const chunk = this.chunks.get(addr);
-        if(chunk) {
+        if(chunk && chunk.uniqId === uniqId) {
             this.chunks.delete(addr);
-            this.generator.maps.delete(addr);
+            if(chunk.layer) {
+                chunk.layer.maps.delete(addr);
+            } else {
+                this.generator.maps?.delete(addr);
+            }
             chunk.destroy();
             return true;
         }

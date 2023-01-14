@@ -9,6 +9,7 @@ import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
 import { default as pot_style } from '../block_style/pot.js';
+import { default as sign_style } from '../block_style/sign.js';
 
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js";
 const { mat4, vec3 } = glMatrix;
@@ -71,9 +72,13 @@ export default class style {
             }
         }
 
-        const aabb = new AABB();
-        aabb.set(0, 0, 0, 1, 1, 1);
-        return [aabb];
+        const aabb = new AABB()
+        aabb.set(0, 0, 0, 1, 1, 1)
+
+        if(!for_physic) {
+            aabb.expand(1/100, 1/100, 1/100)
+        }
+        return [aabb]
 
     }
 
@@ -104,6 +109,9 @@ export default class style {
         // calc rotate matrix
         style.applyRotate(model, block, neighbours, matrix)
 
+        //
+        style.postBehavior(x, y, z, model, block, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks)
+
         // const animation_name = 'walk';
         // model.playAnimation(animation_name, performance.now() / 1000)
 
@@ -113,10 +121,7 @@ export default class style {
             if(typeof worker == 'undefined') {
                 return
             }
-            const p = new Vector(pos)
-            const arr = p.toArray()
-            vec3.transformMat4(arr, arr, matrix)
-            p.set(arr[0], arr[1], arr[2]).addScalarSelf(.5, 0, .5)
+            const p = new Vector(pos).addScalarSelf(.5, 0, .5)
             particles.push({pos: p.addSelf(block.posworld), type, args})
         })
 
@@ -178,6 +183,29 @@ export default class style {
                     }
                     break
                 }
+            }
+        }
+
+    }
+
+    static postBehavior(x, y, z, model, tblock, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks) {
+
+        const mat = tblock.material
+        const bb = mat.bb
+
+        switch(bb.behavior ?? bb.model.name) {
+            case 'sign': {
+                const m = mat4.create()
+                mat4.copy(m, matrix)
+                mat4.rotateY(m, m, Math.PI)
+                const aabb = sign_style.makeAABBSign(tblock, x, y, z)
+                const e = 0 // -1/30
+                aabb.expand(e, e, e)
+                const fblock = sign_style.makeTextBlock(tblock, aabb, pivot, m, x, y, z)
+                if(fblock) {
+                    emmited_blocks.push(fblock)
+                }
+                break
             }
         }
 

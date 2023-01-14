@@ -95,6 +95,9 @@ export class DBWorldQuest {
 
     // loadPlayerQuests...
     async loadPlayerQuests(player) {
+        if(player.world.isBuildingWorld()) {
+            return []
+        }
         let rows = await this.db.all(`SELECT
                 q.id,
                 q.quest_group_id,

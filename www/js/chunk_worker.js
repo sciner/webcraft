@@ -162,6 +162,7 @@ async function onMessageFunc(e) {
                 }
                 if(from_cache) {
                     const chunk = world.chunks.get(item.addr);
+                    chunk.uniqId = item.uniqId;
                     const non_zero = chunk.tblocks.refreshNonZero();
                     worker.postMessage(['blocks_generated', {
                         key:            chunk.key,
@@ -179,8 +180,8 @@ async function onMessageFunc(e) {
         }
         case 'destructChunk': {
             console.debug('Worker destructChunk:', args.length);
-            for(let addr of args) {
-                world.destructChunk(addr);
+            for(let props of args) {
+                world.destructChunk(props);
             }
             break;
         }
