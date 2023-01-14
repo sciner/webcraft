@@ -172,14 +172,15 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     update() {
         const { gl } = this.context;
         const gu = this.globalUniforms;
+
         if (this.globalID === -1) {
             this.setStaticUniforms();
         }
-        if (this.globalID === gu.updateID) {
-            return;
+
+        if (this.globalID !== gu.updateID) {
+            this.globalID = gu.updateID;
+            this.updateGlobalUniforms();
         }
-        this.globalID = gu.updateID;
-        this.updateGlobalUniforms();
 
         this.resetMatUniforms();
     }

@@ -164,8 +164,19 @@ export class Camera {
             this.update();
         }
 
+        /*
+        console.log(
+         'far:',  this.projMatrix[14] / (this.projMatrix[10] + 1.),   
+         'near:',  this.projMatrix[14] / (this.projMatrix[10] - 1.),
+
+         'must:', this.min, this.max,
+        )
+        */
         mat4.copy(gu.projMatrix, this.projMatrix);
         mat4.copy(gu.viewMatrix, this.viewMatrix);
+
+        gu.cameraFar = this.min;
+        gu.cameraNear = this.max;
 
         gu.camPos.copyFrom(this.pos);
     }

@@ -206,6 +206,11 @@ export class BaseTexture {
         this.type = type;
         this.textureWrapMode = textureWrapMode;
 
+        if (type === 'depth24stencil8') {
+            this.magFilter = 'nearest';
+            this.minFilter = 'nearest';
+        }
+
         this.id = BaseRenderer.ID++;
         this.usage = 0;
         this.isEmpty = false;

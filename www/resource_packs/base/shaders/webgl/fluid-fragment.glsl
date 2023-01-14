@@ -1,10 +1,20 @@
 #include<header>
+#define SHADER_NAME WaterShader
+// how far caustic apply displace
+#define CAUSTIC_DISPLACEMENT .1 
+// minimal delta in depth for displace
+// fix  a `cutting` a blocks that under water partially 
+#define CAUSTIC_DISPLACEMENT_GAP .01
+
 #include<constants>
 
 #include<global_uniforms>
 #include<global_uniforms_frag>
 
 uniform vec4 u_fluidUV[2];
+
+uniform sampler2D u_backTextureColor;
+uniform sampler2D u_backTextureDepth;
 
 in vec3 v_position;
 in vec2 v_texcoord0;
@@ -18,6 +28,9 @@ in float v_lightMode;
 in float v_useFog;
 in float v_lightId;
 in vec4 v_lightOffset;
+in vec3 v_lookVector;
+in vec3 v_tangentNormal;
+in vec2 v_farNear;
 
 in float v_noCanTakeAO;
 in float v_noCanTakeLight;
@@ -49,6 +62,12 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     return color;
 }
 
+float linearizeDepth(float z) {
+    float far = v_farNear.x;
+    float near = v_farNear.y;
+    return (2.0 * near) / (far + near - z * (far - near));
+}
+
 void main() {
     vec2 size = vec2(textureSize(u_texture, 0));
     int fluidId = int(round(v_fluidAnim.x));
@@ -60,49 +79,75 @@ void main() {
     float playerLight = 0.0, sunNormalLight = 1.0;
     vec3 combinedLight = vec3(1.0);
 
-    // Game
-    if(u_fogOn) {
-        // default texture fetch pipeline
-
-        mipData = manual_mip(v_texcoord0 * fluidSubTexSize, size);
-        biome = ivec2(round(v_color.rg));
-        color = sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.y), biome);
-        if (v_fluidAnim.w > 0.0) {
-            color = mix(
-                color,
-                sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.z), biome),
-                v_fluidAnim.w
-            );
-        }
-
-        vec3 minecraftSun = vec3(0.6, 0.8, 1.0);
-
-        if (v_normal.z < 0.0) minecraftSun.z = 0.5;
-        float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
-
-        #include<caustic_pass_onwater>
-
-        if(v_noCanTakeLight < 0.5) {
-            #include<local_light_pass>
-            #include<ao_light_pass>
-            // Apply light
-            color.rgb *= combinedLight * sunNormalLight;
-        } else {
-            color.rgb *= sunNormalLight;
-        }
-
-        outColor = color;
-
-        #include<fog_frag>
-        if(u_crosshairOn) {
-            #include<crosshair_call_func>
-        }
-        #include<vignetting_call_func>
-
-    } else {
-        outColor = texture(u_texture, texClamped);
-        if(outColor.a < 0.1) discard;
-        outColor *= v_color;
+    mipData = manual_mip(v_texcoord0 * fluidSubTexSize, size);
+    biome = ivec2(round(v_color.rg));
+    color = sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.y), biome);
+    if (v_fluidAnim.w > 0.0) {
+        color = mix(
+            color,
+            sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.z), biome),
+            v_fluidAnim.w
+        );
     }
+
+    vec3 minecraftSun = vec3(0.6, 0.8, 1.0);
+
+    if (v_normal.z < 0.0) minecraftSun.z = 0.5;
+    sunNormalLight = dot(minecraftSun, v_normal * v_normal);
+
+    // declare causticRes
+    #include<caustic_pass_onwater>
+
+    if(v_noCanTakeLight < 0.5) {
+        #include<local_light_pass>
+        #include<ao_light_pass>
+        // Apply light
+        color.rgb *= combinedLight * sunNormalLight;
+    } else {
+        color.rgb *= sunNormalLight;
+    }
+
+
+    outColor = color;
+
+    #include<fog_frag>
+    if(u_crosshairOn) {
+        #include<crosshair_call_func>
+    }
+    #include<vignetting_call_func>
+
+    vec2 backSize = vec2(textureSize(u_backTextureColor, 0));
+    vec2 backUV =  gl_FragCoord.xy / backSize;
+
+    vec2 offset = CAUSTIC_DISPLACEMENT * causticRes.xy;
+
+    float backDepth = linearizeDepth(texture(u_backTextureDepth, backUV + offset).r);
+    float actualDepth = linearizeDepth(gl_FragCoord.z);
+    float depthDiff = 10. * (backDepth - actualDepth) ;
+
+    float displaceEdgeError = .02;
+    float displaceErrorFactor= depthDiff < displaceEdgeError ? max(0.0, depthDiff / displaceEdgeError) : 1.0;
+
+    vec2 colorBackUv = backUV + offset * displaceErrorFactor;
+
+    vec4 backTexture = texture(u_backTextureColor, colorBackUv, -0.5);
+
+    /*
+
+
+    float waterFogDensity = 3.0;
+
+    float fogFactor2 = exp2(-waterFogDensity * depthDiff);
+    vec4 waterFogColor = vec4(u_fogColor.rgb, 1.);
+    vec4 underwater =  mix(waterFogColor, backTexture, fogFactor2);
+    */
+
+	vec4 underwater =  backTexture;// mix(waterFogColor, backTexture, fogFactor2);
+
+    float mixFactor = 1.0;
+
+
+    //outColor = vec4(fader, fader, fader, 1.0);
+    outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * underwater;
 
 }

@@ -8,7 +8,7 @@ const RENDERS =  [
 
 export default {
     /**
-     * Query evailable renderer
+     * Query available renderer
      * @param {HTMLCanvasElement} view 
      * @param {'webgl' | 'webgpu' | 'auto'} type
      * @param {*} options 

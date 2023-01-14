@@ -595,6 +595,7 @@
 #endif
 
 #ifdef caustic_pass_onwater
+    vec4 causticRes = vec4(0.0);
     vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
     vec2 pc = (v_world_pos.xy + cam_period.xy) * 64.;
 
@@ -602,13 +603,20 @@
     vec3 a = vec3( pc / 4e2, (u_time / 2000.) / 4. ) * m,
          b = a * m * .4,
          c1 = b * m * .3;
-    vec4 k = vec4(pow(
-          min(min(   length(.5 - fract(a)), 
-                     length(.5 - fract(b))
-                  ), length(.5 - fract(c1)
-             )), 7.) * 25.);
-             
-    color.rgb += k.rgb / 2.;
+        
+    float kr = pow(length(.5 - fract(a)), 7.0);
+    float kg = pow(length(.5 - fract(b)), 7.0);
+    float kb = pow(length(.5 - fract(c1)), 7.0);
+
+    vec4 k = vec4(
+        min(kr, kg), 
+        min(kg, kb), 
+        min(kb, kr), 
+        min(min(kr, kg), kb)
+    ) * 4.0;
+    
+    causticRes = k;//
+    color.rgb += vec3(k.a);
 #endif
 
 // Enchanted animation

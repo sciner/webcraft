@@ -1,4 +1,6 @@
 #include<header>
+#define SHADER_NAME WaterShader
+
 #include<constants>
 
 #include<global_uniforms>
@@ -27,6 +29,9 @@ out float v_useFog;
 out float v_lightId;
 out vec4 v_lightOffset;
 out vec3 v_aoOffset;
+out vec3 v_lookVector;
+out vec3 v_tangentNormal;
+out vec2 v_farNear;
 
 // quad flags
 out float v_noCanTakeAO;
@@ -165,5 +170,15 @@ void main() {
 
     v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
+
+    v_lookVector = normalize(u_worldView * vec4(0.0, 0.0, 1.0, 0.0)).xyz;
+    // v_tangentNormal = (u_worldView * vec4(v_normal, 0.0)).xyz;
+
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
+
+    v_farNear = vec2(
+           uProjMatrix[3][2] / (uProjMatrix[2][2] + 1.0f),
+           uProjMatrix[3][2] / (uProjMatrix[2][2] - 1.0f)
+    );
 }
+ 

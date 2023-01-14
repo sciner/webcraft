@@ -1,4 +1,6 @@
 #include<header>
+#define SHADER_NAME TerrainShader
+
 #include<constants>
 
 #include<global_uniforms>

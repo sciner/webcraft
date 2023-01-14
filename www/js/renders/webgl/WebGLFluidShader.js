@@ -2,6 +2,8 @@ import { WebGLTerrainShader } from './WebGLTerrainShader.js';
 import { QUAD_FLAGS } from '../../helpers.js';
 import { DEFAULT_ATLAS_SIZE } from '../../constant.js';
 
+const BACK_SAMPLER_ID = 17;
+const BACK_DEPTH_SAMPLER_ID = BACK_SAMPLER_ID + 1;
 export class WebGLFluidShader extends WebGLTerrainShader {
     /**
      *
@@ -58,6 +60,9 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         this.u_fluidFlags       = gl.getUniformLocation(program, 'u_fluidFlags');
         this.u_fluidUV          = gl.getUniformLocation(program, 'u_fluidUV');
         this.u_fluidFrames      = gl.getUniformLocation(program, 'u_fluidFrames');
+
+        this.u_backTextureColor = gl.getUniformLocation(program, 'u_backTextureColor');
+        this.u_backTextureDepth = gl.getUniformLocation(program, 'u_backTextureDepth'); 
     }
 
     setStaticUniforms() {
@@ -71,5 +76,20 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         gl.uniform1iv(this.u_fluidFlags, this.fluidFlags);
         gl.uniform4fv(this.u_fluidUV, this.fluidUV);
         gl.uniform1iv(this.u_fluidFrames, this.fluidFrames);
+
+        //
+        gl.uniform1i(this.u_backTextureColor, BACK_SAMPLER_ID);
+        gl.uniform1i(this.u_backTextureDepth, BACK_DEPTH_SAMPLER_ID);
+
+    }
+
+    resetMatUniforms() {
+        super.resetMatUniforms();
+
+        // underlayer
+        const pass = this.context.grabPass();
+
+        pass.texture.bind(BACK_SAMPLER_ID);
+        pass.depthTexture.bind(BACK_DEPTH_SAMPLER_ID);
     }
 }

@@ -560,8 +560,8 @@ export default class WebGLRenderer extends BaseRenderer {
 
         const fromSize = fromTarget ? fromTarget : this.size;
         const toSize = toTarget ? toTarget : this.size;
-        const fromDepth = fromTarget ? fromTarget.options.depth : true;
-        const toDepth = toTarget ? toTarget.options.depth : true;
+        const fromDepth = fromTarget ? fromTarget.options.depth : false;
+        const toDepth = toTarget ? toTarget.options.depth : false;
         const bits = (toDepth && fromDepth)
             ? (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
             : gl.COLOR_BUFFER_BIT;
@@ -570,7 +570,7 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.blitFramebuffer(
             0, 0, fromSize.width, fromSize.height,
             0, 0, toSize.width, toSize.height,
-            bits, gl.LINEAR
+            bits, (toDepth && fromDepth) ? gl.NEAREST : gl.LINEAR
         );
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.framebuffer : null);
