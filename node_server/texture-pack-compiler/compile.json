@@ -2805,6 +2805,7 @@
             "id": 4,
             "name": "TNT",
             "sound": "madcraft:block.grass",
+            "transparent": true,
             "material": {
                 "id": "stone"
             },
