@@ -425,7 +425,7 @@ export default class BaseRenderer {
         this._viewport = [0,0,0,0];
 
         /**
-         * @type {BaseRenderTarget}
+         * @type {BaseRenderTarget | null}
          */
         this._target = null;
 

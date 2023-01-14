@@ -311,7 +311,7 @@ export default class WebGLRenderer extends BaseRenderer {
 
         // test only
         /**
-         * @type {WebGLRenderTarget}
+         * @type {WebGLRenderTarget | null}
          */
         this._mainFrame = null;
 
@@ -373,7 +373,6 @@ export default class WebGLRenderer extends BaseRenderer {
     _configure() {
         super._configure();
 
-        /*
         if (this._mainFrame) {
             this._mainFrame.destroy();
         }
@@ -383,7 +382,6 @@ export default class WebGLRenderer extends BaseRenderer {
             height: this.size.height,
             depth: true,
         });
-        */
     }
 
     clear({clearDepth = true, clearColor = true} = {})
@@ -469,12 +467,20 @@ export default class WebGLRenderer extends BaseRenderer {
 
         gl.bindFramebuffer(
             gl.FRAMEBUFFER,
-            _target ? _target.framebuffer : null
+            _target ? _target.framebuffer : this._mainFrame.framebuffer
         );
 
         gl.viewport(..._viewport);
 
         this.clear(options);
+    }
+
+    endPass() {
+        if (!this._target) {
+            this._target = this._mainFrame;
+            this.blitRenderTarget();
+            this._target = null;
+        }
     }
 
     /**
