@@ -7,11 +7,11 @@ export class Farmland extends Building {
 
     static SIZE_LIST = Building.makeRandomSizeList([3, 5, 7, 7, 10, 10, 10, 13, 13, 13, 16, 16, 16]);
 
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+    constructor(cluster, seed, coord, entrance, door_direction, size) {
         
         size.y = 2;
         
-        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        super(cluster, seed, coord, entrance, door_direction, size);
 
         this.seeds = this.randoms.double() < .5 ? BLOCK.CARROT_SEEDS : BLOCK.WHEAT_SEEDS;
         this.draw_entrance = false;

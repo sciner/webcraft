@@ -315,14 +315,6 @@ export class TerrainMap extends Default_Terrain_Map {
         TerrainMap._sums = new Array(SMOOTH_ROW_COUNT * VAL_COUNT);
     }
 
-    static getCell(x, z) {
-        return TerrainMap._cells[(z * SMOOTH_ROW_COUNT) + x];
-    }
-
-    static setCell(x, z, value) {
-        TerrainMap._cells[(z * SMOOTH_ROW_COUNT) + x] = value;
-    }
-
     static setPartial(x, z, cell) {
         x += SMOOTH_RAD * 2;
         z += SMOOTH_RAD * 2;
@@ -388,8 +380,8 @@ export class TerrainMap extends Default_Terrain_Map {
                 if(!map || map.chunk.addr.x != addr.x || map.chunk.addr.z != addr.z) {
                     map = generator.maps_cache.get(addr); // get chunk map from cache
                 }
-                bi = BLOCK.getBlockIndex(px, 0, pz, bi);
-                const cell = map.cells[bi.z * CHUNK_SIZE_X + bi.x];
+                bi = BLOCK.getBlockIndex(px, 0, pz, bi)
+                const cell = map.getCell(bi.x, bi.z)
                 TerrainMap.setPartial(x, z, cell);
             }
         }

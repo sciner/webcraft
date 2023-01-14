@@ -51,7 +51,7 @@ export class Plane {
 	normalize() {
 		// Note: will lead to a divide by zero if the plane is invalid.
 		const inverseNormalLength = 1.0 / this.normal.length();
-		this.normal.multiplyScalar( inverseNormalLength );
+		this.normal.multiplyScalarSelf( inverseNormalLength );
 		this.constant *= inverseNormalLength;
 		return this;
 	}
@@ -71,7 +71,7 @@ export class Plane {
 	}
 
 	projectPoint( point, target ) {
-		return target.copyFrom( this.normal ).multiplyScalar( - this.distanceToPoint( point ) ).add( point );
+		return target.copyFrom( this.normal ).multiplyScalarSelf( - this.distanceToPoint( point ) ).add( point );
 	}
 
 	intersectLine( line, target ) {
@@ -89,7 +89,7 @@ export class Plane {
 		if ( t < 0 || t > 1 ) {
 			return null;
 		}
-		return target.copyFrom( direction ).multiplyScalar( t ).add( line.start );
+		return target.copyFrom( direction ).multiplyScalarSelf( t ).add( line.start );
 	}
 
 	intersectsLine( line ) {
@@ -108,7 +108,7 @@ export class Plane {
 	}
 
 	coplanarPoint( target ) {
-		return target.copyFrom( this.normal ).multiplyScalar( - this.constant );
+		return target.copyFrom( this.normal ).multiplyScalarSelf( - this.constant );
 	}
 
 	applyMatrix4( matrix, optionalNormalMatrix ) {

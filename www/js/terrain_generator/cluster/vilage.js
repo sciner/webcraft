@@ -47,11 +47,10 @@ export class ClusterVilage extends ClusterBuildingBase {
             //
             t = performance.now();
             this.mask = resp.mask;
-            for(let house of resp.houses.values()) {
-                const size = new Vector(house.width, 5, house.depth);
-                const entrance_pos = new Vector(house.door.x, Infinity, house.door.z);
-                const door_bottom = new Vector(house.door.x, Infinity, house.door.z);
-                this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance_pos, door_bottom, house.door.direction);
+            for(let house of resp.house_list.values()) {
+                const size = new Vector(house.width, 5, house.depth)
+                const entrance = new Vector(house.door.x, Infinity, house.door.z)
+                this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance.add(this.coord), house.door.direction, !!house.crossroad)
             }
             this.timers.add_buildings = performance.now() - t; t = performance.now();
 
@@ -72,8 +71,9 @@ export class ClusterVilage extends ClusterBuildingBase {
 
         const schema_options = {
             margin: CLUSTER_PADDING,
-            road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
-        };
+            road_damage_factor: ROAD_DAMAGE_FACTOR, // this.flat ? 0 : ROAD_DAMAGE_FACTOR
+            size: this.clusterManager.size.x
+        }
 
         let building_palette_options = {};
 
@@ -86,16 +86,17 @@ export class ClusterVilage extends ClusterBuildingBase {
             // для каждой деревни по каким либо условиям можно генерировать собственный набор домов со своими правилами
             // например взять несколько рандомно разбросанных координат и посмотреть там биомы
             // затем выбрать свою схему для наиболее часто встречаемого биома
+
             building_palette_options = {
                 crossroad: [
-                    {class: 'StreetLight', max_count: Infinity, chance: 1}
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: 1, block_templates: ['streetlight', 'streetlight2', 'streetlight3']}
                 ],
                 required: [
-                    {class: 'WaterWell', max_count: 1, chance: 1},
+                    {class: 'BuildingBlocks', max_count: 1, chance: 1, block_templates: ['waterwell', 'waterwell2']},
                     {class: 'Farmland', max_count: 1, chance: 1},
                 ],
                 others: [
-                    {class: 'WaterWell',      max_count: 2,        chance: .1},
+                    {class: 'BuildingBlocks', max_count: 2, chance: .1, block_templates: ['waterwell', 'waterwell2']},
                     {class: 'Farmland',       max_count: Infinity, chance: .2},
                     {class: 'BuildingBlocks', max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
                     {class: 'BuildingBlocks', max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', /*'farmer_house',*/ 'medium_house', 'underearth_tower', 'structure1']},
@@ -118,14 +119,14 @@ export class ClusterVilage extends ClusterBuildingBase {
             // для старых генераторов (biome2, ...)
             building_palette_options = {
                 crossroad: [
-                    {class: 'StreetLight', max_count: Infinity, chance: 1}
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: 1, block_templates: ['streetlight', 'streetlight2']}
                 ],
                 required: [
-                    {class: 'WaterWell', max_count: 1, chance: 1},
+                    {class: 'BuildingBlocks', max_count: 1, chance: 1, block_templates: ['waterwell', 'waterwell2']},
                     {class: 'Farmland', max_count: 1, chance: 1}
                 ],
                 others: [
-                    {class: 'WaterWell', max_count: 2, chance: 0.12},
+                    {class: 'BuildingBlocks', max_count: 2, chance: .12, block_templates: ['waterwell', 'waterwell2']},
                     {class: 'Farmland', max_count: Infinity, chance: 0.285},
                     {class: 'BuildingBlocks', max_count: Infinity, chance: .7025, block_templates: ['medium_house']},
                     // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)

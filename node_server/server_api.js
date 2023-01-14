@@ -1,4 +1,5 @@
 import { GameMode } from "../www/js/game_mode.js";
+import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldGenerators } from "./world/generators.js";
 
 const FLAG_SYSTEM_ADMIN = 256;
@@ -32,6 +33,8 @@ export class ServerAPI {
                     cover: world.cover ? `/worldcover/${world.guid}/screenshot/${world.cover}` : null
                 };
                 return woldPublicInfo;
+            case '/api/Game/loadSchemas':
+                return Array.from(BuildingTemplate.schemas.values())
             case '/api/User/Registration': {
                 const session = await ServerAPI.getDb().Registration(params.username, params.password);
                 Log.append('Registration', {username: params.username});

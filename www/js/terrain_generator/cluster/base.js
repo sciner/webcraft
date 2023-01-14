@@ -1,12 +1,10 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
+import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
-import { AABB } from "../../core/AABB.js";
 
-export const NEAR_MASK_MAX_DIST = 10;
-export const CLUSTER_SIZE       = new Vector(128, 256, 128);
-export const CLUSTER_PADDING    = 8;
+export const NEAR_MASK_MAX_DIST = 10
+export const CLUSTER_PADDING    = 8
 
 export class ClusterPoint {
 
@@ -27,19 +25,20 @@ export class ClusterPoint {
 export class ClusterBase {
 
     // constructor
-    constructor(clusterManager, addr) {
+    constructor(clusterManager, addr, size) {
         this.clusterManager = clusterManager;
         this.y_base         = 80;
         this.addr           = addr;
-        this.coord          = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
-        this.size           = CLUSTER_SIZE.clone();
+        this.size           = new Vector(clusterManager.size)
+        this.coord          = addr.clone().multiplyVecSelf(this.size);
         this.id             = this.clusterManager.seed + '_' + addr.toHash();
         this.randoms        = new alea(`villages_${this.id}`);
         this.r              = new alea(`cluster_r_${this.id}`).double();
         this.is_empty       = (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
-        this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.mask           = new Array(this.size.x * this.size.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
+        this.corner         = (clusterManager.version == 2) ? Math.floor(this.randoms.double() * 4) : undefined
     }
 
     /**
@@ -59,7 +58,7 @@ export class ClusterBase {
      * @returns 
      */
     setBlock(chunk, x, y, z, block_id, rotate, extra_data, check_is_solid = false, destroy_fluid = false, candidate_for_cap_block = false, map = null) {
-        if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
+        if(x >= 0 && y >= 0 && z >= 0 && x < chunk.size.x && y < chunk.size.y && z < chunk.size.z) {
             // ok
         } else {
             return false;
@@ -104,7 +103,7 @@ export class ClusterBase {
         if(this.is_empty) {
             return resp;
         }
-        let corner = Math.floor(this.randoms.double() * 4);
+        const corner = this.corner ?? Math.floor(this.randoms.double() * 4)
         let min_x = this.size.x;
         let min_z = this.size.z;
         let max_x = 0;
@@ -144,14 +143,16 @@ export class ClusterBase {
                 break;
             }
         }
+
         // make new mask
-        const new_mask = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
-        this.near_mask = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z).fill(255);
+        const new_mask = new Array(this.size.x * this.size.z);
+        this.near_mask = new Array(this.size.x * this.size.z).fill(255);
         for(let x = 0; x < this.size.x; x++) {
             for(let z = 0; z < this.size.z; z++) {
                 const index = z * this.size.x + x;
                 const value = this.mask[index];
                 if(value && (Array.isArray(value.block_id) || value.block_id > 0)) {
+                    if(value == 69) debugger
                     const new_x = x + move_x;
                     const new_z = z + move_z;
                     const new_index = new_z * this.size.x + new_x;
@@ -203,7 +204,7 @@ export class ClusterBase {
                         return item.value;
                     }
                 }
-                throw 'Proportional fill pattern2';
+                throw 'error_proportional_fill_pattern2'
             }
         };
         return resp;
@@ -220,16 +221,16 @@ export class ClusterBase {
         //
         // this.road_block.reset();
         // fill roards and basements
-        for(let i = 0; i < CHUNK_SIZE_X; i++) {
-            for(let j = 0; j < CHUNK_SIZE_Z; j++) {
+        for(let i = 0; i < chunk.size.x; i++) {
+            for(let j = 0; j < chunk.size.z; j++) {
                 let x       = START_X + i;
                 let z       = START_Z + j;
-                let point   = this.mask[z * CLUSTER_SIZE.x + x];
+                let point   = this.mask[z * this.size.x + x];
                 if(point && point.height) {
                     if(point.block_id == 0) {
                         continue;
                     }
-                    const cell = map.cells[j * CHUNK_SIZE_X + i];
+                    const cell = map.cells[j * chunk.size.x + i];
                     if(cell.biome.code == 'OCEAN') {
                         /*if(this.use_road_as_gangway && point.block_id == this.road_block) {
                             let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;
@@ -244,7 +245,7 @@ export class ClusterBase {
                         const is_array = Array.isArray(point.block_id);
                         for(let k = 0; k < point.height; k++) {
                             let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1 + point.y_shift;
-                            if(y >= 0 && y < CHUNK_SIZE_Y) {
+                            if(y >= 0 && y < chunk.size.y) {
                                 this.setBlock(chunk, i, y, j, is_array ? point.block_id[k] : point.block_id, null);
                             }
                         }
@@ -253,7 +254,7 @@ export class ClusterBase {
                         let ai = 0;
                         for(let k = point.height; k <= 0; k++) {
                             let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
-                            if(y >= 0 && y < CHUNK_SIZE_Y) {
+                            if(y >= 0 && y < chunk.size.y) {
                                 let block_id = k == point.height ? point.block_id : BLOCK.AIR.id;
                                 if(is_array) {
                                     block_id = point.block_id[ai++];
@@ -275,7 +276,7 @@ export class ClusterBase {
         x -= this.coord.x;
         // y -= this.coord.y;
         z -= this.coord.z;
-        const index = z * CLUSTER_SIZE.x + x;
+        const index = z * this.size.x + x;
         return this.near_mask[index] <= margin;
     }
 
@@ -286,7 +287,7 @@ export class ClusterBase {
         }
         x -= this.coord.x;
         z -= this.coord.z;
-        const index = z * CLUSTER_SIZE.x + x;
+        const index = z * this.size.x + x;
         return this.mask[index];
     }
 
@@ -298,7 +299,7 @@ export class ClusterBase {
             return;
         }
         let rel_pos = pos.sub(chunk.coord);
-        if(rel_pos.x < 0 || rel_pos.y < 0 || rel_pos.z < 0 || rel_pos.x >= CHUNK_SIZE_X || rel_pos.y >= CHUNK_SIZE_Y || rel_pos.z >= CHUNK_SIZE_Z) {
+        if(rel_pos.x < 0 || rel_pos.y < 0 || rel_pos.z < 0 || rel_pos.x >= chunk.size.x || rel_pos.y >= chunk.size.y || rel_pos.z >= chunk.size.z) {
             return false;
         }
         const npc_extra_data = BLOCK.calculateExtraData(this.generateNPCSpawnExtraData(), rel_pos);
@@ -319,9 +320,9 @@ export class ClusterBase {
                     const x = dx + i;
                     const z = dz + j;
                     if((i+j+coord.x+coord.z) % 20 == 0) {
-                        this.mask[z * CLUSTER_SIZE.x + x] = fence_point_torch;
+                        this.mask[z * this.size.x + x] = fence_point_torch;
                     } else {
-                        this.mask[z * CLUSTER_SIZE.x + x] = fence_point;
+                        this.mask[z * this.size.x + x] = fence_point;
                     }
                 }
             }
@@ -337,7 +338,7 @@ export class ClusterBase {
                 const x = dx + i - 1;
                 const z = dz + j - 1;
                 // Draw road around plot
-                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, road_block_palette.next().id, 1, null, null);
+                this.mask[z * this.size.x + x] = new ClusterPoint(1, road_block_palette.next().id, 1, null, null);
             }
         }
     }
@@ -362,12 +363,28 @@ export class ClusterBase {
     //
     drawNaturalBasement(chunk, pos, size, block) {
 
-        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y + 1, pos.z + size.z)
-        if(!chunk.aabb.intersect(aabb)) return false
+        // console.log(pos.toHash())
+
+        //const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y - size.y + 1, pos.z + size.z)
+        //if(!chunk.aabb.intersect(aabb)) return false
 
         let bx = pos.x - chunk.coord.x;
         let by = pos.y - chunk.coord.y;
         let bz = pos.z - chunk.coord.z;
+
+        const ysign = Math.sign(size.y)
+        const height = Math.abs(size.y)
+        const m = 0
+
+        for(let x = -m; x < size.x + m; x++) {
+            for(let z = -m; z < size.z + m; z++) {
+                for(let y = 0; y < height; y++) {
+                    this.setBlock(chunk, x + bx, by + y * ysign, z + bz, BLOCK.GRASS_BLOCK.id)
+                }
+            }
+        }
+
+        return
 
         const randoms = new alea(`natural_basement_${pos.x}_${pos.y}_${pos.z}`);
         const center = new Vector(bx + size.x/2, by + size.y, bz + size.z/2)

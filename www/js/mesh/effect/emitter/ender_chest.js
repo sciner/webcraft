@@ -14,7 +14,7 @@ class EnderChest_Particle extends Mesh_Effect_Particle {
         if(this.pos.distance(this.start_pos) < .4) {
             this.life = 0;
         } else {
-            this.velocity.multiplyScalar(1.01);
+            this.velocity.multiplyScalarSelf(1.01);
         }
     }
 
@@ -82,7 +82,7 @@ export default class emitter {
                 flags:          QUAD_FLAGS.FLAG_MULTIPLY_COLOR | QUAD_FLAGS.NO_CAN_TAKE_LIGHT,
                 material_key:   this.material_key,
                 material:       this.material,
-                velocity:       particle_pos.sub(this.pos).normal().multiplyScalar(-.1),
+                velocity:       particle_pos.sub(this.pos).normal().multiplyScalarSelf(-.1),
                 pos:            particle_pos
             });
 

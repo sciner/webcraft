@@ -115,7 +115,7 @@ export class ExportFluidHelper {
                         // EPS correction
                         if ((epsShift & (1 << i)) > 0
                             && (subPos.x - 0.1) * cubeNorm[i].x + (subPos.y - 0.1) * cubeNorm[i].y + (subPos.z - 0.1) * cubeNorm[i].z > 0.0) {
-                            subPos.addSelf(epsMul.copyFrom(cubeNorm[i]).multiplyScalar(0.01));
+                            subPos.addSelf(epsMul.copyFrom(cubeNorm[i]).multiplyScalarSelf(0.01));
                         }
                     }
                 }

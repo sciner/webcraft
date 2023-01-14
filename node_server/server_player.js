@@ -15,7 +15,7 @@ import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerPlayerEffects } from "./player/effects.js";
 import { Effect } from "../www/js/block_type/effect.js";
-import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 export class NetworkMessage {
     constructor({
@@ -175,7 +175,7 @@ export class ServerPlayer extends Player {
         this.sendPackets([{
             name: ServerClient.CMD_BUILDING_SCHEMA_ADD,
             data: {
-                list: Array.from(BuilgingTemplate.schemas.values())
+                list: Array.from(BuildingTemplate.schemas.values())
             }
         }]);
 

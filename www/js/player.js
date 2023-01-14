@@ -1021,7 +1021,7 @@ export class Player {
                     Qubatch.sounds.play('madcraft:block.player', action, null, false);
                     if(action != 'burp') {
                         // сдвиг точки, откуда происходит вылет частиц
-                        const dist = new Vector(.25, -.25, .25).multiplyScalar(this.scale);
+                        const dist = new Vector(.25, -.25, .25).multiplyScalarSelf(this.scale);
                         const pos = this.getEyePos().add(this.forward.mul(dist));
                         pos.y -= .65 * this.scale;
                         this.render.destroyBlock(material, pos, true, this.scale, this.scale);

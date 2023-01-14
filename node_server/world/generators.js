@@ -19,7 +19,7 @@ export class WorldGenerators {
             }
         }
     }
-
+    
     //
     static validateAndFixOptions(params) {
         if(!('id' in params)) {
@@ -33,7 +33,8 @@ export class WorldGenerators {
             id: generator.id,
             pos_spawn: null,
             options: {},
-            rules: {}
+            rules: {},
+            cluster_size: new Vector(generator.cluster_size ?? WorldGenerators.list[0].cluster_size)
         };
         // pos spawn
         if('pos_spawn' in params) {
@@ -114,6 +115,7 @@ export class WorldGenerators {
             "rules": {
                 "portals": true
             },
+            "cluster_size": {"x": 128, "y": 256, "z": 128},
             "options": {
                 "auto_generate_mobs": {
                     "title": "Спавнить мобов",
@@ -209,6 +211,7 @@ export class WorldGenerators {
             "rules": {
                 "portals": true
             },
+            "cluster_size": {"x": 256, "y": 200, "z": 256},
             "options": {
                 "auto_generate_mobs": {
                     "title": "Спавнить мобов",

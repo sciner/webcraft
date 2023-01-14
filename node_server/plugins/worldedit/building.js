@@ -1,7 +1,7 @@
 import { Vector, VectorCollector } from "../../../www/js/helpers.js";
 
 import fs from "fs";
-import { BuilgingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
@@ -21,19 +21,19 @@ export class WorldEditBuilding {
 
         this.list = new Map()
 
-        for(let schema of BuilgingTemplate.schemas.values()) {
-            this._insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.door_bottom, schema.meta ?? null)
+        for(let schema of BuildingTemplate.schemas.values()) {
+            this._insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.entrance, schema.meta ?? null)
         }
 
     }
 
-    _insert(name, pos1, pos2, door_bottom, meta) {
+    _insert(name, pos1, pos2, entrance, meta) {
         const building = {
             name,
             world: {
                 pos1,
                 pos2,
-                door_bottom
+                entrance
             },
             meta,
             size: new Vector(0, 0, 0),
@@ -108,7 +108,7 @@ export class WorldEditBuilding {
             Math.min(pos1_temp.z, pos2_temp.z)
         )
 
-        const door_bottom = new Vector(
+        const entrance = new Vector(
             Math.round((pos1.x + pos2.x) / 2),
             1,
             Math.round((pos1.z + pos2.z) / 2)
@@ -119,9 +119,9 @@ export class WorldEditBuilding {
             draw_natural_basement:      true,
             air_column_from_basement:   true
         }
-        const building = {name, pos1, pos2, door_bottom, meta}
+        const building = {name, pos1, pos2, entrance, meta}
 
-        this._insert(building.name, building.pos1, building.pos2, building.door_bottom)
+        this._insert(building.name, building.pos1, building.pos2, building.entrance)
 
         // append building_schemas        
         const file_name = `./conf_world.json`
@@ -194,10 +194,10 @@ export class WorldEditBuilding {
         building.size = new Vector(copy_data.quboid.volx, copy_data.quboid.voly, copy_data.quboid.volz)
 
         const pos1 = building.world.pos1
-        const rel_door_bottom = building.world.door_bottom.sub(pos1)
+        const rel_entrance = building.world.entrance.sub(pos1)
 
         // calc door_pos
-        building.door_pos.set(-rel_door_bottom.x, rel_door_bottom.y, -rel_door_bottom.z);
+        building.door_pos.set(-rel_entrance.x, rel_entrance.y, -rel_entrance.z);
 
         // clear blocks
         building.blocks = [];
@@ -210,9 +210,9 @@ export class WorldEditBuilding {
             if([209, 210].includes(item.id)) continue;
             if(item.id == 0 && !copy_air) continue;
             const move = new Vector(
-                rel_door_bottom.x - bpos.x,
-                bpos.y - rel_door_bottom.y + building.door_pos.y - (basement_y - pos1.y),
-                rel_door_bottom.z - bpos.z + building.door_pos.z
+                rel_entrance.x - bpos.x,
+                bpos.y - rel_entrance.y + building.door_pos.y - (basement_y - pos1.y),
+                rel_entrance.z - bpos.z // + building.door_pos.z
             );
             const block = {
                 move,
@@ -235,7 +235,7 @@ export class WorldEditBuilding {
         fs.writeFileSync(file_name, json)
 
         // Update in memory
-        BuilgingTemplate.addSchema(building)
+        BuildingTemplate.addSchema(building)
 
         // Notify all players in all worlds
         for(let w of Qubatch.worlds.values()) {
@@ -260,7 +260,7 @@ export class WorldEditBuilding {
         const name = args[1];
         const direction = Math.abs((args[2] | 0)) % 4;
 
-        // throw 'error_deprecated';
+        throw 'error_deprecated';
 
         const copy_data = {
             blocks: new VectorCollector(),
@@ -270,7 +270,7 @@ export class WorldEditBuilding {
         const mirror_x = false;
         const mirror_z = false;
 
-        const building = BuilgingTemplate.fromSchema('e3290', BLOCK);
+        const building = BuildingTemplate.fromSchema(name, BLOCK);
 
         for(let block of building.rot[direction]) {
             const item = {
@@ -304,7 +304,7 @@ export class WorldEditBuilding {
         const building = this.list.get(name)
         if(!building) throw 'building_not_found';
 
-        const pos = new Vector(building.world.door_bottom.x + .5, 1, 4.5)
+        const pos = new Vector(building.world.entrance.x + .5, 1, 4.5)
         player.teleport({place_id: null, pos});
 
     }
