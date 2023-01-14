@@ -536,6 +536,7 @@ export class CompileData {
                 },
                 "transparent": true,
                 "style": "candle",
+                "mining_time": 0,
                 "texture": `block/${color}_candle.png`,
                 "tags": [
                     "no_set_on_top",
