@@ -7,7 +7,6 @@ import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import { Renderer } from "./render.js";
-import { CLIENT_SKIN_ROOT } from "./constant.js";
 import { BLOCK } from "./blocks.js";
 
 const {mat4, vec3, quat} = glMatrix;
@@ -782,7 +781,7 @@ export class MobModel extends NetworkPhysicObject {
         this.renderer.drawLayer(render, this, ignore_roots);
 
         // Draw AABB wireframe
-        if(this.aabb){// && draw_debug_grid) {
+        if(this.aabb && draw_debug_grid) {
             this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
         }
 

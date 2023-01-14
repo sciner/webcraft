@@ -8,6 +8,9 @@ export class MobManager {
 	
     constructor(world) {
         this.#world = world;
+        /**
+         * @type {Map<number, MobModel>}
+         */
         this.list = new Map();
         this.draw_debug_grid = world.settings.mobs_draw_debug_grid;
         // Interval functions

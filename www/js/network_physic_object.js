@@ -38,6 +38,9 @@ export class NetworkPhysicObject {
         this.latency = 50;
         this.tPos = new Vector();
         this.tRot = new Vector();
+        /**
+         * @type {AABBDrawable}
+         */
         this.aabb = null;
 
         this.world = null;
