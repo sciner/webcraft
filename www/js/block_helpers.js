@@ -1,5 +1,5 @@
-import { BLOCK } from "./blocks.js";
-import { ROTATE, Vector } from "./helpers.js";
+import { BLOCK, ITEM_LABEL_MAX_LENGTH } from "./blocks.js";
+import { ROTATE, Vector, ObjectHelpers } from "./helpers.js";
 
 export class ChestHelpers {
 
@@ -84,4 +84,78 @@ export function isBlockRoughlyWithinPickatRange(player, margin, pos, pos2 = null
         return eyePos.distance(blockCenter) <= maxDist;
     }
     return false;
+}
+
+export class ItemHelpers {
+
+    /**
+     * Validates and possibly changes (possibly to null) a label entered by a user.
+     * @return {?String} a valid value for label that can be passed to {@link setLabel}
+     * @throws if the string can't be used as label
+     * @todo better validation
+     */
+    static validateAndPreprocessLabel(label) {
+        // validate the label (it's for the server; the client validates before that)
+        if (typeof label !== 'string' ||
+            label.length > ITEM_LABEL_MAX_LENGTH
+        ) {
+            throw `error_incorrect_value|label=${label}`
+        }
+        label = label.trim(); 
+        return label !== '' ? label : null;
+    }
+
+    static getLabel(item) {
+        return item.extra_data?.label ?? BLOCK.fromId(item.id).title;
+    }
+    
+    static setLabel(item, label) {
+        this.setExtraDataField(item, 'label', label);
+    }
+
+    static setExtraDataField(item, fieldName, value) {
+        if (value != null) {
+            item.extra_data = item.extra_data ?? {};
+            item.extra_data[fieldName] = value;
+        } else {
+            this.deleteExtraDataField(item, fieldName);
+        }
+    }
+
+    static deleteExtraDataField(item, fieldName) {
+        if (item.extra_data) {
+            delete item.extra_data[fieldName];
+            if (ObjectHelpers.isEmpty(item.extra_data)) {
+                delete item.extra_data;
+            }
+        }
+    }
+
+    /** @return the existing value, or the newly set value */
+    static getOrSetExtraDataField(item, fieldName, defaultValue) {
+        const ex = item.extra_data && item.extra_data[fieldName];
+        if (ex != null) {
+            return ex;
+        }
+        if (typeof defaultValue === 'function') {
+            defaultValue = defaultValue();
+        }
+        this.setExtraDataField(item, fieldName, defaultValue);
+        return defaultValue;
+    }
+
+    /** @return the existing value of type Object, or the newly set {} value */
+    static getOrSetExtraDataFieldObject(item, fieldName) {
+        item.extra_data = item.extra_data ?? {};
+        let result = item.extra_data[fieldName];
+        if (!result) {
+            item.extra_data[fieldName] = result = {};
+        }
+        return result;
+    }
+
+    static incrementExtraDataField(item, fieldName, delta = 1) {
+        item.extra_data = item.extra_data ?? {};
+        item.extra_data[fieldName] = (item.extra_data[fieldName] ?? 0) + delta;
+    }
 }

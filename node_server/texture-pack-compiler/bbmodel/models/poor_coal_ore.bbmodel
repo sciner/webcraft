@@ -59,7 +59,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [4.1, 12.2, 2.2],
 			"to": [6.1, 16.2, 4.2],
 			"autouv": 0,
@@ -88,8 +88,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -99,7 +99,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [-5.7, 12.5, 0.3],
 			"to": [-3.7, 16.5, 2.3],
 			"autouv": 0,
@@ -128,8 +128,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -139,7 +139,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [0.5, 12.4, -5.5],
 			"to": [2.5, 16.4, -3.5],
 			"autouv": 0,
@@ -168,8 +168,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -179,7 +179,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [4.1, 12.2, 2.2],
 			"to": [6.1, 16.2, 4.2],
 			"autouv": 0,
@@ -208,8 +208,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -219,7 +219,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [-5.7, 12.5, 0.3],
 			"to": [-3.7, 16.5, 2.3],
 			"autouv": 0,
@@ -248,8 +248,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -259,7 +259,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [0.5, 12.4, -5.5],
 			"to": [2.5, 16.4, -3.5],
 			"autouv": 0,
@@ -288,8 +288,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -299,7 +299,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [4.1, 12.2, 2.2],
 			"to": [6.1, 16.2, 4.2],
 			"autouv": 0,
@@ -328,8 +328,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -339,7 +339,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [-5.7, 12.5, 0.3],
 			"to": [-3.7, 16.5, 2.3],
 			"autouv": 0,
@@ -368,8 +368,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -379,7 +379,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [0.5, 12.4, -5.5],
 			"to": [2.5, 16.4, -3.5],
 			"autouv": 0,
@@ -408,8 +408,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -419,7 +419,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [4.1, 12.2, 2.2],
 			"to": [6.1, 16.2, 4.2],
 			"autouv": 0,
@@ -448,8 +448,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -459,7 +459,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [-5.7, 12.5, 0.3],
 			"to": [-3.7, 16.5, 2.3],
 			"autouv": 0,
@@ -488,8 +488,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -499,7 +499,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [0.5, 12.4, -5.5],
 			"to": [2.5, 16.4, -3.5],
 			"autouv": 0,
@@ -528,8 +528,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -539,7 +539,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [4.1, 12.2, 2.2],
 			"to": [6.1, 16.2, 4.2],
 			"autouv": 0,
@@ -568,8 +568,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -579,7 +579,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [-5.7, 12.5, 0.3],
 			"to": [-3.7, 16.5, 2.3],
 			"autouv": 0,
@@ -608,8 +608,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -619,7 +619,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [0.5, 12.4, -5.5],
 			"to": [2.5, 16.4, -3.5],
 			"autouv": 0,
@@ -648,8 +648,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -659,7 +659,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [4.1, 12.2, 2.2],
 			"to": [6.1, 16.2, 4.2],
 			"autouv": 0,
@@ -688,8 +688,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -699,7 +699,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [-5.7, 12.5, 0.3],
 			"to": [-3.7, 16.5, 2.3],
 			"autouv": 0,
@@ -728,8 +728,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -739,7 +739,7 @@
 			"name": "cube",
 			"box_uv": false,
 			"rescale": false,
-			"locked": true,
+			"locked": false,
 			"from": [0.5, 12.4, -5.5],
 			"to": [2.5, 16.4, -3.5],
 			"autouv": 0,
@@ -768,8 +768,8 @@
 					"texture": 0
 				},
 				"down": {
-					"uv": [21, 33, 23, 35],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -785,8 +785,8 @@
 			"uuid": "5f791e00-4405-526e-7ec6-000d2487c697",
 			"export": true,
 			"mirror_uv": false,
-			"isOpen": false,
-			"locked": true,
+			"isOpen": true,
+			"locked": false,
 			"visibility": true,
 			"autouv": 0,
 			"children": ["b48b6388-93e5-cb31-6206-3a28f042c212", "673897de-e8c9-cf8a-4205-856c6b6b94d9", "566a1f8b-41d3-2a66-616d-b6414297c48d"]
@@ -799,8 +799,8 @@
 			"uuid": "3683ed76-2cfe-5fa6-bdeb-d6923298d7ec",
 			"export": true,
 			"mirror_uv": false,
-			"isOpen": false,
-			"locked": true,
+			"isOpen": true,
+			"locked": false,
 			"visibility": true,
 			"autouv": 0,
 			"children": ["9c798fe6-8ec4-fc8b-f21d-870fd601f196", "7eb92a25-c325-9022-5fdf-0e860e119851", "bbf598a6-3c3d-9b64-4804-737097962980"]
@@ -813,8 +813,8 @@
 			"uuid": "93ee07cd-1158-2db8-38c0-3adbcd6cf4c1",
 			"export": true,
 			"mirror_uv": false,
-			"isOpen": false,
-			"locked": true,
+			"isOpen": true,
+			"locked": false,
 			"visibility": true,
 			"autouv": 0,
 			"children": ["c638dc81-da0b-d178-9b5c-a95266ffbaa4", "50e167c6-31f1-0609-2fcb-7228c9c87603", "76cdb137-51c9-86ba-57ec-5a839f52ab23"]
@@ -827,8 +827,8 @@
 			"uuid": "d093a649-772a-29a2-14fb-cfcef3b35c2f",
 			"export": true,
 			"mirror_uv": false,
-			"isOpen": false,
-			"locked": true,
+			"isOpen": true,
+			"locked": false,
 			"visibility": true,
 			"autouv": 0,
 			"children": ["b79248f1-6657-a563-d887-ee67099df443", "7077c46c-f33e-acf4-f133-7ab264f5bc54", "237b4c6f-2daf-0763-7901-7ee9cc42aa0e"]
@@ -841,8 +841,8 @@
 			"uuid": "fee44c6c-0ee8-26c9-7a20-a7500232417e",
 			"export": true,
 			"mirror_uv": false,
-			"isOpen": false,
-			"locked": true,
+			"isOpen": true,
+			"locked": false,
 			"visibility": true,
 			"autouv": 0,
 			"children": ["5b8a71c6-b08d-d9e2-ddd6-7533fa5103b6", "61d8bb62-3bf6-943d-aa73-a4b98976d46b", "3694bd98-a888-06fc-92aa-f9f32ec39384"]
@@ -855,8 +855,8 @@
 			"uuid": "726bcf87-3cce-0d29-e414-5a5da93c26d5",
 			"export": true,
 			"mirror_uv": false,
-			"isOpen": false,
-			"locked": true,
+			"isOpen": true,
+			"locked": false,
 			"visibility": true,
 			"autouv": 0,
 			"children": ["fcdc958b-a392-130b-a572-e0b1c0ec6d78", "80c7a6eb-1ba2-c69e-2e7e-0bae91e7ddc0", "4c9a9dad-20da-c109-d1e8-c2ec6e10714d"]

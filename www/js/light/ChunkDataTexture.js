@@ -32,12 +32,12 @@ export class ChunkDataTexture {
         }
     }
 
-    add(chunk) {
-        if (chunk._dataTexture) {
+    add(chunkLight) {
+        if (chunkLight._dataTexture) {
             //WTF
             return;
         }
-        chunk._dataTexture = this;
+        chunkLight._dataTexture = this;
 
         const {chunks, pixelsPerChunk, keepAlive, freeChunkTimeMs} = this;
 
@@ -66,21 +66,21 @@ export class ChunkDataTexture {
                 this.resize(Math.ceil(this.size * Math.sqrt(2) / pixelsPerChunk) * pixelsPerChunk);
             }
         }
-        chunks[cur] = chunk;
+        chunks[cur] = chunkLight;
         this.currentChunkIndex = cur;
-        chunk._dataTextureOffset = cur;
-        chunk._dataTextureDirty = true;
+        chunkLight._dataTextureOffset = cur;
+        chunkLight._dataTextureDirty = true;
         this.total++;
     }
 
-    remove(chunk) {
-        if (!chunk._dataTexture) {
+    remove(chunkLight) {
+        if (!chunkLight._dataTexture) {
             //WTF
             return;
         }
-        chunk._dataTexture = null;
-        this.chunks[chunk._dataTextureOffset] = null;
-        this.keepAlive[chunk._dataTextureOffset] = performance.now();
+        chunkLight._dataTexture = null;
+        this.chunks[chunkLight._dataTextureOffset] = null;
+        this.keepAlive[chunkLight._dataTextureOffset] = performance.now();
         this.total--;
     }
 
@@ -99,18 +99,18 @@ export class ChunkDataTexture {
         return this.tex;
     }
 
-    writeChunkData(chunk) {
+    writeChunkData(chunkLight) {
         const { data } = this;
-        const { coord, size } = chunk;
-        const ind = chunk._dataTextureOffset * 4 * this.pixelsPerChunk;
-        chunk._dataTextureDirty = false;
+        const { coord, size } = chunkLight.parentChunk;
+        const ind = chunkLight._dataTextureOffset * 4 * this.pixelsPerChunk;
+        chunkLight._dataTextureDirty = false;
 
         data[ind + 0] = coord.x;
         data[ind + 1] = coord.y;
         data[ind + 2] = coord.z;
         data[ind + 3] = size.x | (size.z << 8) | (size.y << 16);
 
-        const { lightTex } = chunk;
+        const { lightTex } = chunkLight;
 
         if (lightTex) {
             const base = lightTex.baseTexture || lightTex;

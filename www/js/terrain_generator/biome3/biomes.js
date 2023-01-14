@@ -1,3 +1,4 @@
+import { BLOCK } from '../../blocks.js';
 import { IndexedColor } from '../../helpers.js';
 import { TREES } from '../biomes.js';
 
@@ -45,6 +46,15 @@ export class Biome {
         this.is_desert = title.toLowerCase().indexOf('пустын') >= 0
         this.is_sand = this.is_desert || title.toLowerCase().indexOf('пляж') >= 0
         this.is_taiga = title.toLowerCase().indexOf('тайга') >= 0
+        this.is_snowy = false
+        for(let dl of dirt_layers) {
+            for(let block_id of dl.blocks) {
+                if(block_id == BLOCK.SNOW_DIRT.id) {
+                    this.is_snowy = true
+                    break
+                }
+            }
+        }
     }
 
 }

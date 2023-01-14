@@ -3,17 +3,29 @@ import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
+import { StringHelpers } from "./helpers.js";
+import { Lang } from "./lang.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202, 415];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 export const POWER_NO                       = 0;
+export const ITEM_LABEL_MAX_LENGTH          = 19;
 
 // Свойства, которые могут сохраняться в БД
 export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'extra_data', 'rotate'];
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
-export const ITEM_INVENTORY_KEY_PROPS       = ['power', 'extra_data'];
-export const ITEM_INVENTORY_PROPS_OBJ       = ArrayHelpers.valuesToObjectKeys(ITEM_INVENTORY_PROPS);
+
+/**
+ * Normally if there is any extra data, it's retained when a block is placed, otherwise
+ * {@link BLOCK.makeExtraData} is called, see {@link doBlockAction}.
+ * 
+ * For these fields the semantics is different:
+ * 1. If block.is_entirty == true, they can be merged with {@link BLOCK.makeExtraData}.
+ * E.g. a chest retains its label, but also gets the default placed chest properties.
+ * 2. If block.is_entirty == false, they are purged.
+ */
+export const EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT = ['age', 'label'];
 
 export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
 export const shapePivot = new Vector(.5, .5, .5);
@@ -180,23 +192,28 @@ export function getBlockNeighbours(world, pos) {
 
 export class BLOCK {
 
-    static list                     = new Map();
-    static styles                   = new Map();
-    static list_arr                 = []; // see also getAll()
-    static spawn_eggs               = [];
-    static ao_invisible_blocks      = [];
-    static resource_pack_manager    = null;
-    static max_id                   = 0;
-    static MASK_BIOME_BLOCKS        = [];
-    static MASK_COLOR_BLOCKS        = [];
-    static SOLID_BLOCK_ID           = [];
-    static TICKING_BLOCKS           = new Map();
-    static BLOCK_BY_ID              = [];
-    static bySuffix                 = {}; // map of arrays
+    static list                             = new Map();
+    static styles                           = new Map();
+    static list_arr                         = []; // see also getAll()
+    static spawn_eggs                       = [];
+    static ao_invisible_blocks              = [];
+    static resource_pack_manager            = null;
+    static max_id                           = 0;
+    static MASK_BIOME_BLOCKS                = [];
+    static MASK_COLOR_BLOCKS                = [];
+    static SOLID_BLOCK_ID                   = [];
+    static TICKING_BLOCKS                   = new Map();
+    static BLOCK_BY_ID                      = [];
+    static bySuffix                         = {}; // map of arrays
+    static REMOVE_ONAIR_BLOCKS_IN_CLUSTER   = [] // this blocks must be removed over structures and buildings
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
             return '';
+        }
+        // check the label first, to avoid unnecessary work
+        if(block.extra_data?.label) {
+            return block.extra_data.label;
         }
         let mat = null;
         if('name' in block && 'title' in block) {
@@ -209,9 +226,6 @@ export class BLOCK {
             resp += ` (${mat.title})`;
         }
         resp = resp.replaceAll('_', ' ');
-        if(block.extra_data?.label) {
-            resp = block.extra_data?.label;
-        }
         return resp;
     }
 
@@ -256,6 +270,78 @@ export class BLOCK {
             if(v !== undefined && v !== null) {
                 resp[k] = v;
             }
+        }
+        return resp;
+    }
+
+    static getItemMaxStack(item) {
+        if (item.entity_id != null) {
+            return 1;
+        }
+        return this.BLOCK_BY_ID[item.id].max_in_stack;
+    }
+
+    /**
+     * It ensures that:
+     * 1. The item id exists.
+     * 2. The item contains the fields it needs to have.
+     * 3. The item doesn't contain fields that it must not have.
+     * 4. The these fields have the correct types.
+     * 5. "count" and "power" are within the allowed range.
+     * It doesn't validate the content of extra_data.
+     * 
+     * It's similar to {@link convertItemToInventoryItem}, but there are differences:
+     * - it assumes the item is from the client inventory, not a BLOCK. E.g. it fails if the 
+     *   item is expected to have an entity, and doesn't have it.
+     * - it assumes malicios intent, and does extra validation.
+     * 
+     * @param {Object} an inventory item that came from client
+     * @return a new valid inventory item, or null.
+     */
+    static sanitizeAndValidateInventoryItem(item) {
+        // id
+        if (!item || typeof item !== 'object' || typeof item.id !== 'number') {
+            return null;
+        }
+        const b = this.BLOCK_BY_ID[item.id];
+        if (!b) {
+            return null;
+        }
+        const resp = {
+            id: item.id
+        };
+        // entity
+        // Allow it to be defined even if (b.is_entity == true), e.g. for a stack of chests
+        // Allow it to be undefined even if (b.is_entity == false), so that:
+        // - the game can assign entities to any item for any reason;
+        // - legacy items with entities don't get rejected
+        if (typeof item.entity_id === 'string') {
+            resp.entity_id = item.entity_id;
+        }
+        // count - after entity is validated
+        if (typeof item.count !== 'number') {
+            resp.count = 1;
+        } else {
+            const max_stack = this.getItemMaxStack(resp);
+            resp.count = Math.floor(item.count);
+            if (resp.count < 1 || resp.count > max_stack) {
+                // It's probably better to not accept it than fix it, which may lead to losing items
+                return null;
+            }
+        }
+        // power
+        if (b.power) {
+            if (typeof item.power !== 'number' || !item.power) {
+                // fix old invalid instruments power
+                resp.power = b.power;
+            } else {
+                resp.power = Math.min(b.power, Math.max(1, Math.floor(item.power)));
+            }
+        }
+        // extra_data (only type)
+        if (item.extra_data && typeof item.extra_data === 'object') {
+            // copy it even if (b.extra_data == null) to allow naming any item.
+            resp.extra_data = item.extra_data;
         }
         return resp;
     }
@@ -756,6 +842,9 @@ export class BLOCK {
         if(block.ticking) {
             BLOCK.TICKING_BLOCKS.set(block.id, block);
         }
+        if(block.style_name == 'planting' || (block.layering && !block.layering.slab)) {
+            BLOCK.REMOVE_ONAIR_BLOCKS_IN_CLUSTER.push(block.id)
+        }
         if(block.bb && isScalar(block.bb?.model)) {
             const bbmodels = await Resources.loadBBModels()
             const model_name = block.bb.model
@@ -776,6 +865,12 @@ export class BLOCK {
             if(!block.hasOwnProperty(k)) {
                 block[k] = v;
             }
+        }
+        //
+        block.title = block.title ?? StringHelpers.capitalizeFirstLetterOfEachWord(
+            block.name.replaceAll('_', ' ').toLowerCase());
+        if (Lang.inited) { // it's not initialized in server worker, where translation isn't needed anyway
+            block.title = Lang.getOrUnchanged(block.title);
         }
         //
         block.drop_if_unlinked  = block.style_name == 'torch';

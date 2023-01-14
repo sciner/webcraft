@@ -33,17 +33,22 @@ export class FluidWorld {
     }
 
     addChunk(chunk) {
-        chunk.fluid = new FluidChunk({
-            dataChunk: chunk.dataChunk,
-            dataId: chunk.getDataTextureOffset ? chunk.getDataTextureOffset() : chunk.dataId,
-            parentChunk: chunk,
-            world: this
-        });
+        if (chunk.tblocks.fluid) {
+            // restore!
+            chunk.fluid = chunk.tblocks.fluid;
+            chunk.fluid.world = this;
+        } else {
+            chunk.fluid = new FluidChunk({
+                dataChunk: chunk.dataChunk,
+                dataId: chunk.getDataTextureOffset ? chunk.getDataTextureOffset() : chunk.dataId,
+                parentChunk: chunk,
+                world: this
+            });
+            chunk.tblocks.fluid = chunk.fluid;
+        }
         if (this.queue) {
             this.queue.addChunk(chunk.fluid);
         }
-
-        chunk.tblocks.fluid = chunk.fluid;
     }
 
     removeChunk(chunk) {
@@ -84,11 +89,11 @@ export class FluidWorld {
             }
             if (use_light) {
                 //TODO: its slow!!!
-                chunk.beginLightChanges();
+                chunk.light.beginLightChanges();
             }
             chunk.fluid.setValue(x - chunk.coord.x, y - chunk.coord.y, z - chunk.coord.z, val);
             if (use_light) {
-                chunk.endLightChanges();
+                chunk.light.endLightChanges();
             }
         }
         //chunks

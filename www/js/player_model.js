@@ -1,5 +1,5 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_ZOOM } from "./constant.js";
+import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
@@ -117,6 +117,7 @@ export class PlayerModel extends MobModel {
         super({type: 'player', skin: '1', ...props});
 
         this.height = PLAYER_HEIGHT;
+        this.width = PLAYER_WIDTH;
         this.scale = 0.9 * PLAYER_ZOOM;
 
         /**
@@ -128,6 +129,7 @@ export class PlayerModel extends MobModel {
         this.username = props.username;
 
         this.head = null;
+        this.health = 1;
 
         this.animationScript = new PlayerAnimation();
 
@@ -282,17 +284,14 @@ export class PlayerModel extends MobModel {
 
         this.sceneTree[0].addChild(this.nametag);
         this.nametag.scale.set([0.005, 1, 0.005]);
-        this.nametag.position[2] = 
-            (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head'))
-            .pivot[2] + 0.6;
         
         this.nametag.updateMatrix();
 
         this.changeSlots(this.activeSlotsData);
+        console.log(this.armor.head)
     }
 
     update(render, camPos, delta, speed) {
-
         super.update(render, camPos, delta, speed);
 
         this.updateArmSwingProgress(delta);
@@ -305,6 +304,8 @@ export class PlayerModel extends MobModel {
         }
 
         this.nametag.visible = !this.sneak && !this.hide_nametag;
+        const head_y =  (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head')).pivot[2];
+        this.nametag.position[2] =  head_y + ((!this.armor.head) ? 0.6 : 0.8);
 
         if (!this.nametag.visible) {
             return;
@@ -422,7 +423,7 @@ export class PlayerModel extends MobModel {
      * @param {boolean} lies 
      * @param {boolean} sitting 
      */
-    setProps(pos, rotate, sneak, moving, running, hands, lies, sitting) {
+    setProps(pos, rotate, sneak, moving, running, hands, lies, sitting, health) {
         this.pos.copyFrom(pos);
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate
@@ -441,13 +442,20 @@ export class PlayerModel extends MobModel {
     }
 
     draw(render, camPos, delta) {
+        if(this.isAlive() == false) {
+            return;
+        }
         if(!this.prev_pos) {
             this.prev_pos = this.pos.clone();
-            return false;;
+            return false;
         }
         const speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
         this.prev_pos.copyFrom(this.pos);
         super.draw(render, camPos, delta, speed);
+    }
+    
+    isAlive() {
+        return this.health > 0;
     }
 
 }

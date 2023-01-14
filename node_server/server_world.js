@@ -28,11 +28,12 @@ import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
 
 import { WorldAction } from "../www/js/world_action.js";
-import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
 import { TBlock } from "../www/js/typed_blocks3.js";
+import { Effect } from "../www/js/block_type/effect.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -123,6 +124,15 @@ export class ServerWorld {
         await this.restoreModifiedChunks();
         await this.db.fluid.restoreFluidChunks();
         await this.chunks.initWorker();
+        await this.chunks.initWorkers(world_guid);
+
+        //
+        if(this.isBuildingWorld()) {
+            await this.rules.setValue('doDaylightCycle', 'false')
+            await this.rules.setValue('doWeatherCycle', 'false')
+            await this.rules.setValue('randomTickSpeed', '0')
+        }
+
         //
         this.saveWorldTimer = setInterval(() => {
             // let pn = performance.now();
@@ -137,12 +147,16 @@ export class ServerWorld {
         return this.db.getDefaultPlayerIndicators();
     }
 
+    isBuildingWorld() {
+        return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
+    }
+
     /**
      * @returns {boolean}
      */
     async makeBuildingsWorld() {
 
-        if(this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+        if(!this.isBuildingWorld()) {
             return false
         }
 
@@ -152,7 +166,8 @@ export class ServerWorld {
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
-        const block_road = {id: 8}
+        const block_road = {id: 98}
+        const block_smooth_stone = {id: 70}
         const block_num1 = {id: 209}
         const block_num2 = {id: 210}
 
@@ -163,16 +178,19 @@ export class ServerWorld {
 
         // make road
         for(let x = 10; x > -1000; x--) {
-            const pos = new Vector(x, 0, 3)
-            addBlock(pos, block_road)
+            addBlock(new Vector(x, 0, 3), block_road)
+            addBlock(new Vector(x, 0, 4), block_smooth_stone)
+            addBlock(new Vector(x, 0, 5), block_road)
         }
 
         // each all buildings
-        for(let schema of BuilgingTemplate.schemas.values()) {
+        for(let schema of BuildingTemplate.schemas.values()) {
             addBlock(new Vector(schema.world.pos1), block_num1)
             addBlock(new Vector(schema.world.pos2), block_num2)
             // draw sign
-            addBlock(new Vector(schema.world.pos1.x, 1, 3), {id: 645, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(0, 1, 0)})
+            const sign_z = schema.world.pos1.z < 3 ? 3 : 5
+            const sign_rot_x = schema.world.pos1.z < 3 ? 0 : 2
+            addBlock(new Vector(schema.world.pos1.x, 1, sign_z), {id: 645, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(sign_rot_x, 1, 0)})
             // clear basement level
             for(let x = 0; x <= (schema.world.pos1.x - schema.world.pos2.x); x++) {
                 for(let z = 0; z <= (schema.world.pos1.z - schema.world.pos2.z); z++) {
@@ -185,12 +203,11 @@ export class ServerWorld {
             // fill blocks
             for(let b of schema.blocks) {
                 const item = {id: b.block_id};
-                const y = schema.world.door_bottom.y - schema.door_pos.y - 1
-                const z = schema.door_pos.z
+                const y = schema.world.entrance.y - schema.door_pos.y - 1
                 const pos = new Vector(
-                    schema.world.door_bottom.x - b.move.x,
+                    schema.world.entrance.x - b.move.x,
                     schema.world.pos1.y + b.move.y - y,
-                    schema.world.door_bottom.z - b.move.z + z
+                    schema.world.entrance.z - b.move.z
                 )
                 if(b.extra_data) item.extra_data = b.extra_data
                 if(b.rotate) item.rotate = b.rotate
@@ -207,6 +224,9 @@ export class ServerWorld {
         t = performance.now()
         await this.db.updateChunks(chunks_addr.keys());
         console.log('Building: compress chunks in db ...', performance.now() - t)
+
+        // reread info
+        this.info = await this.db.getWorld(this.info.guid)
 
         return true
 
@@ -225,7 +245,7 @@ export class ServerWorld {
     autoSpawnHostileMobs() {
         const SPAWN_DISTANCE = 16;
         const good_light_for_spawn = this.getLight() > 6;
-        const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
+        const good_world_for_spawn = !this.isBuildingWorld();
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
         if(!auto_generate_mobs || !good_world_for_spawn || good_light_for_spawn) {
@@ -443,7 +463,11 @@ export class ServerWorld {
                 }
             }
         }]);
-        // 9. Check player visible chunks
+        // 9. Add night vision for building world
+        if(this.isBuildingWorld()) {
+            player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
+        }
+        // 10. Check player visible chunks
         this.chunks.checkPlayerVisibleChunks(player, true);
     }
 
@@ -642,7 +666,7 @@ export class ServerWorld {
                         Math.random() - Math.random(),
                         Math.random() * 0.75,
                         Math.random() - Math.random()
-                    ).normalize().multiplyScalar(0.375);
+                    ).normalize().multiplyScalarSelf(0.375);
                     this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
                 }
             }
@@ -685,6 +709,7 @@ export class ServerWorld {
                     params.item = this.block_manager.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
+                        chunk?.light?.flushDelta();
                         modified_chunks.set(chunk_addr, true);
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
@@ -757,8 +782,13 @@ export class ServerWorld {
                             }
                         }
                         // 4. Store in chunk tblocks
+                        const oldLight = tblock.lightSource;
                         chunk.tblocks.delete(block_pos_in_chunk);
                         tblock.copyPropsFromPOJO(params.item);
+                        const newLight = tblock.lightSource;
+                        if (newLight !== oldLight) {
+                            chunk.light.currentDelta.push(tblock.index);
+                        }
                         // 5. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
@@ -803,6 +833,7 @@ export class ServerWorld {
                         // TODO: Chunk not found in pos
                     }
                 }
+                chunk?.light?.flushDelta();
                 if(create_block_list.length > 0) {
                     all.push(this.db.blockSetBulk(this, server_player, create_block_list));
                 }

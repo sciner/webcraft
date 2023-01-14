@@ -80,6 +80,8 @@ void main() {
         if (v_normal.z < 0.0) minecraftSun.z = 0.5;
         float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
 
+        #include<caustic_pass_onwater>
+
         if(v_noCanTakeLight < 0.5) {
             #include<local_light_pass>
             #include<ao_light_pass>

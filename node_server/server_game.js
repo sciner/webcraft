@@ -7,9 +7,9 @@ import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
-import { Helpers } from '../www/js/helpers.js';
+import { Helpers, Vector } from '../www/js/helpers.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
-import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 class FakeHUD {
     add() {}
@@ -33,6 +33,8 @@ export class ServerGame {
         this.hotbar = new FakeHotbar();
         // load world queue
         this.timerLoadWorld = setTimeout(this.processWorldQueue.bind(this), 10);
+
+        this.lightWorker = null;
     }
 
     //
@@ -73,26 +75,35 @@ export class ServerGame {
             this.db = db
             global.Log = new GameLog(this.db);
         });
+        await this.initWorkers();
 
         // Load building template schemas
         for(let item of config.building_schemas) {
-            try {
-                await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
-                    json.world = {...json.world, ...item}
-                    BuilgingTemplate.addSchema(json)
-                });
-            } catch(e) {
-                const schema = {
-                    name: item.name,
-                    world: {
-                        pos1: item.pos1,
-                        pos2: item.pos2,
-                        door_bottom: item.door_bottom
-                    },
-                    blocks: []
+            await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
+
+                // fix entrance
+                if(item.name == 'test225') {
+                    const fix = new Vector(0, 1, 0)
+                    item.pos1.y -= fix.y
+                    item.pos2.y -= fix.y
+                    //json.world.entrance.x += fix.x
+                    // json.world.entrance.y += fix.y
+                    //json.world.entrance.z += fix.z
+                    for(let block of json.blocks) {
+                        block.move.x += fix.x
+                        block.move.y += fix.y
+                        block.move.z += fix.z
+                    }
+                     fs.writeFileSync(`./data/building_schema/${item.name}.json`, JSON.stringify(json))
                 }
-                BuilgingTemplate.addSchema(schema)
-            }
+
+                json.name = item.name
+                json.meta = json.meta ?? {}
+                item.entrance = new Vector(json.world.entrance)
+
+                json.world = {...json.world, ...item}
+                BuildingTemplate.addSchema(json)
+            })
         }
 
         // Create websocket server
@@ -147,4 +158,38 @@ export class ServerGame {
         });
     }
 
+    initWorkers() {
+        return new Promise((resolve, reject) => {
+            let workerCounter = 1;
+
+            this.lightWorker = new Worker(globalThis.__dirname + '/../www/js/light_worker.js');
+            this.lightWorker.postMessage(['SERVER', 'init', null]);
+
+            this.lightWorker.on('message', (data) => {
+                if (data instanceof MessageEvent) {
+                    data = data.data;
+                }
+                const worldId = data[0];
+                const cmd = data[1];
+                const args = data[2];
+                switch (cmd) {
+                    case 'worker_inited': {
+                        --workerCounter;
+                        if (workerCounter === 0) {
+                            resolve();
+                        }
+                        break;
+                    }
+                    default: {
+                        const world = this.worlds.get(worldId);
+                        world.chunkManager.onLightWorkerMessage([cmd, args]);
+                    }
+                }
+            });
+            let onerror = (e) => {
+                debugger;
+            };
+            this.lightWorker.on('error', onerror);
+        });
+    }
 }

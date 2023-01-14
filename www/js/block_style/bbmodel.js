@@ -9,13 +9,24 @@ import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
 import { default as pot_style } from '../block_style/pot.js';
+import { default as sign_style } from '../block_style/sign.js';
 
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
+import {impl as alea} from "../../vendors/alea.js";
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
 const pivotObj = new Vector(0.5, .5, 0.5)
+
+// randoms
+const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z
+const randoms = new Array(RANDOMS_COUNT)
+const a = new alea('randoms')
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = a.double()
+}
 
 // Block model
 export default class style {
@@ -106,7 +117,10 @@ export default class style {
         const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color)
 
         // calc rotate matrix
-        style.applyRotate(model, block, neighbours, matrix)
+        style.applyRotate(model, block, neighbours, matrix, x, y, z)
+
+        //
+        style.postBehavior(x, y, z, model, block, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks)
 
         // const animation_name = 'walk';
         // model.playAnimation(animation_name, performance.now() / 1000)
@@ -142,13 +156,13 @@ export default class style {
 
     }
 
-    static applyRotate(model, tblock, neighbours, matrix) {
+    static applyRotate(model, tblock, neighbours, matrix, x, y, z) {
 
         const mat = tblock.material
         const bb = mat.bb
 
         // Rotate
-        if(bb.rotate && tblock.rotate) {
+        if(bb.rotate) {
             for(let rot of bb.rotate) {
                 if(style.checkWhen(model, tblock, rot.when)) {
                     switch(rot.type) {
@@ -157,12 +171,29 @@ export default class style {
                             break
                         }
                         case 'y360': {
-                            mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 2) / 4) * (2 * Math.PI))
+                            if(tblock.rotate) {
+                                mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 2) / 4) * (2 * Math.PI))
+                            }
+                            break
+                        }
+                        case 'random': {
+                            for(let axe of rot.axes) {
+                                switch(axe) {
+                                    case 'y': {
+                                        const random_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
+                                        mat4.rotateY(matrix, matrix, randoms[random_index] * (2 * Math.PI))
+                                        break
+                                    }
+                                    default: {
+                                        throw 'error_not_implemented'
+                                    }
+                                }
+                            }
                             break
                         }
                         case 'three': {
                             // rotation only in three axes X, Y or Z
-                            if(tblock instanceof TBlock) {
+                            if(tblock.rotate && tblock instanceof TBlock) {
                                 const cd = tblock.getCardinalDirection()
                                 const mx = calcRotateMatrix(tblock.material, tblock.rotate, cd, matrix)
                                 // хак со сдвигом матрицы в центр блока
@@ -179,6 +210,29 @@ export default class style {
                     }
                     break
                 }
+            }
+        }
+
+    }
+
+    static postBehavior(x, y, z, model, tblock, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks) {
+
+        const mat = tblock.material
+        const bb = mat.bb
+
+        switch(bb.behavior ?? bb.model.name) {
+            case 'sign': {
+                const m = mat4.create()
+                mat4.copy(m, matrix)
+                mat4.rotateY(m, m, Math.PI)
+                const aabb = sign_style.makeAABBSign(tblock, x, y, z)
+                const e = 0 // -1/30
+                aabb.expand(e, e, e)
+                const fblock = sign_style.makeTextBlock(tblock, aabb, pivot, m, x, y, z)
+                if(fblock) {
+                    emmited_blocks.push(fblock)
+                }
+                break
             }
         }
 
@@ -210,6 +264,12 @@ export default class style {
             case 'torch': {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
+                model.hideAllExcept(model.state)
+                break
+            }
+            case 'age': {
+                const age = Math.min((tblock?.extra_data?.stage ?? 0), mat.ticking.max_stage) + 1
+                model.state = `age${age}`
                 model.hideAllExcept(model.state)
                 break
             }

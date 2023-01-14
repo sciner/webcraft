@@ -136,7 +136,7 @@ export class TypedBlocks3 {
         this.vertExtraLen = null;
         this.id = this.dataChunk.uint16View;
         this.fluid = null;
-        this.lightData = null;
+        this.light = null;
     }
 
     ensureVertices() {
@@ -706,6 +706,7 @@ export class DataWorld {
             portals[i].toRegion.rev.tblocks.makeBedrockFacet(tempRect);
         }
         this.base.removeSub(chunk.dataChunk);
+        chunk.dataChunk = null;
         if (this.chunkManager.fluidWorld) {
             this.chunkManager.fluidWorld.removeChunk(chunk);
         }
@@ -894,6 +895,10 @@ export class TBlock {
             res |= fluidLightPower(fluidVal);
         }
         return res;
+    }
+
+    get lightData() {
+        return this.light?.lightData;
     }
 
     /**

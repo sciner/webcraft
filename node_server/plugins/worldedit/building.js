@@ -1,10 +1,9 @@
 import { Vector, VectorCollector } from "../../../www/js/helpers.js";
 
 import fs from "fs";
-import { BuilgingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { ServerClient } from "../../../www/js/server_client.js";
-import { WORLD_TYPE_BUILDING_SCHEMAS } from "../../../www/js/constant.js";
 
 //
 export class WorldEditBuilding {
@@ -20,29 +19,29 @@ export class WorldEditBuilding {
     // Load all buildings
     load() {
 
-        this.list = new Map();
+        this.list = new Map()
 
-        const insert = (name, pos1, pos2, door_bottom) => {
-            const building = {
-                name: name,
-                world: {
-                    pos1: pos1,
-                    pos2: pos2,
-                    door_bottom: door_bottom
-                },
-                meta: null,
-                size: new Vector(0, 0, 0),
-                door_pos: new Vector(0, 0, 0),
-                blocks: [],
-                rot: []
-            }
-            this.list.set(building.name, building);
-        };
-
-        for(let schema of BuilgingTemplate.schemas.values()) {
-            insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.door_bottom)
+        for(let schema of BuildingTemplate.schemas.values()) {
+            this._insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.entrance, schema.meta ?? null)
         }
 
+    }
+
+    _insert(name, pos1, pos2, entrance, meta) {
+        const building = {
+            name,
+            world: {
+                pos1,
+                pos2,
+                entrance
+            },
+            meta,
+            size: new Vector(0, 0, 0),
+            door_pos: new Vector(0, 0, 0),
+            blocks: [],
+            rot: []
+        }
+        this.list.set(building.name, building)
     }
 
     //
@@ -60,6 +59,14 @@ export class WorldEditBuilding {
                 await this.save(chat, player, cmd, args)
                 break;
             }
+            case 'select': {
+                await this.select(chat, player, cmd, args)
+                break;
+            }
+            case 'go': {
+                this.goToBuilding(chat, player, cmd, args)
+                break;
+            }
         }
     }
 
@@ -67,7 +74,7 @@ export class WorldEditBuilding {
     async add(chat, player, cmd, args) {
 
         //
-        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+        if(!chat.world.isBuildingWorld()) {
             throw 'error_invalid_world';
         }
 
@@ -76,24 +83,86 @@ export class WorldEditBuilding {
 
         // getbuilding by name
         if(this.list.get(name)) {
-            throw 'error_building_sa_name_exists'
+            throw 'error_building_same_name_exists'
         }
 
         // make quboid info
         const qi = we.getCuboidInfo(player)
 
-        console.log(qi)
+        const pos1_temp = new Vector(qi.pos1)
+        const pos2_temp = new Vector(
+            qi.pos1.x + (qi.volx - 1) * qi.signx,
+            qi.pos1.y + (qi.voly - 1) * qi.signy,
+            qi.pos1.z + (qi.volz - 1) * qi.signz
+        )
 
-        const pos2 = new Vector().set(
-            qi.pos1.x + qi.volx * qi.signx,
-            qi.pos1.y + qi.voly * qi.signy,
-            qi.pos1.z + qi.volz * qi.signz
-        );
+        const pos1 = new Vector(
+            Math.max(pos1_temp.x, pos2_temp.x),
+            Math.min(pos1_temp.y, pos2_temp.y),
+            Math.max(pos1_temp.z, pos2_temp.z)
+        )
 
-        const building = {"name": name, "pos1": qi.pos1, "pos2": pos2, "door_bottom": {"x": Math.round((qi.pos1.x + pos2.x) / 2), "y": qi.pos1.y, "z": Math.round((qi.pos1.z + pos2.z) / 2)}}
+        const pos2 = new Vector(
+            Math.min(pos1_temp.x, pos2_temp.x),
+            Math.max(pos1_temp.y, pos2_temp.y),
+            Math.min(pos1_temp.z, pos2_temp.z)
+        )
 
-        // TODO: append building_schemas
-        console.log(JSON.stringify(building))
+        const entrance = new Vector(
+            Math.round((pos1.x + pos2.x) / 2),
+            1,
+            Math.round((pos1.z + pos2.z) / 2)
+        )
+
+        const meta = {
+            dt:                         new Date().toISOString(),
+            draw_natural_basement:      true,
+            air_column_from_basement:   true
+        }
+        const building = {name, pos1, pos2, entrance, meta}
+
+        this._insert(building.name, building.pos1, building.pos2, building.entrance)
+
+        // append building_schemas        
+        const file_name = `./conf_world.json`
+        let conf_world = fs.readFileSync(file_name)
+        
+        if(conf_world) {
+            conf_world = JSON.parse(conf_world)
+            if(!conf_world) {
+                throw 'error_conf_world_corrupted'
+            }
+            conf_world.building_schemas.push(building)
+            fs.writeFileSync(file_name, JSON.stringify(conf_world, null, 4))
+        } else {
+            throw 'error_conf_world_not_found'
+        }
+
+        await this.save(chat, player, cmd, args)
+
+    }
+
+    // Select building
+    async select(chat, player, cmd, args) {
+
+        //
+        if(!chat.world.isBuildingWorld()) {
+            throw 'error_invalid_world';
+        }
+
+        const we = this.worldedit_instance
+        const name = args[2]
+
+        // getbuilding by name
+        const building = this.list.get(name)
+        if(!building) throw 'building_not_found'
+
+        player.pos1 = new Vector(building.world.pos1)
+        player.pos2 = new Vector(building.world.pos2)
+
+        // message to player chat
+        const msg = `${name} building selected`
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id])
 
     }
 
@@ -101,7 +170,7 @@ export class WorldEditBuilding {
     async save(chat, player, cmd, args) {
 
         //
-        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+        if(!chat.world.isBuildingWorld()) {
             throw 'error_invalid_world';
         }
 
@@ -125,10 +194,10 @@ export class WorldEditBuilding {
         building.size = new Vector(copy_data.quboid.volx, copy_data.quboid.voly, copy_data.quboid.volz)
 
         const pos1 = building.world.pos1
-        const rel_door_bottom = building.world.door_bottom.sub(pos1)
+        const rel_entrance = building.world.entrance.sub(pos1)
 
         // calc door_pos
-        building.door_pos.set(-rel_door_bottom.x, rel_door_bottom.y, -rel_door_bottom.z);
+        building.door_pos.set(-rel_entrance.x, rel_entrance.y, -rel_entrance.z);
 
         // clear blocks
         building.blocks = [];
@@ -141,9 +210,9 @@ export class WorldEditBuilding {
             if([209, 210].includes(item.id)) continue;
             if(item.id == 0 && !copy_air) continue;
             const move = new Vector(
-                rel_door_bottom.x - bpos.x,
-                bpos.y - rel_door_bottom.y + building.door_pos.y - (basement_y - pos1.y),
-                rel_door_bottom.z - bpos.z + building.door_pos.z
+                rel_entrance.x - bpos.x,
+                bpos.y - rel_entrance.y + building.door_pos.y - (basement_y - pos1.y),
+                rel_entrance.z - bpos.z // + building.door_pos.z
             );
             const block = {
                 move,
@@ -161,12 +230,12 @@ export class WorldEditBuilding {
         // export
         const file_name = `./data/building_schema/${building.name}.json`;
 
-        // Calling gzip method
+        // Write building to file
         const json = JSON.stringify(building)
-        fs.writeFileSync(file_name, json);
+        fs.writeFileSync(file_name, json)
 
         // Update in memory
-        BuilgingTemplate.addSchema(building)
+        BuildingTemplate.addSchema(building)
 
         // Notify all players in all worlds
         for(let w of Qubatch.worlds.values()) {
@@ -191,7 +260,7 @@ export class WorldEditBuilding {
         const name = args[1];
         const direction = Math.abs((args[2] | 0)) % 4;
 
-        // throw 'error_deprecated';
+        throw 'error_deprecated';
 
         const copy_data = {
             blocks: new VectorCollector(),
@@ -201,7 +270,7 @@ export class WorldEditBuilding {
         const mirror_x = false;
         const mirror_z = false;
 
-        const building = BuilgingTemplate.fromSchema('e3290', BLOCK);
+        const building = BuildingTemplate.fromSchema(name, BLOCK);
 
         for(let block of building.rot[direction]) {
             const item = {
@@ -220,5 +289,25 @@ export class WorldEditBuilding {
         await we.cmd_paste(chat, player, cmd, args, copy_data);
 
     }
+
+    goToBuilding(chat, player, cmd, args) {
+
+        //
+        if(!chat.world.isBuildingWorld()) {
+            throw 'error_invalid_world';
+        }
+
+        const we = this.worldedit_instance;
+        const name = args[2];
+
+        // getbuilding by name
+        const building = this.list.get(name)
+        if(!building) throw 'building_not_found';
+
+        const pos = new Vector(building.world.entrance.x + .5, 1, 4.5)
+        player.teleport({place_id: null, pos});
+
+    }
+
 
 }

@@ -35,6 +35,8 @@ export class GameClass {
         this.f3_used                    = false;
         // Local server client
         this.local_server_client = (globalThis.LocalServerClient !== undefined) ? new LocalServerClient() : null;
+
+        this.fix_RAF = false;
     }
 
     // Start
@@ -106,6 +108,11 @@ export class GameClass {
                 if(clipboardData) {
                     const pastedData = clipboardData.getData('Text');
                     if(pastedData) {
+                        for(const window of Qubatch.hud.wm.visibleWindows()) {
+                            if (window.onPaste && window.onPaste(pastedData)) {
+                                return true;
+                            }
+                        }
                         player.chat.pasteText(pastedData);
                     }
                 }
@@ -401,6 +408,13 @@ export class GameClass {
                         }
                         return true;
                     }
+                    case KEY.F9: {
+                        if(!e.down) {
+                            this.fix_RAF = !this.fix_RAF;
+                            player.chat.messages.addSystem(`fix_RAF is now ${this.fix_RAF}`);
+                        }
+                        return true;
+                    }
                     // F10 (toggleUpdateChunks)
                     case KEY.F10: {
                         if(!e.down) {
@@ -517,7 +531,7 @@ export class GameClass {
 
     /**
      * Main loop
-     * @param {number} time 
+     * @param {number} time
      * @param  {...any} args - args from raf, because it necessary for XR
      */
     loop(time = 0, ...args) {
@@ -571,7 +585,13 @@ export class GameClass {
         this.averageClockTimer.add(performance.now() - tm);
 
         // we must request valid loop
-        this.render.requestAnimationFrame(this.loop);
+        if (this.fix_RAF) {
+            setTimeout(() => {
+                this.render.requestAnimationFrame(this.loop);
+            }, 3)
+        } else {
+            this.render.requestAnimationFrame(this.loop);
+        }
     }
 
     // releaseMousePointer

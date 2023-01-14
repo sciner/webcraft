@@ -17,7 +17,7 @@ const GROUND_BUCKET_MIN_PERCENT = 0.05;
 const GROUND_BUCKET_MAX_PERCENT = 0.15;
 
 // derived consts
-const GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR = 
+const GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR =
     (GROUND_ESTIMATION_MAX_DIST + CHUNK_SIZE_X / 2) * (GROUND_ESTIMATION_MAX_DIST + CHUNK_SIZE_X / 2);
 
 export class ChunkGroundLevel {
@@ -55,7 +55,7 @@ export class ChunkGroundLevel {
 
         // strides for lightChunk.uint8View
         const {uint8View, strideBytes, padding} = lightChunk;
-        const sy = outerSize.x * outerSize.z * strideBytes, sx = strideBytes, sz = outerSize.x * strideBytes;        
+        const sy = outerSize.x * outerSize.z * strideBytes, sx = strideBytes, sz = outerSize.x * strideBytes;
 
         // strides for this.minLightY
         const szBucket = size.x / GROUND_BUCKET_SIZE | 0;
@@ -119,9 +119,8 @@ export class ChunkGroundLevel {
 
 export class WorldGroundLevel {
 
-    constructor(world, worker) {
+    constructor(world) {
         this.world = world;
-        this.worker = worker;
         this.chunkManager = world.chunkManager;
 
         this.groundLevelSkipCounter = 0;
@@ -197,7 +196,7 @@ export class WorldGroundLevel {
 
     onCheckPotential() {
         // if the player moved far enough, update the ground level estimation
-        if (!this.prevGroundLevelPlayerPos || 
+        if (!this.prevGroundLevelPlayerPos ||
             this.prevGroundLevelPlayerPos.distance(this.chunkManager.nextPotentialCenter) > GROUND_BUCKET_SIZE
         ) {
             this.minLightYDirty = true;
@@ -219,7 +218,7 @@ export class WorldGroundLevel {
         const columns = this.columns;
         const maxDistSqr = GROUND_ESTIMATION_MAX_DIST * GROUND_ESTIMATION_MAX_DIST;
         const biasMinusSqr = GROUND_ESTIMATION_FAR_BIAS_MIN_DIST * GROUND_ESTIMATION_FAR_BIAS_MIN_DIST;
-        const biasDistSqrMultiplier = GROUND_ESTIMATION_FAR_BIAS / 
+        const biasDistSqrMultiplier = GROUND_ESTIMATION_FAR_BIAS /
             (GROUND_ESTIMATION_MAX_DIST * GROUND_ESTIMATION_MAX_DIST - biasMinusSqr);
         const byDist = [];
         // For each (X, Z) bucket, collect known values of lowest light Y
@@ -246,7 +245,7 @@ export class WorldGroundLevel {
                 column.minLightYDirty = false;
             }
             // calculate the distances to the player, apply dustance bias, collect into the array
-            column.minLightY.forEach((v) => { 
+            column.minLightY.forEach((v) => {
                 v.distSqr = (v.x - playerPos.x) * (v.x - playerPos.x) +
                     (v.z - playerPos.z) * (v.z - playerPos.z);
                 if (v.distSqr <= maxDistSqr) {
@@ -287,6 +286,6 @@ export class WorldGroundLevel {
         }
         this.minLightYDirty = false;
         this.prevGroundLevelPlayerPos = playerPos;
-        this.worker.postMessage(['ground_level_estimated', groundLevel]);
+        this.world.postMessage(['ground_level_estimated', groundLevel]);
     }
 }

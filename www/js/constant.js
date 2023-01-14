@@ -4,7 +4,7 @@ export const GAME_DAY_SECONDS               = 24000;
 export const MAX_FPS_DELTA_PROCESSED        = 2000;
 export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const RAINDROP_NEW_INTERVAL          = 25;
-export const DEFAULT_CLOUD_HEIGHT           = 164.1;
+export const DEFAULT_CLOUD_HEIGHT           = 230.1;
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
 export const DEFAULT_SOUND_MAX_DIST         = 16;
@@ -51,6 +51,7 @@ export const RENDER_EAT_FOOD_DURATION       = 1800;
 // player
 export const PLAYER_ZOOM                    = 1;
 export const PLAYER_HEIGHT                  = 1.7 * PLAYER_ZOOM;
+export const PLAYER_WIDTH                   = 0.7 * PLAYER_ZOOM;
 export const SNEAK_MINUS_Y_MUL              = 0.2 * PLAYER_ZOOM; // decrease player height to this percent value
 export const PLAYER_DIAMETER                = 0.7;
 export const PLAYER_RADIUS                  = PLAYER_DIAMETER / 2;

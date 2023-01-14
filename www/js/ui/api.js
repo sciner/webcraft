@@ -6,7 +6,7 @@ export class API_Client {
 
     // Организует вызов API, обработку ответа и вызов callback-функции
     async call(App, url, data, callback, callback_error, callback_progress, callback_final) {
-        let session         = App.getSession();
+        let session         = App?.getSession();
         let sessionID       = session ? session.session_id : null;
         url                 = this.api_url + url;
         callback_error      = callback_error || null;

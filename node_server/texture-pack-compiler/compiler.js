@@ -7,7 +7,8 @@ import { DEFAULT_TX_CNT } from '../../www/js/constant.js';
 const BLOCK_NAMES = {
     DIRT: 'DIRT',
     MOB_SPAWN: 'MOB_SPAWN',
-    GRASS_BLOCK: 'GRASS_BLOCK'
+    GRASS_BLOCK: 'GRASS_BLOCK',
+    GRASS: ['GRASS', 'TALL_GRASS']
 };
 
 // Compiler
@@ -287,7 +288,10 @@ export class Compiler {
                                 spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask);
                                 spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y + 1, has_mask);
                                 spritesheet.drawTexture(img_glow, tex.pos.x, tex.pos.y + 1, has_mask);
-                            } else {
+                            } /*else if(BLOCK_NAMES.GRASS_BLOCK.includes(block.name)) {
+                                spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask);
+                                spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask);
+                            }*/ else {
                                 await spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null, null, compile);
                                 // await spritesheet.drawTexture(tex.n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
                                 for(let suffix of DEFAULT_TEXTURE_SUFFIXES) {

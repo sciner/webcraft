@@ -17,7 +17,7 @@ const PORCH_MAX_HALF_WIDTH = 1;
 const PORCH_CRATER_HEIGHT = 8;
 
 //
-export class BuilgingTemplate {
+export class BuildingTemplate {
 
     static schemas = new Map();
 
@@ -27,39 +27,63 @@ export class BuilgingTemplate {
         if(!bm) debugger
 
         for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks']) {
-            if(prop in json) this[prop] = json[prop]
+            if(prop in json) {
+                switch(prop) {
+                    case 'door_pos':
+                    case 'size': {
+                        this[prop] = new Vector(json[prop])
+                        break
+                    }
+                    default: {
+                        this[prop] = json[prop]
+                    }
+                }
+            }
         }
 
         if(this.blocks) {
-            this.rot = [ [], [], [], [] ];
-            this.rotateBuildingBlockVariants(bm);
+            this.rot = [ [], [], [], [] ]
+            const {all_blocks} = this.prepareBlocks(bm)
+            this.rotateBuildingBlockVariants(bm, all_blocks)
         }
 
+    }
+
+    getMeta(name, default_value) {
+        const meta = this.meta
+        if(name in meta) {
+            return meta[name]
+        }
+        return default_value
     }
 
     static addSchema(schema) {
         schema.world.pos1 = new Vector(schema.world.pos1)
         schema.world.pos2 = new Vector(schema.world.pos2)
-        schema.world.door_bottom = new Vector(schema.world.door_bottom)
+        schema.world.entrance = new Vector(schema.world.entrance)
+        schema.door_pos = new Vector(schema.door_pos)
+        schema.size = new Vector(schema.size)
         this.schemas.set(schema.name, schema);
     }
 
     static fromSchema(name, bm) {
-        return new BuilgingTemplate(this.getSchema(name), bm)
+        return new BuildingTemplate(this.getSchema(name), bm)
     }
 
     static getSchema(name) {
         const resp = this.schemas.get(name)
-        if(!resp) throw 'building_schema_not_found'
+        if(!resp) {
+            debugger
+            throw `building_schema_not_found|${name}`
+        }
         return resp
     }
 
     /**
      * Create rotated variants
-     * @param {*} this 
      * @param {*} bm 
      */
-    rotateBuildingBlockVariants(bm) {
+    prepareBlocks(bm) {
 
         const all_blocks = new VectorCollector()
         const min = new Vector(Infinity, Infinity, Infinity)
@@ -73,8 +97,9 @@ export class BuilgingTemplate {
                 if(block.move.y < min.y) min.y = block.move.y
                 if(block.move.z < min.z) min.z = block.move.z
             }
+
             if(min.y != Infinity) {
-                // строим 2D карту пола строения
+                // building a 2D floor map of the building
                 for(let block of this.blocks) {
                     if(block.move.y - min.y < 2) {
                         const b = bm.fromId(block.block_id);
@@ -84,19 +109,25 @@ export class BuilgingTemplate {
                         }
                     }
                 }
+
                 // по 2D карте пола здания строим вертикальные столбы воздуха
-                for(const [vec, _] of two2map.entries()) {
-                    for(let y = 0; y < this.size.y; y++) {
-                        const air_pos = new Vector(vec.x, min.y + y, vec.z)
-                        all_blocks.set(air_pos, {block_id: 0, move: air_pos})
+                // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
+                if(this.getMeta('air_column_from_basement', true)) {
+                    for(const [vec, _] of two2map.entries()) {
+                        for(let y = 0; y < this.size.y; y++) {
+                            const air_pos = new Vector(vec.x, min.y + y, vec.z)
+                            all_blocks.set(air_pos, {block_id: 0, move: air_pos})
+                        }
                     }
                 }
+
             }
 
         }
 
-        // добавляем все блоки из схемы, кроме блоков воздуха
+        // add all blocks from the schema
         for(let block of this.blocks) {
+            // remove air blocks from the schematic
             if(block.block_id > 0) {
                 block.mat = bm.fromId(block.block_id)
                 if(block.mat.chest) {
@@ -110,51 +141,14 @@ export class BuilgingTemplate {
             }
         }
 
-        //
+        // filling the "insides" of the building with air
+        if(!this.getMeta('air_column_from_basement', true)) {
+            this._fillAir(bm, all_blocks, min)
+        }
+
+        // mark blocks on the "shell" of the building, which can be replaced with terrain blocks
         if('y' in this.size && min.y != Infinity) {
-
-            const _vec = new Vector(0, 0, 0)
-
-            const markAsCheckSolid = (pos) => {
-                const block = all_blocks.get(pos)
-                if(block && block.block_id > 0) {
-                    if(!block.mat.is_solid && !['bed', 'door'].includes(block.mat.style_name)) {
-                        // если это не сплошной, то разрешаем его заменять сплошным блоком ландшафта
-                        // (если такой будет на этой позиции)
-                        block.check_is_solid = true
-                    }
-                    return true
-                }
-                return false;
-            }
-
-            for(let y = 0; y < this.size.y; y++) {
-                for(let x = 0; x < this.size.x; x++) {
-                    // от двери назад
-                    for(let z = 0; z < this.size.z; z++) {
-                        _vec.set(x, y, z).addSelf(min)
-                        if(markAsCheckSolid(_vec)) break
-                    }
-                    // сзади к двери
-                    for(let z = this.size.z - 1; z >= 0; z--) {
-                        _vec.set(x, y, z).addSelf(min)
-                        if(markAsCheckSolid(_vec)) break
-                    }
-                }
-                //
-                for(let z = 0; z < this.size.z; z++) {
-                    // слева направо
-                    for(let x = 0; x < this.size.x; x++) {
-                        _vec.set(x, y, z).addSelf(min)
-                        if(markAsCheckSolid(_vec)) break
-                    }
-                    // справо налево
-                    for(let x = this.size.x - 1; x >= 0; x--) {
-                        _vec.set(x, y, z).addSelf(min)
-                        if(markAsCheckSolid(_vec)) break
-                    }
-                }
-            }
+            this._markReplacebleBlocks(bm, all_blocks, min)
         }
 
         // Fill chest extra_data
@@ -168,11 +162,167 @@ export class BuilgingTemplate {
             }
         }
 
+        // Add cap dirt block
+        this.createBiomeDirtCapBlocks(all_blocks, min, bm)
+
         // Call it only after DELETE_BLOCK_ID is deleted
-        this.addAirMargins(all_blocks, min, bm);
+        // TODO: Этот код предназначался для создания пустоты перед дверью,
+        // чтобы дверь не заваливало блоками земли,
+        // но однако он также модифицирует размер строения, этого нельзя делать,
+        // т.к. от этого зависит фундамент и расчеты позиции строения
+        // this.addAirMargins(all_blocks, min, bm)
+
+        return {all_blocks, min}
+
+    }
+
+    /**
+     * Create rotated variants
+     * @param {*} bm 
+     */
+    rotateBuildingBlockVariants(bm, all_blocks) {
 
         // Rotate property
-        BuilgingTemplate.rotateBlocksProperty(all_blocks, this.rot, bm, [0, 1, 2, 3]);
+        BuildingTemplate.rotateBlocksProperty(all_blocks, this.rot, bm, [0, 1, 2, 3]);
+
+    }
+
+    createBiomeDirtCapBlocks(all_blocks, min, bm) {
+        const move = new Vector(0, 0, 0)
+        const block_id = 69
+        const mat = bm.fromId(block_id)
+        for(let x = 0; x < this.size.x; x++) {
+            for(let z = 0; z < this.size.z; z++) {
+                for(let y = this.size.y; y > 0; y--) {
+                    move.copyFrom(min).addScalarSelf(x, y - 1, z)
+                    const block = all_blocks.get(move)
+                    if(block && block.block_id > 0) {
+                        if(block.mat?.is_solid) {
+                            //if(move.y >= 80) {
+                                move.y++
+                                all_blocks.set(move, {block_id, mat, move: move.clone(), candidate_for_cap_block: true})
+                            //}
+                        }
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+    _markReplacebleBlocks(bm, all_blocks, min) {
+
+        const _vec = new Vector(0, 0, 0)
+
+        const markAsCheckSolid = (pos) => {
+            const block = all_blocks.get(pos)
+            if(block && block.block_id > 0) {
+                if(!block.mat.is_solid && !['bed', 'door'].includes(block.mat.style_name)) {
+                    // если это не сплошной, то разрешаем его заменять сплошным блоком ландшафта
+                    // (если такой будет на этой позиции)
+                    block.check_is_solid = true
+                }
+                return true
+            }
+            return false;
+        }
+
+        for(let y = 0; y < this.size.y; y++) {
+            for(let x = 0; x < this.size.x; x++) {
+                // от двери назад
+                for(let z = 0; z < this.size.z; z++) {
+                    _vec.set(x, y, z).addSelf(min)
+                    if(markAsCheckSolid(_vec)) break
+                }
+                // сзади к двери
+                for(let z = this.size.z - 1; z >= 0; z--) {
+                    _vec.set(x, y, z).addSelf(min)
+                    if(markAsCheckSolid(_vec)) break
+                }
+            }
+            //
+            for(let z = 0; z < this.size.z; z++) {
+                // слева направо
+                for(let x = 0; x < this.size.x; x++) {
+                    _vec.set(x, y, z).addSelf(min)
+                    if(markAsCheckSolid(_vec)) break
+                }
+                // справо налево
+                for(let x = this.size.x - 1; x >= 0; x--) {
+                    _vec.set(x, y, z).addSelf(min)
+                    if(markAsCheckSolid(_vec)) break
+                }
+            }
+        }
+
+    }
+
+    // Заполнение "внутренностей" постройки воздухом
+    _fillAir(bm, all_blocks, min) {
+
+        const _vec = new Vector(0, 0, 0)
+        const air_block_id = 0
+        const air_block_mat = bm.fromId(air_block_id)
+
+        for(let y = 0; y < this.size.y; y++) {
+
+            for(let x = 0; x < this.size.x; x++) {
+
+                // от двери назад
+                let inside = false
+                for(let z = 0; z < this.size.z; z++) {
+                    _vec.set(x, y, z).addSelf(min)
+                    const block = all_blocks.get(_vec)
+                    if(block && block.block_id > 0) {
+                        inside = true
+                    }
+                    if(inside && !block) {
+                        all_blocks.set(_vec, {block_id: air_block_id, move: _vec.clone(), mat: air_block_mat})
+                    }
+                }
+
+                // сзади к двери
+                for(let z = this.size.z - 1; z >= 0; z--) {
+                    _vec.set(x, y, z).addSelf(min)
+                    const block = all_blocks.get(_vec)
+                    if(block && block.block_id > 0) {
+                        break
+                    }
+                    all_blocks.delete(_vec)
+                }
+
+            }
+
+            //
+            for(let z = 0; z < this.size.z; z++) {
+
+                let inside = false
+
+                // слева направо
+                for(let x = 0; x < this.size.x; x++) {
+                    _vec.set(x, y, z).addSelf(min)
+                    const block = all_blocks.get(_vec)
+                    if(block && block.block_id > 0) {
+                        inside = true
+                    }
+                    if(inside && !block) {
+                        all_blocks.set(_vec, {block_id: air_block_id, move: _vec.clone(), mat: air_block_mat})
+                    }
+                }
+
+                // справо налево
+                for(let x = this.size.x - 1; x >= 0; x--) {
+                    _vec.set(x, y, z).addSelf(min)
+                    const block = all_blocks.get(_vec)
+                    if(block && block.block_id > 0) {
+                        break
+                    }
+                    all_blocks.delete(_vec)
+                }
+
+            }
+
+        }
 
     }
 
@@ -376,10 +526,14 @@ export class BuilgingTemplate {
         //
         const rot4 = (block) => {
             for(let i = 0; i < directions.length; i++) {
-                const direction = directions[i];
-                const rb = JSON.parse(JSON.stringify(block));
-                rb.rotate.x = (rb.rotate.x - direction + 4) % 4;
-                rot[direction].push(rb);
+                const direction = directions[i]
+                const rb = JSON.parse(JSON.stringify(block))
+                if(rb.rotate.y == 0) {
+                    rb.rotate.x = (rb.rotate.x + direction + 4) % 4
+                } else {
+                    rb.rotate.x = (rb.rotate.x - direction + 4) % 4
+                }
+                rot[direction].push(rb)
             }
         }
 
@@ -389,6 +543,59 @@ export class BuilgingTemplate {
                 const rb = JSON.parse(JSON.stringify(block));
                 rb.rotate.x = (rb.rotate.x - direction * 90) % 360;
                 rot[direction].push(rb);
+            }
+        }
+
+        const rot_rails = (block) => {
+            const rot_sides = [
+                [5, 2, 4, 3],
+                [0, 1, 0, 1],
+                [9, 8, 7, 6],
+            ];
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i]
+                const rb = JSON.parse(JSON.stringify(block))
+                let new_shape = 0
+                rb.extra_data = rb.extra_data ?? {}
+                if('shape' in rb.extra_data) {
+                    const shape = rb.extra_data.shape
+                    for(let i = 0; i < rot_sides.length; i++) {
+                        const rot_row = rot_sides[i]
+                        let index = rot_row.indexOf(shape)
+                        if(index >= 0) {
+                            new_shape = rot_row[(index + direction) % rot_row.length]
+                        }
+                    }
+                }
+                rb.extra_data.shape = new_shape
+                rot[direction].push(rb)
+            }
+        }
+
+        const rot_cover = (block) => {
+            // TODO: Strange sides order, but working correct
+            const sides = ['north', 'west', 'south', 'east']
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i]
+                const rb = JSON.parse(JSON.stringify(block))
+                rb.extra_data = {}
+                for(let k in block.extra_data) {
+                    switch(k) {
+                        case 'east':
+                        case 'west':
+                        case 'north':
+                        case 'south': {
+                            const new_index = sides.indexOf(k) + direction
+                            const new_side_name = sides[new_index % sides.length]
+                            rb.extra_data[new_side_name] = block.extra_data[k]
+                            break
+                        }
+                        default: {
+                            rb.extra_data[k] = JSON.parse(JSON.stringify(block.extra_data[k]))
+                        }
+                    }
+                }
+                rot[direction].push(rb)
             }
         }
 
@@ -409,6 +616,9 @@ export class BuilgingTemplate {
             if(['bed'].includes(mat.style_name)) {
                 rot2(block);
 
+            } else if(['cover'].includes(mat.style_name)) {
+                rot_cover(block);
+
             } else if(mat.tags.includes('rotate_x8')) {
                 rotx8(block);
 
@@ -423,6 +633,9 @@ export class BuilgingTemplate {
 
             } else if(['armor_stand'].includes(mat.style_name)) {
                 rot3(block);
+
+            } else if(['rails'].includes(mat.style_name)) {
+                rot_rails(block);
 
             } else if(mat.can_rotate && block.rotate) {
                 rot2(block);

@@ -4,12 +4,13 @@ import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/
 import {ServerClient} from "../www/js/server_client.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
 import {FluidWorldQueue} from "../www/js/fluid/FluidWorldQueue.js";
+import {ChunkDataTexture} from "../www/js/light/ChunkDataTexture.js";
 import {ItemWorld} from "./ItemWorld.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
 import { WorldPortal } from "../www/js/portal.js";
-import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 async function waitABit() {
     return true;
@@ -19,6 +20,7 @@ export class ServerChunkManager {
 
     constructor(world, random_tickers) {
         this.world                  = world;
+        this.worldId                = 'SERVER';
         this.all                    = new VectorCollector();
         this.chunk_queue_load       = new VectorCollector();
         this.chunk_queue_gen_mobs   = new VectorCollector();
@@ -44,6 +46,12 @@ export class ServerChunkManager {
         this.fluidWorld.queue = new FluidWorldQueue(this.fluidWorld);
         this.itemWorld = new ItemWorld(this);
         this.initRandomTickers(random_tickers);
+        this.use_light              = true;
+        this.chunkDataTexture       = new ChunkDataTexture();
+        this.lightProps = {
+            texFormat: 'rgba8unorm',
+            depthMul: 1,
+        }
     }
 
     // Init worker
@@ -59,14 +67,14 @@ export class ServerChunkManager {
             switch(cmd) {
                 case 'world_inited': {
                     this.worker_inited = true;
-                    this.postWorkerMessage(['buildingSchemaAdd', {list: Array.from(BuilgingTemplate.schemas.values())}])
+                    this.postWorkerMessage(['buildingSchemaAdd', {list: Array.from(BuildingTemplate.schemas.values())}])
                     this.resolve_worker();
                     break;
                 }
                 case 'blocks_generated': {
                     let chunk = this.get(args.addr);
                     if(chunk) {
-                        chunk.onBlocksGenerated(args);
+                        chunk.readyPromise = chunk.onBlocksGenerated(args);
                     }
                     break;
                 }
@@ -96,6 +104,44 @@ export class ServerChunkManager {
         const settings = {texture_pack: null};
         this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
         return promise;
+    }
+
+    onLightWorkerMessage(data) {
+        const cmd = data[0];
+        const args = data[1];
+        switch(cmd) {
+            case 'light_generated': {
+                let chunk = this.getChunk(args.addr);
+                // console.log(`Got light for ${args.addr}`);
+                if (!chunk) {
+                    chunk = this.unloading_chunks.get(args.addr);
+                }
+                if(chunk) {
+                    if (chunk.uniqId !== args.uniqId) {
+                        // This happens occasionally after quick F8.
+                        break;
+                    }
+                    chunk.light.onGenerated(args);
+                }
+                break;
+            }
+            case 'ground_level_estimated': {
+                that.groundLevelEastimtion = args;
+                break;
+            }
+        }
+    }
+
+    async initWorkers(worldId) {
+        this.worldId = worldId;
+        this.lightWorker = Qubatch.lightWorker;
+    }
+
+    postLightWorkerMessage(msg) {
+        if (this.use_light) {
+            msg.unshift(this.worldId);
+            this.lightWorker.postMessage(msg);
+        }
     }
 
     // postWorkerMessage
@@ -164,6 +210,7 @@ export class ServerChunkManager {
         // 4.
         if(this.disposed_chunk_addrs.length > 0) {
             this.postWorkerMessage(['destructChunk', this.disposed_chunk_addrs]);
+            this.postLightWorkerMessage(['destructChunk', this.disposed_chunk_addrs]);
             this.disposed_chunk_addrs.length = 0;
         }
     }
@@ -174,6 +221,10 @@ export class ServerChunkManager {
         const world_light = this.world.getLight();
         const check_count = Math.floor(this.world.rules.getValue('randomTickSpeed') * 2.5);
         let rtc = 0;
+
+        if(check_count == 0) {
+            return
+        }
 
         if(!this.random_chunks || tick_number % 20 == 0)  {
             this.random_chunks = [];
@@ -225,13 +276,17 @@ export class ServerChunkManager {
         let cnt = 0;
         for (let i = 0; i < invChunks.length; i++) {
             const chunk = invChunks[i];
-            if (chunk.connections.size === 0 && chunk.load_state <= CHUNK_STATE.READY) {
-                invChunks[cnt++] = chunk;
-
-                this.unloading_chunks.add(chunk.addr, chunk);
-                this.remove(chunk.addr);
-                this.removeTickingChunk(chunk.addr);
-                chunk.onUnload();
+            if (chunk.shouldUnload()) {
+                if (chunk.load_state <= CHUNK_STATE.LOADING_DATA) {
+                    // we didnt even load from database yet
+                    chunk.dispose();
+                } else if (chunk.load_state === CHUNK_STATE.READY) {
+                    invChunks[cnt++] = chunk;
+                    this.unloading_chunks.add(chunk.addr, chunk);
+                    this.remove(chunk.addr);
+                    this.removeTickingChunk(chunk.addr);
+                    chunk.readyPromise = chunk.readyPromise.then(() => chunk.onUnload());
+                }
             }
         }
         invChunks.length = cnt;
@@ -343,7 +398,15 @@ export class ServerChunkManager {
                         player.nearby_chunk_addrs.set(addr, addr);
                         let chunk = this.get(addr);
                         if(!chunk) {
-                            chunk = new ServerChunk(this.world, addr);
+                            chunk = this.unloading_chunks.get(item.addr)
+                            if (chunk) {
+                                // RESTORE!!!
+                                this.unloading_chunks.delete(chunk);
+                                chunk.load_state = CHUNK_STATE.LOADING_BLOCKS;
+                                chunk.readyPromise = chunk.readyPromise.then(() => chunk.onRestore());
+                            } else {
+                                chunk = new ServerChunk(this.world, addr);
+                            }
                             this.add(chunk);
                         }
                         chunk.addPlayer(player);
@@ -414,9 +477,9 @@ export class ServerChunkManager {
         return resp;
     }
 
-    chunkUnloaded(addr) {
+    chunkUnloaded({addr, uniqId}) {
         this.unloading_chunks.delete(addr);
-        this.disposed_chunk_addrs.push(addr);
+        this.disposed_chunk_addrs.push({addr, uniqId});
     }
 
     // Send command to server worker

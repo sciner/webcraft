@@ -35,6 +35,7 @@ export class Brain extends FSMBrain {
         const actions = new WorldAction();
         actions.putInBucket(BLOCK.BUCKET_MILK);
         world.actions_queue.add(actor, actions);
+        return false;
     }
     
     // Если убили моба

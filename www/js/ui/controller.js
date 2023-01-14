@@ -298,7 +298,8 @@ let gameCtrl = async function($scope, $timeout) {
             beautiful_leaves: true,
             mipmap: false,
             mobs_draw_debug_grid: false,
-            chunks_draw_debug_grid: false
+            chunks_draw_debug_grid: false,
+            cluster_draw_debug_grid: false
         },
         lightMode: {
             list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
@@ -488,7 +489,7 @@ let gameCtrl = async function($scope, $timeout) {
             if(!world.info) {
                 debugger;
             }
-            const player = new Player(options);
+            const player = new Player(options, Qubatch.render);
             player.JoinToWorld(world, () => {
                 Qubatch.Started(player);
             });

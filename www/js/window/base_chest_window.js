@@ -1,6 +1,6 @@
 import { ArrayHelpers, ObjectHelpers, Vector } from "../helpers.js";
 import { BLOCK } from "../blocks.js";
-import { Button, Label, Window } from "../../tools/gui/wm.js";
+import { Button, Label } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
@@ -11,21 +11,19 @@ import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS,
     INVENTORY_CHANGE_CLOSE_WINDOW } from "../inventory.js";
 import { ChestHelpers, isBlockRoughlyWithinPickatRange } from "../block_helpers.js"
 import { Lang } from "../lang.js";
+import { BaseInventoryWindow } from "./base_inventory_window.js"
 
-export class BaseChestWindow extends Window {
+export class BaseChestWindow extends BaseInventoryWindow {
 
     constructor(x, y, w, h, id, title, text, inventory, options) {
 
-        super(x, y, w, h, id, title, text);
+        super(x, y, w, h, id, title, text, inventory);
 
         this.options = options;
         this.width *= this.zoom;
         this.height *= this.zoom;
         this.style.background = {...this.style.background, ...options.background}
 
-        this.world      = inventory.player.world;
-        this.server     = this.world.server;
-        this.inventory  = inventory;
         this.firstLoading  = false;
         this.secondLoading = false;
         this.timeout    = null;
@@ -167,10 +165,9 @@ export class BaseChestWindow extends Window {
             const prevDragItem = Qubatch.hud.wm.drag.getItem();
             const newDargItem = inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             if (newDargItem) {
-                if (prevDragItem == null || newDargItem.id != prevDragItem.id) {
-                    const anySlot = this.inventory_slots[0]; // it's used only for getting size and crawing
-                    inventory.setDragItem(anySlot, newDargItem, Qubatch.hud.wm.drag, anySlot.width, anySlot.height);
-                }
+                // update it, in case it changed
+                const anySlot = this.inventory_slots[0]; // it's used only for getting size and drawing
+                inventory.setDragItem(anySlot, newDargItem, Qubatch.hud.wm.drag, anySlot.width, anySlot.height);
             } else if (prevDragItem) {
                 Qubatch.hud.wm.drag.clear();
             }
@@ -370,7 +367,10 @@ export class BaseChestWindow extends Window {
                 // do we really need it?
                 this.inventory.player.stopAllActivity();
             }
-            this.lbl1.setText(this.options.title);
+            const title = this.world.getBlock(this.info.pos)?.extra_data?.label
+                ?? (this.secondInfo && this.world.getBlock(this.secondInfo.pos)?.extra_data?.label)
+                ?? this.options.title;
+            this.lbl1.setText(title);
         }
         // copy data slots to the UI slots
         const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo, this.chest.slots.length);

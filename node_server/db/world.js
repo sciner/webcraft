@@ -756,9 +756,10 @@ export class DBWorld {
     async flushWorld() {
         await this.TransactionBegin()
         try {
-            for(let tablename of ['world_chunks_fluid', 'world_modify', 'world_modify_chunks', 'drop_item', 'entity', 'painting', 'portal', 'teleport_points', 'chunk']) {
+            for(let tablename of ['user_quest', 'world_chunks_fluid', 'world_modify', 'world_modify_chunks', 'drop_item', 'entity', 'painting', 'portal', 'teleport_points', 'chunk']) {
                 this.conn.run(`DELETE FROM ${tablename}`);
             }
+            this.conn.run('UPDATE world SET dt = :dt, add_time = :add_time', {':dt': unixTime(), ':add_time': 12000})
             await this.TransactionCommit()
         } catch(e) {
             await this.TransactionRollback()

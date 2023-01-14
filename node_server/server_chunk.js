@@ -11,6 +11,7 @@ import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../w
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
+import { ChunkLight } from "../www/js/light/ChunkLight.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -113,6 +114,7 @@ export class ServerChunk {
 
     constructor(world, addr) {
         this.world          = world;
+        this.chunkManager   = world.chunks;
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.addr           = new Vector(addr);
         this.coord          = this.addr.mul(this.size);
@@ -139,6 +141,8 @@ export class ServerChunk {
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
         this.blocksUpdatedByListeners = [];
         this.readyPromise  = Promise.resolve();
+
+        this.light = new ChunkLight(this);
     }
 
     isReady() {
@@ -239,7 +243,7 @@ export class ServerChunk {
             return this.preq.set(player.session.user_id, player);
         }
         this.sendToPlayers([player.session.user_id]);
-        if(this.load_state > CHUNK_STATE.LOADING_BLOCKS) {
+        if(this.load_state > CHUNK_STATE.LOADING_MOBS) {
             this.sendMobs([player.session.user_id]);
             this.sendDropItems([player.session.user_id]);
         }
@@ -266,7 +270,7 @@ export class ServerChunk {
                 this.world.sendSelected(packets, [player.session.user_id], []);
             }
         }
-        if(this.connections.size < 1) {
+        if(this.shouldUnload()) {
             // помечает чанк невалидным, т.к. его больше не видит ни один из игроков
             // в следующем тике мира, он будет выгружен
             this.world.chunks.invalidate(this);
@@ -401,6 +405,7 @@ export class ServerChunk {
             }
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks.light = this.light;
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
@@ -410,9 +415,26 @@ export class ServerChunk {
             this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
             this._preloadFluidBuf = null;
         }
+        this.light.init();
+        await this.onRestore(args);
+    }
+
+    async onRestore(blockGenArgs = {ticking_blocks: []}) {
+        const chunkManager = this.getChunkManager();
+        if (!chunkManager) {
+            return;
+        }
+        if (this.load_state !== CHUNK_STATE.LOADING_BLOCKS) {
+            //WTF?
+            return;
+        }
+        if (!this.dataChunk) {
+            // real restore
+            chunkManager.dataWorld.addChunk(this);
+        }
         chunkManager.dataWorld.syncOuter(this);
+        this.setState(CHUNK_STATE.LOADING_MOBS);
         //
-        this.testing = 1;
         this.randomTickingBlockCount = 0;
         for(let i = 0; i < this.tblocks.id.length; i++) {
             const block_id = this.tblocks.id[i];
@@ -429,14 +451,11 @@ export class ServerChunk {
         }
         this.mobs = await mobPrpmise;
         this.drop_items = await drop_itemsPromise;
-        // fluid
-        if(this.load_state >= CHUNK_STATE.UNLOADING) {
-            return;
-        }
-        this.fluid.queue.init();
         this.setState(CHUNK_STATE.READY);
+        // fluid
+        this.fluid.queue.init();
         // Scan ticking blocks
-        this.scanTickingBlocks(args.ticking_blocks);
+        this.scanTickingBlocks(blockGenArgs.ticking_blocks);
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0) {
             if(this.mobs.size > 0) {
@@ -450,6 +469,22 @@ export class ServerChunk {
         if (this.delayedCalls.length) {
             chunkManager.chunks_with_delayed_calls.add(this);
         }
+
+        if (this.shouldUnload()) {
+            // TODO : wait a bit, dont unload yet?
+            chunkManager.invalidate(this);
+        }
+    }
+
+    shouldUnload() {
+        if (this.connections.size > 0) {
+            return false
+        }
+        if (this.load_state === CHUNK_STATE.LOADING_MOBS
+            || this.load_state >= CHUNK_STATE.UNLOADING) {
+            return false;
+        }
+        return true;
     }
 
     //
@@ -503,7 +538,7 @@ export class ServerChunk {
     }
 
     getChunkManager() {
-        return this.world.chunks;
+        return this.chunkManager;
     }
 
     // It's slightly faster than getBlock().
@@ -1091,7 +1126,6 @@ export class ServerChunk {
     }
 
     onFluidEvent(pos, isFluidChangeAbove) {
-
         const that = this;
         function processResult(res, calleeId) {
             if (typeof res === 'number') {
@@ -1160,21 +1194,23 @@ export class ServerChunk {
     }
 
     // Before unload chunk
-    onUnload() {
+    async onUnload() {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
+            return;
+        }
+        if (this.load_state !== CHUNK_STATE.READY) {
+            //WTF?
             return;
         }
         this.setState(CHUNK_STATE.UNLOADING);
         if (this.delayedCalls.length) {
             chunkManager.chunks_with_delayed_calls.delete(this);
         }
+
         const promises = [];
-        if (this.readyPromise) {
-            promises.push(this.readyPromise);
-        }
         if (this.dataChunk) {
-            promises.push(chunkManager.world.db.fluid.flushChunk(this))
+            promises.push(chunkManager.world.db.fluid.flushChunk(this.tblocks.fluid))
         }
         // Unload mobs
         if(this.mobs.size > 0) {
@@ -1191,14 +1227,17 @@ export class ServerChunk {
         if (this.delayedCalls.length) {
             promises.push(this.world.db.saveChunkDelayedCalls(this));
         }
-        this.readyPromise = Promise.all(promises).then(() => {
-            if (this.load_state === CHUNK_STATE.UNLOADING) {
-                this.load_state = CHUNK_STATE.DISPOSED;
-                chunkManager.chunkUnloaded(this.addr);
-            }
-        });
+        await Promise.all(promises);
+        if (this.load_state === CHUNK_STATE.UNLOADING) {
+            this.dispose();
+        }
     }
 
+    dispose() {
+        this.setState(CHUNK_STATE.DISPOSED);
+        this.light.dispose();
+        this.chunkManager.chunkUnloaded({ addr: this.addr, uniqId: this.uniqId});
+    }
 }
 
 const tmp_posVector         = new Vector();

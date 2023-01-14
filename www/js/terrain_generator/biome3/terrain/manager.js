@@ -3,12 +3,11 @@ import { alea } from "../../default.js";
 import { Vector, VectorCollector } from "../../../helpers.js";
 import { BLOCK } from '../../../blocks.js';
 
-import { getAheadMove } from "../../cluster/vilage.js";
-
 import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 import { Aquifera, AquiferaParams } from "../aquifera.js";
+import { getAheadMove } from "../../cluster/building_cluster_base.js";
 
 export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
 export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
@@ -573,45 +572,47 @@ export class TerrainMapManager2 {
 
         // 3. Find door Y position for cluster buildings
         if(!map.cluster.is_empty && map.cluster.buildings) {
+
             for(const [_, building] of map.cluster.buildings.entries()) {
-                if(building.door_bottom && building.door_bottom.y == Infinity) {
 
-                    xyz.copyFrom(building.entrance).addSelf(getAheadMove(building.door_direction))
+                if(!building.entrance || building.entrance.y != Infinity) {
+                    continue
+                }
 
-                    const river_point = this.makeRiverPoint(xyz.x, xyz.z);
-                    let free_height = 0;
-                    const preset = this.getPreset(xyz);
-                    const cell = {river_point, preset};
+                xyz.copyFrom(building.ahead_entrance)
 
-                    xyz.y = map.cluster.y_base;
-                    this.noise3d.generate4(xyz, doorSearchSize);
+                const river_point = this.makeRiverPoint(xyz.x, xyz.z);
+                let free_height = 0;
+                const preset = this.getPreset(xyz);
+                const cell = {river_point, preset};
 
-                    for(let i = 0; i < 2; i++) {
-                        if(building.door_bottom.y != Infinity) {
-                            break;
+                xyz.y = map.cluster.y_base
+                this.noise3d.generate4(xyz, doorSearchSize)
+
+                for(let y = doorSearchSize.y - 1; y >= 0; y--) {
+
+                    xyz.y = map.cluster.y_base + y
+                    const {density} = this.calcDensity(xyz, cell, _density_params, map)
+
+                    // если это камень
+                    if(density > DENSITY_AIR_THRESHOLD) {
+                        if(free_height >= BUILDING_MIN_Y_SPACE) {
+                            // set Y for door
+                            building.setY(xyz.y)
+                            // set building cell for biome info
+                            // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
+                            // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
+                            const biome = this.calcBiome(xyz)
+                            building.setBiome(biome, biome.temperature, biome.humidity)
+                            break
                         }
-                        const biome = this.calcBiome(xyz);
-                        for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
-                            xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
-                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell, _density_params, map);
-                            // если это камень
-                            if(density > DENSITY_AIR_THRESHOLD) {
-                                if(free_height >= BUILDING_MIN_Y_SPACE) {
-                                    // set Y for door
-                                    building.setY(xyz.y + 1);
-                                    // set building cell for biome info
-                                    // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
-                                    // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-                                    building.setBiome(biome, biome.temperature, biome.humidity);
-                                    break;
-                                }
-                                free_height = 0;
-                            }
-                            free_height++;
-                        }
+                        free_height = 0
                     }
 
+                    free_height++
+
                 }
+
             }
         }
 

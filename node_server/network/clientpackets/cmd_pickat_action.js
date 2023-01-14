@@ -25,11 +25,8 @@ export default class packet_reader {
         if(player.state.sitting || player.state.lies) {
             return true;
         }
-        if (packet.data.interractMobID) {
-            const mob = world.mobs.get(packet.data.interractMobID);
-            if (mob) {
-                mob.punch(player, packet.data);
-            }
+        if (packet.data.interactMobID || packet.data.interactPlayerID) {
+            player.onAttackEntity(packet.data.button_id, packet.data.interactMobID, packet.data.interactPlayerID);
         } else {
             const player_info = {
                 radius:     0.7,

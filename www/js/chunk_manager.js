@@ -45,11 +45,12 @@ export class ChunkManager {
 
         ChunkManager.instance = this;
 
-        this.#world                 = world;
-        this.chunks                 = new VectorCollectorFlat();
-        this.chunks_prepare         = new VectorCollector();
-        this.block_sets             = 0;
-        this.draw_debug_grid        = world.settings.chunks_draw_debug_grid;
+        this.#world                     = world;
+        this.chunks                     = new VectorCollectorFlat();
+        this.chunks_prepare             = new VectorCollector();
+        this.block_sets                 = 0;
+        this.draw_debug_grid            = world.settings.chunks_draw_debug_grid;
+        this.cluster_draw_debug_grid    = world.settings.cluster_draw_debug_grid;
 
         this.lightPool              = null;
         this.lightProps = {
@@ -93,13 +94,15 @@ export class ChunkManager {
             };
         }
 
+        this.worldId = 'CLIENT';
+
         const that = this;
 
         // Destruct chunks queue
         this.destruct_chunks_queue = {
             list: [],
-            add(addr) {
-                this.list.push(addr.clone());
+            add({addr, uniqId}) {
+                this.list.push({addr: addr.clone(), uniqId});
             },
             clear: function() {
                 this.list = [];
@@ -241,8 +244,9 @@ export class ChunkManager {
         }
         // Light worker messages receiver
         this.lightWorker.onmessage = function(e) {
-            let cmd = e.data[0];
-            let args = e.data[1];
+            let worldId = e.data[0];
+            let cmd = e.data[1];
+            let args = e.data[2];
             switch(cmd) {
                 case 'worker_inited': {
                     that.worker_inited = --that.worker_counter === 0;
@@ -255,7 +259,7 @@ export class ChunkManager {
                             // This happens occasionally after quick F8.
                             break;
                         }
-                        chunk.onLightGenerated(args);
+                        chunk.light.onGenerated(args);
                     }
                     break;
                 }
@@ -350,7 +354,7 @@ export class ChunkManager {
     setLightTexFormat(texFormat, hasNormals) {
         this.lightProps.texFormat = texFormat;
         this.lightProps.depthMul = hasNormals ? 2 : 1;
-        this.lightWorker.postMessage(['initRender', { texFormat, hasNormals }]);
+        this.lightWorker.postMessage([this.worldId, 'initRender', { texFormat, hasNormals }])
     }
 
     /**
@@ -573,6 +577,7 @@ export class ChunkManager {
     // postLightWorkerMessage
     postLightWorkerMessage(data) {
         if(this.use_light) {
+            data.unshift(this.worldId);
             this.lightWorker.postMessage(data);
         }
     }
@@ -817,10 +822,22 @@ export class ChunkManager {
         Qubatch.setSetting('chunks_draw_debug_grid', this.draw_debug_grid);
     }
 
+    // Toggle cluster grid
+    toggleDebugClusterGrid() {
+        this.cluster_draw_debug_grid = !this.cluster_draw_debug_grid;
+        Qubatch.setSetting('cluster_draw_debug_grid', this.cluster_draw_debug_grid);
+    }
+
     // Set debug grid visibility
     setDebugGridVisibility(value) {
         this.draw_debug_grid = !value;
         this.toggleDebugGrid();
+    }
+
+    // Set debug cluster grid visibility
+    setDebugClusterGridVisibility(value) {
+        this.cluster_draw_debug_grid = !value;
+        this.toggleDebugClusterGrid();
     }
 
 }

@@ -6,7 +6,8 @@ import {ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
 import { Vector } from "./helpers.js";
 import { ChestHelpers } from "./block_helpers.js";
-import { BuilgingTemplate } from "./terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
+import { WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 
 /**
  * World generation unfo passed from server
@@ -119,7 +120,7 @@ export class World {
             this.server.AddCmdListener([ServerClient.CMD_BUILDING_SCHEMA_ADD], (cmd) => {
                 this.chunkManager.postWorkerMessage(['buildingSchemaAdd', cmd.data]);
                 for(let schema of cmd.data.list) {
-                    BuilgingTemplate.addSchema(schema);
+                    BuildingTemplate.addSchema(schema);
                 }
             });
 
@@ -306,6 +307,10 @@ export class World {
     onBlockDestroy(pos, item) {
         // Destroy beacon ray
         Qubatch.render.meshes.remove('beacon/' + pos.toHash(), this);
+    }
+
+    isBuildingWorld() {
+        return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
     }
 
     get chunks() {

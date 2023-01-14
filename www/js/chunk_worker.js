@@ -3,9 +3,13 @@ let Vector              = null;
 let Helpers             = null;
 let getChunkAddr        = null;
 let VectorCollector     = null;
-let BuilgingTemplate    = null;
+let BuildingTemplate    = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
+
+/**
+ * @type { import("./worker/world.js").WorkerWorldManager }
+*/
 let worlds              = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
@@ -57,7 +61,7 @@ async function preLoad () {
     });
 
     await import('./terrain_generator/cluster/building_template.js').then(module => {
-        BuilgingTemplate = module.BuilgingTemplate;
+        BuildingTemplate = module.BuildingTemplate;
     });
 
     await import('./resources.js').then(async module => {
@@ -91,13 +95,7 @@ async function preLoad () {
 /**
 * @param {string} terrain_type
 */
-async function initWorld(
-    generator,
-    world_seed,
-    world_guid,
-    settings,
-    cache
-) {
+async function initWorld(generator, world_seed, world_guid, settings, cache) {
     if (cache) {
         Helpers.setCache(cache);
     }
@@ -162,6 +160,7 @@ async function onMessageFunc(e) {
                 }
                 if(from_cache) {
                     const chunk = world.chunks.get(item.addr);
+                    chunk.uniqId = item.uniqId;
                     const non_zero = chunk.tblocks.refreshNonZero();
                     worker.postMessage(['blocks_generated', {
                         key:            chunk.key,
@@ -179,8 +178,8 @@ async function onMessageFunc(e) {
         }
         case 'destructChunk': {
             console.debug('Worker destructChunk:', args.length);
-            for(let addr of args) {
-                world.destructChunk(addr);
+            for(let props of args) {
+                world.destructChunk(props);
             }
             break;
         }
@@ -282,7 +281,7 @@ async function onMessageFunc(e) {
         }
         case 'buildingSchemaAdd': {
             for(let schema of args.list) {
-                BuilgingTemplate.addSchema(schema)
+                BuildingTemplate.addSchema(schema)
             }
             break
         }

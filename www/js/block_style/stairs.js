@@ -23,7 +23,7 @@ export default class style {
         const f = !!expanded ? .001 : 0;
         return style
             .calculate(tblock, tblock.posworld, neighbours, world.chunkManager)
-            .getShapes(new Vector(tblock.posworld).multiplyScalar(-1), f)
+            .getShapes(new Vector(tblock.posworld).multiplyScalarSelf(-1), f)
     }
 
     // Return calculated info
