@@ -62,6 +62,13 @@ export class ClusterStructures extends ClusterBuildingBase {
             const door_direction = Math.floor(this.randoms.double() * 4)
             addStructure('house_dwarf', coord, door_direction)
 
+
+        } else if(this.randoms.double() < .667) {
+
+            const coord = this.coord.clone().addScalarSelf(128, 0, 128)
+            const door_direction = Math.floor(this.randoms.double() * 4)
+            addStructure('underearth_rooms', coord, door_direction)
+    
         } else {
 
             for(let x = 32; x <= 224; x += 64) {

@@ -78,7 +78,6 @@ export class WorldEditBuilding {
             throw 'error_invalid_world';
         }
 
-        const we = this.worldedit_instance
         const name = args[2]
 
         // getbuilding by name
@@ -87,7 +86,7 @@ export class WorldEditBuilding {
         }
 
         // make quboid info
-        const qi = we.getCuboidInfo(player)
+        const qi = this.worldedit_instance.getCuboidInfo(player)
 
         const pos1_temp = new Vector(qi.pos1)
         const pos2_temp = new Vector(
@@ -150,7 +149,6 @@ export class WorldEditBuilding {
             throw 'error_invalid_world';
         }
 
-        const we = this.worldedit_instance
         const name = args[2]
 
         // getbuilding by name

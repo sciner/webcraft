@@ -204,23 +204,23 @@ export default class WorldEdit {
     }
 
     /**
-     * @param {*} qi 
+     * @param {*} quboid 
      * @param {Vector} pos
      */
-    async copy(qi, pos, world) {
+    async copy(quboid, pos, world) {
         let blocks = new VectorCollector();
         let chunk_addr = new Vector(0, 0, 0);
         let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
         let bpos = new Vector(0, 0, 0);
         let chunk = null;
         const fluids = [];
-        for(let x = 0; x < qi.volx; x++) {
-            for(let y = 0; y < qi.voly; y++) {
-                for(let z = 0; z < qi.volz; z++) {
+        for(let x = 0; x < quboid.volx; x++) {
+            for(let y = 0; y < quboid.voly; y++) {
+                for(let z = 0; z < quboid.volz; z++) {
                     bpos.set(
-                        qi.pos1.x + x * qi.signx,
-                        qi.pos1.y + y * qi.signy,
-                        qi.pos1.z + z * qi.signz
+                        quboid.pos1.x + x * quboid.signx,
+                        quboid.pos1.y + y * quboid.signy,
+                        quboid.pos1.z + z * quboid.signz
                     );
                     chunk_addr = getChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
@@ -262,10 +262,10 @@ export default class WorldEdit {
             }
         }
         return {
-            quboid: qi,
-            blocks: blocks,
+            quboid,
+            blocks,
             player_pos: pos.clone(),
-            fluids: fluids
+            fluids
         };
     }
 

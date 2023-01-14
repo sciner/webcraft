@@ -842,6 +842,29 @@
                 "draw_natural_basement": false,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "underearth_rooms",
+            "pos1": {
+                "x": -236,
+                "y": -20,
+                "z": 55
+            },
+            "pos2": {
+                "x": -283,
+                "y": 7,
+                "z": 8
+            },
+            "entrance": {
+                "x": -259,
+                "y": 1,
+                "z": 55
+            },
+            "meta": {
+                "dt": "2023-01-14T19:24:39.057Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
         }
     ]
 }
