@@ -45,12 +45,12 @@
 					"texture": 0
 				},
 				"up": {
-					"uv": [16.5, 15.5, 15, 14],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				},
 				"down": {
-					"uv": [17.5, 6, 16, 7.5],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
@@ -165,12 +165,12 @@
 					"texture": 0
 				},
 				"up": {
-					"uv": [4, 17, 2, 15],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				},
 				"down": {
-					"uv": [6, 15, 4, 17],
-					"texture": 0
+					"uv": [0, 0, 0, 0],
+					"texture": null
 				}
 			},
 			"type": "cube",
