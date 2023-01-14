@@ -20,6 +20,7 @@ export class SchematicReader {
         this.replaced_names = {
             BARRIER:    'AIR',
             CAVE_AIR:   'AIR',
+            SPAWNER:    'MOB_SPAWN',
             LAVA:       'STILL_LAVA',
             WATER:      'STILL_WATER',
             WHEAT:      'WHEAT_SEEDS',
@@ -555,9 +556,11 @@ export class SchematicReader {
     parseChestPropsExtraData(props) {
         const res = { can_destroy: true, slots: {} };
         if (props.type) {
-            res.type = props.type;
+            if(['left', 'right'].includes(res.type)) {
+                res.type = props.type
+            }
         }
-        return res;
+        return res
     }
 
     parseChestExtraData(entities, props) {

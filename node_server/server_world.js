@@ -200,6 +200,18 @@ export class ServerWorld {
                     }
                 }
             }
+            // fluids
+            if('fluids' in schema && schema.fluids.length > 0) {
+                const fluids = Array.from(schema.fluids)
+                const y = schema.world.entrance.y - schema.door_pos.y - 1
+                for(let i = 0; i < fluids.length; i += 4) {
+                    fluids[i + 0] = schema.world.entrance.x - fluids[i + 0]
+                    fluids[i + 1] = schema.world.pos1.y + fluids[i + 1] - y
+                    fluids[i + 2] = schema.world.entrance.z - fluids[i + 2]
+                }
+                // TODO: need to store fluids in DB
+                // let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
+            }
             // fill blocks
             for(let b of schema.blocks) {
                 const item = {id: b.block_id};

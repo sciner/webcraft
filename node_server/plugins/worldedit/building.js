@@ -203,6 +203,18 @@ export class WorldEditBuilding {
             delete(building.rot)
         }
 
+        // store fluids
+        building.fluids = []
+        const fluids = copy_data.fluids
+        if(fluids && Array.isArray(fluids) && fluids.length > 0) {
+            building.fluids = Array.from(fluids)
+            for(let i = 0; i < building.fluids.length; i += 4) {
+                building.fluids[i + 0] = rel_entrance.x - fluids[i + 0]
+                building.fluids[i + 1] = fluids[i + 1] - rel_entrance.y + building.door_pos.y - (basement_y - pos1.y)
+                building.fluids[i + 2] = rel_entrance.z - fluids[i + 2]
+            }
+        }
+
         // convert blocks to building blocks
         for(let [bpos, item] of copy_data.blocks.entries()) {
             if([209, 210].includes(item.id)) continue;
