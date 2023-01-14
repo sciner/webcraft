@@ -287,6 +287,12 @@ export class DBGame {
                 throw 'error_player_exists';
             }
             lastID = row.lastID;
+        } else {
+            if(lastID == 1) {
+                await this.conn.run('UPDATE user SET flags = 256 WHERE _rowid_ = :id', {
+                    ':id': lastID
+                })
+            }
         }
         //
         await this.JoinWorld(lastID, "demo")

@@ -49,8 +49,10 @@ export class ServerAPI {
 
                 // check admin rights for specific world
                 if([config.building_schemas_world_name].includes(params.title)) {
-                    const session = await ServerAPI.getDb().GetPlayerSession(session_id);
-                    ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                    const session = await ServerAPI.getDb().GetPlayerSession(session_id)
+                    ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN)
+                    params.game_mode = 'creative'
+                    params.generator = { id: 'flat', options: {} }
                 }
 
                 const title       = params.title;
