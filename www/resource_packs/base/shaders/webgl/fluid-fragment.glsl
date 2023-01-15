@@ -76,6 +76,14 @@ float linearizeDepth(float z) {
     return (2.0 * near) / (far + near - z * (far - near));
 }
 
+vec4 Trace(vec3 ro, vec3 rd) {
+    vec4 result = vec4(0.0);
+
+    const STEPS = 10.0;
+
+    return result;
+}
+
 void main() {
 
     vec2 size = vec2(textureSize(u_texture, 0));
