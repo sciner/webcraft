@@ -9,16 +9,12 @@ import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
-import { createNoise2D } from '../../vendors/simplex-noise.js';
-import { impl as alea } from '../../vendors/alea.js';
-import {EnchantShaderNoise} from "../math/EnchantShaderNoise.js";
+import { EnchantShaderNoise } from "../math/EnchantShaderNoise.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
 const DOUBLE_CLICK_TIME = 200.0;
 
-const noiseRandom = new alea('enchantments_animations')
-const noise2d = createNoise2D(noiseRandom.double);
 const enchantShader = new EnchantShaderNoise();
 
 export class HelpSlot extends Label {
@@ -188,62 +184,10 @@ export class CraftTableSlot extends Label {
         const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
         const dest_icon_size = 40 * zoom;
 
-        // if has enchantments
-        if(!!(item?.extra_data?.enchantments ?? false)) {
-
-            if(this.item_prev != item) {
-
-                this.item_prev = item
-
-                // TODO: clear prev data from this.item_canvas
-
-                const scnv = document.createElement('canvas')
-                scnv.width = icon.width
-                scnv.height = icon.height
-                const sctx = scnv.getContext('2d')
-
-                const scnv2 = document.createElement('canvas')
-                scnv2.width = icon.width
-                scnv2.height = icon.height
-                const sctx2 = scnv2.getContext('2d')
-                sctx2.drawImage(image, icon.x, icon.y, icon.width, icon.height, 0, 0, icon.width, icon.height)
-
-                const imageData = sctx2.getImageData(0, 0, icon.width, icon.height)
-                const orig_pixels_data = Array.from(imageData.data)
-
-                this.item_canvas = {
-                    scnv,
-                    sctx,
-                    scnv2,
-                    sctx2,
-                    imageData,
-                    orig_pixels_data
-                }
-            }
-
-            const imageData = this.item_canvas.imageData
-            const orig_pixels_data = this.item_canvas.orig_pixels_data
-            // const imageData = this.item_canvas.sctx2.getImageData(0, 0, icon.width, icon.height)
-
-            // Copy result to source
-            const pixs = imageData.data
-            let idx = 0
-            const pn = performance.now()
-            for(let px = 0; px < icon.width; px++) {
-                for(let py = 0; py < icon.height; py++) {
-                    if(orig_pixels_data[idx + 3] > 0) {
-                        enchantShader.apply(pixs, idx, orig_pixels_data, idx,
-                            px + this.x, py + this.y, pn);
-                    }
-                    idx += 4
-                }
-            }
-
-            this.item_canvas.sctx.putImageData(imageData, 0, 0)
-            image = this.item_canvas.scnv
-            icon.x = 0
-            icon.y = 0
-
+        //
+        const new_image = enchantShader.processEnchantedIcon(this, item, image, icon)
+        if(new_image) {
+            image = new_image
         }
 
         ctx.drawImage(

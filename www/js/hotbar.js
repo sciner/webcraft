@@ -1,4 +1,5 @@
 import {Vector} from "./helpers.js";
+import { PlayerInventory } from "./player_inventory.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -109,7 +110,9 @@ export class Hotbar {
         return UI_ZOOM;
     }
 
-    //
+    /**
+     * @param {PlayerInventory} inventory 
+     */
     setInventory(inventory) {
         this.inventory = inventory;
     }

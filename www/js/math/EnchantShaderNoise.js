@@ -53,4 +53,65 @@ export class EnchantShaderNoise {
 
     }
 
+    processEnchantedIcon(slot, item, image, icon) {
+
+        // if has enchantments
+        if(!item?.extra_data?.enchantments) {
+            return image
+        }
+    
+        if(slot.item_prev != item) {
+    
+            // TODO: clear prev data from this.item_canvas
+            slot.item_prev = item
+    
+            const scnv = document.createElement('canvas')
+            scnv.width = icon.width
+            scnv.height = icon.height
+            const sctx = scnv.getContext('2d')
+    
+            const scnv2 = document.createElement('canvas')
+            scnv2.width = icon.width
+            scnv2.height = icon.height
+            const sctx2 = scnv2.getContext('2d')
+            sctx2.drawImage(image, icon.x, icon.y, icon.width, icon.height, 0, 0, icon.width, icon.height)
+    
+            const imageData = sctx2.getImageData(0, 0, icon.width, icon.height)
+            const orig_pixels_data = Array.from(imageData.data)
+    
+            slot.item_canvas = {
+                scnv,
+                sctx,
+                scnv2,
+                sctx2,
+                imageData,
+                orig_pixels_data
+            }
+
+        }
+    
+        const imageData = slot.item_canvas.imageData
+        const orig_pixels_data = slot.item_canvas.orig_pixels_data
+    
+        // Copy result to source
+        const pixs = imageData.data
+        let idx = 0
+        const pn = performance.now()
+        for(let px = 0; px < icon.width; px++) {
+            for(let py = 0; py < icon.height; py++) {
+                if(orig_pixels_data[idx + 3] > 0) {
+                    this.apply(pixs, idx, orig_pixels_data, idx, px + slot.x, py + slot.y, pn)
+                }
+                idx += 4
+            }
+        }
+    
+        slot.item_canvas.sctx.putImageData(imageData, 0, 0)
+        icon.x = 0
+        icon.y = 0
+    
+        return slot.item_canvas.scnv
+    
+    }
+
 }

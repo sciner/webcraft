@@ -195,7 +195,7 @@ class CreativeInventoryCollection extends Window {
             lblSlot.drawOrig(ctx, slotx, sloty)
             cnt++
         }
-        console.log(performance.now() - p)
+        // console.log(performance.now() - p)
         ctx.restore();
     }
 
