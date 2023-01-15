@@ -185,13 +185,13 @@ void main() {
     vec4 reflection = vec4(0.0);
 
     /* ------------------ */
-    vec3 ref = reflect(v_position, v_tangentNormal);
+    vec3 ref = reflect(normalize(v_position), normalize(v_tangentNormal));
 
-    vec4 rayResult = Trace(v_position, normalize(ref));
+    vec4 rayResult = Trace(v_position, ref);
 
-    if (rayResult.w > 0.0) {
+    // if (rayResult.w > 0.0) {
         reflection = texture(u_backTextureColor, rayResult.xy, -0.5);
-    }
+    // }
 
     float mixFactor = 1.0;
 
@@ -199,6 +199,6 @@ void main() {
 
     outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
     
-    outColor  = vec4(vec3(rayResult.z), 1.0);
+    outColor  = reflection;// vec4(vec3(rayResult.z), 1.0);
     //}
 }
