@@ -724,7 +724,6 @@ export class ServerWorld {
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
                         chunk?.light?.flushDelta();
-                        modified_chunks.set(chunk_addr, true);
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.copyFrom(chunk_addr);
                     }
@@ -853,14 +852,6 @@ export class ServerWorld {
                     }
                 }
                 chunk?.light?.flushDelta();
-                if(create_block_list.length > 0) {
-                    all.push(this.db.blockSetBulk(this, server_player, create_block_list));
-                }
-                await Promise.all(all);
-                await this.db.updateChunks(Array.from(modified_chunks.keys()));
-                if (use_tx) {
-                    await this.db.TransactionCommit();
-                }
             } catch(e) {
                 console.error('error', e);
                 throw e;
