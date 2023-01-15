@@ -1,6 +1,6 @@
 import { BLOCK, POWER_NO, DropItemVertices } from "../blocks.js";
 import { getChunkAddr, Vector, VectorCollector } from "../helpers.js";
-import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK } from "../typed_blocks3.js";
+import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
@@ -305,6 +305,8 @@ export class Chunk {
             this.fluid.setFluidIndirect(x, y, z, block_id);
             return
         }
+
+        this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
 
         if(destroy_fluid) {
             this.fluid.setFluidIndirect(x, y, z, 0)
