@@ -185,8 +185,7 @@ class CreativeInventoryCollection extends Window {
         region.rect(x, y, w, h);
         ctx.save();
         ctx.clip(region, 'evenodd');
-        // let p = performance.now()
-        globalThis.draeench = 0
+        let p = performance.now()
         let cnt = 0
         for(let lblSlot of this.list.values()) {
             const slotx = ax + 16 * this.zoom
@@ -196,7 +195,7 @@ class CreativeInventoryCollection extends Window {
             lblSlot.drawOrig(ctx, slotx, sloty)
             cnt++
         }
-        // console.log(performance.now() - p, globalThis.draeench, this.list.size, cnt)
+        console.log(performance.now() - p)
         ctx.restore();
     }
 

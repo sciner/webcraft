@@ -191,8 +191,6 @@ export class CraftTableSlot extends Label {
         // if has enchantments
         if(!!(item?.extra_data?.enchantments ?? false)) {
 
-            globalThis.draeench++
-
             if(this.item_prev != item) {
 
                 this.item_prev = item
@@ -230,7 +228,6 @@ export class CraftTableSlot extends Label {
             // Copy result to source
             const pixs = imageData.data
             let idx = 0
-            const scale = 50
             const pn = performance.now()
             for(let px = 0; px < icon.width; px++) {
                 for(let py = 0; py < icon.height; py++) {
