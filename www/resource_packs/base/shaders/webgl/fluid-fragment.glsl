@@ -79,7 +79,33 @@ float linearizeDepth(float z) {
 vec4 Trace(vec3 ro, vec3 rd) {
     vec4 result = vec4(0.0);
 
-    const STEPS = 10.0;
+    float STEPS = 10.0;
+
+    float PASS = 0.0001;
+
+    vec3 p = ro;
+
+    for (float i = 0.0; i < STEPS; i += 1.0) {
+
+        vec4 uv = uProjMatrix * vec4(p, 1.0);
+
+        uv.xy /= uv.w;
+        uv.xy = (uv.xy + 1.0) * 0.5;
+
+        result.xyz = uv.xyz;
+
+        float depth = texture(u_backTextureDepth, uv.xy, -0.5).r;
+
+        float d = (uv.z - depth);
+
+        if (abs(d) < PASS) {
+
+            result.w = 1.0;
+            break;
+        }
+
+        p = ro + rd * d;
+    }
 
     return result;
 }
@@ -164,6 +190,7 @@ void main() {
     // fix me
     // projection problems
     // we clip a lot of data
+    /*
     if (abs(v_normal.z) > 0.5) {
         bool isIn = abs(ndc2d.x  - 0.5) < 0.5 && abs(ndc2d.y - 0.5) < 0.5 && v_tangentNormal.y > 0.5;
 
@@ -176,7 +203,11 @@ void main() {
             reflection.a = factX * factY;
         } 
     }
+    */
     /* ----------------------- */
+
+
+    vec4 rayResult = Trace(v_position, ref);
 
     float mixFactor = 1.0;
 
@@ -184,7 +215,9 @@ void main() {
 
     outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
     
-    if (DEBUG > 0.0) {
-        outColor  = reflection;
-    }
+    //if (rayResult.w > 0.0) {
+        
+    reflection = texture(u_backTextureColor, rayResult.xy, -0.5);
+    outColor  = reflection;
+    //}
 }

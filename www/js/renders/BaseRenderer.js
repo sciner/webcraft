@@ -554,7 +554,7 @@ export default class BaseRenderer {
             out = out.replaceAll(r, `#define ${argkey} ${defines[argkey]} //default: `);
         }
 
-        console.debug('Preprocess result:\n', out);
+        console.debug('Preprocess result:\n', out.split('\n').map((e, i) => `${i  + 1}: ${e}` ).join('\n'));
 
         return out;
     }
