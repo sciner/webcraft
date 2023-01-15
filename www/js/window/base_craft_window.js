@@ -231,12 +231,12 @@ export class CraftTableSlot extends Label {
             const pixs = imageData.data
             let idx = 0
             const scale = 50
-            const pn = performance.now() / 2000
+            const pn = performance.now()
             for(let px = 0; px < icon.width; px++) {
                 for(let py = 0; py < icon.height; py++) {
                     if(orig_pixels_data[idx + 3] > 0) {
                         enchantShader.apply(pixs, idx, orig_pixels_data, idx,
-                            px, py, pn);
+                            px + this.x, py + this.y, pn);
                     }
                     idx += 4
                 }
