@@ -85,6 +85,8 @@ vec4 Trace(vec3 ro, vec3 rd) {
 
     vec3 p = ro;
 
+    mat4 invProj = inverse(uProjMatrix);
+
     for (float i = 0.0; i < STEPS; i += 1.0) {
 
         vec4 projectedP = uProjMatrix * vec4(p, 1.0);
@@ -97,12 +99,12 @@ vec4 Trace(vec3 ro, vec3 rd) {
 
         float depth = texture(u_backTextureDepth, result.xy, -0.5).r;
 
-        projectedP.z = depth;
-        projectedP.w = 1.0;
+        // projectedP.z = depth;
+        // projectedP.w = 1.0;
 
-        vec4 inversedP = inverse(uProjMatrix) * projectedP;
+        // vec4 inversedP = invProj * projectedP;
 
-        float d = length(inversedP.xyz - p);
+        float d = projectedP.z - depth;
 
         if (abs(d) < PASS) {
 
@@ -185,35 +187,11 @@ void main() {
     /* ------------------ */
     vec3 ref = reflect(v_position, v_tangentNormal);
 
-    vec4 ndc = uProjMatrix * vec4(ref, 1.0);
-    ndc /= ndc.w;
-    // ndc.y *= -1.0;
-
-    vec2 ndc2d = (1. + ndc.xy) * 0.5 + offset * displaceErrorFactor;
-
-    float DEBUG = 0.0;
-
-    // fix me
-    // projection problems
-    // we clip a lot of data
-    /*
-    if (abs(v_normal.z) > 0.5) {
-        bool isIn = abs(ndc2d.x  - 0.5) < 0.5 && abs(ndc2d.y - 0.5) < 0.5 && v_tangentNormal.y > 0.5;
-
-        if (isIn) {
-            reflection = texture(u_backTextureColor, ndc2d, -0.5);
-
-            float factX = WATER_REFLECTION_FACTOR * (1. - smoothstep(WATER_REFLECTION_FADE, 1.0, ndc2d.y));
-            float factY = 1. - smoothstep(WATER_REFLECTION_FADE, 1.0, abs(0.5 - ndc2d.x) * 2.0);
-
-            reflection.a = factX * factY;
-        } 
-    }
-    */
-    /* ----------------------- */
-
-
     vec4 rayResult = Trace(v_position, normalize(ref));
+
+    if (rayResult.w > 0.0) {
+        reflection = texture(u_backTextureColor, rayResult.xy, -0.5);
+    }
 
     float mixFactor = 1.0;
 
@@ -221,12 +199,6 @@ void main() {
 
     outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
     
-    //if (rayResult.w > 0.0) {
-        
-    reflection = texture(u_backTextureColor, rayResult.xy, -0.5);
-
-
-
     outColor  = vec4(vec3(rayResult.z), 1.0);
     //}
 }
