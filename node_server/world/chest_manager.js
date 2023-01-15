@@ -42,8 +42,7 @@ export class WorldChestManager {
             throw 'error_block_is_not_chest';
         }
         if(tblock.extra_data.generate) {
-            const params = await this.generateChest(pos, tblock.rotate, tblock.extra_data.params);
-            tblock.extra_data = params.item.extra_data;
+            await this.generateChest(tblock, pos);
         }
         return tblock;
     }
@@ -64,8 +63,7 @@ export class WorldChestManager {
             return { error: 'error_block_is_not_chest' };
         }
         if (tblock.extra_data.generate) {
-            const params = await this.generateChest(pos, tblock.rotate, tblock.extra_data.params);
-            tblock.extra_data = params.item.extra_data;
+            await this.generateChest(tblock, pos);
         }
         return { chest: tblock };
     }
@@ -277,11 +275,7 @@ export class WorldChestManager {
             if (is_ender_chest) {
                 await player.saveEnderChest(chest);
             } else {
-                // Save chest slots to DB
-                await this.world.db.saveChestSlots({
-                    pos: pos,
-                    slots: chest.slots
-                });
+                this.world.onBlockExtraDataModified(tblock, pos);
             }
         }
         if (changeApplied & CHANGE_RESULT_FLAG_SECOND_CHEST) {
@@ -295,11 +289,8 @@ export class WorldChestManager {
             }
             // Notify the other players about the chest change
             this.sendChestToPlayers(secondTblock, [player.session.user_id]);
-            // Save to DB
-            await this.world.db.saveChestSlots({
-                pos: secondPos,
-                slots: secondChest.slots
-            });
+
+            this.world.onBlockExtraDataModified(secondTblock, secondPos);
         }
         if (params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW) {
             player.currentChests = null;
@@ -680,24 +671,12 @@ export class WorldChestManager {
     }
 
     // Generate chest
-    async generateChest(pos, rotate, params) {
-        const slots = this.treasure_sets.generateSlots(this.world, pos, params.source, DEFAULT_CHEST_SLOT_COUNT)
-        // create db params
-        const resp = {
-            action_id: ServerClient.BLOCK_ACTION_CREATE,
-            pos,
-            item: {
-                id: BLOCK.CHEST.id,
-                rotate,
-                extra_data: {
-                    can_destroy: false,
-                    slots
-                }
-            }
-        };
-        await this.world.db.blockSet(this.world, null, resp);
-        return resp;
-
+    async generateChest(tblock, pos) {
+        const extra_data = tblock.extra_data;
+        extra_data.can_destroy = false;
+        extra_data.slots = this.treasure_sets.generateSlots(this.world, pos,
+            extra_data.params.source, DEFAULT_CHEST_SLOT_COUNT);
+        this.world.onBlockExtraDataModified(tblock, pos);
     }
 
 }

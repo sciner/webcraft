@@ -14,6 +14,8 @@ import { WorldActionQueue } from "./world/action_queue.js";
 import { WorldMobManager } from "./world/mob_manager.js";
 import { WorldAdminManager } from "./world/admin_manager.js";
 import { WorldChestManager } from "./world/chest_manager.js";
+import { WorldDBActor, KNOWN_CHUNK_FLAGS } from "./db/world/WorldDBActor.js";
+import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
@@ -87,7 +89,14 @@ export class ServerWorld {
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
 
-        await this.makeBuildingsWorld()
+        this.dbActor        = new WorldDBActor(this);
+
+        const madeBuildings = await this.makeBuildingsWorld();
+
+        if (!madeBuildings) {
+            await this.dbActor.crashRecovery();
+            await this.db.compressModifiers(); // Do we really need it?
+        }
 
         // Server ore generator
         this.ore_generator  = new WorldOreGenerator(this.info.ore_seed, false)
@@ -120,7 +129,7 @@ export class ServerWorld {
         await this.models.init();
         await this.quests.init();
         await this.admins.load();
-        await this.restoreModifiedChunks();
+        await this.db.chunks.restoreModifiedChunks();
         await this.db.fluid.restoreFluidChunks();
         await this.chunks.initWorker();
         await this.chunks.initWorkers(world_guid);
@@ -140,6 +149,13 @@ export class ServerWorld {
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
         await this.tick();
+    }
+
+    // Closes the world on a critical error. It must never resolve.
+    async terminate(text, err) {
+        text && console.error(text);
+        err && console.error(err);
+        process.exit();
     }
 
     getDefaultPlayerIndicators() {
@@ -227,12 +243,12 @@ export class ServerWorld {
 
         // store modifiers in db
         let t = performance.now()
-        await this.db.blockSetBulk(this, null, blocks)
+        await this.db.chunks.bulkInsertWorldModify(blocks)
         console.log('Building: store modifiers in db ...', performance.now() - t)
 
         // compress chunks in db
         t = performance.now()
-        await this.db.updateChunks(chunks_addr.keys());
+        await this.db.chunks.insertRebuildModifiers(chunks_addr.keys())
         console.log('Building: compress chunks in db ...', performance.now() - t)
 
         // reread info
@@ -412,6 +428,8 @@ export class ServerWorld {
             this.ticks_stat.add('db_fluid_save');
             await this.db.fluid.saveFluids();
             this.ticks_stat.end();
+
+            await this.dbActor.saveWorldIfNecessary();
         }
         //
         const elapsed = performance.now() - started;
@@ -564,31 +582,6 @@ export class ServerWorld {
         }
     }
 
-    /**
-     * Restore modified chunks list
-     */
-    async restoreModifiedChunks() {
-        this.chunkModifieds = new VectorCollector();
-        const list = await this.db.chunkBecameModified();
-        for(let addr of list) {
-            this.chunkBecameModified(addr);
-        }
-        return true;
-    }
-
-    // Chunk has modifiers
-    chunkHasModifiers(addr) {
-        return this.chunkModifieds.has(addr) || this.db.fluid.knownFluidChunks.has(addr);
-    }
-
-    // Add chunk to modified
-    chunkBecameModified(addr) {
-        if (this.chunkModifieds.has(addr)) {
-            return false;
-        }
-        return this.chunkModifieds.set(addr, addr);
-    }
-
     // Юзер начал видеть этот чанк
     async loadChunkForPlayer(player, addr) {
         const chunk = this.chunks.get(addr);
@@ -613,6 +606,17 @@ export class ServerWorld {
     getMaterial(pos) {
         const chunk = this.chunks.getByPos(pos);
         return chunk ? chunk.getMaterial(pos) : null;
+    }
+
+    /**
+     * It does everything that needs to be done when a block extra_data is modified:
+     * marks the block as dirty, updates the chunk modifiers.
+     */
+    onBlockExtraDataModified(tblock, pos = tblock.posworld.clone()) {
+        const item = tblock.convertToDBItem();
+        const data = { pos, item };
+        tblock.chunk.dbActor.markIndexDirty(tblock.index, data, BLOCK_DIRTY.UPDATE_EXTRA_DATA);
+        tblock.chunk.addModifiedBlock(pos, item, item.id);
     }
 
     /**
@@ -710,31 +714,29 @@ export class ServerWorld {
             // trick for worldedit plugin
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
-            const use_tx = actions.blocks.list.length > 1;
-            if (use_tx) {
-                await this.db.TransactionBegin();
-            }
             try {
                 let chunk_addr = new Vector(0, 0, 0);
                 let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
                 let chunk = null;
-                const modified_chunks = new VectorCollector();
-                const all = [];
-                const create_block_list = [];
                 const previous_item = {id: 0}
                 for (let params of actions.blocks.list) {
-                    params.item = this.block_manager.convertItemToDBItem(params.item);
+                    params.item = this.block_manager.convertBlockToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
                         chunk?.light?.flushDelta();
                         modified_chunks.set(chunk_addr, true);
                         chunk = this.chunks.get(chunk_addr);
-                        prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+                        prev_chunk_addr.copyFrom(chunk_addr);
                     }
-                    if(params.action_id != ServerClient.BLOCK_ACTION_MODIFY) {
-                        create_block_list.push(params);
+                    const block_pos = new Vector(params.pos).flooredSelf();
+
+                    if (chunk) {
+                        chunk.dbActor.markIndexDirty(block_pos.worldPosToChunkIndex(), params,
+                            params.action_id == ServerClient.BLOCK_ACTION_MODIFY 
+                                ? BLOCK_DIRTY.UPDATE : BLOCK_DIRTY.INSERT
+                        );
                     } else {
-                        all.push(this.db.blockSet(this, server_player, params));
+                        // TODO: Chunk not found
                     }
 
                     let isLoaded = chunk && chunk.isReady();
@@ -743,7 +745,7 @@ export class ServerWorld {
                         console.log(`Potential problem with setting a block and loading chunk pos=${params.pos} item=${params.item}`);
                     }
                     // 2. Mark as became modifieds
-                    this.chunkBecameModified(chunk_addr);
+                    this.dbActor.addKnownChunkFlags(chunk_addr, KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS);
                     // 3.
                     if (chunk && chunk.tblocks && isLoaded) {
                         let sanitizedParams = params;
@@ -807,7 +809,7 @@ export class ServerWorld {
                             chunk.light.currentDelta.push(tblock.index);
                         }
                         // 5. Store in modify list
-                        chunk.addModifiedBlock(block_pos, params.item);
+                        chunk.addModifiedBlock(block_pos, params.item, oldId);
                         if (on_block_set) {
                             // a.
                             chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
@@ -861,9 +863,6 @@ export class ServerWorld {
                 }
             } catch(e) {
                 console.error('error', e);
-                if (use_tx) {
-                    await this.db.TransactionRollback();
-                }
                 throw e;
             }
             this.addUpdatedBlocksActions(this.updatedBlocksByListeners);

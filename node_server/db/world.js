@@ -1,7 +1,4 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../www/js/chunk_const.js";
-import { getChunkAddr, Vector, unixTime } from "../../www/js/helpers.js";
-import { ServerClient } from "../../www/js/server_client.js";
-import { BLOCK} from "../../www/js/blocks.js";
+import { Vector, unixTime } from "../../www/js/helpers.js";
 import { DropItem } from '../drop_item.js';
 import { INVENTORY_SLOT_COUNT, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL, PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA } from '../../www/js/constant.js';
 
@@ -12,7 +9,8 @@ import { DBWorldQuest } from './world/quest.js';
 import { DROP_LIFE_TIME_SECONDS } from "../../www/js/constant.js";
 import { DBWorldPortal } from "./world/portal.js";
 import { DBWorldFluid } from "./world/fluid.js";
-import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
+import { DBWorldChunk } from "./world/chunk.js";
+import { compressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
 
 // World database provider
@@ -29,11 +27,11 @@ export class DBWorld {
     async init() {
         this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
-        await this.compressModifiers();
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         this.quests = new DBWorldQuest(this.conn, this.world);
         this.portal = new DBWorldPortal(this.conn, this.world);
         this.fluid = new DBWorldFluid(this.conn, this.world);
+        this.chunks = new DBWorldChunk(this.conn, this.world);
         return this;
     }
 
@@ -70,6 +68,7 @@ export class DBWorld {
                 state:          null,
                 add_time:       row.add_time,
                 world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
+                recovery:       row.recovery
             }
             resp.generator = WorldGenerators.validateAndFixOptions(resp.generator);
             return resp;
@@ -116,6 +115,10 @@ export class DBWorld {
         await this.conn.get('rollback');
     }
 
+    async saveRecoveryBlob(blob) {
+        return this.conn.run('UPDATE world SET recovery = ? WHERE id = ?', [blob, this.world.info.id]);
+    }
+
     //
     async compressModifiers() {
         let p_start = performance.now();
@@ -138,28 +141,6 @@ export class DBWorld {
         }
         console.log(`compressModifiers: chunks: ${chunks_count}, elapsed: ${Math.round((performance.now() - p_start) * 1000) / 1000} ms`);
         return true;
-    }
-
-    //
-    async saveCompressedWorldModifyChunk(addr, compressed, private_compressed) {
-        const row = await this.conn.get('SELECT _rowid_ AS rowid FROM world_modify_chunks WHERE x = ? AND y = ? AND z = ?', [addr.x, addr.y, addr.z]);
-        if (row) {
-            await this.conn.run(`UPDATE world_modify_chunks SET data_blob = :data_blob,
-              private_data_blob = :private_data_blob, has_data_blob = 1 WHERE _rowid_ = :rowid`, {
-                ':data_blob':           compressed,
-                ':private_data_blob':   private_compressed,
-                ':rowid':               row.rowid
-            });
-            return;
-        }
-        await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob, private_data_blob, has_data_blob)
-          VALUES (:x, :y, :z, COALESCE((SELECT data FROM world_modify_chunks WHERE x = :x AND y = :y AND z = :z), NULL), :data_blob, :private_data_blob, 1)`, {
-            ':data_blob':   compressed,
-            ':private_data_blob': private_compressed,
-            ':x':           addr.x,
-            ':y':           addr.y,
-            ':z':           addr.z
-        });
     }
 
     // getDefaultPlayerIndicators...
@@ -339,39 +320,6 @@ export class DBWorld {
         await this.conn.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
-    // saveChestSlots...
-    async saveChestSlots(chest) {
-        const rows = await this.conn.all('SELECT _rowid_ AS rowid, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
-            ':x': chest.pos.x,
-            ':y': chest.pos.y,
-            ':z': chest.pos.z
-        });
-        for(let row of rows) {
-            const extra_data = row.extra_data ? JSON.parse(row.extra_data) : {};
-            extra_data.slots = chest.slots;
-            // save slots
-            await this.conn.run('UPDATE world_modify SET extra_data = :extra_data WHERE id = :id', {
-                ':extra_data':  JSON.stringify(extra_data),
-                ':id':          row.rowid
-            });
-            // update chunk
-            this.updateChunks([getChunkAddr(chest.pos)]);
-            return true;
-        }
-        return false;
-    }
-
-    // Chunk became modified
-    async chunkBecameModified() {
-        const resp = new Set();
-        const rows = await this.conn.all(`SELECT DISTINCT x chunk_x, y chunk_y, z chunk_z FROM world_modify_chunks`);
-        for(let row of rows) {
-            let addr = new Vector(row.chunk_x, row.chunk_y, row.chunk_z);
-            resp.add(addr);
-        }
-        return resp
-    }
-
     // Create drop item
     async createDropItem(params) {
         const entity_id = randomUUID();
@@ -439,39 +387,6 @@ export class DBWorld {
         return resp;
     }
 
-    // Load chunk modify list
-    async loadChunkModifiers(addr) {
-        const resp = {obj: null, compressed: null, private_compressed: null};
-        await this.conn.each(`
-                SELECT CASE WHEN data_blob IS NULL THEN data ELSE data_blob END data,
-                    private_data_blob, has_data_blob
-                FROM world_modify_chunks
-                WHERE x = :x AND y = :y AND z = :z`, {
-            ':x': addr.x,
-            ':y': addr.y,
-            ':z': addr.z
-        }, function(err, row) {
-            if(err) {
-                console.error(err);
-            } else {
-                if(row.has_data_blob) {
-                    resp.compressed = row.data;
-                    resp.private_compressed = row.private_data_blob;
-                } else {
-                    resp.obj = JSON.parse(row.data);
-                }
-            }
-        });
-        if(resp.compressed) {
-            resp.obj = decompressWorldModifyChunk(resp.compressed);
-            if (resp.private_compressed) {
-                const private_obj = decompressWorldModifyChunk(resp.private_compressed);
-                Object.assign(resp.obj, private_obj);
-            }
-        }
-        return resp;
-    }
-
     async saveChunkDelayedCalls(chunk) {
         const addr = chunk.addrHash;
         const delayed_calls = chunk.delayedCalls.serialize();
@@ -497,128 +412,6 @@ export class DBWorld {
         }
         await this.conn.run('UPDATE chunk SET delayed_calls = NULL WHERE addr = ?', [chunk.addrHash]);
         return delayed_calls;
-    }
-
-    // Block set
-    async blockSet(world, player, params) {
-        let item = params.item;
-        const is_modify = params.action_id == ServerClient.BLOCK_ACTION_MODIFY;
-        if(item.id == 0) {
-            item = null;
-        } else {
-            let material = BLOCK.fromId(item.id);
-            if(!material) {
-                throw 'error_block_not_found';
-            }
-            if(!material?.can_rotate && 'rotate' in item) {
-                delete(item.rotate);
-            }
-            if('entity_id' in item && !item.entity_id) {
-                delete(item.entity_id);
-            }
-            if('extra_data' in item && !item.extra_data) {
-                delete(item.extra_data);
-            }
-            if('power' in item && item.power === 0) {
-                delete(item.power);
-            }
-        }
-        let need_insert = true;
-        if(is_modify) {
-            let rows = await this.conn.all('SELECT _rowid_ AS rowid FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
-                ':x': params.pos.x,
-                ':y': params.pos.y,
-                ':z': params.pos.z
-            });
-            for(let row of rows) {
-                need_insert = false;
-                await this.conn.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE _rowid_ = :_rowid_', {
-                    ':_rowid_':     row.rowid,
-                    ':params':      item ? JSON.stringify(item) : null,
-                    ':entity_id':   item?.entity_id ? item.entity_id : null,
-                    ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
-                    ':block_id':    item?.id,
-                    //':rotate':      item?.rotate ? JSON.stringify(item.rotate) : null
-                });
-            }
-        }
-        if(need_insert) {
-            const run_data = {
-                ':user_id':     player?.session.user_id || null,
-                ':dt':          unixTime(),
-                ':world_id':    world.info.id,
-                ':x':           params.pos.x,
-                ':y':           params.pos.y,
-                ':z':           params.pos.z,
-                ':chunk_x':     Math.floor(params.pos.x / CHUNK_SIZE_X),
-                ':chunk_y':     Math.floor(params.pos.y / CHUNK_SIZE_Y),
-                ':chunk_z':     Math.floor(params.pos.z / CHUNK_SIZE_Z),
-                ':params':      item ? JSON.stringify(item) : null,
-                ':entity_id':   item?.entity_id ? item.entity_id : null,
-                ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
-                ':block_id':    item?.id || null,
-                ':index':       params.pos.getFlatIndexInChunk()
-                //':rotate':      item?.rotate ? JSON.stringify(item.rotate) : null
-            };
-            await this.conn.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id, chunk_x, chunk_y, chunk_z, "index") VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id, :chunk_x, :chunk_y, :chunk_z, :index)', run_data);
-        }
-        if (item && 'extra_data' in item) {
-            // @todo Update extra data
-        }
-    }
-
-    // Bulk block set
-    async blockSetBulk(world, player, data) {
-        const user_id = player?.session.user_id || null;
-        const dt =  unixTime();
-        const world_id = world.info.id;
-        for (var i = 0; i < data.length; i++) {
-            const params = data[i];
-            const item = params.item;
-            data[i] = [
-                user_id,
-                dt,
-                world_id,
-                // params
-                JSON.stringify(item),
-                params.pos.x,
-                params.pos.y,
-                params.pos.z,
-                // chunk xyz
-                Math.floor(params.pos.x / CHUNK_SIZE_X),
-                Math.floor(params.pos.y / CHUNK_SIZE_Y),
-                Math.floor(params.pos.z / CHUNK_SIZE_Z),
-                item.entity_id ? item.entity_id : null,
-                item.extra_data ? JSON.stringify(item.extra_data) : null,
-                // block_id
-                item.id,
-                // index
-                params.pos.getFlatIndexInChunk()
-            ];
-        }
-        //
-        await this.conn.run(`INSERT INTO world_modify(
-                user_id, dt, world_id, params, x, y, z, chunk_x, chunk_y, chunk_z,
-                entity_id, extra_data, block_id, "index"
-            )
-            SELECT
-                json_extract(value, '$[0]'),
-                json_extract(value, '$[1]'),
-                json_extract(value, '$[2]'),
-                json_extract(value, '$[3]'),
-                json_extract(value, '$[4]'),
-                json_extract(value, '$[5]'),
-                json_extract(value, '$[6]'),
-                json_extract(value, '$[7]'),
-                json_extract(value, '$[8]'),
-                json_extract(value, '$[9]'),
-                json_extract(value, '$[10]'),
-                json_extract(value, '$[11]'),
-                json_extract(value, '$[12]'),
-                json_extract(value, '$[13]')
-            FROM json_each(:data)`, {
-                ':data': JSON.stringify(data)
-            });
     }
 
     // Change player game mode
@@ -677,39 +470,6 @@ export class DBWorld {
             ":x":       x,
             ":y":       y + 0.5,
             ":z":       z
-        });
-    }
-
-    //
-    async updateChunks(address_list) {
-        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data, data_blob, private_data_blob, has_data_blob)
-        SELECT
-            json_extract(value, '$.x') x,
-            json_extract(value, '$.y') y,
-            json_extract(value, '$.z') z,
-            (SELECT
-                json_group_object(cast(m."index" as TEXT),
-                json_patch(
-                    'null',
-                    json_object(
-                        'id',           COALESCE(m.block_id, 0),
-                        'extra_data',   json(m.extra_data),
-                        'entity_id',    m.entity_id,
-                        'ticks',        m.ticks,
-                        'rotate',       json_extract(m.params, '$.rotate')
-                    )
-                ))
-                FROM world_modify m
-                WHERE m.chunk_x = json_extract(value, '$.x') AND
-                    m.chunk_y = json_extract(value, '$.y') AND
-                    m.chunk_z = json_extract(value, '$.z')
-                ORDER BY m.id ASC
-            ),
-            NULL,
-            NULL,
-            0
-        FROM json_each(:address_list) addrs`, {
-            ':address_list': JSON.stringify(address_list)
         });
     }
 

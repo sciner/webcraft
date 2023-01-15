@@ -1,30 +1,27 @@
-import {getChunkAddr, SimpleQueue, Vector, VectorCollector} from "../../../www/js/helpers.js";
+import {getChunkAddr, SimpleQueue, Vector} from "../../../www/js/helpers.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
 import {FluidChunk} from "../../../www/js/fluid/FluidChunk.js";
 import {BaseChunk} from "../../../www/js/core/BaseChunk.js";
+import {KNOWN_CHUNK_FLAGS} from "../world/WorldDBActor.js"
 
 export class DBWorldFluid {
     constructor(conn, world) {
         this.conn = conn;
         this.world = world;
 
-        this.knownFluidChunks = new VectorCollector();
-
         this.dirtyChunks = new SimpleQueue();
     }
 
     async restoreFluidChunks() {
-        this.knownFluidChunks.clear();
-        const rows = await this.conn.all(`SELECT DISTINCT x chunk_x, y chunk_y, z chunk_z FROM world_chunks_fluid`);
+        const rows = await this.conn.all('SELECT x, y, z FROM world_chunks_fluid');
         for(let row of rows) {
-            let addr = new Vector(row.chunk_x, row.chunk_y, row.chunk_z);
-            this.knownFluidChunks.add(addr, 1);
+            this.world.dbActor.addKnownChunkFlags(row, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID);
         }
     }
 
     //
     async loadChunkFluid(chunk_addr) {
-        if (!this.knownFluidChunks.has(chunk_addr)) {
+        if (!this.world.dbActor.knownChunkHasFlags(chunk_addr, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID)) {
             return null;
         }
 
@@ -39,7 +36,7 @@ export class DBWorldFluid {
 
     //
     async saveChunkFluid(chunk_addr, data) {
-        this.knownFluidChunks.add(chunk_addr, 1);
+        this.world.dbActor.addKnownChunkFlags(chunk_addr, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID);
         await this.conn.run('INSERT INTO world_chunks_fluid(x, y, z, data) VALUES (:x, :y, :z, :data)', {
             ':x': chunk_addr.x,
             ':y': chunk_addr.y,

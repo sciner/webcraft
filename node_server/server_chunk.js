@@ -1,6 +1,6 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_STATE } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
+import { DIRECTION, SIX_VECS, Vector, VectorCollector, ArrayHelpers } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
@@ -12,6 +12,7 @@ import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "../www/js/light/ChunkLight.js";
+import { ChunkDBActor } from "./db/world/ChunkDBActor.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -119,7 +120,7 @@ export class ServerChunk {
         this.addr           = new Vector(addr);
         this.coord          = this.addr.mul(this.size);
         this.uniqId         = ++global_uniqId;
-        this.connections    = new Map();
+        this.connections    = new Map(); // players by user_id
         this.preq           = new Map();
         this.modify_list    = {};
         this.mobs           = new Map();
@@ -140,6 +141,7 @@ export class ServerChunk {
         this.fluid          = null;
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
         this.blocksUpdatedByListeners = [];
+        this.dbActor        = new ChunkDBActor(this);
         this.readyPromise  = Promise.resolve();
         this.safeTeleportMarker = 0;
         this.unloadingStartedTime = null; // to determine when to dispose it
@@ -222,14 +224,11 @@ export class ServerChunk {
                 this.preq.clear();
             }
         };
-
-        const loadCMPromise = new Promise((resolve, reject) => {
-            if(this.world.chunkHasModifiers(this.addr)) {
-                resolve(this.world.db.loadChunkModifiers(this.addr))
-            } else {
-                resolve({})
-            }
-        });
+        Promise.all([
+            this.dbActor.loadChunkModifiers(),
+            this.world.db.fluid.loadChunkFluid(this.addr)
+        ]).then(afterLoad);
+    }
 
         Promise.all([loadCMPromise, this.world.db.fluid.loadChunkFluid(this.addr)]).then(afterLoad);
     }
@@ -339,7 +338,6 @@ export class ServerChunk {
             const compressed = compressWorldModifyChunk(ml.obj, true);
             ml.compressed = Buffer.from(compressed.public);
             ml.private_compressed = compressed.private ? Buffer.from(compressed.private) : null;
-            this.world.db.saveCompressedWorldModifyChunk(this.addr, ml.compressed, ml.private_compressed);
         }
     }
 
@@ -413,6 +411,7 @@ export class ServerChunk {
             }
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks.chunk = this;
         this.tblocks.light = this.light;
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
@@ -626,7 +625,7 @@ export class ServerChunk {
     // getBlockAsItem
     getBlockAsItem(pos, y, z) {
         const block = this.getBlock(pos, y, z);
-        return BLOCK.convertItemToDBItem(block);
+        return BLOCK.convertBlockToDBItem(block);
     }
 
     getFluidValue(pos, y, z) {
@@ -1095,15 +1094,16 @@ export class ServerChunk {
     }
 
     // Store in modify list
-    addModifiedBlock(pos, item) {
+    addModifiedBlock(pos, item, previousId) {
         const ml = this.modify_list;
         if(!ml.obj) ml.obj = {};
+        pos = Vector.vectorify(pos);
         ml.obj[pos.getFlatIndexInChunk()] = item;
         ml.compressed = null;
         ml.private_compressed = null;
         if(item) {
             // calculate random ticked blocks
-            if(this.getBlock(pos)?.material?.random_ticker) {
+            if(BLOCK.BLOCK_BY_ID[previousId]?.random_ticker) {
                 this.randomTickingBlockCount--;
             }
             //
@@ -1278,6 +1278,7 @@ export class ServerChunk {
         if (this.delayedCalls.length) {
             promises.push(this.world.db.saveChunkDelayedCalls(this));
         }
+        promises.push(this.dbActor.getSavePromise()); // it's ok to push null
         this.readyPromise = Promise.all(promises).then(() => {
             if (this.load_state === CHUNK_STATE.UNLOADING) {
                 this.setState(CHUNK_STATE.UNLOADED);

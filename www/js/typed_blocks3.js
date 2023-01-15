@@ -1,8 +1,8 @@
-import { getChunkAddr, Vector, StringHelpers } from "./helpers.js";
+import { getChunkAddr, Vector, ObjectHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
@@ -823,6 +823,10 @@ export class TBlock {
         return this;
     }
 
+    get chunk() {
+        return this.tb.chunk;
+    }
+
     initFrom(block) {
         this.tb = block.tb;
         this.vec = block.vec;
@@ -830,21 +834,34 @@ export class TBlock {
         return this;
     }
 
+    moveToIndex(index) {
+        this.index = index;
+        this.vec.fromChunkIndex(index);
+        return this;
+    }
+
     // Clones essential data as POJO.
     // The result can be used in WorldAction.addBlocks() to create/modify the same block
     clonePOJO() {
-        var res = { id: this.id };
-        if (this.rotate && this.material.can_rotate) {
-            res.rotate = { ...this.rotate };
-        }
-        if (this.extra_data) {
-            res.extra_data = { ...this.extra_data };
-        }
-        if (this.entity_id) {
-            res.entity_id = this.entity_id;
-        }
-        if (this.power) {
-            res.power = this.power;
+        let res = { id: this.id };
+        if (res.id) {  // AIR blocks are very common, they don't have properties
+            if (BLOCK.BLOCK_BY_ID[res.id]?.can_rotate && this.rotate) {
+                res.rotate = { ...this.rotate };
+            }
+            let v = this.extra_data; // avoid accessing slow this.extra_data twice
+            if (v) {
+                res.extra_data = ObjectHelpers.deepClone(v);
+            }
+            v = this.entity_id
+            if (v) {
+                res.entity_id = v;
+            }
+            // Power in blocks is never used and not fully supported, e.g. it's lost in the old DBWorld.updateChunks.
+            // TODO either use and fully support, or remove it.
+            v = this.power;
+            if (v) {
+                res.power = v;
+            }
         }
         return res;
     }
@@ -1088,7 +1105,7 @@ export class TBlock {
     }
 
     convertToDBItem() {
-        return BLOCK.convertItemToDBItem(this);
+        return BLOCK.convertBlockToDBItem(this);
     }
 
     /**
@@ -1188,15 +1205,6 @@ const CHUNK_SIZE_X_M1 = CHUNK_SIZE_X - 1;
 const CHUNK_SIZE_Y_M1 = CHUNK_SIZE_Y - 1;
 const CHUNK_SIZE_Z_M1 = CHUNK_SIZE_Z - 1;
 const tmp_BlockAccessor_Vector = new Vector();
-
-// See also BaseChunk.initSize()
-const CHUNK_PADING = 1;
-const CHUNK_OUTER_SIZE_X = CHUNK_SIZE_X + 2 * CHUNK_PADING;
-const CHUNK_OUTER_SIZE_Z = CHUNK_SIZE_Z + 2 * CHUNK_PADING;
-const CHUNK_CX = 1;
-const CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z;
-const CHUNK_CZ = CHUNK_OUTER_SIZE_X;
-const CHUNK_CW = CHUNK_PADING * (CHUNK_CX + CHUNK_CY + CHUNK_CZ);
 
 /**
  * A class that provides access to the world blocks in the same area

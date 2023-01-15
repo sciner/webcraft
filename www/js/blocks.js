@@ -13,7 +13,7 @@ export const POWER_NO                       = 0;
 export const ITEM_LABEL_MAX_LENGTH          = 19;
 
 // Свойства, которые могут сохраняться в БД
-export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'extra_data', 'rotate'];
+export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data', 'rotate']; // for reference only, unused. See BLOCK.convertBlockToDBItem.
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 
 /**
@@ -259,7 +259,10 @@ export class BLOCK {
     //     return index;
     // }
 
-    // Return new simplified item
+    /**
+     * Returns a new simplified item (for inventory, drop item).
+     * For blocks, use {@link convertBlockToDBItem} instead.
+     */
     static convertItemToDBItem(item) {
         if(!item || !('id' in item)) {
             return null;
@@ -267,7 +270,7 @@ export class BLOCK {
         const resp = {
             id: item.id
         };
-        for(let k of ITEM_DB_PROPS) {
+        for(let k of ITEM_INVENTORY_PROPS) {
             let v = item[k];
             if(v !== undefined && v !== null) {
                 resp[k] = v;
@@ -346,6 +349,43 @@ export class BLOCK {
         if (item.extra_data && typeof item.extra_data === 'object') {
             // copy it even if (b.extra_data == null) to allow naming any item.
             resp.extra_data = item.extra_data;
+        }
+        return resp;
+    }
+
+    /**
+     * Combined old {@link convertItemToDBItem} and checks from old DBWorld.blockSet.
+     * Specifically for blocks: expects that {@link item} may be TBlock, doesn't return count, optimization for AIR.
+     */
+    static convertBlockToDBItem(item) {
+        if(!item || !('id' in item)) {
+            return null;
+        }
+        const resp = { id: item.id };
+        if (resp.id) {  // AIR blocks are very common, they don't have properties
+            let v;
+            // For non-existing items matrial is DUMMY. That's how it was done in DBWorld.blockSet().
+            // First check the material, then access potentially slow tblock.rotate.
+            if (this.fromId(resp.id).can_rotate) {
+                v = item.rotate;
+                if (v !== null && v !== undefined) {
+                    resp.rotate = v;
+                }
+            }
+            v = item.entity_id;     // avoid accessing tblock.entity_id twice
+            if (v) {
+                resp.entity_id = v;
+            }
+            v = item.extra_data;    // avoid accessing tblock.extra_data twice
+            if (v) {
+                resp.extra_data = v;
+            }
+            // Power in blocks is never used and not fully supported, e.g. it's lost in the old DBWorld.updateChunks.
+            // TODO either use and fully support, or remove it.
+            v = item.power;
+            if (v) {
+                resp.power = v;
+            }
         }
         return resp;
     }
@@ -538,6 +578,11 @@ export class BLOCK {
             }
         }
         return extra_data;
+    }
+
+    // The majority of block changes are setting air blocks. This method is optimized for this case.
+    static fastStringify(block) {
+        return block.id ? JSON.stringify(block) : AIR_BLOCK_STRINGIFIED;
     }
 
     // Returns a block structure for the given id.
@@ -1424,3 +1469,5 @@ BLOCK.init = async function(settings) {
         }
     });
 };
+
+const AIR_BLOCK_STRINGIFIED = '{"id":0}';

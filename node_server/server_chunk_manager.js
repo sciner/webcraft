@@ -1,4 +1,5 @@
 import {ServerChunk} from "./server_chunk.js";
+import {KNOWN_CHUNK_FLAGS} from "./db/world/WorldDBActor.js";
 import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, Mth} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -176,6 +177,7 @@ export class ServerChunkManager {
                     chunk.load();
                 }
             }
+            this.world.dbActor.flushLoadChunks();
         }
         // 2. queue chunks for generate mobs
         if(this.chunk_queue_gen_mobs.size > 0) {
@@ -430,8 +432,9 @@ export class ServerChunkManager {
                             this.add(chunk);
                         }
                         chunk.addPlayer(player);
+                        const hasModifiers = this.world.dbActor.knownChunkHasFlags(addr, KNOWN_CHUNK_FLAGS.ANY_MODIFIERS_MASK);
                         const flags =
-                            (this.world.chunkHasModifiers(addr) ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
+                            (hasModifiers ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
                             (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);
                         nearby.added.push({addr, flags});
                     }

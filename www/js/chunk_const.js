@@ -7,6 +7,15 @@ export const CHUNK_SIZE_Y_MAX               = 4096;
 export const MAX_CAVES_LEVEL                = 256;
 export const ALLOW_NEGATIVE_Y               = true;
 
+// See also BaseChunk.initSize(), Vector.fromChunkIndex(), BlockAccessor
+export const CHUNK_PADING = 1;
+export const CHUNK_OUTER_SIZE_X = CHUNK_SIZE_X + 2 * CHUNK_PADING;
+export const CHUNK_OUTER_SIZE_Z = CHUNK_SIZE_Z + 2 * CHUNK_PADING;
+export const CHUNK_CX = 1;
+export const CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z;
+export const CHUNK_CZ = CHUNK_OUTER_SIZE_X;
+export const CHUNK_CW = CHUNK_PADING * (CHUNK_CX + CHUNK_CY + CHUNK_CZ);
+
 export const INVENTORY_ICON_COUNT_PER_TEX   = 32;
 export const INVENTORY_ICON_TEX_WIDTH       = 3200
 export const INVENTORY_ICON_TEX_HEIGHT      = 3200
