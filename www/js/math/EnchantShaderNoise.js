@@ -9,6 +9,7 @@ export class EnchantShaderNoise {
         this.a = vec3.create();
         this.b = vec3.create();
         this.c1 = vec3.create();
+        this.k = vec3.create();
     }
 
     apply(out, offset1, input, offset2,
@@ -17,9 +18,9 @@ export class EnchantShaderNoise {
         a[0] = px / 4e2;
         a[1] = py / 4e2;
         a[2] = (u_time / 1000) / 4;
-        vec3.transformMat3(a, m, a);
-        vec3.transformMat3(b, m, a);
-        vec3.transformMat3(c1, m, b);
+        vec3.transformMat3(a, a, m);
+        vec3.transformMat3(b, a, m);
+        vec3.transformMat3(c1, b, m);
         b[0] *= .4;
         b[1] *= .4;
         b[2] *= .4;
