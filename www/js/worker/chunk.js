@@ -306,8 +306,6 @@ export class Chunk {
             return
         }
 
-        this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
-
         if(destroy_fluid) {
             this.fluid.setFluidIndirect(x, y, z, 0)
         }
@@ -319,6 +317,8 @@ export class Chunk {
         if(check_is_solid && BLOCK.isSolidID(uint16View[index])) {
             return
         }
+
+        this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
 
         uint16View[index] = block_id;
         if (rotate || extra_data) {
