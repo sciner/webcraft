@@ -91,7 +91,6 @@ export class BuildingTemplate {
         // Auto fill by air
         if('y' in this.size) {
 
-            let two2map = new VectorCollector()
             for(let block of this.blocks) {
                 if(block.move.x < min.x) min.x = block.move.x
                 if(block.move.y < min.y) min.y = block.move.y
@@ -99,26 +98,31 @@ export class BuildingTemplate {
             }
 
             if(min.y != Infinity) {
-                // building a 2D floor map of the building
-                for(let block of this.blocks) {
-                    if(block.move.y - min.y < 2) {
-                        const b = bm.fromId(block.block_id);
-                        // не учитываем неполные блоки у основания строения в качестве пола
-                        if(b.is_solid || BLOCKS_CAN_BE_FLOOR.includes(b.id)) {
-                            two2map.set(new Vector(block.move.x, 0, block.move.z), true);
+
+                if(this.getMeta('air_column_from_basement', true)) {
+
+                    const two2map = new VectorCollector()
+
+                    // building a 2D floor map of the building
+                    for(let block of this.blocks) {
+                        if(block.move.y - min.y < 2) {
+                            const b = bm.fromId(block.block_id);
+                            // не учитываем неполные блоки у основания строения в качестве пола
+                            if(b.is_solid || BLOCKS_CAN_BE_FLOOR.includes(b.id)) {
+                                two2map.set(new Vector(block.move.x, 0, block.move.z), true);
+                            }
                         }
                     }
-                }
 
-                // по 2D карте пола здания строим вертикальные столбы воздуха
-                // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
-                if(this.getMeta('air_column_from_basement', true)) {
+                    // по 2D карте пола здания строим вертикальные столбы воздуха
+                    // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
                     for(const [vec, _] of two2map.entries()) {
                         for(let y = 0; y < this.size.y; y++) {
                             const air_pos = new Vector(vec.x, min.y + y, vec.z)
                             all_blocks.set(air_pos, {block_id: 0, move: air_pos})
                         }
                     }
+
                 }
 
             }
@@ -263,6 +267,7 @@ export class BuildingTemplate {
         const _vec = new Vector(0, 0, 0)
         const air_block_id = 0
         const air_block_mat = bm.fromId(air_block_id)
+        const stopper_block = {block_id: -1}
 
         for(let y = 0; y < this.size.y; y++) {
 
@@ -276,8 +281,12 @@ export class BuildingTemplate {
                     if(block && block.block_id > 0) {
                         inside = true
                     }
-                    if(inside && !block) {
-                        all_blocks.set(_vec, {block_id: air_block_id, move: _vec.clone(), mat: air_block_mat})
+                    if(!block) {
+                        if(inside) {
+                            all_blocks.set(_vec, {block_id: air_block_id, move: _vec.clone(), mat: air_block_mat})
+                        } else {
+                            all_blocks.set(_vec, stopper_block)
+                        }
                     }
                 }
 
@@ -288,7 +297,8 @@ export class BuildingTemplate {
                     if(block && block.block_id > 0) {
                         break
                     }
-                    all_blocks.delete(_vec)
+                    // all_blocks.delete(_vec)
+                    all_blocks.set(_vec, stopper_block)
                 }
 
             }
@@ -302,11 +312,18 @@ export class BuildingTemplate {
                 for(let x = 0; x < this.size.x; x++) {
                     _vec.set(x, y, z).addSelf(min)
                     const block = all_blocks.get(_vec)
-                    if(block && block.block_id > 0) {
+                    if(block && block.block_id > 0 && block.block_id != stopper_block.block_id) {
                         inside = true
                     }
-                    if(inside && !block) {
-                        all_blocks.set(_vec, {block_id: air_block_id, move: _vec.clone(), mat: air_block_mat})
+                    if(inside) {
+                        if(!block) {
+                            all_blocks.set(_vec, {block_id: air_block_id, move: _vec.clone(), mat: air_block_mat})
+                        }
+                    } else {
+                        if(!block || block.block_id == 0) {
+                            all_blocks.delete(_vec)
+                            // all_blocks.set(_vec, stopper_block)
+                        }
                     }
                 }
 
@@ -314,7 +331,7 @@ export class BuildingTemplate {
                 for(let x = this.size.x - 1; x >= 0; x--) {
                     _vec.set(x, y, z).addSelf(min)
                     const block = all_blocks.get(_vec)
-                    if(block && block.block_id > 0) {
+                    if(block && block.block_id > 0 && block.block_id != stopper_block.block_id) {
                         break
                     }
                     all_blocks.delete(_vec)
@@ -322,6 +339,12 @@ export class BuildingTemplate {
 
             }
 
+        }
+
+        for(const [pos, block] of all_blocks.entries()) {
+            if(block.block_id == stopper_block.block_id) {
+                all_blocks.delete(pos)
+            }
         }
 
     }
