@@ -130,7 +130,7 @@ void main() {
 
     vec2 offset = CAUSTIC_DISPLACEMENT * causticRes.xy;
 
-    float backDepth = linearizeDepth(texture(u_backTextureDepth, backUV + offset).r);
+    float backDepth = linearizeDepth(texture(u_backTextureDepth, backUV).r);
     float actualDepth = linearizeDepth(gl_FragCoord.z);
     float depthDiff = 10. * (backDepth - actualDepth) ;
 
@@ -139,18 +139,19 @@ void main() {
 
     vec2 colorBackUv = backUV + offset * displaceErrorFactor;
 
-    vec4 backTexture = texture(u_backTextureColor, colorBackUv, -0.5);
+    vec4 refraction = texture(u_backTextureColor, colorBackUv, -0.5);
+    vec4 reflection = vec4(0.0);
 
-	vec4 underwater =  backTexture;
-
-    float mixFactor = 1.0;
-
+    /* ------------------ */
     vec3 ref = reflect(v_position, v_tangentNormal);
 
     vec4 ndc = uProjMatrix * vec4(ref, 1.0);
-    ndc /= ndc.z;
+    ndc /= ndc.w;
+    // ndc.y *= -1.0;
 
     vec2 ndc2d = (1. + ndc.xy) * 0.5 + offset * displaceErrorFactor;
+
+    float DEBUG = 0.0;
 
     // fix me
     // projection problems
@@ -159,15 +160,23 @@ void main() {
         bool isIn = abs(ndc2d.x  - 0.5) < 0.5 && abs(ndc2d.y - 0.5) < 0.5 && v_tangentNormal.y > 0.5;
 
         if (isIn) {
-            vec4 reflection = texture(u_backTextureColor, ndc2d, -0.5);
+            reflection = texture(u_backTextureColor, ndc2d, -0.5);
 
             float factX = WATER_REFLECTION_FACTOR * (1. - smoothstep(WATER_REFLECTION_FADE, 1.0, ndc2d.y));
             float factY = 1. - smoothstep(WATER_REFLECTION_FADE, 1.0, abs(0.5 - ndc2d.x) * 2.0);
 
-            underwater = mix(underwater, reflection, factX * factY);
+            reflection.a = factX * factY;
         } 
-
-        outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * underwater;
     }
+    /* ----------------------- */
 
+    float mixFactor = 1.0;
+
+    vec4 rrcolor = mix(refraction, reflection, reflection.a);
+
+    outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
+    
+    if (DEBUG > 0.0) {
+        outColor  = reflection;
+    }
 }
