@@ -81,22 +81,28 @@ vec4 Trace(vec3 ro, vec3 rd) {
 
     float STEPS = 10.0;
 
-    float PASS = 0.0001;
+    float PASS = 0.001;
 
     vec3 p = ro;
 
     for (float i = 0.0; i < STEPS; i += 1.0) {
 
-        vec4 uv = uProjMatrix * vec4(p, 1.0);
+        vec4 projectedP = uProjMatrix * vec4(p, 1.0);
+    
+        result.xy = projectedP.xy;
+        result.xy /= projectedP.w;
+        result.xy = (result.xy + 1.0) * 0.5;
 
-        uv.xy /= uv.w;
-        uv.xy = (uv.xy + 1.0) * 0.5;
+        result.z = i / STEPS;
 
-        result.xyz = uv.xyz;
+        float depth = texture(u_backTextureDepth, result.xy, -0.5).r;
 
-        float depth = texture(u_backTextureDepth, uv.xy, -0.5).r;
+        projectedP.z = depth;
+        projectedP.w = 1.0;
 
-        float d = (uv.z - depth);
+        vec4 inversedP = inverse(uProjMatrix) * projectedP;
+
+        float d = length(inversedP.xyz - p);
 
         if (abs(d) < PASS) {
 
@@ -207,7 +213,7 @@ void main() {
     /* ----------------------- */
 
 
-    vec4 rayResult = Trace(v_position, ref);
+    vec4 rayResult = Trace(v_position, normalize(ref));
 
     float mixFactor = 1.0;
 
@@ -218,6 +224,9 @@ void main() {
     //if (rayResult.w > 0.0) {
         
     reflection = texture(u_backTextureColor, rayResult.xy, -0.5);
-    outColor  = reflection;
+
+
+
+    outColor  = vec4(vec3(rayResult.z), 1.0);
     //}
 }
