@@ -39,7 +39,7 @@ export class EnchantShaderNoise {
         c1[1] *= .3;
         c1[2] *= .3;
 
-        k[0] = k[0] = pow(
+        k[0] = pow(
             min(min(   length(.5 - fract(a[0])), 
                        length(.5 - fract(b[0]))
                     ), length(.5 - fract(c1[0])
