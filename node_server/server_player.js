@@ -786,6 +786,7 @@ export class ServerPlayer extends Player {
      * @returns bool
      */
     isMiningComplete(data) {
+        return false;
         if (!data.destroyBlock || this.game_mode.isCreative()) {
             return true;
         }
