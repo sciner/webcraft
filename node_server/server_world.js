@@ -528,8 +528,8 @@ export class ServerWorld {
      * @return {void}
      */
     sendSelected(packets, selected_players, except_players) {
-        for(let user_id of selected_players) {
-            if (except_players && except_players.indexOf(user_id) >= 0) {
+        for (const user_id of selected_players) {
+            if (except_players && except_players.includes(user_id)) {
                 continue;
             }
             const player = this.players.get(user_id);

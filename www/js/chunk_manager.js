@@ -151,6 +151,8 @@ export class ChunkManager {
             this.setChunkState(cmd.data);
         });
         world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
+            console.log('cmd');
+            console.log(cmd);
             let pos = cmd.data.pos;
             let item = cmd.data.item;
             let block = BLOCK.fromId(item.id);
