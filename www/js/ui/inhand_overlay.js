@@ -78,7 +78,10 @@ export class InHandOverlay {
         this.wasEating = false;
     }
 
-    reconstructInHandItem(targetId) {
+    reconstructInHandItem(block) {
+
+        const targetId = block?.id ?? -1
+
         if (this.inHandItemId === targetId) {
             return;
         }
@@ -94,16 +97,16 @@ export class InHandOverlay {
             return;
         }
 
-        const block = BLOCK.BLOCK_BY_ID[targetId];
+        const mat = BLOCK.BLOCK_BY_ID[targetId];
 
-        if (!block || (!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name))) {
+        if (!mat || (!mat.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(mat.name))) {
             return;
         }
 
         try {
             const m = mat4.create();
-            if(block.inventory?.scale) {
-                mat4.scale(m, m, [block.inventory?.scale, block.inventory?.scale, block.inventory?.scale]);
+            if(mat.inventory?.scale) {
+                mat4.scale(m, m, [mat.inventory?.scale, mat.inventory?.scale, mat.inventory?.scale]);
             }
             this.inHandItemMesh = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO, m);
         } catch(e) {
@@ -161,7 +164,7 @@ export class InHandOverlay {
             this.changAnimationTime += 0.05 * delta;
 
             if (this.changAnimationTime > 0.5) {
-                this.reconstructInHandItem(id);
+                this.reconstructInHandItem(player.currentInventoryItem);
             }
 
             if (this.changAnimationTime >= 1) {

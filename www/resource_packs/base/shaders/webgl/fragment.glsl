@@ -35,6 +35,10 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         color.rgb *= color_mult.rgb;
     }
 
+    //if(v_flagEnchantedAnimation > 0.0) {
+    //    color.rgb *= 2.0;
+    //}
+
     return color;
 }
 
@@ -144,6 +148,12 @@ void main() {
                     }
                 }
             }
+
+            if(v_flagEnchantedAnimation > 0.0) {
+                #include<enchanted_animation>
+            }
+
+
         }
 
         if(v_noCanTakeLight < 0.5) {

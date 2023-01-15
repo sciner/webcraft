@@ -1,5 +1,5 @@
 import {BLOCK} from "../blocks.js";
-import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
+import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers, IndexedColor } from "../helpers.js";
 import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
@@ -9,10 +9,15 @@ import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
+import { createNoise2D } from '../../vendors/simplex-noise.js';
+import { impl as alea } from '../../vendors/alea.js';
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
 const DOUBLE_CLICK_TIME = 200.0;
+
+const noiseRandom = new alea('enchantments_animations')
+const noise2d = createNoise2D(noiseRandom.double);
 
 export class HelpSlot extends Label {
 
@@ -157,14 +162,14 @@ export class CraftTableSlot extends Label {
             ctx.fillText(this.slot_index || '', ax + this.x + 4, ay + this.y + 4);
         }
         //
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
+        // this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
 
     // Draw item
-    drawItem(ctx, item, x, y, width, height) {
-        
-        const image = this.ct.inventory.inventory_image;
+    async drawItem(ctx, item, x, y, width, height) {
+
+        let image = this.ct.inventory.inventory_image;
 
         if(!image || !item) {
             return;
@@ -180,6 +185,76 @@ export class CraftTableSlot extends Label {
         // 1. Draw icon
         const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
         const dest_icon_size = 40 * zoom;
+
+        // if has enchantments
+        if(!!(item?.extra_data?.enchantments ?? false)) {
+            
+            globalThis.draeench++
+
+            if(this.item_prev != item) {
+
+                this.item_prev = item
+
+                // TODO: clear prev data from this.item_canvas
+
+                const scnv = document.createElement('canvas')
+                scnv.width = icon.width
+                scnv.height = icon.height
+                const sctx = scnv.getContext('2d')
+
+                const scnv2 = document.createElement('canvas')
+                scnv2.width = icon.width
+                scnv2.height = icon.height
+                const sctx2 = scnv2.getContext('2d')
+                sctx2.drawImage(image, icon.x, icon.y, icon.width, icon.height, 0, 0, icon.width, icon.height)
+
+                const imageData = sctx2.getImageData(0, 0, icon.width, icon.height)
+                const orig_pixels_data = Array.from(imageData.data)
+
+                this.item_canvas = {
+                    scnv,
+                    sctx,
+                    scnv2,
+                    sctx2,
+                    imageData,
+                    orig_pixels_data
+                }
+            }
+
+            const imageData = this.item_canvas.imageData
+            const orig_pixels_data = this.item_canvas.orig_pixels_data
+            // const imageData = this.item_canvas.sctx2.getImageData(0, 0, icon.width, icon.height)
+
+            // Copy result to source
+            const pixs = imageData.data
+            let idx = 0
+            const scale = 50
+            const pn = performance.now() / 2000
+            for(let px = 0; px < icon.width; px++) {
+                for(let py = 0; py < icon.height; py++) {
+                    if(orig_pixels_data[idx + 3] > 0) {
+                        const x2 = px + 100 + x * 100
+                        const y2 = py + 100 + y * 100
+                        let value = noise2d(px/scale - pn, py/scale - pn)
+                        let value2 = noise2d(x2/scale + pn, y2/scale + pn)
+                        value = (value+value2)/2
+                        value = (value + .5) * 1.5
+                        const r = value * (255 * .4)
+                        const b = value * 255
+                        pixs[idx + 0] = orig_pixels_data[idx + 0] * (1-value) + r * value
+                        pixs[idx + 2] = orig_pixels_data[idx + 2] * (1-value) + b * value
+                    }
+                    idx += 4
+                }
+            }
+
+            this.item_canvas.sctx.putImageData(imageData, 0, 0)
+            image = this.item_canvas.scnv
+            icon.x = 0
+            icon.y = 0
+
+        }
+
         ctx.drawImage(
             image,
             icon.x,
