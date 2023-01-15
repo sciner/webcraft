@@ -40,6 +40,12 @@ export default class packet_reader {
                 }
             };
             const actions = await doBlockAction(packet.data, world, player_info, currentInventoryItem);
+            // проверям скорость, если ошибка, то ворачиваем как было
+            if (!correct_destroy) {
+                for (const block of actions.blocks.list) {
+                    block.item.id = block.destroy_block_id;
+                }
+            }
             // compare two actions
             if (packet.data.actions?.blocks?.list) {
                 const player_json = JSON.stringify(packet.data.actions.blocks.list);

@@ -786,7 +786,6 @@ export class ServerPlayer extends Player {
      * @returns bool
      */
     isMiningComplete(data) {
-        return false;
         if (!data.destroyBlock || this.game_mode.isCreative()) {
             return true;
         }
@@ -803,7 +802,7 @@ export class ServerPlayer extends Player {
             return false;
         }
         const instrument = BLOCK.fromId(this.state.hands.right.id);
-        let mul = 0.5;
+        let mul = 1;
         mul *= (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) ? 0.2 : 1;
         mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
         mul -= mul * 0.2 * this.effects.getEffectLevel(Effect.MINING_FATIGUE); // усталость
