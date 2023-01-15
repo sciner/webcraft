@@ -41,7 +41,7 @@ export class EnchantShaderNoise {
             .5 - (c1[2] - Math.floor(c1[2])),
         ), 7.) * 25.0;
 
-        out[offset1 + 0] = input[offset2 + 0] + k[0] * 1.5;
-        out[offset1 + 2] = input[offset2 + 2] + k[2] * 6.;
+        out[offset1 + 0] = input[offset2 + 0] + Math.round(k[0] * 1.5 * 255.0);
+        out[offset1 + 2] = input[offset2 + 2] + Math.round(k[2] * 6. * 255.0);
     }
 }
