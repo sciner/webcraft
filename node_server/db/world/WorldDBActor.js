@@ -70,7 +70,10 @@ export class WorldDBActor {
     }
 
     async flushLoadChunks() {
-        return this.world.db.chunks.bulkGetWorldModifyChunk.flush();
+        return Promise.all([
+            this.world.db.chunks.bulkGetWorldModifyChunk.flush(),
+            this.world.db.fluid.bulkSelect.flush()
+        ]);
     }
 
     /**

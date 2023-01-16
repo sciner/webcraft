@@ -1,7 +1,7 @@
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector, unixTime, getChunkAddr } from "../../../www/js/helpers.js";
 import { KNOWN_CHUNK_FLAGS } from "../world/WorldDBActor.js"
-import { decompressWorldModifyChunk } from "../../../www/js/compress/world_modify_chunk.js";
+import { decompressModifiresList } from "../../../www/js/compress/world_modify_chunk.js";
 import { BulkSelectQuery, preprocessSQL } from "../db_helpers.js";
 
 // It contains queries dealing with chunks. It doesn't contain logic.
@@ -131,7 +131,6 @@ export class DBWorldChunk {
     /**
      * Unpacks all modifiers from world_modify_chunk into world_modify.
      * It can be optimized, e.g.:
-     *  - read compressed data
      *  - don't create the intermediate array of data to be inserted
      *  - drop the table indices, insert, then create indices
      */
@@ -143,13 +142,18 @@ export class DBWorldChunk {
         const blocks = [];
         for(let i = 0; i < chunksCount; i += BATCH_SIZE) {
             console.log(`  processing chunks ${i}..${Math.min(i + BATCH_SIZE, chunksCount) - 1} out of ${chunksCount}...`);
-            const rows = await this.conn.all(`SELECT x, y, z, data
+            const rows = await this.conn.all(`SELECT
+                    x, y, z,
+                    CASE WHEN data_blob IS NULL THEN data ELSE NULL END obj,
+                    data_blob AS compressed,
+                    private_data_blob AS private_compressed
                 FROM world_modify_chunks
                 LIMIT ? OFFSET ?`,
                 [BATCH_SIZE, i]
             );
             let invalidChunks = 0;
             for(const row of rows) {
+                decompressModifiresList(row);
                 if (!row.data) {
                     invalidChunks++;
                     continue; // this chunk is invalid :( Can't do anyhing about it
@@ -188,61 +192,6 @@ export class DBWorldChunk {
         for(let row of rows) {
             this.world.dbActor.addKnownChunkFlags(row, flags);
         }
-    }
-    
-    /**
-     * @param {Vector} addr
-     * @return {Object} { 
-     *  obj: Object             // uncompressed modifiers, guaranteed to be not null
-     *  compressed: ?Uint8Array  // compressed public modifiers
-     *  private_compressed: ?Uint8Array  // compressed private modifiers
-     *  exists: Boolean         // true if the record exists
-     * }
-     */
-    async getChunkModifiers(addr) {
-        const resp = {
-            obj: null,
-            compressed: null,
-            private_compressed: null,
-            rowId: null
-        };
-        // We don't return has_data_blob field, because the row may have been manually edited.
-        // It's more realibel to look at the data.
-        const row = await this.conn.get(`
-            SELECT CASE WHEN data_blob IS NULL THEN data ELSE data_blob END data,
-                private_data_blob,
-                CASE WHEN data_blob IS NULL THEN 0 ELSE 1 END has_data_blob,
-                _rowid_ rowId
-            FROM world_modify_chunks
-            WHERE x = ? AND y = ? AND z = ?`,
-            addr.toArray()
-        );
-        if (row) {
-            resp.rowId = row.rowId; // If we select "_rowid_", it's also returned as "rowid". So select "rowId" to avoid confusion.
-            resp.has_data_blob = row.has_data_blob
-            if (resp.has_data_blob) {
-                resp.compressed = row.data;
-                resp.private_compressed = row.private_data_blob;
-                resp.obj = decompressWorldModifyChunk(resp.compressed);
-                if (resp.private_compressed) {
-                    const private_obj = decompressWorldModifyChunk(resp.private_compressed);
-                    Object.assign(resp.obj, private_obj);
-                }
-            } else if (row.data) {
-                resp.obj = JSON.parse(row.data);
-            } else {
-                // It's been tampered with. The game never deletes uncompressed data.
-                // Maybe someone wanted to manually reset modifiers?
-                // Re-calculated them based on the log, then repeat the attepmt.
-                await this.updateRebuildModifiersByRowIds([row.rowId]);
-                return this.getChunkModifiers(addr);
-            }
-        } else {
-            // It's been tampered with. See the comment above.
-            await this.insertRebuildModifiers([addr]);
-            return this.getChunkModifiers(addr);
-        }
-        return resp;
     }
 
     /**
@@ -317,8 +266,8 @@ export class DBWorldChunk {
     }
     REBUILD_MODIFIERS_SUBQUERY =
         `json_group_object(
-            cast(m."index" as TEXT),
-            json_patch(
+            m."index",
+            json_patch(     -- to remove nulls from the result object
                 'null',
                 json_object(
                     'id',           COALESCE(m.block_id, 0),
@@ -331,9 +280,15 @@ export class DBWorldChunk {
         )`;
     UPDATE_REBUILD_MODIFIERS_BASE =
         `UPDATE world_modify_chunks
-        SET data = (SELECT ${this.REBUILD_MODIFIERS_SUBQUERY} FROM world_modify m
-                WHERE m.chunk_x = world_modify_chunks.x AND m.chunk_y = world_modify_chunks.y AND m.chunk_z = world_modify_chunks.z
-                ORDER BY m.id ASC),
+        SET data =
+            (SELECT ${this.REBUILD_MODIFIERS_SUBQUERY} FROM
+                (SELECT * FROM
+                    (SELECT "index", block_id, extra_data, entity_id, ticks, params
+                    FROM world_modify m
+                    WHERE m.chunk_x = world_modify_chunks.x AND m.chunk_y = world_modify_chunks.y AND m.chunk_z = world_modify_chunks.z
+                    ORDER BY m.id DESC)     -- ensure the last change for each block is used
+                GROUP BY "index") m         -- ensure the result has no duplicate keys
+            ),
             data_blob = NULL,
             private_data_blob = NULL,
             has_data_blob = 0
@@ -365,9 +320,14 @@ export class DBWorldChunk {
             data_blob, private_data_blob, has_data_blob
         ) SELECT
             _x, _y, _z,
-            (SELECT ${this.REBUILD_MODIFIERS_SUBQUERY} FROM world_modify m
-                WHERE m.chunk_x = _x AND m.chunk_y = _y AND m.chunk_z = _z
-                ORDER BY m.id ASC),
+            (SELECT ${this.REBUILD_MODIFIERS_SUBQUERY} FROM
+                (SELECT * FROM
+                    (SELECT "index", block_id, extra_data, entity_id, ticks, params
+                    FROM world_modify m
+                    WHERE m.chunk_x = _x AND m.chunk_y = _y AND m.chunk_z = _z
+                    ORDER BY m.id DESC)
+                GROUP BY "index") m     -- see the comments in the similar code above
+            ),
             NULL, NULL, 0`;
     INSERT_REBUILD_MODIFIERS_ALL = preprocessSQL(`
         ${this.INSERT_REBUILD_MODIFIERS_BASE}

@@ -1,5 +1,4 @@
 import { gzip, ungzip, inflate, deflate } from '../../vendors/pako.esm.min.mjs';
-import { ObjectHelpers } from '../helpers.js';
 import { BLOCK } from '../blocks.js';
 
 const COL_D = '|';
@@ -160,6 +159,17 @@ export function decompressWorldModifyChunk(buf) {
         }
         default: {
             throw 'error_invalid_compressed_chunk_version';
+        }
+    }
+}
+
+/** Restores ml.obj from ml.compressed and ml.private_compressed */
+export function decompressModifiresList(ml) {
+    if(!ml.obj && ml.compressed) {
+        ml.obj = decompressWorldModifyChunk(ml.compressed);
+        if (ml.private_compressed) {
+            const private_obj = decompressWorldModifyChunk(ml.private_compressed);
+            Object.assign(ml.obj, private_obj);
         }
     }
 }

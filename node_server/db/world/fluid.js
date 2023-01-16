@@ -2,7 +2,8 @@ import {getChunkAddr, SimpleQueue, Vector} from "../../../www/js/helpers.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
 import {FluidChunk} from "../../../www/js/fluid/FluidChunk.js";
 import {BaseChunk} from "../../../www/js/core/BaseChunk.js";
-import {KNOWN_CHUNK_FLAGS} from "../world/WorldDBActor.js"
+import {KNOWN_CHUNK_FLAGS} from "./WorldDBActor.js"
+import {BulkSelectQuery} from "../db_helpers.js"
 
 export class DBWorldFluid {
     constructor(conn, world) {
@@ -10,6 +11,12 @@ export class DBWorldFluid {
         this.world = world;
 
         this.dirtyChunks = new SimpleQueue();
+
+        this.bulkSelect = new BulkSelectQuery(this.conn,
+            `WITH cte AS (SELECT value FROM json_each(:jsonRows))
+            SELECT data
+            FROM cte LEFT JOIN world_chunks_fluid ON x = %0 AND y = %1 AND z = %2`
+        );
     }
 
     async restoreFluidChunks() {
@@ -25,13 +32,9 @@ export class DBWorldFluid {
             return null;
         }
 
-        const row = await this.conn.get('SELECT data FROM world_chunks_fluid WHERE x = :x AND y = :y AND z = :z', {
-            ':x': chunk_addr.x,
-            ':y': chunk_addr.y,
-            ':z': chunk_addr.z
-        });
-        // console.log(`loaded fluid ${chunk_addr}`)
-        return row ? row['data'] : null;
+        const row = await this.bulkSelect.get(chunk_addr.toArray());
+        console.log(`loaded fluid ${chunk_addr}`)
+        return row?.data;
     }
 
     //

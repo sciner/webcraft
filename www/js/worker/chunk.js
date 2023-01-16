@@ -189,6 +189,8 @@ export class Chunk {
         if(ml.obj) {
             ml = ml.obj;
         } else if(ml.compressed) {
+            // It's ok to not use ml.private_compressed here, because on the server
+            // there is always ml.obj, and on the client there is no ml.private_compressed.
             ml = decompressWorldModifyChunk(Uint8Array.from(atob(ml.compressed), c => c.charCodeAt(0)));
         } else {
             ml = {};

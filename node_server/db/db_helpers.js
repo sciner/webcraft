@@ -10,8 +10,8 @@ import { ArrayHelpers } from "../../www/js/helpers.js";
 export function preprocessSQL(query) {
     return query
         .replaceAll(/%(\d+)/g, "json_extract(value,'\$[$1]')")
-        .replaceAll(/ *\n */g, ' ') // just some cleanup of multiline queries
-        .replaceAll(/  +/g, ' ')    // compact long sequences of spaces
+        .replaceAll(/--[^\n]*\n/g, '\n') // remove single-line comments (it'll break SQL if it's inside a string literal)
+        .replaceAll(/\s+/g, ' ')  // multiline => single line, reduce sequences of spaces (again, we assume it's not inside a string literal)
         .trim();
 }
 

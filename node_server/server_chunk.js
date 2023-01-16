@@ -6,7 +6,7 @@ import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpe
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { dropBlock, WorldAction } from "../www/js/world_action.js";
 import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "../www/js/constant.js";
-import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
+import { compressWorldModifyChunk, decompressModifiresList } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
@@ -196,13 +196,7 @@ export class ServerChunk {
         this.setState(CHUNK_STATE.LOADING_DATA);
         //
         const afterLoad = ([ml, fluid]) => {
-            if(!ml.obj && ml.compressed) {
-                ml.obj = decompressWorldModifyChunk(ml.compressed);
-                if (ml.private_compressed) {
-                    const private_obj = decompressWorldModifyChunk(ml.private_compressed);
-                    Object.assign(ml.obj, private_obj);
-                }
-            }
+            decompressModifiresList(ml);
             this.modify_list = ml;
             this.ticking = new Map();
             this.setState(CHUNK_STATE.LOADING_BLOCKS);
