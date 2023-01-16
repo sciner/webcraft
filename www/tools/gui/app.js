@@ -5,7 +5,7 @@ import {WindowManager, Window, Label, Button} from "./wm+pixi.js"
 let canvas = document.getElementById('canvas');
 
 // Init Window Manager
-const wm = new WindowManager(canvas, null, 0, 0, canvas.width, canvas.height)
+const wm = new WindowManager(canvas, 0, 0, canvas.width, canvas.height)
 wm.setBackground('./screenshot.jpg')
 wm.style.background.color = '#00000044'
 

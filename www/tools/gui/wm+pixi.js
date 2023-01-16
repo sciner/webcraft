@@ -25,72 +25,8 @@ export class Window extends PIXI.Container {
         this.z              = 0; // z-index
         this.width          = w;
         this.height         = h;
-        this.title          = title;
         this.id             = id;
-        this.text           = text || null
-        this.word_wrap      = false;
-        this.hover          = false;
-        this.catchEvents    = true;
 
-        this.scrollX        = 0;
-        this.scrollY        = 0;
-        this.autosize       = true;
-        this.enabled        = true;
-        this.max_chars_per_line = 0;
-        this.onHide         = function() {};
-        this.onShow         = function() {};
-        this.onMouseEnter   = function() {};
-        this.create_time    = performance.now();
-        this.canBeOpenedWith = []; // allows this window to be opened even if some other windows are opened
-        this.onMouseLeave   = () => {
-            for(let w of this.list.values()) {
-                if(w.hover) {
-                    w.hover = false;
-                    w.onMouseLeave();
-                }
-            }
-        };
-        this.onMouseDown    = function() {};
-        this.onMouseMove    = function(e) {};
-        this.onDrop         = function(e) {};
-        this.onWheel        = function(e) {};
-        // onKeyEvent
-        this.onKeyEvent     = function(e) {
-            for(let w of this.list.values()) {
-                if(w.visible) {
-                    let fired = false;
-                    for(let f of w.list.values()) {
-                        if(f.focused) {
-                            fired = f.onKeyEvent(e);
-                            if(fired) {
-                                break;
-                            }
-                        }
-                    }
-                    if(!fired) {
-                        w.onKeyEvent(e);
-                    }
-                }
-            }
-        };
-        // typeChar
-        this.typeChar = function(e, charCode, typedChar) {
-            for(let w of this.list.values()) {
-                if(w.visible) {
-                    let fired = false;
-                    for(let f of w.list.values()) {
-                        if(f.focused) {
-                            f.typeChar(e, charCode, typedChar);
-                            fired = true;
-                            break;
-                        }
-                    }
-                    if(!fired) {
-                        w.typeChar(e, charCode, typedChar);
-                    }
-                }
-            }
-        };
         this.style = {
             color: '#3f3f3f',
             textAlign: {
@@ -131,6 +67,73 @@ export class Window extends PIXI.Container {
                 hidden: false
             }
         };
+
+        this.title          = title;
+        this.text           = text || null
+        this.word_wrap      = false;
+        this.hover          = false;
+        this.catchEvents    = true;
+
+        this.scrollX        = 0;
+        this.scrollY        = 0;
+        this.autosize       = true;
+        this.enabled        = true;
+        this.max_chars_per_line = 0;
+        this.onHide         = function() {};
+        this.onShow         = function() {};
+        this.onMouseEnter   = function() {};
+        this.create_time    = performance.now();
+        this.canBeOpenedWith = []; // allows this window to be opened even if some other windows are opened
+
+        this.onMouseLeave   = () => {
+            for(let w of this.list.values()) {
+                if(w.hover) {
+                    w.hover = false;
+                    w.onMouseLeave();
+                }
+            }
+        };
+        this.onMouseDown    = function(e) {};
+        this.onMouseMove    = function(e) {};
+        this.onDrop         = function(e) {};
+        this.onWheel        = function(e) {};
+        // onKeyEvent
+        this.onKeyEvent     = function(e) {
+            for(let w of this.list.values()) {
+                if(w.visible) {
+                    let fired = false;
+                    for(let f of w.list.values()) {
+                        if(f.focused) {
+                            fired = f.onKeyEvent(e);
+                            if(fired) {
+                                break;
+                            }
+                        }
+                    }
+                    if(!fired) {
+                        w.onKeyEvent(e);
+                    }
+                }
+            }
+        };
+        // typeChar
+        this.typeChar = function(e, charCode, typedChar) {
+            for(let w of this.list.values()) {
+                if(w.visible) {
+                    let fired = false;
+                    for(let f of w.list.values()) {
+                        if(f.focused) {
+                            f.typeChar(e, charCode, typedChar);
+                            fired = true;
+                            break;
+                        }
+                    }
+                    if(!fired) {
+                        w.typeChar(e, charCode, typedChar);
+                    }
+                }
+            }
+        };
     }
 
     get text() {
@@ -164,6 +167,7 @@ export class Window extends PIXI.Container {
     //
     get tooltip() {return this.#_tooltip}
     set tooltip(value) {this.#_tooltip = value;}
+
     getRoot() {
         return globalThis.wmGlobal;
         // if(this.parent) {
@@ -171,9 +175,11 @@ export class Window extends PIXI.Container {
         // }
         // return this;
     }
+
     getPIXIApp() {
         return this.pixiapp ?? this.getRoot().pixiapp
     }
+
     /**
      * @param {Window} w 
      */
@@ -186,11 +192,13 @@ export class Window extends PIXI.Container {
         this.addChild(w)
         this.list.set(w.id, w)
     }
+
     delete(id) {
         if(this.list.has(id)) {
             this.list.delete(id);
         }
     }
+
     /**
      * @param {string} id 
      * @returns {Window}
@@ -201,23 +209,28 @@ export class Window extends PIXI.Container {
         }
         return this.list.get(id);
     }
+
     getVisibleWindowOrNull(id) {
         const w = this.list.get(id);
         return w && w.visible ? w : null;
     }
+
     move(x, y) {
         this.x = x;
         this.y = y;
     }
+
     resize(w, h) {
         this.getRoot()._wm_setTooltipText(null);
         this.width = w;
         this.height = h;
     }
+
     center(w) {
-        w.move(this.width / 2 - w.width / 2, this.height / 2 - w.height / 2);
+        w.move(this.width / 2 - w.width / 2, this.height / 2 - w.height / 2)
         // this.redraw();
     }
+
     // Place all childs to center of this window
     centerChild() {
         let width_sum = 0;
@@ -251,12 +264,14 @@ export class Window extends PIXI.Container {
             }
         }
     }
+
     /**
      * @deprecated
      */
     clear() {
         // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
+
     draw(ctx, ax, ay) {
         // TODO:
         /*
@@ -357,6 +372,7 @@ export class Window extends PIXI.Container {
         }
         */
     }
+
     updateMeasure(ctx, ax, ay) {
         if(!this.__measure) {
             this.__measure = {
@@ -397,6 +413,7 @@ export class Window extends PIXI.Container {
             }
         }
     }
+
     calcMaxHeight() {
         let mh = 0;
         for(let w of this.list.values()) {
@@ -407,6 +424,7 @@ export class Window extends PIXI.Container {
         }
         this.max_height = mh + this.style.padding.bottom;
     }
+
     hasVisibleWindow() {
         if(this._has_visible_window_cng == globalThis.wmGlobal.visible_change_count) {
             return this._has_visible_window;
@@ -422,6 +440,7 @@ export class Window extends PIXI.Container {
         this._has_visible_window_cng = globalThis.wmGlobal.visible_change_count;
         return resp;
     }
+
     getVisibleWindows() {
         let list = [];
         for(let w of this.list.values()) {
@@ -467,6 +486,7 @@ export class Window extends PIXI.Container {
      */
     setBackground(urlOrCanvas, image_size_mode) {
 
+        // TODO: remove previous sprite
         const background = PIXI.Sprite.from(urlOrCanvas)
 
         /*
@@ -482,6 +502,7 @@ export class Window extends PIXI.Container {
         background.anchor.y = 0
         background.position.x = 0
         background.position.y = 0
+
         this.addChild(background)
 
         this.style.background.image_size_mode = image_size_mode ? image_size_mode : this.style.background.image_size_mode
@@ -502,6 +523,7 @@ export class Window extends PIXI.Container {
         }
         */
     }
+
     setIconImage(url, image_size_mode) {
         const that = this;
         const icon = new Image();
@@ -512,6 +534,7 @@ export class Window extends PIXI.Container {
         }
         icon.src = url;
     }
+
     show(args) {
         for(let w of Qubatch.hud.wm.visibleWindows()) {
             if (!this.canBeOpenedWith.includes(w.id) && !w.canBeOpenedWith.includes(this.id)) {
@@ -522,6 +545,7 @@ export class Window extends PIXI.Container {
         this.resetHover();
         this.onShow(args);
     }
+
     hide() {
         const wasVisible = this.visible;
         this.visible = false;
@@ -531,6 +555,7 @@ export class Window extends PIXI.Container {
             Qubatch.hud.prevDrawTime = 0;
         }
     }
+
     hideAndSetupMousePointer() {
         this.hide();
         try {
@@ -539,18 +564,21 @@ export class Window extends PIXI.Container {
             console.error(e);
         }
     }
+
     resetHover() {
         this.hover = false;
         for(let w of this.list.values()) {
             w.hover = false;
         }
     }
+
     toggleVisibility() {
         if(this.visible) {
             return this.hide();
         }
         return this.show();
     }
+
     _mousemove(e) {
         this.hover = true;
         this.onMouseMove(e);
@@ -613,6 +641,7 @@ export class Window extends PIXI.Container {
             item.w._mousemove(item.event);
         }*/
     }
+
     _mousedown(e) {
         //
         const visible_windows = [];
@@ -638,6 +667,7 @@ export class Window extends PIXI.Container {
         }
         this.onMouseDown(e);
     }
+
     _drop(e) {
         for(let w of this.list.values()) {
             if(w.visible) {
@@ -656,6 +686,7 @@ export class Window extends PIXI.Container {
         }
         this.onDrop(e);
     }
+
     _wheel(e) {
         for(let w of this.list.values()) {
             if(w.visible) {
@@ -675,6 +706,7 @@ export class Window extends PIXI.Container {
         }
         this.onWheel(e);
     }
+
     measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
         const lines = text.split("\r");
         let width = 0;
@@ -686,6 +718,7 @@ export class Window extends PIXI.Container {
         }
         return { width, actualBoundingBoxDescent };
     }
+
     calcPrintLines(original_text, ax, ay) {
         if(!this.word_wrap || !this.ctx) {
             return [original_text];
@@ -735,6 +768,7 @@ export class Window extends PIXI.Container {
         lines.pop();
         return lines;
     }
+
     print(original_text) {
         if(!this.ctx) {
             console.error('Empty context');
@@ -758,6 +792,7 @@ export class Window extends PIXI.Container {
             this.ctx.fillText(line, x, y + (lineHeight * i));
         }
     }
+
     loadCloseButtonImage(callback) {
         if(this._loadCloseButtonImage) {
             callback(this._loadCloseButtonImage);
@@ -771,6 +806,7 @@ export class Window extends PIXI.Container {
         }
         image.src = '../../media/gui/close.png';
     }
+
     assignStyles(style) {
         for(let param in style) {
             let v = style[param];
@@ -790,6 +826,7 @@ export class Window extends PIXI.Container {
             }
         }
     }
+
     appendLayout(layout) {
         let ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
@@ -835,7 +872,7 @@ export class Window extends PIXI.Container {
             }
         }
     }
-    
+
     // Draw image
     drawImage(val, x, y, w, h) {
         // draw image
@@ -914,6 +951,7 @@ export class Window extends PIXI.Container {
 
         }
     }
+
     // fill background color
     fillBackground(ctx, ax, ay, color) {
         ctx.fillStyle = color
@@ -923,9 +961,11 @@ export class Window extends PIXI.Container {
         let h = this.height;
         ctx.fillRect(x, y, w, h);
     }
+
     onUpdate() {
         // It's called every interation of the game loop for visible windows. Override it in the subclasses.
     }
+
 }
 
 // Button
@@ -1149,6 +1189,8 @@ export class WindowManager extends Window {
 
         this.parent = WindowManager.pixiapp.stage
 
+        this.parent.addChild(this)
+
         const ctx = null
 
         let that = this;
@@ -1157,8 +1199,8 @@ export class WindowManager extends Window {
         this.canvas = null
         this.ctx = null
         this.visible_change_count = 0;
-        //
         this._wm_tooltip = new Tooltip(null);
+
         //
         this.pointer = {
             x: w / 2,
@@ -1197,8 +1239,10 @@ export class WindowManager extends Window {
                     );
                 }
             }
-        };
-        this.pointer.load();
+        }
+
+        this.pointer.load()
+
         this.drag = {
             item: null,
             setItem: function(item) {
@@ -1217,7 +1261,8 @@ export class WindowManager extends Window {
                     }
                 }
             }
-        };
+        }
+
     }
 
     closeAll() {
