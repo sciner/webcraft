@@ -6,3 +6,6 @@
 canvas {
     background: #00000000;
 }
+body {
+    background-color: darkgray !important;
+}

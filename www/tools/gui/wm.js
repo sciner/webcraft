@@ -165,6 +165,20 @@ export class Window extends PIXI.Container {
     }
 
     /**
+     * @type {int}
+     */
+    get ax() {
+        return this.transform.position._x
+    }
+
+    /**
+     * @type {int}
+     */
+    get ay() {
+        return this.transform.position._y
+    }
+
+    /**
      * @param {int} value
      */
     set width(value) {
@@ -516,52 +530,55 @@ export class Window extends PIXI.Container {
 
     /**
      * Set wnidow background and size mode
-     * @param {?string|Canvas} urlOrCanvas 
+     * @param {?string|Image} urlOrImage 
      * @param {?string} image_size_mode 
      */
-    setBackground(urlOrCanvas, image_size_mode, scale) {
+    setBackground(urlOrImage, image_size_mode, scale) {
 
         this.style.background.image_size_mode = image_size_mode ? image_size_mode : this.style.background.image_size_mode
 
-        if (typeof urlOrCanvas == "string") {
+        // Set image
+        const setImage = (image) => {
+
+            // TODO: remove previous sprite
+            const background = PIXI.Sprite.from(image)
+            background._image = image
+            this._background = background
+            // const background = new PIXI.Sprite(PIXI.Texture.WHITE)
+            // background.tint = getRandomColor()
+
+            background.anchor.x = 0
+            background.anchor.y = 0
+            background.position.x = 0
+            background.position.y = 0
+
+            // scale
+            if(isNaN(scale)) {
+                background.scale.set(this._width / image.width, this._height / image.height)
+            } else {
+                background.scale.set(scale, scale)
+                // background.position.x = this.w / 2
+                // background.position.y = this.h / 2
+            }
+
+            this.style.background.image_size_mode = image_size_mode ?? this.style.background.image_size_mode
+    
+            this.addChildAt(background, 0)
+
+        }
+
+        if (typeof urlOrImage == 'string') {
 
             const image = new Image()
             image.onload = (e) => {
-
-                // TODO: remove previous sprite
-                const background = PIXI.Sprite.from(image)
-                // const background = new PIXI.Sprite(PIXI.Texture.WHITE)
-                // background.tint = getRandomColor()
-
-                background.anchor.x = 0
-                background.anchor.y = 0
-                background.position.x = 0
-                background.position.y = 0
-
-                // scale
-                if(isNaN(scale)) {
-                    background.scale.set(this._width / image.width, this._height / image.height)
-                } else {
-                    background.scale.set(scale, scale)
-                }
-        
-                this.addChildAt(background, 0)
-
-                /*that.style.background.image = bg;
-                that.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
-                that.redraw();
-                */
-
+                setImage(image)
             }
-
-            image.src = urlOrCanvas
+            image.src = urlOrImage
 
         } else {
-            /*
-            this.style.background.image = urlOrCanvas;
-            this.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
-            this.redraw();
-            */
+
+            setImage(urlOrImage)
+
         }
         
     }
@@ -692,22 +709,22 @@ export class Window extends PIXI.Container {
                 visible_windows.push(w);
             }
         }
-        visible_windows.sort((a, b) => b.z - a.z);
-        for(let w of visible_windows) {
-            let e2 = {...e};
-            let x = e2.x - (this.ax + w.x);
-            let y = e2.y - (this.ay + w.y);
-            if(x >= 0 && y >= 0 && x < w.w && y < w.h) {
-                e2.x = w.ax + x;
-                e2.y = w.ay + y - w.scrollY;
+        visible_windows.sort((a, b) => b.z - a.z)
+        for(let window of visible_windows) {
+            const e2 = {...e}
+            const x = e2.x - (this.ax + window.x)
+            const y = e2.y - (this.ay + window.y)
+            if(x >= 0 && y >= 0 && x < window.w && y < window.h) {
+                e2.x = window.ax + x
+                e2.y = window.ay + y - window.scrollY
                 // e2.x = x + this.x;
                 // e2.y = y + this.y - w.scrollY;
-                e2.target = w;
-                w._mousedown(e2);
-                return;
+                e2.target = window
+                window._mousedown(e2)
+                return
             }
         }
-        this.onMouseDown(e);
+        this.onMouseDown(e)
     }
 
     _drop(e) {
@@ -1014,7 +1031,9 @@ export class Window extends PIXI.Container {
 export class Button extends Window {
 
     constructor(x, y, w, h, id, title, text) {
+
         super(x, y, w, h, id, title, text);
+        
         this.style.textAlign.horizontal = 'center';
         this.style.textAlign.vertical = 'middle';
         this.onMouseEnter = function() {
@@ -1024,6 +1043,7 @@ export class Button extends Window {
             this.style.background.color = '#8892c9';
             this.style.color = '#ffffff';
         }
+
         this.onMouseLeave = function() {
             this.style.background.color = this.style.background.color_save;
             this.style.color = this.style.color_save;
@@ -1031,6 +1051,22 @@ export class Button extends Window {
             this.style.background.color_save = null; 
             this.style.color_save = null; 
         }
+
+        // Border
+        this._border = new PIXI.Graphics()
+        this.addChild(this._border)
+        this._border.lineStyle(1, 0xffffff, 0.6) // .lineStyle(thickness, 0xffffff)
+        // this._border.position.set(0, 0)
+        this._border
+            .moveTo(0, 0)
+            .lineTo(this.w, 0)
+            .lineTo(this.w, this.h)
+
+        this._border.lineStyle(1, 0x000000, 0.6) // .lineStyle(thickness, 0xffffff)
+        this._border.moveTo(this.w, this.h)
+            .lineTo(0, this.h)
+            .lineTo(0, 0)
+
     }
 
 }
@@ -1292,7 +1328,7 @@ export class WindowManager extends Window {
         this.drag = {
             item: null,
             setItem: function(item) {
-                this.item = item;
+                this.item = item
             },
             getItem: function() {
                 return this.item;
@@ -1329,30 +1365,31 @@ export class WindowManager extends Window {
     }
 
     mouseEventDispatcher(e) {
+
         switch(e.type) {
             case 'mousemove': {
-                let evt = {
+                const evt = {
                     shiftKey:   e.shiftKey,
                     button_id:  e.button_id,
                     x:          e.offsetX - this.x,
                     y:          e.offsetY - this.y
                 };
-                this.pointer.x = e.offsetX;
-                this.pointer.y = e.offsetY;
+                this.pointer.x = e.offsetX
+                this.pointer.y = e.offsetY
                 // Calculate tooltip position
                 let pos = {x: this.pointer.x, y: this.pointer.y};
                 if(pos.x + this._wm_tooltip.width > this.width) {
-                    pos.x -= this._wm_tooltip.width;
+                    pos.x -= this._wm_tooltip.width
                 }
                 if(pos.y + this._wm_tooltip.height > this.height) {
-                    pos.y -= this._wm_tooltip.height;
+                    pos.y -= this._wm_tooltip.height
                 }
-                this._wm_tooltip.move(pos.x, pos.y);
-                this._mousemove(evt);
-                break;
+                this._wm_tooltip.move(pos.x, pos.y)
+                this._mousemove(evt)
+                break
             }
             case 'mousedown': {
-                let evt = {
+                const evt = {
                     shiftKey:   e.shiftKey,
                     button_id:  e.button_id,
                     drag:       this.drag,
@@ -1360,31 +1397,31 @@ export class WindowManager extends Window {
                     y:          e.offsetY - this.y
                 };
                 if(this.drag.getItem()) {
-                    this._drop(evt);
+                    this._drop(evt)
                 } else {
-                    this._mousedown(evt);
+                    this._mousedown(evt)
                 }
-                break;
+                break
             }
             case 'mousewheel':
             case 'wheel': {
                 if(!this.drag.getItem()) {
-                    let evt = {
+                    const evt = {
                         shiftKey:       e.shiftKey,
                         button_id:      e.button_id,
                         original_event: e.original_event,
                         x:              e.offsetX - this.x,
                         y:              e.offsetY - this.y
-                    };
-                    this._wheel(evt);
+                    }
+                    this._wheel(evt)
                     // Хак, чтобы обновились ховер элементы
-                    e.type = 'mousemove';
-                    this.mouseEventDispatcher(e);
+                    e.type = 'mousemove'
+                    this.mouseEventDispatcher(e)
                 }
                 break;
             }
             default: {
-                break;
+                break
             }
         }
     }

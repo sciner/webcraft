@@ -70,6 +70,7 @@ export class BackgroundStyle {
         // Create a Graphics object, set a fill color, draw a rectangle
         this._bg = new PIXI.Graphics()
         window.addChild(this._bg)
+        this._image_size_mode = null
         // this._bg.beginFill(0xff000000)
         // this._bg.drawRect(0, 0, window.w, window.h)
     }
@@ -84,7 +85,30 @@ export class BackgroundStyle {
     /**
      * @param {string} value
      */
-    set image_size_mode(value) {}
+    set image_size_mode(value) {
+        this._image_size_mode = value
+        const background = this.window._background
+        if(!background) {
+            return
+        }
+        const window = this.window
+        switch(value) {
+            case 'none': {
+                background.position.x = window.w / 2
+                background.position.y = window.h / 2
+                background.pivot.x = background._image.width / 2
+                background.pivot.y = background._image.height / 2
+                break
+            }
+        }
+    }
+
+    /**
+     * @type {string}
+     */
+    get image_size_mode() {
+        return this._image_size_mode
+    }
 
     set sprite(value) {}
 
@@ -93,7 +117,6 @@ export class BackgroundStyle {
         this._bg.beginFill(color)
         this._bg.drawRect(0, 0, this.window.w, this.window.h)
         this._bg.alpha = alpha
-        // console.log(value)
     }
 
 }

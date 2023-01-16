@@ -113,8 +113,8 @@ export class InventoryWindow extends BaseCraftWindow {
         }
 
         // Add labels to window
-        const lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create);
-        ct.add(lbl1);
+        const lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create)
+        ct.add(lbl1)
 
         // Add close button
         this.loadCloseButtonImage((image) => {
@@ -122,14 +122,14 @@ export class InventoryWindow extends BaseCraftWindow {
             const ct = this;
             // Close button
             const btnClose = new Button(ct.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
-            btnClose.style.font.family = 'Arial';
-            btnClose.style.background.image = image;
+            btnClose.style.font.family = 'Arial'
+            btnClose.style.background.image = image
             // btnClose.style.background.image_size_mode = 'stretch';
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
                 ct.hide();
             }
             ct.add(btnClose)
-        });
+        })
 
         // Hook for keyboard input
         this.onKeyEvent = (e) => {
@@ -229,7 +229,7 @@ export class InventoryWindow extends BaseCraftWindow {
         const ct = this;
         let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
         btnRecipes.tooltip = Lang.toggle_recipes;
-        btnRecipes.setBackground('./media/gui/recipes.png', 'none');
+        btnRecipes.setBackground('./media/gui/recipes.png', 'none', 1.0);
         btnRecipes.onMouseDown = (e) => {
             const frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this)
