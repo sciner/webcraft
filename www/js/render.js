@@ -75,6 +75,8 @@ export class Renderer {
         this.env                = new Environment(this);
         this.camera_mode        = CAMERA_MODE.SHOOTER;
 
+        this.waterCloudPrePass  = null;
+
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -204,6 +206,14 @@ export class Renderer {
         this.projMatrix         = this.globalUniforms.projMatrix;
         this.viewMatrix         = this.globalUniforms.viewMatrix;
         this.camPos             = this.globalUniforms.camPos;
+
+        this.waterCloudPrePass  = this.renderBackend.createRenderTarget({
+            width: this.renderBackend.size.width,
+            height: this.renderBackend.size.height,
+            depth: false,
+        });
+
+        this.renderBackend.globalUniforms.waterCloudsRT = this.waterCloudPrePass;
 
         settings.fov = settings.fov || DEFAULT_FOV_NORMAL;
         this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
@@ -763,6 +773,42 @@ export class Renderer {
         // upload GU data from environment
         this.env.sync(renderBackend.globalUniforms);
 
+        this.debugGeom.clear();
+
+        // pre-pass a clouds and environment to texture
+        {
+            const def = camera.rotate.x;
+
+            camera.rotate.x = -def;
+
+            // apply camera state;
+            // it can depend of passes count
+            camera.use(renderBackend.globalUniforms, true);
+
+            globalUniforms.crosshairOn = false;
+            globalUniforms.u_eyeinwater = 0.0;
+            globalUniforms.update();
+    
+            renderBackend.beginPass({
+                fogColor : this.env.interpolatedClearValue,
+                target: this.waterCloudPrePass,
+            });
+
+            this.env.draw(this);
+
+            this.defaultShader.bind(true);
+
+            // wtf??
+            if (this.defaultShader.texture) {
+                this.stars.draw(this, delta);
+                this.clouds.draw(this, delta);
+            }
+
+            renderBackend.endPass();
+
+            camera.rotate.x = def;
+        }
+
         // apply camera state;
         // it can depend of passes count
         camera.use(renderBackend.globalUniforms, true);
@@ -771,10 +817,9 @@ export class Renderer {
         globalUniforms.u_eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
         globalUniforms.update();
 
-        this.debugGeom.clear();
-
         renderBackend.beginPass({
-            fogColor : this.env.interpolatedClearValue
+            fogColor : this.env.interpolatedClearValue,
+            target: null
         });
 
         this.env.draw(this);
@@ -1208,7 +1253,18 @@ export class Renderer {
             // _configure very slow!
             this.renderBackend.resize(
                 actual_width | 0,
-                actual_height | 0);
+                actual_height | 0
+            );
+
+            this.waterCloudPrePass.destroy();
+            this.waterCloudPrePass = this.renderBackend.createRenderTarget({
+                width: actual_width | 0,
+                height: actual_height | 0,
+                depth: false,
+            });
+
+            this.renderBackend.globalUniforms.waterCloudsRT = this.waterCloudPrePass;
+
             this.viewportWidth = actual_width | 0;
             this.viewportHeight = actual_height | 0;
 

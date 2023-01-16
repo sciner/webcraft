@@ -323,6 +323,8 @@ export class GlobalUniformGroup {
 
         this.localLigthRadius = 0;
         this.lightOverride = -1;
+
+        this.waterCloudsRT = null;
     }
 
     update() {

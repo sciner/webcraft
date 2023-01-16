@@ -13,7 +13,7 @@
 #define WATER_REFLECTION_FADE 0.8
 
 // use a trace reflection instead mapping
-#define REFLECTION_MODE 3 // 1 -- fast, 2 -- trace, 3 -- compbine, 0 -- no
+#define REFLECTION_MODE 1 // 1 -- fast, 2 -- trace, 3 -- compbine, 0 -- no
 
 #define DEBUG 0
 
@@ -28,6 +28,7 @@ uniform vec4 u_fluidUV[2];
 
 uniform sampler2D u_backTextureColor;
 uniform sampler2D u_backTextureDepth;
+uniform sampler2D u_cloudsTexture;
 
 in vec3 v_position;
 in vec2 v_texcoord0;
@@ -112,7 +113,15 @@ vec4 TraceReflection(vec3 ro, vec3 rd, vec2 offset) {
 
         float d = -linearizeDepth(projectedP.z / projectedP.w) + linearizeDepth(depth);
 
-        if (abs(d) < PASS || depth == 1.0) {
+        // miss
+        // this is sky
+        if (depth > 0.999) {
+            result.w = 0.0;
+
+            break;
+        }
+
+        if (abs(d) < PASS) {
 
             result.w = 1.0;
             break;
@@ -129,7 +138,7 @@ vec4 TraceReflection(vec3 ro, vec3 rd, vec2 offset) {
         }
     }
 
-    return texture(u_backTextureColor, result.xy + offset, -0.5);
+    return texture(u_backTextureColor, result.xy + offset, -0.5) * result.w;
 }
 
 vec4 FastReflection(vec3 pos, vec3 dir, vec2 offset) {
@@ -138,14 +147,16 @@ vec4 FastReflection(vec3 pos, vec3 dir, vec2 offset) {
     if (abs(v_normal.z) > 0.5) {
         vec4 ndc = uProjMatrix * vec4(dir, 1.0);
 
-        vec2 ndc2d = (1. + ndc.xy / ndc.w) * 0.5 + offset;
+        ndc.xy /= ndc.w;
 
-        bool isIn = abs(ndc2d.x  - 0.5) < 0.5 && abs(ndc2d.y - 0.5) < 0.5 && v_tangentNormal.y > 0.5;
+        vec2 ndc2d = (1. + ndc.xy) * 0.5 + offset;
+
+        bool isIn = abs(ndc.x) <= 1. && abs(ndc.y) < 1.0 && v_tangentNormal.y > 0.7;
 
         if (isIn) {
             color = texture(u_backTextureColor, ndc2d, -0.5);
 
-            float factX = WATER_REFLECTION_FACTOR * (1. - smoothstep(WATER_REFLECTION_FADE, 1.0, ndc2d.y));
+            float factX = (1. - smoothstep(WATER_REFLECTION_FADE, 1.0, ndc2d.y));
             float factY = 1. - smoothstep(WATER_REFLECTION_FADE, 1.0, abs(0.5 - ndc2d.x) * 2.0);
 
             color *= factX * factY;
@@ -224,42 +235,51 @@ void main() {
 
 #endif
 
-    vec4 refraction = texture(u_backTextureColor, backUV + offset, -0.5);
+    vec2 totalBack = backUV;
+
+    vec4 refraction = texture(u_backTextureColor, totalBack, -0.5);
     vec4 reflection = vec4(0.0);
+
+    vec4 cloud = texture(u_cloudsTexture, vec2(totalBack.x, 1. - totalBack.y));
 
     vec3 ref = reflect(normalize( v_position ), normalize(v_tangentNormal));
 
+    if (u_eyeinwater < 1.0) {
+
 #if REFLECTION_MODE == 1
 
-    reflection = FastReflection(v_position, ref, offset);
+        reflection = FastReflection(v_position, ref, offset);
 
 #elif REFLECTION_MODE == 2
 
-    ref = normalize(ref);
-    reflection = TraceReflection(v_position, ref, offset);
+        ref = normalize(ref);
+        reflection = TraceReflection(v_position, ref, offset);
 
 #elif REFLECTION_MODE == 3
 
-    reflection = FastReflection(v_position, ref, offset);
+        reflection = FastReflection(v_position, ref, offset);
 
-    if (reflection.a < 1.0) {
+        if (reflection.a < 1.0) {
 
-        ref = normalize(ref);
+            ref = normalize(ref);
 
-        vec4 tracedPart = TraceReflection(v_position, ref, offset);
+            vec4 tracedPart = TraceReflection(v_position, ref, offset);
 
-        reflection = mix(reflection, tracedPart , 1. - reflection.a);
-    }
+            reflection = mix(reflection, tracedPart , 1. - reflection.a);
+        }
 
 #endif
+    }
 
     float mixFactor = 1.0;
-    vec4 rrcolor = mix(refraction, reflection, reflection.a);
+
+    reflection = reflection + cloud * (1. - reflection.a);
+
+    vec4 rrcolor = mix(refraction, reflection, WATER_REFLECTION_FACTOR);
 
 #if DEBUG == 1
 
     outColor = reflection;
-
 #else
 
     outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
