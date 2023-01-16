@@ -32,7 +32,7 @@ export class ServerPlayerDamage {
         this.planting_lost_timer = 0;
         this.instant_health_timer = 0;
         this.instant_damage_timer = 0;
-        this.damag = 0;
+        this.damage = 0;
     }
     
     /*
@@ -42,12 +42,14 @@ export class ServerPlayerDamage {
     getDamage(tick) {
         const player = this.player;
         const world = player.world;
-        const effects = player.effects;
         const position = player.state.pos.floored();
         const head = world.getBlock(player.getEyePos().floored());
         const legs = world.getBlock(position);
+        if (!head || !legs) {
+            return;
+        }
+        const effects = player.effects;
         const ind_def = world.getDefaultPlayerIndicators();
-        
         let max_live = ind_def.live.value;
         // эффект прилив здоровья
         const health_boost_lvl = effects.getEffectLevel(Effect.HEALTH_BOOST);
