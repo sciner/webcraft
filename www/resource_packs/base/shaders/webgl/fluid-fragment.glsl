@@ -1,7 +1,7 @@
 #include<header>
 #define SHADER_NAME WaterShader
 // how far caustic apply displace
-#define CAUSTIC_DISPLACEMENT .1
+#define CAUSTIC_DISPLACEMENT .2
 // minimal delta in depth for displace
 // fix  a `cutting` a blocks that under water partially
 #define CAUSTIC_DISPLACEMENT_GAP .01
@@ -235,7 +235,7 @@ void main() {
 
 #endif
 
-    vec2 totalBack = backUV;
+    vec2 totalBack = backUV + offset;
 
     vec4 refraction = texture(u_backTextureColor, totalBack, -0.5);
     vec4 reflection = vec4(0.0);
