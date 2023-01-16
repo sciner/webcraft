@@ -7,10 +7,13 @@
 #define CAUSTIC_DISPLACEMENT_GAP .01
 
 // how many reflection in water when it exist
-#define WATER_REFLECTION_FACTOR 0.6
+#define WATER_REFLECTION_FACTOR 0.8
 
 // how fast reflection is fadeout to edges where not data
 #define WATER_REFLECTION_FADE 0.8
+
+// use a trace reflection instead mapping
+#define REFLECTION_MODE 1 // 1 -- fast, 2 -- trace, 3 -- compbine, 0 -- no
 
 #include<constants>
 
@@ -76,7 +79,7 @@ float linearizeDepth(float z) {
     return (2.0 * far * near) / (far + near - z * (far - near));
 }
 
-vec4 Trace(vec3 ro, vec3 rd) {
+vec4 TraceReflection(vec3 ro, vec3 rd, vec2 offset) {
     vec4 result = vec4(0.0);
 
     float STEPS = 20.0;
@@ -126,7 +129,30 @@ vec4 Trace(vec3 ro, vec3 rd) {
         }
     }
 
-    return result;
+    return texture(u_backTextureColor, result.xy + offset, -0.5);
+}
+
+vec4 FastReflection(vec3 pos, vec3 dir, vec2 offset) {
+    vec4 color = vec4(0.0);
+
+    if (abs(v_normal.z) > 0.5) {
+        vec4 ndc = uProjMatrix * vec4(dir, 1.0);
+
+        vec2 ndc2d = (1. + ndc.xy / ndc.w) * 0.5 + offset;
+
+        bool isIn = abs(ndc2d.x  - 0.5) < 0.5 && abs(ndc2d.y - 0.5) < 0.5 && v_tangentNormal.y > 0.5;
+
+        if (isIn) {
+            color = texture(u_backTextureColor, ndc2d, -0.5);
+
+            float factX = WATER_REFLECTION_FACTOR * (1. - smoothstep(WATER_REFLECTION_FADE, 1.0, ndc2d.y));
+            float factY = 1. - smoothstep(WATER_REFLECTION_FADE, 1.0, abs(0.5 - ndc2d.x) * 2.0);
+
+            color *= factX * factY;
+        } 
+    }
+
+    return color;
 }
 
 void main() {
@@ -188,28 +214,41 @@ void main() {
     float depthDiff = 10. * (backDepth - actualDepth) ;
 
     float displaceEdgeError = .02;
-    float displaceErrorFactor= depthDiff < displaceEdgeError ? max(0.0, depthDiff / displaceEdgeError) : 1.0;
+    float displaceErrorFactor = depthDiff < displaceEdgeError ? max(0.0, depthDiff / displaceEdgeError) : 1.0;
 
-    vec2 colorBackUv = backUV + offset * displaceErrorFactor;
+    offset *= displaceErrorFactor;
 
-    vec4 refraction = texture(u_backTextureColor, colorBackUv, -0.5);
+    vec4 refraction = texture(u_backTextureColor, backUV + offset, -0.5);
     vec4 reflection = vec4(0.0);
 
-    /* ------------------ */
-    vec3 ref = reflect(normalize(v_position), normalize(v_tangentNormal));
+    vec3 ref = reflect(v_position, normalize(v_tangentNormal));
 
-    vec4 rayResult = Trace(v_position, ref);
+#if REFLECTION_MODE == 1
 
-    // if (rayResult.w > 0.0) {
-        reflection = texture(u_backTextureColor, rayResult.xy, -0.5);
-    // }
+    reflection = FastReflection(v_position, ref, offset);
+
+#elif REFLECTION_MODE == 2
+
+    ref = normalize(ref);
+    reflection = TraceReflection(v_position, ref, offset);
+
+#elif REFLECTION_MODE == 3
+
+    reflection = FastReflection(v_position, ref, offset);
+
+    if (reflection.a < 1.0) {
+
+        ref = normalize(ref);
+
+        vec4 tracedPart = TraceReflection(v_position, ref, offset);
+
+        reflection = mix(reflection, tracedPart , 1. - reflection.a);
+    }
+
+#endif
 
     float mixFactor = 1.0;
-
     vec4 rrcolor = mix(refraction, reflection, reflection.a);
 
     outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
-
-    outColor  = reflection;// vec4(vec3(rayResult.z), 1.0);
-    //}
 }
