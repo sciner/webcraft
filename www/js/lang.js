@@ -7,11 +7,11 @@ export const Lang = new Proxy(
         default_code: 'en',
         inited: false,
 
-        async init() {
+        async init(options) {
 
             // Load from JSON
             let lang_json = null;
-            await Helpers.fetchJSON("../data/lang.json", true, 'bs').then((json) => {
+            await Helpers.fetchJSON(options?.lang_file ?? "../data/lang.json", true, 'bs').then((json) => {
                 lang_json = json;
             });
 

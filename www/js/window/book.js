@@ -81,8 +81,8 @@ export class BookWindow extends Window {
 
         super(10, 10, 290, 360, "frmBook", null, null);
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
         this.extra_data = null;
         this.page = 0;
         this.pages = [];

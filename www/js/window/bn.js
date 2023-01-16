@@ -256,8 +256,8 @@ export class BeaconWindow extends BaseCraftWindow {
         
         super(10, 10, 459, 438, 'frmBeacon', null, null, player.inventory);
         
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
         this.player = player;
         
         this.style.background.image_size_mode = 'stretch';

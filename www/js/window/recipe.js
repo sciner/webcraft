@@ -106,10 +106,10 @@ export class RecipeWindow extends Window {
 
     constructor(recipe_manager) {
 
-        super(10, 10, 294, 332, 'frmRecipe', null, null);
-        this.canBeOpenedWith = ['frmInventory', 'frmCraft'];
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        super(10, 10, 294, 332, 'frmRecipe', null, null)
+        this.canBeOpenedWith = ['frmInventory', 'frmCraft']
+        this.w *= this.zoom
+        this.h *= this.zoom
 
         this.items_per_page     = 20;
         this.index              = -1;

@@ -6,8 +6,8 @@ export class MainMenu extends Window {
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
 
         // Get window by ID
         const ct = this;

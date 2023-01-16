@@ -8,8 +8,8 @@ export class DieWindow extends Window {
 
         super(10, 10, 352, 332, 'frmDie', null, null);
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
 
         // Get window by ID
         const ct = this;

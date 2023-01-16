@@ -20,8 +20,8 @@ export class BaseChestWindow extends BaseInventoryWindow {
         super(x, y, w, h, id, title, text, inventory);
 
         this.options = options;
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
         this.style.background = {...this.style.background, ...options.background}
 
         this.firstLoading  = false;

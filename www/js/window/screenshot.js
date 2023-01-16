@@ -8,8 +8,8 @@ export class ScreenshotWindow extends Window {
 
         super(10, 10, 400, 420, "frmScreenshot", null, null);
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
 
         // Get window by ID
         const ct = this;

@@ -64,8 +64,8 @@ export class AnvilWindow extends BaseCraftWindow {
         
         super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
         
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
         this.recipes = new AnvilRecipeManager();

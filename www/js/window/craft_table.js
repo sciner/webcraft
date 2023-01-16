@@ -10,8 +10,8 @@ export class CraftTable extends BaseCraftWindow {
 
         super(0, 0, 352, 332, 'frmCraft', null, null, inventory);
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
         this.recipes = recipes;
@@ -72,7 +72,7 @@ export class CraftTable extends BaseCraftWindow {
         // Обработчик закрытия формы
         this.onHide = function() {
             // Close recipe window
-            Qubatch.hud.wm.getWindow('frmRecipe').hide();
+            ct.getRoot().getWindow('frmRecipe').hide();
             this.clearCraft();
             // Save inventory
             Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());

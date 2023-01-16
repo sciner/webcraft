@@ -2,9 +2,10 @@
 <head>
     <title>MadCraft GUI</title>
     <meta charset="UTF-8">
+    <base href="/" target="_blank">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="./gui.css" rel="stylesheet" type="text/css">
+    <link href="/tools/gui/gui.css" rel="stylesheet" type="text/css">
     <!-- <script type="module" src="./wm.js"></script> -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -41,46 +42,46 @@
         <div class="py-3">
             <h3>3 простых шага для создания формы</h3>
             <pre><code class="language-js">// Определяем контекст для рисования
-let canvas = document.getElementById('canvas');
+let canvas = document.getElementById('canvas')
 
 // Создаем диспетчер окон
-const wm = new WindowManager(canvas, 0, 0, canvas.width, canvas.height);
+const wm = new WindowManager(canvas, 0, 0, canvas.width, canvas.height)
 
 // Создаём форму (последние 4 параметра, это координаты и размеры выделяемой области)
-wm.add(new Window(10, 10, 352, 332, 'ct1', null));</code></pre>
+wm.add(new Window(10, 10, 352, 332, 'ct1', null))</code></pre>
         </div>
 
         <div class="pt-3">
             <h3>Далее размещаем кнопку внутри формы</h3>
             <pre><code class="language-js">// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
+const ct = wm.getWindow('ct1')
 
 // Создаём кнопку
-let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
+let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×')
 
 // Добавляем кнопку на форму
 ct.add(btnClose);</code></pre>
 
     Аналогичным способом можно добавить надпись на форму:
     <pre><code class="language-js">// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
+const ct = wm.getWindow('ct1')
 
 // Добавляем надпись на форму
-let lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting');
-ct.add(lbl1);</code></pre>
+let lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting')
+ct.add(lbl1)</code></pre>
 </div>
 
         <div class="pt-3">
             <h3>Кнопка есть, теперь прописываем действие на клик по ней</h3>
             <pre><code class="language-js">// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
+const ct = wm.getWindow('ct1')
 
 // Получаем кнопку из формы
-const btnClose = ct.getWindow('btnClose');
+const btnClose = ct.getWindow('btnClose')
 
 // Прописываем обработчик нажатия на кнопку
 btnClose.onMouseDown = function(e) {
-    ct.hide();
+    ct.hide()
 }</code></pre>
 </div>
 
@@ -88,12 +89,12 @@ btnClose.onMouseDown = function(e) {
         <div class="py-3">
             <pre><code class="language-js">// Данный обработчик сработает, когда курсор зайдет на область кнопки
 btnClose.onMouseEnter = function() {
-    this.style.background.color = '#ffffff33';
+    this.style.background.color = '#ffffff33'
 }
 
 // Данный обработчик сработает, когда курсор покинет область кнопки
 btnClose.onMouseLeave = function() {
-    this.style.background.color = '#00000000';
+    this.style.background.color = '#00000000'
 }</code></pre>
 </div>
 
@@ -101,38 +102,38 @@ btnClose.onMouseLeave = function() {
         Стилизовать можно любой компонент, даже сам диспетчер форм. Все компоненты отрисовываются и стилизуется одинаково.
 <div class="py-3">
 <pre><code class="language-js">// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
+const ct = wm.getWindow('ct1')
 
 // Устанавливаем фоновое изображение
-ct.setBackground('./media/gui/form-crafting-table.png');
+ct.setBackground('./media/gui/form-crafting-table.png')
 
 // Устанавливаем фоновый цвет (поддерживается альфа-канал)
-ct.style.background.color = '#00000000';
+ct.style.background.color = '#00000000'
 
 // Скрываем рамку
-ct.style.border.hidden = true;
+ct.style.border.hidden = true
 </code></pre>
 </div>
 
 <div class="pt-3">
         <h3>Изменение свойств</h3>
 <pre><code class="language-js">// Получаем форму по её идентификатору
-let ct1 = wm.getWindow('ct1');
+let ct1 = wm.getWindow('ct1')
 
 // Поменять текст у надписи
-ct1.getWindow('lbl1').setText('Готово');
+ct1.getWindow('lbl1').setText('Готово')
 </code></pre>
 </div>
 
 <div class="pt-3">
         <h3>Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши, вот как это делается:</h3>
 <pre><code class="language-js">canvas.addEventListener('mousemove', function(e) {
-    wm.mouseEventDispatcher(e);
+    wm.mouseEventDispatcher(e)
 });
 
 canvas.addEventListener('mousedown', function(e) {
-    wm.mouseEventDispatcher(e);
-});
+    wm.mouseEventDispatcher(e)
+})
 </code></pre>
 </div>
 
@@ -141,7 +142,7 @@ canvas.addEventListener('mousedown', function(e) {
             <pre><code class="language-js" id="demo-code"></code></pre></div>
         </div>
 
-<script type="module" id="demo-code-src" src="./app.js"></script>
+<script type="module" id="demo-code-src" src="./tools/gui/app.js"></script>
         
         <!-- <script>document.getElementById('demo-code').textContent = document.getElementById('demo-code-src').textContent.trim();</script> -->
 

@@ -1,93 +1,67 @@
 /**
-* Window Manager based ON 2D canvas 
+* Window Manager based on PIXI.js 
 */
 
 import {RuneStrings, deepAssign} from "../../js/helpers.js";
-
-export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
+import { PIXI } from './pixi.js';
+import { getRandomColor, parseColorAndAlpha, Style } from "./routines.js";
 
 // Base window
-export class Window {
+export class Window extends PIXI.Container {
 
-    #_visible = true;
-    #_tooltip = null;
+    #_tooltip = null
 
-    zoom = UI_ZOOM;
+    zoom = UI_ZOOM
+    canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
     constructor(x, y, w, h, id, title, text) {
-        this.list           = new Map();
-        this.index          = 0;
-        this.x              = x;
-        this.y              = y;
-        this.z              = 0; // z-index
-        this.width          = w;
-        this.height         = h;
-        this.title          = title;
-        this.id             = id;
-        this.text           = text || null;
-        this.word_wrap      = false;
-        this.hover          = false;
-        this.catchEvents    = true;
-        this.parent         = null;
-        this.scrollX        = 0;
-        this.scrollY        = 0;
-        this.autosize       = true;
-        this.enabled        = true;
-        this.max_chars_per_line = 0;
-        this.onHide         = function() {};
-        this.onShow         = function() {};
-        this.onMouseEnter   = function() {};
-        this.create_time    = performance.now();
-        this.canBeOpenedWith = []; // allows this window to be opened even if some other windows are opened
-        this.onMouseLeave   = () => {
-            for(let w of this.list.values()) {
-                if(w.hover) {
-                    w.hover = false;
-                    w.onMouseLeave();
-                }
-            }
-        };
-        this.onMouseDown    = function() {};
-        this.onMouseMove    = function(e) {};
-        this.onDrop         = function(e) {};
-        this.onWheel        = function(e) {};
-        // onKeyEvent
-        this.onKeyEvent     = function(e) {
-            for(let w of this.list.values()) {
-                if(w.visible) {
-                    let fired = false;
-                    for(let f of w.list.values()) {
-                        if(f.focused) {
-                            fired = f.onKeyEvent(e);
-                            if(fired) {
-                                break;
-                            }
-                        }
-                    }
-                    if(!fired) {
-                        w.onKeyEvent(e);
+        
+        super()
+
+        // List of childs
+        this.list = {
+            values: () => {
+                let resp = []
+                for(let w of this.children) {
+                    if(w instanceof Window) {
+                        resp.push(w)
                     }
                 }
-            }
-        };
-        // typeChar
-        this.typeChar = function(e, charCode, typedChar) {
-            for(let w of this.list.values()) {
-                if(w.visible) {
-                    let fired = false;
-                    for(let f of w.list.values()) {
-                        if(f.focused) {
-                            f.typeChar(e, charCode, typedChar);
-                            fired = true;
-                            break;
-                        }
-                    }
-                    if(!fired) {
-                        w.typeChar(e, charCode, typedChar);
-                    }
+                return resp
+            },
+            has(id) {
+                return !!this.get(id)
+            },
+            get: (id) => {
+                for(let w of this.children) {
+                    if(w.id == id) return w
                 }
+                return null
             }
-        };
+        }
+        this.index              = 0
+        this.x                  = x
+        this.y                  = y
+        this.z                  = 0 // z-index
+        this.width              = w
+        this.height             = h
+        this.id                 = id
+        this.title              = title
+        this.text               = text || null
+        this.word_wrap          = false
+        this.hover              = false
+        this.catchEvents        = true
+        this.scrollX            = 0
+        this.scrollY            = 0
+        this.autosize           = true
+        this.enabled            = true
+        this.max_chars_per_line = 0
+        this.create_time        = performance.now()
+
+        // all props
+        this.style              = new Style(this)
+
+        /*
         this.style = {
             color: '#3f3f3f',
             textAlign: {
@@ -127,14 +101,109 @@ export class Window {
                 width: 4,
                 hidden: false
             }
+        }
+        */
+
+        // Events
+        this.onMouseLeave   = () => {
+            for(let w of this.list.values()) {
+                if(w.hover) {
+                    w.hover = false;
+                    w.onMouseLeave();
+                }
+            }
         };
+        this.onHide         = function() {};
+        this.onShow         = function() {};
+        this.onMouseEnter   = function() {};
+        this.onMouseDown    = function(e) {};
+        this.onMouseMove    = function(e) {};
+        this.onDrop         = function(e) {};
+        this.onWheel        = function(e) {};
+
+        // onKeyEvent
+        this.onKeyEvent     = function(e) {
+            for(let w of this.list.values()) {
+                if(w.visible) {
+                    let fired = false;
+                    for(let f of w.list.values()) {
+                        if(f.focused) {
+                            fired = f.onKeyEvent(e);
+                            if(fired) {
+                                break;
+                            }
+                        }
+                    }
+                    if(!fired) {
+                        w.onKeyEvent(e);
+                    }
+                }
+            }
+        }
+
+        // typeChar
+        this.typeChar = function(e, charCode, typedChar) {
+            for(let w of this.list.values()) {
+                if(w.visible) {
+                    let fired = false;
+                    for(let f of w.list.values()) {
+                        if(f.focused) {
+                            f.typeChar(e, charCode, typedChar);
+                            fired = true;
+                            break;
+                        }
+                    }
+                    if(!fired) {
+                        w.typeChar(e, charCode, typedChar);
+                    }
+                }
+            }
+        }
+
     }
-    //
-    get visible() {return this.#_visible}
-    set visible(value) {this.#_visible = value; globalThis.wmGlobal.visible_change_count++;}
+
+    /**
+     * @param {int} value
+     */
+    set width(value) {
+        if(value == undefined) return
+        this.w = value
+        super.width = value
+    }
+
+    /**
+     * @param {int} value
+     */
+    set height(value) {
+        if(value == undefined) return
+        this.h = value
+        super.height = value
+    }
+
+    get text() {
+        return this.text_container?.text ?? null
+    }
+
+    /**
+     * @param {?string} value
+     */
+    set text(value) {
+        if(!this.text_container) {
+            // this.text_container = new Label(0, 0, undefined, undefined, randomUUID(), undefined, value)
+            this.text_container = new PIXI.Text(value)
+            // this.text_container.x = 0
+            // this.text_container.y = 0
+            // this.text_container.width = this.w
+            // this.text_container.height = this.h
+            this.addChild(this.text_container)
+        }
+        this.text_container.text = value
+    }
+
     //
     get tooltip() {return this.#_tooltip}
     set tooltip(value) {this.#_tooltip = value;}
+
     getRoot() {
         return globalThis.wmGlobal;
         // if(this.parent) {
@@ -142,79 +211,104 @@ export class Window {
         // }
         // return this;
     }
+
+    /**
+     * @param {Window} w 
+     */
     add(w) {
         if(!w.id) {
             throw 'Control does not have valid ID';
         }
-        w.parent = this;
-        w.root = this.root;
-        this.list.set(w.id, w);
+        // w.parent = this
+        // w.root = this.root
+        this.addChild(w)
+        // this.list.set(w.id, w)
     }
+
     delete(id) {
         if(this.list.has(id)) {
             this.list.delete(id);
         }
     }
-    getWindow(id) {
+
+    /**
+     * @param {string} id 
+     * @returns {Window}
+     */
+    getWindow(id, throw_exception = true) {
         if(!this.list.has(id)) {
-            throw 'Window not found by ID ' + id;
+            if(throw_exception) throw `error_window_not_found_by_id|${id}`
+            return null
         }
-        return this.list.get(id);
+        return this.list.get(id)
     }
+
     getVisibleWindowOrNull(id) {
         const w = this.list.get(id);
         return w && w.visible ? w : null;
     }
+
     move(x, y) {
         this.x = x;
         this.y = y;
     }
+
     resize(w, h) {
         this.getRoot()._wm_setTooltipText(null);
         this.width = w;
         this.height = h;
     }
+
     center(w) {
-        w.move(this.width / 2 - w.width / 2, this.height / 2 - w.height / 2);
+        w.move(this.w / 2 - w.w / 2, this.h / 2 - w.h / 2)
         // this.redraw();
     }
+
     // Place all childs to center of this window
     centerChild() {
         let width_sum = 0;
         let height_sum = 0;
         let visible_windows = [];
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                width_sum += w.width;
-                height_sum += w.height;
-                visible_windows.push(w);
+        for(let window of this.list.values()) {
+            if(window.visible) {
+                width_sum += window.w;
+                height_sum += window.h;
+                visible_windows.push(window);
             }
         }
         //
         visible_windows.sort((a, b) => a.index - b.index);
         //
-        if(width_sum < this.width) {
+        if(width_sum < this.w) {
             // hor
-            let x = Math.round(this.width / 2 - width_sum / 2);
+            let x = Math.round(this.w / 2 - width_sum / 2);
             for(let w of visible_windows) {
                 w.x = x;
-                w.y = this.height / 2 - w.height / 2;
-                x += w.width;
+                w.y = this.h / 2 - w.h / 2;
+                x += w.w;
             }
         } else {
             // vert
-            let y = Math.round(this.height / 2 - height_sum / 2);;
+            let y = Math.round(this.h / 2 - height_sum / 2);;
             for(let w of visible_windows) {
                 w.y = y;
-                w.x = this.width / 2 - w.width / 2;
-                y += w.height;
+                w.x = this.w / 2 - w.w / 2;
+                y += w.h;
             }
         }
     }
-    clear() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
+
+    /**
+     * @deprecated
+     */
+    clear() {}
+
+    /**
+     * @deprecated
+     */
     draw(ctx, ax, ay) {
+        // TODO:
+        /*
         this.ctx = ctx;
         this.ax = ax;
         this.ay = ay;
@@ -225,8 +319,8 @@ export class Window {
 
         let x = ax + this.x;
         let y = ay + this.y;
-        let w = this.width;
-        let h = this.height;
+        let w = this.w;
+        let h = this.h;
 
         // Save the default state
         ctx.save();
@@ -310,8 +404,14 @@ export class Window {
         for(let w of visible_windows) {
             w.draw(ctx, ax+this.x, ay+this.y+this.scrollY);
         }
+        */
     }
+
+    /**
+     * @deprecated
+     */
     updateMeasure(ctx, ax, ay) {
+        /*
         if(!this.__measure) {
             this.__measure = {
                 title: {
@@ -350,17 +450,20 @@ export class Window {
                 mtxt.height = mt.actualBoundingBoxDescent;
             }
         }
+        */
     }
+
     calcMaxHeight() {
         let mh = 0;
         for(let w of this.list.values()) {
             if(!w.visible) continue;
-            if(w.y + w.height > mh) {
-                mh = w.y + w.height;
+            if(w.y + w.h > mh) {
+                mh = w.y + w.h;
             }
         }
         this.max_height = mh + this.style.padding.bottom;
     }
+
     hasVisibleWindow() {
         if(this._has_visible_window_cng == globalThis.wmGlobal.visible_change_count) {
             return this._has_visible_window;
@@ -376,15 +479,7 @@ export class Window {
         this._has_visible_window_cng = globalThis.wmGlobal.visible_change_count;
         return resp;
     }
-    getVisibleWindows() {
-        let list = [];
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                list.push(w);
-            }
-        }
-        return list;
-    }
+
     *visibleWindows() {
         for(let w of this.list.values()) {
             if(w.visible) {
@@ -392,6 +487,7 @@ export class Window {
             }
         }
     }
+
     redraw() {
         if(!this.ctx) {
             return;
@@ -402,6 +498,8 @@ export class Window {
         this.text = text;
     }
     applyStyle(ctx, ax, ay) {
+        // TODO:
+        /*
         this.ctx            = ctx;
         this.ax             = ax|0;
         this.ay             = ay|0;
@@ -409,23 +507,61 @@ export class Window {
         ctx.fillStyle       = this.style.color;
         ctx.textAlign       = this.style.textAlign.horizontal || 'left';
         ctx.textBaseline    = this.style.textAlign.vertical || 'top';
+        */
     }
-    setBackground(urlOrCanvas, image_size_mode) {
+
+    /**
+     * Set wnidow background and size mode
+     * @param {?string|Canvas} urlOrCanvas 
+     * @param {?string} image_size_mode 
+     */
+    setBackground(urlOrCanvas, image_size_mode, scale) {
+
+        this.style.background.image_size_mode = image_size_mode ? image_size_mode : this.style.background.image_size_mode
+
         if (typeof urlOrCanvas == "string") {
-            let that = this;
-            let bg = new Image();
-            bg.onload = function(e) {
-                that.style.background.image = bg;
+
+            const image = new Image()
+            image.onload = (e) => {
+
+                // TODO: remove previous sprite
+                const background = PIXI.Sprite.from(image)
+                // const background = new PIXI.Sprite(PIXI.Texture.WHITE)
+                // background.tint = getRandomColor()
+
+                background.anchor.x = 0
+                background.anchor.y = 0
+                background.position.x = 0
+                background.position.y = 0
+
+                // scale
+                if(isNaN(scale)) {
+                    background.scale.set(this._width / image.width, this._height / image.height)
+                } else {
+                    background.scale.set(scale, scale)
+                }
+        
+                this.addChildAt(background, 0)
+
+                /*that.style.background.image = bg;
                 that.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
                 that.redraw();
+                */
+
             }
-            bg.src = urlOrCanvas;
+
+            image.src = urlOrCanvas
+
         } else {
+            /*
             this.style.background.image = urlOrCanvas;
             this.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
             this.redraw();
+            */
         }
+        
     }
+
     setIconImage(url, image_size_mode) {
         const that = this;
         const icon = new Image();
@@ -436,16 +572,18 @@ export class Window {
         }
         icon.src = url;
     }
+
     show(args) {
-        for(let w of Qubatch.hud.wm.visibleWindows()) {
-            if (!this.canBeOpenedWith.includes(w.id) && !w.canBeOpenedWith.includes(this.id)) {
-                return;
+        for(let w of wmGlobal.visibleWindows()) {
+            if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
+                return
             }
         }
-        this.visible = true;
-        this.resetHover();
-        this.onShow(args);
+        this.visible = true
+        this.resetHover()
+        this.onShow(args)
     }
+
     hide() {
         const wasVisible = this.visible;
         this.visible = false;
@@ -455,6 +593,7 @@ export class Window {
             Qubatch.hud.prevDrawTime = 0;
         }
     }
+
     hideAndSetupMousePointer() {
         this.hide();
         try {
@@ -463,18 +602,21 @@ export class Window {
             console.error(e);
         }
     }
+
     resetHover() {
         this.hover = false;
         for(let w of this.list.values()) {
             w.hover = false;
         }
     }
+
     toggleVisibility() {
         if(this.visible) {
-            return this.hide();
+            return this.hide()
         }
-        return this.show();
+        return this.show()
     }
+
     _mousemove(e) {
         this.hover = true;
         this.onMouseMove(e);
@@ -499,7 +641,7 @@ export class Window {
                 let e2 = {...e};
                 let x = e2.x - w.x;
                 let y = e2.y - w.y;
-                if(x >= 0 && y >= 0 && x <= w.width && y <= w.height) {
+                if(x >= 0 && y >= 0 && x <= w.w && y <= w.h) {
                     e2.x = x;
                     e2.y = y - w.scrollY;
                     w._mousemove(e2);
@@ -537,6 +679,7 @@ export class Window {
             item.w._mousemove(item.event);
         }*/
     }
+
     _mousedown(e) {
         //
         const visible_windows = [];
@@ -550,7 +693,7 @@ export class Window {
             let e2 = {...e};
             let x = e2.x - (this.ax + w.x);
             let y = e2.y - (this.ay + w.y);
-            if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
+            if(x >= 0 && y >= 0 && x < w.w && y < w.h) {
                 e2.x = w.ax + x;
                 e2.y = w.ay + y - w.scrollY;
                 // e2.x = x + this.x;
@@ -562,13 +705,14 @@ export class Window {
         }
         this.onMouseDown(e);
     }
+
     _drop(e) {
         for(let w of this.list.values()) {
             if(w.visible) {
                 let e2 = {...e};
                 let x = e2.x - (this.ax + w.x);
                 let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
+                if(x >= 0 && y >= 0 && x < w.w && y < w.h) {
                     e2.x = w.ax + x;
                     e2.y = w.ay + y - w.scrollY;
                     // e2.x = x + this.x;
@@ -580,6 +724,7 @@ export class Window {
         }
         this.onDrop(e);
     }
+
     _wheel(e) {
         for(let w of this.list.values()) {
             if(w.visible) {
@@ -588,7 +733,7 @@ export class Window {
                 //e2.y -= (this.ay + w.y);
                 let x = e2.x - (this.ax + w.x);
                 let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.width && y < w.height)  {
+                if(x >= 0 && y >= 0 && x < w.w && y < w.h)  {
                     e2.x = w.ax + x;
                     e2.y = w.ay + y - w.scrollY;
                     e2.target = w;
@@ -599,17 +744,19 @@ export class Window {
         }
         this.onWheel(e);
     }
+
     measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
         const lines = text.split("\r");
         let width = 0;
         let actualBoundingBoxDescent = 0;
         for(const line of lines) {
             const mt = ctx.measureText(line);
-            width = Math.max(width, mt.width);
+            width = Math.max(width, mt.w);
             actualBoundingBoxDescent += mt.actualBoundingBoxDescent * lineHeightMultiply + lineHeightAdd;
         }
         return { width, actualBoundingBoxDescent };
     }
+
     calcPrintLines(original_text, ax, ay) {
         if(!this.word_wrap || !this.ctx) {
             return [original_text];
@@ -637,7 +784,7 @@ export class Window {
                     let str = words.slice(0, idx).join(' ');
                     let w = this.ctx.measureText(str).width;
                     // Wrap to next line if current is full
-                    if(w > this.width - this.style.padding.left - this.style.padding.right) {
+                    if(w > this.w - this.style.padding.left - this.style.padding.right) {
                         if(idx == 1) {
                             idx = 2;
                         }
@@ -659,6 +806,7 @@ export class Window {
         lines.pop();
         return lines;
     }
+
     print(original_text) {
         if(!this.ctx) {
             console.error('Empty context');
@@ -682,6 +830,7 @@ export class Window {
             this.ctx.fillText(line, x, y + (lineHeight * i));
         }
     }
+
     loadCloseButtonImage(callback) {
         if(this._loadCloseButtonImage) {
             callback(this._loadCloseButtonImage);
@@ -695,6 +844,7 @@ export class Window {
         }
         image.src = '../../media/gui/close.png';
     }
+
     assignStyles(style) {
         for(let param in style) {
             let v = style[param];
@@ -714,6 +864,7 @@ export class Window {
             }
         }
     }
+
     appendLayout(layout) {
         let ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
@@ -759,7 +910,7 @@ export class Window {
             }
         }
     }
-    
+
     // Draw image
     drawImage(val, x, y, w, h) {
         // draw image
@@ -838,6 +989,7 @@ export class Window {
 
         }
     }
+
     // fill background color
     fillBackground(ctx, ax, ay, color) {
         ctx.fillStyle = color
@@ -847,9 +999,11 @@ export class Window {
         let h = this.height;
         ctx.fillRect(x, y, w, h);
     }
+
     onUpdate() {
         // It's called every interation of the game loop for visible windows. Override it in the subclasses.
     }
+
 }
 
 // Button
@@ -880,10 +1034,20 @@ export class Button extends Window {
 // Label
 export class Label extends Window {
 
+    /**
+     * @param {int} x 
+     * @param {int} y 
+     * @param {?int} w 
+     * @param {?int} h 
+     * @param {string} id 
+     * @param {?string} title 
+     * @param {?string} text 
+     */
     constructor(x, y, w, h, id, title, text) {
-        super(x, y, w, h, id, title, text);
-        this.style.background.color = '#00000000';
-        this.style.border.hidden = true;
+        super(x, y, w, h, id, title, text)
+        this.style.background.color = '#00000000'
+        this.style.border.hidden = true
+        this.setText(text)
     }
 
 }
@@ -1031,11 +1195,14 @@ class Tooltip extends Label {
         this.applyStyle(ctx, ax, ay);
         //
         if(this.need_update_size && this.autosize) {
-            this.need_update_size = false;
+            this.need_update_size = false
+            /*
+            TODO:
             // The line hegit is imprecise here, TODO: make calculations the same as when drawing
             let mt = this.measureMultilineText(ctx, this.text, 1.07, 2);
             this.width = mt.width + this.style.padding.left + this.style.padding.right;
             this.height = mt.actualBoundingBoxDescent + this.style.padding.top + this.style.padding.bottom;
+            */
         }
         super.draw(ctx, ax, ay);
     }
@@ -1050,19 +1217,32 @@ class Tooltip extends Label {
 // WindowManager
 export class WindowManager extends Window {
     
-    static draw_calls = 0;
-    
-    constructor(canvas, ctx, x, y, w, h) {
-        super(x, y, w, h, '_wm', null);
-        globalThis.wmGlobal = this;
+    static draw_calls = 0
+
+    constructor(canvas, x, y, w, h) {
+
+        super(x, y, w, h, '_wm', null)
+        globalThis.wmGlobal = this
+
+        this.pixiapp = new PIXI.Application({
+            view: canvas,
+            background: '#1099bb',
+            transparent: true
+        })
+
+        this.parent = this.pixiapp.stage
+
+        this.parent.addChild(this)
+
+        const ctx = null
+
         let that = this;
         this.root = this;
-        this.list = new Map();
-        this.canvas = canvas;
-        this.ctx = ctx;
+        this.canvas = null
+        this.ctx = null
         this.visible_change_count = 0;
-        //
         this._wm_tooltip = new Tooltip(null);
+
         //
         this.pointer = {
             x: w / 2,
@@ -1101,8 +1281,10 @@ export class WindowManager extends Window {
                     );
                 }
             }
-        };
-        this.pointer.load();
+        }
+
+        this.pointer.load()
+
         this.drag = {
             item: null,
             setItem: function(item) {
@@ -1121,12 +1303,12 @@ export class WindowManager extends Window {
                     }
                 }
             }
-        };
+        }
+
     }
 
     closeAll() {
-        let list = this.getVisibleWindows();
-        for(let w of list) {
+        for(let w of this.visibleWindows) {
             w.hide();
         }
     }

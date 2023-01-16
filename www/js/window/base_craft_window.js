@@ -163,7 +163,7 @@ export class CraftTableSlot extends Label {
 
     // Draw item
     drawItem(ctx, item, x, y, width, height) {
-        
+
         const image = this.ct.inventory.inventory_image;
 
         if(!image || !item) {
@@ -839,9 +839,9 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         // иначе нарушится их порядок в массиве ct.inventory_slots
         // нижний ряд (видимые на хотбаре)
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, (sy + 116 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, (sy + 116 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
+            ct.add(lblSlot)
+            ct.inventory_slots.push(lblSlot)
         }
         // верхние 3 ряда
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {

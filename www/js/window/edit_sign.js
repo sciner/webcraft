@@ -9,8 +9,8 @@ export class EditSignWindow extends Window {
 
         this.zoom *= 1.5;
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
 
         // Get window by ID
         const ct = this;

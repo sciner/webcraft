@@ -9,8 +9,8 @@ export class StatsWindow extends Window {
 
         super(10, 10, 352, 332, "frmStats", null, null);
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
         // Get window by ID

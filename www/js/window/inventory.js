@@ -2,7 +2,7 @@ import { Button, Label } from "../../tools/gui/wm.js";
 import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot, HelpSlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE, INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 
 const PLAYER_BOX_WIDTH = 98;
@@ -17,12 +17,11 @@ export class InventoryWindow extends BaseCraftWindow {
      */
     constructor(inventory, recipes) {
 
-        super(10, 10, 352, 332, 'frmInventory', null, null, inventory);
+        super(10, 10, 352, 332, 'frmInventory', null, null, inventory)
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
-
         this.recipes = recipes;
 
         const options = {
@@ -38,18 +37,18 @@ export class InventoryWindow extends BaseCraftWindow {
                 }
             }
         };
-        this.style.background = {...this.style.background, ...options.background};
+        // this.style.background = {...this.style.background, ...options.background}
 
         this.skinKey = null;
         this.skinViewer = null; // lazy initialized if necessary
 
         // Get window by ID
         const ct = this;
-        ct.style.background.color = '#00000000';
+        ct.style.background.color = '#00000000'
         ct.style.border.hidden = true;
-        ct.setBackground(options.background.image);
+        ct.setBackground(options.background.image, null, .5)
 
-        ct.hide();
+        ct.hide()
         
         // Craft area
         this.area = {
@@ -60,28 +59,28 @@ export class InventoryWindow extends BaseCraftWindow {
         };
 
         //
-        this.addPlayerBox();
+        this.addPlayerBox()
 
         // Add buttons
-        this.addRecipesButton();
+        this.addRecipesButton()
 
         // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Создание слотов для крафта
-        this.createCraft(this.cell_size);
+        this.createCraft(this.cell_size)
 
         // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size);
+        this.createInventorySlots(this.cell_size)
         
         // Создания слота для армора
-        this.createArmorSlots(this.cell_size);
+        this.createArmorSlots(this.cell_size)
 
         // Итоговый слот (то, что мы получим)
-        this.createResultSlot(306 * this.zoom, 54 * this.zoom);
+        this.createResultSlot(306 * this.zoom, 54 * this.zoom)
         
         // слоты (лабел) для подсказок
-        this.addHelpSlots();
+        this.addHelpSlots()
         
         // Обработчик открытия формы
         this.onShow = function() {
@@ -93,7 +92,7 @@ export class InventoryWindow extends BaseCraftWindow {
         // Обработчик закрытия формы
         this.onHide = function() {
             // Close recipe window
-            Qubatch.hud.wm.getWindow('frmRecipe').hide();
+            ct.getRoot().getWindow('frmRecipe', false)?.hide()
             // Drag
             this.inventory.clearDragItem(true);
             // Clear result
@@ -122,14 +121,14 @@ export class InventoryWindow extends BaseCraftWindow {
             // Add buttons
             const ct = this;
             // Close button
-            let btnClose = new Button(ct.width - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+            const btnClose = new Button(ct.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             // btnClose.style.background.image_size_mode = 'stretch';
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
                 ct.hide();
             }
-            ct.add(btnClose);
+            ct.add(btnClose)
         });
 
         // Hook for keyboard input
@@ -187,21 +186,25 @@ export class InventoryWindow extends BaseCraftWindow {
         s.leftLeg.rotation.x = 0.3;
         s.rightLeg.rotation.x = -0.3;
 
-        const skin = Qubatch.render.player.state.skin;
-        const skinKey = skin.file + '_' + skin.type;
-        if (this.skinKey !== skinKey) {
-            this.skinKey = skinKey;
-            const model = skin.type ? 'slim' : 'default';
-            // use the cached skin image, if available
-            const img = Qubatch.world.players.getMyself()?.skinImage;
-            // it doesn't return a promise when an image is supplied
-            this.skinViewer.loadSkin(img || skin.file, {model})?.then(() => drawOneFrame());
-            if (img) {
+        const skin = Qubatch.render.player.state.skin
+
+        if(skin) {
+            const skinKey = skin.file + '_' + skin.type;
+            if (this.skinKey !== skinKey) {
+                this.skinKey = skinKey;
+                const model = skin.type ? 'slim' : 'default';
+                // use the cached skin image, if available
+                const img = Qubatch.world.players.getMyself()?.skinImage;
+                // it doesn't return a promise when an image is supplied
+                this.skinViewer.loadSkin(img || skin.file, {model})?.then(() => drawOneFrame());
+                if (img) {
+                    drawOneFrame();
+                }
+            } else {
                 drawOneFrame();
             }
-        } else {
-            drawOneFrame();
         }
+
     }
 
     addPlayerBox() {
@@ -228,9 +231,9 @@ export class InventoryWindow extends BaseCraftWindow {
         btnRecipes.tooltip = Lang.toggle_recipes;
         btnRecipes.setBackground('./media/gui/recipes.png', 'none');
         btnRecipes.onMouseDown = (e) => {
-            let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
-            frmRecipe.assignCraftWindow(this);
-            frmRecipe.toggleVisibility();
+            const frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
+            frmRecipe.assignCraftWindow(this)
+            frmRecipe.toggleVisibility()
         }
         ct.add(btnRecipes);
     }

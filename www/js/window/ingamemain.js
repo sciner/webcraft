@@ -8,8 +8,8 @@ export class InGameMain extends Window {
 
         super(10, 10, 1700/2, 1200/2, 'frmInGameMain', null, null);
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
 
         this.player = player;
         this.inventory = inventory;

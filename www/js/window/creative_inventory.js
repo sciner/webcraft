@@ -200,8 +200,8 @@ export class CreativeInventoryWindow extends Window {
 
         super(10, 10, 390, 450, 'frmCreativeInventory', null, null);
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
 
         this.inventory = inventory;
 
