@@ -13,7 +13,9 @@
 #define WATER_REFLECTION_FADE 0.8
 
 // use a trace reflection instead mapping
-#define REFLECTION_MODE 1 // 1 -- fast, 2 -- trace, 3 -- compbine, 0 -- no
+#define REFLECTION_MODE 3 // 1 -- fast, 2 -- trace, 3 -- compbine, 0 -- no
+
+#define DEBUG 0
 
 #include<constants>
 
@@ -88,8 +90,6 @@ vec4 TraceReflection(vec3 ro, vec3 rd, vec2 offset) {
 
     vec3 p = ro;
 
-    mat4 invProj = inverse(uProjMatrix);
-
     float curStep = 1.0;
 
     for (float i = 0.0; i < STEPS; i += 1.0) {
@@ -98,21 +98,21 @@ vec4 TraceReflection(vec3 ro, vec3 rd, vec2 offset) {
 
         result.xy = projectedP.xy;
         result.xy /= projectedP.w;
+
+        if (abs(result.x) > 1. || abs(result.y) > 1.) {
+            result.w = 0.0;
+            break;
+        }
+
         result.xy = (result.xy + 1.0) * 0.5;
 
         result.z = i / STEPS;
 
         float depth = texture(u_backTextureDepth, result.xy, -0.5).r;
 
-        // projectedP.z = depth;
-        // projectedP.w = 1.0;
-
-        // vec4 inversedP = invProj * projectedP;
-
         float d = -linearizeDepth(projectedP.z / projectedP.w) + linearizeDepth(depth);
-        //float d = linearizeDepth(depth) - linearizeDepth(projectedP.z);
 
-        if (abs(d) < PASS) {
+        if (abs(d) < PASS || depth == 1.0) {
 
             result.w = 1.0;
             break;
@@ -218,10 +218,16 @@ void main() {
 
     offset *= displaceErrorFactor;
 
+#if DEBUG == 1
+
+    offset *= 0.0;
+
+#endif
+
     vec4 refraction = texture(u_backTextureColor, backUV + offset, -0.5);
     vec4 reflection = vec4(0.0);
 
-    vec3 ref = reflect(v_position, normalize(v_tangentNormal));
+    vec3 ref = reflect(normalize( v_position ), normalize(v_tangentNormal));
 
 #if REFLECTION_MODE == 1
 
@@ -250,5 +256,12 @@ void main() {
     float mixFactor = 1.0;
     vec4 rrcolor = mix(refraction, reflection, reflection.a);
 
+#if DEBUG == 1
+
+    outColor = reflection;
+
+#else
+
     outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
+#endif
 }
