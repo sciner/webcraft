@@ -285,7 +285,7 @@ export class ServerChunkManager {
                     this.unloading_chunks.add(chunk.addr, chunk);
                     this.remove(chunk.addr);
                     this.removeTickingChunk(chunk.addr);
-                    chunk.readyPromise = chunk.readyPromise.then(() => chunk.onUnload());
+                    chunk.onUnload();
                 }
             }
         }
@@ -401,9 +401,8 @@ export class ServerChunkManager {
                             chunk = this.unloading_chunks.get(item.addr)
                             if (chunk) {
                                 // RESTORE!!!
-                                this.unloading_chunks.delete(chunk);
-                                chunk.load_state = CHUNK_STATE.LOADING_BLOCKS;
-                                chunk.readyPromise = chunk.readyPromise.then(() => chunk.onRestore());
+                                this.unloading_chunks.delete(item.addr)
+                                chunk.onReady();
                             } else {
                                 chunk = new ServerChunk(this.world, addr);
                             }

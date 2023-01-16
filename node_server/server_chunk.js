@@ -417,25 +417,24 @@ export class ServerChunk {
             this._preloadFluidBuf = null;
         }
         this.light.init();
-        await this.onRestore(args);
+        this.readyPromise = this.loadMobs();
+        this.onReady(args);
     }
 
-    async onRestore(blockGenArgs = {ticking_blocks: []}) {
+    onReady(blockGenArgs = {ticking_blocks: []}) {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
         }
-        if (this.load_state !== CHUNK_STATE.LOADING_BLOCKS) {
-            //WTF?
-            return;
-        }
-        if (!this.dataChunk) {
-            // real restore
-            chunkManager.dataWorld.addChunk(this);
+        let isRestore = this.load_state !== CHUNK_STATE.LOADING_MOBS;
+        if (isRestore) {
+            this.setState(CHUNK_STATE.READY);
+            chunkManager.dataWorld.addChunk(this, isRestore);
         }
         chunkManager.dataWorld.syncOuter(this);
-        this.setState(CHUNK_STATE.LOADING_MOBS);
-        //
+        // fluid
+        this.fluid.queue.init();
+        // Scan ticking blocks
         this.randomTickingBlockCount = 0;
         for(let i = 0; i < this.tblocks.id.length; i++) {
             const block_id = this.tblocks.id[i];
@@ -443,20 +442,24 @@ export class ServerChunk {
                 this.randomTickingBlockCount++;
             }
         }
+        this.scanTickingBlocks(blockGenArgs.ticking_blocks);
+    }
+
+
+    async loadMobs() {
+        this.setState(CHUNK_STATE.LOADING_MOBS);
+        const chunkManager = this.getChunkManager();
         // load various data in parallel
         const mobPrpmise = this.world.db.mobs.loadInChunk(this.addr, this.size);
         const drop_itemsPromise = this.world.db.loadDropItems(this.addr, this.size);
-        const serializedDelayedCalls = await this.world.db.loadAndDeleteChunkDelayedCalls(this);
-        if (serializedDelayedCalls) {
-            this.delayedCalls.deserialize(serializedDelayedCalls);
-        }
+        const serializedDelayedCallsPromise = this.world.db.loadAndDeleteChunkDelayedCalls(this).then((serializedDelayedCalls) => {
+            if (serializedDelayedCalls) {
+                this.delayedCalls.deserialize(serializedDelayedCalls);
+            }
+        });
         this.mobs = await mobPrpmise;
         this.drop_items = await drop_itemsPromise;
-        this.setState(CHUNK_STATE.READY);
-        // fluid
-        this.fluid.queue.init();
-        // Scan ticking blocks
-        this.scanTickingBlocks(blockGenArgs.ticking_blocks);
+        await serializedDelayedCallsPromise;
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0) {
             if(this.mobs.size > 0) {
@@ -470,7 +473,7 @@ export class ServerChunk {
         if (this.delayedCalls.length) {
             chunkManager.chunks_with_delayed_calls.add(this);
         }
-
+        this.setState(CHUNK_STATE.READY);
         if (this.shouldUnload()) {
             // TODO : wait a bit, dont unload yet?
             chunkManager.invalidate(this);
@@ -1195,6 +1198,10 @@ export class ServerChunk {
         this.applyChangesByListeners();
     }
 
+    unload() {
+
+    }
+
     // Before unload chunk
     async onUnload() {
         const chunkManager = this.getChunkManager();
@@ -1206,6 +1213,7 @@ export class ServerChunk {
             return;
         }
         this.setState(CHUNK_STATE.UNLOADING);
+        await this.readyPromise;
         if (this.delayedCalls.length) {
             chunkManager.chunks_with_delayed_calls.delete(this);
         }
@@ -1229,10 +1237,12 @@ export class ServerChunk {
         if (this.delayedCalls.length) {
             promises.push(this.world.db.saveChunkDelayedCalls(this));
         }
-        await Promise.all(promises);
-        if (this.load_state === CHUNK_STATE.UNLOADING) {
-            this.dispose();
-        }
+        this.readyPromise = Promise.all(promises).then(() => {
+            if (this.load_state === CHUNK_STATE.UNLOADING) {
+                this.dispose();
+            }
+        });
+        await this.readyPromise;
     }
 
     dispose() {
