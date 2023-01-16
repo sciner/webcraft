@@ -1,9 +1,9 @@
 #include<header>
 #define SHADER_NAME WaterShader
 // how far caustic apply displace
-#define CAUSTIC_DISPLACEMENT .1 
+#define CAUSTIC_DISPLACEMENT .1
 // minimal delta in depth for displace
-// fix  a `cutting` a blocks that under water partially 
+// fix  a `cutting` a blocks that under water partially
 #define CAUSTIC_DISPLACEMENT_GAP .01
 
 // how many reflection in water when it exist
@@ -73,24 +73,26 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
 float linearizeDepth(float z) {
     float far = v_farNear.x;
     float near = v_farNear.y;
-    return (2.0 * near) / (far + near - z * (far - near));
+    return (2.0 * far * near) / (far + near - z * (far - near));
 }
 
 vec4 Trace(vec3 ro, vec3 rd) {
     vec4 result = vec4(0.0);
 
-    float STEPS = 10.0;
+    float STEPS = 20.0;
 
-    float PASS = 0.001;
+    float PASS = 0.1;
 
     vec3 p = ro;
 
     mat4 invProj = inverse(uProjMatrix);
 
+    float curStep = 1.0;
+
     for (float i = 0.0; i < STEPS; i += 1.0) {
 
         vec4 projectedP = uProjMatrix * vec4(p, 1.0);
-    
+
         result.xy = projectedP.xy;
         result.xy /= projectedP.w;
         result.xy = (result.xy + 1.0) * 0.5;
@@ -104,7 +106,8 @@ vec4 Trace(vec3 ro, vec3 rd) {
 
         // vec4 inversedP = invProj * projectedP;
 
-        float d = projectedP.z - depth;
+        float d = -linearizeDepth(projectedP.z / projectedP.w) + linearizeDepth(depth);
+        //float d = linearizeDepth(depth) - linearizeDepth(projectedP.z);
 
         if (abs(d) < PASS) {
 
@@ -112,7 +115,15 @@ vec4 Trace(vec3 ro, vec3 rd) {
             break;
         }
 
-        p = ro + rd * d;
+        if (d < 0.0) {
+            //go back
+            curStep = min(curStep * 0.9, -d);
+            p += rd * -curStep;
+        } else {
+            // go forward
+            curStep = min(curStep, d * 0.9);
+            p += rd * curStep;
+        }
     }
 
     return result;
@@ -198,7 +209,7 @@ void main() {
     vec4 rrcolor = mix(refraction, reflection, reflection.a);
 
     outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
-    
+
     outColor  = reflection;// vec4(vec3(rayResult.z), 1.0);
     //}
 }
