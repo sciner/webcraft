@@ -18,6 +18,8 @@ export class Window extends PIXI.Container {
         
         super()
 
+        const that = this
+
         // List of childs
         this.list = {
             values: () => {
@@ -31,6 +33,10 @@ export class Window extends PIXI.Container {
             },
             has(id) {
                 return !!this.get(id)
+            },
+            delete(id) {
+                const window = this.get(id)
+                that.removeChild([window])
             },
             get: (id) => {
                 for(let w of this.children) {
@@ -243,7 +249,7 @@ export class Window extends PIXI.Container {
 
     delete(id) {
         if(this.list.has(id)) {
-            this.list.delete(id);
+            this.list.delete(id)
         }
     }
 
@@ -543,7 +549,7 @@ export class Window extends PIXI.Container {
             // TODO: remove previous sprite
             const background = PIXI.Sprite.from(image)
             background._image = image
-            this._background = background
+            this._bgimage = background
             // const background = new PIXI.Sprite(PIXI.Texture.WHITE)
             // background.tint = getRandomColor()
 
@@ -563,7 +569,7 @@ export class Window extends PIXI.Container {
 
             this.style.background.image_size_mode = image_size_mode ?? this.style.background.image_size_mode
     
-            this.addChildAt(background, 0)
+            this.addChildAt(background, 1)
 
         }
 
@@ -1033,9 +1039,10 @@ export class Button extends Window {
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
-        
+
         this.style.textAlign.horizontal = 'center';
         this.style.textAlign.vertical = 'middle';
+
         this.onMouseEnter = function() {
             this.style.background.color_save = this.style.background.color;
             this.style.color_save = this.style.color;

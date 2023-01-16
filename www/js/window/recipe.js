@@ -136,13 +136,13 @@ export class RecipeWindow extends Window {
                 }
             }
         };
-        ct.style.background = {...ct.style.background, ...options.background};
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.setBackground(options.background.image);
-        ct.hide();
+        ct.style.background = {...ct.style.background, ...options.background}
+        ct.style.background.color = '#00000000'
+        ct.style.border.hidden = true
+        ct.setBackground(options.background.image)
+        ct.hide()
 
-        let that = this;
+        const that = this;
 
         // Paginator
         this.paginator = {

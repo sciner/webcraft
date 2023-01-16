@@ -1,6 +1,5 @@
 import { Button, Label } from "../../tools/gui/wm.js";
-import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot, HelpSlot } from "./base_craft_window.js";
-import { BLOCK } from "../blocks.js";
+import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
@@ -11,7 +10,6 @@ const PLAYER_BOX_HEIGHT = 140;
 export class InventoryWindow extends BaseCraftWindow {
 
     /**
-     * 
      * @param { import("../player_inventory.js").PlayerInventory } inventory
      * @param {*} recipes 
      */

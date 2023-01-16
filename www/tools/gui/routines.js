@@ -14,9 +14,10 @@ export function getRandomColor() {
 export function parseColorAndAlpha(value) {
     const resp = {
         color: 0x0,
-        alpha: 0x00
+        alpha: 0xff
     }
     if(value === undefined) {
+        resp.alpha = 0
         return resp
     }
     if(isNaN) {
@@ -68,11 +69,9 @@ export class BackgroundStyle {
     constructor(window) {
         this.window = window
         // Create a Graphics object, set a fill color, draw a rectangle
-        this._bg = new PIXI.Graphics()
-        window.addChild(this._bg)
+        this._bgcolor = new PIXI.Graphics()
+        window.addChildAt(this._bgcolor, 0)
         this._image_size_mode = null
-        // this._bg.beginFill(0xff000000)
-        // this._bg.drawRect(0, 0, window.w, window.h)
     }
 
     /**
@@ -87,7 +86,7 @@ export class BackgroundStyle {
      */
     set image_size_mode(value) {
         this._image_size_mode = value
-        const background = this.window._background
+        const background = this.window._bgimage
         if(!background) {
             return
         }
@@ -114,9 +113,10 @@ export class BackgroundStyle {
 
     set color(value) {
         const {color, alpha} = parseColorAndAlpha(value)
-        this._bg.beginFill(color)
-        this._bg.drawRect(0, 0, this.window.w, this.window.h)
-        this._bg.alpha = alpha
+        this._bgcolor.clear()
+        this._bgcolor.beginFill(color)
+        this._bgcolor.drawRect(0, 0, this.window.w, this.window.h)
+        this._bgcolor.alpha = alpha
     }
 
 }
@@ -152,6 +152,12 @@ export class FontStyle {
             fontSize: 20 * window.zoom,
             fontWeight: 'normal'
         })
+
+        this.shadow = {
+            x: 1,
+            y: 1,
+            enable: false
+        }
 
         /*
         font: {

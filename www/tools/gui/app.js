@@ -1,10 +1,12 @@
 globalThis.UI_ZOOM = 1
 
 import { WindowManager } from "./wm.js"
-import { InventoryWindow } from "../../js/window/index.js"
+import { InventoryWindow, RecipeWindow } from "../../js/window/index.js"
+
 import { BLOCK } from "../../js/blocks.js"
 import { Lang } from "../../js/lang.js"
 import { INVENTORY_DRAG_SLOT_INDEX } from "../../js/constant.js"
+import { RecipeManager } from "../../js/recipes.js"
 
 await BLOCK.init({
     texture_pack: 'base',
@@ -74,6 +76,12 @@ const player = {
             } else {
                 this.clearDragItem()
             }
+        },
+        hasResources(resources, additionalItems = null) {
+            return {
+                missing: [],
+                has: []
+            }
         }
     }
 }
@@ -82,6 +90,7 @@ player.inventory.player = player
 
 // Qubatch
 globalThis.Qubatch = {
+    is_server: false,
     player,
     world: player.world,
     render: {
@@ -99,6 +108,7 @@ const recipes = {}
 const frmInventory = new InventoryWindow(player.inventory, recipes)
 
 wm.add(frmInventory)
+wm.add(new RecipeWindow(new RecipeManager(true)))
 
 frmInventory.show()
 
