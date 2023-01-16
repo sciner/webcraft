@@ -245,10 +245,10 @@ export class Renderer {
 
         // Clouds
         // @todo Переделать в связи с появлением TBlock
-        this.clouds = this.meshes.add(new Mesh_Object_Clouds(this, DEFAULT_CLOUD_HEIGHT));
+        this.clouds = new Mesh_Object_Clouds(this, DEFAULT_CLOUD_HEIGHT);
 
         // Stars
-        this.stars = this.meshes.add(new Mesh_Object_Stars(this));
+        this.stars = new Mesh_Object_Stars(this);
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
 
@@ -780,6 +780,12 @@ export class Renderer {
         this.env.draw(this);
 
         this.defaultShader.bind(true);
+
+        // wtf??
+        if (this.defaultShader.texture) {
+            this.stars.draw(this, delta);
+            this.clouds.draw(this, delta);
+        }
 
         // layers??
         // maybe we will create a real layer group
