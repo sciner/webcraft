@@ -121,14 +121,57 @@ export class FontStyle {
      * @param { import("./wm.js").Window } window
      */
     constructor(window) {
+
         this.window = window
+
+        this._font_style = new PIXI.TextStyle({
+            fontFamily: 'Tahoma',
+            fontSize: 20 * window.zoom,
+            fontWeight: 'normal'
+        })
+
+        /*
+        font: {
+            size: 20 * this.zoom,
+            family: 'Ubuntu',
+            shadow: {
+                enable: false,
+                x: 0,
+                y: 0,
+                blur: 0,
+                color: 'rgba(0, 0, 0, 5)'
+            }
+        }
+        */
+
     }
 
     /**
      * @param {int} value
      */
     set size(value) {
-        // TODO:
+        this._font_style.fontSize = value * this.window.zoom
+    }
+
+    /**
+     * @return {int}
+     */
+    get size() {
+        return this._font_style.fontSize
+    }
+
+    /**
+     * @param {string} value
+     */
+    set family(value) {
+        this._font_style.fontFamily = value
+    }
+
+    /**
+     * @return {string}
+     */
+    get family() {
+        return this._font_style.fontFamily
     }
 
 }

@@ -39,6 +39,7 @@ export class Window extends PIXI.Container {
                 return null
             }
         }
+
         this.index              = 0
         this.x                  = x
         this.y                  = y
@@ -47,7 +48,6 @@ export class Window extends PIXI.Container {
         this.height             = h
         this.id                 = id
         this.title              = title
-        this.text               = text || null
         this.word_wrap          = false
         this.hover              = false
         this.catchEvents        = true
@@ -60,6 +60,8 @@ export class Window extends PIXI.Container {
 
         // all props
         this.style              = new Style(this)
+
+        this.text               = text || null
 
         /*
         this.style = {
@@ -190,7 +192,7 @@ export class Window extends PIXI.Container {
     set text(value) {
         if(!this.text_container) {
             // this.text_container = new Label(0, 0, undefined, undefined, randomUUID(), undefined, value)
-            this.text_container = new PIXI.Text(value)
+            this.text_container = new PIXI.Text(value, this.style.font._font_style)
             // this.text_container.x = 0
             // this.text_container.y = 0
             // this.text_container.width = this.w
@@ -494,9 +496,11 @@ export class Window extends PIXI.Container {
         }
         this.draw(this.ctx, this.ax, this.ay);
     }
+
     setText(text) {
-        this.text = text;
+        this.text = text
     }
+
     applyStyle(ctx, ax, ay) {
         // TODO:
         /*

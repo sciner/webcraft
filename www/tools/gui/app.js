@@ -2,7 +2,14 @@ globalThis.UI_ZOOM = 1
 
 import { WindowManager } from "./wm.js"
 import { InventoryWindow } from "../../js/window/index.js"
+import { BLOCK } from "../../js/blocks.js"
 import { Lang } from "../../js/lang.js"
+
+await BLOCK.init({
+    texture_pack: 'base',
+    json_url: '../../data/block_style.json',
+    resource_packs_url: '../../data/resource_packs.json'
+})
 
 await Lang.init({
     lang_file: '/data/lang.json'
@@ -21,8 +28,8 @@ wm.style.background.color = '#00000044'
 // Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши
 canvas.addEventListener('mousemove', wm.mouseEventDispatcher.bind(wm))
 canvas.addEventListener('mousedown', wm.mouseEventDispatcher.bind(wm))
-canvas.addEventListener('mouseup', wm.mouseEventDispatcher.bind(wm))
-canvas.addEventListener('click', wm.mouseEventDispatcher.bind(wm))
+canvas.addEventListener('mousewheel', wm.mouseEventDispatcher.bind(wm))
+canvas.addEventListener('wheel', wm.mouseEventDispatcher.bind(wm))
 
 // Player
 const player = {
