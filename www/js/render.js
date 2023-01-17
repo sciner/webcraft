@@ -570,7 +570,9 @@ export class Renderer {
             Resources.inventory.image = data;
 
             if(callback instanceof Function) {
-                callback(data);
+                data.toBlob(function(blob) {
+                    callback(blob)
+                }, 'image/png');
             }
 
         });

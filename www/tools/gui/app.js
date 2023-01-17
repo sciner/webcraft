@@ -18,9 +18,9 @@ globalThis.Qubatch = Qubatch
 
 const init_render_callback = (result) => {
 
-    const {render, inventory_image} = result
+    const {_, inventory_image} = result
 
-    Resources.inventory.image = inventory_image
+    Resources.inventory - {image: inventory_image}
     Qubatch.player.inventory.inventory_image = inventory_image
 
     // Define canvas and drawing context
@@ -67,8 +67,7 @@ const init_render_callback = (result) => {
 
 // cached image
 const cacheStorage = await caches.open('tools')
-
-// Get data from the cache.
+// return data from the cache or false
 async function getCachedData(url) {
     const cachedResponse = await cacheStorage.match(url)
     if (!cachedResponse || !cachedResponse.ok) {
@@ -76,15 +75,41 @@ async function getCachedData(url) {
     }
     return cachedResponse
 }
+async function blobToImage(blob) {
+    
+    const file = new File([blob], 'image.png', {type: 'image/png'})
 
+    const url = URL.createObjectURL(file)
+
+    return new Promise(resolve => {
+        const img = new Image()
+        img.onload = () => {
+            URL.revokeObjectURL(url)
+            // resolve(img)
+            resolve(img)
+        }
+        img.src = url
+    });
+
+}
 const inventory_image = await getCachedData('/inventory_image.png')
-debugger
-
 if(inventory_image) {
-    init_render_callback({inventory_image, render: null})
+
+    // Convert the image data to a blob...
+    const blob = await inventory_image.blob()
+    // const bitmap = await createImageBitmap(blob, {premultiplyAlpha: 'none'})
+    const url = URL.createObjectURL(blob)
+    const img = new Image()
+    img.onload = () => {
+        URL.revokeObjectURL(url)
+        // resolve(img)
+        init_render_callback({inventory_image: img, render: null})
+    }
+    img.src = url
 } else {
     await initRender(async (result) => {
-        await cacheStorage.put('inventory_image', new Response(result.inventory_image))
+        await cacheStorage.put('/inventory_image.png', new Response(result.inventory_image))
+        result.inventory_image = await blobToImage(result.inventory_image)
         init_render_callback(result)
     })
 }
