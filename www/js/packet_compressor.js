@@ -1,7 +1,13 @@
 import { Vector } from "./helpers.js";
 
 const BINARY_ALPHABET = `0123456789abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ!#$%^&*()[]{}_+-=<>~':;?`.split('');
-const MODIFY_CHAR = '@';
+const FLAGS_TO_MODIFY_CHAR = ['', '@', '.', ',']; // the index = flags;
+const MODIFY_CHAR_TO_FLAGS = {'@': 1, '.': 2, ',': 3};
+
+export const NEARBY_FLAGS = {
+    HAS_MODIFIERS:  0x1,
+    HAS_OTHER_DATA: 0x2
+}
 
 // 71374 -> 15131 -> 12269 -> 10962 -> 9653 -> 3979
 export function compressNearby(nearby, use_start_vec = true) {
@@ -39,14 +45,14 @@ export function compressNearby(nearby, use_start_vec = true) {
         const item = nearby.added[i];
         if(use_start_vec) {
             _temp_vec.copyFrom(item.addr).subSelf(start_vec);
-            let m = item.has_modifiers ? MODIFY_CHAR : '';
+            let m = FLAGS_TO_MODIFY_CHAR[item.flags];
             m += getSymbol(_temp_vec.x) + getSymbol(_temp_vec.y) + getSymbol(_temp_vec.z);
             if(m.length > 4) {
                 return compressNearby(nearby, false);
             }
             aa += m;
         } else {
-            let m = item.has_modifiers ? MODIFY_CHAR : '';
+            let m = FLAGS_TO_MODIFY_CHAR[item.flags];
             aa += m + item.addr.toHash() + '_';
         }
     }
@@ -104,24 +110,24 @@ export function decompressNearby(str) {
     if(use_start_vec) {
         added = added.split('');
         for(let i = 0; i < added.length; i += 3) {
-            const has_modifiers = added[i] == MODIFY_CHAR;
-            if(has_modifiers) i++;
+            const flags = MODIFY_CHAR_TO_FLAGS[added[i]] ?? 0;
+            if(flags) i++;
             let x = BINARY_ALPHABET.indexOf(added[i + 0]) - mid;
             let y = BINARY_ALPHABET.indexOf(added[i + 1]) - mid;
             let z = BINARY_ALPHABET.indexOf(added[i + 2]) - mid;
             const addr = new Vector(x, y, z).addSelf(start_vec);
-            nearby.added.push({addr, has_modifiers})
+            nearby.added.push({addr, flags})
         }
     } else {
         added = added.split('_');
         for(let i = 0; i < added.length - 1; i++) {
             let temp = added[i];
-            const has_modifiers = temp[0] == MODIFY_CHAR;
-            if(has_modifiers) {
+            const flags = MODIFY_CHAR_TO_FLAGS[temp[0]] ?? 0;
+            if(flags) {
                 temp = temp.substring(1);
             }
             const addr = new Vector(0, 0, 0).set(temp.split(',').map(x => parseInt(x)));
-            nearby.added.push({addr, has_modifiers})
+            nearby.added.push({addr, flags})
         }
     }
     // deleted
