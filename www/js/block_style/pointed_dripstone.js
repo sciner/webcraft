@@ -1,9 +1,10 @@
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { CubeSym } from '../core/CubeSym.js';
-import { AABB } from '../core/AABB.js';
-import { DIRECTION, QUAD_FLAGS, IndexedColor, Vector } from '../helpers.js';
-import { default as default_style } from './default.js';
+import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
 import { BLOCK } from '../blocks.js';
+import { AABB } from '../core/AABB.js';
+import { TBlock } from '../typed_blocks3.js';
+import { default as default_style } from './default.js';
+
+const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
 
 // pointed_dripstone
 export default class style {
@@ -31,7 +32,7 @@ export default class style {
         
         const extra_data = block.extra_data;
         const material = block.material;
-        const texture = BLOCK.calcTexture(material.texture, DIRECTION.WEST);//getTexture(material, extra_data, neighbours);
+        const texture = getTexture(material, extra_data, neighbours);
         const planes = [];
         planes.push(...[
             {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [block.extra_data?.up ? 0 : Math.PI, block.extra_data?.up ? Math.PI / 4 : Math.PI * 5 / 4, 0]},
@@ -52,4 +53,41 @@ export default class style {
         }
     }
 
+}
+
+function getTexture(material, extra_data, neighbours) {
+    const check = (n) => {
+        if(neighbours[n].tb) {
+            const next_neighbours = neighbours[n].tb.getNeighbours(neighbours[n], null, BLOCK_CACHE);
+            return next_neighbours[n] && next_neighbours[n].id == BLOCK.POINTED_DRIPSTONE.id && ( (next_neighbours[n].extra_data.up == true && n == 'DOWN') || (next_neighbours[n].extra_data.up == false && n == 'UP'));
+        }
+        return false;
+    };
+    if (extra_data?.up) {
+        if (neighbours.DOWN.id == BLOCK.AIR.id && neighbours.DOWN.fluid == 0) {
+            return BLOCK.calcTexture(material.texture, DIRECTION.UP);
+        }
+        if (extra_data?.up && !neighbours.DOWN?.extra_data?.up) {
+            return BLOCK.calcTexture(material.texture, DIRECTION.WEST);
+        }
+        if (neighbours.UP.id == BLOCK.DRIPSTONE_BLOCK.id) {
+            if (check('DOWN')) {
+                return BLOCK.calcTexture(material.texture, DIRECTION.DOWN);
+            }
+            return BLOCK.calcTexture(material.texture, DIRECTION.NORTH);
+        }
+        if (check('DOWN')) {
+            return BLOCK.calcTexture(material.texture, DIRECTION.SOUTH);
+        }
+    }
+    if (neighbours.UP.id == BLOCK.AIR.id && neighbours.UP.fluid == 0) {
+        return BLOCK.calcTexture(material.texture, DIRECTION.UP);
+    }
+    if (!extra_data?.up && neighbours.UP?.extra_data?.up) {
+        return BLOCK.calcTexture(material.texture, DIRECTION.WEST);
+    }
+    if (check('UP')) {
+        return BLOCK.calcTexture(material.texture, DIRECTION.SOUTH);
+    }
+    return BLOCK.calcTexture(material.texture, DIRECTION.NORTH);
 }
