@@ -229,7 +229,7 @@ export class InventoryWindow extends BaseCraftWindow {
         btnRecipes.tooltip = Lang.toggle_recipes;
         btnRecipes.setBackground('./media/gui/recipes.png', 'none', 1.0);
         btnRecipes.onMouseDown = (e) => {
-            const frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
+            const frmRecipe = this.getRoot().getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this)
             frmRecipe.toggleVisibility()
         }

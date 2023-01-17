@@ -2971,3 +2971,42 @@ export function mat4ToRotate(matrix) {
     out.swapXZSelf().divScalar(180).multiplyScalarSelf(Math.PI)
     return out
 }
+
+export async function blobToImage(blob) {
+    const file = new File([blob], 'image.png', {type: 'image/png'})
+    const url = URL.createObjectURL(file)
+    return new Promise(resolve => {
+        const img = new Image()
+        img.onload = () => {
+            URL.revokeObjectURL(url)
+            // resolve(img)
+            resolve(img)
+        }
+        img.src = url
+    });
+}
+
+/**
+ * @param {Image,Canvas} image 
+ * @param {int} x 
+ * @param {int} y 
+ * @param {int} width 
+ * @param {int} height 
+ * @param {int} size 
+ */
+export async function cropToImage(image, x, y, width, height, size) {
+
+    const item_image = document.createElement('canvas')
+    item_image.width = size
+    item_image.height = size
+    const item_ctx = item_image.getContext('2d')
+
+    item_ctx.drawImage(image, x, y, width, height, 0, 0, size, size)
+
+    return new Promise((resolve, reject) => {
+        item_image.toBlob((blob) => {
+            resolve(blobToImage(blob))
+        })
+    })
+
+}

@@ -1272,7 +1272,7 @@ export class WindowManager extends Window {
     
     static draw_calls = 0
 
-    constructor(canvas, x, y, w, h) {
+    constructor(canvas, x, y, w, h, create_mouse_listeners) {
 
         super(x, y, w, h, '_wm', null)
         globalThis.wmGlobal = this
@@ -1284,8 +1284,15 @@ export class WindowManager extends Window {
         })
 
         this.parent = this.pixiapp.stage
-
         this.parent.addChild(this)
+
+        // Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши
+        if(create_mouse_listeners) {
+            canvas.addEventListener('mousemove', this.mouseEventDispatcher.bind(this))
+            canvas.addEventListener('mousedown', this.mouseEventDispatcher.bind(this))
+            canvas.addEventListener('mousewheel', this.mouseEventDispatcher.bind(this))
+            canvas.addEventListener('wheel', this.mouseEventDispatcher.bind(this))
+        }
 
         const ctx = null
 

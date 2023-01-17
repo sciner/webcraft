@@ -77,8 +77,8 @@ export class DieWindow extends Window {
             blur: 0,
             color: 'rgba(0, 0, 0, 0.5)'
         }
-        btnReturn.onMouseDown = function (e) {
-            Qubatch.hud.wm.closeAll();
+        btnReturn.onMouseDown = (e) => {
+            this.getRoot().closeAll();
             Qubatch.player.world.server.Send({ name: ServerClient.CMD_RESURRECTION });
         }
         btnReturn.onMouseEnter = function () {

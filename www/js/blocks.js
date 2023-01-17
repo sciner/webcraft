@@ -1,5 +1,5 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers, isScalar } from './helpers.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers, isScalar, cropToImage } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -1372,6 +1372,30 @@ export class BLOCK {
         }
         ranges.sort((a, b) => {return a.len - b.len;});
         console.table(ranges);
+    }
+
+    /**
+     * Return block image icon
+     * 
+     * @param {object} block Block object with id property 
+     * @param {int} size Width and height
+     * 
+     * @returns {?Image}
+     */
+    static async getBlockImage(block, size) {
+        const image = Resources.inventory.image
+        if(!image) {
+            console.error('error_no_inventory_image')
+            return
+        }
+        const mat = BLOCK.fromId(block.id)
+        if(!mat) {
+            console.error('error_invalid_block_id')
+            return
+        }
+        const frame = image.width / INVENTORY_ICON_COUNT_PER_TEX
+        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, image.width, frame)
+        return await cropToImage(image, icon.x, icon.y, icon.width, icon.height, size)
     }
 
 };

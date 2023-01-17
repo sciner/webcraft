@@ -122,42 +122,17 @@ export class CraftTableSlot extends Label {
         return resp;
     }
 
-    setItem(item) {
+    /**
+     * @param {?object} item 
+     * @param {boolean} update_inventory 
+     * @returns 
+     */
+    async setItem(item, update_inventory = true) {
 
         if(item) {
 
-            const image = this.ct.inventory.inventory_image
-
-            if(!image || !item) {
-                return
-            }
-    
-            const size = image.width
-            const frame = size / INVENTORY_ICON_COUNT_PER_TEX
-            const zoom = this.zoom
-            const mat = BLOCK.fromId(item.id)
-    
-            // 1. Draw icon
-            const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame)
-            const dest_icon_size = 40 * zoom
-            const item_image = document.createElement('canvas')
-            item_image.width = dest_icon_size // x + this.width / 2 - dest_icon_size / 2
-            item_image.height = dest_icon_size // y + this.height / 2 - dest_icon_size / 2
-            const item_ctx = item_image.getContext('2d')
-            item_ctx.drawImage(
-                image,
-                icon.x,
-                icon.y,
-                icon.width,
-                icon.height,
-                0,
-                0,
-                dest_icon_size,
-                dest_icon_size
-            )
-
-            const url = item_image.toDataURL('image/png')
-            this.setBackground(url, 'none', 1)
+            const image = await BLOCK.getBlockImage(item, 100 * this.zoom)
+            this.setBackground(image, 'none')
 
         } else if(this._bgimage) {
             this._bgimage.visible = false
@@ -640,7 +615,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             }
         }
 
-        this.setItem(this.getItem())
+        this.setItem(this.getItem(), false)
 
     }
 
@@ -743,10 +718,16 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 // Ячейка рецепта
 export class CraftTableRecipeSlot extends CraftTableInventorySlot {
 
-    // Вызывается после изменения любой из её ячеек
-    setItem(item) {
-        super.setItem(item);
-        this.parent.checkRecipe();
+    /**
+     * Вызывается после изменения любой из её ячеек
+     * @param {?object} item 
+     * @param {boolean} update_inventory 
+     */
+    setItem(item, update_inventory = true) {
+        super.setItem(item, update_inventory)
+        if(update_inventory) {
+            this.parent.checkRecipe()
+        }
     }
 
 }
