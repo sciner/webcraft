@@ -145,14 +145,12 @@ export class Mob {
         }
     }
 
-    //
-    async onUnload() {
+    /** @param chunk - optional, increases performance a bit. */
+    async onUnload(chunk = null) {
         console.debug(`Mob unloaded ${this.entity_id}, ${this.id}`);
         const world = this.#world;
-        await this.save();
         world.mobs.delete(this.id);
-        //
-        const chunk = world.chunkManager.get(this.chunk_addr);
+        chunk = chunk ?? world.chunkManager.get(this.chunk_addr);
         if(chunk) {
             chunk.mobs.delete(this.id);
             const connections = Array.from(chunk.connections.keys());
@@ -164,6 +162,12 @@ export class Mob {
         } else {
             // throw 'error_no_mob_chunk';
         }
+        await this.save();
+    }
+
+    restoreUnloaded(chunk) {
+        this.#world.mobs.add(this);
+        chunk.mobs.set(this.id, this); // or should we call chunk.addMob(this) ?
     }
     
     setDamage(val, type_damage, actor) {
