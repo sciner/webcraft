@@ -23,7 +23,14 @@ const player = {
             null, null, null, null, null, {id: 7, count: 1}, null, null, null, null, null, null,
             null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
         ],
-        clearDragItem() {},
+        /**
+         * @param {boolean} move_to_inventory 
+         */
+        clearDragItem(move_to_inventory) {
+            const drag = Qubatch.hud.wm.drag
+            this.items[INVENTORY_DRAG_SLOT_INDEX] = null
+            drag.clear()
+        },
         exportItems() {},
         setItem(index, item) {
             this.items[index] = item
@@ -34,15 +41,7 @@ const player = {
                 drag = wmGlobal.drag
             }
             if(item) {
-                drag.setItem({
-                    item,
-                    /**
-                     * @deprecated
-                     */
-                    draw(e) {
-                        // slot.drawItem(e.ctx, this.item, e.x, e.y, width, height)
-                    }
-                })
+                drag.setItem({item})
             } else {
                 this.clearDragItem()
             }

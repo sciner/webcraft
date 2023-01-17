@@ -2,9 +2,10 @@
 * Window Manager based on PIXI.js 
 */
 
-import {RuneStrings, deepAssign} from "../../js/helpers.js";
+import { BLOCK } from "../../js/blocks.js";
+import { RuneStrings, deepAssign } from "../../js/helpers.js";
 import { PIXI } from './pixi.js';
-import { getRandomColor, parseColorAndAlpha, Style } from "./routines.js";
+import { Style } from "./styles.js";
 
 // Base window
 export class Window extends PIXI.Container {
@@ -67,7 +68,9 @@ export class Window extends PIXI.Container {
         // all props
         this.style              = new Style(this)
 
-        this.text               = text || null
+        if(text) {
+            this.text = text || null
+        }
 
         /*
         this.style = {
@@ -213,10 +216,6 @@ export class Window extends PIXI.Container {
         if(!this.text_container) {
             // this.text_container = new Label(0, 0, undefined, undefined, randomUUID(), undefined, value)
             this.text_container = new PIXI.Text(value, this.style.font._font_style)
-            // this.text_container.x = 0
-            // this.text_container.y = 0
-            // this.text_container.width = this.w
-            // this.text_container.height = this.h
             this.addChild(this.text_container)
         }
         this.text_container.text = value
@@ -277,8 +276,8 @@ export class Window extends PIXI.Container {
 
     resize(w, h) {
         this.getRoot()._wm_setTooltipText(null);
-        this.width = w;
-        this.height = h;
+        this.width = w
+        this.height = h
     }
 
     center(w) {
@@ -542,56 +541,54 @@ export class Window extends PIXI.Container {
      * @param {?string|Image} urlOrImage 
      * @param {?string} image_size_mode 
      */
-    setBackground(urlOrImage, image_size_mode, scale) {
-
-        this.style.background.image_size_mode = image_size_mode ? image_size_mode : this.style.background.image_size_mode
+    async setBackground(urlOrImage, image_size_mode, scale) {
 
         // Set image
         const setImage = (image) => {
 
-            // remove previous sprite
-            if(this._bgimage) {
-                this.removeChild(this._bgimage)
-            }
+            const index = this.getChildIndex(this._bgimage)
+            this._bgimage.texture.destroy()
+            this._bgimage.destroy()
+            this.removeChild(this._bgimage)
+            const background = this._bgimage = PIXI.Sprite.from(image)
+            this.addChildAt(background, index)
 
-            const background = PIXI.Sprite.from(image)
+            // const background = this._bgimage
+            // background.texture.destroy()
+            // background.texture = PIXI.Texture.from(image)
+
             background._image = image
-            this._bgimage = background
-            // const background = new PIXI.Sprite(PIXI.Texture.WHITE)
-            // background.tint = getRandomColor()
-
-            background.anchor.x = 0
-            background.anchor.y = 0
-            background.position.x = 0
-            background.position.y = 0
 
             // scale
             if(isNaN(scale)) {
-                background.scale.set(this._width / image.width, this._height / image.height)
+                background.scale.set(this.w / image.width, this.h / image.height)
             } else {
                 background.scale.set(scale, scale)
             }
 
             // update image size mode
             this.style.background.image_size_mode = image_size_mode ?? this.style.background.image_size_mode
+
+        }
+
+        return new Promise((resolve, reject) => {
+
+            if (typeof urlOrImage == 'string') {
     
-            this.addChildAt(background, 1)
-
-        }
-
-        if (typeof urlOrImage == 'string') {
-
-            const image = new Image()
-            image.onload = (e) => {
-                setImage(image)
+                const image = new Image()
+                image.onload = (e) => {
+                    resolve(setImage(image))
+                }
+                image.onError = reject
+                image.src = urlOrImage
+    
+            } else if(urlOrImage instanceof Image) {
+    
+                resolve(setImage(urlOrImage))
+    
             }
-            image.src = urlOrImage
-
-        } else if(urlOrImage instanceof Image) {
-
-            setImage(urlOrImage)
-
-        }
+            
+        })
         
     }
 
@@ -1044,7 +1041,9 @@ export class Button extends Window {
 
     constructor(x, y, w, h, id, title, text) {
 
-        super(x, y, w, h, id, title, text);
+        super(x, y, w, h, id, title, text)
+
+        this.swapChildren(this.children[0], this.children[1])
 
         this.style.textAlign.horizontal = 'center';
         this.style.textAlign.vertical = 'middle';
@@ -1222,11 +1221,14 @@ export class TextEdit extends Window {
 
 class Tooltip extends Label {
 
-    constructor(text) {
+    /**
+     * @param {?string} text 
+     */
+    constructor(text = null) {
         super(0, 0, 100, 20, '_tooltip', null, text);
         this.style.background.color = '#000000cc';
         this.style.border.hidden = true;
-        this.style.color = '#ffffff';
+        this.style.font.color = '#ffffff';
         this.style.font.size = 20 * this.zoom;
         this.style.font.family = 'Ubuntu';
         this.style.padding = {
@@ -1237,42 +1239,50 @@ class Tooltip extends Label {
         };
         this.word_wrap = true;
         //
-        this.need_update_size = false;
-        this.setText(text);
-    }
-
-    draw(ctx, ax, ay) {
-        if(this.text === null || typeof this.text === undefined || this.text === '') {
-            return;
-        }
-        this.applyStyle(ctx, ax, ay);
-        //
-        if(this.need_update_size && this.autosize) {
-            this.need_update_size = false
-            /*
-            TODO:
-            // The line hegit is imprecise here, TODO: make calculations the same as when drawing
-            let mt = this.measureMultilineText(ctx, this.text, 1.07, 2);
-            this.width = mt.width + this.style.padding.left + this.style.padding.right;
-            this.height = mt.actualBoundingBoxDescent + this.style.padding.top + this.style.padding.bottom;
-            */
-        }
-        super.draw(ctx, ax, ay);
+        this.need_update_size = false
+        this.setText(text)
     }
 
     setText(text) {
-        this.text = text;
-        this.need_update_size = true;
+        this.visible = !!text
+        this.text = text
+        this.need_update_size = true
     }
 
 }
+
+//
+export class Pointer extends Window {
+
+    constructor() {
+        super(0, 0, 40, 40, '_wmpointer', null, null)
+    }
+
+    setImage(image) {
+        this.setBackground(image, 'none')
+    }
+
+}
+
+// Overlay
+class WindowManagerOverlay extends Window {
+
+    constructor(x, y, w, h, id) {
+        super(x, y, w, h, id)
+        this._wmpointer = new Pointer()
+        this._wmtooltip = new Tooltip()
+        this.addChild(this._wmtooltip, this._wmpointer)
+    }
+
+}
+
 
 // WindowManager
 export class WindowManager extends Window {
     
     static draw_calls = 0
 
-    constructor(canvas, x, y, w, h, create_mouse_listeners) {
+        constructor(canvas, x, y, w, h, create_mouse_listeners) {
 
         super(x, y, w, h, '_wm', null)
         globalThis.wmGlobal = this
@@ -1294,67 +1304,35 @@ export class WindowManager extends Window {
             canvas.addEventListener('wheel', this.mouseEventDispatcher.bind(this))
         }
 
-        const ctx = null
+        const that = this
 
-        let that = this;
         this.root = this;
         this.canvas = null
         this.ctx = null
         this.visible_change_count = 0;
-        this._wm_tooltip = new Tooltip(null);
+
+        // // Add pointer and tooltip controls
+        this._wmoverlay = new WindowManagerOverlay(0, 0, w, h, '_wmoverlay')
+        // this.addChild(this._wmoverlay)
+        this.parent.addChild(this._wmoverlay)
 
         //
-        this.pointer = {
-            x: w / 2,
-            y: h / 2,
-            image: null,
-            parent: that,
-            visible: true,
-            load: function() {
-                /*
-                let image = new Image();
-                let that = this;
-                image.onload = function() {
-                    that.image = image;
-                };
-                image.src = '../media/pointer.png';
-                */
-            },
-            draw: function() {
-                that.drag.draw({
-                    ctx: this.parent.ctx,
-                    x: this.x - 18 * UI_ZOOM,
-                    y: this.y - 18 * UI_ZOOM
-                });
-                if(this.image && this.visible) {
-                    ctx.imageSmoothingEnabled = true
-                    this.parent.ctx.drawImage(
-                        this.image,
-                        0,
-                        0,
-                        this.image.width,
-                        this.image.height,
-                        this.x,
-                        this.y,
-                        this.image.width / 2,
-                        this.image.width / 2
-                    );
-                }
-            }
-        }
-
-        this.pointer.load()
-
         this.drag = {
             item: null,
             setItem: function(item) {
                 this.item = item
+                that._wmoverlay._wmpointer.visible = !!item
+                if(item) {
+                    BLOCK.getBlockImage(item.item, 40).then((image) => {
+                        that._wmoverlay._wmpointer.setImage(image)
+                    })
+                }
             },
             getItem: function() {
-                return this.item;
+                return this.item
             },
             clear: function() {
-                this.setItem(null);
+                this.setItem(null)
             },
             draw: function(e) {
                 if(this.item) {
@@ -1373,17 +1351,6 @@ export class WindowManager extends Window {
         }
     }
 
-    draw(drawPointer) {
-        this.applyStyle(this.ctx, this.x, this.y);
-        super.draw(this.ctx, this.x, this.y);
-        if(drawPointer && drawPointer === true) {
-            this.pointer.draw();
-        }
-        if(this.hasVisibleWindow()) {
-            this._wm_tooltip.draw(this.ctx, this.x, this.y);
-        }
-    }
-
     mouseEventDispatcher(e) {
 
         switch(e.type) {
@@ -1394,17 +1361,22 @@ export class WindowManager extends Window {
                     x:          e.offsetX - this.x,
                     y:          e.offsetY - this.y
                 };
-                this.pointer.x = e.offsetX
-                this.pointer.y = e.offsetY
+                
+                const pointer = this._wmoverlay._wmpointer
+                const tooltip = this._wmoverlay._wmtooltip
+
+                pointer.x = e.offsetX
+                pointer.y = e.offsetY
                 // Calculate tooltip position
-                let pos = {x: this.pointer.x, y: this.pointer.y};
-                if(pos.x + this._wm_tooltip.width > this.width) {
-                    pos.x -= this._wm_tooltip.width
+                let pos = {x: pointer.x, y: pointer.y};
+                if(pos.x + tooltip.w > this.w) {
+                    pos.x -= tooltip.w
                 }
-                if(pos.y + this._wm_tooltip.height > this.height) {
-                    pos.y -= this._wm_tooltip.height
+                if(pos.y + tooltip.h > this.h) {
+                    pos.y -= tooltip.h
                 }
-                this._wm_tooltip.move(pos.x, pos.y)
+                tooltip.move(pos.x, pos.y)
+
                 this._mousemove(evt)
                 break
             }
@@ -1446,7 +1418,7 @@ export class WindowManager extends Window {
     }
 
     _wm_setTooltipText(text) {
-        this._wm_tooltip.setText(text);
+        this._wmoverlay._wmtooltip.setText(text)
     }
 
     // calls Window.onUpdate() for each visible window

@@ -21,7 +21,7 @@ await BLOCK.init({})
 globalThis.randomUUID = () => crypto.randomUUID()
 globalThis.Qubatch = Qubatch
 
-const init_render_callback = (result) => {
+const init_render_callback = async (result) => {
 
     const {_, inventory_image} = result
 
@@ -33,10 +33,8 @@ const init_render_callback = (result) => {
 
     // Init Window Manager
     const wm = new WindowManager(canvas, 0, 0, canvas.width, canvas.height, true)
-    wm.setBackground('/tools/gui/screenshot.jpg')
-    wm.style.background.color = '#00000055'
-    wm.swapChildren(wm.children[0], wm.children[1])
-
+    wm.style.background.image = '/tools/gui/screenshot.jpg'
+    wm.style.background.color = '#00000099'
     Qubatch.hud.wm = wm
 
     // Create inventory window
