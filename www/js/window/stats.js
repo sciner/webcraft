@@ -39,10 +39,10 @@ export class StatsWindow extends Window {
         let label_distance = new Label(17 * this.zoom, 140 * this.zoom, 300 * this.zoom, 158 * this.zoom, 'label_distance', null, '0');
         ct.add(label_distance);
 
-        label_death.style.font.size = LABEL_FONT_SIZE * this.zoom;
-        label_time.style.font.size = LABEL_FONT_SIZE * this.zoom;
-        label_pickat.style.font.size = LABEL_FONT_SIZE * this.zoom;
-        label_distance.style.font.size = LABEL_FONT_SIZE * this.zoom;
+        label_death.style.font.size = LABEL_FONT_SIZE
+        label_time.style.font.size = LABEL_FONT_SIZE
+        label_pickat.style.font.size = LABEL_FONT_SIZE
+        label_distance.style.font.size = LABEL_FONT_SIZE
 
         // Обработчик открытия формы
         this.onShow = function() {

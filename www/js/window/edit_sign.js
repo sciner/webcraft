@@ -54,7 +54,6 @@ export class EditSignWindow extends Window {
         txtEdit1.max_length         = 100;
         txtEdit1.max_lines          = 5;
         txtEdit1.max_chars_per_line = 20;
-        txtEdit1.style.font.size    *= this.zoom;
         txtEdit1.style.background.image_size_mode = 'stretch';
         txtEdit1.setBackground('./media/gui/edit_sign_oak.png');
         ct.add(txtEdit1);

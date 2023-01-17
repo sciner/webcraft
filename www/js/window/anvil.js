@@ -184,7 +184,7 @@ export class AnvilWindow extends BaseCraftWindow {
         this.lbl_edit.max_length        = ITEM_LABEL_MAX_LENGTH;
         this.lbl_edit.max_lines         = 1;
         this.lbl_edit.style.color       = '#ffffff';
-        this.lbl_edit.style.font.size   *= this.zoom * 1.1;
+        this.lbl_edit.style.font.size   *= 1.1;
         this.lbl_edit.style.background  = options.background;
         this.lbl_edit.setBackground(options.background.image);
         this.lbl_edit.onChange = () => this.updateResult();

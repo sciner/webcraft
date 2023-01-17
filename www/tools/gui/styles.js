@@ -230,20 +230,6 @@ export class FontStyle {
             enable: false
         }
 
-        /*
-        font: {
-            size: 20 * this.zoom,
-            family: 'Ubuntu',
-            shadow: {
-                enable: false,
-                x: 0,
-                y: 0,
-                blur: 0,
-                color: 'rgba(0, 0, 0, 5)'
-            }
-        }
-        */
-
     }
 
     /**

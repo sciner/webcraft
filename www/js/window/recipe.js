@@ -267,7 +267,6 @@ export class RecipeWindow extends Window {
         txtSearch.style.color            = '#fff';
         txtSearch.style.border.hidden    = true;
         txtSearch.style.border.style     = 'inset';
-        txtSearch.style.font.size        *= this.zoom;
        // txtSearch.style.background.color = '#706f6cff';
         this.add(txtSearch);
         

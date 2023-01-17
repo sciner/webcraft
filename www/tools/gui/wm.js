@@ -631,7 +631,7 @@ export class Window extends PIXI.Container {
         }
         const x             = this.x + this.ax + this.style.padding.left;
         const y             = this.y + this.ay + this.style.padding.top;
-        const lineHeight    = this.style.font.size * 1.05;
+        const lineHeight    = this.style.font.size * 1.05
         const lines         = this.calcPrintLines(original_text || '');
         // Draw cariage symbol
         if(this.draw_cariage) {
@@ -906,7 +906,7 @@ export class TextEdit extends Window {
         // Styles
         this.style.background.color = '#ffffff77';
         this.style.border.hidden = true;
-        this.style.font.size = 19;
+        this.style.font.size = 19
         this.style.font.family = 'UbuntuMono-Regular';
         this.style.padding = {
             left: 5,
@@ -1012,28 +1012,46 @@ class Tooltip extends Label {
      * @param {?string} text 
      */
     constructor(text = null) {
-        super(0, 0, 100, 20, '_tooltip', null, text);
-        this.style.background.color = '#000000cc';
-        this.style.border.hidden = true;
-        this.style.font.color = '#ffffff';
-        this.style.font.size = 20 * this.zoom;
-        this.style.font.family = 'Ubuntu';
+        
+        super(0, 0, 100, 20, '_tooltip', null, text)
+        
+        // this.style.background.color = '#000000cc'
+        // this.style.border.hidden = true
+        this.style.font.color = '#ffffff'
+        this.style.font.size = 20
+        this.style.font.family = 'Ubuntu'
         this.style.padding = {
             left: 16,
             right: 16,
             top: 12,
             bottom: 10
-        };
-        this.word_wrap = true;
-        //
+        }
+
+        this.word_wrap = true
         this.need_update_size = false
+
         this.setText(text)
+
+        // Text background
+        this._textbg = new PIXI.Graphics()
+        this._textbg.beginFill(0x000000)
+        this._textbg.drawRect(0, 0, 200, 100)
+        this._textbg.alpha = .5
+        this.addChildAt(this._textbg, 0)
+
     }
 
     setText(text) {
+
         this.visible = !!text
         this.text = text
         this.need_update_size = true
+
+        if(this._textbg) {
+            this._textbg.width = this.text_container.width
+            this._textbg.height = this.text_container.height
+        }
+
     }
 
 }

@@ -295,7 +295,6 @@ export class CreativeInventoryWindow extends Window {
         txtSearch.style.color            = '#fff';
         txtSearch.style.border.hidden    = false;
         txtSearch.style.border.style     = 'inset';
-        txtSearch.style.font.size        *= this.zoom;
         txtSearch.style.background.color = '#706f6cff';
         ct.add(txtSearch);
 
