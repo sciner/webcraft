@@ -510,6 +510,9 @@ export class Window extends PIXI.Container {
         }
     }
 
+    /**
+     * @deprecated
+     */
     redraw() {
         if(!this.ctx) {
             return;
@@ -546,7 +549,11 @@ export class Window extends PIXI.Container {
         // Set image
         const setImage = (image) => {
 
-            // TODO: remove previous sprite
+            // remove previous sprite
+            if(this._bgimage) {
+                this.removeChild(this._bgimage)
+            }
+
             const background = PIXI.Sprite.from(image)
             background._image = image
             this._bgimage = background
@@ -563,10 +570,9 @@ export class Window extends PIXI.Container {
                 background.scale.set(this._width / image.width, this._height / image.height)
             } else {
                 background.scale.set(scale, scale)
-                // background.position.x = this.w / 2
-                // background.position.y = this.h / 2
             }
 
+            // update image size mode
             this.style.background.image_size_mode = image_size_mode ?? this.style.background.image_size_mode
     
             this.addChildAt(background, 1)
@@ -581,7 +587,7 @@ export class Window extends PIXI.Container {
             }
             image.src = urlOrImage
 
-        } else {
+        } else if(urlOrImage instanceof Image) {
 
             setImage(urlOrImage)
 
@@ -617,7 +623,7 @@ export class Window extends PIXI.Container {
         this.resetHover();
         this.onHide(wasVisible);
         if(typeof Qubatch !== 'undefined' && Qubatch.hud) {
-            Qubatch.hud.prevDrawTime = 0;
+            Qubatch.hud.prevDrawTime = 0
         }
     }
 
@@ -1314,7 +1320,7 @@ export class WindowManager extends Window {
                     y: this.y - 18 * UI_ZOOM
                 });
                 if(this.image && this.visible) {
-                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingEnabled = true
                     this.parent.ctx.drawImage(
                         this.image,
                         0,
@@ -1422,8 +1428,7 @@ export class WindowManager extends Window {
                     }
                     this._wheel(evt)
                     // Хак, чтобы обновились ховер элементы
-                    e.type = 'mousemove'
-                    this.mouseEventDispatcher(e)
+                    this.mouseEventDispatcher({...e, type: 'mousemove'})
                 }
                 break;
             }

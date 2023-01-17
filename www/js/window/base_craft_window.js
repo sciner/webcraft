@@ -123,13 +123,54 @@ export class CraftTableSlot extends Label {
     }
 
     setItem(item) {
+
+        if(item) {
+
+            const image = this.ct.inventory.inventory_image
+
+            if(!image || !item) {
+                return
+            }
+    
+            const size = image.width
+            const frame = size / INVENTORY_ICON_COUNT_PER_TEX
+            const zoom = this.zoom
+            const mat = BLOCK.fromId(item.id)
+    
+            // 1. Draw icon
+            const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame)
+            const dest_icon_size = 40 * zoom
+            const item_image = document.createElement('canvas')
+            item_image.width = dest_icon_size // x + this.width / 2 - dest_icon_size / 2
+            item_image.height = dest_icon_size // y + this.height / 2 - dest_icon_size / 2
+            const item_ctx = item_image.getContext('2d')
+            item_ctx.drawImage(
+                image,
+                icon.x,
+                icon.y,
+                icon.width,
+                icon.height,
+                0,
+                0,
+                dest_icon_size,
+                dest_icon_size
+            )
+
+            const url = item_image.toDataURL('image/png')
+            this.setBackground(url, 'none', 1)
+
+        } else if(this._bgimage) {
+            this._bgimage.visible = false
+
+        }
+
         if(this.slot_index !== null) {   
-            Qubatch.player.inventory.setItem(this.slot_index, item);
+            Qubatch.player.inventory.setItem(this.slot_index, item)
         } else {
-            this.item = item;
-            // @todo странная штука, но зато наслеуется
+            this.item = item
+            // @todo странная штука, но зато наследуется
             if (this.ct.area) {
-                this.ct.setHelperSlots(null);
+                this.ct.setHelperSlots(null)
             }
         }
     }
@@ -598,6 +639,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 this.dropIncrementOrSwap(e, targetItem);
             }
         }
+
+        this.setItem(this.getItem())
+
     }
 
     get readonly() {
@@ -680,9 +724,12 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
     }
 
+    /**
+     * @deprecated
+     */
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
-        let item = this.getInventoryItem();
+        const item = this.getInventoryItem()
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }    

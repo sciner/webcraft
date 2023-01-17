@@ -155,13 +155,16 @@ export class Renderer {
             world.chunkManager.setLightTexFormat('rgba8unorm', false);
         }
 
-        this.env.init(this);
 
         this.videoCardInfoCache = null;
-        this.options            = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED};
+        this.options = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED};
 
-        this.env.setBrightness(1);
-        renderBackend.resize(this.canvas.width, this.canvas.height);
+        if(!settings || !settings?.disable_env) {
+            this.env.init(this)
+            this.env.setBrightness(1)
+        }
+
+        renderBackend.resize(this.canvas.width, this.canvas.height)
 
         // Init shaders for all resource packs
         await BLOCK.resource_pack_manager.initShaders(renderBackend);
@@ -236,7 +239,7 @@ export class Renderer {
         };
 
         // generatePrev
-        this.generatePrev();
+        this.generatePrev(settings.generate_prev_callback)
         this.generateDropItemVertices();
 
         // Clouds
@@ -563,11 +566,11 @@ export class Renderer {
 
             });
 
-            tmpCanvas.width = tmpCanvas.height = 0;
+            tmpCanvas.width = tmpCanvas.height = 0
             Resources.inventory.image = data;
 
             if(callback instanceof Function) {
-                callback();
+                callback(data);
             }
 
         });

@@ -61,6 +61,9 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Add buttons
         this.addRecipesButton()
+        
+        // слоты (лабел) для подсказок
+        this.addHelpSlots()
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
@@ -76,9 +79,6 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(306 * this.zoom, 54 * this.zoom)
-        
-        // слоты (лабел) для подсказок
-        this.addHelpSlots()
         
         // Обработчик открытия формы
         this.onShow = function() {
