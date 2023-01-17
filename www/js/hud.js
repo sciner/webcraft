@@ -25,8 +25,14 @@ export class HUD {
 
     constructor() {
 
-        this.canvas                     = document.getElementById('qubatchHUD');
-        this.ctx                        = this.canvas.getContext('2d');
+        this.canvas = document.getElementById('qubatchHUD');
+
+        // TODO: pixi
+        const cnv = document.createElement('canvas')
+        cnv.width = this.canvas.width
+        cnv.height = this.canvas.height
+
+        this.ctx                        = cnv.getContext('2d');
         this.ctx.imageSmoothingEnabled  = false;
         this.active                     = true;
         this.draw_info                  = DRAW_HUD_INFO_DEFAULT;
@@ -170,10 +176,7 @@ export class HUD {
         });
 
         // Init Window Manager
-        const wm = this.wm = new WindowManager(this.canvas, this.ctx, 0, 0, this.canvas.width, this.canvas.height);
-        wm.style.background.color       = '#00000000';
-        wm.style.border.hidden          = true;
-        wm.pointer.visible              = false;
+        const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
 
         // Main menu
         this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)

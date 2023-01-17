@@ -33,11 +33,13 @@ export function parseColorAndAlpha(value) {
 // Text align
 export class TextAlignStyle {
 
+    #window
+
     /**
      * @param { import("./wm.js").Window } window
      */
     constructor(window) {
-        this.window = window
+        this.#window = window
         this._horizontal = null
         this._vertical = null
     }
@@ -63,31 +65,80 @@ export class TextAlignStyle {
 // Background
 export class BackgroundStyle {
 
+    #window
+    #_bgimage
+    #_bgcolor
+
     /**
      * @param { import("./wm.js").Window } window
      */
     constructor(window) {
-        this.window = window
+        this.#window = window
         // Background image
-        window._bgimage = new PIXI.Sprite(PIXI.Texture.EMPTY)
-        // window._bgimage.anchor.x = 0
-        // window._bgimage.anchor.y = 0
-        // window._bgimage.position.x = 0
-        // window._bgimage.position.y = 0
-        window.addChildAt(window._bgimage, 0)
+        this.#_bgimage = new PIXI.Sprite(PIXI.Texture.EMPTY)
+        // this.#_bgimage.anchor.x = 0
+        // this.#_bgimage.anchor.y = 0
+        // this.#_bgimage.position.x = 0
+        // this.#_bgimage.position.y = 0
+        window.addChildAt(this.#_bgimage, 0)
         // Create a Graphics object, set a fill color, draw a rectangle
-        this._bgcolor = new PIXI.Graphics()
-        window.addChildAt(this._bgcolor, 1)
+        this.#_bgcolor = new PIXI.Graphics()
+        window.addChildAt(this.#_bgcolor, 1)
         //
+        this.scale = window.zoom / 2.0
         this._image_size_mode = null
         this.color = '#00000000'
     }
 
     /**
-     * @param {string} value
+     * @param {string|Image} urlOrImage
      */
-    set image(value) {
-        this.window.setBackground(value)
+    set image(urlOrImage) {
+
+        const window = this.#window
+        const scale = this.scale
+
+        // Set image
+        const setImage = (image) => {
+
+            const index = window.getChildIndex(this.#_bgimage)
+            this.#_bgimage.texture.destroy()
+            this.#_bgimage.destroy()
+            window.removeChild(this.#_bgimage)
+            const background = this.#_bgimage = PIXI.Sprite.from(image)
+            window.addChildAt(background, index)
+
+            background._image = image
+
+            // scale
+            if(isNaN(scale)) {
+                background.scale.set(window.w / image.width, window.h / image.height)
+            } else {
+                background.scale.set(scale, scale)
+            }
+
+            this.image_size_mode = this.image_size_mode
+
+        }
+
+        new Promise((resolve, reject) => {
+
+            if (typeof urlOrImage == 'string') {
+    
+                const image = new Image()
+                image.onload = (e) => {
+                    resolve(setImage(image))
+                }
+                image.onError = reject
+                image.src = urlOrImage
+    
+            } else if(urlOrImage instanceof Image) {
+    
+                resolve(setImage(urlOrImage))
+    
+            }
+            
+        })
     }
 
     /**
@@ -95,11 +146,11 @@ export class BackgroundStyle {
      */
     set image_size_mode(value) {
         this._image_size_mode = value
-        const background = this.window._bgimage
+        const background = this.#window._bgimage
         if(!background) {
             return
         }
-        const window = this.window
+        const window = this.#window
         switch(value) {
             case 'none': {
                 background.position.x = window.w / 2
@@ -127,10 +178,10 @@ export class BackgroundStyle {
     set color(value) {
         const {color, alpha} = parseColorAndAlpha(value)
         this._color = value
-        this._bgcolor.clear()
-        this._bgcolor.beginFill(color)
-        this._bgcolor.drawRect(0, 0, this.window.w, this.window.h)
-        this._bgcolor.alpha = alpha
+        this.#_bgcolor.clear()
+        this.#_bgcolor.beginFill(color)
+        this.#_bgcolor.drawRect(0, 0, this.#window.w, this.#window.h)
+        this.#_bgcolor.alpha = alpha
     }
 
 }
@@ -138,8 +189,10 @@ export class BackgroundStyle {
 // Border
 export class BorderStyle {
 
+    #window
+
     constructor(window) {
-        this.window = window
+        this.#window = window
     }
 
     /**
@@ -154,12 +207,14 @@ export class BorderStyle {
 // Font
 export class FontStyle {
 
+    #window
+
     /**
      * @param { import("./wm.js").Window } window
      */
     constructor(window) {
 
-        this.window = window
+        this.#window = window
 
         this._font_style = new PIXI.TextStyle({
             fontFamily: 'Tahoma',
@@ -195,7 +250,7 @@ export class FontStyle {
      * @param {int} value
      */
     set size(value) {
-        this._font_style.fontSize = value * this.window.zoom
+        this._font_style.fontSize = value * this.#window.zoom
     }
 
     /**
@@ -226,8 +281,8 @@ export class FontStyle {
     set color(value) {
         const {color, alpha} = parseColorAndAlpha(value)
         this._color = value
-        if(this.window.text_container) {
-            this.window.text_container.style.fill = color
+        if(this.#window.text_container) {
+            this.#window.text_container.style.fill = color
         }
     }
 
@@ -236,15 +291,23 @@ export class FontStyle {
 // All styles
 export class Style {
 
+    #window
+
     /**
      * @param { import("./wm.js").Window } window
      */
     constructor(window) {
-        this.window = window
+        this.#window = window
         this._background = new BackgroundStyle(window)
         this._border = new BorderStyle(window)
         this._font = new FontStyle(window)
         this._textAlign = new TextAlignStyle(window)
+        this.padding = {
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0
+        }
     }
 
     get background() {

@@ -13,6 +13,9 @@ class ActiveButton extends Window {
         this.style.border.hidden = true;
         this.style.background.image = './media/gui/book.png';
         this.style.background.color = '#00000000';
+
+        /*
+        // TODO: pixi
         this.style.background.sprite = {
             'mode': 'stretch',
             'width': 32,
@@ -23,6 +26,7 @@ class ActiveButton extends Window {
         this.setBackground(this.style.background.image, 'sprite');
         this.setIcon(icon);
         this.setEnable(true);
+        */
         
         this.onMouseEnter = function() {
             if (this.enable) {
@@ -51,14 +55,19 @@ class ActiveButton extends Window {
     
     setEnable(val) {
         this.enable = val;
+        /*
+        // TODO: pixi
         if (!this.enable) {
             this.style.background.sprite.x = 88;
         } else {
             this.style.background.sprite.x = 8;
         }
+        */
     }
     
     setIcon(name) {
+        /*
+        // TODO: pixi
         switch(name) {
             case 'back': {
                 this.style.background.sprite.x = 8;
@@ -71,6 +80,7 @@ class ActiveButton extends Window {
                 break;
             }
         }
+        */
     }
     
 }

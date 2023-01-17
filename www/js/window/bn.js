@@ -56,6 +56,9 @@ class ActiveButton extends Window {
         this.ct = ct;
         this.style.background.image = './media/gui/bn.png';
         this.style.border.hidden = true;
+
+        /*
+        // TODO: pixi Ned replace sprite with image
         this.style.background.sprite = {
             'mode': 'stretch',
             'width': 43,
@@ -77,6 +80,7 @@ class ActiveButton extends Window {
         this.setIcon(icon);
         this.setEnable(true);
         this.setDown(false);
+        */
         
         this.onMouseEnter = function() {
             if (this.enable && !this.down) {
@@ -138,6 +142,9 @@ class EffectButton extends Window {
         this.ct = ct;
         this.style.background.image = './media/gui/bn.png';
         this.style.border.hidden = true;
+
+        /*
+        // TODO: pixi
         this.style.background.sprite = {
             'mode': 'stretch',
             'width': 43,
@@ -155,10 +162,11 @@ class EffectButton extends Window {
             'y': 396
         };
         this.setIconImage(this.style.icon.image, 'sprite');
-
         this.setIcon(icon);
+
         this.setEnable(true);
         this.setDown(false);
+        */
         
         this.onMouseEnter = function() {
             if (this.enable && !this.down) {

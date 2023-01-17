@@ -19,7 +19,7 @@ export class InventoryWindow extends BaseCraftWindow {
 
         this.w *= this.zoom;
         this.h *= this.zoom;
-        this.style.background.image_size_mode = 'stretch';
+        this.style.background.image_size_mode = 'stretch'
         this.recipes = recipes;
 
         const options = {
@@ -44,7 +44,7 @@ export class InventoryWindow extends BaseCraftWindow {
         const ct = this;
         ct.style.background.color = '#00000000'
         ct.style.border.hidden = true;
-        ct.setBackground(options.background.image, null, .5)
+        ct.setBackground(options.background.image, 'none', this.zoom / 2.0)
 
         ct.hide()
         

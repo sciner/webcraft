@@ -90,6 +90,10 @@ class CreativeInventoryCollection extends Window {
         let sz                  = this.cell_size;
         let xcnt                = 9;
         const ct                = this;
+
+        // TODO: pixi
+        return
+
         // Drop on pallette slots
         const dropFunc = function(e) {
             const that      = this;
@@ -130,7 +134,6 @@ class CreativeInventoryCollection extends Window {
             return false;
         };
 
-        //
         const items = all_blocks;
         for(let i = 0; i < items.length; i++) {
             let x = sx + (i % xcnt) * sz;

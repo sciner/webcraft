@@ -70,20 +70,6 @@ export class Component extends Window {
             }
         };
     }
-    get visible() {
-        return this.#_visible
-    }
-    set visible(value) {
-        this.#_visible = value; 
-        globalThis.wmGlobal.visible_change_count++;
-    }
-    add(w) {
-        if(!w.id) {
-            throw 'Control does not have valid ID';
-        }
-        w.parent = this;
-        this.list.set(w.id, w);
-    }
     redraw() {
         if(!this.ctx) {
             return;

@@ -615,7 +615,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             }
         }
 
-        this.setItem(this.getItem(), false)
+        // TODO: pixi
+        // this.setItem(this.getItem(), false)
 
     }
 

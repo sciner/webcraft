@@ -139,7 +139,7 @@ export class RecipeWindow extends Window {
         ct.style.background = {...ct.style.background, ...options.background}
         ct.style.background.color = '#00000000'
         ct.style.border.hidden = true
-        ct.setBackground(options.background.image)
+        ct.setBackground(options.background.image, 'none', this.zoom / 2.0)
         ct.hide()
 
         const that = this;
