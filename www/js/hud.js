@@ -1,4 +1,4 @@
-import {WindowManager} from "../tools/gui/wm.js";
+import {Label, WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
@@ -8,6 +8,15 @@ import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
+
+class HUDLabel extends Label {
+
+    constructor(x, y, w, h, id) {
+        super(x, y, w, h, id)
+        this.style.font.size = 16
+    }
+
+}
 
 // QuestActionType
 export class QuestActionType {
@@ -178,6 +187,13 @@ export class HUD {
         // Init Window Manager
         const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
 
+        //
+        if(!this.wm.hud_window) {
+            this.wm.hud_window = new Label(0, 0, this.wm.w, this.wm.h, 'hud')
+            this.wm.hud_window.auto_center = false
+            this.wm.addChild(this.wm.hud_window)
+        }
+
         // Main menu
         this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
         wm.add(this.frmMainMenu);
@@ -241,16 +257,8 @@ export class HUD {
     }
 
     refresh() {
-        this.need_refresh = true;
-        this.prepareText();
-    }
-
-    clear() {
-        this.ctx.fillStyle = '#000000';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fillStyle = 'rgba(255, 0, 0, 0)';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.need_refresh = true
+        this.prepareText()
     }
 
     //
@@ -268,8 +276,6 @@ export class HUD {
 
         this.frmMainMenu.parent.center(this.frmMainMenu);
 
-        this.checkSize();
-
         // Check if need redraw
         const hasDrawContent = Qubatch.world && Qubatch.player && Qubatch.player.chat.hasDrawContent();
         if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Qubatch.hud.wm.hasVisibleWindow() && !hasDrawContent) {
@@ -278,18 +284,22 @@ export class HUD {
         this.need_refresh = false;
         this.prevDrawTime = performance.now();
 
-        this.clear();
-
         // Draw splash screen...
         if(this.splash.draw()) {
             return;
         }
 
         // Set style
-        this.ctx.fillStyle      = '#ff0000';
-        this.ctx.font           = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
-        this.ctx.textAlign      = 'left';
-        this.ctx.textBaseline   = 'top';
+        // this.ctx.fillStyle      = '#ff0000';
+        // this.ctx.font           = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
+        // this.ctx.textAlign      = 'left';
+        // this.ctx.textBaseline   = 'top';
+
+        for(let c of this.wm.hud_window.children) {
+            if(c instanceof HUDLabel) {
+                c.visible = false
+            }
+        }
 
         if(this.isActive()) {
             // Draw game technical info
@@ -297,13 +307,13 @@ export class HUD {
             // Draw HUD components
             for(let t of this.items) {
                 for(let e of t) {
-                    e.item.drawHUD(this);
+                    e.item.drawHUD(this)
                 }
             }
         }
 
         // Draw windows
-        this.ctx.restore();
+        // this.ctx.restore();
         if(this.wm.hasVisibleWindow()) {
             this.wm.style.background.color = Qubatch.player.isAlive ? '#00000077' : '#ff330027';
             this.wm.draw(true);
@@ -314,19 +324,21 @@ export class HUD {
 
     }
 
-    //
-    checkSize() {
+    /**
+     * @param {int} width In pixels
+     * @param {int} height In pixels
+     */
+    resize(width, height) {
 
-        const actual_width = this.ctx.canvas.width;
-        const actual_height = this.ctx.canvas.height;
+        this.wm.pixiRender?.resize(width, height);
+        this.wm.w = width
+        this.wm.h = height
 
-        if(Qubatch.hud.width != actual_width || Qubatch.hud.height != actual_height) {
-            this.width  = actual_width;
-            this.height = actual_height;
-            this.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
-            Qubatch.hud.wm.resize(this.width, this.height);
-            this.refresh();
-        }
+        this.wm.hud_window.w = width
+        this.wm.hud_window.h = height
+
+        this.refresh()
+
     }
 
     toggleInfo() {
@@ -521,10 +533,10 @@ export class HUD {
         this.drawText('info', this.text, 10 * this.zoom, 10 * this.zoom);
         //
         if (this.block_text) {
-            const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
-            const y = active_quest?.mt ? active_quest.mt.height + 60 * this.zoom : 10 * this.zoom;
-            const x = Math.max(this.width * 0.55, this.width - 400 * this.zoom);
-            this.drawText('block_info', this.block_text, x, y);
+            const active_quest = this.wm.getWindow('frmQuests').active
+            const y = active_quest?.mt ? active_quest.mt.height + 60 * this.zoom : 10 * this.zoom
+            const x = Math.max(this.width * 0.55, this.width - 400 * this.zoom)
+            this.drawText('block_info', this.block_text, x, y)
         }
         //
         this.drawActiveQuest();
@@ -605,6 +617,40 @@ export class HUD {
 
     // Просто функция печати текста
     drawText(id, str, x, y, fillStyle) {
+
+        let text_block = this.wm.hud_window[id]
+        if(!text_block) {
+            text_block = this.wm.hud_window[id] = new HUDLabel(x, y, this.wm.w - x, this.wm.h - y, `hud_${id}`)
+
+            const fs = text_block.style.font._font_style
+            fs.stroke = '#00000099'
+            fs.strokeThickness = 8
+            fs.lineHeight = 60
+
+            /*
+            fs.dropShadow = true
+            fs.dropShadowAlpha = 1
+            fs.dropShadowBlur = 20
+            fs.dropShadowAngle = 0 // Math.PI / 6
+            fs.dropShadowColor = 0x0
+            fs.dropShadowDistance = 0
+            */
+
+            // text_block.style.background.color = '#44444444'
+            text_block.style.font.color = '#ffffff'
+            this.wm.hud_window.addChild(text_block)
+        }
+
+        if(fillStyle) {
+            text_block.style.background.color = fillStyle
+        }
+
+        text_block.visible = true
+        text_block.x = x
+        text_block.y = y
+        text_block.text = str
+
+        /*
         this.ctx.fillStyle = '#ffffff';
         str = str.split('\n');
         //
@@ -623,6 +669,8 @@ export class HUD {
             }
             this.drawTextBG(str[i], x, y + (26 * this.zoom) * i, measures[i].measure, fillStyle);
         }
+        */
+
     }
 
     // Напечатать текст с фоном

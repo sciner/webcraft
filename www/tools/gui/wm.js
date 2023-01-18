@@ -72,6 +72,7 @@ export class Window extends PIXI.Container {
         this.autosize           = true
         this.enabled            = true
         this.max_chars_per_line = 0
+        this.auto_center        = true
         this.create_time        = performance.now()
 
         // all props
@@ -274,7 +275,7 @@ export class Window extends PIXI.Container {
         let height_sum = 0;
         let visible_windows = [];
         for(let window of this.list.values()) {
-            if(window.visible) {
+            if(window.visible && window.auto_center) {
                 width_sum += window.w;
                 height_sum += window.h;
                 visible_windows.push(window);
@@ -341,7 +342,7 @@ export class Window extends PIXI.Container {
     hasVisibleWindow() {
 
         for(let w of this.getRoot().children) {
-            if(w && w.id && w.visible) return true
+            if(w && w.id && w.visible && !(w instanceof Label)) return true
         }
 
         return false
