@@ -318,6 +318,7 @@ export class Window extends PIXI.Container {
         // reset pixi state
         this.pixiRender.shader.program = null;
         this.pixiRender.shader.bind(this.pixiRender.plugins.batch._shader, true);
+        this.pixiRender.texture.bind(null, 3);
         this.pixiRender.reset();
 
         this.pixiRender.render(this.parent);
