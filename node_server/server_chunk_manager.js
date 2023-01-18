@@ -177,8 +177,9 @@ export class ServerChunkManager {
                     chunk.load();
                 }
             }
-            this.world.dbActor.flushLoadChunks();
         }
+        // Flush all bulk selects (including those created not in the current call).
+        this.world.db.flushBulkSelectQueries();
         // 2. queue chunks for generate mobs
         if(this.chunk_queue_gen_mobs.size > 0) {
             for(const [addr, chunk] of this.chunk_queue_gen_mobs.entries()) {
@@ -480,11 +481,6 @@ export class ServerChunkManager {
             return chunk.getBlock(x, y, z);
         }
         return this.DUMMY;
-    }
-
-    // chunkMobsIsGenerated
-    async chunkMobsIsGenerated(chunk_addr_hash) {
-        return await this.world.db.mobs.chunkMobsIsGenerated(chunk_addr_hash);
     }
 
     // chunkSetMobsIsGenerated

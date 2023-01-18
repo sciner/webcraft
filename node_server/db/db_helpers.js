@@ -17,9 +17,28 @@ export function preprocessSQL(query) {
 
 /**
  * A wrapper around a bulk select query.
- * It collects requests and selects them together, but provides to callers
- * API like connection.get() and connection.all(), where only rows requested by them
- * are returned.
+ * It collects multiple requests and selects them together, but provides API like
+ * connection.get() and connection.all(), where only rows requested by each caller are
+ * are returned to them.
+ * 
+ * Host parameters for each row are passed as JSON array of arrays.
+ * Additional uniform host parameters can be passed.
+ * "key" field in JSON may be used to index the result rows.
+ * 
+ * 3 type of queries are supported:
+ * 1. one-to-one - returns the same number of rows as JSON, doesn't use "key" field, can be queried with get()
+ *   FROM json LEFT JOIN table
+ * 2. one-to-(0 or 1) - returns the same or smaller number of rows, uses "key" field, can be queried with get().
+ *   FROM json INNER JOIN table
+ *   FROM json, table WHERE table.*** = json.***
+ *   FROM table WHERE table.*** IN (SELECT *** FROM json)
+ * 3. many-to-many - returns any number of rows, uses "key" field, can be queried with all().
+ *   FROM json *** JOIN table
+ *   FROM json, table WHERE ***
+ * 
+ * Warning: get() and all() don't resolve unil flush() is called. If they are awaited,
+ * ensure that flush() is called before that, or in another chain of promises, so it 
+ * doesn't cause deadlock.
  */
 export class BulkSelectQuery {
 
@@ -28,11 +47,8 @@ export class BulkSelectQuery {
      * @param {String} query
      * @param {?String} rowKeyName - if it's specified, each returnd row is expected to have a
      *   field equal to the index of the corresponding row of source data.
-     *   It's necessary in 2 cases:
-     *    - to group rows when all() is called;
-     *    - to match rows to the callers when get() is used, and the query doesn't return the same numer of
-     *      rows as the source data.
-     *   Note: from_json() provides "key" field with such semantics, use it.
+     *   See the types of queries where it's needed in {@link BulkSelectQuery}
+     *   Note: from_json() provides "key" field with such semantics, use it (or rename it if there is a naming conflict).
      * @param {String} jsonHostParameterName - the name of the host parameter for the source array of the rows.
      */
     constructor(conn, query, rowKeyName = null, jsonHostParameterName = ':jsonRows') {

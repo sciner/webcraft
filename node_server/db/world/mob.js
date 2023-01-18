@@ -1,6 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../../www/js/chunk_const.js';
 import { getChunkAddr, Vector, VectorCollector, unixTime } from '../../../www/js/helpers.js';
 import { Mob } from "../../mob.js";
+import { BulkSelectQuery } from "../db_helpers.js";
 
 export class DBWorldMob {
 
@@ -9,6 +10,15 @@ export class DBWorldMob {
         this.world = world;
         this.getDefaultPlayerStats = getDefaultPlayerStats;
         this.getDefaultPlayerIndicators = getDefaultPlayerIndicators;
+
+        this.bulkLoadInChunkQuery = new BulkSelectQuery(this.conn,
+            `WITH cte AS (SELECT key, value FROM json_each(:jsonRows))
+            SELECT cte.key, entity.*
+            FROM cte, entity
+            WHERE is_active = 1 AND x >= %0 AND x < %1 AND y >= %2 AND y < %3 AND z >= %4 AND z < %5`,
+            'key'
+        );
+
         // init
         this.initChunksWithMobs();
     }
@@ -71,21 +81,22 @@ export class DBWorldMob {
     }
 
     // Load mobs
-    async loadInChunk(addr, size) {
+    // TODO optimize: merge volumes for adjacent chunks, then separate mobs into chunks on host
+    async loadInChunk(chunk) {
         const resp = new Map();
-        if(!this.chunkHasMobs(addr)) {
+        if(!this.chunkHasMobs(chunk.addr)) {
             return resp;
         }
-        // if(!globalThis.sdfgdhj) globalThis.sdfgdhj = 0;
-        // console.log(++globalThis.sdfgdhj);
-        const rows = await this.conn.all('SELECT * FROM entity WHERE is_active = 1 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
-            ':x_min': addr.x * size.x,
-            ':x_max': addr.x * size.x + size.x,
-            ':y_min': addr.y * size.y,
-            ':y_max': addr.y * size.y + size.y,
-            ':z_min': addr.z * size.z,
-            ':z_max': addr.z * size.z + size.z
-        });
+        const coord = chunk.coord;
+        const size = chunk.size;
+        const rows = await this.bulkLoadInChunkQuery.all([
+            coord.x,
+            coord.x + size.x,
+            coord.y,
+            coord.y + size.y,
+            coord.z,
+            coord.z + size.z
+        ]);
         for(let row of rows) {
             const item = Mob.fromRow(this.world, row);
             resp.set(item.id, item);
@@ -173,17 +184,6 @@ export class DBWorldMob {
 
     async delete(mob) {
         await this.conn.run('DELETE FROM entity WHERE id = ?', [mob.id]);
-    }
-
-    // chunkMobsIsGenerated...
-    async chunkMobsIsGenerated(chunk_addr_hash) {
-        let row = await this.conn.get("SELECT mobs_is_generated FROM chunk WHERE addr = :addr", {
-            ':addr': chunk_addr_hash
-        });
-        if(!row) {
-            return false;
-        }
-        return !!row['mobs_is_generated'];
     }
 
     // chunkMobsSetGenerated...

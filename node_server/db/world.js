@@ -1,5 +1,6 @@
 import { Vector, unixTime } from "../../www/js/helpers.js";
 import { DropItem } from '../drop_item.js';
+import { BulkSelectQuery, preprocessSQL } from './db_helpers.js';
 import { INVENTORY_SLOT_COUNT, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL, PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA } from '../../www/js/constant.js';
 
 // Database packages
@@ -32,6 +33,15 @@ export class DBWorld {
         this.portal = new DBWorldPortal(this.conn, this.world);
         this.fluid = new DBWorldFluid(this.conn, this.world);
         this.chunks = new DBWorldChunk(this.conn, this.world);
+
+        this.bulkLoadDropItemsQuery = new BulkSelectQuery(this.conn, 
+            `WITH cte AS (SELECT key, value FROM json_each(:jsonRows))
+            SELECT cte.key, drop_item.* 
+            FROM cte, drop_item
+            WHERE x >= %0 AND x < %1 AND y >= %2 AND y < %3 AND z >= %4 AND z < %5 AND dt >= :death_date`,
+            'key'
+        );
+
         return this;
     }
 
@@ -194,7 +204,7 @@ export class DBWorld {
                     const item = inventory.items[i]
                     if(!item) continue
                     const mat = world.block_manager.fromId(item.id)
-                    if(mat) {
+                    if(mat && item.count) {
                         // fix items count
                         if(item.count > mat.max_in_stack) {
                             item.count = mat.max_in_stack
@@ -320,59 +330,75 @@ export class DBWorld {
         await this.conn.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
-    // Create drop item
-    async createDropItem(params) {
-        const entity_id = randomUUID();
-        let dt = unixTime();
-        await this.conn.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
-            ':dt':              dt,
-            ':entity_id':       entity_id,
-            ':items':           JSON.stringify(params.items),
-            ':x':               params.pos.x,
-            ':y':               params.pos.y,
-            ':z':               params.pos.z
-        });
-        return {
-            entity_id,
-            dt
-        };
-    }
+    async bulkInsertOrUpdateDropItems(items, dt = unixTime()) {
+        const insertRows = [];
+        const updateRows = [];
+        for(const item of items) {
+            const pos = item.pos;
+            let list; 
+            switch(item.dirty) {
+                case DropItem.DIRTY_NEW:    list = insertRows; break;
+                case DropItem.DIRTY_UPDATE: list = updateRows; break;
+                default: throw new Error('item.dirty == ' + item.dirty);
+            }
+            list.push([
+                item.entity_id,
+                JSON.stringify(item.items),
+                pos.x, pos.y, pos.z
+            ]);
+            item.markDirty(DropItem.DIRTY_CLEAR);
+        }
+        return Promise.all([
+            insertRows.length && this.conn.run(this.BULK_INSERT_DROP_ITEMS, {
+                ':jsonRows': JSON.stringify(insertRows),
+                ':dt': dt
+            }),
+            updateRows.length && this.conn.run(this.BULK_UPDATE_DROP_ITEMS, {
+                ':jsonRows': JSON.stringify(updateRows)
+            })
+        ]);
+    };
+    BULK_INSERT_DROP_ITEMS = preprocessSQL(`
+        INSERT INTO drop_item (dt, entity_id, items, x, y, z)
+        SELECT :dt, %0, %1, %2, %3, %4
+        FROM json_each(:jsonRows)
+    `);
+    BULK_UPDATE_DROP_ITEMS = preprocessSQL(`
+        UPDATE drop_item
+        SET items = %1, x = %2, y = %3, z = %4
+        FROM json_each(:jsonRows)
+        WHERE entity_id = %0
+    `);
 
-    async updateDropItem(params) {
-        await this.conn.run('UPDATE drop_item SET items = :items, x = :x, y = :y, z = :z WHERE entity_id = :entity_id', {
-            ':items':           JSON.stringify(params.items),            
-            ':x':               params.pos.x,
-            ':y':               params.pos.y,
-            ':z':               params.pos.z,
-            ':entity_id':       params.entity_id
-        });
-    }
+    async bulkDeleteDropItems(entityIds) {
+        return this.conn.run(
+            'DELETE FROM drop_item WHERE entity_id IN (SELECT value FROM json_each(?))',
+            [JSON.stringify(entityIds)]
+        );
+    };
 
-    // Delete drop item
+    // Delete all old drop items
     async removeDeadDrops() {
         await this.conn.run('DELETE FROM drop_item WHERE dt < :dt', {
             ':dt': ~~(unixTime() - DROP_LIFE_TIME_SECONDS)
         });
     }
 
-    // Delete drop item
-    async deleteDropItem(entity_id) {
-        await this.conn.run('DELETE FROM drop_item WHERE entity_id = :entity_id', {
-            ':entity_id': entity_id
-        });
-    }
-
-    // Load drop items
-    async loadDropItems(addr, size) {
-        const rows = await this.conn.all('SELECT * FROM drop_item WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max AND dt >= :death_date', {
-            ':death_date' : ~~(Date.now() / 1000 - DROP_LIFE_TIME_SECONDS),
-            ':x_min': addr.x * size.x,
-            ':x_max': addr.x * size.x + size.x,
-            ':y_min': addr.y * size.y,
-            ':y_max': addr.y * size.y + size.y,
-            ':z_min': addr.z * size.z,
-            ':z_max': addr.z * size.z + size.z
-        });
+    /**
+     * Loads drop items in a given volume.
+     * @param {Vector} coord the lower corner
+     * @param {Vector} size
+     * @returns {Map} items by entity_id
+     */
+    async loadDropItems(coord, size) {
+        const rows = await this.bulkLoadDropItemsQuery.all([
+            coord.x,
+            coord.x + size.x,
+            coord.y,
+            coord.y + size.y,
+            coord.z,
+            coord.z + size.z
+        ]);
         const resp = new Map();
         for(let row of rows) {
             const item = new DropItem(this.world, {
@@ -381,37 +407,10 @@ export class DBWorld {
                 pos:        new Vector(row.x, row.y, row.z),
                 entity_id:  row.entity_id,
                 items:      JSON.parse(row.items)
-            });
+            }, false);
             resp.set(item.entity_id, item);
         }
         return resp;
-    }
-
-    async saveChunkDelayedCalls(chunk) {
-        const addr = chunk.addrHash;
-        const delayed_calls = chunk.delayedCalls.serialize();
-        const result = this.conn.run('INSERT OR IGNORE INTO chunk (dt, addr, delayed_calls) VALUES (:dt, :addr, :delayed_calls)', {
-            ':dt': unixTime(),
-            ':addr': addr,
-            ':delayed_calls': delayed_calls
-        });
-        // It works both in single- and multi- player. In single, it always runs the update.
-        if (!result.changes) {
-            this.conn.run('UPDATE chunk SET delayed_calls = :delayed_calls WHERE addr = :addr', {
-                ':addr': addr,
-                ':delayed_calls': delayed_calls
-            });
-        }
-    }
-
-    async loadAndDeleteChunkDelayedCalls(chunk) {
-        const row = await this.conn.get('SELECT delayed_calls FROM chunk WHERE addr = ?', [chunk.addrHash]);
-        const delayed_calls = row?.delayed_calls;
-        if (!delayed_calls) {
-            return null;
-        }
-        await this.conn.run('UPDATE chunk SET delayed_calls = NULL WHERE addr = ?', [chunk.addrHash]);
-        return delayed_calls;
     }
 
     // Change player game mode
@@ -526,4 +525,13 @@ export class DBWorld {
         }
     }
 
+    flushBulkSelectQueries() {
+        this.bulkLoadDropItemsQuery.flush({
+            ':death_date': unixTime() - DROP_LIFE_TIME_SECONDS
+        });
+        this.chunks.bulkGetWorldModifyChunkQuery.flush();
+        this.chunks.bulkGetChunkQuery.flush();
+        this.fluid.bulkGetQuery.flush();
+        this.mobs.bulkLoadInChunkQuery.flush();
+    }
 }

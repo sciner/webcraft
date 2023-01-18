@@ -12,7 +12,7 @@ export class DBWorldFluid {
 
         this.dirtyChunks = new SimpleQueue();
 
-        this.bulkSelect = new BulkSelectQuery(this.conn,
+        this.bulkGetQuery = new BulkSelectQuery(this.conn,
             `WITH cte AS (SELECT value FROM json_each(:jsonRows))
             SELECT data
             FROM cte LEFT JOIN world_chunks_fluid ON x = %0 AND y = %1 AND z = %2`
@@ -21,9 +21,7 @@ export class DBWorldFluid {
 
     async restoreFluidChunks() {
         const rows = await this.conn.all('SELECT x, y, z FROM world_chunks_fluid');
-        for(let row of rows) {
-            this.world.dbActor.addKnownChunkFlags(row, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID);
-        }
+        this.world.dbActor.bulkAddChunkFlags(rows, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID);
     }
 
     //
@@ -32,9 +30,27 @@ export class DBWorldFluid {
             return null;
         }
 
-        const row = await this.bulkSelect.get(chunk_addr.toArray());
-        console.log(`loaded fluid ${chunk_addr}`)
-        return row?.data;
+        const row = await this.conn.get('SELECT data FROM world_chunks_fluid WHERE x = :x AND y = :y AND z = :z', {
+            ':x': chunk_addr.x,
+            ':y': chunk_addr.y,
+            ':z': chunk_addr.z
+        });
+        // console.log(`loaded fluid ${chunk_addr}`)
+        return row ? row['data'] : null;
+    }
+
+    /**
+     * Gets fluid in a chunk, backed by a bulk select query.
+     * Warning: beware of potential deadlocks, see the comment to BulkSelectQuery. That's
+     * why we also have a non-bulk version.
+     */
+    async queuedGetChunkFluid(chunk_addr) {
+        if (!this.world.dbActor.knownChunkHasFlags(chunk_addr, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID)) {
+            return null;
+        }
+        const row = await this.bulkGetQuery.get(chunk_addr.toArray());
+        // the row is always returned, but its fields might be empty
+        return row.data;
     }
 
     //

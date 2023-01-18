@@ -11,18 +11,24 @@ export class DBWorldChunk {
         this.conn = conn;
         this.world = world;
 
-        this.bulkGetWorldModifyChunk = new BulkSelectQuery(this.conn,
-            // We don't return has_data_blob field, because the row may have been manually edited.
-            // It's more realible to look at data_blob itself.
+        this.bulkGetWorldModifyChunkQuery = new BulkSelectQuery(this.conn,
             `WITH cte AS (SELECT value FROM json_each(:jsonRows))
             SELECT
-                CASE WHEN data_blob IS NULL THEN data ELSE data_blob END data,
-                private_data_blob,
-                CASE WHEN data_blob IS NULL THEN 0 ELSE 1 END has_data_blob,
+                CASE WHEN data_blob IS NULL THEN data ELSE NULL END obj,
+                data_blob AS compressed,
+                private_data_blob AS private_compressed,
                 world_modify_chunks._rowid_ rowId
             FROM cte LEFT JOIN world_modify_chunks ON x = %0 AND y = %1 AND z = %2`
         );
+
+        this.bulkGetChunkQuery = new BulkSelectQuery(this.conn,
+            `WITH cte AS (SELECT value FROM json_each(:jsonRows))
+            SELECT (addr IS NOT NULL) exists, mobs_is_generated, delayed_calls
+            FROM cte LEFT JOIN chunk ON addr = value`
+        );
     }
+
+    // ================================ world_modify ==================================
 
     async getWorldModifyCount() {
         return (await this.conn.get('SELECT COUNT(*) c FROM world_modify')).c;
@@ -128,54 +134,7 @@ export class DBWorldChunk {
         WHERE world_modify._rowid_ = %0
     `);
 
-    /**
-     * Unpacks all modifiers from world_modify_chunk into world_modify.
-     * It can be optimized, e.g.:
-     *  - don't create the intermediate array of data to be inserted
-     *  - drop the table indices, insert, then create indices
-     */
-    async unpackAllChunkModifiers() {
-
-        const BATCH_SIZE = 1000; // load limited number of chunks a once to not run out of memory
-
-        const chunksCount = await this.getWorldModifyChunksCount();
-        const blocks = [];
-        for(let i = 0; i < chunksCount; i += BATCH_SIZE) {
-            console.log(`  processing chunks ${i}..${Math.min(i + BATCH_SIZE, chunksCount) - 1} out of ${chunksCount}...`);
-            const rows = await this.conn.all(`SELECT
-                    x, y, z,
-                    CASE WHEN data_blob IS NULL THEN data ELSE NULL END obj,
-                    data_blob AS compressed,
-                    private_data_blob AS private_compressed
-                FROM world_modify_chunks
-                LIMIT ? OFFSET ?`,
-                [BATCH_SIZE, i]
-            );
-            let invalidChunks = 0;
-            for(const row of rows) {
-                decompressModifiresList(row);
-                if (!row.data) {
-                    invalidChunks++;
-                    continue; // this chunk is invalid :( Can't do anyhing about it
-                }
-                const modifiers = JSON.parse(row.data);
-                const addr = new Vector(row);
-                for(const key in modifiers) {
-                    const index = parseFloat(key);
-                    blocks.push({ 
-                        pos: new Vector().fromFlatChunkIndex(index),
-                        addr,
-                        index,
-                        item: modifiers[key]
-                    });
-                }
-            }
-            await this.bulkInsertWorldModify(blocks);
-            console.log(`    ${blocks.length} modifiers unpacked`);
-            invalidChunks && console.warn(`    ${invalidChunks} chunks with null data`);
-            blocks.length = 0;
-        }
-    }
+    // =============================== world_modify_chunks ================================
 
     async getWorldModifyChunksCount() {
         return (await this.conn.get('SELECT COUNT(*) c FROM world_modify_chunks')).c;
@@ -183,15 +142,12 @@ export class DBWorldChunk {
 
     /**
      * For all chunks that have records in world_modify_chunks, sets flags
-     * KNOWN_CHUNK_FLAGS.WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS
+     * KNOWN_CHUNK_FLAGS.IN_WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS
      * in this.world.dbActor.knownChunkFlags
      */
     async restoreModifiedChunks() {
-        const flags = KNOWN_CHUNK_FLAGS.WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS;
         const rows = await this.conn.all('SELECT x, y, z FROM world_modify_chunks');
-        for(let row of rows) {
-            this.world.dbActor.addKnownChunkFlags(row, flags);
-        }
+        this.world.dbActor.bulkAddChunkFlags(rows, KNOWN_CHUNK_FLAGS.IN_WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS);
     }
 
     /**
@@ -250,15 +206,66 @@ export class DBWorldChunk {
         return result.lastID ?? await getRowId();
     }
 
+    // ========================= world_modfy <=> world_modify_chunks =======================
+
     /**
-     * Rebuilds modifiers in existing chunks.
+     * Unpacks all modifiers from world_modify_chunk into world_modify.
+     * It can be optimized, e.g.:
+     *  - don't create the intermediate array of data to be inserted
+     *  - drop the table indices, insert, then create indices
+     */
+    async unpackAllChunkModifiers() {
+
+        const BATCH_SIZE = 1000; // load limited number of chunks a once to not run out of memory
+
+        const chunksCount = await this.getWorldModifyChunksCount();
+        const blocks = [];
+        for(let i = 0; i < chunksCount; i += BATCH_SIZE) {
+            console.log(`  processing chunks ${i}..${Math.min(i + BATCH_SIZE, chunksCount) - 1} out of ${chunksCount}...`);
+            const rows = await this.conn.all(`SELECT
+                    x, y, z,
+                    CASE WHEN data_blob IS NULL THEN data ELSE NULL END obj,
+                    data_blob AS compressed,
+                    private_data_blob AS private_compressed
+                FROM world_modify_chunks
+                LIMIT ? OFFSET ?`,
+                [BATCH_SIZE, i]
+            );
+            let invalidChunks = 0;
+            for(const row of rows) {
+                decompressModifiresList(row);
+                if (!row.data) {
+                    invalidChunks++;
+                    continue; // this chunk is invalid :( Can't do anyhing about it
+                }
+                const modifiers = JSON.parse(row.data);
+                const addr = new Vector(row);
+                for(const key in modifiers) {
+                    const index = parseFloat(key);
+                    blocks.push({ 
+                        pos: new Vector().fromFlatChunkIndex(index),
+                        addr,
+                        index,
+                        item: modifiers[key]
+                    });
+                }
+            }
+            await this.bulkInsertWorldModify(blocks);
+            console.log(`    ${blocks.length} modifiers unpacked`);
+            invalidChunks && console.warn(`    ${invalidChunks} chunks with null data`);
+            blocks.length = 0;
+        }
+    }
+
+    /**
+     * Rebuilds existing records world_modify_chunks based on world_modify.
      * @param {Array of Int} rowIds
      */
     async updateRebuildModifiersByRowIds(rowIds) {
         return this.conn.run(this.UPDATE_REBUILD_MODIFIERS_BY_ROWID, [JSON.stringify(rowIds)]);
     }
     /**
-     * Rebuilds modifiers in existing chunks.
+     * Rebuilds existing records world_modify_chunks based on world_modify.
      * @param {Array of Arrays} XYZs [x, y, z]
      */
     async updateRebuildModifiersByXYZs(XYZs) {
@@ -273,12 +280,12 @@ export class DBWorldChunk {
                     'id',           COALESCE(m.block_id, 0),
                     'extra_data',   json(m.extra_data),
                     'entity_id',    m.entity_id,
-                    'ticks',        m.ticks,
+                    'ticks',        m.ticks,        -- its' always NULL, unused, maybe remove it?
                     'rotate',       json_extract(m.params, '$.rotate')
                 )
             )
         )`;
-    UPDATE_REBUILD_MODIFIERS_BASE =
+    UPDATE_REBUILD_MODIFIERS_DATA_ONLY =
         `UPDATE world_modify_chunks
         SET data =
             (SELECT ${this.REBUILD_MODIFIERS_SUBQUERY} FROM
@@ -288,20 +295,23 @@ export class DBWorldChunk {
                     WHERE m.chunk_x = world_modify_chunks.x AND m.chunk_y = world_modify_chunks.y AND m.chunk_z = world_modify_chunks.z
                     ORDER BY m.id DESC)     -- ensure the last change for each block is used
                 GROUP BY "index") m         -- ensure the result has no duplicate keys
-            ),
+            )`;
+    UPDATE_REBUILD_MODIFIERS =
+        `${this.UPDATE_REBUILD_MODIFIERS_DATA_ONLY},
             data_blob = NULL,
             private_data_blob = NULL,
-            has_data_blob = 0
-        FROM json_each(?)`;
+            has_data_blob = 0`;
     UPDATE_REBUILD_MODIFIERS_BY_ROWID = preprocessSQL(`
-        ${this.UPDATE_REBUILD_MODIFIERS_BASE} WHERE world_modify_chunks._rowid_ = value
+        ${this.UPDATE_REBUILD_MODIFIERS}
+        FROM json_each(?) WHERE world_modify_chunks._rowid_ = value
     `);
     UPDATE_REBUILD_MODIFIERS_BY_XYZ = preprocessSQL(`
-        ${this.UPDATE_REBUILD_MODIFIERS_BASE} WHERE x = %0 AND y = %1 AND z = %2
+        ${this.UPDATE_REBUILD_MODIFIERS}
+        FROM json_each(?) WHERE x = %0 AND y = %1 AND z = %2
     `);
 
     /**
-     * Inserts rebuilt records in world_modify_chunks, either all or selected addresses.
+     * Inserts rebuilt records into world_modify_chunks, either all or selected addresses.
      * @param {Array of {x, y, z}} addresses - optional.
      *   If we need to rebuild all chunks, providing the list of all addresses increases speed.
      */
@@ -337,6 +347,60 @@ export class DBWorldChunk {
         ${this.INSERT_REBUILD_MODIFIERS_BASE}
         FROM (SELECT %0 _x, %1 _y, %2 _z FROM json_each(:jsonRows))
     `);
+
+    // ================================== chunk ============================================
+
+    async restoreChunks() {
+        const dbActor = this.world.dbActor;
+        const rows = await this.conn.all('SELECT addr FROM chunk');
+        for(const row of rows) {
+            tmpAddr.fromHash(row.addr);
+            dbActor.addKnownChunkFlags(tmpAddr, KNOWN_CHUNK_FLAGS.IN_CHUNK);
+        }
+    }
+
+    async getChunkOfChunk(chunk) {
+        return this.world.dbActor.knownChunkHasFlags(chunk.addr, KNOWN_CHUNK_FLAGS.IN_CHUNK)
+            ? this.bulkGetChunkQuery.get(chunk.addrHash)
+            : { mobs_is_generated: 0, delayed_calls: null };
+    }
+
+    async bulkInsertOrUpdateChunk(rows, dt = unixTime()) {
+        const insertRows = [];
+        const updateRows = [];
+        for(const row of rows) {
+            const list = row.exists ? updateRows : insertRows;
+            list.push([row.chunk.addrHash, row.mobs_is_generated, row.delayed_calls]);
+        }
+        return Promise.all([
+            insertRows.length && this.conn.run(this.BULK_INSERT_CHUNK, {
+                ':jsonRows': JSON.stringify(insertRows),
+                ':dt': dt
+            }).then( () => {
+                for(const row of insertRows) {
+                    row.exists = true;
+                    this.world.dbActor.addKnownChunkFlags(row.chunk.addr, KNOWN_CHUNK_FLAGS.IN_CHUNK);
+                }
+            }),
+
+            updateRows.length && this.conn.run(this.BULK_UPDATE_CHUNK, {
+                ':jsonRows': JSON.stringify(updateRows),
+                ':dt': dt
+            }),
+        ]);
+    };
+    BULK_INSERT_CHUNK = preprocessSQL(`
+        INSERT INTO chunk (addr, dt, mobs_is_generated, delayed_calls)
+        SELECT %0, :dt, %1, %2
+        FROM json_each(:jsonRows)
+    `);
+    BULK_UPDATE_CHUNK = preprocessSQL(`
+        UPDATE chunk
+        SET dt = :dt, mobs_is_generated = %1, delayed_calls = %2
+        FROM json_each(:jsonRows)
+        WHERE addr = %0
+    `);
+
 }
 
 const tmpVector = new Vector();

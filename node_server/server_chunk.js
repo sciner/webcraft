@@ -146,6 +146,8 @@ export class ServerChunk {
         this.safeTeleportMarker = 0;
         this.unloadingStartedTime = null; // to determine when to dispose it
         this.unloadedStuff  = []; // everything unloaded that can be restored (drop items, mobs) in one list
+        // one row of "chunks" table, with additional fields { exists, chunk, dirty }
+        this.chunkRecord    = null;
 
         this.light = new ChunkLight(this);
     }
@@ -220,7 +222,7 @@ export class ServerChunk {
         };
         Promise.all([
             this.dbActor.loadChunkModifiers(),
-            this.world.db.fluid.loadChunkFluid(this.addr)
+            this.world.db.fluid.queuedGetChunkFluid(this.addr)
         ]).then(afterLoad);
     }
 
@@ -452,17 +454,20 @@ export class ServerChunk {
 
     async loadMobs() {
         this.setState(CHUNK_STATE.LOADING_MOBS);
+        
         // load various data in parallel
-        const mobPrpmise = this.world.db.mobs.loadInChunk(this.addr, this.size);
-        const drop_itemsPromise = this.world.db.loadDropItems(this.addr, this.size);
-        const serializedDelayedCallsPromise = this.world.db.loadAndDeleteChunkDelayedCalls(this).then((serializedDelayedCalls) => {
-            if (serializedDelayedCalls) {
-                this.delayedCalls.deserialize(serializedDelayedCalls);
+        const chunkRecordMobsPromise = this.world.db.chunks.getChunkOfChunk(this).then( async chunkRecord => {
+            this.chunkRecord = chunkRecord;
+            chunkRecord.chunk = this.chunk;
+            // now we can load things that required chunkRecord
+            if (chunkRecord.delayed_calls) {
+                this.delayedCalls.deserialize(chunkRecord.delayed_calls);
             }
+            this.mobs = await this.world.db.mobs.loadInChunk(this);
         });
-        this.mobs = await mobPrpmise;
-        this.drop_items = await drop_itemsPromise;
-        await serializedDelayedCallsPromise;
+        this.drop_items = await this.world.db.loadDropItems(this.coord, this.size);
+        await chunkRecordMobsPromise;
+
         this.onMobsLoadedOrRestored();
     }
 
@@ -1268,9 +1273,6 @@ export class ServerChunk {
                 this.unloadedStuff.push(drop_item);
                 promises.push(drop_item.onUnload());
             }
-        }
-        if (this.delayedCalls.length) {
-            promises.push(this.world.db.saveChunkDelayedCalls(this));
         }
         promises.push(this.dbActor.getSavePromise()); // it's ok to push null
         this.readyPromise = Promise.all(promises).then(() => {

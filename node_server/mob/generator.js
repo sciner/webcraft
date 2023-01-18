@@ -3,6 +3,7 @@ import {Vector, VectorCollector} from "../../www/js/helpers.js";
 import {BLOCK} from "../../www/js/blocks.js";
 import { TBlock } from "../../www/js/typed_blocks3.js";
 import {impl as alea} from '../../www/vendors/alea.js';
+import {KNOWN_CHUNK_FLAGS} from "../db/world/WorldDBActor.js"
 
 // Mob generator
 export class MobGenerator {
@@ -24,14 +25,14 @@ export class MobGenerator {
         const auto_generate_mobs = this.chunk.world.getGeneratorOptions('auto_generate_mobs', true);
         if(auto_generate_mobs) {
             // probability 1/10
-            const chunk_addr_hash = this.chunk.addr.toHash();
+            const chunk_addr_hash = this.chunk.addrHash;
             this.random = new alea('chunk' + chunk_addr_hash);
             this.can_generate = this.random.double() < .05;
             if(!this.can_generate) {
                 return false;
             }
             // if generating early
-            if(await this.chunk.world.chunks.chunkMobsIsGenerated(chunk_addr_hash)) {
+            if(this.chunk.chunkRecord.mobs_is_generated) {
                 return false;
             }
             // check chunk is good place for mobs
@@ -91,8 +92,13 @@ export class MobGenerator {
                     }
                 }
             }
-            // mark as generated
-            await this.chunk.world.chunks.chunkSetMobsIsGenerated(chunk_addr_hash, 1);
+            // Mark as generated. Write immediately instead of making it dirty to avoid double-spawn after crash,
+            // because mobs are not included into the world-saving transaction (yet).
+            this.chunk.chunkRecord.mobs_is_generated = 1;
+            await this.chunk.world.chunks.chunkSetMobsIsGenerated(chunk_addr_hash, 1).then( () => {
+                this.chunk.chunkRecord.exists = true;
+                this.chunk.world.dbActor.addKnownChunkFlags(this.chunk.addr, KNOWN_CHUNK_FLAGS.IN_CHUNK);
+            });
         }
     }
 

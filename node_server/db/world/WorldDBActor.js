@@ -2,9 +2,10 @@ import { unixTime, Vector, VectorCollector } from "../../../www/js/helpers.js";
 import { BLOCK_DIRTY } from "./ChunkDBActor.js";
 
 export const KNOWN_CHUNK_FLAGS = {
-    WORLD_MODIFY_CHUNKS:    0x1, // has a record in world_modify_chunks
+    IN_WORLD_MODIFY_CHUNKS: 0x1, // has a record in world_modify_chunks
     MODIFIED_BLOCKS:        0x2, // has any modified blocks (in DB or in memory)
-    MODIFIED_FLUID:         0x4
+    IN_CHUNK:               0x4, // has a record in "chunk" table
+    MODIFIED_FLUID:         0x8
 };
 KNOWN_CHUNK_FLAGS.ANY_MODIFIERS_MASK = KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS | KNOWN_CHUNK_FLAGS.MODIFIED_FLUID;
 
@@ -32,6 +33,7 @@ class Transaction {
     }
 }
 
+/** It manages DB queries of all things in the world that must be saved in one trascaction as a "world state". */
 export class WorldDBActor {
 
     // It fullfills when the next (scheduled) world-saving transaction finishes.
@@ -65,15 +67,15 @@ export class WorldDBActor {
         this.knownChunkFlags.update(addr, it => (it ?? 0) | flags );
     }
 
-    knownChunkHasFlags(addr, flags) {
-        return (this.knownChunkFlags.get(addr) & flags) != 0;
+    bulkAddChunkFlags(addresses, flags) {
+        const cb = it => (it ?? 0) | flags;
+        for(const addr of addresses) {
+            this.knownChunkFlags.update(addr, cb);
+        }
     }
 
-    async flushLoadChunks() {
-        return Promise.all([
-            this.world.db.chunks.bulkGetWorldModifyChunk.flush(),
-            this.world.db.fluid.bulkSelect.flush()
-        ]);
+    knownChunkHasFlags(addr, flags) {
+        return (this.knownChunkFlags.get(addr) & flags) != 0;
     }
 
     /**
@@ -141,6 +143,9 @@ export class WorldDBActor {
             updateBlocksWithUnknownRowId: [],
             updateBlocks: [],
             updateBlocksExtraData: [],
+            insertOrUpdateChunk: [],
+            insertOrUpdateDropItems: [],
+            deleteDropItemEntityIds: null,
 
             // the data to be saved in world.recovery as a BLOB
             unsavedChunkRowIds: [], // if we know rowId of a chunk - put it here, it reduces the BLOB size
@@ -191,8 +196,28 @@ export class WorldDBActor {
                     ])
                 );
             this.pushPromise(blocksBulkQueriesPromise);
-            
-            // TODO items, delayed calls, ?mobs?
+
+            // rows of "chunk" table
+            if (uc.insertOrUpdateChunk.length) {
+                this.pushPromise(
+                    db.chunks.bulkInsertOrUpdateChunk(uc.insertOrUpdateChunk, dt)
+                );
+            }
+
+            // drop items (unloaded items have been already added from chunks)
+            this.world.chunkManager.itemWorld.writeAllDirty();
+            if (uc.insertOrUpdateDropItems.length) {
+                this.pushPromise(
+                    db.bulkInsertOrUpdateDropItems(uc.insertOrUpdateDropItems, dt)
+                );
+            }
+            if (uc.deleteDropItemEntityIds.length) {
+                this.pushPromise(
+                    db.bulkDeleteDropItems(uc.deleteDropItemEntityIds, dt)
+                );
+            }
+
+            // TODO inventory, ?mobs?
 
             this.pushPromise(this.writeRecoveryBlob());
         } catch(e) {

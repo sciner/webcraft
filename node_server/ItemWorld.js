@@ -1,4 +1,4 @@
-import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED} from "./drop_item.js";
+import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED, DropItem} from "./drop_item.js";
 import {CHUNK_STATE} from "../www/js/chunk_const.js"
 
 import {ServerClient} from "../www/js/server_client.js";
@@ -15,6 +15,8 @@ export class ItemWorld {
         this.chunkManager = chunkManager;
         this.world = chunkManager.world;
         this.chunksItemMergingQueue = new Set();
+        this.all_drop_items = new Map();
+        this.deletedEntityIds = [];
     }
 
     /**
@@ -26,13 +28,16 @@ export class ItemWorld {
         let chunk = chunkOptional || dropItem.getChunk();
         // delete from chunk
         chunk.drop_items.delete(dropItem.entity_id);
-        this.world.all_drop_items.delete(dropItem.entity_id);
+        this.all_drop_items.delete(dropItem.entity_id);
         // deactive drop item in database
-        this.world.db.deleteDropItem(dropItem.entity_id);
+        dropItem.markDirty(DropItem.DIRTY_DELETE);
+        if (dropItem.dirty === DropItem.DIRTY_DELETE) {
+            this.deletedEntityIds.push(dropItem.entity_id);
+        }
     }
 
     tick(delta) {
-        for(let [_, drop_item] of this.world.all_drop_items) {
+        for(let [_, drop_item] of this.all_drop_items) {
             drop_item.tick(delta);
         }
         if (ITEM_MERGE_RADIUS >= 0) {
@@ -131,7 +136,8 @@ export class ItemWorld {
 
                 // increment dropItemB count
                 dropItemB.items[indexB].count += dropItemA.items[0].count;
-                this.world.db.updateDropItem(dropItemB);
+                dropItemB.markDirty(DropItem.DIRTY_UPDATE);
+                dropItemB.dirty = true;
                 const packetsB = [{
                     name: ServerClient.CMD_DROP_ITEM_UPDATE,
                     data: {
@@ -166,5 +172,16 @@ export class ItemWorld {
             }
             ++dropItemI;
         }
+    }
+
+    writeAllDirty() {
+        const uc = this.world.dbActor.underConstruction;
+        for(const item of this.all_drop_items.values()) {
+            if (item.dirty !== DropItem.DIRTY_CLEAR) {
+                uc.insertOrUpdateDropItems.push(item);
+            }
+        }
+        uc.deleteDropItemEntityIds = this.deletedEntityIds;
+        this.deletedEntityIds = [];
     }
 }

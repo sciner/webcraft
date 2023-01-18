@@ -124,13 +124,16 @@ export class ServerWorld {
         this.weather        = Weather.CLEAR;
         //
         this.players        = new ServerPlayerManager(this);
-        this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
+        this.all_drop_items = this.chunks.itemWorld.all_drop_items; // Store refs to all loaded drop items in the world
         //
         await this.models.init();
         await this.quests.init();
         await this.admins.load();
+        t = performance.now();
         await this.db.chunks.restoreModifiedChunks();
+        await this.db.chunks.restoreChunks();
         await this.db.fluid.restoreFluidChunks();
+        console.log(`Restoring known chunks flags: ${performance.now() - t | 0} ms`)
         await this.chunks.initWorker();
         await this.chunks.initWorkers(world_guid);
 
