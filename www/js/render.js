@@ -209,10 +209,13 @@ export class Renderer {
 
         settings.fov = settings.fov || DEFAULT_FOV_NORMAL;
         this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
-        this.updateViewport();
 
-        // HUD
-        this.HUD = Qubatch.hud;
+        /**
+         * @type { import("./hud.js").HUD } HUD
+         */
+        this.HUD = Qubatch.hud
+
+        this.updateViewport()
 
         //
         const mci = Resources.maskColor;
@@ -1128,24 +1131,18 @@ export class Renderer {
     * the render configuration if required.
     */
     updateViewport() {
-        const actual_width = this.canvas.width;
-        const actual_height = this.canvas.height;
-        if (actual_width !== this.viewportWidth ||
-            actual_height !== this.viewportHeight
-        ) {
+        const actual_width = this.canvas.width
+        const actual_height = this.canvas.height
+        if (actual_width !== this.viewportWidth || actual_height !== this.viewportHeight) {
             // resize call _configure automatically but ONLY if dimension changed
             // _configure very slow!
-            this.renderBackend.resize(
-                actual_width | 0,
-                actual_height | 0);
-            this.viewportWidth = actual_width | 0;
-            this.viewportHeight = actual_height | 0;
-
-            wmGlobal.pixiapp.renderer.resize(actual_width, actual_height);
-            wmGlobal.w = actual_width
-            wmGlobal.h = actual_height
+            this.renderBackend.resize(actual_width | 0, actual_height | 0)
+            this.viewportWidth = actual_width | 0
+            this.viewportHeight = actual_height | 0
+            // resize HUD
+            this.HUD.resize(actual_width, actual_height)
             // Update perspective projection based on new w/h ratio
-            this.setPerspective(this.camera.fov, this.camera.min, this.camera.max);
+            this.setPerspective(this.camera.fov, this.camera.min, this.camera.max)
         }
     }
 

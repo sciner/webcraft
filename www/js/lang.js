@@ -77,15 +77,16 @@ export const Lang = new Proxy(
             if(!resp) {
                 return null;
             }
+            const self = this
             //
             const fill = function(str, args) {
                 for(let i = 0; i < args.length; i++) {
                     const transPlace = '%t' + i;
                     if (str.indexOf(transPlace) >= 0) {
                         var v = args[i];
-                        const list = this.strings[v];
+                        const list = self.strings[v];
                         if (list) {
-                            v = list[this.code] || list[this.default_code] || v;
+                            v = list[self.code] || list[self.default_code] || v;
                         }
                         str = str.replace(transPlace, v);
                     }
