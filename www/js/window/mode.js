@@ -1,48 +1,58 @@
-import { Component } from "./wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { KEY } from "../constant.js";
+import { Label, Window } from "../../tools/gui/wm.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { Resources } from "../resources.js";
 
-export class ModeWindow extends Component {
+export class ModeWindow extends Window {
 
     constructor(player) {
+
         super(0, 0, 217, 130, 'frmMode');
-        this.setBackgroundColor('00000055');
-        
+        this.style.background.color = '00000055'
+
         this.player = player;
         this.mode == 'survival'
-        
-        this.add(new Component(0, 90, 217, 43, 'lblHelp', '[ F4 ] - Дальше', this));
-        
-        this.title = new Component(0, 0, 217, 43, 'lblTitle', 'Test', this);
-        this.title.setBackground('toasts-0.png');
-        this.add(this.title);
-        
-        this.lbl_survival = new Component(5, 48, 48, 48, 'lblSurvival', null, this);
-        this.lbl_survival.setBackground('inventory-0.png');
-        this.lbl_survival.setIcon('iron_sword.png', 20);
-        this.add(this.lbl_survival);
-        
-        this.lbl_creative = new Component(58, 48, 48, 48, 'lblCreative', null, this);
-        this.lbl_creative.setBackground('inventory-0.png');
-        this.lbl_creative.setIcon('brick.png', 20);
-        this.add(this.lbl_creative);
-        
-        this.lbl_adventure = new Component(111, 48, 48, 48, 'lblAdventure', null, this);
-        this.lbl_adventure.setBackground('inventory-0.png');
-        this.lbl_adventure.setIcon('map.png', 20);
-        this.add(this.lbl_adventure);
-        
-        this.lbl_spectator = new Component(164, 48, 48, 48, 'lblSpectator', null, this);
-        this.lbl_spectator.setBackground('inventory-0.png');
-        this.lbl_spectator.setIcon('ender_eye.png', 20);
-        this.add(this.lbl_spectator);
 
+        SpriteAtlas.fromJSON('./media/icons.png', Resources.icons).then(async atlas => {
+
+            this.atlas = atlas
+
+            this.add(new Label(0, 90, 217, 43, 'lblHelp', '[ F4 ] - Дальше', this))
+
+            this.title = new Label(0, 0, 217, 43, 'lblTitle', 'Test', this)
+            this.title.setBackground(await atlas.getSpriteFromMap('toasts-0.png'))
+            this.add(this.title)
+
+            this.lblSurvival = new Label(5, 48, 48, 48, 'lblSurvival', null, this)
+            // this.lblSurvival.setBackground(atlas.getSpriteFromMap('inventory-0.png'))
+            this.lblSurvival.setIcon(await atlas.getSpriteFromMap('iron_sword.png'), 20)
+            this.add(this.lblSurvival)
+
+            this.lblCreative = new Label(58, 48, 48, 48, 'lblCreative', null, this)
+            // this.lblCreative.setBackground(atlas.getSpriteFromMap('inventory-0.png'))
+            this.lblCreative.setIcon(await atlas.getSpriteFromMap('brick.png'), 20)
+            this.add(this.lblCreative)
+
+            this.lblAdventure = new Label(111, 48, 48, 48, 'lblAdventure', null, this)
+            // this.lblAdventure.setBackground(atlas.getSpriteFromMap('inventory-0.png'))
+            this.lblAdventure.setIcon(await atlas.getSpriteFromMap('map.png'), 20)
+            this.add(this.lblAdventure)
+
+            this.lblSpectator = new Label(164, 48, 48, 48, 'lblSpectator', null, this)
+            // this.lblSpectator.setBackground(atlas.getSpriteFromMap('inventory-0.png'))
+            this.lblSpectator.setIcon(await atlas.getSpriteFromMap('ender_eye.png'), 20)
+            this.add(this.lblSpectator)
+
+        })
+
+        // When window on show
         this.onShow = function() {
-            Qubatch.releaseMousePointer();
-            this.mode = this.prev_mode ?? this.player.game_mode.next(true).id;
-            this.updateMode();
-        };
+            Qubatch.releaseMousePointer()
+            this.mode = this.prev_mode ?? this.player.game_mode.next(true).id
+            this.updateMode()
+        }
 
         // Обработчик закрытия формы
         this.onHide = function() {
@@ -55,8 +65,9 @@ export class ModeWindow extends Component {
                     }
                 });
             }
-        };
-        
+        }
+
+        //
         this.onKeyEvent = (e) => {
             const {keyCode, down, first} = e;
             switch(keyCode) {
@@ -71,42 +82,29 @@ export class ModeWindow extends Component {
                         } else { 
                             this.mode = 'survival';
                         }
-                        this.updateMode();
+                        this.updateMode()
                     }
                     return true;
                 }
             }
             return false;
         }
-    }
     
-    updateMode() {
-        this.lbl_survival.setBackground('inventory-0.png'); 
-        this.lbl_creative.setBackground('inventory-0.png'); 
-        this.lbl_adventure.setBackground('inventory-0.png'); 
-        this.lbl_spectator.setBackground('inventory-0.png'); 
-        switch(this.mode) {
-            case 'survival': {
-                this.title.setText("Режим выживания");
-                this.lbl_survival.setBackground('inventory-1.png'); 
-                break;
-            }
-            case 'creative': {
-                this.title.setText("Творческий режим");
-                this.lbl_creative.setBackground('inventory-1.png'); 
-                break;
-            }
-            case 'adventure': {
-                this.title.setText("Режим приключение");
-                this.lbl_adventure.setBackground('inventory-1.png'); 
-                break;
-            }
-            case 'spectator': {
-                this.title.setText("Режим наблюдателя");
-                this.lbl_spectator.setBackground('inventory-1.png'); 
-                break;
-            }
+    }
+
+    async updateMode() {
+
+        const getModeSprite = async (mode) => {
+            return this.atlas.getSpriteFromMap(mode == this.mode ? 'inventory-1.png' : 'inventory-0.png')
         }
+
+        this.lblSurvival.setBackground(await getModeSprite('survival'))
+        this.lblCreative.setBackground(await getModeSprite('creative'))
+        this.lblAdventure.setBackground(await getModeSprite('adventure'))
+        this.lblSpectator.setBackground(await getModeSprite('spectator'))
+
+        this.title.setText(Lang.getOrUnchanged(`gamemode_${this.mode}`));
+
     }
     
 }

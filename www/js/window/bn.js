@@ -138,7 +138,7 @@ class EffectButton extends Window {
     constructor(x, y, size, id, icon, ct) {
         
         super(x, y, size, size, id, null, null);
-        this.icon = 'speed';
+
         this.ct = ct;
         this.style.background.image = './media/gui/bn.png';
         this.style.border.hidden = true;

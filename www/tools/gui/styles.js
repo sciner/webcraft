@@ -85,7 +85,7 @@ export class BackgroundStyle {
         this.#_bgcolor = new PIXI.Graphics()
         window.addChildAt(this.#_bgcolor, 1)
         //
-        this.scale = window.zoom / 2.0
+        this.scale = undefined // window.zoom / 2.0
         this._image_size_mode = null
         this.color = '#00000000'
     }
@@ -95,18 +95,25 @@ export class BackgroundStyle {
      */
     set image(urlOrImage) {
 
+        if (!urlOrImage) {
+            return;
+        }
         const window = this.#window
         const scale = this.scale
 
+        const background = this.#_bgimage
+        background.texture = PIXI.Texture.from(urlOrImage)
+        if (isNaN(scale)) {
+            background.width = window.w
+            background.height = window.h
+        } else {
+            background.scale.set(scale);
+        }
         // Set image
-        const setImage = (image) => {
-
-            const index = window.getChildIndex(this.#_bgimage)
+        /*const setImage = (image) => {
+            const background = this.#_bgimage;
             this.#_bgimage.texture.destroy()
-            this.#_bgimage.destroy()
-            window.removeChild(this.#_bgimage)
-            const background = this.#_bgimage = PIXI.Sprite.from(image)
-            window.addChildAt(background, index)
+            this.#_bgimage.texture = new PIXI.Texture(new PIXI.BaseTexture(image))
 
             background._image = image
 
@@ -138,7 +145,7 @@ export class BackgroundStyle {
     
             }
             
-        })
+        })*/
     }
 
     /**
@@ -305,20 +312,29 @@ export class Style {
         }
     }
 
+    /**
+     * @return {BackgroundStyle}
+     */
     get background() {
         return this._background
     }
 
+    /**
+     * @return {BorderStyle}
+     */
     get border() {
         return this._border
     }
 
+    /**
+     * @return {FontStyle}
+     */
     get font() {
         return this._font
     }
 
     /**
-     * @param {string} value
+     * @param {BackgroundStyle} value
      */
     set background(value) {
         let image = null
@@ -333,7 +349,10 @@ export class Style {
             this._background.image = image
         }
     }
-
+    
+    /**
+     * @returns {TextAlignStyle}
+     */
     get textAlign() {
         return this._textAlign
     }

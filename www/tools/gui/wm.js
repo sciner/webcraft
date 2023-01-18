@@ -3,7 +3,7 @@
 */
 
 import { BLOCK } from "../../js/blocks.js";
-import { RuneStrings, deepAssign, cropToImage } from "../../js/helpers.js";
+import { RuneStrings, deepAssign, cropToImage, isScalar } from "../../js/helpers.js";
 import { PIXI } from './pixi.js';
 import { Style } from "./styles.js";
 
@@ -13,6 +13,7 @@ globalThis.visible_change_count = 0
 export class Window extends PIXI.Container {
 
     #_tooltip = null
+    #_bgicon = null
 
     zoom = UI_ZOOM
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
@@ -188,6 +189,17 @@ export class Window extends PIXI.Container {
     //
     get tooltip() {return this.#_tooltip}
     set tooltip(value) {this.#_tooltip = value;}
+
+    /**
+     * @returns {?Label}
+     */
+    get icon() {
+        if(!this.#_bgicon) {
+            this.#_bgicon = new Label(0, 0, this.w, this.h, `${this.id}_bgicon`)
+            this.addChild(this.#_bgicon)
+        }
+        return this.#_bgicon
+    }
 
     //
     get visible() {
@@ -369,18 +381,37 @@ export class Window extends PIXI.Container {
     applyStyle(ctx, ax, ay) {}
 
     /**
-     * Set wnidow background and size mode
+     * Set window background and size mode
      * @param {?string|Image} urlOrImage 
      * @param {?string} image_size_mode 
+     * @param {?float} scale 
      */
     async setBackground(urlOrImage, image_size_mode, scale) {
+        //if(!isScalar(urlOrImage)) {
+        //    if(urlOrImage instanceof Promise) {
+        //        urlOrImage = await urlOrImage
+        //    }
+        //}
         if(image_size_mode) this.style.background.image_size_mode = image_size_mode
         if(scale) this.style.background.scale = scale
         this.style.background.image = urlOrImage
     }
 
-    async setBackgroundFromAtlas(urlOrImage, x, y, width, height, dest_width, dest_height, scale) {
-        await this.setBackground(await cropToImage(urlOrImage, x, y, width, height, dest_width, dest_height), 'none', scale)
+    /**
+     * @param {?string|Image} urlOrImage 
+     * @param {?string} image_size_mode 
+     * @param {?float} scale 
+     */
+    async setIcon(urlOrImage, image_size_mode = 'none', scale) {
+        //if(!isScalar(urlOrImage)) {
+        //    if(urlOrImage instanceof Promise) {
+        //        urlOrImage = await urlOrImage
+        //    }
+        //}
+        if(urlOrImage) {
+            this.icon.setBackground(urlOrImage, image_size_mode, scale)
+        }
+        this.icon.visible = !!urlOrImage
     }
 
     setIconImage(url, image_size_mode) {

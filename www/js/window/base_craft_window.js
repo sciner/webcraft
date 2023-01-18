@@ -154,7 +154,7 @@ export class CraftTableSlot extends Label {
 
     getItem() {
         if(this.slot_index !== null) {
-            return Qubatch.player.inventory.items[this.slot_index];
+            return this.ct.inventory.items[this.slot_index]
         } else {
             return this.item;
         }
@@ -618,7 +618,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
 
         // TODO: pixi
-        // this.setItem(this.getItem(), false)
+        this.setItem(this.getItem(), false)
 
     }
 
@@ -779,7 +779,7 @@ export class ArmorSlot extends CraftTableInventorySlot {
             }
             this.setItem(dropData.item, e);
             if (targetItem) {
-                Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
+                this.ct.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
                 dropData.item = targetItem;
             } else {
                 this.getInventory().clearDragItem();
@@ -880,8 +880,6 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
-        // console.log(Qubatch.player)
-        // Qubatch.player.inventory.items[this.slot_index];
     }
 
     clearCraftSlotIfPosible(slot) {

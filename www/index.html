@@ -49,24 +49,12 @@
             const dpr = isMobileBrowser() ? 1 : window.devicePixelRatio
             let width = 0
             let height = 0
-            for(let id of ['qubatchRenderSurface' /*, 'qubatchHUD'*/ ]) {
+            for(let id of ['qubatchRenderSurface']) {
                 const c = document.getElementById(id)
-                // const sz = c.parentElement.getBoundingClientRect();
                 const sz = {width: c.parentElement.clientWidth, height: c.parentElement.clientHeight}
                 width = c.width = sz.width * dpr;
                 height = c.height = sz.height * dpr;
             }
-            if(typeof wmGlobal != 'undefined') {
-                const parent = wmGlobal.pixiapp.view.parentNode;
-                wmGlobal.pixiapp.renderer.resize(width, height)
-                wmGlobal.w = width
-                wmGlobal.h = height
-            }
-            //if(typeof Qubatch !== 'undefined') {
-            //    if(Qubatch?.hud?.splash?.loading) {
-            //        Qubatch?.hud?.draw();
-            //    }
-            //}
         }
         window.addEventListener('resize', windowResized, true);
     </script>

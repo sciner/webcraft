@@ -161,7 +161,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
         // Updates drag UI if the dragged item changed
         this.onInventorySetState = function() {
-            const inventory = Qubatch.player.inventory;
+            const inventory = this.ct.inventory;
             const prevDragItem = Qubatch.hud.wm.drag.getItem();
             const newDargItem = inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             if (newDargItem) {
@@ -177,6 +177,8 @@ export class BaseChestWindow extends BaseInventoryWindow {
     // Catch action
     catchActions() {
 
+        const self = this
+
         // Remembers two affected slots before a user action is executed.
         function updateLastChangeSlots(craftSlot) {
             const lastChange = craftSlot.parent.lastChange;
@@ -185,10 +187,10 @@ export class BaseChestWindow extends BaseInventoryWindow {
             lastChange.slotInChest = craftSlot.is_chest_slot;
             const item = craftSlot.getItem();
             lastChange.slotPrevItem = item ? { ...item } : null;
-            const dargItem = Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
+            const dargItem = self.ct.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             lastChange.dragPrevItem = dargItem ? { ...dargItem } : null;
             // We need only shallow copies of elements (to preserve count)
-            lastChange.prevInventory = ObjectHelpers.deepClone(Qubatch.player.inventory.items, 2);
+            lastChange.prevInventory = ObjectHelpers.deepClone(self.ct.inventory.items, 2);
         }
 
         //

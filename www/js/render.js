@@ -1141,6 +1141,9 @@ export class Renderer {
             this.viewportWidth = actual_width | 0;
             this.viewportHeight = actual_height | 0;
 
+            wmGlobal.pixiapp.renderer.resize(actual_width, actual_height);
+            wmGlobal.w = actual_width
+            wmGlobal.h = actual_height
             // Update perspective projection based on new w/h ratio
             this.setPerspective(this.camera.fov, this.camera.min, this.camera.max);
         }

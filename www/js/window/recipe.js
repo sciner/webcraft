@@ -42,6 +42,7 @@ export class RecipeSlot extends Window {
     }
 
     canMake(recipe) {
+        // TODO: Mayby need to replace Qubatch.player.inventory to this.ct?
         return Qubatch.player.inventory.hasResources(recipe.need_resources,
             this.ct.craft_window.getCraftSlotItemsArray()).missing.length == 0;
     }
@@ -283,6 +284,7 @@ export class RecipeWindow extends Window {
         }
         const canMake = (recipes) => {
             for(const recipe of [recipes, ...recipes.subrecipes]) {
+                // TODO: Mayby need to replace Qubatch.player.inventory to ct?
                 if(Qubatch.player.inventory.hasResources(recipe.need_resources,
                     this.craft_window.getCraftSlotItemsArray()).missing.length == 0
                 ) {
