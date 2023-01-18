@@ -678,11 +678,12 @@ export class DataWorld {
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
 
-    addChunk(chunk) {
+    addChunk(chunk, isRestore) {
         if (!chunk) {
             return;
         }
-        if (chunk.dataChunk) {
+        if (chunk.dataChunk
+            || isRestore && chunk.tblocks.dataChunk.portals.length > 0) {
             console.warn('double-adding chunk!');
             debugger;
             return;

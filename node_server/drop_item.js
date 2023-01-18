@@ -147,4 +147,7 @@ export class DropItem {
         await world.db.updateDropItem(this);
     }
 
+    async restoreUnloaded() {
+        this.getWorld().all_drop_items.set(this.entity_id, this);
+    }
 }

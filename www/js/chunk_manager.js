@@ -7,7 +7,7 @@ import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld} from "./typed_blocks3.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
-import { decompressNearby } from "./packet_compressor.js";
+import { decompressNearby, NEARBY_FLAGS } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
@@ -540,9 +540,10 @@ export class ChunkManager {
         this.chunks_prepare.add(item.addr, {
             start_time: performance.now(),
         });
-        if(item.has_modifiers) {
+        if(item.flags) { // if it has anything to query
             this.#world.server.loadChunk(item.addr);
-        } else {
+        }
+        if ((item.flags & NEARBY_FLAGS.HAS_MODIFIERS) == 0) {
            if(!this.setChunkState({addr: item.addr, modify_list: null})) {
                return false;
            }

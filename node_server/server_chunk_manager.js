@@ -1,6 +1,6 @@
 import {ServerChunk} from "./server_chunk.js";
-import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
-import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
+import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT} from "../www/js/chunk_const.js";
+import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, Mth} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
 import {FluidWorldQueue} from "../www/js/fluid/FluidWorldQueue.js";
@@ -8,7 +8,7 @@ import {ChunkDataTexture} from "../www/js/light/ChunkDataTexture.js";
 import {ItemWorld} from "./ItemWorld.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
-import { compressNearby } from "../www/js/packet_compressor.js";
+import { compressNearby, NEARBY_FLAGS } from "../www/js/packet_compressor.js";
 import { WorldPortal } from "../www/js/portal.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
@@ -28,7 +28,7 @@ export class ServerChunkManager {
         this.chunks_with_delayed_calls = new Set();
         this.invalid_chunks_queue   = [];
         this.disposed_chunk_addrs   = [];
-        this.unloading_chunks       = new VectorCollector();
+        this.unloading_chunks       = new VectorCollector(); // conatins both CHUNK_STATE.UNLOADING and CHUNK_STATE.UNLOADED
         //
         this.DUMMY = {
             id:         world.block_manager.DUMMY.id,
@@ -207,7 +207,16 @@ export class ServerChunkManager {
                 chunk.executeDelayedCalls();
             }
         }
-        // 4.
+        // 4. Dispose unloaded chunks
+        let ttl = this._getUnloadedChunksTtl();
+        for(const chunk of this.unloading_chunks) {
+            if (chunk.load_state === CHUNK_STATE.UNLOADED &&    // if it's not still unloading
+                performance.now() - chunk.unloadingStartedTime >= ttl
+            ) {
+                chunk.dispose();
+                ttl = this._getUnloadedChunksTtl(); // update ttl based on the queue size
+            }
+        }
         if(this.disposed_chunk_addrs.length > 0) {
             this.postWorkerMessage(['destructChunk', this.disposed_chunk_addrs]);
             this.postLightWorkerMessage(['destructChunk', this.disposed_chunk_addrs]);
@@ -285,7 +294,7 @@ export class ServerChunkManager {
                     this.unloading_chunks.add(chunk.addr, chunk);
                     this.remove(chunk.addr);
                     this.removeTickingChunk(chunk.addr);
-                    chunk.readyPromise = chunk.readyPromise.then(() => chunk.onUnload());
+                    chunk.onUnload();
                 }
             }
         }
@@ -390,26 +399,24 @@ export class ServerChunkManager {
                 if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
                     added_vecs.set(addr, true);
                     if(!player.nearby_chunk_addrs.has(addr)) {
-                        const item = {
-                            addr: addr,
-                            has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
-                        };
-                        nearby.added.push(item);
                         player.nearby_chunk_addrs.set(addr, addr);
                         let chunk = this.get(addr);
                         if(!chunk) {
-                            chunk = this.unloading_chunks.get(item.addr)
+                            chunk = this.unloading_chunks.get(addr)
                             if (chunk) {
                                 // RESTORE!!!
-                                this.unloading_chunks.delete(chunk);
-                                chunk.load_state = CHUNK_STATE.LOADING_BLOCKS;
-                                chunk.readyPromise = chunk.readyPromise.then(() => chunk.onRestore());
+                                this.unloading_chunks.delete(addr)
+                                chunk.restoreUnloaded();
                             } else {
                                 chunk = new ServerChunk(this.world, addr);
                             }
                             this.add(chunk);
                         }
                         chunk.addPlayer(player);
+                        const flags =
+                            (this.world.chunkHasModifiers(addr) ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
+                            (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);
+                        nearby.added.push({addr, flags});
                     }
                 }
             }
@@ -477,9 +484,19 @@ export class ServerChunkManager {
         return resp;
     }
 
-    chunkUnloaded({addr, uniqId}) {
-        this.unloading_chunks.delete(addr);
-        this.disposed_chunk_addrs.push({addr, uniqId});
+    _getUnloadedChunksTtl() {
+        Mth.lerpLUT(this.unloading_chunks.size, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT);
+    }
+
+    chunkUnloaded(chunk) {
+        if (performance.now() - chunk.unloadingStartedTime >= this._getUnloadedChunksTtl()) {
+            chunk.dispose();
+        } // else it remains in the queue for some time
+    }
+
+    chunkDisposed(chunk) {
+        this.unloading_chunks.delete(chunk.addr);
+        this.disposed_chunk_addrs.push({addr: chunk.addr, uniqId: chunk.uniqId});
     }
 
     // Send command to server worker

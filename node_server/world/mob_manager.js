@@ -44,7 +44,7 @@ export class WorldMobManager {
             }
         }
         // Ticks
-        for(let [mob_id, mob] of this.list) {
+        for(let mob of this.list.values()) {
             if(mob.isAlive()) {
                 mob.tick(delta);
             } else if(!mob.death_time) {
