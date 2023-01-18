@@ -30,7 +30,7 @@ export class Window extends PIXI.Container {
             values: () => {
                 let resp = []
                 for(let w of this.children) {
-                    if(w instanceof Window) {
+                    if(w instanceof Window && w.auto_center) {
                         resp.push(w)
                     }
                 }
