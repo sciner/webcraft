@@ -1,5 +1,5 @@
 /**
-* Window Manager based on PIXI.js 
+* Window Manager based on PIXI.js
 */
 
 import { BLOCK } from "../../js/blocks.js";
@@ -20,7 +20,7 @@ export class Window extends PIXI.Container {
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
     constructor(x, y, w, h, id, title, text) {
-        
+
         super()
 
         const that = this
@@ -50,7 +50,7 @@ export class Window extends PIXI.Container {
                 return null
             },
             clear: () => {
-                while(this.children[0]) { 
+                while(this.children[0]) {
                     this.removeChild(this.children[0])
                 }
             }
@@ -221,7 +221,7 @@ export class Window extends PIXI.Container {
     }
 
     /**
-     * @param {Window} w 
+     * @param {Window} w
      */
     add(w) {
         if(!w.id) {
@@ -237,7 +237,7 @@ export class Window extends PIXI.Container {
     }
 
     /**
-     * @param {string} id 
+     * @param {string} id
      * @returns {Window}
      */
     getWindow(id, throw_exception = true) {
@@ -310,7 +310,17 @@ export class Window extends PIXI.Container {
     /**
      * @deprecated
      */
-    draw(ctx, ax, ay) {}
+    draw(ctx, ax, ay) {
+        if (!this.qubatchRender) {
+            return;
+        }
+        // reset pixi state
+        this.pixiRender.shader.program = null;
+        this.pixiRender.shader.bind(this.pixiRender.plugins.batch._shader, true);
+        this.pixiRender.reset();
+
+        this.pixiRender.render(this.parent);
+    }
 
     /**
      * @deprecated
@@ -377,15 +387,15 @@ export class Window extends PIXI.Container {
     }
 
     /**
-     * @deprecated 
+     * @deprecated
      */
     applyStyle(ctx, ax, ay) {}
 
     /**
      * Set window background and size mode
-     * @param {?string|Image} urlOrImage 
-     * @param {?string} image_size_mode 
-     * @param {?float} scale 
+     * @param {?string|Image} urlOrImage
+     * @param {?string} image_size_mode
+     * @param {?float} scale
      */
     async setBackground(urlOrImage, image_size_mode, scale) {
         //if(!isScalar(urlOrImage)) {
@@ -399,9 +409,9 @@ export class Window extends PIXI.Container {
     }
 
     /**
-     * @param {?string|Image} urlOrImage 
-     * @param {?string} image_size_mode 
-     * @param {?float} scale 
+     * @param {?string|Image} urlOrImage
+     * @param {?string} image_size_mode
+     * @param {?float} scale
      */
     async setIcon(urlOrImage, image_size_mode = 'none', scale) {
         //if(!isScalar(urlOrImage)) {
@@ -807,8 +817,8 @@ export class Window extends PIXI.Container {
                             nw = iw * r,   // new prop. width
                             nh = ih * r,   // new prop. height
                             cx, cy, cw, ch, ar = 1;
-                        // decide which gap to fill    
-                        if (nw < w) ar = w / nw;                             
+                        // decide which gap to fill
+                        if (nw < w) ar = w / nw;
                         if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh;  // updated
                         nw *= ar;
                         nh *= ar;
@@ -883,8 +893,8 @@ export class Button extends Window {
             this.style.background.color = this.style.background.color_save;
             this.style.color = this.style.color_save;
             //
-            this.style.background.color_save = null; 
-            this.style.color_save = null; 
+            this.style.background.color_save = null;
+            this.style.color_save = null;
         }
 
         // Border
@@ -910,13 +920,13 @@ export class Button extends Window {
 export class Label extends Window {
 
     /**
-     * @param {int} x 
-     * @param {int} y 
-     * @param {?int} w 
-     * @param {?int} h 
-     * @param {string} id 
-     * @param {?string} title 
-     * @param {?string} text 
+     * @param {int} x
+     * @param {int} y
+     * @param {?int} w
+     * @param {?int} h
+     * @param {string} id
+     * @param {?string} title
+     * @param {?string} text
      */
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)
@@ -1018,7 +1028,7 @@ export class TextEdit extends Window {
     _changed() {
         this.onChange(this.buffer.join(''));
     }
-    
+
     setEditText(text) {
         this.buffer = text.split('');
     }
@@ -1045,12 +1055,12 @@ export class TextEdit extends Window {
 class Tooltip extends Label {
 
     /**
-     * @param {?string} text 
+     * @param {?string} text
      */
     constructor(text = null) {
-        
+
         super(0, 0, 100, 20, '_tooltip', null, text)
-        
+
         // this.style.background.color = '#000000cc'
         // this.style.border.hidden = true
         this.style.font.color = '#ffffff'
@@ -1119,7 +1129,7 @@ class WindowManagerOverlay extends Window {
 
 // WindowManager
 export class WindowManager extends Window {
-    
+
     static draw_calls = 0
 
     constructor(canvas, x, y, w, h, create_mouse_listeners) {
@@ -1127,17 +1137,7 @@ export class WindowManager extends Window {
         super(x, y, w, h, '_wm', null)
         globalThis.wmGlobal = this
 
-        this.pixiapp = new PIXI.Application({
-            view: canvas,
-            backgroundAlpha: 0,
-            antialias: false,
-            // autoResize: true,
-            // resizeTo: document.getElementById('qubatch-canvas-container'),
-            background: 'transparent',
-            transparent: true
-        })
-
-        this.parent = this.pixiapp.stage
+        this.parent = new PIXI.Container()
         this.parent.addChild(this)
 
         // Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши
@@ -1151,7 +1151,8 @@ export class WindowManager extends Window {
         const that = this
 
         this.root = this
-        this.canvas = null
+        this.canvas = canvas
+        this.qubatchRender = null;
         this.ctx = null
 
         // // Add pointer and tooltip controls
@@ -1186,6 +1187,33 @@ export class WindowManager extends Window {
 
     }
 
+    initRender(qubatchRender) {
+        if (qubatchRender) {
+            this.qubatchRender = qubatchRender;
+            this.canvas = qubatchRender.canvas;
+            this.pixiRender = new PIXI.Renderer({
+                context: qubatchRender.renderBackend.gl,
+                width: this.canvas.width,
+                height: this.canvas.height,
+                clearBeforeRender: false
+            })
+        } else {
+            this.pixiRender = new PIXI.Renderer({
+                view: this.canvas,
+                width: this.canvas.width,
+                height: this.canvas.height,
+                backgroundAlpha: 0,
+                background: 'transparent',
+                transparent: true
+            })
+            const ticker = new PIXI.Ticker();
+            ticker.add(() => {
+                this.pixiRender.render(this.parent);
+            }, PIXI.UPDATE_PRIORITY.LOW)
+            ticker.start();
+        }
+    }
+
     closeAll() {
         for(let w of this.visibleWindows()) {
             w.hide()
@@ -1202,7 +1230,7 @@ export class WindowManager extends Window {
                     x:          e.offsetX - this.x,
                     y:          e.offsetY - this.y
                 };
-                
+
                 const pointer = this._wmoverlay._wmpointer
                 const tooltip = this._wmoverlay._wmtooltip
 

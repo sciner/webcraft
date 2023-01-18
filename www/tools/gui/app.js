@@ -33,6 +33,7 @@ const init_render_callback = async (result) => {
 
     // Init Window Manager
     const wm = new WindowManager(canvas, 0, 0, canvas.width, canvas.height, true)
+    wm.initRender()
     wm.style.background.image = '/tools/gui/screenshot.jpg'
     wm.style.background.color = '#00000099'
     Qubatch.hud.wm = wm

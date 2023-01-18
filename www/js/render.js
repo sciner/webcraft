@@ -78,6 +78,7 @@ export class Renderer {
             this.canvas,
             BACKEND, {
                 antialias: false,
+                stencil: true,
                 depth: true,
                 premultipliedAlpha: false,
                 powerPreference: "high-performance"
@@ -211,9 +212,6 @@ export class Renderer {
         this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
         this.updateViewport();
 
-        // HUD
-        this.HUD = Qubatch.hud;
-
         //
         const mci = Resources.maskColor;
         this.maskColorTex = renderBackend.createTexture({
@@ -263,6 +261,10 @@ export class Renderer {
 
         this.debugGeom = new LineGeometry();
         this.debugGeom.pos = this.camPos;
+
+        // HUD
+        this.HUD = Qubatch.hud;
+        this.HUD.wm.initRender();
     }
 
     // Generate drop item vertices
@@ -291,7 +293,6 @@ export class Renderer {
 
     //
     generatePrev(callback) {
-
         const target = this.renderBackend.createRenderTarget({
             width: INVENTORY_ICON_TEX_WIDTH,
             height: INVENTORY_ICON_TEX_HEIGHT,
@@ -664,22 +665,7 @@ export class Renderer {
 
         this.env.update(delta, args);
 
-        const cm = this.world.chunkManager;
-
-        // TODO: move to batcher
-        cm.chunkDataTexture.getTexture(renderBackend).bind(3);
-        const lp = cm.lightPool;
-
-        // webgl bind all texture-3d-s
-        if (lp) {
-            // renderBackend._emptyTex3D.bind(8);
-            for (let i = 1; i < lp.boundTextures.length; i++) {
-                const tex = lp.boundTextures[i] || renderBackend._emptyTex3D;
-                if (tex) {
-                    tex.bind(6 + i);
-                }
-            }
-        }
+        this.checkLightTextures();
 
         if (this.player.currentInventoryItem) {
             const mat = BLOCK.fromId(this.player.currentInventoryItem.id);
@@ -700,10 +686,31 @@ export class Renderer {
         }
     }
 
+    checkLightTextures() {
+        const {renderBackend} = this;
+        const cm = this.world.chunkManager;
+        // TODO: move to batcher
+        cm.chunkDataTexture.getTexture(renderBackend).bind(3);
+        const lp = cm.lightPool;
+
+        // webgl bind all texture-3d-s
+        if (lp) {
+            // renderBackend._emptyTex3D.bind(6);
+            for (let i = 1; i <= lp.maxBoundTextures; i++) {
+                const tex = lp.boundTextures[i] || renderBackend._emptyTex3D;
+                if (tex) {
+                    tex.bind(6 + i);
+                }
+            }
+        }
+    }
+
     // Render one frame of the world to the canvas.
     draw(delta, args) {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
+
+        this.resetBefore();
 
         renderBackend.stat.multidrawcalls = 0;
         renderBackend.stat.drawcalls = 0;
@@ -842,6 +849,8 @@ export class Renderer {
         }
 
         renderBackend.endPass();
+
+        this.resetAfter();
     }
 
     //
@@ -1123,6 +1132,21 @@ export class Renderer {
         }
     }
 
+    resetBefore() {
+        // webgl state was reset, we have to re-bind textures
+        this.renderBackend.resetBefore();
+        this.env.skyBox.shader.texture.bind(0);
+        this.renderBackend._emptyTex3D.bind(6);
+        this.maskColorTex.bind(1);
+        this.blockDayLightTex?.bind(2);
+        this.checkLightTextures();
+        this.defaultShader?.bind();
+    }
+
+    resetAfter() {
+        this.renderBackend.resetAfter();
+    }
+
     /**
     * Check if the viewport is still the same size and update
     * the render configuration if required.
@@ -1141,7 +1165,7 @@ export class Renderer {
             this.viewportWidth = actual_width | 0;
             this.viewportHeight = actual_height | 0;
 
-            wmGlobal.pixiapp.renderer.resize(actual_width, actual_height);
+            wmGlobal.pixiRender?.resize(actual_width, actual_height);
             wmGlobal.w = actual_width
             wmGlobal.h = actual_height
             // Update perspective projection based on new w/h ratio

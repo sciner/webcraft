@@ -399,7 +399,7 @@ export class HUD {
 
             // Chunks inited
             this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ') ' + this.splash?.generate_terrain_time;
-            
+
             // Quads and Lightmap
             let quads_length_total = world.chunkManager.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
@@ -559,7 +559,7 @@ export class HUD {
             if(!active_quest.mt) {
                 const quest_text = [active_quest.title];
                 for(let action of active_quest.actions) {
-                    let status = `🔲`; 
+                    let status = `🔲`;
                     if(action.ok) {
                         status = '✅';
                     }

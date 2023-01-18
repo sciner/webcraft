@@ -16,7 +16,7 @@
     <div class="container">
 
         <h3>Canvas based 2D GUI</h3>
-        
+
         <div class="py-4">
             Для игр на WebGL часто требуется создания форм для реализации интерфейса.
             <br>Зачастую такие формы делаются всегда по разному и запрограммировав их один раз, потом достаточно проблематично вносить в них изменения, т.к. они сильно завязаны на абсолютных координатах.
@@ -24,7 +24,7 @@
             <br>Она полностью рисует окна, а также компоненты на ней сама в выделенном `canvas`-е.
             <br>Есть возможность настроить стиль любого компонента, если не хватает возможностей управления стилями в любом случае функцию отрисовки любого компонента можно переопределить и отрисовать его по своему.
         </div>
-        
+
         <div class="d-flex flex-column align-items-center">
             <a class="btn btn-success" href="./wm.js" download="wm.js">Скачать wm.js</a>
             <br>
@@ -46,6 +46,7 @@ let canvas = document.getElementById('canvas')
 
 // Создаем диспетчер окон
 const wm = new WindowManager(canvas, 0, 0, canvas.width, canvas.height)
+wm.initRender()
 
 // Создаём форму (последние 4 параметра, это координаты и размеры выделяемой области)
 wm.add(new Window(10, 10, 352, 332, 'ct1', null))</code></pre>
@@ -145,7 +146,7 @@ canvas.addEventListener('mousedown', function(e) {
         </div>
 
 <script type="module" id="demo-code-src" src="./tools/gui/app.js"></script>
-        
+
         <!-- <script>document.getElementById('demo-code').textContent = document.getElementById('demo-code-src').textContent.trim();</script> -->
 
     </body>
