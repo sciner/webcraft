@@ -1,12 +1,14 @@
-import { cropToImage } from "../helpers.js"
+import { PIXI } from "../../tools/gui/pixi.js";
+import { isScalar } from "../helpers.js";
 
 const atlases = new Map()
 
 export class SpriteAtlas {
 
     constructor() {
-        this.cache = new Map()
-        this.map = null
+        this.sheet = null;
+        this.cache = new Map();
+        this.baseTex = null;
     }
 
     /**
@@ -18,6 +20,7 @@ export class SpriteAtlas {
             const image = new Image()
             image.onload = () => {
                 this.image = image
+                this.baseTex = new PIXI.BaseTexture(this.image);
                 resolve(this)
             }
             image.onerror = (e) => {
@@ -27,18 +30,25 @@ export class SpriteAtlas {
         })
     }
 
-    static async fromJSON(image_url, map_json) {
-
-        let atlas = atlases.get(image_url)
+    /**
+     * @param {Image|string} image_or_url 
+     * @param {object} map_json 
+     * @returns 
+     */
+    static async fromJSON(image_or_url, map_json) {
+        let atlas = atlases.get(image_or_url)
         if(atlas) {
             return atlas
         }
-
         atlas = new SpriteAtlas()
-        await atlas.fromFile(image_url)
-        atlas.map = map_json
-
-        atlases.set(image_url, atlas)
+        if(isScalar(image_or_url)) {
+            await atlas.fromFile(image_or_url)
+        } else {
+            this.image = image
+            this.baseTex = new PIXI.BaseTexture(this.image)
+        }
+        atlas.sheet = new PIXI.Spritesheet(atlas.baseTex, map_json);
+        await atlas.sheet.parse();
 
         return atlas
 
@@ -46,20 +56,20 @@ export class SpriteAtlas {
 
     async getSprite(x, y, width, height, dest_width, dest_height) {
         const key = `${x}, ${y}, ${width}, ${height}, ${dest_width}, ${dest_height}`
-        let image = null
+        let tex = null
         if(this.cache.has(key)) {
             return this.cache.get(key)
         }
-        image = await cropToImage(this.image, x, y, width, height, dest_width, dest_height)
-        this.cache.set(key, image)
-        return image
+        tex = new PIXI.Texture(this.baseTex, new PIXI.Rectangle(x, y, width, height))
+        this.cache.set(key, tex)
+        return tex
     }
 
-    async getSpriteFromMap(name) {
-        if(!this.map) throw 'error_atlas_map_empty' 
-        const sprite = this.map[name]
-        if(!sprite) throw `error_atlas_sprite_not_found|${name}`
-        return await this.getSprite(sprite.frame.x, sprite.frame.y, sprite.frame.w, sprite.frame.h)
+    getSpriteFromMap(name) {
+        if(!this.sheet) throw 'error_atlas_map_empty' 
+        const tex = this.sheet.textures[name]
+        if(!tex) throw `error_atlas_sprite_not_found|${name}`
+        return tex
     }
 
 }

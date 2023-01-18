@@ -1374,30 +1374,6 @@ export class BLOCK {
         console.table(ranges);
     }
 
-    /**
-     * Return block image icon
-     * 
-     * @param {object} block Block object with id property 
-     * @param {int} size Width and height
-     * 
-     * @returns {?Image}
-     */
-    static async getBlockImage(block, size) {
-        const image = Resources.inventory.image
-        if(!image) {
-            console.error('error_no_inventory_image')
-            return
-        }
-        const mat = BLOCK.fromId(block.id)
-        if(!mat) {
-            console.error('error_invalid_block_id')
-            return
-        }
-        const frame = image.width / INVENTORY_ICON_COUNT_PER_TEX
-        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, image.width, frame)
-        return await cropToImage(image, icon.x, icon.y, icon.width, icon.height, size)
-    }
-
 };
 
 // Init

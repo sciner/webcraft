@@ -9,6 +9,7 @@ import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
+import { getBlockImage } from "./tools/blocks.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
@@ -133,7 +134,7 @@ export class CraftTableSlot extends Label {
 
         if(item) {
 
-            const image = await BLOCK.getBlockImage(item, 100 * this.zoom)
+            const image = getBlockImage(item, 100 * this.zoom)
             this.setBackground(image, 'none')
 
         } else if(this._bgimage) {
@@ -142,7 +143,7 @@ export class CraftTableSlot extends Label {
         }
 
         if(this.slot_index !== null) {   
-            Qubatch.player.inventory.setItem(this.slot_index, item)
+            this.ct.inventory.setItem(this.slot_index, item)
         } else {
             this.item = item
             // @todo странная штука, но зато наследуется

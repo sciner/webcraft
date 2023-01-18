@@ -102,7 +102,11 @@ export class BackgroundStyle {
         const scale = this.scale
 
         const background = this.#_bgimage
-        background.texture = PIXI.Texture.from(urlOrImage)
+        if (urlOrImage.baseTexture) {
+            background.texture = urlOrImage;
+        } else {
+            background.texture = PIXI.Texture.from(urlOrImage)
+        }
         if (isNaN(scale)) {
             background.width = window.w
             background.height = window.h

@@ -5,14 +5,16 @@ import { Label, Window } from "../../tools/gui/wm.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Resources } from "../resources.js";
 
+const GAME_MODE_LIST = ['survival', 'creative', 'adventure', 'spectator']
+
 export class ModeWindow extends Window {
 
     constructor(player) {
 
-        super(0, 0, 217, 130, 'frmMode');
-        this.style.background.color = '00000055'
+        super(0, 0, 217, 130, 'frmMode')
 
-        this.player = player;
+        this.style.background.color = '00000055'
+        this.player = player
         this.mode == 'survival'
 
         SpriteAtlas.fromJSON('./media/icons.png', Resources.icons).then(async atlas => {
@@ -22,27 +24,23 @@ export class ModeWindow extends Window {
             this.add(new Label(0, 90, 217, 43, 'lblHelp', '[ F4 ] - Дальше', this))
 
             this.title = new Label(0, 0, 217, 43, 'lblTitle', 'Test', this)
-            this.title.setBackground(await atlas.getSpriteFromMap('toasts-0.png'))
+            this.title.setBackground(atlas.getSpriteFromMap('toasts-0.png'))
             this.add(this.title)
 
             this.lblSurvival = new Label(5, 48, 48, 48, 'lblSurvival', null, this)
-            // this.lblSurvival.setBackground(atlas.getSpriteFromMap('inventory-0.png'))
-            this.lblSurvival.setIcon(await atlas.getSpriteFromMap('iron_sword.png'), 20)
+            this.lblSurvival.setIcon(atlas.getSpriteFromMap('iron_sword.png'), 20)
             this.add(this.lblSurvival)
 
             this.lblCreative = new Label(58, 48, 48, 48, 'lblCreative', null, this)
-            // this.lblCreative.setBackground(atlas.getSpriteFromMap('inventory-0.png'))
-            this.lblCreative.setIcon(await atlas.getSpriteFromMap('brick.png'), 20)
+            this.lblCreative.setIcon(atlas.getSpriteFromMap('brick.png'), 20)
             this.add(this.lblCreative)
 
             this.lblAdventure = new Label(111, 48, 48, 48, 'lblAdventure', null, this)
-            // this.lblAdventure.setBackground(atlas.getSpriteFromMap('inventory-0.png'))
-            this.lblAdventure.setIcon(await atlas.getSpriteFromMap('map.png'), 20)
+            this.lblAdventure.setIcon(atlas.getSpriteFromMap('map.png'), 20)
             this.add(this.lblAdventure)
 
             this.lblSpectator = new Label(164, 48, 48, 48, 'lblSpectator', null, this)
-            // this.lblSpectator.setBackground(atlas.getSpriteFromMap('inventory-0.png'))
-            this.lblSpectator.setIcon(await atlas.getSpriteFromMap('ender_eye.png'), 20)
+            this.lblSpectator.setIcon(atlas.getSpriteFromMap('ender_eye.png'), 20)
             this.add(this.lblSpectator)
 
         })
@@ -69,19 +67,12 @@ export class ModeWindow extends Window {
 
         //
         this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
+            const {keyCode, down, first} = e
             switch(keyCode) {
                 case KEY.F4: {
                     if(down) {
-                        if (this.mode == 'survival') {
-                            this.mode = 'creative';
-                        } else if (this.mode == 'creative') {
-                            this.mode = 'adventure';
-                        } else if (this.mode == 'adventure') {
-                            this.mode = 'spectator';
-                        } else { 
-                            this.mode = 'survival';
-                        }
+                        const index = GAME_MODE_LIST.indexOf(this.mode)
+                        this.mode = GAME_MODE_LIST[(index + 1) % GAME_MODE_LIST.length]
                         this.updateMode()
                     }
                     return true;

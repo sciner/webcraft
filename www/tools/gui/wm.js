@@ -4,6 +4,7 @@
 
 import { BLOCK } from "../../js/blocks.js";
 import { RuneStrings, deepAssign, cropToImage, isScalar } from "../../js/helpers.js";
+import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
 import { Style } from "./styles.js";
 
@@ -1165,9 +1166,7 @@ export class WindowManager extends Window {
                 this.item = item
                 that._wmoverlay._wmpointer.visible = !!item
                 if(item) {
-                    BLOCK.getBlockImage(item.item, 40).then((image) => {
-                        that._wmoverlay._wmpointer.setImage(image)
-                    })
+                    that._wmoverlay._wmpointer.setImage(getBlockImage(item.item, 40))
                 }
             },
             getItem: function() {
