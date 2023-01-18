@@ -212,7 +212,7 @@ export class Renderer {
         this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
         // HUD
         this.HUD = Qubatch.hud;
-        // this.HUD.wm.initRender();
+        this.HUD.wm.initRender();
         this.updateViewport();
 
         //
@@ -265,7 +265,7 @@ export class Renderer {
         this.debugGeom = new LineGeometry();
         this.debugGeom.pos = this.camPos;
 
-        this.HUD.wm.initRender(this);
+        // this.HUD.wm.initRender(this);
     }
 
     // Generate drop item vertices

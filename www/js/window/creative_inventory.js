@@ -91,9 +91,6 @@ class CreativeInventoryCollection extends Window {
         let xcnt                = 9;
         const ct                = this;
 
-        // TODO: pixi
-        return
-
         // Drop on pallette slots
         const dropFunc = function(e) {
             const that      = this;
@@ -229,19 +226,6 @@ export class CreativeInventoryWindow extends Window {
         // Создание слотов для блоков коллекций
         this.createCollectionSlots(this.cell_size);
 
-        // Обработчик открытия формы
-        this.onShow = function() {
-            this.getRoot().center(this);
-            Qubatch.releaseMousePointer();
-        }
-        
-        // Обработчик закрытия формы
-        this.onHide = function() {
-            this.inventory.clearDragItem();
-            // Save inventory
-            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [], null, true);
-        }
-
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
@@ -304,6 +288,19 @@ export class CreativeInventoryWindow extends Window {
 
     }
 
+    // Обработчик открытия формы
+    onShow() {
+        this.getRoot().center(this);
+        Qubatch.releaseMousePointer();
+    }
+
+    // Обработчик закрытия формы
+    onHide() {
+        this.inventory.clearDragItem();
+        // Save inventory
+        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [], null, true);
+    }
+
     /**
     * Создание слотов для инвентаря
     * @param int sz Ширина / высота слота
@@ -321,8 +318,8 @@ export class CreativeInventoryWindow extends Window {
         let xcnt        = 9;
         for(let i = 0; i < 9; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
+            ct.add(lblSlot)
+            ct.inventory_slots.push(lblSlot)
         }
     }
 

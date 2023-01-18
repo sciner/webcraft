@@ -81,64 +81,64 @@ export class Window extends PIXI.Container {
             this.text = text || null
         }
 
-        // Events
-        this.onMouseLeave   = () => {
-            for(let w of this.list.values()) {
-                if(w.hover) {
-                    w.hover = false;
-                    w.onMouseLeave();
-                }
-            }
-        };
-        this.onMouseEnter   = function() {};
-        this.onMouseDown    = function(e) {};
-        this.onMouseMove    = function(e) {};
-        this.onDrop         = function(e) {};
-        this.onWheel        = function(e) {};
+    }
 
-        // onKeyEvent
-        this.onKeyEvent     = function(e) {
-            for(let w of this.list.values()) {
-                if(w.visible) {
-                    let fired = false;
-                    for(let f of w.list.values()) {
-                        if(f.focused) {
-                            fired = f.onKeyEvent(e);
-                            if(fired) {
-                                break;
-                            }
-                        }
+    //
+    typeChar(e, charCode, typedChar) {
+        for(let w of this.list.values()) {
+            if(w.visible) {
+                let fired = false;
+                for(let f of w.list.values()) {
+                    if(f.focused) {
+                        f.typeChar(e, charCode, typedChar);
+                        fired = true;
+                        break;
                     }
-                    if(!fired) {
-                        w.onKeyEvent(e);
-                    }
+                }
+                if(!fired) {
+                    w.typeChar(e, charCode, typedChar);
                 }
             }
         }
+    }
 
-        // typeChar
-        this.typeChar = function(e, charCode, typedChar) {
-            for(let w of this.list.values()) {
-                if(w.visible) {
-                    let fired = false;
-                    for(let f of w.list.values()) {
-                        if(f.focused) {
-                            f.typeChar(e, charCode, typedChar);
-                            fired = true;
+    // Events
+    onMouseLeave() {
+        for(let w of this.list.values()) {
+            if(w.hover) {
+                w.hover = false;
+                w.onMouseLeave();
+            }
+        }
+    }
+
+    onMouseEnter() {}
+    onMouseDown(e) {}
+    onMouseMove(e) {}
+    onDrop(e) {}
+    onWheel(e) {}
+    onHide() {}
+    onShow() {}
+
+    // onKeyEvent
+    onKeyEvent(e) {
+        for(let w of this.list.values()) {
+            if(w.visible) {
+                let fired = false;
+                for(let f of w.list.values()) {
+                    if(f.focused) {
+                        fired = f.onKeyEvent(e);
+                        if(fired) {
                             break;
                         }
                     }
-                    if(!fired) {
-                        w.typeChar(e, charCode, typedChar);
-                    }
+                }
+                if(!fired) {
+                    w.onKeyEvent(e);
                 }
             }
         }
-
     }
-
-    onHide() {}
-    onShow() {}
 
     /**
      * @type {int}
@@ -215,10 +215,6 @@ export class Window extends PIXI.Container {
 
     getRoot() {
         return globalThis.wmGlobal
-        // if(this.parent) {
-        //     return this.parent.getRoot();
-        // }
-        // return this;
     }
 
     /**
@@ -938,7 +934,7 @@ export class Label extends Window {
      * @param {?string} text
      */
     constructor(x, y, w, h, id, title, text) {
-        super(x, y, w, h, id, title, text)
+        super(x, y, w, h, id, title, title)
         this.style.background.color = '#00000000'
         this.style.border.hidden = true
         this.setText(text)
@@ -989,27 +985,6 @@ export class TextEdit extends Window {
             }
         }
 
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.ENTER: {
-                    if(down) {
-                        this.buffer.push(String.fromCharCode(13));
-                        this._changed();
-                    }
-                    return true;
-                }
-                case KEY.BACKSPACE: {
-                    if(down) {
-                        this.backspace();
-                        break;
-                    }
-                    return true;
-                }
-            }
-        }
-
         // typeChar
         this.typeChar = (e, charCode, ch) => {
             if(!this.focused) {
@@ -1031,6 +1006,27 @@ export class TextEdit extends Window {
             }
         }
 
+    }
+
+    // Hook for keyboard input
+    onKeyEvent(e) {
+        const {keyCode, down, first} = e;
+        switch(keyCode) {
+            case KEY.ENTER: {
+                if(down) {
+                    this.buffer.push(String.fromCharCode(13));
+                    this._changed();
+                }
+                return true;
+            }
+            case KEY.BACKSPACE: {
+                if(down) {
+                    this.backspace();
+                    break;
+                }
+                return true;
+            }
+        }
     }
 
     //
