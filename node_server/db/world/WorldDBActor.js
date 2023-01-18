@@ -145,7 +145,7 @@ export class WorldDBActor {
             updateBlocksExtraData: [],
             insertOrUpdateChunk: [],
             insertOrUpdateDropItems: [],
-            deleteDropItemEntityIds: null,
+            deleteDropItemEntityIds: null, // it'll be taken directly from ItemWorld
 
             // the data to be saved in world.recovery as a BLOB
             unsavedChunkRowIds: [], // if we know rowId of a chunk - put it here, it reduces the BLOB size
@@ -157,7 +157,7 @@ export class WorldDBActor {
         try {
             // chunks write everything they need. Updated blocks with unknown rowIds are queued.
             for(const chunk of this.dirtyChunks) {
-                chunk.dbActor.write();
+                chunk.dbActor.writeToWorldTransaction();
             }
 
             // For updated blocks with unknown rowIds:
@@ -198,24 +198,18 @@ export class WorldDBActor {
             this.pushPromise(blocksBulkQueriesPromise);
 
             // rows of "chunk" table
-            if (uc.insertOrUpdateChunk.length) {
-                this.pushPromise(
-                    db.chunks.bulkInsertOrUpdateChunk(uc.insertOrUpdateChunk, dt)
-                );
-            }
+            this.pushPromise(
+                db.chunks.bulkInsertOrUpdateChunk(uc.insertOrUpdateChunk, dt)
+            );
 
             // drop items (unloaded items have been already added from chunks)
-            this.world.chunkManager.itemWorld.writeAllDirty();
-            if (uc.insertOrUpdateDropItems.length) {
-                this.pushPromise(
-                    db.bulkInsertOrUpdateDropItems(uc.insertOrUpdateDropItems, dt)
-                );
-            }
-            if (uc.deleteDropItemEntityIds.length) {
-                this.pushPromise(
-                    db.bulkDeleteDropItems(uc.deleteDropItemEntityIds, dt)
-                );
-            }
+            this.world.chunkManager.itemWorld.writeToWorldTransaction();
+            this.pushPromise(
+                db.bulkInsertOrUpdateDropItems(uc.insertOrUpdateDropItems, dt)
+            );
+            this.pushPromise(
+                db.bulkDeleteDropItems(uc.deleteDropItemEntityIds, dt)
+            );
 
             // TODO inventory, ?mobs?
 

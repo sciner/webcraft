@@ -182,4 +182,11 @@ export class DropItem {
     async restoreUnloaded() {
         this.getWorld().all_drop_items.set(this.entity_id, this);
     }
+
+    writeToWorldTransaction(underConstruction) {
+        if (this.dirty !== DropItem.DIRTY_CLEAR) {
+            underConstruction.insertOrUpdateDropItems.push(this);
+        }
+    }
+
 }

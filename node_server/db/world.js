@@ -331,6 +331,9 @@ export class DBWorld {
     }
 
     async bulkInsertOrUpdateDropItems(items, dt = unixTime()) {
+        if (!items.length) {
+            return;
+        }
         const insertRows = [];
         const updateRows = [];
         for(const item of items) {
@@ -371,7 +374,7 @@ export class DBWorld {
     `);
 
     async bulkDeleteDropItems(entityIds) {
-        return this.conn.run(
+        return entityIds.length && this.conn.run(
             'DELETE FROM drop_item WHERE entity_id IN (SELECT value FROM json_each(?))',
             [JSON.stringify(entityIds)]
         );

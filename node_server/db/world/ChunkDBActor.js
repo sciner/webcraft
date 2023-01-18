@@ -1,6 +1,7 @@
 import { Vector } from "../../../www/js/helpers.js";
 import { CHUNK_STATE } from "../../../www/js/chunk_const.js";
-import { KNOWN_CHUNK_FLAGS } from "./WorldDBActor.js"
+import { KNOWN_CHUNK_FLAGS } from "./WorldDBActor.js";
+import { DropItem } from '../../drop_item.js';
 
 export const BLOCK_DIRTY = {
     CLEAR:              0, // used to keep rowIDs of blocks that are frequently modified
@@ -223,30 +224,36 @@ export class ChunkDBActor {
      * Writes all chunk elements that need to be saved now.
      * Adds promises to {@link WorldDBActor.promises}
      */
-    write() {
+    writeToWorldTransaction() {
+        const chunk = this.chunk;
         const uc = this.world.dbActor.underConstruction;
+
         if (this.dirtyBlocks.size) {
             this.writeDirtyBlocks();
         }
-        const chunkRecord = this.chunk.chunkRecord;
-        if (chunkRecord.dirty || this.chunk.delayedCalls.dirty) {
-            chunkRecord.delayed_calls = this.chunk.delayed_calls.serialize();
+
+        const chunkRecord = chunk.chunkRecord;
+        if (chunkRecord.dirty || chunk.delayedCalls.dirty) {
+            chunkRecord.delayed_calls = chunk.delayed_calls.serialize();
             uc.insertOrUpdateChunk.push(chunkRecord);
             chunkRecord.dirty = false;
-            this.chunk.delayedCalls.dirty = false;
+            chunk.delayedCalls.dirty = false;
         }
 
+        for(const stuff of chunk.unloadedStuff) {
+            if (stuff instanceof DropItem) {
+                stuff.writeToWorldTransaction(uc);
+            }
 
+            // TODO unloaded mobs from chunk
 
-        // TODO unloaded items from chunk (after merging with unloading improvements)
-
-        
+        }       
 
         if (this.unsavedBlocks.size) {
             if (this._mustWriteWorldModifyChunk()) {
                 this.writeWorldModifyChunk();
             } else {
-                this.world.dbActor.addUnsavedChunk(this.chunk);
+                this.world.dbActor.addUnsavedChunk(chunk);
             }
         }
     }

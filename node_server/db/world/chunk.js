@@ -366,6 +366,9 @@ export class DBWorldChunk {
     }
 
     async bulkInsertOrUpdateChunk(rows, dt = unixTime()) {
+        if (!rows.length) {
+            return;
+        }
         const insertRows = [];
         const updateRows = [];
         for(const row of rows) {

@@ -31,7 +31,7 @@ export class ItemWorld {
         this.all_drop_items.delete(dropItem.entity_id);
         // deactive drop item in database
         dropItem.markDirty(DropItem.DIRTY_DELETE);
-        if (dropItem.dirty === DropItem.DIRTY_DELETE) {
+        if (dropItem.dirty === DropItem.DIRTY_DELETE) { // if it's never been saved, it'll be DIRTY_CLEAR now
             this.deletedEntityIds.push(dropItem.entity_id);
         }
     }
@@ -57,7 +57,7 @@ export class ItemWorld {
         and just stopped. They must be checked for posible merging with all nearby items.
         At the end of mergeableItems are other stationary items from the this and
         neighboring chunks. They can be checked for merging with the items from the 1st group. */
-        for(let [_, item] of chunk.drop_items) {
+        for(let item of chunk.drop_items.values()) {
             if(item.motion === MOTION_JUST_STOPPED) {
                 this.#mergeableItems.push(item);
             } else if (item.motion === MOTION_STAYED) {
@@ -75,7 +75,7 @@ export class ItemWorld {
             const otherChunk = portal.toRegion.rev;
             if(!otherChunk || otherChunk.load_state !== CHUNK_STATE.READY)
                 continue;
-            for(let [_, item] of otherChunk.drop_items) {
+            for(let item of otherChunk.drop_items.values()) {
                 if(item.motion !== MOTION_MOVED) {
                     this.#mergeableItems.push(item);
                 }
@@ -137,7 +137,6 @@ export class ItemWorld {
                 // increment dropItemB count
                 dropItemB.items[indexB].count += dropItemA.items[0].count;
                 dropItemB.markDirty(DropItem.DIRTY_UPDATE);
-                dropItemB.dirty = true;
                 const packetsB = [{
                     name: ServerClient.CMD_DROP_ITEM_UPDATE,
                     data: {
@@ -174,12 +173,10 @@ export class ItemWorld {
         }
     }
 
-    writeAllDirty() {
+    writeToWorldTransaction() {
         const uc = this.world.dbActor.underConstruction;
         for(const item of this.all_drop_items.values()) {
-            if (item.dirty !== DropItem.DIRTY_CLEAR) {
-                uc.insertOrUpdateDropItems.push(item);
-            }
+            item.writeToWorldTransaction(uc);
         }
         uc.deleteDropItemEntityIds = this.deletedEntityIds;
         this.deletedEntityIds = [];

@@ -1,6 +1,6 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_STATE } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { DIRECTION, SIX_VECS, Vector, VectorCollector, ArrayHelpers } from "../www/js/helpers.js";
+import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
@@ -224,9 +224,6 @@ export class ServerChunk {
             this.dbActor.loadChunkModifiers(),
             this.world.db.fluid.queuedGetChunkFluid(this.addr)
         ]).then(afterLoad);
-    }
-
-        Promise.all([loadCMPromise, this.world.db.fluid.loadChunkFluid(this.addr)]).then(afterLoad);
     }
 
     // Returns true if the chunk has any data that needs to be sent to a client except blocks
