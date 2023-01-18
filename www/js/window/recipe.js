@@ -2,7 +2,7 @@ import { BLOCK } from "../blocks.js";
 import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
 import { Resources } from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
-import { cropToImage } from "../helpers.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 const COLOR_RED = '#A15151';
 
@@ -124,36 +124,20 @@ export class RecipeWindow extends Window {
         // Get window by ID
         const ct = this
 
-        // Sprite
-        this.sprite_image = new Image()
-        this.sprite_image.onload = async () => {
+        // Create sprite atlas
+        this.atlas = new SpriteAtlas()
 
-            ct.setBackground(await cropToImage(this.sprite_image, 0, 0, 592, 668, 592, 668), 'none', this.zoom / 2.0)
-        
+        this.atlas.fromFile('./media/gui/recipe_book.png').then(async atlas => {
+
+            ct.setBackground(await atlas.getSprite(0, 0, 592, 668), 'none', this.zoom / 2.0)
+
             // кнопка доступные или все рецепты
             this.addToggleButton()
 
-            
-        }
-        this.sprite_image.src = './media/gui/recipe_book.png'
-        
-        /*const options = {
-            background: {
-                image: ,
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 0,
-                    y: 0,
-                    width: 592,
-                    height: 668
-                }
-            }
-        };
-        ct.style.background = {...ct.style.background, ...options.background}
-        */
+        })
+
         ct.style.background.color = '#00000000'
-        // ct.style.border.hidden = true
+        ct.style.border.hidden = true
         ct.hide()
 
         const that = this;
@@ -204,42 +188,24 @@ export class RecipeWindow extends Window {
     
     async addToggleButton() {
 
-        const self = this;
-        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', null);
+        const self = this
+        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', null)
 
-        /*
-        const options = {
-            background: {
-                image: './media/gui/recipe_book.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 608,
-                    y: 162,
-                    width: 106,
-                    height: 67
-                }
+        this.atlas.getSprite(608, 162, 106, 67).then(image => {
+
+            btnFilter.setBackground(image, 'none', this.zoom / 2.0)
+            btnFilter.style.border.hidden = true
+
+            btnFilter.onMouseDown = async function(e) {
+                self.only_can = !self.only_can
+                btnFilter.setBackground(await self.atlas.getSprite(self.only_can ? 719 : 608, 162, 106, 67), 'none', this.zoom / 2.0)
+                self.createRecipes();
+                self.paginator.update()
             }
-        }
-        */
 
-        // btnFilter.setBackground(await cropToImage(this.sprite_image, 608, 162, 106, 67), 'none', this.zoom / 2.0)
-        btnFilter.setBackgroundFromAtlas(this.sprite_image, 608, 162, 106, 67, undefined, undefined, this.zoom / 2.0)
+            this.add(btnFilter)
 
-        // btnFilter.style.background = options.background
-        btnFilter.style.border.hidden = true
-        // btnFilter.setBackground(options.background.image)
-
-        btnFilter.onMouseDown = function(e) {
-            self.only_can = !self.only_can;
-            // this.style.background.sprite.x = self.only_can ? 719 : 608;
-            btnFilter.setBackgroundFromAtlas(self.sprite_image, self.only_can ? 719 : 608, 162, 106, 67, undefined, undefined, this.zoom / 2.0)
-
-            self.createRecipes();
-            self.paginator.update();
-        }
-
-        this.add(btnFilter)
+        })
 
     }
 

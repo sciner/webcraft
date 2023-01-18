@@ -2987,7 +2987,7 @@ export async function blobToImage(blob) {
         }
         img.onerror = (e) => {
             URL.revokeObjectURL(url)
-            reject(img)
+            reject(e)
         }
         img.src = url
     })
