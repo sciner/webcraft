@@ -85,14 +85,14 @@ export class DBWorldFluid {
 
     async applyAnyChunk(fluidList) {
         let chunk_addr = getChunkAddr(fluidList[0], fluidList[1], fluidList[2]);
-        let chunk = this.world.chunks.get(chunk_addr);
+        let chunk = this.world.chunks?.get(chunk_addr);
         if (chunk) {
             await this.applyLoadedChunk(chunk, fluidList);
         } else {
             //TODO: GRID!
             let buf = await this.loadChunkFluid(chunk_addr);
 
-            chunk = this.world.chunks.get(chunk_addr);
+            chunk = this.world.chunks?.get(chunk_addr);
             if (chunk) {
                 //someone loaded chunk while we were loading this!
                 await this.applyLoadedChunk(chunk, fluidList);
