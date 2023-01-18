@@ -6,8 +6,8 @@ export class MainMenu extends Window {
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
-        this.w *= this.zoom;
-        this.h *= this.zoom;
+        this.width = this.w * this.zoom;
+        this.height = this.h * this.zoom;
 
         // Get window by ID
         const ct = this;
@@ -16,7 +16,7 @@ export class MainMenu extends Window {
         ct.hide();
 
         //
-        let lbl2 = new Label(0, 0, this.width, 30 * this.zoom, 'lbl2', Lang.menu);
+        const lbl2 = new Label(0, 0, this.w, 30 * this.zoom, 'lbl2', Lang.menu);
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
         ct.add(lbl2);
@@ -47,13 +47,13 @@ export class MainMenu extends Window {
     }
 
     get zoom() {
-        return UI_ZOOM;
+        return 1 // UI_ZOOM;
     }
 
     //
     addButton(label, y, onclick) {
         const btnID = `btn_${this.id}_${y}`;
-        let btn = new Button(20 * this.zoom, y * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, btnID, label);
+        const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
         btn.style.background.color = '#777777ff';
         btn.style.color = '#ffffffff';
         btn.style.font.shadow = {
