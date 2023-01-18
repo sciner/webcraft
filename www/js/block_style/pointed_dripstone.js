@@ -51,13 +51,13 @@ export default class style {
                 texture:    [...texture]
             });
         }
-
-        // flame animations
-        if (typeof worker != 'undefined') {
+        // @todo анимация капель, переделать под тикер
+        if (typeof worker != 'undefined' && extra_data?.up == true && texture[0] == 0.6328125 && (extra_data?.water || extra_data?.lava)) {
             worker.postMessage(['add_animated_block', {
                 block_pos:  block.posworld,
-                pos:       [block.posworld.add(new Vector(.5, .5, .5))],
-                type:       'dripping'
+                pos:        [block.posworld.add(new Vector(.5, .5, .5))],
+                type:       'dripping',
+                isWater:    extra_data?.water
             }]);
         }
     }

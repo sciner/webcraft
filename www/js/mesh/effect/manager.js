@@ -58,7 +58,6 @@ export class Mesh_Effect_Manager {
      * 
      */
     createBlockEmitter(args) {
-        console.log(args);
         if(args.type) {
             for(let i = 0; i < args.pos.length; i++) {
                 const em = this.effects.get(args.type)
