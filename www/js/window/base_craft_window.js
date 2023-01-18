@@ -129,6 +129,8 @@ export class CraftTableSlot extends Label {
      */
     async setItem(item, update_inventory = true) {
 
+        if(!item && !this.item) return
+
         if(item) {
 
             const image = await BLOCK.getBlockImage(item, 100 * this.zoom)
@@ -878,6 +880,8 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
+        // console.log(Qubatch.player)
+        // Qubatch.player.inventory.items[this.slot_index];
     }
 
     clearCraftSlotIfPosible(slot) {
