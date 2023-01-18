@@ -91,6 +91,13 @@ export class BackgroundStyle {
     }
 
     /**
+     * @type {PIXI.Sprite}
+     */
+    get sprite() {
+        return this.#_bgimage
+    }
+
+    /**
      * @param {string|Image} urlOrImage
      */
     set image(urlOrImage) {

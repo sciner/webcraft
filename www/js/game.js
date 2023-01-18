@@ -20,7 +20,8 @@ globalThis.TrackerPlayer = new Tracker_Player();
 // Reset zoom
 // TODO: pixi
 globalThis.UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
-console.debug('zoom', UI_ZOOM);
+console.debug('zoom', UI_ZOOM)
+console.log('zoom', UI_ZOOM)
 globalThis.UI_FONT = 'Ubuntu';
 
 // Main game class

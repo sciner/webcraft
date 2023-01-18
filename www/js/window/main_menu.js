@@ -5,9 +5,12 @@ export class MainMenu extends Window {
 
     constructor(x, y, w, h, id, title, text) {
 
+        w *= UI_ZOOM
+        h *= UI_ZOOM
+
         super(x, y, w, h, id, title, text);
-        this.width = this.w * this.zoom;
-        this.height = this.h * this.zoom;
+        // this.width = this.w * this.zoom2;
+        // this.height = this.h * this.zoom2;
 
         // Get window by ID
         const ct = this;
@@ -16,16 +19,10 @@ export class MainMenu extends Window {
         ct.hide();
 
         //
-        const lbl2 = new Label(0, 0, this.w, 30 * this.zoom, 'lbl2', Lang.menu);
+        const lbl2 = new Label(0, 0, this.w, 30 * this.zoom2, 'lbl2', Lang.menu);
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
         ct.add(lbl2);
-
-        // onShow
-        this.onShow = function() {
-            this.parent.center(this);
-            Qubatch.releaseMousePointer();
-        }
 
         // Add buttons
         this.addButton(Lang.btn_return, 80, () => {Qubatch.hud.wm.closeAll()});
@@ -46,16 +43,21 @@ export class MainMenu extends Window {
 
     }
 
-    get zoom() {
-        return 1 // UI_ZOOM;
+    // onShow
+    onShow() {
+        this.parent.center(this)
+        super.onShow()
+        Qubatch.releaseMousePointer()
     }
 
     //
     addButton(label, y, onclick) {
         const btnID = `btn_${this.id}_${y}`;
         const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
-        btn.style.background.color = '#777777ff';
-        btn.style.color = '#ffffffff';
+        btn.style.background.color = '#888888ff'
+        btn.style.font.color = '#ffffffff'
+        btn.style.font.size = 10 * this.zoom
+        /*
         btn.style.font.shadow = {
             enable: true,
             x: 2 * this.zoom,
@@ -63,6 +65,7 @@ export class MainMenu extends Window {
             blur: 0,
             color: 'rgba(0, 0, 0, 0.5)'
         }
+        */
         btn.onMouseDown = onclick;
         /*
         btn.onMouseEnter = function() {

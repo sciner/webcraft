@@ -168,18 +168,19 @@ export class RecipeWindow extends Window {
             }
         };
 
-        this.onShow = () => {
-            // Создание слотов
-            this.createRecipes();
-            this.paginator.update();
-        };
-
         // кнопки пагинатора
         this.addPaginatorButtons();
         
         // строка поиска
         this.addFinder()
 
+    }
+
+    onShow() {
+        this.getRoot().centerChild()
+        // Создание слотов
+        this.createRecipes()
+        this.paginator.update()
     }
 
     // Запоминаем какое окно вызвало окно рецептов

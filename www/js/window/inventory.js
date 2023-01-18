@@ -79,14 +79,6 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(306 * this.zoom, 54 * this.zoom)
-        
-        // Обработчик открытия формы
-        this.onShow = function() {
-            Qubatch.releaseMousePointer();
-            this.previewSkin();
-            this.setHelperSlots(null);
-        }
-
         // Обработчик закрытия формы
         this.onHide = function() {
             // Close recipe window
@@ -149,6 +141,14 @@ export class InventoryWindow extends BaseCraftWindow {
             return false;
         }
 
+    }
+
+    // Обработчик открытия формы
+    onShow() {
+        this.getRoot().center(this)
+        Qubatch.releaseMousePointer()
+        this.previewSkin()
+        this.setHelperSlots(null)
     }
 
     previewSkin() {

@@ -2,8 +2,7 @@
 * Window Manager based on PIXI.js
 */
 
-import { BLOCK } from "../../js/blocks.js";
-import { RuneStrings, deepAssign, cropToImage, isScalar } from "../../js/helpers.js";
+import { RuneStrings, deepAssign } from "../../js/helpers.js";
 import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
 import { Style } from "./styles.js";
@@ -91,8 +90,6 @@ export class Window extends PIXI.Container {
                 }
             }
         };
-        this.onHide         = function() {};
-        this.onShow         = function() {};
         this.onMouseEnter   = function() {};
         this.onMouseDown    = function(e) {};
         this.onMouseMove    = function(e) {};
@@ -139,6 +136,9 @@ export class Window extends PIXI.Container {
         }
 
     }
+
+    onHide() {}
+    onShow() {}
 
     /**
      * @type {int}
@@ -875,7 +875,14 @@ export class Button extends Window {
 
     constructor(x, y, w, h, id, title, text) {
 
-        super(x, y, w, h, id, title, text)
+        super(x, y, w, h, id, title, title)
+
+        this.style.font.size = 10
+
+        if(this.text_container) {
+            this.text_container.anchor.set(.5, .5)
+            this.text_container.position.set(this.w / 2, this.h / 2)
+        }
 
         this.swapChildren(this.children[0], this.children[1])
 
@@ -1107,7 +1114,8 @@ class Tooltip extends Label {
 export class Pointer extends Window {
 
     constructor() {
-        super(0, 0, 40, 40, '_wmpointer', null, null)
+        super(0, 0, 40 * UI_ZOOM, 40 * UI_ZOOM, '_wmpointer', null, null)
+        this.style.background.sprite.anchor.set(.5, .5)
     }
 
     setImage(image) {

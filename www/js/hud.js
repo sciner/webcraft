@@ -330,6 +330,10 @@ export class HUD {
      */
     resize(width, height) {
 
+        // const dpr = window.devicePixelRatio
+        // width /= dpr
+        // height /= dpr
+
         this.wm.pixiRender?.resize(width, height);
         this.wm.w = width
         this.wm.h = height
@@ -624,8 +628,8 @@ export class HUD {
 
             const fs = text_block.style.font._font_style
             fs.stroke = '#00000099'
-            fs.strokeThickness = 8
-            fs.lineHeight = 60
+            fs.strokeThickness = 4
+            fs.lineHeight = UI_ZOOM * 20
 
             /*
             fs.dropShadow = true
