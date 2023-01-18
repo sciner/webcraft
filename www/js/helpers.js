@@ -2973,6 +2973,26 @@ export function mat4ToRotate(matrix) {
 }
 
 export async function blobToImage(blob) {
+
+    if (blob == null) {
+        throw 'error_empty_blob'
+    }
+
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(blob)
+        let img = new Image()
+        img.onload = () => {
+            URL.revokeObjectURL(url)
+            resolve(img)
+        }
+        img.onerror = (e) => {
+            URL.revokeObjectURL(url)
+            reject(img)
+        }
+        img.src = url
+    })
+
+    /*
     const file = new File([blob], 'image.png', {type: 'image/png'})
     const url = URL.createObjectURL(file)
     return new Promise(resolve => {
@@ -2984,6 +3004,8 @@ export async function blobToImage(blob) {
         }
         img.src = url
     });
+    */
+
 }
 
 /**
@@ -2992,16 +3014,27 @@ export async function blobToImage(blob) {
  * @param {int} y 
  * @param {int} width 
  * @param {int} height 
- * @param {int} size 
+ * @param {int} dest_width 
  */
-export async function cropToImage(image, x, y, width, height, size) {
+export async function cropToImage(image, x, y, width, height, dest_width, dest_height) {
+
+    if(!dest_width) {
+        dest_width = width
+        dest_height = height
+    }
+
+    if(!dest_height) {
+        dest_height = dest_width
+    }
+
+    // TODO: need to cache atlas sprites
 
     const item_image = document.createElement('canvas')
-    item_image.width = size
-    item_image.height = size
+    item_image.width = dest_width
+    item_image.height = dest_height
     const item_ctx = item_image.getContext('2d')
 
-    item_ctx.drawImage(image, x, y, width, height, 0, 0, size, size)
+    item_ctx.drawImage(image, x, y, width, height, 0, 0, dest_width, dest_height)
 
     return new Promise((resolve, reject) => {
         item_image.toBlob((blob) => {

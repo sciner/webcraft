@@ -2,6 +2,7 @@ import { BLOCK } from "../blocks.js";
 import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
 import { Resources } from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
+import { cropToImage } from "../helpers.js";
 
 const COLOR_RED = '#A15151';
 
@@ -106,7 +107,7 @@ export class RecipeWindow extends Window {
 
     constructor(recipe_manager) {
 
-        super(10, 10, 294, 332, 'frmRecipe', null, null)
+        super(10, 10, 592/2, 668/2, 'frmRecipe', null, null)
         this.canBeOpenedWith = ['frmInventory', 'frmCraft']
         this.w *= this.zoom
         this.h *= this.zoom
@@ -121,11 +122,24 @@ export class RecipeWindow extends Window {
         this.cell_size = 50 * this.zoom;
 
         // Get window by ID
-        const ct = this;
+        const ct = this
+
+        // Sprite
+        this.sprite_image = new Image()
+        this.sprite_image.onload = async () => {
+
+            ct.setBackground(await cropToImage(this.sprite_image, 0, 0, 592, 668, 592, 668), 'none', this.zoom / 2.0)
         
-        const options = {
+            // кнопка доступные или все рецепты
+            this.addToggleButton()
+
+            
+        }
+        this.sprite_image.src = './media/gui/recipe_book.png'
+        
+        /*const options = {
             background: {
-                image: './media/gui/recipe_book.png',
+                image: ,
                 image_size_mode: 'sprite',
                 sprite: {
                     mode: 'stretch',
@@ -137,9 +151,9 @@ export class RecipeWindow extends Window {
             }
         };
         ct.style.background = {...ct.style.background, ...options.background}
+        */
         ct.style.background.color = '#00000000'
-        ct.style.border.hidden = true
-        ct.setBackground(options.background.image, 'none', this.zoom / 2.0)
+        // ct.style.border.hidden = true
         ct.hide()
 
         const that = this;
@@ -179,10 +193,8 @@ export class RecipeWindow extends Window {
         this.addPaginatorButtons();
         
         // строка поиска
-        this.addFinder();
-        
-        // кнопка доступные или все рецепты
-        this.addToggleButton();
+        this.addFinder()
+
     }
 
     // Запоминаем какое окно вызвало окно рецептов
@@ -190,10 +202,13 @@ export class RecipeWindow extends Window {
         this.craft_window = w;
     }
     
-    addToggleButton() {
+    async addToggleButton() {
+
         const self = this;
         const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', null);
-         const options = {
+
+        /*
+        const options = {
             background: {
                 image: './media/gui/recipe_book.png',
                 image_size_mode: 'sprite',
@@ -205,17 +220,27 @@ export class RecipeWindow extends Window {
                     height: 67
                 }
             }
-        };
-        btnFilter.style.background = options.background;
-        btnFilter.style.border.hidden = true;
-        btnFilter.setBackground(options.background.image);
+        }
+        */
+
+        // btnFilter.setBackground(await cropToImage(this.sprite_image, 608, 162, 106, 67), 'none', this.zoom / 2.0)
+        btnFilter.setBackgroundFromAtlas(this.sprite_image, 608, 162, 106, 67, undefined, undefined, this.zoom / 2.0)
+
+        // btnFilter.style.background = options.background
+        btnFilter.style.border.hidden = true
+        // btnFilter.setBackground(options.background.image)
+
         btnFilter.onMouseDown = function(e) {
             self.only_can = !self.only_can;
-            this.style.background.sprite.x = self.only_can ? 719 : 608;
+            // this.style.background.sprite.x = self.only_can ? 719 : 608;
+            btnFilter.setBackgroundFromAtlas(self.sprite_image, self.only_can ? 719 : 608, 162, 106, 67, undefined, undefined, this.zoom / 2.0)
+
             self.createRecipes();
             self.paginator.update();
-        };
-        this.add(btnFilter);
+        }
+
+        this.add(btnFilter)
+
     }
 
     // Paginator buttons

@@ -3,7 +3,7 @@
 */
 
 import { BLOCK } from "../../js/blocks.js";
-import { RuneStrings, deepAssign } from "../../js/helpers.js";
+import { RuneStrings, deepAssign, cropToImage } from "../../js/helpers.js";
 import { PIXI } from './pixi.js';
 import { Style } from "./styles.js";
 
@@ -377,6 +377,10 @@ export class Window extends PIXI.Container {
         if(image_size_mode) this.style.background.image_size_mode = image_size_mode
         if(scale) this.style.background.scale = scale
         this.style.background.image = urlOrImage
+    }
+
+    async setBackgroundFromAtlas(urlOrImage, x, y, width, height, dest_width, dest_height, scale) {
+        await this.setBackground(await cropToImage(urlOrImage, x, y, width, height, dest_width, dest_height), 'none', scale)
     }
 
     setIconImage(url, image_size_mode) {

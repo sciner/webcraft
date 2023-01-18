@@ -196,10 +196,19 @@ export class BorderStyle {
     }
 
     /**
+     * @type {boolean}
+     */
+    get hidden() {
+        return this.#window._border ? !this.#window._border.visible : false
+    }
+
+    /**
      * @param {boolean} value
      */
     set hidden(value) {
-        // TODO:
+        if(this.#window._border) {
+            this.#window._border.visible = !value
+        }
     }
 
 }
@@ -312,8 +321,16 @@ export class Style {
      * @param {string} value
      */
     set background(value) {
+        let image = null
         for(let k in value) {
+            if(k == 'image') {
+                image = value[k]
+                continue
+            }
             this._background[k] = value[k]
+        }
+        if(image) {
+            this._background.image = image
         }
     }
 
