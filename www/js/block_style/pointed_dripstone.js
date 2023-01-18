@@ -51,6 +51,15 @@ export default class style {
                 texture:    [...texture]
             });
         }
+
+        // flame animations
+        if (typeof worker != 'undefined') {
+            worker.postMessage(['add_animated_block', {
+                block_pos:  block.posworld,
+                pos:       [block.posworld.add(new Vector(.5, .5, .5))],
+                type:       'dripping'
+            }]);
+        }
     }
 
 }
