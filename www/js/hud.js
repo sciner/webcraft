@@ -278,9 +278,10 @@ export class HUD {
 
         // Check if need redraw
         const hasDrawContent = Qubatch.world && Qubatch.player && Qubatch.player.chat.hasDrawContent();
-        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Qubatch.hud.wm.hasVisibleWindow() && !hasDrawContent) {
-            return false;
-        }
+        this.prepareText();
+        // if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Qubatch.hud.wm.hasVisibleWindow() && !hasDrawContent) {
+        //     return false;
+        // }
         this.need_refresh = false;
         this.prevDrawTime = performance.now();
 
@@ -311,11 +312,10 @@ export class HUD {
         // Draw windows
         if(this.wm.hasVisibleWindow()) {
             this.wm.style.background.color = Qubatch.player.isAlive ? '#00000077' : '#ff330027';
-            this.wm.draw(true);
         } else {
             this.wm.style.background.color = '#00000000';
-            this.wm.draw(false);
         }
+        this.wm.draw();
 
     }
 

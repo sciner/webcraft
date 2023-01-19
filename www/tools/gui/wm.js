@@ -305,16 +305,6 @@ export class Window extends PIXI.Container {
     clear() {}
 
     draw(ctx, ax, ay) {
-        if (!this.qubatchRender) {
-            return;
-        }
-        // reset pixi state
-        this.pixiRender.shader.program = null;
-        this.pixiRender.shader.bind(this.pixiRender.plugins.batch._shader, true);
-        this.pixiRender.texture.bind(null, 3);
-        this.pixiRender.reset();
-
-        this.pixiRender.render(this.parent);
     }
 
     /**
@@ -1196,6 +1186,19 @@ export class WindowManager extends Window {
             }
         }
 
+    }
+
+    draw() {
+        if (!this.qubatchRender) {
+            return;
+        }
+        // reset pixi state
+        this.pixiRender.shader.program = null;
+        this.pixiRender.shader.bind(this.pixiRender.plugins.batch._shader, true);
+        this.pixiRender.reset();
+        this.pixiRender.texture.bind(null, 3);
+
+        this.pixiRender.render(this.parent);
     }
 
     initRender(qubatchRender) {
