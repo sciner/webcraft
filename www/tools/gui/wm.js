@@ -5,7 +5,8 @@
 import { RuneStrings, deepAssign } from "../../js/helpers.js";
 import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
-import { Style } from "./styles.js";
+import {Style} from "./styles.js";
+import { msdf } from "../../data/font.js";
 
 globalThis.visible_change_count = 0
 
@@ -181,8 +182,18 @@ export class Window extends PIXI.Container {
      */
     set text(value) {
         if(!this.text_container) {
+            if (value === undefined) {
+                return;
+            }
             // this.text_container = new Label(0, 0, undefined, undefined, randomUUID(), undefined, value)
-            this.text_container = new PIXI.Text(value, this.style.font._font_style)
+
+            if (this.style._font.useBitmapFont) {
+                this.text_container = new PIXI.BitmapText(value, this.style.font._bitmap_font_style)
+            } else {
+                this.text_container = new PIXI.Text(value, this.style.font._font_style)
+            }
+            //
+
             this.addChild(this.text_container)
         }
         this.text_container.text = value
@@ -376,6 +387,17 @@ export class Window extends PIXI.Container {
      * @returns {PIXI.TextMetrics}
      */
     getTextMetrics() {
+        const tc = this.text_container;
+        if (tc._activePagesMeshData) {
+            if (tc.dirty) {
+                tc.updateText();
+            }
+            return {
+                width: tc._textWidth,
+                height: tc._textHeight
+            }
+        }
+
         return PIXI.TextMetrics.measureText(this.text_container.text, this.style.font._font_style)
     }
 
@@ -1138,6 +1160,8 @@ export class WindowManager extends Window {
         super(x, y, w, h, '_wm', null)
         globalThis.wmGlobal = this
 
+        this.preloadFont();
+
         this.parent = new PIXI.Container()
         this.parent.addChild(this)
 
@@ -1188,6 +1212,28 @@ export class WindowManager extends Window {
 
     }
 
+    preloadFont() {
+        if (this.bfTextures) {
+            return;
+        }
+        this.bfTextures = [
+            new PIXI.Texture(new PIXI.BaseTexture)
+        ];
+        const bfData = new PIXI.BitmapFontData();
+        bfData.char = msdf.chars
+        bfData.page = [{id: 0, file: "UbuntuMono-Regular.png"}]
+        bfData.info = [msdf.info]
+        bfData.common = [msdf.common]
+        bfData.distanceField = [msdf.distanceField]
+        PIXI.BitmapFont.install(bfData, this.bfTextures);
+    }
+
+    loadFont() {
+        const baseRp = Qubatch.world.block_manager.resource_pack_manager.list.get('base');
+        const res = new PIXI.ImageBitmapResource(baseRp.textures.get('alphabet').texture.source);
+        this.bfTextures[0].baseTexture.setResource(res);
+    }
+
     draw() {
         if (!this.qubatchRender) {
             return;
@@ -1226,6 +1272,7 @@ export class WindowManager extends Window {
             }, PIXI.UPDATE_PRIORITY.LOW)
             ticker.start();
         }
+        this.loadFont();
     }
 
     closeAll() {

@@ -14,6 +14,8 @@ class HUDLabel extends Label {
     constructor(x, y, w, h, id) {
         super(x, y, w, h, id)
         this.style.font.size = 16
+        this.style.font.family = 'UbuntuMono-Regular'
+        this.text = '';
     }
 
 }
