@@ -1217,7 +1217,7 @@ export class WindowManager extends Window {
             return;
         }
         this.bfTextures = [
-            new PIXI.Texture(new PIXI.BaseTexture)
+            new PIXI.Texture(new PIXI.BaseTexture())
         ];
         const bfData = new PIXI.BitmapFontData();
         bfData.char = msdf.chars
