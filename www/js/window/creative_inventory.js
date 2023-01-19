@@ -9,13 +9,13 @@ class CreativeInventoryCollection extends Window {
 
     //
     constructor(x, y, w, h, id, title, text) {
-        super(x, y, w, h, id, title, text);
+        super(x, y, w, h, id, title, text)
         // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
-        this.max_height = 0;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
+        this.max_height = 0
         //
-        this.style.background.color = '#00000000';
-        this.style.border.hidden = true;
+        this.style.background.color = '#ff000055'
+        this.style.border.hidden = true
         //
         this._wheel = function(e) {
             this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size;
@@ -49,9 +49,9 @@ class CreativeInventoryCollection extends Window {
             }
             all_blocks.push(block)
         }
-        this.addEnchantedBooks(all_blocks, filter_text);
+        this.addEnchantedBooks(all_blocks, filter_text)
         // Create slots
-        this.initCollection(all_blocks);
+        this.initCollection(all_blocks)
     }
 
     matchesFilter(block, filter_text) {
@@ -81,7 +81,16 @@ class CreativeInventoryCollection extends Window {
 
     // Init collection
     initCollection(all_blocks) {
-        this.list.clear();
+
+        // remove all childrens
+        // this.list.clear()
+
+        for(let child of this.children) {
+            if(child instanceof CraftTableInventorySlot) {
+                this.removeChild(child)
+            }
+        }
+
         this.scrollY            = 0;
         this.max_height         = 0;
         this.collection_slots   = [];
@@ -106,12 +115,13 @@ class CreativeInventoryCollection extends Window {
                     count = max_in_stack
                 }
                 targetItem.count = Math.min(targetItem.count + count, max_in_stack);
-                this.getInventory().setDragItem(this, {...targetItem}, drag, that.width, that.height);
+                this.getInventory().setDragItem(this, {...targetItem}, drag, that.w, that.height);
             } else {
                 this.getInventory().clearDragItem();
             }
             return false;
-        };
+        }
+
         const onMouseDownFunc = function(e) {
             let that = this;
             let targetItem = this.getInventoryItem();
@@ -127,7 +137,7 @@ class CreativeInventoryCollection extends Window {
             //
             targetItem = {...targetItem};
             targetItem.count = count;
-            this.getInventory().setDragItem(this, targetItem, e.drag, that.width, that.height);
+            this.getInventory().setDragItem(this, targetItem, e.drag, that.w, that.height);
             return false;
         };
 
@@ -174,6 +184,7 @@ class CreativeInventoryCollection extends Window {
 
     }
 
+    /*
     // Draw
     draw(ctx, ax, ay) {
         super.draw(ctx, ax, ay);
@@ -190,6 +201,7 @@ class CreativeInventoryCollection extends Window {
         }
         ctx.restore();
     }
+    */
 
 }
 
@@ -198,40 +210,37 @@ export class CreativeInventoryWindow extends Window {
 
     constructor(inventory) {
 
-        super(10, 10, 390, 450, 'frmCreativeInventory', null, null);
+        super(10 * UI_ZOOM, 10 * UI_ZOOM, 390 * UI_ZOOM, 450 * UI_ZOOM, 'frmCreativeInventory')
 
-        this.w *= this.zoom;
-        this.h *= this.zoom;
-
-        this.inventory = inventory;
+        this.inventory = inventory
 
         // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000';
-        ct.style.background.image_size_mode = 'stretch';
-        ct.style.border.hidden = true;
-        ct.setBackground('./media/gui/creative_inventory/tab_items.png');
-        ct.hide();
+        const ct = this
+        ct.style.background.color = '#00000000'
+        ct.style.background.image_size_mode = 'stretch'
+        ct.style.border.hidden = true
+        ct.setBackground('./media/gui/creative_inventory/tab_items.png')
+        ct.hide()
 
         // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
-        // Add labels to window
-        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory);
-        ct.add(lbl1);
+        // Window title
+        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
+        ct.add(lbl1)
 
         // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size);
+        this.createInventorySlots(this.cell_size)
 
         // Создание слотов для блоков коллекций
-        this.createCollectionSlots(this.cell_size);
+        this.createCollectionSlots(this.cell_size)
 
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
             const ct = this;
             // Close button
-            let btnClose = new Button(ct.width - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+            let btnClose = new Button(ct.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             btnClose.style.background.image_size_mode = 'stretch';
@@ -241,24 +250,13 @@ export class CreativeInventoryWindow extends Window {
             ct.add(btnClose);
         });
 
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.ESC: {
-                    if(!down) {
-                        ct.hide();
-                        try {
-                            Qubatch.setupMousePointer(true);
-                        } catch(e) {
-                            console.error(e);
-                        }
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
+        // Search input
+        this.createSearchInput()
+
+    }
+
+    // Search input
+    createSearchInput() {
 
         // Text editor
         const txtSearch = new TextEdit(
@@ -269,23 +267,45 @@ export class CreativeInventoryWindow extends Window {
             'txtSearch1',
             null,
             'Type for search'
-        );
-        txtSearch.word_wrap              = false;
-        txtSearch.focused                = true;
-        txtSearch.max_length             = 100;
-        txtSearch.max_lines              = 1;
-        txtSearch.max_chars_per_line     = 20;
+        )
+
+        txtSearch.word_wrap              = false
+        txtSearch.focused                = true
+        txtSearch.max_length             = 100
+        txtSearch.max_lines              = 1
+        txtSearch.max_chars_per_line     = 20
+
         // style
-        txtSearch.style.color            = '#fff';
-        txtSearch.style.border.hidden    = false;
-        txtSearch.style.border.style     = 'inset';
-        txtSearch.style.background.color = '#706f6cff';
-        ct.add(txtSearch);
+        txtSearch.style.border.hidden    = false
+        txtSearch.style.border.style     = 'inset'
+        txtSearch.style.font.color       = '#ffffff'
+        txtSearch.style.background.color = '#706f6c'
+
+        this.add(txtSearch)
 
         txtSearch.onChange = (text) => {
-            this.collection.init(text);
-        };
+            this.collection.init(text)
+        }
 
+    }
+
+    // Hook for keyboard input
+    onKeyEvent(e) {
+        const {keyCode, down, first} = e
+        switch(keyCode) {
+            case KEY.ESC: {
+                if(!down) {
+                    ct.hide();
+                    try {
+                        Qubatch.setupMousePointer(true)
+                    } catch(e) {
+                        console.error(e)
+                    }
+                }
+                return true
+            }
+        }
+        return false
     }
 
     // Обработчик открытия формы
@@ -325,15 +345,14 @@ export class CreativeInventoryWindow extends Window {
 
     //
     createCollectionSlots() {
-        //
         if(this.collection) {
-            console.error('createCollectionSlots() already created');
-            return;
+            console.error('error_create_collection_slots_already_created')
+            return
         }
-        this.collection = new CreativeInventoryCollection(16 * this.zoom, 68 * this.zoom, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
-        this.add(this.collection);
-        this.collection.init();
-        return this.collection;
+        this.collection = new CreativeInventoryCollection(16 * this.zoom, 68 * this.zoom, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots')
+        this.add(this.collection)
+        this.collection.init()
+        return this.collection
     }
 
     // Return inventory slots

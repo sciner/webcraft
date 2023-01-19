@@ -15,12 +15,6 @@ export class InGameMain extends Window {
         this.inventory = inventory;
         this.recipes = recipes;
 
-        // Обработчик открытия формы
-        this.onShow = function() {
-            this.getRoot().center(this);
-            Qubatch.releaseMousePointer();
-        }
-
         const fromInv = new InventoryWindow(inventory, recipes);
         fromInv.autosize = false;
         fromInv.visible = true;
@@ -66,6 +60,13 @@ export class InGameMain extends Window {
             }
         });
 
+    }
+
+    // Обработчик открытия формы
+    onShow() {
+        this.getRoot().center(this)
+        Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
 }
