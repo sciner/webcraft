@@ -41,7 +41,7 @@ export class WebGLRenderTarget extends BaseRenderTarget {
         const gl = this.context.gl;
 
         // we should init texture before linking
-        this.texture.upload();
+        this.texture.bind(0);
         this.framebuffer = gl.createFramebuffer();
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
@@ -54,7 +54,7 @@ export class WebGLRenderTarget extends BaseRenderTarget {
         );
 
         if (this.depthTexture) {
-            this.depthTexture.upload();
+            this.depthTexture.bind(0);
 
             gl.framebufferTexture2D(
                 gl.FRAMEBUFFER,
