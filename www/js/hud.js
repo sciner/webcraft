@@ -535,10 +535,12 @@ export class HUD {
         //
         if (this.block_text) {
             const quest_window = this.wm.hud_window.quests
-            const tm = quest_window.getTextMetrics()
-            const x = this.wm.w - 20 * this.zoom - tm.width
-            const y = quest_window.y + tm.height + 20 * this.zoom
-            this.drawText('block_info', this.block_text, x, y, '#00000044')
+            if(quest_window) {
+                const tm = quest_window.getTextMetrics()
+                const x = this.wm.w - 20 * this.zoom - tm.width
+                const y = quest_window.y + tm.height + 20 * this.zoom
+                this.drawText('block_info', this.block_text, x, y, '#00000044')
+            }
         }
     }
 
