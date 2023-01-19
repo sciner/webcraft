@@ -780,10 +780,9 @@ export class ServerChunk {
         const world = this.world;
         
         // метод работы со сталактитами и сталагмитами
-        const changePointedDripstone = (destroy = false) => {
-            const n = destroy ? 3 : 2;
+        const changePointedDripstone = () => {
             const up = tblock?.extra_data?.up;
-            const block = this.getBlock(neighbour.posworld.offset(0, up ? n : -n, 0), null, true);
+            const block = this.getBlock(neighbour.posworld.offset(0, up ? 2 : -2, 0), null, true);
             if (block?.id == BLOCK.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
                 const actions = new WorldAction();
                 actions.addBlocks([{
@@ -989,7 +988,7 @@ export class ServerChunk {
                     break;
                 }
                 case 'pointed_dripstone': {
-                    changePointedDripstone(true);
+                    changePointedDripstone();
                     break;
                 }
             }
@@ -1085,7 +1084,7 @@ export class ServerChunk {
                     break;
                 }
                 case 'pointed_dripstone': {
-                    changePointedDripstone(false);
+                    changePointedDripstone();
                     break;
                 }
             }

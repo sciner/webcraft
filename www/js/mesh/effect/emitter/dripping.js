@@ -1,5 +1,5 @@
 import { getChunkAddr, IndexedColor, Vector } from "../../../helpers.js";
-import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../../effect.js";
+import { DEFAULT_EFFECT_MATERIAL_KEY } from "../../effect.js";
 import { Mesh_Effect_Particle } from "../particle.js";
 
 export default class emitter {
@@ -9,7 +9,7 @@ export default class emitter {
     ];
 
     constructor(pos, args) {
-        this.max_distance = 50;
+        this.max_distance = 20;
         this.pp = IndexedColor.WHITE.clone().pack();
         this.pos = pos;
         this.chunk_addr = getChunkAddr(this.pos);
@@ -17,7 +17,7 @@ export default class emitter {
         const m = this.material_key.split('/');
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);
         this.material = resource_pack.getMaterial(this.material_key);
-        this.timer = 0;
+        this.ticks = 0;
         this.isWater = args.isWater;
     }
 
@@ -34,14 +34,10 @@ export default class emitter {
      * @returns {Mesh_Effect_Particle[]}
      */
     emit() {
-        this.timer++;
-        if (this.timer % 100 != 0 || Math.random() > 0.5) {
+        if ((this.ticks++ % (100 + Math.round(Math.random() * 50))) != 0) {
             return [];
         }
-        const { texture, texture_index } = getEffectTexture(emitter.textures);
-        if (texture_index == 0 && this.isWater) {
-            return [];
-        }
+        const texture = this.isWater ? emitter.textures[1] : emitter.textures[0];
         const particle = new Mesh_Effect_Particle({
             life: 2,
             texture: texture,

@@ -6,7 +6,7 @@ import { default as default_style } from './default.js';
 
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
 
-// pointed_dripstone
+// style pointed_dripstone
 export default class style {
 
     // getRegInfo
@@ -29,33 +29,30 @@ export default class style {
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
         }
-        
         const extra_data = block.extra_data;
-        const material = block.material;
-        const texture = getTexture(material, extra_data, neighbours);
+        const dir = getDirection(extra_data, neighbours)
+        const texture = BLOCK.calcTexture(block.material.texture, dir);
         const planes = [];
         planes.push(...[
-            {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [block.extra_data?.up ? 0 : Math.PI, block.extra_data?.up ? Math.PI / 4 : Math.PI * 5 / 4, 0]},
-            {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [block.extra_data?.up ? 0 : Math.PI, block.extra_data?.up ? -Math.PI / 4 : Math.PI * 3 / 4, 0]}
+            {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [extra_data?.up ? 0 : Math.PI, extra_data?.up ? Math.PI / 4 : Math.PI * 5 / 4, 0]},
+            {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [extra_data?.up ? 0 : Math.PI, extra_data?.up ? -Math.PI / 4 : Math.PI * 3 / 4, 0]}
         ]);
-        const flag = 0;
         const pos = new Vector(x, y, z);
-        const lm = IndexedColor.WHITE;
         for (const plane of planes) {
             default_style.pushPlane(vertices, {
                 ...plane,
-                lm:         lm,
+                lm:         IndexedColor.WHITE,
                 pos:        pos,
                 matrix:     matrix,
-                flag:       flag,
+                flag:       0,
                 texture:    [...texture]
             });
         }
-        // @todo анимация капель, переделать под тикер
-        if (typeof worker != 'undefined' && extra_data?.up == true && texture[0] == 0.6328125 && (extra_data?.water || extra_data?.lava)) {
+        // анимация капель
+        if (typeof worker != 'undefined' && extra_data?.up == true && dir == DIRECTION.UP && (extra_data?.water || extra_data?.lava)) {
             worker.postMessage(['add_animated_block', {
-                block_pos:  block.posworld,
-                pos:        [block.posworld.add(new Vector(.5, .5, .5))],
+                block_pos:  pos,
+                pos:        [pos.add(new Vector(.5, .5, .5))],
                 type:       'dripping',
                 isWater:    extra_data?.water
             }]);
@@ -64,7 +61,7 @@ export default class style {
 
 }
 
-function getTexture(material, extra_data, neighbours) {
+function getDirection(extra_data, neighbours) {
     const check = (n) => {
         if(neighbours[n].tb) {
             const next_neighbours = neighbours[n].tb.getNeighbours(neighbours[n], null, BLOCK_CACHE);
@@ -74,29 +71,29 @@ function getTexture(material, extra_data, neighbours) {
     };
     if (extra_data?.up) {
         if (neighbours.DOWN.id == BLOCK.AIR.id && neighbours.DOWN.fluid == 0) {
-            return BLOCK.calcTexture(material.texture, DIRECTION.UP);
+            return DIRECTION.UP;
         }
         if (extra_data?.up && !neighbours.DOWN?.extra_data?.up) {
-            return BLOCK.calcTexture(material.texture, DIRECTION.WEST);
+            return DIRECTION.WEST;
         }
         if (neighbours.UP.id == BLOCK.DRIPSTONE_BLOCK.id) {
             if (check('DOWN')) {
-                return BLOCK.calcTexture(material.texture, DIRECTION.DOWN);
+                return DIRECTION.DOWN;
             }
-            return BLOCK.calcTexture(material.texture, DIRECTION.NORTH);
+            return DIRECTION.NORTH;
         }
         if (check('DOWN')) {
-            return BLOCK.calcTexture(material.texture, DIRECTION.SOUTH);
+            return DIRECTION.SOUTH;
         }
     }
     if (neighbours.UP.id == BLOCK.AIR.id && neighbours.UP.fluid == 0) {
-        return BLOCK.calcTexture(material.texture, DIRECTION.UP);
+        return DIRECTION.UP;
     }
     if (!extra_data?.up && neighbours.UP?.extra_data?.up) {
-        return BLOCK.calcTexture(material.texture, DIRECTION.WEST);
+        return DIRECTION.WEST;
     }
     if (check('UP')) {
-        return BLOCK.calcTexture(material.texture, DIRECTION.SOUTH);
+        return DIRECTION.SOUTH;
     }
-    return BLOCK.calcTexture(material.texture, DIRECTION.NORTH);
+    return DIRECTION.NORTH;
 }
