@@ -1,5 +1,7 @@
 import { PIXI } from "./pixi.js"
 
+export const USE_BITMAP_FONT = false;
+
 const colors = {
     list: [0xff00ff, 0xffff00, 0x00ff00, 0xff0000, 0x0000ff, 0x00fffff],
     index: 0
@@ -142,20 +144,20 @@ export class BackgroundStyle {
         new Promise((resolve, reject) => {
 
             if (typeof urlOrImage == 'string') {
-    
+
                 const image = new Image()
                 image.onload = (e) => {
                     resolve(setImage(image))
                 }
                 image.onError = reject
                 image.src = urlOrImage
-    
+
             } else if(urlOrImage instanceof Image) {
-    
+
                 resolve(setImage(urlOrImage))
-    
+
             }
-            
+
         })*/
     }
 
@@ -243,12 +245,16 @@ export class FontStyle {
 
         this.#window = window
 
+        this.useBitmapFont = false;
+        this._bitmap_font_style = {
+            fontName: 'UbuntuMono-Regular',
+            fontSize: 20 * window.zoom,
+        }
         this._font_style = new PIXI.TextStyle({
             fontFamily: 'Tahoma',
             fontSize: 20 * window.zoom,
             fontWeight: 'normal'
         })
-
         this._color = '#000000'
 
         this.shadow = {
@@ -267,14 +273,20 @@ export class FontStyle {
      * @type {string}
      */
     get align() {
-        return this.#window.text_container.style.align
+        const tc = this.#window.text_container;
+        return tc.align || tc.style.align
     }
 
     /**
      * @param {string} value
      */
     set align(value) {
-        this.#window.text_container.style.align = value
+        const tc = this.#window.text_container;
+        if (tc.align) {
+            tc.align = value
+        } else {
+            tc.style.align = value;
+        }
     }
 
     /**
@@ -282,6 +294,7 @@ export class FontStyle {
      */
     set size(value) {
         this._font_style.fontSize = value * this.#window.zoom
+        this._bitmap_font_style.fontSize = value * this.#window.zoom
     }
 
     /**
@@ -296,6 +309,8 @@ export class FontStyle {
      */
     set family(value) {
         this._font_style.fontFamily = value
+        this._bitmap_font_style.fontFamily = value
+        this.useBitmapFont = (value === 'UbuntuMono-Regular');
     }
 
     /**
@@ -312,7 +327,7 @@ export class FontStyle {
     set color(value) {
         const {color, alpha} = parseColorAndAlpha(value)
         this._color = value
-        if(this.#window.text_container) {
+        if(this.#window.text_container?.style) {
             this.#window.text_container.style.fill = color
         }
     }
@@ -378,7 +393,7 @@ export class Style {
             this._background.image = image
         }
     }
-    
+
     /**
      * @returns {TextAlignStyle}
      */
