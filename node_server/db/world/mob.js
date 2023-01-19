@@ -1,7 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../../www/js/chunk_const.js';
-import { getChunkAddr, Vector, VectorCollector, unixTime } from '../../../www/js/helpers.js';
+import { getChunkAddr, Vector, VectorCollector } from '../../../www/js/helpers.js';
 import { Mob } from "../../mob.js";
-import { BulkSelectQuery } from "../db_helpers.js";
+import { BulkSelectQuery, preprocessSQL } from "../db_helpers.js";
 
 export class DBWorldMob {
 
@@ -11,72 +11,84 @@ export class DBWorldMob {
         this.getDefaultPlayerStats = getDefaultPlayerStats;
         this.getDefaultPlayerIndicators = getDefaultPlayerIndicators;
 
-        this.bulkLoadInChunkQuery = new BulkSelectQuery(this.conn,
+        this.bulkLoadActiveInVolumeQuery = new BulkSelectQuery(this.conn,
             `WITH cte AS (SELECT key, value FROM json_each(:jsonRows))
             SELECT cte.key, entity.*
             FROM cte, entity
             WHERE is_active = 1 AND x >= %0 AND x < %1 AND y >= %2 AND y < %3 AND z >= %4 AND z < %5`,
             'key'
         );
-
-        // init
-        this.initChunksWithMobs();
     }
 
-    chunkHasMobs(addr) {
-        return this.chunks_with_mobs.has(addr);
+    async getMaxId() {
+        return (await this.conn.get('SELECT id FROM entity ORDER BY id DESC LIMIT 1'))?.id ?? 0;
     }
 
-    //
-    _cacheMob(entity_id, pos, is_active) {
+    /**
+     * If the mob changed its chunk:
+     *  - if is_active === true, adds to the conut of mobs in the new chunk
+     *  - if the mob was in a chunk, queues decrement of mobs count in that old chunk
+     * To actually decrement the mobs count, call {@link onWorldTransactionCommit}
+     */
+    _cacheMob(id, is_active, x = null, y = null, z = null) {
 
-        const old_chunk_addr = this._mobs.get(entity_id);
-        const new_chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
+        const old_chunk_addr = this._addrByMobId.get(id);
+        const new_chunk_addr = is_active && getChunkAddr(x, y, z, tmpAddr);
 
-        // если моб уже в этом чанке, то ничего не делаем
         if(old_chunk_addr) {
-            if(old_chunk_addr.equal(new_chunk_addr)) {
-                return false;
-            } else {
-                // удалить из списка мобов старого чанка
-                const old_list = this.chunks_with_mobs.get(old_chunk_addr);
-                if(old_list && old_list.has(entity_id)) {
-                    old_list.delete(entity_id);
-                    if(old_list.size == 0) {
-                        this.chunks_with_mobs.delete(old_chunk_addr);
-                    }
-                }
+            if(new_chunk_addr && old_chunk_addr.equal(new_chunk_addr)) {
+                // the mob remains active in the same chunk
+                return;
+            }
+            // remember to subtract the mob from the old chunk after the transaction commits
+            this._previouslyOccupiedAddrs.push(old_chunk_addr.clone());
+        } else {
+            if (!new_chunk_addr) {
+                // the mob wasn't active, and still isn't
+                return;
             }
         }
 
-        // список мобов в чанке
-        const list = this.chunks_with_mobs.get(new_chunk_addr) || new Map();
-
-        // добавляем в чанк
-        list.set(entity_id, true);
-        this._mobs.set(entity_id, new_chunk_addr);
-
-        if(list.size == 1) {
-            this.chunks_with_mobs.set(new_chunk_addr, list);
+        // update to which chunk the mob is currently added
+        if (new_chunk_addr) {
+            this._activeMobsInChunkCount.update(new_chunk_addr, n => (n ?? 0) + 1);
+            this._addrByMobId.set(id, new_chunk_addr);
+        } else {
+            this._addrByMobId.delete(id);
         }
+    }
 
-        return true;
-
+    // Removes cached mobs from chunks that they previously occupied. Only the world transaction should call it.
+    onWorldTransactionCommit() {
+        const decrement = (n) => (--n > 0) ? n : null;
+        for(const addr of this._previouslyOccupiedAddrs) {
+            this._activeMobsInChunkCount.update(addr, decrement);
+        }
+        this._previouslyOccupiedAddrs.length = [];
     }
 
     // initChunksAddrWithMobs
     async initChunksWithMobs() {
-        this.chunks_with_mobs = new VectorCollector();
-        this._mobs = new Map();
-        let rows = await this.conn.all(`SELECT entity_id, x, y, z, is_active /* DISTINCT
+        // keys = addresses of chunks with active mobs in DB
+        // valus = the number of active mobs in DB in this chunk
+        this._activeMobsInChunkCount = new VectorCollector();
+        // key = active mob id
+        // value = address of the chunk where the mob is currently added to _activeMobsInChunkCount
+        // It doesn't include this._previouslyOccupiedAddrs.
+        this._addrByMobId = new Map();
+        // Addresses of chunks that still hold a mob that moved to another chunk, but should lose that mob
+        // after all the changes are written. It's to avoid race conditions.
+        this._previouslyOccupiedAddrs = [];
+
+        let rows = await this.conn.all(`SELECT id, x, y, z /*, is_active DISTINCT
             cast(x / ${CHUNK_SIZE_X} as int) - (x / ${CHUNK_SIZE_X} < cast(x / ${CHUNK_SIZE_X} as int)) AS x,
             cast(y / ${CHUNK_SIZE_Y} as int) - (y / ${CHUNK_SIZE_Y} < cast(y / ${CHUNK_SIZE_Y} as int)) AS y,
             cast(z / ${CHUNK_SIZE_Z} as int) - (z / ${CHUNK_SIZE_Z} < cast(z / ${CHUNK_SIZE_Z} as int)) AS z
             */
-        FROM entity`);
+        FROM entity
+        WHERE is_active = 1`);
         for(let row of rows) {
-            const pos = new Vector(row.x, row.y, row.z);
-            this._cacheMob(row.entity_id, pos, row.is_active);
+            this._cacheMob(row.id, true, row.x, row.y, row.z);
         }
     }
 
@@ -84,12 +96,12 @@ export class DBWorldMob {
     // TODO optimize: merge volumes for adjacent chunks, then separate mobs into chunks on host
     async loadInChunk(chunk) {
         const resp = new Map();
-        if(!this.chunkHasMobs(chunk.addr)) {
+        if(!this._activeMobsInChunkCount.has(chunk.addr)) {
             return resp;
         }
         const coord = chunk.coord;
         const size = chunk.size;
-        const rows = await this.bulkLoadInChunkQuery.all([
+        const rows = await this.bulkLoadActiveInVolumeQuery.all([
             coord.x,
             coord.x + size.x,
             coord.y,
@@ -115,91 +127,77 @@ export class DBWorldMob {
         return null;
     }
 
-    // Activate mob
-    async activateMob(entity_id, pos, rotate) {
-        const result = await this.conn.run('UPDATE entity SET x = :x, y = :y, z = :z, is_active = 1, pos_spawn = :pos_spawn, rotate = :rotate WHERE entity_id = :entity_id', {
-            ':x': pos.x,
-            ':y': pos.y,
-            ':z': pos.z,
-            ':pos_spawn': JSON.stringify(pos),
-            ':rotate': JSON.stringify(rotate),
-            ':entity_id': entity_id
+    async bulkUpdate(rows) {
+        return rows.length && this.conn.run(this.BULK_UPDATE, {
+            ':jsonRows': JSON.stringify(rows)
+        }).then(() => {
+            for(const row of rows) {
+                // we know active = true because this method called only for mobs that remain active
+                this._cacheMob(row[0], true, row[1], row[2], row[3]);
+            }
         });
-        this._cacheMob(entity_id, pos);
-    }
+    };
+    BULK_UPDATE_FIELDS = 'x = %1, y = %2, z = %3, indicators = %4, extra_data = %5, rotate = %6'
+    BULK_UPDATE = preprocessSQL(`
+        UPDATE entity
+        SET ${this.BULK_UPDATE_FIELDS}
+        FROM json_each(:jsonRows)
+        WHERE entity.id = %0
+    `);
 
-    // Create mob
-    async create(params) {
-        const entity_id = randomUUID();
-        if(!('pos' in params)) {
-            throw 'error_no_mob_pos';
-        }
-        const result = await this.conn.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn, extra_data) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn, :extra_data)', {
-            ':dt':              unixTime(),
-            ':entity_id':       entity_id,
-            ':type':            params.type,
-            ':skin':            params.skin,
-            ':indicators':      JSON.stringify(params.indicators),
-            ':rotate':          JSON.stringify(params.rotate),
-            ':pos_spawn':       JSON.stringify(params.pos),
-            ':extra_data':      params.extra_data ? JSON.stringify(params.extra_data) : null,
-            ':x':               params.pos.x,
-            ':y':               params.pos.y,
-            ':z':               params.pos.z
+    async bulkFullUpdate(rows) {
+        return rows.length && this.conn.run(this.BULK_FULL_UPDATE, {
+            ':jsonRows': JSON.stringify(rows)
+        }).then(() => {
+            for(const row of rows) {
+                this._cacheMob(row[0], row[7], row[1], row[2], row[3]);
+            }
         });
-        // lastID
-        let lastID = result.lastID;
-        if(!result.lastID) {
-            const row = await this.conn.get('SELECT id AS lastID FROM entity WHERE entity_id = :entity_id', {
-                ':entity_id': entity_id
-            });
-            lastID = row.lastID;
-        }
-        lastID = parseInt(lastID);
-        //
-        const resp = {
-            id:         lastID,
-            entity_id:  entity_id,
-            pos_spawn:  params.pos.clone(),
-            is_active:  true
-        };
-        this._cacheMob(entity_id, params.pos);
-        return resp;
-    }
+    };
+    BULK_FULL_UPDATE = preprocessSQL(`
+        UPDATE entity
+        SET ${this.BULK_UPDATE_FIELDS}, is_active = %7, pos_spawn = %8
+        FROM json_each(:jsonRows)
+        WHERE entity.id = %0
+    `);
 
-    // Save mob state
-    async save(mob) {
-        const is_active = mob.is_active ? 1 : 0;
-        await this.conn.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active, extra_data = :extra_data WHERE id = :id', {
-            ':x': mob.pos.x,
-            ':y': mob.pos.y,
-            ':z': mob.pos.z,
-            ':id': mob.id,
-            ':is_active': is_active,
-            ':extra_data': JSON.stringify(mob.extra_data),
-            ':indicators': JSON.stringify(mob.indicators)
+    async bulkInsert(rows, dt) {
+        return rows.length && this.conn.run(this.BULK_INSERT, {
+            ':jsonRows': JSON.stringify(rows),
+            ':dt': dt
+        }).then(() => {
+            for(const row of rows) {
+                this._cacheMob(row[0], row[7], row[1], row[2], row[3]);
+            }
         });
-        this._cacheMob(mob.entity_id, mob.pos, is_active);
-    }
+    };
+    BULK_INSERT = preprocessSQL(`
+        INSERT INTO entity (
+            id,
+            x, y, z,
+            indicators, extra_data, rotate, -- common for all updates
+            is_active, pos_spawn,            -- included in a full update
+            entity_id, type, skin, dt       -- insert only
+        ) SELECT
+            %0,
+            %1, %2, %3,
+            %4, %5, %6,
+            %7, %8,
+            %9, %10, %11, :dt
+        FROM json_each(:jsonRows)
+    `);
 
-    async delete(mob) {
-        await this.conn.run('DELETE FROM entity WHERE id = ?', [mob.id]);
-    }
-
-    // chunkMobsSetGenerated...
-    async chunkMobsSetGenerated(chunk_addr_hash, mobs_is_generated) {
-        const result = await this.conn.run('INSERT OR IGNORE INTO chunk(dt, addr, mobs_is_generated) VALUES (:dt, :addr, :mobs_is_generated)', {
-            ':dt':                  unixTime(),
-            ':addr':                chunk_addr_hash,
-            ':mobs_is_generated':   mobs_is_generated
+    async bulkDelete(ids) {
+        return ids.length && this.conn.run(
+            'DELETE FROM entity WHERE id IN (SELECT value FROM json_each(?))',
+            [JSON.stringify(ids)]
+        ).then(() => {
+            for(const id of ids) {
+                this._cacheMob(id, false);
+            }
         });
-        // It works both in single- and multi- player. In single, it always runs the update.
-        if (!result.changes) {
-            await this.conn.run('UPDATE chunk SET mobs_is_generated = :mobs_is_generated WHERE addr = :addr', {
-                ':addr':                chunk_addr_hash,
-                ':mobs_is_generated':   mobs_is_generated
-            });
-        }
-    }
+    };
 
 }
+
+const tmpAddr = new Vector();

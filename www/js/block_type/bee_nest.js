@@ -8,7 +8,7 @@ export class BeeNest {
     }
 
     // Move mob into block and deactivate mob in world
-    async appendMob(mob) {
+    appendMob(mob) {
         const tblock = this.tblock;
         const world = mob.getWorld();
         // 1. Add mob into block
@@ -24,7 +24,7 @@ export class BeeNest {
         actions.addBlocks([updated_blocks]);
         world.actions_queue.add(null, actions);
         // 4. Deactivate mob and remove from world
-        await mob.deactivate();
+        mob.deactivate();
     }
 
 }

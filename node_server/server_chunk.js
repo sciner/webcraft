@@ -10,9 +10,11 @@ import { compressWorldModifyChunk, decompressModifiresList } from "../www/js/com
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
+import { Mob } from "./mob.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "../www/js/light/ChunkLight.js";
 import { ChunkDBActor } from "./db/world/ChunkDBActor.js";
+import { KNOWN_CHUNK_FLAGS } from "./db/world/WorldDBActor.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -424,7 +426,7 @@ export class ServerChunk {
         for(const stuff of this.unloadedStuff) {
             stuff.restoreUnloaded(this);
         }
-        this.unloadedStuff = [];
+        this.unloadedStuff.length = 0;
         this.chunkManager.dataWorld.addChunk(this, true);
         this.onBlocksGeneratedOrRestored();
         this.onMobsLoadedOrRestored();
@@ -455,10 +457,11 @@ export class ServerChunk {
         // load various data in parallel
         const chunkRecordMobsPromise = this.world.db.chunks.getChunkOfChunk(this).then( async chunkRecord => {
             this.chunkRecord = chunkRecord;
-            chunkRecord.chunk = this.chunk;
+            chunkRecord.chunk = this; // some fields are taken directly from the chunk when inserting/updateing chunkRecord
             // now we can load things that required chunkRecord
             if (chunkRecord.delayed_calls) {
                 this.delayedCalls.deserialize(chunkRecord.delayed_calls);
+                delete chunkRecord.delayed_calls;
             }
             this.mobs = await this.world.db.mobs.loadInChunk(this);
         });
@@ -749,7 +752,7 @@ export class ServerChunk {
                         pos_spawn      : pos.clone(),
                         rotate         : item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
-                    await this.world.mobs.create(params);
+                    this.world.mobs.create(params);
                     const actions = new WorldAction(null, this.world, false, false);
                     actions.addBlocks([
                         {pos: item_pos, item: {id: BLOCK.AIR.id}, destroy_block_id: item.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
@@ -1252,39 +1255,48 @@ export class ServerChunk {
         }
 
         const promises = [];
+        let inWorldTransaction = this.dbActor.mustSave();
         if (this.dataChunk) {
             promises.push(chunkManager.world.db.fluid.flushChunk(this.tblocks.fluid))
         }
         // Unload mobs
-        if(this.mobs.size > 0) {
-            for(let mob of this.mobs.values()) {
-                if (mob.isAlive()) {
-                    this.unloadedStuff.push(mob);
-                }
-                promises.push(mob.onUnload(this));
-            }
+        for(let mob of this.mobs.values()) {
+            this.unloadedStuff.push(mob);
+            inWorldTransaction ||= mob.onUnload(this);
         }
         // Unload drop items
-        if(this.drop_items.size > 0) {
-            for(let drop_item of this.drop_items.values()) {
-                this.unloadedStuff.push(drop_item);
-                promises.push(drop_item.onUnload());
-            }
+        for(let drop_item of this.drop_items.values()) {
+            this.unloadedStuff.push(drop_item);
+            inWorldTransaction ||= drop_item.onUnload();
         }
-        promises.push(this.dbActor.getSavePromise()); // it's ok to push null
+        if (inWorldTransaction) {
+            this.world.dbActor.dirtyChunks.add(this);
+            promises.push(this.world.dbActor.worldSavingPromise);
+        }
         this.readyPromise = Promise.all(promises).then(() => {
             if (this.load_state === CHUNK_STATE.UNLOADING) {
                 this.setState(CHUNK_STATE.UNLOADED);
                 this.chunkManager.chunkUnloaded(this);
             }
         });
-        await this.readyPromise;
+        return this.readyPromise;
     }
 
     dispose() {
+        // the chunk is already removed from dbActor.dirtyChunks, because it wrote all its data when it unloaded
         this.setState(CHUNK_STATE.DISPOSED);
         this.light.dispose();
         this.chunkManager.chunkDisposed(this);
+    }
+
+    writeToWorldTransaction() {
+        this.dbActor.writeToWorldTransaction();
+
+        const uc = this.world.dbActor.underConstruction;
+        for(const stuff of this.unloadedStuff) {
+            stuff.writeToWorldTransaction(uc, true);
+        }
+        this.unloadedStuff.length = 0;
     }
 }
 

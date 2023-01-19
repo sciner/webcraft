@@ -79,7 +79,7 @@ export class ServerWorld {
                 this.brains.add(fn, module.Brain);
             });
         }
-        t = performance.now() - t;
+        t = performance.now() - t | 0;
         if (t > 50) {
             console.log('Importing tickers, listeners & brains: ' + t + ' ms');
         }
@@ -129,11 +129,13 @@ export class ServerWorld {
         await this.models.init();
         await this.quests.init();
         await this.admins.load();
+        await this.mobs.init();
         t = performance.now();
         await this.db.chunks.restoreModifiedChunks();
         await this.db.chunks.restoreChunks();
         await this.db.fluid.restoreFluidChunks();
-        console.log(`Restoring known chunks flags: ${performance.now() - t | 0} ms`)
+        await this.db.mobs.initChunksWithMobs();
+        console.log(`Restored ${this.dbActor.knownChunkFlags.size} chunks, ${this.db.mobs._addrByMobId.size} mobs, elapsed: ${performance.now() - t | 0} ms`)
         await this.chunks.initWorker();
         await this.chunks.initWorkers(world_guid);
 
@@ -975,17 +977,14 @@ export class ServerWorld {
         if(actions.mobs.spawn.length > 0) {
             for(let i = 0; i < actions.mobs.spawn.length; i++) {
                 const params = actions.mobs.spawn[i];
-                await this.mobs.create(params);
+                this.mobs.create(params);
             }
         }
         // Activate mobs
         // мало кода, но работает медленнее ;)
         // actions.mobs.activate.map((_, v) => await this.mobs.activate(v.entity_id, v.spawn_pos, v.rotate));
-        if(actions.mobs.activate.length > 0) {
-            for(let i = 0; i < actions.mobs.activate.length; i++) {
-                const params = actions.mobs.activate[i];
-                await this.mobs.activate(params.entity_id, params.spawn_pos, params.rotate);
-            }
+        for(const params of actions.mobs.activate) {
+            await this.mobs.activate(params.entity_id, params.spawn_pos, params.rotate);
         }
     }
 

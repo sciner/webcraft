@@ -1,16 +1,16 @@
 import { unixTime, Vector, VectorCollector } from "../../../www/js/helpers.js";
 import { BLOCK_DIRTY } from "./ChunkDBActor.js";
+import { WORLD_TRANSACTION_PERIOD, WORLD_TRANSACTION_MAX_DIRTY_BLOCKS } from "../../server_constant.js";
 
 export const KNOWN_CHUNK_FLAGS = {
-    IN_WORLD_MODIFY_CHUNKS: 0x1, // has a record in world_modify_chunks
-    MODIFIED_BLOCKS:        0x2, // has any modified blocks (in DB or in memory)
-    IN_CHUNK:               0x4, // has a record in "chunk" table
-    MODIFIED_FLUID:         0x8
+    DB_WORLD_MODIFY_CHUNKS: 0x1,  // has a record in world_modify_chunks
+    MODIFIED_BLOCKS:        0x2,  // has any modified blocks (in DB or in memory)
+    DB_CHUNK:               0x4,  // has a record in "chunk" table
+    MODIFIED_FLUID:         0x8   // has a record in "world_chunks_fluid" table
 };
-KNOWN_CHUNK_FLAGS.ANY_MODIFIERS_MASK = KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS | KNOWN_CHUNK_FLAGS.MODIFIED_FLUID;
-
-const WORLD_TRANSACTION_PERIOD = 3000;  // the normal time (in ms) betwen world-saving transactions
-const MAX_BLOCK_DIRTYS = 10000;         // if there are more dirty blocks than this, world world transaction starts immediately
+Object.assign(KNOWN_CHUNK_FLAGS, {
+    ANY_MODIFIERS_MASK: KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS | KNOWN_CHUNK_FLAGS.MODIFIED_FLUID
+});
 
 const RECOVERY_BLOB_VERSION = 1001;
 
@@ -74,6 +74,10 @@ export class WorldDBActor {
         }
     }
 
+    removeKnownChunkFlags(addr, flags) {
+        this.knownChunkFlags.update(addr, it => (it ?? 0) & ~flags );
+    }
+
     knownChunkHasFlags(addr, flags) {
         return (this.knownChunkFlags.get(addr) & flags) != 0;
     }
@@ -100,15 +104,17 @@ export class WorldDBActor {
         }
     }
 
-    pushPromise(promise = null) {
-        if (promise != null) {
-            this.underConstruction.promises.push(promise);
+    pushPromises(args) {
+        for(const promise of arguments) {
+            if (promise != null) {
+                this.underConstruction.promises.push(promise);
+            }
         }
     }
 
     async saveWorldIfNecessary() {
         if (this._lastWorldTransactionTime + WORLD_TRANSACTION_PERIOD < performance.now() ||
-            this.totalDirtyBlocks > MAX_BLOCK_DIRTYS
+            this.totalDirtyBlocks > WORLD_TRANSACTION_MAX_DIRTY_BLOCKS
         ) {
             this.totalDirtyBlocks = 0;
             return this.saveWorld();
@@ -129,7 +135,7 @@ export class WorldDBActor {
         // await for the previous ongoing transaction, then start a new one
         const transaction = await this.beginTransaction(true);
         this._lastWorldTransactionTime = performance.now(); // remember the actual time when it begins
-        const dt = unixTime(); // used for all inserted/updated records
+        const dt = unixTime(); // used for most inserted/updated records (except where individual times are important, e.g. drop items)
 
         // from now on, others must wait for the next world-saving transaction
         const worldSavingResolve = this._worldSavingResolve;
@@ -137,15 +143,24 @@ export class WorldDBActor {
 
         // temporary data used during this transaction
         this.underConstruction = {
+            dt,
             promises: [], // all the pomises of async actions in this transaction
 
+            // world_modify
             insertBlocks: [],
             updateBlocksWithUnknownRowId: [],
             updateBlocks: [],
             updateBlocksExtraData: [],
+            // chunk
             insertOrUpdateChunk: [],
-            insertOrUpdateDropItems: [],
-            deleteDropItemEntityIds: null, // it'll be taken directly from ItemWorld
+            // drop_item
+            insertDropItemRows: [],
+            updateDropItemRows: [],
+            // entity (mobs)
+            insertMobRows: [],
+            fullUpdateMobRows: [], // these have more data than regular updates, that's why they are separated
+            updateMobRows: [],
+            deleteMobIds: [],
 
             // the data to be saved in world.recovery as a BLOB
             unsavedChunkRowIds: [], // if we know rowId of a chunk - put it here, it reduces the BLOB size
@@ -157,7 +172,11 @@ export class WorldDBActor {
         try {
             // chunks write everything they need. Updated blocks with unknown rowIds are queued.
             for(const chunk of this.dirtyChunks) {
-                chunk.dbActor.writeToWorldTransaction();
+                chunk.writeToWorldTransaction();
+                // the only reason chunks can remain in dirtyChunks is if they have unsaved changes in world_modify_chunks
+                if (!chunk.dbActor.unsavedBlocks.size) {
+                    this.dirtyChunks.delete(chunk);
+                }
             }
 
             // For updated blocks with unknown rowIds:
@@ -195,25 +214,33 @@ export class WorldDBActor {
                         db.chunks.bulkUpdateWorldModifyExtraData(uc.updateBlocksExtraData, dt)
                     ])
                 );
-            this.pushPromise(blocksBulkQueriesPromise);
+            this.pushPromises(blocksBulkQueriesPromise);
 
             // rows of "chunk" table
-            this.pushPromise(
+            this.pushPromises(
                 db.chunks.bulkInsertOrUpdateChunk(uc.insertOrUpdateChunk, dt)
             );
 
-            // drop items (unloaded items have been already added from chunks)
+            // some unloaded items have been already added from chunks
             this.world.chunkManager.itemWorld.writeToWorldTransaction();
-            this.pushPromise(
-                db.bulkInsertOrUpdateDropItems(uc.insertOrUpdateDropItems, dt)
-            );
-            this.pushPromise(
-                db.bulkDeleteDropItems(uc.deleteDropItemEntityIds, dt)
+            this.pushPromises(
+                db.bulkInsertDropItems(uc.insertDropItemRows),
+                db.bulkUpdateDropItems(uc.updateDropItemRows),
             );
 
-            // TODO inventory, ?mobs?
+            // some unloaded mobs have been already added from chunks
+            this.world.mobs.writeToWorldTransaction();
+            this.pushPromises(
+                db.mobs.bulkInsert(uc.insertMobRows, dt),
+                db.mobs.bulkFullUpdate(uc.fullUpdateMobRows),
+                db.mobs.bulkUpdate(uc.updateMobRows),
+                db.mobs.bulkDelete(uc.deleteMobIds)
+            );
 
-            this.pushPromise(this.writeRecoveryBlob());
+
+            // TODO inventory
+
+            this.pushPromises(this.writeRecoveryBlob());
         } catch(e) {
             // The game can't continue. The DB transcation will rollback automatically.
             await this.world.terminate("Error while building world-saving transaction", e);
@@ -226,6 +253,8 @@ export class WorldDBActor {
         Promise.all(uc.promises).then(
             () => {
                 transaction.commit();
+                this.world.mobs.onWorldTransactionCommit();
+                this.db.mobs.onWorldTransactionCommit();
                 worldSavingResolve();
             },
             async err => {

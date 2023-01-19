@@ -1,7 +1,7 @@
 import { Vector } from "../../../www/js/helpers.js";
 import { CHUNK_STATE } from "../../../www/js/chunk_const.js";
 import { KNOWN_CHUNK_FLAGS } from "./WorldDBActor.js";
-import { DropItem } from '../../drop_item.js';
+import { WORLD_MODIFY_CHUNKS_TTL } from "../../server_constant.js";
 
 export const BLOCK_DIRTY = {
     CLEAR:              0, // used to keep rowIDs of blocks that are frequently modified
@@ -9,9 +9,6 @@ export const BLOCK_DIRTY = {
     UPDATE:             2,
     UPDATE_EXTRA_DATA:  3
 };
-
-// Don't confuse it with global WORLD_TRANSACTION_PERIOD: it's bigger, and only affects updating world_modify_chunks
-const WORLD_MODIFY_CHUNKS_TTL   = 60 * 1000;
 
 // It manages DB queries of one chunk.
 export class ChunkDBActor {
@@ -49,7 +46,7 @@ export class ChunkDBActor {
         this.earliestUnsavedChangeTime = Infinity;
 
         // It can be true, false or a Number (a known rowId)
-        this.world_modify_chunk_hasRowId = this.world.dbActor.knownChunkHasFlags(chunk.addr, KNOWN_CHUNK_FLAGS.IN_WORLD_MODIFY_CHUNKS);
+        this.world_modify_chunk_hasRowId = this.world.dbActor.knownChunkHasFlags(chunk.addr, KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS);
     }
 
     get world() {
@@ -72,9 +69,8 @@ export class ChunkDBActor {
                 // if someone deleted the record while the game was running.
                 // Don't crash, but don't try to rebuild the data.
                 row = { obj: {} };
-                this.world.dbActor.knownChunkFlags.update(this.chunk.addr, it => 
-                    (it ?? 0) & ~KNOWN_CHUNK_FLAGS.IN_WORLD_MODIFY_CHUNKS
-                );
+                this.world.dbActor.removeKnownChunkFlags(
+                    this.chunk.addr, KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS);
             }
             this.world_modify_chunk_hasRowId = row.rowId ?? false;
             return row;
@@ -203,21 +199,13 @@ export class ChunkDBActor {
             this.world_modify_chunk_hasRowId // because the chunk is already loaded, it's false or a Number
         ).then( rowId => {
             this.world_modify_chunk_hasRowId = rowId;
-            this.world.dbActor.addKnownChunkFlags(this.chunk.addr, KNOWN_CHUNK_FLAGS.IN_WORLD_MODIFY_CHUNKS);
+            this.world.dbActor.addKnownChunkFlags(this.chunk.addr, KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS);
         });
-        world.dbActor.pushPromise(promise);
+        world.dbActor.pushPromises(promise);
 
         // it's no longer dirty
         this.earliestUnsavedChangeTime = Infinity;
         this.unsavedBlocks.clear();
-        world.dbActor.dirtyChunks.delete(this.chunk);
-    }
-
-    _mustWriteWorldModifyChunk() {
-        return this.unsavedBlocks.size && (
-            this.chunk.load_state === CHUNK_STATE.UNLOADING ||
-            this.earliestUnsavedChangeTime < performance.now() - WORLD_MODIFY_CHUNKS_TTL
-        )
     }
 
     /**
@@ -226,7 +214,8 @@ export class ChunkDBActor {
      */
     writeToWorldTransaction() {
         const chunk = this.chunk;
-        const uc = this.world.dbActor.underConstruction;
+        const dbActor = this.world.dbActor;
+        const uc = dbActor.underConstruction;
 
         if (this.dirtyBlocks.size) {
             this.writeDirtyBlocks();
@@ -234,35 +223,30 @@ export class ChunkDBActor {
 
         const chunkRecord = chunk.chunkRecord;
         if (chunkRecord.dirty || chunk.delayedCalls.dirty) {
-            chunkRecord.delayed_calls = chunk.delayed_calls.serialize();
             uc.insertOrUpdateChunk.push(chunkRecord);
             chunkRecord.dirty = false;
             chunk.delayedCalls.dirty = false;
         }
 
-        for(const stuff of chunk.unloadedStuff) {
-            if (stuff instanceof DropItem) {
-                stuff.writeToWorldTransaction(uc);
-            }
-
-            // TODO unloaded mobs from chunk
-
-        }       
-
         if (this.unsavedBlocks.size) {
-            if (this._mustWriteWorldModifyChunk()) {
+            const mustWrite = this.chunk.load_state === CHUNK_STATE.UNLOADING ||
+                this.earliestUnsavedChangeTime < performance.now() - WORLD_MODIFY_CHUNKS_TTL;
+            if (mustWrite) {
                 this.writeWorldModifyChunk();
             } else {
-                this.world.dbActor.addUnsavedChunk(chunk);
+                dbActor.addUnsavedChunk(chunk);
             }
         }
     }
 
-    /** @return a promise of saving everything that needs to be saved in this chunk, or null. */
-    getSavePromise() {
-        const mustSave = this.dirtyBlocks.size || this._mustWriteWorldModifyChunk() ||
+    /** 
+     * @return true if there are elemets managed by dbActor that need to be saved in the world transaction.
+     *   Currently it includes blocks and chunkRecord.
+     *   Note: it doesn't account include unloaded mobs and items, which are managed by the chunk itself.
+     */
+    mustSave() {
+        return this.unsavedBlocks.size || // it also accounts for this.dirtyBlocks
             this.chunk.chunkRecord.dirty || this.chunk.delayedCalls.dirty;
-        return mustSave ? this.world.dbActor.worldSavingPromise : null;
     }
 }
 

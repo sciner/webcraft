@@ -462,11 +462,16 @@ export class VectorCollector {
         }
         const oldV = byZ.get(vec.z);
         const newV = mapFn(oldV);
-        if (newV !== oldV) {
-            if (newV != null) {
+        if (newV != null) {
+            if (newV !== oldV) {
+                if (oldV === undefined && !byZ.has(vec.z)) { // fast check, then slow
+                    this.size++;
+                }
                 byZ.set(vec.z, newV);
-            } else if (oldV !== undefined) { // we assume that undefined values aren't stored
-                byZ.delete(vec.z);
+            }
+        } else {
+            if (byZ.delete(vec.z)) {
+                this.size--;
             }
         }
         return newV;

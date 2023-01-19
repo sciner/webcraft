@@ -1,9 +1,10 @@
 import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED, DropItem} from "./drop_item.js";
 import {CHUNK_STATE} from "../www/js/chunk_const.js"
-
 import {ServerClient} from "../www/js/server_client.js";
+import { unixTime } from "../www/js/helpers.js";
+import {DROP_LIFE_TIME_SECONDS} from "../www/js/constant.js";
+import {ITEM_MERGE_RADIUS, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB} from "./server_constant.js";
 
-const ITEM_MERGE_RADIUS = 0.5; // set it negative to disable merging
 
 export class ItemWorld {
 
@@ -15,7 +16,7 @@ export class ItemWorld {
         this.chunkManager = chunkManager;
         this.world = chunkManager.world;
         this.chunksItemMergingQueue = new Set();
-        this.all_drop_items = new Map();
+        this.all_drop_items = new Map(); // by entity_id. Maybe make it by Id to increase performance?
         this.deletedEntityIds = [];
     }
 
@@ -24,21 +25,28 @@ export class ItemWorld {
      * It doesn't notify the players.
      * Providing chunkOptional increases performance.
      */
-    delete(dropItem, chunkOptional) {
+    delete(dropItem, chunkOptional, deleteFromDB = true) {
         let chunk = chunkOptional || dropItem.getChunk();
         // delete from chunk
         chunk.drop_items.delete(dropItem.entity_id);
         this.all_drop_items.delete(dropItem.entity_id);
-        // deactive drop item in database
-        dropItem.markDirty(DropItem.DIRTY_DELETE);
-        if (dropItem.dirty === DropItem.DIRTY_DELETE) { // if it's never been saved, it'll be DIRTY_CLEAR now
-            this.deletedEntityIds.push(dropItem.entity_id);
+        // delete drop item in database
+        if (deleteFromDB) {
+            dropItem.markDirty(DropItem.DIRTY_DELETE);
+            if (dropItem.dirty === DropItem.DIRTY_DELETE) { // if it's never been saved, it'll be DIRTY_CLEAR now
+                this.deletedEntityIds.push(dropItem.entity_id);
+            }
         }
     }
 
     tick(delta) {
-        for(let [_, drop_item] of this.all_drop_items) {
-            drop_item.tick(delta);
+        const minDt = unixTime() - DROP_LIFE_TIME_SECONDS;
+        for(const drop_item of this.all_drop_items.values()) {
+            if (drop_item.dt >= minDt) {
+                drop_item.tick(delta);
+            } else {
+                this.delete(drop_item, null, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB);
+            }
         }
         if (ITEM_MERGE_RADIUS >= 0) {
             for(let chunk of this.chunksItemMergingQueue) {
@@ -136,6 +144,7 @@ export class ItemWorld {
 
                 // increment dropItemB count
                 dropItemB.items[indexB].count += dropItemA.items[0].count;
+                dropItemB.dt = Math.max(dropItemB.dt, dropItemA.dt); // renvew the item age, so it won't disappear soon
                 dropItemB.markDirty(DropItem.DIRTY_UPDATE);
                 const packetsB = [{
                     name: ServerClient.CMD_DROP_ITEM_UPDATE,
@@ -174,11 +183,15 @@ export class ItemWorld {
     }
 
     writeToWorldTransaction() {
-        const uc = this.world.dbActor.underConstruction;
+        const dbActor = this.world.dbActor;
+        const uc = dbActor.underConstruction;
         for(const item of this.all_drop_items.values()) {
             item.writeToWorldTransaction(uc);
         }
-        uc.deleteDropItemEntityIds = this.deletedEntityIds;
+        dbActor.pushPromises(
+            this.world.db.bulkDeleteDropItems(this.deletedEntityIds, uc.dt)
+        );
         this.deletedEntityIds = [];
     }
+
 }

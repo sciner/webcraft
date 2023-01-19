@@ -23,8 +23,10 @@ export class DBWorldChunk {
 
         this.bulkGetChunkQuery = new BulkSelectQuery(this.conn,
             `WITH cte AS (SELECT value FROM json_each(:jsonRows))
-            SELECT (addr IS NOT NULL) exists, mobs_is_generated, delayed_calls
-            FROM cte LEFT JOIN chunk ON addr = value`
+            SELECT (addr IS NOT NULL) "exists", mobs_is_generated, delayed_calls
+            FROM cte LEFT JOIN chunk ON addr = value`,
+            null,
+            row => row.exists
         );
     }
 
@@ -142,12 +144,12 @@ export class DBWorldChunk {
 
     /**
      * For all chunks that have records in world_modify_chunks, sets flags
-     * KNOWN_CHUNK_FLAGS.IN_WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS
+     * KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS
      * in this.world.dbActor.knownChunkFlags
      */
     async restoreModifiedChunks() {
         const rows = await this.conn.all('SELECT x, y, z FROM world_modify_chunks');
-        this.world.dbActor.bulkAddChunkFlags(rows, KNOWN_CHUNK_FLAGS.IN_WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS);
+        this.world.dbActor.bulkAddChunkFlags(rows, KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS);
     }
 
     /**
@@ -268,10 +270,10 @@ export class DBWorldChunk {
      * Rebuilds existing records world_modify_chunks based on world_modify.
      * @param {Array of Arrays} XYZs [x, y, z]
      */
-    async updateRebuildModifiersByXYZs(XYZs) {
+    async updateRebuildModifiersByXYZ(XYZs) {
         return this.conn.run(this.UPDATE_REBUILD_MODIFIERS_BY_XYZ, [JSON.stringify(XYZs)]);
     }
-    REBUILD_MODIFIERS_SUBQUERY =
+    static REBUILD_MODIFIERS_SUBQUERY =
         `json_group_object(
             m."index",
             json_patch(     -- to remove nulls from the result object
@@ -285,10 +287,10 @@ export class DBWorldChunk {
                 )
             )
         )`;
-    UPDATE_REBUILD_MODIFIERS_DATA_ONLY =
+    static UPDATE_REBUILD_MODIFIERS_DATA_ONLY =
         `UPDATE world_modify_chunks
         SET data =
-            (SELECT ${this.REBUILD_MODIFIERS_SUBQUERY} FROM
+            (SELECT ${DBWorldChunk.REBUILD_MODIFIERS_SUBQUERY} FROM
                 (SELECT * FROM
                     (SELECT "index", block_id, extra_data, entity_id, ticks, params
                     FROM world_modify m
@@ -297,7 +299,7 @@ export class DBWorldChunk {
                 GROUP BY "index") m         -- ensure the result has no duplicate keys
             )`;
     UPDATE_REBUILD_MODIFIERS =
-        `${this.UPDATE_REBUILD_MODIFIERS_DATA_ONLY},
+        `${DBWorldChunk.UPDATE_REBUILD_MODIFIERS_DATA_ONLY},
             data_blob = NULL,
             private_data_blob = NULL,
             has_data_blob = 0`;
@@ -330,7 +332,7 @@ export class DBWorldChunk {
             data_blob, private_data_blob, has_data_blob
         ) SELECT
             _x, _y, _z,
-            (SELECT ${this.REBUILD_MODIFIERS_SUBQUERY} FROM
+            (SELECT ${DBWorldChunk.REBUILD_MODIFIERS_SUBQUERY} FROM
                 (SELECT * FROM
                     (SELECT "index", block_id, extra_data, entity_id, ticks, params
                     FROM world_modify m
@@ -355,14 +357,14 @@ export class DBWorldChunk {
         const rows = await this.conn.all('SELECT addr FROM chunk');
         for(const row of rows) {
             tmpAddr.fromHash(row.addr);
-            dbActor.addKnownChunkFlags(tmpAddr, KNOWN_CHUNK_FLAGS.IN_CHUNK);
+            dbActor.addKnownChunkFlags(tmpAddr, KNOWN_CHUNK_FLAGS.DB_CHUNK);
         }
     }
 
     async getChunkOfChunk(chunk) {
-        return this.world.dbActor.knownChunkHasFlags(chunk.addr, KNOWN_CHUNK_FLAGS.IN_CHUNK)
-            ? this.bulkGetChunkQuery.get(chunk.addrHash)
-            : { mobs_is_generated: 0, delayed_calls: null };
+        const row = this.world.dbActor.knownChunkHasFlags(chunk.addr, KNOWN_CHUNK_FLAGS.DB_CHUNK)
+            && await this.bulkGetChunkQuery.get(chunk.addrHash);
+        return row || { exists: false, mobs_is_generated: 0, delayed_calls: null };
     }
 
     async bulkInsertOrUpdateChunk(rows, dt = unixTime()) {
@@ -373,7 +375,11 @@ export class DBWorldChunk {
         const updateRows = [];
         for(const row of rows) {
             const list = row.exists ? updateRows : insertRows;
-            list.push([row.chunk.addrHash, row.mobs_is_generated, row.delayed_calls]);
+            list.push([
+                row.chunk.addrHash,
+                row.mobs_is_generated,
+                row.chunk.delayedCalls.serialize()
+            ]);
         }
         return Promise.all([
             insertRows.length && this.conn.run(this.BULK_INSERT_CHUNK, {
@@ -382,7 +388,7 @@ export class DBWorldChunk {
             }).then( () => {
                 for(const row of insertRows) {
                     row.exists = true;
-                    this.world.dbActor.addKnownChunkFlags(row.chunk.addr, KNOWN_CHUNK_FLAGS.IN_CHUNK);
+                    this.world.dbActor.addKnownChunkFlags(row.chunk.addr, KNOWN_CHUNK_FLAGS.DB_CHUNK);
                 }
             }),
 

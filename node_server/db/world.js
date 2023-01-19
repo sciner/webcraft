@@ -330,45 +330,26 @@ export class DBWorld {
         await this.conn.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
-    async bulkInsertOrUpdateDropItems(items, dt = unixTime()) {
-        if (!items.length) {
-            return;
-        }
-        const insertRows = [];
-        const updateRows = [];
-        for(const item of items) {
-            const pos = item.pos;
-            let list; 
-            switch(item.dirty) {
-                case DropItem.DIRTY_NEW:    list = insertRows; break;
-                case DropItem.DIRTY_UPDATE: list = updateRows; break;
-                default: throw new Error('item.dirty == ' + item.dirty);
-            }
-            list.push([
-                item.entity_id,
-                JSON.stringify(item.items),
-                pos.x, pos.y, pos.z
-            ]);
-            item.markDirty(DropItem.DIRTY_CLEAR);
-        }
-        return Promise.all([
-            insertRows.length && this.conn.run(this.BULK_INSERT_DROP_ITEMS, {
-                ':jsonRows': JSON.stringify(insertRows),
-                ':dt': dt
-            }),
-            updateRows.length && this.conn.run(this.BULK_UPDATE_DROP_ITEMS, {
-                ':jsonRows': JSON.stringify(updateRows)
-            })
-        ]);
+    async bulkInsertDropItems(rows, dt) {
+        return rows.length && this.conn.run(this.BULK_INSERT_DROP_ITEMS, {
+            ':jsonRows': JSON.stringify(rows),
+            ':dt': dt
+        });
     };
     BULK_INSERT_DROP_ITEMS = preprocessSQL(`
-        INSERT INTO drop_item (dt, entity_id, items, x, y, z)
-        SELECT :dt, %0, %1, %2, %3, %4
+        INSERT INTO drop_item (entity_id, dt, items, x, y, z)
+        SELECT %0, %1, %2, %3, %4, %5
         FROM json_each(:jsonRows)
     `);
+
+    async bulkUpdateDropItems(rows) {
+        return rows.length && this.conn.run(this.BULK_UPDATE_DROP_ITEMS, {
+            ':jsonRows': JSON.stringify(rows)
+        });
+    };
     BULK_UPDATE_DROP_ITEMS = preprocessSQL(`
         UPDATE drop_item
-        SET items = %1, x = %2, y = %3, z = %4
+        SET dt = %1, items = %2, x = %3, y = %4, z = %5
         FROM json_each(:jsonRows)
         WHERE entity_id = %0
     `);
@@ -535,6 +516,6 @@ export class DBWorld {
         this.chunks.bulkGetWorldModifyChunkQuery.flush();
         this.chunks.bulkGetChunkQuery.flush();
         this.fluid.bulkGetQuery.flush();
-        this.mobs.bulkLoadInChunkQuery.flush();
+        this.mobs.bulkLoadActiveInVolumeQuery.flush();
     }
 }

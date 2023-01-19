@@ -27,6 +27,7 @@ export function preprocessSQL(query) {
  * 
  * 3 type of queries are supported:
  * 1. one-to-one - returns the same number of rows as JSON, doesn't use "key" field, can be queried with get()
+ *   FROM json INNER JOIN table (when we are certain that the rows exist, and ready to get an Error thrown otherwise)
  *   FROM json LEFT JOIN table
  * 2. one-to-(0 or 1) - returns the same or smaller number of rows, uses "key" field, can be queried with get().
  *   FROM json INNER JOIN table
@@ -49,12 +50,14 @@ export class BulkSelectQuery {
      *   field equal to the index of the corresponding row of source data.
      *   See the types of queries where it's needed in {@link BulkSelectQuery}
      *   Note: from_json() provides "key" field with such semantics, use it (or rename it if there is a naming conflict).
+     * @param {Function} filterFn - called for each result row. Only rows where it returns true are returned.
      * @param {String} jsonHostParameterName - the name of the host parameter for the source array of the rows.
      */
-    constructor(conn, query, rowKeyName = null, jsonHostParameterName = ':jsonRows') {
+    constructor(conn, query, rowKeyName = null, filterFn = null, jsonHostParameterName = ':jsonRows') {
         this.conn = conn;
         this.query = preprocessSQL(query);
         this.rowKeyName = rowKeyName;
+        this.filterFn = filterFn;
         this.jsonHostParameterName = jsonHostParameterName;
         this.data = [];
         this.handlers = [];
@@ -63,18 +66,18 @@ export class BulkSelectQuery {
 
     /**
      * Adds one row of arguments to the queue to be queird when {@link flush} is called.
-     * @param {Array of Any} argsArray - the parametrs to query one row
+     * @param {Array of Any} srcRow - the parametrs to query one row
      * @return {Promise of ?Object} - a promise of (one row or null)
      */
-    async get(argsArray) {
+    async get(srcRow) {
         if (this.modeAll === true) {
             throw new Error("all() and get() can't be mixed");
         }
         this.modeAll = false;
-        return this._add(argsArray);
+        return this._add(srcRow);
     }
 
-    async all(argsArray) {
+    async all(srcRow) {
         if (!this.rowKeyName) {
             throw Error("all() can't be called without rowKeyName parameter");
         }
@@ -82,7 +85,7 @@ export class BulkSelectQuery {
             throw new Error("all() and get() can't be mixed");
         }
         this.modeAll = true;
-        return this._add(argsArray);
+        return this._add(srcRow);
     }
 
     /**
@@ -106,6 +109,9 @@ export class BulkSelectQuery {
                 // group rows by request
                 for (let i = 0; i < rows.length; i++) {
                     const row = rows[i];
+                    if (this.filterFn && !this.filterFn(row)) {
+                        continue;
+                    }
                     const key = row[this.rowKeyName];
                     if (!(key >= 0 && key < results.length)) {
                         throw Error(`Invalid key field "${this.rowKeyName}"=${key} in: ${this.query}`);
@@ -124,6 +130,9 @@ export class BulkSelectQuery {
                 // resolve promises for rows
                 for (let i = 0; i < rows.length; i++) {
                     const row = rows[i];
+                    if (this.filterFn && !this.filterFn(row)) {
+                        continue;
+                    }
                     let key = i;
                     if (this.rowKeyName) {
                         key = row[this.rowKeyName];
@@ -140,9 +149,11 @@ export class BulkSelectQuery {
                     handlers[handlerInd] = null;
                 }
                 // resolve promises for non-existing rows
-                for(let i = 0; i < handlers.length; i += 2) {
-                    const handler = handlers[i];
-                    handler && handler(null);
+                if (this.filterFn || rows.length !== dataLength) {
+                    for(let i = 0; i < handlers.length; i += 2) {
+                        const handler = handlers[i];
+                        handler && handler(null);
+                    }
                 }
             };
         const promise = this.conn.all(this.query, uniformHostParameters).then(
@@ -162,11 +173,8 @@ export class BulkSelectQuery {
         return promise;
     }
 
-    async _add(argsArray) {
-        if (!Array.isArray(argsArray)) {
-            throw new Error("The arguments should be in an Array");
-        }
-        this.data.push(argsArray);
+    async _add(srcRow) {
+        this.data.push(srcRow);
         const promise = new Promise( (resolve, reject) => {
             this.handlers.push(resolve, reject);
         });

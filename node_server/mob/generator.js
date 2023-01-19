@@ -3,7 +3,6 @@ import {Vector, VectorCollector} from "../../www/js/helpers.js";
 import {BLOCK} from "../../www/js/blocks.js";
 import { TBlock } from "../../www/js/typed_blocks3.js";
 import {impl as alea} from '../../www/vendors/alea.js';
-import {KNOWN_CHUNK_FLAGS} from "../db/world/WorldDBActor.js"
 
 // Mob generator
 export class MobGenerator {
@@ -86,19 +85,15 @@ export class MobGenerator {
                                     ...t
                                 };
                                 // Spawn mob
-                                await this.chunk.world.mobs.create(params);
+                                this.chunk.world.mobs.create(params);
                             }
                         }
                     }
                 }
             }
-            // Mark as generated. Write immediately instead of making it dirty to avoid double-spawn after crash,
-            // because mobs are not included into the world-saving transaction (yet).
+            // Mark as generated
             this.chunk.chunkRecord.mobs_is_generated = 1;
-            await this.chunk.world.chunks.chunkSetMobsIsGenerated(chunk_addr_hash, 1).then( () => {
-                this.chunk.chunkRecord.exists = true;
-                this.chunk.world.dbActor.addKnownChunkFlags(this.chunk.addr, KNOWN_CHUNK_FLAGS.IN_CHUNK);
-            });
+            this.chunk.chunkRecord.dirty = true;
         }
     }
 

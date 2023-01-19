@@ -171,21 +171,34 @@ export class DropItem {
         world.sendSelected(packets, Array.from(chunk_over.connections.keys()), []);
     }
 
-    async onUnload() {
+    /** @retrun true if there is anything to save in a world transaction */
+    onUnload() {
         const world = this.getWorld();
         world.all_drop_items.delete(this.entity_id);
-        if (this.dirty != DropItem.DIRTY_CLEAR) {
-            return world.dbActor.worldSavingPromise;
-        }
+        return this.dirty != DropItem.DIRTY_CLEAR;
     }
 
-    async restoreUnloaded() {
+    restoreUnloaded() {
         this.getWorld().all_drop_items.set(this.entity_id, this);
     }
 
     writeToWorldTransaction(underConstruction) {
         if (this.dirty !== DropItem.DIRTY_CLEAR) {
-            underConstruction.insertOrUpdateDropItems.push(this);
+            if (this.dirty === DropItem.DIRTY_DELETE) {
+                throw new Error('this.dirty === DropItem.DIRTY_DELETE');
+            }
+            const pos = this.pos;
+            const row = [
+                this.entity_id,
+                this.dt,
+                JSON.stringify(this.items),
+                pos.x, pos.y, pos.z
+            ];
+            const list = this.dirty === DropItem.DIRTY_NEW
+                ? underConstruction.insertDropItemRows
+                : underConstruction.updateDropItemRows;
+            list.push(row);
+            this.dirty = DropItem.DIRTY_CLEAR;
         }
     }
 
