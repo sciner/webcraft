@@ -6,43 +6,44 @@ export class DieWindow extends Window {
 
     constructor() {
 
-        super(10, 10, 352, 332, 'frmDie', null, null);
-
-        this.w *= this.zoom;
-        this.h *= this.zoom;
+        super(10, 10, 352 * UI_ZOOM, 332  * UI_ZOOM, 'frmDie')
 
         // Get window by ID
-        const ct = this;
+        const ct = this
         ct.style.background.color = '#00000000';
         ct.style.border.hidden = true;
-        ct.hide();
+        ct.hide()
         
-        let lbl2 = new Label(20 * this.zoom, 50 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'lbl2', Lang.you_died);
-        lbl2.style.textAlign.horizontal = 'center';
-        lbl2.style.textAlign.vertical = 'middle';
-        lbl2.style.font.size = 50;
-        lbl2.style.color = '#fff';
-        ct.add(lbl2);
+        const lblTitle = new Label(20 * this.zoom, 50 * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, 'lblTitle', Lang.you_died)
+        // lbl2.style.textAlign.horizontal = 'center'
+        // lbl2.style.textAlign.vertical = 'middle'
+        // lbl2.style.font.size = 50
+        lblTitle.style.font.color = '#ffffff'
+        ct.add(lblTitle)
 
         this.addReturnButton()
-        this.addCloseButton();
-        
-        // onShow
-        this.onShow = function() {
-            this.parent.center(this);
-            Qubatch.releaseMousePointer();
-        }
+        this.addCloseButton()
+
     }
 
     get zoom() {
-        return UI_ZOOM;
+        return UI_ZOOM
+    }
+
+    // onShow
+    onShow() {
+        this.getRoot().center(this)
+        Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
     addCloseButton() {
         // Close button
-        let btnClose = this.btnClose = new Button(20 * this.zoom, 150 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnClose', Lang.btn_exit);
-        btnClose.style.background.color = '#777777ff';
-        btnClose.style.color = '#ffffffff';
+        const btnClose = this.btnClose = new Button(20 * this.zoom, 150 * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, 'btnClose', Lang.btn_exit)
+        btnClose.style.background.color = '#888888ff'
+        btnClose.style.font.color = '#ffffffff'
+        btnClose.style.font.size = 10 * this.zoom
+        /*
         btnClose.style.font.shadow = {
             enable: true,
             x: 2 * this.zoom,
@@ -50,6 +51,7 @@ export class DieWindow extends Window {
             blur: 0,
             color: 'rgba(0, 0, 0, 0.5)'
         }
+        */
         btnClose.onMouseDown = function (e) {
             Qubatch.exit();
         }
@@ -67,9 +69,11 @@ export class DieWindow extends Window {
     }
 
     addReturnButton() {
-        let btnReturn = this.btnReturn = new Button(20 * this.zoom, 100 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnReturn', Lang.btn_return);
-        btnReturn.style.background.color = '#777777ff';
-        btnReturn.style.color = '#ffffffff';
+        const btnReturn = this.btnReturn = new Button(20 * this.zoom, 100 * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, 'btnReturn', Lang.btn_return)
+        btnReturn.style.background.color = '#888888ff'
+        btnReturn.style.font.color = '#ffffffff'
+        btnReturn.style.font.size = 10 * this.zoom
+        /*
         btnReturn.style.font.shadow = {
             enable: true,
             x: 2 * this.zoom,
@@ -77,6 +81,7 @@ export class DieWindow extends Window {
             blur: 0,
             color: 'rgba(0, 0, 0, 0.5)'
         }
+        */
         btnReturn.onMouseDown = (e) => {
             this.getRoot().closeAll();
             Qubatch.player.world.server.Send({ name: ServerClient.CMD_RESURRECTION });

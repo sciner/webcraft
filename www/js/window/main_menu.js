@@ -9,8 +9,8 @@ export class MainMenu extends Window {
         h *= UI_ZOOM
 
         super(x, y, w, h, id, title, text);
-        // this.width = this.w * this.zoom2;
-        // this.height = this.h * this.zoom2;
+        // this.width = this.w * this.zoom;
+        // this.height = this.h * this.zoom;
 
         // Get window by ID
         const ct = this;
@@ -19,7 +19,7 @@ export class MainMenu extends Window {
         ct.hide();
 
         //
-        const lbl2 = new Label(0, 0, this.w, 30 * this.zoom2, 'lbl2', Lang.menu);
+        const lbl2 = new Label(0, 0, this.w, 30 * this.zoom, 'lbl2', Lang.menu);
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
         ct.add(lbl2);
