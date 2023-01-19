@@ -304,9 +304,6 @@ export class Window extends PIXI.Container {
      */
     clear() {}
 
-    /**
-     * @deprecated
-     */
     draw(ctx, ax, ay) {
         if (!this.qubatchRender) {
             return;
@@ -382,6 +379,14 @@ export class Window extends PIXI.Container {
 
     setText(text) {
         this.text = text
+    }
+
+    /**
+     * Return current text metrics
+     * @returns {PIXI.TextMetrics}
+     */
+    getTextMetrics() {
+        return PIXI.TextMetrics.measureText(this.text_container.text, this.style.font._font_style)
     }
 
     /**

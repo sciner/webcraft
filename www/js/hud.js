@@ -289,12 +289,7 @@ export class HUD {
             return;
         }
 
-        // Set style
-        // this.ctx.fillStyle      = '#ff0000';
-        // this.ctx.font           = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
-        // this.ctx.textAlign      = 'left';
-        // this.ctx.textBaseline   = 'top';
-
+        // Hide all inner text blocks
         for(let c of this.wm.hud_window.children) {
             if(c instanceof HUDLabel) {
                 c.visible = false
@@ -303,7 +298,8 @@ export class HUD {
 
         if(this.isActive()) {
             // Draw game technical info
-            this.drawInfo();
+            this.drawInfo()
+            this.drawAverageFPS()
             // Draw HUD components
             for(let t of this.items) {
                 for(let e of t) {
@@ -313,7 +309,6 @@ export class HUD {
         }
 
         // Draw windows
-        // this.ctx.restore();
         if(this.wm.hasVisibleWindow()) {
             this.wm.style.background.color = Qubatch.player.isAlive ? '#00000077' : '#ff330027';
             this.wm.draw(true);
@@ -536,20 +531,21 @@ export class HUD {
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Qubatch.averageClockTimer.avg);
         this.drawText('info', this.text, 10 * this.zoom, 10 * this.zoom);
         //
+        this.drawActiveQuest()
+        //
         if (this.block_text) {
-            const active_quest = this.wm.getWindow('frmQuests').active
-            const y = active_quest?.mt ? active_quest.mt.height + 60 * this.zoom : 10 * this.zoom
-            const x = Math.max(this.width * 0.55, this.width - 400 * this.zoom)
-            this.drawText('block_info', this.block_text, x, y)
+            const quest_window = this.wm.hud_window.quests
+            const tm = quest_window.getTextMetrics()
+            const x = this.wm.w - 20 * this.zoom - tm.width
+            const y = quest_window.y + tm.height + 20 * this.zoom
+            this.drawText('block_info', this.block_text, x, y, '#00000044')
         }
-        //
-        this.drawActiveQuest();
-        //
-        this.drawAverageFPS();
     }
 
     // Draw average FPS bar
     drawAverageFPS() {
+        // TODO: pixi
+        return
         const hist = Qubatch.averageClockTimer.history;
         const x = 20;
         const y = this.height - 20;
@@ -599,28 +595,14 @@ export class HUD {
                     }
                 }
                 quest_text.push('Нажми [TAB], чтобы увидеть подробности');
-                //
-                active_quest.mt = {width: 0, height: 0, text: null};
-                for(let str of quest_text) {
-                    let mt = this.ctx.measureText(str);
-                    active_quest.mt.height += mt.actualBoundingBoxDescent;
-                    if(mt.width > active_quest.mt.width) {
-                        active_quest.mt.width = mt.width;
-                    }
-                }
-                active_quest.mt.quest_text = quest_text.join('\n');
+                active_quest.quest_text = quest_text.join('\n');
             }
-            this.ctx.textAlign = 'left';
-            this.ctx.fillStyle = '#00000035';
-            this.ctx.fillRect(this.width - active_quest.mt.width - 40 * this.zoom, 10 * this.zoom, active_quest.mt.width + 30 * this.zoom, active_quest.mt.height + 40 * this.zoom);
-            // this.ctx.strokeStyle = '#ffffff88';
-            this.ctx.strokeRect(this.width - active_quest.mt.width - 40 * this.zoom, 10 * this.zoom, active_quest.mt.width + 30 * this.zoom, active_quest.mt.height + 40 * this.zoom);
-            this.drawText('quests', active_quest.mt.quest_text, this.width - active_quest.mt.width - 30 * this.zoom, 20 * this.zoom, '#ffffff00');
+            this.drawText('quests', active_quest.quest_text, this.wm.w - 20 * this.zoom, 20 * this.zoom, '#ffffff00', 'right');
         }
     }
 
     // Просто функция печати текста
-    drawText(id, str, x, y, fillStyle) {
+    drawText(id, str, x, y, fillStyle, align = 'left') {
 
         let text_block = this.wm.hud_window[id]
         if(!text_block) {
@@ -630,78 +612,33 @@ export class HUD {
             fs.stroke = '#00000099'
             fs.strokeThickness = 4
             fs.lineHeight = UI_ZOOM * 20
+            // fs.dropShadow = true
+            // fs.dropShadowAlpha = 1
+            // fs.dropShadowBlur = 20
+            // fs.dropShadowAngle = 0 // Math.PI / 6
+            // fs.dropShadowColor = 0x0
+            // fs.dropShadowDistance = 0
 
-            /*
-            fs.dropShadow = true
-            fs.dropShadowAlpha = 1
-            fs.dropShadowBlur = 20
-            fs.dropShadowAngle = 0 // Math.PI / 6
-            fs.dropShadowColor = 0x0
-            fs.dropShadowDistance = 0
-            */
+            switch(align) {
+                case 'right': {
+                    text_block.style.font.anchor.x = 1
+                    text_block.style.font.align = 'left'
+                    break
+                }
+            }
 
-            // text_block.style.background.color = '#44444444'
             text_block.style.font.color = '#ffffff'
             this.wm.hud_window.addChild(text_block)
         }
 
-        if(fillStyle) {
-            text_block.style.background.color = fillStyle
-        }
+        //if(fillStyle) {
+        //    text_block.style.background.color = fillStyle
+        //}
 
         text_block.visible = true
-        text_block.x = x
-        text_block.y = y
+        text_block. position.set(x, y)
         text_block.text = str
 
-        /*
-        this.ctx.fillStyle = '#ffffff';
-        str = str.split('\n');
-        //
-        let measures = this.strMeasures.get(id);
-        if(!measures) measures = [];
-        if(measures.length != str.length) {
-            measures = new Array(str.length);
-            this.strMeasures.set(id, measures);
-        }
-        for(let i = 0; i < str.length; i++) {
-            if(!measures[i] || measures[i].text != str[i]) {
-                measures[i] = {
-                    text: str[i],
-                    measure: this.ctx.measureText(str[i] + '|')
-                };
-            }
-            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i, measures[i].measure, fillStyle);
-        }
-        */
-
-    }
-
-    // Напечатать текст с фоном
-    drawTextBG(txt, x, y, mt, fillStyle) {
-        // lets save current state as we make a lot of changes
-        this.ctx.save();
-        // draw text from top - makes life easier at the moment
-        this.ctx.textBaseline = 'top';
-        // get width of text
-        const width = mt.width;
-        const height = mt.actualBoundingBoxDescent;
-        // color for background
-        this.ctx.fillStyle = fillStyle || 'rgba(0, 0, 0, .35)';
-        if(txt) {
-            // draw background rect assuming height of font
-            if(this.ctx.textAlign == 'right') {
-                this.ctx.fillRect(x - width, y, width + 4 * this.zoom, height + 4 * this.zoom);
-            } else {
-                this.ctx.fillRect(x, y, width + 4 * this.zoom, height + 4 * this.zoom);
-            }
-        }
-        // text color
-        this.ctx.fillStyle = '#fff';
-        // draw text on top
-        this.ctx.fillText(txt, x + 2 * this.zoom, y + 2 * this.zoom);
-        // restore original state
-        this.ctx.restore();
     }
 
 }

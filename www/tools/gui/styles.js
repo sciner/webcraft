@@ -259,6 +259,24 @@ export class FontStyle {
 
     }
 
+    get anchor() {
+        return this.#window.text_container.anchor
+    }
+
+    /**
+     * @type {string}
+     */
+    get align() {
+        return this.#window.text_container.style.align
+    }
+
+    /**
+     * @param {string} value
+     */
+    set align(value) {
+        this.#window.text_container.style.align = value
+    }
+
     /**
      * @param {int} value
      */
