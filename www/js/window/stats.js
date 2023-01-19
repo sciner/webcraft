@@ -2,7 +2,6 @@ import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {ServerClient} from "../../js/server_client.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
-
 export class StatsWindow extends Window {
 
     constructor(player) {

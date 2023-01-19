@@ -2,7 +2,7 @@ import { Effect } from "../../www/js/block_type/effect.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { Vector } from "../../www/js/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
-import { PLAYER_STATUS_ALIVE } from "../../www/js/player.js";
+import { PLAYER_STATUS_ALIVE } from "../../www/js/constant.js";
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;

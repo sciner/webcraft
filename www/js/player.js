@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST} from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE} from "./constant.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -25,12 +25,6 @@ const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное врем
 const SNEAK_HEIGHT                      = .78; // in percent
 const SNEAK_CHANGE_PERIOD               = 150; // in msec
 const MOVING_MIN_BLOCKS_PER_SECOND      = 0.1; // the minimum actual speed at which moving animation is played
-
-export const PLAYER_STATUS_DEAD         = 0;
-/* A player with this status is alive, but doesn't move or interat with the world
-until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point). */
-export const PLAYER_STATUS_WAITING_DATA = 1;
-export const PLAYER_STATUS_ALIVE        = 2;
 
 const ATTACK_PROCESS_NONE = 0;
 const ATTACK_PROCESS_ONGOING = 1;

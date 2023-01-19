@@ -3,7 +3,6 @@ import { ChargingStationWindow, ChestWindow, DoubleChestWindow, CraftTable, Crea
 export class PlayerWindowManager {
 
     constructor(player) {
-        //
         this.player = player;
         const inventory = player.inventory;
         this.addWindow(new CraftTable(inventory, inventory.recipes));

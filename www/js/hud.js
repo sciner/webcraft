@@ -8,7 +8,6 @@ import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
-
 class HUDLabel extends Label {
 
     constructor(x, y, w, h, id) {

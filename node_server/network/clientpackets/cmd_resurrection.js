@@ -1,5 +1,5 @@
 import { ServerClient } from "../../../www/js/server_client.js";
-import { PLAYER_STATUS_WAITING_DATA } from "../../../www/js/player.js";
+import { PLAYER_STATUS_WAITING_DATA } from "../../../www/js/constant.js";
 
 import { CMD_ENTITY_INDICATORS } from "../serverpackets/cmd_entity_indicators.js";
 

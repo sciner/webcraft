@@ -3,7 +3,7 @@ import { getChunkAddr, Vector, unixTime } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK} from "../../www/js/blocks.js";
 import { DropItem } from '../drop_item.js';
-import { INVENTORY_SLOT_COUNT, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '../../www/js/constant.js';
+import { INVENTORY_SLOT_COUNT, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL, PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA } from '../../www/js/constant.js';
 
 // Database packages
 import { DBWorldMob } from './world/mob.js';
@@ -14,7 +14,6 @@ import { DBWorldPortal } from "./world/portal.js";
 import { DBWorldFluid } from "./world/fluid.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
-import { PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA } from "../../www/js/player.js";
 
 // World database provider
 export class DBWorld {

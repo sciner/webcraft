@@ -6,6 +6,7 @@ import { GameClass } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
+// import { PlayerWindowManager } from '../player_window_manager.js';
 
 // Mouse event enumeration
 globalThis.MOUSE = MOUSE;
@@ -213,7 +214,8 @@ export class Shared_Controller {
         if(!world.info) {
             debugger;
         }
-        const player = new Player(options, Qubatch.render);
+        const player = new Player(options, Qubatch.render)
+        // player.windows = new PlayerWindowManager(player)
         player.JoinToWorld(world, () => {
             Qubatch.Started(player);
         });

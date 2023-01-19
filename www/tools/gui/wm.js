@@ -1,11 +1,11 @@
 /**
 * Window Manager based on PIXI.js
 */
-
 import { RuneStrings, deepAssign } from "../../js/helpers.js";
 import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
 import {Style} from "./styles.js";
+
 import { msdf } from "../../data/font.js";
 
 globalThis.visible_change_count = 0
