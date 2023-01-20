@@ -388,7 +388,7 @@ export class HUD {
                         this.mat_name = mat.extra_data?.label;
                     }
                 }
-                this.text += ` ${mat.id} / ${this.mat_name}`;
+                this.text += `${mat.id} / ${this.mat_name}`;
                 if(mat.is_fluid) {
                     this.text += ' ' + '(FLUID!)';
                 }
@@ -499,9 +499,9 @@ export class HUD {
             this.text += '\nOnline:\n';
             let pcnt = 0;
             for(const [_, p] of world.players.all()) {
-                this.text += '🙎‍♂️' + p.username;
+                this.text += p.username;
                 if(p.itsMe()) {
-                    this.text += ' ⬅ YOU';
+                    this.text += ' (YOU)';
                 } else {
                     if(p.distance) {
                         this.text += ` ... ${p.distance}m`;

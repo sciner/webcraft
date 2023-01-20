@@ -2,6 +2,7 @@ import {BLOCK} from "../blocks.js";
 import {Button, Label} from "../../tools/gui/wm.js";
 import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
@@ -10,11 +11,10 @@ export class CraftTable extends BaseCraftWindow {
 
         super(0, 0, 352, 332, 'frmCraft', null, null, inventory);
 
-        this.w *= this.zoom;
-        this.h *= this.zoom;
-        this.style.background.image_size_mode = 'stretch';
+        this.w *= this.zoom
+        this.h *= this.zoom
 
-        this.recipes = recipes;
+        this.recipes = recipes
 
         // Craft area
         this.area = {
@@ -22,37 +22,16 @@ export class CraftTable extends BaseCraftWindow {
                 width: 3,
                 height: 3
             }
-        };
+        }
 
-        const options = {
-            background: {
-                image: './media/gui/form-crafting-table.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 0,
-                    y: 0,
-                    width: 352 * 2,
-                    height: 332 * 2
-                }
-            }
-        };
-        this.style.background = {...this.style.background, ...options.background};
-
-        // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.setBackground(options.background.image);
+        // Create sprite atlas
+        this.atlas = new SpriteAtlas()
+        this.atlas.fromFile('./media/gui/form-crafting-table.png').then(async atlas => {
+            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+        })
 
         // Add buttons
-        this.addRecipesButton();
-
-        // onShow
-        this.onShow = function() {
-            Qubatch.releaseMousePointer();
-            this.setHelperSlots(null);
-        }
+        this.addRecipesButton()
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
@@ -67,58 +46,46 @@ export class CraftTable extends BaseCraftWindow {
         this.createResultSlot(246 * this.zoom, 68 * this.zoom);
         
         // слоты (лабел) для подсказок
-        this.addHelpSlots();
-
-        // Обработчик закрытия формы
-        this.onHide = function() {
-            // Close recipe window
-            ct.getRoot().getWindow('frmRecipe').hide();
-            this.clearCraft();
-            // Save inventory
-            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
-        }
+        this.addHelpSlots()
 
         // Add labels to window
-        let lbl1 = new Label(59 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Crafting');
-        let lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory');
-        ct.add(lbl1);
-        ct.add(lbl2);
+        const lbl1 = new Label(59 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Crafting');
+        const lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory');
+        this.add(lbl1)
+        this.add(lbl2)
 
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
-            const ct = this;
+            const that = this
             // Close button
-            let btnClose = new Button(ct.width - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             btnClose.style.background.image_size_mode = 'stretch';
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                ct.hide();
+                that.hide();
             }
-            ct.add(btnClose);
-        });
+            that.add(btnClose)
+        })
 
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.E:
-                case KEY.ESC: {
-                    if(!down) {
-                        ct.hide();
-                        try {
-                            Qubatch.setupMousePointer(true);
-                        } catch(e) {
-                            console.error(e);
-                        }
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
+    }
 
+    // onShow
+    onShow() {
+        Qubatch.releaseMousePointer()
+        this.setHelperSlots(null)
+        super.onShow()
+    }
+
+    // Обработчик закрытия формы
+    onHide() {
+        // Close recipe window
+        this.getRoot().getWindow('frmRecipe').hide()
+        this.clearCraft()
+        // Save inventory
+        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
+        super.onHide()
     }
 
     // Recipes button

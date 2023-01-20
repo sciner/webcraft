@@ -3,6 +3,7 @@ import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_w
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 const PLAYER_BOX_WIDTH = 98;
 const PLAYER_BOX_HEIGHT = 140;
@@ -17,37 +18,19 @@ export class InventoryWindow extends BaseCraftWindow {
 
         super(10, 10, 352, 332, 'frmInventory', null, null, inventory)
 
-        this.w *= this.zoom;
-        this.h *= this.zoom;
-        this.style.background.image_size_mode = 'stretch'
-        this.recipes = recipes;
+        this.w *= this.zoom
+        this.h *= this.zoom
+        this.recipes = recipes
 
-        const options = {
-            background: {
-                image: './media/gui/form-inventory.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 0,
-                    y: 0,
-                    width: 352 * 2,
-                    height: 332 * 2
-                }
-            }
-        };
-        // this.style.background = {...this.style.background, ...options.background}
+        // Create sprite atlas
+        this.atlas = new SpriteAtlas()
+        this.atlas.fromFile('./media/gui/form-inventory.png').then(async atlas => {
+            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+        })
 
-        this.skinKey = null;
-        this.skinViewer = null; // lazy initialized if necessary
+        this.skinKey = null
+        this.skinViewer = null // lazy initialized if necessary
 
-        // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000'
-        ct.style.border.hidden = true;
-        ct.setBackground(options.background.image, 'none', this.zoom / 2.0)
-
-        ct.hide()
-        
         // Craft area
         this.area = {
             size: {
@@ -79,67 +62,25 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(306 * this.zoom, 54 * this.zoom)
-        // Обработчик закрытия формы
-        this.onHide = function() {
-            // Close recipe window
-            ct.getRoot().getWindow('frmRecipe', false)?.hide()
-            // Drag
-            this.inventory.clearDragItem(true);
-            // Clear result
-            this.lblResultSlot.setItem(null);
-            //
-            for(let slot of this.craft.slots) {
-                if(slot && slot.item) {
-                    this.inventory.increment(slot.item);
-                    slot.setItem(null);
-                }
-            }
-            // Update player mob model
-            this.inventory.player.updateArmor()
-            // Save inventory
-            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
-
-            this.skinViewer.renderPaused = true;
-        }
 
         // Add labels to window
         const lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create)
-        ct.add(lbl1)
+        this.add(lbl1)
 
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
-            const ct = this;
+            const that = this
             // Close button
-            const btnClose = new Button(ct.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
             btnClose.style.font.family = 'Arial'
             btnClose.style.background.image = image
             // btnClose.style.background.image_size_mode = 'stretch';
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                ct.hide();
+                that.hide()
             }
-            ct.add(btnClose)
+            that.add(btnClose)
         })
-
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.E:
-                case KEY.ESC: {
-                    if(!down) {
-                        ct.hide();
-                        try {
-                            Qubatch.setupMousePointer(true);
-                        } catch(e) {
-                            console.error(e);
-                        }
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
 
     }
 
@@ -149,6 +90,28 @@ export class InventoryWindow extends BaseCraftWindow {
         Qubatch.releaseMousePointer()
         this.previewSkin()
         this.setHelperSlots(null)
+    }
+        
+    // Обработчик закрытия формы
+    onHide() {
+        // Close recipe window
+        this.getRoot().getWindow('frmRecipe', false)?.hide()
+        // Drag
+        this.inventory.clearDragItem(true)
+        // Clear result
+        this.lblResultSlot.setItem(null)
+        //
+        for(let slot of this.craft.slots) {
+            if(slot && slot.item) {
+                this.inventory.increment(slot.item)
+                slot.setItem(null)
+            }
+        }
+        // Update player mob model
+        this.inventory.player.updateArmor()
+        // Save inventory
+        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
+        this.skinViewer.renderPaused = true
     }
 
     previewSkin() {

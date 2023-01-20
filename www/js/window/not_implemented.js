@@ -1,7 +1,8 @@
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { BlankWindow } from "./blank.js";
 
-export class NotImplementedWindow extends Window {
+export class NotImplementedWindow extends BlankWindow {
 
     constructor() {
 
@@ -10,23 +11,11 @@ export class NotImplementedWindow extends Window {
         this.w *= this.zoom;
         this.h *= this.zoom;
 
-        // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.style.background.image_size_mode = 'stretch';
-        ct.setBackground('./media/gui/form-empty.png');
-        ct.hide();
+        this.setBackground('./media/gui/form-empty.png')
 
         // Add labels to window
-        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 170 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Not implemented');
-        ct.add(lbl1);
-
-        // Обработчик открытия формы
-        this.onShow = (args) => {
-            this.args = args;
-            Qubatch.releaseMousePointer();
-        }
+        const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 170 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Not implemented');
+        this.add(lbl1)
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
@@ -51,9 +40,15 @@ export class NotImplementedWindow extends Window {
 
     }
 
+    // Обработчик открытия формы
+    onShow(args) {
+        this.args = args
+        Qubatch.releaseMousePointer()
+    }
+
     // Request slots
     load(info) {
-        this.show();
+        this.show()
     }
 
 }

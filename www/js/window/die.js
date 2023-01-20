@@ -1,25 +1,20 @@
 import {Window, Label, Button} from "../../tools/gui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
+import { BlankWindow } from "./blank.js";
 
-export class DieWindow extends Window {
+export class DieWindow extends BlankWindow {
 
     constructor() {
 
         super(10, 10, 352 * UI_ZOOM, 332  * UI_ZOOM, 'frmDie')
 
-        // Get window by ID
-        const ct = this
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.hide()
-        
         const lblTitle = new Label(20 * this.zoom, 50 * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, 'lblTitle', Lang.you_died)
         // lbl2.style.textAlign.horizontal = 'center'
         // lbl2.style.textAlign.vertical = 'middle'
         // lbl2.style.font.size = 50
         lblTitle.style.font.color = '#ffffff'
-        ct.add(lblTitle)
+        this.add(lblTitle)
 
         this.addReturnButton()
         this.addCloseButton()

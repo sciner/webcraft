@@ -3,48 +3,56 @@ import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
 import { Resources } from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { BlankWindow } from "./blank.js";
 
 const COLOR_RED = '#A15151';
 
 export class RecipeSlot extends Window {
 
     constructor(x, y, w, h, id, title, text, recipe, block, ct) {
-        super(x, y, w, h, id, title, text);
+
+        super(x, y, w, h, id, title, text)
+
         //
-        this.recipe = recipe;
-        this.block = block;
-        this.ct = ct;
+        this.recipe = recipe
+        this.block = block
+        this.ct = ct
+
         //
         this.style.border.color = '#ffffffff';
         this.style.background.color = '#ffffff55';
+
         // Custom drawing
         this.onMouseEnter = function(e) {
             this.style.background.color = this.can_make ? '#ffffffcc' : COLOR_RED + '77';
         }
+
         this.onMouseLeave = function(e) {
             this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
         }
+
         this.onMouseDown = function(e) {
             this.ct.craft_window.setHelperSlots(null);
             if(!this.can_make) {
-                this.ct.craft_window.clearCraft();
-                this.ct.craft_window.setHelperSlots(e.target.recipe);
-                return;
+                this.ct.craft_window.clearCraft()
+                this.ct.craft_window.setHelperSlots(e.target.recipe)
+                return
             }
             for(const recipe of [this.recipe, ...this.recipe.subrecipes]) {
                 if(this.canMake(recipe)) {
-                    this.parent.craft_window.autoRecipe(recipe, e.shiftKey);
-                    this.parent.paginator.update();
-                    break;
+                    this.parent.craft_window.autoRecipe(recipe, e.shiftKey)
+                    this.parent.paginator.update()
+                    break
                 }
             }
-        };
+        }
+
     }
 
     canMake(recipe) {
         // TODO: Mayby need to replace Qubatch.player.inventory to this.ct?
         return Qubatch.player.inventory.hasResources(recipe.need_resources,
-            this.ct.craft_window.getCraftSlotItemsArray()).missing.length == 0;
+            this.ct.craft_window.getCraftSlotItemsArray()).missing.length == 0
     }
 
     update() {
@@ -52,7 +60,7 @@ export class RecipeSlot extends Window {
         for(let recipe of [this.recipe, ...this.recipe.subrecipes]) {
             this.can_make = this.canMake(recipe)
             if(this.can_make) {
-                break;
+                break
             }
         }
         if(this.can_make) {
@@ -67,7 +75,7 @@ export class RecipeSlot extends Window {
         this.applyStyle(ctx, ax, ay);
         super.draw(ctx, ax, ay);
         const item = this.block;
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
+        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
     }
 
     drawItem(ctx, item, x, y, width, height) {
@@ -104,7 +112,7 @@ export class RecipeSlot extends Window {
 }
 
 // RecipeWindow...
-export class RecipeWindow extends Window {
+export class RecipeWindow extends BlankWindow {
 
     constructor(recipe_manager) {
 
@@ -127,21 +135,13 @@ export class RecipeWindow extends Window {
 
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
-
         this.atlas.fromFile('./media/gui/recipe_book.png').then(async atlas => {
-
             ct.setBackground(await atlas.getSprite(0, 0, 592, 668), 'none', this.zoom / 2.0)
-
             // кнопка доступные или все рецепты
             this.addToggleButton()
-
         })
 
-        ct.style.background.color = '#00000000'
-        ct.style.border.hidden = true
-        ct.hide()
-
-        const that = this;
+        const that = this
 
         // Paginator
         this.paginator = {
@@ -169,12 +169,14 @@ export class RecipeWindow extends Window {
         };
 
         // кнопки пагинатора
-        this.addPaginatorButtons();
+        this.addPaginatorButtons()
         
         // строка поиска
         this.addFinder()
 
     }
+
+    onKeyEvent(e) {}
 
     onShow() {
         this.getRoot().centerChild()

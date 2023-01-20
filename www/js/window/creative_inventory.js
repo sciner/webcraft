@@ -4,6 +4,7 @@ import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { BlankWindow } from "./blank.js";
 
 class CreativeInventoryCollection extends Window {
 
@@ -206,7 +207,7 @@ class CreativeInventoryCollection extends Window {
 }
 
 // CreativeInventoryWindow...
-export class CreativeInventoryWindow extends Window {
+export class CreativeInventoryWindow extends BlankWindow {
 
     constructor(inventory) {
 
@@ -214,20 +215,14 @@ export class CreativeInventoryWindow extends Window {
 
         this.inventory = inventory
 
-        // Get window by ID
-        const ct = this
-        ct.style.background.color = '#00000000'
-        ct.style.background.image_size_mode = 'stretch'
-        ct.style.border.hidden = true
-        ct.setBackground('./media/gui/creative_inventory/tab_items.png')
-        ct.hide()
+        this.setBackground('./media/gui/creative_inventory/tab_items.png')
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Window title
         let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
-        ct.add(lbl1)
+        this.add(lbl1)
 
         // Создание слотов для инвентаря
         this.createInventorySlots(this.cell_size)
@@ -238,16 +233,16 @@ export class CreativeInventoryWindow extends Window {
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
-            const ct = this;
+            const that = this
             // Close button
-            let btnClose = new Button(ct.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial';
-            btnClose.style.background.image = image;
-            btnClose.style.background.image_size_mode = 'stretch';
+            const btnClose = new Button(that.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+            btnClose.style.font.family = 'Arial'
+            btnClose.style.background.image = image
+            btnClose.style.background.image_size_mode = 'stretch'
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                ct.hide();
+                that.hide()
             }
-            ct.add(btnClose);
+            that.add(btnClose)
         });
 
         // Search input
@@ -287,25 +282,6 @@ export class CreativeInventoryWindow extends Window {
             this.collection.init(text)
         }
 
-    }
-
-    // Hook for keyboard input
-    onKeyEvent(e) {
-        const {keyCode, down, first} = e
-        switch(keyCode) {
-            case KEY.ESC: {
-                if(!down) {
-                    ct.hide();
-                    try {
-                        Qubatch.setupMousePointer(true)
-                    } catch(e) {
-                        console.error(e)
-                    }
-                }
-                return true
-            }
-        }
-        return false
     }
 
     // Обработчик открытия формы

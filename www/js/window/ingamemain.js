@@ -30,7 +30,7 @@ export class InGameMain extends Window {
                 type: 'VerticalLayout',
                 x: 0,
                 y: 0,
-                width: this.width,
+                width: this.w,
                 childs: {
                     btnInventory: {
                         type: 'Button',

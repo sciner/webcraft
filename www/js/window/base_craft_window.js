@@ -51,7 +51,7 @@ export class HelpSlot extends Label {
         } 
         this.applyStyle(ctx, ax, ay);
         this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
-        this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
+        this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.w, this.h);
         super.draw(ctx, ax, ay);
     }
 
@@ -92,9 +92,9 @@ export class HelpSlot extends Label {
 export class CraftTableSlot extends Label {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
-        super(x, y, w, h, id, null, null);
-        this.ct = ct;
-        this.setSlotIndex(slot_index);
+        super(x, y, w, h, id, null, null)
+        this.ct = ct
+        this.setSlotIndex(slot_index)
     }
 
     //
@@ -130,19 +130,20 @@ export class CraftTableSlot extends Label {
      */
     async setItem(item, update_inventory = true) {
 
-        if(!item && !this.item) return
-
-        if(item) {
-
-            const image = getBlockImage(item, 100 * this.zoom)
-            this.setBackground(image, 'none')
-
-        } else if(this._bgimage) {
-            this._bgimage.visible = false
-
+        if(!item && !this.getItem()) {
+            return
         }
 
-        if(this.slot_index !== null) {   
+        if(item) {
+            const image = getBlockImage(item, 100 * this.zoom)
+            this.setBackground(image, 'none')
+        }
+
+        if(this._bgimage) {
+            this._bgimage.visible = !!item
+        }
+
+        if(this.isInventorySlot()) {   
             this.ct.inventory.setItem(this.slot_index, item)
         } else {
             this.item = item
@@ -151,33 +152,37 @@ export class CraftTableSlot extends Label {
                 this.ct.setHelperSlots(null)
             }
         }
+
+    }
+
+    isInventorySlot() {
+        return this.slot_index !== null
     }
 
     getItem() {
-        if(this.slot_index !== null) {
+        if(this.isInventorySlot()) {
             return this.ct.inventory.items[this.slot_index]
         } else {
-            return this.item;
+            return this.item ?? null
         }
     }
 
     getIndex() {
-        return this.slot_index !== null ? this.slot_index : parseFloat(this.index);
+        return this.isInventorySlot() ? this.slot_index : parseFloat(this.index);
     }
 
     // Draw slot
     draw(ctx, ax, ay) {
-        this.applyStyle(ctx, ax, ay);
-        let item = this.getItem();
+        const item = this.getItem();
         //
         if(DRAW_SLOT_INDEX) {
-            ctx.fillStyle = '#00000022';
-            ctx.font = '32px Ubuntu';
-            ctx.fillText(this.slot_index || '', ax + this.x + 4, ay + this.y + 4);
+            ctx.fillStyle = '#00000022'
+            ctx.font = '32px Ubuntu'
+            ctx.fillText(this.slot_index || '', ax + this.x + 4, ay + this.y + 4)
         }
         //
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
-        super.draw(ctx, ax, ay);
+        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
+        super.draw(ctx, ax, ay)
     }
 
     // Draw item
@@ -413,7 +418,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 dragItem.count += next_item.count;
             }
             // set drag item
-            this.parent.inventory.setDragItem(this, dragItem, e.drag, this.width, this.height);
+            this.parent.inventory.setDragItem(this, dragItem, e.drag, this.w, this.h);
         }
     
     }
@@ -709,7 +714,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
         const item = this.getInventoryItem()
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
+        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h);
         super.draw(ctx, ax, ay);
     }    
 
@@ -765,7 +770,7 @@ export class ArmorSlot extends CraftTableInventorySlot {
                 return;
             }
             this.setItem(null, e);
-            this.getInventory().setDragItem(this, targetItem, e.drag, this.width, this.height);
+            this.getInventory().setDragItem(this, targetItem, e.drag, this.w, this.h);
         }
 
         this.onDrop = function(e) {
@@ -813,14 +818,14 @@ export class ArmorSlot extends CraftTableInventorySlot {
             // fill background color
             let x = ax + this.x;
             let y = ay + this.y;
-            let w = this.width;
+            let w = this.w;
             let h = this.height;
             ctx.fillStyle = this.style.background.color == ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
                 ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#8f8d88ff';
             ctx.fillRect(x, y, w, h);
         }
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
-        super.draw(ctx, ax, ay);
+        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
+        super.draw(ctx, ax, ay)
     }
 
     getInventory() {

@@ -78,6 +78,7 @@ export class BackgroundStyle {
         this.#window = window
         // Background image
         this.#_bgimage = new PIXI.Sprite(PIXI.Texture.EMPTY)
+        window._bgimage = this.#_bgimage
         // this.#_bgimage.anchor.x = 0
         // this.#_bgimage.anchor.y = 0
         // this.#_bgimage.position.x = 0
@@ -128,7 +129,7 @@ export class BackgroundStyle {
             this.#_bgimage.texture.destroy()
             this.#_bgimage.texture = new PIXI.Texture(new PIXI.BaseTexture(image))
 
-            background._image = image
+            
 
             // scale
             if(isNaN(scale)) {
@@ -173,10 +174,10 @@ export class BackgroundStyle {
         const window = this.#window
         switch(value) {
             case 'none': {
-                background.position.x = window.w / 2
-                background.position.y = window.h / 2
-                background.pivot.x = background._image.width / 2
-                background.pivot.y = background._image.height / 2
+                //background.position.x = window.w / 2
+                //background.position.y = window.h / 2
+                //background.pivot.x = background._image.width / 2
+                //background.pivot.y = background._image.height / 2
                 break
             }
         }

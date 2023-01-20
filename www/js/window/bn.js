@@ -2,6 +2,7 @@ import { BLOCK } from "../blocks.js";
 import { Button, Window } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 // слот для залога
 class BeaconSlot extends CraftTableSlot {
@@ -24,7 +25,7 @@ class BeaconSlot extends CraftTableSlot {
             if (!dragItem) {
                 return;
             }
-            this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
+            this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
             this.setItem(null);
         };
         
@@ -36,7 +37,7 @@ class BeaconSlot extends CraftTableSlot {
             }
             const dragItem = this.getItem();
             this.setItem(dropItem, e);
-            this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
+            this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
         };
     }
     
@@ -264,33 +265,16 @@ export class BeaconWindow extends BaseCraftWindow {
         
         super(10, 10, 459, 438, 'frmBeacon', null, null, player.inventory);
         
-        this.w *= this.zoom;
-        this.h *= this.zoom;
-        this.player = player;
-        
-        this.style.background.image_size_mode = 'stretch';
-        const options = {
-            background: {
-                image: './media/gui/bn.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 0,
-                    y: 0,
-                    width: 459,
-                    height: 438
-                }
-            }
-        };
-        this.style.background = {...this.style.background, ...options.background};
+        this.w *= this.zoom
+        this.h *= this.zoom
+        this.player = player
 
-        // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.setBackground(options.background.image);
-        ct.hide();
-        
+        // Create sprite atlas
+        this.atlas = new SpriteAtlas()
+        this.atlas.fromFile('./media/gui/bn.png').then(async atlas => {
+            this.setBackground(await atlas.getSprite(0, 0, 459, 438), 'none', this.zoom / 2.0)
+        })
+
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
@@ -298,52 +282,34 @@ export class BeaconWindow extends BaseCraftWindow {
         this.createButtons(this.cell_size);
         
          // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size, 70, 272);
-        
-        // Обработчик закрытия формы
-        this.onHide = function() {
-            this.inventory.clearDragItem();
-            // Save inventory
-            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), []);
-        }
-        
-        // Обработчик открытия формы
-        this.onShow = function(args) {
-            Qubatch.releaseMousePointer();
-        }
+        this.createInventorySlots(this.cell_size, 70, 272)
         
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
-            const ct = this;
+            const that = this
             // Close button
-            const btnClose = new Button(ct.width - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial';
-            btnClose.style.background.image = image;
+            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+            btnClose.style.font.family = 'Arial'
+            btnClose.style.background.image = image
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                ct.hide();
+                that.hide()
             }
-            ct.add(btnClose);
+            that.add(btnClose);
         });
 
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.ESC: {
-                    if(!down) {
-                        ct.hide();
-                        try {
-                            Qubatch.setupMousePointer(true);
-                        } catch(e) {
-                            console.error(e);
-                        }
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
+    }
+        
+    // Обработчик закрытия формы
+    onHide() {
+        this.inventory.clearDragItem()
+        // Save inventory
+        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [])
+    }
+    
+    // Обработчик открытия формы
+    onShow(args) {
+        Qubatch.releaseMousePointer()
     }
     
     createButtons(cell_size) {

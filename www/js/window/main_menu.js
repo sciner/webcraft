@@ -1,28 +1,18 @@
-import {Window, Label, Button} from "../../tools/gui/wm.js";
+import { Button, Label } from "../../tools/gui/wm.js";
 import { Lang } from "../lang.js";
+import { BlankWindow } from "./blank.js";
 
-export class MainMenu extends Window {
+export class MainMenu extends BlankWindow {
 
     constructor(x, y, w, h, id, title, text) {
 
-        w *= UI_ZOOM
-        h *= UI_ZOOM
-
-        super(x, y, w, h, id, title, text);
-        // this.width = this.w * this.zoom;
-        // this.height = this.h * this.zoom;
-
-        // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.hide();
+        super(x, y, w * UI_ZOOM, h * UI_ZOOM, id, title, text)
 
         //
         const lbl2 = new Label(0, 0, this.w, 30 * this.zoom, 'lbl2', Lang.menu);
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
-        ct.add(lbl2);
+        this.add(lbl2);
 
         // Add buttons
         this.addButton(Lang.btn_return, 80, () => {Qubatch.hud.wm.closeAll()});
@@ -66,7 +56,7 @@ export class MainMenu extends Window {
             color: 'rgba(0, 0, 0, 0.5)'
         }
         */
-        btn.onMouseDown = onclick;
+        btn.onMouseDown = onclick
         /*
         btn.onMouseEnter = function() {
             this.style.background.color_save = this.style.background.color;

@@ -1,16 +1,17 @@
-import { Window } from "../../tools/gui/wm.js";
 import { INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
+import { BlankWindow } from "./blank.js";
 
-export class BaseInventoryWindow extends Window {
+export class BaseInventoryWindow extends BlankWindow {
 
     constructor(x, y, w, h, id, title, text, inventory) {
 
-        super(x, y, w, h, id, title, text);
+        super(x, y, w, h, id, title, text)
 
-        this.world      = inventory.player.world;
-        this.server     = this.world.server;
-        this.inventory  = inventory;
-        this.drag       = Qubatch.hud.wm.drag;
+        this.world      = inventory.player.world
+        this.server     = this.world.server
+        this.inventory  = inventory
+        this.drag       = Qubatch.hud.wm.drag
+
     }
 
     // Updates drag UI if the dragged item changed

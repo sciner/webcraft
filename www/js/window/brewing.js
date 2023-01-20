@@ -1,3 +1,4 @@
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Vector } from "../helpers.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
@@ -7,22 +8,18 @@ export class BrewingWindow extends BaseChestWindow {
 
         super(10, 10, 352, 332, 'frmBrewing', null, null, inventory, {
             title: 'Brewing Stand',
-            background: {
-                image: './media/gui/brewing_stand.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 0,
-                    y: 0,
-                    width: 351 * 2,
-                    height: 332 * 2
-                }
-            },
             sound: {
                 open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
                 close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
             }
-        });
+        })
+
+        // Create sprite atlas
+        this.atlas = new SpriteAtlas()
+        this.atlas.fromFile('./media/gui/brewing_stand.png').then(async atlas => {
+            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+        })
+
     }
 
     //

@@ -107,8 +107,8 @@ export class Window extends PIXI.Container {
     onMouseLeave() {
         for(let w of this.list.values()) {
             if(w.hover) {
-                w.hover = false;
-                w.onMouseLeave();
+                w.hover = false
+                w.onMouseLeave()
             }
         }
     }
@@ -714,13 +714,13 @@ export class Window extends PIXI.Container {
             callback(this._loadCloseButtonImage);
         }
         // Load buttons background image
-        let image = new Image();
-        let that = this;
+        const image = new Image();
+        const that = this;
         image.onload = function() {
-            this._loadCloseButtonImage = this;
-            callback(this._loadCloseButtonImage);
+            that._loadCloseButtonImage = this
+            callback(that._loadCloseButtonImage)
         }
-        image.src = '../../media/gui/close.png';
+        image.src = '../../media/gui/close.png'
     }
 
     assignStyles(style) {
