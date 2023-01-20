@@ -134,7 +134,7 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
 
     constructor(renderer) {
         super(renderer)
-        this.vertexSize = 11;
+        this.vertexSize = 10;
         this.geometryClass = MyBatchGeometry;
     }
 
