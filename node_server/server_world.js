@@ -14,7 +14,8 @@ import { WorldActionQueue } from "./world/action_queue.js";
 import { WorldMobManager } from "./world/mob_manager.js";
 import { WorldAdminManager } from "./world/admin_manager.js";
 import { WorldChestManager } from "./world/chest_manager.js";
-import { WorldDBActor, KNOWN_CHUNK_FLAGS } from "./db/world/WorldDBActor.js";
+import { WorldDBActor } from "./db/world/WorldDBActor.js";
+import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
 import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
@@ -89,6 +90,7 @@ export class ServerWorld {
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
 
+        this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);
 
         const madeBuildings = await this.makeBuildingsWorld();
@@ -131,11 +133,9 @@ export class ServerWorld {
         await this.admins.load();
         await this.mobs.init();
         t = performance.now();
-        await this.db.chunks.restoreModifiedChunks();
-        await this.db.chunks.restoreChunks();
-        await this.db.fluid.restoreFluidChunks();
+        await this.worldChunkFlags.restore();
         await this.db.mobs.initChunksWithMobs();
-        console.log(`Restored ${this.dbActor.knownChunkFlags.size} chunks, ${this.db.mobs._addrByMobId.size} mobs, elapsed: ${performance.now() - t | 0} ms`)
+        console.log(`Restored ${this.worldChunkFlags.size} chunks, ${this.db.mobs._addrByMobId.size} mobs, elapsed: ${performance.now() - t | 0} ms`)
         await this.chunks.initWorker();
         await this.chunks.initWorkers(world_guid);
 
@@ -146,13 +146,6 @@ export class ServerWorld {
             await this.rules.setValue('randomTickSpeed', '0')
         }
 
-        //
-        this.saveWorldTimer = setInterval(() => {
-            // let pn = performance.now();
-            this.save();
-            // calc time elapsed
-            // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
-        }, 5000);
         await this.tick();
     }
 
@@ -445,20 +438,18 @@ export class ServerWorld {
         );
     }
 
-    save() {
-        for(const [_, player] of this.players.all()) {
-            this.db.savePlayerState(player);
-        }
-    }
-
     // onPlayer
     async onPlayer(player, skin) {
+        const user_id = player.session.user_id;
         // 1. Delete previous connections
-        const existing_player = this.players.get(player.session.user_id);
+        const existing_player = this.players.get(user_id);
         if(existing_player) {
             console.log('OnPlayer delete previous connection for: ' + player.session.username);
             await this.onLeave(existing_player);
         }
+        // If thre is a copy of this player player waiting to be saved right now, wait until it's saved and forgotten.
+        // It's slow, but safe. TODO restore players without waiting
+        await this.players.getDeleted(user_id)?.savingPromise;
         // 2. Insert to DB if new player
         player.init(await this.db.registerPlayer(this, player));
         player.state.skin = skin;
@@ -466,11 +457,11 @@ export class ServerWorld {
         await player.initQuests();
         player.initWaitingDataForSpawn();
         // 3. Insert to array
-        this.players.list.set(player.session.user_id, player);
+        this.players.list.set(user_id, player);
         // 4. Send about all other players
         const all_players_packets = [];
-        for (const [_, p] of this.players.all()) {
-            if (p.session.user_id != player.session.user_id) {
+        for (const p of this.players.values()) {
+            if (p.session.user_id != user_id) {
                 all_players_packets.push({
                     name: ServerClient.CMD_PLAYER_JOIN,
                     data: p.exportState()
@@ -487,7 +478,7 @@ export class ServerWorld {
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
         // 7. Drop item if stored
         if (player.inventory.moveOrDropFromDragSlot()) {
-            await player.inventory.save();
+            player.inventory.touch();
         }
         // 8. Send CMD_CONNECTED
         player.sendPackets([{
@@ -513,7 +504,6 @@ export class ServerWorld {
     async onLeave(player) {
         if (this.players.exists(player?.session?.user_id)) {
             this.players.delete(player.session.user_id);
-            await this.db.savePlayerState(player);
             player.onLeave();
             // Notify other players about leave me
             const packets = [{
@@ -749,7 +739,7 @@ export class ServerWorld {
                         console.log(`Potential problem with setting a block and loading chunk pos=${params.pos} item=${params.item}`);
                     }
                     // 2. Mark as became modifieds
-                    this.dbActor.addKnownChunkFlags(chunk_addr, KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS);
+                    this.worldChunkFlags.add(chunk_addr, WorldChunkFlags.MODIFIED_BLOCKS);
                     // 3.
                     if (chunk && chunk.tblocks && isLoaded) {
                         let sanitizedParams = params;

@@ -2,7 +2,7 @@ import {getChunkAddr, SimpleQueue, Vector} from "../../../www/js/helpers.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
 import {FluidChunk} from "../../../www/js/fluid/FluidChunk.js";
 import {BaseChunk} from "../../../www/js/core/BaseChunk.js";
-import {KNOWN_CHUNK_FLAGS} from "./WorldDBActor.js"
+import {WorldChunkFlags} from "./WorldChunkFlags.js";
 import {BulkSelectQuery} from "../db_helpers.js"
 
 export class DBWorldFluid {
@@ -21,12 +21,12 @@ export class DBWorldFluid {
 
     async restoreFluidChunks() {
         const rows = await this.conn.all('SELECT x, y, z FROM world_chunks_fluid');
-        this.world.dbActor.bulkAddChunkFlags(rows, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID);
+        this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.MODIFIED_FLUID);
     }
 
     //
     async loadChunkFluid(chunk_addr) {
-        if (!this.world.dbActor.knownChunkHasFlags(chunk_addr, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID)) {
+        if (!this.world.worldChunkFlags.has(chunk_addr, WorldChunkFlags.MODIFIED_FLUID)) {
             return null;
         }
 
@@ -45,7 +45,7 @@ export class DBWorldFluid {
      * why we also have a non-bulk version.
      */
     async queuedGetChunkFluid(chunk_addr) {
-        if (!this.world.dbActor.knownChunkHasFlags(chunk_addr, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID)) {
+        if (!this.world.worldChunkFlags.has(chunk_addr, WorldChunkFlags.MODIFIED_FLUID)) {
             return null;
         }
         const row = await this.bulkGetQuery.get(chunk_addr.toArray());
@@ -55,7 +55,7 @@ export class DBWorldFluid {
 
     //
     async saveChunkFluid(chunk_addr, data) {
-        this.world.dbActor.addKnownChunkFlags(chunk_addr, KNOWN_CHUNK_FLAGS.MODIFIED_FLUID);
+        this.world.worldChunkFlags.add(chunk_addr, WorldChunkFlags.MODIFIED_FLUID);
         await this.conn.run('INSERT INTO world_chunks_fluid(x, y, z, data) VALUES (:x, :y, :z, :data)', {
             ':x': chunk_addr.x,
             ':y': chunk_addr.y,

@@ -269,26 +269,39 @@ export class DBWorld {
         });
     }
 
-    // savePlayerInventory...
-    async savePlayerInventory(player, params) {
-        await this.conn.run('UPDATE user SET inventory = :inventory WHERE id = :id', {
-            ':id':              player.session.user_id,
-            ':inventory':       JSON.stringify(params)
-        });
+    async bulkUpdateInventory(rows) {
+        return rows.length && this.conn.run(this.BULK_UPDATE_INVENTORY, [JSON.stringify(rows)]);
+    };
+    BULK_UPDATE_INVENTORY = preprocessSQL(`
+        UPDATE user
+        SET inventory = %1
+        FROM json_each(?)
+        WHERE user.id = %0
+    `);
+
+    static toPlayerUpdateRow(player) {
+        const state = player.state;
+        return [
+            player.session.user_id,
+            JSON.stringify(state.pos),
+            JSON.stringify(state.rotate),
+            JSON.stringify(state.indicators),
+            JSON.stringify(state.stats)
+        ];
     }
 
-    // savePlayerState...
-    async savePlayerState(player) {
-        player.position_changed = false;
-        await this.conn.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
-            ':id':              player.session.user_id,
-            ':pos':             JSON.stringify(player.state.pos),
-            ':rotate':          JSON.stringify(player.state.rotate),
-            ':indicators':      JSON.stringify(player.state.indicators),
-            ':dt_moved':        unixTime(),
-            ':stats':           JSON.stringify(player.state.stats),
+    async bulkUpdatePlayerState(rows, dt) {
+        return rows.length && this.conn.run(this.BULK_UPDATE_PLAYER_STATE, {
+            ':jsonRows': JSON.stringify(rows),
+            ':dt':  dt
         });
-    }
+    };
+    BULK_UPDATE_PLAYER_STATE = preprocessSQL(`
+        UPDATE user
+        SET pos = %1, rotate = %2, indicators = %3, stats = %4, dt_moved = :dt
+        FROM json_each(:jsonRows)
+        WHERE user.id = %0
+    `);
 
     // changePosSpawn...
     async changePosSpawn(player, params) {

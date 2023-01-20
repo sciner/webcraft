@@ -1,5 +1,6 @@
 import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED, DropItem} from "./drop_item.js";
 import {CHUNK_STATE} from "../www/js/chunk_const.js"
+
 import {ServerClient} from "../www/js/server_client.js";
 import { unixTime } from "../www/js/helpers.js";
 import {DROP_LIFE_TIME_SECONDS} from "../www/js/constant.js";
@@ -23,16 +24,15 @@ export class ItemWorld {
     /**
      * Deletes dropItem from the data structures.
      * It doesn't notify the players.
-     * Providing chunkOptional increases performance.
      */
-    delete(dropItem, chunkOptional, deleteFromDB = true) {
-        let chunk = chunkOptional || dropItem.getChunk();
-        // delete from chunk
-        chunk.drop_items.delete(dropItem.entity_id);
+    delete(dropItem, deleteFromDB = true) {
+        // Delete from the chunk. The chunk may be absent.
+        dropItem.inChunk?.drop_items?.delete(dropItem.entity_id);
+
         this.all_drop_items.delete(dropItem.entity_id);
-        // delete drop item in database
+        // delete drop item from the database
         if (deleteFromDB) {
-            dropItem.markDirty(DropItem.DIRTY_DELETE);
+            dropItem.touch(DropItem.DIRTY_DELETE);
             if (dropItem.dirty === DropItem.DIRTY_DELETE) { // if it's never been saved, it'll be DIRTY_CLEAR now
                 this.deletedEntityIds.push(dropItem.entity_id);
             }
@@ -45,7 +45,7 @@ export class ItemWorld {
             if (drop_item.dt >= minDt) {
                 drop_item.tick(delta);
             } else {
-                this.delete(drop_item, null, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB);
+                this.delete(drop_item, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB);
             }
         }
         if (ITEM_MERGE_RADIUS >= 0) {
@@ -134,26 +134,22 @@ export class ItemWorld {
                 }
 
                 // delete dropItemA
-                const chunkA = dropItemA.getChunk();
-                this.delete(dropItemA, chunkA);
+                this.delete(dropItemA, true);
                 const packetsA = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,
                     data: [dropItemA.entity_id]
                 }];
-                chunkA.sendAll(packetsA, []);
+                dropItemA.inChunk.sendAll(packetsA, []);
 
                 // increment dropItemB count
                 dropItemB.items[indexB].count += dropItemA.items[0].count;
                 dropItemB.dt = Math.max(dropItemB.dt, dropItemA.dt); // renvew the item age, so it won't disappear soon
-                dropItemB.markDirty(DropItem.DIRTY_UPDATE);
+                dropItemB.touch(DropItem.DIRTY_UPDATE);
                 const packetsB = [{
-                    name: ServerClient.CMD_DROP_ITEM_UPDATE,
-                    data: {
-                        entity_id:  dropItemB.entity_id,
-                        pos:        dropItemB.pos
-                    }
+                    name: ServerClient.CMD_DROP_ITEM_FULL_UPDATE,
+                    data: dropItemB.getItemFullPacket()
                 }];
-                dropItemB.getChunk().sendAll(packetsB, []);
+                dropItemB.inChunk.sendAll(packetsB, []);
 
                 if(dropItemA === this.#mergeableItems[dropItemI]) {
                     // We removed the outer loop item. It's an item with the pending merging check.

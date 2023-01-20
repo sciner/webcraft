@@ -14,8 +14,8 @@ export class QuestActionBase {
         this.update();
     }
 
-    async save() {
-        return await this.#quest.checkAndSave();
+    async checkAndTouch() {
+        return await this.#quest.checkAndTouch();
     }
 
     update() {

@@ -22,7 +22,8 @@ export class DropItemManager {
                     }
                     break;
                 }
-                case ServerClient.CMD_DROP_ITEM_UPDATE: {
+                case ServerClient.CMD_DROP_ITEM_UPDATE:
+                case ServerClient.CMD_DROP_ITEM_FULL_UPDATE: {
                     let drop_item = this.list.get(cmd.data.entity_id);
                     if(drop_item) {
                         // drop_item.pos.y = cmd.data.pos.y;
@@ -30,6 +31,10 @@ export class DropItemManager {
                             pos: cmd.data.pos,
                             time: cmd.time
                         });
+                        if (cmd.name === ServerClient.CMD_DROP_ITEM_FULL_UPDATE) {
+                            drop_item.items = cmd.data.items;
+                            drop_item.dt = cmd.data.dt;
+                        }
                     } else {
                         // Drop item not found
                     }

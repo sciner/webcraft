@@ -1,5 +1,24 @@
 import { ArrayHelpers } from "../../www/js/helpers.js";
 
+/** A handler to complete a transaction, and to resolve a promise at the same time. */
+export class Transaction {
+
+    constructor(db, resolve) {
+        this._db = db;
+        this._resolve = resolve;
+    }
+
+    async commit() {
+        await this._db.TransactionCommit();
+        this._resolve();
+    }
+
+    async rollback() {
+        await this._db.TransactionRollback();
+        this._resolve();
+    }
+}
+
 /**
  * Helps write bulk queries with JSON parameters.
  * Replaces:
@@ -89,11 +108,11 @@ export class BulkSelectQuery {
     }
 
     /**
-     * Queries all the data previously passed to {@link get}.
+     * Queries all the data previously passed to {@link get} and {@link get}, which will allow their promises to resolve.
      * @param {Object} uniformHostParameters - additional parameters that are not included in
      *   each row of data. The data itself is added to these parameters as a field.
      */
-    async flush(uniformHostParameters = {}) {
+    flush(uniformHostParameters = {}) {
         if (typeof uniformHostParameters !== 'object') {
             throw new Error(`The host parameters ${uniformHostParameters} should be in an Object in: ${this.query}`);
         }
@@ -156,7 +175,7 @@ export class BulkSelectQuery {
                     }
                 }
             };
-        const promise = this.conn.all(this.query, uniformHostParameters).then(
+        this.conn.all(this.query, uniformHostParameters).then(
             onRows,
             err => {
                 console.error('Error in: ' + this.query);
@@ -170,7 +189,6 @@ export class BulkSelectQuery {
         this.data = []; // make a new object, don't clear the exitong array
         this.handlers = [];
         this.modeAll = null;
-        return promise;
     }
 
     async _add(srcRow) {

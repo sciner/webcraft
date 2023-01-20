@@ -10,11 +10,10 @@ import { compressWorldModifyChunk, decompressModifiresList } from "../www/js/com
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
-import { Mob } from "./mob.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "../www/js/light/ChunkLight.js";
 import { ChunkDBActor } from "./db/world/ChunkDBActor.js";
-import { KNOWN_CHUNK_FLAGS } from "./db/world/WorldDBActor.js";
+import { DropItem } from "./drop_item.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -291,13 +290,20 @@ export class ServerChunk {
 
     // Add drop item
     addDropItem(drop_item) {
-        drop_item.setPrevChunkAddr(this.addr);
+        if (drop_item.inChunk) {
+            throw new Error('drop_item.inChunk');
+        }
+        drop_item.inChunk = this;
         this.drop_items.set(drop_item.entity_id, drop_item);
         let packets = [{
             name: ServerClient.CMD_DROP_ITEM_ADDED,
-            data: [drop_item]
+            data: [drop_item.getItemFullPacket()]
         }];
-        this.sendAll(packets);
+        try {
+            this.sendAll(packets);
+        } catch(e) {
+            throw e;
+        }
     }
 
     // Send chunk for players
@@ -382,8 +388,8 @@ export class ServerChunk {
             name: ServerClient.CMD_DROP_ITEM_ADDED,
             data: []
         }];
-        for(const [_, drop_item] of this.drop_items) {
-            packets[0].data.push(drop_item);
+        for(const drop_item of this.drop_items.values()) {
+            packets[0].data.push(drop_item.getItemFullPacket());
         }
         this.world.sendSelected(packets, player_user_ids, []);
     }
@@ -1260,14 +1266,18 @@ export class ServerChunk {
             promises.push(chunkManager.world.db.fluid.flushChunk(this.tblocks.fluid))
         }
         // Unload mobs
-        for(let mob of this.mobs.values()) {
+        for(const mob of this.mobs.values()) {
             this.unloadedStuff.push(mob);
-            inWorldTransaction ||= mob.onUnload(this);
+            if (mob.onUnload(this)) {
+                inWorldTransaction = true;
+            }
         }
         // Unload drop items
-        for(let drop_item of this.drop_items.values()) {
+        for(const drop_item of this.drop_items.values()) {
             this.unloadedStuff.push(drop_item);
-            inWorldTransaction ||= drop_item.onUnload();
+            if (drop_item.onUnload()) {
+                inWorldTransaction = true;
+            }
         }
         if (inWorldTransaction) {
             this.world.dbActor.dirtyChunks.add(this);
@@ -1296,7 +1306,6 @@ export class ServerChunk {
         for(const stuff of this.unloadedStuff) {
             stuff.writeToWorldTransaction(uc, true);
         }
-        this.unloadedStuff.length = 0;
     }
 }
 

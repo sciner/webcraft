@@ -1,6 +1,6 @@
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector, unixTime, getChunkAddr } from "../../../www/js/helpers.js";
-import { KNOWN_CHUNK_FLAGS } from "../world/WorldDBActor.js"
+import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { decompressModifiresList } from "../../../www/js/compress/world_modify_chunk.js";
 import { BulkSelectQuery, preprocessSQL } from "../db_helpers.js";
 
@@ -144,12 +144,12 @@ export class DBWorldChunk {
 
     /**
      * For all chunks that have records in world_modify_chunks, sets flags
-     * KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS
+     * WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS | WorldChunkFlags.MODIFIED_BLOCKS
      * in this.world.dbActor.knownChunkFlags
      */
     async restoreModifiedChunks() {
         const rows = await this.conn.all('SELECT x, y, z FROM world_modify_chunks');
-        this.world.dbActor.bulkAddChunkFlags(rows, KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS | KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS);
+        this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS | WorldChunkFlags.MODIFIED_BLOCKS);
     }
 
     /**
@@ -353,16 +353,16 @@ export class DBWorldChunk {
     // ================================== chunk ============================================
 
     async restoreChunks() {
-        const dbActor = this.world.dbActor;
+        const worldChunkFlags = this.world.worldChunkFlags;
         const rows = await this.conn.all('SELECT addr FROM chunk');
         for(const row of rows) {
             tmpAddr.fromHash(row.addr);
-            dbActor.addKnownChunkFlags(tmpAddr, KNOWN_CHUNK_FLAGS.DB_CHUNK);
+            worldChunkFlags.add(tmpAddr, WorldChunkFlags.DB_CHUNK);
         }
     }
 
     async getChunkOfChunk(chunk) {
-        const row = this.world.dbActor.knownChunkHasFlags(chunk.addr, KNOWN_CHUNK_FLAGS.DB_CHUNK)
+        const row = this.world.worldChunkFlags.has(chunk.addr, WorldChunkFlags.DB_CHUNK)
             && await this.bulkGetChunkQuery.get(chunk.addrHash);
         return row || { exists: false, mobs_is_generated: 0, delayed_calls: null };
     }
@@ -386,9 +386,11 @@ export class DBWorldChunk {
                 ':jsonRows': JSON.stringify(insertRows),
                 ':dt': dt
             }).then( () => {
-                for(const row of insertRows) {
-                    row.exists = true;
-                    this.world.dbActor.addKnownChunkFlags(row.chunk.addr, KNOWN_CHUNK_FLAGS.DB_CHUNK);
+                for(const row of rows) {
+                    if (!row.exists) {
+                        row.exists = true;
+                        this.world.worldChunkFlags.add(row.chunk.addr, WorldChunkFlags.DB_CHUNK);
+                    }
                 }
             }),
 

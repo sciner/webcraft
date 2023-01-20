@@ -2,17 +2,29 @@ import {QuestActionType} from "./action_type.js";
 import {QuestActionPickup} from "./action_pickup.js";
 import {QuestActionSetBlock} from "./action_setblock.js";
 import {QuestActionCraft} from "./action_craft.js";
-import { Vector } from "../../www/js/helpers.js";
 import { BLOCK } from "../../www/js/blocks.js";
+import {DBWorldQuest} from "../db/world/quest.js"
+import {ServerPlayer} from "../server_player.js"
 
 // Quest
 export class Quest {
 
+    static DIRTY_FLAG_NEW       = 0x1;
+    static DIRTY_FLAG_UPDATED   = 0x2;
+
     #quest_player;
     #player;
     #next_quests;
+    #dirtyFlags;
 
-    constructor(quest_player, quest) {
+    /**
+     * @param {QuestPlayer} quest_player
+     * @param {Object} quest - either an existing quest of this player reqyrned by {@link DBWorldQuest.loadPlayerQuests},
+     *  or a general quest description returned by {@link DBWorldQuest.load}, {@link DBWorldQuest.defaults} or 
+     * @param {Boolean} isNew - true if the quest is just created, and not addede to the DB,
+     *  false if it already exists in DB
+     */
+    constructor(quest_player, quest, isNew) {
         this.#quest_player  = quest_player;
         this.#player        = quest_player.player;
         this.#next_quests   = quest.next_quests ? JSON.parse(quest.next_quests) : [];
@@ -21,8 +33,13 @@ export class Quest {
         this.title          = quest.title;
         this.description    = quest.description;
         this.rewards        = quest.rewards;
-        this.is_completed   = quest.is_completed;
-        this.in_progress    = quest.in_progress;
+        this.is_completed   = quest.is_completed ?? false;
+        this.in_progress    = quest.in_progress ?? !this.is_completed;
+        this.#dirtyFlags    = 0;
+        if (isNew) {
+            this.#dirtyFlags = Quest.DIRTY_FLAG_NEW;
+            this.#player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_QUESTS;
+        }
         // Parse actions
         this.actions = [];
         for(let action of quest.actions) {
@@ -51,9 +68,9 @@ export class Quest {
         }
     }
 
-    async checkAndSave() {
+    async checkAndTouch() {
         await this.check();
-        await this.save();
+        this.touch();
         // обновить квесты у игрока
         this.#quest_player.sendAll();
     }
@@ -82,8 +99,6 @@ export class Quest {
     // Quest completed
     async complete() {
         const server_player = this.#player;
-        const world = server_player.world;
-        const pos = server_player.state.pos.clone();
         //
         console.log(`Quest ${this.id} completed by ${server_player.session.username}`);
         //
@@ -105,17 +120,28 @@ export class Quest {
         // @todo Сделать доступными новые квесты в ветке
         for(let next_quest_id of this.#next_quests) {
             const next_quest = await this.#quest_player.quest_manager.loadQuest(next_quest_id);
-            await this.#quest_player.quest_manager.savePlayerQuest(this.#player, next_quest);
+            this.#quest_player.addQuest(next_quest, true);
+            this.touch();
         }
         // отправить сообщение
         this.#quest_player.sendMessage(`You completed quest '${this.title}'`);
-        //
-        await this.#quest_player.loadQuests();
     }
 
-    //
-    async save() {
-        return await this.#quest_player.quest_manager.savePlayerQuest(this.#player, this);
+    // Marks that the quest must be saved in the next world transaction
+    touch() {
+        this.#dirtyFlags        |= Quest.DIRTY_FLAG_UPDATED;
+        this.#player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_QUESTS;
     }
 
+    writeToWorldTransaction(underConstruction) {
+        if (this.#dirtyFlags) {
+            const player = this.#player;
+            const row = DBWorldQuest.playerQuestToRow(player, this);
+            const list = this.#dirtyFlags & Quest.DIRTY_FLAG_NEW
+                ? underConstruction.insertQuests
+                : underConstruction.updateQuests;
+            list.push(row);
+            this.#dirtyFlags = 0;
+        }
+    }
 }

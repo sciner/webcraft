@@ -1,6 +1,6 @@
 import { Vector } from "../../../www/js/helpers.js";
 import { CHUNK_STATE } from "../../../www/js/chunk_const.js";
-import { KNOWN_CHUNK_FLAGS } from "./WorldDBActor.js";
+import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { WORLD_MODIFY_CHUNKS_TTL } from "../../server_constant.js";
 
 export const BLOCK_DIRTY = {
@@ -46,7 +46,7 @@ export class ChunkDBActor {
         this.earliestUnsavedChangeTime = Infinity;
 
         // It can be true, false or a Number (a known rowId)
-        this.world_modify_chunk_hasRowId = this.world.dbActor.knownChunkHasFlags(chunk.addr, KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS);
+        this.world_modify_chunk_hasRowId = this.world.worldChunkFlags.has(chunk.addr, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS);
     }
 
     get world() {
@@ -69,8 +69,6 @@ export class ChunkDBActor {
                 // if someone deleted the record while the game was running.
                 // Don't crash, but don't try to rebuild the data.
                 row = { obj: {} };
-                this.world.dbActor.removeKnownChunkFlags(
-                    this.chunk.addr, KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS);
             }
             this.world_modify_chunk_hasRowId = row.rowId ?? false;
             return row;
@@ -101,7 +99,7 @@ export class ChunkDBActor {
             if (this.earliestUnsavedChangeTime === Infinity) {
                 this.earliestUnsavedChangeTime = performance.now();
                 this.world.dbActor.dirtyChunks.add(this.chunk);
-                this.world.dbActor.addKnownChunkFlags(this.chunk.addr, KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS);
+                this.world.worldChunkFlags.add(this.chunk.addr, WorldChunkFlags.MODIFIED_BLOCKS);
             }
             this.world.dbActor.totalDirtyBlocks++;
         }
@@ -199,7 +197,7 @@ export class ChunkDBActor {
             this.world_modify_chunk_hasRowId // because the chunk is already loaded, it's false or a Number
         ).then( rowId => {
             this.world_modify_chunk_hasRowId = rowId;
-            this.world.dbActor.addKnownChunkFlags(this.chunk.addr, KNOWN_CHUNK_FLAGS.DB_WORLD_MODIFY_CHUNKS);
+            this.world.worldChunkFlags.add(this.chunk.addr, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS);
         });
         world.dbActor.pushPromises(promise);
 

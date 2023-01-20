@@ -80,6 +80,7 @@ export class ServerClient {
 	static CMD_DROP_ITEM_ADDED          = 76;
 	static CMD_DROP_ITEM_DELETED        = 77;
 	static CMD_DROP_ITEM_UPDATE         = 78;
+    static CMD_DROP_ITEM_FULL_UPDATE    = 109;
 	static CMD_DROP_ITEM                = 86;
 	static CMD_DROP_ITEM_PICKUP         = 99;
 
@@ -95,7 +96,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 109
+    // NEXT UNUSED COMMAND INDEX        = 110
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

@@ -3,7 +3,7 @@ import { PrismarinePlayerControl } from "../www/vendors/prismarine-physics/using
 import {ServerClient} from "../www/js/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
 
-export const MOTION_MOVED = 0;
+export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
 export const MOTION_STAYED = 2;
 
@@ -11,7 +11,6 @@ export class DropItem {
 
     #world;
     #chunk_addr;
-    #prev_chunk_addr;
     #pc;
 
     static DIRTY_CLEAR      = 0;
@@ -27,8 +26,13 @@ export class DropItem {
         this.pos            = new Vector(params.pos);
         this.posO           = new Vector(Infinity, Infinity, Infinity);
         this.rowId          = params.rowId;
-        // Don't set this.dirty directly, call markDirty instead.
+        // Don't set this.dirty directly, call touch() instead.
         this.dirty          = isNew ? DropItem.DIRTY_NEW : DropItem.DIRTY_CLEAR;
+        /** 
+         * The chunk in which this item is currently listed.
+         * It may be different from {@link chunk_addr} and {@link getChunk}
+         */
+        this.inChunk        = null;
         // Private properties
         this.#chunk_addr    = new Vector();
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
@@ -42,7 +46,6 @@ export class DropItem {
             playerHalfWidth: .25
         });
         this.motion = MOTION_MOVED;
-        this.#prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
         //
         this.load_time = performance.now();
         //
@@ -51,11 +54,21 @@ export class DropItem {
         }
     }
 
+    /** @return {Object} data to send in CMD_DROP_ITEM_ADDED and CMD_DROP_ITEM_FULL_UPDATE */
+    getItemFullPacket() {
+        return {
+            entity_id:  this.entity_id,
+            items:      this.items,
+            pos:        this.pos,
+            dt:         this.dt
+        };
+    }
+
     /**
      * Changes dirty status according to dirtyChange (one of DropItem.DIRTY_***).
      * It doesn't validate all posible cases, only processes expected valid changes.
      */
-    markDirty(dirtyChange) {
+    touch(dirtyChange) {
         switch(dirtyChange) {
             case DropItem.DIRTY_CLEAR:
             case DropItem.DIRTY_NEW:
@@ -67,10 +80,12 @@ export class DropItem {
                     this.dirty = dirtyChange;
                 }
                 break;
-            default: // case DropItem.DIRTY_DELETE:
+            case DropItem.DIRTY_DELETE:
                 this.dirty = (this.dirty === DropItem.DIRTY_NEW)
                     ? DropItem.DIRTY_CLEAR // remove it without ever saving to DB
                     : dirtyChange
+                break;
+            default: throw Error('dirtyChange == ' + dirtyChange);
         }
     }
 
@@ -85,12 +100,12 @@ export class DropItem {
         }, this.pos, options);
     }
 
+    /**
+     * The address of the chunk in which the item should be acording to {@link pos}.
+     * It may be different from {@link inChunk}.
+     */
     get chunk_addr() {
         return getChunkAddr(this.pos, this.#chunk_addr);
-    }
-
-    setPrevChunkAddr(prevChunkAdr) {
-        this.#prev_chunk_addr.set(prevChunkAdr);
     }
 
     addVelocity(vec) {
@@ -102,6 +117,10 @@ export class DropItem {
         return this.#world;
     }
 
+    /**
+     * Returns the chunk in which this item should be according to its {@link pos}.
+     * Note: it may be different from {@link inChunk}.
+     */
     getChunk() {
         return this.#world.chunks.get(this.chunk_addr);
     }
@@ -117,35 +136,53 @@ export class DropItem {
         return new DropItem(world, params, velocity, true);
     }
 
+    _migrateChunk() {
+        const chunk_addr = this.chunk_addr;
+        // Delete from the previous chunk
+        if(this.inChunk && !chunk_addr.equal(this.inChunk.addr)) {
+            this.inChunk.drop_items.delete(this.entity_id);
+            this.inChunk = null;
+        }
+
+        if (!this.inChunk) {
+            // Add to new chunk
+            const new_chunk = this.getWorld().chunks.get(chunk_addr);
+            if(new_chunk) {
+                new_chunk.drop_items.set(this.entity_id, this);
+                this.inChunk = new_chunk;
+            }
+        }
+    }
+
     // Tick
     tick(delta) {
-        const pc = this.#pc;
-        pc.tick(delta);
-        this.pos.copyFrom(pc.player.entity.position);
-        if(!this.pos.equal(this.posO)) {
+        // If the item is not in a ready chunk, it's safer to not move than to move
+        // (posibly falling into infinity, or clipping into walls when the chunk loads).
+        if (this.inChunk?.isReady()) {
+            const pc = this.#pc;
+            pc.tick(delta);
+            this.pos.copyFrom(pc.player.entity.position);
+        }
+        if(!this.pos.equal(this.posO)) { // it moved
             this.motion = MOTION_MOVED;
             this.posO.set(this.pos.x, this.pos.y, this.pos.z);
-            // Migrate drop item from previous chunk to new chunk
-            if(!this.chunk_addr.equal(this.#prev_chunk_addr)) {
-                const world = this.getWorld();
-                // Delete from previous chunk
-                const prev_chunk = world.chunks.get(this.#prev_chunk_addr);
-                if(prev_chunk) {
-                    prev_chunk.drop_items.delete(this.entity_id);
-                }
-                // Add drop item to new chunk
-                const new_chunk = world.chunks.get(this.chunk_addr);
-                if(new_chunk) {
-                    new_chunk.drop_items.set(this.entity_id, this);
-                    this.#prev_chunk_addr.copyFrom(this.chunk_addr);
-                }
-            }
+            this._migrateChunk();
             this.sendState();
-        } else if (delta !== 0) { // If it doesn't move
+            return;
+        }
+        if (!this.inChunk) {
+            // Such items are rare and abnormal. It's ok if they don't merge.
+            this._migrateChunk();
+            if (!this.inChunk) {
+                return; // don't process it further (neither consider it stopped, nor merge it)
+            }
+        }
+        // here it's in a chunk
+        if (delta !== 0) { // If it doesn't move
             if(this.motion === MOTION_MOVED) {
                 this.motion = MOTION_JUST_STOPPED;
-                const chunk = this.getChunk();
-                if(chunk && chunk.isReady()) {
+                const chunk = this.inChunk; // inChunk is already updated above
+                if(chunk.isReady()) {
                     this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
                 }
             } else {
@@ -173,8 +210,7 @@ export class DropItem {
 
     /** @retrun true if there is anything to save in a world transaction */
     onUnload() {
-        const world = this.getWorld();
-        world.all_drop_items.delete(this.entity_id);
+        this.getWorld().all_drop_items.delete(this.entity_id);
         return this.dirty != DropItem.DIRTY_CLEAR;
     }
 

@@ -1,37 +1,9 @@
 import { unixTime, Vector, VectorCollector } from "../../../www/js/helpers.js";
+import { Transaction } from "../db_helpers.js";
 import { BLOCK_DIRTY } from "./ChunkDBActor.js";
 import { WORLD_TRANSACTION_PERIOD, WORLD_TRANSACTION_MAX_DIRTY_BLOCKS } from "../../server_constant.js";
 
-export const KNOWN_CHUNK_FLAGS = {
-    DB_WORLD_MODIFY_CHUNKS: 0x1,  // has a record in world_modify_chunks
-    MODIFIED_BLOCKS:        0x2,  // has any modified blocks (in DB or in memory)
-    DB_CHUNK:               0x4,  // has a record in "chunk" table
-    MODIFIED_FLUID:         0x8   // has a record in "world_chunks_fluid" table
-};
-Object.assign(KNOWN_CHUNK_FLAGS, {
-    ANY_MODIFIERS_MASK: KNOWN_CHUNK_FLAGS.MODIFIED_BLOCKS | KNOWN_CHUNK_FLAGS.MODIFIED_FLUID
-});
-
 const RECOVERY_BLOB_VERSION = 1001;
-
-/** A handler to complete a transaction, and to resolve a promise at the same time. */
-class Transaction {
-
-    constructor(db, resolve) {
-        this._db = db;
-        this._resolve = resolve;
-    }
-
-    async commit() {
-        await this._db.TransactionCommit();
-        this._resolve();
-    }
-
-    async rollback() {
-        await this._db.TransactionRollback();
-        this._resolve();
-    }
-}
 
 /** It manages DB queries of all things in the world that must be saved in one trascaction as a "world state". */
 export class WorldDBActor {
@@ -46,9 +18,6 @@ export class WorldDBActor {
         // Chunks that must be saved to world_modify in the next ransaction. It's managed by ChunkDBActor.
         this.dirtyChunks = new Set();
 
-        // for each known chunk, contains WORLD_RECOVERY_REBUILD_ALL
-        this.knownChunkFlags = new VectorCollector();
-
         // It fullfills when the last ongoing transaction commits or rolls back.
         // (it includes any transactions, not only world-saving)
         this._transactionPromise = Promise.resolve();
@@ -61,25 +30,6 @@ export class WorldDBActor {
         // To determine when to start a new transaction
         this._lastWorldTransactionTime = performance.now();
         this.totalDirtyBlocks = 0;
-    }
-
-    addKnownChunkFlags(addr, flags) {
-        this.knownChunkFlags.update(addr, it => (it ?? 0) | flags );
-    }
-
-    bulkAddChunkFlags(addresses, flags) {
-        const cb = it => (it ?? 0) | flags;
-        for(const addr of addresses) {
-            this.knownChunkFlags.update(addr, cb);
-        }
-    }
-
-    removeKnownChunkFlags(addr, flags) {
-        this.knownChunkFlags.update(addr, it => (it ?? 0) & ~flags );
-    }
-
-    knownChunkHasFlags(addr, flags) {
-        return (this.knownChunkFlags.get(addr) & flags) != 0;
     }
 
     /**
@@ -161,6 +111,13 @@ export class WorldDBActor {
             fullUpdateMobRows: [], // these have more data than regular updates, that's why they are separated
             updateMobRows: [],
             deleteMobIds: [],
+            // player
+            // ender chests are saved with non-bulk queries and added to promises (they can be made bulk too)
+            updatePlayerState: [],
+            updatePlayerInventory: [],
+            // player quests
+            insertQuests: [],
+            updateQuests: [],
 
             // the data to be saved in world.recovery as a BLOB
             unsavedChunkRowIds: [], // if we know rowId of a chunk - put it here, it reduces the BLOB size
@@ -237,8 +194,16 @@ export class WorldDBActor {
                 db.mobs.bulkDelete(uc.deleteMobIds)
             );
 
-
-            // TODO inventory
+            // players, player quests
+            this.world.players.writeToWorldTransaction(uc);
+            this.pushPromises(
+                // players
+                db.bulkUpdateInventory(uc.updatePlayerInventory),
+                db.bulkUpdatePlayerState(uc.updatePlayerState, dt),
+                // player quests
+                db.quests.bulkInsertPlayerQuests(uc.insertQuests, dt),
+                db.quests.bulkUpdatePlayerQuests(uc.updateQuests)
+            );
 
             this.pushPromises(this.writeRecoveryBlob());
         } catch(e) {
@@ -255,6 +220,7 @@ export class WorldDBActor {
                 transaction.commit();
                 this.world.mobs.onWorldTransactionCommit();
                 this.db.mobs.onWorldTransactionCommit();
+                this.world.players.onWorldTransactionCommit();
                 worldSavingResolve();
             },
             async err => {

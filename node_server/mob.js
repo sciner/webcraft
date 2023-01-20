@@ -1,7 +1,8 @@
 import { MOUSE, PLAYER_STATUS_ALIVE } from "../www/js/constant.js";
 import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
-import {MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE} from "./server_constant.js";
+import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
+import { DBWorldMob } from "./db/world/mob.js"
 
 //
 export class MobState {
@@ -144,7 +145,7 @@ export class Mob {
     }
 
     // Marks that the mob needs to save a normal update in the next word transaction (i.e. not skip that transaction).
-    save() {
+    touch() {
         this.dirtyFlags |= Mob.DIRTY_FLAG_UPDATE;
     }
 
@@ -269,30 +270,21 @@ export class Mob {
         this.lastSavedPos.copyFrom(this.pos);
 
         // common fields for all updates
-        const row = [
-            this.id,
-            this.pos.x, this.pos.y, this.pos.z,
-            JSON.stringify(this.indicators),
-            JSON.stringify(this.extra_data),
-            JSON.stringify(this.rotate)
-        ];
+        const row = DBWorldMob.toUpdateRow(this);
         if (!(dirtyFlags & (Mob.DIRTY_FLAG_NEW | Mob.DIRTY_FLAG_FULL_UPDATE))) {
             underConstruction.updateMobRows.push(row);
             return;
         }
 
         // common fields for full update and insert
-        row.push(
-            this.is_active ? 1 : 0,
-            JSON.stringify(this.pos_spawn)
-        );
+        DBWorldMob.upgradeRowToFullUpdate(row, this);
         if (!(dirtyFlags & Mob.DIRTY_FLAG_NEW)) {
             underConstruction.fullUpdateMobRows.push(row);
             return;
         }
 
         // insert
-        row.push(this.entity_id, this.type, this.skin);
+        DBWorldMob.upgradeRowToInsert(row, this);
         underConstruction.insertMobRows.push(row);
     }
 }

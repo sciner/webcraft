@@ -177,7 +177,7 @@ export class WorldChestManager {
 
         if (forceClose || error) {
             player.inventory.moveOrDropFromDragSlot();
-            await player.inventory.refresh(true);
+            player.inventory.refresh(true);
             if (forceClose) {
                 player.currentChests = null;
                 player.sendPackets([{ 
@@ -273,7 +273,7 @@ export class WorldChestManager {
             this.sendChestToPlayers(tblock, [player.session.user_id]);
             // Save to DB
             if (is_ender_chest) {
-                await player.saveEnderChest(chest);
+                player.setEnderChest(chest);
             } else {
                 this.world.onBlockExtraDataModified(tblock, pos);
             }

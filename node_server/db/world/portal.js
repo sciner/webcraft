@@ -116,7 +116,7 @@ export class DBWorldPortal {
             id:                 parseInt(row.id),
             portal_block_id:    parseInt(row.portal_block_id),
             pos:                new Vector(row.x, row.y, row.z),
-            size:               new Vector(JSON.parse(row.size)),
+            size:               JSON.parse(row.size),
             rotate:             new Vector(JSON.parse(row.rotate)),
             player_pos:         new Vector(JSON.parse(row.player_pos)),
             type:               row.type,

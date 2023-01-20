@@ -127,6 +127,17 @@ export class DBWorldMob {
         return null;
     }
 
+    /** Returns a row that can be passed to {@link bulkUpdate} */
+    static toUpdateRow(mob) {
+        return [
+            mob.id,
+            mob.pos.x, mob.pos.y, mob.pos.z,
+            JSON.stringify(mob.indicators),
+            JSON.stringify(mob.extra_data),
+            JSON.stringify(mob.rotate)
+        ];
+    }
+
     async bulkUpdate(rows) {
         return rows.length && this.conn.run(this.BULK_UPDATE, {
             ':jsonRows': JSON.stringify(rows)
@@ -145,6 +156,14 @@ export class DBWorldMob {
         WHERE entity.id = %0
     `);
 
+    /** Upgrdaes a result of {@link toUpdateRow} to a row that can be passed to {@link bulkFullUpdate} */
+    static upgradeRowToFullUpdate(row, mob) {
+        row.push(
+            mob.is_active ? 1 : 0,
+            JSON.stringify(mob.pos_spawn)
+        );
+    }
+
     async bulkFullUpdate(rows) {
         return rows.length && this.conn.run(this.BULK_FULL_UPDATE, {
             ':jsonRows': JSON.stringify(rows)
@@ -160,6 +179,11 @@ export class DBWorldMob {
         FROM json_each(:jsonRows)
         WHERE entity.id = %0
     `);
+
+    /** Upgrdaes a result of {@link upgradeRowToFullUpdate} to a row that can be passed to {@link bulkInsert} */
+    static upgradeRowToInsert(row, mob) {
+        row.push(mob.entity_id, mob.type, mob.skin);
+    }
 
     async bulkInsert(rows, dt) {
         return rows.length && this.conn.run(this.BULK_INSERT, {
