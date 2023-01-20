@@ -9391,14 +9391,18 @@
                 "texture": "item/cauldron.png"
             },
             "extra_data": {
-                "level": 0
+                "level": 0,
+                "lava": false,
+                "water": false,
+                "item": null
             },
             "sound": "madcraft:block.cloth",
             "material": {
                 "id": "iron"
             },
             "tags": [
-                "no_drop_ao"
+                "no_drop_ao",
+                "doubleface"
             ],
             "texture": {
                 "up": "block/cauldron_top.png",

@@ -90,7 +90,8 @@ export default class Ticker {
                                         id: BLOCK.CAULDRON.id, 
                                         extra_data: { 
                                             level: cauldron.extra_data.level + 1,
-                                            fluid: under.fluid
+                                            water: water,
+                                            lava: lava
                                         }
                                     }, 
                                     action_id: ServerClient.BLOCK_ACTION_MODIFY 

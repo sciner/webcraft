@@ -1,18 +1,9 @@
-import {DIRECTION, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
-import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { DEFAULT_TX_CNT } from '../constant.js';
+import { DIRECTION, Vector, IndexedColor } from '../helpers.js';
+import { BLOCK } from "../blocks.js";
+import { AABB } from '../core/AABB.js';
+import { default as default_style } from './default.js';
 
-const {mat4} = glMatrix;
-
-const TX_CNT    = DEFAULT_TX_CNT;
-const SIZE      = 28;
-const PPB       = 32; // pixels in texture per block
-const WIDTH     = SIZE/PPB;
-const HEIGHT    = 16/PPB;
-
-// Azalea
+// Cauldron
 export default class style {
 
     // getRegInfo
@@ -27,52 +18,59 @@ export default class style {
     // computeAABB
     static computeAABB(block, for_physic, no_pad) {
         const aabb = new AABB();
-        aabb.set(
-            0,
-            0,
-            0,
-            1,
-            1,
-            1,
-        );
+        aabb.set( 0, 0, 0, 1, 1, 1);
         return [aabb];
     }
 
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
-
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
         }
-
-        const level = block?.extra_data?.level || 0;
-
+        // свчечени от лавы должно быть
+        const extra_data = block.extra_data;
+        const level = extra_data.level; // Высота жидкости 0, 1, 2, 3
+        const lava = extra_data.lava; // если внутри лава
+        const water = extra_data.water; // если внтри вода
         const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.FORWARD);
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
-    
-        matrix = mat4.create();
-
-        const aabb = style.computeAABB(block, true, true)[0];
-        aabb.translate(x, y, z);
-
-        // Push vertices down
-        pushAABB(
-            vertices,
-            aabb,
-            pivot,
-            matrix,
+        const c_inner = BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST);
+        const parts = [];
+        parts.push(...[
             {
-                up:     new AABBSideParams(c_up, 0, 1, null, null, true),
-                down:   new AABBSideParams(c_down, 0, 1, null, null, true),
-                south:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                north:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                west:   new AABBSideParams(c_side, 0, 1, null, null, true),
-                east:   new AABBSideParams(c_side, 0, 1, null, null, true),
+                "size": {"x": 16, "y": 16, "z": 16},
+                "translate": {"x": 0, "y": 0, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8],"texture": c_up},
+                    "down": {"uv": [8, 8],"texture": c_down},
+                    "north": {"uv": [8, 8],"texture": c_side},
+                    "south": {"uv": [8, 8],"texture": c_side},
+                    "east": {"uv": [8, 8],"texture": c_side},
+                    "west": {"uv": [8, 8],"texture": c_side}
+                }
             },
-            new Vector(x, y, z)
-        );
-
+            {
+                "size": {"x": 12, "y": 12, "z": 12},
+                "translate": {"x": 0, "y": 2, "z": 0},
+                "faces": {
+                    "down": {"uv": [8, 8],"texture": c_inner},
+                    "north": {"uv": [8, 8],"texture": c_inner},
+                    "south": {"uv": [8, 8],"texture": c_inner},
+                    "east": {"uv": [8, 8],"texture": c_inner},
+                    "west": {"uv": [8, 8],"texture": c_inner}
+                }
+            }
+        ]);
+        const pos = new Vector(x, y, z);
+        for (const part of parts) {
+            default_style.pushPART(vertices, {
+                ...part,
+                lm:         IndexedColor.WHITE,
+                pos:        pos,
+                matrix:     matrix
+            });
+        }
         return null;
 
     }

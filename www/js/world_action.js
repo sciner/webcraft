@@ -972,7 +972,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useShears, putDiscIntoJukebox, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
+        for(let func of [useCauldron, useShears, putDiscIntoJukebox, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -2241,6 +2241,71 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
         )
     }
     return resp
+}
+
+// use cauldron
+async function useCauldron(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (world_block.id != BLOCK.CAULDRON.id) {
+        return false;
+    }
+    const position = new Vector(pos);
+    if (current_inventory_item.id == BLOCK.WATER_BUCKET.id) {
+        actions.decrement = true;
+        actions.addBlocks([{
+            pos: position, 
+            item: {
+                id: BLOCK.CAULDRON.id, 
+                extra_data: { 
+                    level: 3,
+                    lava: false,
+                    water: true,
+                    item: null 
+                }
+            }, 
+            action_id: ServerClient.BLOCK_ACTION_MODIFY
+        }]);
+        return true;
+    }
+    if (current_inventory_item.id == BLOCK.LAVA_BUCKET.id) {
+        actions.decrement = true;
+        actions.addBlocks([{
+            pos: position, 
+            item: {
+                id: BLOCK.CAULDRON.id, 
+                extra_data: { 
+                    level: 3,
+                    lava: true,
+                    water: false,
+                    item: null 
+                }
+            }, 
+            action_id: ServerClient.BLOCK_ACTION_MODIFY
+        }]);
+        return true;
+    }
+    if (current_inventory_item.id == BLOCK.BUCKET.id && extra_data.level == 3 && (extra_data.lava == true || extra_data.water == true) ) {
+        const item = {
+            id: extra_data.lava ? BLOCK.LAVA_BUCKET.id : BLOCK.WATER_BUCKET.id,
+            count: 1
+        };
+        actions.putInBucket(item);
+        actions.addBlocks([{
+            pos: position, 
+            item: {
+                id: BLOCK.CAULDRON.id, 
+                extra_data: { 
+                    level: 0,
+                    lava: false,
+                    water: false,
+                    item: null 
+                }
+            }, 
+            action_id: ServerClient.BLOCK_ACTION_MODIFY
+        }]);
+        return true;
+    }
+    
+    return false;
 }
 
 // use shears

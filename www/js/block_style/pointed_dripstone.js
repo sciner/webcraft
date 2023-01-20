@@ -70,7 +70,7 @@ function getDirection(extra_data, neighbours) {
         return false;
     };
     if (extra_data?.up) {
-        if (neighbours.DOWN.id == BLOCK.AIR.id && neighbours.DOWN.fluid == 0) {
+        if ((neighbours.DOWN.id == BLOCK.AIR.id && neighbours.DOWN.fluid == 0) || neighbours.DOWN.id == BLOCK.CAULDRON.id) {
             return DIRECTION.UP;
         }
         if (extra_data?.up && !neighbours.DOWN?.extra_data?.up) {
