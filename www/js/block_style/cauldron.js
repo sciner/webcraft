@@ -40,44 +40,46 @@ export default class style {
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
         const c_inner = BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST);
         const c_snow = BLOCK.calcTexture(BLOCK.POWDER_SNOW.texture, DIRECTION.UP);
-        const parts = []
+        let parts = []
 
-        if(!only_fluid || snow) {
-
-            parts.push(...[
-                {
-                    "size": {"x": 16, "y": 16, "z": 16},
-                    "translate": {"x": 0, "y": 0, "z": 0},
-                    "faces": {
-                        "up": {"uv": [8, 8],"texture": c_up},
-                        "down": {"uv": [8, 8],"texture": c_down},
-                        "north": {"uv": [8, 8],"texture": c_side},
-                        "south": {"uv": [8, 8],"texture": c_side},
-                        "east": {"uv": [8, 8],"texture": c_side},
-                        "west": {"uv": [8, 8],"texture": c_side}
-                    }
-                },
-                {
-                    "size": {"x": 12, "y": 10, "z": 12},
-                    "translate": {"x": 0, "y": 2, "z": 0},
-                    "faces": {
-                        "down": {"uv": [8, 8],"texture": c_inner},
-                        "north": {"uv": [8, 8],"texture": c_inner},
-                        "south": {"uv": [8, 8],"texture": c_inner},
-                        "east": {"uv": [8, 8],"texture": c_inner},
-                        "west": {"uv": [8, 8],"texture": c_inner}
-                    }
+        parts.push(...[
+            {
+                "size": {"x": 16, "y": 16, "z": 16},
+                "translate": {"x": 0, "y": 0, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8],"texture": c_up},
+                    "down": {"uv": [8, 8],"texture": c_down},
+                    "north": {"uv": [8, 8],"texture": c_side},
+                    "south": {"uv": [8, 8],"texture": c_side},
+                    "east": {"uv": [8, 8],"texture": c_side},
+                    "west": {"uv": [8, 8],"texture": c_side}
                 }
-            ])
-
-            if (snow) {
-                parts[1].faces.up = {"uv": [8, 8], "texture": c_snow};
+            },
+            {
+                "size": {"x": 12, "y": 10, "z": 12},
+                "translate": {"x": 0, "y": 2, "z": 0},
+                "faces": {
+                    "down": {"uv": [8, 8],"texture": c_inner},
+                    "north": {"uv": [8, 8],"texture": c_inner},
+                    "south": {"uv": [8, 8],"texture": c_inner},
+                    "east": {"uv": [8, 8],"texture": c_inner},
+                    "west": {"uv": [8, 8],"texture": c_inner}
+                }
             }
+        ])
 
-            if(only_fluid && snow) {
+        if (snow) {
+            parts[1].faces = {
+                up: {"uv": [8, 8], "texture": c_snow}
+            }
+        }
+
+        if(only_fluid) {
+            if(snow) {
                 parts.shift()
+            } else {
+                parts = []
             }
-
         }
 
         const pos = new Vector(x, y, z)
