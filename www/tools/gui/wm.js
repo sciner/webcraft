@@ -558,69 +558,61 @@ export class Window extends PIXI.Container {
         }*/
     }
 
-    _mousedown(e) {
-        //
-        const visible_windows = [];
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                visible_windows.push(w);
+    /**
+     * По событию мыши на контексте определяет и возвращает точное окно,
+     * к которому относится событие, а также создает и возвращает новое событие для него
+     * @param {*} e 
+     * @returns {object}
+     */
+    _clarifyMouseEvent(e) {
+        // список окон отсортированный по Z координате
+        const visible_windows = []
+        for(let window of this.list.values()) {
+            if(window.visible) {
+                visible_windows.push(window)
             }
         }
         visible_windows.sort((a, b) => b.z - a.z)
+        const resp = {window: null, event: null}
         for(let window of visible_windows) {
-            const e2 = {...e}
-            const x = e2.x - (this.ax + window.x)
-            const y = e2.y - (this.ay + window.y)
-            if(x >= 0 && y >= 0 && x < window.w && y < window.h) {
-                e2.x = window.ax + x
-                e2.y = window.ay + y - window.scrollY
-                // e2.x = x + this.x;
-                // e2.y = y + this.y - w.scrollY;
-                e2.target = window
-                window._mousedown(e2)
-                return
+            if(window.visible) {
+                const e2 = {...e}
+                const x = e2.x - (this.ax + window.x)
+                const y = e2.y - (this.ay + window.y)
+                if(x >= 0 && y >= 0 && x < window.w && y < window.h) {
+                    e2.x = window.ax + x
+                    e2.y = window.ay + y - window.scrollY
+                    resp.window = window
+                    resp.event = e2
+                    break
+                }
             }
         }
-        this.onMouseDown(e)
+        return resp
     }
 
     _drop(e) {
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                let e2 = {...e};
-                let x = e2.x - (this.ax + w.x);
-                let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.w && y < w.h) {
-                    e2.x = w.ax + x;
-                    e2.y = w.ay + y - w.scrollY;
-                    // e2.x = x + this.x;
-                    // e2.y = y + this.y - w.scrollY;
-                    w._drop(e2);
-                    return;
-                }
-            }
+        const {window, event} = this._clarifyMouseEvent(e)
+        if(window) {
+            return window._drop(event)
         }
         this.onDrop(e);
     }
 
     _wheel(e) {
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                let e2 = {...e};
-                //e2.x -= (this.ax + w.x);
-                //e2.y -= (this.ay + w.y);
-                let x = e2.x - (this.ax + w.x);
-                let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.w && y < w.h)  {
-                    e2.x = w.ax + x;
-                    e2.y = w.ay + y - w.scrollY;
-                    e2.target = w;
-                    w._wheel(e2);
-                    return;
-                }
-            }
+        const {window, event} = this._clarifyMouseEvent(e)
+        if(window) {
+            return window._wheel(event)
         }
-        this.onWheel(e);
+        this.onWheel(e)
+    }
+
+    _mousedown(e) {
+        const {window, event} = this._clarifyMouseEvent(e)
+        if(window) {
+            return window._mousedown(event)
+        }
+        this.onMouseDown(e)
     }
 
     measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
@@ -1167,6 +1159,7 @@ export class WindowManager extends Window {
 
         // Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши
         if(create_mouse_listeners) {
+            if(!canvas) throw 'error_canvas_undefined'
             canvas.addEventListener('mousemove', this.mouseEventDispatcher.bind(this))
             canvas.addEventListener('mousedown', this.mouseEventDispatcher.bind(this))
             canvas.addEventListener('mousewheel', this.mouseEventDispatcher.bind(this))

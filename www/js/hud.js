@@ -8,6 +8,7 @@ import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
+
 class HUDLabel extends Label {
 
     constructor(x, y, w, h, id) {
@@ -33,33 +34,22 @@ export class QuestActionType {
 // Canvas used to draw HUD
 export class HUD {
 
-    constructor() {
+    constructor(canvas) {
 
-        this.canvas = document.getElementById('qubatchHUD');
+        this.canvas = canvas
 
-        // TODO: pixi
-        const cnv = document.createElement('canvas')
-        cnv.width = this.canvas.width
-        cnv.height = this.canvas.height
-
-        this.ctx                        = cnv.getContext('2d');
-        this.ctx.imageSmoothingEnabled  = false;
-        this.active                     = true;
-        this.draw_info                  = DRAW_HUD_INFO_DEFAULT;
-        this.draw_block_info            = !isMobileBrowser();
-        this.texture                    = null;
-        this.buffer                     = null;
-        this.width                      = 0;
-        this.height                     = 0;
-        this.text                       = null;
-        this.block_text                 = null;
-        this.items                      = [];
-        this.prevInfo                   = null;
-        this.prevDrawTime               = 0;
-        this.strMeasures                = new Map();
-        this.FPS                        = new FPSCounter();
-
-        const that = this;
+        this.active                     = true
+        this.draw_info                  = DRAW_HUD_INFO_DEFAULT
+        this.draw_block_info            = !isMobileBrowser()
+        this.texture                    = null
+        this.buffer                     = null
+        this.text                       = null
+        this.block_text                 = null
+        this.items                      = []
+        this.prevInfo                   = null
+        this.prevDrawTime               = 0
+        this.strMeasures                = new Map()
+        this.FPS                        = new FPSCounter()
 
         // Splash screen (Loading...)
         this.splash = {
@@ -101,89 +91,41 @@ export class HUD {
                 if(!this.loading) {
                     return false;
                 }
-                let w = this.hud.width;
-                let h = this.hud.height;
-                let ctx = this.hud.ctx;
-                ctx.save();
-                if(this.image) {
-                    /*for(let x = 0; x < w; x += this.image.width) {
-                        for(let y = 0; y < h; y += this.image.height) {
-                            ctx.drawImage(this.image, x, y);
-                        }
-                    }*/
-                } else {
-                    // Create gradient
-                    var grd = ctx.createLinearGradient(0, 0, 0, h);
-                    grd.addColorStop(0, '#1c1149');
-                    grd.addColorStop(0.5365, '#322d6f');
-                    grd.addColorStop(1, '#66408d');
-                    // Fill with gradient
-                    ctx.fillStyle = grd;
-                    ctx.fillRect(0, 0, w, h);
-                }
-                //
-                const texts = [];
+                const w = this.hud.width
+                const h = this.hud.height
+                // TODO: pixi
+                // 1. draw splash background
+                // Create gradient
+                // const grd = ctx.createLinearGradient(0, 0, 0, h);
+                // grd.addColorStop(0, '#1c1149');
+                // grd.addColorStop(0.5365, '#322d6f');
+                // grd.addColorStop(1, '#66408d');
+                // 2. draw texts
+                const texts = []
                 if(Resources.progress && Resources.progress.percent < 100) {
-                    texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%');
+                    texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%')
                 } else if(cl == 0) {
-                    texts.push(Lang.loading_game_connecting);
+                    texts.push(Lang.loading_game_connecting)
                 } else {
-                    texts.push(Lang.loading_game_generate_planet + ' ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%');
+                    texts.push(Lang.loading_game_generate_planet + ' ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%')
                 }
-                texts.push(Lang[isMobileBrowser() ? 'please_rotate_to_landscape' : 'press_f11_to_fullscreen']);
-                //
-                let x = w / 2;
-                let y = h / 2;
-                let padding = 15;
-                /// draw text from top - makes life easier at the moment
-                ctx.textBaseline = 'top';
-                ctx.font = Math.round(18 * UI_ZOOM) + 'px ' + UI_FONT;
-                //
-                that.drawKbHelp(ctx, w, h, padding);
-                //
-                for(let i = 0; i < texts.length; i++) {
-                    const txt = texts[i];
-                    // Measure text
-                    if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
-                        this.prevSplashTextMeasure = {
-                            text: txt,
-                            measure: ctx.measureText(txt)
-                        };
-                    }
-                    // get width of text
-                    let mt = this.prevSplashTextMeasure.measure;
-                    let width = mt.width;
-                    let height = mt.actualBoundingBoxDescent;
-                    // color for background
-                    ctx.fillStyle = 'rgba(255, 255, 255, .25)';
-                    // draw background rect assuming height of font
-                    ctx.fillRect(x - width / 2 - padding, y - height / 2 - padding, width + padding * 2, height + padding * 2);
-                    // text color
-                    ctx.fillStyle = '#333';
-                    // draw text on top
-                    ctx.fillText(txt, x - width / 2 + 2, y - height / 2 + 2);
-                    // text color
-                    ctx.fillStyle = '#fff';
-                    // draw text on top
-                    ctx.fillText(txt, x - width / 2, y - height / 2);
-                    y += height * 3;
-                }
-                // restore original state
-                ctx.restore();
-                return true;
+                texts.push(Lang[isMobileBrowser() ? 'please_rotate_to_landscape' : 'press_f11_to_fullscreen'])
+                // 3. draw keyboard help
+                // that.drawKbHelp(ctx, w, h, padding)
+                return true
             }
         };
-        this.splash.init(this);
+        this.splash.init(this)
 
         // Green frame
-        this.add({
-            drawHUD: function(that) {
-                that.ctx.fillStyle      = '#ffffff';
-                that.ctx.strokeStyle    = '#00ff00';
-                that.ctx.lineCap        = 'round';
-                that.ctx.lineWidth      = 1;
-            }
-        });
+        // this.add({
+        //     drawHUD: function(that) {
+        //         that.ctx.fillStyle      = '#ffffff';
+        //         that.ctx.strokeStyle    = '#00ff00';
+        //         that.ctx.lineCap        = 'round';
+        //         that.ctx.lineWidth      = 1;
+        //     }
+        // });
 
         // Init Window Manager
         const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
@@ -197,7 +139,16 @@ export class HUD {
 
         // Main menu
         this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
-        wm.add(this.frmMainMenu);
+        wm.add(this.frmMainMenu)
+
+    }
+
+    get width() {
+        return this.canvas.width
+    }
+
+    get height() {
+        return this.canvas.height
     }
 
     isDrawingBlockInfo() {

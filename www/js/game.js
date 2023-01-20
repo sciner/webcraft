@@ -29,9 +29,9 @@ export class GameClass {
 
     constructor() {
         this.is_server                  = false;
-        this.hud                        = new HUD();
-        this.hotbar                     = new Hotbar(this.hud);
         this.render                     = new Renderer('qubatchRenderSurface');
+        this.hud                        = new HUD(this.render.canvas);
+        this.hotbar                     = new Hotbar(this.hud);
         this.onControlsEnabledChanged   = (value) => {};
         this.onStarted                  = () => {};
         this.f3_used                    = false;

@@ -165,22 +165,21 @@ app.use('/worldcover/', async(req, res) => {
 
 // "SPA" yet for just one type of ulrs only
 app.use('/worlds', async(req, res) => {
-    const world_guid = req.url.split('/')[1];
+    const world_guid = req.url.split('/')[1]
     const world = await Qubatch.db.getWorld(world_guid);
-    page.title = `${config.ProjectName} - ${world.title}`;
-    res.render(pathToIndex, {page, world});
+    res.render(pathToIndex, {page: {...page, title: `${config.ProjectName} - ${world.title}`}, world});
 });
 
 Qubatch.start(config);
 
 // Start express
-const server = app.listen(config.Port);
+const server = app.listen(config.Port)
 
 // Pair with websocket server
 server.on('upgrade', (request, socket, head) => {
     Qubatch.wsServer.handleUpgrade(request, socket, head, socket => {
-        Qubatch.wsServer.emit('connection', socket, request);
+        Qubatch.wsServer.emit('connection', socket, request)
     });
 });
 
-console.log(`Game listening at http://${config.ServerIP}:${config.Port}`);
+console.log(`Game listening at http://${config.ServerIP}:${config.Port}`)

@@ -278,6 +278,9 @@ export class Chat extends TextBox {
 
     drawHUD(hud) {
 
+        // TODO: pixi
+        return
+
         const margin            = 10 * this.zoom;
         const multiLineMarginAdd= 10 * this.zoom; // additional left margin for multi-line messages
         const padding           = this.style.padding;

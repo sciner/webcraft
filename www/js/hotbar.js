@@ -1,4 +1,7 @@
+import { INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
+import { SpriteAtlas } from "./core/sprite_atlas.js";
 import {Vector} from "./helpers.js";
+import { Resources } from "./resources.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -39,9 +42,12 @@ class Strings {
     // draw
     draw(hud, y_margin, zoom, hud_pos, cell_size) {
 
-        let draw_count = 0;
-        const ctx = hud.ctx;
+        let draw_count = 0
 
+        // TODO: pixi
+        return
+
+        // draw strings on center of display
         for(let i = 0; i < this.strings.length; i++) {
             const item = this.strings[i];
             if(!item.text) {
@@ -73,10 +79,9 @@ class Strings {
             ctx.fillText(item.text, hud.width / 2 - item.measure.width / 2, hud_pos.y + cell_size - y_margin - 2 * zoom);
             //
             draw_count++;
-
         }
 
-        return draw_count > 0;
+        return draw_count > 0
 
     }
 
@@ -85,24 +90,20 @@ class Strings {
 export class Hotbar {
 
     constructor(hud) {
-        let that                = this;
-        this.hud                = hud;
-        this.image              = new Image(); // new Image(40, 40); // Размер изображения
-        
-        //
-        this.image.onload = function() {
-            that.hud.add(that, 0);
-        }
-        this.image.src = './media/hotbar.png';
-        this.last_damage_time = null;
-        //
-        this.strings = new Strings();
-        
-        this.inventory_image = new Image();
-        this.inventory_image.src = './media/gui/inventory2.png';
-        
-        this.icons = new Image();
-        this.icons.src = './media/icons.png';
+
+        this.hud = hud
+        this.last_damage_time = null
+        this.strings = new Strings()
+
+        // Load hotbar atlases
+        const all = []
+        all.push(this.atlas = new SpriteAtlas().fromFile('./media/hotbar.png'))
+        all.push(this.effect_icons = new SpriteAtlas().fromFile('./media/gui/inventory2.png'))
+        all.push(this.icons = new SpriteAtlas().fromFile('./media/icons.png'))
+        Promise.all(all).then(_ => {
+            this.hud.add(this, 0)
+        })
+
     }
 
     get zoom() {
@@ -129,6 +130,9 @@ export class Hotbar {
 
     drawHUD(hud) {
 
+        // TODO: pixi
+        return
+
         const player = this.inventory.player;
         if(player.game_mode.isSpectator()) {
             return false;
@@ -138,6 +142,28 @@ export class Hotbar {
         const sw                = 1092; // this.image.width;
         const sh                = 294; // this.image.height;
         const slive_bar_height  = 162;
+
+        // Target sizes
+        const dst = {
+            w: 546 * this.zoom,
+            h: 147 * this.zoom,
+            live_bar_height: 81 * this.zoom,
+            selector: {
+                width: 72 * this.zoom,
+                height: 69 * this.zoom
+            }
+        }
+
+        const hud_pos = {
+            x: (hud.width / 2 - dst.w / 2),
+            y: hud.height - dst.h
+        }
+
+        // Other sizes
+        const cell_size         = 60 * this.zoom;
+        const ss                = 27 * this.zoom;
+        const mayGetDamaged     = player.game_mode.mayGetDamaged();
+
         const selector          = {x: 162, y: 300, width: 144, height: 138};
         const src = {
             icons: {
@@ -149,26 +175,6 @@ export class Hotbar {
                 oxygen_half: {x: 108, y: 354, width: 54, height: 54}
             }
         };
-
-        // Target sizes
-        const dst = {
-            w: 546 * this.zoom,
-            h: 147 * this.zoom,
-            live_bar_height: 81 * this.zoom,
-            selector: {
-                width: 72 * this.zoom,
-                height: 69 * this.zoom
-            }
-        };
-        const hud_pos = {
-            x: (hud.width / 2 - dst.w / 2),
-            y: hud.height - dst.h
-        };
-
-        // Other sizes
-        const cell_size         = 60 * this.zoom;
-        const ss                = 27 * this.zoom;
-        const mayGetDamaged     = player.game_mode.mayGetDamaged();
 
         // Draw item name in hotbar
         const currentInventoryItem = player.currentInventoryItem;
@@ -183,7 +189,7 @@ export class Hotbar {
         // shift texts to up if livebar is drawed
         const y_margin = mayGetDamaged ? 40 * this.zoom : 0;
         if(this.strings.draw(hud, y_margin, this.zoom, hud_pos, cell_size)) {
-            hud.refresh();
+            hud.refresh()
         }
 
         //
@@ -307,7 +313,7 @@ export class Hotbar {
                 }
             }
             // рисуем иконки армора
-            this.drawArmor(hud);
+            this.drawArmor(hud)
         } else {
             // bar
             hud.ctx.drawImage(
@@ -333,15 +339,102 @@ export class Hotbar {
             hud_pos.y + (48 + 30) * this.zoom,
             dst.selector.width,
             dst.selector.height
-        );
-        if(this.inventory) {
-            this.inventory.drawHotbar(hud, cell_size, new Vector(hud_pos.x, hud_pos.y + (48 + 30) * this.zoom, 0), this.zoom);
-        }
-        
-        this.drawEffects(hud);
+        )
+
+        this.drawHotbarInventory(this.inventory, hud, cell_size, new Vector(hud_pos.x, hud_pos.y + (48 + 30) * this.zoom, 0), this.zoom)
+
+        this.drawEffects(hud)
         
     }
-    
+
+    drawHotbarInventory(inventory, hud, cell_size, pos, zoom) {
+
+        const inventory_image = Resources.inventory?.image
+
+        if(!this.inventory || !inventory_image) {
+            return
+        }
+
+        hud.ctx.imageSmoothingEnabled = false;
+        // 1. that.inventory_image
+        // 2. inventory_selector
+        // img,sx,sy,swidth,sheight,x,y,width,height
+        const hud_pos = new Vector(pos.x, pos.y, 0);
+        const DEST_SIZE = 64 * zoom;
+        // style
+        hud.ctx.font            = Math.round(18 * zoom) + 'px ' + UI_FONT
+        hud.ctx.textAlign       = 'right'
+        hud.ctx.textBaseline    = 'bottom'
+
+        for(const k in inventory.items) {
+            const item = inventory.items[k];
+            if(k >= inventory.hotbar_count) {
+                break;
+            }
+            if(item) {
+                if(!('id' in item)) {
+                    console.error(item);
+                }
+                const bm = inventory.player.world.block_manager;
+                const mat = bm.fromId(item.id);
+                const icon = bm.getInventoryIconPos(
+                    mat.inventory_icon_id,
+                    inventory_image.width,
+                    inventory_image.width / INVENTORY_ICON_COUNT_PER_TEX
+                );
+                hud.ctx.drawImage(
+                    inventory_image,
+                    icon.x,
+                    icon.y,
+                    icon.width,
+                    icon.height,
+                    hud_pos.x + cell_size / 2 - 49 * zoom / 2 - 4 * zoom,
+                    hud_pos.y + cell_size / 2 - 48 * zoom / 2 - 2 * zoom,
+                    DEST_SIZE,
+                    DEST_SIZE
+                    );
+                // Draw instrument life
+                const power_in_percent = mat?.item?.indicator == 'bar';
+                if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
+                    const power_normal = Math.min(item.power / mat.power, 1);
+                    let cx = hud_pos.x + 14 * zoom;
+                    let cy = hud_pos.y + 14 * zoom;
+                    let cw = 40 * zoom;
+                    let ch = 43 * zoom;
+                    hud.ctx.fillStyle = '#000000ff';
+                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw, 6 * zoom);
+                    //
+                    const rgb = Helpers.getColorForPercentage(power_normal);
+                    hud.ctx.fillStyle = rgb.toCSS();
+                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw * power_normal | 0, 4 * zoom);
+                }
+                // Draw label
+                let label = item.count > 1 ? item.count : null;
+                let shift_y = 0;
+                if(inventory.current.index == k) {
+                    if(!label && 'power' in item) {
+                        if(power_in_percent) {
+                            label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
+                        } else {
+                            label = Math.round(item.power * 100) / 100;
+                        }
+                        shift_y = -10;
+                    }
+                }
+                if(label) {
+                    hud.ctx.textBaseline = 'bottom';
+                    hud.ctx.font = Math.round(18 * zoom) + 'px ' + UI_FONT;
+                    hud.ctx.fillStyle = '#000000ff';
+                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + shift_y * (zoom / 2));
+                    hud.ctx.fillStyle = '#ffffffff';
+                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + (shift_y - 2) * (zoom / 2));
+                }
+            }
+            hud_pos.x += cell_size
+        }
+
+    }
+
     drawArmor(hud) {
         let damage = this.inventory.getArmorLevel()
         damage /= 2;
@@ -399,8 +492,8 @@ export class Hotbar {
             {x: 219, y: 472},
             {x: 255, y: 472},
         ];
-        hud.ctx.drawImage(this.inventory_image, 280, 333, 50, 50, hud.width - this.zoom * 50 * ( pos + 1) - 10, 10, this.zoom * 50, this.zoom * 50);
-        hud.ctx.drawImage(this.inventory_image, icons[icon].x, icons[icon].y, 34, 34, hud.width - (this.zoom * (50 * (pos + 1) - 11)) - 10, this.zoom * 14, this.zoom * 34, this.zoom * 34);
+        hud.ctx.drawImage(this.effect_icons, 280, 333, 50, 50, hud.width - this.zoom * 50 * ( pos + 1) - 10, 10, this.zoom * 50, this.zoom * 50);
+        hud.ctx.drawImage(this.effect_icons, icons[icon].x, icons[icon].y, 34, 34, hud.width - (this.zoom * (50 * (pos + 1) - 11)) - 10, this.zoom * 14, this.zoom * 34, this.zoom * 34);
     }
 
 }

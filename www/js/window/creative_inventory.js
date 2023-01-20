@@ -17,12 +17,13 @@ class CreativeInventoryCollection extends Window {
         //
         this.style.background.color = '#ff000055'
         this.style.border.hidden = true
-        //
-        this._wheel = function(e) {
-            this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size;
-            this.scrollY = Math.min(this.scrollY, 0);
-            this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0) * -1);
-        };
+    }
+
+    _wheel(e) {
+        console.log(this.scrollY)
+        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size;
+        this.scrollY = Math.min(this.scrollY, 0);
+        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
     }
 
     // Init
@@ -33,20 +34,20 @@ class CreativeInventoryCollection extends Window {
             filter_text = filter_text
                 .toUpperCase()
                 .replaceAll('_', ' ')
-                .replace(/\s\s+/g, ' ');
+                .replace(/\s\s+/g, ' ')
         }
         for(let b of BLOCK.getAll()) {
             if(b.id < 1 || !b.spawnable) {
-                continue;
+                continue
             }
             const block = {
                 id: b.id
             };
             if('power' in b && (b.power !== 0)) {
-                block.power = b.power;
+                block.power = b.power
             }
             if(!this.matchesFilter(b, filter_text)) {
-                continue;
+                continue
             }
             all_blocks.push(block)
         }
@@ -56,7 +57,7 @@ class CreativeInventoryCollection extends Window {
     }
 
     matchesFilter(block, filter_text) {
-        return !filter_text || block.name.replaceAll('_', ' ').indexOf(filter_text) >= 0 || block.id == filter_text;
+        return !filter_text || block.name.replaceAll('_', ' ').indexOf(filter_text) >= 0 || block.id == filter_text
     }
 
     addEnchantedBooks(all_blocks, filter_text) {

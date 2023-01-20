@@ -183,6 +183,7 @@ export class RecipeWindow extends BlankWindow {
         // Создание слотов
         this.createRecipes()
         this.paginator.update()
+        super.onShow()
     }
 
     // Запоминаем какое окно вызвало окно рецептов
