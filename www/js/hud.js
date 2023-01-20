@@ -1,4 +1,4 @@
-import {Label, WindowManager} from "../tools/gui/wm.js";
+import {GradientGraphics, Graphics, Label, WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
@@ -51,6 +51,34 @@ export class HUD {
         this.strMeasures                = new Map()
         this.FPS                        = new FPSCounter()
 
+        // Green frame
+        // this.add({
+        //     drawHUD: function(that) {
+        //         that.ctx.fillStyle      = '#ffffff';
+        //         that.ctx.strokeStyle    = '#00ff00';
+        //         that.ctx.lineCap        = 'round';
+        //         that.ctx.lineWidth      = 1;
+        //     }
+        // });
+
+        // Init Window Manager
+        const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
+
+        //
+        if(!this.wm.hud_window) {
+            this.wm.hud_window = new Label(0, 0, this.wm.w, this.wm.h, 'hud')
+            this.wm.hud_window.auto_center = false
+            this.wm.addChild(this.wm.hud_window)
+        }
+
+        // Main menu
+        this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
+        wm.add(this.frmMainMenu)
+
+        // Drawing canvas
+        const hud_graphics = this.hud_graphics = new Graphics('hud_graphics')
+        wm._wmoverlay.addChild(hud_graphics)
+
         // Splash screen (Loading...)
         this.splash = {
             loading:    true,
@@ -58,7 +86,8 @@ export class HUD {
             hud:        null,
             generate_terrain_time: 0,
             init: function(hud) {
-                this.hud = hud;
+                this.hud = hud
+                wm._wmoverlay.addChild(this.splash_bg = GradientGraphics.createVertical('#1c1149', '#66408d'))
             },
             draw: function() {
                 let cl = 0;
@@ -88,18 +117,19 @@ export class HUD {
                     this.generate_terrain_time = Math.round(this.generate_terrain_time / this.generate_terrain_count * 100) / 100;
                 }
                 this.loading = cl < nc || !player_chunk_loaded;
+
+                this.splash_bg.visible = this.loading
+
                 if(!this.loading) {
                     return false;
                 }
                 const w = this.hud.width
                 const h = this.hud.height
-                // TODO: pixi
-                // 1. draw splash background
-                // Create gradient
-                // const grd = ctx.createLinearGradient(0, 0, 0, h);
-                // grd.addColorStop(0, '#1c1149');
-                // grd.addColorStop(0.5365, '#322d6f');
-                // grd.addColorStop(1, '#66408d');
+
+                // Splash background
+                this.splash_bg.width = w
+                this.splash_bg.height = h
+
                 // 2. draw texts
                 const texts = []
                 if(Resources.progress && Resources.progress.percent < 100) {
@@ -116,30 +146,6 @@ export class HUD {
             }
         };
         this.splash.init(this)
-
-        // Green frame
-        // this.add({
-        //     drawHUD: function(that) {
-        //         that.ctx.fillStyle      = '#ffffff';
-        //         that.ctx.strokeStyle    = '#00ff00';
-        //         that.ctx.lineCap        = 'round';
-        //         that.ctx.lineWidth      = 1;
-        //     }
-        // });
-
-        // Init Window Manager
-        const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
-
-        //
-        if(!this.wm.hud_window) {
-            this.wm.hud_window = new Label(0, 0, this.wm.w, this.wm.h, 'hud')
-            this.wm.hud_window.auto_center = false
-            this.wm.addChild(this.wm.hud_window)
-        }
-
-        // Main menu
-        this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
-        wm.add(this.frmMainMenu)
 
     }
 
@@ -226,16 +232,18 @@ export class HUD {
 
     draw(force) {
 
-        this.frmMainMenu.parent.center(this.frmMainMenu);
+        this.frmMainMenu.parent.center(this.frmMainMenu)
+
+        const hud_graphics = this.hud_graphics
 
         // Check if need redraw
         const hasDrawContent = Qubatch.world && Qubatch.player && Qubatch.player.chat.hasDrawContent();
-        this.prepareText();
+        this.prepareText()
         // if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Qubatch.hud.wm.hasVisibleWindow() && !hasDrawContent) {
         //     return false;
         // }
         this.need_refresh = false;
-        this.prevDrawTime = performance.now();
+        this.prevDrawTime = performance.now()
 
         // Draw splash screen...
         if(this.splash.draw()) {
@@ -267,7 +275,8 @@ export class HUD {
         } else {
             this.wm.style.background.color = '#00000000';
         }
-        this.wm.draw();
+
+        this.wm.draw()
 
     }
 

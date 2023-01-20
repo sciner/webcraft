@@ -120,6 +120,8 @@ class CreativeInventoryCollection extends Window {
         let xcnt                = 9;
         const ct                = this;
 
+        this.container.y = 0
+
         // Drop on pallette slots
         const dropFunc = function(e) {
             const that      = this;
