@@ -373,6 +373,13 @@ export default class style {
 
                 break
             }
+            case 'furnace': {
+                // TODO: вынести данную логику в описание модели на основе "when"
+                if(tblock.extra_data?.active) {
+                    model.selectTextureFromPalette('furnace_lit.png')
+                }
+                break
+            }
         }
 
         return emmited_blocks

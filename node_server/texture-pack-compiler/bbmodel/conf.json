@@ -35,7 +35,12 @@
         {"name": "poor_coal_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "carrot",              "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "brown_mushroom",      "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "red_mushroom",        "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "red_mushroom",        "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "bookshelf",           "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "crafting_table",      "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "barrel",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "furnace",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "dead_bush",           "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -385,6 +390,47 @@
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
                 ]
+            }
+        },
+        {
+            "id": 5,
+            "name": "BOOKSHELF",
+            "bb": {
+                "model": "bookshelf"
+            }
+        },
+        {
+            "id": 32,
+            "name": "DEAD_BUSH",
+            "bb": {
+                "model": "dead_bush"
+            }
+        },
+        {
+            "id": 58,
+            "name": "CRAFTING_TABLE",
+            "transparent": true,
+            "bb": {
+                "model": "crafting_table",
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 52,
+            "name": "BARREL",
+            "transparent": true,
+            "bb": {
+                "model": "barrel",
+                "rotate": {"type": "three"}
+            }
+        },
+        {
+            "id": 61,
+            "name": "FURNACE",
+            "transparent": true,
+            "bb": {
+                "model": "furnace",
+                "rotate": {"type": "cardinal_direction"}
             }
         }
     ]

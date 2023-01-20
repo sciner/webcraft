@@ -28,7 +28,11 @@ export class BBModel_Cube extends BBModel_Child {
         this.faces = {}
         if(faces) {
             for(let f in faces) {
-                const face = faces[f];
+                // remove empty faces
+                const face = faces[f]
+                if(!face.texture) {
+                    continue
+                }
                 this.faces[f] = {
                     tx_cnt:     1,
                     tx_size:    1024,
