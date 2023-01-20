@@ -46,7 +46,7 @@ export class MainMenu extends BlankWindow {
         const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
         btn.style.background.color = '#888888ff'
         btn.style.font.color = '#ffffffff'
-        btn.style.font.size = 10 * this.zoom
+        btn.style.font.size = 20
         /*
         btn.style.font.shadow = {
             enable: true,

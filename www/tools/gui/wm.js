@@ -1255,6 +1255,9 @@ export class WindowManager extends Window {
     }
 
     draw() {
+
+        this.centerChild()
+
         if (!this.qubatchRender) {
             return;
         }
