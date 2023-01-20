@@ -414,7 +414,7 @@ export class Window extends PIXI.Container {
      * @param {?string} image_size_mode
      * @param {?float} scale
      */
-    async setBackground(urlOrImage, image_size_mode, scale) {
+    async setBackground(urlOrImage, image_size_mode, scale, tintMode = 0) {
         //if(!isScalar(urlOrImage)) {
         //    if(urlOrImage instanceof Promise) {
         //        urlOrImage = await urlOrImage
@@ -423,6 +423,7 @@ export class Window extends PIXI.Container {
         if(image_size_mode) this.style.background.image_size_mode = image_size_mode
         if(scale) this.style.background.scale = scale
         this.style.background.image = urlOrImage
+        this.style.background.sprite.tintMode = tintMode;
     }
 
     /**
@@ -539,7 +540,7 @@ export class Window extends PIXI.Container {
     /**
      * По событию мыши на контексте определяет и возвращает точное окно,
      * к которому относится событие, а также создает и возвращает новое событие для него
-     * @param {*} e 
+     * @param {*} e
      * @returns {object}
      */
     _clarifyMouseEvent(e) {

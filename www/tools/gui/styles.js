@@ -1,4 +1,5 @@
 import { PIXI } from "./pixi.js"
+import {MySprite} from "./MySpriteRenderer.js";
 
 export const USE_BITMAP_FONT = false;
 
@@ -77,7 +78,7 @@ export class BackgroundStyle {
     constructor(window) {
         this.#window = window
         // Background image
-        this.#_bgimage = new PIXI.Sprite(PIXI.Texture.EMPTY)
+        this.#_bgimage = new MySprite(PIXI.Texture.EMPTY)
         window._bgimage = this.#_bgimage
         // this.#_bgimage.anchor.x = 0
         // this.#_bgimage.anchor.y = 0
@@ -129,7 +130,7 @@ export class BackgroundStyle {
             this.#_bgimage.texture.destroy()
             this.#_bgimage.texture = new PIXI.Texture(new PIXI.BaseTexture(image))
 
-            
+
 
             // scale
             if(isNaN(scale)) {
