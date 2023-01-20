@@ -35,7 +35,8 @@
         {"name": "poor_coal_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "carrot",              "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "brown_mushroom",      "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "red_mushroom",        "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "red_mushroom",        "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "cauldron",            "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -385,6 +386,13 @@
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
                 ]
+            }
+        },
+        {
+            "id": 437,
+            "name": "CAULDRON",
+            "bb": {
+                "model": "cauldron"
             }
         }
     ]

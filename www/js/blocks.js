@@ -61,6 +61,19 @@ class Block {
 
 }
 
+export class FakeVertices {
+
+    /**
+     * @param {string} material_key 
+     * @param {float[]} vertices 
+     */
+    constructor(material_key, vertices) {
+        this.material_key = material_key
+        this.vertices = vertices
+    }
+
+}
+
 //
 export class FakeTBlock {
 

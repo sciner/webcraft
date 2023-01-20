@@ -1,6 +1,6 @@
 import { calcRotateMatrix, DIRECTION, IndexedColor, mat4ToRotate, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import { BLOCK, FakeTBlock } from '../blocks.js';
+import { BLOCK, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
 import { BBModel_Model } from '../bbmodel/model.js';
 import { CubeSym } from '../core/CubeSym.js';
@@ -9,6 +9,7 @@ import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
 import { default as pot_style } from '../block_style/pot.js';
+import { default as cauldron_style } from '../block_style/cauldron.js';
 import { default as sign_style } from '../block_style/sign.js';
 
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js";
@@ -114,7 +115,7 @@ export default class style {
         // reset state and restore groups visibility
         model.resetBehaviorChanges()
 
-        const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color)
+        const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color, vertices, x, y, z)
 
         // calc rotate matrix
         style.applyRotate(model, block, neighbours, matrix, x, y, z)
@@ -245,8 +246,9 @@ export default class style {
      * @param {*} matrix 
      * @param {*} biome 
      * @param {IndexedColor} dirt_color
+     * @param {float[]} vertices
      */
-    static applyBehavior(model, tblock, neighbours, matrix, biome, dirt_color) {
+    static applyBehavior(model, tblock, neighbours, matrix, biome, dirt_color, vertices, x, y, z) {
 
         const emmited_blocks = []
         const mat = tblock.material
@@ -371,6 +373,14 @@ export default class style {
                     mat4.rotateZ(matrix, matrix, Math.PI)
                 }
 
+                break
+            }
+            case 'cauldron': {
+                if(tblock.extra_data) {
+                    const vert = []
+                    cauldron_style.func(tblock, vert, null, x, y, z, neighbours, biome, dirt_color, undefined, matrix, undefined, null, true)
+                    emmited_blocks.push(new FakeVertices(BLOCK.STONE.material_key, vert))
+                }
                 break
             }
         }
