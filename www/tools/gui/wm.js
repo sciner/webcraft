@@ -10,6 +10,8 @@ import { msdf } from "../../data/font.js";
 
 globalThis.visible_change_count = 0
 
+export class Graphics extends PIXI.Graphics {}
+
 // Base window
 export class Window extends PIXI.Container {
 
@@ -496,66 +498,42 @@ export class Window extends PIXI.Container {
     }
 
     _mousemove(e) {
-        this.hover = true;
-        this.onMouseMove(e);
-        let entered = [];
-        let leaved = [];
-        // let fire_mousemove = [];
-        //
-        const visible_windows = [];
-        for(let w of this.list.values()) {
-            if(!w.catchEvents) {
-                continue;
-            }
-            if(w.visible) {
-                visible_windows.push(w);
-            }
-        }
-        visible_windows.sort((a, b) => a.z - b.z);
+
+        this.hover = true
+        this.onMouseMove(e)
+        let entered = []
+        let leaved = []
+
+        const {window, event, visible_windows} = this._clarifyMouseEvent(e)
+
         for(let w of visible_windows) {
-            let old_hover = w.hover;
-            w.hover = false;
-            if(w.visible) {
-                let e2 = {...e};
-                let x = e2.x - w.x;
-                let y = e2.y - w.y;
-                if(x >= 0 && y >= 0 && x <= w.w && y <= w.h) {
-                    e2.x = x;
-                    e2.y = y - w.scrollY;
-                    w._mousemove(e2);
-                    w.hover = true;
-                }
+            let old_hover = w.hover
+            w.hover = false
+            if(w === window) {
+                w._mousemove(event)
+                w.hover = true
             }
             if(w.hover != old_hover) {
                 if(w.hover) {
-                    // w.onMouseEnter();
-                    entered.push(w);
+                    entered.push(w)
                 } else {
-                    // w.onMouseLeave();
-                    leaved.push(w);
+                    leaved.push(w)
                 }
             }
         }
+
         if(entered.length + leaved.length > 0) {
-             //console.log(entered.length, leaved.length, entered[0]);
             if(entered.length > 0) {
-                //if(entered[0]?.tooltip) {
-                    // @todo possible bug
-                    this.getRoot()._wm_setTooltipText(entered[0].tooltip);
-                //}
+                this.getRoot()._wm_setTooltipText(entered[0].tooltip)
                 entered[0].onMouseEnter();
             } else {
                 this.getRoot()._wm_setTooltipText(null);
             }
-            //
             if(leaved.length > 0) {
                 leaved[0].onMouseLeave();
             }
         }
-        //
-        /*for(let item of fire_mousemove) {
-            item.w._mousemove(item.event);
-        }*/
+
     }
 
     /**
@@ -569,11 +547,13 @@ export class Window extends PIXI.Container {
         const visible_windows = []
         for(let window of this.list.values()) {
             if(window.visible) {
-                visible_windows.push(window)
+                if(window.catchEvents) {
+                    visible_windows.push(window)
+                }
             }
         }
         visible_windows.sort((a, b) => b.z - a.z)
-        const resp = {window: null, event: null}
+        const resp = {window: null, event: null, visible_windows}
         for(let window of visible_windows) {
             if(window.visible) {
                 const e2 = {...e}
@@ -581,7 +561,7 @@ export class Window extends PIXI.Container {
                 const y = e2.y - (this.ay + window.y)
                 if(x >= 0 && y >= 0 && x < window.w && y < window.h) {
                     e2.x = window.ax + x
-                    e2.y = window.ay + y - window.scrollY
+                    e2.y = window.ay + y // - window.scrollY
                     resp.window = window
                     resp.event = e2
                     break

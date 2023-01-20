@@ -1,5 +1,5 @@
-import {Button, Label, TextEdit, Window} from "../../tools/gui/wm.js";
-import {CraftTableInventorySlot} from "./base_craft_window.js";
+import { Button, Graphics, Label, TextEdit, Window } from "../../tools/gui/wm.js";
+import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
 import { Lang } from "../lang.js";
@@ -10,20 +10,39 @@ class CreativeInventoryCollection extends Window {
 
     //
     constructor(x, y, w, h, id, title, text) {
+        
         super(x, y, w, h, id, title, text)
+
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
         this.max_height = 0
-        //
-        this.style.background.color = '#ff000055'
+        this.style.background.color = '#00000000'
         this.style.border.hidden = true
+
+        this.container = new Window(0, 0, w, h, id + '_container')
+        // this.style.background.color = '#ff000055'
+        this.add(this.container)
+
+        // create clip mask
+        this.clip_mask = new Graphics()
+        this.clip_mask.id = randomUUID()
+        this.clip_mask.transform.position.set(0, 0)
+        this.clip_mask.width = w
+        this.clip_mask.height = h
+        this.clip_mask.clear()
+        this.clip_mask.beginFill(0x00ff0055)
+        this.clip_mask.drawRect(0, 0, w, h)
+        this.add(this.clip_mask)
+
+        this.mask = this.clip_mask
+
     }
 
     _wheel(e) {
-        console.log(this.scrollY)
-        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size;
-        this.scrollY = Math.min(this.scrollY, 0);
+        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size
+        this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
+        this.container.y = this.scrollY
     }
 
     // Init
@@ -85,11 +104,10 @@ class CreativeInventoryCollection extends Window {
     initCollection(all_blocks) {
 
         // remove all childrens
-        // this.list.clear()
-
-        for(let child of this.children) {
+        for(let i = this.container.children.length - 1; i >= 0; i--) {
+            const child = this.container.children[i]
             if(child instanceof CraftTableInventorySlot) {
-                this.removeChild(child)
+                this.container.removeChild(child)
             }
         }
 
@@ -158,7 +176,8 @@ class CreativeInventoryCollection extends Window {
             lblSlot.drawOrig = lblSlot.draw;
             lblSlot.draw = function(ctx, ax, ay) {};
             //
-            ct.add(lblSlot);
+            this.container.add(lblSlot)
+            this.container.h = lblSlot.y + lblSlot.h
             ct.collection_slots.push(lblSlot);
             lblSlot.setItem(all_blocks[i]);
         }
@@ -176,34 +195,16 @@ class CreativeInventoryCollection extends Window {
             //
             lblSlot.onDrop = dropFunc;
             // Draw
-            lblSlot.drawOrig = lblSlot.draw;
-            lblSlot.draw = function(ctx, ax, ay) {};
+            lblSlot.drawOrig = lblSlot.draw
+            lblSlot.draw = function(ctx, ax, ay) {}
             //
-            ct.add(lblSlot);
-            ct.collection_slots.push(lblSlot);
-            lblSlot.setItem(all_blocks[i]);
+            this.container.add(lblSlot)
+            this.container.h = lblSlot.y + lblSlot.h
+            ct.collection_slots.push(lblSlot)
+            lblSlot.setItem(all_blocks[i])
         }
 
     }
-
-    /*
-    // Draw
-    draw(ctx, ax, ay) {
-        super.draw(ctx, ax, ay);
-        let x = this.x + this.ax;
-        let y = this.y + this.ay;
-        let w = this.cell_size * 9;
-        let h = this.cell_size * 9;
-        let region = new Path2D();
-        region.rect(x, y, w, h);
-        ctx.save();
-        ctx.clip(region, 'evenodd');
-        for(let lblSlot of this.list.values()) {
-            lblSlot.drawOrig(ctx, ax + 16 * this.zoom, ay + 70 * this.zoom + this.scrollY);
-        }
-        ctx.restore();
-    }
-    */
 
 }
 
