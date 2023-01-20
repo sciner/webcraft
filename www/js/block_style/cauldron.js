@@ -1,4 +1,4 @@
-import { DIRECTION, Vector, IndexedColor } from '../helpers.js';
+import {DIRECTION, Vector, IndexedColor, QUAD_FLAGS} from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
@@ -71,6 +71,42 @@ export default class style {
                 matrix:     matrix
             });
         }
+
+        if (level > 0) {
+            let y1 = y +0.15 + level / 4;
+
+            let blockFluid = null;
+            if (water) {
+                blockFluid = BLOCK.STILL_WATER;
+            }
+            if (lava) {
+                blockFluid = BLOCK.STILL_LAVA;
+            }
+            if (blockFluid) {
+                const side = 'up';
+                const dir = blockFluid.UP;
+                const w = 0.75;
+                const anim_frames = BLOCK.getAnimations(blockFluid, side);
+                let lm = IndexedColor.WHITE.clone();
+                let flags = QUAD_FLAGS.NO_AO;
+                if(blockFluid.tags.indexOf('multiply_color') >= 0) {
+                    lm.copyFrom(blockFluid.multiply_color);
+                    flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
+                }
+                if (anim_frames > 1) {
+                    flags |= QUAD_FLAGS.FLAG_ANIMATED;
+                    lm.b = anim_frames;
+                }
+                const t = BLOCK.calcMaterialTexture(blockFluid, dir, w, w);
+                vertices.push(x + 0.5, z + 0.5, y1,
+                    w, 0, 0,
+                    0, w, 0,
+                    t[0], t[1], t[2], t[3],
+                    lm.pack(), flags
+                );
+            }
+        }
+
         return null;
 
     }
