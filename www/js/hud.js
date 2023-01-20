@@ -1,4 +1,4 @@
-import {GradientGraphics, Graphics, Label, WindowManager} from "../tools/gui/wm.js";
+import {GradientGraphics, Label, Window, WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
@@ -8,6 +8,17 @@ import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
+
+// QuestActionType
+export class QuestActionType {
+
+    static PICKUP       = 1; // Добыть
+    static CRAFT        = 2; // Скрафтить
+    static SET_BLOCK    = 3; // Установить блок
+    static USE_ITEM     = 4; // Использовать инструмент
+    static GOTO_COORD   = 5; // Достигнуть координат
+
+}
 
 class HUDLabel extends Label {
 
@@ -20,14 +31,17 @@ class HUDLabel extends Label {
 
 }
 
-// QuestActionType
-export class QuestActionType {
+class HUDWindow extends Window {
 
-    static PICKUP       = 1; // Добыть
-    static CRAFT        = 2; // Скрафтить
-    static SET_BLOCK    = 3; // Установить блок
-    static USE_ITEM     = 4; // Использовать инструмент
-    static GOTO_COORD   = 5; // Достигнуть координат
+    constructor(wm, x, y, w, h) {
+        super(x, y, w, h, 'hudwindow')
+        this.addChild(this.splash = GradientGraphics.createVertical('#1c1149', '#66408d'))
+    }
+
+    resize(width, height) {
+        this.splash.width = width
+        this.splash.height = height
+    }
 
 }
 
@@ -75,9 +89,9 @@ export class HUD {
         this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
         wm.add(this.frmMainMenu)
 
-        // Drawing canvas
-        const hud_graphics = this.hud_graphics = new Graphics('hud_graphics')
-        wm._wmoverlay.addChild(hud_graphics)
+        // HUD window
+        const hudwindow = this.hudwindow = new HUDWindow(wm, 0, 0, wm.w, wm.h)
+        wm._wmoverlay.addChild(hudwindow)
 
         // Splash screen (Loading...)
         this.splash = {
@@ -87,7 +101,6 @@ export class HUD {
             generate_terrain_time: 0,
             init: function(hud) {
                 this.hud = hud
-                wm._wmoverlay.addChild(this.splash_bg = GradientGraphics.createVertical('#1c1149', '#66408d'))
             },
             draw: function() {
                 let cl = 0;
@@ -118,17 +131,16 @@ export class HUD {
                 }
                 this.loading = cl < nc || !player_chunk_loaded;
 
-                this.splash_bg.visible = this.loading
-
-                if(!this.loading) {
-                    return false;
-                }
                 const w = this.hud.width
                 const h = this.hud.height
 
                 // Splash background
-                this.splash_bg.width = w
-                this.splash_bg.height = h
+                hudwindow.splash.visible = this.loading
+                hudwindow.resize(w, h)
+
+                if(!this.loading) {
+                    return false;
+                }
 
                 // 2. draw texts
                 const texts = []
@@ -140,8 +152,10 @@ export class HUD {
                     texts.push(Lang.loading_game_generate_planet + ' ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%')
                 }
                 texts.push(Lang[isMobileBrowser() ? 'please_rotate_to_landscape' : 'press_f11_to_fullscreen'])
+
                 // 3. draw keyboard help
                 // that.drawKbHelp(ctx, w, h, padding)
+
                 return true
             }
         };
@@ -234,8 +248,6 @@ export class HUD {
 
         this.frmMainMenu.parent.center(this.frmMainMenu)
 
-        const hud_graphics = this.hud_graphics
-
         // Check if need redraw
         const hasDrawContent = Qubatch.world && Qubatch.player && Qubatch.player.chat.hasDrawContent();
         this.prepareText()
@@ -247,8 +259,14 @@ export class HUD {
 
         // Draw splash screen...
         if(this.splash.draw()) {
-            return;
+            return
         }
+
+        // HUD window
+        const hudwindow = this.hudwindow
+        const wm = this.wm
+        hudwindow.w = wm.w
+        hudwindow.h = wm.h
 
         // Hide all inner text blocks
         for(let c of this.wm.hud_window.children) {

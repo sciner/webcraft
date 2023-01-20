@@ -130,8 +130,6 @@ export class BackgroundStyle {
             this.#_bgimage.texture.destroy()
             this.#_bgimage.texture = new PIXI.Texture(new PIXI.BaseTexture(image))
 
-
-
             // scale
             if(isNaN(scale)) {
                 background.scale.set(window.w / image.width, window.h / image.height)

@@ -11,7 +11,10 @@ export class ModeWindow extends Window {
 
     constructor(player) {
 
-        super(0, 0, 217 * UI_ZOOM, 130 * UI_ZOOM, 'frmMode')
+        const w = 217
+        const h = 130
+
+        super(0, 0, w * UI_ZOOM, h * UI_ZOOM, 'frmMode')
 
         this.style.background.color = '#00000055'
         this.player = player
@@ -21,8 +24,14 @@ export class ModeWindow extends Window {
 
             this.atlas = atlas
 
-            this.addComponent(0, 90, 217, 43, 'lblHelp', '[ F4 ] - Дальше')
-            this.addComponent(0, 0, 217, 43, 'lblTitle', 'Test', null, 'toasts-0.png')
+            const lblHelp = this.addComponent(w / 2, 100, w, 43, 'lblHelp', '[ F4 ] - Дальше')
+            lblHelp.style.font.anchor.x = .5
+            lblHelp.style.font.align = 'center'
+
+            const lblTitle = this.addComponent(w / 2, 10, w, 43, 'lblTitle', 'Test', null, 'toasts-0.png')
+            lblTitle.style.font.anchor.x = .5
+            lblTitle.style.font.align = 'center'
+
             this.addComponent(5, 48, 48, 48, 'lblSurvival', null, 'iron_sword.png')
             this.addComponent(58, 48, 48, 48, 'lblCreative', null, 'brick.png')
             this.addComponent(111, 48, 48, 48, 'lblAdventure', null, 'map.png')
@@ -40,11 +49,14 @@ export class ModeWindow extends Window {
         if(icon) {
             label.setIcon(this.atlas.getSpriteFromMap(icon))
         }
+        label.style.font.size = 16
         this.add(label)
+        return label
     }
 
     // When window on show
     onShow() {
+        this.getRoot().center(this)
         Qubatch.releaseMousePointer()
         this.mode = this.prev_mode ?? this.player.game_mode.next(true).id
         this.updateMode()
@@ -81,14 +93,14 @@ export class ModeWindow extends Window {
 
     async updateMode() {
 
-        const getModeSprite = async (mode) => {
+        const getModeSprite = (mode) => {
             return this.atlas.getSpriteFromMap(mode == this.mode ? 'inventory-1.png' : 'inventory-0.png')
         }
 
-        this.lblSurvival.setBackground(await getModeSprite('survival'))
-        this.lblCreative.setBackground(await getModeSprite('creative'))
-        this.lblAdventure.setBackground(await getModeSprite('adventure'))
-        this.lblSpectator.setBackground(await getModeSprite('spectator'))
+        this.lblSurvival.setBackground(getModeSprite('survival'))
+        this.lblCreative.setBackground(getModeSprite('creative'))
+        this.lblAdventure.setBackground(getModeSprite('adventure'))
+        this.lblSpectator.setBackground(getModeSprite('spectator'))
 
         this.lblTitle.setText(Lang.getOrUnchanged(`gamemode_${this.mode}`));
 
