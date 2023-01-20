@@ -426,7 +426,8 @@ export class Player {
                     const target_mat = this.pickAt.getTargetBlock(this)?.material;
                     const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style_name == 'planting') ? true : false;
                     const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
-                    if(!is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
+                    const is_cauldron  = (target_mat && target_mat.id == BLOCK.CAULDRON.id);
+                    if(!is_cauldron && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }

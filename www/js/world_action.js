@@ -515,6 +515,7 @@ export class WorldAction {
             load_chest:                 null,
             open_window:                null,
             put_in_backet:              null,
+            put_in_bottle:              null,
             clone_block:                false,
             reset_mouse_actions:        false,
             decrement:                  false,
@@ -597,6 +598,13 @@ export class WorldAction {
             throw 'error_put_already';
         }
         this.put_in_backet = item;
+    }
+    // 
+    putInBottle(item) {
+        if(this.put_in_bottle) {
+            throw 'error_put_already';
+        }
+        this.put_in_bottle = item;
     }
 
     /**
@@ -2249,7 +2257,25 @@ async function useCauldron(e, world, pos, player, world_block, world_material, m
         return false;
     }
     const position = new Vector(pos);
+    if (current_inventory_item.id == BLOCK.WATER_BOTTLE.id && extra_data.level < 3) {
+        actions.decrement = true;
+        actions.addBlocks([{
+            pos: position, 
+            item: {
+                id: BLOCK.CAULDRON.id, 
+                extra_data: { 
+                    level: extra_data.level + 1,
+                    lava: false,
+                    water: true,
+                    snow: false 
+                }
+            }, 
+            action_id: ServerClient.BLOCK_ACTION_MODIFY
+        }]);
+        return true;
+    }
     if (current_inventory_item.id == BLOCK.WATER_BUCKET.id) {
+        
         actions.decrement = true;
         actions.addBlocks([{
             pos: position, 
@@ -2259,7 +2285,7 @@ async function useCauldron(e, world, pos, player, world_block, world_material, m
                     level: 3,
                     lava: false,
                     water: true,
-                    item: null 
+                    snow: false
                 }
             }, 
             action_id: ServerClient.BLOCK_ACTION_MODIFY
@@ -2276,35 +2302,80 @@ async function useCauldron(e, world, pos, player, world_block, world_material, m
                     level: 3,
                     lava: true,
                     water: false,
-                    item: null 
+                    snow: false 
                 }
             }, 
             action_id: ServerClient.BLOCK_ACTION_MODIFY
         }]);
         return true;
     }
-    if (current_inventory_item.id == BLOCK.BUCKET.id && extra_data.level == 3 && (extra_data.lava == true || extra_data.water == true) ) {
-        const item = {
-            id: extra_data.lava ? BLOCK.LAVA_BUCKET.id : BLOCK.WATER_BUCKET.id,
-            count: 1
-        };
-        actions.putInBucket(item);
+    if (current_inventory_item.id == BLOCK.BUCKET_POWDER_SNOW.id) {
+        actions.decrement = true;
         actions.addBlocks([{
             pos: position, 
             item: {
                 id: BLOCK.CAULDRON.id, 
                 extra_data: { 
-                    level: 0,
+                    level: 3,
                     lava: false,
                     water: false,
-                    item: null 
+                    snow: true 
                 }
             }, 
             action_id: ServerClient.BLOCK_ACTION_MODIFY
         }]);
         return true;
     }
-    
+    if (current_inventory_item.id == BLOCK.BUCKET.id && extra_data.level == 3 && (extra_data.lava == true || extra_data.water == true || extra_data.snow == true) ) {
+        const item = {
+            id: BLOCK.WATER_BUCKET.id,
+            count: 1
+        };
+        if (extra_data.lava) {
+            item.id = BLOCK.LAVA_BUCKET.id;
+        }
+        if (extra_data.snow) {
+            item.id = BLOCK.BUCKET_POWDER_SNOW.id;
+        }
+        actions.putInBucket(item);
+        actions.addBlocks([{
+            pos: position, 
+            item: {
+                id: BLOCK.CAULDRON.id,
+                extra_data: { 
+                    level: 0,
+                    lava: false,
+                    water: false,
+                    snow: false 
+                }
+            }, 
+            action_id: ServerClient.BLOCK_ACTION_MODIFY
+        }]);
+        return true;
+    }
+    if (current_inventory_item.id == BLOCK.GLASS_BOTTLE.id && extra_data.level > 0 && extra_data.water == true) {
+        const item = {
+            id: BLOCK.WATER_BOTTLE.id,
+            count: 1
+        };
+        actions.putInBottle(item);
+        const level = extra_data.level - 1;
+        actions.addBlocks([{
+            pos: position, 
+            item: {
+                id: BLOCK.CAULDRON.id,
+                extra_data: { 
+                    level: level,
+                    lava: false,
+                    water: level == 0 ? false : true,
+                    snow: false 
+                }
+            }, 
+            action_id: ServerClient.BLOCK_ACTION_MODIFY
+        }]);
+        return true;
+    }
+
     return false;
 }
 

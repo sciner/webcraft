@@ -32,10 +32,12 @@ export default class style {
         const level = extra_data.level; // Высота жидкости 0, 1, 2, 3
         const lava = extra_data.lava; // если внутри лава
         const water = extra_data.water; // если внтри вода
+        const snow = extra_data.snow; // если внтри снег
         const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.FORWARD);
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
         const c_inner = BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST);
+        const c_snow = BLOCK.calcTexture(BLOCK.POWDER_SNOW.texture, DIRECTION.UP);
         const parts = [];
         parts.push(...[
             {
@@ -51,7 +53,7 @@ export default class style {
                 }
             },
             {
-                "size": {"x": 12, "y": 12, "z": 12},
+                "size": {"x": 12, "y": 10, "z": 12},
                 "translate": {"x": 0, "y": 2, "z": 0},
                 "faces": {
                     "down": {"uv": [8, 8],"texture": c_inner},
@@ -62,6 +64,9 @@ export default class style {
                 }
             }
         ]);
+        if (snow) {
+            parts[1].faces.up = {"uv": [8, 8],"texture": c_snow};
+        }
         const pos = new Vector(x, y, z);
         for (const part of parts) {
             default_style.pushPART(vertices, {

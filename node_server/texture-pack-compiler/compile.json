@@ -9386,15 +9386,22 @@
             "transparent": true,
             "can_rotate": true,
             "max_in_stack": 1,
+            "is_dynamic_light": true,
             "inventory": {
                 "style": "extruder",
                 "texture": "item/cauldron.png"
+            },
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
             },
             "extra_data": {
                 "level": 0,
                 "lava": false,
                 "water": false,
-                "item": null
+                "snow": false
             },
             "sound": "madcraft:block.cloth",
             "material": {

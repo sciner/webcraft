@@ -51,8 +51,8 @@ export default class style {
         // анимация капель
         if (typeof worker != 'undefined' && extra_data?.up == true && dir == DIRECTION.UP && (extra_data?.water || extra_data?.lava)) {
             worker.postMessage(['add_animated_block', {
-                block_pos:  pos,
-                pos:        [pos.add(new Vector(.5, .5, .5))],
+                block_pos:  block.posworld,
+                pos:        [block.posworld.add(new Vector(.5, .5, .5))],
                 type:       'dripping',
                 isWater:    extra_data?.water
             }]);

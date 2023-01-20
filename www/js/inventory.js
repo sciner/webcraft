@@ -198,6 +198,10 @@ export class Inventory {
                         const emptyBucket = this.block_manager.BUCKET;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
+                } else if (matBlock.item && matBlock.item?.name == 'bottle') {
+                    if(matBlock.item.emit_on_set) {
+                        this.items[this.current.index] = {id: BLOCK.GLASS_BOTTLE.id, count: 1};
+                    }
                 } else {
                     this.items[this.current.index] = null;
                 }
