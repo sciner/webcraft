@@ -71,43 +71,43 @@ export class RecipeSlot extends Window {
         this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
     }
 
-    draw(ctx, ax, ay) {
-        this.applyStyle(ctx, ax, ay);
-        super.draw(ctx, ax, ay);
-        const item = this.block;
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
-    }
+    // draw(ctx, ax, ay) {
+    //     this.applyStyle(ctx, ax, ay);
+    //     super.draw(ctx, ax, ay);
+    //     const item = this.block;
+    //     this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
+    // }
 
-    drawItem(ctx, item, x, y, width, height) {
+    // drawItem(ctx, item, x, y, width, height) {
 
-        const inventory_image = Resources.inventory.image;
+    //     const inventory_image = Resources.inventory.image;
 
-        if(!inventory_image || !item) {
-            return;
-        }
+    //     if(!inventory_image || !item) {
+    //         return;
+    //     }
 
-        const size = inventory_image.width;
-        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
+    //     const size = inventory_image.width;
+    //     const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
 
-        ctx.imageSmoothingEnabled = false;
+    //     ctx.imageSmoothingEnabled = false;
 
-        // 
-        if('inventory_icon_id' in item) {
-            const icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
-            const dest_icon_size = 48 * this.zoom;
-            ctx.drawImage(
-                inventory_image,
-                icon.x,
-                icon.y,
-                icon.width,
-                icon.height,
-                x + width / 2 - dest_icon_size / 2,
-                y + height / 2 - dest_icon_size / 2,
-                dest_icon_size,
-                dest_icon_size
-            );
-        }
-    }
+    //     // 
+    //     if('inventory_icon_id' in item) {
+    //         const icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
+    //         const dest_icon_size = 48 * this.zoom;
+    //         ctx.drawImage(
+    //             inventory_image,
+    //             icon.x,
+    //             icon.y,
+    //             icon.width,
+    //             icon.height,
+    //             x + width / 2 - dest_icon_size / 2,
+    //             y + height / 2 - dest_icon_size / 2,
+    //             dest_icon_size,
+    //             dest_icon_size
+    //         );
+    //     }
+    // }
 
 }
 
@@ -116,19 +116,19 @@ export class RecipeWindow extends BlankWindow {
 
     constructor(recipe_manager) {
 
-        super(10, 10, 592/2, 668/2, 'frmRecipe', null, null)
+        super(10, 10, 592/2 * UI_ZOOM, 668/2 * UI_ZOOM, 'frmRecipe', null, null)
         this.canBeOpenedWith = ['frmInventory', 'frmCraft']
-        this.w *= this.zoom
-        this.h *= this.zoom
+        // this.w *= this.zoom
+        // this.h *= this.zoom
 
-        this.items_per_page     = 20;
-        this.index              = -1;
-        this.recipe_manager     = recipe_manager;
-        this.filter_text        = null;
-        this.only_can           = false;
+        this.items_per_page     = 20
+        this.index              = -1
+        this.recipe_manager     = recipe_manager
+        this.filter_text        = null
+        this.only_can           = false
 
         // Ширина / высота слота
-        this.cell_size = 50 * this.zoom;
+        this.cell_size = 50 * this.zoom
 
         // Get window by ID
         const ct = this
@@ -148,23 +148,23 @@ export class RecipeWindow extends BlankWindow {
             pages: 0,
             page: 0,
             prev: function() {
-                this.page--;
-                this.update();
+                this.page--
+                this.update()
             },
             next: function() {
-                this.page++;
-                this.update();
+                this.page++
+                this.update()
             },
             update: function() {
-                this.pages = Math.ceil(that.items_count / that.items_per_page);
+                this.pages = Math.ceil(that.items_count / that.items_per_page)
                 if(this.page < 0) {
-                    this.page = this.pages - 1;
+                    this.page = this.pages - 1
                 }
                 if(this.page >= this.pages) {
-                    this.page = 0;
+                    this.page = 0
                 }
-                that.lblPages.title = this.pages == 0 ? '0/0' : (this.page + 1) + ' / ' + this.pages;
-                that.createRecipes();
+                that.lblPages.text = this.pages == 0 ? '0/0' : (this.page + 1) + ' / ' + this.pages
+                that.createRecipes()
             }
         };
 
@@ -216,31 +216,40 @@ export class RecipeWindow extends BlankWindow {
 
     // Paginator buttons
     addPaginatorButtons() {
-        const ct = this;
+
+        const ct = this
+
         // Label
-        let lblPages = new Label(110 * this.zoom, 270 * this.zoom, 70 * this.zoom, 40 * this.zoom, 'lblPages', '1 / 2');
-        lblPages.style.color = '#ffffff';
-        lblPages.style.font.shadow.enable = true;
-        lblPages.style.textAlign.horizontal = 'center';
-        lblPages.style.textAlign.vertical = 'middle';
-        lblPages.style.font.shadow.x = 1;
-        lblPages.style.font.shadow.y = 1;
-        ct.add(lblPages);
-        this.lblPages = lblPages;
+        const lblPages = new Label(110 * this.zoom, 268 * this.zoom, 70 * this.zoom, 40 * this.zoom, 'lblPages', '1 / 2')
+        lblPages.style.font.color = '#ffffff'
+        lblPages.style.font.shadow.enable = true
+        lblPages.text_container.anchor.set(.5, .5)
+        // lblPages.style.textAlign.horizontal = 'center'
+        // lblPages.style.textAlign.vertical = 'middle'
+        // lblPages.style.font.shadow.x = 1
+        // lblPages.style.font.shadow.y = 1
+        ct.add(lblPages)
+        this.lblPages = lblPages
+        lblPages.text_container.position.set(lblPages.w / 2, lblPages.h / 2)
+
         // Prev
-        let btnPrev = new Button(65 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnPrev', null);
-        btnPrev.setBackground('./media/gui/btn_prev.png');
+        const btnPrev = new Button(65 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnPrev', null)
+        btnPrev.style.border.hidden = true
+        btnPrev.setBackground('./media/gui/btn_prev.png', 'center', 2)
         btnPrev.onMouseDown = (e) => {
-            this.paginator.prev();
+            this.paginator.prev()
         }
-        ct.add(btnPrev);
+        ct.add(btnPrev)
+
         // Next
-        let btnNext = new Button(185 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnNext', null);
-        btnNext.setBackground('./media/gui/btn_next.png');
+        const btnNext = new Button(185 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnNext', null)
+        btnNext.style.border.hidden = true
+        btnNext.setBackground('./media/gui/btn_next.png', 'center', 2)
         btnNext.onMouseDown = (e) => {
-            this.paginator.next();
+            this.paginator.next()
         }
-        ct.add(btnNext);
+        ct.add(btnNext)
+
     }
     
     addFinder() {
@@ -254,15 +263,16 @@ export class RecipeWindow extends BlankWindow {
             null,
             'Type for search'
         );
-        txtSearch.word_wrap              = false;
-        txtSearch.focused                = true;
-        txtSearch.max_length             = 100;
-        txtSearch.max_lines              = 1;
-        txtSearch.max_chars_per_line     = 20;
+        txtSearch.word_wrap              = false
+        txtSearch.focused                = true
+        txtSearch.max_length             = 100
+        txtSearch.max_lines              = 1
+        txtSearch.max_chars_per_line     = 20
         // style
-        txtSearch.style.color            = '#fff';
-        txtSearch.style.border.hidden    = true;
-        txtSearch.style.border.style     = 'inset';
+        txtSearch.style.color            = '#ffffff';
+        txtSearch.style.background.color = '#ffffff88';
+        txtSearch.style.border.hidden    = false
+        txtSearch.style.border.style     = 'inset'
        // txtSearch.style.background.color = '#706f6cff';
         this.add(txtSearch);
         
@@ -298,17 +308,18 @@ export class RecipeWindow extends BlankWindow {
             return false;
         }
         //
-        let i             = 0;
-        const sz          = this.cell_size;
-        const sx          = 22 * this.zoom;
-        const sy          = 62 * this.zoom;
-        const xcnt        = 5;
-        const list        = this.recipe_manager.crafting_shaped.grouped;
-        const min_index   = this.paginator.page * this.items_per_page;
-        const max_index   = min_index + this.items_per_page;
-        const size      = this.craft_window.area.size.width;
-        const filter_text = (this.filter_text) ? this.filter_text.toUpperCase().replaceAll('_', ' ').replace(/\s\s+/g, ' ') : null;
-        this.recipes    = [];
+        let i               = 0;
+        const sz            = this.cell_size;
+        const sx            = 22 * this.zoom;
+        const sy            = 62 * this.zoom;
+        const xcnt          = 5;
+        const list          = this.recipe_manager.crafting_shaped.grouped;
+        const min_index     = this.paginator.page * this.items_per_page;
+        const max_index     = min_index + this.items_per_page;
+        const size          = this.craft_window.area.size.width;
+        const filter_text   = (this.filter_text) ? this.filter_text.toUpperCase().replaceAll('_', ' ').replace(/\s\s+/g, ' ') : null;
+
+        this.recipes        = []
         
         const tmp_recipes = [];
         for(const index in list) {

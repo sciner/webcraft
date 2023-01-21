@@ -291,7 +291,8 @@ export class CreativeInventoryWindow extends BlankWindow {
     // Обработчик открытия формы
     onShow() {
         this.getRoot().center(this);
-        Qubatch.releaseMousePointer();
+        Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
     // Обработчик закрытия формы
@@ -306,20 +307,19 @@ export class CreativeInventoryWindow extends BlankWindow {
     * @param int sz Ширина / высота слота
     */
     createInventorySlots(sz) {
-        const ct = this;
-        if(ct.inventory_slots) {
-            console.error('createInventorySlots() already created');
-            return;
+        if(this.inventory_slots) {
+            console.error('createInventorySlots() already created')
+            return
         }
-        ct.inventory_slots  = [];
+        this.inventory_slots = []
         // нижний ряд (видимые на хотбаре)
-        let sx          = 16 * this.zoom;
-        let sy          = this.height - this.cell_size - 14 * this.zoom;
-        let xcnt        = 9;
+        let sx          = 16 * this.zoom
+        let sy          = this.h - this.cell_size - 14 * this.zoom
+        let xcnt        = 9
         for(let i = 0; i < 9; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
-            ct.add(lblSlot)
-            ct.inventory_slots.push(lblSlot)
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
+            this.add(lblSlot)
+            this.inventory_slots.push(lblSlot)
         }
     }
 

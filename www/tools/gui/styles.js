@@ -173,10 +173,16 @@ export class BackgroundStyle {
         const window = this.#window
         switch(value) {
             case 'none': {
-                //background.position.x = window.w / 2
-                //background.position.y = window.h / 2
-                //background.pivot.x = background._image.width / 2
-                //background.pivot.y = background._image.height / 2
+                // background.position.x = window.w / 2
+                // background.position.y = window.h / 2
+                // background.pivot.x = background._image.width / 2
+                // background.pivot.y = background._image.height / 2
+                break
+            }
+            case 'center': {
+                background.position.x = window.w / 2
+                background.position.y = window.h / 2
+                background.anchor.set(.5, .5)
                 break
             }
         }
@@ -210,25 +216,75 @@ export class BackgroundStyle {
 export class BorderStyle {
 
     #window
+    #_wmborder
+    #_style = 'normal'
 
     constructor(window) {
+
         this.#window = window
+
+        // Border
+        const border = this.#_wmborder = new PIXI.Graphics()
+        border.visible = false
+        border.w = window.w
+        border.h = window.h
+        this._redraw()
+        window.addChild(border)
+
+    }
+
+    /**
+     * @returns {string}
+     */
+    get style() {
+        return this.#_style
+    }
+
+    /**
+     * @param {string} value
+     */
+    set style(value) {
+        this.#_style = value
+        this._redraw()
     }
 
     /**
      * @type {boolean}
      */
     get hidden() {
-        return this.#window._border ? !this.#window._border.visible : false
+        return this.#_wmborder ? !this.#_wmborder.visible : false
     }
 
     /**
      * @param {boolean} value
      */
     set hidden(value) {
-        if(this.#window._border) {
-            this.#window._border.visible = !value
+        if(this.#_wmborder) {
+            this.#_wmborder.visible = !value
         }
+    }
+
+    _redraw() {
+
+        const {w, h} = this.#window
+        const border = this.#_wmborder
+
+        const inset = this.style == 'inset'
+        const color1 = inset ? 0x888888 : 0xffffff
+        const color2 = inset ? 0xffffff : 0x888888
+        const border_width = 3
+        const border_alpha = .9
+
+        border.lineStyle(border_width, color2, border_alpha)
+        border.moveTo(w, h)
+            .lineTo(0, h)
+            .lineTo(0, 0)
+
+        border.lineStyle(border_width, color1, border_alpha)
+        border.moveTo(0, 0)
+            .lineTo(w, 0)
+            .lineTo(w, h)
+
     }
 
 }

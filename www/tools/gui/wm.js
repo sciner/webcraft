@@ -167,7 +167,14 @@ export class Window extends PIXI.Container {
     onDrop(e) {}
     onWheel(e) {}
     onHide() {}
-    onShow() {}
+    onShow() {
+        for(let window of this.list.values()) {
+            if(window instanceof TextEdit) {
+                window.focused = true
+                break
+            }
+        }
+    }
 
     // onKeyEvent
     onKeyEvent(e) {
@@ -901,6 +908,18 @@ export class Window extends PIXI.Container {
         // It's called every interation of the game loop for visible windows. Override it in the subclasses.
     }
 
+    get focused() {
+        return this.getRoot().getFocusedControl() === this
+    }
+
+    set focused(value) {
+        if(value) {
+            this.getRoot().setFocusedControl(this)
+        } else {
+            this.getRoot().removeFocusFromControl(this)
+        }
+    }
+
 }
 
 // Button
@@ -911,6 +930,7 @@ export class Button extends Window {
         super(x, y, w, h, id, title, title)
 
         this.style.font.size = 10
+        this.style.border.hidden = false
 
         if(this.text_container) {
             this.text_container.anchor.set(.5, .5)
@@ -937,21 +957,6 @@ export class Button extends Window {
             this.style.background.color_save = null;
             this.style.color_save = null;
         }
-
-        // Border
-        this._border = new PIXI.Graphics()
-        this.addChild(this._border)
-        this._border.lineStyle(1, 0xffffff, 0.6) // .lineStyle(thickness, 0xffffff)
-        // this._border.position.set(0, 0)
-        this._border
-            .moveTo(0, 0)
-            .lineTo(this.w, 0)
-            .lineTo(this.w, this.h)
-
-        this._border.lineStyle(1, 0x000000, 0.6) // .lineStyle(thickness, 0xffffff)
-        this._border.moveTo(this.w, this.h)
-            .lineTo(0, this.h)
-            .lineTo(0, 0)
 
     }
 
@@ -983,32 +988,31 @@ export class TextEdit extends Window {
 
     constructor(x, y, w, h, id, title, text) {
 
-        super(x, y, w, h, id, title, text);
+        super(x, y, w, h, id, title, text)
 
         this.max_length         = 0;
         this.max_lines          = 0;
         this.max_chars_per_line = 0;
-        this.draw_cariage       = true;
+        this.draw_cariage       = true
 
         // Styles
-        this.style.background.color = '#ffffff77';
-        this.style.border.hidden = true;
+        this.style.background.color = '#ffffff77'
+        this.style.border.hidden = true
+        this.style.border.style = 'inset'
         this.style.font.size = 19
-        this.style.font.family = 'UbuntuMono-Regular';
-        this.style.padding = {
-            left: 5,
-            right: 5,
-            top: 5,
-            bottom: 5
-        };
+        this.style.font.family = 'Ubuntu'
+        // this.style.padding = {
+        //     left: 5,
+        //     right: 5,
+        //     top: 5,
+        //     bottom: 5
+        // }
+
+        this.text_container.x = 5 * this.zoom
 
         // Properties
-        this.focused = false;
-        this.buffer = [];
-
-        this.onChange = (text) => {
-            // do nothing
-        };
+        this.focused = false
+        this.buffer = []
 
         // Backspace pressed
         this.backspace = () => {
@@ -1044,42 +1048,38 @@ export class TextEdit extends Window {
 
     }
 
-    // Hook for keyboard input
-    onKeyEvent(e) {
-        const {keyCode, down, first} = e;
-        switch(keyCode) {
-            case KEY.ENTER: {
-                if(down) {
-                    this.buffer.push(String.fromCharCode(13));
-                    this._changed();
-                }
-                return true;
-            }
-            case KEY.BACKSPACE: {
-                if(down) {
-                    this.backspace();
-                    break;
-                }
-                return true;
-            }
-        }
+    /**
+     * @returns {string}
+     */
+    get text() {
+        return this.buffer.join('');
+    }
+
+    /**
+     * @param {string} value
+     */
+    set text(value) {
+        this.buffer = RuneStrings.toArray(value)
+        this._changed()
+    }
+
+    /**
+     * @param {string} value 
+     */
+    setIndirectText(value) {
+        super.text = value
     }
 
     //
     _changed() {
-        this.onChange(this.buffer.join(''));
+        const text = this.buffer.join('')
+        super.text = text
+        // this.text_container.text = text
+        this.onChange(text)
     }
 
-    setEditText(text) {
-        this.buffer = text.split('');
-    }
-
-    // Draw
-    draw(ctx, ax, ay) {
-        this.setText(this.buffer.join(''));
-        //
-        // this.style.background.color = this.focused ? '#ffffff77' : '#00000000';
-        super.draw(ctx, ax, ay);
+    onChange(text) {
+        // do nothing
     }
 
     paste(str) {
@@ -1088,9 +1088,27 @@ export class TextEdit extends Window {
         }
     }
 
-    getEditText() {
-        return this.buffer.join('');
+    // Hook for keyboard input
+    onKeyEvent(e) {
+        const {keyCode, down, first} = e;
+        switch(keyCode) {
+            case KEY.ENTER: {
+                if(down) {
+                    this.buffer.push(String.fromCharCode(13));
+                    this._changed()
+                }
+                return true;
+            }
+            case KEY.BACKSPACE: {
+                if(down) {
+                    this.backspace()
+                    break;
+                }
+                return true;
+            }
+        }
     }
+
 }
 
 class Tooltip extends Label {
@@ -1177,7 +1195,10 @@ export class WindowManager extends Window {
     constructor(canvas, x, y, w, h, create_mouse_listeners) {
 
         super(x, y, w, h, '_wm', null)
+
         globalThis.wmGlobal = this
+        this._focused_control = null
+        this._cariage_speed = 200
 
         this.preloadFont();
 
@@ -1205,6 +1226,20 @@ export class WindowManager extends Window {
         // this.addChild(this._wmoverlay)
         this.parent.addChild(this._wmoverlay)
 
+        this.cariageTimer = setInterval(() => {
+            const fc = this._focused_control
+            if(fc && fc instanceof TextEdit) {
+                if(fc.draw_cariage) {
+                    const vis = (performance.now() % (this._cariage_speed * 2)) < this._cariage_speed
+                    if(vis) {
+                        fc.setIndirectText(fc.text + '_')
+                    } else {
+                        fc.setIndirectText(fc.text)
+                    }
+                }
+            }
+        }, this._cariage_speed)
+
         //
         this.drag = {
             item: null,
@@ -1230,6 +1265,20 @@ export class WindowManager extends Window {
             }
         }
 
+    }
+
+    getFocusedControl() {
+        return this._focused_control
+    }
+
+    setFocusedControl(window) {
+        this._focused_control = window
+    }
+
+    removeFocusFromControl(window) {
+        if(this._focused_control == window) {
+            this._focused_control = null
+        }
     }
 
     preloadFont() {

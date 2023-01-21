@@ -45,7 +45,7 @@ class AnvilSlot extends CraftTableSlot {
                 const oldCurrentLabel = oldItem && ItemHelpers.getLabel(oldItem);
                 const newCurrentLabel = ItemHelpers.getLabel(this.getItem());
                 if (oldCurrentLabel !== newCurrentLabel) {
-                    ct.lbl_edit.setEditText(newCurrentLabel);
+                    ct.lbl_edit.text = newCurrentLabel
                 }
             }
             ct.updateResult();
@@ -121,7 +121,7 @@ export class AnvilWindow extends BaseCraftWindow {
     
     // Обработчик открытия формы
     onShow() {
-        this.lbl_edit.setEditText('')
+        this.lbl_edit.text = ''
         Qubatch.releaseMousePointer()
     }
 
@@ -174,7 +174,7 @@ export class AnvilWindow extends BaseCraftWindow {
     updateResult() {
         const first_item = this.first_slot.getItem();
         if (!first_item) {
-            this.lbl_edit.setEditText('');
+            this.lbl_edit.text = ''
             this.result_slot.setItem(null);
             return;
         }
