@@ -735,6 +735,10 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
+    createUniversalShader(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
     createLineShader(options) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }

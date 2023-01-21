@@ -446,6 +446,10 @@ export default class WebGLRenderer extends BaseRenderer {
         return new WebGLTerrainShader(this, options);
     }
 
+    createUniversal(options) {
+        return new WebGLUniversalShader(this, options);
+    }
+
     async createResourcePackShader(options) {
         let shaderCode = await Resources.loadWebGLShaders(options.vertex, options.fragment);
         if (options.shaderName === 'fluidShader') {
