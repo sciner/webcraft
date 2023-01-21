@@ -68,9 +68,9 @@ export class Quest {
         }
     }
 
-    async checkAndTouch() {
+    async checkAndMarkDirty() {
         await this.check();
-        this.touch();
+        this.markDirty();
         // обновить квесты у игрока
         this.#quest_player.sendAll();
     }
@@ -121,14 +121,14 @@ export class Quest {
         for(let next_quest_id of this.#next_quests) {
             const next_quest = await this.#quest_player.quest_manager.loadQuest(next_quest_id);
             this.#quest_player.addQuest(next_quest, true);
-            this.touch();
+            this.markDirty();
         }
         // отправить сообщение
         this.#quest_player.sendMessage(`You completed quest '${this.title}'`);
     }
 
     // Marks that the quest must be saved in the next world transaction
-    touch() {
+    markDirty() {
         this.#dirtyFlags        |= Quest.DIRTY_FLAG_UPDATED;
         this.#player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_QUESTS;
     }

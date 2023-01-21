@@ -29,6 +29,7 @@ export class DBWorld {
         this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
+        await this.mobs.init();
         this.quests = new DBWorldQuest(this.conn, this.world);
         this.portal = new DBWorldPortal(this.conn, this.world);
         this.fluid = new DBWorldFluid(this.conn, this.world);

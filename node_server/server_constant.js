@@ -5,8 +5,15 @@ export const WORLD_TRANSACTION_MAX_DIRTY_BLOCKS = 10000; // if there are more di
 
 // chunks
 
-// Don't confuse it with global WORLD_TRANSACTION_PERIOD: it's bigger, and only affects updating world_modify_chunks
+// How long changes to world_modify_chunks can remain unsaved.
+// Don't confuse it with WORLD_TRANSACTION_PERIOD: it's bigger, and only affects updating world_modify_chunks
 export const WORLD_MODIFY_CHUNKS_TTL    = 60 * 1000;
+
+/**
+ * How many times on average {@link DBWorldChunk.deleteOldWorldModify} is called
+ * per world transaction. It can be fractional.
+ */
+export const CLEAR_WORLD_MODIFY_PER_TRANSACTION = 0.5;
 
 // items
 

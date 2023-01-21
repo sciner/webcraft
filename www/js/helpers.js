@@ -1857,9 +1857,20 @@ export class ArrayHelpers {
     static sum(arr, mapper = (it) => it) {
         var sum = 0;
         for (let i = 0; i < arr.length; i++) {
-            sum += mapper(arr);
+            sum += mapper(arr[i]);
         }
         return sum;
+    }
+
+    static randomWeightedIndex(arr, weightFn = (it) => 1, random = Math.random()) {
+        let sum = this.sum(arr, weightFn) * random;
+        for(let i = 0; i < arr.length; i++) {
+            sum -= weightFn(arr[i]);
+            if (sum <= 0) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     static growAndSet(arr, index, value, filler = undefined) {

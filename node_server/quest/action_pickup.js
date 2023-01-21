@@ -25,7 +25,7 @@ export class QuestActionPickup extends QuestActionBase {
                 this.value = Math.max(this.value | 0, hasCount);
                 this.update();
                 console.log(`Action changed: ${quest.title} ${this.value}/${this.cnt} ... ${this.ok}`);
-                await this.checkAndTouch();
+                await this.checkAndMarkDirty();
             }
         }
     }

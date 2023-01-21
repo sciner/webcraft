@@ -2,6 +2,7 @@ import { Vector } from "../../../www/js/helpers.js";
 import { CHUNK_STATE } from "../../../www/js/chunk_const.js";
 import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { WORLD_MODIFY_CHUNKS_TTL } from "../../server_constant.js";
+import { DBWorldChunk } from "./chunk.js";
 
 export const BLOCK_DIRTY = {
     CLEAR:              0, // used to keep rowIDs of blocks that are frequently modified
@@ -47,6 +48,8 @@ export class ChunkDBActor {
 
         // It can be true, false or a Number (a known rowId)
         this.world_modify_chunk_hasRowId = this.world.worldChunkFlags.has(chunk.addr, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS);
+
+        this.insertedWorldModifyCount = 0;
     }
 
     get world() {
@@ -62,16 +65,28 @@ export class ChunkDBActor {
         return this.world.db.chunks.bulkGetWorldModifyChunkQuery.get(
             this.chunk.addr.toArray()
         ).then( row => {
-            if (row) {
-                row.obj = row.obj && JSON.parse(row.obj);
-            } else {
+            if (!row) {
                 // If there is no row, restoreModifiedChunks() told us that is exists: it's posible
                 // if someone deleted the record while the game was running.
-                // Don't crash, but don't try to rebuild the data.
-                row = { obj: {} };
+                // We don't handle it properly anywhere in code.
+                throw new Error('Not found in world_modify_chunks ' + this.chunk.addr);
             }
-            this.world_modify_chunk_hasRowId = row.rowId ?? false;
-            return row;
+            let ml;
+            if (row.obj) {
+                ml = {
+                    obj: JSON.parse(row.obj)
+                };
+            } else if (row.data_blob) {
+                ml = {
+                    compressed: row.compressed,
+                    private_compressed: row.private_compressed
+                };
+            } else {
+                // It shouldn't happen. But at least we can continue without crashing.
+                ml = { obj: {} };
+            }
+            this.world_modify_chunk_hasRowId = row.rowId;
+            return ml;
         });
     }
 
@@ -140,6 +155,7 @@ export class ChunkDBActor {
                 case BLOCK_DIRTY.INSERT: {
                     e.chunk_addr = chunk_addr;
                     uc.insertBlocks.push(e);
+                    this.insertedWorldModifyCount++;
                     break;
                 }
                 case BLOCK_DIRTY.UPDATE:
@@ -179,10 +195,7 @@ export class ChunkDBActor {
         this.dirtyBlocks = newDirtyBlocks;
     }
 
-    writeWorldModifyChunk() {
-        const world = this.world;
-        const chunk_addr = this.chunk.addr;
-
+    writeToWorldTransaction_world_modify_chunks(underConstruction) {
         // build a JSON patch
         const patch = {};
         for(const [index, item] of this.unsavedBlocks.entries()) {
@@ -192,14 +205,20 @@ export class ChunkDBActor {
 
         // save to DB
         const ml = this.chunk.modify_list;
-        const promise = world.db.chunks.updateOrInsertChunkModifiers(chunk_addr, 
-            JSON.stringify(patch), ml.compressed, ml.private_compressed,
-            this.world_modify_chunk_hasRowId // because the chunk is already loaded, it's false or a Number
-        ).then( rowId => {
-            this.world_modify_chunk_hasRowId = rowId;
-            this.world.worldChunkFlags.add(this.chunk.addr, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS);
-        });
-        world.dbActor.pushPromises(promise);
+        const rowId = this.world_modify_chunk_hasRowId;
+        if (rowId) {
+            const row = DBWorldChunk.toUpdateWorldModifyChunksRow(rowId, patch, ml);
+            underConstruction.updateWorldModifyChunk.push(row);
+        } else {
+            const world = this.world;
+            const chunk_addr = this.chunk.addr;
+            const promise = world.db.chunks.insertChunkModifiers(chunk_addr, patch, ml
+            ).then( rowId => {
+                this.world_modify_chunk_hasRowId = rowId;
+                this.world.worldChunkFlags.add(chunk_addr, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS);
+            });
+            world.dbActor.pushPromises(promise);
+        }
 
         // it's no longer dirty
         this.earliestUnsavedChangeTime = Infinity;
@@ -210,18 +229,19 @@ export class ChunkDBActor {
      * Writes all chunk elements that need to be saved now.
      * Adds promises to {@link WorldDBActor.promises}
      */
-    writeToWorldTransaction() {
+    writeToWorldTransaction(underConstruction) {
         const chunk = this.chunk;
-        const dbActor = this.world.dbActor;
-        const uc = dbActor.underConstruction;
 
         if (this.dirtyBlocks.size) {
             this.writeDirtyBlocks();
         }
+        if (this.insertedWorldModifyCount) {
+            underConstruction.cleanWorldModify.push(this);
+        }
 
         const chunkRecord = chunk.chunkRecord;
         if (chunkRecord.dirty || chunk.delayedCalls.dirty) {
-            uc.insertOrUpdateChunk.push(chunkRecord);
+            underConstruction.insertOrUpdateChunk.push(chunkRecord);
             chunkRecord.dirty = false;
             chunk.delayedCalls.dirty = false;
         }
@@ -230,9 +250,9 @@ export class ChunkDBActor {
             const mustWrite = this.chunk.load_state === CHUNK_STATE.UNLOADING ||
                 this.earliestUnsavedChangeTime < performance.now() - WORLD_MODIFY_CHUNKS_TTL;
             if (mustWrite) {
-                this.writeWorldModifyChunk();
+                this.writeToWorldTransaction_world_modify_chunks(underConstruction);
             } else {
-                dbActor.addUnsavedChunk(chunk);
+                this.world.dbActor.addUnsavedChunk(chunk);
             }
         }
     }

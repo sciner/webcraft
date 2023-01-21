@@ -9,11 +9,8 @@ export class WorldChunkFlags {
     static DB_WORLD_MODIFY_CHUNKS   = 0x01; // has a record in world_modify_chunks
     static MODIFIED_BLOCKS          = 0x02; // has any modified blocks (in DB or in memory)
     static DB_CHUNK                 = 0x04; // has a record in "chunk" table
-    static MODIFIED_FLUID           = 0x08; // has a record in "world_chunks_fluid" table
-
-    // TODO items, fix fluid flag
-
-    static ANY_MODIFIERS_MASK   = WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID;
+    static DB_MODIFIED_FLUID        = 0x08; // has a record in "world_chunks_fluid" table
+    static MODIFIED_FLUID           = 0x10; // has any modified fluid (in DB or in memory)
 
     constructor(world) {
         this.db = world.db;

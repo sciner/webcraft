@@ -26,7 +26,7 @@ export class DropItem {
         this.pos            = new Vector(params.pos);
         this.posO           = new Vector(Infinity, Infinity, Infinity);
         this.rowId          = params.rowId;
-        // Don't set this.dirty directly, call touch() instead.
+        // Don't set this.dirty directly, call markDirty() instead.
         this.dirty          = isNew ? DropItem.DIRTY_NEW : DropItem.DIRTY_CLEAR;
         /** 
          * The chunk in which this item is currently listed.
@@ -68,7 +68,7 @@ export class DropItem {
      * Changes dirty status according to dirtyChange (one of DropItem.DIRTY_***).
      * It doesn't validate all posible cases, only processes expected valid changes.
      */
-    touch(dirtyChange) {
+    markDirty(dirtyChange) {
         switch(dirtyChange) {
             case DropItem.DIRTY_CLEAR:
             case DropItem.DIRTY_NEW:
@@ -171,20 +171,14 @@ export class DropItem {
             return;
         }
         if (!this.inChunk) {
-            // Such items are rare and abnormal. It's ok if they don't merge.
             this._migrateChunk();
-            if (!this.inChunk) {
-                return; // don't process it further (neither consider it stopped, nor merge it)
-            }
         }
-        // here it's in a chunk
-        if (delta !== 0) { // If it doesn't move
+        // inChunk is already updated. If it's absent or not ready, then don't process the item's stop.
+        const chunk = this.inChunk;
+        if (delta !== 0 && chunk?.isReady()) { // If it doesn't move
             if(this.motion === MOTION_MOVED) {
                 this.motion = MOTION_JUST_STOPPED;
-                const chunk = this.inChunk; // inChunk is already updated above
-                if(chunk.isReady()) {
-                    this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
-                }
+                this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
             } else {
                 this.motion = MOTION_STAYED;
             }

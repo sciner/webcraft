@@ -20,8 +20,12 @@ export class DBWorldMob {
         );
     }
 
-    async getMaxId() {
-        return (await this.conn.get('SELECT id FROM entity ORDER BY id DESC LIMIT 1'))?.id ?? 0;
+    async init() {
+        this.maxId = (await this.conn.get('SELECT id FROM entity ORDER BY id DESC LIMIT 1'))?.id ?? 0;
+    }
+
+    async getNextId() {
+        return ++this.maxId;
     }
 
     /**

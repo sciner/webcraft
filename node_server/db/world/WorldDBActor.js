@@ -1,7 +1,8 @@
-import { unixTime, Vector, VectorCollector } from "../../../www/js/helpers.js";
+import { ArrayHelpers, unixTime, Vector, VectorCollector } from "../../../www/js/helpers.js";
 import { Transaction } from "../db_helpers.js";
 import { BLOCK_DIRTY } from "./ChunkDBActor.js";
-import { WORLD_TRANSACTION_PERIOD, WORLD_TRANSACTION_MAX_DIRTY_BLOCKS } from "../../server_constant.js";
+import { WORLD_TRANSACTION_PERIOD, WORLD_TRANSACTION_MAX_DIRTY_BLOCKS,
+    CLEAR_WORLD_MODIFY_PER_TRANSACTION } from "../../server_constant.js";
 
 const RECOVERY_BLOB_VERSION = 1001;
 
@@ -30,6 +31,8 @@ export class WorldDBActor {
         // To determine when to start a new transaction
         this._lastWorldTransactionTime = performance.now();
         this.totalDirtyBlocks = 0;
+
+        this.cumulativeClearWorldModifyPerTransaction = 0;
     }
 
     /**
@@ -101,6 +104,9 @@ export class WorldDBActor {
             updateBlocksWithUnknownRowId: [],
             updateBlocks: [],
             updateBlocksExtraData: [],
+            cleanWorldModify: [], // ChunkDBActor who want to clean their world_modify. Some of them will be randomly selected
+            // world_modify_chunk
+            updateWorldModifyChunk: [],
             // chunk
             insertOrUpdateChunk: [],
             // drop_item
@@ -121,7 +127,7 @@ export class WorldDBActor {
 
             // the data to be saved in world.recovery as a BLOB
             unsavedChunkRowIds: [], // if we know rowId of a chunk - put it here, it reduces the BLOB size
-            unsavedChunkXYZs: [],    // if we don't know rowId of a chunk - put its (x, y, z) here
+            unsavedChunkXYZs: [],   // if we don't know rowId of a chunk - put its (x, y, z) here
         };
         const uc = this.underConstruction; // accessible in closure after this.underConstruction is cleared
 
@@ -129,7 +135,7 @@ export class WorldDBActor {
         try {
             // chunks write everything they need. Updated blocks with unknown rowIds are queued.
             for(const chunk of this.dirtyChunks) {
-                chunk.writeToWorldTransaction();
+                chunk.writeToWorldTransaction(uc);
                 // the only reason chunks can remain in dirtyChunks is if they have unsaved changes in world_modify_chunks
                 if (!chunk.dbActor.unsavedBlocks.size) {
                     this.dirtyChunks.delete(chunk);
@@ -163,15 +169,23 @@ export class WorldDBActor {
                     }
                 });
 
-            const blocksBulkQueriesPromise = slectBlocksRowIdPromise.then(() =>
+            const blocksQueriesPromise = slectBlocksRowIdPromise.then(() =>
                     // it could be don in slectBlocksRowIdPromise.then(), but separated for clarity
                     Promise.all([
                         db.chunks.bulkInsertWorldModify(uc.insertBlocks, dt),
                         db.chunks.bulkUpdateWorldModify(uc.updateBlocks, dt),
                         db.chunks.bulkUpdateWorldModifyExtraData(uc.updateBlocksExtraData, dt)
-                    ])
+                    ]).then(() =>
+                        // delete the old modifiers after the new ones have been inserted
+                        this.deleteOldWorldModifyInRandomChunks(uc.cleanWorldModify)
+                    )
                 );
-            this.pushPromises(blocksBulkQueriesPromise);
+            this.pushPromises(blocksQueriesPromise);
+
+            // world_modify_chunk (inserts are performed by ChunkDBActor)
+            this.pushPromises(
+                db.chunks.bulkUpdateWorldModifyChunks(uc.updateWorldModifyChunk)
+            );
 
             // rows of "chunk" table
             this.pushPromises(
@@ -179,14 +193,14 @@ export class WorldDBActor {
             );
 
             // some unloaded items have been already added from chunks
-            this.world.chunkManager.itemWorld.writeToWorldTransaction();
+            this.world.chunkManager.itemWorld.writeToWorldTransaction(uc);
             this.pushPromises(
                 db.bulkInsertDropItems(uc.insertDropItemRows),
                 db.bulkUpdateDropItems(uc.updateDropItemRows),
             );
 
             // some unloaded mobs have been already added from chunks
-            this.world.mobs.writeToWorldTransaction();
+            this.world.mobs.writeToWorldTransaction(uc);
             this.pushPromises(
                 db.mobs.bulkInsert(uc.insertMobRows, dt),
                 db.mobs.bulkFullUpdate(uc.fullUpdateMobRows),
@@ -228,6 +242,34 @@ export class WorldDBActor {
                 await that.world.terminate("Error in world-saving transaction promise", err);
             }
         );
+    }
+
+    /**
+     * Randomly selects up to CLEAR_WORLD_MODIFY_PER_TRANSACTION chunks to delete old records
+     * from world_modify. The chunks are weighted by the total number of inserts in this session.
+     */
+    async deleteOldWorldModifyInRandomChunks(chunkDBActors) {
+        this.cumulativeClearWorldModifyPerTransaction = Math.min(
+            this.cumulativeClearWorldModifyPerTransaction + CLEAR_WORLD_MODIFY_PER_TRANSACTION,
+            Math.ceil(CLEAR_WORLD_MODIFY_PER_TRANSACTION)
+        );
+        const promises = [];
+        while(this.cumulativeClearWorldModifyPerTransaction >= 1) {
+            const ind = ArrayHelpers.randomWeightedIndex(chunkDBActors,
+                chunkDBActor => chunkDBActor.insertedWorldModifyCount
+            );
+            if (ind < 0) {
+                break;
+            }
+            const chunkDBActor = chunkDBActors[ind];
+            ArrayHelpers.fastDelete(chunkDBActors, ind);
+            chunkDBActor.insertedWorldModifyCount = 0; // reset the counter
+            promises.push(
+                this.db.chunks.deleteOldWorldModify(chunkDBActor.chunk.addr)
+            );
+            this.cumulativeClearWorldModifyPerTransaction--;
+        }
+        return Promise.all(promises);
     }
 
     addUnsavedChunk(chunk) {

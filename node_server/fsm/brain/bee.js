@@ -277,7 +277,7 @@ export class Brain extends FSMBrain {
             const actions = new WorldAction();
             actions.addPlaySound({ tag: 'madcraft:block.' + mob.type, action: 'hurt', pos: mob.pos.clone() });
             world.actions_queue.add(actor, actions);
-            mob.touch();
+            mob.markDirty();
         }
     }
     

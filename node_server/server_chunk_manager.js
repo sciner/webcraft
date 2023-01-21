@@ -433,7 +433,8 @@ export class ServerChunkManager {
                             this.add(chunk);
                         }
                         chunk.addPlayer(player);
-                        const hasModifiers = this.world.worldChunkFlags.has(addr, WorldChunkFlags.ANY_MODIFIERS_MASK);
+                        const hasModifiers = this.world.worldChunkFlags.has(addr, 
+                            WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID);
                         const flags =
                             (hasModifiers ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
                             (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);

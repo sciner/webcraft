@@ -27,10 +27,6 @@ export class WorldMobManager {
         this.inactiveByEntityIdBeingWritten = null;
     }
 
-    async init() {
-        this.maxId = await this.world.db.mobs.getMaxId();
-    }
-
     add(mob) {
         this.list.set(mob.id, mob);
     }
@@ -84,7 +80,7 @@ export class WorldMobManager {
         if(chunk) {
             try {
                 // fill some cration params
-                params.id = ++this.maxId;
+                params.id = this.world.db.mobs.getNextId();
                 params.entity_id = randomUUID();
                 if(!('pos' in params)) {
                     throw 'error_no_mob_pos';
@@ -159,13 +155,12 @@ export class WorldMobManager {
         }
     }
 
-    writeToWorldTransaction() {
-        const uc = this.world.dbActor.underConstruction;
+    writeToWorldTransaction(underConstruction) {
         for(const mob of this.list.values()) {
-            mob.writeToWorldTransaction(uc);
+            mob.writeToWorldTransaction(underConstruction);
         }
         for(const mob of this.inactiveByEntityId.values()) {
-            mob.writeToWorldTransaction(uc, true); // force saving because these mobs will be forgotten
+            mob.writeToWorldTransaction(underConstruction, true); // force saving because these mobs will be forgotten
         }
         // make the old map of new mobs immutable, but keep it util the transaction ends
         this.inactiveByEntityIdBeingWritten = this.inactiveByEntityId;

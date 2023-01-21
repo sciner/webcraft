@@ -18,7 +18,9 @@ export class DBWorldChunk {
                 data_blob AS compressed,
                 private_data_blob AS private_compressed,
                 world_modify_chunks._rowid_ rowId
-            FROM cte LEFT JOIN world_modify_chunks ON x = %0 AND y = %1 AND z = %2`
+            FROM cte LEFT JOIN world_modify_chunks ON x = %0 AND y = %1 AND z = %2`,
+            null,
+            row => row.rowId
         );
 
         this.bulkGetChunkQuery = new BulkSelectQuery(this.conn,
@@ -105,7 +107,7 @@ export class DBWorldChunk {
      * @param {Array of Object} rows {rowId: Int, item: Object}
      * @param {Number} dt
      */
-    async bulkUpdateWorldModify(rows, dt = unixTime()) {
+    async bulkUpdateWorldModify(rows, dt) {
         const jsonRows = rows.map(row => [
             row.rowId,
             ...this._itemWMFields(row.item)
@@ -122,7 +124,7 @@ export class DBWorldChunk {
         WHERE world_modify._rowid_ = %0
     `);
 
-    async bulkUpdateWorldModifyExtraData(rows, dt = unixTime()) {
+    async bulkUpdateWorldModifyExtraData(rows, dt) {
         const jsonRows = rows.map(row => [row.rowId, row.item.extra_data]);
         return this.conn.run(this.BULK_UPDATE_WM_EXTRA_DATA, {
             ':jsonRows': JSON.stringify(jsonRows),
@@ -135,6 +137,28 @@ export class DBWorldChunk {
         FROM json_each(:jsonRows)
         WHERE world_modify._rowid_ = %0
     `);
+
+    /** Deletes all recordes from world_modify from for the given chunk except the latest record for each block. */
+    async deleteOldWorldModify(chunk_addr) {
+        await this.conn.run(
+            `WITH cte AS (
+                SELECT max_id, cx, cy, cz, i FROM (
+                    SELECT MAX(id) max_id, COUNT(id) cnt, cx, cy, cz, i
+                    FROM ( 
+                        SELECT id, chunk_x cx, chunk_y cy, chunk_z cz, "index" i
+                        FROM world_modify
+                        WHERE chunk_x = ? AND chunk_y = ? AND chunk_z = ?
+                        ORDER BY id DESC
+                    ) GROUP BY "index"
+                ) WHERE cnt > 1
+            ) DELETE
+            FROM world_modify
+            WHERE id IN (
+                SELECT id
+                FROM cte INNER JOIN world_modify ON chunk_x = cx AND chunk_y = cy AND chunk_z = cz AND "index" = i
+                WHERE id != max_id
+            )`, chunk_addr.toArray());
+    }
 
     // =============================== world_modify_chunks ================================
 
@@ -152,60 +176,51 @@ export class DBWorldChunk {
         this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS | WorldChunkFlags.MODIFIED_BLOCKS);
     }
 
+    static toUpdateWorldModifyChunksRow(rowId, data_patch, ml) {
+        return [
+            rowId,
+            JSON.stringify(data_patch),
+            ml.compressed,
+            ml.private_compressed,
+            ml.compressed ? 1 : 0
+        ];
+    }
+
+    async bulkUpdateWorldModifyChunks(rows) {
+        return this.conn.run(this.BULK_UPDATE_WMC, {
+            ':jsonRows': JSON.stringify(rows)
+        });
+    }
+    BULK_UPDATE_WMC = preprocessSQL(`
+        UPDATE world_modify_chunks
+        SET data = json_patch(data, %1),
+            data_blob = %2,
+            private_data_blob = %3,
+            has_data_blob = %4
+        FROM json_each(:jsonRows)
+        WHERE world_modify_chunks._rowid_ = %0
+    `);
+
     /**
      * @param {Vector-like} addr
-     * @param {String} data_patch - stringified object with keys = flat indexes, and values = items
-     * @param {?Buffer} data_blob
-     * @param {?Buffer} private_data_blob
-     * @param {Number|false} rowId - it can be:
-     *  - false (we know that the record doesn't exist)
-     *  - Number - the known rowId
-     * @return {Number} rowId of the record
+     * @param {Object} data_patch - object with keys = flat indexes, and values = items
+     * @param {Object} ml - Chunk.modify_list (only compressed and private_compressed are used from it)
+     * @return {Number} rowId of the new record
      */
-    async updateOrInsertChunkModifiers(addr, data_patch, data_blob, private_data_blob, rowId) {
-
-        const that = this;
-        async function getRowId() {
-            return await that.conn.get('SELECT _rowid_ FROM world_modify_chunks WHERE x = ? AND y = ? AND z = ?',
-                addr.toArray());
-        }
-
-        const params = {
-            ':data_patch':          data_patch,
-            ':data_blob':           data_blob,
-            ':private_data_blob':   private_data_blob,
-            ':has_data_blob':       data_blob ? 1 : 0
-        };
-        if (typeof rowId !== 'number' && rowId !== false) {
-            throw new Error("typeof rowId !== 'number' && rowId !== false");
-        }
-        if (rowId) {
-            params[':rowId'] = rowId;
-            const result = await this.conn.run(`UPDATE world_modify_chunks SET
-                    data = json_patch(data, :data_patch),
-                    data_blob = :data_blob,
-                    private_data_blob = :private_data_blob,
-                    has_data_blob = :has_data_blob
-                WHERE _rowid_ = :rowId`, params);
-            if (result.changes) {
-                return rowId; // it updated successfully
-            }
-            // It's in a browser, or the fields didn't change (which is unlikely), or the record was deleted while the game was running.
-            rowId = await getRowId();
-            if (rowId) {
-                return rowId; // it updated properly, no need to anything else
-            }
-            // it doesn't exist - insert it
-            delete params[':rowId'];
-        }
-        // insert
-        params[':x'] = addr.x;
-        params[':y'] = addr.y;
-        params[':z'] = addr.z;
+    async insertChunkModifiers(addr, data_patch, ml) {
         const result = await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob, private_data_blob, has_data_blob)
-            VALUES (:x, :y, :z, :data_patch, :data_blob, :private_data_blob, :has_data_blob)`, params);
-        // return rowId both node.js and in a browser
-        return result.lastID ?? await getRowId();
+            VALUES (:x, :y, :z, :data_patch, :data_blob, :private_data_blob, :has_data_blob)`, {
+            ':x':                   addr.x,
+            ':y':                   addr.y,
+            ':z':                   addr.z,
+            ':data_patch':          JSON.stringify(data_patch),
+            ':data_blob':           ml.compressed,
+            ':private_data_blob':   ml.private_compressed,
+            ':has_data_blob':       ml.compressed ? 1 : 0
+        });
+        return result.lastID
+            // If it's in a browser, select rowId
+            ?? that.conn.get('SELECT _rowid_ FROM world_modify_chunks WHERE x = ? AND y = ? AND z = ?', addr.toArray());
     }
 
     // ========================= world_modfy <=> world_modify_chunks =======================
@@ -367,7 +382,7 @@ export class DBWorldChunk {
         return row || { exists: false, mobs_is_generated: 0, delayed_calls: null };
     }
 
-    async bulkInsertOrUpdateChunk(rows, dt = unixTime()) {
+    async bulkInsertOrUpdateChunk(rows, dt) {
         if (!rows.length) {
             return;
         }

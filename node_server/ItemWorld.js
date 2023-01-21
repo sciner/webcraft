@@ -32,7 +32,7 @@ export class ItemWorld {
         this.all_drop_items.delete(dropItem.entity_id);
         // delete drop item from the database
         if (deleteFromDB) {
-            dropItem.touch(DropItem.DIRTY_DELETE);
+            dropItem.markDirty(DropItem.DIRTY_DELETE);
             if (dropItem.dirty === DropItem.DIRTY_DELETE) { // if it's never been saved, it'll be DIRTY_CLEAR now
                 this.deletedEntityIds.push(dropItem.entity_id);
             }
@@ -144,7 +144,7 @@ export class ItemWorld {
                 // increment dropItemB count
                 dropItemB.items[indexB].count += dropItemA.items[0].count;
                 dropItemB.dt = Math.max(dropItemB.dt, dropItemA.dt); // renvew the item age, so it won't disappear soon
-                dropItemB.touch(DropItem.DIRTY_UPDATE);
+                dropItemB.markDirty(DropItem.DIRTY_UPDATE);
                 const packetsB = [{
                     name: ServerClient.CMD_DROP_ITEM_FULL_UPDATE,
                     data: dropItemB.getItemFullPacket()
@@ -178,14 +178,12 @@ export class ItemWorld {
         }
     }
 
-    writeToWorldTransaction() {
-        const dbActor = this.world.dbActor;
-        const uc = dbActor.underConstruction;
+    writeToWorldTransaction(underConstruction) {
         for(const item of this.all_drop_items.values()) {
-            item.writeToWorldTransaction(uc);
+            item.writeToWorldTransaction(underConstruction);
         }
-        dbActor.pushPromises(
-            this.world.db.bulkDeleteDropItems(this.deletedEntityIds, uc.dt)
+        this.world.dbActor.pushPromises(
+            this.world.db.bulkDeleteDropItems(this.deletedEntityIds, underConstruction.dt)
         );
         this.deletedEntityIds = [];
     }

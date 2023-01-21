@@ -21,12 +21,12 @@ export class DBWorldFluid {
 
     async restoreFluidChunks() {
         const rows = await this.conn.all('SELECT x, y, z FROM world_chunks_fluid');
-        this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.MODIFIED_FLUID);
+        this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.MODIFIED_FLUID | WorldChunkFlags.DB_MODIFIED_FLUID);
     }
 
     //
     async loadChunkFluid(chunk_addr) {
-        if (!this.world.worldChunkFlags.has(chunk_addr, WorldChunkFlags.MODIFIED_FLUID)) {
+        if (!this.world.worldChunkFlags.has(chunk_addr, WorldChunkFlags.DB_MODIFIED_FLUID)) {
             return null;
         }
 
@@ -45,7 +45,7 @@ export class DBWorldFluid {
      * why we also have a non-bulk version.
      */
     async queuedGetChunkFluid(chunk_addr) {
-        if (!this.world.worldChunkFlags.has(chunk_addr, WorldChunkFlags.MODIFIED_FLUID)) {
+        if (!this.world.worldChunkFlags.has(chunk_addr, WorldChunkFlags.DB_MODIFIED_FLUID)) {
             return null;
         }
         const row = await this.bulkGetQuery.get(chunk_addr.toArray());
@@ -55,7 +55,7 @@ export class DBWorldFluid {
 
     //
     async saveChunkFluid(chunk_addr, data) {
-        this.world.worldChunkFlags.add(chunk_addr, WorldChunkFlags.MODIFIED_FLUID);
+        this.world.worldChunkFlags.add(chunk_addr, WorldChunkFlags.DB_MODIFIED_FLUID);
         await this.conn.run('INSERT INTO world_chunks_fluid(x, y, z, data) VALUES (:x, :y, :z, :data)', {
             ':x': chunk_addr.x,
             ':y': chunk_addr.y,

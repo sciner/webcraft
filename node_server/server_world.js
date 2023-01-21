@@ -131,7 +131,6 @@ export class ServerWorld {
         await this.models.init();
         await this.quests.init();
         await this.admins.load();
-        await this.mobs.init();
         t = performance.now();
         await this.worldChunkFlags.restore();
         await this.db.mobs.initChunksWithMobs();
@@ -478,7 +477,7 @@ export class ServerWorld {
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
         // 7. Drop item if stored
         if (player.inventory.moveOrDropFromDragSlot()) {
-            player.inventory.touch();
+            player.inventory.markDirty();
         }
         // 8. Send CMD_CONNECTED
         player.sendPackets([{

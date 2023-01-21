@@ -145,7 +145,7 @@ export class Mob {
     }
 
     // Marks that the mob needs to save a normal update in the next word transaction (i.e. not skip that transaction).
-    touch() {
+    markDirty() {
         this.dirtyFlags |= Mob.DIRTY_FLAG_UPDATE;
     }
 

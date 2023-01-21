@@ -24,7 +24,7 @@ export class QuestActionSetBlock extends QuestActionBase {
             this.value = (this.value | 0) + item.count;
             this.update();
             console.log(`Action changed: ${quest.title} ${this.value}/${this.cnt} ... ${this.ok}`);
-            await this.checkAndTouch();
+            await this.checkAndMarkDirty();
         }
     }
 

@@ -1299,12 +1299,11 @@ export class ServerChunk {
         this.chunkManager.chunkDisposed(this);
     }
 
-    writeToWorldTransaction() {
-        this.dbActor.writeToWorldTransaction();
+    writeToWorldTransaction(underConstruction) {
+        this.dbActor.writeToWorldTransaction(underConstruction);
 
-        const uc = this.world.dbActor.underConstruction;
         for(const stuff of this.unloadedStuff) {
-            stuff.writeToWorldTransaction(uc, true);
+            stuff.writeToWorldTransaction(underConstruction, true);
         }
     }
 }

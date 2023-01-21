@@ -7,7 +7,7 @@ import { ServerPlayer } from "./server_player.js";
 export class ServerPlayerInventory extends Inventory {
 
     // Marks that the inventory needs to be saved in the next transaction
-    touch() {
+    markDirty() {
         this.player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_INVENTORY;
     }
 
@@ -25,7 +25,7 @@ export class ServerPlayerInventory extends Inventory {
         this.current.index2 = isNaN(this.current.index2) ? -1 : this.current.index2;
         this.player.updateHands();
         // Marks that it needs to be saved in DB
-        this.touch();
+        this.markDirty();
         // Send for all except player
         this.player.sendNearPlayers();
         // Send to player
