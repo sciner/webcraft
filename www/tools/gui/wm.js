@@ -122,6 +122,7 @@ export class Window extends PIXI.Container {
         this.max_chars_per_line = 0
         this.auto_center        = true
         this.create_time        = performance.now()
+
         this.style              = new Style(this)
 
         if(text) {
@@ -619,6 +620,7 @@ export class Window extends PIXI.Container {
                     e2.x = window.ax + x
                     e2.y = window.ay + y // - window.scrollY
                     resp.window = window
+                    e2.target = window
                     resp.event = e2
                     break
                 }
@@ -1171,10 +1173,6 @@ export class Pointer extends Window {
         this.style.background.sprite.anchor.set(.5, .5)
     }
 
-    setImage(image) {
-        this.setBackground(image, 'none')
-    }
-
 }
 
 // Overlay
@@ -1249,7 +1247,8 @@ export class WindowManager extends Window {
                 this.item = item
                 that._wmoverlay._wmpointer.visible = !!item
                 if(item) {
-                    that._wmoverlay._wmpointer.setImage(getBlockImage(item.item, 40))
+                    const tintMode = item.item.extra_data?.enchantments ? 1 : 0
+                    that._wmoverlay._wmpointer.setBackground(getBlockImage(item.item, 40), undefined, 1, tintMode)
                 }
             },
             getItem: function() {

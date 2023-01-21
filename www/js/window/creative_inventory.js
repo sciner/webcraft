@@ -146,7 +146,7 @@ class CreativeInventoryCollection extends Window {
 
         const onMouseDownFunc = function(e) {
             const that = this
-            const targetItem = this.getInventoryItem()
+            let targetItem = this.getInventoryItem()
             // Set new drag
             if(!targetItem) {
                 return
@@ -280,6 +280,13 @@ export class CreativeInventoryWindow extends BlankWindow {
     onShow() {
         this.getRoot().center(this);
         Qubatch.releaseMousePointer()
+        if(this.inventory_slots) {
+            for(let slot of this.inventory_slots) {
+                if(slot) {
+                    slot.setItem(slot.getItem())
+                }
+            }
+        }
         super.onShow()
     }
 

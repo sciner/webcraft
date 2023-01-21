@@ -106,59 +106,29 @@ export class BackgroundStyle {
      */
     set image(urlOrImage) {
 
-        if (!urlOrImage) {
-            return;
-        }
+        const background = this.#_bgimage
         const window = this.#window
         const scale = this.scale
 
-        const background = this.#_bgimage
+        window._bgimage.visible = !!urlOrImage
+
+        if (!urlOrImage) {
+            return;
+        }
+
         if (urlOrImage.baseTexture) {
             background.texture = urlOrImage;
         } else {
             background.texture = PIXI.Texture.from(urlOrImage)
         }
+
         if (isNaN(scale)) {
             background.width = window.w
             background.height = window.h
         } else {
             background.scale.set(scale);
         }
-        // Set image
-        /*const setImage = (image) => {
-            const background = this.#_bgimage;
-            this.#_bgimage.texture.destroy()
-            this.#_bgimage.texture = new PIXI.Texture(new PIXI.BaseTexture(image))
 
-            // scale
-            if(isNaN(scale)) {
-                background.scale.set(window.w / image.width, window.h / image.height)
-            } else {
-                background.scale.set(scale, scale)
-            }
-
-            this.image_size_mode = this.image_size_mode
-
-        }
-
-        new Promise((resolve, reject) => {
-
-            if (typeof urlOrImage == 'string') {
-
-                const image = new Image()
-                image.onload = (e) => {
-                    resolve(setImage(image))
-                }
-                image.onError = reject
-                image.src = urlOrImage
-
-            } else if(urlOrImage instanceof Image) {
-
-                resolve(setImage(urlOrImage))
-
-            }
-
-        })*/
     }
 
     /**
@@ -308,7 +278,7 @@ export class FontStyle {
         }
         this._font_style = new PIXI.TextStyle({
             fontFamily: 'Tahoma',
-            fontSize: 20 * window.zoom,
+            fontSize: 16 * window.zoom,
             fontWeight: 'normal'
         })
         this._color = '#000000'

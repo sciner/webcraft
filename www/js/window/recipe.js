@@ -18,38 +18,39 @@ export class RecipeSlot extends Window {
         this.ct = ct
 
         const image = getBlockImage(block)
-        this.setBackground(image, 'center', 1)
+        this.setBackground(image, 'center', 1.25)
         this.swapChildren(this.children[0], this.children[1])
 
         //
         this.style.border.color = '#ffffffff';
         this.style.background.color = '#ffffff55';
 
-        // Custom drawing
-        this.onMouseEnter = function(e) {
-            this.style.background.color = this.can_make ? '#ffffffcc' : COLOR_RED + '77'
-        }
+    }
 
-        this.onMouseLeave = function(e) {
-            this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55'
-        }
+    // Custom drawing
+    onMouseEnter(e) {
+        this.style.background.color = this.can_make ? '#ffffffcc' : COLOR_RED + '77'
+    }
 
-        this.onMouseDown = function(e) {
-            this.ct.craft_window.setHelperSlots(null);
-            if(!this.can_make) {
-                ct.craft_window.clearCraft()
-                ct.craft_window.setHelperSlots(e.target.recipe)
-                return
+    onMouseLeave(e) {
+        this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55'
+    }
+
+    onMouseDown(e) {
+        const ct = this.ct
+        ct.craft_window.setHelperSlots(null)
+        if(!this.can_make) {
+            ct.craft_window.clearCraft()
+            ct.craft_window.setHelperSlots(e.target.recipe)
+            return
+        }
+        for(const recipe of [this.recipe, ...this.recipe.subrecipes]) {
+            if(this.canMake(recipe)) {
+                ct.craft_window.autoRecipe(recipe, e.shiftKey)
+                ct.paginator.update()
+                break
             }
-            for(const recipe of [this.recipe, ...this.recipe.subrecipes]) {
-                if(this.canMake(recipe)) {
-                    ct.craft_window.autoRecipe(recipe, e.shiftKey)
-                    ct.paginator.update()
-                    break
-                }
-            }
         }
-
     }
 
     canMake(recipe) {
@@ -322,6 +323,8 @@ export class RecipeWindow extends BlankWindow {
             const block = BLOCK.fromId(id)
             const lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + id, null, null, recipe, block, this);
             lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${id})`
+            lblRecipe.style.border.hidden = false
+            lblRecipe.style.border.style = 'inset'
             this.recipes.push(lblRecipe)
             this.add(lblRecipe)
             lblRecipe.update()

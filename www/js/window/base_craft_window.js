@@ -11,81 +11,93 @@ import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
 import { getBlockImage } from "./tools/blocks.js";
 
-const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
-const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
+const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
+const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
+const ARMOR_SLOT_BACKGROUND_ACTIVE = '#828282ff'
 const DOUBLE_CLICK_TIME = 200.0;
 
 export class HelpSlot extends Label {
 
     constructor(x, y, sz, id, ct) {
-        super(x, y, sz, sz, id, null, null);
-        this.ct = ct;
-        this.item = null;
+        super(x, y, sz, sz, id, null, null)
+        this.ct = ct
+        this.item = null
+        this.catchEvents = false
     }
 
     setItem(id) {
-        this.item = id;
+
+        this.item = id
+
+        this.style.background.color = id ? '#ff000055' : '#ff000000'
+
+        if(id) {
+            this.block = BLOCK.fromId(id)
+            const image = getBlockImage(this.block, 100 * this.zoom)
+            const tintMode = 0 // item.extra_data?.enchantments ? 1 : 0
+            this.setBackground(image, 'center', 1, tintMode)
+        } else {
+            this.block = null
+            this.setBackground(null, 'center')
+        }
+
     }
 
     //
     get tooltip() {
-        let resp = null;
-        if(this.item) {
-            const block = BLOCK.fromId(this.item);
-            if(block) {
-                resp = block.name.replaceAll('_', ' ') + ` (#${this.item})`;
-            }
+        if(this.block) {
+            return this.block.name.replaceAll('_', ' ') + ` (#${this.item})`
         }
-        return resp;
+        return null
     }
 
-    // Draw slot
-    draw(ctx, ax, ay) {
-        if (this.ct.lblResultSlot.item) {
-            return;
-        }
-        for(const slot of this.ct.craft.slots) {
-            if (slot.item) {
-                return;
-            }
-        }
-        this.applyStyle(ctx, ax, ay);
-        this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
-        this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.w, this.h);
-        super.draw(ctx, ax, ay);
-    }
+    // // Draw slot
+    // draw(ctx, ax, ay) {
+    //     if (this.ct.lblResultSlot.item) {
+    //         return;
+    //     }
+    //     for(const slot of this.ct.craft.slots) {
+    //         if (slot.item) {
+    //             return;
+    //         }
+    //     }
+    //     this.applyStyle(ctx, ax, ay);
+    //     this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
+    //     this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.w, this.h);
+    //     super.draw(ctx, ax, ay);
+    // }
 
-    // Draw item
-    drawItem(ctx, item, x, y, width, height) {
+    // // Draw item
+    // drawItem(ctx, item, x, y, width, height) {
 
-        const image = Qubatch.player.inventory.inventory_image;
+    //     const image = Qubatch.player.inventory.inventory_image;
 
-        if(!image || !item) {
-            return;
-        }
+    //     if(!image || !item) {
+    //         return;
+    //     }
 
-        const size = image.width;
-        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
-        const zoom = this.zoom;
-        const mat = BLOCK.fromId(item);
+    //     const size = image.width;
+    //     const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
+    //     const zoom = this.zoom;
+    //     const mat = BLOCK.fromId(item);
 
-        ctx.imageSmoothingEnabled = true;
+    //     ctx.imageSmoothingEnabled = true;
 
-        // 1. Draw icon
-        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
-        const dest_icon_size = 40 * zoom;
-        ctx.drawImage(
-            image,
-            icon.x,
-            icon.y,
-            icon.width,
-            icon.height,
-            x + width / 2 - dest_icon_size / 2,
-            y + height / 2 - dest_icon_size / 2,
-            dest_icon_size,
-            dest_icon_size
-        );
-    }
+    //     // 1. Draw icon
+    //     const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
+    //     const dest_icon_size = 40 * zoom;
+    //     ctx.drawImage(
+    //         image,
+    //         icon.x,
+    //         icon.y,
+    //         icon.width,
+    //         icon.height,
+    //         x + width / 2 - dest_icon_size / 2,
+    //         y + height / 2 - dest_icon_size / 2,
+    //         dest_icon_size,
+    //         dest_icon_size
+    //     );
+    // }
 
 }
 
@@ -125,10 +137,13 @@ export class CraftTableSlot extends Window {
 
     /**
      * @param {?object} item
-     * @param {boolean} update_inventory
      * @returns
      */
-    async setItem(item, update_inventory = true) {
+    async setItem(item) {
+
+        if(this._bgimage) {
+            this._bgimage.visible = !!item
+        }
 
         if(!item && !this.getItem()) {
             return
@@ -138,10 +153,6 @@ export class CraftTableSlot extends Window {
             const image = getBlockImage(item, 100 * this.zoom)
             const tintMode = item.extra_data?.enchantments ? 1 : 0
             this.setBackground(image, 'center', 1, tintMode)
-        }
-
-        if(this._bgimage) {
-            this._bgimage.visible = !!item
         }
 
         if(this.isInventorySlot()) {
@@ -434,6 +445,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
             // Drop
             this.onDrop = function(e) {
+
                 if (this.options.disableIfLoading && this.ct.loading) {
                     return
                 }
@@ -741,22 +753,9 @@ export class ArmorSlot extends CraftTableInventorySlot {
 
     constructor(x, y, s, id, ct) {
 
-        super(x, y, s, s, 'lblSlot' + id, null, null, ct, id);
-        // Custom drawing
-        this.onMouseEnter = function(e) {
-            const dragItem = Qubatch.hud.wm.drag.getItem();
-            if (!dragItem || this.isValidDragItem(dragItem)) {
-                this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED;
-            }
-        }
+        super(x, y, s, s, 'lblSlot' + id, null, null, ct, id)
 
-        const origOnMouseDown = this.onMouseDown.bind(this);
-
-        // Make the slot instantly highlighted when we take the item from it
-        this.onMouseDown = function(e) {
-            origOnMouseDown(e);
-            this.onMouseEnter(e);
-        }
+        this.swapChildren(this.children[0], this.children[1])
 
         /*
         // Drag
@@ -799,30 +798,61 @@ export class ArmorSlot extends CraftTableInventorySlot {
         }
     }
 
-    isValidDragItem(dragItem) {
-        if(!dragItem) {
-            return false;
-        }
-        const mat = BLOCK.fromId(dragItem.item.id);
-        return mat?.item?.name == 'armor' && (mat.armor.slot == this.slot_index);
+    // Make the slot instantly highlighted when we take the item from it
+    onMouseDown(e) {
+        super.onMouseDown(e)
+        this.onMouseEnter(e)
     }
 
-    draw(ctx, ax, ay) {
-        this.applyStyle(ctx, ax, ay);
-        const item = this.getInventoryItem();
-        if(item) {
-            // fill background color
-            let x = ax + this.x;
-            let y = ay + this.y;
-            let w = this.w;
-            let h = this.height;
-            ctx.fillStyle = this.style.background.color == ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
-                ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#8f8d88ff';
-            ctx.fillRect(x, y, w, h);
+    // Custom drawing
+    onMouseEnter(e) {
+        const dragItem = Qubatch.hud.wm.drag.getItem()
+        if (!dragItem || this.isValidDragItem(dragItem)) {
+            if(!this.getItem()) {
+                this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
+            } else {
+                this.style.background.color = ARMOR_SLOT_BACKGROUND_ACTIVE
+            }
         }
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
-        super.draw(ctx, ax, ay)
     }
+
+    onMouseLeave(e) {
+        if(!this.getItem()) {
+            super.onMouseLeave(e)
+        } else {
+            this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE
+        }
+    }
+
+    setItem(item) {
+        this.style.background.color = item ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#00000000'
+        super.setItem(item)
+    }
+
+    isValidDragItem(dragItem) {
+        if(!dragItem) {
+            return false
+        }
+        const mat = BLOCK.fromId(dragItem.item.id)
+        return mat?.item?.name == 'armor' && (mat.armor.slot == this.slot_index)
+    }
+
+    // draw(ctx, ax, ay) {
+    //     this.applyStyle(ctx, ax, ay);
+    //     const item = this.getInventoryItem();
+    //     if(item) {
+    //         // fill background color
+    //         let x = ax + this.x;
+    //         let y = ay + this.y;
+    //         let w = this.w;
+    //         let h = this.height;
+    //         ctx.fillStyle = this.style.background.color == ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
+    //             ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#8f8d88ff';
+    //         ctx.fillRect(x, y, w, h);
+    //     }
+    //     this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
+    //     super.draw(ctx, ax, ay)
+    // }
 
     getInventory() {
         return this.ct.inventory;
@@ -850,6 +880,17 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             this.style.background.color = '#00000000';
         }
         ct.add(lblResultSlot);
+    }
+
+    onShow() {
+        if(this.inventory_slots) {
+            for(let slot of this.inventory_slots) {
+                if(slot) {
+                    slot.setItem(slot.getItem())
+                }
+            }
+        }
+        super.onShow()
     }
 
     /**

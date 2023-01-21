@@ -205,26 +205,26 @@ export class InventoryWindow extends BaseCraftWindow {
     * @param int sz Ширина / высота слота
     */
     createCraft(sz) {
-        const ct = this;
-        if(ct.craft) {
-            console.error('createCraftSlots() already created');
-            return;
+        if(this.craft) {
+            console.error('error_inventory_craft_slots_already_created')
+            return
         }
-        const sx          = 194 * this.zoom;
-        const sy          = 34 * this.zoom;
+        const sx          = 194 * this.zoom
+        const sy          = 34 * this.zoom
         const xcnt        = 2;
         this.craft = {
             slots: [null, null, null, null]
         };
-        for(let i = 0; i < ct.craft.slots.length; i++) {
-            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * INVENTORY_SLOT_SIZE * this.zoom, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
+        for(let i = 0; i < this.craft.slots.length; i++) {
+            const lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * INVENTORY_SLOT_SIZE * this.zoom, sz, sz, 'lblCraftRecipeSlot' + i, null, null, this, null)
             lblSlot.onMouseEnter = function() {
-                this.style.background.color = '#ffffff33';
+                this.style.background.color = '#ffffff33'
             }
             lblSlot.onMouseLeave = function() {
-                this.style.background.color = '#00000000';
+                this.style.background.color = '#00000000'
             }
-            ct.add(this.craft.slots[i] = lblSlot);
+            this.craft.slots[i] = lblSlot
+            this.add(lblSlot)
         }
     }
 
