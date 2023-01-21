@@ -31,8 +31,6 @@ import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
-import { EffectPass } from "./effects/EffectPass.js";
-
 const {mat3, mat4} = glMatrix;
 
 /**
@@ -61,11 +59,6 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
  */
 const DISABLE_CLOUD_PRERENDER   = true;
 
-/**
- * Underwater effect pass, blur + distorsion when UNDER water
- */
-const USE_EFFECT_PASS           = true;
-
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
 
@@ -87,8 +80,6 @@ export class Renderer {
         this.camera_mode        = CAMERA_MODE.SHOOTER;
 
         this.waterCloudPrePass  = null;
-
-        this.effectPass         = new EffectPass();
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -227,8 +218,6 @@ export class Renderer {
         });
 
         this.renderBackend.globalUniforms.waterCloudsRT = this.waterCloudPrePass;
-
-        this.effectPass.init(this.renderBackend);
 
         settings.fov = settings.fov || DEFAULT_FOV_NORMAL;
         this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
@@ -983,14 +972,6 @@ export class Renderer {
 
         this.debugGeom.draw(renderBackend);
 
-        // close pass without resolve
-        renderBackend.endPass(false);
-
-        // runs compose effect before draw hands
-        if (this.player.eyes_in_block?.is_water && USE_EFFECT_PASS) {    
-            this.effectPass.compose(this.renderBackend, false);
-        }
-
         // @todo и тут тоже не должно быть
         this.defaultShader.bind();
 
@@ -1332,8 +1313,6 @@ export class Renderer {
             });
 
             this.renderBackend.globalUniforms.waterCloudsRT = this.waterCloudPrePass;
-
-            this.effectPass.init(this.renderBackend);
 
             this.viewportWidth = actual_width | 0;
             this.viewportHeight = actual_height | 0;
