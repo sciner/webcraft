@@ -122,11 +122,21 @@ export default class style {
         //
         style.postBehavior(x, y, z, model, block, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks)
 
+        // Select texture
+        if(bb.select_texture) {
+            for(let st of bb.select_texture) {
+                if(style.checkWhen(model, block, st.when)) {
+                    model.selectTextureFromPalette(st.texture)
+                    break
+                }
+            }
+        }
+
         // const animation_name = 'walk';
         // model.playAnimation(animation_name, performance.now() / 1000)
 
+        // Add particles for block
         const particles = []
-
         model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix, (type, pos, args) => {
             if(typeof worker == 'undefined') {
                 return
@@ -134,7 +144,7 @@ export default class style {
             const p = new Vector(pos).addScalarSelf(.5, 0, .5)
             particles.push({pos: p.addSelf(block.posworld), type, args})
         })
-
+        style.addParticles(model, block, matrix, particles)
         if(particles.length > 0) {
             worker.postMessage(['add_animated_block', {
                 block_pos:  block.posworld,
@@ -144,9 +154,6 @@ export default class style {
 
         // Draw debug stand
         // style.drawDebugStand(vertices, pos, lm, null);
-
-        // Add particles for block
-        // style.addParticles(model, block, matrix)
 
         if(emmited_blocks.length > 0) {
             return emmited_blocks
@@ -254,6 +261,18 @@ export default class style {
         const behavior = bb.behavior || bb.model.name
         const rotate = tblock.rotate
 
+        // 1.
+        if(bb.set_state && !(tblock instanceof FakeTBlock)) {
+            for(let state of bb.set_state) {
+                if(style.checkWhen(model, tblock, state.when)) {
+                    model.state = state.name
+                    model.hideAllExcept(model.state)
+                    break
+                }
+            }
+        }
+
+        // 2.
         switch(behavior) {
             case 'lantern': {
                 const on_ceil = rotate?.y == -1;
@@ -373,13 +392,6 @@ export default class style {
 
                 break
             }
-            case 'furnace': {
-                // TODO: вынести данную логику в описание модели на основе "when"
-                if(tblock.extra_data?.active) {
-                    model.selectTextureFromPalette('furnace_lit.png')
-                }
-                break
-            }
         }
 
         return emmited_blocks
@@ -409,35 +421,30 @@ export default class style {
      * @param {BBModel_Model} model 
      * @param {TBlock} tblock
      * @param {*} matrix
-    static addParticles(model, tblock, matrix) {
+     */
+    static addParticles(model, tblock, matrix, particles) {
         if(typeof worker == 'undefined') {
             return
         }
         const mat = tblock.material
-        const particles = mat.bb?.particles
-        if(!particles) {
+        const block_particles = mat.bb?.particles
+        if(!block_particles) {
             return
         }
         //
-        for(let particle of particles) {
+        for(let particle of block_particles) {
             if(style.checkWhen(model, tblock, particle.when)) {
-                const poses = []
-                for(let pos of particle.pos) {
-                    const p = new Vector(pos).addScalarSelf(-.5, 0, -.5)
+                const args = null
+                for(let item of particle.list) {
+                    const p = new Vector(item).addScalarSelf(-.5, 0, -.5)
                     const arr = p.toArray()
                     vec3.transformMat4(arr, arr, matrix)
                     p.set(arr[0], arr[1], arr[2]).addScalarSelf(.5, 0, .5)
-                    poses.push(p.addSelf(tblock.posworld))
+                    particles.push({pos: p.addSelf(tblock.posworld), type: item.type, args})
                 }
-                worker.postMessage(['add_animated_block', {
-                    block_pos:  tblock.posworld,
-                    pos:        poses,
-                    type:       particle.type
-                }]);
             }
         }
     }
-    */
 
     /**
      * @param {BBModel_Model} model
@@ -456,6 +463,16 @@ export default class style {
                 case 'state': {
                     if(model.state != condition_value) {
                         return false
+                    }
+                    break
+                }
+                default: {
+                    if(k.startsWith('extra_data.')) {
+                        const key = k.substring(11)
+                        const value = tblock.extra_data ? (tblock.extra_data[key] ?? null) : null
+                        if(condition_value != value) {
+                            return false
+                        }
                     }
                 }
             }
