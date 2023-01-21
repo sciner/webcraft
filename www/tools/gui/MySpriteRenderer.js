@@ -1,6 +1,6 @@
 import {PIXI} from './pixi.js';
 
-PIXI.settings.PRECISION_VERTEX = PIXI.PRECISION.HIGH;
+window.PIXI = PIXI;
 //PIXI.BatchRenderer.defaultMaxTextures = Math.min(PIXI.BatchRenderer.defaultMaxTextures, 16);
 
 const vertex = `#version 300 es
@@ -78,6 +78,8 @@ void main() {
 `;
 
 export class MyBatchGeometry extends PIXI.Geometry {
+    static vertexSize = 10;
+
     constructor(_static = false) {
         super();
 
@@ -91,6 +93,8 @@ export class MyBatchGeometry extends PIXI.Geometry {
             .addAttribute('aTint', this._buffer, 4, true, PIXI.TYPES.UNSIGNED_BYTE)
             .addAttribute('aMultiField', this._buffer, 1, true, PIXI.TYPES.FLOAT)
             .addIndex(this._indexBuffer);
+
+        this.vertexSize = 10;
     }
 }
 
@@ -98,12 +102,13 @@ export class MyBatchShaderGenerator extends PIXI.BatchShaderGenerator {
     constructor(vertexSrc, fragTemplate) {
         super(vertexSrc, fragTemplate);
     }
-    generateShader(maxTextures)
-    {
+
+    generateShader(maxTextures) {
         let shader = super.generateShader(maxTextures);
         shader.uniforms.u_time = 0;
         return shader;
     }
+
     generateSampleSrc(maxTextures) {
         let src = '\n\n';
         for (let i = 0; i < maxTextures; i++) {
@@ -134,8 +139,8 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
 
     constructor(renderer) {
         super(renderer)
-        this.vertexSize = 10;
         this.geometryClass = MyBatchGeometry;
+        this.vertexSize = MyBatchGeometry.vertexSize;
     }
 
     setShaderGenerator() {
@@ -143,8 +148,7 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
     }
 
     packInterleavedGeometry(element, attributeBuffer, indexBuffer,
-                            aIndex, iIndex)
-    {
+                            aIndex, iIndex) {
         const {
             uint32View,
             float32View,
@@ -161,12 +165,11 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
         const alpha = Math.min(element.worldAlpha, 1.0);
         const argb = (alpha < 1.0
             && element._texture.baseTexture.alphaMode)
-            ? premultiplyTint(element._tintRGB, alpha)
+            ? PIXI.utils.premultiplyTint(element._tintRGB, alpha)
             : element._tintRGB + (alpha * 255 << 24);
 
         // lets not worry about tint! for now..
-        for (let i = 0; i < vertexData.length; i += 2)
-        {
+        for (let i = 0; i < vertexData.length; i += 2) {
             float32View[aIndex++] = vertexData[i];
             float32View[aIndex++] = vertexData[i + 1];
             float32View[aIndex++] = uvs[i];
@@ -181,14 +184,14 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
             float32View[aIndex++] = multiField;
         }
 
-        for (let i = 0; i < indicies.length; i++)
-        {
+        for (let i = 0; i < indicies.length; i++) {
             indexBuffer[iIndex++] = packedVertices + indicies[i];
         }
     }
 
     start() {
         this._shader.uniforms.u_time = performance.now();
+        this._shader.uniforms.translationMatrix.identity();
         super.start();
     }
 }
@@ -207,6 +210,174 @@ export class MySprite extends PIXI.Sprite {
         if (textureUp) {
             this.uvs = PIXI.Texture.WHITE._uvs.uvsFloat32;
         }
+    }
+}
+
+export class MyTilemap extends PIXI.Container {
+    constructor() {
+        super();
+
+        this.points = [];
+        this.instances = 0;
+
+        this.textureArray = new PIXI.BatchTextureArray();
+
+        this.initGeom();
+        this.data = new Float32Array(0);
+        this.dataUint32 = new Uint32Array(0);
+        this.capacity = 16;
+        this.dataInstances = 0;
+
+        this.sprite = new PIXI.Sprite();
+        this.shader = null;
+    }
+
+    initGeom() {
+        this.geom = new MyBatchGeometry();
+        this.instanceSize = 22;
+        this.vertexSize = 10;
+    }
+
+    ensureSize(newSize) {
+        if (this.capacity >= newSize) {
+            return;
+        }
+        while (this.capacity < newSize) {
+            this.capacity *= 2;
+        }
+        let oldData = this.data;
+        this.data = new Float32Array(this.capacity * 4 * this.vertexSize);
+        this.dataUint32 = new Uint32Array(this.data.buffer);
+        if (this.dataInstances > 0) {
+            this.data.set(oldData.slice(0, this.dataInstances));
+        }
+        this.indexData = PIXI.utils.createIndicesForQuads(this.capacity * 6);
+        this.geom._indexBuffer.update(this.indexData);
+    }
+
+    updateBuf() {
+        const {dataInstances, instances, instanceSize, vertexSize} = this;
+        if (dataInstances >= instances) {
+            return;
+        }
+        this.ensureSize(instances);
+        const {data, dataUint32, points} = this;
+
+        let dataOffset = dataInstances * vertexSize * 4;
+        let offset = dataInstances * instanceSize;
+        for (let i = dataInstances; i < instances; i++) {
+            let offsetVer = offset + 6;
+            for (let j = 0; j < 4; j++) {
+                data[dataOffset++] = points[offsetVer + 0];
+                data[dataOffset++] = points[offsetVer + 1];
+                data[dataOffset++] = points[offsetVer + 2];
+                data[dataOffset++] = points[offsetVer + 3];
+                data[dataOffset++] = points[offset + 0];
+                data[dataOffset++] = points[offset + 1];
+                data[dataOffset++] = points[offset + 2];
+                data[dataOffset++] = points[offset + 3];
+                dataUint32[dataOffset++] = points[offset + 4];
+                data[dataOffset++] = points[offset + 5];
+                offsetVer += 4;
+            }
+            offset += instanceSize;
+        }
+        //TODO: partial upload
+        this.geom._buffer.update(data);
+    }
+
+    clear() {
+        this.instances = 0;
+        this.dataInstances = 0;
+    }
+
+    drawImage(sprite) {
+        const tempParent = !sprite.parent;
+        if (tempParent) {
+            sprite.enableTempParent();
+        }
+        sprite.updateTransform();
+        sprite.calculateVertices();
+        if (tempParent) {
+            sprite.disableTempParent(null);
+        }
+
+        const {points, textureArray} = this;
+
+        const {vertexData, uvs, alpha, _tintRGB} = sprite;
+        const frame = sprite._texture._frame;
+        const baseTex = sprite._texture.baseTexture;
+
+        const argb = (alpha < 1.0
+            && baseTex.alphaMode)
+            ? PIXI.utils.premultiplyTint(_tintRGB, alpha)
+            : _tintRGB + (alpha * 255 << 24);
+
+        //TODO: move textures to separate pass
+        let textureId = -1;
+        for (let i = 0; i < textureArray.count; i++) {
+            if (textureArray.elements[i] === baseTex) {
+                textureId = i;
+                break;
+            }
+        }
+        if (textureId < 0) {
+            textureId = textureArray.count;
+            if (textureId >= PIXI.BatchRenderer.defaultMaxTextures) {
+                return;
+            }
+            textureArray.elements[textureArray.count++] = baseTex;
+        }
+
+        textureId = textureId + (sprite.tintMode || 0) * 32;
+
+        let offset = (this.instances++) * this.instanceSize;
+        points[offset++] = frame.x;
+        points[offset++] = frame.y;
+        points[offset++] = frame.width;
+        points[offset++] = frame.height;
+        points[offset++] = argb;
+        points[offset++] = textureId;
+        points[offset++] = vertexData[0];
+        points[offset++] = vertexData[1];
+        points[offset++] = uvs[0];
+        points[offset++] = uvs[1];
+        points[offset++] = vertexData[2];
+        points[offset++] = vertexData[3];
+        points[offset++] = uvs[2];
+        points[offset++] = uvs[3];
+        points[offset++] = vertexData[4];
+        points[offset++] = vertexData[5];
+        points[offset++] = uvs[4];
+        points[offset++] = uvs[5];
+        points[offset++] = vertexData[6];
+        points[offset++] = vertexData[7];
+        points[offset++] = uvs[6];
+        points[offset++] = uvs[7];
+    }
+
+    _render(renderer) {
+        if (this.instances === 0) {
+            return;
+        }
+        this.updateBuf();
+        const shader = this.shader = this.shader || renderer.plugins['mySprite']._shader;
+        shader.uniforms.translationMatrix.copyFrom(this.transform.worldTransform);
+        shader.uniforms.u_time = performance.now();
+
+        renderer.batch.flush();
+        const {textureArray} = this;
+        for (let i = 0; i < textureArray.count; i++) {
+            renderer.texture.bind(textureArray.elements[i], i);
+        }
+        renderer.shader.bind(shader);
+        renderer.geometry.bind(this.geom);
+        renderer.geometry.draw(PIXI.DRAW_MODES.TRIANGLES, this.instances * 6, 0);
+    }
+
+    destroy(options) {
+        this.geom.destroy();
+        super.destroy(options);
     }
 }
 
