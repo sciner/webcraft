@@ -1,9 +1,8 @@
 import { BLOCK } from "../blocks.js";
 import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
-import { Resources } from "../resources.js";
-import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
+import { getBlockImage } from "./tools/blocks.js";
 
 const COLOR_RED = '#A15151';
 
@@ -18,30 +17,34 @@ export class RecipeSlot extends Window {
         this.block = block
         this.ct = ct
 
+        const image = getBlockImage(block)
+        this.setBackground(image)
+        this.swapChildren(this.children[0], this.children[1])
+
         //
         this.style.border.color = '#ffffffff';
         this.style.background.color = '#ffffff55';
 
         // Custom drawing
         this.onMouseEnter = function(e) {
-            this.style.background.color = this.can_make ? '#ffffffcc' : COLOR_RED + '77';
+            this.style.background.color = this.can_make ? '#ffffffcc' : COLOR_RED + '77'
         }
 
         this.onMouseLeave = function(e) {
-            this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
+            this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55'
         }
 
         this.onMouseDown = function(e) {
             this.ct.craft_window.setHelperSlots(null);
             if(!this.can_make) {
-                this.ct.craft_window.clearCraft()
-                this.ct.craft_window.setHelperSlots(e.target.recipe)
+                ct.craft_window.clearCraft()
+                ct.craft_window.setHelperSlots(e.target.recipe)
                 return
             }
             for(const recipe of [this.recipe, ...this.recipe.subrecipes]) {
                 if(this.canMake(recipe)) {
-                    this.parent.craft_window.autoRecipe(recipe, e.shiftKey)
-                    this.parent.paginator.update()
+                    ct.craft_window.autoRecipe(recipe, e.shiftKey)
+                    ct.paginator.update()
                     break
                 }
             }
@@ -70,44 +73,6 @@ export class RecipeSlot extends Window {
         }
         this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
     }
-
-    // draw(ctx, ax, ay) {
-    //     this.applyStyle(ctx, ax, ay);
-    //     super.draw(ctx, ax, ay);
-    //     const item = this.block;
-    //     this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
-    // }
-
-    // drawItem(ctx, item, x, y, width, height) {
-
-    //     const inventory_image = Resources.inventory.image;
-
-    //     if(!inventory_image || !item) {
-    //         return;
-    //     }
-
-    //     const size = inventory_image.width;
-    //     const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
-
-    //     ctx.imageSmoothingEnabled = false;
-
-    //     // 
-    //     if('inventory_icon_id' in item) {
-    //         const icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
-    //         const dest_icon_size = 48 * this.zoom;
-    //         ctx.drawImage(
-    //             inventory_image,
-    //             icon.x,
-    //             icon.y,
-    //             icon.width,
-    //             icon.height,
-    //             x + width / 2 - dest_icon_size / 2,
-    //             y + height / 2 - dest_icon_size / 2,
-    //             dest_icon_size,
-    //             dest_icon_size
-    //         );
-    //     }
-    // }
 
 }
 
@@ -147,15 +112,15 @@ export class RecipeWindow extends BlankWindow {
         this.paginator = {
             pages: 0,
             page: 0,
-            prev: function() {
+            prev() {
                 this.page--
                 this.update()
             },
-            next: function() {
+            next() {
                 this.page++
                 this.update()
             },
-            update: function() {
+            update() {
                 this.pages = Math.ceil(that.items_count / that.items_per_page)
                 if(this.page < 0) {
                     this.page = this.pages - 1
@@ -179,7 +144,6 @@ export class RecipeWindow extends BlankWindow {
     onKeyEvent(e) {}
 
     onShow() {
-        this.getRoot().centerChild()
         // Создание слотов
         this.createRecipes()
         this.paginator.update()
@@ -286,16 +250,20 @@ export class RecipeWindow extends BlankWindow {
 
     /**
     * Создание слотов
-    * @param int sz Ширина / высота слота
     */
     createRecipes() {
-        this.craft_window.setHelperSlots(null);
-        const ct = this;
-        if(ct.recipes) {
-            for(let w of ct.recipes) {
-                this.delete(w.id);
+
+        this.craft_window.setHelperSlots(null)
+
+        if(this.recipes) {
+            for(let i = this.recipes.length - 1; i >= 0; i--) {
+                this.removeChild(this.recipes[i])
             }
+            // for(let w of ct.recipes) {
+            //     this.delete(w.id)
+            // }
         }
+
         const canMake = (recipes) => {
             for(const recipe of [recipes, ...recipes.subrecipes]) {
                 // TODO: Mayby need to replace Qubatch.player.inventory to ct?
@@ -305,8 +273,9 @@ export class RecipeWindow extends BlankWindow {
                     return true
                 }
             }
-            return false;
+            return false
         }
+
         //
         let i               = 0;
         const sz            = this.cell_size;
@@ -340,22 +309,22 @@ export class RecipeWindow extends BlankWindow {
         }
         
         this.items_count = tmp_recipes.length;
-        
-        for (const index in tmp_recipes) {
+
+        for(const index in tmp_recipes) {
             if(index < min_index) {
                 continue;
             }
             if(index >= max_index) {
                 continue;
             }
-            const recipe = tmp_recipes[index];
-            const id = recipe.result.item_id;
-            const block = BLOCK.fromId(id);
+            const recipe = tmp_recipes[index]
+            const id = recipe.result.item_id
+            const block = BLOCK.fromId(id)
             const lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + id, null, null, recipe, block, this);
-            lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${id})`;
-            this.recipes.push(lblRecipe);
-            ct.add(lblRecipe);
-            lblRecipe.update();
+            lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${id})`
+            this.recipes.push(lblRecipe)
+            this.add(lblRecipe)
+            lblRecipe.update()
             i++;
         }
         

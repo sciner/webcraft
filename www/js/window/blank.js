@@ -30,4 +30,9 @@ export class BlankWindow extends Window {
         return false
     }
 
+    onShow() {
+        this.getRoot().centerChild()
+        super.onShow()
+    }
+
 }

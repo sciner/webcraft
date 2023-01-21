@@ -90,6 +90,7 @@ export class InventoryWindow extends BaseCraftWindow {
         Qubatch.releaseMousePointer()
         this.previewSkin()
         this.setHelperSlots(null)
+        super.onShow()
     }
         
     // Обработчик закрытия формы
@@ -198,7 +199,7 @@ export class InventoryWindow extends BaseCraftWindow {
         }
         ct.add(btnRecipes);
     }
-    
+
     /**
     * Создание слотов для крафта
     * @param int sz Ширина / высота слота
