@@ -30,7 +30,7 @@ export default class style {
             return;
         }
         const extra_data = block.extra_data;
-        const dir = getDirection(extra_data, neighbours)
+        const dir = getDirection(extra_data, neighbours);
         const texture = BLOCK.calcTexture(block.material.texture, dir);
         const planes = [];
         planes.push(...[
@@ -52,7 +52,7 @@ export default class style {
         if (typeof worker != 'undefined' && extra_data?.up == true && dir == DIRECTION.UP && (extra_data?.water || extra_data?.lava)) {
             worker.postMessage(['add_animated_block', {
                 block_pos:  block.posworld,
-                pos:        [block.posworld.add(new Vector(.5, .5, .5))],
+                pos:        [block.posworld.add(new Vector(.5, .8, .5))],
                 type:       'dripping',
                 isWater:    extra_data?.water
             }]);
@@ -70,7 +70,7 @@ function getDirection(extra_data, neighbours) {
         return false;
     };
     if (extra_data?.up) {
-        if ((neighbours.DOWN.id == BLOCK.AIR.id && neighbours.DOWN.fluid == 0) || neighbours.DOWN.id == BLOCK.CAULDRON.id) {
+        if ((neighbours.DOWN.id == BLOCK.AIR.id && neighbours.DOWN.fluid == 0) || neighbours.DOWN.id != BLOCK.POINTED_DRIPSTONE.id) {
             return DIRECTION.UP;
         }
         if (extra_data?.up && !neighbours.DOWN?.extra_data?.up) {

@@ -437,6 +437,9 @@ export class HUD {
                 if (desc.block.power) {
                     this.block_text += '\npower: ' + desc.block.power;
                 }
+                if (desc.material.is_solid) {
+                    this.block_text += ' is_solid ';
+                }
                 const ed = desc.block.extra_data
                 if (ed) {
                     var s = '';
