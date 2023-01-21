@@ -39,9 +39,7 @@ export default class style {
         const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.FORWARD);
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
         const c_inner = BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST);
-        const c_snow = BLOCK.calcTexture(BLOCK.POWDER_SNOW.texture, DIRECTION.UP);
-        let parts = []
-
+        let parts = [];
         parts.push(...[
             {
                 "size": {"x": 16, "y": 16, "z": 16},
@@ -66,20 +64,10 @@ export default class style {
                     "west": {"uv": [8, 8],"texture": c_inner}
                 }
             }
-        ])
-
-        if (snow) {
-            parts[1].faces = {
-                up: {"uv": [8, 8], "texture": c_snow}
-            }
-        }
+        ]);
 
         if(only_fluid) {
-            if(snow) {
-                parts.shift()
-            } else {
-                parts = []
-            }
+            parts = [];
         }
 
         const pos = new Vector(x, y, z)
@@ -93,8 +81,8 @@ export default class style {
         }
 
         if (level > 0) {
-            let y1 = y +0.15 + level / 4;
-
+            const y1 = y + .15 + level / 4;
+            const w = only_fluid ? 0.6 : 0.75;
             let blockFluid = null;
             if (water) {
                 blockFluid = BLOCK.STILL_WATER;
@@ -105,7 +93,6 @@ export default class style {
             if (blockFluid) {
                 const side = 'up';
                 const dir = blockFluid.UP;
-                const w = 0.75;
                 const anim_frames = BLOCK.getAnimations(blockFluid, side);
                 let lm = IndexedColor.WHITE.clone();
                 let flags = QUAD_FLAGS.NO_AO;
@@ -123,6 +110,16 @@ export default class style {
                     0, w, 0,
                     t[0], t[1], t[2], t[3],
                     lm.pack(), flags
+                );
+            }
+            if (snow) {
+                const lm = IndexedColor.WHITE;
+                const t = BLOCK.calcMaterialTexture(BLOCK.POWDER_SNOW, DIRECTION.UP, w, w);
+                vertices.push(x + 0.5, z + 0.5, y1,
+                    w, 0, 0,
+                    0, w, 0,
+                    t[0], t[1], t[2], t[3],
+                    lm.pack(), 0
                 );
             }
         }

@@ -192,16 +192,14 @@ export class Inventory {
         } else {
             this.current_item.count = Math.max(this.current_item.count - 1, 0);
             if(this.current_item.count < 1) {
-                let matBlock = this.block_manager.fromId(this.current_item.id);
+                const matBlock = this.block_manager.fromId(this.current_item.id);
                 if(matBlock.item && matBlock.item?.name == 'bucket') {
                     if(matBlock.item.emit_on_set) {
                         const emptyBucket = this.block_manager.BUCKET;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
                 } else if (matBlock.item && matBlock.item?.name == 'bottle') {
-                    if(matBlock.item.emit_on_set) {
-                        this.items[this.current.index] = {id: BLOCK.GLASS_BOTTLE.id, count: 1};
-                    }
+                    this.items[this.current.index] = {id: BLOCK.GLASS_BOTTLE.id, count: 1};
                 } else {
                     this.items[this.current.index] = null;
                 }

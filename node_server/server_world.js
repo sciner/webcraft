@@ -947,7 +947,7 @@ export class ServerWorld {
                 */
             }
         }
-        // Put in bucket
+        // Put in bottle
         if(actions.put_in_bottle) {
             const inventory = server_player.inventory;
             const currentInventoryItem = inventory.current_item;
@@ -956,10 +956,6 @@ export class ServerWorld {
                 inventory.items[inventory.current.index] = actions.put_in_bottle;
                 // send new inventory state to player
                 inventory.refresh(true);
-                /*
-                server_player.inventory.decrement(actions.decrement);
-                console.log(server_player, actions.put_in_backet);
-                */
             }
         }
         //
