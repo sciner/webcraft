@@ -277,7 +277,7 @@ void main() {
 
     reflection = reflection + cloud * (1. - reflection.a);
 
-    vec4 rrcolor = mix(refraction, reflection, WATER_REFLECTION_FACTOR);
+    vec4 rrcolor = mix(refraction, reflection, WATER_REFLECTION_FACTOR * reflection.a);
 
 #if DEBUG == 1
 

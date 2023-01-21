@@ -280,7 +280,7 @@ export class InHandOverlay {
             inHandItemMesh.drawDirectly(render);
 
         }
-        renderBackend.endPass();
+        renderBackend.endPass(false);
 
         globalUniforms.lightOverride = globOverride;
         globalUniforms.update();

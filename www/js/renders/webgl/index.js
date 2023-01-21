@@ -483,8 +483,8 @@ export default class WebGLRenderer extends BaseRenderer {
         this.clear(options);
     }
 
-    endPass() {
-        if (this._target === this._mainFrame) {
+    endPass(resolveBackPassToCanvas = true) {
+        if (this._target === this._mainFrame && resolveBackPassToCanvas) {
             this.blitRenderTarget();
         }
     }
