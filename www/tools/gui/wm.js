@@ -26,10 +26,10 @@ export class GradientGraphics {
 
     /**
      * PIXI.Graphics
-     * @param {*} from color 
+     * @param {*} from color
      * @param {*} to color
      * @param {int} height
-     * @returns 
+     * @returns
      */
     static createVertical(from, to, height = 256) {
         const gradient = GradientGraphics._createVerticalGradient(from, to, height)
@@ -130,6 +130,10 @@ export class Window extends PIXI.Container {
             this.text = text || null
         }
 
+    }
+
+    get name() {
+        return this.id;
     }
 
     //
@@ -1276,6 +1280,7 @@ export class WindowManager extends Window {
             this.canvas = qubatchRender.canvas;
             this.pixiRender = new PIXI.Renderer({
                 context: qubatchRender.renderBackend.gl,
+                view: this.canvas,
                 width: this.canvas.width,
                 height: this.canvas.height,
                 clearBeforeRender: false
