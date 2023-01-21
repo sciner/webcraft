@@ -1,6 +1,6 @@
 import {PIXI} from './pixi.js';
 
-window.PIXI = PIXI;
+globalThis.PIXI = PIXI;
 //PIXI.BatchRenderer.defaultMaxTextures = Math.min(PIXI.BatchRenderer.defaultMaxTextures, 16);
 
 const vertex = `#version 300 es
