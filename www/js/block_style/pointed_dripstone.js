@@ -48,7 +48,12 @@ export default class style {
                 texture:    [...texture]
             });
         }
+        //
+        
         // анимация капель
+        if (typeof worker != 'undefined' && extra_data?.up == true) {
+            worker.postMessage(['delete_animated_block', block.posworld]);
+        }
         if (typeof worker != 'undefined' && extra_data?.up == true && dir == DIRECTION.UP && (extra_data?.water || extra_data?.lava)) {
             worker.postMessage(['add_animated_block', {
                 block_pos:  block.posworld,

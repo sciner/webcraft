@@ -87,7 +87,7 @@ export default class Ticker {
                             });
                         } 
                     } 
-                    if ((ground?.material?.is_solid || ground.id == BLOCK.POINTED_DRIPSTONE.id) && (Math.random() < (random_tick_speed / 20)) && water) {
+                    if (stalactite != stalagmite && (ground?.material?.is_solid || (ground.id == BLOCK.POINTED_DRIPSTONE.id && ground?.extra_data?.up == false)) && (Math.random() < (random_tick_speed / 20)) && water) {
                         updated_blocks.push({
                             pos: pos.offset(0, -stalagmite, 0), 
                             item: { 
