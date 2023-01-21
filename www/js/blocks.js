@@ -1214,7 +1214,7 @@ export class BLOCK {
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                ['wall', 'pane', 'fence'].includes(block.material.style_name)
+                ['wall', 'pane', 'fence'].includes(block.material.bb?.behavior ?? block.material.style_name)
             ) && (
                 block.material.material.id != 'leaves'
             );

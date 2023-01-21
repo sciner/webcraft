@@ -305,7 +305,6 @@ export default class style {
             }
             case "pane": {
                 const except_list = ['column']
-                debugger
                 if (BLOCK.canPaneConnect(neighbours.EAST)) except_list.push('east')
                 if (BLOCK.canPaneConnect(neighbours.WEST)) except_list.push('west')
                 if (BLOCK.canPaneConnect(neighbours.SOUTH)) except_list.push('south')
