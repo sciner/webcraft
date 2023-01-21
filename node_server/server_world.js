@@ -422,11 +422,13 @@ export class ServerWorld {
                 this.ticks_stat.add('auto_spawn_hostile_mobs');
             }
             // Save fluids
-            this.ticks_stat.add('db_fluid_save');
             await this.db.fluid.saveFluids();
+            this.ticks_stat.add('db_fluid_save');
+            // Worl transaction
+            if (await this.dbActor.saveWorldIfNecessary()) {
+                this.ticks_stat.add('world_transaction_sync');
+            }
             this.ticks_stat.end();
-
-            await this.dbActor.saveWorldIfNecessary();
         }
         //
         const elapsed = performance.now() - started;

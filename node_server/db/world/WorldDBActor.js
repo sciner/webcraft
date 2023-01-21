@@ -1,8 +1,9 @@
-import { ArrayHelpers, unixTime, Vector, VectorCollector } from "../../../www/js/helpers.js";
+import { ArrayHelpers, unixTime, Vector } from "../../../www/js/helpers.js";
 import { Transaction } from "../db_helpers.js";
 import { BLOCK_DIRTY } from "./ChunkDBActor.js";
 import { WORLD_TRANSACTION_PERIOD, WORLD_TRANSACTION_MAX_DIRTY_BLOCKS,
     CLEAR_WORLD_MODIFY_PER_TRANSACTION } from "../../server_constant.js";
+import { WorldTickStat } from "../../world/tick_stat.js";
 
 const RECOVERY_BLOB_VERSION = 1001;
 
@@ -24,6 +25,7 @@ export class WorldDBActor {
         this._transactionPromise = Promise.resolve();
 
         this._createWorldSavingPromise();
+        this.savingWorldNow = false;
 
         // When it's not null, it's the data of the world-saving transaction currntly being built
         this.underConstruction = null;
@@ -33,6 +35,7 @@ export class WorldDBActor {
         this.totalDirtyBlocks = 0;
 
         this.cumulativeClearWorldModifyPerTransaction = 0;
+        this.asyncStats = new WorldTickStat(['world_transaction']);
     }
 
     /**
@@ -66,12 +69,16 @@ export class WorldDBActor {
     }
 
     async saveWorldIfNecessary() {
-        if (this._lastWorldTransactionTime + WORLD_TRANSACTION_PERIOD < performance.now() ||
-            this.totalDirtyBlocks > WORLD_TRANSACTION_MAX_DIRTY_BLOCKS
+        // if the previous transaction hasn't ended, don't start the new one, so the game loop isn't paused wait
+        if (!this.savingWorldNow &&
+            (this._lastWorldTransactionTime + WORLD_TRANSACTION_PERIOD < performance.now() ||
+            this.totalDirtyBlocks > WORLD_TRANSACTION_MAX_DIRTY_BLOCKS)
         ) {
             this.totalDirtyBlocks = 0;
-            return this.saveWorld();
+            await this.saveWorld();
+            return true;
         }
+        return false;
     }
 
     /**
@@ -87,8 +94,10 @@ export class WorldDBActor {
         
         // await for the previous ongoing transaction, then start a new one
         const transaction = await this.beginTransaction(true);
+        this.savingWorldNow = true;
         this._lastWorldTransactionTime = performance.now(); // remember the actual time when it begins
         const dt = unixTime(); // used for most inserted/updated records (except where individual times are important, e.g. drop items)
+        this.asyncStats.start();
 
         // from now on, others must wait for the next world-saving transaction
         const worldSavingResolve = this._worldSavingResolve;
@@ -235,6 +244,9 @@ export class WorldDBActor {
                 this.world.mobs.onWorldTransactionCommit();
                 this.db.mobs.onWorldTransactionCommit();
                 this.world.players.onWorldTransactionCommit();
+                this.asyncStats.add('world_transaction');
+                this.asyncStats.end();
+                this.savingWorldNow = false;
                 worldSavingResolve();
             },
             async err => {

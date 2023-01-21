@@ -234,14 +234,12 @@ export class ServerChat {
                 break;
             }
             case '/tps2': {
-                const table = {};
-                for(let [k, v] of Object.entries(this.world.ticks_stat.values)) {
-                    let temp = [];
-                    for(let [vk, vv] of Object.entries(v)) {
-                        temp.push(vk + ': ' + Math.round(vv * 1000) / 1000);
-                    }
-                    table[k] = temp.join('; ');
-                }
+                const table = this.world.ticks_stat.toTable();
+                this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
+                break;
+            }
+            case '/asyncstat': {
+                const table = this.world.dbActor.asyncStats.toTable();
                 this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;
             }
