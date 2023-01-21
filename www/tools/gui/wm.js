@@ -122,8 +122,6 @@ export class Window extends PIXI.Container {
         this.max_chars_per_line = 0
         this.auto_center        = true
         this.create_time        = performance.now()
-
-        // all props
         this.style              = new Style(this)
 
         if(text) {

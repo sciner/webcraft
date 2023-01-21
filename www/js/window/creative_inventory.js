@@ -72,7 +72,9 @@ class CreativeInventoryCollection extends Window {
         }
         this.addEnchantedBooks(all_blocks, filter_text)
         // Create slots
+        // let p = performance.now()
         this.initCollection(all_blocks)
+        // console.log(performance.now() - p)
     }
 
     matchesFilter(block, filter_text) {
@@ -111,98 +113,84 @@ class CreativeInventoryCollection extends Window {
             }
         }
 
-        this.scrollY            = 0;
-        this.max_height         = 0;
-        this.collection_slots   = [];
-        let sx                  = 0;
-        let sy                  = 0;
-        let sz                  = this.cell_size;
-        let xcnt                = 9;
-        const ct                = this;
+        this.scrollY            = 0
+        this.max_height         = 0
+        this.container.y        = 0
 
-        this.container.y = 0
+        let sx                  = 0
+        let sy                  = 0
+        let sz                  = this.cell_size
+        let xcnt                = 9
 
         // Drop on pallette slots
         const dropFunc = function(e) {
-            const that      = this;
-            const drag      = e.drag;
-            const dropItem  = drag.getItem().item; // что перетащили
-            let targetItem  = this.getInventoryItem(); // куда перетащили
+            const that      = this
+            const drag      = e.drag
+            const dropItem  = drag.getItem().item // что перетащили
+            let targetItem  = this.getInventoryItem() // куда перетащили
             if(targetItem && dropItem.id == targetItem.id) {
-                targetItem = {...dropItem};
+                targetItem = {...dropItem}
                 // calc count
-                let count = 1;
+                let count = 1
                 const max_in_stack = BLOCK.fromId(targetItem.id).max_in_stack;
                 if(e.shiftKey) {
                     count = max_in_stack
                 }
-                targetItem.count = Math.min(targetItem.count + count, max_in_stack);
-                this.getInventory().setDragItem(this, {...targetItem}, drag, that.w, that.height);
+                targetItem.count = Math.min(targetItem.count + count, max_in_stack)
+                this.getInventory().setDragItem(this, {...targetItem}, drag, that.w, that.height)
             } else {
-                this.getInventory().clearDragItem();
+                this.getInventory().clearDragItem()
             }
             return false;
         }
 
         const onMouseDownFunc = function(e) {
-            let that = this;
-            let targetItem = this.getInventoryItem();
+            const that = this
+            const targetItem = this.getInventoryItem()
             // Set new drag
             if(!targetItem) {
-                return;
+                return
             }
             // calc count
-            let count = 1;
+            let count = 1
             if(e.shiftKey) {
-                count = BLOCK.fromId(targetItem.id).max_in_stack;
+                count = BLOCK.fromId(targetItem.id).max_in_stack
             }
             //
-            targetItem = {...targetItem};
-            targetItem.count = count;
-            this.getInventory().setDragItem(this, targetItem, e.drag, that.w, that.height);
-            return false;
-        };
+            targetItem = {...targetItem}
+            targetItem.count = count
+            this.getInventory().setDragItem(this, targetItem, e.drag, that.w, that.height)
+            return false
+        }
 
-        const items = all_blocks;
+        const items = all_blocks
         for(let i = 0; i < items.length; i++) {
-            let x = sx + (i % xcnt) * sz;
-            let y = sy + Math.floor(i / xcnt) * this.cell_size;
+            const x = sx + (i % xcnt) * sz
+            const y = sy + Math.floor(i / xcnt) * this.cell_size
             if(y + this.cell_size > this.max_height) {
-                this.max_height = y + this.cell_size;
+                this.max_height = y + this.cell_size
             }
-            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null);
-            //
-            lblSlot.onMouseDown = onMouseDownFunc;
-            lblSlot.onDrop = dropFunc;
-            // Draw
-            lblSlot.drawOrig = lblSlot.draw;
-            lblSlot.draw = function(ctx, ax, ay) {};
-            //
+            const lblSlot = new CraftTableInventorySlot(x, y + 3 * this.zoom, sz, sz - 3 * this.zoom, 'lblCollectionSlot' + (i), null, null, this.parent, null)
+            lblSlot.onMouseDown = onMouseDownFunc
+            lblSlot.onDrop = dropFunc
             this.container.add(lblSlot)
             this.container.h = lblSlot.y + lblSlot.h
-            ct.collection_slots.push(lblSlot);
-            lblSlot.setItem(all_blocks[i]);
+            lblSlot.setItem(all_blocks[i])
         }
 
         // Empty slots
         const remains = items.length < 81 ? 81 - items.length : 9 - (items.length % 9);
         for(let j = 0; j < remains; j++) {
-            let i = j + items.length;
-            let x = sx + (i % xcnt) * sz;
-            let y = sy + Math.floor(i / xcnt) * this.cell_size;
+            let i = j + items.length
+            let x = sx + (i % xcnt) * sz
+            let y = sy + Math.floor(i / xcnt) * this.cell_size
             if(y + this.cell_size > this.max_height) {
-                this.max_height = y + this.cell_size;
+                this.max_height = y + this.cell_size
             }
-            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null);
-            //
-            lblSlot.onDrop = dropFunc;
-            // Draw
-            lblSlot.drawOrig = lblSlot.draw
-            lblSlot.draw = function(ctx, ax, ay) {}
-            //
+            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null)
+            lblSlot.onDrop = dropFunc
             this.container.add(lblSlot)
             this.container.h = lblSlot.y + lblSlot.h
-            ct.collection_slots.push(lblSlot)
             lblSlot.setItem(all_blocks[i])
         }
 

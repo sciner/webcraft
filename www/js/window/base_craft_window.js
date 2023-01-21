@@ -3,7 +3,7 @@ import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } fr
 import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
-import { Label } from "../../tools/gui/wm.js";
+import { Label, Window } from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
@@ -89,7 +89,7 @@ export class HelpSlot extends Label {
 
 }
 
-export class CraftTableSlot extends Label {
+export class CraftTableSlot extends Window {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
         super(x, y, w, h, id, null, null)
@@ -136,8 +136,8 @@ export class CraftTableSlot extends Label {
 
         if(item) {
             const image = getBlockImage(item, 100 * this.zoom)
-            let tintMode = item.extra_data?.enchantments ? 1 : 0;
-            this.setBackground(image, 'none', undefined, tintMode);
+            const tintMode = item.extra_data?.enchantments ? 1 : 0
+            this.setBackground(image, 'center', 1, tintMode)
         }
 
         if(this._bgimage) {
@@ -172,21 +172,9 @@ export class CraftTableSlot extends Label {
         return this.isInventorySlot() ? this.slot_index : parseFloat(this.index);
     }
 
-    // Draw slot
-    draw(ctx, ax, ay) {
-        const item = this.getItem();
-        //
-        if(DRAW_SLOT_INDEX) {
-            ctx.fillStyle = '#00000022'
-            ctx.font = '32px Ubuntu'
-            ctx.fillText(this.slot_index || '', ax + this.x + 4, ay + this.y + 4)
-        }
-        //
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
-        super.draw(ctx, ax, ay)
-    }
-
-    // Draw item
+    /**
+     * @deprecated
+     */
     drawItem(ctx, item, x, y, width, height) {
 
         const image = this.ct.inventory.inventory_image;
@@ -258,11 +246,11 @@ export class CraftTableSlot extends Label {
     }
 
     setSlotIndex(index) {
-        this.slot_index = index;
+        this.slot_index = index
     }
 
     getInventory() {
-        return this.ct.inventory;
+        return this.ct.inventory
     }
 
     dropIncrementOrSwap(e, targetItem) {
@@ -437,196 +425,203 @@ export class CraftTableInventorySlot extends CraftTableSlot {
      */
     constructor(x, y, w, h, id, title, text, ct, slot_index, options = null) {
 
-        super(x, y, w, h, id, title, text, ct, slot_index);
+        super(x, y, w, h, id, title, text, ct, slot_index)
 
-        this.options = options || {};
-
-        // Custom drawing
-        this.onMouseEnter = function() {
-            if (this.options.disableIfLoading && this.ct.loading) {
-                return;
-            }
-            this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55';
-        }
-
-        this.onMouseLeave = function() {
-            // don't disable it if loading
-            this.style.background.color = '#00000000';
-        }
-
-        // Drag
-        this.onMouseDown = function(e) {
-            if (this.options.disableIfLoading && this.ct.loading) {
-                return;
-            }
-            const that        = this;
-            const player      = Qubatch.player;
-            const targetItem  = this.getInventoryItem();
-            // Set new drag
-            if(!targetItem) {
-                return;
-            }
-            if(e.drag.getItem()) {
-                return;
-            }
-
-            let dragItem = targetItem;
-            // right button (divide to 2)
-            if(e.button_id == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
-                let split_count = Math.ceil(targetItem.count / 2);
-                dragItem = {...targetItem};
-                dragItem.count = split_count;
-                targetItem.count -= split_count;
-                this.setItem(targetItem, e);
-            } else {
-                if(e.shiftKey) {
-                    switch(this.parent.id) {
-                        case 'frmInventory': {
-                            let srcList = this.parent.inventory_slots;
-                            if(!this.appendToSpecialList(targetItem, srcList)) {
-                                const ihsc = INVENTORY_HOTBAR_SLOT_COUNT
-                                let srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
-                                let targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
-                                if(this.slot_index >= INVENTORY_VISIBLE_SLOT_COUNT) {
-                                    srcListFirstIndexOffset = 0
-                                    targetList = srcList.slice(0, INVENTORY_VISIBLE_SLOT_COUNT)
-                                } else {
-                                    srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
-                                    targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
-                                }
-                                this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
-                            }
-                            if(targetItem.count == 0) {
-                                that.setItem(null, e);
-                            }
-                            break;
-                        }
-                        case 'frmBarrel':
-                        case 'frmChest':
-                        case 'frmDoubleChest':
-                        case 'frmEnderChest':
-                        case 'frmFurnace':
-                        case 'frmChargingStation': {
-                            if (this.ct.loading) {
-                                break; // prevent spreading to the slots that are not ready
-                            }
-                            let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
-                            let srcListFirstIndexOffset = 0;
-                            let targetList = srcList;
-                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
-                            if(targetItem.count == 0) {
-                                that.setItem(null, e);
-                            }
-                            this.parent.lastChange.type = INVENTORY_CHANGE_SHIFT_SPREAD;
-                            break;
-                        }
-                        case 'frmCraft': {
-                            let srcList = e.target.is_craft_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
-                            let srcListFirstIndexOffset = 0;
-                            let targetList = srcList;
-                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
-                            if(targetItem.count == 0) {
-                                that.setItem(null, e);
-                            }
-                        }
-                        default: {
-                            console.log('this.parent.id', this.parent.id);
-                        }
-                    }
-                    return;
-                }
-                dragItem = targetItem;
-                that.setItem(null, e);
-            }
-            this.getInventory().setDragItem(this, dragItem, e.drag, that.width, that.height);
-            this.prev_mousedown_time = performance.now();
-            this.prev_mousedown_button = e.button_id;
-        }
+        this.options = options || {}
 
         // if slot is readonly
         if(!this.readonly) {
+
             // Drop
             this.onDrop = function(e) {
                 if (this.options.disableIfLoading && this.ct.loading) {
-                    return;
+                    return
                 }
-                let player      = Qubatch.player;
-                let drag        = e.drag;
+                let player      = Qubatch.player
+                let drag        = e.drag
                 // @todo check instanceof!
                 // if(dropData instanceof InventoryItem) {
-                let dropData    = drag.getItem();
-                let targetItem  = this.getInventoryItem();
+                let dropData    = drag.getItem()
+                let targetItem  = this.getInventoryItem()
                 if(!dropData) {
-                    return;
+                    return
                 }
-                const max_stack_count = BLOCK.getItemMaxStack(dropData.item);
+                const max_stack_count = BLOCK.getItemMaxStack(dropData.item)
                 // check if double click by left mouse button
-                const potential_double_click = this.prev_mousedown_time && (e.button_id === MOUSE.BUTTON_LEFT) && (this.prev_mousedown_button == MOUSE.BUTTON_LEFT) && !e.shiftKey;
-                const doubleClick = potential_double_click && (performance.now() - this.prev_mousedown_time < DOUBLE_CLICK_TIME) && (max_stack_count > 1);
+                const potential_double_click = this.prev_mousedown_time && (e.button_id === MOUSE.BUTTON_LEFT) && (this.prev_mousedown_button == MOUSE.BUTTON_LEFT) && !e.shiftKey
+                const doubleClick = potential_double_click && (performance.now() - this.prev_mousedown_time < DOUBLE_CLICK_TIME) && (max_stack_count > 1)
                 if(doubleClick) {
                     // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
                     // It gives the same result in chest_manager.js: applyClientChange()
                     if(dropData.item.count < max_stack_count) {
-                        let need_count = max_stack_count - dropData.item.count;
+                        let need_count = max_stack_count - dropData.item.count
                         // проверить крафт слоты
-                        let slots = this.parent.getSlots();
+                        let slots = this.parent.getSlots()
                         const list = [];
                         for(let i in slots) {
-                            const item = slots[i]?.item;
+                            const item = slots[i]?.item
                             if (InventoryComparator.itemsEqualExceptCount(item, dropData.item) &&
                                 item.count != max_stack_count
                             ) {
-                                list.push({chest: 1, index: i, item: item});
+                                list.push({chest: 1, index: i, item: item})
                             }
                         }
                         // проверить слоты инвентаря
-                        const inventory_items = player.inventory.items;
+                        const inventory_items = player.inventory.items
                         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
                             const item = inventory_items[i];
                             if (InventoryComparator.itemsEqualExceptCount(item, dropData.item) &&
                                 item.count != max_stack_count
                             ) {
-                                list.push({chest: 0, index: i, item: item});
+                                list.push({chest: 0, index: i, item: item})
                             }
                         }
                         list.sort(function(a, b){
                             var t = a.item.count - b.item.count;
                             if (t != 0) {
-                                return t;
+                                return t
                             }
                             return (a.index - b.index) - 1000 * (a.chest - b.chest);
-                        });
-                        for (var v of list) {
+                        })
+                        for(var v of list) {
                             if (need_count == 0) {
-                                break;
+                                break
                             }
-                            const item = v.item;
+                            const item = v.item
                             let minus_count = item.count < need_count ? item.count : need_count;
-                            need_count -= minus_count;
-                            dropData.item.count += minus_count;
-                            item.count -= minus_count;
+                            need_count -= minus_count
+                            dropData.item.count += minus_count
+                            item.count -= minus_count
                             if (item.count < 1) {
                                 if (v.chest) {
-                                    slots[v.index].setItem(null, e);
+                                    slots[v.index].setItem(null, e)
                                 } else {
-                                    player.inventory.setItem(v.index, null);
+                                    player.inventory.setItem(v.index, null)
                                 }
                             }
                             if (this.parent.lastChange) { // present in chests, not in craft windows
                                 this.parent.lastChange.type = INVENTORY_CHANGE_MERGE_SMALL_STACKS;
                             }
                         }
-                        return;
+                        return
                     }
                 }
 
-                this.dropIncrementOrSwap(e, targetItem);
+                this.dropIncrementOrSwap(e, targetItem)
+
             }
+
         }
 
         // TODO: pixi
         this.setItem(this.getItem(), false)
 
+    }
+
+    // Custom drawing
+    onMouseEnter() {
+        if (this.options.disableIfLoading && this.ct.loading) {
+            return
+        }
+        this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55'
+    }
+
+    onMouseLeave() {
+        // don't disable it if loading
+        this.style.background.color = '#00000000'
+    }
+
+    // Drag
+    onMouseDown(e) {
+
+        if (this.options.disableIfLoading && this.ct.loading) {
+            return
+        }
+
+        const that        = this
+        const player      = Qubatch.player
+        const targetItem  = this.getInventoryItem()
+
+        // Set new drag
+        if(!targetItem) {
+            return
+        }
+        if(e.drag.getItem()) {
+            return
+        }
+
+        let dragItem = targetItem
+
+        // right button (divide to 2)
+        if(e.button_id == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
+            let split_count = Math.ceil(targetItem.count / 2)
+            dragItem = {...targetItem};
+            dragItem.count = split_count;
+            targetItem.count -= split_count;
+            this.setItem(targetItem, e);
+        } else {
+            if(e.shiftKey) {
+                switch(this.parent.id) {
+                    case 'frmInventory': {
+                        const srcList = this.parent.inventory_slots;
+                        if(!this.appendToSpecialList(targetItem, srcList)) {
+                            const ihsc = INVENTORY_HOTBAR_SLOT_COUNT
+                            let srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
+                            let targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
+                            if(this.slot_index >= INVENTORY_VISIBLE_SLOT_COUNT) {
+                                srcListFirstIndexOffset = 0
+                                targetList = srcList.slice(0, INVENTORY_VISIBLE_SLOT_COUNT)
+                            } else {
+                                srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
+                                targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
+                            }
+                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
+                        }
+                        if(targetItem.count == 0) {
+                            that.setItem(null, e);
+                        }
+                        break;
+                    }
+                    case 'frmBarrel':
+                    case 'frmChest':
+                    case 'frmDoubleChest':
+                    case 'frmEnderChest':
+                    case 'frmFurnace':
+                    case 'frmChargingStation': {
+                        if (this.ct.loading) {
+                            break; // prevent spreading to the slots that are not ready
+                        }
+                        let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
+                        let srcListFirstIndexOffset = 0
+                        let targetList = srcList
+                        this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset)
+                        if(targetItem.count == 0) {
+                            that.setItem(null, e)
+                        }
+                        this.parent.lastChange.type = INVENTORY_CHANGE_SHIFT_SPREAD
+                        break
+                    }
+                    case 'frmCraft': {
+                        let srcList = e.target.is_craft_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
+                        let srcListFirstIndexOffset = 0
+                        let targetList = srcList
+                        this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset)
+                        if(targetItem.count == 0) {
+                            that.setItem(null, e)
+                        }
+                    }
+                    default: {
+                        console.log('this.parent.id', this.parent.id)
+                    }
+                }
+                return
+            }
+            dragItem = targetItem
+            that.setItem(null, e)
+        }
+        this.getInventory().setDragItem(this, dragItem, e.drag, that.width, that.height)
+        this.prev_mousedown_time = performance.now()
+        this.prev_mousedown_button = e.button_id
     }
 
     get readonly() {
@@ -1032,9 +1027,9 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
     // показываем помощь
     setHelperSlots(recipe) {
-        const size = this.area.size.width;
+        const size = this.area.size.width
         for (let i = 0; i < size * size; i++) {
-            this.help_slots[i].setItem(null);
+            this.help_slots[i].setItem(null)
         }
         if (recipe) {
             const adapter = recipe.adaptivePatterns[size][0];

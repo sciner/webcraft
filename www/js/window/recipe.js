@@ -18,7 +18,7 @@ export class RecipeSlot extends Window {
         this.ct = ct
 
         const image = getBlockImage(block)
-        this.setBackground(image)
+        this.setBackground(image, 'center', 1)
         this.swapChildren(this.children[0], this.children[1])
 
         //
