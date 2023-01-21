@@ -107,7 +107,8 @@ export class BBModel_Compiler_Base {
             throw 'error_no_place_in_bbmodel_spritesheets'
         }
         // если ни на одной нет места, то добавить еще один спрайтшит
-        this.getSpritesheet(tx_cnt, tx_sz, options)
+        // this.getSpritesheet(tx_cnt, tx_sz, options)
+        this.createSpritesheet(tx_cnt, tx_sz, options)
         // и попробовать заново
         return this.findPlaces(textures, false, tx_sz, tx_cnt, options)
     }

@@ -41,7 +41,8 @@
         {"name": "barrel",              "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "furnace",             "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "dead_bush",           "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "candle",              "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "candle",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "rail",                "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -713,6 +714,24 @@
                 ],
                 "select_texture": [
                     {"texture": "black_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 26,
+            "name": "RAIL",
+            "bb": {
+                "model": "rail",
+                "behavior": "rails",
+                "set_state": [
+                    {"name": "normal", "when": {"extra_data.shape": [0, 1]}},
+                    {"name": "inclined", "when": {"extra_data.shape": [2, 3, 4, 5]}},
+                    {"name": "turn", "when": {"extra_data.shape": [6, 7, 8, 9]}}
+                ],
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.shape": [1, 2, 7]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.shape": [5, 8]}},
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.shape": [3, 9]}}
                 ]
             }
         }

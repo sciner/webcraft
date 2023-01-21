@@ -177,6 +177,10 @@ export default class style {
                             style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
                             break
                         }
+                        case 'fixed_cardinal_direction': {
+                            style.rotateByCardinal4sides(model, matrix, rot.value)
+                            break
+                        }
                         case 'y360': {
                             if(tblock.rotate) {
                                 mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 2) / 4) * (2 * Math.PI))
@@ -470,8 +474,14 @@ export default class style {
                     if(k.startsWith('extra_data.')) {
                         const key = k.substring(11)
                         const value = tblock.extra_data ? (tblock.extra_data[key] ?? null) : null
-                        if(condition_value != value) {
-                            return false
+                        if(Array.isArray(condition_value)) {
+                            if(!condition_value.includes(value)) {
+                                return false
+                            }
+                        } else {
+                            if(condition_value != value) {
+                                return false
+                            }
                         }
                     }
                 }
