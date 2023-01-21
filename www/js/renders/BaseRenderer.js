@@ -322,7 +322,10 @@ export class GlobalUniformGroup {
         this.useNormalMap = false;
 
         this.localLigthRadius = 0;
+
         this.lightOverride = -1;
+
+        this.cloudVisibility = 1;
 
         this.waterCloudsRT = null;
     }

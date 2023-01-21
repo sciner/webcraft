@@ -55,6 +55,11 @@ const NIGHT_SHIFT_RANGE         = 16;
 const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 
+/**
+ * No prerender cloud because to hard resolve when we can use it
+ */
+const DISABLE_CLOUD_PRERENDER   = true;
+
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
 
@@ -648,6 +653,41 @@ export class Renderer {
         this.player = player;
     }
 
+    resolveCloudVisibility() {
+        let isEmpty = true;
+
+        const chunk = this.player.getOverChunk();
+
+        // we pass chunks under eye
+        // but also should check chunk where we now 
+        // because we can have not empty blocks
+        // scan till end
+        if (chunk && chunk.vertices_length > 0) {
+            const pos  = this.player.getEyePos().floored();
+            const v = new Vector();
+
+            const steps = chunk.size.y - (pos.y - chunk.coord.y);
+
+            for (let i = steps - 1; i > 1; i --) {
+                const b = chunk.getBlock(
+                    pos.x, pos.y + i, pos.z,
+                    v
+                );
+
+                // we found not empty block under head
+                if (b && b?.id > 0) {
+                    if (b.properties.is_leaves) {
+                        continue;
+                    }
+
+                    return false;
+                }
+            }
+        }
+
+        return isEmpty;
+    }
+
     update(delta, args) {
 
         this.frame++;
@@ -669,6 +709,13 @@ export class Renderer {
 
         if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
+        }
+
+        globalUniforms.cloudVisibility = DISABLE_CLOUD_PRERENDER;
+        if (!DISABLE_CLOUD_PRERENDER) {
+            const isEmpty = nightshift > 0 ? this.resolveCloudVisibility() : false;
+
+            globalUniforms.cloudVisibility = (isEmpty ? 1 : 0) * nightshift;
         }
 
         if(player.eyes_in_block) {
@@ -776,6 +823,7 @@ export class Renderer {
         this.debugGeom.clear();
 
         // pre-pass a clouds and environment to texture
+        if (!DISABLE_CLOUD_PRERENDER)
         {
             const def = camera.rotate.x;
 

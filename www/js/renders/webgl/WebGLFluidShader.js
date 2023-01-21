@@ -67,6 +67,8 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         this.u_backTextureDepth = gl.getUniformLocation(program, 'u_backTextureDepth');
 
         this.u_cloudsTexture    = gl.getUniformLocation(program, 'u_cloudsTexture');
+
+        this.u_cloudVisibility  = gl.getUniformLocation(program, 'u_cloudVisibility');
     }
 
     setStaticUniforms() {
@@ -91,6 +93,10 @@ export class WebGLFluidShader extends WebGLTerrainShader {
     resetMatUniforms() {
         super.resetMatUniforms();
 
+        /** */
+        const gl = this.context.gl;
+        const gu = this.globalUniforms;
+
         // underlayer
         const pass = this.context.grabPass();
 
@@ -100,5 +106,7 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         if (this.globalUniforms.waterCloudsRT) {
             this.globalUniforms.waterCloudsRT.texture.bind(CLOUDS_SAMPLER_ID);
         }
+
+        gl.uniform1f(this.u_cloudVisibility, gu.cloudVisibility);
     }
 }

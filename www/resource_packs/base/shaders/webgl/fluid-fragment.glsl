@@ -26,6 +26,8 @@ uniform mat4 uProjMatrix;
 
 uniform vec4 u_fluidUV[2];
 
+uniform float u_cloudVisibility;
+
 uniform sampler2D u_backTextureColor;
 uniform sampler2D u_backTextureDepth;
 uniform sampler2D u_cloudsTexture;
@@ -242,6 +244,8 @@ void main() {
 
     vec4 cloud = texture(u_cloudsTexture, vec2(totalBack.x, 1. - totalBack.y));
 
+    cloud *= u_cloudVisibility;
+
     vec3 ref = reflect(normalize( v_position ), normalize(v_tangentNormal));
 
     if (u_eyeinwater < 1.0) {
@@ -271,8 +275,6 @@ void main() {
 #endif
     }
 
-    float mixFactor = 1.0;
-
     reflection = reflection + cloud * (1. - reflection.a);
 
     vec4 rrcolor = mix(refraction, reflection, WATER_REFLECTION_FACTOR);
@@ -281,6 +283,8 @@ void main() {
 
     outColor = reflection;
 #else
+
+    float mixFactor = 1.0;
 
     outColor = outColor * mixFactor + (1. - mixFactor * outColor.a) * rrcolor;
 #endif
