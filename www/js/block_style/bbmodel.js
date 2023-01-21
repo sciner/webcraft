@@ -303,6 +303,16 @@ export default class style {
                 model.selectTextureFromPalette(mat.name)
                 break
             }
+            case "pane": {
+                const except_list = ['column']
+                debugger
+                if (BLOCK.canPaneConnect(neighbours.EAST)) except_list.push('east')
+                if (BLOCK.canPaneConnect(neighbours.WEST)) except_list.push('west')
+                if (BLOCK.canPaneConnect(neighbours.SOUTH)) except_list.push('south')
+                if (BLOCK.canPaneConnect(neighbours.NORTH)) except_list.push('north')
+                model.hideAllExcept(except_list)
+                break
+            }
             case 'chest': {
                 const type = tblock.extra_data?.type ?? null
                 const is_big = !!type

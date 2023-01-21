@@ -42,7 +42,8 @@
         {"name": "furnace",             "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "dead_bush",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "candle",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "rail",                "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "rail",                "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "iron_bars",           "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -733,6 +734,14 @@
                     {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.shape": [5, 8]}},
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.shape": [3, 9]}}
                 ]
+            }
+        },
+        {
+            "id": 626,
+            "name": "IRON_BARS",
+            "bb": {
+                "model": "iron_bars",
+                "behavior": "pane"
             }
         }
     ]
