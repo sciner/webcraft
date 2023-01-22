@@ -32,6 +32,7 @@
     #define FLAG_MULTIPLY_COLOR 13
     #define FLAG_LEAVES 14
     #define LOOK_AT_CAMERA_HOR 15
+    #define FLAG_ENCHANTED_ANIMATION 16
 
 #endif
 
@@ -129,6 +130,7 @@
     out float v_Mir2_Tex;
     out float v_flagMultiplyColor;
     out float v_flagLeaves;
+    out float v_flagEnchantedAnimation;
 
     //--
 #endif
@@ -159,6 +161,7 @@
     in float v_noCanTakeLight;
     in float v_Triangle;
     in float v_flagMultiplyColor;
+    in float v_flagEnchantedAnimation;
 
     out vec4 outColor;
 #endif
@@ -272,7 +275,7 @@
 
 #ifdef terrain_read_flags_vert
     // read flags
-    int flags = int(a_flags) & 0xffff;
+    int flags = int(a_flags) & 0xffffff;
     int flagNormalUp = (flags >> NORMAL_UP_FLAG)  & 1;
     int flagBiome = (flags >> MASK_BIOME_FLAG) & 1;
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
@@ -289,6 +292,7 @@
     int flagMir2_Tex = (flags >> FLAG_MIR2_TEX) & 1;
     int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
     int flagLeaves = (flags >> FLAG_LEAVES) & 1;
+    int flagEnchantedAnimation = (flags >> FLAG_ENCHANTED_ANIMATION) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -300,6 +304,7 @@
     v_Mir2_Tex = float(flagMir2_Tex);
     v_flagMultiplyColor = float(flagMultiplyColor);
     v_flagLeaves = float(flagLeaves);
+    v_flagEnchantedAnimation = float(flagEnchantedAnimation);
 
     //--
 #endif
@@ -604,6 +609,27 @@
              )), 7.) * 25.);
              
     color.rgb += k.rgb / 2.;
+#endif
+
+// Enchanted animation
+#ifdef enchanted_animation
+
+    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    vec2 vert = vec2(cam_period.z / 2., cam_period.z / 2.) + vec2(v_world_pos.z / 2., v_world_pos.z / 2. + u_time / 2000.);
+    vec2 pc = (v_texcoord0.xy + v_world_pos.xy + cam_period.xy + vert.xy) * 256.;
+
+    mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
+    vec3 a = vec3( pc / 4e2, (u_time / 1000.) / 4. ) * m,
+         b = a * m * .4,
+         c1 = b * m * .3;
+    vec4 k = vec4(pow(
+          min(min(   length(.5 - fract(a)), 
+                     length(.5 - fract(b))
+                  ), length(.5 - fract(c1)
+             )), 7.) * 25.);
+             
+    color.rgb += k.rgb * vec3(1.5, 0., 6.);
+
 #endif
 
 // VERSION1
