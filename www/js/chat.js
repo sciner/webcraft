@@ -1,6 +1,7 @@
 import { ServerClient } from "./server_client.js";
 import { Lang } from "./lang.js";
 import { TextBox } from "./ui/textbox.js";
+import { Window } from "../tools/gui/wm.js";
 
 const MESSAGE_SHOW_TIME         = 7000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
@@ -127,14 +128,14 @@ export class Chat extends TextBox {
     //
     historyNavigate(go_back) {
         this.history.navigate(go_back, this.buffer, (new_buffer) => {
-            this.buffer = new_buffer;
-            this.resetCarriage();
+            this.buffer = new_buffer
+            this.resetCarriage()
         });
     }
 
     open(start_buffer) {
         if(this.active) {
-            return;
+            return
         }
         this.history.reset();
         this.buffer = start_buffer;
@@ -291,6 +292,12 @@ export class Chat extends TextBox {
 
         if(!this.chat_input) {
             this.init(hud)
+            this.history_messages_window = new Window(0, 0, 0, 0, 'history_messages_window')
+            hud.hudwindow.add(this.history_messages_window)
+            // style
+            this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
+            this.history_messages_window.style.font.color = '#ffffff'
+            this.history_messages_window.style.background.color = '#00000022'
         }
 
         const x = margin
@@ -303,45 +310,55 @@ export class Chat extends TextBox {
             this.draw(x, hud.height - top, input_width, input_height, margin)
         }
 
-        // TODO: pixi
-        return
+        let strings = []
 
         // Draw message history
         for(let m of this.messages.list) {
-            let time_diff = now - m.time;
+            const time_diff = now - m.time;
             if(this.active || time_diff < MESSAGE_SHOW_TIME) {
-                let alpha = 1;
+                let alpha = 1
                 if(!this.active) {
                     let time_remains = MESSAGE_SHOW_TIME - time_diff;
                     if(time_remains < fadeout_time) {
                         alpha = time_remains / fadeout_time;
                     }
                 }
-                let texts = m.text.split('\n');
-                for(let i = texts.length - 1; i >= 0; i--) {
-                    let text = texts[i];
-                    var leftMargin = margin;
-                    if(i == 0) {
-                        text = m.username + ': ' + text;
-                    } else {
-                        leftMargin += multiLineMarginAdd;
-                    }
-                    let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                    hud.ctx.fillStyle = '#000000' + aa;
-                    hud.ctx.fillRect(leftMargin, y - padding, hud.width - margin - leftMargin, this.line_height);
-                    //
-                    aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                    hud.ctx.fillStyle = '#000000' + aa;
-                    hud.ctx.fillText(text, leftMargin + padding, y + 4 * this.zoom);
-                    //
-                    aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                    hud.ctx.fillStyle = '#ffffff' + aa;
-                    hud.ctx.fillText(text, leftMargin + padding + 2, y + 2 * this.zoom);
-                    //
-                    y -= this.line_height;
-                }
+                let texts = m.text.split('\n')
+                strings.push(...texts)
+                // for(let i = texts.length - 1; i >= 0; i--) {
+                //     let text = texts[i];
+                //     var leftMargin = margin;
+                //     if(i == 0) {
+                //         text = m.username + ': ' + text;
+                //     } else {
+                //         leftMargin += multiLineMarginAdd;
+                //     }
+                //     let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                //     hud.ctx.fillStyle = '#000000' + aa;
+                //     hud.ctx.fillRect(leftMargin, y - padding, hud.width - margin - leftMargin, this.line_height);
+                //     //
+                //     aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                //     hud.ctx.fillStyle = '#000000' + aa;
+                //     hud.ctx.fillText(text, leftMargin + padding, y + 4 * this.zoom);
+                //     //
+                //     aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                //     hud.ctx.fillStyle = '#ffffff' + aa;
+                //     hud.ctx.fillText(text, leftMargin + padding + 2, y + 2 * this.zoom);
+                //     //
+                //     y -= this.line_height;
+                // }
             }
         }
+
+        strings.reverse()
+
+        this.history_messages_window.text = strings.join('\n')
+        this.history_messages_window.transform.position.set(margin, margin)
+        this.history_messages_window.w = input_width
+        this.history_messages_window.h = y + input_height - margin
+        this.history_messages_window.text_container.transform.position.set(margin, this.history_messages_window.h - margin)
+
+        this.history_messages_window.text_container.anchor.y = 1
 
     }
 

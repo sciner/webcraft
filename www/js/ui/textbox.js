@@ -49,14 +49,14 @@ export class TextBox {
         hud.hudwindow.add(this.chat_input)
 
         // create cariage
-        this.cariage = new Label(0, 0, 0, 0, 'lbl_cariage')
-        this.cariage.style.font.family = CHAT_INPUT_FONT
-        this.cariage.style.font.size = 18
-        this.cariage.style.font.color = '#ffffff'
-        this.cariage.text = '_'
-        const ctm = this.cariage.getTextMetrics()
+        this.lbl_cariage = new Label(0, 0, 0, 0, 'lbl_cariage')
+        this.lbl_cariage.style.font.family = CHAT_INPUT_FONT
+        this.lbl_cariage.style.font.size = 18
+        this.lbl_cariage.style.font.color = '#ffffff'
+        this.lbl_cariage.text = '_'
+        const ctm = this.lbl_cariage.getTextMetrics()
         this.space_width = ctm.width
-        hud.hudwindow.add(this.cariage)
+        hud.hudwindow.add(this.lbl_cariage)
 
     }
 
@@ -76,18 +76,18 @@ export class TextBox {
         const how_long_open = Math.round(performance.now() - this.t);
 
         // blinking cariage
-        this.cariage.visible = how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5
+        this.lbl_cariage.visible = how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5
 
         // draw carriage
-        if(this.cariage.visible) {
+        if(this.lbl_cariage.visible) {
             if(this.carriage == this.buffer.length) {
-                this.cariage.visible = false
+                this.lbl_cariage.visible = false
                 text += '_'
             } else {
                 const text_start = this.buffer.slice(0, this.carriage).join('')
                 this.chat_input.text = text_start
                 const tm = this.chat_input.getTextMetrics(true)
-                this.cariage.transform.position.set(x + padding + tm.width, y + padding + 2 * this.zoom)
+                this.lbl_cariage.transform.position.set(x + padding + tm.width, y + padding + 2 * this.zoom)
             }
         }
 
