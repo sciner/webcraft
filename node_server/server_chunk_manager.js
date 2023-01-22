@@ -328,8 +328,25 @@ export class ServerChunkManager {
         return this.get(addr);
     }
 
+    getOrRestore(addr) {
+        let chunk = this.get(addr);
+        if (chunk) {
+            // found
+            return chunk;
+        }
+        chunk = this.unloading_chunks.get(addr);
+        if (!chunk) {
+            // not found
+            return null;
+        }
+        // restore
+        this.unloading_chunks.delete(addr)
+        chunk.restoreUnloaded();
+        return chunk;
+    }
+
     getOrAdd(addr) {
-        var chunk = this.get(addr)
+        var chunk = this.getOrRestore(addr)
         if (chunk == null) {
             chunk = new ServerChunk(this.world, addr)
             this.add(chunk);
