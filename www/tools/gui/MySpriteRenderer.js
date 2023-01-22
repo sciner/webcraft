@@ -223,12 +223,9 @@ export class MyTilemap extends PIXI.Container {
         this.textureArray = new PIXI.BatchTextureArray();
 
         this.initGeom();
-        this.data = new Float32Array(0);
-        this.dataUint32 = new Uint32Array(0);
-        this.capacity = 16;
+        this.capacity = 8;
+        this.ensureSize(16);
         this.dataInstances = 0;
-
-        this.sprite = new PIXI.Sprite();
         this.shader = null;
     }
 
@@ -248,7 +245,7 @@ export class MyTilemap extends PIXI.Container {
         let oldData = this.data;
         this.data = new Float32Array(this.capacity * 4 * this.vertexSize);
         this.dataUint32 = new Uint32Array(this.data.buffer);
-        if (this.dataInstances > 0) {
+        if (oldData && this.dataInstances > 0) {
             this.data.set(oldData.slice(0, this.dataInstances));
         }
         this.indexData = PIXI.utils.createIndicesForQuads(this.capacity * 6);
