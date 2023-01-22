@@ -947,6 +947,17 @@ export class ServerWorld {
                 */
             }
         }
+        // Put in bottle
+        if(actions.put_in_bottle) {
+            const inventory = server_player.inventory;
+            const currentInventoryItem = inventory.current_item;
+            if(currentInventoryItem && currentInventoryItem.id == this.block_manager.GLASS_BOTTLE.id) {
+                // replace item in inventory
+                inventory.items[inventory.current.index] = actions.put_in_bottle;
+                // send new inventory state to player
+                inventory.refresh(true);
+            }
+        }
         //
         for (let cp of chunks_packets) {
             if (cp.chunk) {

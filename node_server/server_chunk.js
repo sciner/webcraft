@@ -778,6 +778,26 @@ export class ServerChunk {
     onNeighbourChanged(tblock, neighbour, previous_neighbour) {
 
         const world = this.world;
+        
+        // метод работы со сталактитами и сталагмитами
+        const changePointedDripstone = () => {
+            const up = tblock?.extra_data?.up;
+            const block = this.getBlock(neighbour.posworld.offset(0, up ? 2 : -2, 0), null, true);
+            if (block?.id == BLOCK.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: block.posworld.clone(),
+                    item: {
+                        id: block.id,
+                        extra_data: {
+                            up: up
+                        }
+                    },
+                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                }]);
+                world.actions_queue.add(null, actions);
+            }
+        };
 
         //
         function createDrop(tblock, generate_destroy = false) {
@@ -967,7 +987,10 @@ export class ServerChunk {
                     }
                     break;
                 }
-
+                case 'pointed_dripstone': {
+                    changePointedDripstone();
+                    break;
+                }
             }
 
         } else {
@@ -1058,6 +1081,10 @@ export class ServerChunk {
                         action_id: ServerClient.BLOCK_ACTION_REPLACE
                     }]);
                     world.actions_queue.add(null, actions);
+                    break;
+                }
+                case 'pointed_dripstone': {
+                    changePointedDripstone();
                     break;
                 }
             }
