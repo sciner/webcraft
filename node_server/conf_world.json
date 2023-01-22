@@ -25,7 +25,8 @@
         "bn",
         "fire",
         "tnt",
-        "brewing"
+        "brewing",
+        "dripstone"
     ],
     "random_tickers": [
         "grass_block"
@@ -864,6 +865,75 @@
                 "dt": "2023-01-14T19:24:39.057Z",
                 "draw_natural_basement": false,
                 "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "sand_house_2",
+            "pos1": {
+                "x": -224,
+                "y": 0,
+                "z": 2
+            },
+            "pos2": {
+                "x": -232,
+                "y": 8,
+                "z": -6
+            },
+            "entrance": {
+                "x": -228,
+                "y": 1,
+                "z": 2
+            },
+            "meta": {
+                "dt": "2023-01-16T11:17:00.556Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "oak_house_small",
+            "pos1": {
+                "x": -235,
+                "y": 0,
+                "z": 0
+            },
+            "pos2": {
+                "x": -245,
+                "y": 13,
+                "z": -9
+            },
+            "entrance": {
+                "x": -240,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-01-17T10:32:23.654Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "stone_house_small",
+            "pos1": {
+                "x": -250,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -260,
+                "y": 10,
+                "z": -5
+            },
+            "entrance": {
+                "x": -255,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-01-17T12:52:01.661Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
             }
         }
     ]

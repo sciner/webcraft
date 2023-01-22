@@ -422,6 +422,17 @@ class DestroyBlocks {
         if(!no_drop) {
             drop_items.push(...dropBlock(player, tblock, actions, false, this.current_inventory_item));
         }
+        // удаляем капельники
+        if (tblock.id == BLOCK.POINTED_DRIPSTONE.id && tblock?.extra_data) {
+            const up = tblock.extra_data?.up;
+            for (let sh = 1; sh < 8; sh++) {
+                const position = tblock.posworld.offset(0, up ? -sh : sh, 0);
+                const block = world.getBlock(position);
+                if (block && block.id == BLOCK.POINTED_DRIPSTONE.id && block.extra_data?.up == up ) {
+                    this.add(block, position);
+                }
+            }
+        }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
             let part = tblock.material[cn];
@@ -504,6 +515,7 @@ export class WorldAction {
             load_chest:                 null,
             open_window:                null,
             put_in_backet:              null,
+            put_in_bottle:              null,
             clone_block:                false,
             reset_mouse_actions:        false,
             decrement:                  false,
@@ -586,6 +598,13 @@ export class WorldAction {
             throw 'error_put_already';
         }
         this.put_in_backet = item;
+    }
+    // 
+    putInBottle(item) {
+        if(this.put_in_bottle) {
+            throw 'error_put_already';
+        }
+        this.put_in_bottle = item;
     }
 
     /**
@@ -961,7 +980,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useShears, putDiscIntoJukebox, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery]) {
+        for(let func of [useCauldron, useShears, putDiscIntoJukebox, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -2232,6 +2251,76 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
     return resp
 }
 
+// use cauldron
+async function useCauldron(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (world_block.id != BLOCK.CAULDRON.id) {
+        return false;
+    }
+    const updateCauldron = (lava, water, snow, level) => {
+        actions.addBlocks([{
+            pos: position, 
+            item: {
+                id: BLOCK.CAULDRON.id, 
+                extra_data: { 
+                    level: level,
+                    lava: lava,
+                    water: water,
+                    snow: snow 
+                }
+            }, 
+            action_id: ServerClient.BLOCK_ACTION_MODIFY
+        }]);
+    }
+    const position = new Vector(pos);
+    if (current_inventory_item.id == BLOCK.WATER_BOTTLE.id && extra_data.level < 3) {
+        actions.decrement = true;
+        updateCauldron(false, true, false, extra_data.level + 1);
+        return true;
+    }
+    if (current_inventory_item.id == BLOCK.WATER_BUCKET.id) { 
+        actions.decrement = true;
+        updateCauldron(false, true, false, 3);
+        return true;
+    }
+    if (current_inventory_item.id == BLOCK.LAVA_BUCKET.id) {
+        actions.decrement = true;
+        updateCauldron(true, false, false, 3);
+        return true;
+    }
+    if (current_inventory_item.id == BLOCK.BUCKET_POWDER_SNOW.id) {
+        actions.decrement = true;
+        updateCauldron(false, false, true, 3);
+        return true;
+    }
+    if (current_inventory_item.id == BLOCK.BUCKET.id && extra_data.level == 3 && (extra_data.lava == true || extra_data.water == true || extra_data.snow == true) ) {
+        const item = {
+            id: BLOCK.WATER_BUCKET.id,
+            count: 1
+        };
+        if (extra_data.lava) {
+            item.id = BLOCK.LAVA_BUCKET.id;
+        }
+        if (extra_data.snow) {
+            item.id = BLOCK.BUCKET_POWDER_SNOW.id;
+        }
+        actions.putInBucket(item);
+        updateCauldron(false, false, false, 0);
+        return true;
+    }
+    if (current_inventory_item.id == BLOCK.GLASS_BOTTLE.id && extra_data.level > 0 && extra_data.water == true) {
+        const item = {
+            id: BLOCK.WATER_BOTTLE.id,
+            count: 1
+        };
+        actions.putInBottle(item);
+        const level = extra_data.level - 1;
+        updateCauldron(false, level == 0 ? false : true, false, level);
+        return true;
+    }
+
+    return false;
+}
+
 // use shears
 async function useShears(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(current_inventory_item.id != BLOCK.SHEARS.id || extra_data?.sheared) {
@@ -2574,4 +2663,28 @@ async function removeFurnitureUpholstery(e, world, pos, player, world_block, wor
         }
     }
     return false;
+}
+
+async function setPointedDripstone(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (!world_material || !mat_block || (mat_block.id != BLOCK.POINTED_DRIPSTONE.id)) {
+        return false;
+    }
+    const position = new Vector(pos);
+    if (world_block.id == BLOCK.POINTED_DRIPSTONE.id) {
+        const up = world_block.extra_data.up;
+        const air_pos = position.offset(0, up ? -1 : 1, 0);
+        const block = world.getBlock(air_pos);
+        if (block.id == BLOCK.AIR.id && block.fluid == 0) {
+            actions.addBlocks([{pos: air_pos, item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: up}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }
+    } else {
+        if (pos.n.y == 1) {
+            actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: false}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }
+        if (pos.n.y == -1) {
+            actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: true}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }
+    }
+
+    return true;
 }

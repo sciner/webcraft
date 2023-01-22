@@ -1,4 +1,4 @@
-import { BLOCK, POWER_NO, DropItemVertices } from "../blocks.js";
+import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
 import { getChunkAddr, Vector, VectorCollector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
@@ -12,7 +12,16 @@ import {FluidWorld} from "../fluid/FluidWorld.js";
 import {isFluidId, PACKED_CELL_LENGTH} from "../fluid/FluidConst.js";
 
 // Constants
-const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
+const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
+
+class MaterialBuf {
+
+    constructor() {
+        this.buf = null
+        this.matId = null
+    }
+
+}
 
 // ChunkManager
 export class ChunkManager {
@@ -357,6 +366,8 @@ export class Chunk {
 
         const block = this.tblocks.get(new Vector(0, 0, 0), null, cw);
 
+        const matBuf = new MaterialBuf()
+
         // Process drop item
         const processDropItem = (block, neightbours) => {
 
@@ -397,31 +408,55 @@ export class Chunk {
 
         }
 
-        // Process block
-        const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
-            const material = block.material;
-
-            if(!material) {
-                return;
-            }
+        /**
+         * @param {string} material_key 
+         */
+        const getMaterialBuf = (material_key) => {
 
             // material.group, material.material_key
-            if (!materialToId.has(material.material_key)) {
-                materialToId.set(material.material_key, materialToId.size);
+            if (!materialToId.has(material_key)) {
+                materialToId.set(material_key, materialToId.size);
             }
-            const matId = materialToId.get(material.material_key);
+            const matId = materialToId.get(material_key);
             let buf = vertexBuffers.get(matId);
             if (!buf) {
                 vertexBuffers.set(matId, buf = new WorkerInstanceBuffer({
-                    material_key: material.material_key,
+                    material_key: material_key,
                     geometryPool: verticesPool,
                     chunkDataId: dataId
                 }));
             }
-            buf.touch();
-            buf.skipCache(0);
+            buf.touch()
+            buf.skipCache(0)
 
-            const last = buf.vertices.filled;
+            matBuf.buf = buf
+            matBuf.matId = matId
+
+            return matBuf
+
+        }
+
+        /**
+         * @param {FakeVertices} fv 
+         */
+        const processFakeVertices = (fv) => {
+            const matBuf = getMaterialBuf(fv.material_key)
+            matBuf.buf.vertices.push(...fv.vertices)
+        }
+
+        // Process block
+        const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
+
+            const material = block.material;
+
+            if(!material) {
+                return
+            }
+
+            const matBuf = getMaterialBuf(material.material_key)
+
+            const {buf, matId} = matBuf
+            const last = buf.vertices.filled
 
             const resp = material.resource_pack.pushVertices(
                 buf.vertices,
@@ -435,28 +470,29 @@ export class Chunk {
                 undefined,
                 matrix,
                 pivot,
-            );
+            )
 
             if (useCache) {
                 if (last === buf.vertices.filled) {
-                    vertices[block.index * 2] = 0;
-                    vertices[block.index * 2 + 1] = 0;
+                    vertices[block.index * 2] = 0
+                    vertices[block.index * 2 + 1] = 0
                 } else {
-                    let quads = buf.vertices.filled - last;
+                    let quads = buf.vertices.filled - last
                     if (quads >= 255) {
-                        vertExtraLen.push(quads);
-                        quads = 255;
+                        vertExtraLen.push(quads)
+                        quads = 255
                     }
-                    vertices[block.index * 2] = quads;
-                    vertices[block.index * 2 + 1] = matId;
+                    vertices[block.index * 2] = quads
+                    vertices[block.index * 2 + 1] = matId
                 }
             }
 
-            return resp;
+            return resp
+
         }
 
         // inline cycle
-        //TODO: move it out later
+        // TODO: move it out later
         for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)
                 for (let x = 0; x < size.x; x++) {
@@ -554,8 +590,10 @@ export class Chunk {
             for (let [index, eblocks] of this.emitted_blocks) {
                 for (let eb of eblocks) {
                     if(eb instanceof DropItemVertices) {
-                        eb.index = index;
-                        processDropItem(eb, fake_neighbours);
+                        eb.index = index
+                        processDropItem(eb, fake_neighbours)
+                    } else if (eb instanceof FakeVertices) {
+                        processFakeVertices(eb)
                     } else {
                         processBlock(eb, fake_neighbours,
                             eb.biome, eb.dirt_color,

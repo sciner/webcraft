@@ -3930,14 +3930,19 @@
             "material": {
                 "id": "cobblestone"
             },
-            "texture": "./textures/dripstone_block.png"
+            "texture": "./textures/dripstone_block.png",
+            "ticking": {
+                "type": "dripstone"
+            },
+            "extra_data": {
+            }
         },
         {
             "id": 593,
             "name": "POINTED_DRIPSTONE",
             "passable": 0,
             "transparent": true,
-            "style": "planting",
+            "style": "pointed_dripstone",
             "inventory": {
                 "style": "extruder",
                 "texture": "./textures/pointed_dripstone.png"
@@ -3947,20 +3952,18 @@
                 "id": "stone"
             },
             "tags": [
-                "place_only_to_ceil",
-                "no_set_on_top"
+                "doubleface"
             ],
-            "texture": "./textures/pointed_dripstone.png",
-            "extra_data": {
-                "dir": -1,
-                "stage": 0
+            "texture": {
+                "up": "./textures/pointed_dripstone_tip.png",
+                "west": "./textures/pointed_dripstone_tip_merge.png",
+                "north": "./textures/pointed_dripstone_frustum.png",
+                "south": "./textures/pointed_dripstone_middle.png",
+                "down": "./textures/pointed_dripstone_base.png"
             },
-            "stage_textures": [
-                "./textures/pointed_dripstone_tip.png",
-                "./textures/pointed_dripstone_frustum.png",
-                "./textures/pointed_dripstone_middle.png",
-                "./textures/pointed_dripstone_base.png"
-            ]
+            "extra_data": {
+                "up": true
+            }
         },
         {
             "id": 596,
@@ -9374,6 +9377,45 @@
             "item": {"name": "book"},
             "material": {
                 "id": "wood"
+            }
+        },
+        {
+            "id": 437,
+            "name": "CAULDRON",
+            "style": "cauldron",
+            "transparent": true,
+            "can_rotate": true,
+            "max_in_stack": 1,
+            "is_dynamic_light": true,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/cauldron.png"
+            },
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
+            },
+            "extra_data": {
+                "level": 0,
+                "lava": false,
+                "water": false,
+                "snow": false
+            },
+            "sound": "madcraft:block.cloth",
+            "material": {
+                "id": "iron"
+            },
+            "tags": [
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "texture": {
+                "up": "block/cauldron_top.png",
+                "side": "block/cauldron_side.png",
+                "east": "block/cauldron_inner.png",
+                "down": "block/cauldron_bottom.png"
             }
         }
         

@@ -887,7 +887,7 @@ export class TBlock {
         const mat = BLOCK.BLOCK_BY_ID[this.id]
         if (mat) {
             if(mat.is_dynamic_light) {
-                return this?.extra_data?.active ? mat.light_power_number : 0;
+                return (this?.extra_data?.active || this?.extra_data?.lava) ? mat.light_power_number : 0;
             }
             res = mat.light_power_number;
         }

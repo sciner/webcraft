@@ -169,7 +169,7 @@ export class Inventory {
             return;
         }
         const current_item_material = this.block_manager.fromId(this.current_item.id);
-        if(current_item_material.item?.instrument_id) {
+        if(current_item_material.power && current_item_material.item?.instrument_id) {
             this.current_item.power = Math.max(this.current_item.power - 1, 0);
             if(this.current_item.power <= 0) {
                 this.items[this.current.index] = null;
@@ -192,12 +192,14 @@ export class Inventory {
         } else {
             this.current_item.count = Math.max(this.current_item.count - 1, 0);
             if(this.current_item.count < 1) {
-                let matBlock = this.block_manager.fromId(this.current_item.id);
+                const matBlock = this.block_manager.fromId(this.current_item.id);
                 if(matBlock.item && matBlock.item?.name == 'bucket') {
                     if(matBlock.item.emit_on_set) {
                         const emptyBucket = this.block_manager.BUCKET;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
+                } else if (matBlock.item && matBlock.item?.name == 'bottle') {
+                    this.items[this.current.index] = {id: BLOCK.GLASS_BOTTLE.id, count: 1};
                 } else {
                     this.items[this.current.index] = null;
                 }
