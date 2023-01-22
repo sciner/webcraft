@@ -95,16 +95,16 @@ export class Hotbar {
 
     constructor(hud) {
 
+        // console.log(new Error().stack)
+
         this.hud = hud
         this.last_damage_time = null
         this.strings = new Strings()
 
         // Load hotbar atlases
         const all = []
-        all.push(this.atlas = new SpriteAtlas().fromFile('./media/hotbar.png'))
         all.push(this.effect_icons = new SpriteAtlas().fromFile('./media/gui/inventory2.png'))
         all.push(this.icons = new SpriteAtlas().fromFile('./media/icons.png'))
-        // all.push(this.inventory_atlas = SpriteAtlas.fromJSON(Resources.inventory.image, Resources.inventory.map))
         Promise.all(all).then(_ => {
             this.tilemap = new MyTilemap()
             hud.wm.addChild(this.tilemap)
@@ -142,8 +142,8 @@ export class Hotbar {
         if(this.x === undefined) {
             this.x = 0
             this.y = 0
-            this.sx = 32
-            this.sy = 32
+            this.sx = 4
+            this.sy = 4
         }
 
         this.x += this.sx
@@ -154,13 +154,20 @@ export class Hotbar {
         if(this.x > this.hud.wm.w) this.sx *= -1
         if(this.y > this.hud.wm.h) this.sy *= -1
 
-        if(!this.blockimage) {
-            if(Resources.inventory?.atlas) {
-                this.inventory_atlas = Resources.inventory.atlas
-                const texture = this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')
-                this.blockimage = new MySprite(texture, 100 * this.zoom)
-                this.tilemap.addChild(this.blockimage)
-            }
+        if(!this.blockimage && Resources.inventory.atlas) {
+            this.inventory_atlas = Resources.inventory.atlas
+            const texture = this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')
+            this.blockimage = new MySprite(texture)
+            this.tilemap.addChild(this.blockimage)
+        }
+
+        if(!this.liveimage && Resources.hotbar.atlas) {
+            this.hotbar_atlas = Resources.hotbar.atlas
+            this.liveimage = new MySprite(this.hotbar_atlas.getSpriteFromMap('live'))
+            this.tilemap.addChild(this.liveimage)
+        }
+
+        if(!this.blockimage && !this.hotbar_atlas) {
             return
         }
 
@@ -170,6 +177,11 @@ export class Hotbar {
         this.blockimage.y = this.y
         // let p = performance.now()
         this.tilemap.drawImage(this.blockimage)
+
+        this.liveimage.x = this.x + 50 + Math.sin(performance.now() / 100) * 100
+        this.liveimage.y = this.y + 50 + Math.cos(performance.now() / 100) * 100
+        this.tilemap.drawImage(this.liveimage)
+
         // console.log(performance.now() - p)
 
         // TODO: pixi

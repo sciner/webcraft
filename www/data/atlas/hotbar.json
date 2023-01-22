@@ -1,0 +1,56 @@
+{
+	"meta": {
+		"scale": 1
+	},
+	"frames": {
+        "selector": {
+            "frame": {"x":162,"y":300,"w":144,"h":138},
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {"x":0,"y":0,"w":144,"h":138},
+            "sourceSize": {"w":144,"h":138}
+        },
+        "live": {
+            "frame": {"x":0,"y":300,"w":54,"h":54},
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {"x":0,"y":0,"w":54,"h":54},
+            "sourceSize": {"w":54,"h":54}
+        },
+        "live_half": {
+            "frame": {"x":3,"y":354,"w":54,"h":54},
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {"x":0,"y":0,"w":54,"h":54},
+            "sourceSize": {"w":54,"h":54}
+        },
+        "food": {
+            "frame": {"x":54,"y":300,"w":54,"h":54},
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {"x":0,"y":0,"w":54,"h":54},
+            "sourceSize": {"w":54,"h":54}
+        },
+        "food_half": {
+            "frame": {"x":54,"y":354,"w":54,"h":54},
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {"x":0,"y":0,"w":54,"h":54},
+            "sourceSize": {"w":54,"h":54}
+        },
+        "oxygen": {
+            "frame": {"x":108,"y":300,"w":54,"h":54},
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {"x":0,"y":0,"w":54,"h":54},
+            "sourceSize": {"w":54,"h":54}
+        },
+        "oxygen_half": {
+            "frame": {"x":108,"y":354,"w":54,"h":54},
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {"x":0,"y":0,"w":54,"h":54},
+            "sourceSize": {"w":54,"h":54}
+        }
+    }
+}

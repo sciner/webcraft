@@ -13,6 +13,7 @@ import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED } from "./constan
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
+import { SpriteAtlas } from "./core/sprite_atlas.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -55,6 +56,8 @@ export class GameClass {
         //
         const blockTask = BLOCK.init(settings);
         await Promise.all([resourceTask, blockTask]);
+
+        Resources.hotbar.atlas = await SpriteAtlas.fromJSON(Resources.hotbar.image, Resources.hotbar.map)
 
         // init world
         this.world = new World(settings, BLOCK);

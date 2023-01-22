@@ -63,6 +63,7 @@ export class Resources {
         this.inventory          = {};
         this.physics            = {};
         this.models             = {};
+        this.hotbar             = {};
         this.sounds             = {};
         this.sound_sprite_main  = {};
         this.weather            = {};
@@ -86,6 +87,10 @@ export class Resources {
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
         all.push(fetch('/data/icons.json').then(response => response.json()).then(json => { this.icons = json;}));
+
+        // hotbar
+        all.push(fetch('/data/atlas/hotbar.json').then(response => response.json()).then(json => { this.hotbar.map = json}))
+        all.push(loadImage('media/hotbar.png').then(img => {this.hotbar.image = img}))
 
         // Skybox textures
         /*
