@@ -1,6 +1,6 @@
 import {BLOCK} from "../blocks.js";
-import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers, IndexedColor } from "../helpers.js";
-import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
+import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
+import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
 import { Label } from "../../tools/gui/wm.js";
@@ -9,13 +9,10 @@ import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
-import { EnchantShaderNoise } from "../math/EnchantShaderNoise.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
 const DOUBLE_CLICK_TIME = 200.0;
-
-const enchantShader = new EnchantShaderNoise();
 
 export class HelpSlot extends Label {
 
@@ -24,11 +21,11 @@ export class HelpSlot extends Label {
         this.ct = ct;
         this.item = null;
     }
-
+    
     setItem(id) {
         this.item = id;
     }
-
+    
     //
     get tooltip() {
         let resp = null;
@@ -40,7 +37,7 @@ export class HelpSlot extends Label {
         }
         return resp;
     }
-
+    
     // Draw slot
     draw(ctx, ax, ay) {
         if (this.ct.lblResultSlot.item) {
@@ -50,7 +47,7 @@ export class HelpSlot extends Label {
             if (slot.item) {
                 return;
             }
-        }
+        } 
         this.applyStyle(ctx, ax, ay);
         this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
         this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
@@ -59,13 +56,13 @@ export class HelpSlot extends Label {
 
     // Draw item
     drawItem(ctx, item, x, y, width, height) {
-
+        
         const image = Qubatch.player.inventory.inventory_image;
 
         if(!image || !item) {
             return;
         }
-
+        
         const size = image.width;
         const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
         const zoom = this.zoom;
@@ -126,7 +123,7 @@ export class CraftTableSlot extends Label {
     }
 
     setItem(item) {
-        if(this.slot_index !== null) {
+        if(this.slot_index !== null) {   
             Qubatch.player.inventory.setItem(this.slot_index, item);
         } else {
             this.item = item;
@@ -160,14 +157,14 @@ export class CraftTableSlot extends Label {
             ctx.fillText(this.slot_index || '', ax + this.x + 4, ay + this.y + 4);
         }
         //
-        // this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
+        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
 
     // Draw item
-    async drawItem(ctx, item, x, y, width, height) {
-
-        let image = this.ct.inventory.inventory_image;
+    drawItem(ctx, item, x, y, width, height) {
+        
+        const image = this.ct.inventory.inventory_image;
 
         if(!image || !item) {
             return;
@@ -183,13 +180,6 @@ export class CraftTableSlot extends Label {
         // 1. Draw icon
         const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
         const dest_icon_size = 40 * zoom;
-
-        //
-        const new_image = enchantShader.processEnchantedIcon(this, item, image, icon)
-        if(new_image) {
-            image = new_image
-        }
-
         ctx.drawImage(
             image,
             icon.x,
@@ -406,9 +396,9 @@ export class CraftTableResultSlot extends CraftTableSlot {
             // set drag item
             this.parent.inventory.setDragItem(this, dragItem, e.drag, this.width, this.height);
         }
-
+    
     }
-
+    
 }
 
 export class CraftTableInventorySlot extends CraftTableSlot {
@@ -421,7 +411,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
      *  { readonly, onMouseEnterBackroundColor, disableIfLoading }
      */
     constructor(x, y, w, h, id, title, text, ct, slot_index, options = null) {
-
+        
         super(x, y, w, h, id, title, text, ct, slot_index);
 
         this.options = options || {};
@@ -454,7 +444,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(e.drag.getItem()) {
                 return;
             }
-
+            
             let dragItem = targetItem;
             // right button (divide to 2)
             if(e.button_id == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
@@ -589,7 +579,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             let minus_count = item.count < need_count ? item.count : need_count;
                             need_count -= minus_count;
                             dropData.item.count += minus_count;
-                            item.count -= minus_count;
+                            item.count -= minus_count;                            
                             if (item.count < 1) {
                                 if (v.chest) {
                                     slots[v.index].setItem(null, e);
@@ -695,12 +685,12 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         let item = this.getInventoryItem();
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
-    }
+    }    
 
     getInventoryItem() {
         return this.ct.inventory.items[this.slot_index] || this.item;
     }
-
+    
 }
 
 // Ячейка рецепта
@@ -715,7 +705,7 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
 }
 
 export class ArmorSlot extends CraftTableInventorySlot {
-
+    
     constructor(x, y, s, id, ct) {
 
         super(x, y, s, s, 'lblSlot' + id, null, null, ct, id);
@@ -783,7 +773,7 @@ export class ArmorSlot extends CraftTableInventorySlot {
         const mat = BLOCK.fromId(dragItem.item.id);
         return mat?.item?.name == 'armor' && (mat.armor.slot == this.slot_index);
     }
-
+    
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
         const item = this.getInventoryItem();
@@ -804,11 +794,11 @@ export class ArmorSlot extends CraftTableInventorySlot {
     getInventory() {
         return this.ct.inventory;
     }
-
+    
     getInventoryItem() {
         return this.ct.inventory.items[this.slot_index] || this.item;
     }
-
+    
 }
 
 export class BaseCraftWindow extends BaseInventoryWindow {
@@ -986,7 +976,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             }
         } while (shiftKey);
     }
-
+    
     // слоты помощи в крафте
     addHelpSlots() {
         const size = this.area.size.width;
@@ -1001,7 +991,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             }
         }
     }
-
+    
     // показываем помощь
     setHelperSlots(recipe) {
         const size = this.area.size.width;

@@ -185,17 +185,9 @@ class CreativeInventoryCollection extends Window {
         region.rect(x, y, w, h);
         ctx.save();
         ctx.clip(region, 'evenodd');
-        let p = performance.now()
-        let cnt = 0
         for(let lblSlot of this.list.values()) {
-            const slotx = ax + 16 * this.zoom
-            const sloty = ay + 70 * this.zoom + this.scrollY
-            if(lblSlot.y + sloty < y) continue
-            if(lblSlot.y + sloty > y + h) continue
-            lblSlot.drawOrig(ctx, slotx, sloty)
-            cnt++
+            lblSlot.drawOrig(ctx, ax + 16 * this.zoom, ay + 70 * this.zoom + this.scrollY);
         }
-        // console.log(performance.now() - p)
         ctx.restore();
     }
 

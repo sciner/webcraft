@@ -4,9 +4,6 @@ import {Resources} from "./resources.js";
 import { Inventory } from "./inventory.js";
 import { INVENTORY_DRAG_SLOT_INDEX } from "./constant.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
-import { EnchantShaderNoise } from "./math/EnchantShaderNoise.js";
-
-const enchantShader = new EnchantShaderNoise()
 
 // Player inventory
 export class PlayerInventory extends Inventory {
@@ -100,36 +97,24 @@ export class PlayerInventory extends Inventory {
         hud.ctx.font            = Math.round(18 * zoom) + 'px ' + UI_FONT;
         hud.ctx.textAlign       = 'right';
         hud.ctx.textBaseline    = 'bottom';
-        const bm = this.player.world.block_manager;
-        // Create virtual slots if not exists
-        if(!this.slots) {
-            this.slots = new Array(this.hotbar_count)
-            for(let i = 0; i < this.slots.length; i++) {
-                this.slots[i] = {x: i * 100, y: 0}
-            }
-        }
         for(const k in this.items) {
             const item = this.items[k];
             if(k >= this.hotbar_count) {
                 break;
             }
-            //
             if(item) {
                 if(!('id' in item)) {
                     console.error(item);
                 }
+                const bm = this.player.world.block_manager;
                 const mat = bm.fromId(item.id);
                 const icon = bm.getInventoryIconPos(
                     mat.inventory_icon_id,
                     this.inventory_image.width,
                     this.inventory_image.width / INVENTORY_ICON_COUNT_PER_TEX
                 );
-
-                //
-                const image = enchantShader.processEnchantedIcon(this.slots[k], item, this.inventory_image, icon)
-
                 hud.ctx.drawImage(
-                    image,
+                    this.inventory_image,
                     icon.x,
                     icon.y,
                     icon.width,
@@ -138,8 +123,7 @@ export class PlayerInventory extends Inventory {
                     hud_pos.y + cell_size / 2 - 48 * zoom / 2 - 2 * zoom,
                     DEST_SIZE,
                     DEST_SIZE
-                )
-
+                    );
                 // Draw instrument life
                 const power_in_percent = mat?.item?.indicator == 'bar';
                 if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
