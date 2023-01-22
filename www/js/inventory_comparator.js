@@ -86,7 +86,7 @@ export class InventoryComparator {
      *   The values are boolean, indicating whether the key is non-optional.
      * @return null if success, or the first invlid item or error message
      */
-    static sanitizeAndValidateItems(list, keysObject = null) {
+    static sanitizeAndValidateItems(list, keysObject = null, mustCheckEqual) {
         if (!list || typeof list !== 'object') {
             return 'not a list';
         }
@@ -95,11 +95,15 @@ export class InventoryComparator {
         for(let key in keys) {
             const item = list[key];
             if (item != null) {
-                const new_item = BLOCK.sanitizeAndValidateInventoryItem(item);
-                if (!new_item) {
-                    return list[key];
+                const new_item = BLOCK.sanitizeAndValidateInventoryItem(item)
+                if(!new_item && mustCheckEqual === false) {
+                    list[key] = null
+                } else {
+                    if (!new_item) {
+                        return list[key];
+                    }
+                    list[key] = new_item;
                 }
-                list[key] = new_item;
             } else {
                 const isMandatory = keysObject ? keysObject[key] : !isArray;
                 if (isMandatory) {

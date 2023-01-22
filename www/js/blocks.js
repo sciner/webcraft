@@ -278,7 +278,9 @@ export class BLOCK {
         if (item.entity_id != null) {
             return 1;
         }
-        return this.BLOCK_BY_ID[item.id].max_in_stack;
+        const mat = this.BLOCK_BY_ID[item.id]
+        if(!mat) throw `error_undefined_block|${item.id}`
+        return mat.max_in_stack;
     }
 
     /**
@@ -697,7 +699,7 @@ export class BLOCK {
 
     static isSimpleQube(block) {
         return block.is_solid &&
-            !block.can_rotate &&
+            !block.transparent &&
             block.tags.length == 0 &&
             block.texture &&
             Object.keys(block.texture).length == 1;
@@ -714,6 +716,14 @@ export class BLOCK {
         const existing_block = this.BLOCK_BY_ID[block.id] || null
         const replace_block = existing_block && (block.name == existing_block.name)
         const original_props = Object.keys(block)
+
+        const calculated_props = ['is_solid', 'is_solid_for_fluid']
+        if(existing_block && replace_block) {
+            for(let prop_name of calculated_props) {
+                delete(existing_block[prop_name])
+                delete(block[prop_name])
+            }
+        }
 
         if(existing_block) {
             if(replace_block) {
@@ -838,6 +848,11 @@ export class BLOCK {
         }
         if(block.is_solid) {
             BLOCK.SOLID_BLOCK_ID.push(block.id)
+        } else {
+            const sidx = BLOCK.SOLID_BLOCK_ID.indexOf(block.id)
+            if(sidx >= 0) {
+                BLOCK.SOLID_BLOCK_ID.splice(sidx, 1)
+            }
         }
         if(block.ticking) {
             BLOCK.TICKING_BLOCKS.set(block.id, block);
@@ -897,6 +912,9 @@ export class BLOCK {
             original_props.push('resource_pack');
             original_props.push('material_key');
             original_props.push('tx_cnt');
+            for(let prop_name of calculated_props) {
+                original_props.push(prop_name)
+            }
             for(let prop_name of original_props) {
                 existing_block[prop_name] = block[prop_name];
             }
@@ -1196,7 +1214,7 @@ export class BLOCK {
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                ['wall', 'pane', 'fence'].includes(block.material.style_name)
+                ['wall', 'pane', 'fence'].includes(block.material.bb?.behavior ?? block.material.style_name)
             ) && (
                 block.material.material.id != 'leaves'
             );
