@@ -442,11 +442,13 @@ export class Window extends PIXI.Container {
 
     /**
      * Return current text metrics
+     * @param {boolean} ignore_bitmap_font_metrics
      * @returns {PIXI.TextMetrics}
      */
-    getTextMetrics() {
+    getTextMetrics(ignore_bitmap_font_metrics) {
         const tc = this.text_container;
-        if (tc._activePagesMeshData) {
+        if (tc._activePagesMeshData && !ignore_bitmap_font_metrics) {
+            // TODO: возвращает неверный размер, если в конце строки пробел
             if (tc.dirty) {
                 tc.updateText();
             }
@@ -653,17 +655,17 @@ export class Window extends PIXI.Container {
         this.onMouseDown(e)
     }
 
-    measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
-        const lines = text.split("\r");
-        let width = 0;
-        let actualBoundingBoxDescent = 0;
-        for(const line of lines) {
-            const mt = ctx.measureText(line);
-            width = Math.max(width, mt.w);
-            actualBoundingBoxDescent += mt.actualBoundingBoxDescent * lineHeightMultiply + lineHeightAdd;
-        }
-        return { width, actualBoundingBoxDescent };
-    }
+    // measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
+    //     const lines = text.split("\r");
+    //     let width = 0;
+    //     let actualBoundingBoxDescent = 0;
+    //     for(const line of lines) {
+    //         const mt = ctx.measureText(line);
+    //         width = Math.max(width, mt.w);
+    //         actualBoundingBoxDescent += mt.actualBoundingBoxDescent * lineHeightMultiply + lineHeightAdd;
+    //     }
+    //     return { width, actualBoundingBoxDescent };
+    // }
 
     calcPrintLines(original_text, ax, ay) {
         if(!this.word_wrap || !this.ctx) {

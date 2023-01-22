@@ -1,6 +1,6 @@
-import {ServerClient} from "./server_client.js";
+import { ServerClient } from "./server_client.js";
 import { Lang } from "./lang.js";
-import {TextBox} from "./ui/textbox.js";
+import { TextBox } from "./ui/textbox.js";
 
 const MESSAGE_SHOW_TIME         = 7000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
@@ -15,7 +15,7 @@ export class Chat extends TextBox {
         this.history_max_messages   = 64;
         this.messages = {
             list: [],
-            send: function(text) {
+            send(text) {
                 this.add('YOU', text);
                 if(text.trim().toLowerCase() == '/ping') {
                     that.send_ping = performance.now();
@@ -23,13 +23,13 @@ export class Chat extends TextBox {
                 that.player.world.server.SendMessage(text);
                 Qubatch.setupMousePointer(true);
             },
-            addSystem: function(text) {
+            addSystem(text) {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
             },
-            addError: function(text) {
+            addError(text) {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
             },
-            add: function(username, text, timeout) {
+            add(username, text, timeout) {
                 text = String(text);
                 if(!timeout) {
                     timeout = 0;
@@ -49,7 +49,7 @@ export class Chat extends TextBox {
             list: [],
             draft: [],
             index: -1,
-            add: function(buffer) {
+            add(buffer) {
                 this.list.push(buffer);
                 this.save();
                 this.reset();
@@ -62,11 +62,11 @@ export class Chat extends TextBox {
                 this.list = [];
                 this.save();
             },
-            reset: function() {
+            reset() {
                 this.index = -1;
                 this.draft = [];
             },
-            navigate: function(go_back, buffer, onchange) {
+            navigate(go_back, buffer, onchange) {
                 if(this.list.length < 1) {
                     return false;
                 }
@@ -276,10 +276,11 @@ export class Chat extends TextBox {
         return false;
     }
 
+    /**
+     * @param { import("./hud.js").HUD } hud
+     * @returns 
+     */
     drawHUD(hud) {
-
-        // TODO: pixi
-        return
 
         const margin            = 10 * this.zoom;
         const multiLineMarginAdd= 10 * this.zoom; // additional left margin for multi-line messages
@@ -288,26 +289,22 @@ export class Chat extends TextBox {
         const now               = performance.now();
         const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)
 
-        hud.ctx.save();
-
-        const CHAT_INPUT_FONT = 'UbuntuMono-Regular'; // UI_FONT
-
-        // Calc text size
-        hud.ctx.font            = Math.round(18 * this.zoom) + 'px ' + CHAT_INPUT_FONT;
-        hud.ctx.textAlign       = 'left';
-        hud.ctx.textBaseline    = 'top';
-
-        if(!this.line_height) {
-            let mt = hud.ctx.measureText('TW|');
-            this.line_height = mt.actualBoundingBoxDescent + 14 * this.zoom;
+        if(!this.chat_input) {
+            this.init(hud)
         }
 
-        let x = margin;
-        let y = hud.height - (top + margin + this.line_height);
+        const x = margin
+        const y = hud.height - (top + margin + this.line_height)
+        const input_width = hud.width - margin * 2
+        const input_height = this.line_height
 
+        this.chat_input.visible = this.active
         if(this.active) {
-            super.draw(hud.ctx, x, hud.height - top, hud.width - margin * 2, this.line_height);
+            this.draw(x, hud.height - top, input_width, input_height, margin)
         }
+
+        // TODO: pixi
+        return
 
         // Draw message history
         for(let m of this.messages.list) {
@@ -345,9 +342,6 @@ export class Chat extends TextBox {
                 }
             }
         }
-
-        // Restore original state
-        hud.ctx.restore();
 
     }
 
