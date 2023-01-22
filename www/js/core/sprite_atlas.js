@@ -12,7 +12,7 @@ export class SpriteAtlas {
     }
 
     /**
-     * @param {string} url 
+     * @param {string} url
      * @returns {SpriteAtlas}
      */
     async fromFile(url) {
@@ -31,8 +31,8 @@ export class SpriteAtlas {
     }
 
     /**
-     * @param {Image|string} image_or_url 
-     * @param {object} map_json 
+     * @param {Image|string} image_or_url
+     * @param {object} map_json
      * @returns {SpriteAtlas}
      */
     static async fromJSON(image_or_url, map_json) {
@@ -44,7 +44,9 @@ export class SpriteAtlas {
         if(isScalar(image_or_url)) {
             await atlas.fromFile(image_or_url)
         } else {
-            atlas.baseTex = new PIXI.BaseTexture(image_or_url)
+            atlas.baseTex = new PIXI.BaseTexture(image_or_url, {
+                resourceOptions: { alphaMode: image_or_url instanceof ImageBitmap ? 0 : 1 }
+            })
         }
         atlas.sheet = new PIXI.Spritesheet(atlas.baseTex, map_json);
         await atlas.sheet.parse();
@@ -65,7 +67,7 @@ export class SpriteAtlas {
     }
 
     getSpriteFromMap(name) {
-        if(!this.sheet) throw 'error_atlas_map_empty' 
+        if(!this.sheet) throw 'error_atlas_map_empty'
         const tex = this.sheet.textures[name]
         if(!tex) throw `error_atlas_sprite_not_found|${name}`
         return tex
