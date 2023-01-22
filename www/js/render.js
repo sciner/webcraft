@@ -211,6 +211,7 @@ export class Renderer {
 
         settings.fov = settings.fov || DEFAULT_FOV_NORMAL;
         this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
+
         // HUD
         this.HUD = Qubatch.hud;
         // this.HUD.wm.initRender();
@@ -238,10 +239,12 @@ export class Renderer {
             const ay = y | 0;
             const index = ((ay * this.width) + ax) * 4;
             return new Color(imd[index + 0], imd[index + 1], imd[index + 2], imd[index + 3]);
-        };
+        }
+
+        const promises = []
 
         // generatePrev
-        this.generatePrev(settings.generate_prev_callback)
+        promises.push(this.generatePrev(settings.generate_prev_callback))
         this.generateDropItemVertices();
 
         // Clouds
@@ -266,7 +269,10 @@ export class Renderer {
         this.debugGeom = new LineGeometry();
         this.debugGeom.pos = this.camPos;
 
-        this.HUD.wm.initRender(this);
+        this.HUD.wm.initRender(this)
+
+        return Promise.all(promises)
+
     }
 
     // Generate drop item vertices
@@ -294,7 +300,8 @@ export class Renderer {
     }
 
     //
-    generatePrev(callback) {
+    async generatePrev(callback) {
+
         const target = this.renderBackend.createRenderTarget({
             width: INVENTORY_ICON_TEX_WIDTH,
             height: INVENTORY_ICON_TEX_HEIGHT,
@@ -463,154 +470,160 @@ export class Renderer {
 
         });
 
-        this.renderBackend.endPass();
+        this.renderBackend.endPass()
 
-        // render target to Canvas
-        target.toImage('canvas').then((data) => {
-            /**
-             * @type {CanvasRenderingContext2D}
-             */
-            const ctx = data.getContext('2d');
+        return new Promise((resolve, reject) => {
 
-            const tmpCanvas = document.createElement('canvas');
-            const tmpContext = tmpCanvas.getContext('2d');
-            tmpCanvas.width = target.width / GRID_X;
-            tmpCanvas.height = target.height / GRID_Y;
+            // render target to Canvas
+            target.toImage('canvas').then((data) => {
+                /**
+                 * @type {CanvasRenderingContext2D}
+                 */
+                const ctx = data.getContext('2d');
 
-            tmpContext.imageSmoothingEnabled = false;
-            ctx.imageSmoothingEnabled = false;
+                const tmpCanvas = document.createElement('canvas');
+                const tmpContext = tmpCanvas.getContext('2d');
+                tmpCanvas.width = target.width / GRID_X;
+                tmpCanvas.height = target.height / GRID_Y;
 
-            //
-            const texs = new Map()
-            const getTextureOrigImage = (tex) => {
-                let canvas = texs.get(tex)
-                if(!canvas) {
-                    const imagedata = tex.imageData
-                    canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = imagedata.width;
-                    canvas.height = imagedata.height;
-                    ctx.putImageData(imagedata, 0, 0);
-                    texs.set(tex, canvas)
-                }
-                return canvas // tex.texture.source
-            }
+                tmpContext.imageSmoothingEnabled = false;
+                ctx.imageSmoothingEnabled = false;
 
-            // render plain preview that not require 3D view
-            // and can be draw directly
-            extruded.forEach((material) => {
-                const pos = material.inventory_icon_id;
-                const w = target.width / GRID_X;
-                const h = target.height / (GRID_Y);
-                const x = (pos % GRID_X) * w;
-                const y = ((pos / GRID_X) | 0) * h;
-
-                // const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
-
-                const resource_pack = material.resource_pack;
-                let texture_id = 'default';
-                let texture = material.texture;
-                let mask_color = material.mask_color;
-                if('inventory' in material) {
-                    if('texture' in material.inventory) {
-                        texture = material.inventory.texture;
+                //
+                const texs = new Map()
+                const getTextureOrigImage = (tex) => {
+                    let canvas = texs.get(tex)
+                    if(!canvas) {
+                        const imagedata = tex.imageData
+                        canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = imagedata.width;
+                        canvas.height = imagedata.height;
+                        ctx.putImageData(imagedata, 0, 0);
+                        texs.set(tex, canvas)
                     }
-                    if('mask_color' in material.inventory) {
-                        mask_color = material.inventory.mask_color;
+                    return canvas // tex.texture.source
+                }
+
+                // render plain preview that not require 3D view
+                // and can be draw directly
+                extruded.forEach((material) => {
+                    const pos = material.inventory_icon_id;
+                    const w = target.width / GRID_X;
+                    const h = target.height / (GRID_Y);
+                    const x = (pos % GRID_X) * w;
+                    const y = ((pos / GRID_X) | 0) * h;
+
+                    // const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
+
+                    const resource_pack = material.resource_pack;
+                    let texture_id = 'default';
+                    let texture = material.texture;
+                    let mask_color = material.mask_color;
+                    if('inventory' in material) {
+                        if('texture' in material.inventory) {
+                            texture = material.inventory.texture;
+                        }
+                        if('mask_color' in material.inventory) {
+                            mask_color = material.inventory.mask_color;
+                        }
                     }
-                }
-                if(typeof texture == 'object' && 'id' in texture) {
-                    texture_id = texture.id;
-                }
-                const tex = resource_pack.textures.get(texture_id);
-                if(!tex) {
-                    console.error(material)
-                    debugger
-                    throw 'error_empty_tex'
-                }
-                // let imageData = tex.imageData;
-                const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
-
-                let tex_w = Math.round(c[2] * tex.width);
-                let tex_h = Math.round(c[3] * tex.height);
-                let tex_x = Math.round(c[0] * tex.width) - tex_w/2 | 0;
-                let tex_y = Math.round(c[1] * tex.height) - tex_h/2 | 0;
-
-                let image = getTextureOrigImage(tex)
-
-                const tint = material.tags && (
-                    material.tags.includes('mask_biome') ||
-                    material.tags.includes('mask_color') ||
-                    mask_color
-                );
-
-                ctx.globalCompositeOperation = 'source-over';
-
-                if (tint) {
-                    tmpContext.globalCompositeOperation = 'source-over';
-                    if(mask_color) {
-                        tmpContext.fillStyle = this.maskColorTex.getColorAt(mask_color.r, mask_color.g).toHex();
-                    } else {
-                        // default grass color
-                        tmpContext.fillStyle = "#7ba83d";
+                    if(typeof texture == 'object' && 'id' in texture) {
+                        texture_id = texture.id;
                     }
-                    tmpContext.fillRect(0, 0, w, h);
+                    const tex = resource_pack.textures.get(texture_id);
+                    if(!tex) {
+                        console.error(material)
+                        debugger
+                        throw 'error_empty_tex'
+                    }
+                    // let imageData = tex.imageData;
+                    const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
 
-                    tmpContext.globalCompositeOperation = 'multiply';
-                    tmpContext.drawImage(
-                        image,
-                        tex_x + tex_w, tex_y, tex_w, tex_h,
-                        0, 0, w , h
+                    let tex_w = Math.round(c[2] * tex.width);
+                    let tex_h = Math.round(c[3] * tex.height);
+                    let tex_x = Math.round(c[0] * tex.width) - tex_w/2 | 0;
+                    let tex_y = Math.round(c[1] * tex.height) - tex_h/2 | 0;
+
+                    let image = getTextureOrigImage(tex)
+
+                    const tint = material.tags && (
+                        material.tags.includes('mask_biome') ||
+                        material.tags.includes('mask_color') ||
+                        mask_color
                     );
-                    tmpContext.globalCompositeOperation = 'lighter';
-                    tmpContext.drawImage(
+
+                    ctx.globalCompositeOperation = 'source-over';
+
+                    if (tint) {
+                        tmpContext.globalCompositeOperation = 'source-over';
+                        if(mask_color) {
+                            tmpContext.fillStyle = this.maskColorTex.getColorAt(mask_color.r, mask_color.g).toHex();
+                        } else {
+                            // default grass color
+                            tmpContext.fillStyle = "#7ba83d";
+                        }
+                        tmpContext.fillRect(0, 0, w, h);
+
+                        tmpContext.globalCompositeOperation = 'multiply';
+                        tmpContext.drawImage(
+                            image,
+                            tex_x + tex_w, tex_y, tex_w, tex_h,
+                            0, 0, w , h
+                        );
+                        tmpContext.globalCompositeOperation = 'lighter';
+                        tmpContext.drawImage(
+                            image,
+                            tex_x, tex_y, tex_w, tex_h,
+                            0, 0, w , h
+                        );
+
+                        tmpContext.globalCompositeOperation = 'destination-in';
+                        tmpContext.drawImage(
+                            image,
+                            tex_x + tex_w, tex_y, tex_w, tex_h,
+                            0, 0, w , h
+                        );
+
+
+                        image = tmpContext.canvas;
+                        tex_x = 0;
+                        tex_y = 0;
+                        tex_w = w;
+                        tex_h = h;
+                    }
+
+                    ctx.drawImage(
                         image,
                         tex_x, tex_y, tex_w, tex_h,
-                        0, 0, w , h
+                        x + 0.1 * w, y + 0.1 * h,
+                        w * 0.8, h * 0.8
                     );
 
-                    tmpContext.globalCompositeOperation = 'destination-in';
-                    tmpContext.drawImage(
-                        image,
-                        tex_x + tex_w, tex_y, tex_w, tex_h,
-                        0, 0, w , h
-                    );
+                })
 
+                tmpCanvas.width = tmpCanvas.height = 0
+                Resources.inventory.image = data
 
-                    image = tmpContext.canvas;
-                    tex_x = 0;
-                    tex_y = 0;
-                    tex_w = w;
-                    tex_h = h;
-                }
-
-                ctx.drawImage(
-                    image,
-                    tex_x, tex_y, tex_w, tex_h,
-                    x + 0.1 * w, y + 0.1 * h,
-                    w * 0.8, h * 0.8
-                );
+                data.toBlob(async (blob) => {
+                    Resources.inventory.atlas = await SpriteAtlas.fromJSON(await blobToImage(blob), atlas_map)
+                    if(callback instanceof Function) {
+                        callback(blob)
+                    }
+                    resolve()
+                }, 'image/png')
 
             })
 
-            tmpCanvas.width = tmpCanvas.height = 0
-            Resources.inventory.image = data
+            this.renderBackend.endPass();
 
-            data.toBlob(async (blob) => {
-                Resources.inventory.atlas = await SpriteAtlas.fromJSON(await blobToImage(blob), atlas_map)
-                if(callback instanceof Function) {
-                    callback(blob)
-                }
-            }, 'image/png')
+            // disable
+            gu.useSunDir = false;
+
+            target.destroy()
 
         })
 
-        this.renderBackend.endPass();
-
-        // disable
-        gu.useSunDir = false;
-
-        target.destroy();
     }
 
     /**

@@ -1,11 +1,9 @@
 import { INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
-import {blobToImage, Vector} from "./helpers.js";
+import { Vector} from "./helpers.js";
 import { Resources } from "./resources.js";
 import { PlayerInventory } from "./player_inventory.js";
 import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
-import { getBlockImage } from "./window/tools/blocks.js";
-import { BLOCK } from "./blocks.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -105,10 +103,20 @@ export class Hotbar {
         const all = []
         all.push(this.effect_icons = new SpriteAtlas().fromFile('./media/gui/inventory2.png'))
         all.push(this.icons = new SpriteAtlas().fromFile('./media/icons.png'))
+        
         Promise.all(all).then(_ => {
+
             this.tilemap = new MyTilemap()
             hud.wm.addChild(this.tilemap)
+
+            // Init sprites
+            this.inventory_atlas = Resources.inventory.atlas
+            this.blockimage = this.addSprite(new MySprite(this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')))
+            this.hotbar_atlas = Resources.hotbar.atlas
+            this.liveimage = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
+
             this.hud.add(this, 0)
+
         })
 
     }
@@ -143,21 +151,6 @@ export class Hotbar {
     }
 
     drawHUD(hud) {
-
-        if(!this.blockimage && Resources.inventory.atlas) {
-            this.inventory_atlas = Resources.inventory.atlas
-            this.blockimage = this.addSprite(new MySprite(this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')))
-            
-        }
-
-        if(!this.liveimage && Resources.hotbar.atlas) {
-            this.hotbar_atlas = Resources.hotbar.atlas
-            this.liveimage = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
-        }
-
-        if(!this.blockimage && !this.hotbar_atlas) {
-            return
-        }
 
         // TODO: pixi
         // demo

@@ -32,7 +32,7 @@ export class GameClass {
         this.is_server                  = false;
         this.render                     = new Renderer('qubatchRenderSurface');
         this.hud                        = new HUD(this.render.canvas);
-        this.hotbar                     = new Hotbar(this.hud);
+        // this.hotbar                     = new Hotbar(this.hud);
         this.onControlsEnabledChanged   = (value) => {};
         this.onStarted                  = () => {};
         this.f3_used                    = false;
@@ -63,7 +63,9 @@ export class GameClass {
         this.world = new World(settings, BLOCK);
 
         // Create world
-        await this.render.init(this.world, settings);
+        await this.render.init(this.world, settings)
+
+        this.hotbar = new Hotbar(this.hud)
 
         // Connect to server
         const connection_string = server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid;
