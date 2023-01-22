@@ -1121,7 +1121,9 @@ export class ServerChunk {
 
     // On world tick
     tick(tick_number) {
-        this.ticking_blocks.tick(tick_number);
+        if (this.load_state === CHUNK_STATE.READY) {
+            this.ticking_blocks.tick(tick_number);
+        }
     }
 
     getActions() {

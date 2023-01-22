@@ -1,5 +1,5 @@
 import { FakeTBlock } from '../../blocks.js';
-import { Vector, unixTime, Helpers } from '../../helpers.js';
+import { Vector, unixTime, Helpers, QUAD_FLAGS } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
 
@@ -61,8 +61,8 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             // 1. First main block
             this.mesh_group.addBlock(new Vector(0, 0, 0), this.block);
 
-            // 2. Add couples block 
-            if(this.block.material.style == 'fence' || this.block.material.style == 'wall') {
+            // 2. Add couples block
+            if(['fence', 'wall'].includes(block.style_name)) {
                 this.mesh_group.addBlock(new Vector(1, 0, 0), new FakeTBlock(block.id));
             }
 
@@ -94,6 +94,12 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             // 6. Draw all blocks
             matrix = matrix || mat4.create();
             this.mesh_group.buildVertices(x, y, z, true, matrix, pivot);
+
+            if(block?.extra_data?.enchantments) {
+                for(const [_, mesh] of this.mesh_group.meshes.entries()) {
+                    mesh.buffer.changeFlags(QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION, 'or');
+                }
+            }
 
             // 7.
             Mesh_Object_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);

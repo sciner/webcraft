@@ -33,7 +33,7 @@ export class BBModel_Model {
         if(texture) {
             this.selected_texture_name = texture_name
         } else {
-            throw 'error_invalid_palette'
+            throw `error_invalid_palette|${texture_name}`
         }
     }
 

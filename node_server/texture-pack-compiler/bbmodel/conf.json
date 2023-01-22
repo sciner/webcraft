@@ -37,6 +37,14 @@
         {"name": "brown_mushroom",      "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "red_mushroom",        "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "cauldron",            "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "bookshelf",           "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "crafting_table",      "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "barrel",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "furnace",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "dead_bush",           "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "candle",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "rail",                "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "iron_bars",           "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -393,6 +401,355 @@
             "name": "CAULDRON",
             "bb": {
                 "model": "cauldron"
+            }
+        },
+        {
+            "id": 5,
+            "name": "BOOKSHELF",
+            "bb": {
+                "model": "bookshelf"
+            }
+        },
+        {
+            "id": 32,
+            "name": "DEAD_BUSH",
+            "bb": {
+                "model": "dead_bush"
+            }
+        },
+        {
+            "id": 58,
+            "name": "CRAFTING_TABLE",
+            "transparent": true,
+            "bb": {
+                "model": "crafting_table",
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 52,
+            "name": "BARREL",
+            "transparent": true,
+            "bb": {
+                "model": "barrel",
+                "rotate": {"type": "three"}
+            }
+        },
+        {
+            "id": 61,
+            "name": "FURNACE",
+            "transparent": true,
+            "bb": {
+                "model": "furnace",
+                "rotate": {"type": "cardinal_direction"},
+                "select_texture": [
+                    {"texture": "furnace_lit.png", "when": {"extra_data.active": true}}
+                ],
+                "particles": [
+                    {"when": {"extra_data.active": true}, "list": [
+                        {"type": "torch_flame", "x": 0.35, "y": 0.01, "z": 0.75},
+                        {"type": "torch_flame", "x": 0.5, "y": 0.01, "z": 0.8},
+                        {"type": "torch_flame", "x": 0.65, "y": 0.01, "z": 0.75}
+                    ]}
+                ]
+            }
+        },
+        {
+            "id": 436,
+            "name": "CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1532,
+            "name": "WHITE_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "white_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1533,
+            "name": "ORANGE_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "orange_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1534,
+            "name": "MAGENTA_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "magenta_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1535,
+            "name": "LIGHT_BLUE_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "light_blue_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1536,
+            "name": "YELLOW_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "yellow_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1537,
+            "name": "LIME_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "lime_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1538,
+            "name": "PINK_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "pink_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1539,
+            "name": "GRAY_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "gray_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1540,
+            "name": "LIGHT_GRAY_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "light_gray_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1541,
+            "name": "CYAN_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "cyan_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1542,
+            "name": "PURPLE_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "purple_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1543,
+            "name": "BLUE_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "blue_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1544,
+            "name": "BROWN_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "brown_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1545,
+            "name": "GREEN_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "green_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1546,
+            "name": "RED_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "orange_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 1547,
+            "name": "BLACK_CANDLE",
+            "bb": {
+                "model": "candle",
+                "set_state": [
+                    {"name": "1candle", "when": {"extra_data.candles": null}},
+                    {"name": "2candles", "when": {"extra_data.candles": 2}},
+                    {"name": "3candles", "when": {"extra_data.candles": 3}},
+                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                ],
+                "select_texture": [
+                    {"texture": "black_candle.png"}
+                ]
+            }
+        },
+        {
+            "id": 26,
+            "name": "RAIL",
+            "bb": {
+                "model": "rail",
+                "behavior": "rails",
+                "set_state": [
+                    {"name": "normal", "when": {"extra_data.shape": [0, 1]}},
+                    {"name": "inclined", "when": {"extra_data.shape": [2, 3, 4, 5]}},
+                    {"name": "turn", "when": {"extra_data.shape": [6, 7, 8, 9]}}
+                ],
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.shape": [1, 2, 7]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.shape": [5, 8]}},
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.shape": [3, 9]}}
+                ]
+            }
+        },
+        {
+            "id": 626,
+            "name": "IRON_BARS",
+            "bb": {
+                "model": "iron_bars",
+                "behavior": "pane"
             }
         }
     ]
