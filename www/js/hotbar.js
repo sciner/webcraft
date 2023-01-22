@@ -137,54 +137,53 @@ export class Hotbar {
         }
     }
 
+    addSprite(sprite) {
+        this.tilemap.addChild(sprite)
+        return sprite
+    }
+
     drawHUD(hud) {
-
-        if(this.x === undefined) {
-            this.x = 0
-            this.y = 0
-            this.sx = 4
-            this.sy = 4
-        }
-
-        this.x += this.sx
-        this.y += this.sy
-
-        if(this.x < 0) this.sx *= -1
-        if(this.y < 0) this.sy *= -1
-        if(this.x > this.hud.wm.w) this.sx *= -1
-        if(this.y > this.hud.wm.h) this.sy *= -1
 
         if(!this.blockimage && Resources.inventory.atlas) {
             this.inventory_atlas = Resources.inventory.atlas
-            const texture = this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')
-            this.blockimage = new MySprite(texture)
-            this.tilemap.addChild(this.blockimage)
+            this.blockimage = this.addSprite(new MySprite(this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')))
+            
         }
 
         if(!this.liveimage && Resources.hotbar.atlas) {
             this.hotbar_atlas = Resources.hotbar.atlas
-            this.liveimage = new MySprite(this.hotbar_atlas.getSpriteFromMap('live'))
-            this.tilemap.addChild(this.liveimage)
+            this.liveimage = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
         }
 
         if(!this.blockimage && !this.hotbar_atlas) {
             return
         }
 
+        // TODO: pixi
+        // demo
+        if(this.x === undefined) {
+            this.x = 0
+            this.y = 0
+            this.sx = 4
+            this.sy = 4
+        }
+        this.x += this.sx
+        this.y += this.sy
+        if(this.x < 0) this.sx *= -1
+        if(this.y < 0) this.sy *= -1
+        if(this.x > this.hud.wm.w) this.sx *= -1
+        if(this.y > this.hud.wm.h) this.sy *= -1
         // draw hotbar
         this.tilemap.clear()
+        // icon1
         this.blockimage.x = this.x
         this.blockimage.y = this.y
-        // let p = performance.now()
         this.tilemap.drawImage(this.blockimage)
-
+        // icon2
         this.liveimage.x = this.x + 50 + Math.sin(performance.now() / 100) * 100
         this.liveimage.y = this.y + 50 + Math.cos(performance.now() / 100) * 100
         this.tilemap.drawImage(this.liveimage)
 
-        // console.log(performance.now() - p)
-
-        // TODO: pixi
         return
 
         const player = this.inventory.player;
