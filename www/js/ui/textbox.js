@@ -16,11 +16,12 @@ export class TextBox {
         this.buffer                 = []
         this.t                      = performance.now()
 
-        // style
-        this.style.font.size = 20
-        this.style.font.family = 'Ubuntu'
-        this.style.font.color = '#ffffff'
-        this.style.background.color = '#000000aa'
+        // styles
+        this.style = {
+            color: '#ffffff',
+            padding: 5 * this.zoom
+            // font: (20 * this.zoom) + ' Ubuntu',
+        }
 
         this.resetCarriage()
 
