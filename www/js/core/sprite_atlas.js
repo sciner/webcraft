@@ -33,7 +33,7 @@ export class SpriteAtlas {
     /**
      * @param {Image|string} image_or_url 
      * @param {object} map_json 
-     * @returns 
+     * @returns {SpriteAtlas}
      */
     static async fromJSON(image_or_url, map_json) {
         let atlas = atlases.get(image_or_url)
@@ -44,8 +44,7 @@ export class SpriteAtlas {
         if(isScalar(image_or_url)) {
             await atlas.fromFile(image_or_url)
         } else {
-            this.image = image
-            this.baseTex = new PIXI.BaseTexture(this.image)
+            atlas.baseTex = new PIXI.BaseTexture(image_or_url)
         }
         atlas.sheet = new PIXI.Spritesheet(atlas.baseTex, map_json);
         await atlas.sheet.parse();

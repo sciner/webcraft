@@ -1,8 +1,11 @@
 import { INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
-import {Vector} from "./helpers.js";
+import {blobToImage, Vector} from "./helpers.js";
 import { Resources } from "./resources.js";
 import { PlayerInventory } from "./player_inventory.js";
+import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
+import { getBlockImage } from "./window/tools/blocks.js";
+import { BLOCK } from "./blocks.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -101,14 +104,17 @@ export class Hotbar {
         all.push(this.atlas = new SpriteAtlas().fromFile('./media/hotbar.png'))
         all.push(this.effect_icons = new SpriteAtlas().fromFile('./media/gui/inventory2.png'))
         all.push(this.icons = new SpriteAtlas().fromFile('./media/icons.png'))
+        // all.push(this.inventory_atlas = SpriteAtlas.fromJSON(Resources.inventory.image, Resources.inventory.map))
         Promise.all(all).then(_ => {
+            this.tilemap = new MyTilemap()
+            hud.wm.addChild(this.tilemap)
             this.hud.add(this, 0)
         })
 
     }
 
     get zoom() {
-        return UI_ZOOM;
+        return UI_ZOOM
     }
 
     /**
@@ -132,6 +138,39 @@ export class Hotbar {
     }
 
     drawHUD(hud) {
+
+        if(this.x === undefined) {
+            this.x = 0
+            this.y = 0
+            this.sx = 32
+            this.sy = 32
+        }
+
+        this.x += this.sx
+        this.y += this.sy
+
+        if(this.x < 0) this.sx *= -1
+        if(this.y < 0) this.sy *= -1
+        if(this.x > this.hud.wm.w) this.sx *= -1
+        if(this.y > this.hud.wm.h) this.sy *= -1
+
+        if(!this.blockimage) {
+            if(Resources.inventory?.atlas) {
+                this.inventory_atlas = Resources.inventory.atlas
+                const texture = this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')
+                this.blockimage = new MySprite(texture, 100 * this.zoom)
+                this.tilemap.addChild(this.blockimage)
+            }
+            return
+        }
+
+        // draw hotbar
+        this.tilemap.clear()
+        this.blockimage.x = this.x
+        this.blockimage.y = this.y
+        // let p = performance.now()
+        this.tilemap.drawImage(this.blockimage)
+        // console.log(performance.now() - p)
 
         // TODO: pixi
         return

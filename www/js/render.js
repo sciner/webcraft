@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color, blobToImage} from "./helpers.js";
 import {CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -30,6 +30,7 @@ import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
+import { SpriteAtlas } from "./core/sprite_atlas.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -306,6 +307,28 @@ export class Renderer {
         const GRID_Y = GRID_X * ASPECT;
         const all_blocks = BLOCK.getAll();
 
+        const atlas_map = {
+            "meta": {
+                "scale": 1
+            },
+            "frames_count": 0,
+            "frames": {
+            }
+        }
+
+        const addAtlasSprite = (block) => {
+            const frame = target.width / INVENTORY_ICON_COUNT_PER_TEX
+            const pos = BLOCK.getInventoryIconPos(block.inventory_icon_id, target.width, frame)
+            atlas_map.frames_count++
+            atlas_map.frames[block.name] = {
+                "frame": {"x":pos.x,"y":pos.y,"w":pos.width,"h":pos.height},
+                "rotated": false,
+                "trimmed": false,
+                "spriteSourceSize": {"x":0,"y":0,"w":pos.width,"h":pos.height},
+                "sourceSize": {"w":pos.width,"h":pos.height}
+            }
+        }
+
         let inventory_icon_id = 0;
 
         const extruded = [];
@@ -319,6 +342,7 @@ export class Renderer {
             // pass extruded manually
             if (draw_style === 'extruder') {
                 block.inventory_icon_id = inventory_icon_id++;
+                addAtlasSprite(block)
                 extruded.push(block);
                 return;
             }
@@ -329,6 +353,7 @@ export class Renderer {
                 }
                 const drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
+                addAtlasSprite(drop.block_material)
                 return drop;
             } catch(e) {
                 console.log('Error on', block.id, draw_style, block, e);
@@ -566,18 +591,19 @@ export class Renderer {
                     w * 0.8, h * 0.8
                 );
 
-            });
+            })
 
             tmpCanvas.width = tmpCanvas.height = 0
-            Resources.inventory.image = data;
+            Resources.inventory.image = data
 
-            if(callback instanceof Function) {
-                data.toBlob(function(blob) {
+            data.toBlob(async (blob) => {
+                Resources.inventory.atlas = await SpriteAtlas.fromJSON(await blobToImage(blob), atlas_map)
+                if(callback instanceof Function) {
                     callback(blob)
-                }, 'image/png');
-            }
+                }
+            }, 'image/png')
 
-        });
+        })
 
         this.renderBackend.endPass();
 
