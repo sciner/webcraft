@@ -137,6 +137,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             Qubatch.sounds.play(this.options.sound.open.tag, this.options.sound.open.action)
         }
         this.world.blockModifierListeners.push(this.blockModifierListener)
+        super.onShow()
     }
 
     // Обработчик закрытия формы

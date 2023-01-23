@@ -125,6 +125,7 @@ export class AnvilWindow extends BaseCraftWindow {
     onShow() {
         this.lbl_edit.text = ''
         Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
     onPaste(str) {
@@ -140,7 +141,6 @@ export class AnvilWindow extends BaseCraftWindow {
         this.lbl_edit.text_container.anchor.y = .5
 
         this.lbl_edit.word_wrap         = false
-        this.lbl_edit.focused           = true
         this.lbl_edit.max_length        = ITEM_LABEL_MAX_LENGTH
         this.lbl_edit.max_lines         = 1
         this.lbl_edit.style.font.color  = '#ffffff'

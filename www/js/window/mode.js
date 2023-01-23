@@ -61,6 +61,7 @@ export class ModeWindow extends Window {
         Qubatch.releaseMousePointer()
         this.mode = this.prev_mode ?? this.player.game_mode.next(true).id
         this.updateMode()
+        super.onShow()
     }
 
     // Обработчик закрытия формы

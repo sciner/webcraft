@@ -116,6 +116,7 @@ export class ScreenshotWindow extends BlankWindow {
     onShow() {
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
     // Обработчик закрытия формы
