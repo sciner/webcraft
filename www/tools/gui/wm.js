@@ -643,6 +643,7 @@ export class Window extends PIXI.Container {
         if(window) {
             return window._mousedown(event)
         }
+        this.onMouseLeave()
         this.onMouseDown(e)
     }
 
@@ -939,22 +940,22 @@ export class Button extends Window {
         this.style.textAlign.horizontal = 'center';
         this.style.textAlign.vertical = 'middle';
 
-        this.onMouseEnter = function() {
-            this.style.background.color_save = this.style.background.color;
-            this.style.color_save = this.style.color;
-            //
-            this.style.background.color = '#8892c9';
-            this.style.color = '#ffffff';
-        }
+    }
 
-        this.onMouseLeave = function() {
-            this.style.background.color = this.style.background.color_save;
-            this.style.color = this.style.color_save;
-            //
-            this.style.background.color_save = null;
-            this.style.color_save = null;
+    onMouseEnter() {
+        if(!this.style.background.color_save) {
+            this.style.background.color_save = this.style.background.color
+            this.style.color_save = this.style.font.color
         }
+        this.style.background.color = '#8892c9'
+        this.style.color = '#ffffff'
+        super.onMouseEnter()
+    }
 
+    onMouseLeave() {
+        this.style.background.color = this.style.background.color_save
+        this.style.font.color = this.style.color_save
+        super.onMouseLeave()
     }
 
 }
@@ -1117,8 +1118,6 @@ class Tooltip extends Label {
 
         super(0, 0, 100, 20, '_tooltip', null, text)
 
-        // this.style.background.color = '#000000cc'
-        // this.style.border.hidden = true
         this.style.font.color = '#ffffff'
         this.style.font.size = 20
         this.style.font.family = 'Ubuntu'
@@ -1138,7 +1137,7 @@ class Tooltip extends Label {
         this._textbg = new PIXI.Graphics()
         this._textbg.beginFill(0x000000)
         this._textbg.drawRect(0, 0, 200, 100)
-        this._textbg.alpha = .5
+        this._textbg.alpha = .75
         this.addChildAt(this._textbg, 0)
 
     }
@@ -1274,7 +1273,7 @@ class WindowManagerOverlay extends Window {
         super(x, y, w, h, id)
         this._wmpointer = new Pointer()
         this._wmtooltip = new Tooltip()
-        this.addChild(this._wmtooltip, this._wmpointer)
+        this.addChild(this._wmpointer, this._wmtooltip)
     }
 
 }
