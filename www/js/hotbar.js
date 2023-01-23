@@ -5,6 +5,7 @@ import { Resources } from "./resources.js";
 import { PlayerInventory } from "./player_inventory.js";
 import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
 import { Effect } from "./block_type/effect.js";
+import { BBModel_Child } from "./bbmodel/child.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -217,6 +218,13 @@ export class Hotbar {
                 this.tilemap.drawImage(half)
             }
         }
+        this.tilemap.removeChild(this.sprites.live)
+        this.tilemap.removeChild(this.sprites.live_bg_black)
+        this.tilemap.removeChild(this.sprites.live_half)
+        this.tilemap.removeChild(this.sprites.live_bg_white)
+
+        this.tilemap.removeChild(this.sprites.live_poison)
+        this.tilemap.removeChild(this.sprites.live_poison_half)
     }
 
     drawHUD(hud) {
@@ -251,6 +259,7 @@ export class Hotbar {
 
         
         this.tilemap.clear()
+        
 
         const player = this.inventory.player;
         if(player.game_mode.isSpectator()) {
@@ -303,6 +312,7 @@ export class Hotbar {
             this.drawStrip(hud.width / 2 - 550, hud.height - 290, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
         }
 
+        // хотбар и селектор
         for (let i = 0; i < 9; i++) {
             this.sprites.slot.x = hud.width / 2 - 550 + i * 122
             this.sprites.slot.y = hud.height - 140
@@ -313,6 +323,7 @@ export class Hotbar {
                 this.tilemap.drawImage(this.sprites.selector)
             }
         }
+        this.tilemap.renderable = true;
 
         return
         // Other sizes
