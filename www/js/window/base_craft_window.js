@@ -1,10 +1,9 @@
 import {BLOCK} from "../blocks.js";
 import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
-import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
+import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
-import { Label, Window } from "../../tools/gui/wm.js";
-import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
+import { Label, SimpleBlockSlot } from "../../tools/gui/wm.js";
 import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
@@ -110,94 +109,6 @@ export class HelpSlot extends Label {
     //         dest_icon_size
     //     );
     // }
-
-}
-
-export class SimpleBlockSlot extends Window {
-
-    constructor(x, y, w, h, id, title, text) {
-        super(x, y, w, h, id, title, text)
-
-        this.style.font.color = '#ffffff'
-        this.style.font.size = 14
-        this.style.font.shadow.enable = true
-        this.style.font.shadow.alpha = .5
-        this.text_container.anchor.set(1, 1)
-        this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)
-
-        const padding = 3 * this.zoom
-        const bar_height = 3 * this.zoom
-        this.bar = new Label(padding, h - bar_height - padding, this.w - padding * 2, bar_height, 'lblBar')
-        this.bar.style.background.color = '#000000aa'
-        this.bar.visible = false
-        this.bar.catchEvents = false
-        this.bar_value = new Label(0, 0, this.bar.w / 2, this.bar.h, 'lblBar')
-        this.bar_value.style.background.color = '#00ff00'
-        this.addChild(this.bar)
-        this.bar.addChild(this.bar_value)
-
-    }
-
-    /**
-     * @param {float} percent 0...1
-     */
-    _setBarValue(percent) {
-        this.bar_value.w = this.bar.w * percent
-        const rgb = Helpers.getColorForPercentage(percent)
-        this.bar_value.style.background.color = rgb.toHex(true)
-    }
-
-    setItem(item) {
-        if(this._bgimage) {
-            this._bgimage.visible = !!item
-        }
-
-        this.bar.visible = !!item
-
-        if(!item && !this.getItem()) {
-            return false
-        }
-
-        if(item) {
-            const tintMode = item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(getBlockImage(item, 100 * this.zoom), 'centerstretch', 1.0, tintMode)
-        }
-
-        // draw count && instrument livebar
-        if(item) {
-
-            const mat = BLOCK.fromId(item.id)
-
-            // let font_size = 18
-            const power_in_percent = mat?.item?.indicator == 'bar'
-            let label = item.count > 1 ? item.count : null
-            let shift_y = 0
-            if(!label && 'power' in item) {
-                if(power_in_percent) {
-                    label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%'
-                } else {
-                    label = null
-                }
-                // font_size = 12
-                shift_y = -10
-            }
-
-            this.text = label
-
-            // 3. Draw instrument life
-            this.bar.visible = (mat.item?.instrument_id && item.power < mat.power) || power_in_percent
-            if(this.bar.visible) {
-                this._setBarValue(Math.min(item.power / mat.power, 1))
-            }
-
-        } else {
-            this.text = ''
-            this.bar.visible = false
-        }
-
-        return true
-    
-    }
 
 }
 

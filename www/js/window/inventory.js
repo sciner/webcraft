@@ -191,7 +191,7 @@ export class InventoryWindow extends BaseCraftWindow {
         const ct = this;
         let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
         btnRecipes.tooltip = Lang.toggle_recipes;
-        btnRecipes.setBackground('./media/gui/recipes.png', 'center', 1.5);
+        btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5)
         btnRecipes.onMouseDown = (e) => {
             const frmRecipe = this.getRoot().getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this)

@@ -1,13 +1,14 @@
 /**
 * Window Manager based on PIXI.js
 */
-import { RuneStrings, deepAssign } from "../../js/helpers.js";
+import { RuneStrings, deepAssign, Helpers } from "../../js/helpers.js";
 import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
 import {Style} from "./styles.js";
 
 import { msdf } from "../../data/font.js";
 import {MyText} from "./MySpriteRenderer.js";
+import { BLOCK } from "../../js/blocks.js";
 
 globalThis.visible_change_count = 0
 
@@ -1157,12 +1158,111 @@ class Tooltip extends Label {
 
 }
 
+export class SimpleBlockSlot extends Window {
+
+    constructor(x, y, w, h, id, title, text) {
+        super(x, y, w, h, id, title, text)
+
+        this.style.font.color = '#ffffff'
+        this.style.font.size = 14
+        this.style.font.shadow.enable = true
+        this.style.font.shadow.alpha = .5
+        this.text_container.anchor.set(1, 1)
+        this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)
+
+        const padding = 3 * this.zoom
+        const bar_height = 3 * this.zoom
+        this.bar = new Label(padding, h - bar_height - padding, this.w - padding * 2, bar_height, 'lblBar')
+        this.bar.style.background.color = '#000000aa'
+        this.bar.visible = false
+        this.bar.catchEvents = false
+        this.bar_value = new Label(0, 0, this.bar.w / 2, this.bar.h, 'lblBar')
+        this.bar_value.style.background.color = '#00ff00'
+        this.addChild(this.bar)
+        this.bar.addChild(this.bar_value)
+
+        this._item = null
+
+    }
+
+    /**
+     * @param {float} percent 0...1
+     */
+    _setBarValue(percent) {
+        this.bar_value.w = this.bar.w * percent
+        const rgb = Helpers.getColorForPercentage(percent)
+        this.bar_value.style.background.color = rgb.toHex(true)
+    }
+
+    getItem() {
+        return this._item
+    }
+
+    setItem(item) {
+
+        this._item = item
+
+        if(this._bgimage) {
+            this._bgimage.visible = !!item
+        }
+
+        this.bar.visible = !!item
+        if(!item) {
+            this.text = ''
+        }
+
+        if(!item && !this.getItem()) {
+            return false
+        }
+
+        if(item) {
+            const tintMode = item.extra_data?.enchantments ? 1 : 0
+            this.setBackground(getBlockImage(item, 100 * this.zoom), 'centerstretch', 1.0, tintMode)
+        }
+
+        // draw count && instrument livebar
+        if(item) {
+
+            const mat = BLOCK.fromId(item.id)
+
+            // let font_size = 18
+            const power_in_percent = mat?.item?.indicator == 'bar'
+            let label = item.count > 1 ? item.count : null
+            let shift_y = 0
+            if(!label && 'power' in item) {
+                if(power_in_percent) {
+                    label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%'
+                } else {
+                    label = null
+                }
+                // font_size = 12
+                shift_y = -10
+            }
+
+            this.text = label
+
+            // 3. Draw instrument life
+            this.bar.visible = (mat.item?.instrument_id && item.power < mat.power) || power_in_percent
+            if(this.bar.visible) {
+                this._setBarValue(Math.min(item.power / mat.power, 1))
+            }
+
+        } else {
+            this.text = ''
+            this.bar.visible = false
+        }
+
+        return true
+    
+    }
+
+}
+
 //
-export class Pointer extends Window {
+export class Pointer extends SimpleBlockSlot {
 
     constructor() {
         super(0, 0, 40 * UI_ZOOM, 40 * UI_ZOOM, '_wmpointer', null, null)
-        this.style.background.sprite.anchor.set(.5, .5)
     }
 
 }
@@ -1237,11 +1337,7 @@ export class WindowManager extends Window {
             item: null,
             setItem: function(item) {
                 this.item = item
-                that._wmoverlay._wmpointer.visible = !!item
-                if(item) {
-                    const tintMode = item.item.extra_data?.enchantments ? 1 : 0
-                    that._wmoverlay._wmpointer.setBackground(getBlockImage(item.item, 40), undefined, 1, tintMode)
-                }
+                that._wmoverlay._wmpointer.setItem(item?.item)
             },
             getItem: function() {
                 return this.item
@@ -1361,10 +1457,10 @@ export class WindowManager extends Window {
                 const pointer = this._wmoverlay._wmpointer
                 const tooltip = this._wmoverlay._wmtooltip
 
-                pointer.x = e.offsetX
-                pointer.y = e.offsetY
+                pointer.x = e.offsetX - pointer.w / 2
+                pointer.y = e.offsetY - pointer.h / 2
                 // Calculate tooltip position
-                let pos = {x: pointer.x, y: pointer.y};
+                const pos = {x: pointer.x, y: pointer.y};
                 if(pos.x + tooltip.w > this.w) {
                     pos.x -= tooltip.w
                 }

@@ -200,7 +200,7 @@ export class RecipeWindow extends BlankWindow {
         // Prev
         const btnPrev = new Button(65 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnPrev', null)
         btnPrev.style.border.hidden = true
-        btnPrev.setBackground('./media/gui/btn_prev.png', 'center', 2)
+        btnPrev.setBackground('./media/gui/btn_prev.png', 'centerstretch', .5);
         btnPrev.onMouseDown = (e) => {
             this.paginator.prev()
         }
@@ -209,7 +209,7 @@ export class RecipeWindow extends BlankWindow {
         // Next
         const btnNext = new Button(185 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnNext', null)
         btnNext.style.border.hidden = true
-        btnNext.setBackground('./media/gui/btn_next.png', 'center', 2)
+        btnNext.setBackground('./media/gui/btn_next.png', 'centerstretch', .5);
         btnNext.onMouseDown = (e) => {
             this.paginator.next()
         }
