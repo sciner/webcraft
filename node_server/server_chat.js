@@ -117,7 +117,9 @@ export class ServerChat {
             }
             case '/give':
                 if(!player.game_mode.isCreative()) {
-                  throw 'error_command_not_working_in_this_game_mode';
+                    if(!this.world.admins.checkIsAdmin(player)) {
+                        throw 'error_command_not_working_in_this_game_mode'
+                    }
                 }
                 args = this.parseCMD(args, ['string', 'string', '?int']);
                 let name = null;

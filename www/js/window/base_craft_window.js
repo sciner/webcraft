@@ -22,7 +22,7 @@ export class HelpSlot extends Label {
         super(x, y, sz, sz, id, null, null)
         this.ct = ct
         this.item = null
-        this.catchEvents = false
+        this.catchEvents = true
     }
 
     setItem(id) {
@@ -33,9 +33,8 @@ export class HelpSlot extends Label {
 
         if(id) {
             this.block = BLOCK.fromId(id)
-            const image = getBlockImage(this.block, 100 * this.zoom)
             const tintMode = 0 // item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(image, 'center', 1, tintMode)
+            this.setBackground(getBlockImage(this.block), 'center', 1, tintMode)
         } else {
             this.block = null
             this.setBackground(null, 'center')
@@ -926,14 +925,14 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     }
 
     clearCraftSlotIfPosible(slot) {
-        let item = slot.getItem();
+        const item = slot.getItem()
         if(item) {
-            if (!this.inventory.increment(slot.item)) {
-                return false;
+            if(!this.inventory.increment(slot.item)) {
+                return false
             }
-            slot.setItem(null);
+            slot.setItem(null)
         }
-        return true;
+        return true
     }
 
     clearCraft() {
@@ -946,6 +945,10 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             if(slot) {
                 this.clearCraftSlotIfPosible(slot);
             }
+        }
+        // Redraw inventory slots
+        if(this.inventory_slots) {
+            this.inventory_slots.map(slot => slot.setItem(slot.getItem()))
         }
     }
 
@@ -1053,15 +1056,15 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
     // слоты помощи в крафте
     addHelpSlots() {
-        const size = this.area.size.width;
-        const sx = (size == 2) ? 196 : 60.5;
-        const sy = (size == 2) ? 36 : 34.5;
-        this.help_slots = [];
+        const size = this.area.size.width
+        const sx = (size == 2) ? 196 : 60.5
+        const sy = (size == 2) ? 36 : 34.5
+        this.help_slots = []
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
                 const slot = new HelpSlot((sx + 36 * j) * this.zoom, (sy + 36 * i) * this.zoom, 32 * this.zoom, 'help_' + i + '_' + j, this);
-                this.help_slots.push(slot);
-                this.add(slot);
+                this.help_slots.push(slot)
+                this.add(slot)
             }
         }
     }
@@ -1072,6 +1075,11 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         for (let i = 0; i < size * size; i++) {
             this.help_slots[i].setItem(null)
         }
+
+        // Show or hide slots
+        this.craft?.slots.map(slot => slot.visible = !recipe)
+        this.help_slots.map(slot => slot.visible = !!recipe)
+
         if (recipe) {
             const adapter = recipe.adaptivePatterns[size][0];
             if (adapter) {

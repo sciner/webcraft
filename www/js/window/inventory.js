@@ -44,8 +44,8 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Add buttons
         this.addRecipesButton()
-        
-        // слоты (лабел) для подсказок
+
+        // слоты для подсказок
         this.addHelpSlots()
 
         // Ширина / высота слота
