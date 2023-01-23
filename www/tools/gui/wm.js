@@ -1314,7 +1314,6 @@ export class WindowManager extends Window {
 
         // // Add pointer and tooltip controls
         this._wmoverlay = new WindowManagerOverlay(0, 0, w, h, '_wmoverlay')
-        // this.addChild(this._wmoverlay)
         this.parent.addChild(this._wmoverlay)
 
         this.cariageTimer = setInterval(() => {
@@ -1458,8 +1457,9 @@ export class WindowManager extends Window {
 
                 pointer.x = e.offsetX - pointer.w / 2
                 pointer.y = e.offsetY - pointer.h / 2
+
                 // Calculate tooltip position
-                const pos = {x: pointer.x, y: pointer.y};
+                const pos = {x: pointer.x + pointer.w / 2, y: pointer.y + pointer.h / 2};
                 if(pos.x + tooltip.w > this.w) {
                     pos.x -= tooltip.w
                 }
