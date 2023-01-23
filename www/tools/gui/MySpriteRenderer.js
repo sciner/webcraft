@@ -386,4 +386,12 @@ export class MyTilemap extends PIXI.Container {
     }
 }
 
+export class MyText extends PIXI.Text {
+    constructor(text, style, canvas) {
+        super(text, style, canvas);
+        this.tintMode = 0;
+        this.pluginName = 'mySprite';
+    }
+}
+
 PIXI.extensions.add(MySpriteRenderer);
