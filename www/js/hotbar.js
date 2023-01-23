@@ -4,6 +4,8 @@ import { Vector} from "./helpers.js";
 import { Resources } from "./resources.js";
 import { PlayerInventory } from "./player_inventory.js";
 import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
+import { Effect } from "./block_type/effect.js";
+import { BBModel_Child } from "./bbmodel/child.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -110,10 +112,50 @@ export class Hotbar {
             hud.wm.addChild(this.tilemap)
 
             // Init sprites
-            this.inventory_atlas = Resources.inventory.atlas
-            this.blockimage = this.addSprite(new MySprite(this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')))
+           // this.inventory_atlas = Resources.inventory.atlas
+           // this.blockimage = this.addSprite(new MySprite(this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')))
             this.hotbar_atlas = Resources.hotbar.atlas
-            this.liveimage = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
+            //this.liveimage = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
+            this.sprites = {}
+            this.sprites.slot = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('slot')))
+            this.sprites.selector = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('selector')))
+
+            this.sprites.live = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
+            this.sprites.live_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_half')))
+            this.sprites.live_bg_black = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_bg_black')))
+            this.sprites.live_bg_white = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_bg_white')))
+            this.sprites.live_poison = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_poison')))
+            this.sprites.live_poison_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_poison_half')))
+
+            this.sprites.food_bg_black = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('food_bg')))
+            this.sprites.food = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('food')))
+            this.sprites.food_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('food_half')))
+
+            this.sprites.oxygen = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('air')))
+            this.sprites.oxygen_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('air_half')))
+
+            this.sprites.armor_bg_black = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('armor_bg')))
+            this.sprites.armor = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('armor')))
+            this.sprites.armor_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('armor_half')))
+
+            this.sprites.live.scale.set(2.8)
+            this.sprites.live_half.scale.set(2.8)
+            this.sprites.live_bg_white.scale.set(2.8)
+            this.sprites.live_bg_black.scale.set(2.8)
+            this.sprites.food_bg_black.scale.set(2.8)
+            this.sprites.food.scale.set(2.8)
+            this.sprites.food_half.scale.set(2.8)
+            this.sprites.live_poison.scale.set(2.8)
+            this.sprites.live_poison_half.scale.set(2.8)
+
+            this.sprites.oxygen.scale.set(2.8)
+            this.sprites.oxygen_half.scale.set(2.8)
+            this.sprites.armor_bg_black.scale.set(2.8)
+            this.sprites.armor.scale.set(2.8)
+            this.sprites.armor_half.scale.set(2.8)
+
+            this.sprites.slot.scale.set(3)
+            this.sprites.selector.scale.set(3)
 
             this.hud.add(this, 0)
 
@@ -150,10 +192,45 @@ export class Hotbar {
         return sprite
     }
 
+    // вовдит полосу
+    drawStrip(x, y, val, full, half, bbg = null, wbg = null, blink = false, wave = false, reverse = false) {
+        val /= 2
+        const spn = Math.round(performance.now() / 75)
+        if (bbg) {
+            const bg = blink ? wbg : bbg
+            for (let i = 0; i < 10; i++) {
+                const sy = wave ? LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5 : 0
+                bg.x = x + ((reverse) ? i * 50 : (450 - i * 50))
+                bg.y = y + sy
+                this.tilemap.drawImage(bg)
+            }
+        }
+        for (let i = 0; i < 10; i++) {
+            const sy = wave ? LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5 : 0
+            const d = val - 0.5
+            if ( d > i) {
+                full.x = x + ((!reverse) ? i * 50 : (450 - i * 50))
+                full.y = y + sy
+                this.tilemap.drawImage(full)
+            } else if (d == i) {
+                half.x = x + ((!reverse) ? i * 50 : (450 - i * 50))
+                half.y = y + sy
+                this.tilemap.drawImage(half)
+            }
+        }
+        this.tilemap.removeChild(this.sprites.live)
+        this.tilemap.removeChild(this.sprites.live_bg_black)
+        this.tilemap.removeChild(this.sprites.live_half)
+        this.tilemap.removeChild(this.sprites.live_bg_white)
+
+        this.tilemap.removeChild(this.sprites.live_poison)
+        this.tilemap.removeChild(this.sprites.live_poison_half)
+    }
+
     drawHUD(hud) {
 
         // TODO: pixi
-        // demo
+        /* demo
         if(this.x === undefined) {
             this.x = 0
             this.y = 0
@@ -169,15 +246,20 @@ export class Hotbar {
         // draw hotbar
         this.tilemap.clear()
         // icon1
-        this.blockimage.x = this.x
-        this.blockimage.y = this.y
-        this.tilemap.drawImage(this.blockimage)
+        //this.blockimage.x = this.x
+      //  this.blockimage.y = this.y
+       // this.tilemap.drawImage(this.blockimage)
         // icon2
-        this.liveimage.x = this.x + 50 + Math.sin(performance.now() / 100) * 100
-        this.liveimage.y = this.y + 50 + Math.cos(performance.now() / 100) * 100
-        this.tilemap.drawImage(this.liveimage)
+       // this.liveimage.x = this.x + 50 + Math.sin(performance.now() / 100) * 100
+        //this.liveimage.y = this.y + 50 + Math.cos(performance.now() / 100) * 100
+        //this.tilemap.drawImage(this.liveimage)
 
-        return
+        */
+
+
+        
+        this.tilemap.clear()
+        
 
         const player = this.inventory.player;
         if(player.game_mode.isSpectator()) {
@@ -205,6 +287,45 @@ export class Hotbar {
             y: hud.height - dst.h
         }
 
+        const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
+        // жизни
+        const live = player.indicators.live.value;
+        // моргание от урона 
+        const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
+        const low_live = live < 3;
+        if (player.getEffectLevel(Effect.POISON) > 0) {
+            this.drawStrip(hud.width / 2 - 550, hud.height - 230, live, this.sprites.live_poison, this.sprites.live_poison_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+        } else {
+            this.drawStrip(hud.width / 2 - 550, hud.height - 230, live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+        }
+        // еда
+        const food = player.indicators.food.value;
+        this.drawStrip(hud.width / 2 + 50, hud.height - 230, food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
+        // кислород
+        const oxygen = player.indicators.oxygen.value;
+        if (oxygen < 20) {
+            this.drawStrip(hud.width / 2 + 50,  hud.height - 290, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
+        }
+        // броня
+        const armor = this.inventory.getArmorLevel()
+        if (armor > 0) {
+            this.drawStrip(hud.width / 2 - 550, hud.height - 290, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
+        }
+
+        // хотбар и селектор
+        for (let i = 0; i < 9; i++) {
+            this.sprites.slot.x = hud.width / 2 - 550 + i * 122
+            this.sprites.slot.y = hud.height - 140
+            this.tilemap.drawImage(this.sprites.slot)
+            if (i == this.inventory.getRightIndex()) {
+                this.sprites.selector.x = hud.width / 2 - 555 + i * 122
+                this.sprites.selector.y = hud.height - 145
+                this.tilemap.drawImage(this.sprites.selector)
+            }
+        }
+        this.tilemap.renderable = true;
+
+        return
         // Other sizes
         const cell_size         = 60 * this.zoom;
         const ss                = 27 * this.zoom;
