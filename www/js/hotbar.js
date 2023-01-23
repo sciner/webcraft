@@ -116,6 +116,9 @@ export class Hotbar {
             this.hotbar_atlas = Resources.hotbar.atlas
             //this.liveimage = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
             this.sprites = {}
+            this.sprites.slot = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('slot')))
+            this.sprites.selector = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('selector')))
+
             this.sprites.live = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
             this.sprites.live_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_half')))
             this.sprites.live_bg_black = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_bg_black')))
@@ -149,6 +152,9 @@ export class Hotbar {
             this.sprites.armor_bg_black.scale.set(2.8)
             this.sprites.armor.scale.set(2.8)
             this.sprites.armor_half.scale.set(2.8)
+
+            this.sprites.slot.scale.set(3)
+            this.sprites.selector.scale.set(3)
 
             this.hud.add(this, 0)
 
@@ -279,22 +285,33 @@ export class Hotbar {
         const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
         const low_live = live < 3;
         if (player.getEffectLevel(Effect.POISON) > 0) {
-            this.drawStrip(hud.width / 2 - 550, hud_pos.y, live, this.sprites.live_poison, this.sprites.live_poison_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+            this.drawStrip(hud.width / 2 - 550, hud.height - 230, live, this.sprites.live_poison, this.sprites.live_poison_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
         } else {
-            this.drawStrip(hud.width / 2 - 550, hud_pos.y, live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+            this.drawStrip(hud.width / 2 - 550, hud.height - 230, live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
         }
         // еда
         const food = player.indicators.food.value;
-        this.drawStrip(hud.width / 2 + 50, hud_pos.y, food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
+        this.drawStrip(hud.width / 2 + 50, hud.height - 230, food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
         // кислород
         const oxygen = player.indicators.oxygen.value;
         if (oxygen < 20) {
-            this.drawStrip(hud.width / 2 + 50, hud_pos.y - 80, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
+            this.drawStrip(hud.width / 2 + 50,  hud.height - 290, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
         }
         // броня
         const armor = this.inventory.getArmorLevel()
         if (armor > 0) {
-            this.drawStrip(hud.width / 2 - 550, hud_pos.y - 80, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
+            this.drawStrip(hud.width / 2 - 550, hud.height - 290, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
+        }
+
+        for (let i = 0; i < 9; i++) {
+            this.sprites.slot.x = hud.width / 2 - 550 + i * 122
+            this.sprites.slot.y = hud.height - 140
+            this.tilemap.drawImage(this.sprites.slot)
+            if (i == this.inventory.getRightIndex()) {
+                this.sprites.selector.x = hud.width / 2 - 555 + i * 122
+                this.sprites.selector.y = hud.height - 145
+                this.tilemap.drawImage(this.sprites.selector)
+            }
         }
 
         return
