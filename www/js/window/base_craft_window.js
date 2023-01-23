@@ -22,7 +22,7 @@ export class HelpSlot extends Label {
         super(x, y, sz, sz, id, null, null)
         this.ct = ct
         this.item = null
-        this.catchEvents = false
+        this.swapChildren(this.children[0], this.children[1])
     }
 
     setItem(id) {
@@ -33,14 +33,17 @@ export class HelpSlot extends Label {
 
         if(id) {
             this.block = BLOCK.fromId(id)
-            const image = getBlockImage(this.block, 100 * this.zoom)
             const tintMode = 0 // item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(image, 'center', 1, tintMode)
+            this.setBackground(getBlockImage(this.block), 'centerstretch', 1.0, tintMode)
         } else {
             this.block = null
             this.setBackground(null, 'center')
         }
 
+    }
+
+    get can_make() {
+        return !this.item
     }
 
     //
@@ -49,6 +52,15 @@ export class HelpSlot extends Label {
             return this.block.name.replaceAll('_', ' ') + ` (#${this.item})`
         }
         return null
+    }
+
+    // Custom drawing
+    onMouseEnter(e) {
+        this.style.background.color = this.can_make ? '#ffffff55' : '#ff000077'
+    }
+
+    onMouseLeave(e) {
+        this.style.background.color = this.can_make ? '#00000000' : '#ff000055'
     }
 
     // // Draw slot
@@ -101,12 +113,99 @@ export class HelpSlot extends Label {
 
 }
 
-export class CraftTableSlot extends Window {
+export class SimpleBlockSlot extends Window {
+
+    constructor(x, y, w, h, id, title, text) {
+        super(x, y, w, h, id, title, text)
+
+        this.style.font.color = '#ffffff'
+        this.style.font.size = 14
+        this.style.font.shadow.enable = true
+        this.style.font.shadow.alpha = .5
+        this.text_container.anchor.set(1, 1)
+        this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)
+
+        const padding = 3 * this.zoom
+        const bar_height = 3 * this.zoom
+        this.bar = new Label(padding, h - bar_height - padding, this.w - padding * 2, bar_height, 'lblBar')
+        this.bar.style.background.color = '#000000aa'
+        this.bar.visible = false
+        this.bar.catchEvents = false
+        this.bar_value = new Label(0, 0, this.bar.w / 2, this.bar.h, 'lblBar')
+        this.bar_value.style.background.color = '#00ff00'
+        this.addChild(this.bar)
+        this.bar.addChild(this.bar_value)
+
+    }
+
+    /**
+     * @param {float} percent 0...1
+     */
+    _setBarValue(percent) {
+        this.bar_value.w = this.bar.w * percent
+        const rgb = Helpers.getColorForPercentage(percent)
+        this.bar_value.style.background.color = rgb.toHex(true)
+    }
+
+    setItem(item) {
+        if(this._bgimage) {
+            this._bgimage.visible = !!item
+        }
+
+        if(!item && !this.getItem()) {
+            return false
+        }
+
+        if(item) {
+            const tintMode = item.extra_data?.enchantments ? 1 : 0
+            this.setBackground(getBlockImage(item, 100 * this.zoom), 'centerstretch', 1.0, tintMode)
+        }
+
+        // draw count && instrument livebar
+        if(item) {
+
+            const mat = BLOCK.fromId(item.id)
+
+            // let font_size = 18
+            const power_in_percent = mat?.item?.indicator == 'bar'
+            let label = item.count > 1 ? item.count : null
+            let shift_y = 0
+            if(!label && 'power' in item) {
+                if(power_in_percent) {
+                    label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%'
+                } else {
+                    label = null
+                }
+                // font_size = 12
+                shift_y = -10
+            }
+
+            this.text = label
+
+            // 3. Draw instrument life
+            this.bar.visible = (mat.item?.instrument_id && item.power < mat.power) || power_in_percent
+            if(this.bar.visible) {
+                this._setBarValue(Math.min(item.power / mat.power, 1))
+            }
+
+        } else {
+            this.text = ''
+            this.bar.visible = false
+        }
+
+        return true
+    
+    }
+
+}
+
+export class CraftTableSlot extends SimpleBlockSlot {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
-        super(x, y, w, h, id, null, null)
+        super(x, y, w, h, id, null, '')
         this.ct = ct
         this.setSlotIndex(slot_index)
+
     }
 
     //
@@ -141,20 +240,11 @@ export class CraftTableSlot extends Window {
      */
     async setItem(item) {
 
-        if(this._bgimage) {
-            this._bgimage.visible = !!item
-        }
-
-        if(!item && !this.getItem()) {
+        if(!super.setItem(item)) {
             return
         }
 
-        if(item) {
-            const image = getBlockImage(item, 100 * this.zoom)
-            const tintMode = item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(image, 'center', 1, tintMode)
-        }
-
+        // Update inventory
         if(this.isInventorySlot()) {
             this.ct.inventory.setItem(this.slot_index, item)
         } else {
@@ -181,79 +271,6 @@ export class CraftTableSlot extends Window {
 
     getIndex() {
         return this.isInventorySlot() ? this.slot_index : parseFloat(this.index);
-    }
-
-    /**
-     * @deprecated
-     */
-    drawItem(ctx, item, x, y, width, height) {
-
-        const image = this.ct.inventory.inventory_image;
-
-        if(!image || !item) {
-            return;
-        }
-
-        const size = image.width;
-        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
-        const zoom = this.zoom;
-        const mat = BLOCK.fromId(item.id);
-
-        ctx.imageSmoothingEnabled = true;
-
-        // 1. Draw icon
-        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
-        const dest_icon_size = 40 * zoom;
-        ctx.drawImage(
-            image,
-            icon.x,
-            icon.y,
-            icon.width,
-            icon.height,
-            x + width / 2 - dest_icon_size / 2,
-            y + height / 2 - dest_icon_size / 2,
-            dest_icon_size,
-            dest_icon_size
-        );
-
-        // 2. raw label
-        let font_size = 18;
-        const power_in_percent = mat?.item?.indicator == 'bar';
-        let label = item.count > 1 ? item.count : null;
-        let shift_y = 0;
-        if(!label && 'power' in item) {
-            if(power_in_percent) {
-                label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
-            } else {
-                label = null;
-            }
-            font_size = 12;
-            shift_y = -10;
-        }
-        if(label) {
-            ctx.textBaseline        = 'bottom';
-            ctx.textAlign           = 'right';
-            ctx.font                = Math.round(font_size * zoom) + 'px ' + UI_FONT;
-            ctx.fillStyle           = '#000000ff';
-            ctx.fillText(label, x + width + 2 * zoom, y + height + (2 + shift_y) * zoom);
-            ctx.fillStyle           = '#ffffffff';
-            ctx.fillText(label, x + width, y + height + (shift_y) * zoom);
-        }
-
-        // 3. Draw instrument life
-        if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
-            const power_normal = Math.min(item.power / mat.power, 1);
-            let cx = x + 4 * zoom;
-            let cy = y + 3 * zoom;
-            let cw = width - 8 * zoom;
-            let ch = height - 6 * zoom;
-            ctx.fillStyle = '#000000ff';
-            ctx.fillRect(cx, cy + ch - 6 * zoom, cw, 6 * zoom);
-            let rgb = Helpers.getColorForPercentage(power_normal);
-            ctx.fillStyle = rgb.toCSS();
-            ctx.fillRect(cx, cy + ch - 6 * zoom, cw * power_normal | 0, 4 * zoom);
-        }
-
     }
 
     setSlotIndex(index) {
@@ -716,15 +733,15 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
     }
 
-    /**
-     * @deprecated
-     */
-    draw(ctx, ax, ay) {
-        this.applyStyle(ctx, ax, ay);
-        const item = this.getInventoryItem()
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h);
-        super.draw(ctx, ax, ay);
-    }
+    // /**
+    //  * @deprecated
+    //  */
+    // draw(ctx, ax, ay) {
+    //     this.applyStyle(ctx, ax, ay);
+    //     const item = this.getInventoryItem()
+    //     this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h);
+    //     super.draw(ctx, ax, ay);
+    // }
 
     getInventoryItem() {
         return this.ct.inventory.items[this.slot_index] || this.item;
@@ -926,14 +943,14 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     }
 
     clearCraftSlotIfPosible(slot) {
-        let item = slot.getItem();
+        const item = slot.getItem()
         if(item) {
-            if (!this.inventory.increment(slot.item)) {
-                return false;
+            if(!this.inventory.increment(slot.item)) {
+                return false
             }
-            slot.setItem(null);
+            slot.setItem(null)
         }
-        return true;
+        return true
     }
 
     clearCraft() {
@@ -946,6 +963,10 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             if(slot) {
                 this.clearCraftSlotIfPosible(slot);
             }
+        }
+        // Redraw inventory slots
+        if(this.inventory_slots) {
+            this.inventory_slots.map(slot => slot.setItem(slot.getItem()))
         }
     }
 
@@ -1053,15 +1074,15 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
     // слоты помощи в крафте
     addHelpSlots() {
-        const size = this.area.size.width;
-        const sx = (size == 2) ? 196 : 60.5;
-        const sy = (size == 2) ? 36 : 34.5;
-        this.help_slots = [];
+        const size = this.area.size.width
+        const sx = (size == 2) ? 196 : 60.5
+        const sy = (size == 2) ? 36 : 34.5
+        this.help_slots = []
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
                 const slot = new HelpSlot((sx + 36 * j) * this.zoom, (sy + 36 * i) * this.zoom, 32 * this.zoom, 'help_' + i + '_' + j, this);
-                this.help_slots.push(slot);
-                this.add(slot);
+                this.help_slots.push(slot)
+                this.add(slot)
             }
         }
     }
@@ -1072,15 +1093,21 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         for (let i = 0; i < size * size; i++) {
             this.help_slots[i].setItem(null)
         }
+
+        // Show or hide slots
+        this.craft?.slots.map(slot => slot.visible = !recipe)
+        this.help_slots.map(slot => slot.visible = !!recipe)
+
         if (recipe) {
             const adapter = recipe.adaptivePatterns[size][0];
             if (adapter) {
                 for (let i = 0; i < adapter.array_id.length; i++) {
                     const ids = adapter.array_id[i];
-                    this.help_slots[i + adapter.start_index].setItem(ids ? ids[0] : null);
+                    this.help_slots[i + adapter.start_index].setItem(ids ? ids[0] : null)
                 }
             }
         }
+
     }
 
     /**

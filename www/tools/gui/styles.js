@@ -149,6 +149,16 @@ export class BackgroundStyle {
                 // background.pivot.y = background._image.height / 2
                 break
             }
+            case 'centerstretch': {
+                background.position.x = window.w / 2
+                background.position.y = window.h / 2
+                background.anchor.set(.5, .5)
+                // debugger
+                // let scale = 0.9 * this.#window.w / background.width
+                background.width = this.scale * this.#window.w
+                background.height = this.scale * this.#window.h
+                break
+            }
             case 'center': {
                 background.position.x = window.w / 2
                 background.position.y = window.h / 2
@@ -259,6 +269,52 @@ export class BorderStyle {
 
 }
 
+export class TextShadowStyle {
+
+    #window
+    #text_containe
+    
+    constructor(window) {
+        this.#window = window
+    }
+
+    _getTextContainer() {
+        if(!this.#window.text_container) {
+            this.#window.text = ''
+        }
+        return this.#window.text_container
+    }
+
+    /**
+     * @returns {float}
+     */
+    get alpha() {
+        return this._getTextContainer()._style.dropShadowAlpha
+    }
+
+    /**
+     * @param {float} value
+     */
+    set alpha(value) {
+        this._getTextContainer()._style.dropShadowAlpha = value
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    get enable() {
+        this._getTextContainer()._style.dropShadow
+    }
+
+    /**
+     * @param {boolean} value
+     */
+    set enable(value) {
+        this._getTextContainer()._style.dropShadow = !!value
+    }
+
+}
+
 // Font
 export class FontStyle {
 
@@ -283,11 +339,7 @@ export class FontStyle {
         })
         this._color = '#000000'
 
-        this.shadow = {
-            x: 1,
-            y: 1,
-            enable: false
-        }
+        this.shadow = new TextShadowStyle(window)
 
     }
 

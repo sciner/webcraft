@@ -56,6 +56,7 @@ export class TextBox {
         this.lbl_cariage.text = '_'
         const ctm = this.lbl_cariage.getTextMetrics()
         this.space_width = ctm.width
+        this.lbl_cariage.visible = false
         hud.hudwindow.add(this.lbl_cariage)
 
     }
@@ -76,12 +77,18 @@ export class TextBox {
         const how_long_open = Math.round(performance.now() - this.t);
 
         // blinking cariage
-        this.lbl_cariage.visible = how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5
+        let cvis = how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5
+
+        // chrome bug calc text measure
+        if(this.prevtext != text) {
+            this.chat_input.getTextMetrics(true)
+            this.prevtext = text
+        }
 
         // draw carriage
-        if(this.lbl_cariage.visible) {
+        if(cvis) {
             if(this.carriage == this.buffer.length) {
-                this.lbl_cariage.visible = false
+                cvis = false
                 text += '_'
             } else {
                 const text_start = this.buffer.slice(0, this.carriage).join('')
@@ -90,6 +97,8 @@ export class TextBox {
                 this.lbl_cariage.transform.position.set(x + padding + tm.width, y + padding + 2 * this.zoom)
             }
         }
+
+        this.lbl_cariage.visible = cvis
 
         // set text
         this.chat_input.text = text

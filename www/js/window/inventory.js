@@ -44,8 +44,8 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Add buttons
         this.addRecipesButton()
-        
-        // слоты (лабел) для подсказок
+
+        // слоты для подсказок
         this.addHelpSlots()
 
         // Ширина / высота слота
@@ -201,9 +201,9 @@ export class InventoryWindow extends BaseCraftWindow {
     }
 
     /**
-    * Создание слотов для крафта
-    * @param int sz Ширина / высота слота
-    */
+     * Создание слотов для крафта
+     * @param {int} sz Ширина / высота слота
+     */
     createCraft(sz) {
         if(this.craft) {
             console.error('error_inventory_craft_slots_already_created')
@@ -211,7 +211,7 @@ export class InventoryWindow extends BaseCraftWindow {
         }
         const sx          = 194 * this.zoom
         const sy          = 34 * this.zoom
-        const xcnt        = 2;
+        const xcnt        = 2
         this.craft = {
             slots: [null, null, null, null]
         };

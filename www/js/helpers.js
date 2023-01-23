@@ -566,11 +566,18 @@ export class Color {
         return new Color(this.r, this.g, this.b, this.a);
     }
 
-    toHex() {
-        return "#" + Color.componentToHex(this.r) +
+    /**
+     * @param {boolean} remove_alpha 
+     * @returns {string}
+     */
+    toHex(remove_alpha = false) {
+        let resp = "#" + Color.componentToHex(this.r) +
             Color.componentToHex(this.g) +
-            Color.componentToHex(this.b) +
-            Color.componentToHex(this.a);
+            Color.componentToHex(this.b)
+        if(!remove_alpha) {
+            resp += Color.componentToHex(this.a)
+        }
+        return resp
     }
 
     toArray() {

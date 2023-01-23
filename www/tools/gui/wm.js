@@ -7,6 +7,7 @@ import { PIXI } from './pixi.js';
 import {Style} from "./styles.js";
 
 import { msdf } from "../../data/font.js";
+import {MyText} from "./MySpriteRenderer.js";
 
 globalThis.visible_change_count = 0
 
@@ -125,7 +126,7 @@ export class Window extends PIXI.Container {
 
         this.style              = new Style(this)
 
-        if(text) {
+        if(text !== undefined) {
             this.text = text || null
         }
 
@@ -248,7 +249,7 @@ export class Window extends PIXI.Container {
             if (this.style._font.useBitmapFont) {
                 this.text_container = new PIXI.BitmapText(value, this.style.font._bitmap_font_style)
             } else {
-                this.text_container = new PIXI.Text(value, this.style.font._font_style)
+                this.text_container = new MyText(value, this.style.font._font_style)
             }
             //
 
@@ -478,9 +479,9 @@ export class Window extends PIXI.Container {
         //        urlOrImage = await urlOrImage
         //    }
         //}
-        if(image_size_mode) this.style.background.image_size_mode = image_size_mode
-        if(scale) this.style.background.scale = scale
         this.style.background.image = urlOrImage
+        if(scale) this.style.background.scale = scale
+        if(image_size_mode) this.style.background.image_size_mode = image_size_mode
         this.style.background.sprite.tintMode = tintMode;
     }
 
@@ -1059,7 +1060,7 @@ export class TextEdit extends Window {
     }
 
     /**
-     * @param {string} value 
+     * @param {string} value
      */
     setIndirectText(value) {
         super.text = value

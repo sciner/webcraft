@@ -392,6 +392,10 @@ export class Inventory {
         const tblock = player.world.getBlock(pos);
         let mat = tblock.material;
 
+        if(mat.sham_block_name) {
+            mat = player.world.block_manager[mat.sham_block_name]
+        }
+
         //
         if(mat.id < 2 || mat.deprecated || mat.tags.includes('noclonable')) {
             return false;
@@ -420,7 +424,7 @@ export class Inventory {
                     } else {
                         // select if on hotbar
                         if(k == this.current.index) {
-                            const maxStack = BLOCK.getItemMaxStack(cloned_block.id);
+                            const maxStack = BLOCK.getItemMaxStack(cloned_block);
                             item.count = Math.min(item.count + 1, maxStack);
                         }
                         this.select(k);

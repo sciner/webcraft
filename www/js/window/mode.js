@@ -6,6 +6,7 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Resources } from "../resources.js";
 
 const GAME_MODE_LIST = ['survival', 'creative', 'adventure', 'spectator']
+const ICON_SCALE = 2
 
 export class ModeWindow extends Window {
 
@@ -47,7 +48,7 @@ export class ModeWindow extends Window {
     addComponent(x, y, w, h, id, title, icon) {
         const label = this[id] = new Label(x * this.zoom, y * this.zoom, w * this.zoom, h * this.zoom, id, title, title)
         if(icon) {
-            label.setIcon(this.atlas.getSpriteFromMap(icon))
+            label.setIcon(this.atlas.getSpriteFromMap(icon), 'center', ICON_SCALE)
         }
         label.style.font.size = 16
         this.add(label)
@@ -97,10 +98,10 @@ export class ModeWindow extends Window {
             return this.atlas.getSpriteFromMap(mode == this.mode ? 'inventory-1.png' : 'inventory-0.png')
         }
 
-        this.lblSurvival.setBackground(getModeSprite('survival'))
-        this.lblCreative.setBackground(getModeSprite('creative'))
-        this.lblAdventure.setBackground(getModeSprite('adventure'))
-        this.lblSpectator.setBackground(getModeSprite('spectator'))
+        this.lblSurvival.setBackground(getModeSprite('survival'), 'center', ICON_SCALE)
+        this.lblCreative.setBackground(getModeSprite('creative'), 'center', ICON_SCALE)
+        this.lblAdventure.setBackground(getModeSprite('adventure'), 'center', ICON_SCALE)
+        this.lblSpectator.setBackground(getModeSprite('spectator'), 'center', ICON_SCALE)
 
         this.lblTitle.setText(Lang.getOrUnchanged(`gamemode_${this.mode}`));
 
