@@ -262,9 +262,9 @@ export class Window extends PIXI.Container {
     set tooltip(value) {this.#_tooltip = value;}
 
     /**
-     * @returns {?Label}
+     * @returns {Label}
      */
-    get icon() {
+    get _wmicon() {
         if(!this.#_bgicon) {
             this.#_bgicon = new Label(0, 0, this.w, this.h, `${this.id}_bgicon`)
             this.addChild(this.#_bgicon)
@@ -496,20 +496,9 @@ export class Window extends PIXI.Container {
         //    }
         //}
         if(urlOrImage) {
-            this.icon.setBackground(urlOrImage, image_size_mode, scale)
+            this._wmicon.setBackground(urlOrImage, image_size_mode, scale)
         }
-        this.icon.visible = !!urlOrImage
-    }
-
-    setIconImage(url, image_size_mode) {
-        const that = this;
-        const icon = new Image();
-        icon.onload = function(e) {
-            that.style.icon.image = icon;
-            that.style.icon.image_size_mode = image_size_mode ? image_size_mode : that.style.icon.image_size_mode;
-            that.redraw();
-        }
-        icon.src = url;
+        this._wmicon.visible = !!urlOrImage
     }
 
     show(args) {
