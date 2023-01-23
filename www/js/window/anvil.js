@@ -179,7 +179,7 @@ export class AnvilWindow extends BaseCraftWindow {
             return;
         }
         const second_item = this.second_slot.getItem();
-        let label = this.lbl_edit.getEditText();
+        let label = this.lbl_edit.text;
         if (label === ItemHelpers.getLabel(first_item)) {
             // If it's the same, don't try to change, and don't validate it, so unchanged block titles
             // longer than ITEM_LABEL_MAX_LENGTH don't get rejected.

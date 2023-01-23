@@ -982,9 +982,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             if (item) {
                 result.push(InventoryComparator.makeItemCompareKey(item));
                 item.count -= ArrayOrScalar.get(count, i);
-                if (item.count <= 0) {
-                    slot.setItem(null);
-                }
+                slot.setItem(item.count > 0 ? item : null);
             }
         }
         return result;
