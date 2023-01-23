@@ -54,11 +54,16 @@ void main() {
     int multiField = int(vMultiField + 0.5);
     int textureId = multiField % 32;
     multiField = multiField / 32;
+    int pma = multiField % 2;
+    multiField = multiField / 2;
     int tintMode = multiField;
     
     %forloop%
-    
+
     outColor = color * vTint;
+    if (pma == 0) {
+        outColor.rgb *= outColor.a;
+    }
 
     if (tintMode == 1) {
         mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
@@ -159,7 +164,7 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
         const indicies = element.indices;
         const vertexData = element.vertexData;
         const textureId = element._texture.baseTexture._batchLocation;
-        const multiField = textureId + 32 * (element.tintMode || 0);
+        const multiField = textureId + 32 + (element.tintMode || 0) * 64;
         const frame = element._texture._frame;
 
         const alpha = Math.min(element.worldAlpha, 1.0);
@@ -227,6 +232,8 @@ export class MyTilemap extends PIXI.Container {
         this.ensureSize(16);
         this.dataInstances = 0;
         this.shader = null;
+        this.state = PIXI.State.for2d();
+        this.state.blendMode = PIXI.BLEND_MODES.NORMAL;
     }
 
     initGeom() {
@@ -326,7 +333,7 @@ export class MyTilemap extends PIXI.Container {
             textureArray.elements[textureArray.count++] = baseTex;
         }
 
-        textureId = textureId + (sprite.tintMode || 0) * 32;
+        const multiField = textureId + (baseTex.alphaMode > 0 ? 32 : 0) + (sprite.tintMode || 0) * 64;
 
         let offset = (this.instances++) * this.instanceSize;
         points[offset++] = frame.x;
@@ -334,7 +341,7 @@ export class MyTilemap extends PIXI.Container {
         points[offset++] = frame.width;
         points[offset++] = frame.height;
         points[offset++] = argb;
-        points[offset++] = textureId;
+        points[offset++] = multiField;
         points[offset++] = vertexData[0];
         points[offset++] = vertexData[1];
         points[offset++] = uvs[0];
@@ -363,6 +370,7 @@ export class MyTilemap extends PIXI.Container {
         shader.uniforms.u_time = performance.now();
 
         renderer.batch.flush();
+        renderer.state.set(this.state);
         const {textureArray} = this;
         for (let i = 0; i < textureArray.count; i++) {
             renderer.texture.bind(textureArray.elements[i], i);
