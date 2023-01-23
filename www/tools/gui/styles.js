@@ -149,6 +149,16 @@ export class BackgroundStyle {
                 // background.pivot.y = background._image.height / 2
                 break
             }
+            case 'centerstretch': {
+                background.position.x = window.w / 2
+                background.position.y = window.h / 2
+                background.anchor.set(.5, .5)
+                // debugger
+                // let scale = 0.9 * this.#window.w / background.width
+                background.width = this.scale * this.#window.w
+                background.height = this.scale * this.#window.h
+                break
+            }
             case 'center': {
                 background.position.x = window.w / 2
                 background.position.y = window.h / 2

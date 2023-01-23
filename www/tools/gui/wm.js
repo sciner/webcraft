@@ -479,9 +479,9 @@ export class Window extends PIXI.Container {
         //        urlOrImage = await urlOrImage
         //    }
         //}
-        if(image_size_mode) this.style.background.image_size_mode = image_size_mode
-        if(scale) this.style.background.scale = scale
         this.style.background.image = urlOrImage
+        if(scale) this.style.background.scale = scale
+        if(image_size_mode) this.style.background.image_size_mode = image_size_mode
         this.style.background.sprite.tintMode = tintMode;
     }
 

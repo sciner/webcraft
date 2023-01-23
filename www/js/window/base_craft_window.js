@@ -34,7 +34,7 @@ export class HelpSlot extends Label {
         if(id) {
             this.block = BLOCK.fromId(id)
             const tintMode = 0 // item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(getBlockImage(this.block), 'center', 1, tintMode)
+            this.setBackground(getBlockImage(this.block), 'centerstretch', 1.0, tintMode)
         } else {
             this.block = null
             this.setBackground(null, 'center')
@@ -158,7 +158,7 @@ export class SimpleBlockSlot extends Window {
 
         if(item) {
             const tintMode = item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(getBlockImage(item, 100 * this.zoom), 'center', 1, tintMode)
+            this.setBackground(getBlockImage(item, 100 * this.zoom), 'centerstretch', 1.0, tintMode)
         }
 
         // draw count && instrument livebar
