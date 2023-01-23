@@ -89,8 +89,8 @@ export class Resources {
         all.push(fetch('/data/icons.json').then(response => response.json()).then(json => { this.icons = json;}));
 
         // hotbar
-        all.push(fetch('/data/atlas/hotbar.json').then(response => response.json()).then(json => { this.hotbar.map = json}))
-        all.push(loadImage('media/hotbar.png').then(img => {this.hotbar.image = img}))
+        all.push(fetch('data/atlas/hotbar/out/hotbar.json').then(response => response.json()).then(json => { this.hotbar.map = json}))
+        all.push(loadImage('data/atlas/hotbar/out/hotbar.png').then(img => {this.hotbar.image = img}))
 
         // Skybox textures
         /*

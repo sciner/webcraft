@@ -112,50 +112,35 @@ export class Hotbar {
             hud.wm.addChild(this.tilemap)
 
             // Init sprites
-           // this.inventory_atlas = Resources.inventory.atlas
-           // this.blockimage = this.addSprite(new MySprite(this.inventory_atlas.getSpriteFromMap('DIAMOND_PICKAXE')))
+            this.sprites = {
+
+                slot:               3,
+                selector:           3,
+
+                live:               2.8,
+                live_half:          2.8,
+                live_bg_black:      2.8,
+                live_bg_white:      2.8,
+                live_poison:        2.8,
+                live_poison_half:   2.8,
+
+                food_bg_black:      2.8,
+                food:               2.8,
+                food_half:          2.8,
+
+                oxygen:             2.8,
+                oxygen_half:        2.8,
+
+                armor_bg_black:     2.8,
+                armor:              2.8,
+                armor_half:         2.8
+            }
+
             this.hotbar_atlas = Resources.hotbar.atlas
-            //this.liveimage = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
-            this.sprites = {}
-            this.sprites.slot = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('slot')))
-            this.sprites.selector = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('selector')))
 
-            this.sprites.live = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live')))
-            this.sprites.live_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_half')))
-            this.sprites.live_bg_black = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_bg_black')))
-            this.sprites.live_bg_white = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_bg_white')))
-            this.sprites.live_poison = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_poison')))
-            this.sprites.live_poison_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('live_poison_half')))
-
-            this.sprites.food_bg_black = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('food_bg')))
-            this.sprites.food = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('food')))
-            this.sprites.food_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('food_half')))
-
-            this.sprites.oxygen = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('air')))
-            this.sprites.oxygen_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('air_half')))
-
-            this.sprites.armor_bg_black = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('armor_bg')))
-            this.sprites.armor = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('armor')))
-            this.sprites.armor_half = this.addSprite(new MySprite(this.hotbar_atlas.getSpriteFromMap('armor_half')))
-
-            this.sprites.live.scale.set(2.8)
-            this.sprites.live_half.scale.set(2.8)
-            this.sprites.live_bg_white.scale.set(2.8)
-            this.sprites.live_bg_black.scale.set(2.8)
-            this.sprites.food_bg_black.scale.set(2.8)
-            this.sprites.food.scale.set(2.8)
-            this.sprites.food_half.scale.set(2.8)
-            this.sprites.live_poison.scale.set(2.8)
-            this.sprites.live_poison_half.scale.set(2.8)
-
-            this.sprites.oxygen.scale.set(2.8)
-            this.sprites.oxygen_half.scale.set(2.8)
-            this.sprites.armor_bg_black.scale.set(2.8)
-            this.sprites.armor.scale.set(2.8)
-            this.sprites.armor_half.scale.set(2.8)
-
-            this.sprites.slot.scale.set(3)
-            this.sprites.selector.scale.set(3)
+            for(const [name, scale] of Object.entries(this.sprites)) {
+                this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale)
+            }
 
             this.hud.add(this, 0)
 
@@ -187,12 +172,7 @@ export class Hotbar {
         }
     }
 
-    addSprite(sprite) {
-        this.tilemap.addChild(sprite)
-        return sprite
-    }
-
-    // вовдит полосу
+    // выводит полосу
     drawStrip(x, y, val, full, half, bbg = null, wbg = null, blink = false, wave = false, reverse = false) {
         val /= 2
         const spn = Math.round(performance.now() / 75)
@@ -229,37 +209,7 @@ export class Hotbar {
 
     drawHUD(hud) {
 
-        // TODO: pixi
-        /* demo
-        if(this.x === undefined) {
-            this.x = 0
-            this.y = 0
-            this.sx = 4
-            this.sy = 4
-        }
-        this.x += this.sx
-        this.y += this.sy
-        if(this.x < 0) this.sx *= -1
-        if(this.y < 0) this.sy *= -1
-        if(this.x > this.hud.wm.w) this.sx *= -1
-        if(this.y > this.hud.wm.h) this.sy *= -1
-        // draw hotbar
         this.tilemap.clear()
-        // icon1
-        //this.blockimage.x = this.x
-      //  this.blockimage.y = this.y
-       // this.tilemap.drawImage(this.blockimage)
-        // icon2
-       // this.liveimage.x = this.x + 50 + Math.sin(performance.now() / 100) * 100
-        //this.liveimage.y = this.y + 50 + Math.cos(performance.now() / 100) * 100
-        //this.tilemap.drawImage(this.liveimage)
-
-        */
-
-
-        
-        this.tilemap.clear()
-        
 
         const player = this.inventory.player;
         if(player.game_mode.isSpectator()) {

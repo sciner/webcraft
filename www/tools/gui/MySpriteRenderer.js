@@ -202,10 +202,13 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
 }
 
 export class MySprite extends PIXI.Sprite {
-    constructor(texture) {
+    constructor(texture, scale = 1) {
         super(texture);
         this.pluginName = 'mySprite';
         this.tintMode = 0;
+        if(scale != 1) {
+            this.scale.set(scale)
+        }
     }
 
     calculateVertices() {
