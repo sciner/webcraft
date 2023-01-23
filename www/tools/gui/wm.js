@@ -125,7 +125,7 @@ export class Window extends PIXI.Container {
 
         this.style              = new Style(this)
 
-        if(text) {
+        if(text !== undefined) {
             this.text = text || null
         }
 

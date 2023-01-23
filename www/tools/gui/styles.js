@@ -259,6 +259,52 @@ export class BorderStyle {
 
 }
 
+export class TextShadowStyle {
+
+    #window
+    #text_containe
+    
+    constructor(window) {
+        this.#window = window
+    }
+
+    _getTextContainer() {
+        if(!this.#window.text_container) {
+            this.#window.text = ''
+        }
+        return this.#window.text_container
+    }
+
+    /**
+     * @returns {float}
+     */
+    get alpha() {
+        return this._getTextContainer()._style.dropShadowAlpha
+    }
+
+    /**
+     * @param {float} value
+     */
+    set alpha(value) {
+        this._getTextContainer()._style.dropShadowAlpha = value
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    get enable() {
+        this._getTextContainer()._style.dropShadow
+    }
+
+    /**
+     * @param {boolean} value
+     */
+    set enable(value) {
+        this._getTextContainer()._style.dropShadow = !!value
+    }
+
+}
+
 // Font
 export class FontStyle {
 
@@ -283,11 +329,7 @@ export class FontStyle {
         })
         this._color = '#000000'
 
-        this.shadow = {
-            x: 1,
-            y: 1,
-            enable: false
-        }
+        this.shadow = new TextShadowStyle(window)
 
     }
 
