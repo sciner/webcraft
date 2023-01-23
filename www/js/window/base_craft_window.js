@@ -152,6 +152,8 @@ export class SimpleBlockSlot extends Window {
             this._bgimage.visible = !!item
         }
 
+        this.bar.visible = !!item
+
         if(!item && !this.getItem()) {
             return false
         }
@@ -238,9 +240,13 @@ export class CraftTableSlot extends SimpleBlockSlot {
      * @param {?object} item
      * @returns
      */
-    async setItem(item) {
+    async setItem(item, update_inventory = true) {
 
         if(!super.setItem(item)) {
+            return
+        }
+
+        if(!update_inventory) {
             return
         }
 

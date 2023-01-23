@@ -24,6 +24,7 @@ export class Inventory {
         this.max_count          = INVENTORY_SLOT_COUNT;
         this.max_visible_count  = INVENTORY_VISIBLE_SLOT_COUNT;
         this.hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT;
+        this.update_number      = 0
         this.onSelect           = (item) => {};
         this.applyNewItems(state.items, false);
     }
@@ -72,7 +73,8 @@ export class Inventory {
         }
         this.current.index = index;
         this.refresh(true);
-        this.onSelect(this.current_item);
+        this.onSelect(this.current_item)
+        this.update_number++
     }
 
     // Increment

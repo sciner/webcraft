@@ -298,7 +298,11 @@ export class MyTilemap extends PIXI.Container {
         this.dataInstances = 0;
     }
 
-    drawImage(sprite) {
+    drawImage(sprite, x, y) {
+
+        if(x != undefined) sprite.x = x
+        if(y != undefined) sprite.y = y
+
         const tempParent = !sprite.parent;
         if (tempParent) {
             sprite.enableTempParent();

@@ -6,6 +6,9 @@ import { PlayerInventory } from "./player_inventory.js";
 import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
 import { Effect } from "./block_type/effect.js";
 import { BBModel_Child } from "./bbmodel/child.js";
+import { Window } from "../tools/gui/wm.js";
+import { CraftTableInventorySlot } from "./window/base_craft_window.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -148,6 +151,27 @@ export class Hotbar {
 
     }
 
+    /**
+    * Создание слотов для инвентаря
+    * @param int sz Ширина / высота слота
+    */
+    createInventorySlots(sz) {
+
+        sz *= this.zoom
+
+        const inventory_slots = this.inventory_slots = new Window(0, 0, INVENTORY_HOTBAR_SLOT_COUNT * sz, sz, 'hotbar_inventory_slots')
+        // inventory_slots.style.background.color = '#00000044'
+        inventory_slots.auto_center = false
+        inventory_slots.catchEvents = false
+
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            const lblSlot = new CraftTableInventorySlot(i * sz, 0, sz, sz, `lblSlot${i}`, null, null, this, i)
+            inventory_slots.add(lblSlot)
+        }
+        this.hud.wm.addChild(inventory_slots)
+
+    }
+
     get zoom() {
         return UI_ZOOM
     }
@@ -156,7 +180,11 @@ export class Hotbar {
      * @param {PlayerInventory} inventory 
      */
     setInventory(inventory) {
-        this.inventory = inventory;
+
+        this.inventory = inventory
+
+        this.createInventorySlots(40.5)
+
     }
 
     //
@@ -198,13 +226,13 @@ export class Hotbar {
                 this.tilemap.drawImage(half)
             }
         }
-        this.tilemap.removeChild(this.sprites.live)
-        this.tilemap.removeChild(this.sprites.live_bg_black)
-        this.tilemap.removeChild(this.sprites.live_half)
-        this.tilemap.removeChild(this.sprites.live_bg_white)
+        // this.tilemap.removeChild(this.sprites.live)
+        // this.tilemap.removeChild(this.sprites.live_bg_black)
+        // this.tilemap.removeChild(this.sprites.live_half)
+        // this.tilemap.removeChild(this.sprites.live_bg_white)
 
-        this.tilemap.removeChild(this.sprites.live_poison)
-        this.tilemap.removeChild(this.sprites.live_poison_half)
+        // this.tilemap.removeChild(this.sprites.live_poison)
+        // this.tilemap.removeChild(this.sprites.live_poison_half)
     }
 
     drawHUD(hud) {
@@ -237,6 +265,17 @@ export class Hotbar {
             y: hud.height - dst.h
         }
 
+        // Inventory slots
+        this.inventory_slots.transform.position.set(hud.width / 2 - this.inventory_slots.w / 2, hud.height - this.inventory_slots.h - 6 * this.zoom)
+        if(this.inventory_update_number != this.inventory.update_number) {
+            this.inventory_update_number = this.inventory.update_number
+            this.inventory_slots.children.map(w => {
+                if(w instanceof CraftTableInventorySlot) {
+                    w.setItem(w.getItem(), false)
+                }
+            })
+        }
+
         const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
         // жизни
         const live = player.indicators.live.value;
@@ -264,13 +303,9 @@ export class Hotbar {
 
         // хотбар и селектор
         for (let i = 0; i < 9; i++) {
-            this.sprites.slot.x = hud.width / 2 - 550 + i * 122
-            this.sprites.slot.y = hud.height - 140
-            this.tilemap.drawImage(this.sprites.slot)
+            this.tilemap.drawImage(this.sprites.slot, hud.width / 2 - 550 + i * 122, hud.height - 140)
             if (i == this.inventory.getRightIndex()) {
-                this.sprites.selector.x = hud.width / 2 - 555 + i * 122
-                this.sprites.selector.y = hud.height - 145
-                this.tilemap.drawImage(this.sprites.selector)
+                this.tilemap.drawImage(this.sprites.selector, hud.width / 2 - 555 + i * 122, hud.height - 145)
             }
         }
         this.tilemap.renderable = true;
