@@ -1796,6 +1796,16 @@ export class StringHelpers {
             : str;
     }
 
+    static count(str, subStr) {
+        let res = 0;
+        let ind = str.indexOf(subStr);
+        while (ind >= 0) {
+            res++;
+            ind = str.indexOf(subStr, ind + 1);
+        }
+        return res;
+    }
+
     static capitalizeChatAt(str, index) {
         return this.replaceCharAt(str, index, str.charAt(index).toUpperCase());
     }
@@ -1860,17 +1870,6 @@ export class ArrayHelpers {
             sum += mapper(arr[i]);
         }
         return sum;
-    }
-
-    static randomWeightedIndex(arr, weightFn = (it) => 1, random = Math.random()) {
-        let sum = this.sum(arr, weightFn) * random;
-        for(let i = 0; i < arr.length; i++) {
-            sum -= weightFn(arr[i]);
-            if (sum <= 0) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     static growAndSet(arr, index, value, filler = undefined) {
@@ -2816,13 +2815,15 @@ export class SimpleQueue {
     }
 
     push(v) {
-        if (this.length === this.arr.length) {
-            // grow: copy the beginning into the end; the beginning becomes empty
-            for(var i = 0; i < this.length; i++) {
-                this.arr.push(this.arr[i]);
-            }
-        }
+        this._grow();
         this.arr[(this.left + this.length) % this.arr.length] = v;
+        this.length++;
+    }
+
+    unshift(v) {
+        this._grow();
+        this.left = (this.left + this.arr.length - 1) % this.arr.length;
+        this.arr[this.left] = v;
         this.length++;
     }
 
@@ -2842,6 +2843,15 @@ export class SimpleQueue {
         }
     }
 
+    _grow() {
+        if (this.length === this.arr.length) {
+            // grow: copy the beginning into the end; the beginning becomes empty.
+            // At least one element is pushed.
+            for(var i = 0; i <= this.left; i++) {
+                this.arr.push(this.arr[i]);
+            }
+        }
+    }
 }
 
 // A matrix that has indices in [minRow..(minRow + rows - 1), minCol..(minCol + cols - 1)]

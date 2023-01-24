@@ -273,7 +273,7 @@ export class ServerChunkManager {
 
     // Add to invalid queue
     // помещает чанк в список невалидных, т.к. его больше не видит ни один из игроков
-    // в следующем тике мира, он будет выгружен методом unloadInvalidChunks()
+    // в следующем тике мира и если chunk.shouldUnload() == false, он будет выгружен методом unloadInvalidChunks()
     invalidate(chunk) {
         this.invalid_chunks_queue.push(chunk);
     }
@@ -328,6 +328,15 @@ export class ServerChunkManager {
     }
 
     getChunk(addr) {
+        return this.get(addr);
+    }
+    
+    getOrRestore(addr) {
+
+
+        // TODO merge with the fix
+
+
         return this.get(addr);
     }
 

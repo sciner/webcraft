@@ -12,8 +12,6 @@ import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "../www/js/light/ChunkLight.js";
-import { ChunkDBActor } from "./db/world/ChunkDBActor.js";
-import { DropItem } from "./drop_item.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -142,11 +140,14 @@ export class ServerChunk {
         this.fluid          = null;
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
         this.blocksUpdatedByListeners = [];
-        this.dbActor        = new ChunkDBActor(this);
-        this.readyPromise  = Promise.resolve();
+        this.dbActor        = world.dbActor.getOrCreateChunkActor(this);
+        this.readyPromise   = Promise.resolve(); // It's used only to reach CHUNK_STATE.READY
         this.safeTeleportMarker = 0;
         this.unloadingStartedTime = null; // to determine when to dispose it
-        this.unloadedStuff  = []; // everything unloaded that can be restored (drop items, mobs) in one list
+        this.unloadedStuff      = []; // everything unloaded that can be restored (drop items, mobs) in one list
+        this.unloadedStuffDirty = false;
+        // An array of world actions targeting this chunk while it was loading. Execute them as soon as it's ready.
+        this.pendingWorldActions = null;
         // one row of "chunks" table, with additional fields { exists, chunk, dirty }
         this.chunkRecord    = null;
 
@@ -199,7 +200,6 @@ export class ServerChunk {
         this.setState(CHUNK_STATE.LOADING_DATA);
         //
         const afterLoad = ([ml, fluid]) => {
-            decompressModifiresList(ml);
             this.modify_list = ml;
             this.ticking = new Map();
             this.setState(CHUNK_STATE.LOADING_BLOCKS);
@@ -429,10 +429,13 @@ export class ServerChunk {
     }
 
     restoreUnloaded() {
+        // restore unloaded mobs and items
         for(const stuff of this.unloadedStuff) {
             stuff.restoreUnloaded(this);
         }
         this.unloadedStuff.length = 0;
+        this.unloadedStuffDirty = false;
+
         this.chunkManager.dataWorld.addChunk(this, true);
         this.onBlocksGeneratedOrRestored();
         this.onMobsLoadedOrRestored();
@@ -493,6 +496,19 @@ export class ServerChunk {
             chunkManager.chunks_with_delayed_calls.add(this);
         }
         this.setState(CHUNK_STATE.READY);
+        // apply pending world actions (they were created while the chunk was loading)
+        if (this.pendingWorldActions) {
+            // Push them to the beginning of the actions queue, preserving their order of creation.
+            // They must be pushed to the beginning because:
+            // 1. They are older than any existing actoion in the queue.
+            // 2. To ensure that they will be processed before the chunk unloads again even if the queus is so long
+            //   that it won't be processed completely in one tick.
+            for(let i = this.pendingWorldActions.length - 1; i>= 0; i--) {
+                const action = this.pendingWorldActions[i];
+                this.world.actions_queue.addFirst(action.actor, action);
+            }
+            this.pendingWorldActions = null;
+        }
         if (this.shouldUnload()) {
             // TODO : wait a bit, dont unload yet?
             chunkManager.invalidate(this);
@@ -1253,59 +1269,71 @@ export class ServerChunk {
         if (!chunkManager || this.load_state !== CHUNK_STATE.READY) {
             throw new Error(`!chunkManager || this.load_state !== CHUNK_STATE.READY ${chunkManager} ${this.load_state}`);
         }
-        this.setState(CHUNK_STATE.UNLOADING);
+        // we don't have to wait for readyPromise here, because it's already READY
+
         this.unloadingStartedTime = performance.now();
-        await this.readyPromise;
-        if (this.delayedCalls.length) {
-            chunkManager.chunks_with_delayed_calls.delete(this);
+        this.setState(CHUNK_STATE.UNLOADING);
+        // Instead of awaiting Promise.all(), we use the flags showing what sill needs to be unloaded.
+        // It solves the problem of old unloading promise still pending when the chunk is restored and unloaded again.
+        this.waitingToUnloadWater = true;
+        this.waitingToUnloadWorldTransaction = true;
+
+        // unload water
+        if (this.dataChunk) {
+            chunkManager.world.db.fluid.flushChunk(this.tblocks.fluid).then(() => {
+                this.waitingToUnloadWater = false; // modify the object from the closure, not the class field!
+                this.checkUnloadingProgress();
+            });
+        } else {
+            this.waitingToUnloadWater = false;
         }
 
-        const promises = [];
-        let inWorldTransaction = this.dbActor.mustSave();
-        if (this.dataChunk) {
-            promises.push(chunkManager.world.db.fluid.flushChunk(this.tblocks.fluid))
+        // === Unload everything in the world transaction ===
+
+        // Delayed calls will be saved by dbActor, only unregister them here
+        if (this.delayedCalls.length) {
+            chunkManager.chunks_with_delayed_calls.delete(this);
         }
         // Unload mobs
         for(const mob of this.mobs.values()) {
             this.unloadedStuff.push(mob);
             if (mob.onUnload(this)) {
-                inWorldTransaction = true;
+                this.unloadedStuffDirty = true;
             }
         }
         // Unload drop items
         for(const drop_item of this.drop_items.values()) {
             this.unloadedStuff.push(drop_item);
             if (drop_item.onUnload()) {
-                inWorldTransaction = true;
+                this.unloadedStuffDirty = true;
             }
         }
-        if (inWorldTransaction) {
-            this.world.dbActor.dirtyChunks.add(this);
-            promises.push(this.world.dbActor.worldSavingPromise);
+        if (this.dbActor.mustSaveWhenUnloading()) {
+            this.world.dbActor.dirtyActors.add(this.dbActor);
+            // ChunkDBActor will update this.waitingToUnloadWorldTransaction and call checkUnloadingProgress()
+        } else {
+            this.waitingToUnloadWorldTransaction = false;
+            this.checkUnloadingProgress();
         }
-        this.readyPromise = Promise.all(promises).then(() => {
-            if (this.load_state === CHUNK_STATE.UNLOADING) {
-                this.setState(CHUNK_STATE.UNLOADED);
-                this.chunkManager.chunkUnloaded(this);
-            }
-        });
-        return this.readyPromise;
+    }
+
+    checkUnloadingProgress() {
+        if (this.load_state === CHUNK_STATE.UNLOADING &&
+            !this.waitingToUnloadWater &&
+            !this.waitingToUnloadWorldTransaction
+        ) {
+            this.setState(CHUNK_STATE.UNLOADED);
+            this.chunkManager.chunkUnloaded(this);
+        }
     }
 
     dispose() {
-        // the chunk is already removed from dbActor.dirtyChunks, because it wrote all its data when it unloaded
+        // the chunk is already removed from world.dbActor.dirtyActors, because it wrote all its data when it unloaded
         this.setState(CHUNK_STATE.DISPOSED);
         this.light.dispose();
         this.chunkManager.chunkDisposed(this);
     }
 
-    writeToWorldTransaction(underConstruction) {
-        this.dbActor.writeToWorldTransaction(underConstruction);
-
-        for(const stuff of this.unloadedStuff) {
-            stuff.writeToWorldTransaction(underConstruction, true);
-        }
-    }
 }
 
 const tmp_posVector         = new Vector();

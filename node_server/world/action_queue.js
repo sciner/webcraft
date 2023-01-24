@@ -12,6 +12,10 @@ export class WorldActionQueue {
         this.list.push({actor, actions});
     }
 
+    addFirst(actor, actions) {
+        this.list.unshift({actor, actions});
+    }
+
     async run() {
         const MAX_ACTIONS_TIME_MS = 200;
         let pn_start = performance.now();
@@ -24,6 +28,8 @@ export class WorldActionQueue {
                 if(!player) {
                     continue;
                 }
+                // if the action was postponed until a chunk loads, and the player reconnected - update it
+                item.actor = player;
             }
             // Apply actions
             // let pn = performance.now();

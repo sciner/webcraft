@@ -424,7 +424,7 @@ export class ServerWorld {
             // Save fluids
             await this.db.fluid.saveFluids();
             this.ticks_stat.add('db_fluid_save');
-            // Worl transaction
+            // World transaction
             if (await this.dbActor.saveWorldIfNecessary()) {
                 this.ticks_stat.add('world_transaction_sync');
             }
@@ -611,7 +611,7 @@ export class ServerWorld {
     onBlockExtraDataModified(tblock, pos = tblock.posworld.clone()) {
         const item = tblock.convertToDBItem();
         const data = { pos, item };
-        tblock.chunk.dbActor.markIndexDirty(tblock.index, data, BLOCK_DIRTY.UPDATE_EXTRA_DATA);
+        tblock.chunk.dbActor.markBlockDirty(data, tblock.index, BLOCK_DIRTY.UPDATE_EXTRA_DATA);
         tblock.chunk.addModifiedBlock(pos, item, item.id);
     }
 
@@ -714,35 +714,24 @@ export class ServerWorld {
                 let chunk_addr = new Vector(0, 0, 0);
                 let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
                 let chunk = null;
+                let postponedActions = null; // WorldAction containing a subset of actions.blocks, postponed until the current chunk loads
                 const previous_item = {id: 0}
                 for (let params of actions.blocks.list) {
                     params.item = this.block_manager.convertBlockToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
                         chunk?.light?.flushDelta();
-                        chunk = this.chunks.get(chunk_addr);
+                        chunk = this.chunks.getOrRestore(chunk_addr);
+                        postponedActions = null; // the new chunk must create its own postponedActions
                         prev_chunk_addr.copyFrom(chunk_addr);
                     }
                     const block_pos = new Vector(params.pos).flooredSelf();
-
-                    if (chunk) {
-                        chunk.dbActor.markIndexDirty(block_pos.worldPosToChunkIndex(), params,
-                            params.action_id == ServerClient.BLOCK_ACTION_MODIFY 
-                                ? BLOCK_DIRTY.UPDATE : BLOCK_DIRTY.INSERT
-                        );
-                    } else {
-                        // TODO: Chunk not found
-                    }
-
-                    let isLoaded = chunk && chunk.isReady();
-                    if (chunk && !isLoaded) {
-                        // TODO: wtf to do here? we are loading info from the database currently!
-                        console.log(`Potential problem with setting a block and loading chunk pos=${params.pos} item=${params.item}`);
-                    }
+                    params.pos = block_pos;
+                    const isReady = chunk && chunk.isReady();
                     // 2. Mark as became modifieds
                     this.worldChunkFlags.add(chunk_addr, WorldChunkFlags.MODIFIED_BLOCKS);
                     // 3.
-                    if (chunk && chunk.tblocks && isLoaded) {
+                    if (isReady) {
                         let sanitizedParams = params;
                         const sanitizedItem = shallowCloneAndSanitizeIfPrivate(params.item);
                         if (sanitizedItem) {
@@ -751,7 +740,6 @@ export class ServerWorld {
                             sanitizedParams.item = sanitizedItem;
                         }
 
-                        const block_pos = new Vector(params.pos).flooredSelf();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
                         const cps = getChunkPackets(params.pos);
                         cps.packets.push({
@@ -795,6 +783,7 @@ export class ServerWorld {
                                 }
                             }
                         }
+
                         // 4. Store in chunk tblocks
                         const oldLight = tblock.lightSource;
                         chunk.tblocks.delete(block_pos_in_chunk);
@@ -805,6 +794,9 @@ export class ServerWorld {
                         }
                         // 5. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item, oldId);
+                        // Mark the block as dirty and remember the change to be saved to DB
+                        chunk.dbActor.markBlockDirty(params, tblock.index);
+
                         if (on_block_set) {
                             // a.
                             chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
@@ -844,7 +836,22 @@ export class ServerWorld {
                             }
                         }
                     } else {
-                        // TODO: Chunk not found in pos
+                        if (chunk) {
+                            // The chunk exists, but not ready yet. Queue the action until the chunk is loaded.
+                            if (postponedActions == null) {
+                                // Create a new postponed WorldAction for this chunk
+                                postponedActions = actions.createSimilarEmpty();
+                                // actor isn't a normal property of an action, but we have to remember it somewhere
+                                postponedActions.actor = server_player;
+                                chunk.pendingWorldActions = chunk.pendingWorldActions ?? [];
+                                chunk.pendingWorldActions.push(postponedActions);
+                            }
+                            // add a block to the postoned action for this chunk
+                            postponedActions.addBlocks([params]);
+                        } else {
+                            console.log(`Potential problem with setting a block without a chunk: pos=${params.pos} item=${JSON.stringify(params.item)}`);
+                            this.dbActor.addChnuklessBlockChange(chunk_addr, params);
+                        }
                     }
                 }
                 chunk?.light?.flushDelta();

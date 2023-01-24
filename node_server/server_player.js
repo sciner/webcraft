@@ -781,10 +781,12 @@ export class ServerPlayer extends Player {
      * @returns
      */
     async loadEnderChest() {
-        if(this.ender_chest) {
-            return this.ender_chest;
+        if (!this.ender_chest) {
+            const loaded = await this.world.db.loadEnderChest(this);
+            // If loading is called multiple times before it completes, ensure that the cahced value isn't replaced
+            this.ender_chest = this.ender_chest ?? loaded;
         }
-        return this.ender_chest = await this.world.db.loadEnderChest(this);
+        return this.ender_chest;
     }
 
     /**

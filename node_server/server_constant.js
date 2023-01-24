@@ -1,19 +1,29 @@
 // world transaction
 
-export const WORLD_TRANSACTION_PERIOD   = 3000;  // the normal time (in ms) betwen world-saving transactions
-export const WORLD_TRANSACTION_MAX_DIRTY_BLOCKS = 10000; // if there are more dirty blocks than this, world world transaction starts immediately
+export let WORLD_TRANSACTION_PERIOD = 2000;  // the time (in ms) between world-saving transactions
+
+// Max. chunks saved to world_modify_chunks per transaction
+// Increasing this number allows them to unload faster.
+export const WORLD_MODIFY_CHUNKS_PER_TRANSACTION = 10;
 
 // chunks
 
-// How long changes to world_modify_chunks can remain unsaved.
+// Changes are saved to world_modify_chunks if there are no new changes for this much time.
+// It doesn't make sense to save world_modify_chunks if a chunk is still getting changed often. The changes will likely be owerwritten soon.
+// Save it only when there were no changes for some time.
 // Don't confuse it with WORLD_TRANSACTION_PERIOD: it's bigger, and only affects updating world_modify_chunks
-export const WORLD_MODIFY_CHUNKS_TTL    = 60 * 1000;
+export const STABLE_WORLD_MODIFY_CHUNKS_TTL = 60 * 1000;
+
+// Similar to STABLE_WORLD_MODIFY_CHUNKS_TTL, but for chunkles changes
+export const STABLE_WORLD_MODIFY_CHUNKLESS_TTL = 20 * 1000;
 
 /**
- * How many times on average {@link DBWorldChunk.deleteOldWorldModify} is called
+ * How many times on average {@link DBWorldChunk.cleanupWorldModify} is called
  * per world transaction. It can be fractional.
+ * 
+ * It's not const, so qubatch-single can increase it.
  */
-export const CLEAR_WORLD_MODIFY_PER_TRANSACTION = 0.5;
+export let CLEANUP_WORLD_MODIFY_PER_TRANSACTION = 0.5;
 
 // items
 

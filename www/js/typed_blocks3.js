@@ -834,12 +834,6 @@ export class TBlock {
         return this;
     }
 
-    moveToIndex(index) {
-        this.index = index;
-        this.vec.fromChunkIndex(index);
-        return this;
-    }
-
     // Clones essential data as POJO.
     // The result can be used in WorldAction.addBlocks() to create/modify the same block
     clonePOJO() {

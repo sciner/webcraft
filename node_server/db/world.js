@@ -1,6 +1,6 @@
 import { Vector, unixTime } from "../../www/js/helpers.js";
 import { DropItem } from '../drop_item.js';
-import { BulkSelectQuery, preprocessSQL } from './db_helpers.js';
+import { BulkSelectQuery, preprocessSQL, run } from './db_helpers.js';
 import { INVENTORY_SLOT_COUNT, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL, PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA } from '../../www/js/constant.js';
 
 // Database packages
@@ -271,7 +271,9 @@ export class DBWorld {
     }
 
     async bulkUpdateInventory(rows) {
-        return rows.length && this.conn.run(this.BULK_UPDATE_INVENTORY, [JSON.stringify(rows)]);
+        return rows.length
+            ? run(this.conn, this.BULK_UPDATE_INVENTORY, [JSON.stringify(rows)])
+            : null;
     };
     BULK_UPDATE_INVENTORY = preprocessSQL(`
         UPDATE user
@@ -292,10 +294,10 @@ export class DBWorld {
     }
 
     async bulkUpdatePlayerState(rows, dt) {
-        return rows.length && this.conn.run(this.BULK_UPDATE_PLAYER_STATE, {
+        return rows.length ? run(this.conn, this.BULK_UPDATE_PLAYER_STATE, {
             ':jsonRows': JSON.stringify(rows),
             ':dt':  dt
-        });
+        }) : null;
     };
     BULK_UPDATE_PLAYER_STATE = preprocessSQL(`
         UPDATE user
@@ -345,10 +347,10 @@ export class DBWorld {
     }
 
     async bulkInsertDropItems(rows, dt) {
-        return rows.length && this.conn.run(this.BULK_INSERT_DROP_ITEMS, {
+        return rows.length ? run(this.conn, this.BULK_INSERT_DROP_ITEMS, {
             ':jsonRows': JSON.stringify(rows),
             ':dt': dt
-        });
+        }) : null;
     };
     BULK_INSERT_DROP_ITEMS = preprocessSQL(`
         INSERT INTO drop_item (entity_id, dt, items, x, y, z)
@@ -357,9 +359,9 @@ export class DBWorld {
     `);
 
     async bulkUpdateDropItems(rows) {
-        return rows.length && this.conn.run(this.BULK_UPDATE_DROP_ITEMS, {
+        return rows.length ? run(this.conn, this.BULK_UPDATE_DROP_ITEMS, {
             ':jsonRows': JSON.stringify(rows)
-        });
+        }) : null;
     };
     BULK_UPDATE_DROP_ITEMS = preprocessSQL(`
         UPDATE drop_item
@@ -369,10 +371,10 @@ export class DBWorld {
     `);
 
     async bulkDeleteDropItems(entityIds) {
-        return entityIds.length && this.conn.run(
+        return entityIds.length ? run(this.conn, 
             'DELETE FROM drop_item WHERE entity_id IN (SELECT value FROM json_each(?))',
             [JSON.stringify(entityIds)]
-        );
+        ) : null;
     };
 
     // Delete all old drop items
@@ -488,7 +490,7 @@ export class DBWorld {
 
     // Save ender chest content
     async saveEnderChest(player, ender_chest) {
-        await this.conn.run('UPDATE user SET ender_chest = :ender_chest WHERE id = :id', {
+        await run(this.conn, 'UPDATE user SET ender_chest = :ender_chest WHERE id = :id', {
             ':id':            player.session.user_id,
             ':ender_chest':   JSON.stringify(ender_chest)
         });

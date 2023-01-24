@@ -1,7 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../../www/js/chunk_const.js';
 import { getChunkAddr, Vector, VectorCollector } from '../../../www/js/helpers.js';
 import { Mob } from "../../mob.js";
-import { BulkSelectQuery, preprocessSQL } from "../db_helpers.js";
+import { BulkSelectQuery, preprocessSQL, run } from "../db_helpers.js";
 
 export class DBWorldMob {
 
@@ -24,7 +24,7 @@ export class DBWorldMob {
         this.maxId = (await this.conn.get('SELECT id FROM entity ORDER BY id DESC LIMIT 1'))?.id ?? 0;
     }
 
-    async getNextId() {
+    getNextId() {
         return ++this.maxId;
     }
 
@@ -143,14 +143,14 @@ export class DBWorldMob {
     }
 
     async bulkUpdate(rows) {
-        return rows.length && this.conn.run(this.BULK_UPDATE, {
+        return rows.length ? run(this.conn, this.BULK_UPDATE, {
             ':jsonRows': JSON.stringify(rows)
         }).then(() => {
             for(const row of rows) {
                 // we know active = true because this method called only for mobs that remain active
                 this._cacheMob(row[0], true, row[1], row[2], row[3]);
             }
-        });
+        }) : null;
     };
     BULK_UPDATE_FIELDS = 'x = %1, y = %2, z = %3, indicators = %4, extra_data = %5, rotate = %6'
     BULK_UPDATE = preprocessSQL(`
@@ -169,13 +169,13 @@ export class DBWorldMob {
     }
 
     async bulkFullUpdate(rows) {
-        return rows.length && this.conn.run(this.BULK_FULL_UPDATE, {
+        return rows.length ? run(this.conn, this.BULK_FULL_UPDATE, {
             ':jsonRows': JSON.stringify(rows)
         }).then(() => {
             for(const row of rows) {
                 this._cacheMob(row[0], row[7], row[1], row[2], row[3]);
             }
-        });
+        }) : null;
     };
     BULK_FULL_UPDATE = preprocessSQL(`
         UPDATE entity
@@ -190,21 +190,21 @@ export class DBWorldMob {
     }
 
     async bulkInsert(rows, dt) {
-        return rows.length && this.conn.run(this.BULK_INSERT, {
+        return rows.length ? run(this.conn, this.BULK_INSERT, {
             ':jsonRows': JSON.stringify(rows),
             ':dt': dt
         }).then(() => {
             for(const row of rows) {
                 this._cacheMob(row[0], row[7], row[1], row[2], row[3]);
             }
-        });
+        }) : null;
     };
     BULK_INSERT = preprocessSQL(`
         INSERT INTO entity (
             id,
             x, y, z,
             indicators, extra_data, rotate, -- common for all updates
-            is_active, pos_spawn,            -- included in a full update
+            is_active, pos_spawn,           -- included in a full update
             entity_id, type, skin, dt       -- insert only
         ) SELECT
             %0,
@@ -216,14 +216,14 @@ export class DBWorldMob {
     `);
 
     async bulkDelete(ids) {
-        return ids.length && this.conn.run(
+        return ids.length ? run(this.conn,
             'DELETE FROM entity WHERE id IN (SELECT value FROM json_each(?))',
             [JSON.stringify(ids)]
         ).then(() => {
             for(const id of ids) {
                 this._cacheMob(id, false);
             }
-        });
+        }) : null;
     };
 
 }

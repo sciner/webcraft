@@ -1,4 +1,4 @@
-import { preprocessSQL } from "../db_helpers.js";
+import { preprocessSQL, run } from "../db_helpers.js";
 
 export class DBWorldQuest {
 
@@ -148,10 +148,10 @@ export class DBWorldQuest {
      * @param {Int} dt - unix time
     */
     async bulkInsertPlayerQuests(rows, dt) {
-        return rows.length && this.conn.run(this.BULK_INSERT_PLAYER_QUESTS, {
+        return rows.length ? run(this.conn, this.BULK_INSERT_PLAYER_QUESTS, {
             ':jsonRows': JSON.stringify(rows),
             ':dt': dt
-        });
+        }) : null;
     };
     BULK_INSERT_PLAYER_QUESTS = preprocessSQL(`
         INSERT INTO user_quest (
@@ -165,9 +165,9 @@ export class DBWorldQuest {
 
     /** @param {Array of Array} rows - the results of {@link playerQuestToRow} */
     async bulkUpdatePlayerQuests(rows) {
-        return rows.length && this.conn.run(this.BULK_UPDATE_PLAYER_QUESTS, {
+        return rows.length ? run(this.conn, this.BULK_UPDATE_PLAYER_QUESTS, {
             ':jsonRows': JSON.stringify(rows)
-        });
+        }) : null;
     };
     BULK_UPDATE_PLAYER_QUESTS = preprocessSQL(`
         UPDATE user_quest

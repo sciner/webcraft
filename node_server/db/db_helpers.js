@@ -1,4 +1,6 @@
-import { ArrayHelpers } from "../../www/js/helpers.js";
+import { ArrayHelpers, StringHelpers } from "../../www/js/helpers.js";
+
+const SQLITE_MAX_VARIABLE_NUMBER = 999; // used for bulk queries with (?,?,?), see https://www.sqlite.org/limits.html
 
 /** A handler to complete a transaction, and to resolve a promise at the same time. */
 export class Transaction {
@@ -199,4 +201,83 @@ export class BulkSelectQuery {
         return promise;
     }
 
+}
+
+/**
+ * Constructs and runs a query with host parameters passed as (?,?,?).
+ * It's slower than passing parameters in JSON, but it can pass BLOB.
+ * 
+ * @param {Object} conn
+ * @param {String} prefix - the first part of the query string, ending with "VALUES"
+ * @param {String} values - a part of the query string containing (?,?,?,...)
+ * @param {String} suffix - the second part of the query string
+ * @param {Array of Arrays} rows - thw rows.
+ */
+export async function runBulkQuery(conn, sqlPrefix, sqlValues, sqlSuffix, rows) {
+
+    function runQuery() {
+        if (queryDataCount !== dataCount) {
+            query = sqlPrefix + sqlValues.repeat(dataCount - 1) + sqlSuffix;
+            queryDataCount = dataCount;
+        }
+        const promise = run(conn, query, data);
+        promises.push(promise);
+        data = [];
+        dataCount = 0;
+    }
+
+    if (!rows.length) {
+        return;
+    }
+    const promises = [];
+    let data = [];
+    let dataCount = 0;
+    let query;
+    let queryDataCount = -1;
+
+    const valuesCount = StringHelpers.count(sqlValues, '?');
+    sqlPrefix += sqlValues;
+    sqlValues = ',' + sqlValues;
+
+    for(const row of rows) {
+        if (!Array.isArray(row) || row.length !== valuesCount) {
+            throw new Error(`Incorrect host parameters row length: ${sqlValues} ${JSON.stringify(row)}`);
+        }
+        if (data.length + row.length > SQLITE_MAX_VARIABLE_NUMBER) {
+            runQuery();
+        }
+        data.push(...row);
+        dataCount++;
+    }
+    if (dataCount) {
+        runQuery();
+    }
+    return Promise.all(promises);
+}
+
+/**
+ * It runs a query like connection.all(), but in addition it prints the query if it throws an exception.
+ * It helps identify in which of multiple queries running in parallel the error occured.
+ */
+export async function all(conn, sql, params) {
+    return conn.all(sql, params).catch( err => {
+        console.error('Error in: ' + sql);
+        throw err;
+    });
+}
+
+/** Analogous to {@link all} */
+export async function get(conn, sql, params) {
+    return conn.get(sql, params).catch( err => {
+        console.error('Error in: ' + sql);
+        throw err;
+    });
+}
+
+/** Analogous to {@link all} */
+export async function run(conn, sql, params) {
+    return conn.run(sql, params).catch( err => {
+        console.error('Error in: ' + sql);
+        throw err;
+    });
 }
