@@ -80,6 +80,7 @@ export class BackgroundStyle {
         // Background image
         this.#_bgimage = new MySprite(PIXI.Texture.EMPTY)
         window._bgimage = this.#_bgimage
+        window._bgimage.catchEvents = false
         // this.#_bgimage.anchor.x = 0
         // this.#_bgimage.anchor.y = 0
         // this.#_bgimage.position.x = 0

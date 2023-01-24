@@ -86,14 +86,13 @@ export class Resources {
         all.push(loadImage('media/debug_frame.png').then((img) => { this.pickat.debug = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
-        all.push(fetch('/data/icons.json').then(response => response.json()).then(json => { this.icons = json;}));
 
         /**
          * Atlases
          * @type {Object.<string, SpriteAtlas>}
          */
         this.atlas = {}
-        for(let name of ['hotbar', 'bn']) {
+        for(let name of ['hotbar', 'bn', 'icons']) {
             this.atlas[name] = {}
             all.push(fetch(`data/atlas/${name}/atlas.json`).then(response => response.json()).then(json => { this.atlas[name].map = json}))
             all.push(loadImage(`data/atlas/${name}/atlas.png`).then(img => {this.atlas[name].image = img}))

@@ -269,6 +269,7 @@ export class Window extends PIXI.Container {
     get _wmicon() {
         if(!this.#_bgicon) {
             this.#_bgicon = new Label(0, 0, this.w, this.h, `${this.id}_bgicon`)
+            this.#_bgicon.catchEvents = false
             this.addChild(this.#_bgicon)
         }
         return this.#_bgicon
