@@ -215,7 +215,7 @@ export class InventoryComparator {
                 console.log(`* Item not found (${key}); item: ` + JSON.stringify(item));
                 return false;
             }
-            if(!this.itemsEqualExceptCount(old_item, item)) {
+            if(!this.itemsEqual(old_item, item)) {
                 console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], 2, null));
                 return false;
             }
