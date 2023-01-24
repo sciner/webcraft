@@ -1,5 +1,5 @@
 import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
-    SpatialDeterministicRandom } from "./helpers.js";
+    SpatialDeterministicRandom, ObjectHelpers } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT } from "./blocks.js";
@@ -240,9 +240,8 @@ async function createPainting(e, world, pos) {
 
 //
 function makeDropItem(block, item) {
-    const extra_data = block.extra_data
-    if(extra_data || block.hasTag('drop_as_entity')) {
-        item.extra_data = JSON.parse(JSON.stringify(extra_data))
+    if(block.hasTag('drop_as_entity')) {
+        item.extra_data = ObjectHelpers.deepClone(block.extra_data)
         item.entity_id = block.entity_id || randomUUID()
         item.count = 1
     }
@@ -478,7 +477,7 @@ class DestroyBlocks {
         //
         if(tblock.material.chest) {
             const di = drop_items[0]
-            if(!tblock.hasTag('store_items_in_chest')) {
+            if(tblock.hasTag('store_items_in_chest')) {
                 di.extra_data = {...tblock.extra_data}
                 di.entity_id = tblock.entity_id || randomUUID()
             } else {
