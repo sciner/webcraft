@@ -81,8 +81,7 @@ export class ServerPlayerDamage {
         } else {
             this.food_timer = 0;
         }
-        
-         // голод, дполнителное уменьшения насыщения от эффекта
+        // голод, дполнителное уменьшения насыщения от эффекта
         const hunger_lvl = effects.getEffectLevel(Effect.HUNGER);
         if (hunger_lvl > 0) {
             this.addExhaustion(0.025 * hunger_lvl);
@@ -111,7 +110,6 @@ export class ServerPlayerDamage {
                 player.oxygen_level =  Math.min(player.oxygen_level + 1, ind_def.oxygen.value);
             }
         }
-        
         // огонь/лава с эффектом защиты от огня
         const is_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || is_lava) {
@@ -126,7 +124,6 @@ export class ServerPlayerDamage {
         } else {
             this.fire_lost_timer = FIRE_LOST_TICKS;
         }
-        
         // отравление
         const poison_lvl = effects.getEffectLevel(Effect.POISON);
         if (poison_lvl > 0) {
@@ -140,7 +137,6 @@ export class ServerPlayerDamage {
         } else {
             this.poison_timer = 0;
         }
-        
         // иссушение
         const wither_lvl = effects.getEffectLevel(Effect.WITHER);
         if (wither_lvl > 0) {
@@ -152,9 +148,11 @@ export class ServerPlayerDamage {
         } else {
             this.wither_timer = 0;
         }
-        
         // урон от растений
         const isDamagePlanting = (block) => {
+            if (!block) {
+                return false;
+            }
             if (block.id == BLOCK.CACTUS.id) {
                 return true;
             }
@@ -179,7 +177,6 @@ export class ServerPlayerDamage {
         } else {
             this.planting_lost_timer = PLANTING_LOST_TICKS;
         }
-        
         // моментальный урон
         const instant_damage_lvl = effects.getEffectLevel(Effect.INSTANT_DAMAGE);
         if (instant_damage_lvl > 0) {
@@ -191,7 +188,6 @@ export class ServerPlayerDamage {
         } else {
             this.instant_damage_timer = INSTANT_DAMAGE_TICKS;
         }
-        
         // исцеление
         const instant_health_lvl = effects.getEffectLevel(Effect.INSTANT_HEALTH);
         if (instant_health_lvl > 0) {
@@ -203,7 +199,6 @@ export class ServerPlayerDamage {
         } else {
             this.instant_health_timer = INSTANT_HEALTH_TICKS;
         }
-        
         // регенерация жизней
         const reg_lvl = effects.getEffectLevel(Effect.REGENERATION);
         if (reg_lvl > 0) {
@@ -215,14 +210,11 @@ export class ServerPlayerDamage {
         } else {
             this.live_regen_timer = 0;
         }
-        
         // сопротивление магическому и физическому урону
         const res_lvl = effects.getEffectLevel(Effect.RESISTANCE);
         damage -= damage * res_lvl * 0.2;
-        
         // армор
         damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32);
-        
         if (damage > 0) {
             player.live_level = Math.max(player.live_level - damage, 0);
         }
