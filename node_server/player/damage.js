@@ -45,7 +45,7 @@ export class ServerPlayerDamage {
         const position = player.state.pos.floored();
         const head = world.getBlock(player.getEyePos().floored());
         const legs = world.getBlock(position);
-        if (!head || !legs) {
+        if (!head || !legs || head.id < 0 || legs.id < 0) {
             return;
         }
         const effects = player.effects;
