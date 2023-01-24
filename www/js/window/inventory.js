@@ -4,6 +4,7 @@ import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { blobToImage } from "../helpers.js";
 
 const PLAYER_BOX_WIDTH = 98;
 const PLAYER_BOX_HEIGHT = 140;
@@ -115,11 +116,14 @@ export class InventoryWindow extends BaseCraftWindow {
         this.skinViewer.renderPaused = true
     }
 
-    previewSkin() {
-        const that = this;
-        function drawOneFrame() {
-            that.skinViewer.draw();
-            that.skinViewer.renderPaused = true;
+    async previewSkin() {
+
+        const drawOneFrame = () => {
+            this.skinViewer.draw();
+            this.skinViewer.renderPaused = true;
+            this.skinViewerCanvas.toBlob(async blob => {
+                this.lblPlayerBox.setBackground(await blobToImage(blob), 'centerstretch', .9)
+            })
         }
 
         if (!this.skinViewer) {
@@ -178,7 +182,7 @@ export class InventoryWindow extends BaseCraftWindow {
         this.skinViewerCanvas = document.createElement('canvas');
         this.skinViewerCanvas.width = PLAYER_BOX_WIDTH * this.zoom;
         this.skinViewerCanvas.height = PLAYER_BOX_HEIGHT * this.zoom;
-        this.lblPlayerBox.setBackground(this.skinViewerCanvas, 'stretch');
+        // this.lblPlayerBox.setBackground(this.skinViewerCanvas, 'centerstretch', .9);
         this.lblPlayerBox.onMouseDown = () => {
             this.skinViewer.animation = this.skinViewer.animation || new skinview3d.WalkingAnimation();
             this.skinViewer.renderPaused = !this.skinViewer.renderPaused;

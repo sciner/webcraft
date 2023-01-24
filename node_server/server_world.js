@@ -953,7 +953,7 @@ export class ServerWorld {
                 // replace item in inventory
                 inventory.items[inventory.current.index] = actions.put_in_bottle;
                 // send new inventory state to player
-                inventory.refresh(true);
+                inventory.refresh(true)
             }
         }
         //

@@ -15,26 +15,24 @@ export class EditSignWindow extends BlankWindow {
 
         // Get window by ID
         const ct = this
-        ct.style.background.image_size_mode = 'stretch'
-        ct.setBackground('./media/gui/form-empty.png')
+        ct.setBackground('./media/gui/form-empty.png', 'stretch')
 
         // Add labels to window
-        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Edit sign text')
+        const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Edit sign text')
         this.add(lbl1)
 
         // Text editors
-        const margin            = 14; // (this.w / this.zoom) / 48 * 2;
-        const textEditWidth     = 200 * this.zoom;
-        const textEditHeight    = textEditWidth / 2;
-        const txtEdit1 = this.txtEdit1 = new TextEdit(this.w / 2 - textEditWidth / 2, 40 * this.zoom, textEditWidth, textEditHeight, 'txtEdit1', null, 'Hello, World!');
-        txtEdit1.word_wrap          = true;
-        txtEdit1.style.color        = '#ffffff';
-        txtEdit1.focused            = true;
-        txtEdit1.max_length         = 100;
-        txtEdit1.max_lines          = 5;
-        txtEdit1.max_chars_per_line = 20;
-        txtEdit1.style.background.image_size_mode = 'stretch';
-        txtEdit1.setBackground('./media/gui/edit_sign_oak.png');
+        const margin            = 14 // (this.w / this.zoom) / 48 * 2;
+        const textEditWidth     = 200 * this.zoom
+        const textEditHeight    = textEditWidth / 2
+        const txtEdit1 = this.txtEdit1 = new TextEdit(this.w / 2 - textEditWidth / 2, 40 * this.zoom, textEditWidth, textEditHeight, 'txtEdit1', null, '')
+        txtEdit1.word_wrap          = true
+        txtEdit1.style.font.color   = '#ffffff'
+        txtEdit1.max_length         = 100
+        txtEdit1.max_lines          = 5
+        txtEdit1.max_chars_per_line = 20
+        txtEdit1.style.background.color = '#00000000'
+        txtEdit1.setBackground('./media/gui/edit_sign_oak.png', 'stretch')
         this.add(txtEdit1)
 
         // Ширина / высота слота
@@ -46,27 +44,18 @@ export class EditSignWindow extends BlankWindow {
             const that = this
             const btnClose = new Button(that.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial'
-            btnClose.style.background.image_size_mode = 'stretch'
-            btnClose.style.background.image = image
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
+            btnClose.setBackground(image, 'stretch')
+            btnClose.onMouseDown = function(e) {
                 that.hide()
-            }
-            btnClose.onMouseLeave = function() {
-                this.style.background.color = '#c6c6c6'
-                this.style.color = '#3f3f3f'
             }
             that.add(btnClose)
         });
 
         // Save button
-        const btnHeight = margin * 1.5;
-        const btnSave = new Button(ct.width * .5 - 50 * this.zoom, this.height - (btnHeight + margin) * this.zoom, 100 * this.zoom, btnHeight * this.zoom, 'btnSave', 'Save');
-        btnSave.onDrop = btnSave.onMouseDown = function(e) {
+        const btn_height = margin * 1.5;
+        const btnSave = new Button(ct.w * .5 - 50 * this.zoom, this.h - (btn_height + margin) * this.zoom, 100 * this.zoom, btn_height * this.zoom, 'btnSave', 'Save');
+        btnSave.onMouseDown = function(e) {
             ct.hide()
-        }
-        btnSave.onMouseLeave = function() {
-            this.style.background.color = '#c6c6c6'
-            this.style.color = '#3f3f3f'
         }
         this.add(btnSave)
 
@@ -75,8 +64,9 @@ export class EditSignWindow extends BlankWindow {
     // Обработчик открытия формы
     onShow(args) {
         this.args = args
-        this.txtEdit1.buffer = []
+        this.txtEdit1.text = ''
         Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
     // Обработчик открытия формы

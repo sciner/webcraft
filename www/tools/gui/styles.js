@@ -149,6 +149,7 @@ export class BackgroundStyle {
                 // background.pivot.y = background._image.height / 2
                 break
             }
+            case 'stretchcenter':
             case 'centerstretch': {
                 background.position.x = window.w / 2
                 background.position.y = window.h / 2

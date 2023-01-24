@@ -1057,7 +1057,7 @@ export class TextEdit extends Window {
      * @param {string} value
      */
     set text(value) {
-        this.buffer = RuneStrings.toArray(value)
+        this.buffer = RuneStrings.toArray(value || '')
         this._changed()
     }
 

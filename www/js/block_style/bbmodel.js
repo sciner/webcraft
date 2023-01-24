@@ -268,7 +268,7 @@ export default class style {
         const rotate = tblock.rotate
 
         // 1.
-        if(bb.set_state && !(tblock instanceof FakeTBlock)) {
+        if(bb.set_state /* && !(tblock instanceof FakeTBlock) */) {
             for(let state of bb.set_state) {
                 if(style.checkWhen(model, tblock, state.when)) {
                     model.state = state.name

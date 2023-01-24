@@ -93,7 +93,7 @@ export class CraftTable extends BaseCraftWindow {
         const ct = this;
         let btnRecipes = new Button(10 * this.zoom, 68 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
         btnRecipes.tooltip = 'Toggle recipes';
-        btnRecipes.setBackground('./media/gui/recipes.png', 'center', 1.5);
+        btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5);
         btnRecipes.onMouseDown = (e) => {
             let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);

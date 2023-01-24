@@ -363,9 +363,9 @@ export class Inventory {
 
     //
     setItem(index, item) {
-        this.items[index] = item;
+        this.items[index] = item
         // Обновить текущий инструмент у игрока
-        this.select(this.current.index);
+        this.select(this.current.index)
     }
 
     next() {
