@@ -142,8 +142,16 @@ export class Hotbar {
             this.hotbar_atlas = Resources.atlas.hotbar
 
             for(const [name, scale] of Object.entries(this.sprites)) {
-                this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale * this.zoom )
+                this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale * this.zoom)
             }
+
+            // Effects sprites
+            this.effect_sprites = {}
+            for(let effect of Effect.get()) {
+                this.effect_sprites[effect.id] = new MySprite(Resources.atlas.bn.getSpriteFromMap(effect.icon), 1 * this.zoom)
+            }
+
+            this.sprite_effect_bg = new MySprite(Resources.atlas.bn.getSpriteFromMap('button_black'), 1 * this.zoom)
 
             this.hud.add(this, 0)
 
@@ -298,51 +306,25 @@ export class Hotbar {
         }
 
         // TODO: pixi
-        this.drawEffects()
+        this.drawEffects(hud)
 
     }
 
-    drawEffects() {
+    drawEffects(hud) {
+        const margin = 4 * this.zoom
+        let pos = margin
+        const bg = this.sprite_effect_bg
         for(let effect of this.inventory.player.effects.effects) {
-            console.log(effect)
-            // TODO: pixi
-            // effect.id
-            // this.drawEffectsIcon(hud, effect.id, pos++);
+            debugger
+            const sprite = this.effect_sprites[effect.id]
+            const paddingx = bg.width / 2 - sprite.width / 2
+            const paddingy = bg.height / 2 - sprite.height / 2
+            const x = hud.width - pos - bg.width
+            const y = margin
+            this.tilemap.drawImage(bg, x, y)
+            this.tilemap.drawImage(sprite, x + paddingx, y + paddingy)
+            pos += margin + bg.width
         }
-    }
-    
-    drawEffectsIcon(hud, icon, pos) {
-        if (icon > 23) {
-            return;
-        }
-        const icons = [
-            {x: 2, y: 397},
-            {x: 39, y: 397},
-            {x: 73, y: 397},
-            {x: 112, y: 397},
-            {x: 145, y: 397},
-            {x: 181, y: 397},
-            {x: 219, y: 397},
-            {x: 255, y: 397},
-            {x: 2, y: 435},
-            {x: 39, y: 435},
-            {x: 73, y: 435},
-            {x: 112, y: 435},
-            {x: 145, y: 435},
-            {x: 181, y: 435},
-            {x: 219, y: 435},
-            {x: 255, y: 435},
-            {x: 2, y: 472},
-            {x: 39, y: 472},
-            {x: 73, y: 472},
-            {x: 112, y: 472},
-            {x: 145, y: 472},
-            {x: 181, y: 472},
-            {x: 219, y: 472},
-            {x: 255, y: 472},
-        ];
-        hud.ctx.drawImage(this.effect_icons, 280, 333, 50, 50, hud.width - this.zoom * 50 * ( pos + 1) - 10, 10, this.zoom * 50, this.zoom * 50);
-        hud.ctx.drawImage(this.effect_icons, icons[icon].x, icons[icon].y, 34, 34, hud.width - (this.zoom * (50 * (pos + 1) - 11)) - 10, this.zoom * 14, this.zoom * 34, this.zoom * 34);
     }
 
 }
