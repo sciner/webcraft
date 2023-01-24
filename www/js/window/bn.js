@@ -2,7 +2,7 @@ import { BLOCK } from "../blocks.js";
 import { Button, Window } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
-import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { Resources } from "../resources.js";
 
 // слот для залога
 class BeaconSlot extends CraftTableSlot {
@@ -55,42 +55,23 @@ class ActiveButton extends Window {
         
         this.ct = ct
 
-        /*
-        // TODO: pixi Ned replace sprite with image
-        this.style.background.sprite = {
-            'mode': 'stretch',
-            'width': 43,
-            'height': 43,
-            'x': 0,
-            'y': 438
-        };
-        this.setBackground(this.style.background.image, 'sprite');
-        this.style.icon.image = './media/gui/bn.png';
-        this.style.icon.sprite = {
-            'mode': 'stretch',
-            'width': 43,
-            'height': 43,
-            'x': 1,
-            'y': 438
-        };
-        this.setIconImage(this.style.icon.image, 'sprite');
-
-        this.setIconName(icon);
-        this.setEnable(true);
-        this.setDown(false);
-        */
+        // this.setIconName(icon)
+        // this.setEnable(true)
+        // this.setDown(false)
 
     }
         
     onMouseEnter() {
         if(this.enable && !this.down) {
-            this.style.background.sprite.x = 132
+            // this.style.background.sprite.x = 132
+            this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
         }
     };
     
     onMouseLeave() {
         if(this.enable && !this.down) {
-            this.style.background.sprite.x = 0
+            // this.style.background.sprite.x = 0
+            this.setBackground(this.ct.atlas.getSpriteFromMap('button'))
         }
     };
     
@@ -105,25 +86,29 @@ class ActiveButton extends Window {
     setEnable(val) {
         this.enable = val;
         if (!this.enable) {
-            this.style.background.sprite.x = 88
+            // this.style.background.sprite.x = 88
+            this.setBackground(this.ct.atlas.getSpriteFromMap('button_black'))
         }
     }
     
     setDown(val) {
         this.down = val;
-        this.style.background.sprite.x = this.down ? 43 : 0;
+        // this.style.background.sprite.x = this.down ? 43 : 0;
+        this.setBackground(this.ct.atlas.getSpriteFromMap(this.down ? 'button_pressed' : 'button'))
     }
     
     setIcon(name) {
         switch(name) {
             case 'ok': {
-                this.style.icon.sprite.x = 178;
-                this.style.icon.sprite.y = 438;
+                // this.style.icon.sprite.x = 178;
+                // this.style.icon.sprite.y = 438;
+                this.setIcon(this.ct.atlas.getSpriteFromMap('ok'))
                 break;
             }
             case 'cancel': {
-                this.style.icon.sprite.x = 222;
-                this.style.icon.sprite.y = 438;
+                // this.style.icon.sprite.x = 222;
+                // this.style.icon.sprite.y = 438;
+                this.setIcon(this.ct.atlas.getSpriteFromMap('cancel'))
                 break;
             }
         }
@@ -141,8 +126,8 @@ class EffectButton extends Window {
         this.ct = ct
         this.style.border.hidden = true
 
-        ct.atlas.getSprite(0, 438, 43, 43).then(sprite => this.setBackground(sprite))
-        ct.atlas.getSprite(1, 396, 36, 36).then(sprite => this.setIcon(sprite))
+        this.setBackground(ct.atlas.getSpriteFromMap('button'))
+        this.setIcon(ct.atlas.getSpriteFromMap(icon), 'centerstretch', .5)
 
         this.setEnable(true)
         this.setDown(false)
@@ -151,13 +136,13 @@ class EffectButton extends Window {
         
     onMouseEnter() {
         if (this.enable && !this.down) {
-            this.style.background.sprite.x = 132
+            this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
         }
     }
 
     onMouseLeave() {
         if (this.enable && !this.down) {
-            this.style.background.sprite.x = 0
+            this.setBackground(this.ct.atlas.getSpriteFromMap('button'))
         }
     }
 
@@ -187,13 +172,15 @@ class EffectButton extends Window {
     setEnable(val) {
         this.enable = val;
         if (!this.enable) {
-            this.style.background.sprite.x = 88;
+            // this.style.background.sprite.x = 88;
+            this.setBackground(this.ct.atlas.getSpriteFromMap('button_black'))
         }
     }
     
     setDown(val) {
         this.down = val;
-        this.style.background.sprite.x = this.down ? 43 : 0;
+        // this.style.background.sprite.x = this.down ? 43 : 0;
+        this.setBackground(this.ct.atlas.getSpriteFromMap(this.down ? 'button_pressed' : 'button'))
     }
     
     setIconName(name) {
@@ -218,107 +205,27 @@ export class BeaconWindow extends BaseCraftWindow {
         this.h *= this.zoom
         this.player = player
 
-        // Create sprite atlas
+        this.atlas = Resources.atlas.bn
 
-        const map = {
-            "meta": {
-                "scale": 1
-            },
-            "frames": {
-                "window_background": {
-                    "frame": {"x":0,"y":0,"w":459,"h":438},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":459,"h":438},
-                    "sourceSize": {"w":459,"h":438}
-                },
-                "speed": {
-                    "frame": {"x":1,"y":369,"w":36,"h":36},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
-                    "sourceSize": {"w":36,"h":36}
-                },
-                "haste": {
-                    "frame": {"x":74,"y":369,"w":36,"h":36},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
-                    "sourceSize": {"w":36,"h":36}
-                },
-                "resistance": {
-                    "frame": {"x":216,"y":431,"w":36,"h":36},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
-                    "sourceSize": {"w":36,"h":36}
-                },
-                "jump": {
-                    "frame": {"x":74,"y":431,"w":36,"h":36},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
-                    "sourceSize": {"w":36,"h":36}
-                },
-                "strength": {
-                    "frame": {"x":145,"y":396,"w":36,"h":36},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
-                    "sourceSize": {"w":36,"h":36}
-                },
-                "regeneration": {
-                    "frame": {"x":252,"y":397,"w":36,"h":36},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
-                    "sourceSize": {"w":36,"h":36}
-                },
-                "ok": {
-                    "frame": {"x":178,"y":438,"w":36,"h":36},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
-                    "sourceSize": {"w":36,"h":36}
-                },
-                "cancel": {
-                    "frame": {"x":222,"y":438,"w":36,"h":36},
-                    "rotated": false,
-                    "trimmed": false,
-                    "spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
-                    "sourceSize": {"w":36,"h":36}
-                }
-            }
-        }
+        this.setBackground(this.atlas.getSpriteFromMap('background'))
 
-        SpriteAtlas.fromJSON('./media/gui/bn.png', map).then(async atlas => {
+        // Ширина / высота слота
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
-            this.atlas = atlas
-            this.setBackground(atlas.getSpriteFromMap('window_background'))
+        // Создание кнопок для эффектов
+        this.createButtons(this.cell_size)
 
-            // Ширина / высота слота
-            this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
-    
-            // Создание кнопок для эффектов
-            this.createButtons(this.cell_size)
+        // Создание слотов для инвентаря
+        this.createInventorySlots(this.cell_size, 70, 272)
 
-            // Создание слотов для инвентаря
-            this.createInventorySlots(this.cell_size, 70, 272)
-
-            // Add close button
-            this.loadCloseButtonImage((image) => {
-                // Add buttons
-                const that = this
-                // Close button
-                const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-                btnClose.style.font.family = 'Arial'
-                btnClose.style.background.image = image
-                btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                    that.hide()
-                }
-                that.add(btnClose);
-            })
-
+        // Add close button
+        this.loadCloseButtonImage((image) => {
+            // Close button
+            const btnClose = new Button(this.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+            btnClose.style.font.family = 'Arial'
+            btnClose.setBackground(image)
+            btnClose.onMouseDown = this.hide.bind(this)
+            this.add(btnClose)
         })
 
     }
@@ -340,7 +247,7 @@ export class BeaconWindow extends BaseCraftWindow {
         this.add(this.btn_speed = new EffectButton(105 * this.zoom, 50 * this.zoom, cell_size, 'btnSpeed', 'speed', this))
         this.add(this.btn_haste = new EffectButton(145 * this.zoom, 50 * this.zoom, cell_size, 'btnHaste', 'haste', this))
         this.add(this.btn_resistance = new EffectButton(105 * this.zoom, 100 * this.zoom, cell_size, 'btnResistance', 'resistance', this))
-        this.add(this.btn_jump = new EffectButton(145 * this.zoom, 100 * this.zoom, cell_size, 'btnJump', 'jump', this))
+        this.add(this.btn_jump = new EffectButton(145 * this.zoom, 100 * this.zoom, cell_size, 'btnJump', 'jump_boost', this))
         this.add(this.btn_strength = new EffectButton(125 * this.zoom, 150 * this.zoom, cell_size, 'btnStrength', 'strength', this))
         this.add(this.btn_regeneration = new EffectButton(290 * this.zoom, 100 * this.zoom, cell_size, 'btnRegeneration', 'regeneration', this))
         this.add(this.btn_double = new EffectButton(340 * this.zoom, 100 * this.zoom, cell_size, 'btnDouble', 'speed', this))

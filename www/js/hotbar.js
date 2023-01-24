@@ -139,7 +139,7 @@ export class Hotbar {
                 armor_half:         2.8
             }
 
-            this.hotbar_atlas = Resources.hotbar.atlas
+            this.hotbar_atlas = Resources.atlas.hotbar
 
             for(const [name, scale] of Object.entries(this.sprites)) {
                 this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale)

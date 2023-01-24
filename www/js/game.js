@@ -57,7 +57,10 @@ export class GameClass {
         const blockTask = BLOCK.init(settings);
         await Promise.all([resourceTask, blockTask]);
 
-        Resources.hotbar.atlas = await SpriteAtlas.fromJSON(Resources.hotbar.image, Resources.hotbar.map)
+        // Make atlases
+        for(const [atlas_name, item] of Object.entries(Resources.atlas)) {
+            Resources.atlas[atlas_name] = await SpriteAtlas.fromJSON(item.image, item.map)
+        }
 
         // init world
         this.world = new World(settings, BLOCK);
