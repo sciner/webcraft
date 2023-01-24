@@ -76,10 +76,15 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
             }
         }
 
+        const blocks = []
+
         if(this.conf.blocks) {
 
             // fill "texture" property
             for(let block of this.conf.blocks) {
+                if(!('id' in block)) {
+                    continue
+                }
                 if(!block.bb) {
                     throw `error_block_must_contain_bb|${block.name}`
                 }
@@ -101,14 +106,12 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                     id: model._properties.texture_id,
                     side: `${first_place.x}|${first_place.y}`
                 }
+                blocks.push(block)
             }
 
         }
 
-        // compile blocks
-        const blocks = this.conf.blocks ? await compiler.compileBlocks(this.conf.blocks) : []
-
-        fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(blocks, null, 4));
+        fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(await compiler.compileBlocks(blocks), null, 4));
         delete(this.conf.blocks);
         fs.writeFileSync(`${this.options.output_dir}/conf.json`, JSON.stringify(this.conf, null, 4));
 

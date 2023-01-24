@@ -44,7 +44,8 @@
         {"name": "dead_bush",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "candle",              "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "rail",                "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "iron_bars",           "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "iron_bars",           "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "door",                "shift": {"x": 23, "y": 0, "z": -7}}
     ],
     "blocks": [
         {
@@ -733,7 +734,7 @@
                 "model": "rail",
                 "behavior": "rails",
                 "set_state": [
-                    {"name": "normal", "when": {"extra_data.shape": [0, 1]}},
+                    {"name": "normal", "when": {"extra_data.shape": [null, 0, 1]}},
                     {"name": "inclined", "when": {"extra_data.shape": [2, 3, 4, 5]}},
                     {"name": "turn", "when": {"extra_data.shape": [6, 7, 8, 9]}}
                 ],
@@ -751,6 +752,124 @@
                 "model": "iron_bars",
                 "behavior": "pane"
             }
+        },
+        {
+            "id": 574,
+            "name": "BIRCH_DOOR",
+            "bb": {
+                "model": "door",
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}},
+                    {"name": "birch"}
+                ],
+                "select_texture": [
+                    {"texture": "birch.png"}
+                ],
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 576,
+            "name": "OAK_DOOR",
+            "bb": {
+                "model": "door",
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}},
+                    {"name": "oak"}
+                ],
+                "select_texture": [
+                    {"texture": "oak.png"}
+                ],
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 578,
+            "name": "ACACIA_DOOR",
+            "bb": {
+                "model": "door",
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}},
+                    {"name": "acacia"}
+                ],
+                "select_texture": [
+                    {"texture": "acacia.png"}
+                ],
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 580,
+            "name": "SPRUCE_DOOR",
+            "bb": {
+                "model": "door",
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}},
+                    {"name": "spruce"}
+                ],
+                "select_texture": [
+                    {"texture": "spruce.png"}
+                ],
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 582,
+            "name": "DARK_OAK_DOOR",
+            "bb": {
+                "model": "door",
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}},
+                    {"name": "dark_oak"}
+                ],
+                "select_texture": [
+                    {"texture": "dark_oak.png"}
+                ],
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 584,
+            "name": "JUNGLE_DOOR",
+            "bb": {
+                "model": "door",
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}},
+                    {"name": "jungle"}
+                ],
+                "select_texture": [
+                    {"texture": "jungle.png"}
+                ],
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 590,
+            "name": "IRON_DOOR",
+            "_inventory": {
+                "id": "default",
+                "style": "extruder",
+                "texture": "item/iron_door.png"
+            },
+            "bb": {
+                "model": "door",
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}},
+                    {"name": "iron"}
+                ],
+                "select_texture": [
+                    {"texture": "iron.png"}
+                ],
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "_id": 586,
+            "name": "WARPED_DOOR"
+        },
+        {
+            "_id": 588,
+            "name": "CRIMSON_DOOR"
         }
     ]
 }
