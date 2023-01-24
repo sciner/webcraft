@@ -117,32 +117,34 @@ export class Hotbar {
             // Init sprites
             this.sprites = {
 
-                slot:               3,
-                selector:           3,
+                slot:               1,
+                selector:           1,
 
-                live:               2.8,
-                live_half:          2.8,
-                live_bg_black:      2.8,
-                live_bg_white:      2.8,
-                live_poison:        2.8,
-                live_poison_half:   2.8,
+                live:               0.9,
+                live_half:          0.9,
+                live_bg_black:      0.9,
+                live_bg_white:      0.9,
+                live_poison:        0.9,
+                live_poison_half:   0.9,
 
-                food_bg_black:      2.8,
-                food:               2.8,
-                food_half:          2.8,
+                food_bg_black:      0.9,
+                food:               0.9,
+                food_half:          0.9,
+                food_poison:        0.9,
+                food_poison_half:   0.9,
 
-                oxygen:             2.8,
-                oxygen_half:        2.8,
+                oxygen:             0.9,
+                oxygen_half:        0.9,
 
-                armor_bg_black:     2.8,
-                armor:              2.8,
-                armor_half:         2.8
+                armor_bg_black:     0.9,
+                armor:              0.9,
+                armor_half:         0.9
             }
 
             this.hotbar_atlas = Resources.atlas.hotbar
 
             for(const [name, scale] of Object.entries(this.sprites)) {
-                this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale)
+                this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale * this.zoom )
             }
 
             this.hud.add(this, 0)
@@ -183,7 +185,7 @@ export class Hotbar {
 
         this.inventory = inventory
 
-        this.createInventorySlots(40.5)
+        this.createInventorySlots(40)
 
     }
 
@@ -202,13 +204,14 @@ export class Hotbar {
 
     // выводит полосу
     drawStrip(x, y, val, full, half, bbg = null, wbg = null, blink = false, wave = false, reverse = false) {
+        const size = full.width
         val /= 2
         const spn = Math.round(performance.now() / 75)
         if (bbg) {
             const bg = blink ? wbg : bbg
             for (let i = 0; i < 10; i++) {
                 const sy = wave ? LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5 : 0
-                bg.x = x + ((reverse) ? i * 50 : (450 - i * 50))
+                bg.x = x + ((reverse) ? i * size : (size * 9 - i * size))
                 bg.y = y + sy
                 this.tilemap.drawImage(bg)
             }
@@ -217,52 +220,25 @@ export class Hotbar {
             const sy = wave ? LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5 : 0
             const d = val - 0.5
             if ( d > i) {
-                full.x = x + ((!reverse) ? i * 50 : (450 - i * 50))
+                full.x = x + ((!reverse) ? i * size : (size * 9 - i * size))
                 full.y = y + sy
                 this.tilemap.drawImage(full)
             } else if (d == i) {
-                half.x = x + ((!reverse) ? i * 50 : (450 - i * 50))
+                half.x = x + ((!reverse) ? i * size : (size * 9 - i * size))
                 half.y = y + sy
                 this.tilemap.drawImage(half)
             }
         }
-        // this.tilemap.removeChild(this.sprites.live)
-        // this.tilemap.removeChild(this.sprites.live_bg_black)
-        // this.tilemap.removeChild(this.sprites.live_half)
-        // this.tilemap.removeChild(this.sprites.live_bg_white)
-
-        // this.tilemap.removeChild(this.sprites.live_poison)
-        // this.tilemap.removeChild(this.sprites.live_poison_half)
     }
 
     drawHUD(hud) {
 
         this.tilemap.clear()
 
-        const player = this.inventory.player;
+        const player  = this.inventory.player;
+        
         if(player.game_mode.isSpectator()) {
             return false;
-        }
-
-        // Source image sizes
-        const sw                = 1092; // this.image.width;
-        const sh                = 294; // this.image.height;
-        const slive_bar_height  = 162;
-
-        // Target sizes
-        const dst = {
-            w: 546 * this.zoom,
-            h: 147 * this.zoom,
-            live_bar_height: 81 * this.zoom,
-            selector: {
-                width: 72 * this.zoom,
-                height: 69 * this.zoom
-            }
-        }
-
-        const hud_pos = {
-            x: (hud.width / 2 - dst.w / 2),
-            y: hud.height - dst.h
         }
 
         // Inventory slots
@@ -276,45 +252,58 @@ export class Hotbar {
             })
         }
 
-        const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
-        // жизни
-        const live = player.indicators.live.value;
-        // моргание от урона 
-        const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
-        const low_live = live < 3;
-        if (player.getEffectLevel(Effect.POISON) > 0) {
-            this.drawStrip(hud.width / 2 - 550, hud.height - 230, live, this.sprites.live_poison, this.sprites.live_poison_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
-        } else {
-            this.drawStrip(hud.width / 2 - 550, hud.height - 230, live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
-        }
-        // еда
-        const food = player.indicators.food.value;
-        this.drawStrip(hud.width / 2 + 50, hud.height - 230, food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
-        // кислород
-        const oxygen = player.indicators.oxygen.value;
-        if (oxygen < 20) {
-            this.drawStrip(hud.width / 2 + 50,  hud.height - 290, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
-        }
-        // броня
-        const armor = this.inventory.getArmorLevel()
-        if (armor > 0) {
-            this.drawStrip(hud.width / 2 - 550, hud.height - 290, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
-        }
-
-        // хотбар и селектор
-        for (let i = 0; i < 9; i++) {
-            this.tilemap.drawImage(this.sprites.slot, hud.width / 2 - 550 + i * 122, hud.height - 140)
-            if (i == this.inventory.getRightIndex()) {
-                this.tilemap.drawImage(this.sprites.selector, hud.width / 2 - 555 + i * 122, hud.height - 145)
+        const mayGetDamaged = player.game_mode.mayGetDamaged();
+        if (mayGetDamaged) {
+            const left = 180 * this.zoom
+            const right = 15 * this.zoom
+            const bottom_one_line = 70 * this.zoom
+            const bottom_two_line = 90 * this.zoom
+            const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
+            // жизни
+            const live = player.indicators.live.value;
+            // моргание от урона 
+            const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
+            const low_live = live < 3
+            if (player.getEffectLevel(Effect.POISON) > 0) {
+                this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live_poison, this.sprites.live_poison_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+            } else {
+                this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+            }
+            // еда
+            const food = player.indicators.food.value;
+            if (player.getEffectLevel(Effect.HUNGER) > 0) {
+                this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food_poison, this.sprites.food_poison_half, this.sprites.food_bg_black, null, false, false, true);
+            } else {
+                this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
+            }
+            // кислород
+            const oxygen = player.indicators.oxygen.value;
+            if (oxygen < 20) {
+                this.drawStrip(hud.width / 2 + right,  hud.height - bottom_two_line, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
+            }
+            // броня
+            const armor = this.inventory.getArmorLevel()
+            if (armor > 0) {
+                this.drawStrip(hud.width / 2 - left, hud.height - bottom_two_line, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
             }
         }
-        this.tilemap.renderable = true;
+        // хотбар и селектор
+        const sx = this.sprites.slot.width
+        const sy = this.sprites.slot.height + 5 * this.zoom
+        for (let i = 0; i < 9; i++) {
+            this.tilemap.drawImage(this.sprites.slot, (hud.width - sx * 9) / 2 + i * sx, hud.height - sy)
+        }
+        for (let i = 0; i < 9; i++) {
+            if (i == this.inventory.getRightIndex()) {
+                this.tilemap.drawImage(this.sprites.selector, (hud.width - sx * 9) / 2 + i * sx - 2 * this.zoom, hud.height - sy - 2 * this.zoom)
+            }
+        }
 
         return
         // Other sizes
         const cell_size         = 60 * this.zoom;
         const ss                = 27 * this.zoom;
-        const mayGetDamaged     = player.game_mode.mayGetDamaged();
+        //const mayGetDamaged     = player.game_mode.mayGetDamaged();
 
         const selector          = {x: 162, y: 300, width: 144, height: 138};
         const src = {

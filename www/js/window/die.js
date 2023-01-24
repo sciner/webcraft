@@ -37,7 +37,7 @@ export class DieWindow extends BlankWindow {
         const btnClose = this.btnClose = new Button(20 * this.zoom, 150 * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, 'btnClose', Lang.btn_exit)
         btnClose.style.background.color = '#888888ff'
         btnClose.style.font.color = '#ffffffff'
-        btnClose.style.font.size = 10 * this.zoom
+        btnClose.style.font.size = 20
         /*
         btnClose.style.font.shadow = {
             enable: true,
@@ -67,7 +67,7 @@ export class DieWindow extends BlankWindow {
         const btnReturn = this.btnReturn = new Button(20 * this.zoom, 100 * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, 'btnReturn', Lang.btn_return)
         btnReturn.style.background.color = '#888888ff'
         btnReturn.style.font.color = '#ffffffff'
-        btnReturn.style.font.size = 10 * this.zoom
+        btnReturn.style.font.size = 20
         /*
         btnReturn.style.font.shadow = {
             enable: true,
