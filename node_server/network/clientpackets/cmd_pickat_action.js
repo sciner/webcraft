@@ -28,6 +28,7 @@ export default class packet_reader {
         if (packet.data.interactMobID || packet.data.interactPlayerID) {
             player.onAttackEntity(packet.data.button_id, packet.data.interactMobID, packet.data.interactPlayerID);
         } else {
+            const correct_destroy = player.isMiningComplete(packet.data);
             const player_info = {
                 radius:     0.7,
                 height:     player.height,
@@ -39,17 +40,23 @@ export default class packet_reader {
                 }
             };
             const actions = await doBlockAction(packet.data, world, player_info, currentInventoryItem);
+            // проверям скорость, если ошибка, то ворачиваем как было
+            if (!correct_destroy) {
+                for (const block of actions.blocks.list) {
+                    block.item.id = block.destroy_block_id;
+                }
+            }
             // compare two actions
-            if(packet.data.actions?.blocks?.list) {
+            if (packet.data.actions?.blocks?.list) {
                 const player_json = JSON.stringify(packet.data.actions.blocks.list);
                 const server_json = JSON.stringify(actions.blocks.list);
                 const same_results = player_json == server_json;
-                if(!same_results) {
+                if(!same_results || !correct_destroy) {
                     // собрать патч, для мира игрока:
                     const patch_blocks = new VectorCollector();
                     // 1. вложить в патч реальные блоки на указанных игроком позициях изменённых блоков
-                    for(let item of packet.data.actions.blocks.list) {
-                        if('pos' in item) {
+                    for(const item of packet.data.actions.blocks.list) {
+                        if ('pos' in item) {
                             const pos = new Vector(item.pos);
                             if(pos.distance(player.state.pos) < 64) {
                                 const tblock = world.getBlock(pos);
@@ -61,12 +68,12 @@ export default class packet_reader {
                         }
                     }
                     // 2. пропатчить этот массив текущим серверным изменением
-                    for(let item of actions.blocks.list) {
+                    for (const item of actions.blocks.list) {
                         patch_blocks.set(item.pos, item.item);
                     }
                     // 3. Make patch commands
                     const packets = [];
-                    for(const [pos, item] of patch_blocks.entries()) {
+                    for (const [pos, item] of patch_blocks.entries()) {
                         packets.push({
                             name: ServerClient.CMD_BLOCK_SET,
                             data: {
@@ -80,7 +87,7 @@ export default class packet_reader {
                     console.error(`player patch blocks '${player.session.username}'`);
                 }
             }
-            if (player.isMiningComplete(packet.data)) {
+            if (correct_destroy) {
                 world.actions_queue.add(player, actions);
             }
         }
