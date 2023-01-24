@@ -332,15 +332,6 @@ export class ServerChunkManager {
     }
     
     getOrRestore(addr) {
-
-
-        // TODO merge with the fix
-
-
-        return this.get(addr);
-    }
-
-    getOrRestore(addr) {
         let chunk = this.get(addr);
         if (chunk) {
             // found
@@ -429,18 +420,7 @@ export class ServerChunkManager {
                     added_vecs.set(addr, true);
                     if(!player.nearby_chunk_addrs.has(addr)) {
                         player.nearby_chunk_addrs.set(addr, addr);
-                        let chunk = this.get(addr);
-                        if(!chunk) {
-                            chunk = this.unloading_chunks.get(addr)
-                            if (chunk) {
-                                // RESTORE!!!
-                                this.unloading_chunks.delete(addr)
-                                chunk.restoreUnloaded();
-                            } else {
-                                chunk = new ServerChunk(this.world, addr);
-                            }
-                            this.add(chunk);
-                        }
+                        let chunk = this.getOrAdd(addr);
                         chunk.addPlayer(player);
                         const hasModifiers = this.world.worldChunkFlags.has(addr, 
                             WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID);
