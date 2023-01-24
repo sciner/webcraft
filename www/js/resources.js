@@ -88,9 +88,8 @@ export class Resources {
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
         all.push(fetch('/data/icons.json').then(response => response.json()).then(json => { this.icons = json;}));
 
-        // Atlases
-        
         /**
+         * Atlases
          * @type {Object.<string, SpriteAtlas>}
          */
         this.atlas = {}
