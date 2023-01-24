@@ -208,8 +208,7 @@ export class ServerWorld {
                     fluids[i + 1] = schema.world.pos1.y + fluids[i + 1] - y
                     fluids[i + 2] = schema.world.entrance.z - fluids[i + 2]
                 }
-                // TODO: need to store fluids in DB
-                // let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
+                await this.db.fluid.applyAnyChunk(fluids)
             }
             // fill blocks
             for(let b of schema.blocks) {
@@ -527,8 +526,8 @@ export class ServerWorld {
      * @return {void}
      */
     sendSelected(packets, selected_players, except_players) {
-        for(let user_id of selected_players) {
-            if (except_players && except_players.indexOf(user_id) >= 0) {
+        for (const user_id of selected_players) {
+            if (except_players && except_players.includes(user_id)) {
                 continue;
             }
             const player = this.players.get(user_id);

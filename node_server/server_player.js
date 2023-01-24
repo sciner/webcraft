@@ -16,6 +16,7 @@ import { BLOCK } from "../www/js/blocks.js";
 import { ServerPlayerEffects } from "./player/effects.js";
 import { Effect } from "../www/js/block_type/effect.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
 
 export class NetworkMessage {
     constructor({
@@ -241,7 +242,6 @@ export class ServerPlayer extends Player {
      * @param {NetworkMessage[]} packets
      */
     sendPackets(packets) {
-
         packets.forEach(e => {
             e.time = this.world.serverTime;
         });
@@ -787,13 +787,22 @@ export class ServerPlayer extends Player {
         if (!data.destroyBlock || this.game_mode.isCreative()) {
             return true;
         }
-        const world_block = this.world.getBlock(new Vector(data.pos));
+        const world = this.world;
+        const world_block = world.getBlock(new Vector(data.pos));
+        if (!world_block) {
+            return false;
+        }
         const block = BLOCK.fromId(world_block.id);
         if (!block) {
             return false;
         }
+        const head = world.getBlock(this.getEyePos());
+        if (!head) {
+            return false;
+        }
         const instrument = BLOCK.fromId(this.state.hands.right.id);
-        let mul = 1;
+        let mul = world.getGeneratorOptions('tool_mining_speed', 1);
+        mul *= (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) ? 0.2 : 1;
         mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
         mul -= mul * 0.2 * this.effects.getEffectLevel(Effect.MINING_FATIGUE); // усталость
         const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul;
@@ -804,6 +813,7 @@ export class ServerPlayer extends Player {
             this.state.stats.pickat++;
             return true;
         }
+        console.log('error mining: server: ' + mining_time_client + ' client: ' + mining_time_server * 1000);
         return false;
     }
 
