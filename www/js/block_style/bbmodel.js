@@ -278,7 +278,7 @@ export default class style {
             for(let state of bb.set_state) {
                 if(style.checkWhen(model, tblock, state.when)) {
                     model.state = state.name
-                    model.hideAllExcept(model.state)
+                    model.hideAllExcept([model.state])
                     break
                 }
             }
@@ -289,9 +289,10 @@ export default class style {
             case 'door': {
                 const extra_data = tblock.extra_data ?? {opened: false, left: true}
                 const rotate = tblock.rotate ?? Vector.ZERO
+                const is_left = extra_data.left
                 const shift = 7/16 * (is_left ? 1 : -1)
+                const move_back = !(tblock instanceof FakeTBlock)
                 if(extra_data) {
-                    const is_left = extra_data.left
                     if(!is_left) {
                         mat4.rotateY(matrix, matrix, Math.PI)
                     }
@@ -301,22 +302,22 @@ export default class style {
                     switch(rotate.x) {
                         case DIRECTION.SOUTH: {
                             xyz.x -= shift
-                            xyz.z -= 7/16
+                            if(move_back) xyz.z -= 7/16
                             break
                         }
                         case DIRECTION.NORTH: {
                             xyz.x += shift
-                            xyz.z += 7/16
+                            if(move_back) xyz.z += 7/16
                             break
                         }
                         case DIRECTION.WEST: {
                             xyz.z += shift
-                            xyz.x -= 7/16
+                            if(move_back) xyz.x -= 7/16
                             break
                         }
                         case DIRECTION.EAST: {
                             xyz.z -= shift
-                            xyz.x += 7/16
+                            if(move_back) xyz.x += 7/16
                             break
                         }
                     }
@@ -326,25 +327,25 @@ export default class style {
             case 'lantern': {
                 const on_ceil = rotate?.y == -1;
                 model.state = on_ceil ? 'ceil' : 'floor'
-                model.hideAllExcept(model.state)
+                model.hideAllExcept([model.state])
                 break
             }
             case 'torch': {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
-                model.hideAllExcept(model.state)
+                model.hideAllExcept([model.state])
                 break
             }
             case 'age': {
                 const age = Math.min((tblock?.extra_data?.stage ?? 0), mat.ticking.max_stage) + 1
                 model.state = `age${age}`
-                model.hideAllExcept(model.state)
+                model.hideAllExcept([model.state])
                 break
             }
             case 'sign': {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
-                model.hideAllExcept(model.state)
+                model.hideAllExcept([model.state])
                 model.selectTextureFromPalette(mat.name)
                 break
             }

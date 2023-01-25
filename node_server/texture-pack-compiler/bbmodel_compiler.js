@@ -12,8 +12,8 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
         this.models = new Map();
     }
 
-    createSpritesheet(tx_cnt, resolution, options) {
-        const id = 'bbmodel_texture_' + new String(this.spritesheets.length + 1)
+    createSpritesheet(tx_cnt, resolution, options, id) {
+        id = id ?? ('bbmodel_texture_' + new String(this.spritesheets.length + 1))
         const spritesheet = new Spritesheet(id, tx_cnt, resolution, options)
         this.spritesheets.push(spritesheet)
         return spritesheet
@@ -51,35 +51,21 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
      */
     async run(compiler) {
 
+        // Compile bbmodels
         for(const [id, model] of this.models.entries()) {
-
             if('textures' in model) {
                 const {spritesheet, places} = await this.prepareModel(model, id, this.options)
                 model._properties.texture_id = spritesheet.id
                 model._properties.places = places
             }
-
             console.log(`BBModel ... ${id} ${model.elements.length} elements (${model.polygons} polygons)`)
-
             delete(model.textures);
             fs.writeFileSync(`${this.options.output_dir}/${id}.json`, JSON.stringify(model))
-
         }
 
-        for(const spritesheet of this.spritesheets) {
-            const filenames = spritesheet.export()
-            if(filenames.length > 0) {
-                this.conf.textures[spritesheet.id] = {
-                    image: filenames[0],
-                    tx_cnt: this.options.tx_cnt
-                };
-            }
-        }
-
+        // Make blocks list
         const blocks = []
-
         if(this.conf.blocks) {
-
             // fill "texture" property
             for(let block of this.conf.blocks) {
                 if(!('id' in block)) {
@@ -108,11 +94,24 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                 }
                 blocks.push(block)
             }
-
         }
 
-        fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(await compiler.compileBlocks(blocks), null, 4));
-        delete(this.conf.blocks);
+        // Compile blocks
+        fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(await compiler.compileBlocks(blocks, this), null, 4))
+        delete(this.conf.blocks)
+
+        // Export spritesheets
+        for(const spritesheet of this.spritesheets) {
+            const filenames = spritesheet.export()
+            if(filenames.length > 0) {
+                this.conf.textures[spritesheet.id] = {
+                    image: filenames[0],
+                    tx_cnt: this.options.tx_cnt
+                };
+            }
+        }
+
+        // Export conf.json
         fs.writeFileSync(`${this.options.output_dir}/conf.json`, JSON.stringify(this.conf, null, 4));
 
     }

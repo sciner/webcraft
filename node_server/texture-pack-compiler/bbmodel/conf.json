@@ -756,6 +756,16 @@
         {
             "id": 574,
             "name": "BIRCH_DOOR",
+            "inventory": {
+                "scale": 0.75,
+                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
+                "move": {"x": 0, "y": -0.5, "z": -0.9},
+                "_style": "extruder",
+                "_texture": {
+                    "id": "default",
+                    "image": "item/birch_door.png"
+                }
+            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -771,6 +781,11 @@
         {
             "id": 576,
             "name": "OAK_DOOR",
+            "inventory": {
+                "scale": 0.75,
+                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
+                "move": {"x": 0, "y": -0.5, "z": -0.9}
+            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -786,6 +801,11 @@
         {
             "id": 578,
             "name": "ACACIA_DOOR",
+            "inventory": {
+                "scale": 0.75,
+                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
+                "move": {"x": 0, "y": -0.5, "z": -0.9}
+            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -801,6 +821,11 @@
         {
             "id": 580,
             "name": "SPRUCE_DOOR",
+            "inventory": {
+                "scale": 0.75,
+                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
+                "move": {"x": 0, "y": -0.5, "z": -0.9}
+            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -816,6 +841,11 @@
         {
             "id": 582,
             "name": "DARK_OAK_DOOR",
+            "inventory": {
+                "scale": 0.75,
+                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
+                "move": {"x": 0, "y": -0.5, "z": -0.9}
+            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -831,6 +861,11 @@
         {
             "id": 584,
             "name": "JUNGLE_DOOR",
+            "inventory": {
+                "scale": 0.75,
+                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
+                "move": {"x": 0, "y": -0.5, "z": -0.9}
+            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -846,10 +881,10 @@
         {
             "id": 590,
             "name": "IRON_DOOR",
-            "_inventory": {
-                "id": "default",
-                "style": "extruder",
-                "texture": "item/iron_door.png"
+            "inventory": {
+                "scale": 0.75,
+                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
+                "move": {"x": 0, "y": -0.5, "z": -0.9}
             },
             "bb": {
                 "model": "door",
