@@ -20,6 +20,7 @@ export class QuestView extends Window {
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
+
         // Ширина / высота слота
         this.cell_size = 36 * this.zoom;
         this.max_height = 0;
@@ -27,12 +28,6 @@ export class QuestView extends Window {
         //
         this.style.background.color = '#ffffff22';
         this.style.border.hidden = true;
-        //
-        this._wheel = function(e) {
-            this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll;
-            this.scrollY = Math.min(this.scrollY, 0);
-            this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0) * -1);
-        };
 
         const FONT_ZOOM = this.zoom / 2;
         const PADDING = 20 * FONT_ZOOM;
@@ -47,13 +42,21 @@ export class QuestView extends Window {
                 width: this.w,
                 visible: false,
                 childs: {
-                    lblTitle: {type: 'Label', x: 0, y: 0, width: 0, height: TITLE_LABEL_HEIGHT, style: {padding: PADDING, font: {size: 26 * FONT_ZOOM, family: 'Ubuntu-Bold'}}, title: 'Quest title'},
+                    lblTitle: {
+                        type: 'Label',
+                        x: 0,
+                        y: 0,
+                        width: 0,
+                        height: TITLE_LABEL_HEIGHT,
+                        style: {padding: PADDING, font: {size: 14, family: 'Ubuntu-Bold'}},
+                        title: 'Quest title'
+                    },
                     lDesc: {
                         type: 'Label',
                         word_wrap: true,
                         style: {
                             padding: PADDING,
-                            font: {size: 26 * FONT_ZOOM},
+                            font: {size: 12},
                             background: {color: '#ffffff22'}
                         },
                         title: null,
@@ -64,7 +67,7 @@ export class QuestView extends Window {
                         word_wrap: true,
                         style: {
                             padding: PADDING,
-                            font: {size: 26 * FONT_ZOOM, family: 'Ubuntu-Bold'},
+                            font: {size: 12, family: 'Ubuntu-Bold'},
                             background: {color: '#ffffff00'}
                         },
                         title: null,
@@ -75,7 +78,7 @@ export class QuestView extends Window {
                         word_wrap: true,
                         style: {
                             padding: PADDING,
-                            font: {size: 26 * FONT_ZOOM},
+                            font: {size: 12},
                             background: {color: '#ffffff22'}
                         },
                         title: null,
@@ -86,7 +89,7 @@ export class QuestView extends Window {
                         word_wrap: true,
                         style: {
                             padding: PADDING,
-                            font: {size: 26 * FONT_ZOOM, family: 'Ubuntu-Bold'},
+                            font: {size: 12, family: 'Ubuntu-Bold'},
                             background: {color: '#ffffff00'}
                         },
                         title: null,
@@ -97,7 +100,7 @@ export class QuestView extends Window {
                         word_wrap: true,
                         style: {
                             padding: PADDING,
-                            font: {size: 26 * FONT_ZOOM},
+                            font: {size: 12},
                             background: {color: '#ffffff22'}
                         },
                         title: null,
@@ -111,6 +114,12 @@ export class QuestView extends Window {
 
     }
 
+    _wheel(e) {
+        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll
+        this.scrollY = Math.min(this.scrollY, 0)
+        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
+    };
+
     show(quest) {
 
         // console.log(quest);
@@ -122,21 +131,21 @@ export class QuestView extends Window {
         const lblRewards = ql.getWindow('lblRewards');
         
         //
-        lblTitle.title = quest.title;
-        lDesc.text = quest.description;
+        lblTitle.title = quest.title.replaceAll('\r\n', '\r');
+        lDesc.text = quest.description.replaceAll('\r\n', '\r');
 
         if(quest.is_completed) {
-            lblTitle.title = `✅ ${lblTitle.title}`; 
+            lblTitle.title = `✅ ${lblTitle.title}`
         }
 
         this.quest = quest;
 
         // actions
-        let actions = [];
+        const actions = [];
         for(let action of quest.actions) {
-            let status = `🔲`; 
+            let status = `🔲`
             if(action.ok) {
-                status = '✅';
+                status = '✅'
             }
             switch(action.quest_action_type_id) {
                 case QuestActionType.CRAFT:
@@ -157,17 +166,17 @@ export class QuestView extends Window {
                 }
             }
         }
-        lblActions.text = actions.join('\r\n\r\n');
+        lblActions.text = actions.join('\r\n\r\n').replaceAll('\r\n', '\r');
 
         // rewards
-        let rewards = [];
+        const rewards = []
         for(let item of quest.rewards) {
             const block = BLOCK.fromId(item.block_id);
             if(block) {
                 rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt);
             }
         }
-        lblRewards.text = rewards.join('\r\n\r\n');
+        lblRewards.text = rewards.join('\r\n\r\n').replaceAll('\r\n', '\r');
 
         ql.visible = true;
 

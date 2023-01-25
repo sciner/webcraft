@@ -75,6 +75,9 @@ export class Window extends PIXI.Container {
 
         const that = this
 
+        this._w = 0
+        this._h = 0
+
         // List of childs
         this.list = {
             values: () => {
@@ -106,12 +109,13 @@ export class Window extends PIXI.Container {
             }
         }
 
-        this.index              = 0
         this.x                  = x
         this.y                  = y
         this.z                  = 0 // z-index
         this.width              = w
         this.height             = h
+
+        this.index              = 0
         this.id                 = id
         this.title              = title
         this.word_wrap          = false
@@ -127,10 +131,47 @@ export class Window extends PIXI.Container {
 
         this.style              = new Style(this)
 
+        this.w                  = w
+        this.h                  = h
+
         if(text !== undefined) {
             this.text = text || null
         }
 
+    }
+
+    /**
+     * @return {float}
+     */
+    get w() {
+        return this._w
+    }
+
+    /**
+     * @params {float} value
+     */
+    set w(value) {
+        this._w = value
+        if(this.style) {
+            this.style.background.resize()
+        }
+    }
+
+    /**
+     * @return {float}
+     */
+    get h() {
+        return this._h
+    }
+
+    /**
+     * @params {float} value
+     */
+    set h(value) {
+        this._h = value
+        if(this.style) {
+            this.style.background.resize()
+        }
     }
 
     get name() {
@@ -172,6 +213,7 @@ export class Window extends PIXI.Container {
     onDrop(e) {}
     onWheel(e) {}
     onHide() {}
+
     onShow() {
         for(let window of this.list.values()) {
             if(window instanceof TextEdit) {
@@ -245,15 +287,11 @@ export class Window extends PIXI.Container {
             if (value === undefined) {
                 return;
             }
-            // this.text_container = new Label(0, 0, undefined, undefined, randomUUID(), undefined, value)
-
             if (this.style._font.useBitmapFont) {
                 this.text_container = new PIXI.BitmapText(value, this.style.font._bitmap_font_style)
             } else {
                 this.text_container = new MyText(value, this.style.font._font_style)
             }
-            //
-
             this.addChild(this.text_container)
         }
         this.text_container.text = value
@@ -762,7 +800,7 @@ export class Window extends PIXI.Container {
                     break;
                 }
                 default: {
-                    const options = {nonEnum: false, symbols: true, descriptors: false, proto: true}
+                    const options = {nonEnum: false, symbols: false, descriptors: false, proto: false}
                     deepAssign(options)(this.style[param], v);
                     break;
                 }
@@ -771,7 +809,7 @@ export class Window extends PIXI.Container {
     }
 
     appendLayout(layout) {
-        let ignored_props = [
+        const ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
         ];
         for(let id in layout) {
@@ -789,12 +827,15 @@ export class Window extends PIXI.Container {
                         break;
                     }
                     case 'Label': {
-                        control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
+                        control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text)
+                        if(cl.word_wrap !== undefined) {
+                            control.style.font.word_wrap = cl.word_wrap
+                        }
                         break;
                     }
                     case 'Button': {
-                        control = new Button(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
-                        break;
+                        control = new Button(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text)
+                        break
                     }
                 }
             }
@@ -1517,29 +1558,27 @@ export class VerticalLayout extends Window {
         super(x, y, w, 0, id, null, null);
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
-        this.gap = 0;
+        this.gap = 0
     }
 
     refresh() {
-        /*
-        TODO:
-        let y = 0;
+        let y = 0
         for(let w of this.list.values()) {
-            if(!w.visible) continue;
-            w.x = 0;
-            w.y = y;
-            w.updateMeasure(this.getRoot().ctx);
+            if(!w.visible) continue
+            w.x = 0
+            w.y = y
             if(w.autosize) {
-                w.width = this.width;
-                if(w.__measure.text?.height && w.autosize) {
-                    w.height = w.__measure.text?.height + (w.style.padding.top + w.style.padding.bottom);
+                w.w = this.w
+                w.text_container.style.wordWrapWidth = w.w - w.style.padding.left - w.style.padding.right
+                const tm = w.getTextMetrics()
+                if(tm.height && w.autosize) {
+                    w.h = tm.height + ((w.style.padding.top + w.style.padding.bottom) | 0)
                 }
             }
-            y += w.height + this.gap;
+            y += w.h + this.gap
         }
         this.calcMaxHeight();
-        this.height = this.max_height;
-        */
+        this.h = this.max_height;
     }
 
 }
@@ -1550,18 +1589,18 @@ export class ToggleButton extends Button {
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         this.toggled = false;
-        this.style.textAlign.horizontal = 'left';
-        this.style.padding.left = 10;
-        //
-        this.onMouseEnter = function() {
-            this.style.background.color = '#8892c9';
-            this.style.color = '#ffffff';
-        }
-        //
-        this.onMouseLeave = function() {
-            this.style.background.color = this.toggled ? '#7882b9' : '#00000000';
-            this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
-        }
+        this.style.textAlign.horizontal = 'left'
+        this.style.padding.left = 15
+    }
+
+    onMouseEnter() {
+        this.style.background.color = '#8892c9'
+        this.style.color = '#ffffff'
+    }
+
+    onMouseLeave() {
+        this.style.background.color = this.toggled ? '#7882b9' : '#00000000'
+        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f'
     }
 
     //
