@@ -126,7 +126,7 @@ class CreativeInventoryCollection extends Window {
         const dropFunc = function(e) {
             const that      = this
             const drag      = e.drag
-            const dropItem  = drag.getItem().item // что перетащили
+            const dropItem  = drag.getItem() // что перетащили
             let targetItem  = this.getInventoryItem() // куда перетащили
             if(targetItem && dropItem.id == targetItem.id) {
                 targetItem = {...dropItem}
@@ -283,7 +283,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         if(this.inventory_slots) {
             for(let slot of this.inventory_slots) {
                 if(slot) {
-                    slot.setItem(slot.getItem())
+                    slot.refresh()
                 }
             }
         }

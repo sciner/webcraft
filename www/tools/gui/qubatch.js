@@ -41,7 +41,7 @@ const player = {
                 drag = wmGlobal.drag
             }
             if(item) {
-                drag.setItem({item})
+                drag.setItem(item)
             } else {
                 this.clearDragItem()
             }

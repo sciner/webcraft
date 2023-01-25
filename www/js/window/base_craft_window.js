@@ -118,7 +118,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
         super(x, y, w, h, id, null, '')
         this.ct = ct
         this.setSlotIndex(slot_index)
-
+        ct.inventory.addInventorySlot(this)
     }
 
     //
@@ -145,6 +145,17 @@ export class CraftTableSlot extends SimpleBlockSlot {
             }
         }
         return resp;
+    }
+    isInventorySlot() {
+        return this.slot_index !== null && this.slot_index !== undefined
+    }
+
+    getItem() {
+        if(this.isInventorySlot()) {
+            return this.ct.inventory.items[this.slot_index]
+        } else {
+            return this.item ?? null
+        }
     }
 
     /**
@@ -174,18 +185,6 @@ export class CraftTableSlot extends SimpleBlockSlot {
 
     }
 
-    isInventorySlot() {
-        return this.slot_index !== null
-    }
-
-    getItem() {
-        if(this.isInventorySlot()) {
-            return this.ct.inventory.items[this.slot_index]
-        } else {
-            return this.item ?? null
-        }
-    }
-
     getIndex() {
         return this.isInventorySlot() ? this.slot_index : parseFloat(this.index);
     }
@@ -203,30 +202,30 @@ export class CraftTableSlot extends SimpleBlockSlot {
         const drag      = e.drag;
         // @todo check instanceof!
         // if(dropData instanceof InventoryItem) {
-        const dropData  = drag.getItem();
-        if(!dropData.item) {
+        const dropItem  = drag.getItem()
+        if(!dropItem) {
             return;
         }
-        const max_stack_count = BLOCK.getItemMaxStack(dropData.item);
+        const max_stack_count = BLOCK.getItemMaxStack(dropItem)
 
         // Если в текущей ячейке что-то есть
         if(targetItem) {
             // @todo
-            if(InventoryComparator.itemsEqualExceptCount(targetItem, dropData.item)) {
+            if(InventoryComparator.itemsEqualExceptCount(targetItem, dropItem)) {
                 if(targetItem.count < max_stack_count) {
-                    if(e.button_id == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
+                    if(e.button_id == MOUSE.BUTTON_RIGHT && dropItem.count > 1) {
                         targetItem.count++;
-                        dropData.item.count--;
+                        dropItem.count--;
                     } else {
-                        let new_count = targetItem.count + dropData.item.count;
+                        let new_count = targetItem.count + dropItem.count;
                         let remains = 0;
                         if(new_count > max_stack_count) {
                             remains = new_count - max_stack_count;
                             new_count = max_stack_count;
                         }
                         targetItem.count = new_count;
-                        dropData.item.count = remains;
-                        if(dropData.item.count <= 0) {
+                        dropItem.count = remains;
+                        if(dropItem.count <= 0) {
                             drag.clear();
                         }
                     }
@@ -234,25 +233,26 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 }
             } else {
                 // поменять местами перетаскиваемый элемент и содержимое ячейки
-                this.setItem(dropData.item, e);
+                this.setItem(dropItem, e);
                 player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
-                dropData.item = targetItem;
+                drag.setItem(targetItem)
             }
         } else {
             // Перетаскивание в пустую ячейку
-            if(e.button_id == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
-                let newItem = {...dropData.item};
+            if(e.button_id == MOUSE.BUTTON_RIGHT && dropItem.count > 1) {
+                let newItem = {...dropItem};
                 newItem.count = 1;
                 this.setItem(newItem, e);
-                dropData.item.count--;
+                dropItem.count--;
             } else {
-                this.setItem(dropData.item, e);
+                this.setItem(dropItem, e);
                 this.getInventory().clearDragItem();
             }
         }
-        if (dropData.item.count === 0) {
+        if (dropItem.count === 0) {
             player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
         }
+        drag.refresh()
     }
 
 }
@@ -304,7 +304,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
         // onDrop
         this.onDrop = function(e) {
             let dragItem = this.getItem();
-            let dropItem = e.drag.getItem().item;
+            let dropItem = e.drag.getItem();
             if(!dragItem || !dropItem) {
                 return;
             }
@@ -383,30 +383,30 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 if (this.options.disableIfLoading && this.ct.loading) {
                     return
                 }
-                let player      = Qubatch.player
-                let drag        = e.drag
+                const player      = Qubatch.player
+                const drag        = e.drag
                 // @todo check instanceof!
                 // if(dropData instanceof InventoryItem) {
-                let dropData    = drag.getItem()
-                let targetItem  = this.getInventoryItem()
-                if(!dropData) {
+                const dropItem    = drag.getItem()
+                const targetItem  = this.getInventoryItem()
+                if(!dropItem) {
                     return
                 }
-                const max_stack_count = BLOCK.getItemMaxStack(dropData.item)
+                const max_stack_count = BLOCK.getItemMaxStack(dropItem)
                 // check if double click by left mouse button
                 const potential_double_click = this.prev_mousedown_time && (e.button_id === MOUSE.BUTTON_LEFT) && (this.prev_mousedown_button == MOUSE.BUTTON_LEFT) && !e.shiftKey
                 const doubleClick = potential_double_click && (performance.now() - this.prev_mousedown_time < DOUBLE_CLICK_TIME) && (max_stack_count > 1)
                 if(doubleClick) {
                     // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
                     // It gives the same result in chest_manager.js: applyClientChange()
-                    if(dropData.item.count < max_stack_count) {
-                        let need_count = max_stack_count - dropData.item.count
+                    if(dropItem.count < max_stack_count) {
+                        let need_count = max_stack_count - dropItem.count
                         // проверить крафт слоты
-                        let slots = this.parent.getSlots()
+                        const slots = this.parent.getSlots()
                         const list = [];
                         for(let i in slots) {
                             const item = slots[i]?.item
-                            if (InventoryComparator.itemsEqualExceptCount(item, dropData.item) &&
+                            if (InventoryComparator.itemsEqualExceptCount(item, dropItem) &&
                                 item.count != max_stack_count
                             ) {
                                 list.push({chest: 1, index: i, item: item})
@@ -416,7 +416,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         const inventory_items = player.inventory.items
                         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
                             const item = inventory_items[i];
-                            if (InventoryComparator.itemsEqualExceptCount(item, dropData.item) &&
+                            if (InventoryComparator.itemsEqualExceptCount(item, dropItem) &&
                                 item.count != max_stack_count
                             ) {
                                 list.push({chest: 0, index: i, item: item})
@@ -436,7 +436,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             const item = v.item
                             let minus_count = item.count < need_count ? item.count : need_count;
                             need_count -= minus_count
-                            dropData.item.count += minus_count
+                            dropItem.count += minus_count
+                            drag.refresh()
                             item.count -= minus_count
                             if (item.count < 1) {
                                 if (v.chest) {
@@ -767,7 +768,7 @@ export class ArmorSlot extends CraftTableInventorySlot {
         if(!dragItem) {
             return false
         }
-        const mat = BLOCK.fromId(dragItem.item.id)
+        const mat = BLOCK.fromId(dragItem.id)
         return mat?.item?.name == 'armor' && (mat.armor.slot == this.slot_index)
     }
 
@@ -820,7 +821,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         if(this.inventory_slots) {
             for(let slot of this.inventory_slots) {
                 if(slot) {
-                    slot.setItem(slot.getItem())
+                    slot.refresh()
                 }
             }
         }
@@ -837,25 +838,29 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         const ct = this;
         if(ct.inventory_slots) {
             console.error('createInventorySlots() already created');
-            return;
+            return
         }
         ct.inventory_slots  = [];
         const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
-        sx *= this.zoom;
-        sy *= this.zoom;
+        sx *= this.zoom
+        sy *= this.zoom
+        let index = 0
+        //
+        const createSlot = (x, y) => {
+            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
+            ct.add(lblSlot);
+            ct.inventory_slots.push(lblSlot)
+            index++
+        }
         // не менять порядок нижних и верхних!
         // иначе нарушится их порядок в массиве ct.inventory_slots
         // нижний ряд (видимые на хотбаре)
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, (sy + 116 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
-            ct.add(lblSlot)
-            ct.inventory_slots.push(lblSlot)
+            createSlot(sx + (i % xcnt) * sz, (sy + 116 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
         }
         // верхние 3 ряда
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
+            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
         }
     }
 

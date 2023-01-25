@@ -30,7 +30,7 @@ class BeaconSlot extends CraftTableSlot {
     }
     
     onDrop(e) {
-        const dropItem = e.drag.getItem().item
+        const dropItem = e.drag.getItem()
         // в слот можно вставлять только алмаз, изумруд, золото, железо, незерит
         if (!dropItem || dropItem.count != 1 || ![BLOCK.GOLD_INGOT.id, BLOCK.DIAMOND.id, BLOCK.IRON_INGOT.id, BLOCK.NETHER_BRICK.id].includes(dropItem.id)) {
             return;

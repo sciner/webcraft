@@ -114,7 +114,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
         // Updates drag UI if the dragged item changed
         this.onInventorySetState = function() {
-            const inventory = this.ct.inventory;
+            const inventory = this.inventory;
             const prevDragItem = Qubatch.hud.wm.drag.getItem();
             const newDargItem = inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             if (newDargItem) {
@@ -357,7 +357,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.lbl1.setText(title);
         }
         // copy data slots to the UI slots
-        const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo, this.chest.slots.length);
+        const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo, this.chest.slots.length)
         for(var i = range.min; i < range.max; i++) {
             // this.chest.slots[i].item = chest.slots[i - range.min] || null;
             this.chest.slots[i].setItem(chest.slots[i - range.min] || null)
@@ -367,7 +367,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
     // Очистка слотов сундука от предметов
     clear() {
         for(let slot of this.chest.slots) {
-            slot.item = null; // slot.setItem(null);
+            slot.item = null
         }
     }
 
@@ -395,28 +395,31 @@ export class BaseChestWindow extends BaseInventoryWindow {
     *   the screen. It's the value retuned by {@link prepareSlots}
     */
     createSlots(slots_info) {
-        const ct = this;
+        const ct = this
         if(ct.chest) {
-            console.error('createCraftSlots() already created');
-            return;
+            console.error('createCraftSlots() already created')
+            return
         }
-        let sz = this.cell_size;
+        const sz = this.cell_size
         this.chest = {
+            /**
+             * @type {CraftTableInventorySlot[]}
+             */
             slots: []
-        };
+        }
         for(let i in slots_info) {
-            const info = slots_info[i];
+            const info = slots_info[i]
             const options = {
                 readonly: info.readonly,
                 disableIfLoading: true,
                 onMouseEnterBackroundColor: '#ffffff33'
             };
-            let lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, sz, sz,
-                'lblCraftChestSlot' + i, null, '' + i, this, null, options);
-            lblSlot.index = i;
-            lblSlot.is_chest_slot = true;
-            this.chest.slots.push(lblSlot);
-            ct.add(lblSlot);
+            const lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, sz, sz,
+                `lblCraftChestSlot${i}`, null, null, this, null, options)
+            lblSlot.index = i
+            lblSlot.is_chest_slot = true
+            this.chest.slots.push(lblSlot)
+            ct.add(lblSlot)
         }
     }
 
@@ -430,25 +433,27 @@ export class BaseChestWindow extends BaseInventoryWindow {
             console.error('createInventorySlots() already created');
             return;
         }
-        ct.inventory_slots  = [];
-        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
+        ct.inventory_slots  = []
+        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
         // нижний ряд (видимые на хотбаре)
         let sx = 14 * this.zoom;
-        let sy = (baseWindowH + (282 - 332))* this.zoom;
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
-                'lblSlot' + (i), null, '' + i, this, i);
+        let sy = (baseWindowH + (282 - 332)) * this.zoom;
+        let index = 0
+        //
+        const createSlot = (x, y) => {
+            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
             ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
+            ct.inventory_slots.push(lblSlot)
+            index++
+        }
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
         }
         // верхние 3 ряда
         sx = 14 * this.zoom;
         sy = (baseWindowH + (166 - 332)) * this.zoom;
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
-                'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
+            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
         }
     }
 

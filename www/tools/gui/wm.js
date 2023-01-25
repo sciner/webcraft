@@ -1181,54 +1181,48 @@ export class SimpleBlockSlot extends Window {
         this.addChild(this.bar)
         this.bar.addChild(this.bar_value)
 
-        this._item = null
+        this.item = null
 
-    }
-
-    /**
-     * @param {float} percent 0...1
-     */
-    _setBarValue(percent) {
-        this.bar_value.w = this.bar.w * percent
-        const rgb = Helpers.getColorForPercentage(percent)
-        this.bar_value.style.background.color = rgb.toHex(true)
     }
 
     getItem() {
-        return this._item
+        return this.item
     }
 
     setItem(item) {
+        this.item = item
+        return this.refresh()
+    }
 
-        this._item = item
+    clear() {
+        this.setItem(null)
+    }
 
-        if(this._bgimage) {
-            this._bgimage.visible = !!item
-        }
+    /**
+     * Redraw
+     * @returns {boolean}
+     */
+    refresh() {
 
+        const item = this.getItem()
+
+        this._bgimage.visible = !!item
         this.bar.visible = !!item
-        if(!item) {
-            this.text = ''
-        }
 
-        if(!item && !this.getItem()) {
-            return false
-        }
-
-        if(item) {
-            const tintMode = item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(getBlockImage(item, 100 * this.zoom), 'centerstretch', 1.0, tintMode)
-        }
+        let label = null
 
         // draw count && instrument livebar
         if(item) {
 
             const mat = BLOCK.fromId(item.id)
+            const tintMode = item.extra_data?.enchantments ? 1 : 0
+
+            this.setBackground(getBlockImage(item, 100 * this.zoom), 'centerstretch', 1.0, tintMode)
 
             // let font_size = 18
             const power_in_percent = mat?.item?.indicator == 'bar'
-            let label = item.count > 1 ? item.count : null
-            let shift_y = 0
+            label = item.count > 1 ? item.count : null
+            // let shift_y = 0
             if(!label && 'power' in item) {
                 if(power_in_percent) {
                     label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%'
@@ -1236,24 +1230,24 @@ export class SimpleBlockSlot extends Window {
                     label = null
                 }
                 // font_size = 12
-                shift_y = -10
+                // shift_y = -10
             }
 
-            this.text = label
-
-            // 3. Draw instrument life
+            // draw instrument life
             this.bar.visible = (mat.item?.instrument_id && item.power < mat.power) || power_in_percent
             if(this.bar.visible) {
-                this._setBarValue(Math.min(item.power / mat.power, 1))
+                const percent = Math.min(item.power / mat.power, 1)
+                const rgb = Helpers.getColorForPercentage(percent)
+                this.bar_value.w = this.bar.w * percent
+                this.bar_value.style.background.color = rgb.toHex(true)
             }
 
-        } else {
-            this.text = ''
-            this.bar.visible = false
         }
 
+        this.text = label
+
         return true
-    
+
     }
 
 }
@@ -1332,26 +1326,20 @@ export class WindowManager extends Window {
         }, this._cariage_speed)
 
         //
-        this.drag = {
-            item: null,
-            setItem: function(item) {
-                this.item = item
-                that._wmoverlay._wmpointer.setItem(item?.item)
-            },
-            getItem: function() {
-                return this.item
-            },
-            clear: function() {
-                this.setItem(null)
-            },
-            draw: function(e) {
-                if(this.item) {
-                    if(typeof this.item.draw === 'function') {
-                        this.item.draw(e, true);
-                    }
-                }
-            }
-        }
+        this.drag = that._wmoverlay._wmpointer
+        // this.drag = {
+        //     item: null,
+        //     setItem: function(item) {
+        //         this.item = item
+        //         that._wmoverlay._wmpointer.setItem(item?.item)
+        //     },
+        //     getItem: function() {
+        //         return this.item
+        //     },
+        //     clear: function() {
+        //         this.setItem(null)
+        //     }
+        // }
 
     }
 

@@ -3051,3 +3051,17 @@ export async function cropToImage(image, x, y, width, height, dest_width, dest_h
     })
 
 }
+
+const typeSizes = {
+    "undefined": () => 0,
+    "boolean": () => 4,
+    "number": () => 8,
+    "string": item => 2 * item.length,
+    "object": item => !item ? 0 : (
+        ('byteLength' in item) ? item.byteLength :
+        (Object.keys(item).reduce((total, key) => sizeOf(key) + sizeOf(item[key]) + total, 0))
+    )
+};
+export function sizeOf(value) {
+    return typeSizes[typeof value](value)
+}

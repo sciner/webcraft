@@ -118,7 +118,7 @@ export class BackgroundStyle {
         }
 
         if (urlOrImage.baseTexture) {
-            background.texture = urlOrImage;
+            background.texture = urlOrImage
         } else {
             background.texture = PIXI.Texture.from(urlOrImage)
         }

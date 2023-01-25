@@ -24,9 +24,32 @@ export class Inventory {
         this.max_count          = INVENTORY_SLOT_COUNT;
         this.max_visible_count  = INVENTORY_VISIBLE_SLOT_COUNT;
         this.hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT;
-        this.update_number      = 0
+        this._update_number     = 0
         this.onSelect           = (item) => {};
-        this.applyNewItems(state.items, false);
+        this.applyNewItems(state.items, false)
+        /**
+         * @type { import("../tools/gui/wm.js").SimpleBlockSlot[] } slot
+         */
+        this.inventory_ui_slots = []
+    }
+
+    get update_number() {
+        return this._update_number
+    }
+
+    set update_number(value) {
+        this._update_number = value
+        for(let slot of this.inventory_ui_slots) {
+            slot.refresh()
+        }
+    }
+
+    /** 
+     * @param { import("./window/base_craft_window.js").CraftTableSlot } slot
+     */
+    addInventorySlot(slot) {
+        if(slot.slot_index === undefined || slot.slot_index === null) return
+        this.inventory_ui_slots.push(slot)
     }
 
     //

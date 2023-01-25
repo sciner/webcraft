@@ -57,7 +57,7 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Создание слотов для инвентаря
         this.createInventorySlots(this.cell_size)
-        
+
         // Создания слота для армора
         this.createArmorSlots(this.cell_size)
 

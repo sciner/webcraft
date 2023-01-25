@@ -74,28 +74,23 @@ export class PlayerInventory extends Inventory {
             drag = this.hud.wm.drag;
         }
         if(item) {
-            drag.setItem({
-                item,
-                draw: function(e) {
-                    slot.drawItem(e.ctx, this.item, e.x, e.y, width, height);
-                }
-            });
+            drag.setItem(item)
         } else {
-            this.clearDragItem();
+            this.clearDragItem()
         }
     }
 
     // The same result as in chest_manager.js: applyClientChange()
     clearDragItem(move_to_inventory) {
-        const drag = this.hud.wm.drag;
+        const drag = this.hud.wm.drag
         if(move_to_inventory) {
-            const dragItem = drag.getItem();
+            const dragItem = drag.getItem()
             if(dragItem) {
-                this.increment(dragItem.item, true);
+                this.increment(dragItem, true)
             }
         }
-        this.items[INVENTORY_DRAG_SLOT_INDEX] = null;
-        drag.clear();
+        this.items[INVENTORY_DRAG_SLOT_INDEX] = null
+        drag.clear()
     }
 
 }
