@@ -29,7 +29,8 @@ export default class style {
         if(BLOCK.isOpened(tblock)) {
             cardinal_direction = CubeSym.dirAdd(cardinal_direction, tblock.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);
         }
-        const sz = 3 / 15.9;
+        let width = tblock.material?.bb ? 2 : 3
+        const sz = width / 15.9
         return [
             new AABB(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot)
         ]

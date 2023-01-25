@@ -50,6 +50,17 @@ export class BBModel_Compiler_Base {
         return spritesheet
     }
 
+    getSpritesheetByID(id) {
+        for(let spritesheet of this.spritesheets) {
+            if(spritesheet.id == id) {
+                return spritesheet
+            }
+        }
+        const spritesheet = this.createSpritesheet(this.options.tx_cnt, this.options.resolution, this.options, id)
+        this.spritesheets.unshift(this.spritesheets.pop())
+        return spritesheet
+    }
+
     /**
      * @param {*} texture 
      * @returns 

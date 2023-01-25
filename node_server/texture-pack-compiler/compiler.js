@@ -49,6 +49,10 @@ export class Compiler {
         return spritesheet;
     }
 
+    getSpritesheetByID(id) {
+        return this.getSpritesheet(id)
+    }
+
     // Init
     async init() {
         const compile_json = await import(this.options.compile_json, {
@@ -140,7 +144,11 @@ export class Compiler {
     }
 
     //
-    async compileBlocks(blocks) {
+    async compileBlocks(blocks, spritesheet_storage) {
+
+        if(!spritesheet_storage) {
+            spritesheet_storage = this
+        }
 
         // Each all blocks from JSON file
         let dirt_image = null;
@@ -181,10 +189,7 @@ export class Compiler {
 
                 const spritesheet_id = block.texture?.id ?? 'default';
 
-                /**
-                 * @type {Spritesheet}
-                 */
-                const spritesheet = this.getSpritesheet(spritesheet_id);
+                const spritesheet = spritesheet_storage.getSpritesheet(spritesheet_id);
 
                 const opTextures = async (obj, texture_key) => {
                     
@@ -380,7 +385,7 @@ export class Compiler {
                         value = value.side;
                     }
                     //
-                    const spritesheet = this.getSpritesheet(spritesheet_id);
+                    const spritesheet = spritesheet_storage.getSpritesheetByID(spritesheet_id);
                     if(value.indexOf('|') >= 0) {
                         const pos_arr = value.split('|');
                         tex = {pos: {x: parseFloat(pos_arr[0]), y: parseFloat(pos_arr[1])}};
@@ -406,7 +411,7 @@ export class Compiler {
 
                 // stage textures (eg. seeds)
                 if(block?.stage_textures) {
-                    const spritesheet = this.getSpritesheet('default');
+                    const spritesheet = spritesheet_storage.getSpritesheet('default');
                     for(let i in block.stage_textures) {
                         const value = block.stage_textures[i];
                         const img = await spritesheet.loadTex(value, DEFAULT_TEXTURE_SUFFIXES);
@@ -427,7 +432,7 @@ export class Compiler {
 
                 // redstone textures
                 if(block.redstone?.textures) {
-                    const spritesheet = this.getSpritesheet('default');
+                    const spritesheet = spritesheet_storage.getSpritesheet('default');
                     for(let k of ['dot', 'line']) {
                         for(let i in block.redstone.textures[k]) {
                             const value = block.redstone.textures[k][i];

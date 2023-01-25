@@ -20,6 +20,7 @@ const lm = IndexedColor.WHITE;
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
 const pivotObj = new Vector(0.5, .5, 0.5)
+const xyz = new Vector(0, 0, 0)
 
 // randoms
 const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z
@@ -115,7 +116,11 @@ export default class style {
         // reset state and restore groups visibility
         model.resetBehaviorChanges()
 
-        const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color, vertices, x, y, z)
+        xyz.set(x, y, z)
+        const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color, vertices, xyz)
+        x = xyz.x
+        y = xyz.y
+        z = xyz.z
 
         // calc rotate matrix
         style.applyRotate(model, block, neighbours, matrix, x, y, z)
@@ -258,8 +263,9 @@ export default class style {
      * @param {*} biome 
      * @param {IndexedColor} dirt_color
      * @param {float[]} vertices
+     * @param {Vector} xyz
      */
-    static applyBehavior(model, tblock, neighbours, matrix, biome, dirt_color, vertices, x, y, z) {
+    static applyBehavior(model, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
 
         const emmited_blocks = []
         const mat = tblock.material
@@ -272,7 +278,7 @@ export default class style {
             for(let state of bb.set_state) {
                 if(style.checkWhen(model, tblock, state.when)) {
                     model.state = state.name
-                    model.hideAllExcept(model.state)
+                    model.hideAllExcept([model.state])
                     break
                 }
             }
@@ -280,28 +286,66 @@ export default class style {
 
         // 2.
         switch(behavior) {
+            case 'door': {
+                const extra_data = tblock.extra_data ?? {opened: false, left: true}
+                const rotate = tblock.rotate ?? Vector.ZERO
+                const is_left = extra_data.left
+                const shift = 7/16 * (is_left ? 1 : -1)
+                const move_back = !(tblock instanceof FakeTBlock)
+                if(extra_data) {
+                    if(!is_left) {
+                        mat4.rotateY(matrix, matrix, Math.PI)
+                    }
+                    if(extra_data?.opened) {
+                        mat4.rotateY(matrix, matrix, Math.PI/2 * (is_left ? -1 : 1))
+                    }
+                    switch(rotate.x) {
+                        case DIRECTION.SOUTH: {
+                            xyz.x -= shift
+                            if(move_back) xyz.z -= 7/16
+                            break
+                        }
+                        case DIRECTION.NORTH: {
+                            xyz.x += shift
+                            if(move_back) xyz.z += 7/16
+                            break
+                        }
+                        case DIRECTION.WEST: {
+                            xyz.z += shift
+                            if(move_back) xyz.x -= 7/16
+                            break
+                        }
+                        case DIRECTION.EAST: {
+                            xyz.z -= shift
+                            if(move_back) xyz.x += 7/16
+                            break
+                        }
+                    }
+                }
+                break
+            }
             case 'lantern': {
                 const on_ceil = rotate?.y == -1;
                 model.state = on_ceil ? 'ceil' : 'floor'
-                model.hideAllExcept(model.state)
+                model.hideAllExcept([model.state])
                 break
             }
             case 'torch': {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
-                model.hideAllExcept(model.state)
+                model.hideAllExcept([model.state])
                 break
             }
             case 'age': {
                 const age = Math.min((tblock?.extra_data?.stage ?? 0), mat.ticking.max_stage) + 1
                 model.state = `age${age}`
-                model.hideAllExcept(model.state)
+                model.hideAllExcept([model.state])
                 break
             }
             case 'sign': {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
-                model.hideAllExcept(model.state)
+                model.hideAllExcept([model.state])
                 model.selectTextureFromPalette(mat.name)
                 break
             }
@@ -410,7 +454,7 @@ export default class style {
             case 'cauldron': {
                 if(tblock.extra_data) {
                     const vert = []
-                    cauldron_style.func(tblock, vert, null, x, y, z, neighbours, biome, dirt_color, undefined, matrix, undefined, null, true)
+                    cauldron_style.func(tblock, vert, null, xyz.x, xyz.y, xyz.z, neighbours, biome, dirt_color, undefined, matrix, undefined, null, true)
                     emmited_blocks.push(new FakeVertices(BLOCK.STONE.material_key, vert))
                 }
                 break
