@@ -1,5 +1,5 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers, isScalar } from './helpers.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers, isScalar, cropToImage } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";

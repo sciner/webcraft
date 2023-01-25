@@ -1,5 +1,11 @@
-import {Vector} from "./helpers.js";
+import { SpriteAtlas } from "./core/sprite_atlas.js";
+import { Resources } from "./resources.js";
 import { PlayerInventory } from "./player_inventory.js";
+import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
+import { Effect } from "./block_type/effect.js";
+import { Window } from "../tools/gui/wm.js";
+import { CraftTableInventorySlot } from "./window/base_craft_window.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -40,9 +46,12 @@ class Strings {
     // draw
     draw(hud, y_margin, zoom, hud_pos, cell_size) {
 
-        let draw_count = 0;
-        const ctx = hud.ctx;
+        let draw_count = 0
 
+        // TODO: pixi
+        return
+
+        // draw strings on center of display
         for(let i = 0; i < this.strings.length; i++) {
             const item = this.strings[i];
             if(!item.text) {
@@ -74,10 +83,9 @@ class Strings {
             ctx.fillText(item.text, hud.width / 2 - item.measure.width / 2, hud_pos.y + cell_size - y_margin - 2 * zoom);
             //
             draw_count++;
-
         }
 
-        return draw_count > 0;
+        return draw_count > 0
 
     }
 
@@ -86,35 +94,105 @@ class Strings {
 export class Hotbar {
 
     constructor(hud) {
-        let that                = this;
-        this.hud                = hud;
-        this.image              = new Image(); // new Image(40, 40); // Размер изображения
+
+        // console.log(new Error().stack)
+
+        this.hud = hud
+        this.last_damage_time = null
+        this.strings = new Strings()
+
+        // Load hotbar atlases
+        const all = []
+        all.push(this.effect_icons = new SpriteAtlas().fromFile('./media/gui/inventory2.png'))
+
+        this.icons_atlas = Resources.atlas.icons
         
-        //
-        this.image.onload = function() {
-            that.hud.add(that, 0);
+        Promise.all(all).then(_ => {
+
+            this.tilemap = new MyTilemap()
+            hud.wm.addChild(this.tilemap)
+
+            // Init sprites
+            this.sprites = {
+
+                slot:               1,
+                selector:           1,
+
+                live:               0.9,
+                live_half:          0.9,
+                live_bg_black:      0.9,
+                live_bg_white:      0.9,
+                live_poison:        0.9,
+                live_poison_half:   0.9,
+
+                food_bg_black:      0.9,
+                food:               0.9,
+                food_half:          0.9,
+                food_poison:        0.9,
+                food_poison_half:   0.9,
+
+                oxygen:             0.9,
+                oxygen_half:        0.9,
+
+                armor_bg_black:     0.9,
+                armor:              0.9,
+                armor_half:         0.9
+            }
+
+            this.hotbar_atlas = Resources.atlas.hotbar
+
+            for(const [name, scale] of Object.entries(this.sprites)) {
+                this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale * this.zoom)
+            }
+
+            // Effects sprites
+            this.effect_sprites = {}
+            for(let effect of Effect.get()) {
+                this.effect_sprites[effect.id] = new MySprite(Resources.atlas.bn.getSpriteFromMap(effect.icon), 1 * this.zoom)
+            }
+
+            this.sprite_effect_bg = new MySprite(Resources.atlas.bn.getSpriteFromMap('button_black'), 1 * this.zoom)
+
+            this.hud.add(this, 0)
+
+        })
+
+    }
+
+    /**
+    * Создание слотов для инвентаря
+    * @param int sz Ширина / высота слота
+    */
+    createInventorySlots(sz) {
+
+        sz *= this.zoom
+
+        const inventory_slots = this.inventory_slots = new Window(0, 0, INVENTORY_HOTBAR_SLOT_COUNT * sz, sz, 'hotbar_inventory_slots')
+        // inventory_slots.style.background.color = '#00000044'
+        inventory_slots.auto_center = false
+        inventory_slots.catchEvents = false
+
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            const lblSlot = new CraftTableInventorySlot(i * sz, 0, sz, sz, `lblSlot${i}`, null, null, this, i)
+            inventory_slots.add(lblSlot)
         }
-        this.image.src = './media/hotbar.png';
-        this.last_damage_time = null;
-        //
-        this.strings = new Strings();
-        
-        this.inventory_image = new Image();
-        this.inventory_image.src = './media/gui/inventory2.png';
-        
-        this.icons = new Image();
-        this.icons.src = './media/icons.png';
+        this.hud.wm.addChild(inventory_slots)
+
     }
 
     get zoom() {
-        return UI_ZOOM;
+        return UI_ZOOM
     }
 
     /**
      * @param {PlayerInventory} inventory 
      */
     setInventory(inventory) {
-        this.inventory = inventory;
+
+        this.inventory = inventory
+
+        this.createInventorySlots(40)
+
     }
 
     //
@@ -130,280 +208,123 @@ export class Hotbar {
         }
     }
 
+    // выводит полосу
+    drawStrip(x, y, val, full, half, bbg = null, wbg = null, blink = false, wave = false, reverse = false) {
+        const size = full.width
+        val /= 2
+        const spn = Math.round(performance.now() / 75)
+        if (bbg) {
+            const bg = blink ? wbg : bbg
+            for (let i = 0; i < 10; i++) {
+                const sy = wave ? LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5 : 0
+                bg.x = x + ((reverse) ? i * size : (size * 9 - i * size))
+                bg.y = y + sy
+                this.tilemap.drawImage(bg)
+            }
+        }
+        for (let i = 0; i < 10; i++) {
+            const sy = wave ? LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5 : 0
+            const d = val - 0.5
+            if ( d > i) {
+                full.x = x + ((!reverse) ? i * size : (size * 9 - i * size))
+                full.y = y + sy
+                this.tilemap.drawImage(full)
+            } else if (d == i) {
+                half.x = x + ((!reverse) ? i * size : (size * 9 - i * size))
+                half.y = y + sy
+                this.tilemap.drawImage(half)
+            }
+        }
+    }
+
     drawHUD(hud) {
 
-        const player = this.inventory.player;
+        this.tilemap.clear()
+
+        const player  = this.inventory.player;
+        
         if(player.game_mode.isSpectator()) {
             return false;
         }
 
-        // Source image sizes
-        const sw                = 1092; // this.image.width;
-        const sh                = 294; // this.image.height;
-        const slive_bar_height  = 162;
-        const selector          = {x: 162, y: 300, width: 144, height: 138};
-        const src = {
-            icons: {
-                live: {x: 0, y: 300, width: 54, height: 54},
-                live_half: {x: 0, y: 354, width: 54, height: 54},
-                food: {x: 54, y: 300, width: 54, height: 54},
-                food_half: {x: 54, y: 354, width: 54, height: 54},
-                oxygen: {x: 108, y: 300, width: 54, height: 54},
-                oxygen_half: {x: 108, y: 354, width: 54, height: 54}
-            }
-        };
-
-        // Target sizes
-        const dst = {
-            w: 546 * this.zoom,
-            h: 147 * this.zoom,
-            live_bar_height: 81 * this.zoom,
-            selector: {
-                width: 72 * this.zoom,
-                height: 69 * this.zoom
-            }
-        };
-        const hud_pos = {
-            x: (hud.width / 2 - dst.w / 2),
-            y: hud.height - dst.h
-        };
-
-        // Other sizes
-        const cell_size         = 60 * this.zoom;
-        const ss                = 27 * this.zoom;
-        const mayGetDamaged     = player.game_mode.mayGetDamaged();
-
-        // Draw item name in hotbar
-        const currentInventoryItem = player.currentInventoryItem;
-        if(currentInventoryItem) {
-            const itemTitle = player.world.block_manager.getBlockTitle(currentInventoryItem);
-            this.strings.updateText(0, itemTitle);
-        } else {
-            this.strings.setText(0, null);
+        // Inventory slots
+        this.inventory_slots.transform.position.set(hud.width / 2 - this.inventory_slots.w / 2, hud.height - this.inventory_slots.h - 6 * this.zoom)
+        if(this.inventory_update_number != this.inventory.update_number) {
+            this.inventory_update_number = this.inventory.update_number
+            this.inventory_slots.children.map(w => {
+                if(w instanceof CraftTableInventorySlot) {
+                    w.setItem(w.getItem(), false)
+                }
+            })
         }
 
-        // Draw strings
-        // shift texts to up if livebar is drawed
-        const y_margin = mayGetDamaged ? 40 * this.zoom : 0;
-        if(this.strings.draw(hud, y_margin, this.zoom, hud_pos, cell_size)) {
-            hud.refresh();
+        const mayGetDamaged = player.game_mode.mayGetDamaged();
+        if (mayGetDamaged) {
+            const left = 180 * this.zoom
+            const right = 15 * this.zoom
+            const bottom_one_line = 70 * this.zoom
+            const bottom_two_line = 90 * this.zoom
+            const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
+            // жизни
+            const live = player.indicators.live.value;
+            // моргание от урона 
+            const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
+            const low_live = live < 3
+            if (player.getEffectLevel(Effect.POISON) > 0) {
+                this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live_poison, this.sprites.live_poison_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+            } else {
+                this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+            }
+            // еда
+            const food = player.indicators.food.value;
+            if (player.getEffectLevel(Effect.HUNGER) > 0) {
+                this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food_poison, this.sprites.food_poison_half, this.sprites.food_bg_black, null, false, false, true);
+            } else {
+                this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
+            }
+            // кислород
+            const oxygen = player.indicators.oxygen.value;
+            if (oxygen < 20) {
+                this.drawStrip(hud.width / 2 + right,  hud.height - bottom_two_line, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
+            }
+            // броня
+            const armor = this.inventory.getArmorLevel()
+            if (armor > 0) {
+                this.drawStrip(hud.width / 2 - left, hud.height - bottom_two_line, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
+            }
+        }
+        // хотбар и селектор
+        const sx = this.sprites.slot.width
+        const sy = this.sprites.slot.height + 5 * this.zoom
+        for (let i = 0; i < 9; i++) {
+            this.tilemap.drawImage(this.sprites.slot, (hud.width - sx * 9) / 2 + i * sx, hud.height - sy)
+        }
+        for (let i = 0; i < 9; i++) {
+            if (i == this.inventory.getRightIndex()) {
+                this.tilemap.drawImage(this.sprites.selector, (hud.width - sx * 9) / 2 + i * sx - 2 * this.zoom, hud.height - sy - 2 * this.zoom)
+            }
         }
 
-        //
-        if(mayGetDamaged) {
-            // bar
-            hud.ctx.drawImage(
-                this.image,
-                0,           // sx
-                0,           // sy
-                sw,          // sw
-                sh,          // sh
-                hud_pos.x,   // dx
-                hud_pos.y,   // dy
-                dst.w,       // dw
-                dst.h        // dh
-            );
-            // Indicators
-            const MAX_INDICATOR_VALUE = 20;
-            const INDICATOR_PIECES = 10;
-            let indicators = player.indicators;
-            let live = indicators.live.value / MAX_INDICATOR_VALUE;
-            let food = indicators.food.value / MAX_INDICATOR_VALUE;
-            let oxygen = indicators.oxygen.value / MAX_INDICATOR_VALUE;
-            //
-            let spn = Math.round(performance.now() / 75);
-            let calcShiftY = (i, live) => {
-                let shift_y = 0;
-                if(live < .35) {
-                    shift_y = LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5;
-                }
-                return shift_y;
-            };
-            // live
-            // backgrounds
-            const damage_time = 1000;
-            if(Qubatch.hotbar.last_damage_time && performance.now() - Qubatch.hotbar.last_damage_time < damage_time) {
-                let diff = performance.now() - Qubatch.hotbar.last_damage_time;
-                if(diff % 200 < 100) {
-                    hud.ctx.filter = 'opacity(.5)';
-                }
-            }
-            for(let i = 0; i < 10; i++) {
-                let shift_y = calcShiftY(i, live);
-                hud.ctx.drawImage(
-                    this.image,
-                    src.icons.live.x,
-                    src.icons.live_half.y + src.icons.live_half.height,
-                    src.icons.live.width,
-                    src.icons.live.height,
-                    hud_pos.x + i * 24 * this.zoom,
-                    hud_pos.y + 30 * this.zoom + shift_y,
-                    ss,
-                    ss
-                );
-            }
-            hud.ctx.filter = 'none';
-            for(let i = 0; i < Math.floor(live * INDICATOR_PIECES); i++) {
-                let shift_y = calcShiftY(i, live);
-                hud.ctx.drawImage(
-                    this.image,
-                    src.icons.live.x,
-                    src.icons.live.y,
-                    src.icons.live.width,
-                    src.icons.live.height,
-                    hud_pos.x + i * 24 * this.zoom,
-                    hud_pos.y + 30 * this.zoom + shift_y,
-                    ss,
-                    ss
-                );
-            }
-            if(Math.round(live * INDICATOR_PIECES) > Math.floor(live * INDICATOR_PIECES)) {
-                let shift_y = calcShiftY(Math.floor(live * INDICATOR_PIECES), live);
-                hud.ctx.drawImage(
-                    this.image,
-                    src.icons.live_half.x,
-                    src.icons.live_half.y,
-                    src.icons.live_half.width,
-                    src.icons.live_half.height,
-                    hud_pos.x + Math.floor(live * INDICATOR_PIECES) * (24 * this.zoom),
-                    hud_pos.y + (30 * this.zoom) + shift_y,
-                    ss,
-                    ss
-                );
-            }
-            // foods && oxygen
-            const right_inds = [
-                {value: food, img_full: src.icons.food, img_half: src.icons.food_half, visible_min: 1},
-                {value: oxygen, img_full: src.icons.oxygen, img_half: src.icons.oxygen_half, visible_min: .95}
-            ];
-            for(let i in right_inds) {
-                const ind = right_inds[i];
-                const yoffset = i * (ss + 2 * this.zoom);
-                if(ind.value > ind.visible_min) {
-                    continue;
-                }
-                for(let i = 0; i < Math.floor(ind.value * INDICATOR_PIECES); i++) {
-                    hud.ctx.drawImage(
-                        this.image,
-                        ind.img_full.x,
-                        ind.img_full.y,
-                        ind.img_full.width,
-                        ind.img_full.height,
-                        hud_pos.x + dst.w - (i * 24 * this.zoom + ss),
-                        hud_pos.y + 30 * this.zoom - yoffset,
-                        ss,
-                        ss
-                    );
-                }
-                if(Math.round(ind.value * INDICATOR_PIECES) > Math.floor(ind.value * INDICATOR_PIECES)) {
-                    hud.ctx.drawImage(
-                        this.image,
-                        ind.img_half.x,
-                        ind.img_half.y,
-                        ind.img_half.width,
-                        ind.img_half.height,
-                        hud_pos.x + dst.w - (Math.floor(ind.value * INDICATOR_PIECES) * 24 * this.zoom + ss),
-                        hud_pos.y + 30 * this.zoom - yoffset,
-                        ss,
-                        ss
-                    );
-                }
-            }
-            // рисуем иконки армора
-            this.drawArmor(hud);
-        } else {
-            // bar
-            hud.ctx.drawImage(
-                this.image,
-                0,
-                slive_bar_height,
-                sw,
-                sh - slive_bar_height,
-                hud_pos.x,
-                hud_pos.y + dst.live_bar_height,
-                dst.w,
-                dst.h - dst.live_bar_height
-            );
-        }
-        // inventory_selector
-        hud.ctx.drawImage(
-            this.image,
-            selector.x,
-            selector.y,
-            selector.width,
-            selector.height,
-            hud_pos.x - 3 * this.zoom + this.inventory.getRightIndex() * cell_size,
-            hud_pos.y + (48 + 30) * this.zoom,
-            dst.selector.width,
-            dst.selector.height
-        );
-        if(this.inventory) {
-            this.inventory.drawHotbar(hud, cell_size, new Vector(hud_pos.x, hud_pos.y + (48 + 30) * this.zoom, 0), this.zoom);
-        }
-        
-        this.drawEffects(hud);
-        
+        // TODO: pixi
+        this.drawEffects(hud)
+
     }
-    
-    drawArmor(hud) {
-        let damage = this.inventory.getArmorLevel()
-        damage /= 2;
-        if (damage == 0) {
-            return;
-        }
-        const sx = hud.width / 2 - 295 * this.zoom;
-        const sy = hud.height - 150 * this.zoom;
-        for (let i = 1; i < 11; i++) {
-            if (i > (damage + 0.5)) {
-                hud.ctx.drawImage(this.icons, 240, 0, 20, 20, i * 24 * this.zoom + sx, sy, this.zoom * 24, this.zoom * 24);
-            } else if (i > damage) {
-                hud.ctx.drawImage(this.icons, 260, 0, 20, 20, i * 24 * this.zoom + sx, sy, this.zoom * 24, this.zoom * 24);
-            }else {
-                hud.ctx.drawImage(this.icons, 300, 0, 20, 20, i * 24 * this.zoom + sx, sy, this.zoom * 24, this.zoom * 24);
-            } 
-        }
-    }    
-    
+
     drawEffects(hud) {
-        const player = this.inventory.player;
-        let pos = 0;
-        for (const effect of player.effects.effects) {
-            this.drawEffectsIcon(hud, effect.id, pos++);
+        const margin = 4 * this.zoom
+        let pos = margin
+        const bg = this.sprite_effect_bg
+        for(let effect of this.inventory.player.effects.effects) {
+            debugger
+            const sprite = this.effect_sprites[effect.id]
+            const paddingx = bg.width / 2 - sprite.width / 2
+            const paddingy = bg.height / 2 - sprite.height / 2
+            const x = hud.width - pos - bg.width
+            const y = margin
+            this.tilemap.drawImage(bg, x, y)
+            this.tilemap.drawImage(sprite, x + paddingx, y + paddingy)
+            pos += margin + bg.width
         }
-    }
-    
-    drawEffectsIcon(hud, icon, pos) {
-        if (icon > 23) {
-            return;
-        }
-        const icons = [
-            {x: 2, y: 397},
-            {x: 39, y: 397},
-            {x: 73, y: 397},
-            {x: 112, y: 397},
-            {x: 145, y: 397},
-            {x: 181, y: 397},
-            {x: 219, y: 397},
-            {x: 255, y: 397},
-            {x: 2, y: 435},
-            {x: 39, y: 435},
-            {x: 73, y: 435},
-            {x: 112, y: 435},
-            {x: 145, y: 435},
-            {x: 181, y: 435},
-            {x: 219, y: 435},
-            {x: 255, y: 435},
-            {x: 2, y: 472},
-            {x: 39, y: 472},
-            {x: 73, y: 472},
-            {x: 112, y: 472},
-            {x: 145, y: 472},
-            {x: 181, y: 472},
-            {x: 219, y: 472},
-            {x: 255, y: 472},
-        ];
-        hud.ctx.drawImage(this.inventory_image, 280, 333, 50, 50, hud.width - this.zoom * 50 * ( pos + 1) - 10, 10, this.zoom * 50, this.zoom * 50);
-        hud.ctx.drawImage(this.inventory_image, icons[icon].x, icons[icon].y, 34, 34, hud.width - (this.zoom * (50 * (pos + 1) - 11)) - 10, this.zoom * 14, this.zoom * 34, this.zoom * 34);
     }
 
 }

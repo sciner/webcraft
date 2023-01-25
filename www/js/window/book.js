@@ -1,6 +1,6 @@
 import { Button, Label, Window } from "../../tools/gui/wm.js";
-import { Lang } from "../lang.js";
-import { Helpers } from "../helpers.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { BlankWindow } from "./blank.js";
 
 // кнопки перелистывания
 class ActiveButton extends Window {
@@ -13,6 +13,9 @@ class ActiveButton extends Window {
         this.style.border.hidden = true;
         this.style.background.image = './media/gui/book.png';
         this.style.background.color = '#00000000';
+
+        /*
+        // TODO: pixi
         this.style.background.sprite = {
             'mode': 'stretch',
             'width': 32,
@@ -23,6 +26,7 @@ class ActiveButton extends Window {
         this.setBackground(this.style.background.image, 'sprite');
         this.setIcon(icon);
         this.setEnable(true);
+        */
         
         this.onMouseEnter = function() {
             if (this.enable) {
@@ -51,14 +55,19 @@ class ActiveButton extends Window {
     
     setEnable(val) {
         this.enable = val;
+        /*
+        // TODO: pixi
         if (!this.enable) {
             this.style.background.sprite.x = 88;
         } else {
             this.style.background.sprite.x = 8;
         }
+        */
     }
     
     setIcon(name) {
+        /*
+        // TODO: pixi
         switch(name) {
             case 'back': {
                 this.style.background.sprite.x = 8;
@@ -71,65 +80,34 @@ class ActiveButton extends Window {
                 break;
             }
         }
+        */
     }
     
 }
 
-export class BookWindow extends Window {
+export class BookWindow extends BlankWindow {
 
     constructor(player) {
 
-        super(10, 10, 290, 360, "frmBook", null, null);
+        super(10, 10, 290, 360, 'frmBook', null, null)
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
-        this.extra_data = null;
-        this.page = 0;
-        this.pages = [];
-        // Get window by ID
-        const ct = this;
-        const options = {
-            background: {
-                image: './media/gui/book.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 40,
-                    y: 0,
-                    width: 290,
-                    height: 360
-                }
-            }
-        };
-        this.style.background = {...this.style.background, ...options.background};
-        this.style.background.color = '#00000000';
-        this.style.border.hidden = true;
-        this.setBackground(options.background.image);
-        
+        this.w *= this.zoom
+        this.h *= this.zoom
+        this.extra_data = null
+        this.page = 0
+        this.pages = []
+
+        // Create sprite atlas
+        this.atlas = new SpriteAtlas()
+        this.atlas.fromFile('./media/gui/book.png').then(async atlas => {
+            this.setBackground(await atlas.getSprite(40, 0, 290, 360), 'none', this.zoom / 2.0)
+        })
+
         // Создание лебалов
-        this.createLabels();
-        
-        // Создание кнопок
-        this.createButtons();
-        
-        // Обработчик открытия формы
-        this.onShow = function(args) {
-            this.page = 0;
-            this.pages = [];
-            this.btn_back.setEnable(false);
-            this.btn_next.setEnable(false);
-            if (args?.extra_data?.book) {
-                this.page = args.extra_data.page;
-                this.pages = args.extra_data.book.pages;
-                this.btn_next.setEnable(true);
-            }
-            this.getRoot().center(this);
-            Qubatch.releaseMousePointer();
-        }
+        this.createLabels()
 
-        // Обработчик закрытия формы
-        this.onHide = function() {
-        }
+        // Создание кнопок
+        this.createButtons()
 
         // Add close button
         this.loadCloseButtonImage((image) => {
@@ -144,35 +122,32 @@ export class BookWindow extends Window {
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
                 ct.hide();
             }
-            ct.add(btnClose);
-        });
+            ct.add(btnClose)
+        })
 
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.ESC: {
-                    if(!down) {
-                        ct.hide();
-                        try {
-                            Qubatch.setupMousePointer(true);
-                        } catch(e) {
-                            console.error(e);
-                        }
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
     }
-    
+
+    // Обработчик открытия формы
+    onShow(args) {
+        this.page = 0
+        this.pages = []
+        this.btn_back.setEnable(false)
+        this.btn_next.setEnable(false)
+        if (args?.extra_data?.book) {
+            this.page = args.extra_data.page
+            this.pages = args.extra_data.book.pages
+            this.btn_next.setEnable(true)
+        }
+        this.getRoot().center(this)
+        Qubatch.releaseMousePointer()
+    }
+
     createLabels(){
         this.lbl_pages = new Label(150 * this.zoom, 30 * this.zoom, 110 * this.zoom, 12 * this.zoom, 'lblPages', null, '');
-        this.lbl_pages.style.font.size = 11 * this.zoom;
+        this.lbl_pages.style.font.size = 11
         this.add(this.lbl_pages);
         this.lbl_text = new Label(25 * this.zoom, 50 * this.zoom, 240 * this.zoom, 270 * this.zoom, 'lblText', null, '');
-        this.lbl_text.style.font.size = 12 * this.zoom;
+        this.lbl_text.style.font.size = 12
         this.lbl_text.word_wrap = true;
         this.add(this.lbl_text);
     }

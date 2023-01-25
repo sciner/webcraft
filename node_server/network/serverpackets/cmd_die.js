@@ -1,5 +1,5 @@
 import {ServerClient} from "../../../www/js/server_client.js";
-import { PLAYER_STATUS_DEAD } from "../www/js/player.js";
+import { PLAYER_STATUS_DEAD } from "../www/js/constant.js";
 
 export class CMD_DIE {
 

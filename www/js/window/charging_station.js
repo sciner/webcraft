@@ -1,4 +1,5 @@
 import {BLOCK} from "../blocks.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Vector } from "../helpers.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
@@ -8,22 +9,17 @@ export class ChargingStationWindow extends BaseChestWindow {
 
         super(10, 10, 352, 332, 'frmChargingStation', null, null, inventory, {
             title: 'Charging station',
-            background: {
-                image: './media/gui/form-charging-station.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 0,
-                    y: 0,
-                    width: 352 * 2,
-                    height: 332 * 2
-                }
-            },
             sound: {
                 open: {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
                 close: {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
             }
-        });
+        })
+
+        // Create sprite atlas
+        this.atlas = new SpriteAtlas()
+        this.atlas.fromFile('./media/gui/form-charging-station.png').then(async atlas => {
+            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+        })
 
     }
 

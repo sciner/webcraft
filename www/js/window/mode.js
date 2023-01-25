@@ -1,112 +1,105 @@
-import { Component } from "./wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { KEY } from "../constant.js";
+import { Label, Window } from "../../tools/gui/wm.js";
+import { Resources } from "../resources.js";
 
-export class ModeWindow extends Component {
+const GAME_MODE_LIST = ['survival', 'creative', 'adventure', 'spectator']
+const ICON_SCALE = .9
+
+export class ModeWindow extends Window {
 
     constructor(player) {
-        super(0, 0, 217, 130, 'frmMode');
-        this.setBackgroundColor('00000055');
-        
-        this.player = player;
+
+        const w = 217
+        const h = 130
+
+        super(0, 0, w * UI_ZOOM, h * UI_ZOOM, 'frmMode')
+
+        this.style.background.color = '#00000055'
+        this.player = player
         this.mode == 'survival'
-        
-        this.add(new Component(0, 90, 217, 43, 'lblHelp', '[ F4 ] - Дальше', this));
-        
-        this.title = new Component(0, 0, 217, 43, 'lblTitle', 'Test', this);
-        this.title.setBackground('toasts-0.png');
-        this.add(this.title);
-        
-        this.lbl_survival = new Component(5, 48, 48, 48, 'lblSurvival', null, this);
-        this.lbl_survival.setBackground('inventory-0.png');
-        this.lbl_survival.setIcon('iron_sword.png', 20);
-        this.add(this.lbl_survival);
-        
-        this.lbl_creative = new Component(58, 48, 48, 48, 'lblCreative', null, this);
-        this.lbl_creative.setBackground('inventory-0.png');
-        this.lbl_creative.setIcon('brick.png', 20);
-        this.add(this.lbl_creative);
-        
-        this.lbl_adventure = new Component(111, 48, 48, 48, 'lblAdventure', null, this);
-        this.lbl_adventure.setBackground('inventory-0.png');
-        this.lbl_adventure.setIcon('map.png', 20);
-        this.add(this.lbl_adventure);
-        
-        this.lbl_spectator = new Component(164, 48, 48, 48, 'lblSpectator', null, this);
-        this.lbl_spectator.setBackground('inventory-0.png');
-        this.lbl_spectator.setIcon('ender_eye.png', 20);
-        this.add(this.lbl_spectator);
 
-        this.onShow = function() {
-            Qubatch.releaseMousePointer();
-            this.mode = this.prev_mode ?? this.player.game_mode.next(true).id;
-            this.updateMode();
-        };
+        this.atlas = Resources.atlas.icons
 
-        // Обработчик закрытия формы
-        this.onHide = function() {
-            this.prev_mode = this.player.game_mode.current.id;
-            if(this.prev_mode != this.mode) {
-                player.world.server.Send({
-                    name: ServerClient.CMD_GAMEMODE_SET, 
-                    data: {
-                        id: this.mode
-                    }
-                });
-            }
-        };
-        
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.F4: {
-                    if(down) {
-                        if (this.mode == 'survival') {
-                            this.mode = 'creative';
-                        } else if (this.mode == 'creative') {
-                            this.mode = 'adventure';
-                        } else if (this.mode == 'adventure') {
-                            this.mode = 'spectator';
-                        } else { 
-                            this.mode = 'survival';
-                        }
-                        this.updateMode();
-                    }
-                    return true;
+        const lblHelp = this.addComponent(w / 2, 100, w, 43, 'lblHelp', '[ F4 ] - Дальше')
+        lblHelp.style.font.anchor.x = .5
+        lblHelp.style.font.align = 'center'
+        this.lblHelp.style.font.color = '#ffffff'
+
+        const lblTitle = this.addComponent(w / 2, 10, w, 43, 'lblTitle', 'Test', null, 'toasts-0.png')
+        lblTitle.style.font.anchor.x = .5
+        lblTitle.style.font.align = 'center'
+        this.lblTitle.style.font.color = '#ffffff'
+
+        this.addComponent(5, 48, 48, 48, 'lblSurvival', null, 'iron_sword.png')
+        this.addComponent(58, 48, 48, 48, 'lblCreative', null, 'brick.png')
+        this.addComponent(111, 48, 48, 48, 'lblAdventure', null, 'map.png')
+        this.addComponent(164, 48, 48, 48, 'lblSpectator', null, 'ender_eye.png')
+
+    }
+
+    addComponent(x, y, w, h, id, title, icon) {
+        const label = this[id] = new Label(x * this.zoom, y * this.zoom, w * this.zoom, h * this.zoom, id, title, title)
+        if(icon) {
+            label.setIcon(this.atlas.getSpriteFromMap(icon), 'centerstretch', ICON_SCALE)
+        }
+        label.style.font.size = 16
+        this.add(label)
+        return label
+    }
+
+    // When window on show
+    onShow() {
+        this.getRoot().center(this)
+        Qubatch.releaseMousePointer()
+        this.mode = this.prev_mode ?? this.player.game_mode.next(true).id
+        this.updateMode()
+        super.onShow()
+    }
+
+    // Обработчик закрытия формы
+    onHide() {
+        const player = this.player
+        this.prev_mode = this.player.game_mode.current.id;
+        if(this.prev_mode != this.mode) {
+            player.world.server.Send({
+                name: ServerClient.CMD_GAMEMODE_SET, 
+                data: {
+                    id: this.mode
                 }
-            }
-            return false;
+            })
         }
     }
-    
-    updateMode() {
-        this.lbl_survival.setBackground('inventory-0.png'); 
-        this.lbl_creative.setBackground('inventory-0.png'); 
-        this.lbl_adventure.setBackground('inventory-0.png'); 
-        this.lbl_spectator.setBackground('inventory-0.png'); 
-        switch(this.mode) {
-            case 'survival': {
-                this.title.setText("Режим выживания");
-                this.lbl_survival.setBackground('inventory-1.png'); 
-                break;
-            }
-            case 'creative': {
-                this.title.setText("Творческий режим");
-                this.lbl_creative.setBackground('inventory-1.png'); 
-                break;
-            }
-            case 'adventure': {
-                this.title.setText("Режим приключение");
-                this.lbl_adventure.setBackground('inventory-1.png'); 
-                break;
-            }
-            case 'spectator': {
-                this.title.setText("Режим наблюдателя");
-                this.lbl_spectator.setBackground('inventory-1.png'); 
-                break;
+
+    onKeyEvent(e) {
+        const {keyCode, down, first} = e
+        switch(keyCode) {
+            case KEY.F4: {
+                if(down) {
+                    const index = GAME_MODE_LIST.indexOf(this.mode)
+                    this.mode = GAME_MODE_LIST[(index + 1) % GAME_MODE_LIST.length]
+                    this.updateMode()
+                }
+                return true
             }
         }
+        return false
+    }
+
+    async updateMode() {
+
+        const getModeSprite = (mode) => {
+            return this.atlas.getSpriteFromMap(mode == this.mode ? 'inventory-1.png' : 'inventory-0.png')
+        }
+
+        this.lblSurvival.setBackground(getModeSprite('survival'), 'centerstretch', 1)
+        this.lblCreative.setBackground(getModeSprite('creative'), 'centerstretch', 1)
+        this.lblAdventure.setBackground(getModeSprite('adventure'), 'centerstretch', 1)
+        this.lblSpectator.setBackground(getModeSprite('spectator'), 'centerstretch', 1)
+
+        this.lblTitle.setText(Lang.getOrUnchanged(`gamemode_${this.mode}`));
+
     }
     
 }

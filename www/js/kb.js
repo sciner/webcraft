@@ -61,7 +61,13 @@ export class Kb {
         canvas.onmouseup    = function(e) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.UP, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
         canvas.onmousemove  = function(e) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.MOVE, e.which, e.shiftKey); return false; }
         canvas.onclick      = function(e) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.CLICK, e.which, e.shiftKey); return false; }
-        canvas.onmousewheel = function(e) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.WHEEL, e.which, e.shiftKey); return false; }
+
+        canvas.addEventListener('wheel', function(e) {
+            e.button_id = e.which
+            that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.WHEEL, e.which, e.shiftKey)
+            return false
+            // event.preventDefault()
+        }, false)
 
         document.addEventListener('paste', function(e) {
             // onPaste

@@ -1,7 +1,6 @@
-import { MOUSE } from "../www/js/constant.js";
+import { MOUSE, PLAYER_STATUS_ALIVE } from "../www/js/constant.js";
 import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
-import {PLAYER_STATUS_ALIVE} from "../www/js/player.js";
 
 //
 export class MobState {

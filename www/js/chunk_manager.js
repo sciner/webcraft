@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat} from "./helpers.js";
+import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat, sizeOf} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -181,6 +181,7 @@ export class ChunkManager {
         this.worker.onmessage = function(e) {
             let cmd = e.data[0];
             let args = e.data[1];
+            // if(sizeOf(e.data) > 700000) debugger
             switch(cmd) {
                 case 'world_inited':
                 case 'worker_inited': {

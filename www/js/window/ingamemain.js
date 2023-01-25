@@ -8,18 +8,12 @@ export class InGameMain extends Window {
 
         super(10, 10, 1700/2, 1200/2, 'frmInGameMain', null, null);
 
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
 
         this.player = player;
         this.inventory = inventory;
         this.recipes = recipes;
-
-        // Обработчик открытия формы
-        this.onShow = function() {
-            this.getRoot().center(this);
-            Qubatch.releaseMousePointer();
-        }
 
         const fromInv = new InventoryWindow(inventory, recipes);
         fromInv.autosize = false;
@@ -36,7 +30,7 @@ export class InGameMain extends Window {
                 type: 'VerticalLayout',
                 x: 0,
                 y: 0,
-                width: this.width,
+                width: this.w,
                 childs: {
                     btnInventory: {
                         type: 'Button',
@@ -66,6 +60,13 @@ export class InGameMain extends Window {
             }
         });
 
+    }
+
+    // Обработчик открытия формы
+    onShow() {
+        this.getRoot().center(this)
+        Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
 }

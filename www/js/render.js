@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color, blobToImage} from "./helpers.js";
 import {CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -30,6 +30,7 @@ import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
+import { SpriteAtlas } from "./core/sprite_atlas.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -78,6 +79,7 @@ export class Renderer {
             this.canvas,
             BACKEND, {
                 antialias: false,
+                stencil: true,
                 depth: true,
                 premultipliedAlpha: false,
                 powerPreference: "high-performance"
@@ -155,13 +157,16 @@ export class Renderer {
             world.chunkManager.setLightTexFormat('rgba8unorm', false);
         }
 
-        this.env.init(this);
 
         this.videoCardInfoCache = null;
-        this.options            = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED};
+        this.options = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED};
 
-        this.env.setBrightness(1);
-        renderBackend.resize(this.canvas.width, this.canvas.height);
+        if(!settings || !settings?.disable_env) {
+            this.env.init(this)
+            this.env.setBrightness(1)
+        }
+
+        renderBackend.resize(this.canvas.width, this.canvas.height)
 
         // Init shaders for all resource packs
         await BLOCK.resource_pack_manager.initShaders(renderBackend);
@@ -206,10 +211,11 @@ export class Renderer {
 
         settings.fov = settings.fov || DEFAULT_FOV_NORMAL;
         this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
-        this.updateViewport();
 
         // HUD
         this.HUD = Qubatch.hud;
+        // this.HUD.wm.initRender();
+        this.updateViewport();
 
         //
         const mci = Resources.maskColor;
@@ -233,10 +239,12 @@ export class Renderer {
             const ay = y | 0;
             const index = ((ay * this.width) + ax) * 4;
             return new Color(imd[index + 0], imd[index + 1], imd[index + 2], imd[index + 3]);
-        };
+        }
+
+        const promises = []
 
         // generatePrev
-        this.generatePrev();
+        promises.push(this.generatePrev(settings.generate_prev_callback))
         this.generateDropItemVertices();
 
         // Clouds
@@ -260,6 +268,11 @@ export class Renderer {
 
         this.debugGeom = new LineGeometry();
         this.debugGeom.pos = this.camPos;
+
+        this.HUD.wm.initRender(this)
+
+        return Promise.all(promises)
+
     }
 
     // Generate drop item vertices
@@ -287,7 +300,7 @@ export class Renderer {
     }
 
     //
-    generatePrev(callback) {
+    async generatePrev(callback) {
 
         const target = this.renderBackend.createRenderTarget({
             width: INVENTORY_ICON_TEX_WIDTH,
@@ -300,6 +313,28 @@ export class Renderer {
         const GRID_X = INVENTORY_ICON_COUNT_PER_TEX;
         const GRID_Y = GRID_X * ASPECT;
         const all_blocks = BLOCK.getAll();
+
+        const atlas_map = {
+            "meta": {
+                "scale": 1
+            },
+            "frames_count": 0,
+            "frames": {
+            }
+        }
+
+        const addAtlasSprite = (block) => {
+            const frame = target.width / INVENTORY_ICON_COUNT_PER_TEX
+            const pos = BLOCK.getInventoryIconPos(block.inventory_icon_id, target.width, frame)
+            atlas_map.frames_count++
+            atlas_map.frames[block.name] = {
+                "frame": {"x":pos.x,"y":pos.y,"w":pos.width,"h":pos.height},
+                "rotated": false,
+                "trimmed": false,
+                "spriteSourceSize": {"x":0,"y":0,"w":pos.width,"h":pos.height},
+                "sourceSize": {"w":pos.width,"h":pos.height}
+            }
+        }
 
         let inventory_icon_id = 0;
 
@@ -314,6 +349,7 @@ export class Renderer {
             // pass extruded manually
             if (draw_style === 'extruder') {
                 block.inventory_icon_id = inventory_icon_id++;
+                addAtlasSprite(block)
                 extruded.push(block);
                 return;
             }
@@ -324,6 +360,7 @@ export class Renderer {
                 }
                 const drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
+                addAtlasSprite(drop.block_material)
                 return drop;
             } catch(e) {
                 console.log('Error on', block.id, draw_style, block, e);
@@ -433,151 +470,160 @@ export class Renderer {
 
         });
 
-        this.renderBackend.endPass();
+        this.renderBackend.endPass()
 
-        // render target to Canvas
-        target.toImage('canvas').then((data) => {
-            /**
-             * @type {CanvasRenderingContext2D}
-             */
-            const ctx = data.getContext('2d');
+        return new Promise((resolve, reject) => {
 
-            const tmpCanvas = document.createElement('canvas');
-            const tmpContext = tmpCanvas.getContext('2d');
-            tmpCanvas.width = target.width / GRID_X;
-            tmpCanvas.height = target.height / GRID_Y;
+            // render target to Canvas
+            target.toImage('canvas').then((data) => {
+                /**
+                 * @type {CanvasRenderingContext2D}
+                 */
+                const ctx = data.getContext('2d');
 
-            tmpContext.imageSmoothingEnabled = false;
-            ctx.imageSmoothingEnabled = false;
+                const tmpCanvas = document.createElement('canvas');
+                const tmpContext = tmpCanvas.getContext('2d');
+                tmpCanvas.width = target.width / GRID_X;
+                tmpCanvas.height = target.height / GRID_Y;
 
-            //
-            const texs = new Map()
-            const getTextureOrigImage = (tex) => {
-                let canvas = texs.get(tex)
-                if(!canvas) {
-                    const imagedata = tex.imageData
-                    canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = imagedata.width;
-                    canvas.height = imagedata.height;
-                    ctx.putImageData(imagedata, 0, 0);
-                    texs.set(tex, canvas)
-                }
-                return canvas // tex.texture.source
-            }
+                tmpContext.imageSmoothingEnabled = false;
+                ctx.imageSmoothingEnabled = false;
 
-            // render plain preview that not require 3D view
-            // and can be draw directly
-            extruded.forEach((material) => {
-                const pos = material.inventory_icon_id;
-                const w = target.width / GRID_X;
-                const h = target.height / (GRID_Y);
-                const x = (pos % GRID_X) * w;
-                const y = ((pos / GRID_X) | 0) * h;
-
-                // const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
-
-                const resource_pack = material.resource_pack;
-                let texture_id = 'default';
-                let texture = material.texture;
-                let mask_color = material.mask_color;
-                if('inventory' in material) {
-                    if('texture' in material.inventory) {
-                        texture = material.inventory.texture;
+                //
+                const texs = new Map()
+                const getTextureOrigImage = (tex) => {
+                    let canvas = texs.get(tex)
+                    if(!canvas) {
+                        const imagedata = tex.imageData
+                        canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = imagedata.width;
+                        canvas.height = imagedata.height;
+                        ctx.putImageData(imagedata, 0, 0);
+                        texs.set(tex, canvas)
                     }
-                    if('mask_color' in material.inventory) {
-                        mask_color = material.inventory.mask_color;
+                    return canvas // tex.texture.source
+                }
+
+                // render plain preview that not require 3D view
+                // and can be draw directly
+                extruded.forEach((material) => {
+                    const pos = material.inventory_icon_id;
+                    const w = target.width / GRID_X;
+                    const h = target.height / (GRID_Y);
+                    const x = (pos % GRID_X) * w;
+                    const y = ((pos / GRID_X) | 0) * h;
+
+                    // const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
+
+                    const resource_pack = material.resource_pack;
+                    let texture_id = 'default';
+                    let texture = material.texture;
+                    let mask_color = material.mask_color;
+                    if('inventory' in material) {
+                        if('texture' in material.inventory) {
+                            texture = material.inventory.texture;
+                        }
+                        if('mask_color' in material.inventory) {
+                            mask_color = material.inventory.mask_color;
+                        }
                     }
-                }
-                if(typeof texture == 'object' && 'id' in texture) {
-                    texture_id = texture.id;
-                }
-                const tex = resource_pack.textures.get(texture_id);
-                if(!tex) {
-                    console.error(material)
-                    debugger
-                    throw 'error_empty_tex'
-                }
-                // let imageData = tex.imageData;
-                const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
-
-                let tex_w = Math.round(c[2] * tex.width);
-                let tex_h = Math.round(c[3] * tex.height);
-                let tex_x = Math.round(c[0] * tex.width) - tex_w/2 | 0;
-                let tex_y = Math.round(c[1] * tex.height) - tex_h/2 | 0;
-
-                let image = getTextureOrigImage(tex)
-
-                const tint = material.tags && (
-                    material.tags.includes('mask_biome') ||
-                    material.tags.includes('mask_color') ||
-                    mask_color
-                );
-
-                ctx.globalCompositeOperation = 'source-over';
-
-                if (tint) {
-                    tmpContext.globalCompositeOperation = 'source-over';
-                    if(mask_color) {
-                        tmpContext.fillStyle = this.maskColorTex.getColorAt(mask_color.r, mask_color.g).toHex();
-                    } else {
-                        // default grass color
-                        tmpContext.fillStyle = "#7ba83d";
+                    if(typeof texture == 'object' && 'id' in texture) {
+                        texture_id = texture.id;
                     }
-                    tmpContext.fillRect(0, 0, w, h);
+                    const tex = resource_pack.textures.get(texture_id);
+                    if(!tex) {
+                        console.error(material)
+                        debugger
+                        throw 'error_empty_tex'
+                    }
+                    // let imageData = tex.imageData;
+                    const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
 
-                    tmpContext.globalCompositeOperation = 'multiply';
-                    tmpContext.drawImage(
-                        image,
-                        tex_x + tex_w, tex_y, tex_w, tex_h,
-                        0, 0, w , h
+                    let tex_w = Math.round(c[2] * tex.width);
+                    let tex_h = Math.round(c[3] * tex.height);
+                    let tex_x = Math.round(c[0] * tex.width) - tex_w/2 | 0;
+                    let tex_y = Math.round(c[1] * tex.height) - tex_h/2 | 0;
+
+                    let image = getTextureOrigImage(tex)
+
+                    const tint = material.tags && (
+                        material.tags.includes('mask_biome') ||
+                        material.tags.includes('mask_color') ||
+                        mask_color
                     );
-                    tmpContext.globalCompositeOperation = 'lighter';
-                    tmpContext.drawImage(
+
+                    ctx.globalCompositeOperation = 'source-over';
+
+                    if (tint) {
+                        tmpContext.globalCompositeOperation = 'source-over';
+                        if(mask_color) {
+                            tmpContext.fillStyle = this.maskColorTex.getColorAt(mask_color.r, mask_color.g).toHex();
+                        } else {
+                            // default grass color
+                            tmpContext.fillStyle = "#7ba83d";
+                        }
+                        tmpContext.fillRect(0, 0, w, h);
+
+                        tmpContext.globalCompositeOperation = 'multiply';
+                        tmpContext.drawImage(
+                            image,
+                            tex_x + tex_w, tex_y, tex_w, tex_h,
+                            0, 0, w , h
+                        );
+                        tmpContext.globalCompositeOperation = 'lighter';
+                        tmpContext.drawImage(
+                            image,
+                            tex_x, tex_y, tex_w, tex_h,
+                            0, 0, w , h
+                        );
+
+                        tmpContext.globalCompositeOperation = 'destination-in';
+                        tmpContext.drawImage(
+                            image,
+                            tex_x + tex_w, tex_y, tex_w, tex_h,
+                            0, 0, w , h
+                        );
+
+
+                        image = tmpContext.canvas;
+                        tex_x = 0;
+                        tex_y = 0;
+                        tex_w = w;
+                        tex_h = h;
+                    }
+
+                    ctx.drawImage(
                         image,
                         tex_x, tex_y, tex_w, tex_h,
-                        0, 0, w , h
+                        x + 0.1 * w, y + 0.1 * h,
+                        w * 0.8, h * 0.8
                     );
 
-                    tmpContext.globalCompositeOperation = 'destination-in';
-                    tmpContext.drawImage(
-                        image,
-                        tex_x + tex_w, tex_y, tex_w, tex_h,
-                        0, 0, w , h
-                    );
+                })
 
+                tmpCanvas.width = tmpCanvas.height = 0
+                Resources.inventory.image = data
 
-                    image = tmpContext.canvas;
-                    tex_x = 0;
-                    tex_y = 0;
-                    tex_w = w;
-                    tex_h = h;
-                }
+                data.toBlob(async (blob) => {
+                    Resources.inventory.atlas = await SpriteAtlas.fromJSON(await blobToImage(blob), atlas_map)
+                    if(callback instanceof Function) {
+                        callback(blob)
+                    }
+                    resolve()
+                }, 'image/png')
 
-                ctx.drawImage(
-                    image,
-                    tex_x, tex_y, tex_w, tex_h,
-                    x + 0.1 * w, y + 0.1 * h,
-                    w * 0.8, h * 0.8
-                );
+            })
 
-            });
+            this.renderBackend.endPass();
 
-            tmpCanvas.width = tmpCanvas.height = 0;
-            Resources.inventory.image = data;
+            // disable
+            gu.useSunDir = false;
 
-            if(callback instanceof Function) {
-                callback();
-            }
+            target.destroy()
 
-        });
+        })
 
-        this.renderBackend.endPass();
-
-        // disable
-        gu.useSunDir = false;
-
-        target.destroy();
     }
 
     /**
@@ -659,22 +705,7 @@ export class Renderer {
 
         this.env.update(delta, args);
 
-        const cm = this.world.chunkManager;
-
-        // TODO: move to batcher
-        cm.chunkDataTexture.getTexture(renderBackend).bind(3);
-        const lp = cm.lightPool;
-
-        // webgl bind all texture-3d-s
-        if (lp) {
-            // renderBackend._emptyTex3D.bind(8);
-            for (let i = 1; i < lp.boundTextures.length; i++) {
-                const tex = lp.boundTextures[i] || renderBackend._emptyTex3D;
-                if (tex) {
-                    tex.bind(6 + i);
-                }
-            }
-        }
+        this.checkLightTextures();
 
         if (this.player.currentInventoryItem) {
             const mat = BLOCK.fromId(this.player.currentInventoryItem.id);
@@ -695,10 +726,31 @@ export class Renderer {
         }
     }
 
+    checkLightTextures() {
+        const {renderBackend} = this;
+        const cm = this.world.chunkManager;
+        // TODO: move to batcher
+        cm.chunkDataTexture.getTexture(renderBackend).bind(3);
+        const lp = cm.lightPool;
+
+        // webgl bind all texture-3d-s
+        if (lp) {
+            // renderBackend._emptyTex3D.bind(6);
+            for (let i = 1; i <= lp.maxBoundTextures; i++) {
+                const tex = lp.boundTextures[i] || renderBackend._emptyTex3D;
+                if (tex) {
+                    tex.bind(6 + i);
+                }
+            }
+        }
+    }
+
     // Render one frame of the world to the canvas.
     draw(delta, args) {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
+
+        this.resetBefore();
 
         renderBackend.stat.multidrawcalls = 0;
         renderBackend.stat.drawcalls = 0;
@@ -837,6 +889,8 @@ export class Renderer {
         }
 
         renderBackend.endPass();
+
+        this.resetAfter();
     }
 
     //
@@ -1118,16 +1172,29 @@ export class Renderer {
         }
     }
 
+    resetBefore() {
+        // webgl state was reset, we have to re-bind textures
+        this.renderBackend.resetBefore();
+        this.env.skyBox.shader.texture.bind(0);
+        this.renderBackend._emptyTex3D.bind(6);
+        this.maskColorTex.bind(1);
+        this.blockDayLightTex?.bind(2);
+        this.checkLightTextures();
+        this.defaultShader?.bind();
+    }
+
+    resetAfter() {
+        this.renderBackend.resetAfter();
+    }
+
     /**
     * Check if the viewport is still the same size and update
     * the render configuration if required.
     */
     updateViewport() {
-        const actual_width = this.canvas.width;
-        const actual_height = this.canvas.height;
-        if (actual_width !== this.viewportWidth ||
-            actual_height !== this.viewportHeight
-        ) {
+        const actual_width = this.canvas.width
+        const actual_height = this.canvas.height
+        if (actual_width !== this.viewportWidth || actual_height !== this.viewportHeight) {
             // resize call _configure automatically but ONLY if dimension changed
             // _configure very slow!
             this.renderBackend.resize(
@@ -1136,8 +1203,9 @@ export class Renderer {
             this.viewportWidth = actual_width | 0;
             this.viewportHeight = actual_height | 0;
 
+            this.HUD.resize(actual_width, actual_height)
             // Update perspective projection based on new w/h ratio
-            this.setPerspective(this.camera.fov, this.camera.min, this.camera.max);
+            this.setPerspective(this.camera.fov, this.camera.min, this.camera.max)
         }
     }
 

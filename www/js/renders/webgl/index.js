@@ -344,6 +344,21 @@ export default class WebGLRenderer extends BaseRenderer {
         return Promise.resolve(this);
     }
 
+    resetBefore() {
+        WebGLMaterial.texState = this._emptyTex;
+        WebGLMaterial.lightState = null;
+        this._shader = null;
+    }
+
+    resetAfter() {
+        this.gl.bindVertexArray(null);
+        this._shader?.unbind();
+        this._shader = null;
+        // for (let i = 0; i < 16; i++) {
+        //     this.gl.bindTexture();
+        // }
+    }
+
     resize(w, h) {
         if (this.size.width === w && this.size.height === h) {
             return;

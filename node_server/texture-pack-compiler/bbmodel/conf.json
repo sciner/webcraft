@@ -375,6 +375,10 @@
             "bb": {
                 "model": "carrot",
                 "behavior": "age"
+            },
+            "_inventory": {
+                "style": "extruder",
+                "texture": "./textures/carrot_seeds.png"
             }
         },
         {

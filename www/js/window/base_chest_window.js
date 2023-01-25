@@ -17,30 +17,22 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     constructor(x, y, w, h, id, title, text, inventory, options) {
 
-        super(x, y, w, h, id, title, text, inventory);
+        super(x, y, w, h, id, title, text, inventory)
 
-        this.options = options;
-        this.width *= this.zoom;
-        this.height *= this.zoom;
-        this.style.background = {...this.style.background, ...options.background}
+        this.options = options
+        this.w *= this.zoom
+        this.h *= this.zoom
 
         this.firstLoading  = false;
         this.secondLoading = false;
         this.timeout    = null;
         this.maxDirtyTime  = null;
 
-        // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.setBackground(options.background.image);
-        ct.hide();
-
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
         // Создание слотов
-        this.createSlots(this.prepareSlots());
+        this.createSlots(this.prepareSlots())
         
         // Создание слотов для инвентаря
         this.createInventorySlots(this.cell_size, h);
@@ -54,9 +46,12 @@ export class BaseChestWindow extends BaseInventoryWindow {
             dragPrevItem: null,
             prevInventory: null
         }
-        // A random number. If it's null, no confirmation is reqested when closing.
-        this.chestSessionId = null;
 
+        // A random number. If it's null, no confirmation
+        // is reqested when closing.
+        this.chestSessionId = null
+
+        //
         this.blockModifierListener = (tblock) => {
             let targetInfo;
             const posworld = tblock.posworld;
@@ -76,38 +71,11 @@ export class BaseChestWindow extends BaseInventoryWindow {
             if (!(mat.chest.private || mat.id === BLOCK.ENDER_CHEST.id)) {
                 this.setLocalData(tblock);
             }
-        };
-
-        // Обработчик открытия формы
-        this.onShow = function() {
-            this.lastChange.type = INVENTORY_CHANGE_NONE;
-            this.getRoot().center(this);
-            Qubatch.releaseMousePointer();
-            if(options.sound.open) {
-                Qubatch.sounds.play(options.sound.open.tag, options.sound.open.action);
-            }
-            this.world.blockModifierListeners.push(this.blockModifierListener);
-        }
-
-        // Обработчик закрытия формы
-        this.onHide = function(wasVisible) {
-            if (this.chestSessionId != null) { // if the closing wasn't forced by the server
-                this.lastChange.type = INVENTORY_CHANGE_CLOSE_WINDOW;
-                // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
-                // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
-                this.inventory.clearDragItem(true);
-                this.confirmAction();
-            }
-            if(wasVisible && options.sound.close) {
-                Qubatch.sounds.play(options.sound.close.tag, options.sound.close.action);
-            }
-            this.info = null; // disables AddCmdListener listeners 
-            ArrayHelpers.fastDeleteValue(this.world.blockModifierListeners, this.blockModifierListener);
         }
 
         // Add labels to window
-        ct.add(this.lbl1 = new Label(15 * this.zoom, 12 * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl1', null, options.title));
-        ct.add(new Label(15 * this.zoom, (h + (147 - 332)) * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory'));
+        this.add(this.lbl1 = new Label(15 * this.zoom, 12 * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl1', null, options.title));
+        this.add(new Label(15 * this.zoom, (h + (147 - 332)) * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory'));
 
         // Add listeners for server commands
         this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
@@ -124,44 +92,29 @@ export class BaseChestWindow extends BaseInventoryWindow {
                     this.dontShowChestSessionId = this.chestSessionId;
                 }
             }
-        });
+        })
 
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
-            const ct = this;
+            const that = this
             // Close button
-            let btnClose = new Button(ct.width - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial';
-            btnClose.style.background.image = image;
-            btnClose.style.background.image_size_mode = 'stretch';
+            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+            btnClose.style.font.family = 'Arial'
+            btnClose.style.background.image = image
+            btnClose.style.background.image_size_mode = 'stretch'
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                ct.hide();
+                that.hide()
             }
-            ct.add(btnClose);
+            that.add(btnClose)
         });
 
         // Catch action
-        this.catchActions();
-
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.E:
-                case KEY.ESC: {
-                    if(!down) {
-                        ct.hideAndSetupMousePointer();
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
+        this.catchActions()
 
         // Updates drag UI if the dragged item changed
         this.onInventorySetState = function() {
-            const inventory = Qubatch.player.inventory;
+            const inventory = this.inventory;
             const prevDragItem = Qubatch.hud.wm.drag.getItem();
             const newDargItem = inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             if (newDargItem) {
@@ -172,10 +125,41 @@ export class BaseChestWindow extends BaseInventoryWindow {
                 Qubatch.hud.wm.drag.clear();
             }
         }
+
+    }
+
+    // Обработчик открытия формы
+    onShow() {
+        this.lastChange.type = INVENTORY_CHANGE_NONE
+        this.getRoot().center(this)
+        Qubatch.releaseMousePointer()
+        if(this.options.sound.open) {
+            Qubatch.sounds.play(this.options.sound.open.tag, this.options.sound.open.action)
+        }
+        this.world.blockModifierListeners.push(this.blockModifierListener)
+        super.onShow()
+    }
+
+    // Обработчик закрытия формы
+    onHide(wasVisible) {
+        if (this.chestSessionId != null) { // if the closing wasn't forced by the server
+            this.lastChange.type = INVENTORY_CHANGE_CLOSE_WINDOW
+            // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
+            // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
+            this.inventory.clearDragItem(true)
+            this.confirmAction()
+        }
+        if(wasVisible && this.options.sound.close) {
+            Qubatch.sounds.play(this.options.sound.close.tag, this.options.sound.close.action)
+        }
+        this.info = null; // disables AddCmdListener listeners 
+        ArrayHelpers.fastDeleteValue(this.world.blockModifierListeners, this.blockModifierListener)
     }
 
     // Catch action
     catchActions() {
+
+        const self = this
 
         // Remembers two affected slots before a user action is executed.
         function updateLastChangeSlots(craftSlot) {
@@ -185,10 +169,10 @@ export class BaseChestWindow extends BaseInventoryWindow {
             lastChange.slotInChest = craftSlot.is_chest_slot;
             const item = craftSlot.getItem();
             lastChange.slotPrevItem = item ? { ...item } : null;
-            const dargItem = Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
+            const dargItem = self.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             lastChange.dragPrevItem = dargItem ? { ...dargItem } : null;
             // We need only shallow copies of elements (to preserve count)
-            lastChange.prevInventory = ObjectHelpers.deepClone(Qubatch.player.inventory.items, 2);
+            lastChange.prevInventory = ObjectHelpers.deepClone(self.inventory.items, 2);
         }
 
         //
@@ -269,10 +253,10 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.maxDirtyTime = null;
     }
 
-    draw(ctx, ax, ay) {
-        this.parent.center(this);
-        super.draw(ctx, ax, ay);
-    }
+    // draw(ctx, ax, ay) {
+    //     this.parent.center(this);
+    //     super.draw(ctx, ax, ay);
+    // }
 
     get loading() {
         return this.firstLoading || this.secondLoading;
@@ -373,16 +357,17 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.lbl1.setText(title);
         }
         // copy data slots to the UI slots
-        const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo, this.chest.slots.length);
+        const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo, this.chest.slots.length)
         for(var i = range.min; i < range.max; i++) {
-            this.chest.slots[i].item = chest.slots[i - range.min] || null;
+            // this.chest.slots[i].item = chest.slots[i - range.min] || null;
+            this.chest.slots[i].setItem(chest.slots[i - range.min] || null)
         }
     }
 
     // Очистка слотов сундука от предметов
     clear() {
         for(let slot of this.chest.slots) {
-            slot.item = null; // slot.setItem(null);
+            slot.item = null
         }
     }
 
@@ -410,28 +395,31 @@ export class BaseChestWindow extends BaseInventoryWindow {
     *   the screen. It's the value retuned by {@link prepareSlots}
     */
     createSlots(slots_info) {
-        const ct = this;
+        const ct = this
         if(ct.chest) {
-            console.error('createCraftSlots() already created');
-            return;
+            console.error('createCraftSlots() already created')
+            return
         }
-        let sz = this.cell_size;
+        const sz = this.cell_size
         this.chest = {
+            /**
+             * @type {CraftTableInventorySlot[]}
+             */
             slots: []
-        };
+        }
         for(let i in slots_info) {
-            const info = slots_info[i];
+            const info = slots_info[i]
             const options = {
                 readonly: info.readonly,
                 disableIfLoading: true,
                 onMouseEnterBackroundColor: '#ffffff33'
             };
-            let lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, sz, sz,
-                'lblCraftChestSlot' + i, null, '' + i, this, null, options);
-            lblSlot.index = i;
-            lblSlot.is_chest_slot = true;
-            this.chest.slots.push(lblSlot);
-            ct.add(lblSlot);
+            const lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, sz, sz,
+                `lblCraftChestSlot${i}`, null, null, this, null, options)
+            lblSlot.index = i
+            lblSlot.is_chest_slot = true
+            this.chest.slots.push(lblSlot)
+            ct.add(lblSlot)
         }
     }
 
@@ -445,25 +433,27 @@ export class BaseChestWindow extends BaseInventoryWindow {
             console.error('createInventorySlots() already created');
             return;
         }
-        ct.inventory_slots  = [];
-        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
+        ct.inventory_slots  = []
+        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
         // нижний ряд (видимые на хотбаре)
         let sx = 14 * this.zoom;
-        let sy = (baseWindowH + (282 - 332))* this.zoom;
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
-                'lblSlot' + (i), null, '' + i, this, i);
+        let sy = (baseWindowH + (282 - 332)) * this.zoom;
+        let index = 0
+        //
+        const createSlot = (x, y) => {
+            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
             ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
+            ct.inventory_slots.push(lblSlot)
+            index++
+        }
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
         }
         // верхние 3 ряда
         sx = 14 * this.zoom;
         sy = (baseWindowH + (166 - 332)) * this.zoom;
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
-                'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
+            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
         }
     }
 

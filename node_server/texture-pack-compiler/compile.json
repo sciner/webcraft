@@ -8539,6 +8539,7 @@
         {
             "id": 1023,
             "name": "UNCERTAIN_STONE",
+            "sham_block_name": "STONE",
             "sound": "madcraft:block.stone",
             "support_style": "uncertain_stone",
             "drop_item": {"name": "COBBLESTONE", "count": 1, "chance": 1},

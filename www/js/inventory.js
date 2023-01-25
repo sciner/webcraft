@@ -24,8 +24,32 @@ export class Inventory {
         this.max_count          = INVENTORY_SLOT_COUNT;
         this.max_visible_count  = INVENTORY_VISIBLE_SLOT_COUNT;
         this.hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT;
+        this._update_number     = 0
         this.onSelect           = (item) => {};
-        this.applyNewItems(state.items, false);
+        this.applyNewItems(state.items, false)
+        /**
+         * @type { import("../tools/gui/wm.js").SimpleBlockSlot[] } slot
+         */
+        this.inventory_ui_slots = []
+    }
+
+    get update_number() {
+        return this._update_number
+    }
+
+    set update_number(value) {
+        this._update_number = value
+        for(let slot of this.inventory_ui_slots) {
+            slot.refresh()
+        }
+    }
+
+    /** 
+     * @param { import("./window/base_craft_window.js").CraftTableSlot } slot
+     */
+    addInventorySlot(slot) {
+        if(slot.slot_index === undefined || slot.slot_index === null) return
+        this.inventory_ui_slots.push(slot)
     }
 
     //
@@ -72,7 +96,8 @@ export class Inventory {
         }
         this.current.index = index;
         this.refresh(true);
-        this.onSelect(this.current_item);
+        this.onSelect(this.current_item)
+        this.update_number++
     }
 
     // Increment
@@ -361,9 +386,9 @@ export class Inventory {
 
     //
     setItem(index, item) {
-        this.items[index] = item;
+        this.items[index] = item
         // Обновить текущий инструмент у игрока
-        this.select(this.current.index);
+        this.select(this.current.index)
     }
 
     next() {
@@ -391,6 +416,10 @@ export class Inventory {
         //
         const tblock = player.world.getBlock(pos);
         let mat = tblock.material;
+
+        if(mat.sham_block_name) {
+            mat = player.world.block_manager[mat.sham_block_name]
+        }
 
         //
         if(mat.id < 2 || mat.deprecated || mat.tags.includes('noclonable')) {
@@ -420,7 +449,7 @@ export class Inventory {
                     } else {
                         // select if on hotbar
                         if(k == this.current.index) {
-                            const maxStack = BLOCK.getItemMaxStack(cloned_block.id);
+                            const maxStack = BLOCK.getItemMaxStack(cloned_block);
                             item.count = Math.min(item.count + 1, maxStack);
                         }
                         this.select(k);

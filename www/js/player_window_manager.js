@@ -3,7 +3,6 @@ import { ChargingStationWindow, ChestWindow, DoubleChestWindow, CraftTable, Crea
 export class PlayerWindowManager {
 
     constructor(player) {
-        //
         this.player = player;
         const inventory = player.inventory;
         this.addWindow(new CraftTable(inventory, inventory.recipes));
@@ -24,7 +23,7 @@ export class PlayerWindowManager {
         this.addWindow(new ScreenshotWindow(player));
         this.addWindow(new BookWindow(player));
         this.addWindow(new BarrelWindow(inventory));
-        this.addWindow(new InGameMain(player, inventory, inventory.recipes));
+        // this.addWindow(new InGameMain(player, inventory, inventory.recipes));
         this.addWindow(new ModeWindow(player));
         this.addWindow(new BrewingWindow(inventory));
     }

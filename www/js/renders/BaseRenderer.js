@@ -436,6 +436,7 @@ export default class BaseRenderer {
         this._textures = [];
 
         this._buffers = {};
+        this._emptyTex = {};
         this._emptyTex3D = this.createTexture3D({
             data: new Uint8Array(255)
         })
@@ -733,6 +734,12 @@ export default class BaseRenderer {
 
     createCubeMap(options) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    resetBefore() {
+    }
+
+    resetAfter() {
     }
 }
 

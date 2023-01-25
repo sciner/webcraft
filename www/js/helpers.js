@@ -566,11 +566,18 @@ export class Color {
         return new Color(this.r, this.g, this.b, this.a);
     }
 
-    toHex() {
-        return "#" + Color.componentToHex(this.r) +
+    /**
+     * @param {boolean} remove_alpha 
+     * @returns {string}
+     */
+    toHex(remove_alpha = false) {
+        let resp = "#" + Color.componentToHex(this.r) +
             Color.componentToHex(this.g) +
-            Color.componentToHex(this.b) +
-            Color.componentToHex(this.a);
+            Color.componentToHex(this.b)
+        if(!remove_alpha) {
+            resp += Color.componentToHex(this.a)
+        }
+        return resp
     }
 
     toArray() {
@@ -2971,4 +2978,90 @@ export function mat4ToRotate(matrix) {
     getEuler(out, _quat)
     out.swapXZSelf().divScalar(180).multiplyScalarSelf(Math.PI)
     return out
+}
+
+export async function blobToImage(blob) {
+
+    if (blob == null) {
+        throw 'error_empty_blob'
+    }
+
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(blob)
+        let img = new Image()
+        img.onload = () => {
+            URL.revokeObjectURL(url)
+            resolve(img)
+        }
+        img.onerror = (e) => {
+            URL.revokeObjectURL(url)
+            reject(e)
+        }
+        img.src = url
+    })
+
+    /*
+    const file = new File([blob], 'image.png', {type: 'image/png'})
+    const url = URL.createObjectURL(file)
+    return new Promise(resolve => {
+        const img = new Image()
+        img.onload = () => {
+            URL.revokeObjectURL(url)
+            // resolve(img)
+            resolve(img)
+        }
+        img.src = url
+    });
+    */
+
+}
+
+/**
+ * @param {Image,Canvas} image 
+ * @param {int} x 
+ * @param {int} y 
+ * @param {int} width 
+ * @param {int} height 
+ * @param {int} dest_width 
+ */
+export async function cropToImage(image, x, y, width, height, dest_width, dest_height) {
+
+    if(!dest_width) {
+        dest_width = width
+        dest_height = height
+    }
+
+    if(!dest_height) {
+        dest_height = dest_width
+    }
+
+    // TODO: need to cache atlas sprites
+
+    const item_image = document.createElement('canvas')
+    item_image.width = dest_width
+    item_image.height = dest_height
+    const item_ctx = item_image.getContext('2d')
+
+    item_ctx.drawImage(image, x, y, width, height, 0, 0, dest_width, dest_height)
+
+    return new Promise((resolve, reject) => {
+        item_image.toBlob((blob) => {
+            resolve(blobToImage(blob))
+        })
+    })
+
+}
+
+const typeSizes = {
+    "undefined": () => 0,
+    "boolean": () => 4,
+    "number": () => 8,
+    "string": item => 2 * item.length,
+    "object": item => !item ? 0 : (
+        ('byteLength' in item) ? item.byteLength :
+        (Object.keys(item).reduce((total, key) => sizeOf(key) + sizeOf(item[key]) + total, 0))
+    )
+};
+export function sizeOf(value) {
+    return typeSizes[typeof value](value)
 }

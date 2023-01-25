@@ -19,10 +19,9 @@ import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/h
 import { AABB } from "../www/js/core/AABB.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND, WORLD_TYPE_BUILDING_SCHEMAS } from "../www/js/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, WORLD_TYPE_BUILDING_SCHEMAS, PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/constant.js";
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -954,7 +953,7 @@ export class ServerWorld {
                 // replace item in inventory
                 inventory.items[inventory.current.index] = actions.put_in_bottle;
                 // send new inventory state to player
-                inventory.refresh(true);
+                inventory.refresh(true)
             }
         }
         //

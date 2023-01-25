@@ -4,6 +4,7 @@ import { Button, Label, TextEdit } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 //
 class AnvilSlot extends CraftTableSlot {
@@ -28,9 +29,9 @@ class AnvilSlot extends CraftTableSlot {
             if (this == ct.result_slot) {
                 ct.useRecipe();
             }
-            this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
-            this.setItem(null);
-            ct.updateResult();
+            this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
+            this.setItem(null)
+            ct.updateResult()
         };
         
         this.onDrop = function(e) {
@@ -44,7 +45,7 @@ class AnvilSlot extends CraftTableSlot {
                 const oldCurrentLabel = oldItem && ItemHelpers.getLabel(oldItem);
                 const newCurrentLabel = ItemHelpers.getLabel(this.getItem());
                 if (oldCurrentLabel !== newCurrentLabel) {
-                    ct.lbl_edit.setEditText(newCurrentLabel);
+                    ct.lbl_edit.text = newCurrentLabel
                 }
             }
             ct.updateResult();
@@ -64,8 +65,8 @@ export class AnvilWindow extends BaseCraftWindow {
         
         super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
         
-        this.width *= this.zoom;
-        this.height *= this.zoom;
+        this.w *= this.zoom;
+        this.h *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
         this.recipes = new AnvilRecipeManager();
@@ -73,122 +74,81 @@ export class AnvilWindow extends BaseCraftWindow {
         this.current_recipe = null;
         this.current_recipe_outCount = null;
 
-        const options = {
-            background: {
-                image: './media/gui/anvil.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 0,
-                    y: 0,
-                    width: 350 * 2,
-                    height: 330 * 2
-                }
-            }
-        };
-        this.style.background = {...this.style.background, ...options.background};
+        // Create sprite atlas
+        this.atlas = new SpriteAtlas()
+        this.atlas.fromFile('./media/gui/anvil.png').then(async atlas => {
 
-        // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.setBackground(options.background.image);
-        ct.hide();
-        
-        // Add labels to window
-        ct.add(new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Repair & Name'));
-        
-        // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
-        
-         // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size);
-        
-        // Создание слотов для крафта
-        this.createCraft(this.cell_size);
-        
-        // Редактор названия предмета
-        this.createEdit();
-        
-        // Обработчик закрытия формы
-        this.onHide = function() {
-            this.clearCraft();
-            // Save inventory
-            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.used_recipes, 'anvil');
-            this.used_recipes = [];
-        }
-        
-        // Обработчик открытия формы
-        this.onShow = function() {
-            this.lbl_edit.setEditText('');
-            Qubatch.releaseMousePointer();
-        }
-        
-        // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const ct = this;
-            // Close button
-            let btnClose = new Button(ct.width - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial';
-            btnClose.style.background.image = image;
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                ct.hide();
-            }
-            ct.add(btnClose);
-        });
+            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
 
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.ESC: {
-                    if(!down) {
-                        ct.hide();
-                        try {
-                            Qubatch.setupMousePointer(true);
-                        } catch(e) {
-                            console.error(e);
-                        }
-                    }
-                    return true;
+            // Add labels to window
+            this.add(new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Repair & Name'))
+    
+            // Ширина / высота слота
+            this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
+            
+             // Создание слотов для инвентаря
+            this.createInventorySlots(this.cell_size)
+    
+            // Создание слотов для крафта
+            this.createCraft(this.cell_size);
+    
+            // Редактор названия предмета
+            this.createEdit()
+    
+            // Add close button
+            this.loadCloseButtonImage((image) => {
+                // Add buttons
+                const that = this
+                // Close button
+                const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+                btnClose.style.font.family = 'Arial'
+                btnClose.style.background.image = image
+                btnClose.onDrop = btnClose.onMouseDown = function(e) {
+                    that.hide()
                 }
-            }
-            return false;
-        }
+                that.add(btnClose)
+            })
+
+        })
+
+    }
+        
+    // Обработчик закрытия формы
+    onHide() {
+        this.clearCraft()
+        // Save inventory
+        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.used_recipes, 'anvil')
+        this.used_recipes = []
+    }
+    
+    // Обработчик открытия формы
+    onShow() {
+        this.lbl_edit.text = ''
+        Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
     onPaste(str) {
-        this.lbl_edit.paste(str);
+        this.lbl_edit.paste(str)
     }
     
-    createEdit() {
-        
-        const options = {
-            background: {
-                image: './media/gui/anvil.png',
-                image_size_mode: 'sprite',
-                sprite: {
-                    mode: 'stretch',
-                    x: 0,
-                    y: 333 * 2,
-                    width: 220 * 2,
-                    height: 31 * 2
-                }
-            }
-        };
-        this.lbl_edit = new TextEdit(118 * this.zoom, 40 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'lbl_edit', null, 'Hello, World!');
-        // this.lbl_edit = new TextBox(this.zoom);
-        this.lbl_edit.word_wrap         = false;
-        this.lbl_edit.focused           = true;
-        this.lbl_edit.max_length        = ITEM_LABEL_MAX_LENGTH;
-        this.lbl_edit.max_lines         = 1;
-        this.lbl_edit.style.color       = '#ffffff';
-        this.lbl_edit.style.font.size   *= this.zoom * 1.1;
-        this.lbl_edit.style.background  = options.background;
-        this.lbl_edit.setBackground(options.background.image);
-        this.lbl_edit.onChange = () => this.updateResult();
-        this.add(this.lbl_edit);
+    async createEdit() {
+
+        this.lbl_edit = new TextEdit(118 * this.zoom, 40 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'lbl_edit', null, 'Hello, World!')
+        // this.lbl_edit = new TextBox(this.zoom)
+
+        this.lbl_edit.text_container.transform.position.y = this.lbl_edit.h / 2
+        this.lbl_edit.text_container.anchor.y = .5
+
+        this.lbl_edit.word_wrap         = false
+        this.lbl_edit.max_length        = ITEM_LABEL_MAX_LENGTH
+        this.lbl_edit.max_lines         = 1
+        this.lbl_edit.style.font.color  = '#ffffff'
+        this.lbl_edit.setBackground(await this.atlas.getSprite(0, 333 * 2, 220*2, 31*2))
+        this.lbl_edit.style.border.hidden = true
+        this.lbl_edit.style.background.color = '#00000000'
+        this.lbl_edit.onChange = this.updateResult.bind(this)
+        this.add(this.lbl_edit)
         
     }
 
@@ -205,14 +165,16 @@ export class AnvilWindow extends BaseCraftWindow {
     }
 
     updateResult() {
-        const first_item = this.first_slot.getItem();
-        if (!first_item) {
-            this.lbl_edit.setEditText('');
-            this.result_slot.setItem(null);
-            return;
+        const first_item = this.first_slot.getItem()
+        if(!first_item) {
+            if(this.lbl_edit.text != '') {
+                this.lbl_edit.text = ''
+            }
+            this.result_slot.setItem(null)
+            return
         }
-        const second_item = this.second_slot.getItem();
-        let label = this.lbl_edit.getEditText();
+        const second_item = this.second_slot.getItem()
+        let label = this.lbl_edit.text
         if (label === ItemHelpers.getLabel(first_item)) {
             // If it's the same, don't try to change, and don't validate it, so unchanged block titles
             // longer than ITEM_LABEL_MAX_LENGTH don't get rejected.

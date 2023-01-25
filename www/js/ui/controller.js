@@ -9,6 +9,7 @@ import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
 import { BgEffect } from './bg_effect.js';
 import  registerTextFilter from './angular/textfilter.js';
+// import { PlayerWindowManager } from '../player_window_manager.js';
 
 function isSupported() {
     // we should support webgl2 strictly
@@ -489,7 +490,8 @@ let gameCtrl = async function($scope, $timeout) {
             if(!world.info) {
                 debugger;
             }
-            const player = new Player(options, Qubatch.render);
+            const player = new Player(options, Qubatch.render)
+            // player.windows = new PlayerWindowManager(player)
             player.JoinToWorld(world, () => {
                 Qubatch.Started(player);
             });

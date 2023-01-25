@@ -1,4 +1,8 @@
 {
+	"meta": {
+		"scale": 1
+	},
+	"frames": {
 
 "absorption.png":
 {
@@ -1000,3 +1004,4 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
 	"sourceSize": {"w":36,"h":36}
 }}
+}

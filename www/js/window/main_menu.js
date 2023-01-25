@@ -1,31 +1,18 @@
-import {Window, Label, Button} from "../../tools/gui/wm.js";
+import { Button, Label } from "../../tools/gui/wm.js";
 import { Lang } from "../lang.js";
+import { BlankWindow } from "./blank.js";
 
-export class MainMenu extends Window {
+export class MainMenu extends BlankWindow {
 
     constructor(x, y, w, h, id, title, text) {
 
-        super(x, y, w, h, id, title, text);
-        this.width *= this.zoom;
-        this.height *= this.zoom;
-
-        // Get window by ID
-        const ct = this;
-        ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
-        ct.hide();
+        super(x, y, w * UI_ZOOM, h * UI_ZOOM, id, title, text)
 
         //
-        let lbl2 = new Label(0, 0, this.width, 30 * this.zoom, 'lbl2', Lang.menu);
+        const lbl2 = new Label(0, 0, this.w, 30 * this.zoom, 'lbl2', Lang.menu);
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
-        ct.add(lbl2);
-
-        // onShow
-        this.onShow = function() {
-            this.parent.center(this);
-            Qubatch.releaseMousePointer();
-        }
+        this.add(lbl2);
 
         // Add buttons
         this.addButton(Lang.btn_return, 80, () => {Qubatch.hud.wm.closeAll()});
@@ -46,16 +33,21 @@ export class MainMenu extends Window {
 
     }
 
-    get zoom() {
-        return UI_ZOOM;
+    // onShow
+    onShow() {
+        this.parent.center(this)
+        Qubatch.releaseMousePointer()
+        super.onShow()
     }
 
     //
     addButton(label, y, onclick) {
         const btnID = `btn_${this.id}_${y}`;
-        let btn = new Button(20 * this.zoom, y * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, btnID, label);
-        btn.style.background.color = '#777777ff';
-        btn.style.color = '#ffffffff';
+        const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
+        btn.style.background.color = '#888888ff'
+        btn.style.font.color = '#ffffffff'
+        btn.style.font.size = 20
+        /*
         btn.style.font.shadow = {
             enable: true,
             x: 2 * this.zoom,
@@ -63,7 +55,8 @@ export class MainMenu extends Window {
             blur: 0,
             color: 'rgba(0, 0, 0, 0.5)'
         }
-        btn.onMouseDown = onclick;
+        */
+        btn.onMouseDown = onclick
         /*
         btn.onMouseEnter = function() {
             this.style.background.color_save = this.style.background.color;

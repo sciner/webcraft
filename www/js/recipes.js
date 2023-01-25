@@ -1,4 +1,3 @@
-import {RecipeWindow} from "./window/index.js";
 import {COLOR_PALETTE, Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { md5, ObjectHelpers, ArrayOrScalar } from "./helpers.js";
@@ -297,13 +296,15 @@ export class RecipeManager {
                 }
                 return null;
             }
-        };
+        }
+        const that = this
         if(force_load) {
-            this.load(() => {
+            this.load(async () => {
                 if(!Qubatch.is_server) {
-                    // Recipe window
-                    this.frmRecipe = new RecipeWindow(this);
-                    Qubatch.hud.wm.add(this.frmRecipe);
+                    await import("./window/index.js").then((module) => {
+                        // Recipe window
+                        Qubatch.hud.wm.add(that.frmRecipe = new module.RecipeWindow(that))
+                    });
                 }
             });
         }

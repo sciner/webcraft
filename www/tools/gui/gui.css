@@ -4,5 +4,8 @@
     src: url('/style/minecraftia.ttf');
 }
 canvas {
-    background: #00000000;
+    background: #999;
+}
+body {
+    background-color: darkgray !important;
 }

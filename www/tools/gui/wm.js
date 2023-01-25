@@ -1,368 +1,411 @@
 /**
-* Window Manager based ON 2D canvas 
+* Window Manager based on PIXI.js
 */
+import { RuneStrings, deepAssign, Helpers } from "../../js/helpers.js";
+import { getBlockImage } from "../../js/window/tools/blocks.js";
+import { PIXI } from './pixi.js';
+import {Style} from "./styles.js";
 
-import {RuneStrings, deepAssign} from "../../js/helpers.js";
+import { msdf } from "../../data/font.js";
+import {MyText} from "./MySpriteRenderer.js";
+import { BLOCK } from "../../js/blocks.js";
 
-export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
+globalThis.visible_change_count = 0
+
+export class Graphics extends PIXI.Graphics {
+
+    constructor(id) {
+        super()
+        this.catchEvents = false
+        if(id) {
+            this.id = id
+        }
+    }
+
+}
+
+export class GradientGraphics {
+
+    /**
+     * PIXI.Graphics
+     * @param {*} from color
+     * @param {*} to color
+     * @param {int} height
+     * @returns
+     */
+    static createVertical(from, to, height = 256) {
+        const gradient = GradientGraphics._createVerticalGradient(from, to, height)
+        const graphics = new PIXI.Graphics()
+        graphics.clear()
+        graphics.beginTextureFill(gradient)
+        // hud_graphics.beginFill(0x00ffff)
+        graphics.drawRect(0, 0, 1, height)
+        return graphics
+    }
+
+    static _createVerticalGradient(from, to, size = 256) {
+        const c = document.createElement('canvas')
+        c.width = 1
+        c.height = size
+        const ctx = c.getContext('2d')
+        const grd = ctx.createLinearGradient(0, 0, 1, size)
+        grd.addColorStop(0, from)
+        grd.addColorStop(1, to)
+        ctx.fillStyle = grd
+        ctx.fillRect(0, 0, 1, size)
+        return {
+            texture: new PIXI.Texture(new PIXI.BaseTexture(c))
+        }
+    }
+
+}
 
 // Base window
-export class Window {
+export class Window extends PIXI.Container {
 
-    #_visible = true;
-    #_tooltip = null;
+    #_tooltip = null
+    #_bgicon = null
 
-    zoom = UI_ZOOM;
+    zoom = UI_ZOOM
+    canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
     constructor(x, y, w, h, id, title, text) {
-        this.list           = new Map();
-        this.index          = 0;
-        this.x              = x;
-        this.y              = y;
-        this.z              = 0; // z-index
-        this.width          = w;
-        this.height         = h;
-        this.title          = title;
-        this.id             = id;
-        this.text           = text || null;
-        this.word_wrap      = false;
-        this.hover          = false;
-        this.catchEvents    = true;
-        this.parent         = null;
-        this.scrollX        = 0;
-        this.scrollY        = 0;
-        this.autosize       = true;
-        this.enabled        = true;
-        this.max_chars_per_line = 0;
-        this.onHide         = function() {};
-        this.onShow         = function() {};
-        this.onMouseEnter   = function() {};
-        this.create_time    = performance.now();
-        this.canBeOpenedWith = []; // allows this window to be opened even if some other windows are opened
-        this.onMouseLeave   = () => {
-            for(let w of this.list.values()) {
-                if(w.hover) {
-                    w.hover = false;
-                    w.onMouseLeave();
-                }
-            }
-        };
-        this.onMouseDown    = function() {};
-        this.onMouseMove    = function(e) {};
-        this.onDrop         = function(e) {};
-        this.onWheel        = function(e) {};
-        // onKeyEvent
-        this.onKeyEvent     = function(e) {
-            for(let w of this.list.values()) {
-                if(w.visible) {
-                    let fired = false;
-                    for(let f of w.list.values()) {
-                        if(f.focused) {
-                            fired = f.onKeyEvent(e);
-                            if(fired) {
-                                break;
-                            }
-                        }
-                    }
-                    if(!fired) {
-                        w.onKeyEvent(e);
+
+        super()
+
+        const that = this
+
+        // List of childs
+        this.list = {
+            values: () => {
+                let resp = []
+                for(let w of this.children) {
+                    if(w instanceof Window && w.auto_center) {
+                        resp.push(w)
                     }
                 }
+                return resp
+            },
+            has(id) {
+                return !!this.get(id)
+            },
+            delete(id) {
+                const window = this.get(id)
+                that.removeChild([window])
+            },
+            get: (id) => {
+                for(let w of this.children) {
+                    if(w.id == id) return w
+                }
+                return null
+            },
+            clear: () => {
+                while(this.children[0]) {
+                    this.removeChild(this.children[0])
+                }
             }
-        };
-        // typeChar
-        this.typeChar = function(e, charCode, typedChar) {
-            for(let w of this.list.values()) {
-                if(w.visible) {
-                    let fired = false;
-                    for(let f of w.list.values()) {
-                        if(f.focused) {
-                            f.typeChar(e, charCode, typedChar);
-                            fired = true;
+        }
+
+        this.index              = 0
+        this.x                  = x
+        this.y                  = y
+        this.z                  = 0 // z-index
+        this.width              = w
+        this.height             = h
+        this.id                 = id
+        this.title              = title
+        this.word_wrap          = false
+        this.hover              = false
+        this.catchEvents        = true
+        this.scrollX            = 0
+        this.scrollY            = 0
+        this.autosize           = true
+        this.enabled            = true
+        this.max_chars_per_line = 0
+        this.auto_center        = true
+        this.create_time        = performance.now()
+
+        this.style              = new Style(this)
+
+        if(text !== undefined) {
+            this.text = text || null
+        }
+
+    }
+
+    get name() {
+        return this.id;
+    }
+
+    //
+    typeChar(e, charCode, typedChar) {
+        for(let w of this.list.values()) {
+            if(w.visible) {
+                let fired = false;
+                for(let f of w.list.values()) {
+                    if(f.focused) {
+                        f.typeChar(e, charCode, typedChar);
+                        fired = true;
+                        break;
+                    }
+                }
+                if(!fired) {
+                    w.typeChar(e, charCode, typedChar);
+                }
+            }
+        }
+    }
+
+    // Events
+    onMouseLeave() {
+        for(let w of this.list.values()) {
+            if(w.hover) {
+                w.hover = false
+                w.onMouseLeave()
+            }
+        }
+    }
+
+    onMouseEnter() {}
+    onMouseDown(e) {}
+    onMouseMove(e) {}
+    onDrop(e) {}
+    onWheel(e) {}
+    onHide() {}
+    onShow() {
+        for(let window of this.list.values()) {
+            if(window instanceof TextEdit) {
+                window.focused = true
+                break
+            }
+        }
+    }
+
+    // onKeyEvent
+    onKeyEvent(e) {
+        for(let w of this.list.values()) {
+            if(w.visible) {
+                let fired = false;
+                for(let f of w.list.values()) {
+                    if(f.focused) {
+                        fired = f.onKeyEvent(e);
+                        if(fired) {
                             break;
                         }
                     }
-                    if(!fired) {
-                        w.typeChar(e, charCode, typedChar);
-                    }
+                }
+                if(!fired) {
+                    w.onKeyEvent(e);
                 }
             }
-        };
-        this.style = {
-            color: '#3f3f3f',
-            textAlign: {
-                horizontal: 'left',
-                vertical: 'top' // "top" || "hanging" || "middle" || "alphabetic" || "ideographic" || "bottom";
-            },
-            padding: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0
-            },
-            font: {
-                size: 20 * this.zoom,
-                family: 'Ubuntu',
-                shadow: {
-                    enable: false,
-                    x: 0,
-                    y: 0,
-                    blur: 0,
-                    color: 'rgba(0, 0, 0, 5)'
-                }
-            },
-            background: {
-                color: '#c6c6c6',
-                image_size_mode: 'none', // none | stretch | cover
-                image: null
-            },
-            icon: {
-                color: '#c6c6c6',
-                image_size_mode: 'none', // none | stretch | cover
-                image: null
-            },
-            border: {
-                color: '#3f3f3f',
-                color_light: '#ffffff',
-                width: 4,
-                hidden: false
-            }
-        };
+        }
     }
-    //
-    get visible() {return this.#_visible}
-    set visible(value) {this.#_visible = value; globalThis.wmGlobal.visible_change_count++;}
+
+    /**
+     * @type {int}
+     */
+    get ax() {
+        return this.transform.position._x
+    }
+
+    /**
+     * @type {int}
+     */
+    get ay() {
+        return this.transform.position._y
+    }
+
+    /**
+     * @param {int} value
+     */
+    set width(value) {
+        if(value == undefined) return
+        this.w = value
+        super.width = value
+    }
+
+    /**
+     * @param {int} value
+     */
+    set height(value) {
+        if(value == undefined) return
+        this.h = value
+        super.height = value
+    }
+
+    get text() {
+        return this.text_container?.text ?? null
+    }
+
+    /**
+     * @param {?string} value
+     */
+    set text(value) {
+        if(!this.text_container) {
+            if (value === undefined) {
+                return;
+            }
+            // this.text_container = new Label(0, 0, undefined, undefined, randomUUID(), undefined, value)
+
+            if (this.style._font.useBitmapFont) {
+                this.text_container = new PIXI.BitmapText(value, this.style.font._bitmap_font_style)
+            } else {
+                this.text_container = new MyText(value, this.style.font._font_style)
+            }
+            //
+
+            this.addChild(this.text_container)
+        }
+        this.text_container.text = value
+    }
+
     //
     get tooltip() {return this.#_tooltip}
     set tooltip(value) {this.#_tooltip = value;}
-    getRoot() {
-        return globalThis.wmGlobal;
-        // if(this.parent) {
-        //     return this.parent.getRoot();
-        // }
-        // return this;
+
+    /**
+     * @returns {Label}
+     */
+    get _wmicon() {
+        if(!this.#_bgicon) {
+            this.#_bgicon = new Label(0, 0, this.w, this.h, `${this.id}_bgicon`)
+            this.#_bgicon.catchEvents = false
+            this.addChild(this.#_bgicon)
+        }
+        return this.#_bgicon
     }
+
+    //
+    get visible() {
+        return super.visible
+    }
+
+    set visible(value) {
+        super.visible = value
+        visible_change_count++
+    }
+
+    getRoot() {
+        return globalThis.wmGlobal
+    }
+
+    /**
+     * @param {Window} w
+     */
     add(w) {
         if(!w.id) {
             throw 'Control does not have valid ID';
         }
-        w.parent = this;
-        w.root = this.root;
-        this.list.set(w.id, w);
+        return this.addChild(w)
     }
+
     delete(id) {
         if(this.list.has(id)) {
-            this.list.delete(id);
+            this.list.delete(id)
         }
     }
-    getWindow(id) {
+
+    /**
+     * @param {string} id
+     * @returns {Window}
+     */
+    getWindow(id, throw_exception = true) {
         if(!this.list.has(id)) {
-            throw 'Window not found by ID ' + id;
+            if(throw_exception) throw `error_window_not_found_by_id|${id}`
+            return null
         }
-        return this.list.get(id);
+        return this.list.get(id)
     }
+
     getVisibleWindowOrNull(id) {
         const w = this.list.get(id);
         return w && w.visible ? w : null;
     }
+
     move(x, y) {
-        this.x = x;
-        this.y = y;
+        this.x = x
+        this.y = y
     }
+
     resize(w, h) {
         this.getRoot()._wm_setTooltipText(null);
-        this.width = w;
-        this.height = h;
+        this.width = w
+        this.height = h
     }
+
     center(w) {
-        w.move(this.width / 2 - w.width / 2, this.height / 2 - w.height / 2);
-        // this.redraw();
+        w.move(this.w / 2 - w.w / 2, this.h / 2 - w.h / 2)
     }
+
     // Place all childs to center of this window
     centerChild() {
         let width_sum = 0;
         let height_sum = 0;
         let visible_windows = [];
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                width_sum += w.width;
-                height_sum += w.height;
-                visible_windows.push(w);
+        for(let window of this.list.values()) {
+            if(window.visible && window.auto_center) {
+                width_sum += window.w;
+                height_sum += window.h;
+                visible_windows.push(window);
             }
         }
         //
         visible_windows.sort((a, b) => a.index - b.index);
         //
-        if(width_sum < this.width) {
+        if(width_sum < this.w) {
             // hor
-            let x = Math.round(this.width / 2 - width_sum / 2);
+            let x = Math.round(this.w / 2 - width_sum / 2);
             for(let w of visible_windows) {
                 w.x = x;
-                w.y = this.height / 2 - w.height / 2;
-                x += w.width;
+                w.y = this.h / 2 - w.h / 2;
+                x += w.w;
             }
         } else {
             // vert
-            let y = Math.round(this.height / 2 - height_sum / 2);;
+            let y = Math.round(this.h / 2 - height_sum / 2);;
             for(let w of visible_windows) {
                 w.y = y;
-                w.x = this.width / 2 - w.width / 2;
-                y += w.height;
+                w.x = this.w / 2 - w.w / 2;
+                y += w.h;
             }
         }
     }
-    clear() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
+
+    /**
+     * @deprecated
+     */
+    clear() {}
+
     draw(ctx, ax, ay) {
-        this.ctx = ctx;
-        this.ax = ax;
-        this.ay = ay;
-        if(!this.visible) {
-            return;
-        }
-        WindowManager.draw_calls++;
-
-        let x = ax + this.x;
-        let y = ay + this.y;
-        let w = this.width;
-        let h = this.height;
-
-        // Save the default state
-        ctx.save();
-
-        // Clipping
-        const p = this.parent;
-        if(p) {
-            const miny = Math.max(y, p.ay + p.y);
-            // Create clipping path
-            let region = new Path2D();
-            region.rect(x, miny, w, Math.min(h, p.height));
-            ctx.clip(region, 'nonzero');
-        }
-
-        // fill background color
-        ctx.fillStyle = this.style.background.color;
-        ctx.fillRect(x, y, w, h);
-
-        // draw background
-        this.drawImage(this.style.background, x, y, w, h);
-        
-        // draw icon
-        this.drawImage(this.style.icon, x, y, w, h);
-        
-        //if(this.title || this.text) {
-        this.applyStyle(ctx, ax, ay);
-        this.updateMeasure(ctx, ax, ay);
-        //}
-        // Draw title
-        if(this.title) {
-            ctx.fillStyle = this.style.color;
-            const pos = {
-                x: x + (this.style.textAlign.horizontal == 'center' ? w / 2 : this.style.padding.left + (this.style.textAlign.horizontal == 'right' ? this.width : 0)),
-                y: y + (this.style.textAlign.vertical == 'middle' ? h / 2 : this.style.padding.top + (this.style.textAlign.vertical == 'bottom' ? this.height : 0))
-            };
-            ctx.fillText(this.title, pos.x, pos.y);
-        }
-        // print text
-        this.print(this.text);
-        // draw border
-        if(!this.style.border.hidden) {
-
-            // colors
-            const colors = [
-                this.style.border.color_light,
-                this.style.border.color
-            ];
-            if(this.style.border?.style == 'inset') {
-                colors.push(colors.shift());
-            }
-
-            ctx.lineJoin = 'round';
-            ctx.lineWidth = this.style.border.width;
-            ctx.beginPath(); // Start a new path
-
-            ctx.strokeStyle = colors[0];
-            ctx.moveTo(x, y + h);
-            ctx.lineTo(x, y );
-            ctx.lineTo(x + w, y);
-            ctx.stroke();
-
-            ctx.beginPath(); // Start a new path
-            ctx.strokeStyle = colors[1];
-            ctx.moveTo(x + w, y);
-            ctx.lineTo(x + w, y + h);
-            ctx.lineTo(x, y + h);
-            ctx.stroke();
-
-            ctx.stroke(); // Render the path
-        }
-        // Restore the default state
-        ctx.restore();
-        //
-        const visible_windows = [];
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                visible_windows.push(w);
-            }
-        }
-        visible_windows.sort((a, b) => b.z - a.z);
-        for(let w of visible_windows) {
-            w.draw(ctx, ax+this.x, ay+this.y+this.scrollY);
-        }
     }
-    updateMeasure(ctx, ax, ay) {
-        if(!this.__measure) {
-            this.__measure = {
-                title: {
-                    value: null,
-                    width: null,
-                    height: null
-                },
-                text: {
-                    value: null,
-                    width: null,
-                    height: null
-                }
-            }
-        }
-        // title
-        const mtl = this.__measure.title;
-        if(mtl.value != this.title) {
-            let mt = ctx.measureText(this.title);
-            mtl.value = this.title;
-            mtl.width = mt.width;
-            mtl.height = mt.actualBoundingBoxDescent;
-        }
-        // text
-        const mtxt = this.__measure.text;
-        if(mtxt.value != this.text) {
-            this.applyStyle(ctx, ax, ay);
-            let mt = ctx.measureText(this.text);
-            mtxt.value = this.text;
-            //
-            if(this.word_wrap) {
-                const lineHeight = this.style.font.size * 1.05;
-                const lines = this.calcPrintLines(this.text || '', ax, ay);
-                mtxt.height = lines.length * lineHeight;
-            } else {
-                mtxt.width = mt.width;
-                mtxt.height = mt.actualBoundingBoxDescent;
-            }
-        }
-    }
+
+    /**
+     * @deprecated
+     */
+    updateMeasure(ctx, ax, ay) {}
+
     calcMaxHeight() {
         let mh = 0;
         for(let w of this.list.values()) {
             if(!w.visible) continue;
-            if(w.y + w.height > mh) {
-                mh = w.y + w.height;
+            if(w.y + w.h > mh) {
+                mh = w.y + w.h;
             }
         }
         this.max_height = mh + this.style.padding.bottom;
     }
+
     hasVisibleWindow() {
-        if(this._has_visible_window_cng == globalThis.wmGlobal.visible_change_count) {
+
+        for(let w of this.getRoot().children) {
+            if(w && w.id && w.visible && !(w instanceof Label) && w.catchEvents) return true
+        }
+
+        return false
+
+        /*
+        console.log(this._has_visible_window_cng, visible_change_count)
+        if(this._has_visible_window_cng == visible_change_count) {
             return this._has_visible_window;
         }
         let resp = false;
@@ -373,18 +416,11 @@ export class Window {
             }
         }
         this._has_visible_window = resp;
-        this._has_visible_window_cng = globalThis.wmGlobal.visible_change_count;
+        this._has_visible_window_cng = visible_change_count;
         return resp;
+        */
     }
-    getVisibleWindows() {
-        let list = [];
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                list.push(w);
-            }
-        }
-        return list;
-    }
+
     *visibleWindows() {
         for(let w of this.list.values()) {
             if(w.visible) {
@@ -392,69 +428,103 @@ export class Window {
             }
         }
     }
+
+    /**
+     * @deprecated
+     */
     redraw() {
         if(!this.ctx) {
             return;
         }
         this.draw(this.ctx, this.ax, this.ay);
     }
+
     setText(text) {
-        this.text = text;
+        this.text = text
     }
-    applyStyle(ctx, ax, ay) {
-        this.ctx            = ctx;
-        this.ax             = ax|0;
-        this.ay             = ay|0;
-        ctx.font            = this.style.font.size + 'px ' + this.style.font.family;
-        ctx.fillStyle       = this.style.color;
-        ctx.textAlign       = this.style.textAlign.horizontal || 'left';
-        ctx.textBaseline    = this.style.textAlign.vertical || 'top';
-    }
-    setBackground(urlOrCanvas, image_size_mode) {
-        if (typeof urlOrCanvas == "string") {
-            let that = this;
-            let bg = new Image();
-            bg.onload = function(e) {
-                that.style.background.image = bg;
-                that.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
-                that.redraw();
+
+    /**
+     * Return current text metrics
+     * @param {boolean} ignore_bitmap_font_metrics
+     * @returns {PIXI.TextMetrics}
+     */
+    getTextMetrics(ignore_bitmap_font_metrics) {
+        const tc = this.text_container;
+        if (tc._activePagesMeshData && !ignore_bitmap_font_metrics) {
+            // TODO: возвращает неверный размер, если в конце строки пробел
+            if (tc.dirty) {
+                tc.updateText();
             }
-            bg.src = urlOrCanvas;
-        } else {
-            this.style.background.image = urlOrCanvas;
-            this.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
-            this.redraw();
+            return {
+                width: tc._textWidth,
+                height: tc._textHeight
+            }
         }
+
+        return PIXI.TextMetrics.measureText(this.text_container.text, this.style.font._font_style)
     }
-    setIconImage(url, image_size_mode) {
-        const that = this;
-        const icon = new Image();
-        icon.onload = function(e) {
-            that.style.icon.image = icon;
-            that.style.icon.image_size_mode = image_size_mode ? image_size_mode : that.style.icon.image_size_mode;
-            that.redraw();
+
+    /**
+     * @deprecated
+     */
+    applyStyle(ctx, ax, ay) {}
+
+    /**
+     * Set window background and size mode
+     * @param {?string|Image} urlOrImage
+     * @param {?string} image_size_mode
+     * @param {?float} scale
+     */
+    async setBackground(urlOrImage, image_size_mode, scale, tintMode = 0) {
+        //if(!isScalar(urlOrImage)) {
+        //    if(urlOrImage instanceof Promise) {
+        //        urlOrImage = await urlOrImage
+        //    }
+        //}
+        this.style.background.image = urlOrImage
+        if(scale) this.style.background.scale = scale
+        if(image_size_mode) this.style.background.image_size_mode = image_size_mode
+        this.style.background.sprite.tintMode = tintMode;
+    }
+
+    /**
+     * @param {?string|Image} urlOrImage
+     * @param {?string} image_size_mode
+     * @param {?float} scale
+     */
+    async setIcon(urlOrImage, image_size_mode = 'none', scale) {
+        //if(!isScalar(urlOrImage)) {
+        //    if(urlOrImage instanceof Promise) {
+        //        urlOrImage = await urlOrImage
+        //    }
+        //}
+        if(urlOrImage) {
+            this._wmicon.setBackground(urlOrImage, image_size_mode, scale)
         }
-        icon.src = url;
+        this._wmicon.visible = !!urlOrImage
     }
+
     show(args) {
-        for(let w of Qubatch.hud.wm.visibleWindows()) {
-            if (!this.canBeOpenedWith.includes(w.id) && !w.canBeOpenedWith.includes(this.id)) {
-                return;
+        for(let w of wmGlobal.visibleWindows()) {
+            if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
+                return
             }
         }
-        this.visible = true;
-        this.resetHover();
-        this.onShow(args);
+        this.visible = true
+        this.resetHover()
+        this.onShow(args)
     }
+
     hide() {
         const wasVisible = this.visible;
         this.visible = false;
         this.resetHover();
         this.onHide(wasVisible);
         if(typeof Qubatch !== 'undefined' && Qubatch.hud) {
-            Qubatch.hud.prevDrawTime = 0;
+            Qubatch.hud.prevDrawTime = 0
         }
     }
+
     hideAndSetupMousePointer() {
         this.hide();
         try {
@@ -463,153 +533,135 @@ export class Window {
             console.error(e);
         }
     }
+
     resetHover() {
         this.hover = false;
         for(let w of this.list.values()) {
             w.hover = false;
         }
     }
+
     toggleVisibility() {
         if(this.visible) {
-            return this.hide();
+            return this.hide()
         }
-        return this.show();
+        return this.show()
     }
+
     _mousemove(e) {
-        this.hover = true;
-        this.onMouseMove(e);
-        let entered = [];
-        let leaved = [];
-        // let fire_mousemove = [];
-        //
-        const visible_windows = [];
-        for(let w of this.list.values()) {
-            if(!w.catchEvents) {
-                continue;
-            }
-            if(w.visible) {
-                visible_windows.push(w);
-            }
-        }
-        visible_windows.sort((a, b) => a.z - b.z);
+
+        this.hover = true
+        this.onMouseMove(e)
+        let entered = []
+        let leaved = []
+
+        const {window, event, visible_windows} = this._clarifyMouseEvent(e)
+
         for(let w of visible_windows) {
-            let old_hover = w.hover;
-            w.hover = false;
-            if(w.visible) {
-                let e2 = {...e};
-                let x = e2.x - w.x;
-                let y = e2.y - w.y;
-                if(x >= 0 && y >= 0 && x <= w.width && y <= w.height) {
-                    e2.x = x;
-                    e2.y = y - w.scrollY;
-                    w._mousemove(e2);
-                    w.hover = true;
-                }
+            let old_hover = w.hover
+            w.hover = false
+            if(w === window) {
+                w._mousemove(event)
+                w.hover = true
             }
             if(w.hover != old_hover) {
                 if(w.hover) {
-                    // w.onMouseEnter();
-                    entered.push(w);
+                    entered.push(w)
                 } else {
-                    // w.onMouseLeave();
-                    leaved.push(w);
+                    leaved.push(w)
                 }
             }
         }
+
         if(entered.length + leaved.length > 0) {
-             //console.log(entered.length, leaved.length, entered[0]);
             if(entered.length > 0) {
-                //if(entered[0]?.tooltip) {
-                    // @todo possible bug
-                    this.getRoot()._wm_setTooltipText(entered[0].tooltip);
-                //}
+                this.getRoot()._wm_setTooltipText(entered[0].tooltip)
                 entered[0].onMouseEnter();
             } else {
                 this.getRoot()._wm_setTooltipText(null);
             }
-            //
             if(leaved.length > 0) {
                 leaved[0].onMouseLeave();
             }
         }
-        //
-        /*for(let item of fire_mousemove) {
-            item.w._mousemove(item.event);
-        }*/
+
     }
-    _mousedown(e) {
-        //
-        const visible_windows = [];
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                visible_windows.push(w);
-            }
-        }
-        visible_windows.sort((a, b) => b.z - a.z);
-        for(let w of visible_windows) {
-            let e2 = {...e};
-            let x = e2.x - (this.ax + w.x);
-            let y = e2.y - (this.ay + w.y);
-            if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
-                e2.x = w.ax + x;
-                e2.y = w.ay + y - w.scrollY;
-                // e2.x = x + this.x;
-                // e2.y = y + this.y - w.scrollY;
-                e2.target = w;
-                w._mousedown(e2);
-                return;
-            }
-        }
-        this.onMouseDown(e);
-    }
-    _drop(e) {
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                let e2 = {...e};
-                let x = e2.x - (this.ax + w.x);
-                let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
-                    e2.x = w.ax + x;
-                    e2.y = w.ay + y - w.scrollY;
-                    // e2.x = x + this.x;
-                    // e2.y = y + this.y - w.scrollY;
-                    w._drop(e2);
-                    return;
+
+    /**
+     * По событию мыши на контексте определяет и возвращает точное окно,
+     * к которому относится событие, а также создает и возвращает новое событие для него
+     * @param {*} e
+     * @returns {object}
+     */
+    _clarifyMouseEvent(e) {
+        // список окон отсортированный по Z координате
+        const visible_windows = []
+        for(let window of this.list.values()) {
+            if(window.visible) {
+                if(window.catchEvents) {
+                    visible_windows.push(window)
                 }
             }
+        }
+        visible_windows.sort((a, b) => b.z - a.z)
+        const resp = {window: null, event: null, visible_windows}
+        for(let window of visible_windows) {
+            if(window.visible) {
+                const e2 = {...e}
+                const x = e2.x - (this.ax + window.x)
+                const y = e2.y - (this.ay + window.y)
+                if(x >= 0 && y >= 0 && x < window.w && y < window.h) {
+                    e2.x = window.ax + x
+                    e2.y = window.ay + y // - window.scrollY
+                    resp.window = window
+                    e2.target = window
+                    resp.event = e2
+                    break
+                }
+            }
+        }
+        return resp
+    }
+
+    _drop(e) {
+        const {window, event} = this._clarifyMouseEvent(e)
+        if(window) {
+            return window._drop(event)
         }
         this.onDrop(e);
     }
+
     _wheel(e) {
-        for(let w of this.list.values()) {
-            if(w.visible) {
-                let e2 = {...e};
-                //e2.x -= (this.ax + w.x);
-                //e2.y -= (this.ay + w.y);
-                let x = e2.x - (this.ax + w.x);
-                let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.width && y < w.height)  {
-                    e2.x = w.ax + x;
-                    e2.y = w.ay + y - w.scrollY;
-                    e2.target = w;
-                    w._wheel(e2);
-                    return;
-                }
-            }
+        const {window, event} = this._clarifyMouseEvent(e)
+        if(window) {
+            return window._wheel(event)
         }
-        this.onWheel(e);
+        this.onWheel(e)
     }
-    measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
-        const lines = text.split("\r");
-        let width = 0;
-        let actualBoundingBoxDescent = 0;
-        for(const line of lines) {
-            const mt = ctx.measureText(line);
-            width = Math.max(width, mt.width);
-            actualBoundingBoxDescent += mt.actualBoundingBoxDescent * lineHeightMultiply + lineHeightAdd;
+
+    _mousedown(e) {
+        const {window, event} = this._clarifyMouseEvent(e)
+        if(window) {
+            return window._mousedown(event)
         }
-        return { width, actualBoundingBoxDescent };
+        if(this instanceof Button) {
+            this.onMouseLeave()
+        }
+        this.onMouseDown(e)
     }
+
+    // measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
+    //     const lines = text.split("\r");
+    //     let width = 0;
+    //     let actualBoundingBoxDescent = 0;
+    //     for(const line of lines) {
+    //         const mt = ctx.measureText(line);
+    //         width = Math.max(width, mt.w);
+    //         actualBoundingBoxDescent += mt.actualBoundingBoxDescent * lineHeightMultiply + lineHeightAdd;
+    //     }
+    //     return { width, actualBoundingBoxDescent };
+    // }
+
     calcPrintLines(original_text, ax, ay) {
         if(!this.word_wrap || !this.ctx) {
             return [original_text];
@@ -637,7 +689,7 @@ export class Window {
                     let str = words.slice(0, idx).join(' ');
                     let w = this.ctx.measureText(str).width;
                     // Wrap to next line if current is full
-                    if(w > this.width - this.style.padding.left - this.style.padding.right) {
+                    if(w > this.w - this.style.padding.left - this.style.padding.right) {
                         if(idx == 1) {
                             idx = 2;
                         }
@@ -659,6 +711,7 @@ export class Window {
         lines.pop();
         return lines;
     }
+
     print(original_text) {
         if(!this.ctx) {
             console.error('Empty context');
@@ -666,7 +719,7 @@ export class Window {
         }
         const x             = this.x + this.ax + this.style.padding.left;
         const y             = this.y + this.ay + this.style.padding.top;
-        const lineHeight    = this.style.font.size * 1.05;
+        const lineHeight    = this.style.font.size * 1.05
         const lines         = this.calcPrintLines(original_text || '');
         // Draw cariage symbol
         if(this.draw_cariage) {
@@ -682,19 +735,21 @@ export class Window {
             this.ctx.fillText(line, x, y + (lineHeight * i));
         }
     }
+
     loadCloseButtonImage(callback) {
         if(this._loadCloseButtonImage) {
             callback(this._loadCloseButtonImage);
         }
         // Load buttons background image
-        let image = new Image();
-        let that = this;
+        const image = new Image();
+        const that = this;
         image.onload = function() {
-            this._loadCloseButtonImage = this;
-            callback(this._loadCloseButtonImage);
+            that._loadCloseButtonImage = this
+            callback(that._loadCloseButtonImage)
         }
-        image.src = '../../media/gui/close.png';
+        image.src = '../../media/gui/close.png'
     }
+
     assignStyles(style) {
         for(let param in style) {
             let v = style[param];
@@ -707,13 +762,14 @@ export class Window {
                     break;
                 }
                 default: {
-                    const options = {nonEnum: true, symbols: true, descriptors: true, proto: true};
+                    const options = {nonEnum: false, symbols: true, descriptors: false, proto: true}
                     deepAssign(options)(this.style[param], v);
                     break;
                 }
             }
         }
     }
+
     appendLayout(layout) {
         let ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
@@ -759,7 +815,7 @@ export class Window {
             }
         }
     }
-    
+
     // Draw image
     drawImage(val, x, y, w, h) {
         // draw image
@@ -803,8 +859,8 @@ export class Window {
                             nw = iw * r,   // new prop. width
                             nh = ih * r,   // new prop. height
                             cx, cy, cw, ch, ar = 1;
-                        // decide which gap to fill    
-                        if (nw < w) ar = w / nw;                             
+                        // decide which gap to fill
+                        if (nw < w) ar = w / nw;
                         if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh;  // updated
                         nw *= ar;
                         nh *= ar;
@@ -838,6 +894,7 @@ export class Window {
 
         }
     }
+
     // fill background color
     fillBackground(ctx, ax, ay, color) {
         ctx.fillStyle = color
@@ -847,32 +904,61 @@ export class Window {
         let h = this.height;
         ctx.fillRect(x, y, w, h);
     }
+
     onUpdate() {
         // It's called every interation of the game loop for visible windows. Override it in the subclasses.
     }
+
+    get focused() {
+        return this.getRoot().getFocusedControl() === this
+    }
+
+    set focused(value) {
+        if(value) {
+            this.getRoot().setFocusedControl(this)
+        } else {
+            this.getRoot().removeFocusFromControl(this)
+        }
+    }
+
 }
 
 // Button
 export class Button extends Window {
 
     constructor(x, y, w, h, id, title, text) {
-        super(x, y, w, h, id, title, text);
+
+        super(x, y, w, h, id, title, title)
+
+        this.style.font.size = 10
+        this.style.border.hidden = false
+
+        if(this.text_container) {
+            this.text_container.anchor.set(.5, .5)
+            this.text_container.position.set(this.w / 2, this.h / 2)
+        }
+
+        this.swapChildren(this.children[0], this.children[1])
+
         this.style.textAlign.horizontal = 'center';
         this.style.textAlign.vertical = 'middle';
-        this.onMouseEnter = function() {
-            this.style.background.color_save = this.style.background.color;
-            this.style.color_save = this.style.color;
-            //
-            this.style.background.color = '#8892c9';
-            this.style.color = '#ffffff';
+
+    }
+
+    onMouseEnter() {
+        if(!this.style.background.color_save) {
+            this.style.background.color_save = this.style.background.color
+            this.style.color_save = this.style.font.color
         }
-        this.onMouseLeave = function() {
-            this.style.background.color = this.style.background.color_save;
-            this.style.color = this.style.color_save;
-            //
-            this.style.background.color_save = null; 
-            this.style.color_save = null; 
-        }
+        this.style.background.color = '#8892c9'
+        this.style.color = '#ffffff'
+        super.onMouseEnter()
+    }
+
+    onMouseLeave() {
+        this.style.background.color = this.style.background.color_save
+        this.style.font.color = this.style.color_save
+        super.onMouseLeave()
     }
 
 }
@@ -880,10 +966,20 @@ export class Button extends Window {
 // Label
 export class Label extends Window {
 
+    /**
+     * @param {int} x
+     * @param {int} y
+     * @param {?int} w
+     * @param {?int} h
+     * @param {string} id
+     * @param {?string} title
+     * @param {?string} text
+     */
     constructor(x, y, w, h, id, title, text) {
-        super(x, y, w, h, id, title, text);
-        this.style.background.color = '#00000000';
-        this.style.border.hidden = true;
+        super(x, y, w, h, id, title, title)
+        this.style.background.color = '#00000000'
+        this.style.border.hidden = true
+        this.setText(text)
     }
 
 }
@@ -893,32 +989,31 @@ export class TextEdit extends Window {
 
     constructor(x, y, w, h, id, title, text) {
 
-        super(x, y, w, h, id, title, text);
+        super(x, y, w, h, id, title, text)
 
         this.max_length         = 0;
         this.max_lines          = 0;
         this.max_chars_per_line = 0;
-        this.draw_cariage       = true;
+        this.draw_cariage       = true
 
         // Styles
-        this.style.background.color = '#ffffff77';
-        this.style.border.hidden = true;
-        this.style.font.size = 19;
-        this.style.font.family = 'UbuntuMono-Regular';
-        this.style.padding = {
-            left: 5,
-            right: 5,
-            top: 5,
-            bottom: 5
-        };
+        this.style.background.color = '#ffffff77'
+        this.style.border.hidden = true
+        this.style.border.style = 'inset'
+        this.style.font.size = 19
+        this.style.font.family = 'Ubuntu'
+        // this.style.padding = {
+        //     left: 5,
+        //     right: 5,
+        //     top: 5,
+        //     bottom: 5
+        // }
+
+        this.text_container.x = 5 * this.zoom
 
         // Properties
-        this.focused = false;
-        this.buffer = [];
-
-        this.onChange = (text) => {
-            // do nothing
-        };
+        this.focused = false
+        this.buffer = []
 
         // Backspace pressed
         this.backspace = () => {
@@ -928,27 +1023,6 @@ export class TextEdit extends Window {
             if(this.buffer.length > 0) {
                 this.buffer.pop();
                 this._changed();
-            }
-        }
-
-        // Hook for keyboard input
-        this.onKeyEvent = (e) => {
-            const {keyCode, down, first} = e;
-            switch(keyCode) {
-                case KEY.ENTER: {
-                    if(down) {
-                        this.buffer.push(String.fromCharCode(13));
-                        this._changed();
-                    }
-                    return true;
-                }
-                case KEY.BACKSPACE: {
-                    if(down) {
-                        this.backspace();
-                        break;
-                    }
-                    return true;
-                }
             }
         }
 
@@ -975,21 +1049,38 @@ export class TextEdit extends Window {
 
     }
 
-    //
-    _changed() {
-        this.onChange(this.buffer.join(''));
-    }
-    
-    setEditText(text) {
-        this.buffer = text.split('');
+    /**
+     * @returns {string}
+     */
+    get text() {
+        return this.buffer.join('');
     }
 
-    // Draw
-    draw(ctx, ax, ay) {
-        this.setText(this.buffer.join(''));
-        //
-        // this.style.background.color = this.focused ? '#ffffff77' : '#00000000';
-        super.draw(ctx, ax, ay);
+    /**
+     * @param {string} value
+     */
+    set text(value) {
+        this.buffer = RuneStrings.toArray(value || '')
+        this._changed()
+    }
+
+    /**
+     * @param {string} value
+     */
+    setIndirectText(value) {
+        super.text = value
+    }
+
+    //
+    _changed() {
+        const text = this.buffer.join('')
+        super.text = text
+        // this.text_container.text = text
+        this.onChange(text)
+    }
+
+    onChange(text) {
+        // do nothing
     }
 
     paste(str) {
@@ -998,175 +1089,381 @@ export class TextEdit extends Window {
         }
     }
 
-    getEditText() {
-        return this.buffer.join('');
+    // Hook for keyboard input
+    onKeyEvent(e) {
+        const {keyCode, down, first} = e;
+        switch(keyCode) {
+            case KEY.ENTER: {
+                if(down) {
+                    this.buffer.push(String.fromCharCode(13));
+                    this._changed()
+                }
+                return true;
+            }
+            case KEY.BACKSPACE: {
+                if(down) {
+                    this.backspace()
+                    break;
+                }
+                return true;
+            }
+        }
     }
+
 }
 
 class Tooltip extends Label {
 
-    constructor(text) {
-        super(0, 0, 100, 20, '_tooltip', null, text);
-        this.style.background.color = '#000000cc';
-        this.style.border.hidden = true;
-        this.style.color = '#ffffff';
-        this.style.font.size = 20 * this.zoom;
-        this.style.font.family = 'Ubuntu';
+    /**
+     * @param {?string} text
+     */
+    constructor(text = null) {
+
+        super(0, 0, 100, 20, '_tooltip', null, text)
+
+        this.style.font.color = '#ffffff'
+        this.style.font.size = 20
+        this.style.font.family = 'Ubuntu'
         this.style.padding = {
             left: 16,
             right: 16,
             top: 12,
             bottom: 10
-        };
-        this.word_wrap = true;
-        //
-        this.need_update_size = false;
-        this.setText(text);
-    }
+        }
 
-    draw(ctx, ax, ay) {
-        if(this.text === null || typeof this.text === undefined || this.text === '') {
-            return;
-        }
-        this.applyStyle(ctx, ax, ay);
-        //
-        if(this.need_update_size && this.autosize) {
-            this.need_update_size = false;
-            // The line hegit is imprecise here, TODO: make calculations the same as when drawing
-            let mt = this.measureMultilineText(ctx, this.text, 1.07, 2);
-            this.width = mt.width + this.style.padding.left + this.style.padding.right;
-            this.height = mt.actualBoundingBoxDescent + this.style.padding.top + this.style.padding.bottom;
-        }
-        super.draw(ctx, ax, ay);
+        this.word_wrap = true
+        this.need_update_size = false
+
+        this.setText(text)
+
+        // Text background
+        this._textbg = new PIXI.Graphics()
+        this._textbg.beginFill(0x000000)
+        this._textbg.drawRect(0, 0, 200, 100)
+        this._textbg.alpha = .75
+        this.addChildAt(this._textbg, 0)
+
     }
 
     setText(text) {
-        this.text = text;
-        this.need_update_size = true;
+
+        this.visible = !!text
+        this.text = text
+        this.need_update_size = true
+
+        if(this._textbg) {
+            this._textbg.width = this.text_container.width
+            this._textbg.height = this.text_container.height
+        }
+
+    }
+
+}
+
+export class SimpleBlockSlot extends Window {
+
+    constructor(x, y, w, h, id, title, text) {
+        super(x, y, w, h, id, title, text)
+
+        this.style.font.color = '#ffffff'
+        this.style.font.size = 14
+        this.style.font.shadow.enable = true
+        this.style.font.shadow.alpha = .5
+        this.text_container.anchor.set(1, 1)
+        this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)
+
+        const padding = 3 * this.zoom
+        const bar_height = 3 * this.zoom
+        this.bar = new Label(padding, h - bar_height - padding, this.w - padding * 2, bar_height, 'lblBar')
+        this.bar.style.background.color = '#000000aa'
+        this.bar.visible = false
+        this.bar.catchEvents = false
+        this.bar_value = new Label(0, 0, this.bar.w / 2, this.bar.h, 'lblBar')
+        this.bar_value.style.background.color = '#00ff00'
+        this.addChild(this.bar)
+        this.bar.addChild(this.bar_value)
+
+        this.item = null
+
+    }
+
+    getItem() {
+        return this.item
+    }
+
+    setItem(item) {
+        this.item = item
+        return this.refresh()
+    }
+
+    clear() {
+        this.setItem(null)
+    }
+
+    /**
+     * Redraw
+     * @returns {boolean}
+     */
+    refresh() {
+
+        const item = this.getItem()
+
+        this._bgimage.visible = !!item
+        this.bar.visible = !!item
+
+        let label = null
+
+        // draw count && instrument livebar
+        if(item) {
+
+            const mat = BLOCK.fromId(item.id)
+            const tintMode = item.extra_data?.enchantments ? 1 : 0
+
+            this.setBackground(getBlockImage(item, 100 * this.zoom), 'centerstretch', 1.0, tintMode)
+
+            // let font_size = 18
+            const power_in_percent = mat?.item?.indicator == 'bar'
+            label = item.count > 1 ? item.count : null
+            // let shift_y = 0
+            if(!label && 'power' in item) {
+                if(power_in_percent) {
+                    label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%'
+                } else {
+                    label = null
+                }
+                // font_size = 12
+                // shift_y = -10
+            }
+
+            // draw instrument life
+            this.bar.visible = (mat.item?.instrument_id && item.power < mat.power) || power_in_percent
+            if(this.bar.visible) {
+                const percent = Math.min(item.power / mat.power, 1)
+                const rgb = Helpers.getColorForPercentage(percent)
+                this.bar_value.w = this.bar.w * percent
+                this.bar_value.style.background.color = rgb.toHex(true)
+            }
+
+        }
+
+        this.text = label
+
+        return true
+
+    }
+
+}
+
+//
+export class Pointer extends SimpleBlockSlot {
+
+    constructor() {
+        super(0, 0, 40 * UI_ZOOM, 40 * UI_ZOOM, '_wmpointer', null, null)
+    }
+
+}
+
+// Overlay
+class WindowManagerOverlay extends Window {
+
+    constructor(x, y, w, h, id) {
+        super(x, y, w, h, id)
+        this._wmpointer = new Pointer()
+        this._wmtooltip = new Tooltip()
+        this.addChild(this._wmpointer, this._wmtooltip)
     }
 
 }
 
 // WindowManager
 export class WindowManager extends Window {
-    
-    static draw_calls = 0;
-    
-    constructor(canvas, ctx, x, y, w, h) {
-        super(x, y, w, h, '_wm', null);
-        globalThis.wmGlobal = this;
-        let that = this;
-        this.root = this;
-        this.list = new Map();
-        this.canvas = canvas;
-        this.ctx = ctx;
-        this.visible_change_count = 0;
-        //
-        this._wm_tooltip = new Tooltip(null);
-        //
-        this.pointer = {
-            x: w / 2,
-            y: h / 2,
-            image: null,
-            parent: that,
-            visible: true,
-            load: function() {
-                /*
-                let image = new Image();
-                let that = this;
-                image.onload = function() {
-                    that.image = image;
-                };
-                image.src = '../media/pointer.png';
-                */
-            },
-            draw: function() {
-                that.drag.draw({
-                    ctx: this.parent.ctx,
-                    x: this.x - 18 * UI_ZOOM,
-                    y: this.y - 18 * UI_ZOOM
-                });
-                if(this.image && this.visible) {
-                    ctx.imageSmoothingEnabled = true;
-                    this.parent.ctx.drawImage(
-                        this.image,
-                        0,
-                        0,
-                        this.image.width,
-                        this.image.height,
-                        this.x,
-                        this.y,
-                        this.image.width / 2,
-                        this.image.width / 2
-                    );
-                }
-            }
-        };
-        this.pointer.load();
-        this.drag = {
-            item: null,
-            setItem: function(item) {
-                this.item = item;
-            },
-            getItem: function() {
-                return this.item;
-            },
-            clear: function() {
-                this.setItem(null);
-            },
-            draw: function(e) {
-                if(this.item) {
-                    if(typeof this.item.draw === 'function') {
-                        this.item.draw(e, true);
+
+    static draw_calls = 0
+
+    constructor(canvas, x, y, w, h, create_mouse_listeners) {
+
+        super(x, y, w, h, '_wm', null)
+
+        globalThis.wmGlobal = this
+        this._focused_control = null
+        this._cariage_speed = 200
+
+        this.preloadFont();
+
+        this.parent = new PIXI.Container()
+        this.parent.addChild(this)
+
+        // Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши
+        if(create_mouse_listeners) {
+            if(!canvas) throw 'error_canvas_undefined'
+            canvas.addEventListener('mousemove', this.mouseEventDispatcher.bind(this))
+            canvas.addEventListener('mousedown', this.mouseEventDispatcher.bind(this))
+            canvas.addEventListener('mousewheel', this.mouseEventDispatcher.bind(this))
+            canvas.addEventListener('wheel', this.mouseEventDispatcher.bind(this))
+        }
+
+        const that = this
+
+        this.root = this
+        this.canvas = canvas
+        this.qubatchRender = null;
+        this.ctx = null
+
+        // // Add pointer and tooltip controls
+        this._wmoverlay = new WindowManagerOverlay(0, 0, w, h, '_wmoverlay')
+        this.parent.addChild(this._wmoverlay)
+
+        this.cariageTimer = setInterval(() => {
+            const fc = this._focused_control
+            if(fc && fc instanceof TextEdit) {
+                if(fc.draw_cariage) {
+                    const vis = (performance.now() % (this._cariage_speed * 2)) < this._cariage_speed
+                    if(vis) {
+                        fc.setIndirectText(fc.text + '_')
+                    } else {
+                        fc.setIndirectText(fc.text)
                     }
                 }
             }
-        };
+        }, this._cariage_speed)
+
+        //
+        this.drag = that._wmoverlay._wmpointer
+        // this.drag = {
+        //     item: null,
+        //     setItem: function(item) {
+        //         this.item = item
+        //         that._wmoverlay._wmpointer.setItem(item?.item)
+        //     },
+        //     getItem: function() {
+        //         return this.item
+        //     },
+        //     clear: function() {
+        //         this.setItem(null)
+        //     }
+        // }
+
+    }
+
+    getFocusedControl() {
+        return this._focused_control
+    }
+
+    setFocusedControl(window) {
+        this._focused_control = window
+    }
+
+    removeFocusFromControl(window) {
+        if(this._focused_control == window) {
+            this._focused_control = null
+        }
+    }
+
+    preloadFont() {
+        if (this.bfTextures) {
+            return;
+        }
+        this.bfTextures = [
+            new PIXI.Texture(new PIXI.BaseTexture())
+        ];
+        const bfData = new PIXI.BitmapFontData();
+        bfData.char = msdf.chars
+        bfData.page = [{id: 0, file: "UbuntuMono-Regular.png"}]
+        bfData.info = [msdf.info]
+        bfData.common = [msdf.common]
+        bfData.distanceField = [msdf.distanceField]
+        PIXI.BitmapFont.install(bfData, this.bfTextures);
+    }
+
+    loadFont() {
+        const baseRp = Qubatch.world.block_manager.resource_pack_manager.list.get('base');
+        const res = new PIXI.ImageBitmapResource(baseRp.textures.get('alphabet').texture.source);
+        this.bfTextures[0].baseTexture.setResource(res);
+    }
+
+    draw() {
+
+        this.centerChild()
+
+        if (!this.qubatchRender) {
+            return;
+        }
+        // reset pixi state
+        this.pixiRender.shader.program = null;
+        this.pixiRender.shader.bind(this.pixiRender.plugins.batch._shader, true);
+        this.pixiRender.reset();
+        this.pixiRender.texture.bind(null, 3);
+
+        this.pixiRender.render(this.parent);
+    }
+
+    initRender(qubatchRender) {
+        if (qubatchRender) {
+            this.qubatchRender = qubatchRender;
+            this.canvas = qubatchRender.canvas;
+            this.pixiRender = new PIXI.Renderer({
+                context: qubatchRender.renderBackend.gl,
+                view: this.canvas,
+                width: this.canvas.width,
+                height: this.canvas.height,
+                clearBeforeRender: false
+            })
+        } else {
+            this.pixiRender = new PIXI.Renderer({
+                view: this.canvas,
+                width: this.canvas.width,
+                height: this.canvas.height,
+                backgroundAlpha: 0,
+                background: 'transparent',
+                transparent: true
+            })
+            const ticker = new PIXI.Ticker();
+            ticker.add(() => {
+                this.pixiRender.render(this.parent);
+            }, PIXI.UPDATE_PRIORITY.LOW)
+            ticker.start();
+        }
+        this.loadFont();
     }
 
     closeAll() {
-        let list = this.getVisibleWindows();
-        for(let w of list) {
-            w.hide();
-        }
-    }
-
-    draw(drawPointer) {
-        this.applyStyle(this.ctx, this.x, this.y);
-        super.draw(this.ctx, this.x, this.y);
-        if(drawPointer && drawPointer === true) {
-            this.pointer.draw();
-        }
-        if(this.hasVisibleWindow()) {
-            this._wm_tooltip.draw(this.ctx, this.x, this.y);
+        for(let w of this.visibleWindows()) {
+            w.hide()
         }
     }
 
     mouseEventDispatcher(e) {
+
         switch(e.type) {
             case 'mousemove': {
-                let evt = {
+                const evt = {
                     shiftKey:   e.shiftKey,
                     button_id:  e.button_id,
                     x:          e.offsetX - this.x,
                     y:          e.offsetY - this.y
                 };
-                this.pointer.x = e.offsetX;
-                this.pointer.y = e.offsetY;
+
+                const pointer = this._wmoverlay._wmpointer
+                const tooltip = this._wmoverlay._wmtooltip
+
+                pointer.x = e.offsetX - pointer.w / 2
+                pointer.y = e.offsetY - pointer.h / 2
+
                 // Calculate tooltip position
-                let pos = {x: this.pointer.x, y: this.pointer.y};
-                if(pos.x + this._wm_tooltip.width > this.width) {
-                    pos.x -= this._wm_tooltip.width;
+                const pos = {x: pointer.x + pointer.w / 2, y: pointer.y + pointer.h / 2};
+                if(pos.x + tooltip.w > this.w) {
+                    pos.x -= tooltip.w
                 }
-                if(pos.y + this._wm_tooltip.height > this.height) {
-                    pos.y -= this._wm_tooltip.height;
+                if(pos.y + tooltip.h > this.h) {
+                    pos.y -= tooltip.h
                 }
-                this._wm_tooltip.move(pos.x, pos.y);
-                this._mousemove(evt);
-                break;
+                tooltip.move(pos.x, pos.y)
+
+                this._mousemove(evt)
+                break
             }
             case 'mousedown': {
-                let evt = {
+                const evt = {
                     shiftKey:   e.shiftKey,
                     button_id:  e.button_id,
                     drag:       this.drag,
@@ -1174,37 +1471,36 @@ export class WindowManager extends Window {
                     y:          e.offsetY - this.y
                 };
                 if(this.drag.getItem()) {
-                    this._drop(evt);
+                    this._drop(evt)
                 } else {
-                    this._mousedown(evt);
+                    this._mousedown(evt)
                 }
-                break;
+                break
             }
             case 'mousewheel':
             case 'wheel': {
                 if(!this.drag.getItem()) {
-                    let evt = {
+                    const evt = {
                         shiftKey:       e.shiftKey,
                         button_id:      e.button_id,
                         original_event: e.original_event,
                         x:              e.offsetX - this.x,
                         y:              e.offsetY - this.y
-                    };
-                    this._wheel(evt);
+                    }
+                    this._wheel(evt)
                     // Хак, чтобы обновились ховер элементы
-                    e.type = 'mousemove';
-                    this.mouseEventDispatcher(e);
+                    this.mouseEventDispatcher({...e, type: 'mousemove'})
                 }
                 break;
             }
             default: {
-                break;
+                break
             }
         }
     }
 
     _wm_setTooltipText(text) {
-        this._wm_tooltip.setText(text);
+        this._wmoverlay._wmtooltip.setText(text)
     }
 
     // calls Window.onUpdate() for each visible window
@@ -1225,6 +1521,8 @@ export class VerticalLayout extends Window {
     }
 
     refresh() {
+        /*
+        TODO:
         let y = 0;
         for(let w of this.list.values()) {
             if(!w.visible) continue;
@@ -1241,6 +1539,7 @@ export class VerticalLayout extends Window {
         }
         this.calcMaxHeight();
         this.height = this.max_height;
+        */
     }
 
 }

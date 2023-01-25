@@ -13,13 +13,16 @@ import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED } from "./constan
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
+import { SpriteAtlas } from "./core/sprite_atlas.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
 
 // Reset zoom
+// TODO: pixi
 globalThis.UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
-console.debug('zoom', UI_ZOOM);
+console.debug('zoom', UI_ZOOM)
+console.log('zoom', UI_ZOOM)
 globalThis.UI_FONT = 'Ubuntu';
 
 // Main game class
@@ -27,9 +30,9 @@ export class GameClass {
 
     constructor() {
         this.is_server                  = false;
-        this.hud                        = new HUD();
-        this.hotbar                     = new Hotbar(this.hud);
         this.render                     = new Renderer('qubatchRenderSurface');
+        this.hud                        = new HUD(this.render.canvas);
+        // this.hotbar                     = new Hotbar(this.hud);
         this.onControlsEnabledChanged   = (value) => {};
         this.onStarted                  = () => {};
         this.f3_used                    = false;
@@ -54,11 +57,18 @@ export class GameClass {
         const blockTask = BLOCK.init(settings);
         await Promise.all([resourceTask, blockTask]);
 
+        // Make atlases
+        for(const [atlas_name, item] of Object.entries(Resources.atlas)) {
+            Resources.atlas[atlas_name] = await SpriteAtlas.fromJSON(item.image, item.map)
+        }
+
         // init world
         this.world = new World(settings, BLOCK);
 
         // Create world
-        await this.render.init(this.world, settings);
+        await this.render.init(this.world, settings)
+
+        this.hotbar = new Hotbar(this.hud)
 
         // Connect to server
         const connection_string = server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid;

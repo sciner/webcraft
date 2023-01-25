@@ -46,19 +46,15 @@
             return 'ontouchstart' in document.documentElement;
         }
         function windowResized(event) {
-            const dpr = isMobileBrowser() ? 1 : window.devicePixelRatio;
-            for(let id of ['qubatchRenderSurface', 'qubatchHUD']) {
-                const c = document.getElementById(id);
-                // const sz = c.parentElement.getBoundingClientRect();
+            const dpr = isMobileBrowser() ? 1 : window.devicePixelRatio
+            let width = 0
+            let height = 0
+            for(let id of ['qubatchRenderSurface']) {
+                const c = document.getElementById(id)
                 const sz = {width: c.parentElement.clientWidth, height: c.parentElement.clientHeight}
-                c.width = sz.width * dpr;
-                c.height = sz.height * dpr;
+                width = c.width = sz.width * dpr;
+                height = c.height = sz.height * dpr;
             }
-            //if(typeof Qubatch !== 'undefined') {
-            //    if(Qubatch?.hud?.splash?.loading) {
-            //        Qubatch?.hud?.draw();
-            //    }
-            //}
         }
         window.addEventListener('resize', windowResized, true);
     </script>
@@ -74,7 +70,7 @@
     <div id="qubatch-canvas-container">
 
         <canvas id="qubatchRenderSurface" ng-click="Qubatch.setupMousePointer(true)" width="800" height="600"></canvas>
-        <canvas id="qubatchHUD" width="800" height="600"></canvas>
+        <!-- <canvas id="qubatchHUD" width="800" height="600"></canvas> -->
 
         <!-- Joystick -->
         <div id="Joystick">

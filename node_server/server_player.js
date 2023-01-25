@@ -1,5 +1,5 @@
-import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
-import { Player, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
+import { Vector, VectorCollector } from "../www/js/helpers.js";
+import { Player } from "../www/js/player.js";
 import { GameMode } from "../www/js/game_mode.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
@@ -9,7 +9,7 @@ import config from "./config.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE,  } from "../www/js/constant.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
@@ -33,7 +33,6 @@ export class NetworkMessage {
 const EMULATED_PING             = config.Debug ? Math.random() * 100 : 0;
 const MAX_COORD                 = 2000000000;
 const MAX_RANDOM_TELEPORT_COORD = 2000000;
-const CORRECT_TIME              = 16;
 
 async function waitPing() {
     return new Promise((res) => setTimeout(res, EMULATED_PING));
@@ -67,7 +66,6 @@ export class ServerPlayer extends Player {
         this.chunks                 = new VectorCollector();
         this.nearby_chunk_addrs     = new VectorCollector();
         this.#forward               = new Vector(0, 1, 0);
-
 
         /**
          * @type {ServerWorld}

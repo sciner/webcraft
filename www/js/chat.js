@@ -1,6 +1,7 @@
-import {ServerClient} from "./server_client.js";
+import { ServerClient } from "./server_client.js";
 import { Lang } from "./lang.js";
-import {TextBox} from "./ui/textbox.js";
+import { TextBox } from "./ui/textbox.js";
+import { Window } from "../tools/gui/wm.js";
 
 const MESSAGE_SHOW_TIME         = 7000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
@@ -15,7 +16,7 @@ export class Chat extends TextBox {
         this.history_max_messages   = 64;
         this.messages = {
             list: [],
-            send: function(text) {
+            send(text) {
                 this.add('YOU', text);
                 if(text.trim().toLowerCase() == '/ping') {
                     that.send_ping = performance.now();
@@ -23,13 +24,13 @@ export class Chat extends TextBox {
                 that.player.world.server.SendMessage(text);
                 Qubatch.setupMousePointer(true);
             },
-            addSystem: function(text) {
+            addSystem(text) {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
             },
-            addError: function(text) {
+            addError(text) {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
             },
-            add: function(username, text, timeout) {
+            add(username, text, timeout) {
                 text = String(text);
                 if(!timeout) {
                     timeout = 0;
@@ -49,7 +50,7 @@ export class Chat extends TextBox {
             list: [],
             draft: [],
             index: -1,
-            add: function(buffer) {
+            add(buffer) {
                 this.list.push(buffer);
                 this.save();
                 this.reset();
@@ -62,11 +63,11 @@ export class Chat extends TextBox {
                 this.list = [];
                 this.save();
             },
-            reset: function() {
+            reset() {
                 this.index = -1;
                 this.draft = [];
             },
-            navigate: function(go_back, buffer, onchange) {
+            navigate(go_back, buffer, onchange) {
                 if(this.list.length < 1) {
                     return false;
                 }
@@ -127,14 +128,14 @@ export class Chat extends TextBox {
     //
     historyNavigate(go_back) {
         this.history.navigate(go_back, this.buffer, (new_buffer) => {
-            this.buffer = new_buffer;
-            this.resetCarriage();
+            this.buffer = new_buffer
+            this.resetCarriage()
         });
     }
 
     open(start_buffer) {
         if(this.active) {
-            return;
+            return
         }
         this.history.reset();
         this.buffer = start_buffer;
@@ -276,6 +277,10 @@ export class Chat extends TextBox {
         return false;
     }
 
+    /**
+     * @param { import("./hud.js").HUD } hud
+     * @returns 
+     */
     drawHUD(hud) {
 
         const margin            = 10 * this.zoom;
@@ -285,66 +290,75 @@ export class Chat extends TextBox {
         const now               = performance.now();
         const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)
 
-        hud.ctx.save();
-
-        const CHAT_INPUT_FONT = 'UbuntuMono-Regular'; // UI_FONT
-
-        // Calc text size
-        hud.ctx.font            = Math.round(18 * this.zoom) + 'px ' + CHAT_INPUT_FONT;
-        hud.ctx.textAlign       = 'left';
-        hud.ctx.textBaseline    = 'top';
-
-        if(!this.line_height) {
-            let mt = hud.ctx.measureText('TW|');
-            this.line_height = mt.actualBoundingBoxDescent + 14 * this.zoom;
+        if(!this.chat_input) {
+            this.init(hud)
+            this.history_messages_window = new Window(0, 0, 0, 0, 'history_messages_window')
+            hud.hudwindow.add(this.history_messages_window)
+            // style
+            this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
+            this.history_messages_window.style.font.color = '#ffffff'
+            this.history_messages_window.style.background.color = '#00000022'
         }
 
-        let x = margin;
-        let y = hud.height - (top + margin + this.line_height);
+        const x = margin
+        const y = hud.height - (top + margin + this.line_height)
+        const input_width = hud.width - margin * 2
+        const input_height = this.line_height
 
+        this.chat_input.visible = this.active
         if(this.active) {
-            super.draw(hud.ctx, x, hud.height - top, hud.width - margin * 2, this.line_height);
+            this.draw(x, hud.height - top, input_width, input_height, margin)
         }
+
+        let strings = []
 
         // Draw message history
         for(let m of this.messages.list) {
-            let time_diff = now - m.time;
+            const time_diff = now - m.time;
             if(this.active || time_diff < MESSAGE_SHOW_TIME) {
-                let alpha = 1;
+                let alpha = 1
                 if(!this.active) {
                     let time_remains = MESSAGE_SHOW_TIME - time_diff;
                     if(time_remains < fadeout_time) {
                         alpha = time_remains / fadeout_time;
                     }
                 }
-                let texts = m.text.split('\n');
-                for(let i = texts.length - 1; i >= 0; i--) {
-                    let text = texts[i];
-                    var leftMargin = margin;
-                    if(i == 0) {
-                        text = m.username + ': ' + text;
-                    } else {
-                        leftMargin += multiLineMarginAdd;
-                    }
-                    let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                    hud.ctx.fillStyle = '#000000' + aa;
-                    hud.ctx.fillRect(leftMargin, y - padding, hud.width - margin - leftMargin, this.line_height);
-                    //
-                    aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                    hud.ctx.fillStyle = '#000000' + aa;
-                    hud.ctx.fillText(text, leftMargin + padding, y + 4 * this.zoom);
-                    //
-                    aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                    hud.ctx.fillStyle = '#ffffff' + aa;
-                    hud.ctx.fillText(text, leftMargin + padding + 2, y + 2 * this.zoom);
-                    //
-                    y -= this.line_height;
-                }
+                let texts = m.text.split('\n')
+                strings.push(...texts)
+                // for(let i = texts.length - 1; i >= 0; i--) {
+                //     let text = texts[i];
+                //     var leftMargin = margin;
+                //     if(i == 0) {
+                //         text = m.username + ': ' + text;
+                //     } else {
+                //         leftMargin += multiLineMarginAdd;
+                //     }
+                //     let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                //     hud.ctx.fillStyle = '#000000' + aa;
+                //     hud.ctx.fillRect(leftMargin, y - padding, hud.width - margin - leftMargin, this.line_height);
+                //     //
+                //     aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                //     hud.ctx.fillStyle = '#000000' + aa;
+                //     hud.ctx.fillText(text, leftMargin + padding, y + 4 * this.zoom);
+                //     //
+                //     aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                //     hud.ctx.fillStyle = '#ffffff' + aa;
+                //     hud.ctx.fillText(text, leftMargin + padding + 2, y + 2 * this.zoom);
+                //     //
+                //     y -= this.line_height;
+                // }
             }
         }
 
-        // Restore original state
-        hud.ctx.restore();
+        strings.reverse()
+
+        this.history_messages_window.text = strings.join('\n')
+        this.history_messages_window.transform.position.set(margin, margin)
+        this.history_messages_window.w = input_width
+        this.history_messages_window.h = y + input_height - margin
+        this.history_messages_window.text_container.transform.position.set(margin, this.history_messages_window.h - margin)
+
+        this.history_messages_window.text_container.anchor.y = 1
 
     }
 

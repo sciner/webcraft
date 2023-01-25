@@ -2,9 +2,10 @@
 <head>
     <title>MadCraft GUI</title>
     <meta charset="UTF-8">
+    <base href="/" target="_blank">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="./gui.css" rel="stylesheet" type="text/css">
+    <link href="/tools/gui/gui.css" rel="stylesheet" type="text/css">
     <!-- <script type="module" src="./wm.js"></script> -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -15,7 +16,7 @@
     <div class="container">
 
         <h3>Canvas based 2D GUI</h3>
-        
+
         <div class="py-4">
             Для игр на WebGL часто требуется создания форм для реализации интерфейса.
             <br>Зачастую такие формы делаются всегда по разному и запрограммировав их один раз, потом достаточно проблематично вносить в них изменения, т.к. они сильно завязаны на абсолютных координатах.
@@ -23,14 +24,14 @@
             <br>Она полностью рисует окна, а также компоненты на ней сама в выделенном `canvas`-е.
             <br>Есть возможность настроить стиль любого компонента, если не хватает возможностей управления стилями в любом случае функцию отрисовки любого компонента можно переопределить и отрисовать его по своему.
         </div>
-        
+
         <div class="d-flex flex-column align-items-center">
             <a class="btn btn-success" href="./wm.js" download="wm.js">Скачать wm.js</a>
             <br>
         </div>
 
         <div class="d-flex flex-column align-items-center">
-            <canvas id="canvas" width="800" height="600"></canvas>
+            <canvas id="canvas" width="800" height="600" oncontextmenu="return false"></canvas>
             <label>Код этой формы приведён в конце этого текста.</label>
             <div class="p-3">
                 <button class="btn btn-primary" onclick="demo.toggleVisibility()">Скрыть / показать форму</button>
@@ -41,47 +42,47 @@
         <div class="py-3">
             <h3>3 простых шага для создания формы</h3>
             <pre><code class="language-js">// Определяем контекст для рисования
-let canvas = document.getElementById('canvas');
-let ctx = canvas.getContext('2d');
+let canvas = document.getElementById('canvas')
 
 // Создаем диспетчер окон
-const wm = new WindowManager(canvas, ctx, 0, 0, canvas.width, canvas.height);
+const wm = new WindowManager(canvas, 0, 0, canvas.width, canvas.height)
+wm.initRender()
 
 // Создаём форму (последние 4 параметра, это координаты и размеры выделяемой области)
-wm.add(new Window(10, 10, 352, 332, 'ct1', null));</code></pre>
+wm.add(new Window(10, 10, 352, 332, 'ct1', null))</code></pre>
         </div>
 
         <div class="pt-3">
             <h3>Далее размещаем кнопку внутри формы</h3>
             <pre><code class="language-js">// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
+const ct = wm.getWindow('ct1')
 
 // Создаём кнопку
-let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
+let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×')
 
 // Добавляем кнопку на форму
 ct.add(btnClose);</code></pre>
 
     Аналогичным способом можно добавить надпись на форму:
     <pre><code class="language-js">// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
+const ct = wm.getWindow('ct1')
 
 // Добавляем надпись на форму
-let lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting');
-ct.add(lbl1);</code></pre>
+let lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting')
+ct.add(lbl1)</code></pre>
 </div>
 
         <div class="pt-3">
             <h3>Кнопка есть, теперь прописываем действие на клик по ней</h3>
             <pre><code class="language-js">// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
+const ct = wm.getWindow('ct1')
 
 // Получаем кнопку из формы
-const btnClose = ct.getWindow('btnClose');
+const btnClose = ct.getWindow('btnClose')
 
 // Прописываем обработчик нажатия на кнопку
 btnClose.onMouseDown = function(e) {
-    ct.hide();
+    ct.hide()
 }</code></pre>
 </div>
 
@@ -89,12 +90,12 @@ btnClose.onMouseDown = function(e) {
         <div class="py-3">
             <pre><code class="language-js">// Данный обработчик сработает, когда курсор зайдет на область кнопки
 btnClose.onMouseEnter = function() {
-    this.style.background.color = '#ffffff33';
+    this.style.background.color = '#ffffff33'
 }
 
 // Данный обработчик сработает, когда курсор покинет область кнопки
 btnClose.onMouseLeave = function() {
-    this.style.background.color = '#00000000';
+    this.style.background.color = '#00000000'
 }</code></pre>
 </div>
 
@@ -102,176 +103,51 @@ btnClose.onMouseLeave = function() {
         Стилизовать можно любой компонент, даже сам диспетчер форм. Все компоненты отрисовываются и стилизуется одинаково.
 <div class="py-3">
 <pre><code class="language-js">// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
+const ct = wm.getWindow('ct1')
 
 // Устанавливаем фоновое изображение
-ct.setBackground('./media/gui/form-crafting-table.png');
+ct.setBackground('./media/gui/form-crafting-table.png')
 
 // Устанавливаем фоновый цвет (поддерживается альфа-канал)
-ct.style.background.color = '#00000000';
+ct.style.background.color = '#00000000'
 
 // Скрываем рамку
-ct.style.border.hidden = true;
+ct.style.border.hidden = true
 </code></pre>
 </div>
 
 <div class="pt-3">
         <h3>Изменение свойств</h3>
 <pre><code class="language-js">// Получаем форму по её идентификатору
-let ct1 = wm.getWindow('ct1');
+let ct1 = wm.getWindow('ct1')
 
 // Поменять текст у надписи
-ct1.getWindow('lbl1').setText('Готово');
+ct1.getWindow('lbl1').setText('Готово')
 </code></pre>
 </div>
 
 <div class="pt-3">
         <h3>Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши, вот как это делается:</h3>
 <pre><code class="language-js">canvas.addEventListener('mousemove', function(e) {
-    wm.mouseEventDispatcher(e);
+    wm.mouseEventDispatcher(e)
 });
 
 canvas.addEventListener('mousedown', function(e) {
-    wm.mouseEventDispatcher(e);
-});
+    wm.mouseEventDispatcher(e)
+})
 </code></pre>
 </div>
+
+<canvas id="renderTarget"></canvas>
 
         <div class="pt-3">
         <h3>Код формы в начале материала</h3>
             <pre><code class="language-js" id="demo-code"></code></pre></div>
         </div>
 
-<script type="module" id="demo-code-src">
-import {WindowManager, Window, Label, Button} from "./wm.js";
+<script type="module" id="demo-code-src" src="./tools/gui/app.js"></script>
 
-// Define canvas and drawing context
-let canvas = document.getElementById('canvas');
-let ctx = canvas.getContext('2d');
-
-// Init Window Manager
-const wm = new WindowManager(canvas, ctx, 0, 0, canvas.width, canvas.height);
-wm.setBackground('./screenshot.jpg');
-wm.style.background.color = '#00000044';
-
-// Создаем форму
-wm.add(new Window(10, 10, 352, 332, 'ct1', null));
-
-// Получаем форму по её идентификатору
-const ct = wm.getWindow('ct1');
-// Устанавливаем фоновое изображение
-ct.setBackground('/media/gui/form-crafting-table.png');
-ct.style.background.color = '#00000000';
-ct.style.border.hidden = true;
-
-// Добавляем надписи на форму
-let lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting');
-ct.add(lbl1);
-
-// Добавление второй надписи
-let lbl2 = new Label(16, 144, 150, 20, 'lbl2', null, 'Inventory');
-lbl2.style.background.color = '#ffffff33';
-lbl2.onMouseMove = function(e) {
-    this.setText(e.x + 'x' + e.y);
-}
-ct.add(lbl2);
-
-// Создание слотов для инвентаря
-ct.inventory_slots = new Array(27);
-let sx = 14;
-let sy = 166;
-let sz = 36;
-let xcnt = 9;
-for(let i = 0; i < ct.inventory_slots.length; i++) {
-    let lblSlot = new Label(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + i, null, '' + i);
-    lblSlot.onMouseEnter = function() {
-        this.style.background.color = '#ffffff33';
-        wm.clear();
-        wm.draw();
-    }
-    lblSlot.onMouseLeave = function() {
-        this.style.background.color = '#00000000';
-        wm.clear();
-        wm.draw();
-    }
-    ct.add(lblSlot);
-}
-
-// Кнопка рецептов
-let btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
-btnRecipes.setBackground('/media/gui/recipes.png');
-btnRecipes.onMouseDown = function(e) {
-    alert('Привет');
-}
-/*
-// Пример того, как можно сохранить оригинальные обработчики, чтобы их можно было все таки вызвать после переназначения
-btnRecipes.onMouseEnter2 = btnRecipes.onMouseEnter;
-btnRecipes.onMouseLeave2 = btnRecipes.onMouseLeave;
-btnRecipes.onMouseEnter = function() {
-    this.onMouseEnter2();
-}
-btnRecipes.onMouseLeave = function() {
-    this.onMouseLeave2();
-}
-*/
-ct.add(btnRecipes);
-
-// Добавляем кнопку на форму
-let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
-btnClose.onMouseEnter = function() {
-    this.style.background.color = '#ff000033';
-}
-btnClose.onMouseLeave = function() {
-    this.style.background.color = '#00000000';
-}
-btnClose.onMouseDown = function(e) {
-    console.log('mousedown');
-    this.style.background.color = '#00000000';
-    ct.hide();
-}
-ct.add(btnClose);
-
-// Центруем форму внутри родителя
-wm.center(ct);
-
-// Draw all
-wm.clear();
-wm.draw();
-
-// ПРИМЕРЫ:
-const demo = {
-    // Скрыть / показать форму
-    toggleVisibility: function() {
-        let ct1 = wm.getWindow('ct1');
-        ct1.toggleVisibility();
-        // После ручного изменения любого состояния необходимо вызвать перерисовку
-        wm.clear();
-        wm.draw();
-    },
-    // Поменять текст надписи в указанной форме
-    changeLabelText: function() {
-        let ct1 = wm.getWindow('ct1');
-        ct1.getWindow('lbl1').setText((new Date()).toLocaleString());
-        // После ручного изменения любого состояния необходимо вызвать перерисовку
-        wm.clear();
-        wm.draw();
-    }
-};
-
-canvas.addEventListener('mousemove', function(e) {
-    wm.mouseEventDispatcher(e);
-    wm.clear();
-    wm.draw();
-});
-
-canvas.addEventListener('mousedown', function(e) {
-    wm.mouseEventDispatcher(e);
-    wm.clear();
-    wm.draw();
-});
-</script>
-        
-        <script>document.getElementById('demo-code').textContent = document.getElementById('demo-code-src').textContent.trim();</script>
+        <!-- <script>document.getElementById('demo-code').textContent = document.getElementById('demo-code-src').textContent.trim();</script> -->
 
     </body>
 </html>
