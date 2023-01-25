@@ -401,4 +401,6 @@ export class MyText extends PIXI.Text {
     }
 }
 
+MyText.prototype.calculateVertices = MySprite.prototype.calculateVertices;
+
 PIXI.extensions.add(MySpriteRenderer);

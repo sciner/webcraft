@@ -91,7 +91,11 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const prevShader = this.context._shader;
         if (prevShader === this && !force)
         {
-            this._material = null;
+            if (this._material)
+            {
+                this._material.unbind();
+                this._material = null;
+            }
             this.update();
             return;
         }
