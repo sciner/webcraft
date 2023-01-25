@@ -644,7 +644,9 @@ export class Window extends PIXI.Container {
         if(window) {
             return window._mousedown(event)
         }
-        this.onMouseLeave()
+        if(this instanceof Button) {
+            this.onMouseLeave()
+        }
         this.onMouseDown(e)
     }
 

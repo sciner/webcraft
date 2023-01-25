@@ -146,6 +146,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
         }
         return resp;
     }
+
     isInventorySlot() {
         return this.slot_index !== null && this.slot_index !== undefined
     }
@@ -388,7 +389,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 // @todo check instanceof!
                 // if(dropData instanceof InventoryItem) {
                 const dropItem    = drag.getItem()
-                const targetItem  = this.getInventoryItem()
+                const targetItem  = this.getItem()
                 if(!dropItem) {
                     return
                 }
@@ -487,7 +488,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
         const that        = this
         const player      = Qubatch.player
-        const targetItem  = this.getInventoryItem()
+        const targetItem  = this.getItem()
 
         // Set new drag
         if(!targetItem) {
@@ -651,20 +652,6 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
     }
 
-    // /**
-    //  * @deprecated
-    //  */
-    // draw(ctx, ax, ay) {
-    //     this.applyStyle(ctx, ax, ay);
-    //     const item = this.getInventoryItem()
-    //     this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h);
-    //     super.draw(ctx, ax, ay);
-    // }
-
-    getInventoryItem() {
-        return this.ct.inventory.items[this.slot_index] || this.item;
-    }
-
 }
 
 // Ячейка рецепта
@@ -691,37 +678,6 @@ export class ArmorSlot extends CraftTableInventorySlot {
         super(x, y, s, s, 'lblSlot' + id, null, null, ct, id)
 
         this.swapChildren(this.children[0], this.children[1])
-
-        /*
-        // Drag
-        this.onMouseDown = function(e) {
-            const targetItem  = this.getInventoryItem();
-            if(!targetItem || e.drag.getItem()) {
-                return;
-            }
-            this.setItem(null, e);
-            this.getInventory().setDragItem(this, targetItem, e.drag, this.w, this.h);
-        }
-
-        this.onDrop = function(e) {
-            const dropData    = e.drag.getItem();
-            const targetItem  = this.getInventoryItem();
-            if(!dropData) {
-               return;
-            }
-            const item = BLOCK.fromId(dropData.item.id);
-            if (item?.item?.name != 'armor' || item.armor.slot != this.slot_index) {
-                return;
-            }
-            this.setItem(dropData.item, e);
-            if (targetItem) {
-                this.ct.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
-                dropData.item = targetItem;
-            } else {
-                this.getInventory().clearDragItem();
-            }
-        }
-        */
 
         const origOnDrop = this.onDrop.bind(this);
 
@@ -772,29 +728,8 @@ export class ArmorSlot extends CraftTableInventorySlot {
         return mat?.item?.name == 'armor' && (mat.armor.slot == this.slot_index)
     }
 
-    // draw(ctx, ax, ay) {
-    //     this.applyStyle(ctx, ax, ay);
-    //     const item = this.getInventoryItem();
-    //     if(item) {
-    //         // fill background color
-    //         let x = ax + this.x;
-    //         let y = ay + this.y;
-    //         let w = this.w;
-    //         let h = this.height;
-    //         ctx.fillStyle = this.style.background.color == ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
-    //             ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#8f8d88ff';
-    //         ctx.fillRect(x, y, w, h);
-    //     }
-    //     this.drawItem(ctx, item, ax + this.x, ay + this.y, this.w, this.h)
-    //     super.draw(ctx, ax, ay)
-    // }
-
     getInventory() {
         return this.ct.inventory;
-    }
-
-    getInventoryItem() {
-        return this.ct.inventory.items[this.slot_index] || this.item;
     }
 
 }

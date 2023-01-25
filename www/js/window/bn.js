@@ -129,6 +129,7 @@ class EffectButton extends Window {
         this.setBackground(ct.atlas.getSpriteFromMap('button'))
         this.setIcon(ct.atlas.getSpriteFromMap(icon), 'centerstretch', .5)
 
+        this.setIconName(icon)
         this.setEnable(true)
         this.setDown(false)
 
@@ -185,7 +186,7 @@ class EffectButton extends Window {
     
     setIconName(name) {
         this.icon_name = name
-        this.setIcon(this.ct.atlas.getSpriteFromMap(name))
+        this.setIcon(this.ct.atlas.getSpriteFromMap(name), 'centerstretch', .5)
     }
     
     getIconName() {

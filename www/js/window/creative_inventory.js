@@ -127,7 +127,7 @@ class CreativeInventoryCollection extends Window {
             const that      = this
             const drag      = e.drag
             const dropItem  = drag.getItem() // что перетащили
-            let targetItem  = this.getInventoryItem() // куда перетащили
+            let targetItem  = this.getItem() // куда перетащили
             if(targetItem && dropItem.id == targetItem.id) {
                 targetItem = {...dropItem}
                 // calc count
@@ -146,7 +146,7 @@ class CreativeInventoryCollection extends Window {
 
         const onMouseDownFunc = function(e) {
             const that = this
-            let targetItem = this.getInventoryItem()
+            let targetItem = this.getItem()
             // Set new drag
             if(!targetItem) {
                 return

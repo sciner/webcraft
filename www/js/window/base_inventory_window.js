@@ -28,5 +28,10 @@ export class BaseInventoryWindow extends BlankWindow {
         }
     }
 
+    // Return inventory slots
+    getSlots() {
+        return this.inventory_slots;
+    }
+
     // TODO move more shared code from BaseChestWindow and BaseCraftWindow here.
 }
