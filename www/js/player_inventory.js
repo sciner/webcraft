@@ -36,6 +36,7 @@ export class PlayerInventory extends Inventory {
         for(const w of this.hud.wm.visibleWindows()) {
             w.onInventorySetState && w.onInventorySetState();
         }
+        this.update_number++
     }
 
     get inventory_window() {

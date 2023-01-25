@@ -253,10 +253,10 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.maxDirtyTime = null;
     }
 
-    draw(ctx, ax, ay) {
-        this.parent.center(this);
-        super.draw(ctx, ax, ay);
-    }
+    // draw(ctx, ax, ay) {
+    //     this.parent.center(this);
+    //     super.draw(ctx, ax, ay);
+    // }
 
     get loading() {
         return this.firstLoading || this.secondLoading;
@@ -359,7 +359,8 @@ export class BaseChestWindow extends BaseInventoryWindow {
         // copy data slots to the UI slots
         const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo, this.chest.slots.length);
         for(var i = range.min; i < range.max; i++) {
-            this.chest.slots[i].item = chest.slots[i - range.min] || null;
+            // this.chest.slots[i].item = chest.slots[i - range.min] || null;
+            this.chest.slots[i].setItem(chest.slots[i - range.min] || null)
         }
     }
 
