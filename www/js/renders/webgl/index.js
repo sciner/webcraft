@@ -352,6 +352,8 @@ export default class WebGLRenderer extends BaseRenderer {
 
     resetAfter() {
         this.gl.bindVertexArray(null);
+        this._shader?.unbind();
+        this._shader = null;
         // for (let i = 0; i < 16; i++) {
         //     this.gl.bindTexture();
         // }
