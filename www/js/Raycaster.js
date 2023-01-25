@@ -159,7 +159,7 @@ export class Raycaster {
         }
         return resp;
     }
-    
+
     // Player raycaster
     intersectPlayer(pos, dir, max_distance) {
         const resp = {
@@ -167,7 +167,7 @@ export class Raycaster {
             player: null
         };
         if(Qubatch?.world?.players) {
-            for (const [_, player] of Qubatch.world.players.list) { 
+            for (const [_, player] of Qubatch.world.players.list) {
                 // @todo не передаются количество жизней isAlive();
                 player.raycasted = false;
                 if(!player.aabb || !player.isAlive()) {
@@ -192,7 +192,7 @@ export class Raycaster {
         }
         return resp;
     }
-    
+
 
     /**
      * @param {Vector} pos
@@ -220,6 +220,7 @@ export class Raycaster {
         let fluidVal = 0;
         let fluidLeftTop = null;
         let res = null;
+        let len = 0;
         if(!this._block_vec) {
             this._block_vec = new Vector(0, 0, 0);
         }
@@ -247,7 +248,7 @@ export class Raycaster {
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
             let hitShape = b.id > this.BLOCK.AIR.id; // && !origin_block_pos.equal(leftTop);
-            if(ignore_transparent && b.material.invisible_for_cam || 
+            if(ignore_transparent && b.material.invisible_for_cam ||
                 b.material.material.id === 'water'
             ) {
                 hitShape = false;
@@ -270,38 +271,29 @@ export class Raycaster {
                     for(let j = 0; j < 3; j++) {
                         const d = coord[j];
 
-                        if(dir[d] > eps && tMin + eps > (shape[j] + leftTop[d] - pos[d]) / dir[d]) {
-                            const t = (shape[j] + leftTop[d] - pos[d]) / dir[d];
-
-                            check.x = pos.x - leftTop.x + t * dir.x;
-                            check.y = pos.y - leftTop.y + t * dir.y;
-                            check.z = pos.z - leftTop.z + t * dir.z;
-
-                            if (shape[0] - eps < check.x && check.x < shape[3] + eps
-                                && shape[1] - eps < check.y && check.y < shape[4] + eps
-                                && shape[2] - eps < check.z && check.z < shape[5] + eps
-                            ) {
-                                tMin = t;
-                                side.zero()[d] = 1;
-                                flag = true;
-                            }
+                        if (Math.abs(dir[d]) < eps) {
+                            continue;
                         }
 
-                        if(
-                            dir[d] < -eps && tMin + eps > (shape[j + 3] + leftTop[d] - pos[d]) / dir[d]
-                        ) {
-                            const t = (shape[j + 3] + leftTop[d] - pos[d]) / dir[d];
-                            check.x = pos.x - leftTop.x + t * dir.x;
-                            check.y = pos.y - leftTop.y + t * dir.y;
-                            check.z = pos.z - leftTop.z + t * dir.z;
+                        let sign = Math.sign(dir[d]);
+                        let t = (shape[j] + leftTop[d] - pos[d]) / dir[d];
+                        let t2 = (shape[j + 3] + leftTop[d] - pos[d]) / dir[d];
+                        if (sign < 0) {
+                            let tt = t; t = t2; t2 = tt;
+                        }
 
-                            if (shape[0] - eps < check.x && check.x < shape[3] + eps
-                                && shape[1] - eps < check.y && check.y < shape[4] + eps
-                                && shape[2] - eps < check.z && check.z < shape[5] + eps) {
-                                tMin = t;
-                                side.zero()[d] = -1;
-                                flag = true;
-                            }
+                        if (t2 < -len || t > tMin + eps) continue;
+                        check.x = pos.x - leftTop.x + t * dir.x;
+                        check.y = pos.y - leftTop.y + t * dir.y;
+                        check.z = pos.z - leftTop.z + t * dir.z;
+
+                        if (shape[0] - eps < check.x && check.x < shape[3] + eps
+                            && shape[1] - eps < check.y && check.y < shape[4] + eps
+                            && shape[2] - eps < check.z && check.z < shape[5] + eps
+                        ) {
+                            tMin = t;
+                            side.zero()[d] = sign;
+                            flag = true;
                         }
                     }
                 }
@@ -314,6 +306,7 @@ export class Raycaster {
             pos.x += dir.x * tMin;
             pos.y += dir.y * tMin;
             pos.z += dir.z * tMin;
+            len   += tMin;
 
             if (hitShape) {
                 side.x = -side.x;
@@ -347,7 +340,7 @@ export class Raycaster {
                 res.mob = mob;
             }
         }
-        
+
         const {player_distance, player} = this.intersectPlayer(origin, dir, pickat_distance);
         if (player) {
             if(res) {
@@ -363,7 +356,7 @@ export class Raycaster {
                 res.player = player;
             }
         }
-        
+
         if (fluidVal > 0) {
             if (!res) {
                 res = new RaycasterResult();
