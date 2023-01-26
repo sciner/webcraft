@@ -7290,7 +7290,12 @@
             "sound": "madcraft:block.glass",
             "material": {"id": "glass"},
             "extra_data": {
-                "level": 0
+                "state": {
+                    "level": 0,
+                    "first": 0,
+                    "second": 0,
+                    "power": false
+                }
             },
             "is_entity": true,
             "chest": {

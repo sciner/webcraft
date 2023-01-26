@@ -3,6 +3,8 @@ import { Button, Window } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { Resources } from "../resources.js";
+import { BaseChestWindow } from "./base_chest_window.js";
+import { Vector } from "../helpers.js";
 
 // слот для залога
 class BeaconSlot extends CraftTableSlot {
@@ -196,15 +198,18 @@ class EffectButton extends Window {
 }
 
 //
-export class BeaconWindow extends BaseCraftWindow {
+export class BeaconWindow extends BaseChestWindow {
 
-    constructor(player) {
+    constructor(inventory) {
         
-        super(10, 10, 459, 438, 'frmBeacon', null, null, player.inventory);
+        super(10, 10, 459, 438, 'frmBeacon', null, null, inventory, {
+            title: 'Beacon',
+            sound: {
+                open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
+                close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
+            }
+        })
         
-        this.w *= this.zoom
-        this.h *= this.zoom
-        this.player = player
 
         this.atlas = Resources.atlas.bn
 
@@ -214,10 +219,7 @@ export class BeaconWindow extends BaseCraftWindow {
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Создание кнопок для эффектов
-        this.createButtons(this.cell_size)
-
-        // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size, 70, 272)
+       // this.createButtons(this.cell_size)
 
         // Add close button
         this.loadCloseButtonImage((image) => {
@@ -230,18 +232,14 @@ export class BeaconWindow extends BaseCraftWindow {
         })
 
     }
+
+    //
+    prepareSlots() {
+        const resp = [];
+        resp.push({pos: new Vector(32 * this.zoom, 32 * this.zoom, 0)});
+        return resp;
+    }
         
-    // Обработчик закрытия формы
-    onHide() {
-        this.inventory.clearDragItem()
-        // Save inventory
-        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [])
-    }
-    
-    // Обработчик открытия формы
-    onShow(args) {
-        Qubatch.releaseMousePointer()
-    }
     
     createButtons(cell_size) {
 

@@ -34,9 +34,9 @@ export default class style {
         box(10, 10, 11, 2, vertices, beacon, beacon, x, y, z, QUAD_FLAGS.NO_CAN_TAKE_LIGHT);
         
         if(typeof worker != 'undefined') {
-            if(block.extra_data && ('level' in block.extra_data)) {
+            if(block?.extra_data?.state?.level) {
                 worker.postMessage([
-                    (block.extra_data.level != 0) ? 'add_beacon_ray' : 'del_beacon_ray', 
+                    (block.extra_data.state.level != 0) ? 'add_beacon_ray' : 'del_beacon_ray', 
                     {
                         pos: block.posworld
                     }
