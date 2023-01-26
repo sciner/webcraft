@@ -72,7 +72,8 @@ export class ServerGame {
     async start(config) {
 
         // Copy the updated music from an external repo to the place where it's served from. Don't await completion.
-        syncDirectory(SERVER_MUSIC_SOURCE_DIR, SERVER_MUSIC_DIR).then(changed => {
+        syncDirectory(SERVER_MUSIC_SOURCE_DIR, SERVER_MUSIC_DIR, (name) => !name.startsWith('.'))
+        .then(changed => {
             if (changed) {
                 console.log('The music directory was updated')
             }

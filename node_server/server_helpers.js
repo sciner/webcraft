@@ -303,7 +303,7 @@ export class PacketHelpers {
  * Recursively processes subfolders.
  * @return {Boolean} true if anything has been changed
  */
-export async function syncDirectory(srcDir, dstDir) {
+export async function syncDirectory(srcDir, dstDir, filter = (fileName) => true) {
 
     async function readdirExt(dir) {
         const files = await fs.promises.readdir(dir) // get filenames
@@ -329,6 +329,9 @@ export async function syncDirectory(srcDir, dstDir) {
 
     // copy new and/or updated files and directories
     for(const srcFile of srcFiles) {
+        if (!filter(srcFile.name)) {
+            continue;
+        }
         if (srcFile.stat.isDirectory()) {
             // sync subfolder recursively
             const dstFullName = path.join(dstDir, srcFile.name)
