@@ -53,7 +53,7 @@ export class CubeTexturePool {
         bigDepth = 256,
         type = 'rgba8unorm',
         filter = 'linear',
-        maxBoundTextures = 10,
+        maxBoundTextures = 3,
     }) {
         this.bigWidth = bigWidth;
         this.bigHeight = bigHeight;
