@@ -592,8 +592,10 @@ export class ServerWorld {
     // Юзер начал видеть этот чанк
     async loadChunkForPlayer(player, addr) {
         const chunk = this.chunks.get(addr);
+        // this is an old request for re-sync after player started seeing chunk, in case modifiers are different now
         if (!chunk) {
-            throw 'Chunk not found';
+            // chunk was already unloaded, request is too old
+            return;
         }
         chunk.addPlayerLoadRequest(player);
     }
