@@ -78,7 +78,7 @@ export class ServerPlayer extends Player {
         this.dt_connect             = new Date();
         this.safePosWaitingChunks   = [];
         this.safeTeleportMargin = 2;
-        this.safeTeleportMarginY = 1;
+        this.safeTeleportMarginY = 2;
         this.safePosInitialOverride = null; // if its null, state.pos_spawn is used instead
         this.in_portal              = false;
         this.wait_portal            = null;
