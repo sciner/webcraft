@@ -242,8 +242,12 @@ export class Hotbar {
         this.tilemap.clear()
 
         const player  = this.inventory.player;
-        
-        if(player.game_mode.isSpectator()) {
+
+        const visible = !player.game_mode.isSpectator()
+
+        this.inventory_slots.visible = visible
+
+        if(!visible) {
             return false;
         }
 
