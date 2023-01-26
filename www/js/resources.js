@@ -69,6 +69,7 @@ export class Resources {
         this.weather            = {};
         this.blockDayLight      = null;
         this.maskColor          = null;
+        this.layout             = {}
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
@@ -96,6 +97,11 @@ export class Resources {
             this.atlas[name] = {}
             all.push(fetch(`data/atlas/${name}/atlas.json`).then(response => response.json()).then(json => { this.atlas[name].map = json}))
             all.push(loadImage(`data/atlas/${name}/atlas.png`).then(img => {this.atlas[name].image = img}))
+        }
+
+        // Window layouts
+        for(let name of ['quest_view']) {
+            all.push(fetch(`data/layout/${name}.json`).then(response => response.json()).then(json => { this.layout[name] = json}))
         }
 
         // Skybox textures

@@ -1,7 +1,7 @@
 /**
 * Window Manager based on PIXI.js
 */
-import { RuneStrings, deepAssign, Helpers } from "../../js/helpers.js";
+import { RuneStrings, deepAssign, Helpers, isScalar } from "../../js/helpers.js";
 import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
 import {Style} from "./styles.js";
@@ -9,6 +9,7 @@ import {Style} from "./styles.js";
 import { msdf } from "../../data/font.js";
 import {MyText} from "./MySpriteRenderer.js";
 import { BLOCK } from "../../js/blocks.js";
+import { Lang } from "../../js/lang.js";
 
 globalThis.visible_change_count = 0
 
@@ -283,6 +284,16 @@ export class Window extends PIXI.Container {
      * @param {?string} value
      */
     set text(value) {
+        if(!isScalar(value)) {
+            throw 'error_invalid_text_value'
+        }
+        if(value) {
+            value = '' + value
+            if(value.startsWith('Lang.')) {
+                value = Lang.getOrDefault(value.substring(5), value)
+            }
+            value = value.replaceAll('\r\n', '\r')
+        }
         if(!this.text_container) {
             if (value === undefined) {
                 return;
@@ -789,69 +800,80 @@ export class Window extends PIXI.Container {
     }
 
     assignStyles(style) {
+        const deep_assign_options = {nonEnum: false, symbols: false, descriptors: false, proto: false}
         for(let param in style) {
-            let v = style[param];
+            let v = style[param]
             switch(param) {
                 case 'padding': {
                     if(!isNaN(v)) {
                         v = {left: v, top: v, right: v, bottom: v};
                     }
-                    this.style[param] = v;
-                    break;
+                    for(let k in v) {
+                        v[k] *= this.zoom
+                    }
+                    this.style[param] = v
+                    break
                 }
                 default: {
-                    const options = {nonEnum: false, symbols: false, descriptors: false, proto: false}
-                    deepAssign(options)(this.style[param], v);
-                    break;
+                    deepAssign(deep_assign_options)(this.style[param], v)
+                    break
                 }
             }
         }
     }
 
+    /**
+     * @param {object} layout 
+     */
     appendLayout(layout) {
         const ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
-        ];
+        ]
+        const calcLayoutSize = (value, def_value) => {
+            if(value === undefined) {
+                return def_value
+            }
+            return (value | 0) * this.zoom
+        }
         for(let id in layout) {
-            const cl = layout[id];
-            let control = null;
+            const cl = layout[id]
+            let control = null
             if(cl instanceof Window) {
-                control = cl;
+                control = cl
             } else {
+                const w = calcLayoutSize(cl.width, this.w)
+                const h = calcLayoutSize(cl.height, 0)
                 switch(cl.type) {
                     case 'VerticalLayout': {
-                        control = new VerticalLayout(cl.x, cl.y, cl.width, id);
+                        control = new VerticalLayout(cl.x, cl.y, w, id);
                         if(cl.childs) {
-                            control.appendLayout(cl.childs);
+                            control.appendLayout(cl.childs)
                         }
-                        break;
+                        break
                     }
                     case 'Label': {
-                        control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text)
-                        if(cl.word_wrap !== undefined) {
-                            control.style.font.word_wrap = cl.word_wrap
-                        }
-                        break;
+                        control = new Label(cl.x, cl.y, w, h, id, cl?.title, cl?.text)
+                        break
                     }
                     case 'Button': {
-                        control = new Button(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text)
+                        control = new Button(cl.x, cl.y, w, h, id, cl?.title, cl?.text)
                         break
                     }
                 }
             }
             if(control) {
                 if(cl.style) {
-                    control.assignStyles(cl.style);
+                    control.assignStyles(cl.style)
                 }
                 // set other props
                 for(let prop in cl) {
                     if(ignored_props.indexOf(prop) < 0) {
-                        control[prop] = cl[prop];
+                        control[prop] = cl[prop]
                     }
                 }
-                this.add(control);
+                this.add(control)
                 if('refresh' in control) {
-                    control.refresh();
+                    control.refresh()
                 }
             }
         }

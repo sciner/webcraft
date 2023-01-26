@@ -1,6 +1,7 @@
 import { Window } from "../../../tools/gui/wm.js";
 import {BLOCK} from "../../../js/blocks.js";
 import { Lang } from "../../lang.js";
+import { Resources } from "../../resources.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -25,92 +26,11 @@ export class QuestView extends Window {
         this.cell_size = 36 * this.zoom;
         this.max_height = 0;
         this.wheel_scroll = 36 * this.zoom;
-        //
         this.style.background.color = '#ffffff22';
         this.style.border.hidden = true;
 
-        const FONT_ZOOM = this.zoom / 2;
-        const PADDING = 20 * FONT_ZOOM;
-        const TITLE_LABEL_HEIGHT = 70 * FONT_ZOOM;
-
         //
-        this.appendLayout({
-            questViewLayout: {
-                type: 'VerticalLayout',
-                x: 0,
-                y: 0,
-                width: this.w,
-                visible: false,
-                childs: {
-                    lblTitle: {
-                        type: 'Label',
-                        x: 0,
-                        y: 0,
-                        width: 0,
-                        height: TITLE_LABEL_HEIGHT,
-                        style: {padding: PADDING, font: {size: 14, family: 'Ubuntu-Bold'}},
-                        title: 'Quest title'
-                    },
-                    lDesc: {
-                        type: 'Label',
-                        word_wrap: true,
-                        style: {
-                            padding: PADDING,
-                            font: {size: 12},
-                            background: {color: '#ffffff22'}
-                        },
-                        title: null,
-                        text: 'Quest description'
-                    },
-                    l1: {
-                        type: 'Label',
-                        word_wrap: true,
-                        style: {
-                            padding: PADDING,
-                            font: {size: 12, family: 'Ubuntu-Bold'},
-                            background: {color: '#ffffff00'}
-                        },
-                        title: null,
-                        text: Lang.tasks + ':'
-                    },
-                    lblActions: {
-                        type: 'Label',
-                        word_wrap: true,
-                        style: {
-                            padding: PADDING,
-                            font: {size: 12},
-                            background: {color: '#ffffff22'}
-                        },
-                        title: null,
-                        text: '1. ...\r\n2. ...'
-                    },
-                    l2: {
-                        type: 'Label',
-                        word_wrap: true,
-                        style: {
-                            padding: PADDING,
-                            font: {size: 12, family: 'Ubuntu-Bold'},
-                            background: {color: '#ffffff00'}
-                        },
-                        title: null,
-                        text: Lang.rewards + ':'
-                    },
-                    lblRewards: {
-                        type: 'Label',
-                        word_wrap: true,
-                        style: {
-                            padding: PADDING,
-                            font: {size: 12},
-                            background: {color: '#ffffff22'}
-                        },
-                        title: null,
-                        text: '1. ...\r\n2. ...'
-                    },
-                }
-            }
-        });
-
-        // this.getWindow('questViewLayout').visible = false;
+        this.appendLayout(Resources.layout.quest_view)
 
     }
 
@@ -131,11 +51,11 @@ export class QuestView extends Window {
         const lblRewards = ql.getWindow('lblRewards');
         
         //
-        lblTitle.title = quest.title.replaceAll('\r\n', '\r');
-        lDesc.text = quest.description.replaceAll('\r\n', '\r');
+        lblTitle.text = quest.title
+        lDesc.text = quest.description
 
         if(quest.is_completed) {
-            lblTitle.title = `✅ ${lblTitle.title}`
+            lblTitle.text = `✅ ${lblTitle.text}`
         }
 
         this.quest = quest;
@@ -166,7 +86,7 @@ export class QuestView extends Window {
                 }
             }
         }
-        lblActions.text = actions.join('\r\n\r\n').replaceAll('\r\n', '\r');
+        lblActions.text = actions.join('\r\n\r\n')
 
         // rewards
         const rewards = []
@@ -176,7 +96,7 @@ export class QuestView extends Window {
                 rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt);
             }
         }
-        lblRewards.text = rewards.join('\r\n\r\n').replaceAll('\r\n', '\r');
+        lblRewards.text = rewards.join('\r\n\r\n')
 
         ql.visible = true;
 

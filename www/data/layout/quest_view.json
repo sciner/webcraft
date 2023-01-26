@@ -1,0 +1,102 @@
+{
+    "questViewLayout": {
+        "type": "VerticalLayout",
+        "x": 0,
+        "y": 0,
+        "visible": false,
+        "childs": {
+            "lblTitle": {
+                "type": "Label",
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 35,
+                "style": {
+                    "padding": 10,
+                    "font": {
+                        "size": 14,
+                        "family": "Ubuntu-Bold"
+                    }
+                },
+                "title": "Quest title"
+            },
+            "lDesc": {
+                "type": "Label",
+                "style": {
+                    "padding": 10,
+                    "font": {
+                        "size": 12,
+                        "word_wrap": true
+                    },
+                    "background": {
+                        "color": "#ffffff22"
+                    }
+                },
+                "title": null,
+                "text": "Quest description"
+            },
+            "l1": {
+                "type": "Label",
+                "style": {
+                    "padding": 10,
+                    "font": {
+                        "size": 12,
+                        "family": "Ubuntu-Bold",
+                        "word_wrap": true
+                    },
+                    "background": {
+                        "color": "#ffffff00"
+                    }
+                },
+                "title": null,
+                "text": "Lang.tasks"
+            },
+            "lblActions": {
+                "type": "Label",
+                "style": {
+                    "padding": 10,
+                    "font": {
+                        "size": 12,
+                        "word_wrap": true
+                    },
+                    "background": {
+                        "color": "#ffffff22"
+                    }
+                },
+                "title": null,
+                "text": "1. ...\r\n2. ..."
+            },
+            "l2": {
+                "type": "Label",
+                "style": {
+                    "padding": 10,
+                    "font": {
+                        "size": 12,
+                        "family": "Ubuntu-Bold",
+                        "word_wrap": true
+                    },
+                    "background": {
+                        "color": "#ffffff00"
+                    }
+                },
+                "title": null,
+                "text": "Lang.rewards"
+            },
+            "lblRewards": {
+                "type": "Label",
+                "style": {
+                    "padding": 10,
+                    "font": {
+                        "size": 12,
+                        "word_wrap": true
+                    },
+                    "background": {
+                        "color": "#ffffff22"
+                    }
+                },
+                "title": null,
+                "text": "1. ...\r\n2. ..."
+            }
+        }
+    }
+}
