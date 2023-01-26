@@ -66,6 +66,7 @@ export class Window extends PIXI.Container {
 
     #_tooltip = null
     #_bgicon = null
+    #_wmclip = null
 
     zoom = UI_ZOOM
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
@@ -130,7 +131,8 @@ export class Window extends PIXI.Container {
         this.auto_center        = true
         this.create_time        = performance.now()
 
-        this.style              = new Style(this)
+        this.style              = new Style()
+        this.style.assign(this)
 
         this.w                  = w
         this.h                  = h
@@ -173,6 +175,23 @@ export class Window extends PIXI.Container {
         if(this.style) {
             this.style.background.resize()
         }
+    }
+
+    /**
+     * Return width with padding
+     * @return {float}
+     */
+    get ww() {
+        if(!this.style.padding) debugger
+        return this.w + this.style.padding.left + this.style.padding.right
+    }
+
+    /**
+     * Return height with padding
+     * @return {float}
+     */
+    get hh() {
+        return this.h + this.style.padding.top + this.style.padding.bottom
     }
 
     get name() {
@@ -441,7 +460,7 @@ export class Window extends PIXI.Container {
                 mh = w.y + w.h;
             }
         }
-        this.max_height = mh + this.style.padding.bottom;
+        this.max_height = mh + this.style.padding.top + this.style.padding.bottom
     }
 
     hasVisibleWindow() {
@@ -984,6 +1003,34 @@ export class Window extends PIXI.Container {
         }
     }
 
+    clip() {
+
+        const w = this.w
+        const h = this.h
+
+        let clip_mask = this.#_wmclip
+        if(!clip_mask) {
+            clip_mask = new Graphics()
+            clip_mask.id = randomUUID()
+            clip_mask.transform.position.set(0, 0)
+            clip_mask.width = w
+            clip_mask.height = h
+            clip_mask.clear()
+            clip_mask.beginFill(0x00ff0055)
+            clip_mask.drawRect(0, 0, w, h)
+            this.add(clip_mask)
+            this.#_wmclip = clip_mask
+            this.mask = clip_mask
+        } else {
+            clip_mask.width = w
+            clip_mask.height = h
+            clip_mask.clear()
+            clip_mask.beginFill(0x00ff0055)
+            clip_mask.drawRect(0, 0, w, h)
+        }
+
+    }
+
 }
 
 // Button
@@ -997,8 +1044,10 @@ export class Button extends Window {
         this.style.border.hidden = false
 
         if(this.text_container) {
-            this.text_container.anchor.set(.5, .5)
-            this.text_container.position.set(this.w / 2, this.h / 2)
+            this.style.textAlign.horizontal = 'center'
+            this.style.textAlign.vertical = 'middle'
+            // this.text_container.anchor.set(.5, .5)
+            // this.text_container.position.set(this.w / 2, this.h / 2)
         }
 
         this.swapChildren(this.children[0], this.children[1])
@@ -1185,38 +1234,23 @@ class Tooltip extends Label {
         super(0, 0, 100, 20, '_tooltip', null, text)
 
         this.style.font.color = '#ffffff'
-        this.style.font.size = 20
-        this.style.font.family = 'Ubuntu'
-        this.style.padding = {
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: 10
-        }
+        this.style.padding.set(7 * this.zoom, 4 * this.zoom)
+        this.style.font.word_wrap = true
 
-        this.word_wrap = true
-        this.need_update_size = false
+        this.text_container.style.wordWrapWidth = this.getRoot().w / 2
 
         this.setText(text)
-
-        // Text background
-        this._textbg = new PIXI.Graphics()
-        this._textbg.beginFill(0x000000)
-        this._textbg.drawRect(0, 0, 200, 100)
-        this._textbg.alpha = .75
-        this.addChildAt(this._textbg, 0)
-
     }
 
     setText(text) {
 
         this.visible = !!text
         this.text = text
-        this.need_update_size = true
 
-        if(this._textbg) {
-            this._textbg.width = this.text_container.width
-            this._textbg.height = this.text_container.height
+        if(this.visible) {
+            this.w = this.text_container.width + this.style.padding.left + this.style.padding.right
+            this.h = this.text_container.height + this.style.padding.top + this.style.padding.bottom
+            this.style.background.color = '#000000c0'
         }
 
     }

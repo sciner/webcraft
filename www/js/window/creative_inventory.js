@@ -24,17 +24,7 @@ class CreativeInventoryCollection extends Window {
         this.add(this.container)
 
         // create clip mask
-        this.clip_mask = new Graphics()
-        this.clip_mask.id = randomUUID()
-        this.clip_mask.transform.position.set(0, 0)
-        this.clip_mask.width = w
-        this.clip_mask.height = h
-        this.clip_mask.clear()
-        this.clip_mask.beginFill(0x00ff0055)
-        this.clip_mask.drawRect(0, 0, w, h)
-        this.add(this.clip_mask)
-
-        this.mask = this.clip_mask
+        this.clip()
 
     }
 

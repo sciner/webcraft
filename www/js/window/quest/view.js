@@ -1,7 +1,7 @@
 import { Window } from "../../../tools/gui/wm.js";
 import {BLOCK} from "../../../js/blocks.js";
-import { Lang } from "../../lang.js";
 import { Resources } from "../../resources.js";
+import { Helpers } from "../../helpers.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -24,25 +24,27 @@ export class QuestView extends Window {
 
         // Ширина / высота слота
         this.cell_size = 36 * this.zoom;
-        this.max_height = 0;
         this.wheel_scroll = 36 * this.zoom;
         this.style.background.color = '#ffffff22';
         this.style.border.hidden = true;
 
-        //
+        this.clip()
+
+        // Append layout
         this.appendLayout(Resources.layout.quest_view)
+
+        this.container = this.getWindow('questViewLayout')
 
     }
 
     _wheel(e) {
+        const min_scroll = Math.min(this.h - this.container.h, 0)
         this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll
-        this.scrollY = Math.min(this.scrollY, 0)
-        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
-    };
+        this.scrollY = Helpers.clamp(this.scrollY, min_scroll, 0)
+        this.container.y = this.scrollY
+    }
 
     show(quest) {
-
-        // console.log(quest);
 
         const ql = this.getWindow('questViewLayout');
         const lblTitle = ql.getWindow('lblTitle');

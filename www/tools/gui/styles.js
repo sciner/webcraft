@@ -194,11 +194,12 @@ export class BackgroundStyle {
     }
 
     set color(value) {
+        const window = this.#window
         const {color, alpha} = parseColorAndAlpha(value)
         this._color = value
         this.#_bgcolor.clear()
         this.#_bgcolor.beginFill(color)
-        this.#_bgcolor.drawRect(0, 0, this.#window.w, this.#window.h)
+        this.#_bgcolor.drawRect(0, 0, window.w, window.h)
         this.#_bgcolor.alpha = alpha
     }
 
@@ -355,6 +356,30 @@ export class PaddingStyle {
      */
     set bottom(value) {
         this.#_values.bottom = value
+        this._changed()
+    }
+
+    /**
+     * Smart set padding
+     * @param {float} left 
+     * @param {float} top 
+     * @param {float} right 
+     * @param {float} bottom 
+     */
+    set(left, top, right, bottom) {
+        if(left != undefined && top == undefined && right == undefined && bottom == undefined) {
+            top = right = bottom = left
+        } else if (left != undefined && top != undefined && right == undefined && bottom == undefined) {
+            right = left
+            bottom = top
+        }
+        if(left == undefined || top == undefined || right == undefined || bottom == undefined) {
+            throw 'error_invalid_style_padding'
+        }
+        this.#_values.left = left
+        this.#_values.top = top
+        this.#_values.right = right
+        this.#_values.bottom = bottom
         this._changed()
     }
 
@@ -535,16 +560,18 @@ export class Style {
 
     #window
 
+    constructor() {}
+
     /**
      * @param { import("./wm.js").Window } window
      */
-    constructor(window) {
-        this.#window = window
-        this._background = new BackgroundStyle(window)
-        this._border = new BorderStyle(window)
-        this._font = new FontStyle(window)
-        this._padding = new PaddingStyle(window)
-        this._textAlign = new TextAlignStyle(window)
+    assign(window) {
+        this.#window        = window
+        this._padding       = new PaddingStyle(window)
+        this._background    = new BackgroundStyle(window)
+        this._border        = new BorderStyle(window)
+        this._font          = new FontStyle(window)
+        this._textAlign     = new TextAlignStyle(window)
     }
 
     /**
@@ -563,10 +590,9 @@ export class Style {
                 this._padding[k] = value[k]
             }
         } else {
-            for(let k in this._padding) {
-                this._padding[k] = value
-            }
+            this._padding.set(value)
         }
+        this._padding._changed()
     }
 
     /**
