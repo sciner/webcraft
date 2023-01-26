@@ -7292,6 +7292,10 @@
             "extra_data": {
                 "level": 0
             },
+            "is_entity": true,
+            "chest": {
+                "slots": 1
+            },
             "light_power": {
                 "r": 80,
                 "g": 200,
