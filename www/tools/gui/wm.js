@@ -1011,7 +1011,7 @@ export class Window extends PIXI.Container {
         let clip_mask = this.#_wmclip
         if(!clip_mask) {
             clip_mask = new Graphics()
-            clip_mask.id = randomUUID()
+            clip_mask.id = `${this.id}_clip_mask`
             clip_mask.transform.position.set(0, 0)
             clip_mask.width = w
             clip_mask.height = h
