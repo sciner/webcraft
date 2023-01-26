@@ -44,6 +44,7 @@ export class GameClass {
 
     // Start
     async Start(server_url, world_guid, settings, resource_loading_progress) {
+        this.settings = settings;
 
         // Load resources
         Resources.onLoading = resource_loading_progress;
@@ -87,6 +88,9 @@ export class GameClass {
         this.sounds             = new Sounds(player);
         this.averageClockTimer  = new AverageClockTimer();
         this.prev_player_state  = null;
+        // start playing music
+        this.sounds.music.volume = this.settings.music_volume * 0.01;
+        this.sounds.music.play();
         //
         this.render.setPlayer(player);
         this.setInputElement(this.render.canvas);

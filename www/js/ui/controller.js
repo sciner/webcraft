@@ -6,7 +6,7 @@ import { SkinManager } from './skin-manager.js';
 import { GameClass } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
-import { KEY, MOUSE } from "../constant.js";
+import { KEY, MOUSE, DEFAULT_MUSIC_VOLUME } from "../constant.js";
 import { BgEffect } from './bg_effect.js';
 import  registerTextFilter from './angular/textfilter.js';
 // import { PlayerWindowManager } from '../player_window_manager.js';
@@ -293,6 +293,7 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.settings = {
         form: {
             fov: DEFAULT_FOV_NORMAL,
+            music_volume: DEFAULT_MUSIC_VOLUME,
             texture_pack: 'base',
             render_distance: 4,
             use_light: 1,
@@ -345,6 +346,7 @@ let gameCtrl = async function($scope, $timeout) {
                 this.form.mouse_sensitivity = 100;
             }
             this.form.fov = this.form.fov || DEFAULT_FOV_NORMAL;
+            this.form.music_volume = this.form.music_volume ?? DEFAULT_MUSIC_VOLUME;
         },
         updateSlider: function (inputId) {
             const slider = document.getElementById(inputId);

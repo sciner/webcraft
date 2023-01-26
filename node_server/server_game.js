@@ -8,8 +8,10 @@ import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
 import { Helpers, Vector } from '../www/js/helpers.js';
+import { syncDirectory } from './server_helpers.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { SERVER_MUSIC_SOURCE_DIR, SERVER_MUSIC_DIR } from './server_constant.js'
 
 class FakeHUD {
     add() {}
@@ -69,6 +71,14 @@ export class ServerGame {
     // Start websocket server
     async start(config) {
 
+        // Copy the updated music from an external repo to the place where it's served from. Don't await completion.
+        syncDirectory(SERVER_MUSIC_SOURCE_DIR, SERVER_MUSIC_DIR).then(changed => {
+            if (changed) {
+                console.log('The music directory was updated')
+            }
+        }, err => {
+            console.error(err)
+        })
         //
         const conn = await SQLiteServerConnector.connect('./game.sqlite3');
         await DBGame.openDB(conn).then((db) => {

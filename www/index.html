@@ -330,6 +330,12 @@
                         <p>{{Lang.language}}</p>
                         <select class="slim-select lang-dropdown" id="start-page-select" ng-options="item as item.short_title for item in Lang.list" ng-model="current_lang" ng-change="changeLang(current_lang)"></select>
                     </div>
+                    <div class="input-group">
+                        <p>{{Lang.music_volume}}: <span>{{settings.form.music_volume}}</span>%</p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_musicVolume" class="slider" type="range" min="0" max="100" ng-model="settings.form.music_volume">
+                        </div>
+                    </div>
                     <div class="switcher-container">
                         <input type="checkbox" id="chk-forced_joystick_control" value="" ng-model="settings.form.forced_joystick_control" />
                         <div class="switcher">
@@ -357,10 +363,8 @@
                     <div class="input-group">
                         <p>{{Lang.field_of_view}}: <span>{{settings.form.fov}}</span>°</p>
                         <div class="rangeContainer" style="margin-bottom: 20px;">
-                            <input id="inputRange_FOV" class="slider" type="range" min="50" max="120" step="5" value="settings.form.fov"
-                                ng-model="settings.form.fov" ng-change="settings.updateSlider('inputRange_FOV')">
+                            <input id="inputRange_FOV" class="slider" type="range" min="50" max="120" step="5" ng-model="settings.form.fov">
                         </div>
-                        <div id="inputRange_FOV_ticks"></div>
                     </div>
                     <div class="input-group">
                         <p>{{Lang.render_options}}</p>

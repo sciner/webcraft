@@ -159,6 +159,7 @@
         "effect_error_time": {"en": "Effect duration time must be greater than zero. Example /effect give [id] [level] [time]", "ru": "Время длительности эффекта должно быть больше нуля. Пример /effect give [id] [level] [time]", "fr": "", "es": "", "man": ""},
         "effect_add_ok": {"en": "Effect \"%0\" added for %1 sec", "ru": "Эффект \"%0\" добавлен на %1 сек", "fr": "", "es": "", "man": ""},
         "effect_all_removed": {"en": "All effects removed", "ru": "Все эффекты удалены", "fr": "", "es": "", "man": ""},
+        "music_volume": {"en": "Music volume", "ru": "Громкость музыки", "fr": "", "es": "", "man": ""},
         "error_command_not_working_in_this_game_mode": {"en": "Command not working in this game mode", "ru": "Команда не работает в текущем игровом режиме", "fr": "", "es": "", "man": ""}
     }
 }
