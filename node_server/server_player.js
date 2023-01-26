@@ -77,7 +77,8 @@ export class ServerPlayer extends Player {
         this.checkDropItemTempVec   = new Vector();
         this.dt_connect             = new Date();
         this.safePosWaitingChunks   = [];
-        this.safeTeleportRenderDist = 2;
+        this.safeTeleportMargin = 2;
+        this.safeTeleportMarginY = 1;
         this.safePosInitialOverride = null; // if its null, state.pos_spawn is used instead
         this.in_portal              = false;
         this.wait_portal            = null;
@@ -488,7 +489,7 @@ export class ServerPlayer extends Player {
             // teleport
             var initialPos = this.safePosInitialOverride || this.state.pos_spawn;
             this.safePosInitialOverride = null;
-            this.state.pos = this.world.chunks.findSafePos(initialPos, this.safeTeleportRenderDist);
+            this.state.pos = this.world.chunks.findSafePos(initialPos, this.safeTeleportMargin);
 
             // change status
             this.status = PLAYER_STATUS_ALIVE;
@@ -706,7 +707,7 @@ export class ServerPlayer extends Player {
             if (params.safe) {
                 this.status = PLAYER_STATUS_WAITING_DATA;
                 this.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
-                this.safePosWaitingChunks = world.chunks.queryPlayerVisibleChunks(this, new_pos, this.safeTeleportRenderDist);
+                this.safePosWaitingChunks = world.chunks.queryPlayerVisibleChunks(this, new_pos);
                 for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
                     this.safePosWaitingChunks[i].safeTeleportMarker++;
                 }

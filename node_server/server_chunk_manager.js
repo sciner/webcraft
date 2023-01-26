@@ -379,9 +379,9 @@ export class ServerChunkManager {
         var list = [];
         const pos = posOptioanl || player.state.pos;
         const chunk_addr = getChunkAddr(pos);
-        chunk_render_dist = chunk_render_dist || player.state.chunk_render_dist;
+        chunk_render_dist = chunk_render_dist || player.safeTeleportMargin;
         const margin            = Math.max(chunk_render_dist + 1, 1);
-        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, player.safeTeleportMarginY, margin));
         // Find new chunks
         for(let i = 0; i < spiral_moves_3d.length; i++) {
             const addr = chunk_addr.add(spiral_moves_3d[i].pos);
