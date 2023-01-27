@@ -31,7 +31,7 @@ npm run start
 npm run install-all
 
 # compile ff-worker and auto start
-npm run start-rebuild
+npm run start-rollup
 ```
 
 ## Commands

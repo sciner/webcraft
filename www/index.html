@@ -42,6 +42,7 @@
     <script src="vendors/angular.min.js"></script>
     <script src="js/ui/controller.js" type="module"></script>
     <script>
+        globalThis.useGenWorkers = <%= page.useGenWorkers %>;
         function isMobileBrowser() {
             return 'ontouchstart' in document.documentElement;
         }
