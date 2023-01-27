@@ -35,7 +35,7 @@ class HUDWindow extends Window {
 
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
-        this.addChild(this.splash = GradientGraphics.createVertical('#1c1149', '#66408d'))
+        this.addChild(this.splash = GradientGraphics.createVertical('#1c1149', '#66408d', 512))
         this.add(this.progressbar = new Window(0, 0, 0, 4 * this.zoom, 'hud_progressbar'))
         this.progressbar.style.background.color = '#ffffff55'
 
@@ -77,6 +77,9 @@ class HUDWindow extends Window {
             // 
         }
         this.lbl_loading.visible = loading
+        this.lbl_loading.w = width
+        this.lbl_loading.h = height
+        this.lbl_loading.style.padding._changed()
         this.kb_tips.h = height
         this.splash.visible = loading
         this.resize(width, height, loading_parts)

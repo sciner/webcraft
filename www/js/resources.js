@@ -418,23 +418,29 @@ export class Resources {
     // Load BBModels
     static async _loadBBModels() {
         if(Resources._bbmodels) {
-            return Resources._bbmodels;
+            return Resources._bbmodels
         }
         const resp = new Map();
         const dir = '../resource_packs/bbmodel';
-        await Helpers.fetchJSON(dir + '/conf.json').then(async json => {
-            const all = []
-            for(let file of json.bbmodels) {
-                all.push(Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
-                    const model = new BBModel_Model(json);
-                    model.parse();
-                    model.name = file.name;
-                    resp.set(file.name, model);
-                }).catch((error) => {
-                    console.error('Error:', error);
-                }));
+        await Helpers.fetchJSON(dir + '/conf.json').then(async bbmodel_conf_json => {
+            for(let item of bbmodel_conf_json.bbmodels) {
+                const model = new BBModel_Model(item.json)
+                model.parse()
+                model.name = item.name
+                resp.set(item.name, model)
             }
-            await Promise.all(all)
+            // const all = []
+            // for(let file of json.bbmodels) {
+            //     all.push(Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
+            //         const model = new BBModel_Model(json);
+            //         model.parse();
+            //         model.name = file.name;
+            //         resp.set(file.name, model);
+            //     }).catch((error) => {
+            //         console.error('Error:', error);
+            //     }));
+            // }
+            // await Promise.all(all)
         });
         return Resources._bbmodels = resp;
     }
