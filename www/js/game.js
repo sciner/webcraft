@@ -538,7 +538,6 @@ export class GameClass {
         if(this.preLoopEnable) {
             this.render.renderBackend.resetAfter();
             this.hud.draw()
-            this.hud.wm.draw()
             this.render.renderBackend.resetBefore();
             this.render.requestAnimationFrame(this.preLoop)
         }

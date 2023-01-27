@@ -274,6 +274,7 @@ export class HUD {
 
         // Draw splash screen...
         if(this.splash.draw()) {
+            this.wm.draw()
             return
         }
 
