@@ -470,6 +470,9 @@ export class ServerPlayer extends Player {
             return;
         }
         this.safePosWaitingChunks = this.world.chunks.queryPlayerVisibleChunks(this);
+        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
+            this.safePosWaitingChunks[i].safeTeleportMarker++;
+        }
     }
 
     checkWaitingData() {
@@ -505,6 +508,7 @@ export class ServerPlayer extends Player {
                 data: {}
             }];
             this.world.packets_queue.add([this.session.user_id], packets);
+            this.world.chunks.checkPlayerVisibleChunks(this, true);
         }
     }
 
