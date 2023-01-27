@@ -128,9 +128,27 @@ let gameCtrl = async function($scope, $timeout) {
         });
     }
     $scope.App.onError = (message) => {
+        if (typeof message !== 'string') {
+            // It happens: an exception Object is thrown on the server and sent as an error.
+            // Don't show it, but log it.
+            console.error(JSON.stringify(message))
+            message = 'error'
+        }
+        // special option - show alert
+        let alert = false
+        if (message.startsWith('!alert')) {
+            message = message.substring(6)
+            console.error(message)
+            alert = true
+        }
         // Multilingual messages
         message = Lang[message]
-        vt.error(message);
+
+        if (alert) {
+            window.alert(message)
+        } else {
+            vt.error(message)
+        }
     };
 
     //

@@ -552,15 +552,7 @@ export class ServerWorld {
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
-            const packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: e
-                }
-            }];
-            if(player) {
-                this.sendSelected(packets, [player.session.user_id], []);
-            }
+            player?.sendError(e);
         }
     }
 
