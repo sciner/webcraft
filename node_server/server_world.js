@@ -594,8 +594,8 @@ export class ServerWorld {
         const chunk = this.chunks.get(addr);
         // this is an old request for re-sync after player started seeing chunk, in case modifiers are different now
         if (!chunk) {
-            // chunk was already unloaded, request is too old
-            return;
+            // chunk was already unloaded while being in NEARBY array - that's a critical error!
+            throw 'Chunk not found';
         }
         chunk.addPlayerLoadRequest(player);
     }
