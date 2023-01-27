@@ -40,7 +40,11 @@
 	<!-- Third party -->
     <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="vendors/angular.min.js"></script>
+    <% if(page.useGenWorkers) {%>
+    <script src="js-gen/controller_bundle.js" type="module"></script>
+    <% } else { %>
     <script src="js/ui/controller.js" type="module"></script>
+    <% } %>
     <script>
         globalThis.useGenWorkers = <%= page.useGenWorkers %>;
         function isMobileBrowser() {
