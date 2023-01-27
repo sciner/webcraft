@@ -329,11 +329,8 @@ export default class WebGLRenderer extends BaseRenderer {
     async init(args) {
         super.init(args);
 
-        const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
+        this.resetBefore();
         for (let i = 6; i < 16; i++) {
             this._emptyTex3D.bind(i);
         }
@@ -345,6 +342,12 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     resetBefore() {
+        const {gl} = this;
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.BLEND);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
         WebGLMaterial.texState = this._emptyTex;
         WebGLMaterial.lightState = null;
         this._shader = null;
