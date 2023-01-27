@@ -186,13 +186,13 @@ export class DBWorldChunk {
 
     async bulkUpdateChunkModifiersWithBLOBs(rows) {
         return runBulkQuery(this.conn,
-            'WITH cte (_rowid, data_patch, comr, priv_compr) AS (VALUES',
+            'WITH cte (_rowid, data_patch, compr, priv_compr) AS (VALUES',
             '(?,?,?,?)',
             `)UPDATE world_modify_chunks
             SET data = json_patch(data, data_patch),
-                data_blob = comr,
+                data_blob = compr,
                 private_data_blob = priv_compr,
-                has_data_blob = CASE WHEN comr IS NULL THEN 0 ELSE 1 END
+                has_data_blob = CASE WHEN compr IS NULL THEN 0 ELSE 1 END
             FROM cte
             WHERE world_modify_chunks._rowid_ = cte._rowid`,
             rows
@@ -339,7 +339,7 @@ export class DBWorldChunk {
                     'id',           COALESCE(m.block_id, 0),
                     'extra_data',   json(m.extra_data),
                     'entity_id',    m.entity_id,
-                    'ticks',        m.ticks,        -- its' always NULL, unused, maybe remove it?
+                    'ticks',        m.ticks,        -- it's always NULL, unused, maybe remove it?
                     'rotate',       json_extract(m.params, '$.rotate')
                 )
             )

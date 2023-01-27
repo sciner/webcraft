@@ -18,7 +18,7 @@ export class ServerClient {
     static CMD_BLOCK_DESTROY            = 35;
     static CMD_BLOCK_SET                = 36;
     static CMD_BLOCK_CLONE              = 84;
-    static CMD_CHUNK_LOAD               = 37;
+    static CMD_CHUNK_LOAD               = 37; // player -> server
     static CMD_CHUNK_LOADED             = 39;
 
     // Chat

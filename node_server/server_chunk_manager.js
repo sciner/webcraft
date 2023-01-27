@@ -344,6 +344,7 @@ export class ServerChunkManager {
         }
         // restore
         this.unloading_chunks.delete(addr)
+        this.all.set(addr, chunk)
         chunk.restoreUnloaded();
         return chunk;
     }
