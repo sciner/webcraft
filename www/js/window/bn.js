@@ -1,92 +1,32 @@
-import { BLOCK } from "../blocks.js";
-import { Button, Window } from "../../tools/gui/wm.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
-import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
-import { Resources } from "../resources.js";
-import { BaseChestWindow } from "./base_chest_window.js";
-import { Vector } from "../helpers.js";
+import { BLOCK } from "../blocks.js"
+import { Button, Window } from "../../tools/gui/wm.js"
+import { INVENTORY_SLOT_SIZE, SKIN_RIGHTS_DEFAULT } from "../constant.js"
+import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js"
+import { Resources } from "../resources.js"
+import { BaseChestWindow } from "./base_chest_window.js"
+import { Vector } from "../helpers.js"
 
 // кнопки активации
-class ActiveButton extends Window {
+class OkButton extends Window {
     
     constructor(x, y, size, id, icon, ct) {
         
-        super(x, y, size, size, id, null, null);
+        super(x, y, size, size, id, null, null)
 
         this.ct = ct
         this.style.border.hidden = true
 
         this.setBackground(ct.atlas.getSpriteFromMap('button'))
-        this.setIcon(ct.atlas.getSpriteFromMap(icon), 'centerstretch', .5)
-
-         this.setIconName(icon)
-        this.setEnable(true)
-        this.setDown(false)
-
+        this.setIcon(ct.atlas.getSpriteFromMap('ok'), 'centerstretch', .5)
     }
         
     onMouseEnter() {
-        if(this.enable && !this.down) {
-            // this.style.background.sprite.x = 132
-            this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
-        }
-    };
+        this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
+    }
     
     onMouseLeave() {
-        if(this.enable && !this.down) {
-            // this.style.background.sprite.x = 0
-            this.setBackground(this.ct.atlas.getSpriteFromMap('button'))
-        }
-    };
-    
-    onMouseDown() {
-        if(this.enable && !this.down) {
-            this.ct.btn_ok.setDown(false)
-            this.ct.btn_cancel.setDown(false)
-            this.setDown(true)
-        }
-    };
-    
-    setEnable(val) {
-        this.enable = val;
-        if (!this.enable) {
-            // this.style.background.sprite.x = 88
-            this.setBackground(this.ct.atlas.getSpriteFromMap('button_black'))
-        }
+        this.setBackground(this.ct.atlas.getSpriteFromMap('button'))
     }
-    
-    setDown(val) {
-        this.down = val;
-        // this.style.background.sprite.x = this.down ? 43 : 0;
-        this.setBackground(this.ct.atlas.getSpriteFromMap(this.down ? 'button_pressed' : 'button'))
-    }
-    
-    setIcon(name) {
-        switch(name) {
-            case 'ok': {
-                // this.style.icon.sprite.x = 178;
-                // this.style.icon.sprite.y = 438;
-                this.setIcon(this.ct.atlas.getSpriteFromMap('ok'))
-                break;
-            }
-            case 'cancel': {
-                // this.style.icon.sprite.x = 222;
-                // this.style.icon.sprite.y = 438;
-                this.setIcon(this.ct.atlas.getSpriteFromMap('cancel'))
-                break;
-            }
-        }
-    }
-
-    setIconName(name) {
-        this.icon_name = name
-        this.setIcon(this.ct.atlas.getSpriteFromMap(name), 'centerstretch', .5)
-    }
-    
-    getIconName() {
-        return this.icon_name
-    }
-    
 }
 
 // кнопки эффектов
@@ -94,7 +34,7 @@ class EffectButton extends Window {
     
     constructor(x, y, size, id, icon, ct) {
         
-        super(x, y, size, size, id, null, null);
+        super(x, y, size, size, id, null, null)
 
         this.ct = ct
         this.style.border.hidden = true
@@ -110,13 +50,7 @@ class EffectButton extends Window {
         
     onMouseEnter() {
         const ct = this.ct
-        ct.btn_speed.setEnable(ct.state.level > 0 ? true : false)
-        ct.btn_haste.setEnable(ct.state.level > 0 ? true : false)
-        ct.btn_resistance.setEnable(ct.state.level > 1 ? true : false)
-        ct.btn_jump.setEnable(ct.state.level > 1 ? true : false)
-        ct.btn_strength.setEnable(ct.state.level > 2 ? true : false)
-        ct.btn_double.setEnable(ct.state.level > 3 ? true : false)
-        ct.btn_regeneration.setEnable(ct.state.level > 3 ? true : false)
+        ct.updateButtons()
         if (this.enable && !this.down) {
             this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
         }
@@ -132,29 +66,36 @@ class EffectButton extends Window {
         const ct = this.ct
         if(this.enable && !this.down) {
             if (this != ct.btn_regeneration && this != ct.btn_double) {
-                ct.btn_speed.setDown(false)
-                ct.btn_haste.setDown(false)
-                ct.btn_resistance.setDown(false)
-                ct.btn_jump.setDown(false)
-                ct.btn_strength.setDown(false)
-                this.setDown(true)
+                if (this == ct.btn_speed) {
+                    ct.state.first = 1
+                }
+                if (this == ct.btn_haste) {
+                    ct.state.first = 2
+                }
+                if (this == ct.btn_resistance) {
+                    ct.state.first = 3
+                }
+                if (this == ct.btn_jump) {
+                    ct.state.first = 4
+                }
+                if (this == ct.btn_strength) {
+                    ct.state.first = 5
+                }
                 ct.btn_double.setIconName(this.getIconName())
             }
             if (this == ct.btn_regeneration) {
-                ct.btn_double.setDown(false)
-                this.setDown(true);
+                ct.state.second = 1
             }
             if (this == ct.btn_double) {
-                ct.btn_regeneration.setDown(false)
-                this.setDown(true)
+                ct.state.second = 2
             }
         }
+        ct.updateButtons()
     }
 
     setEnable(val) {
-        this.enable = val;
+        this.enable = val
         if (!this.enable) {
-            // this.style.background.sprite.x = 88;
             this.setBackground(this.ct.atlas.getSpriteFromMap('button_black'))
         }
     }
@@ -163,8 +104,7 @@ class EffectButton extends Window {
         if (!this.enable) {
             return
         }
-        this.down = val;
-        // this.style.background.sprite.x = this.down ? 43 : 0;
+        this.down = val
         this.setBackground(this.ct.atlas.getSpriteFromMap(this.down ? 'button_pressed' : 'button'))
     }
     
@@ -211,19 +151,23 @@ export class BeaconWindow extends BaseChestWindow {
             btnClose.onMouseDown = this.hide.bind(this)
             this.add(btnClose)
         })
-
     }
 
     //
     prepareSlots() {
-        const resp = [];
-        resp.push({pos: new Vector(32 * this.zoom, 32 * this.zoom, 0)});
-        return resp;
+        const resp = []
+        resp.push({pos: new Vector(32 * this.zoom, 32 * this.zoom, 0)})
+        return resp
     }
-        
-    
-    createButtons(cell_size) {
 
+    // Обработчик открытия формы
+    onShow() {
+        super.onShow()
+        this.updateButtons()
+    }
+
+    createButtons(cell_size) {
+        const self = this
         this.add(this.btn_speed = new EffectButton(105 * this.zoom, 50 * this.zoom, cell_size, 'btnSpeed', 'speed', this))
         this.add(this.btn_haste = new EffectButton(145 * this.zoom, 50 * this.zoom, cell_size, 'btnHaste', 'haste', this))
         this.add(this.btn_resistance = new EffectButton(105 * this.zoom, 100 * this.zoom, cell_size, 'btnResistance', 'resistance', this))
@@ -231,12 +175,34 @@ export class BeaconWindow extends BaseChestWindow {
         this.add(this.btn_strength = new EffectButton(125 * this.zoom, 150 * this.zoom, cell_size, 'btnStrength', 'strength', this))
         this.add(this.btn_regeneration = new EffectButton(290 * this.zoom, 100 * this.zoom, cell_size, 'btnRegeneration', 'regeneration', this))
         this.add(this.btn_double = new EffectButton(340 * this.zoom, 100 * this.zoom, cell_size, 'btnDouble', 'speed', this))
+        this.add(this.btn_ok = new OkButton(310 * this.zoom, 217 * this.zoom, cell_size, 'btnOk', 'ok', this))
+        this.btn_ok.onMouseDown = function(e) {
+            const pos = self.info.pos
+            const block = Qubatch.world.getBlock(pos)
+            const extra_data = block.extra_data
+            extra_data.state.first = self.state.first
+            extra_data.state.second = self.state.second
+            Qubatch.world.changeBlockExtraData(pos, extra_data)
+            self.hide()
+        }
+    }
 
-        this.add(this.btn_ok = new ActiveButton(310 * this.zoom, 217 * this.zoom, cell_size, 'btnOk', 'ok', this))
-        this.add(this.btn_cancel = new ActiveButton(350 * this.zoom, 217 * this.zoom, cell_size, 'btnCancel', 'cancel', this))
 
-        // this.beacon_slot = new BeaconSlot(270 * this.zoom, 217 * this.zoom, cell_size, cell_size, 'lblBeaconSlot', null, null, this);
-
+    updateButtons() {
+        this.btn_speed.setEnable(this?.state?.level > 0 ? true : false)
+        this.btn_haste.setEnable(this?.state?.level > 0 ? true : false)
+        this.btn_resistance.setEnable(this?.state?.level > 1 ? true : false)
+        this.btn_jump.setEnable(this?.state?.level > 1 ? true : false)
+        this.btn_strength.setEnable(this?.state?.level > 2 ? true : false)
+        this.btn_double.setEnable(this?.state?.level > 3 ? true : false)
+        this.btn_regeneration.setEnable(this?.state?.level > 3 ? true : false)
+        this.btn_speed.setDown(this?.state?.first == 1 ? true : false)
+        this.btn_haste.setDown(this?.state?.first == 2 ? true : false)
+        this.btn_resistance.setDown(this?.state?.first == 3 ? true : false)
+        this.btn_jump.setDown(this?.state?.first == 4 ? true : false)
+        this.btn_strength.setDown(this?.state?.first == 5 ? true : false)
+        this.btn_regeneration.setDown(this?.state?.second == 1 ? true : false)
+        this.btn_double.setDown(this?.state?.second == 2 ? true : false)
     }
     
 }
