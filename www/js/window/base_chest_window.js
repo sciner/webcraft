@@ -468,7 +468,9 @@ export class BaseChestWindow extends BaseInventoryWindow {
             const item = slot.getItem()
             if (item?.count === 0) {
                 slot.setItem(null)
-                window.alert(`Error: "count":0 in chest slot ${item}`)
+                const str = `Error: "count":0 in chest slot ${item}`
+                console.error(str)
+                window.alert(str)
             }
         }
     }

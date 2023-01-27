@@ -52,15 +52,19 @@ export class BaseInventoryWindow extends BlankWindow {
                 window.alert(`Inventory slot differs from inventory: ${i}, ${item}, ${slotItem} ${context}`)
             }
         }
-        const item = this.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
+        const item = this.inventory.items[INVENTORY_DRAG_SLOT_INDEX]
         const slotItem = this.drag.getItem()
         if (!InventoryComparator.itemsEqual(item, slotItem)) {
-            window.alert(`Drag slot differs from inventory: ${i}, ${item}, ${slotItem} ${context}`)
+            const str = `Drag slot differs from inventory: ${i}, ${item}, ${slotItem} ${context}`
+            console.error(str)
+            window.alert(str)
         }
         // fix zero count
         const err = this.inventory.fixZeroCount()
         if (err) {
-            window.alert(err + ' ' + context)
+            const str = err + ' ' + context
+            console.error(str)
+            window.alert(str)
         }
     }
 
