@@ -112,20 +112,6 @@ export class BaseChestWindow extends BaseInventoryWindow {
         // Catch action
         this.catchActions()
 
-        // Updates drag UI if the dragged item changed
-        this.onInventorySetState = function() {
-            const inventory = this.inventory;
-            const prevDragItem = Qubatch.hud.wm.drag.getItem();
-            const newDargItem = inventory.items[INVENTORY_DRAG_SLOT_INDEX];
-            if (newDargItem) {
-                // update it, in case it changed
-                const anySlot = this.inventory_slots[0]; // it's used only for getting size and drawing
-                inventory.setDragItem(anySlot, newDargItem, Qubatch.hud.wm.drag, anySlot.width, anySlot.height);
-            } else if (prevDragItem) {
-                Qubatch.hud.wm.drag.clear();
-            }
-        }
-
     }
 
     // Обработчик открытия формы
@@ -138,6 +124,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         }
         this.world.blockModifierListeners.push(this.blockModifierListener)
         super.onShow()
+        this.fixAndValidateSlots('onShow')
     }
 
     // Обработчик закрытия формы
@@ -147,6 +134,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
             // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
             this.inventory.clearDragItem(true)
+            this.fixAndValidateSlots('clearDragItem')
             this.confirmAction()
         }
         if(wasVisible && this.options.sound.close) {
@@ -202,6 +190,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     // Confirm action
     confirmAction() {
+        this.fixAndValidateSlots('confirmAction')
 
         const that = this;
 
@@ -362,6 +351,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             // this.chest.slots[i].item = chest.slots[i - range.min] || null;
             this.chest.slots[i].setItem(chest.slots[i - range.min] || null)
         }
+        this.fixAndValidateSlots('setData')
     }
 
     // Очистка слотов сундука от предметов
@@ -469,6 +459,19 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.hideAndSetupMousePointer();
         } else if (!this.loading && this.maxDirtyTime && this.maxDirtyTime < performance.now()) {
             this.confirmAction();
+        }
+    }
+
+    fixAndValidateSlots(context) {
+        super.fixAndValidateSlots(context)
+        for(const slot of this.chest.slots) {
+            const item = slot.getItem()
+            if (item?.count === 0) {
+                slot.setItem(null)
+                const str = `Error: "count":0 in chest slot ${item}`
+                console.error(str)
+                window.alert(str)
+            }
         }
     }
 }

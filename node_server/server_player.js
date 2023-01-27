@@ -201,14 +201,18 @@ export class ServerPlayer extends Player {
             const packet = JSON.parse(message);
             this.world.packet_reader.read(this, packet);
         } catch(e) {
-            const packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: 'error_invalid_command'
-                }
-            }];
-            this.world.sendSelected(packets, [this.session.user_id], []);
+            this.sendError('error_invalid_command');
         }
+    }
+
+    sendError(message) {
+        const packets = [{
+            name: ServerClient.CMD_ERROR,
+            data: {
+                message
+            }
+        }]
+        this.world.sendSelected(packets, [this.session.user_id], [])
     }
 
     // onLeave...
