@@ -441,10 +441,11 @@ export class ServerWorld {
         player.state.skin = skin;
         player.updateHands();
         await player.initQuests();
+        // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
-        // 3. Insert to array
+        // 4. Insert to array
         this.players.list.set(player.session.user_id, player);
-        // 4. Send about all other players
+        // 5. Send about all other players
         const all_players_packets = [];
         for (const [_, p] of this.players.all()) {
             if (p.session.user_id != player.session.user_id) {
@@ -455,18 +456,18 @@ export class ServerWorld {
             }
         }
         player.sendPackets(all_players_packets);
-        // 5. Send to all about new player
+        // 6. Send to all about new player
         this.sendAll([{
             name: ServerClient.CMD_PLAYER_JOIN,
             data: player.exportState()
         }], []);
-        // 6. Write to chat about new player
+        // 7. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
-        // 7. Drop item if stored
+        // 8. Drop item if stored
         if (player.inventory.moveOrDropFromDragSlot()) {
             await player.inventory.save();
         }
-        // 8. Send CMD_CONNECTED
+        // 9. Send CMD_CONNECTED
         player.sendPackets([{
             name: ServerClient.CMD_CONNECTED, data: {
                 session: player.session,
@@ -478,12 +479,10 @@ export class ServerWorld {
                 }
             }
         }]);
-        // 9. Add night vision for building world
+        // 10. Add night vision for building world
         if(this.isBuildingWorld()) {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
         }
-        // 10. Check player visible chunks
-        this.chunks.checkPlayerVisibleChunks(player, true);
     }
 
     // onLeave
