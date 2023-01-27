@@ -618,6 +618,7 @@ export class Renderer {
             gu.useSunDir = false;
 
             target.destroy()
+            this.resetAfter();
 
         })
 

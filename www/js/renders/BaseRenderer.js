@@ -443,7 +443,7 @@ export default class BaseRenderer {
         this._emptyTex.isEmpty = true;
         this._emptyTexInt = this.createTexture({
             type: 'rgba32sint',
-            source: new Uint8Array(16)
+            source: new Int32Array(4)
         });
         this._emptyTexInt.isEmpty = true;
 
