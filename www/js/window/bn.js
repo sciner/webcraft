@@ -6,60 +6,22 @@ import { Resources } from "../resources.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 import { Vector } from "../helpers.js";
 
-// слот для залога
-class BeaconSlot extends CraftTableSlot {
-
-    constructor(x, y, w, h, id, title, text, ct) {
-        super(x, y, w, h, id, title, text, ct, null);
-        this.ct = ct
-    }
-        
-    onMouseEnter() {
-        this.style.background.color = '#ffffff55';
-    }
-
-    onMouseLeave() {
-        this.style.background.color = '#00000000';
-    }
-    
-    onMouseDown(e) { 
-        const dragItem = this.getItem();
-        if (!dragItem) {
-            return;
-        }
-        this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
-        this.setItem(null)
-    }
-    
-    onDrop(e) {
-        const dropItem = e.drag.getItem()
-        // в слот можно вставлять только алмаз, изумруд, золото, железо, незерит
-        if (!dropItem || dropItem.count != 1 || ![BLOCK.GOLD_INGOT.id, BLOCK.DIAMOND.id, BLOCK.IRON_INGOT.id, BLOCK.NETHER_BRICK.id].includes(dropItem.id)) {
-            return;
-        }
-        const dragItem = this.getItem();
-        this.setItem(dropItem, e);
-        this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
-    }
-    
-    getInventory() {
-        return this.ct.inventory;
-    }
-    
-}
-
 // кнопки активации
 class ActiveButton extends Window {
     
     constructor(x, y, size, id, icon, ct) {
         
-        super(x, y, size, size, id, null, null)
-        
-        this.ct = ct
+        super(x, y, size, size, id, null, null);
 
-        // this.setIconName(icon)
-        // this.setEnable(true)
-        // this.setDown(false)
+        this.ct = ct
+        this.style.border.hidden = true
+
+        this.setBackground(ct.atlas.getSpriteFromMap('button'))
+        this.setIcon(ct.atlas.getSpriteFromMap(icon), 'centerstretch', .5)
+
+         this.setIconName(icon)
+        this.setEnable(true)
+        this.setDown(false)
 
     }
         
@@ -115,6 +77,15 @@ class ActiveButton extends Window {
             }
         }
     }
+
+    setIconName(name) {
+        this.icon_name = name
+        this.setIcon(this.ct.atlas.getSpriteFromMap(name), 'centerstretch', .5)
+    }
+    
+    getIconName() {
+        return this.icon_name
+    }
     
 }
 
@@ -138,6 +109,14 @@ class EffectButton extends Window {
     }
         
     onMouseEnter() {
+        const ct = this.ct
+        ct.btn_speed.setEnable(ct.state.level > 0 ? true : false)
+        ct.btn_haste.setEnable(ct.state.level > 0 ? true : false)
+        ct.btn_resistance.setEnable(ct.state.level > 1 ? true : false)
+        ct.btn_jump.setEnable(ct.state.level > 1 ? true : false)
+        ct.btn_strength.setEnable(ct.state.level > 2 ? true : false)
+        ct.btn_double.setEnable(ct.state.level > 3 ? true : false)
+        ct.btn_regeneration.setEnable(ct.state.level > 3 ? true : false)
         if (this.enable && !this.down) {
             this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
         }
@@ -181,6 +160,9 @@ class EffectButton extends Window {
     }
     
     setDown(val) {
+        if (!this.enable) {
+            return
+        }
         this.down = val;
         // this.style.background.sprite.x = this.down ? 43 : 0;
         this.setBackground(this.ct.atlas.getSpriteFromMap(this.down ? 'button_pressed' : 'button'))
@@ -209,7 +191,6 @@ export class BeaconWindow extends BaseChestWindow {
                 close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
             }
         })
-        
 
         this.atlas = Resources.atlas.bn
 
@@ -219,7 +200,7 @@ export class BeaconWindow extends BaseChestWindow {
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Создание кнопок для эффектов
-       // this.createButtons(this.cell_size)
+        this.createButtons(this.cell_size)
 
         // Add close button
         this.loadCloseButtonImage((image) => {
