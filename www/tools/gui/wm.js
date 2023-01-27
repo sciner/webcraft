@@ -1520,7 +1520,7 @@ export class WindowManager extends Window {
             }, PIXI.UPDATE_PRIORITY.LOW)
             ticker.start();
         }
-        this.loadFont();
+        // this.loadFont();
     }
 
     closeAll() {

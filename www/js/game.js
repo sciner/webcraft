@@ -38,8 +38,8 @@ export class GameClass {
         this.f3_used                    = false;
         // Local server client
         this.local_server_client = (globalThis.LocalServerClient !== undefined) ? new LocalServerClient() : null;
-
-        this.fix_RAF = false;
+        this.preLoop = this.preLoop.bind(this)
+        this.preLoopEnable = true
     }
 
     // Start
@@ -100,6 +100,7 @@ export class GameClass {
             player.sendState();
         }, 50);
         // Run render loop
+        this.preLoopEnable = false
         this.render.requestAnimationFrame(this.loop);
         //
         this.bbmodelDropPaste = new BBModel_DropPaste(this)
@@ -419,13 +420,6 @@ export class GameClass {
                         }
                         return true;
                     }
-                    case KEY.F9: {
-                        if(!e.down) {
-                            this.fix_RAF = !this.fix_RAF;
-                            player.chat.messages.addSystem(`fix_RAF is now ${this.fix_RAF}`);
-                        }
-                        return true;
-                    }
                     // F10 (toggleUpdateChunks)
                     case KEY.F10: {
                         if(!e.down) {
@@ -540,6 +534,14 @@ export class GameClass {
         this.onControlsEnabledChanged(value);
     }
 
+    preLoop() {
+        if(this.preLoopEnable) {
+            this.hud.draw()
+            this.hud.wm.draw()
+            this.render.requestAnimationFrame(this.preLoop)
+        }
+    }
+
     /**
      * Main loop
      * @param {number} time
@@ -566,13 +568,6 @@ export class GameClass {
 
         this.world.chunkManager.update(player.pos, delta);
 
-        // Picking target
-        if (player.pickAt && player.game_mode.canBlockAction()) {
-            player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
-        } else {
-            player.pickAt.targetDescription = null;
-        }
-
         // change camera location
         this.render.setCamera(player, this.free_cam ? this.getFreeCamPos(delta) : player.getEyePos(), player.rotate, !!this.free_cam);
 
@@ -595,14 +590,8 @@ export class GameClass {
         this.hud.FPS.incr();
         this.averageClockTimer.add(performance.now() - tm);
 
-        // we must request valid loop
-        if (this.fix_RAF) {
-            setTimeout(() => {
-                this.render.requestAnimationFrame(this.loop);
-            }, 3)
-        } else {
-            this.render.requestAnimationFrame(this.loop);
-        }
+        this.render.requestAnimationFrame(this.loop)
+
     }
 
     // releaseMousePointer

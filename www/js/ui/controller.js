@@ -7,8 +7,9 @@ import { GameClass } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
-import { BgEffect } from './bg_effect.js';
+// import { BgEffect } from './bg_effect.js';
 import  registerTextFilter from './angular/textfilter.js';
+import { Resources } from '../resources.js';
 // import { PlayerWindowManager } from '../player_window_manager.js';
 
 function isSupported() {
@@ -461,7 +462,7 @@ let gameCtrl = async function($scope, $timeout) {
     };
 
     // Start world
-    $scope.StartWorld = function(world_guid) {
+    $scope.StartWorld = async function(world_guid) {
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
@@ -482,8 +483,11 @@ let gameCtrl = async function($scope, $timeout) {
         document.getElementById('bg-circles_area')?.remove();
         // stop background animation effect
         $scope.bg?.stop();
+
         // Show Loading...
-        Qubatch.hud.draw();
+        await this.showSplash()
+
+        // Continue loading
         $timeout(async function() {
             const options = $scope.settings.form;
             const server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
@@ -501,8 +505,38 @@ let gameCtrl = async function($scope, $timeout) {
             player.JoinToWorld(world, () => {
                 Qubatch.Started(player);
             });
-        });
-    };
+        })
+
+    }
+
+    $scope.showSplash = async () => {
+
+        /**
+         * @type {GameClass}
+         */
+        const Q = Qubatch
+        const render = Q.render
+        const renderBackend = render.renderBackend
+
+        // we can use it both
+        await Resources.preload({
+            imageBitmap:    true,
+            glsl:           renderBackend.kind === 'webgl',
+            wgsl:           renderBackend.kind === 'webgpu'
+        })
+
+        await renderBackend.init({
+            blocks: Resources.shaderBlocks
+        })
+
+        Q.hud.wm.initRender(render)
+
+        const bodyClassList = document.querySelector('body').classList
+        bodyClassList.add('started')
+
+        // Start drawing HUD with loading screen
+        render.requestAnimationFrame(Q.preLoop)
+    }
 
     // loadingComplete
     $scope.loadingComplete = function() {
@@ -788,8 +822,8 @@ let gameCtrl = async function($scope, $timeout) {
         });
     });
 
-    //
-    $scope.bg = new BgEffect();
+    // Background animation
+    // $scope.bg = new BgEffect()
 
     // show the window after everything is initilized
     $scope.current_window.show('main');

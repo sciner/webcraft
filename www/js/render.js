@@ -141,10 +141,6 @@ export class Renderer {
 
         const {renderBackend} = this;
 
-        await renderBackend.init({
-            blocks: Resources.shaderBlocks
-        });
-
         if (renderBackend.gl) {
             // world.chunkManager.setLightTexFormat('rgba4unorm', false);
             if (settings.use_light === LIGHT_TYPE_RTX) {
@@ -269,7 +265,8 @@ export class Renderer {
         this.debugGeom = new LineGeometry();
         this.debugGeom.pos = this.camPos;
 
-        this.HUD.wm.initRender(this)
+        // this.HUD.wm.initRender(this)
+        this.HUD.wm.loadFont()
 
         return Promise.all(promises)
 

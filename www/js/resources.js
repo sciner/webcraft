@@ -46,6 +46,32 @@ export class Resources {
 
     static onLoading = (state) => {};
 
+    static async preload(settings) {
+        this.shaderBlocks = {};
+
+        // Functions
+        const loadTextFile = Resources.loadTextFile
+        const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap)
+
+        let all = [];
+
+        // Shader blocks
+        if (settings.wgsl) {
+            // not supported
+        } else {
+            all.push(
+                loadTextFile('./shaders/shader.blocks.glsl')
+                    .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
+                    .then(blocks => {
+                        console.debug('Load shader blocks:', blocks)
+                    })
+            );
+        }
+
+        await Promise.all(all)
+
+    }
+
     /**
      * @param settings
      * @param settings.glsl need glsl
@@ -54,7 +80,6 @@ export class Resources {
      * @returns {Promise<void>}
      */
     static load(settings) {
-        this.shaderBlocks       = {};
         this.codeMain           = {};
         this.codeSky            = {};
         this.pickat             = {};
@@ -123,20 +148,6 @@ export class Resources {
             all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ));
         }
 
-        // Shader blocks
-
-        if (settings.wgsl) {
-            // not supported
-        } else {
-            all.push(
-                loadTextFile('./shaders/shader.blocks.glsl')
-                    .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
-                    .then(blocks => {
-                        console.debug('Load shader blocks:', blocks);
-                    })
-            );
-        }
-
         // Painting
         all.push[Resources.loadPainting()];
 
@@ -179,7 +190,7 @@ export class Resources {
                 this.progress.percent = (d * 100) / all.length;
                 this.onLoading({...this.progress});
             });
-          }
+        }
 
         // TODO: add retry
         return Promise.all(all);

@@ -36,11 +36,20 @@ class HUDWindow extends Window {
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
         this.addChild(this.splash = GradientGraphics.createVertical('#1c1149', '#66408d'))
+        this.add(this.progressbar = new Window(0, 0, 0, 4 * this.zoom, 'hud_progressbar'))
+        this.progressbar.style.background.color = '#ffffff55'
     }
 
     resize(width, height) {
         this.splash.width = width
         this.splash.height = height
+        this.progressbar.y = height - this.progressbar.h
+        let percent = Resources.progress?.percent ?? 0
+        if(percent >= 100) {
+            if(!this.pn) this.pn = performance.now()
+            percent = (performance.now() - this.pn) / 5000
+        }
+        this.progressbar.w = percent * width
     }
 
 }
@@ -131,12 +140,14 @@ export class HUD {
                 }
                 this.loading = cl < nc || !player_chunk_loaded;
 
+                // Splash background
                 const w = this.hud.width
                 const h = this.hud.height
-
-                // Splash background
-                hudwindow.splash.visible = this.loading
                 hudwindow.resize(w, h)
+                if(!this.loading) {
+                    hudwindow.progressbar.visible = false
+                }
+                hudwindow.splash.visible = this.loading
 
                 if(!this.loading) {
                     return false;
