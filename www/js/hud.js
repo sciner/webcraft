@@ -36,11 +36,61 @@ class HUDWindow extends Window {
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
         this.addChild(this.splash = GradientGraphics.createVertical('#1c1149', '#66408d'))
+        this.add(this.progressbar = new Window(0, 0, 0, 4 * this.zoom, 'hud_progressbar'))
+        this.progressbar.style.background.color = '#ffffff55'
+
+        // Loading...
+        this.add(this.lbl_loading = new Window(x, y, w, h, 'lbl_loading', undefined, Lang.loading))
+        this.lbl_loading.style.textAlign.horizontal = 'center'
+        this.lbl_loading.style.textAlign.vertical = 'middle'
+        this.lbl_loading.style.font.color = '#ffffff'
+
+        // Kb tips
+        const kb_tips = [
+            {key: 'WASD', tip: Lang.kb_help_wasd},
+            {key: 'F4', tip: Lang.kb_help_f4},
+            {key: 'R', tip: Lang.kb_help_r},
+            {key: '0-9', tip: Lang.kb_help_09},
+            {key: Lang.mouse_button_left, tip: Lang.kb_help_lm},
+            {key: Lang.mouse_button_right, tip: Lang.kb_help_rm},
+            {key: Lang.mouse_wheel, tip: Lang.kb_help_mm},
+            {key: Lang.kb_help_ctrlw_key, tip: Lang.kb_help_ctrlw},
+            // Lang.lbl_other
+            {key: 'F10', tip: Lang.change_game_mode}
+        ]
+        this.add(this.kb_tips = new Window(x, y, w, h, 'hud_splash_kb_tips', undefined, ''))
+        this.kb_tips.style.textAlign.vertical = 'bottom'
+        this.kb_tips.style.font.color = '#ffffff'
+        this.kb_tips.style.padding.set(10 * this.zoom, 5 * this.zoom)
+        let kb_tips_text = []
+        for(let tip of kb_tips) {
+            kb_tips_text.push(`${tip.key}: ${tip.tip}`)
+        }
+        this.kb_tips.text = kb_tips_text.join('\n')
+
     }
 
-    resize(width, height) {
+    update(width, height, loading, loading_parts) {
+        if(!loading) {
+            this.progressbar.visible = false
+            this.kb_tips.visible = false
+            // 
+        }
+        this.lbl_loading.visible = loading
+        this.kb_tips.h = height
+        this.splash.visible = loading
+        this.resize(width, height, loading_parts)
+    }
+
+    resize(width, height, loading_parts) {
         this.splash.width = width
         this.splash.height = height
+        this.progressbar.y = height - this.progressbar.h
+        //
+        let percent = 0
+        loading_parts.map(item => percent += item.percent / loading_parts.length)
+        //
+        this.progressbar.w = percent * width
     }
 
 }
@@ -64,16 +114,6 @@ export class HUD {
         this.prevDrawTime               = 0
         this.strMeasures                = new Map()
         this.FPS                        = new FPSCounter()
-
-        // Green frame
-        // this.add({
-        //     drawHUD: function(that) {
-        //         that.ctx.fillStyle      = '#ffffff';
-        //         that.ctx.strokeStyle    = '#00ff00';
-        //         that.ctx.lineCap        = 'round';
-        //         that.ctx.lineWidth      = 1;
-        //     }
-        // });
 
         // Init Window Manager
         const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
@@ -129,32 +169,20 @@ export class HUD {
                 if(this.generate_terrain_count > 0) {
                     this.generate_terrain_time = Math.round(this.generate_terrain_time / this.generate_terrain_count * 100) / 100;
                 }
-                this.loading = cl < nc || !player_chunk_loaded;
+                const chunk_loaded_percent = cl / nc
+                this.loading = (chunk_loaded_percent < 1) || !player_chunk_loaded;
 
-                const w = this.hud.width
-                const h = this.hud.height
+                const loading_parts = [
+                    {code: 'chunks', percent: Math.min(chunk_loaded_percent, 1)},
+                    {code: 'resources', percent: (Resources.progress?.percent ?? 0) / 100}
+                ]
 
                 // Splash background
-                hudwindow.splash.visible = this.loading
-                hudwindow.resize(w, h)
+                hudwindow.update(this.hud.width, this.hud.height, this.loading, loading_parts)
 
                 if(!this.loading) {
-                    return false;
+                    return false
                 }
-
-                // 2. draw texts
-                const texts = []
-                if(Resources.progress && Resources.progress.percent < 100) {
-                    texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%')
-                } else if(cl == 0) {
-                    texts.push(Lang.loading_game_connecting)
-                } else {
-                    texts.push(Lang.loading_game_generate_planet + ' ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%')
-                }
-                texts.push(Lang[isMobileBrowser() ? 'please_rotate_to_landscape' : 'press_f11_to_fullscreen'])
-
-                // 3. draw keyboard help
-                // that.drawKbHelp(ctx, w, h, padding)
 
                 return true
             }
@@ -173,48 +201,6 @@ export class HUD {
 
     isDrawingBlockInfo() {
         return this.active && this.draw_info && this.draw_block_info;
-    }
-
-    //
-    drawKbHelp(ctx, w, h, padding) {
-        if(!this.kb_tips) {
-            this.kb_tips = {
-                measures: {},
-                list: [
-                    // Lang.lbl_commands,
-                    {key: 'WASD', tip: Lang.kb_help_wasd},
-                    {key: 'F4', tip: Lang.kb_help_f4},
-                    {key: 'R', tip: Lang.kb_help_r},
-                    {key: '0-9', tip: Lang.kb_help_09},
-                    {key: Lang.mouse_button_left, tip: Lang.kb_help_lm},
-                    {key: Lang.mouse_button_right, tip: Lang.kb_help_rm},
-                    {key: Lang.mouse_wheel, tip: Lang.kb_help_mm},
-                    {key: Lang.kb_help_ctrlw_key, tip: Lang.kb_help_ctrlw},
-                    // Lang.lbl_other
-                    {key: 'F10', tip: Lang.change_game_mode}
-                ]
-            };
-            this.kb_tips.row_height = 0;
-            this.kb_tips.max_width = 0;
-            this.kb_tips.max_key_width = 0;
-            for(let item of this.kb_tips.list) {
-                let keym = ctx.measureText(item.key);
-                let tipm = ctx.measureText(item.tip);
-                if(keym.width > this.kb_tips.max_width) this.kb_tips.max_width = keym.width;
-                if(keym.actualBoundingBoxDescent > this.kb_tips.row_height) this.kb_tips.row_height = keym.actualBoundingBoxDescent;
-                if(tipm.width > this.kb_tips.max_width) this.kb_tips.max_width = tipm.width;
-                if(tipm.actualBoundingBoxDescent > this.kb_tips.row_height) this.kb_tips.row_height = tipm.actualBoundingBoxDescent;
-                if(keym.width > this.kb_tips.max_key_width) this.kb_tips.max_key_width = keym.width;
-            }
-        };
-        let y = h - padding - this.kb_tips.row_height * this.kb_tips.list.length;
-        for(let item of this.kb_tips.list) {
-            ctx.fillStyle = '#ffffffbb';
-            ctx.fillText(item.key + ': ' + item.tip, padding, y);
-            ctx.fillStyle = '#ffc107';
-            ctx.fillText(item.key, padding, y);
-            y += this.kb_tips.row_height;
-        }
     }
 
     get zoom() {
@@ -259,6 +245,7 @@ export class HUD {
 
         // Draw splash screen...
         if(this.splash.draw()) {
+            this.wm.draw()
             return
         }
 

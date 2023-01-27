@@ -175,6 +175,9 @@ export class Window extends PIXI.Container {
         if(this.style) {
             this.style.background.resize()
         }
+        if(this.text_container) {
+            this.style.padding._changed()
+        }
     }
 
     /**
@@ -1426,19 +1429,6 @@ export class WindowManager extends Window {
 
         //
         this.drag = that._wmoverlay._wmpointer
-        // this.drag = {
-        //     item: null,
-        //     setItem: function(item) {
-        //         this.item = item
-        //         that._wmoverlay._wmpointer.setItem(item?.item)
-        //     },
-        //     getItem: function() {
-        //         return this.item
-        //     },
-        //     clear: function() {
-        //         this.setItem(null)
-        //     }
-        // }
 
     }
 
@@ -1520,7 +1510,7 @@ export class WindowManager extends Window {
             }, PIXI.UPDATE_PRIORITY.LOW)
             ticker.start();
         }
-        this.loadFont();
+        // this.loadFont();
     }
 
     closeAll() {
