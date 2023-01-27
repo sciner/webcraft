@@ -365,7 +365,9 @@ export class ServerPlayer extends Player {
 
     async tick(delta, tick_number) {
         // 1.
-        this.world.chunks.checkPlayerVisibleChunks(this, false);
+        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+            this.world.chunks.checkPlayerVisibleChunks(this, false);
+        }
         // 2.
         this.sendNearPlayers();
         // 3.
@@ -375,6 +377,7 @@ export class ServerPlayer extends Player {
         // 5.
         await this.checkWaitPortal();
         if (this.status === PLAYER_STATUS_WAITING_DATA) {
+            // will checkPlayerVisibleChunks inside if its ready
             this.checkWaitingData();
         }
         // 6.
@@ -470,6 +473,9 @@ export class ServerPlayer extends Player {
             return;
         }
         this.safePosWaitingChunks = this.world.chunks.queryPlayerVisibleChunks(this);
+        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
+            this.safePosWaitingChunks[i].safeTeleportMarker++;
+        }
     }
 
     checkWaitingData() {
@@ -505,6 +511,7 @@ export class ServerPlayer extends Player {
                 data: {}
             }];
             this.world.packets_queue.add([this.session.user_id], packets);
+            this.world.chunks.checkPlayerVisibleChunks(this, true);
         }
     }
 
