@@ -175,6 +175,9 @@ export class Window extends PIXI.Container {
         if(this.style) {
             this.style.background.resize()
         }
+        if(this.text_container) {
+            this.style.padding._changed()
+        }
     }
 
     /**
