@@ -416,25 +416,31 @@ export class Resources {
     }
     
     // Load BBModels
-    static async loadBBModels() {
+    static async _loadBBModels() {
         if(Resources._bbmodels) {
             return Resources._bbmodels;
         }
         const resp = new Map();
         const dir = '../resource_packs/bbmodel';
         await Helpers.fetchJSON(dir + '/conf.json').then(async json => {
+            const all = []
             for(let file of json.bbmodels) {
-                await Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
+                all.push(Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
                     const model = new BBModel_Model(json);
                     model.parse();
                     model.name = file.name;
                     resp.set(file.name, model);
                 }).catch((error) => {
                     console.error('Error:', error);
-                });
+                }));
             }
+            await Promise.all(all)
         });
         return Resources._bbmodels = resp;
+    }
+
+    static loadBBModels() {
+        return this._bbmodel_promise = this._bbmodel_promise || this._loadBBModels()
     }
 
     // Load painting
