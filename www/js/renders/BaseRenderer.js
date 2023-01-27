@@ -208,6 +208,7 @@ export class BaseTexture {
 
         this.id = BaseRenderer.ID++;
         this.usage = 0;
+        this.isEmpty = false;
 
         if (source && !source.byteLength) {
             this.width = Array.isArray(source) ? source[0].width : source.width;
@@ -436,9 +437,18 @@ export default class BaseRenderer {
         this._textures = [];
 
         this._buffers = {};
-        this._emptyTex = {};
-        this._emptyTex3D = this.createTexture3D({
-            data: new Uint8Array(255)
+        this._emptyTex = this.createTexture({
+            source: new Uint8Array(4)
+        });
+        this._emptyTex.isEmpty = true;
+        this._emptyTexInt = this.createTexture({
+            type: 'rgba32sint',
+            source: new Uint8Array(16)
+        });
+        this._emptyTexInt.isEmpty = true;
+
+        this._emptyTex3D = this.createTexture({
+            data: new Uint8Array(4)
         })
         this._emptyTex3D.isEmpty = true;
         this._emptyTex3D.emptyRegion = this._emptyTex3D;

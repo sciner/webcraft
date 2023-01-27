@@ -18,12 +18,12 @@ function isSupported() {
         console.error('Browser not supported:', 'Webgl2 context is required');
         return false;
     }
-    
+
     const canvas = document.createElement('canvas');
 
     //
     try {
-        
+
         // context should be stable and without fails
         const gl = canvas.getContext('webgl2', {stencil: true, failIfMajorPerformanceCaveat: true});
 
@@ -529,7 +529,9 @@ let gameCtrl = async function($scope, $timeout) {
             blocks: Resources.shaderBlocks
         })
 
+        render.resetAfter();
         Q.hud.wm.initRender(render)
+        render.resetBefore();
 
         const bodyClassList = document.querySelector('body').classList
         bodyClassList.add('started')
@@ -617,11 +619,11 @@ let gameCtrl = async function($scope, $timeout) {
                         return;
                     }
                     $scope.App.GetWorldPublicInfo({worldGuid},
-                        worldInfo => this.showWorldInfo(worldInfo, 'approve-join'), 
+                        worldInfo => this.showWorldInfo(worldInfo, 'approve-join'),
                         error => this.handleNoWorldOrOtherError(error));
 
                 }
-                
+
             },
             showWorldInfo: function(worldInfo, mode){
                 this.worldInfo = worldInfo;
@@ -643,14 +645,14 @@ let gameCtrl = async function($scope, $timeout) {
                 if (worldGuid) {
                     if (!$scope.App.isLogged()) {
                         $scope.App.GetWorldPublicInfo({worldGuid},
-                             worldInfo => this.showWorldInfo(worldInfo, 'login'), 
+                             worldInfo => this.showWorldInfo(worldInfo, 'login'),
                              error => this.handleNoWorldOrOtherError(error));
                     }
                 }
             }
         },
-        
-        
+
+
     };
 
     // New world
@@ -808,7 +810,7 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.Qubatch      = globalThis.Qubatch;
     $scope.skin         = new SkinManager($scope, $timeout);
     $scope.texture_pack = new TexturePackManager($scope);
-    $scope.onShow       = { 
+    $scope.onShow       = {
         'skin': () => { $scope.skin.onShow(); }
     };
     $scope.newgame.init();

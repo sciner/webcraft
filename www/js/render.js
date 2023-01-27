@@ -298,7 +298,7 @@ export class Renderer {
 
     //
     async generatePrev(callback) {
-
+        this.resetBefore();
         const target = this.renderBackend.createRenderTarget({
             width: INVENTORY_ICON_TEX_WIDTH,
             height: INVENTORY_ICON_TEX_HEIGHT,
@@ -725,6 +725,10 @@ export class Renderer {
 
     checkLightTextures() {
         const {renderBackend} = this;
+        if (!this.world) {
+            renderBackend._emptyTexInt.bind(3);
+            return;
+        }
         const cm = this.world.chunkManager;
         // TODO: move to batcher
         cm.chunkDataTexture.getTexture(renderBackend).bind(3);
@@ -1172,9 +1176,10 @@ export class Renderer {
     resetBefore() {
         // webgl state was reset, we have to re-bind textures
         this.renderBackend.resetBefore();
-        this.env.skyBox.shader.texture.bind(0);
+        const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex;
+        defTex.bind(0);
         this.renderBackend._emptyTex3D.bind(6);
-        this.maskColorTex.bind(1);
+        this.maskColorTex?.bind(1);
         this.blockDayLightTex?.bind(2);
         this.checkLightTextures();
         this.defaultShader?.bind();
