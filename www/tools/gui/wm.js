@@ -1426,19 +1426,6 @@ export class WindowManager extends Window {
 
         //
         this.drag = that._wmoverlay._wmpointer
-        // this.drag = {
-        //     item: null,
-        //     setItem: function(item) {
-        //         this.item = item
-        //         that._wmoverlay._wmpointer.setItem(item?.item)
-        //     },
-        //     getItem: function() {
-        //         return this.item
-        //     },
-        //     clear: function() {
-        //         this.setItem(null)
-        //     }
-        // }
 
     }
 

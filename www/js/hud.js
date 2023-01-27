@@ -40,6 +40,16 @@ class HUDWindow extends Window {
         this.progressbar.style.background.color = '#ffffff55'
     }
 
+    update(width, height, loading) {
+        // console.log('upd')
+        if(!loading) {
+            // debugger
+            this.progressbar.visible = false
+        }
+        this.splash.visible = loading
+        this.resize(width, height)
+    }
+
     resize(width, height) {
         this.splash.width = width
         this.splash.height = height
@@ -141,31 +151,25 @@ export class HUD {
                 this.loading = cl < nc || !player_chunk_loaded;
 
                 // Splash background
-                const w = this.hud.width
-                const h = this.hud.height
-                hudwindow.resize(w, h)
-                if(!this.loading) {
-                    hudwindow.progressbar.visible = false
-                }
-                hudwindow.splash.visible = this.loading
+                hudwindow.update(this.hud.width, this.hud.height, this.loading)
 
                 if(!this.loading) {
-                    return false;
+                    return false
                 }
 
-                // 2. draw texts
-                const texts = []
-                if(Resources.progress && Resources.progress.percent < 100) {
-                    texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%')
-                } else if(cl == 0) {
-                    texts.push(Lang.loading_game_connecting)
-                } else {
-                    texts.push(Lang.loading_game_generate_planet + ' ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%')
-                }
-                texts.push(Lang[isMobileBrowser() ? 'please_rotate_to_landscape' : 'press_f11_to_fullscreen'])
-
-                // 3. draw keyboard help
-                // that.drawKbHelp(ctx, w, h, padding)
+                // TODO: pixi
+                // // 2. draw texts
+                // const texts = []
+                // if(Resources.progress && Resources.progress.percent < 100) {
+                //     texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%')
+                // } else if(cl == 0) {
+                //     texts.push(Lang.loading_game_connecting)
+                // } else {
+                //     texts.push(Lang.loading_game_generate_planet + ' ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%')
+                // }
+                // texts.push(Lang[isMobileBrowser() ? 'please_rotate_to_landscape' : 'press_f11_to_fullscreen'])
+                // // 3. draw keyboard help
+                // // that.drawKbHelp(ctx, w, h, padding)
 
                 return true
             }
