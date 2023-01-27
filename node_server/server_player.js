@@ -1,5 +1,5 @@
 import { Vector, VectorCollector } from "../www/js/helpers.js";
-import { Player, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
+import { Player } from "../www/js/player.js";
 import { GameMode } from "../www/js/game_mode.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";

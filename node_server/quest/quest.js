@@ -19,7 +19,7 @@ export class Quest {
 
     /**
      * @param {QuestPlayer} quest_player
-     * @param {Object} quest - either an existing quest of this player reqyrned by {@link DBWorldQuest.loadPlayerQuests},
+     * @param {Object} quest - either an existing quest of this player returned by {@link DBWorldQuest.loadPlayerQuests},
      *  or a general quest description returned by {@link DBWorldQuest.load}, {@link DBWorldQuest.defaults} or 
      * @param {Boolean} isNew - true if the quest is just created, and not addede to the DB,
      *  false if it already exists in DB
@@ -34,7 +34,9 @@ export class Quest {
         this.description    = quest.description;
         this.rewards        = quest.rewards;
         this.is_completed   = quest.is_completed ?? false;
-        this.in_progress    = quest.in_progress ?? !this.is_completed;
+        // This field is the exact value of in_progress from DB.
+        // For the field with the same semantics as in_progress had before the world transaction, use in_progress.
+        this.db_in_progress = quest.in_progress ?? false;
         this.#dirtyFlags    = 0;
         if (isNew) {
             this.#dirtyFlags = Quest.DIRTY_FLAG_NEW;
@@ -66,6 +68,20 @@ export class Quest {
                 }
             }
         }
+    }
+
+    /**
+     * Before the world transaction, quests wered and loaded for each change.
+     * When they were loaded, it was like this:
+     *   row.in_progress = !row.is_completed && row.in_progress != 0;
+     * This getter simulates the same behavior when changing the quest in-memory.
+     */
+    get in_progress() {
+        return this.db_in_progress && !this.is_completed;
+    }
+
+    set in_progress(v) {
+        this.db_in_progress = v;
     }
 
     async checkAndMarkDirty() {
@@ -117,11 +133,11 @@ export class Quest {
                 this.#quest_player.sendMessage(`You have got reward ${block.name}x${reward_item.count}`);
             }
         }
+        this.markDirty();
         // @todo Сделать доступными новые квесты в ветке
         for(let next_quest_id of this.#next_quests) {
             const next_quest = await this.#quest_player.quest_manager.loadQuest(next_quest_id);
             this.#quest_player.addQuest(next_quest, true);
-            this.markDirty();
         }
         // отправить сообщение
         this.#quest_player.sendMessage(`You completed quest '${this.title}'`);

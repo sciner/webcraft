@@ -90,7 +90,7 @@ export class DBWorldQuest {
             q.actions.push(action);
         }
         // Rewards
-        rows = await this.conn.all('SELECT * FROM quest_reward WHERE quest_id IN(SELECT id FROM quest WHERE is_default = 1)', {});
+        rows = await this.conn.all('SELECT quest_id, block_id, cnt FROM quest_reward WHERE quest_id IN(SELECT id FROM quest WHERE is_default = 1)', {});
         for(let row of rows) {
             const reward = {...row};
             delete(reward.quest_id);
@@ -127,7 +127,7 @@ export class DBWorldQuest {
             row.quest_group     = JSON.parse(row.quest_group);
             row.rewards         = JSON.parse(row.rewards);
             row.is_completed    = row.is_completed != 0;
-            row.in_progress     = !row.is_completed && row.in_progress != 0;
+            row.in_progress     = row.in_progress != 0;
         }
         return rows;
     }
@@ -138,7 +138,7 @@ export class DBWorldQuest {
             player.session.user_id,
             quest.id,
             quest.is_completed ? 1 : 0,
-            quest.in_progress ? 1 : 0,
+            quest.db_in_progress ? 1 : 0,
             JSON.stringify(quest.actions)
         ];
     }
