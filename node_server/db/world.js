@@ -132,26 +132,35 @@ export class DBWorld {
 
     //
     async compressModifiers() {
-        let p_start = performance.now();
+        const p_start = performance.now()
         let chunks_count = 0;
         const rows = await this.conn.all('SELECT _rowid_ AS rowid, data FROM world_modify_chunks WHERE has_data_blob = 0', {});
+        const all = []
+        const processChunk = async (rowid, priv, pub, compress_time) => {
+            return new Promise(async (resolve, reject) => {
+                const p = performance.now()
+                const result = await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob, private_data_blob = :private_data_blob, has_data_blob = 1 WHERE _rowid_ = :_rowid_', {
+                    ':data_blob':           pub,
+                    ':private_data_blob':   priv,
+                    ':_rowid_':             rowid
+                })
+                const p1 = Math.round(compress_time * 1000) / 1000
+                const p2 = Math.round((performance.now() - p) * 1000) / 1000
+                console.log(`compressModifiers: upd times: compress: ${p1}, store: ${p2} ms`)    
+                resolve(result)
+            })
+            
+        }
         for(let row of rows) {
             chunks_count++;
-            let p = performance.now();
-            const compressed = compressWorldModifyChunk(JSON.parse(row.data), true);
-            let p1 = Math.round((performance.now() - p) * 1000) / 1000;
-            p = performance.now();
+            const p = performance.now()
+            const compressed = compressWorldModifyChunk(JSON.parse(row.data), true)
             // save compressed
-            await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob, private_data_blob = :private_data_blob, has_data_blob = 1 WHERE _rowid_ = :_rowid_', {
-                ':data_blob':  compressed.public,
-                ':private_data_blob':  compressed.private,
-                ':_rowid_':    row.rowid
-            });
-            let p2 = Math.round((performance.now() - p) * 1000) / 1000;
-            console.log(`compressModifiers: upd times: ${p1}, ${p2} ms`);
+            all.push(processChunk(row.rowid, compressed.private, compressed.public, performance.now() - p))
         }
-        console.log(`compressModifiers: chunks: ${chunks_count}, elapsed: ${Math.round((performance.now() - p_start) * 1000) / 1000} ms`);
-        return true;
+        await Promise.all(all)
+        console.log(`compressModifiers: chunks: ${chunks_count}, elapsed: ${Math.round((performance.now() - p_start) * 1000) / 1000} ms`)
+        return true
     }
 
     // getDefaultPlayerIndicators...
