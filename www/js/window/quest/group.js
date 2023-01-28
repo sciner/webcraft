@@ -5,10 +5,9 @@ export class QuestGroup extends Label {
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         const s = this.style;
-        const FONT_ZOOM = this.zoom / 2;
-        s.padding.left = 10;
-        s.font.size = 36 * FONT_ZOOM;
+        s.font.size = 36
         s.background.color = '#00000000';
+        s.padding.left = 10
         s.textAlign.horizontal = 'left';
         s.textAlign.vertical = 'middle';
         s.border.hidden = true;

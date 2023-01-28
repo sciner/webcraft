@@ -3,6 +3,14 @@ import {MySprite} from "./MySpriteRenderer.js";
 
 export const USE_BITMAP_FONT = false;
 
+//
+const HALIGNS = {left: 0, center: .5, right: 1}
+const VALIGNS = {top: 0, middle: .5, bottom: 1}
+const VALID_XA = ['left', 'center', 'right']
+const VALID_YA = ['top', 'middle', 'bottom']
+const SIGN_XA = {left: 1, center: 0, right: -1}
+const SIGN_YA = {top: 1, middle: 0, bottom: -1}
+
 const colors = {
     list: [0xff00ff, 0xffff00, 0x00ff00, 0xff0000, 0x0000ff, 0x00fffff],
     index: 0
@@ -53,6 +61,7 @@ export class TextAlignStyle {
 
     set horizontal(value) {
         this._horizontal = value
+        this.#window.style.padding._changed()
     }
 
     get vertical() {
@@ -61,6 +70,7 @@ export class TextAlignStyle {
 
     set vertical(value) {
         this._vertical = value
+        this.#window.style.padding._changed()
     }
 
 }
@@ -184,12 +194,17 @@ export class BackgroundStyle {
     }
 
     set color(value) {
+        const window = this.#window
         const {color, alpha} = parseColorAndAlpha(value)
         this._color = value
         this.#_bgcolor.clear()
         this.#_bgcolor.beginFill(color)
-        this.#_bgcolor.drawRect(0, 0, this.#window.w, this.#window.h)
+        this.#_bgcolor.drawRect(0, 0, window.w, window.h)
         this.#_bgcolor.alpha = alpha
+    }
+
+    resize() {
+        this.color = this.color
     }
 
 }
@@ -271,10 +286,124 @@ export class BorderStyle {
 
 }
 
+export class PaddingStyle {
+
+    /**
+     * @type { import("./wm.js").Window }
+     */
+    #window
+
+    #_values = {
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0
+    }
+
+    /**
+     * @type { import("./wm.js").Window } window
+     */
+    constructor(window) {
+        this.#window = window
+    }
+
+    /**
+     * @returns {float}
+     */
+    get left() {return this.#_values.left}
+
+    /**
+     * @param {float} value
+     */
+    set left(value) {
+        this.#_values.left = value
+        this._changed()
+    }
+
+    /**
+     * @returns {float}
+     */
+    get top() {return this.#_values.top}
+
+    /**
+     * @param {float} value
+     */
+    set top(value) {
+        this.#_values.top = value
+        this._changed()
+    }
+
+    /**
+     * @returns {float}
+     */
+    get right() {return this.#_values.right}
+
+    /**
+     * @param {float} value
+     */
+    set right(value) {
+        this.#_values.right = value
+        this._changed()
+    }
+
+    /**
+     * @returns {float}
+     */
+    get bottom() {return this.#_values.bottom}
+
+    /**
+     * @param {float} value
+     */
+    set bottom(value) {
+        this.#_values.bottom = value
+        this._changed()
+    }
+
+    /**
+     * Smart set padding
+     * @param {float} left 
+     * @param {float} top 
+     * @param {float} right 
+     * @param {float} bottom 
+     */
+    set(left, top, right, bottom) {
+        if(left != undefined && top == undefined && right == undefined && bottom == undefined) {
+            top = right = bottom = left
+        } else if (left != undefined && top != undefined && right == undefined && bottom == undefined) {
+            right = left
+            bottom = top
+        }
+        if(left == undefined || top == undefined || right == undefined || bottom == undefined) {
+            throw 'error_invalid_style_padding'
+        }
+        this.#_values.left = left
+        this.#_values.top = top
+        this.#_values.right = right
+        this.#_values.bottom = bottom
+        this._changed()
+    }
+
+    _changed() {
+        const w = this.#window
+        if(w.text_container) {
+            let xa = w.style.textAlign.horizontal
+            let ya = w.style.textAlign.vertical
+            if(!VALID_XA.includes(xa)) xa = VALID_XA[0]
+            if(!VALID_YA.includes(ya)) ya = VALID_YA[0]
+            const xpos = {left: 0, center: w.w / 2, right: w.w - this.#_values.right}
+            const ypos = {top: 0, middle: w.h / 2, bottom: w.h - this.#_values.bottom}
+            const x = xpos[xa] + this.#_values.left * SIGN_XA[xa]
+            const y = ypos[ya] + this.#_values.top * SIGN_YA[ya]
+            w.text_container.transform.position.set(x, y)
+            w.text_container.anchor.set(HALIGNS[xa] ?? 0, VALIGNS[ya] ?? 0)
+        }
+    }
+
+}
+
 export class TextShadowStyle {
 
     #window
-    #text_containe
     
     constructor(window) {
         this.#window = window
@@ -412,6 +541,18 @@ export class FontStyle {
         }
     }
 
+    get word_wrap() {
+        return this.#window.text_container.style.wordWrap
+    }
+
+    set word_wrap(value) {
+        value = !!value
+        this.#window.text_container.style.wordWrap = value
+        if(value) {
+            this.#window.text_container.style.wordWrapWidth = this.#window.w
+        }
+    }
+
 }
 
 // All styles
@@ -419,21 +560,39 @@ export class Style {
 
     #window
 
+    constructor() {}
+
     /**
      * @param { import("./wm.js").Window } window
      */
-    constructor(window) {
-        this.#window = window
-        this._background = new BackgroundStyle(window)
-        this._border = new BorderStyle(window)
-        this._font = new FontStyle(window)
-        this._textAlign = new TextAlignStyle(window)
-        this.padding = {
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0
+    assign(window) {
+        this.#window        = window
+        this._padding       = new PaddingStyle(window)
+        this._background    = new BackgroundStyle(window)
+        this._border        = new BorderStyle(window)
+        this._font          = new FontStyle(window)
+        this._textAlign     = new TextAlignStyle(window)
+    }
+
+    /**
+     * @returns {PaddingStyle}
+     */
+    get padding() {
+        return this._padding
+    }
+
+    /**
+     * @param {PaddingStyle} value
+     */
+    set padding(value) {
+        if(isNaN(value)) {
+            for(let k in value) {
+                this._padding[k] = value[k]
+            }
+        } else {
+            this._padding.set(value)
         }
+        this._padding._changed()
     }
 
     /**

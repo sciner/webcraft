@@ -297,7 +297,7 @@ export class Chat extends TextBox {
             // style
             this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
             this.history_messages_window.style.font.color = '#ffffff'
-            this.history_messages_window.style.background.color = '#00000022'
+            this.history_messages_window.style.background.color = '#00000000'
         }
 
         const x = margin

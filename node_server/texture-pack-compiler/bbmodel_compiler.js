@@ -25,7 +25,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
             assert: { type: 'json' }
         })).default;
         //
-        const list = [];
+        // const list = [];
         for(let bb of this.conf.bbmodels) {
             const path = `${this.options.model_dir}/${bb.name}.bbmodel`;
             if (!fs.existsSync(path)) {
@@ -36,10 +36,11 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
             model_json._properties = {
                 shift: bb.shift
             }
-            this.models.set(bb.name, model_json);
-            list.push(bb);
+            bb.json = model_json
+            this.models.set(bb.name, model_json)
+            // list.push(bb);
         }
-        this.conf.bbmodels = list;
+        // this.conf.bbmodels = list;
     }
 
     async loadImage(source) {
@@ -52,15 +53,18 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
     async run(compiler) {
 
         // Compile bbmodels
-        for(const [id, model] of this.models.entries()) {
-            if('textures' in model) {
-                const {spritesheet, places} = await this.prepareModel(model, id, this.options)
-                model._properties.texture_id = spritesheet.id
-                model._properties.places = places
+        // for(const [id, model] of this.models.entries()) {
+        for(let bbmodel of this.conf.bbmodels) {
+            const model_json = bbmodel.json
+            const id = bbmodel.name
+            if('textures' in model_json) {
+                const {spritesheet, places} = await this.prepareModel(model_json, id, this.options)
+                model_json._properties.texture_id = spritesheet.id
+                model_json._properties.places = places
             }
-            console.log(`BBModel ... ${id} ${model.elements.length} elements (${model.polygons} polygons)`)
-            delete(model.textures);
-            fs.writeFileSync(`${this.options.output_dir}/${id}.json`, JSON.stringify(model))
+            console.log(`BBModel ... ${id} ${model_json.elements.length} elements (${model_json.polygons} polygons)`)
+            delete(model_json.textures);
+            // fs.writeFileSync(`${this.options.output_dir}/${id}.json`, JSON.stringify(model_json))
         }
 
         // Make blocks list
@@ -112,7 +116,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
         }
 
         // Export conf.json
-        fs.writeFileSync(`${this.options.output_dir}/conf.json`, JSON.stringify(this.conf, null, 4));
+        fs.writeFileSync(`${this.options.output_dir}/conf.json`, JSON.stringify(this.conf));
 
     }
 

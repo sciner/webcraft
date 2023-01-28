@@ -77,7 +77,8 @@ export class ServerPlayer extends Player {
         this.checkDropItemTempVec   = new Vector();
         this.dt_connect             = new Date();
         this.safePosWaitingChunks   = [];
-        this.safeTeleportRenderDist = 2;
+        this.safeTeleportMargin = 2;
+        this.safeTeleportMarginY = 2;
         this.safePosInitialOverride = null; // if its null, state.pos_spawn is used instead
         this.in_portal              = false;
         this.wait_portal            = null;
@@ -200,14 +201,18 @@ export class ServerPlayer extends Player {
             const packet = JSON.parse(message);
             this.world.packet_reader.read(this, packet);
         } catch(e) {
-            const packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: 'error_invalid_command'
-                }
-            }];
-            this.world.sendSelected(packets, [this.session.user_id], []);
+            this.sendError('error_invalid_command');
         }
+    }
+
+    sendError(message) {
+        const packets = [{
+            name: ServerClient.CMD_ERROR,
+            data: {
+                message
+            }
+        }]
+        this.world.sendSelected(packets, [this.session.user_id], [])
     }
 
     // onLeave...
@@ -364,7 +369,9 @@ export class ServerPlayer extends Player {
 
     async tick(delta, tick_number) {
         // 1.
-        this.world.chunks.checkPlayerVisibleChunks(this, false);
+        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+            this.world.chunks.checkPlayerVisibleChunks(this, false);
+        }
         // 2.
         this.sendNearPlayers();
         // 3.
@@ -374,6 +381,7 @@ export class ServerPlayer extends Player {
         // 5.
         await this.checkWaitPortal();
         if (this.status === PLAYER_STATUS_WAITING_DATA) {
+            // will checkPlayerVisibleChunks inside if its ready
             this.checkWaitingData();
         }
         // 6.
@@ -469,6 +477,9 @@ export class ServerPlayer extends Player {
             return;
         }
         this.safePosWaitingChunks = this.world.chunks.queryPlayerVisibleChunks(this);
+        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
+            this.safePosWaitingChunks[i].safeTeleportMarker++;
+        }
     }
 
     checkWaitingData() {
@@ -488,7 +499,7 @@ export class ServerPlayer extends Player {
             // teleport
             var initialPos = this.safePosInitialOverride || this.state.pos_spawn;
             this.safePosInitialOverride = null;
-            this.state.pos = this.world.chunks.findSafePos(initialPos, this.safeTeleportRenderDist);
+            this.state.pos = this.world.chunks.findSafePos(initialPos, this.safeTeleportMargin);
 
             // change status
             this.status = PLAYER_STATUS_ALIVE;
@@ -504,6 +515,7 @@ export class ServerPlayer extends Player {
                 data: {}
             }];
             this.world.packets_queue.add([this.session.user_id], packets);
+            this.world.chunks.checkPlayerVisibleChunks(this, true);
         }
     }
 
@@ -706,7 +718,7 @@ export class ServerPlayer extends Player {
             if (params.safe) {
                 this.status = PLAYER_STATUS_WAITING_DATA;
                 this.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
-                this.safePosWaitingChunks = world.chunks.queryPlayerVisibleChunks(this, new_pos, this.safeTeleportRenderDist);
+                this.safePosWaitingChunks = world.chunks.queryPlayerVisibleChunks(this, new_pos);
                 for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
                     this.safePosWaitingChunks[i].safeTeleportMarker++;
                 }

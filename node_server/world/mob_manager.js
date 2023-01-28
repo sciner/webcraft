@@ -85,13 +85,7 @@ export class WorldMobManager {
             return true;
         } catch (e) {
             console.log('e', e);
-            let packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: e
-                }
-            }];
-            world.sendSelected(packets, [player.session.user_id], []);
+            player.sendError(e);
         }
     }
 

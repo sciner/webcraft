@@ -242,8 +242,12 @@ export class Hotbar {
         this.tilemap.clear()
 
         const player  = this.inventory.player;
-        
-        if(player.game_mode.isSpectator()) {
+
+        const visible = !player.game_mode.isSpectator()
+
+        this.inventory_slots.visible = visible
+
+        if(!visible) {
             return false;
         }
 
@@ -315,7 +319,6 @@ export class Hotbar {
         let pos = margin
         const bg = this.sprite_effect_bg
         for(let effect of this.inventory.player.effects.effects) {
-           // debugger
             const sprite = this.effect_sprites[effect.id]
             const paddingx = bg.width / 2 - sprite.width / 2
             const paddingy = bg.height / 2 - sprite.height / 2

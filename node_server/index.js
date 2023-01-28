@@ -76,9 +76,19 @@ Resources.physics = {features}; // (await import("../../vendors/prismarine-physi
 const app = express();
 
 const page = {
+    useGenWorkers: false,
     domain: config.DomainURL,
     title: config.ProjectName
 };
+
+process.argv.slice(2).forEach(function (val, index, array) {
+    switch(val) {
+        case 'page.useGenWorkers=true': {
+            page.useGenWorkers = true
+            break
+        }
+    }
+})
 
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));

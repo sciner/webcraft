@@ -1,7 +1,7 @@
 /**
 * Window Manager based on PIXI.js
 */
-import { RuneStrings, deepAssign, Helpers } from "../../js/helpers.js";
+import { RuneStrings, deepAssign, Helpers, isScalar } from "../../js/helpers.js";
 import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
 import {Style} from "./styles.js";
@@ -9,6 +9,7 @@ import {Style} from "./styles.js";
 import { msdf } from "../../data/font.js";
 import {MyText} from "./MySpriteRenderer.js";
 import { BLOCK } from "../../js/blocks.js";
+import { Lang } from "../../js/lang.js";
 
 globalThis.visible_change_count = 0
 
@@ -65,6 +66,7 @@ export class Window extends PIXI.Container {
 
     #_tooltip = null
     #_bgicon = null
+    #_wmclip = null
 
     zoom = UI_ZOOM
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
@@ -74,6 +76,9 @@ export class Window extends PIXI.Container {
         super()
 
         const that = this
+
+        this._w = 0
+        this._h = 0
 
         // List of childs
         this.list = {
@@ -106,12 +111,13 @@ export class Window extends PIXI.Container {
             }
         }
 
-        this.index              = 0
         this.x                  = x
         this.y                  = y
         this.z                  = 0 // z-index
         this.width              = w
         this.height             = h
+
+        this.index              = 0
         this.id                 = id
         this.title              = title
         this.word_wrap          = false
@@ -125,12 +131,70 @@ export class Window extends PIXI.Container {
         this.auto_center        = true
         this.create_time        = performance.now()
 
-        this.style              = new Style(this)
+        this.style              = new Style()
+        this.style.assign(this)
+
+        this.w                  = w
+        this.h                  = h
 
         if(text !== undefined) {
             this.text = text || null
         }
 
+    }
+
+    /**
+     * @return {float}
+     */
+    get w() {
+        return this._w
+    }
+
+    /**
+     * @params {float} value
+     */
+    set w(value) {
+        this._w = value
+        if(this.style) {
+            this.style.background.resize()
+        }
+    }
+
+    /**
+     * @return {float}
+     */
+    get h() {
+        return this._h
+    }
+
+    /**
+     * @params {float} value
+     */
+    set h(value) {
+        this._h = value
+        if(this.style) {
+            this.style.background.resize()
+        }
+        if(this.text_container) {
+            this.style.padding._changed()
+        }
+    }
+
+    /**
+     * Return width with padding
+     * @return {float}
+     */
+    get ww() {
+        if(!this.style.padding) debugger
+        return this.w + this.style.padding.left + this.style.padding.right
+    }
+
+    /**
+     * Return height with padding
+     * @return {float}
+     */
+    get hh() {
+        return this.h + this.style.padding.top + this.style.padding.bottom
     }
 
     get name() {
@@ -172,6 +236,7 @@ export class Window extends PIXI.Container {
     onDrop(e) {}
     onWheel(e) {}
     onHide() {}
+
     onShow() {
         for(let window of this.list.values()) {
             if(window instanceof TextEdit) {
@@ -241,19 +306,25 @@ export class Window extends PIXI.Container {
      * @param {?string} value
      */
     set text(value) {
+        if(!isScalar(value)) {
+            throw 'error_invalid_text_value'
+        }
+        if(value) {
+            value = '' + value
+            if(value.startsWith('Lang.')) {
+                value = Lang.getOrDefault(value.substring(5), value)
+            }
+            value = value.replaceAll('\r\n', '\r')
+        }
         if(!this.text_container) {
             if (value === undefined) {
                 return;
             }
-            // this.text_container = new Label(0, 0, undefined, undefined, randomUUID(), undefined, value)
-
             if (this.style._font.useBitmapFont) {
                 this.text_container = new PIXI.BitmapText(value, this.style.font._bitmap_font_style)
             } else {
                 this.text_container = new MyText(value, this.style.font._font_style)
             }
-            //
-
             this.addChild(this.text_container)
         }
         this.text_container.text = value
@@ -392,7 +463,7 @@ export class Window extends PIXI.Container {
                 mh = w.y + w.h;
             }
         }
-        this.max_height = mh + this.style.padding.bottom;
+        this.max_height = mh + this.style.padding.top + this.style.padding.bottom
     }
 
     hasVisibleWindow() {
@@ -751,66 +822,80 @@ export class Window extends PIXI.Container {
     }
 
     assignStyles(style) {
+        const deep_assign_options = {nonEnum: false, symbols: false, descriptors: false, proto: false}
         for(let param in style) {
-            let v = style[param];
+            let v = style[param]
             switch(param) {
                 case 'padding': {
                     if(!isNaN(v)) {
                         v = {left: v, top: v, right: v, bottom: v};
                     }
-                    this.style[param] = v;
-                    break;
+                    for(let k in v) {
+                        v[k] *= this.zoom
+                    }
+                    this.style[param] = v
+                    break
                 }
                 default: {
-                    const options = {nonEnum: false, symbols: true, descriptors: false, proto: true}
-                    deepAssign(options)(this.style[param], v);
-                    break;
+                    deepAssign(deep_assign_options)(this.style[param], v)
+                    break
                 }
             }
         }
     }
 
+    /**
+     * @param {object} layout 
+     */
     appendLayout(layout) {
-        let ignored_props = [
+        const ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
-        ];
+        ]
+        const calcLayoutSize = (value, def_value) => {
+            if(value === undefined) {
+                return def_value
+            }
+            return (value | 0) * this.zoom
+        }
         for(let id in layout) {
-            const cl = layout[id];
-            let control = null;
+            const cl = layout[id]
+            let control = null
             if(cl instanceof Window) {
-                control = cl;
+                control = cl
             } else {
+                const w = calcLayoutSize(cl.width, this.w)
+                const h = calcLayoutSize(cl.height, 0)
                 switch(cl.type) {
                     case 'VerticalLayout': {
-                        control = new VerticalLayout(cl.x, cl.y, cl.width, id);
+                        control = new VerticalLayout(cl.x, cl.y, w, id);
                         if(cl.childs) {
-                            control.appendLayout(cl.childs);
+                            control.appendLayout(cl.childs)
                         }
-                        break;
+                        break
                     }
                     case 'Label': {
-                        control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
-                        break;
+                        control = new Label(cl.x, cl.y, w, h, id, cl?.title, cl?.text)
+                        break
                     }
                     case 'Button': {
-                        control = new Button(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
-                        break;
+                        control = new Button(cl.x, cl.y, w, h, id, cl?.title, cl?.text)
+                        break
                     }
                 }
             }
             if(control) {
                 if(cl.style) {
-                    control.assignStyles(cl.style);
+                    control.assignStyles(cl.style)
                 }
                 // set other props
                 for(let prop in cl) {
                     if(ignored_props.indexOf(prop) < 0) {
-                        control[prop] = cl[prop];
+                        control[prop] = cl[prop]
                     }
                 }
-                this.add(control);
+                this.add(control)
                 if('refresh' in control) {
-                    control.refresh();
+                    control.refresh()
                 }
             }
         }
@@ -921,6 +1006,34 @@ export class Window extends PIXI.Container {
         }
     }
 
+    clip() {
+
+        const w = this.w
+        const h = this.h
+
+        let clip_mask = this.#_wmclip
+        if(!clip_mask) {
+            clip_mask = new Graphics()
+            clip_mask.id = `${this.id}_clip_mask`
+            clip_mask.transform.position.set(0, 0)
+            clip_mask.width = w
+            clip_mask.height = h
+            clip_mask.clear()
+            clip_mask.beginFill(0x00ff0055)
+            clip_mask.drawRect(0, 0, w, h)
+            this.add(clip_mask)
+            this.#_wmclip = clip_mask
+            this.mask = clip_mask
+        } else {
+            clip_mask.width = w
+            clip_mask.height = h
+            clip_mask.clear()
+            clip_mask.beginFill(0x00ff0055)
+            clip_mask.drawRect(0, 0, w, h)
+        }
+
+    }
+
 }
 
 // Button
@@ -934,8 +1047,10 @@ export class Button extends Window {
         this.style.border.hidden = false
 
         if(this.text_container) {
-            this.text_container.anchor.set(.5, .5)
-            this.text_container.position.set(this.w / 2, this.h / 2)
+            this.style.textAlign.horizontal = 'center'
+            this.style.textAlign.vertical = 'middle'
+            // this.text_container.anchor.set(.5, .5)
+            // this.text_container.position.set(this.w / 2, this.h / 2)
         }
 
         this.swapChildren(this.children[0], this.children[1])
@@ -1122,38 +1237,23 @@ class Tooltip extends Label {
         super(0, 0, 100, 20, '_tooltip', null, text)
 
         this.style.font.color = '#ffffff'
-        this.style.font.size = 20
-        this.style.font.family = 'Ubuntu'
-        this.style.padding = {
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: 10
-        }
+        this.style.padding.set(7 * this.zoom, 4 * this.zoom)
+        this.style.font.word_wrap = true
 
-        this.word_wrap = true
-        this.need_update_size = false
+        this.text_container.style.wordWrapWidth = this.getRoot().w / 2
 
         this.setText(text)
-
-        // Text background
-        this._textbg = new PIXI.Graphics()
-        this._textbg.beginFill(0x000000)
-        this._textbg.drawRect(0, 0, 200, 100)
-        this._textbg.alpha = .75
-        this.addChildAt(this._textbg, 0)
-
     }
 
     setText(text) {
 
         this.visible = !!text
         this.text = text
-        this.need_update_size = true
 
-        if(this._textbg) {
-            this._textbg.width = this.text_container.width
-            this._textbg.height = this.text_container.height
+        if(this.visible) {
+            this.w = this.text_container.width + this.style.padding.left + this.style.padding.right
+            this.h = this.text_container.height + this.style.padding.top + this.style.padding.bottom
+            this.style.background.color = '#000000c0'
         }
 
     }
@@ -1329,19 +1429,6 @@ export class WindowManager extends Window {
 
         //
         this.drag = that._wmoverlay._wmpointer
-        // this.drag = {
-        //     item: null,
-        //     setItem: function(item) {
-        //         this.item = item
-        //         that._wmoverlay._wmpointer.setItem(item?.item)
-        //     },
-        //     getItem: function() {
-        //         return this.item
-        //     },
-        //     clear: function() {
-        //         this.setItem(null)
-        //     }
-        // }
 
     }
 
@@ -1423,7 +1510,7 @@ export class WindowManager extends Window {
             }, PIXI.UPDATE_PRIORITY.LOW)
             ticker.start();
         }
-        this.loadFont();
+        // this.loadFont();
     }
 
     closeAll() {
@@ -1517,29 +1604,27 @@ export class VerticalLayout extends Window {
         super(x, y, w, 0, id, null, null);
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
-        this.gap = 0;
+        this.gap = 0
     }
 
     refresh() {
-        /*
-        TODO:
-        let y = 0;
+        let y = 0
         for(let w of this.list.values()) {
-            if(!w.visible) continue;
-            w.x = 0;
-            w.y = y;
-            w.updateMeasure(this.getRoot().ctx);
+            if(!w.visible) continue
+            w.x = 0
+            w.y = y
             if(w.autosize) {
-                w.width = this.width;
-                if(w.__measure.text?.height && w.autosize) {
-                    w.height = w.__measure.text?.height + (w.style.padding.top + w.style.padding.bottom);
+                w.w = this.w
+                w.text_container.style.wordWrapWidth = w.w - w.style.padding.left - w.style.padding.right
+                const tm = w.getTextMetrics()
+                if(tm.height && w.autosize) {
+                    w.h = tm.height + ((w.style.padding.top + w.style.padding.bottom) | 0)
                 }
             }
-            y += w.height + this.gap;
+            y += w.h + this.gap
         }
         this.calcMaxHeight();
-        this.height = this.max_height;
-        */
+        this.h = this.max_height;
     }
 
 }
@@ -1550,18 +1635,18 @@ export class ToggleButton extends Button {
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         this.toggled = false;
-        this.style.textAlign.horizontal = 'left';
-        this.style.padding.left = 10;
-        //
-        this.onMouseEnter = function() {
-            this.style.background.color = '#8892c9';
-            this.style.color = '#ffffff';
-        }
-        //
-        this.onMouseLeave = function() {
-            this.style.background.color = this.toggled ? '#7882b9' : '#00000000';
-            this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
-        }
+        this.style.textAlign.horizontal = 'left'
+        this.style.padding.left = 15
+    }
+
+    onMouseEnter() {
+        this.style.background.color = '#8892c9'
+        this.style.color = '#ffffff'
+    }
+
+    onMouseLeave() {
+        this.style.background.color = this.toggled ? '#7882b9' : '#00000000'
+        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f'
     }
 
     //

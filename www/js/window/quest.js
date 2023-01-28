@@ -26,28 +26,14 @@ export class QuestWindow extends BlankWindow {
         const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
         this.add(lbl1)
 
-        // Обработчик открытия формы
-        this.onShow = function() {
-            this.getRoot().center(this)
-            Qubatch.releaseMousePointer()
-        }
-        
-        // Обработчик закрытия формы
-        this.onHide = function() {}
-
         // Add close button
         this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
             // Close button
-            const btnClose = new Button(that.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial';
+            const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose')
             btnClose.style.background.image = image;
             btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-            that.add(btnClose)
+            btnClose.onMouseDown = this.hide.bind(this)
+            this.add(btnClose)
         })
 
         // Quests updated
@@ -71,6 +57,18 @@ export class QuestWindow extends BlankWindow {
 
     }
 
+    // Обработчик открытия формы
+    onShow() {
+        this.getRoot().center(this)
+        Qubatch.releaseMousePointer()
+        super.onShow()
+    }
+    
+    // Обработчик закрытия формы
+    onHide() {
+        super.onHide()
+    }
+
     setData(data) {
 
         this.data = data;
@@ -84,7 +82,7 @@ export class QuestWindow extends BlankWindow {
             16 * this.zoom,
             45 * this.zoom,
             250 * this.zoom,
-            this.height - (45 + 20) * this.zoom,
+            this.h - (45 + 20) * this.zoom,
             'wGroups'
         );
         this.groups.init(data);
@@ -92,10 +90,10 @@ export class QuestWindow extends BlankWindow {
 
         //
         this.quest_view = new QuestView(
-            (this.groups.x + this.groups.width + 16 * this.zoom),
+            (this.groups.x + this.groups.w + 16 * this.zoom),
             45 * this.zoom,
-            (this.w - this.groups.width - (16 * 3) * this.zoom),
-            this.height - (45 + 20) * this.zoom,
+            (this.w - this.groups.w - (16 * 3) * this.zoom),
+            this.h - (45 + 20) * this.zoom,
             'qView'
         );
         this.add(this.quest_view);
