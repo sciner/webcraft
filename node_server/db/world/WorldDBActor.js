@@ -27,13 +27,17 @@ export class WorldDBActor {
         this._transactionPromise = Promise.resolve();
 
         this._createWorldSavingPromise();
-        this.savingWorldNow = false;
+        /**
+         * If it's not null, it's a promise that fullfills when the world is saved.
+         * Don't confuse it with {@link worldSavingPromise}
+         */
+        this.savingWorldNow = null;
 
         // When it's not null, it's the data of the world-saving transaction currntly being built
         this.underConstruction = null;
 
         // To determine when to start a new transaction
-        this._lastWorldTransactionTime = performance.now();
+        this.lastWorldTransactionStartTime = performance.now();
         this.totalDirtyBlocks = 0;
 
         // Chunk addresses that are queued for deleting old records from world_modify.
@@ -88,7 +92,7 @@ export class WorldDBActor {
     async saveWorldIfNecessary() {
         // if the previous transaction hasn't ended, don't start the new one, so the game loop isn't paused wait
         if (!this.savingWorldNow &&
-            this._lastWorldTransactionTime + WORLD_TRANSACTION_PERIOD < performance.now()
+            this.lastWorldTransactionStartTime + WORLD_TRANSACTION_PERIOD < performance.now()
         ) {
             this.totalDirtyBlocks = 0;
             await this.saveWorld();
@@ -97,21 +101,32 @@ export class WorldDBActor {
         return false;
     }
 
+    async forceSaveWorld() {
+        await this.savingWorldNow // wait for the current (not forced) saving to finish writing, if it is happening now
+        await this.saveWorld(true)
+        await this.savingWorldNow // wait for the forced saving to finish writing
+    }
+
     /**
      * It saves all the changes the world state in one transaction.
      * 
      * @return {Promise} - it fullfills when the game data can be safely modified
      *  by the next game loop iteration, while writing to DB may till be going.
      */
-    async saveWorld() {
+    async saveWorld(force = false) {
         const that = this;
         const world = this.world;
         const db = world.db;
         
         // await for the previous ongoing transaction, then start a new one
         const transaction = await this.beginTransaction(true);
-        this.savingWorldNow = true;
-        this._lastWorldTransactionTime = performance.now(); // remember the actual time when it begins
+
+        let resolveSavingWorldNow;
+        this.savingWorldNow = new Promise(resolve => {
+            resolveSavingWorldNow = resolve;
+        });
+
+        this.lastWorldTransactionStartTime = performance.now(); // remember the actual time when it begins
         const dt = unixTime(); // used for most inserted/updated records (except where individual times are important, e.g. drop items)
         this.asyncStats.start();
 
@@ -124,6 +139,7 @@ export class WorldDBActor {
         this.underConstruction = {
             dt,
             promises: [], // all the pomises of async actions in this transaction
+            force,
 
             // world_modify
             insertBlocks: [],
@@ -177,7 +193,9 @@ export class WorldDBActor {
             }
 
             // Write some of the chunks modifiers, and remeber the rest in the recovery blob
-            let remainingCanSave = WORLD_MODIFY_CHUNKS_PER_TRANSACTION +
+            let remainingCanSave = force
+                ? Infinity
+                : WORLD_MODIFY_CHUNKS_PER_TRANSACTION +
                 // to ensure the queue doesn't grow faster than we can write it,
                 // e.g. when teleporting a lot and tickers modify many of the chunks
                 (uc.worldModifyChunksHighPriority.length + uc.worldModifyChunksMidPriority.length
@@ -292,10 +310,11 @@ export class WorldDBActor {
                 for(const actor of uc.chunklessActorsWritingWorldModifyChunks) {
                     actor.onChunklessFlushed();
                 }
-                this.savingWorldNow = false;
+                this.savingWorldNow = null;
                 this.asyncStats.add('world_transaction');
                 this.asyncStats.end();
                 worldSavingResolve();
+                resolveSavingWorldNow();
             },
             async err => {
                 // The game can't continue. The DB transcation will rollback automatically.

@@ -6,6 +6,10 @@ export let WORLD_TRANSACTION_PERIOD = 2000;  // the time (in ms) between world-s
 // Increasing this number allows them to unload faster.
 export const WORLD_MODIFY_CHUNKS_PER_TRANSACTION = 10;
 
+// Additional timeout after World Transaction and fluids write everything, before exiting the process.
+// It's to allow any other async queries (not included in world transaction or fluids) to finish.
+export const SHUTDOWN_ADDITIONAL_TIMEOUT = 1000
+
 // chunks
 
 // Changes are saved to world_modify_chunks if there are no new changes for this much time.

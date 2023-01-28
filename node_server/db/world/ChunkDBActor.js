@@ -287,22 +287,25 @@ export class ChunkDBActor {
      */
     writeToWorldTransaction(underConstruction) {
         const chunk = this.chunk;
+        const uc = underConstruction;
 
         if (this.dirtyBlocks.size) {
-            this.writeDirtyBlocks(underConstruction);
+            this.writeDirtyBlocks(uc);
         }
 
-        if (chunk && chunk.isReady()) {
+        if (chunk && (chunk.isReady() || 
+            uc.force && chunk.load_state >= CHUNK_STATE.READY && chunk.load_state < CHUNK_STATE.DISPOSED)
+        ) {
             if (chunk.unloadedStuffDirty) {
                 for(const stuff of chunk.unloadedStuff) {
-                    stuff.writeToWorldTransaction(underConstruction, true);
+                    stuff.writeToWorldTransaction(uc, true);
                 }
                 chunk.unloadedStuffDirty = false;
             }
 
             const chunkRecord = chunk.chunkRecord;
             if (chunkRecord.dirty || chunk.delayedCalls.dirty) {
-                underConstruction.insertOrUpdateChunk.push(chunkRecord);
+                uc.insertOrUpdateChunk.push(chunkRecord);
                 chunkRecord.dirty = false;
                 chunk.delayedCalls.dirty = false;
             }
@@ -310,9 +313,9 @@ export class ChunkDBActor {
 
         if (this.unsavedBlocks.size) {
             if (chunk) {
-                if (chunk.load_state === CHUNK_STATE.UNLOADING) {
+                if (chunk.load_state === CHUNK_STATE.UNLOADING || uc.force) {
                     // Save and allow the chunk to be disposed too free memory. It's high priority.
-                    underConstruction.worldModifyChunksHighPriority.push(this);
+                    uc.worldModifyChunksHighPriority.push(this);
                 } else if (
                     // Why we don't save chunks that are not ready: if this is the case, the actor was created before the chunk.
                     // Don't let it flush its unsaved blocks until the chunk is loaded, because they have to be included into the chunk modifiers.
@@ -321,7 +324,7 @@ export class ChunkDBActor {
                 ) {
                     // Periodically save for ready chunks. It's low priority.
                     // Nothing bad happens if we don't do it, except recover blob will be larger
-                    underConstruction.worldModifyChunksLowPriority.push(this);
+                    uc.worldModifyChunksLowPriority.push(this);
                 } else {
                     this.world.dbActor.addUnsavedActor(this);
                 }
@@ -329,8 +332,10 @@ export class ChunkDBActor {
                 // Save the chunkless changes and free memory.
                 // But don't do it immediately, in case more changes are incoming.
                 // It frees not a lot of memory, so it has a mid priority.
-                if (this.lastUnsavedChangeTime < performance.now() - STABLE_WORLD_MODIFY_CHUNKLESS_TTL) {
-                    underConstruction.worldModifyChunksMidPriority.push(this);
+                if (uc.force ||
+                    this.lastUnsavedChangeTime < performance.now() - STABLE_WORLD_MODIFY_CHUNKLESS_TTL
+                ) {
+                    uc.worldModifyChunksMidPriority.push(this);
                 } else {
                     this.world.dbActor.addUnsavedActor(this);
                 }

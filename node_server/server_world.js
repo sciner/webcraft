@@ -28,6 +28,7 @@ import { GAME_DAY_SECONDS, GAME_ONE_SECOND, WORLD_TYPE_BUILDING_SCHEMAS, PLAYER_
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
+import { SHUTDOWN_ADDITIONAL_TIMEOUT } from "./server_constant.js"
 
 import { WorldAction } from "../www/js/world_action.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
@@ -370,6 +371,14 @@ export class ServerWorld {
 
     // World tick
     async tick() {
+        if (this.shuttingDown) {
+            await this.db.fluid.flushAll()
+            await this.dbActor.forceSaveWorld()
+            await new Promise(resolve => {
+                setTimeout(() => resolve(), SHUTDOWN_ADDITIONAL_TIMEOUT)
+            })
+            process.exit()
+        }
         const started = performance.now();
         let delta = 0;
         if (this.pn) {
@@ -857,7 +866,6 @@ export class ServerWorld {
                             // add a block to the postoned action for this chunk
                             postponedActions.addBlocks([params]);
                         } else {
-                            console.log(`Potential problem with setting a block without a chunk: pos=${params.pos} item=${JSON.stringify(params.item)}`);
                             this.dbActor.addChnuklessBlockChange(chunk_addr, params);
                         }
                     }

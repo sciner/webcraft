@@ -37,8 +37,12 @@ export class ServerChat {
         }
     }
 
+    sendSystemChatMessage(text, as_table = false) {
+        this.sendSystemChatMessageToSelectedPlayers(text, null, as_table)
+    }
+
     // sendSystemChatMessageToSelectedPlayers...
-    sendSystemChatMessageToSelectedPlayers(text, selected_players, as_table = false) {
+    sendSystemChatMessageToSelectedPlayers(text, selected_players = null, as_table = false) {
         // send as table
         if(as_table) {
             let max_length = 0;
@@ -67,7 +71,11 @@ export class ServerChat {
                 }
             }
         ];
-        this.world.sendSelected(packets, selected_players, []);
+        if (selected_players) {
+            this.world.sendSelected(packets, selected_players, []);
+        } else {
+            this.world.sendAll(packets, []);
+        }
     }
 
     // runCmd
@@ -192,6 +200,15 @@ export class ServerChat {
                     }
                 }
                 break;
+            case '/shutdown':
+                if(!this.world.admins.checkIsAdmin(player)) {
+                    throw 'error_not_permitted'
+                }
+                const msg = 'shutdown_initiated_by|' + player.session.username
+                console.warn(msg)
+                this.sendSystemChatMessage(msg, null)
+                this.world.shuttingDown = true
+                break
             case '/tp': 
             case '/stp': {
                 const safe = (args[0] == '/stp');
@@ -239,7 +256,11 @@ export class ServerChat {
                 break;
             }
             case '/asyncstat': {
-                const table = this.world.dbActor.asyncStats.toTable();
+                const dbActor = this.world.dbActor
+                const table = dbActor.asyncStats.toTable()
+                table['World transaction now'] = dbActor.savingWorldNow
+                    ? `running for ${(performane.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
+                    : 'not running';
                 this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;
             }
