@@ -50,7 +50,8 @@
         {"name": "bee_nest",            "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "jukebox",             "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "enchanting_table",    "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "lectern",             "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "lectern",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "fence_gate",          "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -956,6 +957,126 @@
             "bb": {
                 "model": "lectern",
                 "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 911,
+            "name": "BIRCH_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"texture": "BIRCH_FENCE_GATE.png"}
+                ]
+            }
+        },
+        {
+            "id": 912,
+            "name": "OAK_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"texture": "OAK_FENCE_GATE.png"}
+                ]
+            }
+        },
+        {
+            "id": 913,
+            "name": "ACACIA_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"texture": "ACACIA_FENCE_GATE.png"}
+                ]
+            }
+        },
+        {
+            "id": 914,
+            "name": "SPRUCE_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"texture": "SPRUCE_FENCE_GATE.png"}
+                ]
+            }
+        },
+        {
+            "id": 915,
+            "name": "DARK_OAK_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"texture": "DARK_OAK_FENCE_GATE.png"}
+                ]
+            }
+        },
+        {
+            "id": 916,
+            "name": "JUNGLE_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"texture": "JUNGLE_FENCE_GATE.png"}
+                ]
             }
         }
     ]

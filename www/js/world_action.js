@@ -2068,9 +2068,9 @@ async function openFenceGate(e, world, pos, player, world_block, world_material,
         extra_data = {};
     }
     if (rotate.x == 0 || rotate.x == 2) {
-        extra_data.facing = (pos.z - player.pos.z) > 0 ? 'east' : 'west';
+        extra_data.facing = (pos.z - player.pos.z) > 0 ? 'north' : 'south';
     } else {
-        extra_data.facing = (pos.x - player.pos.x) > 0 ? 'north' : 'south';
+        extra_data.facing = (pos.x - player.pos.x) > 0 ? 'east' : 'west';
     }
     extra_data.opened = extra_data && !extra_data.opened;
     if(world_material.sound) {
