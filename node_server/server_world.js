@@ -274,7 +274,7 @@ export class ServerWorld {
             return;
         }
         // находим игроков
-        for (const [_, player] of this.players.all()) {
+        for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
                 // количество мобов одного типа в радусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie', 'skeleton']);
@@ -411,22 +411,30 @@ export class ServerWorld {
             //
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
-            //
+
+            // Do different periodic tasks in different ticks to reduce lag spikes
             if(this.ticks_stat.number % 100 == 0) {
+                //
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
-            }
-            // Auto spawn hostile mobs
-            if(this.ticks_stat.number % 100 == 0) {
+                // Auto spawn hostile mobs
                 this.autoSpawnHostileMobs();
                 this.ticks_stat.add('auto_spawn_hostile_mobs');
-            }
-            // Save fluids
-            await this.db.fluid.saveFluids();
-            this.ticks_stat.add('db_fluid_save');
-            // World transaction
-            if (await this.dbActor.saveWorldIfNecessary()) {
+            } else if (!this.givePriorityToSavingFluids &&
+                await this.dbActor.saveWorldIfNecessary() // World transaction
+            ) {
                 this.ticks_stat.add('world_transaction_sync');
+            } else {
+                // We mustn't save fluids (synchronously) while the world transaction is writing, because it'll cause long waiting.
+                if (!this.dbActor.savingWorldNow) {
+                    // Save fluids
+                    await this.db.fluid.saveFluids();
+                    this.ticks_stat.add('db_fluid_save');
+                    this.givePriorityToSavingFluids = false;
+                } else {
+                    // Ensure that even if the world transaction takes all the time, it'll give at least 1 tick to fluids
+                    this.givePriorityToSavingFluids = true;
+                }
             }
             this.ticks_stat.end();
         }

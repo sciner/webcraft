@@ -513,7 +513,7 @@ export class ServerChunkManager {
             return;
         }
         const players = [];
-        for(const [_, p] of world.players.all()) {
+        for(const p of world.players.values()) {
             players.push({
                 pos:                p.state.pos,
                 chunk_addr:         getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
