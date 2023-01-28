@@ -906,7 +906,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // 1. Change extra data
     if(e.changeExtraData) {
-        for(let func of [editSign]) {
+        for(let func of [editSign, editBeacon]) {
             if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1613,6 +1613,20 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
 async function noSetOnTop(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const noSetOnTop = world_material.tags.includes('no_set_on_top');
     return noSetOnTop && pos.n.y == 1;
+}
+
+// Edit beacon
+async function editBeacon(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (world_material.id != BLOCK.BEACON.id) {
+        return false
+    }
+    const item = e.extra_data.slots[0]
+    if (item && item.count == 1 && [BLOCK.GOLD_INGOT.id, BLOCK.IRON_INGOT.id, BLOCK.NETHERITE_INGOT.id, BLOCK.DIAMOND.id, BLOCK.EMERALD.id].includes(item.id)) {
+        e.extra_data.slots = {}
+        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        return true
+    }
+    return true // @todo false error server
 }
 
 // Edit sign

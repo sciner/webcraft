@@ -75,7 +75,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
         // Add labels to window
         this.add(this.lbl1 = new Label(15 * this.zoom, 12 * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl1', null, options.title));
-        this.add(new Label(15 * this.zoom, (h + (147 - 332)) * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory'));
+        this.add(this.lbl2 = new Label(15 * this.zoom, (h + (147 - 332)) * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl2', null, Lang.inventory));
 
         // Add listeners for server commands
         this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {

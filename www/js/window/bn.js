@@ -1,127 +1,40 @@
-import { BLOCK } from "../blocks.js";
-import { Button, Window } from "../../tools/gui/wm.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
-import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
-import { Resources } from "../resources.js";
-
-// слот для залога
-class BeaconSlot extends CraftTableSlot {
-
-    constructor(x, y, w, h, id, title, text, ct) {
-        super(x, y, w, h, id, title, text, ct, null);
-        this.ct = ct
-    }
-        
-    onMouseEnter() {
-        this.style.background.color = '#ffffff55';
-    }
-
-    onMouseLeave() {
-        this.style.background.color = '#00000000';
-    }
-    
-    onMouseDown(e) { 
-        const dragItem = this.getItem();
-        if (!dragItem) {
-            return;
-        }
-        this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
-        this.setItem(null)
-    }
-    
-    onDrop(e) {
-        const dropItem = e.drag.getItem()
-        // в слот можно вставлять только алмаз, изумруд, золото, железо, незерит
-        if (!dropItem || dropItem.count != 1 || ![BLOCK.GOLD_INGOT.id, BLOCK.DIAMOND.id, BLOCK.IRON_INGOT.id, BLOCK.NETHER_BRICK.id].includes(dropItem.id)) {
-            return;
-        }
-        const dragItem = this.getItem();
-        this.setItem(dropItem, e);
-        this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
-    }
-    
-    getInventory() {
-        return this.ct.inventory;
-    }
-    
-}
+import { Button, Window, Label} from "../../tools/gui/wm.js"
+import { INVENTORY_SLOT_SIZE, SKIN_RIGHTS_DEFAULT } from "../constant.js"
+import { Resources } from "../resources.js"
+import { BaseChestWindow } from "./base_chest_window.js"
+import { Vector } from "../helpers.js"
+import { Effect } from "../block_type/effect.js"
+import { Lang } from "../lang.js";
+import { BLOCK } from "../blocks.js"
 
 // кнопки активации
-class ActiveButton extends Window {
+class OkButton extends Window {
     
     constructor(x, y, size, id, icon, ct) {
         
         super(x, y, size, size, id, null, null)
-        
+
         this.ct = ct
+        this.style.border.hidden = true
 
-        // this.setIconName(icon)
-        // this.setEnable(true)
-        // this.setDown(false)
-
+        this.setBackground(ct.atlas.getSpriteFromMap('button'))
+        this.setIcon(ct.atlas.getSpriteFromMap('ok'), 'centerstretch', .5)
     }
         
     onMouseEnter() {
-        if(this.enable && !this.down) {
-            // this.style.background.sprite.x = 132
-            this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
-        }
-    };
+        this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
+    }
     
     onMouseLeave() {
-        if(this.enable && !this.down) {
-            // this.style.background.sprite.x = 0
-            this.setBackground(this.ct.atlas.getSpriteFromMap('button'))
-        }
-    };
-    
-    onMouseDown() {
-        if(this.enable && !this.down) {
-            this.ct.btn_ok.setDown(false)
-            this.ct.btn_cancel.setDown(false)
-            this.setDown(true)
-        }
-    };
-    
-    setEnable(val) {
-        this.enable = val;
-        if (!this.enable) {
-            // this.style.background.sprite.x = 88
-            this.setBackground(this.ct.atlas.getSpriteFromMap('button_black'))
-        }
+        this.setBackground(this.ct.atlas.getSpriteFromMap('button'))
     }
-    
-    setDown(val) {
-        this.down = val;
-        // this.style.background.sprite.x = this.down ? 43 : 0;
-        this.setBackground(this.ct.atlas.getSpriteFromMap(this.down ? 'button_pressed' : 'button'))
-    }
-    
-    setIcon(name) {
-        switch(name) {
-            case 'ok': {
-                // this.style.icon.sprite.x = 178;
-                // this.style.icon.sprite.y = 438;
-                this.setIcon(this.ct.atlas.getSpriteFromMap('ok'))
-                break;
-            }
-            case 'cancel': {
-                // this.style.icon.sprite.x = 222;
-                // this.style.icon.sprite.y = 438;
-                this.setIcon(this.ct.atlas.getSpriteFromMap('cancel'))
-                break;
-            }
-        }
-    }
-    
 }
-
 // кнопки эффектов
 class EffectButton extends Window {
     
     constructor(x, y, size, id, icon, ct) {
         
-        super(x, y, size, size, id, null, null);
+        super(x, y, size, size, id, null, null)
 
         this.ct = ct
         this.style.border.hidden = true
@@ -136,6 +49,8 @@ class EffectButton extends Window {
     }
         
     onMouseEnter() {
+        const ct = this.ct
+        ct.updateButtons()
         if (this.enable && !this.down) {
             this.setBackground(this.ct.atlas.getSpriteFromMap('button_black_pressed'))
         }
@@ -151,36 +66,44 @@ class EffectButton extends Window {
         const ct = this.ct
         if(this.enable && !this.down) {
             if (this != ct.btn_regeneration && this != ct.btn_double) {
-                ct.btn_speed.setDown(false)
-                ct.btn_haste.setDown(false)
-                ct.btn_resistance.setDown(false)
-                ct.btn_jump.setDown(false)
-                ct.btn_strength.setDown(false)
-                this.setDown(true)
-                ct.btn_double.setIconName(this.getIconName())
+                if (this == ct.btn_speed) {
+                    ct.tmp_state.first = Effect.SPEED
+                }
+                if (this == ct.btn_haste) {
+                    ct.tmp_state.first = Effect.HASTE
+                }
+                if (this == ct.btn_resistance) {
+                    ct.tmp_state.first = Effect.RESISTANCE
+                }
+                if (this == ct.btn_jump) {
+                    ct.state.first = Effect.JUMP_BOOST
+                }
+                if (this == ct.btn_strength) {
+                    ct.tmp_state.first = Effect.STRENGTH
+                }
             }
             if (this == ct.btn_regeneration) {
-                ct.btn_double.setDown(false)
-                this.setDown(true);
+                ct.tmp_state.second = Effect.REGENERATION
             }
             if (this == ct.btn_double) {
-                ct.btn_regeneration.setDown(false)
-                this.setDown(true)
+                ct.tmp_state.second = 0
             }
         }
+        ct.updateButtons()
     }
 
     setEnable(val) {
-        this.enable = val;
+        this.enable = val
         if (!this.enable) {
-            // this.style.background.sprite.x = 88;
             this.setBackground(this.ct.atlas.getSpriteFromMap('button_black'))
         }
     }
     
     setDown(val) {
-        this.down = val;
-        // this.style.background.sprite.x = this.down ? 43 : 0;
+        if (!this.enable) {
+            return
+        }
+        this.down = val
         this.setBackground(this.ct.atlas.getSpriteFromMap(this.down ? 'button_pressed' : 'button'))
     }
     
@@ -195,30 +118,22 @@ class EffectButton extends Window {
     
 }
 
-//
-export class BeaconWindow extends BaseCraftWindow {
+export class BeaconWindow extends BaseChestWindow {
 
-    constructor(player) {
-        
-        super(10, 10, 459, 438, 'frmBeacon', null, null, player.inventory);
-        
-        this.w *= this.zoom
-        this.h *= this.zoom
-        this.player = player
-
+    constructor(inventory) {
+        super(0, 0, 459, 438, 'frmBeacon', null, null, inventory, {
+            title: '',
+            sound: {
+                open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
+                close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
+            }
+        })
         this.atlas = Resources.atlas.bn
-
         this.setBackground(this.atlas.getSpriteFromMap('background'))
-
-        // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
-
+        // надписи на окне
+        this.craeteLabels()
         // Создание кнопок для эффектов
-        this.createButtons(this.cell_size)
-
-        // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size, 70, 272)
-
+        this.createButtons()
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Close button
@@ -229,36 +144,79 @@ export class BeaconWindow extends BaseCraftWindow {
             this.add(btnClose)
         })
 
+        // fix shift inventory
+        this.lbl2.x += 55 * this.zoom
+        for(let slot of this.inventory_slots) {
+            slot.x += 55 * this.zoom
+        }
     }
-        
-    // Обработчик закрытия формы
-    onHide() {
-        this.inventory.clearDragItem()
-        // Save inventory
-        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [])
-    }
-    
-    // Обработчик открытия формы
-    onShow(args) {
-        Qubatch.releaseMousePointer()
+    onShow() {
+        super.onShow()
+        this.tmp_state = this.state
+        this.updateButtons()
     }
     
-    createButtons(cell_size) {
-
-        this.add(this.btn_speed = new EffectButton(105 * this.zoom, 50 * this.zoom, cell_size, 'btnSpeed', 'speed', this))
-        this.add(this.btn_haste = new EffectButton(145 * this.zoom, 50 * this.zoom, cell_size, 'btnHaste', 'haste', this))
-        this.add(this.btn_resistance = new EffectButton(105 * this.zoom, 100 * this.zoom, cell_size, 'btnResistance', 'resistance', this))
-        this.add(this.btn_jump = new EffectButton(145 * this.zoom, 100 * this.zoom, cell_size, 'btnJump', 'jump_boost', this))
-        this.add(this.btn_strength = new EffectButton(125 * this.zoom, 150 * this.zoom, cell_size, 'btnStrength', 'strength', this))
-        this.add(this.btn_regeneration = new EffectButton(290 * this.zoom, 100 * this.zoom, cell_size, 'btnRegeneration', 'regeneration', this))
-        this.add(this.btn_double = new EffectButton(340 * this.zoom, 100 * this.zoom, cell_size, 'btnDouble', 'speed', this))
-
-        this.add(this.btn_ok = new ActiveButton(310 * this.zoom, 217 * this.zoom, cell_size, 'btnOk', 'ok', this))
-        this.add(this.btn_cancel = new ActiveButton(350 * this.zoom, 217 * this.zoom, cell_size, 'btnCancel', 'cancel', this))
-
-        // this.beacon_slot = new BeaconSlot(270 * this.zoom, 217 * this.zoom, cell_size, cell_size, 'lblBeaconSlot', null, null, this);
-
+    prepareSlots() {
+        const resp = []
+        resp.push({pos: new Vector(270 * this.zoom, 218 * this.zoom, 0)})
+        return resp
     }
-    
+
+    craeteLabels() {
+        this.add(new Label(65 * this.zoom, 10 * this.zoom, 100 * this.zoom, 30 * this.zoom, 'lblPrimary', null, Lang.beacon_primary))
+        this.add(new Label(260 * this.zoom, 10 * this.zoom, 100 * this.zoom, 30 * this.zoom, 'lblSeconddary', null, Lang.beacon_secondary))
+        let lbl = new Label(80 * this.zoom, 213 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblEmerald')
+        lbl.setBackground(Resources.inventory.atlas.getSpriteFromMap('EMERALD'))
+        this.add(lbl)
+        lbl = new Label(122 * this.zoom, 213 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblDiamond')
+        lbl.setBackground(Resources.inventory.atlas.getSpriteFromMap('DIAMOND'))
+        this.add(lbl)
+        lbl = new Label(164 * this.zoom, 213 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblGold')
+        lbl.setBackground(Resources.inventory.atlas.getSpriteFromMap('GOLD_INGOT'))
+        this.add(lbl)
+        lbl = new Label(208 * this.zoom, 213 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblIron')
+        lbl.setBackground(Resources.inventory.atlas.getSpriteFromMap('IRON_INGOT'))
+        this.add(lbl)
+    }
+    createButtons() {
+        const size = INVENTORY_SLOT_SIZE * this.zoom
+        const self = this
+        this.add(this.btn_speed = new EffectButton(105 * this.zoom, 50 * this.zoom, size, 'btnSpeed', 'speed', this))
+        this.add(this.btn_haste = new EffectButton(145 * this.zoom, 50 * this.zoom, size, 'btnHaste', 'haste', this))
+        this.add(this.btn_resistance = new EffectButton(105 * this.zoom, 100 * this.zoom, size, 'btnResistance', 'resistance', this))
+        this.add(this.btn_jump = new EffectButton(145 * this.zoom, 100 * this.zoom, size, 'btnJump', 'jump_boost', this))
+        this.add(this.btn_strength = new EffectButton(125 * this.zoom, 150 * this.zoom, size, 'btnStrength', 'strength', this))
+        this.add(this.btn_regeneration = new EffectButton(290 * this.zoom, 100 * this.zoom, size, 'btnRegeneration', 'regeneration', this))
+        this.add(this.btn_double = new EffectButton(340 * this.zoom, 100 * this.zoom, size, 'btnDouble', 'speed', this))
+        this.add(this.btn_ok = new OkButton(310 * this.zoom, 217 * this.zoom, size, 'btnOk', 'ok', this))
+        this.btn_ok.onMouseDown = function(e) {
+            const pos = self.info.pos
+            const block = Qubatch.world.getBlock(pos)
+            const item = block.extra_data.slots[0]
+            if (!item || item.count != 1 || ![BLOCK.GOLD_INGOT.id, BLOCK.IRON_INGOT.id, BLOCK.NETHERITE_INGOT.id, BLOCK.DIAMOND.id, BLOCK.EMERALD.id].includes(item.id)) {
+                return
+            }
+            const extra_data = block.extra_data
+            extra_data.state.first = self.tmp_state.first
+            extra_data.state.second = self.tmp_state.second
+            Qubatch.world.changeBlockExtraData(pos, extra_data)
+        }
+    }
+    updateButtons() {
+        this.btn_speed.setEnable(this?.tmp_state?.level > 0 ? true : false)
+        this.btn_haste.setEnable(this?.tmp_state?.level > 0 ? true : false)
+        this.btn_resistance.setEnable(this?.tmp_state?.level > 1 ? true : false)
+        this.btn_jump.setEnable(this?.tmp_state?.level > 1 ? true : false)
+        this.btn_strength.setEnable(this?.tmp_state?.level > 2 ? true : false)
+        this.btn_double.setEnable(this?.tmp_state?.level > 3 ? true : false)
+        this.btn_regeneration.setEnable(this?.tmp_state?.level > 3 ? true : false)
+        this.btn_speed.setDown(this?.tmp_state?.first == Effect.SPEED ? true : false)
+        this.btn_haste.setDown(this?.tmp_state?.first == Effect.HASTE ? true : false)
+        this.btn_resistance.setDown(this?.tmp_state?.first == Effect.RESISTANCE ? true : false)
+        this.btn_jump.setDown(this?.tmp_state?.first == Effect.JUMP_BOOST ? true : false)
+        this.btn_strength.setDown(this?.tmp_state?.first == Effect.STRENGTH ? true : false)
+        this.btn_regeneration.setDown(this?.tmp_state?.second == Effect.REGENERATION ? true : false)
+        this.btn_double.setDown(this?.tmp_state?.second == 0 ? true : false)
+        this.btn_double.setIconName(Effect.get()[this.tmp_state.first].icon)
+    }
 }
-
