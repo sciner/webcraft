@@ -55,6 +55,28 @@ NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 // texture (array | function)   - ?
 // transparent (bool)           - Not cube
 
+export class DBItemBlock {
+
+    constructor(id, extra_data) {
+        this.id = id
+        if(extra_data) {
+            this.extra_data = null
+        }
+    }
+
+    /**
+     * @return {DBItemBlock}
+     */
+    static cloneFrom(block) {
+        const result = new DBItemBlock(block.id)
+        for(let k in block)  {
+            result[k] = block[k]
+        }
+        return result
+    }
+
+}
+
 class Block {
 
     constructor() {}
@@ -358,10 +380,13 @@ export class BLOCK {
      * Specifically for blocks: expects that {@link item} may be TBlock, doesn't return count, optimization for AIR.
      */
     static convertBlockToDBItem(item) {
+        if(item && item instanceof DBItemBlock) {
+            return item
+        }
         if(!item || !('id' in item)) {
             return null;
         }
-        const resp = { id: item.id };
+        const resp = new DBItemBlock(item.id)
         if (resp.id) {  // AIR blocks are very common, they don't have properties
             let v;
             // For non-existing items matrial is DUMMY. That's how it was done in DBWorld.blockSet().

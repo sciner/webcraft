@@ -20,7 +20,7 @@ import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
-import { BLOCK } from "../www/js/blocks.js";
+import { BLOCK, DBItemBlock } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
@@ -643,13 +643,14 @@ export class ServerWorld {
     async applyActions(server_player, actions) {
         const chunks_packets = new VectorCollector();
         //
-        const getChunkPackets = (pos) => {
-            const chunk_addr = getChunkAddr(pos);
-            const chunk = this.chunks.get(chunk_addr);
+        const getChunkPackets = (pos, chunk_addr) => {
+            if(!chunk_addr) {
+                chunk_addr = getChunkAddr(pos)
+            }
             let cps = chunks_packets.get(chunk_addr);
             if (!cps) {
                 cps = {
-                    chunk: chunk,
+                    chunk: this.chunks.get(chunk_addr),
                     packets: [],
                     custom_packets: []
                 };
@@ -728,22 +729,31 @@ export class ServerWorld {
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
             try {
-                let chunk_addr = new Vector(0, 0, 0);
-                let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
+                const block_pos_in_chunk = new Vector(Infinity, Infinity, Infinity);
+                const chunk_addr = new Vector(0, 0, 0);
+                const prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
                 let chunk = null;
                 let postponedActions = null; // WorldAction containing a subset of actions.blocks, postponed until the current chunk loads
                 const previous_item = {id: 0}
+                let cps = null;
                 for (let params of actions.blocks.list) {
-                    params.item = this.block_manager.convertBlockToDBItem(params.item);
-                    chunk_addr = getChunkAddr(params.pos, chunk_addr);
+                    const block_pos = new Vector(params.pos).flooredSelf();
+                    params.pos = block_pos;
+                    //
+                    if(!(params.item instanceof DBItemBlock)) {
+                        if(!globalThis.asdfasdf) globalThis.asdfasdf = 0
+                        if(globalThis.asdfasdf++ % 1000 == 0) console.log(globalThis.asdfasdf)
+                        params.item = this.block_manager.convertBlockToDBItem(params.item)
+                    }
+                    //
+                    getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
+                        cps = getChunkPackets(null, chunk_addr);
                         chunk?.light?.flushDelta();
                         chunk = this.chunks.getOrRestore(chunk_addr);
                         postponedActions = null; // the new chunk must create its own postponedActions
                         prev_chunk_addr.copyFrom(chunk_addr);
                     }
-                    const block_pos = new Vector(params.pos).flooredSelf();
-                    params.pos = block_pos;
                     const isReady = chunk && chunk.isReady();
                     // 2. Mark as became modifieds
                     this.worldChunkFlags.add(chunk_addr, WorldChunkFlags.MODIFIED_BLOCKS);
@@ -756,9 +766,7 @@ export class ServerWorld {
                             sanitizedParams = {...params};
                             sanitizedParams.item = sanitizedItem;
                         }
-
-                        const block_pos_in_chunk = block_pos.sub(chunk.coord);
-                        const cps = getChunkPackets(params.pos);
+                        block_pos_in_chunk.copyFrom(block_pos).subSelf(chunk.coord)
                         cps.packets.push({
                             name: ServerClient.CMD_BLOCK_SET,
                             data: sanitizedParams
@@ -864,9 +872,9 @@ export class ServerWorld {
                                 chunk.pendingWorldActions.push(postponedActions);
                             }
                             // add a block to the postoned action for this chunk
-                            postponedActions.addBlocks([params]);
+                            postponedActions.addBlock(params);
                         } else {
-                            this.dbActor.addChnuklessBlockChange(chunk_addr, params);
+                            this.dbActor.addChunklessBlockChange(chunk_addr, params);
                         }
                     }
                 }
@@ -969,9 +977,11 @@ export class ServerWorld {
         }
         //
         for (let cp of chunks_packets) {
-            if (cp.chunk) {
+            if (cp.chunk && cp.packets.length > 0 || cp.custom_packets.length > 0) {
                 // send 1
-                cp.chunk.sendAll(cp.packets, []);
+                if(cp.packets.length > 0) {
+                    cp.chunk.sendAll(cp.packets, []);
+                }
                 // send 2
                 for (let i = 0; i < cp.custom_packets.length; i++) {
                     const item = cp.custom_packets[i];

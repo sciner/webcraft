@@ -562,25 +562,28 @@ export class WorldAction {
         this.play_sound.push(item);
     }
 
+    addBlock(item) {
+        if(!item.action_id) {
+            throw 'error_undefined_action_id';
+        }
+        /*if(!item.item.extra_data && item.item.id > 0) {
+            const extra_data = BLOCK.makeExtraData(item.item, item.pos);
+            if(extra_data) {
+                throw 'error_empty_extra_data';
+                // item.item.extra_data = extra_data;
+            }
+        }*/
+        if(item.pos.x != Math.floor(item.pos.x)) throw 'error_invalid_block_pos'
+        if(item.pos.y != Math.floor(item.pos.y)) throw 'error_invalid_block_pos'
+        if(item.pos.z != Math.floor(item.pos.z)) throw 'error_invalid_block_pos'
+        this.blocks.list.push(item)
+    }
+
     // Add block
     addBlocks(items) {
         for(let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if(!item.action_id) {
-                throw 'error_undefined_action_id';
-            }
-            /*if(!item.item.extra_data && item.item.id > 0) {
-                const extra_data = BLOCK.makeExtraData(item.item, item.pos);
-                if(extra_data) {
-                    throw 'error_empty_extra_data';
-                    // item.item.extra_data = extra_data;
-                }
-            }*/
-            if(item.pos.x != Math.floor(item.pos.x)) throw 'error_invalid_block_pos';
-            if(item.pos.y != Math.floor(item.pos.y)) throw 'error_invalid_block_pos';
-            if(item.pos.z != Math.floor(item.pos.z)) throw 'error_invalid_block_pos';
+            this.addBlock(items[i])
         }
-        this.blocks.list.push(...items);
     }
 
     addFluids(fluids, offset) {

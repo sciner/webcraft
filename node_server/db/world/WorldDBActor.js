@@ -350,7 +350,7 @@ export class WorldDBActor {
         return Promise.all(promises);
     }
 
-    addChnuklessBlockChange(chunk_addr, params) {
+    addChunklessBlockChange(chunk_addr, params) {
         const pos = Vector.vectorify(params.pos);
         params.pos = pos;
 
