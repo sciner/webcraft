@@ -207,7 +207,7 @@ export class ServerChat {
                 const msg = 'shutdown_initiated_by|' + player.session.username
                 console.warn(msg)
                 this.sendSystemChatMessage(msg, null)
-                this.world.shuttingDown = true
+                this.world.game.shutdown()
                 break
             case '/tp': 
             case '/stp': {
@@ -259,7 +259,7 @@ export class ServerChat {
                 const dbActor = this.world.dbActor
                 const table = dbActor.asyncStats.toTable()
                 table['World transaction now'] = dbActor.savingWorldNow
-                    ? `running for ${(performane.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
+                    ? `running for ${(performance.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
                     : 'not running';
                 this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;

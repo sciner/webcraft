@@ -28,6 +28,7 @@ export class ServerGame {
         // Worlds
         this.worlds = new Map();
         this.worlds_loading = new Map();
+        this.shutdownPromise = null;
         // Placeholder
         this.hud = new FakeHUD();
         this.hotbar = new FakeHotbar();
@@ -35,10 +36,29 @@ export class ServerGame {
         this.timerLoadWorld = setTimeout(this.processWorldQueue.bind(this), 10);
 
         this.lightWorker = null;
+
+        process.on('SIGTERM', () => this.shutdown());
+    }
+
+    async shutdown() {
+        if (this.shutdownPromise) {
+            return
+        }
+        const promises = []
+        for(const world of this.worlds.values()) {
+            const promise = new Promise(resolve => {
+                world.shuttingDown = resolve
+            })
+            promises.push(promise)
+        }
+        this.shutdownPromise = Promise.all(promises)
+        await this.shutdownPromise
+        process.exit()
     }
 
     //
     async processWorldQueue() {
+        await this.shutdownPromise; // don't load new worlds when shutting down
         for(const [world_guid, _] of this.worlds_loading.entries()) {
             console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
             const p = performance.now();
@@ -47,7 +67,7 @@ export class ServerGame {
             const world = new ServerWorld(BLOCK);
             const db_world = await DBWorld.openDB(conn, world);
             const title = (await worldTitlePromise).title;
-            await world.initServer(world_guid, db_world, title);
+            await world.initServer(world_guid, db_world, title, this);
             this.worlds.set(world_guid, world);
             this.worlds_loading.delete(world_guid);
             console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
@@ -136,6 +156,7 @@ export class ServerGame {
             // Get loaded world
             let world = this.getLoadedWorld(world_guid);
             const onWorld = async () => {
+                await this.shutdownPromise // don't load new worlds when shutting down
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
                 player.onJoin(query.session_id, parseFloat(query.skin), conn, world);

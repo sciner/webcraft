@@ -50,7 +50,8 @@ export class ServerWorld {
         this.updatedBlocksByListeners = [];
     }
 
-    async initServer(world_guid, db_world, new_title) {
+    async initServer(world_guid, db_world, new_title, game) {
+        this.game = game;
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
@@ -374,10 +375,9 @@ export class ServerWorld {
         if (this.shuttingDown) {
             await this.db.fluid.flushAll()
             await this.dbActor.forceSaveWorld()
-            await new Promise(resolve => {
-                setTimeout(() => resolve(), SHUTDOWN_ADDITIONAL_TIMEOUT)
-            })
-            process.exit()
+            // resolve the promise of this world shutting down after an additional timeout
+            setTimeout(this.shuttingDown, SHUTDOWN_ADDITIONAL_TIMEOUT)
+            await new Promise(() => {}) // await forever
         }
         const started = performance.now();
         let delta = 0;
