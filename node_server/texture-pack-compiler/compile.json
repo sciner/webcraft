@@ -6018,6 +6018,7 @@
             "sound": "madcraft:block.wood",
             "height": 0.666,
             "transparent": true,
+            "can_rotate": true,
             "material": {
                 "id": "wood"
             },

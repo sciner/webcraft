@@ -45,7 +45,12 @@
         {"name": "candle",              "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "rail",                "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "iron_bars",           "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "door",                "shift": {"x": 23, "y": 0, "z": -7}}
+        {"name": "door",                "shift": {"x": 23, "y": 0, "z": -7}},
+        {"name": "beacon",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "bee_nest",            "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "jukebox",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "enchanting_table",    "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "lectern",             "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -909,6 +914,49 @@
         {
             "_id": 588,
             "name": "CRIMSON_DOOR"
+        },
+        {
+            "id": 142,
+            "name": "BEACON",
+            "group": "doubleface",
+            "bb": {
+                "model": "beacon"
+            }
+        },
+        {
+            "id": 1447,
+            "name": "BEE_NEST",
+            "transparent": true,
+            "bb": {
+                "model": "bee_nest",
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 84,
+            "transparent": true,
+            "name": "JUKEBOX",
+            "group": "doubleface_transparent",
+            "bb": {
+                "model": "jukebox",
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 1477,
+            "name": "ENCHANTING_TABLE",
+            "bb": {
+                "model": "enchanting_table",
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 503,
+            "name": "LECTERN",
+            "bb": {
+                "model": "lectern",
+                "rotate": {"type": "cardinal_direction"}
+            }
         }
     ]
 }

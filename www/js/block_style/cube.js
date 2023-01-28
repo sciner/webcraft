@@ -539,22 +539,38 @@ export default class style {
         }
 
         // Jukebox
-        if(typeof worker != 'undefined' && block.id == BLOCK.JUKEBOX.id) {
-            const disc = block?.extra_data?.disc || null;
-            if(disc) {
-                worker.postMessage(['play_disc', {
-                    ...disc,
-                    dt: block.extra_data?.dt,
-                    pos: chunk.coord.add(new Vector(x, y, z))
-                }]);
-                worker.postMessage(['add_animated_block', {
-                    block_pos: block.posworld,
-                    pos: [block.posworld.add(new Vector(.5, .5, .5))],
-                    type: 'music_note'
-                }]);
-            }
+        if(block.id == BLOCK.JUKEBOX.id) {
+            style.playJukeboxDisc(chunk, block, x, y, z)
         }
 
+    }
+
+    /**
+     * @param {*} chunk 
+     * @param {*} tblock 
+     * @param {int} x 
+     * @param {int} y 
+     * @param {int} z 
+     * @returns {boolean}
+     */
+    static playJukeboxDisc(chunk, tblock, x, y, z) {
+        if(typeof worker === 'undefined') {
+            return false
+        }
+        const disc = tblock?.extra_data?.disc || null;
+        if(disc) {
+            worker.postMessage(['play_disc', {
+                ...disc,
+                dt: tblock.extra_data?.dt,
+                pos: chunk.coord.add(new Vector(x, y, z))
+            }]);
+            worker.postMessage(['add_animated_block', {
+                block_pos: tblock.posworld,
+                pos: [tblock.posworld.add(new Vector(.5, .5, .5))],
+                type: 'music_note'
+            }]);
+        }
+        return true
     }
 
 }

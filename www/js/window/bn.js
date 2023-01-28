@@ -163,8 +163,13 @@ export class BeaconWindow extends BaseChestWindow {
     }
 
     craeteLabels() {
-        this.add(new Label(65 * this.zoom, 10 * this.zoom, 100 * this.zoom, 30 * this.zoom, 'lblPrimary', null, Lang.beacon_primary))
-        this.add(new Label(260 * this.zoom, 10 * this.zoom, 100 * this.zoom, 30 * this.zoom, 'lblSeconddary', null, Lang.beacon_secondary))
+        this.add(this.lblPrimary = new Label(20 * this.zoom, 15 * this.zoom, 207 * this.zoom, 30 * this.zoom, 'lblPrimary', null, Lang.beacon_primary))
+        this.add(this.lblSecondary = new Label(235 * this.zoom, 15 * this.zoom, 175 * this.zoom, 30 * this.zoom, 'lblSecondary', null, Lang.beacon_secondary))
+        for(let lbl of [this.lblPrimary, this.lblSecondary]) {
+            lbl.style.font.color = '#ffffff'
+            lbl.style.font.size = 12
+            lbl.style.textAlign.horizontal = 'center'
+        }
         let lbl = new Label(80 * this.zoom, 213 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblEmerald')
         lbl.setBackground(Resources.inventory.atlas.getSpriteFromMap('EMERALD'))
         this.add(lbl)

@@ -8,6 +8,7 @@ import { CubeSym } from '../core/CubeSym.js';
 import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
+import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
 import { default as cauldron_style } from '../block_style/cauldron.js';
 import { default as sign_style } from '../block_style/sign.js';
@@ -117,7 +118,7 @@ export default class style {
         model.resetBehaviorChanges()
 
         xyz.set(x, y, z)
-        const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color, vertices, xyz)
+        const emmited_blocks = style.applyBehavior(model, chunk, block, neighbours, matrix, biome, dirt_color, vertices, xyz)
         x = xyz.x
         y = xyz.y
         z = xyz.z
@@ -257,6 +258,7 @@ export default class style {
 
     /**
      * @param {BBModel_Model} model 
+     * @param {*} chunk 
      * @param {TBlock} tblock 
      * @param {*} neighbours 
      * @param {*} matrix 
@@ -265,7 +267,7 @@ export default class style {
      * @param {float[]} vertices
      * @param {Vector} xyz
      */
-    static applyBehavior(model, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
+    static applyBehavior(model, chunk, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
 
         const emmited_blocks = []
         const mat = tblock.material
@@ -286,6 +288,10 @@ export default class style {
 
         // 2.
         switch(behavior) {
+            case 'jukebox': {
+                cube_style.playJukeboxDisc(chunk, tblock, xyz.x, xyz.y, xyz.z)
+                break
+            }
             case 'door': {
                 const extra_data = tblock.extra_data ?? {opened: false, left: true}
                 const rotate = tblock.rotate ?? Vector.ZERO
