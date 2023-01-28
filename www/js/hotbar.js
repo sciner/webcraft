@@ -315,7 +315,7 @@ export class Hotbar {
         let pos = margin
         const bg = this.sprite_effect_bg
         for(let effect of this.inventory.player.effects.effects) {
-            debugger
+           // debugger
             const sprite = this.effect_sprites[effect.id]
             const paddingx = bg.width / 2 - sprite.width / 2
             const paddingy = bg.height / 2 - sprite.height / 2

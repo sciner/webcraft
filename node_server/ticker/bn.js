@@ -1,6 +1,7 @@
-import { BLOCK } from '../../www/js/blocks.js';
-import { Vector } from '../../www/js/helpers.js';
-import { ServerClient } from '../../www/js/server_client.js';
+import { BLOCK } from '../../www/js/blocks.js'
+import { Vector } from '../../www/js/helpers.js'
+import { ServerClient } from '../../www/js/server_client.js'
+import { Effect } from '../../www/js/block_type/effect.js';
 
 const CHECK_MAX_BLOCKS_OVER_ME = 310;
 
@@ -116,15 +117,25 @@ export default class Ticker {
         }
 
         // Накладывания эффектов на игроков
-        /*1 уровень	20 блоков	11 секунд
-        2 уровень	30 блоков	13 секунд
-        3 уровень	40 блоков	15 секунд
-        4 уровень	50 блоков	17 секунд
-        */
-       if (state.level != 0 && state.power && (state.first != 0 || state.second != 0)) {
-        
-       }
-
+        if (state.level != 0) {
+            const max_distance = (state.level + 1) * 10
+            const time = state.level  * 2 + 9
+            const players = world.getPlayersNear(pos, max_distance, true, false)
+            let effect = 0
+            let level = 1
+            if (state.level > 0 && (state.first == Effect.SPEED || state.first == Effect.HASTE) || (state.level > 1 && (state.first == Effect.RESISTANCE || state.first == Effect.JUMP_BOOST)) || (state.level > 2 && state.first == Effect.STRENGTH)) {
+                effect = state.first
+            }
+            if (state.level > 3 && state.second == Effect.REGENERATION) {
+                effect = Effect.REGENERATION
+            }
+            if (state.level > 3 && state.second == 0) {
+                level = 2
+            }
+            for (const player of players) {
+                player.effects.addEffects([{id: effect, time: time, level: level}])
+            }
+        }
 
         // если что-то обновилось, то шлём это игрокам
         if (state.level != level) {
