@@ -3,7 +3,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_
 import {FluidChunk} from "../../../www/js/fluid/FluidChunk.js";
 import {BaseChunk} from "../../../www/js/core/BaseChunk.js";
 import {WorldChunkFlags} from "./WorldChunkFlags.js";
-import {BulkSelectQuery} from "../db_helpers.js"
+import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js"
 
 export class DBWorldFluid {
     constructor(conn, world) {
@@ -65,7 +65,42 @@ export class DBWorldFluid {
         // console.log(`saving fluid ${chunk_addr}`)
     }
 
+    /** @param {Array of Objects} rows {addr, data} */
+    async bulkSaveChunkFluid(rows) {
+        const worldChunkFlags = this.world.worldChunkFlags
+        const insertRows = []
+        const updateRows = []
+        for(const row of rows) {
+            const addr = row.addr
+            const dstRow = [addr.x, addr.y, addr.z, row.data]
+            if (worldChunkFlags.has(addr, WorldChunkFlags.DB_MODIFIED_FLUID)) {
+                updateRows.push(dstRow)
+            } else {
+                worldChunkFlags.add(addr, WorldChunkFlags.DB_MODIFIED_FLUID)
+                insertRows.push(dstRow)
+            }
+        }
+        return Promise.all([
+            insertRows.length && runBulkQuery(this.conn,
+                'INSERT INTO world_chunks_fluid(x, y, z, data) VALUES ',
+                '(?,?,?,?)',
+                '',
+                insertRows
+            ),
+            updateRows.length && runBulkQuery(this.conn,
+                'WITH cte (x_, y_, z_, data_) AS (VALUES',
+                '(?,?,?,?)',
+                `)UPDATE world_chunks_fluid
+                SET data = data_
+                FROM cte
+                WHERE x = x_ AND y = y_ AND z = z_`,
+                updateRows
+            )
+        ])
+    }
+
     async saveFluids(maxSaveChunks= 10) {
+        const saveRows = [];
         while (this.dirtyChunks.length > 0 && maxSaveChunks !== 0) {
             const elem = this.dirtyChunks.shift();
             if (!elem.world) {
@@ -75,8 +110,14 @@ export class DBWorldFluid {
                 continue;
             }
             elem.databaseID = elem.updateID;
-            await this.saveChunkFluid(elem.parentChunk.addr, elem.saveDbBuffer());
+            saveRows.push({
+                addr: elem.parentChunk.addr,
+                data: elem.saveDbBuffer()
+            });
             maxSaveChunks--;
+        }
+        if (saveRows.length) {
+            await this.bulkSaveChunkFluid(saveRows);
         }
     }
 
