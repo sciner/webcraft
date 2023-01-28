@@ -1621,12 +1621,12 @@ async function editBeacon(e, world, pos, player, world_block, world_material, ma
         return false
     }
     const item = e.extra_data.slots[0]
-
-    if (item && [BLOCK.GOLD_INGOT.id, BLOCK.DIAMOND_BLOCK.id, BLOCK.EMERALD_BLOCK.id, BLOCK.IRON_BLOCK.id, BLOCK.NETHERITE_BLOCK.id].includes(item.id)) {
+    if (item && item.count == 1 && [BLOCK.GOLD_INGOT.id, BLOCK.IRON_INGOT.id, BLOCK.NETHERITE_INGOT.id, BLOCK.DIAMOND.id, BLOCK.EMERALD.id].includes(item.id)) {
         e.extra_data.slots = {}
         actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        return true
     }
-    return true;
+    return true // @todo false error server
 }
 
 // Edit sign
