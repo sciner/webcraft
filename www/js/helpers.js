@@ -2,7 +2,7 @@ import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Z, CHUNK_PADING,
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
     CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW } from "./chunk_const.js";
 import { DEFAULT_TX_CNT } from "./constant.js";
 
@@ -1329,10 +1329,10 @@ export class Vector {
     }
 
     fromChunkIndex(index) {
-        this.x = index % CHUNK_OUTER_SIZE_X - CHUNK_PADING;
+        this.x = index % CHUNK_OUTER_SIZE_X - CHUNK_PADDING;
         index  = index / CHUNK_OUTER_SIZE_X | 0;
-        this.z = index % CHUNK_OUTER_SIZE_Z - CHUNK_PADING;
-        this.y = (index / CHUNK_OUTER_SIZE_Z | 0) - CHUNK_PADING;
+        this.z = index % CHUNK_OUTER_SIZE_Z - CHUNK_PADDING;
+        this.y = (index / CHUNK_OUTER_SIZE_Z | 0) - CHUNK_PADDING;
         return this;
     }
 
