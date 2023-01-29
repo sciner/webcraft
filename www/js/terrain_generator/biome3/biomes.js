@@ -16,7 +16,7 @@ const DEFAULT_WATER_COLOR = IndexedColor.WATER;
 const DESERT_BUILDINGS = {others: [
     {class: 'WaterWell',      max_count: 3,        chance: .1},
     {class: 'Farmland',       max_count: Infinity, chance: .2},
-    {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['sand_house']},
+    {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['sand_house', 'sand_house_2']},
 ]}
 
 const TAIGA_BUILDINGS = {others: [

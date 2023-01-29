@@ -483,10 +483,11 @@ export class ServerWorld {
         player.state.skin = skin;
         player.updateHands();
         await player.initQuests();
+        // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
-        // 3. Insert to array
+        // 4. Insert to array
         this.players.list.set(user_id, player);
-        // 4. Send about all other players
+        // 5. Send about all other players
         const all_players_packets = [];
         for (const p of this.players.values()) {
             if (p.session.user_id != user_id) {
@@ -497,18 +498,18 @@ export class ServerWorld {
             }
         }
         player.sendPackets(all_players_packets);
-        // 5. Send to all about new player
+        // 6. Send to all about new player
         this.sendAll([{
             name: ServerClient.CMD_PLAYER_JOIN,
             data: player.exportState()
         }], []);
-        // 6. Write to chat about new player
+        // 7. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
-        // 7. Drop item if stored
+        // 8. Drop item if stored
         if (player.inventory.moveOrDropFromDragSlot()) {
             player.inventory.markDirty();
         }
-        // 8. Send CMD_CONNECTED
+        // 9. Send CMD_CONNECTED
         player.sendPackets([{
             name: ServerClient.CMD_CONNECTED, data: {
                 session: player.session,
@@ -520,12 +521,10 @@ export class ServerWorld {
                 }
             }
         }]);
-        // 9. Add night vision for building world
+        // 10. Add night vision for building world
         if(this.isBuildingWorld()) {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
         }
-        // 10. Check player visible chunks
-        this.chunks.checkPlayerVisibleChunks(player, true);
     }
 
     // onLeave
@@ -593,15 +592,7 @@ export class ServerWorld {
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
-            const packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: e
-                }
-            }];
-            if(player) {
-                this.sendSelected(packets, [player.session.user_id], []);
-            }
+            player?.sendError(e);
         }
     }
 
@@ -610,8 +601,8 @@ export class ServerWorld {
         const chunk = this.chunks.get(addr);
         // this is an old request for re-sync after player started seeing chunk, in case modifiers are different now
         if (!chunk) {
-            // chunk was already unloaded, request is too old
-            return;
+            // chunk was already unloaded while being in NEARBY array - that's a critical error!
+            throw 'Chunk not found';
         }
         chunk.addPlayerLoadRequest(player);
     }

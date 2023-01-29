@@ -710,8 +710,7 @@ export class BLOCK {
             } else {
                 group = 'doubleface';
             }
-        } else
-        if((block.tags.includes('alpha')) || ['thin'].includes(block.style_name)) {
+        } else if((block.tags.includes('alpha')) || ['thin'].includes(block.style_name)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
         } else if(block.style_name == 'pane' || block.is_glass) {
@@ -893,7 +892,7 @@ export class BLOCK {
                 block.tags.push('doubleface');
             }
         }
-        block.group             = this.getBlockStyleGroup(block);
+        block.group             = block.group ?? this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);

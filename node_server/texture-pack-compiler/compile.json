@@ -6018,6 +6018,7 @@
             "sound": "madcraft:block.wood",
             "height": 0.666,
             "transparent": true,
+            "can_rotate": true,
             "material": {
                 "id": "wood"
             },
@@ -7290,7 +7291,16 @@
             "sound": "madcraft:block.glass",
             "material": {"id": "glass"},
             "extra_data": {
-                "level": 0
+                "state": {
+                    "level": 0,
+                    "first": 0,
+                    "second": 0,
+                    "power": false
+                }
+            },
+            "is_entity": true,
+            "chest": {
+                "slots": 1
             },
             "light_power": {
                 "r": 80,

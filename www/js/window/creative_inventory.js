@@ -325,4 +325,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         return this.inventory_slots;
     }
 
+    fixAndValidateSlots(context) {
+        // Do nothing. It's called by slots and used to vlidate in other windows.
+    }
 }

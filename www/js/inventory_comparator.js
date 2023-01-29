@@ -86,7 +86,7 @@ export class InventoryComparator {
      *   The values are boolean, indicating whether the key is non-optional.
      * @return null if success, or the first invlid item or error message
      */
-    static sanitizeAndValidateItems(list, keysObject = null, mustCheckEqual) {
+    static sanitizeAndValidateItems(list, keysObject = null, mustCheckEqual, player = null) {
         if (!list || typeof list !== 'object') {
             return 'not a list';
         }
@@ -98,6 +98,8 @@ export class InventoryComparator {
                 const new_item = BLOCK.sanitizeAndValidateInventoryItem(item)
                 if(!new_item && mustCheckEqual === false) {
                     list[key] = null
+                    // don't silently fix bugged items, report them
+                    player?.sendError(`!alertError: invalid item ${key} ${item} mustCheckEqual === false`)
                 } else {
                     if (!new_item) {
                         return list[key];

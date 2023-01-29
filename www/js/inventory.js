@@ -520,6 +520,27 @@ export class Inventory {
         return resp
     }
 
+    /**
+     * Deletes items with count = 0.
+     * @param {Array|Object} items
+     * @reurn null if nothing is deleted, or an error String
+     */
+    static fixZeroCount(items) {
+        let res = null;
+        for(let i in items) {
+            const item = items[i];
+            if (item?.count === 0) {
+                res = res ?? `Error: count == 0 in slot ${i}, ${JSON.stringify(item)}`;
+                ArrayOrMap.delete(items, i, null);
+            }
+        }
+        return res;
+    }
+
+    fixZeroCount() {
+        return Inventory.fixZeroCount(this.items);
+    }
+
     /*
     // Has item
     hasItem(item) {

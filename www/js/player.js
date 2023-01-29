@@ -797,8 +797,19 @@ export class Player {
             // Update FOV
             this.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
             this.render.updateNightVision(this.getEffectLevel(Effect.NIGHT_VISION));
+            // Update picking target
+            this.updatePickingTarget()
         }
         this.lastUpdate = performance.now();
+    }
+
+    // Picking target
+    updatePickingTarget() {
+        if (this.pickAt && this.game_mode.canBlockAction()) {
+            this.pickAt.update(this.getEyePos(), this.game_mode.getPickatDistance(), this.forward)
+        } else {
+            this.pickAt.targetDescription = null
+        }
     }
 
     getInterpolatedHeadLight() {

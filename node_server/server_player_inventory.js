@@ -47,7 +47,7 @@ export class ServerPlayerInventory extends Inventory {
      */
     sanitizeAndValidateClinetItemsChange(new_items, mustCheckEqual, used_recipes, recipeManager) {
         // sanitize and validate once here. The code everywhere else assumes they at least have valid format, existing ids, etc.
-        const invalidItem = InventoryComparator.sanitizeAndValidateItems(new_items, undefined, mustCheckEqual);
+        const invalidItem = InventoryComparator.sanitizeAndValidateItems(new_items, undefined, mustCheckEqual, this.player);
         if (invalidItem != null) {
             console.log('Invalid item: ' + JSON.stringify(invalidItem));
             return false;

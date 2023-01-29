@@ -918,7 +918,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // 1. Change extra data
     if(e.changeExtraData) {
-        for(let func of [editSign]) {
+        for(let func of [editSign, editBeacon]) {
             if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1627,6 +1627,20 @@ async function noSetOnTop(e, world, pos, player, world_block, world_material, ma
     return noSetOnTop && pos.n.y == 1;
 }
 
+// Edit beacon
+async function editBeacon(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (world_material.id != BLOCK.BEACON.id) {
+        return false
+    }
+    const item = e.extra_data.slots[0]
+    if (item && item.count == 1 && [BLOCK.GOLD_INGOT.id, BLOCK.IRON_INGOT.id, BLOCK.NETHERITE_INGOT.id, BLOCK.DIAMOND.id, BLOCK.EMERALD.id].includes(item.id)) {
+        e.extra_data.slots = {}
+        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        return true
+    }
+    return true // @todo false error server
+}
+
 // Edit sign
 async function editSign(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const isEditSign = e.changeExtraData && world_material && world_material.tags.includes('sign');
@@ -2066,9 +2080,9 @@ async function openFenceGate(e, world, pos, player, world_block, world_material,
         extra_data = {};
     }
     if (rotate.x == 0 || rotate.x == 2) {
-        extra_data.facing = (pos.z - player.pos.z) > 0 ? 'east' : 'west';
+        extra_data.facing = (pos.z - player.pos.z) > 0 ? 'north' : 'south';
     } else {
-        extra_data.facing = (pos.x - player.pos.x) > 0 ? 'north' : 'south';
+        extra_data.facing = (pos.x - player.pos.x) > 0 ? 'east' : 'west';
     }
     extra_data.opened = extra_data && !extra_data.opened;
     if(world_material.sound) {

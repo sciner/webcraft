@@ -77,13 +77,7 @@ export class PacketReader {
     //
     async sendErrorToPlayer(player, e) {
         console.log(e);
-        const packets = [{
-            name: ServerClient.CMD_ERROR,
-            data: {
-                message: e
-            }
-        }];
-        player.world.sendSelected(packets, [player.session.user_id], []);
+        player.sendError(e);
     }
 
 }

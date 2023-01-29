@@ -46,6 +46,32 @@ export class Resources {
 
     static onLoading = (state) => {};
 
+    static async preload(settings) {
+        this.shaderBlocks = {};
+
+        // Functions
+        const loadTextFile = Resources.loadTextFile
+        const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap)
+
+        let all = [];
+
+        // Shader blocks
+        if (settings.wgsl) {
+            // not supported
+        } else {
+            all.push(
+                loadTextFile('./shaders/shader.blocks.glsl')
+                    .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
+                    .then(blocks => {
+                        console.debug('Load shader blocks:', blocks)
+                    })
+            );
+        }
+
+        await Promise.all(all)
+
+    }
+
     /**
      * @param settings
      * @param settings.glsl need glsl
@@ -54,7 +80,6 @@ export class Resources {
      * @returns {Promise<void>}
      */
     static load(settings) {
-        this.shaderBlocks       = {};
         this.codeMain           = {};
         this.codeSky            = {};
         this.pickat             = {};
@@ -123,20 +148,6 @@ export class Resources {
             all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ));
         }
 
-        // Shader blocks
-
-        if (settings.wgsl) {
-            // not supported
-        } else {
-            all.push(
-                loadTextFile('./shaders/shader.blocks.glsl')
-                    .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
-                    .then(blocks => {
-                        console.debug('Load shader blocks:', blocks);
-                    })
-            );
-        }
-
         // Painting
         all.push[Resources.loadPainting()];
 
@@ -179,7 +190,7 @@ export class Resources {
                 this.progress.percent = (d * 100) / all.length;
                 this.onLoading({...this.progress});
             });
-          }
+        }
 
         // TODO: add retry
         return Promise.all(all);
@@ -405,25 +416,37 @@ export class Resources {
     }
     
     // Load BBModels
-    static async loadBBModels() {
+    static async _loadBBModels() {
         if(Resources._bbmodels) {
-            return Resources._bbmodels;
+            return Resources._bbmodels
         }
         const resp = new Map();
         const dir = '../resource_packs/bbmodel';
-        await Helpers.fetchJSON(dir + '/conf.json').then(async json => {
-            for(let file of json.bbmodels) {
-                await Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
-                    const model = new BBModel_Model(json);
-                    model.parse();
-                    model.name = file.name;
-                    resp.set(file.name, model);
-                }).catch((error) => {
-                    console.error('Error:', error);
-                });
+        await Helpers.fetchJSON(dir + '/conf.json').then(async bbmodel_conf_json => {
+            for(let item of bbmodel_conf_json.bbmodels) {
+                const model = new BBModel_Model(item.json)
+                model.parse()
+                model.name = item.name
+                resp.set(item.name, model)
             }
+            // const all = []
+            // for(let file of json.bbmodels) {
+            //     all.push(Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
+            //         const model = new BBModel_Model(json);
+            //         model.parse();
+            //         model.name = file.name;
+            //         resp.set(file.name, model);
+            //     }).catch((error) => {
+            //         console.error('Error:', error);
+            //     }));
+            // }
+            // await Promise.all(all)
         });
         return Resources._bbmodels = resp;
+    }
+
+    static loadBBModels() {
+        return this._bbmodel_promise = this._bbmodel_promise || this._loadBBModels()
     }
 
     // Load painting

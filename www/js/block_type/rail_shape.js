@@ -7,6 +7,8 @@ export class RailShape {
 
     static RAIL_ID          = 26;
     static POWERED_RAIL_ID  = 34;
+    static ALL_RAILS        = [RailShape.RAIL_ID, RailShape.POWERED_RAIL_ID];
+    static ONLY_STRAIGHT    = [RailShape.POWERED_RAIL_ID]
 
     static NORTH_SOUTH      = 0;
     static EAST_WEST        = 1;
@@ -28,17 +30,9 @@ export class RailShape {
     static TILT_TO_FLAT     = [RailShape.EAST_WEST, RailShape.EAST_WEST, RailShape.NORTH_SOUTH, RailShape.NORTH_SOUTH];
 
     // Place rail
-    static place(world, pos, new_item, actions, rail_id) {
+    static place(world, pos, new_item, actions) {
 
-        // POWERED_RAIL
-        if(new_item && new_item.id == RailShape.POWERED_RAIL_ID) {
-            const cd = BLOCK.getCardinalDirection(new_item.rotate);
-            const side1 = RailShape.SIDES[cd];
-            new_item.extra_data.shape = RailShape.calcShape(side1, RailShape.OPPOSITES[side1]);
-            return false;
-        }
-
-        if (!new_item || new_item.id != (rail_id || RailShape.RAIL_ID)) {
+        if (!new_item || !RailShape.ALL_RAILS.includes(new_item.id)) {
             return false;
         }
 
@@ -54,10 +48,10 @@ export class RailShape {
         const me_sides = [];
         for(let side of RailShape.SIDES) {
             let n = neighbours[side];
-            if(n.id != new_item.id) n = world.getBlock(n.posworld.add(Vector.YP));
-            if(n.id != new_item.id) n = world.getBlock(n.posworld.add(Vector.YN).addSelf(Vector.YN));
+            if(!RailShape.ALL_RAILS.includes(n.id)) n = world.getBlock(n.posworld.add(Vector.YP));
+            if(!RailShape.ALL_RAILS.includes(n.id)) n = world.getBlock(n.posworld.add(Vector.YN).addSelf(Vector.YN));
             neighbours[side] = n;
-            if(n && n.id == new_item.id) {
+            if(n && RailShape.ALL_RAILS.includes(n.id)) {
                 if(RailShape.changeNeighbourShape(world, actions, n, side, n.posworld.sub(tblock.posworld))) {
                     me_sides.push(side);
                     if(me_sides.length == 2) break;
@@ -70,6 +64,13 @@ export class RailShape {
         if(me_sides.length == 0) me_sides.push(RailShape.SIDES[cd]);
         if(me_sides.length == 1) me_sides.push(RailShape.OPPOSITES[me_sides[0]]);
         new_item.extra_data.shape = RailShape.calcShape(me_sides[0], me_sides[[1]]);
+        if(RailShape.ONLY_STRAIGHT.includes(new_item.id)) {
+            if(!RailShape.isStraight(new_item.extra_data.shape)) {
+                const side1 = RailShape.SIDES[cd]
+                const side2 = RailShape.OPPOSITES[side1]
+                new_item.extra_data.shape = RailShape[`${side1}_${side2}`] ?? RailShape[`${side2}_${side1}`];
+            }
+        }
 
         // Make me tilted
         if(RailShape.isStraight(new_item.extra_data.shape)) {
@@ -78,7 +79,7 @@ export class RailShape {
             for(let side of side_name.split('_')) {
                 const n = neighbours[side];
                 // если это рельс и он выше
-                if(n.id == new_item.id && n.posworld.y > tblock.posworld.y) {
+                if(RailShape.ALL_RAILS.includes(n.id) && n.posworld.y > tblock.posworld.y) {
                     // узнаем его шейп (если он уже модифицирован, то функция вернёт новое значение)
                     const n_shape = RailShape.getModifiedShape(actions, n.posworld, n.extra_data.shape, new_item.id);
                     // вычитываем название "плоской" ориентации полученного шейпа
@@ -107,6 +108,11 @@ export class RailShape {
         return RailShape.STRAIGHT_SIDES.indexOf(shape) >= 0;
     }
 
+    /**
+     * Возвращает наклонён или нет
+     * @param {*} shape 
+     * @returns {boolean}
+     */
     static isTilted(shape) {
         return RailShape.TILT.indexOf(shape) >= 0;
     }
@@ -114,7 +120,7 @@ export class RailShape {
     static getModifiedShape(actions, pos, def, rail_id) {
         for(let i = 0; i < actions.blocks.list.length; i++) {
             const mod = actions.blocks.list[i];
-            if(mod.item.id == rail_id && mod.pos.equal(pos)) {
+            if(RailShape.ALL_RAILS.includes(mod.item.id) && mod.pos.equal(pos)) {
                 return mod.item.extra_data.shape;
             }
         }
@@ -129,11 +135,11 @@ export class RailShape {
         let side2 = side1;
         for(let side of side_name.split('_')) {
             let n = neighbours[side];
-            // если на там же уровне не рельс, смотрим блок выше
-            if(n.id != tblock.id) n = world.getBlock(n.posworld.add(Vector.YP));
+            // если на том же уровне не рельс, смотрим блок выше
+            if(!RailShape.ALL_RAILS.includes(n.id)) n = world.getBlock(n.posworld.add(Vector.YP));
             // если блок выше не рельс, то смотрим блок ниже
-            if(n.id != tblock.id) n = world.getBlock(n.posworld.add(Vector.YN).addSelf(Vector.YN));
-            if(n && n.id == tblock.id) {
+            if(!RailShape.ALL_RAILS.includes(n.id)) n = world.getBlock(n.posworld.add(Vector.YN).addSelf(Vector.YN));
+            if(n && RailShape.ALL_RAILS.includes(n.id)) {
                 const n_side_name = RailShape.getNameByID(n.extra_data.shape, true);
                 if(n_side_name.indexOf(RailShape.OPPOSITES[side]) < 0) continue;
                 if(++count == 2) return null;
@@ -144,9 +150,11 @@ export class RailShape {
         if(count == 0) {
             return RailShape.setRailBlockShape(actions, tblock, RailShape.calcShape(RailShape.OPPOSITES[side1], side1, pos_diff));
         } else if(count == 1) {
-            // если у соседа есть только одно сосединение
-            if(!RailShape.isTilted(tblock.extra_data.shape)) {
-                return RailShape.setRailBlockShape(actions, tblock, RailShape.calcShape(RailShape.OPPOSITES[side1], side2, pos_diff));
+            if(!RailShape.ONLY_STRAIGHT.includes(tblock.id)) {
+                // если у соседа есть только одно сосединение
+                if(!RailShape.isTilted(tblock.extra_data.shape)) {
+                    return RailShape.setRailBlockShape(actions, tblock, RailShape.calcShape(RailShape.OPPOSITES[side1], side2, pos_diff));
+                }
             }
             return RailShape.getNameByID(tblock.extra_data.shape, true).indexOf(RailShape.OPPOSITES[side1]) >= 0;
         }

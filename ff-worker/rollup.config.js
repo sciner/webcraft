@@ -18,7 +18,7 @@ export default [{
         }),
         nodeResolve(),
         commonjs()
-    ],
+    ]
    
 }
 ,
@@ -31,5 +31,23 @@ export default [{
         format: 'cjs',
     },
     plugins: [commonjs()]
+}
+,
+{
+    input: './controller_bundle.js',
+    treeshake: false,
+    output: {
+        inlineDynamicImports: true,
+        file: '../www/js-gen/controller_bundle.js',
+        format: 'cjs',
+    },
+    plugins: [
+        importAssertionsPlugin(),
+        dynamicImportVars({
+            warnOnError: false
+        }),
+        nodeResolve(),
+        commonjs()
+    ]
 }
 ]

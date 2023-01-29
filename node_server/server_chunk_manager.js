@@ -395,7 +395,7 @@ export class ServerChunkManager {
     }
 
     // Check player visible chunks
-    async checkPlayerVisibleChunks(player, force) {
+    checkPlayerVisibleChunks(player, force) {
 
         player.chunk_addr = getChunkAddr(player.state.pos);
 

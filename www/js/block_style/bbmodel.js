@@ -8,6 +8,7 @@ import { CubeSym } from '../core/CubeSym.js';
 import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
+import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
 import { default as cauldron_style } from '../block_style/cauldron.js';
 import { default as sign_style } from '../block_style/sign.js';
@@ -117,7 +118,7 @@ export default class style {
         model.resetBehaviorChanges()
 
         xyz.set(x, y, z)
-        const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color, vertices, xyz)
+        const emmited_blocks = style.applyBehavior(model, chunk, block, neighbours, matrix, biome, dirt_color, vertices, xyz)
         x = xyz.x
         y = xyz.y
         z = xyz.z
@@ -132,7 +133,8 @@ export default class style {
         if(bb.select_texture) {
             for(let st of bb.select_texture) {
                 if(style.checkWhen(model, block, st.when)) {
-                    model.selectTextureFromPalette(st.texture)
+                    // model.selectTextureFromPalette(st.texture)
+                    style.selectTextureFromPalette(model, st.texture, block)
                     break
                 }
             }
@@ -257,6 +259,7 @@ export default class style {
 
     /**
      * @param {BBModel_Model} model 
+     * @param {*} chunk 
      * @param {TBlock} tblock 
      * @param {*} neighbours 
      * @param {*} matrix 
@@ -265,7 +268,7 @@ export default class style {
      * @param {float[]} vertices
      * @param {Vector} xyz
      */
-    static applyBehavior(model, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
+    static applyBehavior(model, chunk, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
 
         const emmited_blocks = []
         const mat = tblock.material
@@ -286,6 +289,10 @@ export default class style {
 
         // 2.
         switch(behavior) {
+            case 'jukebox': {
+                cube_style.playJukeboxDisc(chunk, tblock, xyz.x, xyz.y, xyz.z)
+                break
+            }
             case 'door': {
                 const extra_data = tblock.extra_data ?? {opened: false, left: true}
                 const rotate = tblock.rotate ?? Vector.ZERO
@@ -346,7 +353,8 @@ export default class style {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
                 model.hideAllExcept([model.state])
-                model.selectTextureFromPalette(mat.name)
+                // model.selectTextureFromPalette(mat.name)
+                style.selectTextureFromPalette(model, mat.name, tblock)
                 break
             }
             case "pane": {
@@ -364,7 +372,7 @@ export default class style {
 
                 /*
                 if(typeof worker != 'undefined') {
-                    worker.postMessage(['add_bbmodel', {
+                    worker.postMessage(['add_bbmesh', {
                         block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
                         model:              model.name,
                         animation_name:     null,
@@ -393,7 +401,8 @@ export default class style {
                 if(!BLOCK.canFenceConnect(neighbours.WEST)) hide_group_names.push('west')
                 if(!BLOCK.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
-                model.selectTextureFromPalette(mat.name)
+                // model.selectTextureFromPalette(mat.name)
+                style.selectTextureFromPalette(model, mat.name, tblock)
                 break
             }
             case 'pot': {
@@ -551,6 +560,13 @@ export default class style {
             }
         }
         return true
+    }
+
+    static selectTextureFromPalette(model, texture_name, tblock) {
+        if(tblock && tblock.material) {
+            texture_name = texture_name.replace('%block_name%', tblock.material.name)
+        }
+        return model.selectTextureFromPalette(texture_name)
     }
 
     // Stand
