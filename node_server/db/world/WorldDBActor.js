@@ -109,14 +109,21 @@ export class WorldDBActor {
 
     /**
      * It saves all the changes the world state in one transaction.
-     * 
+     * @param {Boolean} shutdown - if it's true, all changes must be written, and
+     *   the game will stop after that.
+     *   It's different from world.shuttingDown. When world.shuttingDown is not null,
+     *   the game may continue for some time:
+     *   - we can't apply and flush pending actions in loading chunks, it'd cause bugs
+     *   - it doesn't make sense to force all mobs to be saved right now
      * @return {Promise} - it fullfills when the game data can be safely modified
      *  by the next game loop iteration, while writing to DB may till be going.
      */
-    async saveWorld(force = false) {
+    async saveWorld(shutdown = false) {
         const that = this;
         const world = this.world;
         const db = world.db;
+        // It may be different from shutdown. Its main effect is to cause chunkless changes to be saved ASAP.
+        const speedup = shutdown || world.shuttingDown;
         
         // await for the previous ongoing transaction, then start a new one
         const transaction = await this.beginTransaction(true);
@@ -139,7 +146,8 @@ export class WorldDBActor {
         this.underConstruction = {
             dt,
             promises: [], // all the pomises of async actions in this transaction
-            force,
+            shutdown,
+            speedup,
 
             // world_modify
             insertBlocks: [],
@@ -193,13 +201,13 @@ export class WorldDBActor {
             }
 
             // Write some of the chunks modifiers, and remeber the rest in the recovery blob
-            let remainingCanSave = force
+            let remainingCanSave = speedup
                 ? Infinity
                 : WORLD_MODIFY_CHUNKS_PER_TRANSACTION +
-                // to ensure the queue doesn't grow faster than we can write it,
+                // to help in situations where the queue grows faster than we can write it,
                 // e.g. when teleporting a lot and tickers modify many of the chunks
                 (uc.worldModifyChunksHighPriority.length + uc.worldModifyChunksMidPriority.length
-                    + uc.worldModifyChunksLowPriority.length) * 0.01 | 0;
+                    + uc.worldModifyChunksLowPriority.length) * 0.02 | 0;
             for(const list of [uc.worldModifyChunksHighPriority, uc.worldModifyChunksMidPriority, uc.worldModifyChunksLowPriority]) {
                 for(const dbActor of list) {
                     if (--remainingCanSave >= 0) {
@@ -302,19 +310,21 @@ export class WorldDBActor {
 
         // now we can safely return
         Promise.all(uc.promises).then(
-            () => {
-                transaction.commit();
-                this.world.mobs.onWorldTransactionCommit();
-                this.db.mobs.onWorldTransactionCommit();
-                this.world.players.onWorldTransactionCommit();
-                for(const actor of uc.chunklessActorsWritingWorldModifyChunks) {
-                    actor.onChunklessFlushed();
+            async () => {
+                await transaction.commit()
+                if (!shutdown) {
+                    this.world.mobs.onWorldTransactionCommit()
+                    this.db.mobs.onWorldTransactionCommit()
+                    this.world.players.onWorldTransactionCommit()
+                    for(const actor of uc.chunklessActorsWritingWorldModifyChunks) {
+                        actor.onChunklessFlushed()
+                    }
+                    this.savingWorldNow = null
+                    this.asyncStats.add('world_transaction')
+                    this.asyncStats.end()
+                    worldSavingResolve()
                 }
-                this.savingWorldNow = null;
-                this.asyncStats.add('world_transaction');
-                this.asyncStats.end();
-                worldSavingResolve();
-                resolveSavingWorldNow();
+                resolveSavingWorldNow()
             },
             async err => {
                 // The game can't continue. The DB transcation will rollback automatically.

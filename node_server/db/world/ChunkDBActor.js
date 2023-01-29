@@ -281,6 +281,18 @@ export class ChunkDBActor {
     }
 
     /**
+     * It applies block actions to dirty blocks and unsaved blocks.
+     * It does not apply them to the chunk or its modifiers!
+     */
+    applyBlockActions(actions) {
+        for(const action of actions) {
+            for(const data of action.blocks.list) {
+                this.markBlockDirty(data)
+            }
+        }
+    }
+
+    /**
      * Writes all chunk elements that need to be saved in every transaction.
      * Queues the chunk if it needs to save modifiers (which may or may not be saved in this transaction).
      * Adds promises to {@link WorldDBActor.promises}
@@ -293,9 +305,7 @@ export class ChunkDBActor {
             this.writeDirtyBlocks(uc);
         }
 
-        if (chunk && (chunk.isReady() || 
-            uc.force && chunk.load_state >= CHUNK_STATE.READY && chunk.load_state < CHUNK_STATE.DISPOSED)
-        ) {
+        if (chunk && (chunk.isReady() || uc.shutdown && chunk.load_state >= CHUNK_STATE.READY)) {
             if (chunk.unloadedStuffDirty) {
                 for(const stuff of chunk.unloadedStuff) {
                     stuff.writeToWorldTransaction(uc, true);
@@ -313,7 +323,16 @@ export class ChunkDBActor {
 
         if (this.unsavedBlocks.size) {
             if (chunk) {
-                if (chunk.load_state === CHUNK_STATE.UNLOADING || uc.force) {
+                // If the chunk has pending actions (which means it hasn't loaded yet), turn those actions
+                // into changes that can be saved.
+                // After that, the chunk can't be loaded correctly anymore, because those actions won't be aplied to its modifiers.
+                // That's why it can be done only during shuttdown.
+                if (uc.shutdown && chunk.pendingWorldActions) {
+                    this.applyBlockActions(chunk.pendingWorldActions)
+                    chunk.pendingWorldActions = null
+                }
+
+                if (chunk.load_state === CHUNK_STATE.UNLOADING || uc.shutdown) {
                     // Save and allow the chunk to be disposed too free memory. It's high priority.
                     uc.worldModifyChunksHighPriority.push(this);
                 } else if (
@@ -332,7 +351,7 @@ export class ChunkDBActor {
                 // Save the chunkless changes and free memory.
                 // But don't do it immediately, in case more changes are incoming.
                 // It frees not a lot of memory, so it has a mid priority.
-                if (uc.force ||
+                if (uc.speedup ||
                     this.lastUnsavedChangeTime < performance.now() - STABLE_WORLD_MODIFY_CHUNKLESS_TTL
                 ) {
                     uc.worldModifyChunksMidPriority.push(this);

@@ -48,6 +48,9 @@ export class ServerWorld {
 
         this.block_manager = block_manager;
         this.updatedBlocksByListeners = [];
+
+        // An object with fields { resolve, gentle }. Gentle means to wait unil the action queue is empty
+        this.shuttingDown = null;
     }
 
     async initServer(world_guid, db_world, new_title, game) {
@@ -370,14 +373,18 @@ export class ServerWorld {
         this.info.calendar.day_time = Math.round((age - this.info.calendar.age) * GAME_DAY_SECONDS);
     }
 
+    async shutdown() {
+        await this.db.fluid.flushAll()
+        await this.dbActor.forceSaveWorld()
+        // resolve the promise of this world shutting down after an additional timeout
+        setTimeout(this.shuttingDown.resolve, SHUTDOWN_ADDITIONAL_TIMEOUT)
+        await new Promise(() => {}) // await forever
+    }
+
     // World tick
     async tick() {
-        if (this.shuttingDown) {
-            await this.db.fluid.flushAll()
-            await this.dbActor.forceSaveWorld()
-            // resolve the promise of this world shutting down after an additional timeout
-            setTimeout(this.shuttingDown, SHUTDOWN_ADDITIONAL_TIMEOUT)
-            await new Promise(() => {}) // await forever
+        if (this.shuttingDown && !this.shuttingDown.gentle) {
+            await this.shutdown()
         }
         const started = performance.now();
         let delta = 0;
@@ -417,6 +424,9 @@ export class ServerWorld {
             //
             await this.actions_queue.run();
             this.ticks_stat.add('actions_queue');
+            if (this.shuttingDown?.gentle && this.actions_queue.length === 0) {
+                await this.shutdown()
+            }
             //
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
@@ -862,16 +872,8 @@ export class ServerWorld {
                         }
                     } else {
                         if (chunk) {
-                            // The chunk exists, but not ready yet. Queue the action until the chunk is loaded.
-                            if (postponedActions == null) {
-                                // Create a new postponed WorldAction for this chunk
-                                postponedActions = actions.createSimilarEmpty();
-                                // actor isn't a normal property of an action, but we have to remember it somewhere
-                                postponedActions.actor = server_player;
-                                chunk.pendingWorldActions = chunk.pendingWorldActions ?? [];
-                                chunk.pendingWorldActions.push(postponedActions);
-                            }
-                            // add a block to the postoned action for this chunk
+                            // The chunk exists, but not ready yet. Queue the block action until the chunk is loaded.
+                            postponedActions = postponedActions ?? chunk.getOrCreatePendingAction(server_player, actions)
                             postponedActions.addBlock(params);
                         } else {
                             this.dbActor.addChunklessBlockChange(chunk_addr, params);

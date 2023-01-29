@@ -8,6 +8,8 @@ export class WorldActionQueue {
         this.list = new SimpleQueue();
     }
 
+    get length() { return this.list.length }
+
     add(actor, actions) {
         this.list.push({actor, actions});
     }

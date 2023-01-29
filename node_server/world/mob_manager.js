@@ -157,7 +157,7 @@ export class WorldMobManager {
 
     writeToWorldTransaction(underConstruction) {
         for(const mob of this.list.values()) {
-            mob.writeToWorldTransaction(underConstruction, underConstruction.force);
+            mob.writeToWorldTransaction(underConstruction, underConstruction.shutdown);
         }
         for(const mob of this.inactiveByEntityId.values()) {
             mob.writeToWorldTransaction(underConstruction, true); // force saving because these mobs will be forgotten

@@ -183,6 +183,24 @@ export class ServerChunk {
         }
     }
 
+    /**
+     * If the last action addded to {@link pendingWorldActions} was added for {@link originalActions},
+     * then returns it. Othwerwise it adds and returns a new pending {@link WorldAction} based on
+     * {@link originalActions} and remembers {@link actor} in it.
+     */
+    getOrCreatePendingAction(actor, originalActions) {
+        this.pendingWorldActions = this.pendingWorldActions ?? []
+        const lastPendingActions = this.pendingWorldActions[1]
+        if (lastPendingActions?.original === originalActions) {
+            return lastPendingActions
+        }
+        const actions = originalActions.createSimilarEmpty()
+        actions.original = originalActions
+        actions.actor = actor
+        this.pendingWorldActions.push(actions)
+        return actions
+    }
+
     // generateMobs...
     generateMobs() {
         // Generate mobs
