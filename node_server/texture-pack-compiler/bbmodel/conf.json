@@ -44,6 +44,7 @@
         {"name": "dead_bush",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "candle",              "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "rail",                "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "powered_rail",        "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "iron_bars",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "door",                "shift": {"x": 23, "y": 0, "z": -7}},
         {"name": "beacon",              "shift": {"x": 16, "y": 0, "z": 0}},
@@ -51,7 +52,8 @@
         {"name": "jukebox",             "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "enchanting_table",    "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "lectern",             "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "fence_gate",          "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "fence_gate",          "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "bed",                 "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -756,6 +758,23 @@
             }
         },
         {
+            "id": 34,
+            "name": "POWERED_RAIL",
+            "bb": {
+                "model": "powered_rail",
+                "behavior": "rails",
+                "set_state": [
+                    {"name": "normal", "when": {"extra_data.shape": [null, 0, 1]}},
+                    {"name": "inclined", "when": {"extra_data.shape": [2, 3, 4, 5]}}
+                ],
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.shape": [1, 2, 7]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.shape": [5, 8]}},
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.shape": [3, 9]}}
+                ]
+            }
+        },
+        {
             "id": 626,
             "name": "IRON_BARS",
             "bb": {
@@ -1076,6 +1095,326 @@
                 ],
                 "select_texture": [
                     {"texture": "JUNGLE_FENCE_GATE.png"}
+                ]
+            }
+        },
+        {
+            "id": 1200,
+            "name": "WHITE_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1201,
+            "name": "ORANGE_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1202,
+            "name": "MAGENTA_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1203,
+            "name": "LIGHT_BLUE_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1204,
+            "name": "YELLOW_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1205,
+            "name": "LIME_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1206,
+            "name": "PINK_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1207,
+            "name": "GRAY_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1208,
+            "name": "LIGHT_GRAY_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1209,
+            "name": "CYAN_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1210,
+            "name": "PURPLE_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1211,
+            "name": "BLUE_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1212,
+            "name": "BROWN_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1213,
+            "name": "GREEN_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1214,
+            "name": "RED_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1215,
+            "name": "BLACK_BED",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0.5, "z": -0.3}
+            },
+            "bb": {
+                "model": "bed",
+                "rotate": {
+                    "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
                 ]
             }
         }
