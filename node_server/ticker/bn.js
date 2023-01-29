@@ -32,7 +32,7 @@ export default class Ticker {
             }
             return true
         }
-        const state = extra_data.state
+        const state = extra_data.state ?? {}
         const level = extra_data.state?.level ?? 0
         if (isPrecious(1)) {
             state.level = 1
