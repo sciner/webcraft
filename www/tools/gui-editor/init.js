@@ -1,5 +1,4 @@
-import { WindowManager } from "../gui/wm.js"
-
+import { Window, WindowManager } from "../gui/wm.js"
 import { Lang } from "../../js/lang.js"
 import { Resources } from "../../js/resources.js"
 import { Renderer } from "../../js/render.js"
@@ -41,10 +40,17 @@ export async function initEditor(canvas_id) {
     wm = new WindowManager(canvas, 0, 0, canvas.width, canvas.height, true)
     wm.initRender(render)
     render.resetBefore()
-    
+
+    // рамка активного контрола, под курсором
+    const selector = new Window(0, 0, 0, 0, 'selector')
+    selector.catchEvents = false
+    selector.style.border.hidden = false
+    selector.style.background.color = '#00aaff55'
+    wm._wmoverlay.add(selector) // добавление его на "рабочий стол"
+
     // Start drawing HUD with loading screen
     render.requestAnimationFrame(loop)
 
-    return {wm, render, renderBackend, Lang}
+    return {wm, render, renderBackend, Lang, selector}
 
 }

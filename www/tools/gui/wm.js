@@ -648,11 +648,13 @@ export class Window extends PIXI.Container {
             if(entered.length > 0) {
                 this.getRoot()._wm_setTooltipText(entered[0].tooltip)
                 entered[0].onMouseEnter();
+                this.getRoot().rootMouseEnter(entered[0])
             } else {
                 this.getRoot()._wm_setTooltipText(null);
             }
             if(leaved.length > 0) {
                 leaved[0].onMouseLeave();
+                this.getRoot().rootMouseLeave(leaved[0])
             }
         }
 
@@ -1392,6 +1394,9 @@ export class WindowManager extends Window {
 
         this.parent = new PIXI.Container()
         this.parent.addChild(this)
+
+        this.rootMouseEnter = (el) => {}
+        this.rootMouseLeave = (el) => {}
 
         // Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши
         if(create_mouse_listeners) {
