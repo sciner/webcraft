@@ -1,0 +1,17 @@
+@font-face {
+	font-family: Ubuntu-Bold;
+	src: url('/style/Ubuntu-Bold.ttf');
+}
+canvas {
+    background: #999;
+}
+body {
+    background-color: #1e1e1e !important;
+    min-width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
