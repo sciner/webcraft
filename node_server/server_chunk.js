@@ -6,7 +6,7 @@ import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpe
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { dropBlock, WorldAction } from "../www/js/world_action.js";
 import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "../www/js/constant.js";
-import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
+import { compressWorldModifyChunk, decompressModifiresList } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
@@ -119,7 +119,7 @@ export class ServerChunk {
         this.addr           = new Vector(addr);
         this.coord          = this.addr.mul(this.size);
         this.uniqId         = ++global_uniqId;
-        this.connections    = new Map();
+        this.connections    = new Map(); // players by user_id
         this.preq           = new Map();
         this.modify_list    = {};
         this.mobs           = new Map();
@@ -140,10 +140,16 @@ export class ServerChunk {
         this.fluid          = null;
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
         this.blocksUpdatedByListeners = [];
-        this.readyPromise  = Promise.resolve();
+        this.dbActor        = world.dbActor.getOrCreateChunkActor(this);
+        this.readyPromise   = Promise.resolve(); // It's used only to reach CHUNK_STATE.READY
         this.safeTeleportMarker = 0;
         this.unloadingStartedTime = null; // to determine when to dispose it
-        this.unloadedStuff  = []; // everything unloaded that can be restored (drop items, mobs) in one list
+        this.unloadedStuff      = []; // everything unloaded that can be restored (drop items, mobs) in one list
+        this.unloadedStuffDirty = false;
+        // An array of world actions targeting this chunk while it was loading. Execute them as soon as it's ready.
+        this.pendingWorldActions = null;
+        // one row of "chunks" table, with additional fields { exists, chunk, dirty }
+        this.chunkRecord    = null;
 
         this.light = new ChunkLight(this);
     }
@@ -177,6 +183,24 @@ export class ServerChunk {
         }
     }
 
+    /**
+     * If the last action addded to {@link pendingWorldActions} was added for {@link originalActions},
+     * then returns it. Othwerwise it adds and returns a new pending {@link WorldAction} based on
+     * {@link originalActions} and remembers {@link actor} in it.
+     */
+    getOrCreatePendingAction(actor, originalActions) {
+        this.pendingWorldActions = this.pendingWorldActions ?? []
+        const lastPendingActions = this.pendingWorldActions[1]
+        if (lastPendingActions?.original === originalActions) {
+            return lastPendingActions
+        }
+        const actions = originalActions.createSimilarEmpty()
+        actions.original = originalActions
+        actions.actor = actor
+        this.pendingWorldActions.push(actions)
+        return actions
+    }
+
     // generateMobs...
     generateMobs() {
         // Generate mobs
@@ -194,13 +218,6 @@ export class ServerChunk {
         this.setState(CHUNK_STATE.LOADING_DATA);
         //
         const afterLoad = ([ml, fluid]) => {
-            if(!ml.obj && ml.compressed) {
-                ml.obj = decompressWorldModifyChunk(ml.compressed);
-                if (ml.private_compressed) {
-                    const private_obj = decompressWorldModifyChunk(ml.private_compressed);
-                    Object.assign(ml.obj, private_obj);
-                }
-            }
             this.modify_list = ml;
             this.ticking = new Map();
             this.setState(CHUNK_STATE.LOADING_BLOCKS);
@@ -222,16 +239,10 @@ export class ServerChunk {
                 this.preq.clear();
             }
         };
-
-        const loadCMPromise = new Promise((resolve, reject) => {
-            if(this.world.chunkHasModifiers(this.addr)) {
-                resolve(this.world.db.loadChunkModifiers(this.addr))
-            } else {
-                resolve({})
-            }
-        });
-
-        Promise.all([loadCMPromise, this.world.db.fluid.loadChunkFluid(this.addr)]).then(afterLoad);
+        Promise.all([
+            this.dbActor.loadChunkModifiers(),
+            this.world.db.fluid.queuedGetChunkFluid(this.addr)
+        ]).then(afterLoad);
     }
 
     // Returns true if the chunk has any data that needs to be sent to a client except blocks
@@ -297,13 +308,20 @@ export class ServerChunk {
 
     // Add drop item
     addDropItem(drop_item) {
-        drop_item.setPrevChunkAddr(this.addr);
+        if (drop_item.inChunk) {
+            throw new Error('drop_item.inChunk');
+        }
+        drop_item.inChunk = this;
         this.drop_items.set(drop_item.entity_id, drop_item);
         let packets = [{
             name: ServerClient.CMD_DROP_ITEM_ADDED,
-            data: [drop_item]
+            data: [drop_item.getItemFullPacket()]
         }];
-        this.sendAll(packets);
+        try {
+            this.sendAll(packets);
+        } catch(e) {
+            throw e;
+        }
     }
 
     // Send chunk for players
@@ -339,7 +357,6 @@ export class ServerChunk {
             const compressed = compressWorldModifyChunk(ml.obj, true);
             ml.compressed = Buffer.from(compressed.public);
             ml.private_compressed = compressed.private ? Buffer.from(compressed.private) : null;
-            this.world.db.saveCompressedWorldModifyChunk(this.addr, ml.compressed, ml.private_compressed);
         }
     }
 
@@ -389,8 +406,8 @@ export class ServerChunk {
             name: ServerClient.CMD_DROP_ITEM_ADDED,
             data: []
         }];
-        for(const [_, drop_item] of this.drop_items) {
-            packets[0].data.push(drop_item);
+        for(const drop_item of this.drop_items.values()) {
+            packets[0].data.push(drop_item.getItemFullPacket());
         }
         this.world.sendSelected(packets, player_user_ids, []);
     }
@@ -413,6 +430,7 @@ export class ServerChunk {
             }
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks.chunk = this;
         this.tblocks.light = this.light;
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
@@ -429,10 +447,13 @@ export class ServerChunk {
     }
 
     restoreUnloaded() {
+        // restore unloaded mobs and items
         for(const stuff of this.unloadedStuff) {
             stuff.restoreUnloaded(this);
         }
-        this.unloadedStuff = [];
+        this.unloadedStuff.length = 0;
+        this.unloadedStuffDirty = false;
+
         this.chunkManager.dataWorld.addChunk(this, true);
         this.onBlocksGeneratedOrRestored();
         this.onMobsLoadedOrRestored();
@@ -459,17 +480,21 @@ export class ServerChunk {
 
     async loadMobs() {
         this.setState(CHUNK_STATE.LOADING_MOBS);
+        
         // load various data in parallel
-        const mobPrpmise = this.world.db.mobs.loadInChunk(this.addr, this.size);
-        const drop_itemsPromise = this.world.db.loadDropItems(this.addr, this.size);
-        const serializedDelayedCallsPromise = this.world.db.loadAndDeleteChunkDelayedCalls(this).then((serializedDelayedCalls) => {
-            if (serializedDelayedCalls) {
-                this.delayedCalls.deserialize(serializedDelayedCalls);
+        const chunkRecordMobsPromise = this.world.db.chunks.getChunkOfChunk(this).then( async chunkRecord => {
+            this.chunkRecord = chunkRecord;
+            chunkRecord.chunk = this; // some fields are taken directly from the chunk when inserting/updateing chunkRecord
+            // now we can load things that required chunkRecord
+            if (chunkRecord.delayed_calls) {
+                this.delayedCalls.deserialize(chunkRecord.delayed_calls);
+                delete chunkRecord.delayed_calls;
             }
+            this.mobs = await this.world.db.mobs.loadInChunk(this);
         });
-        this.mobs = await mobPrpmise;
-        this.drop_items = await drop_itemsPromise;
-        await serializedDelayedCallsPromise;
+        this.drop_items = await this.world.db.loadDropItems(this.coord, this.size);
+        await chunkRecordMobsPromise;
+
         this.onMobsLoadedOrRestored();
     }
 
@@ -489,6 +514,19 @@ export class ServerChunk {
             chunkManager.chunks_with_delayed_calls.add(this);
         }
         this.setState(CHUNK_STATE.READY);
+        // apply pending world actions (they were created while the chunk was loading)
+        if (this.pendingWorldActions) {
+            // Push them to the beginning of the actions queue, preserving their order of creation.
+            // They must be pushed to the beginning because:
+            // 1. They are older than any existing actoion in the queue.
+            // 2. To ensure that they will be processed before the chunk unloads again even if the queus is so long
+            //   that it won't be processed completely in one tick.
+            for(let i = this.pendingWorldActions.length - 1; i>= 0; i--) {
+                const action = this.pendingWorldActions[i];
+                this.world.actions_queue.addFirst(action.actor, action);
+            }
+            this.pendingWorldActions = null;
+        }
         if (this.shouldUnload()) {
             // TODO : wait a bit, dont unload yet?
             chunkManager.invalidate(this);
@@ -626,7 +664,7 @@ export class ServerChunk {
     // getBlockAsItem
     getBlockAsItem(pos, y, z) {
         const block = this.getBlock(pos, y, z);
-        return BLOCK.convertItemToDBItem(block);
+        return BLOCK.convertBlockToDBItem(block);
     }
 
     getFluidValue(pos, y, z) {
@@ -754,7 +792,7 @@ export class ServerChunk {
                         pos_spawn      : pos.clone(),
                         rotate         : item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
-                    await this.world.mobs.create(params);
+                    this.world.mobs.create(params);
                     const actions = new WorldAction(null, this.world, false, false);
                     actions.addBlocks([
                         {pos: item_pos, item: {id: BLOCK.AIR.id}, destroy_block_id: item.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
@@ -1095,15 +1133,16 @@ export class ServerChunk {
     }
 
     // Store in modify list
-    addModifiedBlock(pos, item) {
+    addModifiedBlock(pos, item, previousId) {
         const ml = this.modify_list;
         if(!ml.obj) ml.obj = {};
+        pos = Vector.vectorify(pos);
         ml.obj[pos.getFlatIndexInChunk()] = item;
         ml.compressed = null;
         ml.private_compressed = null;
         if(item) {
             // calculate random ticked blocks
-            if(this.getBlock(pos)?.material?.random_ticker) {
+            if(BLOCK.BLOCK_BY_ID[previousId]?.random_ticker) {
                 this.randomTickingBlockCount--;
             }
             //
@@ -1248,50 +1287,71 @@ export class ServerChunk {
         if (!chunkManager || this.load_state !== CHUNK_STATE.READY) {
             throw new Error(`!chunkManager || this.load_state !== CHUNK_STATE.READY ${chunkManager} ${this.load_state}`);
         }
-        this.setState(CHUNK_STATE.UNLOADING);
+        // we don't have to wait for readyPromise here, because it's already READY
+
         this.unloadingStartedTime = performance.now();
-        await this.readyPromise;
+        this.setState(CHUNK_STATE.UNLOADING);
+        // Instead of awaiting Promise.all(), we use the flags showing what sill needs to be unloaded.
+        // It solves the problem of old unloading promise still pending when the chunk is restored and unloaded again.
+        this.waitingToUnloadWater = true;
+        this.waitingToUnloadWorldTransaction = true;
+
+        // unload water
+        if (this.dataChunk) {
+            chunkManager.world.db.fluid.flushChunk(this.tblocks.fluid).then(() => {
+                this.waitingToUnloadWater = false; // modify the object from the closure, not the class field!
+                this.checkUnloadingProgress();
+            });
+        } else {
+            this.waitingToUnloadWater = false;
+        }
+
+        // === Unload everything in the world transaction ===
+
+        // Delayed calls will be saved by dbActor, only unregister them here
         if (this.delayedCalls.length) {
             chunkManager.chunks_with_delayed_calls.delete(this);
         }
-
-        const promises = [];
-        if (this.dataChunk) {
-            promises.push(chunkManager.world.db.fluid.flushChunk(this.tblocks.fluid))
-        }
         // Unload mobs
-        if(this.mobs.size > 0) {
-            for(let mob of this.mobs.values()) {
-                if (mob.isAlive()) {
-                    this.unloadedStuff.push(mob);
-                }
-                promises.push(mob.onUnload(this));
+        for(const mob of this.mobs.values()) {
+            this.unloadedStuff.push(mob);
+            if (mob.onUnload(this)) {
+                this.unloadedStuffDirty = true;
             }
         }
         // Unload drop items
-        if(this.drop_items.size > 0) {
-            for(let drop_item of this.drop_items.values()) {
-                this.unloadedStuff.push(drop_item);
-                promises.push(drop_item.onUnload());
+        for(const drop_item of this.drop_items.values()) {
+            this.unloadedStuff.push(drop_item);
+            if (drop_item.onUnload()) {
+                this.unloadedStuffDirty = true;
             }
         }
-        if (this.delayedCalls.length) {
-            promises.push(this.world.db.saveChunkDelayedCalls(this));
+        if (this.dbActor.mustSaveWhenUnloading()) {
+            this.world.dbActor.dirtyActors.add(this.dbActor);
+            // ChunkDBActor will update this.waitingToUnloadWorldTransaction and call checkUnloadingProgress()
+        } else {
+            this.waitingToUnloadWorldTransaction = false;
+            this.checkUnloadingProgress();
         }
-        this.readyPromise = Promise.all(promises).then(() => {
-            if (this.load_state === CHUNK_STATE.UNLOADING) {
-                this.setState(CHUNK_STATE.UNLOADED);
-                this.chunkManager.chunkUnloaded(this);
-            }
-        });
-        await this.readyPromise;
+    }
+
+    checkUnloadingProgress() {
+        if (this.load_state === CHUNK_STATE.UNLOADING &&
+            !this.waitingToUnloadWater &&
+            !this.waitingToUnloadWorldTransaction
+        ) {
+            this.setState(CHUNK_STATE.UNLOADED);
+            this.chunkManager.chunkUnloaded(this);
+        }
     }
 
     dispose() {
+        // the chunk is already removed from world.dbActor.dirtyActors, because it wrote all its data when it unloaded
         this.setState(CHUNK_STATE.DISPOSED);
         this.light.dispose();
         this.chunkManager.chunkDisposed(this);
     }
+
 }
 
 const tmp_posVector         = new Vector();

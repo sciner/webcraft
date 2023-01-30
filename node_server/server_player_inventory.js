@@ -2,11 +2,13 @@ import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "../www/
 import { InventoryComparator } from "../www/js/inventory_comparator.js";
 import { Inventory } from "../www/js/inventory.js";
 import { ServerClient } from "../www/js/server_client.js";
+import { ServerPlayer } from "./server_player.js";
 
 export class ServerPlayerInventory extends Inventory {
 
-    save() {
-        this.player.world.db.savePlayerInventory(this.player, this.exportItems());
+    // Marks that the inventory needs to be saved in the next transaction
+    markDirty() {
+        this.player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_INVENTORY;
     }
 
     send() {
@@ -22,8 +24,8 @@ export class ServerPlayerInventory extends Inventory {
         this.current.index = isNaN(this.current.index) ? 0 : this.current.index;
         this.current.index2 = isNaN(this.current.index2) ? -1 : this.current.index2;
         this.player.updateHands();
-        // Save inventory to DB
-        this.save();
+        // Marks that it needs to be saved in DB
+        this.markDirty();
         // Send for all except player
         this.player.sendNearPlayers();
         // Send to player
@@ -157,6 +159,13 @@ export class ServerPlayerInventory extends Inventory {
         this.player.world.createDropItems(this.player, pos, [item], this.temp_vec);
         this.items[slot_index] = null;
         return true;
+    }
+
+    writeToWorldTransaction(underConstruction) {
+        underConstruction.updatePlayerInventory.push([
+            this.player.session.user_id,
+            JSON.stringify(this.exportItems())
+        ]);
     }
 
 }

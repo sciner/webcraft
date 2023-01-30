@@ -24,13 +24,15 @@ export class AbstractPlayerManager {
     }
 
     /**
-     * Return all players
-     * @returns
+     * @yields all entries [user_id, player]
      */
     *all() {
-        for(const [user_id, player] of this.list.entries()) {
-            yield [user_id, player]
-        }
+        yield *this.list.entries();
+    }
+
+    /** @yields all players */
+    *values() {
+        yield *this.list.values();
     }
 
     get world() {

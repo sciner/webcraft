@@ -398,7 +398,7 @@ export class FSMBrain {
     * val - количество урона
     * type_damage - от чего умер[упал, сгорел, утонул]
     */
-    async onDamage(actor, val, type_damage) {
+    onDamage(actor, val, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
         const live = mob.indicators.live;
@@ -409,14 +409,14 @@ export class FSMBrain {
         }
         live.value -= val;
         if (live.value <= 0) {
-            await mob.kill();
+            mob.kill();
             this.onKill(actor, type_damage);
         } else {
             const actions = new WorldAction();
             actions.addPlaySound({ tag: 'madcraft:block.' + mob.type, action: 'hurt', pos: mob.pos.clone() });
             world.actions_queue.add(actor, actions);
             this.onPanic();
-            mob.save();
+            mob.markDirty();
         }
     }
 

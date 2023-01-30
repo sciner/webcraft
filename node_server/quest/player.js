@@ -4,6 +4,7 @@ import {Quest} from "./quest.js";
 import {QuestGroup} from "./quest_group.js";
 import {QuestActionType} from "./action_type.js";
 import {ServerClient} from "../../www/js/server_client.js";
+import {DBWorldQuest} from "../db/world/quest.js"
 
 // QuestPlayer
 export class QuestPlayer {
@@ -23,22 +24,37 @@ export class QuestPlayer {
         this.handlers.set(PlayerEvent.PUT_ITEM_TO_INVENTORY, this.onItemToInventory);
         PlayerEvent.addHandler(this.player.session.user_id, this);
         //
-        await this.startQuests();
         await this.loadQuests();
     }
 
-    // Start quests
-    async startQuests() {
-        // 1. check if default not started
-        let quests_started = await this.quest_manager.questsUserStarted(this.player);
-        if(!quests_started) {
-            // Get all quests in game
-            const all_enabled_quest_groups = this.quest_manager.getDefaultQuests();
-            for(let group of all_enabled_quest_groups) {
-                for(let quest of group.quests) {
-                    // Start default user quests
-                    await this.quest_manager.savePlayerQuest(this.player, quest);
-                }
+    /**
+     * Adds a new quest to the current quests. It'll be saved in the next world transaction.
+     * @param {Object} dbQuest - one quest returned by {@link DBWorldQuest.load},
+     *  {@link DBWorldQuest.defaults} or {@link DBWorldQuest.loadPlayerQuests}
+     */
+    addQuest(dbQuest, isNew) {
+        const groupId = dbQuest.quest_group_id;
+        let group = this.groups.find(it => it.id === groupId);
+        if (!group) {
+            const dbGroup = this.quest_manager.getGroup(groupId);
+            if (!dbGroup) {
+                return; // the quest references a non-existent group
+            }
+            group = new QuestGroup(dbGroup);
+            this.groups.push(group);
+        }
+        const quest = new Quest(this, dbQuest, isNew);
+        this.quests.set(quest.id, quest);
+        group.addQuest(quest);
+    }
+
+    // Starts all default quests if a player has no quests
+    async startDefaultQuests() {
+        // Get all quest groups in game
+        const all_enabled_quest_groups = this.quest_manager.getGroupsWithDefaultQuests();
+        for(let group of all_enabled_quest_groups) {
+            for(let quest of group.quests) {
+                this.addQuest(quest, true);
             }
         }
     }
@@ -46,21 +62,16 @@ export class QuestPlayer {
     async loadQuests() {
         const user_quests = await this.quest_manager.loadPlayerQuests(this.player);
         // Init quest objects
-        this.groups = new Map();
-        this.quests = new Map();
+        this.groups = [];           // a Map might be better for performance, but an Array was historically used
+        this.quests = new Map();    // by quest.id
         //
-        for(let item of user_quests) {
-            let group = this.groups.get(item.quest_group.id);
-            if(!group) {
-                group = new QuestGroup(item.quest_group);
-                this.groups.set(group.id, group);
+        if (user_quests.length == 0) {
+            this.startDefaultQuests();
+        } else {
+            for(const uq of user_quests) {
+                this.addQuest(uq, false);
             }
-            const quest = new Quest(this, item);
-            this.quests.set(quest.id, quest);
-            group.addQuest(quest);
         }
-        //
-        this.groups = Array.from(this.groups.values());
     }
 
     // Return player quest groups
@@ -69,8 +80,7 @@ export class QuestPlayer {
     }
 
     // sendAll...
-    async sendAll() {
-        await this.loadQuests();
+    sendAll() {
         const data = this.getEnabled();
         this.player.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: data}]);
     }
@@ -184,4 +194,9 @@ export class QuestPlayer {
         }
     }
 
+    writeToWorldTransaction(underConstruction) {
+        for(const quest of this.quests.values()) {
+            quest.writeToWorldTransaction(underConstruction);
+        }
+    }
 }

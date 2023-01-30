@@ -354,43 +354,46 @@ export default class WorldEdit {
         let affected_count = 0;
         //
         const data = copy_data ?? player._world_edit_copy;
-        const blockIter = data.blocks.entries();
-        let chunk_addr = null;
-        let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
+        const chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
         const action_id = ServerClient.BLOCK_ACTION_CREATE;
+        let chunk_addr = null;
         let actions = null;
-        for(let [bpos, item] of blockIter) {
-            const shift = bpos;
-            const pos = player_pos.add(shift);
-            chunk_addr = getChunkAddr(pos, chunk_addr);
-            if(!chunk_addr_o.equal(chunk_addr)) {
-                chunk_addr_o.copyFrom(chunk_addr);
-                actions = actions_list.get(chunk_addr);
-                if(!actions) {
-                    actions = createwWorldActions();
-                    actions_list.set(chunk_addr, actions);
-                }
+        //
+        const getChunkActions = (chunk_addr) => {
+            if(chunk_addr_o.equal(chunk_addr)) {
+                return actions
             }
-            actions.addBlocks([{pos, item, action_id}]);
-            affected_count++;
+            chunk_addr_o.copyFrom(chunk_addr);
+            actions = actions_list.get(chunk_addr);
+            if(actions) {
+                return actions
+            }
+            actions = createwWorldActions()
+            actions_list.set(chunk_addr, actions)
+            return actions
         }
+        // blocks
+        for(const [bpos, item] of data.blocks.entries()) {
+            const pos = player_pos.add(bpos)
+            chunk_addr = getChunkAddr(pos, chunk_addr)
+            actions = getChunkActions(chunk_addr)
+            actions.addBlock({pos, item, action_id})
+            affected_count++
+        }
+        // fluids
         if (data.fluids && data.fluids.length > 0) {
             const fluids = data.fluids;
             for (let i = 0; i < fluids.length; i += 4) {
-                let x = fluids[i] + player_pos.x, y = fluids[i + 1] + player_pos.y, z = fluids[i + 2] + player_pos.z, val = fluids[i + 3];
+                const x = fluids[i] + player_pos.x,
+                      y = fluids[i + 1] + player_pos.y,
+                      z = fluids[i + 2] + player_pos.z,
+                      val = fluids[i + 3];
                 chunk_addr = getChunkAddr(x, y, z, chunk_addr);
-                if(!chunk_addr_o.equal(chunk_addr)) {
-                    chunk_addr_o.copyFrom(chunk_addr);
-                    actions = actions_list.get(chunk_addr);
-                    if(!actions) {
-                        actions = createwWorldActions();
-                        actions_list.set(chunk_addr, actions);
-                    }
-                }
+                actions = getChunkActions(chunk_addr)
                 actions.addFluids([x, y, z, val]);
-                actions.fluidFlush = true;
+                actions.fluidFlush = true
+                affected_count++
             }
-            affected_count++;
         }
         let cnt = 0;
         const notify = {

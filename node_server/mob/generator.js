@@ -24,14 +24,14 @@ export class MobGenerator {
         const auto_generate_mobs = this.chunk.world.getGeneratorOptions('auto_generate_mobs', true);
         if(auto_generate_mobs) {
             // probability 1/10
-            const chunk_addr_hash = this.chunk.addr.toHash();
+            const chunk_addr_hash = this.chunk.addrHash;
             this.random = new alea('chunk' + chunk_addr_hash);
             this.can_generate = this.random.double() < .05;
             if(!this.can_generate) {
                 return false;
             }
             // if generating early
-            if(await this.chunk.world.chunks.chunkMobsIsGenerated(chunk_addr_hash)) {
+            if(this.chunk.chunkRecord.mobs_is_generated) {
                 return false;
             }
             // check chunk is good place for mobs
@@ -85,14 +85,15 @@ export class MobGenerator {
                                     ...t
                                 };
                                 // Spawn mob
-                                await this.chunk.world.mobs.create(params);
+                                this.chunk.world.mobs.create(params);
                             }
                         }
                     }
                 }
             }
-            // mark as generated
-            await this.chunk.world.chunks.chunkSetMobsIsGenerated(chunk_addr_hash, 1);
+            // Mark as generated
+            this.chunk.chunkRecord.mobs_is_generated = 1;
+            this.chunk.chunkRecord.dirty = true;
         }
     }
 

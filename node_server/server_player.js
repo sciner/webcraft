@@ -17,6 +17,7 @@ import { ServerPlayerEffects } from "./player/effects.js";
 import { Effect } from "../www/js/block_type/effect.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
+import { DBWorld } from "./db/world.js"
 
 export class NetworkMessage {
     constructor({
@@ -52,6 +53,10 @@ class ServerPlayerSharedProps {
 
 export class ServerPlayer extends Player {
 
+    static DIRTY_FLAG_INVENTORY     = 0x1;
+    static DIRTY_FLAG_ENDER_CHEST   = 0x2;
+    static DIRTY_FLAG_QUESTS        = 0x4;
+
     #forward;
     #_rotateDegree;
 
@@ -84,6 +89,8 @@ export class ServerPlayer extends Player {
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
         this.prev_near_players      = new Map();
+        this.ender_chest            = null; // if it's not null, it's cached from DB
+        this.dirtyFlags             = 0;
 
         // для проверки времени дейстия
         this.cast = {
@@ -450,7 +457,7 @@ export class ServerPlayer extends Player {
                 //    // const force_teleport = ++wait_info.attempt == max_attempts;
                 for(let chunk of this.world.chunks.getAround(wait_info.pos, this.state.chunk_render_dist)) {
                     if(chunk.isReady()) {
-                        const new_portal = await WorldPortal.foundPortalFloorAndBuild(this.session.user_id, this.world, chunk, from_portal_type);
+                        const new_portal = this.world.portals.foundPortalFloorAndBuild(this.session.user_id, chunk, from_portal_type);
                         if(new_portal) {
                             wait_info.pos = new_portal.player_pos;
                             this.prev_use_portal = performance.now();
@@ -774,10 +781,10 @@ export class ServerPlayer extends Player {
         this.damage.setFoodLevel(food, saturation);
     }
 
-    // Save ender chest content
-    async saveEnderChest(ender_chest) {
+    // Marks that the ender chest content needs to be saved in the next world transaction
+    setEnderChest(ender_chest) {
         this.ender_chest = ender_chest
-        await this.world.db.saveEnderChest(this, ender_chest);
+        this.dirtyFlags |= ServerPlayer.DIRTY_FLAG_ENDER_CHEST;
     }
 
     /**
@@ -785,10 +792,12 @@ export class ServerPlayer extends Player {
      * @returns
      */
     async loadEnderChest() {
-        if(this.ender_chest) {
-            return this.ender_chest;
+        if (!this.ender_chest) {
+            const loaded = await this.world.db.loadEnderChest(this);
+            // If loading is called multiple times before it completes, ensure that the cahced value isn't replaced
+            this.ender_chest = this.ender_chest ?? loaded;
         }
-        return this.ender_chest = await this.world.db.loadEnderChest(this);
+        return this.ender_chest;
     }
 
     /**
@@ -875,6 +884,25 @@ export class ServerPlayer extends Player {
                 }
             }
         }
+    }
+
+    writeToWorldTransaction(underConstruction) {
+        // always save the player state, as it was in the old code
+        const row = DBWorld.toPlayerUpdateRow(this);
+        underConstruction.updatePlayerState.push(row);
+
+        if (this.dirtyFlags & ServerPlayer.DIRTY_FLAG_INVENTORY) {
+            this.inventory.writeToWorldTransaction(underConstruction);
+        }
+        if (this.dirtyFlags & ServerPlayer.DIRTY_FLAG_ENDER_CHEST) {
+            underConstruction.promises.push(
+                this.world.db.saveEnderChest(this, this.ender_chest)
+            );
+        }
+        if (this.dirtyFlags & ServerPlayer.DIRTY_FLAG_QUESTS) {
+            this.quests.writeToWorldTransaction(underConstruction);
+        }
+        this.dirtyFlags = 0;
     }
 
 }

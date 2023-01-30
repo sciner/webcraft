@@ -1,30 +1,32 @@
-import {getChunkAddr, SimpleQueue, Vector, VectorCollector} from "../../../www/js/helpers.js";
+import {getChunkAddr, SimpleQueue, Vector} from "../../../www/js/helpers.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
 import {FluidChunk} from "../../../www/js/fluid/FluidChunk.js";
 import {BaseChunk} from "../../../www/js/core/BaseChunk.js";
+import {WorldChunkFlags} from "./WorldChunkFlags.js";
+import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js"
 
 export class DBWorldFluid {
     constructor(conn, world) {
         this.conn = conn;
         this.world = world;
 
-        this.knownFluidChunks = new VectorCollector();
-
         this.dirtyChunks = new SimpleQueue();
+
+        this.bulkGetQuery = new BulkSelectQuery(this.conn,
+            `WITH cte AS (SELECT value FROM json_each(:jsonRows))
+            SELECT data
+            FROM cte LEFT JOIN world_chunks_fluid ON x = %0 AND y = %1 AND z = %2`
+        );
     }
 
     async restoreFluidChunks() {
-        this.knownFluidChunks.clear();
-        const rows = await this.conn.all(`SELECT DISTINCT x chunk_x, y chunk_y, z chunk_z FROM world_chunks_fluid`);
-        for(let row of rows) {
-            let addr = new Vector(row.chunk_x, row.chunk_y, row.chunk_z);
-            this.knownFluidChunks.add(addr, 1);
-        }
+        const rows = await this.conn.all('SELECT x, y, z FROM world_chunks_fluid');
+        this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.MODIFIED_FLUID | WorldChunkFlags.DB_MODIFIED_FLUID);
     }
 
     //
     async loadChunkFluid(chunk_addr) {
-        if (!this.knownFluidChunks.has(chunk_addr)) {
+        if (!this.world.worldChunkFlags.has(chunk_addr, WorldChunkFlags.DB_MODIFIED_FLUID)) {
             return null;
         }
 
@@ -37,9 +39,23 @@ export class DBWorldFluid {
         return row ? row['data'] : null;
     }
 
+    /**
+     * Gets fluid in a chunk, backed by a bulk select query.
+     * Warning: beware of potential deadlocks, see the comment to BulkSelectQuery. That's
+     * why we also have a non-bulk version.
+     */
+    async queuedGetChunkFluid(chunk_addr) {
+        if (!this.world.worldChunkFlags.has(chunk_addr, WorldChunkFlags.DB_MODIFIED_FLUID)) {
+            return null;
+        }
+        const row = await this.bulkGetQuery.get(chunk_addr.toArray());
+        // the row is always returned, but its fields might be empty
+        return row.data;
+    }
+
     //
     async saveChunkFluid(chunk_addr, data) {
-        this.knownFluidChunks.add(chunk_addr, 1);
+        this.world.worldChunkFlags.add(chunk_addr, WorldChunkFlags.DB_MODIFIED_FLUID);
         await this.conn.run('INSERT INTO world_chunks_fluid(x, y, z, data) VALUES (:x, :y, :z, :data)', {
             ':x': chunk_addr.x,
             ':y': chunk_addr.y,
@@ -49,7 +65,42 @@ export class DBWorldFluid {
         // console.log(`saving fluid ${chunk_addr}`)
     }
 
+    /** @param {Array of Objects} rows {addr, data} */
+    async bulkSaveChunkFluid(rows) {
+        const worldChunkFlags = this.world.worldChunkFlags
+        const insertRows = []
+        const updateRows = []
+        for(const row of rows) {
+            const addr = row.addr
+            const dstRow = [addr.x, addr.y, addr.z, row.data]
+            if (worldChunkFlags.has(addr, WorldChunkFlags.DB_MODIFIED_FLUID)) {
+                updateRows.push(dstRow)
+            } else {
+                worldChunkFlags.add(addr, WorldChunkFlags.DB_MODIFIED_FLUID)
+                insertRows.push(dstRow)
+            }
+        }
+        return Promise.all([
+            insertRows.length && runBulkQuery(this.conn,
+                'INSERT INTO world_chunks_fluid(x, y, z, data) VALUES ',
+                '(?,?,?,?)',
+                '',
+                insertRows
+            ),
+            updateRows.length && runBulkQuery(this.conn,
+                'WITH cte (x_, y_, z_, data_) AS (VALUES',
+                '(?,?,?,?)',
+                `)UPDATE world_chunks_fluid
+                SET data = data_
+                FROM cte
+                WHERE x = x_ AND y = y_ AND z = z_`,
+                updateRows
+            )
+        ])
+    }
+
     async saveFluids(maxSaveChunks= 10) {
+        const saveRows = [];
         while (this.dirtyChunks.length > 0 && maxSaveChunks !== 0) {
             const elem = this.dirtyChunks.shift();
             if (!elem.world) {
@@ -59,8 +110,14 @@ export class DBWorldFluid {
                 continue;
             }
             elem.databaseID = elem.updateID;
-            await this.saveChunkFluid(elem.parentChunk.addr, elem.saveDbBuffer());
+            saveRows.push({
+                addr: elem.parentChunk.addr,
+                data: elem.saveDbBuffer()
+            });
             maxSaveChunks--;
+        }
+        if (saveRows.length) {
+            await this.bulkSaveChunkFluid(saveRows);
         }
     }
 

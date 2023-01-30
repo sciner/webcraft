@@ -75,6 +75,9 @@ export class Inventory {
             }
             new_items[i] = this.block_manager.convertItemToInventoryItem(items[i], b);
         }
+        // if nothing changes, don't refresh
+        refresh = refresh && !InventoryComparator.listsExactEqual(this.items, new_items);
+
         this.items = new_items;
         if(refresh) {
             this.refresh(true);
