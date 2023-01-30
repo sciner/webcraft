@@ -23,17 +23,44 @@ export class BBModel_Model {
     }
 
     /**
+     * Select texture
+     * @param {string} group_name If empty then texture will be selected for all groups
      * @param {string} texture_name 
      */
-    selectTextureFromPalette(texture_name) {
+    selectTextureFromPalette(group_name, texture_name) {
+        //
         if(!this.all_textures) {
             this.makeTexturePalette()
         }
+        //
         const texture = this.all_textures.get(texture_name)
-        if(texture) {
-            this.selected_texture_name = texture_name
-        } else {
+        if(!texture) {
             throw `error_invalid_palette|${texture_name}`
+        }
+        //
+        if(group_name) {
+            //
+            const processGroup = (group, group_path) => {
+                if(group_path) {
+                    group_path += '/'
+                }
+                group_path += group.name
+                for(let item of group.children) {
+                    if(item instanceof BBModel_Group) {
+                        processGroup(item, group_path)
+                    } else if(item instanceof BBModel_Cube) {
+                        if(group_path.indexOf(group_name) == 0) {
+                            item.selected_texture_name = texture_name
+                        }
+                    }
+                }
+            }
+            //
+            for(const [_, group] of this.groups.entries()) {
+                processGroup(group, '')
+            }
+        } else {
+            this.selected_texture_name = texture_name
         }
     }
 

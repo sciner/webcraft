@@ -1,4 +1,4 @@
-import { calcRotateMatrix, DIRECTION, IndexedColor, mat4ToRotate, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, IndexedColor, mat4ToRotate, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BLOCK, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
@@ -133,9 +133,7 @@ export default class style {
         if(bb.select_texture) {
             for(let st of bb.select_texture) {
                 if(style.checkWhen(model, block, st.when)) {
-                    // model.selectTextureFromPalette(st.texture)
-                    style.selectTextureFromPalette(model, st.texture, block)
-                    break
+                    style.selectTextureFromPalette(model, st, block)
                 }
             }
         }
@@ -359,8 +357,7 @@ export default class style {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
                 model.hideAllExcept([model.state])
-                // model.selectTextureFromPalette(mat.name)
-                style.selectTextureFromPalette(model, mat.name, tblock)
+                style.selectTextureFromPalette(model, {name: mat.name}, tblock)
                 break
             }
             case "pane": {
@@ -407,8 +404,7 @@ export default class style {
                 if(!BLOCK.canFenceConnect(neighbours.WEST)) hide_group_names.push('west')
                 if(!BLOCK.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
-                // model.selectTextureFromPalette(mat.name)
-                style.selectTextureFromPalette(model, mat.name, tblock)
+                style.selectTextureFromPalette(model, {name: mat.name}, tblock)
                 break
             }
             case 'pot': {
@@ -568,11 +564,29 @@ export default class style {
         return true
     }
 
-    static selectTextureFromPalette(model, texture_name, tblock) {
-        if(tblock && tblock.material) {
-            texture_name = texture_name.replace('%block_name%', tblock.material.name)
+    static selectTextureFromPalette(model, texture, tblock) {
+        //
+        const makeTextureName = (name) => {
+            if(!name) {
+                return 
+            }
+            if(tblock && tblock.material) {
+                name = name.replace('%block_name%', tblock.material.name)
+                if(name.startsWith('%extra_data.')) {
+                    const field_name = StringHelpers.trim(name.substring(12), '%')
+                    name = null
+                    if(tblock.extra_data) {
+                        name = tblock.extra_data[field_name]
+                    }
+                }
+            }
+            return name
         }
-        return model.selectTextureFromPalette(texture_name)
+        //
+        const texture_name = makeTextureName(texture.name) || makeTextureName(texture.empty)
+        if(texture_name) {
+            model.selectTextureFromPalette(texture.group, texture_name)
+        }
     }
 
     // Stand

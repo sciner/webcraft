@@ -789,12 +789,12 @@ export class CompileData {
     initChairAndStool() {
 
         const FURNITURE_MATERIALS = [
-            {prefix: 'OAK', log: 'oak_log', texture: 'block/oak_log_top.png'},
             {prefix: 'BIRCH', log: 'birch_log', texture: 'block/birch_log_top.png'},
-            {prefix: 'SPRUCE', log: 'spruce_log', texture: 'block/spruce_log_top.png'},
+            {prefix: 'OAK', log: 'oak_log', texture: 'block/oak_log_top.png'},
             {prefix: 'ACACIA', log: 'acacia_log', texture: 'block/acacia_log_top.png'},
-            {prefix: 'JUNGLE', log: 'jungle_log', texture: 'block/jungle_log_top.png'},
+            {prefix: 'SPRUCE', log: 'spruce_log', texture: 'block/spruce_log_top.png'},
             {prefix: 'DARK_OAK', log: 'dark_oak_log', texture: 'block/dark_oak_log_top.png'},
+            {prefix: 'JUNGLE', log: 'jungle_log', texture: 'block/jungle_log_top.png'},
             {prefix: 'CRIMSON', log: 'crimson_stem', texture: 'block/crimson_stem_top.png'},
             {prefix: 'WARPED', log: 'warped_stem', texture: 'block/warped_stem_top.png'}
         ];
