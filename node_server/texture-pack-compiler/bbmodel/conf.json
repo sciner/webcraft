@@ -53,7 +53,8 @@
         {"name": "enchanting_table",    "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "lectern",             "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "fence_gate",          "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "bed",                 "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "bed",                 "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "chair",               "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -1409,6 +1410,122 @@
                 "model": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        {
+            "id": 300,
+            "name": "OAK_CHAIR",
+            "bb": {
+                "model": "chair",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 301,
+            "name": "BIRCH_CHAIR",
+            "bb": {
+                "model": "chair",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 302,
+            "name": "SPRUCE_CHAIR",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "chair",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 303,
+            "name": "ACACIA_CHAIR",
+            "bb": {
+                "model": "chair",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 304,
+            "name": "JUNGLE_CHAIR",
+            "bb": {
+                "model": "chair",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "set_state": [
+                    {"name": "_", "when": {"extra_data.is_head": true}}
+                ],
+                "select_texture": [
+                    {"texture": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 305,
+            "name": "DARK_OAK_CHAIR",
+            "bb": {
+                "model": "chair",
+                "rotate": {
+                    "type": "ydeg"
                 },
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}}

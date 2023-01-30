@@ -195,6 +195,12 @@ export default class style {
                             }
                             break
                         }
+                        case 'ydeg': {
+                            if(tblock.rotate) {
+                                mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 180) / 180) * Math.PI)
+                            }
+                            break
+                        }
                         case 'random': {
                             for(let axe of rot.axes) {
                                 switch(axe) {
