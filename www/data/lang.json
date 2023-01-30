@@ -163,6 +163,7 @@
         "error_command_not_working_in_this_game_mode": {"en": "Command not working in this game mode", "ru": "Команда не работает в текущем игровом режиме", "fr": "", "es": "", "man": ""},
         "beacon_primary": {"en": "Primary Power", "ru": "Основной эффект", "fr": "", "es": "", "man": ""},
         "inventory": {"en": "Inventory", "ru": "Инвентарь", "fr": "", "es": "", "man": ""},
-        "beacon_secondary": {"en": "Secondary Power", "ru": "Вторичный эффект", "fr": "", "es": "", "man": ""}
+        "beacon_secondary": {"en": "Secondary Power", "ru": "Вторичный эффект", "fr": "", "es": "", "man": ""},
+        "shutdown_initiated_by": {"en": "Server shutdown initiated by %0", "ru": "Выключение сервера инициировано %0", "fr": "", "es": "", "man": ""}
     }
 }

@@ -1,4 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
+import { DBWorldChunk } from "./chunk.js"
 
 // Migrations
 export class DBWorldMigration {
@@ -869,6 +870,20 @@ export class DBWorldMigration {
                 WHERE extra_data IS NOT NULL`,
             `UPDATE user SET inventory = REPLACE(REPLACE(REPLACE(inventory, '"id":114,', '"id":9,'), '"id":155,', '"id":9,'), '"id":520,', '"id":9,');`,
             ...update_world_modify_chunks,
+        ]});
+
+        migrations.push({version: 92, queries: [
+            // Uint32Array of _rowid_ of world_modify_chunks that must be rebuilt from world_modify.
+            // If it's null, all chunks must be rebuilt.
+            'ALTER TABLE world ADD COLUMN recovery BLOB DEFAULT NULL',
+            //
+            'DROP INDEX world_modify_xyz', // this index became unsued
+            'DROP INDEX world_modify_chunk_xyz', // add "index" field to this one
+            'CREATE INDEX world_modify_chunk_xyz_index ON world_modify (chunk_x, chunk_z, chunk_y, "index")',
+            // there was int32 overflow in delayed_calls times
+            'UPDATE chunk SET delayed_calls = NULL',
+            // rebuild world_modify_chunk.data without duplicate ids
+            DBWorldChunk.UPDATE_REBUILD_MODIFIERS_DATA_ONLY
         ]});
 
         for(let m of migrations) {

@@ -1,4 +1,5 @@
 import {ServerChunk} from "./server_chunk.js";
+import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, Mth} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -177,6 +178,8 @@ export class ServerChunkManager {
                 }
             }
         }
+        // Flush all bulk selects (including those created not in the current call).
+        this.world.db.flushBulkSelectQueries();
         // 2. queue chunks for generate mobs
         if(this.chunk_queue_gen_mobs.size > 0) {
             for(const [addr, chunk] of this.chunk_queue_gen_mobs.entries()) {
@@ -270,7 +273,7 @@ export class ServerChunkManager {
 
     // Add to invalid queue
     // помещает чанк в список невалидных, т.к. его больше не видит ни один из игроков
-    // в следующем тике мира, он будет выгружен методом unloadInvalidChunks()
+    // в следующем тике мира и если chunk.shouldUnload() == false, он будет выгружен методом unloadInvalidChunks()
     invalidate(chunk) {
         this.invalid_chunks_queue.push(chunk);
     }
@@ -327,7 +330,7 @@ export class ServerChunkManager {
     getChunk(addr) {
         return this.get(addr);
     }
-
+    
     getOrRestore(addr) {
         let chunk = this.get(addr);
         if (chunk) {
@@ -418,21 +421,12 @@ export class ServerChunkManager {
                     added_vecs.set(addr, true);
                     if(!player.nearby_chunk_addrs.has(addr)) {
                         player.nearby_chunk_addrs.set(addr, addr);
-                        let chunk = this.get(addr);
-                        if(!chunk) {
-                            chunk = this.unloading_chunks.get(addr)
-                            if (chunk) {
-                                // RESTORE!!!
-                                this.unloading_chunks.delete(addr)
-                                chunk.restoreUnloaded();
-                            } else {
-                                chunk = new ServerChunk(this.world, addr);
-                            }
-                            this.add(chunk);
-                        }
+                        let chunk = this.getOrAdd(addr);
                         chunk.addPlayer(player);
+                        const hasModifiers = this.world.worldChunkFlags.has(addr, 
+                            WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID);
                         const flags =
-                            (this.world.chunkHasModifiers(addr) ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
+                            (hasModifiers ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
                             (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);
                         nearby.added.push({addr, flags});
                     }
@@ -480,11 +474,6 @@ export class ServerChunkManager {
         return this.DUMMY;
     }
 
-    // chunkMobsIsGenerated
-    async chunkMobsIsGenerated(chunk_addr_hash) {
-        return await this.world.db.mobs.chunkMobsIsGenerated(chunk_addr_hash);
-    }
-
     // chunkSetMobsIsGenerated
     async chunkSetMobsIsGenerated(chunk_addr_hash) {
         return await this.world.db.mobs.chunkMobsSetGenerated(chunk_addr_hash, 1);
@@ -524,7 +513,7 @@ export class ServerChunkManager {
             return;
         }
         const players = [];
-        for(const [_, p] of world.players.all()) {
+        for(const p of world.players.values()) {
             players.push({
                 pos:                p.state.pos,
                 chunk_addr:         getChunkAddr(p.state.pos.x, 0, p.state.pos.z),

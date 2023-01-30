@@ -406,7 +406,7 @@ export class HUD {
                     '\nName: ' + desc.material.name +
                     '\nStyle: ' + desc.material.style_name +
                     '\nWorld pos.: ' + desc.worldPos.toString() +
-                    '\nPos. in chunk: ' + desc.posInChunk.toString() +
+                    `\nPos. in chunk: ${desc.posInChunk.toString()}, flat=${desc.posInChunk.relativePosToFlatIndexInChunk()}, ind=${desc.posInChunk.relativePosToChunkIndex()}` +
                     '\nChunk addr.: ' + desc.chunkAddr.toString();
                 if (desc.material.ticking) {
                     this.block_text += '\nTicking: ' + desc.material.ticking.type;

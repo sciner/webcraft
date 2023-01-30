@@ -49,7 +49,7 @@ export class Mesh_Effect_Particle {
         // render
         this.pp             = args.pp ?? 0;
         // flags may contain QUAD_FLAGS or PARTICLE_FLAG_*** constants
-        this.flags          = args.flags ?? 0;
+        this.flags          = (args.flags ?? 0) | QUAD_FLAGS.NO_AO;
         this.material_key   = args.material_key;
         this.texture        = args.texture;
 
@@ -75,7 +75,7 @@ export class Mesh_Effect_Particle {
     /**
      * Calculate new particle position, scale and others
      * @param {float} delta delta in ms
-     * @returns 
+     * @returns
      */
     tick(delta) {
 
@@ -147,7 +147,7 @@ export class Mesh_Effect_Particle {
                     let x = this.pos.x;
                     let y = this.pos.y;
                     let z = this.pos.z;
-                    
+
                     if(x > aabb.x_max) {
                         _next_pos.x = aabb.x_max;
                         this.velocity.x *= this.restitution;

@@ -37,8 +37,12 @@ export class ServerChat {
         }
     }
 
+    broadcastSystemChatMessage(text, as_table = false) {
+        this.sendSystemChatMessageToSelectedPlayers(text, null, as_table)
+    }
+
     // sendSystemChatMessageToSelectedPlayers...
-    sendSystemChatMessageToSelectedPlayers(text, selected_players, as_table = false) {
+    sendSystemChatMessageToSelectedPlayers(text, selected_players = null, as_table = false) {
         // send as table
         if(as_table) {
             let max_length = 0;
@@ -67,11 +71,24 @@ export class ServerChat {
                 }
             }
         ];
-        this.world.sendSelected(packets, selected_players, []);
+        if (selected_players) {
+            this.world.sendSelected(packets, selected_players, []);
+        } else {
+            this.world.sendAll(packets, []);
+        }
     }
 
     // runCmd
     async runCmd(player, original_text) {
+
+        const that = this
+        function checkIsAdmin() {
+            if(!that.world.admins.checkIsAdmin(player)) {
+                throw 'error_not_permitted';
+            }
+        }
+
+        const user_id = player.session.user_id
         let text = original_text.replace(/  +/g, ' ').trim();
         let args = text.split(' ');
         let cmd = args[0].toLowerCase();
@@ -146,7 +163,7 @@ export class ServerChat {
                     this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, [player.session.user_id]);
                 }
                 break;
-            case '/help':
+            case '/help': {
                 let commands = [
                     '/weather (' + Weather.NAMES.join(' | ') + ')',
                     '/gamemode [world] (survival | creative | adventure | spectator | get)',
@@ -155,9 +172,21 @@ export class ServerChat {
                     '/spawnpoint',
                     '/seed',
                     '/give <item> [<count>]',
+                    '/helpadmin'
                 ];
                 this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [player.session.user_id]);
                 break;
+            }
+            case '/helpadmin': {
+                checkIsAdmin()
+                const commands = [
+                    '/admin (list | add <username> | remove <username>)',
+                    'Server stats: /tps /tps2 /sysstat /astat',
+                    '/shutdown [gentle | force]'
+                ]
+                this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [user_id])
+                break
+            }
             case '/gamemode':
                 if(!this.world.admins.checkIsAdmin(player)) {
                     throw 'error_not_permitted';
@@ -192,6 +221,22 @@ export class ServerChat {
                     }
                 }
                 break;
+            case '/shutdown': {
+                checkIsAdmin()
+                let gentle = false
+                if (args[1] === 'gentle') {
+                    gentle = true
+                } else if (args[1] !== 'force') {
+                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)\n"gentle" delays starting of shutdown until the actions queue is empty', [user_id])
+                    break
+                }
+                const msg = 'shutdown_initiated_by|' + player.session.username
+                const res = this.world.game.shutdown(msg, gentle)
+                if (!res) {
+                    this.sendSystemChatMessageToSelectedPlayers('!langThe game is already in the process of shutting down.', [user_id])
+                }
+                break
+            }
             case '/tp': 
             case '/stp': {
                 const safe = (args[0] == '/stp');
@@ -234,32 +279,37 @@ export class ServerChat {
                 break;
             }
             case '/tps2': {
-                const table = {};
-                for(let [k, v] of Object.entries(this.world.ticks_stat.values)) {
-                    let temp = [];
-                    for(let [vk, vv] of Object.entries(v)) {
-                        temp.push(vk + ': ' + Math.round(vv * 1000) / 1000);
-                    }
-                    table[k] = temp.join('; ');
-                }
+                const table = this.world.ticks_stat.toTable();
+                this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
+                break;
+            }
+            case '/astat': { // async stats. They show what's happeing with DB queries and other async stuff
+                const dbActor = this.world.dbActor
+                const table = dbActor.asyncStats.toTable()
+                table['World transaction now'] = dbActor.savingWorldNow
+                    ? `running for ${(performance.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
+                    : 'not running';
                 this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;
             }
             case '/sysstat': {
+                const world = this.world
                 const stat = {
-                    mobs_count:     this.world.mobs.count(),
-                    drop_items:     this.world.all_drop_items.size,
-                    players:        this.world.players.count,
-                    chunks:         this.world.chunkManager.all.size,
-                    net_in:         this.world.network_stat.in.toLocaleString() + ` bytes (packets: ${this.world.network_stat.in_count})`,
-                    net_out:        this.world.network_stat.out.toLocaleString() + ` bytes (packets: ${this.world.network_stat.out_count})`,
-                    working_time:   Math.round((performance.now() - this.world.start_time) / 1000) + ' sec',
+                    mobs_count:     world.mobs.count(),
+                    drop_items:     world.all_drop_items.size,
+                    players:        world.players.count,
+                    chunks:         world.chunkManager.all.size,
+                    actions_queue:  world.actions_queue.length,
+                    dirty_actors:   world.dbActor.dirtyActors.size,
+                    net_in:         world.network_stat.in.toLocaleString() + ` bytes (packets: ${world.network_stat.in_count})`,
+                    net_out:        world.network_stat.out.toLocaleString() + ` bytes (packets: ${world.network_stat.out_count})`,
+                    working_time:   Math.round((performance.now() - world.start_time) / 1000) + ' sec',
                     ticking_blocks: {total:0}
                 };
                 // ticking_blocks
                 const pos = new Vector();
-                for(let addr of this.world.chunks.ticking_chunks) {
-                    const chunk = this.world.chunks.get(addr);
+                for(let addr of world.chunks.ticking_chunks) {
+                    const chunk = world.chunks.get(addr);
                     for(let flatIndex of chunk.ticking_blocks.blocks.values()) {
                         pos.fromFlatChunkIndex(flatIndex).addSelf(chunk.coord);
                         const ticking_block = chunk.getMaterial(pos);

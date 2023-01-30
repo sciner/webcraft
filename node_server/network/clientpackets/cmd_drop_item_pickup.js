@@ -64,7 +64,7 @@ export default class packet_reader {
                 continue;
             }
 
-            world.chunks.itemWorld.delete(drop_item, chunk);
+            world.chunks.itemWorld.delete(drop_item, true);
             
             // @todo players must receive this packet after 200ms after player send request
             // because animation not ended
@@ -108,7 +108,7 @@ export default class packet_reader {
         // need to restore item in player game
         const packets = [{
             name: ServerClient.CMD_DROP_ITEM_ADDED,
-            data: [drop_item]
+            data: [drop_item.getItemFullPacket()]
         }];
         player.sendPackets(packets);
         return true;

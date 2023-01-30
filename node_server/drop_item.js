@@ -1,9 +1,9 @@
-import { getChunkAddr, Vector } from "../www/js/helpers.js";
+import { getChunkAddr, Vector, unixTime, ObjectHelpers } from "../www/js/helpers.js";
 import { PrismarinePlayerControl } from "../www/vendors/prismarine-physics/using.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
 
-export const MOTION_MOVED = 0;
+export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
 export const MOTION_STAYED = 2;
 
@@ -11,16 +11,28 @@ export class DropItem {
 
     #world;
     #chunk_addr;
-    #prev_chunk_addr;
     #pc;
 
-    constructor(world, params, velocity) {
+    static DIRTY_CLEAR      = 0;
+    static DIRTY_NEW        = 1;
+    static DIRTY_UPDATE     = 2;
+    static DIRTY_DELETE     = 3;
+
+    constructor(world, params, velocity, isNew) {
         this.#world         = world;
         this.entity_id      = params.entity_id,
         this.dt             = params.dt,
         this.items          = params.items;
         this.pos            = new Vector(params.pos);
         this.posO           = new Vector(Infinity, Infinity, Infinity);
+        this.rowId          = params.rowId;
+        // Don't set this.dirty directly, call markDirty() instead.
+        this.dirty          = isNew ? DropItem.DIRTY_NEW : DropItem.DIRTY_CLEAR;
+        /** 
+         * The chunk in which this item is currently listed.
+         * It may be different from {@link chunk_addr} and {@link getChunk}
+         */
+        this.inChunk        = null;
         // Private properties
         this.#chunk_addr    = new Vector();
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
@@ -34,12 +46,46 @@ export class DropItem {
             playerHalfWidth: .25
         });
         this.motion = MOTION_MOVED;
-        this.#prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
         //
         this.load_time = performance.now();
         //
         if(velocity) {
             this.addVelocity(velocity);
+        }
+    }
+
+    /** @return {Object} data to send in CMD_DROP_ITEM_ADDED and CMD_DROP_ITEM_FULL_UPDATE */
+    getItemFullPacket() {
+        return {
+            entity_id:  this.entity_id,
+            items:      this.items,
+            pos:        this.pos,
+            dt:         this.dt
+        };
+    }
+
+    /**
+     * Changes dirty status according to dirtyChange (one of DropItem.DIRTY_***).
+     * It doesn't validate all posible cases, only processes expected valid changes.
+     */
+    markDirty(dirtyChange) {
+        switch(dirtyChange) {
+            case DropItem.DIRTY_CLEAR:
+            case DropItem.DIRTY_NEW:
+                this.dirty = dirtyChange;
+                break;
+            case DropItem.DIRTY_UPDATE:
+                // It can't override DropItem.DIRTY_NEW
+                if (this.dirty === DropItem.DIRTY_CLEAR) {
+                    this.dirty = dirtyChange;
+                }
+                break;
+            case DropItem.DIRTY_DELETE:
+                this.dirty = (this.dirty === DropItem.DIRTY_NEW)
+                    ? DropItem.DIRTY_CLEAR // remove it without ever saving to DB
+                    : dirtyChange
+                break;
+            default: throw Error('dirtyChange == ' + dirtyChange);
         }
     }
 
@@ -54,12 +100,12 @@ export class DropItem {
         }, this.pos, options);
     }
 
+    /**
+     * The address of the chunk in which the item should be acording to {@link pos}.
+     * It may be different from {@link inChunk}.
+     */
     get chunk_addr() {
         return getChunkAddr(this.pos, this.#chunk_addr);
-    }
-
-    setPrevChunkAddr(prevChunkAdr) {
-        this.#prev_chunk_addr.set(prevChunkAdr);
     }
 
     addVelocity(vec) {
@@ -71,53 +117,68 @@ export class DropItem {
         return this.#world;
     }
 
+    /**
+     * Returns the chunk in which this item should be according to its {@link pos}.
+     * Note: it may be different from {@link inChunk}.
+     */
     getChunk() {
         return this.#world.chunks.get(this.chunk_addr);
     }
 
-    // Create new drop item
+    // Create new drop item. It's dirty and not in the DB yet.
     static async create(world, pos, items, velocity) {
         const params = {
-            pos: new Vector(pos),
-            items: JSON.parse(JSON.stringify(items))
+            pos,
+            items:      ObjectHelpers.deepClone(items),
+            entity_id:  randomUUID(),
+            dt:         unixTime()
+        };
+        return new DropItem(world, params, velocity, true);
+    }
+
+    _migrateChunk() {
+        const chunk_addr = this.chunk_addr;
+        // Delete from the previous chunk
+        if(this.inChunk && !chunk_addr.equal(this.inChunk.addr)) {
+            this.inChunk.drop_items.delete(this.entity_id);
+            this.inChunk = null;
         }
-        let result = await world.db.createDropItem(params);
-        params.entity_id = result.entity_id;
-        params.dt = result.dt;
-        return new DropItem(world, params, velocity);
+
+        if (!this.inChunk) {
+            // Add to new chunk
+            const new_chunk = this.getWorld().chunks.get(chunk_addr);
+            if(new_chunk) {
+                new_chunk.drop_items.set(this.entity_id, this);
+                this.inChunk = new_chunk;
+            }
+        }
     }
 
     // Tick
     tick(delta) {
-        const pc = this.#pc;
-        pc.tick(delta);
-        this.pos.copyFrom(pc.player.entity.position);
-        if(!this.pos.equal(this.posO)) {
+        // If the item is not in a ready chunk, it's safer to not move than to move
+        // (posibly falling into infinity, or clipping into walls when the chunk loads).
+        if (this.inChunk?.isReady()) {
+            const pc = this.#pc;
+            pc.tick(delta);
+            this.pos.copyFrom(pc.player.entity.position);
+        }
+        if(!this.pos.equal(this.posO)) { // it moved
             this.motion = MOTION_MOVED;
             this.posO.set(this.pos.x, this.pos.y, this.pos.z);
-            // Migrate drop item from previous chunk to new chunk
-            if(!this.chunk_addr.equal(this.#prev_chunk_addr)) {
-                const world = this.getWorld();
-                // Delete from previous chunk
-                const prev_chunk = world.chunks.get(this.#prev_chunk_addr);
-                if(prev_chunk) {
-                    prev_chunk.drop_items.delete(this.entity_id);
-                }
-                // Add drop item to new chunk
-                const new_chunk = world.chunks.get(this.chunk_addr);
-                if(new_chunk) {
-                    new_chunk.drop_items.set(this.entity_id, this);
-                    this.#prev_chunk_addr.copyFrom(this.chunk_addr);
-                }
-            }
+            this._migrateChunk();
             this.sendState();
-        } else if (delta !== 0) { // If it doesn't move
+            return;
+        }
+        if (!this.inChunk) {
+            this._migrateChunk();
+        }
+        // inChunk is already updated. If it's absent or not ready, then don't process the item's stop.
+        const chunk = this.inChunk;
+        if (delta !== 0 && chunk?.isReady()) { // If it doesn't move
             if(this.motion === MOTION_MOVED) {
                 this.motion = MOTION_JUST_STOPPED;
-                const chunk = this.getChunk();
-                if(chunk && chunk.isReady()) {
-                    this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
-                }
+                this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
             } else {
                 this.motion = MOTION_STAYED;
             }
@@ -141,13 +202,34 @@ export class DropItem {
         world.sendSelected(packets, Array.from(chunk_over.connections.keys()), []);
     }
 
-    async onUnload() {
-        const world = this.getWorld();
-        world.all_drop_items.delete(this.entity_id);
-        await world.db.updateDropItem(this);
+    /** @retrun true if there is anything to save in a world transaction */
+    onUnload() {
+        this.getWorld().all_drop_items.delete(this.entity_id);
+        return this.dirty != DropItem.DIRTY_CLEAR;
     }
 
-    async restoreUnloaded() {
+    restoreUnloaded() {
         this.getWorld().all_drop_items.set(this.entity_id, this);
     }
+
+    writeToWorldTransaction(underConstruction) {
+        if (this.dirty !== DropItem.DIRTY_CLEAR) {
+            if (this.dirty === DropItem.DIRTY_DELETE) {
+                throw new Error('this.dirty === DropItem.DIRTY_DELETE');
+            }
+            const pos = this.pos;
+            const row = [
+                this.entity_id,
+                this.dt,
+                JSON.stringify(this.items),
+                pos.x, pos.y, pos.z
+            ];
+            const list = this.dirty === DropItem.DIRTY_NEW
+                ? underConstruction.insertDropItemRows
+                : underConstruction.updateDropItemRows;
+            list.push(row);
+            this.dirty = DropItem.DIRTY_CLEAR;
+        }
+    }
+
 }

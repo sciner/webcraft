@@ -1,4 +1,4 @@
-import { BLOCK } from "../../../www/js/blocks.js";
+import { BLOCK, DBItemBlock } from "../../../www/js/blocks.js";
 import { Schematic } from "prismarine-schematic";
 import { promises as fs } from 'fs';
 import { SIX_VECS, Vector, VectorCollector } from "../../../www/js/helpers.js";
@@ -72,7 +72,7 @@ export class SchematicReader {
 
         const not_found_blocks = new Map();
         const bpos = new Vector(0, 0, 0);
-        const AIR_BLOCK = {id: 0};
+        const AIR_BLOCK = new DBItemBlock(0)
         const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
         const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
         const STILL_WATER_BLOCK = {id: BLOCK.fromName('STILL_WATER').id};
@@ -128,20 +128,14 @@ export class SchematicReader {
                     const in_pot_block_name = name.substring(7);
                     const in_pot_block = BLOCK.fromName(in_pot_block_name);
                     if(in_pot_block && in_pot_block.id > 0) {
-                        new_block = {
-                            id: FLOWER_POT_BLOCK_ID,
-                            extra_data: {item: {id: in_pot_block.id}}
-                        };
+                        new_block = new DBItemBlock(FLOWER_POT_BLOCK_ID, {item: new DBItemBlock(in_pot_block.id)})
                     }
                 } else if(name.indexOf('INFESTED_') === 0) {
                     // e.g. INFESTED_STONE_BRICKS
                     const name2 = name.substring(9);
                     const b2 = BLOCK.fromName(name2);
                     if(b2 && b2.id > 0) {
-                        new_block = {
-                            id: b2.id,
-                            extra_data: {infested: true}
-                        };
+                        new_block = new DBItemBlock(b2.id, {infested: true})
                     }
                 }
             }
@@ -149,10 +143,8 @@ export class SchematicReader {
             if(!new_block) {
                 not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
                 // replace with TEST block and store original to his extra_data
-                new_block = {...TEST_BLOCK};
-                new_block.extra_data = {
-                    n: name
-                }
+                new_block = DBItemBlock.cloneFrom(TEST_BLOCK)
+                new_block.extra_data = {n: name}
                 if(block._properties) {
                     // fast check if object not empty
                     for(let _ in block._properties) {
@@ -228,9 +220,7 @@ export class SchematicReader {
     //
     createBlockFromSchematic(block, b) {
         const props = block._properties;
-        let new_block = {
-            id: b.id
-        };
+        let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {
             return new_block;
         }
@@ -466,7 +456,7 @@ export class SchematicReader {
                     setExtraData('point', {x: 0, y: 0.1, z: 0});
                 } else if(props.type == 'double') {
                     const double_block = b.layering.full_block_name ? BLOCK.fromName(b.layering.full_block_name) : b;
-                    new_block = {id: double_block.id};
+                    new_block = new DBItemBlock(double_block.id)
                     if(double_block.layering) {
                         setExtraData('height', 1);
                         setExtraData('point', new Vector(0, 0, 0));

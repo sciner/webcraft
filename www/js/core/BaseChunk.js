@@ -35,7 +35,7 @@ export class BaseChunk {
         this.safeAABB = new AABB();
         this.shiftCoord = 0;
 
-        // See also CHUNK_PADING and similar constants in "../typed_blocks3.js"
+        // See also CHUNK_PADDING and similar constants in "../typed_blocks3.js"
         this.cx = 1;
         this.cy = outerSize.x * outerSize.z;
         this.cz = outerSize.x;

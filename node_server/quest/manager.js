@@ -7,23 +7,21 @@ export class QuestManager {
     }
 
     async init() {
-        this.default_quests = await this.#world.db.quests.defaults();
+        this.groupsWithDefaultQuestsById = await this.#world.db.quests.getGroupsWithDefaultQuests();
+        this.groupsWithDefaultQuestsList = Array.from(this.groupsWithDefaultQuestsById.values());
     }
 
-    getDefaultQuests() {
-        return this.default_quests;
+    getGroupsWithDefaultQuests() {
+        return this.groupsWithDefaultQuestsList;
     }
 
-    async savePlayerQuest(player, quest) {
-        return await this.#world.db.quests.savePlayerQuest(player, quest);
+    getGroup(groupId) {
+        return this.groupsWithDefaultQuestsById.get(groupId);
     }
 
+    /** @return {Array} of player quests */
     async loadPlayerQuests(player) {
         return await this.#world.db.quests.loadPlayerQuests(player);
-    }
-
-    async questsUserStarted(player) {
-        return await this.#world.db.quests.userStarted(player);
     }
 
     async loadQuest(quest_id) {
