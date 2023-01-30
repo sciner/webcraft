@@ -157,7 +157,9 @@ export default class style {
         if(flower_block_id) {
             const fb = new FakeTBlock(
                 flower_block_id,
-                null,
+                {
+                    'into_pot': true
+                },
                 new Vector(x, y + 3/16, z),
                 new Vector(0, 1, 0),
                 pivot,

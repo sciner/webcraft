@@ -1814,6 +1814,11 @@
             "bb": {
                 "model": "cactus",
                 "set_state": [
+                    {"name": "side_top", 
+                        "when": {
+                            "extra_data.into_pot": true
+                        }
+                    },
                     {"name": "bottom"}
                 ]
             }

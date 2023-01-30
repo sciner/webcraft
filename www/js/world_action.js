@@ -1372,9 +1372,11 @@ async function getEggs(e, world, pos, player, world_block, world_material, mat_b
 // Put into pot
 async function putIntoPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const item_frame = world_material && world_material.tags.includes('item_frame');
+    console.log('asdsa')
     extra_data = extra_data ? extra_data : {};
     // rotate item in frame
     if(item_frame && extra_data?.item) {
+        console.log('&& extra')
         if(!('rot' in extra_data)) {
             extra_data.rot = 0;
         }
@@ -1389,8 +1391,11 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
                         (
                             item_frame ||
                             mat_block.planting ||
+                            mat_block.style == 'cactus' ||
                             mat_block.tags.includes('can_put_into_pot')
                         );
+    console.log(mat_block)
+    console.log('putIntoPot' + putIntoPot)
     if(!putIntoPot) {
         return false;
     }
@@ -1405,6 +1410,7 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
         }
     }
     extra_data.rot = 0;
+    console.log(extra_data)
     actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     actions.decrement_extended = {
         mode: 'count',
