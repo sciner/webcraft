@@ -80,6 +80,7 @@ let gameCtrl = async function($scope, $timeout) {
     await Lang.init();
     $scope.Lang = Lang;
     $scope.current_lang = null;
+    $scope.loading_completed = false;
     for(let item of Lang.list) {
         if(item.active) {
             $scope.current_lang = item;
@@ -561,6 +562,7 @@ let gameCtrl = async function($scope, $timeout) {
     // loadingComplete
     $scope.loadingComplete = function() {
         document.getElementById('loading').classList.add('loading-complete');
+        $scope.loading_completed = true;
     }
 
     // My games

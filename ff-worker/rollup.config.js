@@ -2,6 +2,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import { importAssertionsPlugin } from 'rollup-plugin-import-assert';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
+import terser from "@rollup/plugin-terser"
 
 export default [{
     input: './chunk_worker_bundle.js',
@@ -17,7 +18,15 @@ export default [{
             warnOnError: false
         }),
         nodeResolve(),
-        commonjs()
+        commonjs(),
+        terser({
+            // remove all comments
+            format: {
+                comments: false
+            },
+            // prevent any compression
+            compress: false
+        })
     ]
    
 }
@@ -30,7 +39,17 @@ export default [{
         file: '../www/js-gen/light_worker_bundle.js',
         format: 'cjs',
     },
-    plugins: [commonjs()]
+    plugins: [
+        commonjs(),
+        terser({
+            // remove all comments
+            format: {
+                comments: false
+            },
+            // prevent any compression
+            compress: false
+        })
+    ]
 }
 ,
 {
@@ -47,7 +66,15 @@ export default [{
             warnOnError: false
         }),
         nodeResolve(),
-        commonjs()
+        commonjs(),
+        terser({
+            // remove all comments
+            format: {
+                comments: false
+            },
+            // prevent any compression
+            compress: false
+        })
     ]
 }
 ]

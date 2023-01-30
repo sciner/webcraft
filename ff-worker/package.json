@@ -4,6 +4,7 @@
     "start": "rollup --config rollup.config.js"
   },
   "dependencies": {
+    "@rollup/plugin-terser": "^0.4.0",
     "rollup": "^2.75.5",
     "rollup-plugin-import-assert": "^2.1.0"
   },

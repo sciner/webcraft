@@ -64,7 +64,7 @@
         window.addEventListener('resize', windowResized, true);
     </script>
 </head>
-<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: Qubatch && login.logged}" onload="windowResized()">
+<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: loading_completed && login.logged}" onload="windowResized()">
 
     <div id="bg-circles_area">
         <ul class="circles">
@@ -161,12 +161,12 @@
     </div>
 
     <!-- Start page -->
-    <div class="start-page" ng-if="Qubatch && !login.logged">
+    <div class="start-page" ng-if="loading_completed && !login.logged">
         <input id="sign-modal-toggle" type="checkbox" class="hidden">
         <div class="bg" ng-init="initSelects()">
             <div class="container">
                 <div class="block">
-                    <img class="logo" src="style/img/logo.webp" alt="">
+                    <img class="logo" ng-src="style/img/logo.webp" alt="">
                     <div class="step-1">
                         <label for="sign-modal-toggle" class="btn primary" style="width: 210px; margin-bottom: 60px;">{{Lang.start_game}}</label>
                     </div>
@@ -202,10 +202,10 @@
                     </div>
                     <div class="social">
                         <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
-                            <img src="style/img/discord.svg" alt="">
+                            <img ng-src="style/img/discord.svg" alt="">
                         </a>
                         <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
-                            <img src="style/img/youtube.svg" alt="">
+                            <img ng-src="style/img/youtube.svg" alt="">
                         </a>
                     </div>
                 </div>
@@ -220,7 +220,7 @@
 		<header class="animate__animated animate__fadeIn">
 			<nav class="tabs">
 				<div class="logo cpointer" ng-click="current_window.show('main')">
-					<img src="style/img/logo.webp" alt="">
+					<img ng-src="style/img/logo.webp" alt="">
 				</div>
 				<div class="tabs-block">
 					<!-- <button class="tab">{{Lang.servers}}</button>
@@ -293,10 +293,10 @@
             <!-- Social -->
 			<div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/discord.svg" alt="">
+                    <img ng-src="style/img/discord.svg" alt="">
                 </a>
                 <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/youtube.svg" alt="">
+                    <img ng-src="style/img/youtube.svg" alt="">
                 </a>
             </div>
 
@@ -508,10 +508,10 @@
             </div> -->
             <div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/discord.svg" alt="">
+                    <img ng-src="style/img/discord.svg" alt="">
                 </a>
                 <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/youtube.svg" alt="">
+                    <img ng-src="style/img/youtube.svg" alt="">
                 </a>
             </div>
         </div>
@@ -550,10 +550,10 @@
             </div>
             <div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/discord.svg" alt="">
+                    <img ng-src="style/img/discord.svg" alt="">
                 </a>
                 <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/youtube.svg" alt="">
+                    <img ng-src="style/img/youtube.svg" alt="">
                 </a>
             </div>
         </div>
