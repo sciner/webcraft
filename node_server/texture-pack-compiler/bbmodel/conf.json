@@ -55,7 +55,8 @@
         {"name": "fence_gate",          "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "bed",                 "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "chair",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "stool",               "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "stool",               "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "cactus",              "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -115,6 +116,30 @@
         {
             "id": 537,
             "name": "JUNGLE_FENCE",
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
+            }
+        },
+        {
+            "id": 1498,
+            "name": "CRIMSON_FENCE",
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
+            }
+        },
+        {
+            "id": 1317,
+            "name": "WARPED_FENCE",
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
+            }
+        },
+        {
+            "id": 113,
+            "name": "NETHER_BRICK_FENCE",
             "bb": {
                 "model": "fence",
                 "behavior": "fence"
@@ -1014,7 +1039,7 @@
                     {"name": "open", "when": {"extra_data.opened": true}}
                 ],
                 "select_texture": [
-                    {"name": "BIRCH_FENCE_GATE.png"}
+                    {"name": "%block_name%"}
                 ]
             }
         },
@@ -1034,7 +1059,7 @@
                     {"name": "open", "when": {"extra_data.opened": true}}
                 ],
                 "select_texture": [
-                    {"name": "OAK_FENCE_GATE.png"}
+                    {"name": "%block_name%"}
                 ]
             }
         },
@@ -1054,7 +1079,7 @@
                     {"name": "open", "when": {"extra_data.opened": true}}
                 ],
                 "select_texture": [
-                    {"name": "ACACIA_FENCE_GATE.png"}
+                    {"name": "%block_name%"}
                 ]
             }
         },
@@ -1074,7 +1099,7 @@
                     {"name": "open", "when": {"extra_data.opened": true}}
                 ],
                 "select_texture": [
-                    {"name": "SPRUCE_FENCE_GATE.png"}
+                    {"name": "%block_name%"}
                 ]
             }
         },
@@ -1094,7 +1119,7 @@
                     {"name": "open", "when": {"extra_data.opened": true}}
                 ],
                 "select_texture": [
-                    {"name": "DARK_OAK_FENCE_GATE.png"}
+                    {"name": "%block_name%"}
                 ]
             }
         },
@@ -1114,7 +1139,67 @@
                     {"name": "open", "when": {"extra_data.opened": true}}
                 ],
                 "select_texture": [
-                    {"name": "JUNGLE_FENCE_GATE.png"}
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 917,
+            "name": "CRIMSON_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 918,
+            "name": "WARPED_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 919,
+            "name": "NETHER_BRICK_FENCE_GATE",
+            "bb": {
+                "model": "fence_gate",
+                "rotate": [
+                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
+                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
+                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                ],
+                "set_state": [
+                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
+                    {"name": "open", "when": {"extra_data.opened": true}}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
                 ]
             }
         },
@@ -1681,6 +1766,55 @@
                 "select_texture": [
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 326,
+            "name": "CRIMSON_STOOL",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "stool",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "select_texture": [
+                    {"name": "%block_name%", "group": "frame"},
+                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 327,
+            "name": "WARPED_STOOL",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "stool",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "select_texture": [
+                    {"name": "%block_name%", "group": "frame"},
+                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 81,
+            "name": "CACTUS",
+            "group": "doubleface",
+            "bb": {
+                "model": "cactus",
+                "set_state": [
+                    {"name": "bottom"}
                 ]
             }
         }

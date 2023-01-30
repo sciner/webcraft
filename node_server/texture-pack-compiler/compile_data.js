@@ -15,9 +15,9 @@ const START_CANDLE              = 1532; // ... 1547
 const START_WOOD_ID             = 221;
 const START_PETRIFIED_SLAB_ID   = 203; //
 const START_BANNER_ID           = 778;
-const START_FENCE_GATE_ID       = 911;
 const START_NUMBER_ID           = 209;
-const START_SLOPE_ID            = 919;
+const START_FENCE_GATE_ID       = 911;
+const START_SLOPE_ID            = 920;
 const START_CHAIR_ID            = 300;
 const START_STOOL_ID            = 320;
 
@@ -682,6 +682,7 @@ export class CompileData {
             {name: 'JUNGLE', 'texture': `block/jungle_planks.png`},
             {name: 'CRIMSON', 'texture': `block/crimson_planks.png`},
             {name: 'WARPED', 'texture': `block/warped_planks.png`},
+            {name: 'NETHER_BRICK', 'texture': `block/nether_bricks.png`},
         ];
         for(let p of FENCE_GATE_PALETTE) {
             const b = {

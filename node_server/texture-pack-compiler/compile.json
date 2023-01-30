@@ -7496,6 +7496,17 @@
             "texture": "block/crimson_planks.png"
         },
         {
+            "id": 1317,
+            "name": "WARPED_FENCE",
+            "transparent": true,
+            "style": "fence",
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/warped_planks.png"
+        },
+        {
             "id": 1499,
             "name": "CRIMSON_TRAPDOOR",
             "transparent": true,

@@ -347,6 +347,14 @@ export default class style {
                 model.hideAllExcept([model.state])
                 break
             }
+            case 'cactus': {
+                if(!(tblock instanceof FakeTBlock)) {
+                    if(neighbours.UP && neighbours.UP.id != tblock.id) {
+                        model.hideAllExcept(['top'])
+                    }
+                }
+                break
+            }
             case 'age': {
                 const age = Math.min((tblock?.extra_data?.stage ?? 0), mat.ticking.max_stage) + 1
                 model.state = `age${age}`
