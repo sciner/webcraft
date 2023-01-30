@@ -54,7 +54,8 @@
         {"name": "lectern",             "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "fence_gate",          "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "bed",                 "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "chair",               "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "chair",               "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "stool",               "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -1565,6 +1566,120 @@
                 ],
                 "select_texture": [
                     {"name": "%block_name%", "group": "chair"},
+                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 320,
+            "name": "BIRCH_STOOL",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "stool",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "select_texture": [
+                    {"name": "%block_name%", "group": "frame"},
+                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 321,
+            "name": "OAK_STOOL",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "stool",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "select_texture": [
+                    {"name": "%block_name%", "group": "frame"},
+                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 322,
+            "name": "ACACIA_STOOL",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "stool",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "select_texture": [
+                    {"name": "%block_name%", "group": "frame"},
+                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 323,
+            "name": "SPRUCE_STOOL",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "stool",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "select_texture": [
+                    {"name": "%block_name%", "group": "frame"},
+                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 324,
+            "name": "DARK_OAK_STOOL",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "stool",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "select_texture": [
+                    {"name": "%block_name%", "group": "frame"},
+                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 325,
+            "name": "JUNGLE_STOOL",
+            "inventory": {
+                "scale": 0.9,
+                "rotate": {"x": 0, "y": 0, "z": 3.14159},
+                "move": {"x": 0, "y": 0, "z": -0.35}
+            },
+            "bb": {
+                "model": "stool",
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "select_texture": [
+                    {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
             }
