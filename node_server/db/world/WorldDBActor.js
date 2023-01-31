@@ -76,7 +76,7 @@ export class WorldDBActor {
         try {
             await prevTransactionPromise;
         } finally {
-            this.db.TransactionBegin();
+            await this.db.TransactionBegin();
             return transaction;
         }
     }
@@ -126,7 +126,7 @@ export class WorldDBActor {
         const speedup = shutdown || world.shuttingDown;
         
         // await for the previous ongoing transaction, then start a new one
-        const transaction = await this.beginTransaction(true);
+        const transaction = await this.beginTransaction();
 
         let resolveSavingWorldNow;
         this.savingWorldNow = new Promise(resolve => {
@@ -201,13 +201,13 @@ export class WorldDBActor {
             }
 
             // Write some of the chunks modifiers, and remeber the rest in the recovery blob
+            const unloadingCount = uc.worldModifyChunksHighPriority.length + uc.worldModifyChunksMidPriority.length
             let remainingCanSave = speedup
-                ? Infinity
+                ? unloadingCount // save everything that wants to unload, and nothing else
                 : WORLD_MODIFY_CHUNKS_PER_TRANSACTION +
                 // to help in situations where the queue grows faster than we can write it,
                 // e.g. when teleporting a lot and tickers modify many of the chunks
-                (uc.worldModifyChunksHighPriority.length + uc.worldModifyChunksMidPriority.length
-                    + uc.worldModifyChunksLowPriority.length) * 0.02 | 0;
+                    0.02 * unloadingCount | 0;
             for(const list of [uc.worldModifyChunksHighPriority, uc.worldModifyChunksMidPriority, uc.worldModifyChunksLowPriority]) {
                 for(const dbActor of list) {
                     if (--remainingCanSave >= 0) {
@@ -253,10 +253,12 @@ export class WorldDBActor {
                         db.chunks.bulkInsertWorldModify(uc.insertBlocks, dt),
                         db.chunks.bulkUpdateWorldModify(uc.updateBlocks, dt),
                         db.chunks.bulkUpdateWorldModifyExtraData(uc.updateBlocksExtraData, dt)
-                    ]).then(() =>
-                        // delete the old modifiers after the new ones have been inserted    
-                        this.cleanupWorldModify()
-                    )
+                    ]).then(async () => {
+                        // delete some old modifiers after the new ones have been inserted
+                        if (!speedup) {
+                            await this.cleanupWorldModify()
+                        }
+                    })
                 );
             this.pushPromises(blocksQueriesPromise);
 
