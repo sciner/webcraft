@@ -4525,7 +4525,7 @@
                         {"name": "WHEAT_SEEDS", "count": {"min": 1, "max": 1}}
                     ],
                     "complete": [
-                        {"name": "WHEAT_SEEDS", "count": {"min": 0, "max": 3}},
+                        {"name": "WHEAT_SEEDS", "count": {"min": 1, "max": 2}},
                         {"name": "WHEAT", "count": {"min": 1, "max": 2}}
                     ]
                 }
