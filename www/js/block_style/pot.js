@@ -153,6 +153,10 @@ export default class style {
         if(tblock.extra_data && tblock.extra_data?.item?.id) {
             flower_block_id = tblock.extra_data?.item.id;
         }
+		
+		matrix = mat4.create()
+        mat4.scale(matrix, matrix, [.02, .02, .02])
+        mat4.rotateZ(matrix, matrix, Math.PI/2)
 
         if(flower_block_id) {
             const fb = new FakeTBlock(
