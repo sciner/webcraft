@@ -4937,7 +4937,9 @@
                 "texture": "item/flower_pot.png"
             },
             "mining_time": 0,
-            "extra_data": {"item_id": null},
+            "extra_data": {
+               "item": null 
+            },
             "tags": [
                 "pot",
                 "no_drop_ao"

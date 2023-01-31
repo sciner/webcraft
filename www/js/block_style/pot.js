@@ -153,11 +153,18 @@ export default class style {
         if(tblock.extra_data && tblock.extra_data?.item?.id) {
             flower_block_id = tblock.extra_data?.item.id;
         }
+		
+		matrix = mat4.create()
+        mat4.scale(matrix, matrix, [.3, .5, .3])
+        mat4.translate(matrix, matrix, [0, -2/16, 0])
+        //mat4.rotateZ(matrix, matrix, Math.PI/2)
 
         if(flower_block_id) {
             const fb = new FakeTBlock(
                 flower_block_id,
-                null,
+                {
+                    'into_pot': true
+                },
                 new Vector(x, y + 3/16, z),
                 new Vector(0, 1, 0),
                 pivot,
