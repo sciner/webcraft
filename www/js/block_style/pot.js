@@ -155,8 +155,9 @@ export default class style {
         }
 		
 		matrix = mat4.create()
-        mat4.scale(matrix, matrix, [.02, .02, .02])
-        mat4.rotateZ(matrix, matrix, Math.PI/2)
+        mat4.scale(matrix, matrix, [.3, .5, .3])
+        mat4.translate(matrix, matrix, [0, -2/16, 0])
+        //mat4.rotateZ(matrix, matrix, Math.PI/2)
 
         if(flower_block_id) {
             const fb = new FakeTBlock(
