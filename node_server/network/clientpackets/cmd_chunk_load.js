@@ -16,7 +16,7 @@ export default class packet_reader {
     // Пользователь подгрузил чанк
     static async read(player, packet) {
         const addr = new Vector(packet.data.pos);
-        if(player.nearby_chunk_addrs.has(addr)) {
+        if(player.vision.nearby_chunk_addrs.has(addr)) {
             player.world.loadChunkForPlayer(player, addr);
         }
         return true;

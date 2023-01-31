@@ -1,4 +1,4 @@
-import { Vector, VectorCollector } from "../www/js/helpers.js";
+import { Vector } from "../www/js/helpers.js";
 import { Player } from "../www/js/player.js";
 import { GameMode } from "../www/js/game_mode.js";
 import { ServerClient } from "../www/js/server_client.js";
@@ -18,6 +18,8 @@ import { Effect } from "../www/js/block_type/effect.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
 import { DBWorld } from "./db/world.js"
+import {ServerPlayerVision} from "./server_player_vision.js";
+import { compressNearby } from "../www/js/packet_compressor.js";
 
 export class NetworkMessage {
     constructor({
@@ -65,11 +67,8 @@ export class ServerPlayer extends Player {
         this.indicators_changed     = true;
         this.position_changed       = false;
         this.chunk_addr             = new Vector(0, 0, 0);
-        this.chunk_addr_o           = new Vector(0, 0, 0);
         this._eye_pos               = new Vector(0, 0, 0);
         this.#_rotateDegree         = new Vector(0, 0, 0);
-        this.chunks                 = new VectorCollector();
-        this.nearby_chunk_addrs     = new VectorCollector();
         this.#forward               = new Vector(0, 1, 0);
 
         /**
@@ -81,10 +80,6 @@ export class ServerPlayer extends Player {
         this.checkDropItemIndex     = 0;
         this.checkDropItemTempVec   = new Vector();
         this.dt_connect             = new Date();
-        this.safePosWaitingChunks   = [];
-        this.safeTeleportMargin = 2;
-        this.safeTeleportMarginY = 2;
-        this.safePosInitialOverride = null; // if its null, state.pos_spawn is used instead
         this.in_portal              = false;
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
@@ -97,6 +92,7 @@ export class ServerPlayer extends Player {
             id: 0,
             time: 0
         };
+        this.vision                 = new ServerPlayerVision(this);
         this.effects                = new ServerPlayerEffects(this);
         this.damage                 = new ServerPlayerDamage(this);
         this.mining_time_old        = 0; // время последнего разрушения блока
@@ -227,16 +223,7 @@ export class ServerPlayer extends Player {
         if(!this.conn) {
             return false;
         }
-        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
-            this.safePosWaitingChunks[i].safeTeleportMarker--;
-            this.world.chunks.invalidate(this.safePosWaitingChunks[i]);
-        }
-        // remove player from chunks
-        for(let addr of this.chunks) {
-            this.world.chunks.get(addr)?.removePlayer(this);
-        }
-        this.safePosWaitingChunks.length = 0;
-        this.chunks.clear();
+        this.vision.leave();
         // remove events handler
         PlayerEvent.removeHandler(this.session.user_id);
         // close previous connection
@@ -294,7 +281,7 @@ export class ServerPlayer extends Player {
         value = Math.max(value, 2);
         value = Math.min(value, 16);
         this.state.chunk_render_dist = value;
-        this.world.chunks.checkPlayerVisibleChunks(this, true);
+        this.checkVisibleChunks(true);
         this.world.db.changeRenderDist(this, value);
     }
 
@@ -321,7 +308,7 @@ export class ServerPlayer extends Player {
      * @param {ServerChunk} chunk
      */
     addChunk(chunk) {
-        this.chunks.set(chunk.addr, chunk.addr);
+        this.vision.chunks.set(chunk.addr, chunk.addr);
     }
 
     get rotateDegree() {
@@ -377,7 +364,7 @@ export class ServerPlayer extends Player {
     async tick(delta, tick_number) {
         // 1.
         if (this.status !== PLAYER_STATUS_WAITING_DATA) {
-            this.world.chunks.checkPlayerVisibleChunks(this, false);
+            this.checkVisibleChunks(false);
         }
         // 2.
         this.sendNearPlayers();
@@ -388,7 +375,7 @@ export class ServerPlayer extends Player {
         // 5.
         await this.checkWaitPortal();
         if (this.status === PLAYER_STATUS_WAITING_DATA) {
-            // will checkPlayerVisibleChunks inside if its ready
+            // will checkVisibleChunks inside if its ready
             this.checkWaitingData();
         }
         // 6.
@@ -483,46 +470,49 @@ export class ServerPlayer extends Player {
         if (this.status !== PLAYER_STATUS_WAITING_DATA) {
             return;
         }
-        this.safePosWaitingChunks = this.world.chunks.queryPlayerVisibleChunks(this);
-        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
-            this.safePosWaitingChunks[i].safeTeleportMarker++;
-        }
+        this.vision.initSpawn();
     }
 
     checkWaitingData() {
         // check if there are any chunks not generated; remove generated chunks from the list
-        var i = 0;
-        while (i < this.safePosWaitingChunks.length) {
-            if (this.safePosWaitingChunks[i].isReady()) {
-                this.safePosWaitingChunks[i].safeTeleportMarker--;
-                this.safePosWaitingChunks[i] = this.safePosWaitingChunks[this.safePosWaitingChunks.length - 1];
-                --this.safePosWaitingChunks.length;
-            } else {
-                ++i;
-            }
+        if (this.vision.checkWaitingChunks() > 0) {
+            return;
         }
-        // if everything is ready
-        if (this.safePosWaitingChunks.length == 0) {
             // teleport
-            var initialPos = this.safePosInitialOverride || this.state.pos_spawn;
-            this.safePosInitialOverride = null;
-            this.state.pos = this.world.chunks.findSafePos(initialPos, this.safeTeleportMargin);
+        let initialPos = this.vision.safePosInitialOverride || this.state.pos_spawn;
+        this.vision.safePosInitialOverride = null;
+        this.state.pos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin);
 
-            // change status
-            this.status = PLAYER_STATUS_ALIVE;
-            // send changes
+        // change status
+        this.status = PLAYER_STATUS_ALIVE;
+        // send changes
+        const packets = [{
+            name: ServerClient.CMD_TELEPORT,
+            data: {
+                pos: this.state.pos,
+                place_id: 'spawn'
+            }
+        }, {
+            name: ServerClient.CMD_SET_STATUS_ALIVE,
+            data: {}
+        }];
+        this.world.packets_queue.add([this.session.user_id], packets);
+        this.checkVisibleChunks(true);
+    }
+
+    // Check player visible chunks
+    checkVisibleChunks(force) {
+        const {vision, world} = this;
+        const nearby = vision.updateVisibleChunks(force);
+        // Send new chunks
+        if(nearby && nearby.added.length + nearby.deleted.length > 0) {
+            const nearby_compressed = compressNearby(nearby);
             const packets = [{
-                name: ServerClient.CMD_TELEPORT,
-                data: {
-                    pos: this.state.pos,
-                    place_id: 'spawn'
-                }
-            }, {
-                name: ServerClient.CMD_SET_STATUS_ALIVE,
-                data: {}
+                // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
+                name: ServerClient.CMD_NEARBY_CHUNKS,
+                data: nearby_compressed
             }];
-            this.world.packets_queue.add([this.session.user_id], packets);
-            this.world.chunks.checkPlayerVisibleChunks(this, true);
+            world.sendSelected(packets, [this.session.user_id], []);
         }
     }
 
@@ -725,11 +715,7 @@ export class ServerPlayer extends Player {
             if (params.safe) {
                 this.status = PLAYER_STATUS_WAITING_DATA;
                 this.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
-                this.safePosWaitingChunks = world.chunks.queryPlayerVisibleChunks(this, new_pos);
-                for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
-                    this.safePosWaitingChunks[i].safeTeleportMarker++;
-                }
-                this.safePosInitialOverride = new_pos;
+                this.teleportSafePos(new_pos);
             } else {
                 teleported_player.wait_portal = new WorldPortalWait(
                     teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
@@ -737,7 +723,7 @@ export class ServerPlayer extends Player {
                     params
                 );
                 teleported_player.state.pos = new_pos;
-                world.chunks.checkPlayerVisibleChunks(teleported_player, true);
+                teleported_player.checkVisibleChunks(true);
             }
         }
     }

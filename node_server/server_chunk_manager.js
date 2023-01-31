@@ -330,7 +330,7 @@ export class ServerChunkManager {
     getChunk(addr) {
         return this.get(addr);
     }
-    
+
     getOrRestore(addr) {
         let chunk = this.get(addr);
         if (chunk) {
@@ -376,87 +376,6 @@ export class ServerChunkManager {
         this.chunk_queue_load.delete(addr);
         this.chunk_queue_gen_mobs.delete(addr);
         this.all.delete(addr);
-    }
-
-    // forces chunks visible to the player to load, and return their list
-    queryPlayerVisibleChunks(player, posOptioanl, chunk_render_dist = 0) {
-        var list = [];
-        const pos = posOptioanl || player.state.pos;
-        const chunk_addr = getChunkAddr(pos);
-        chunk_render_dist = chunk_render_dist || player.safeTeleportMargin;
-        const margin            = Math.max(chunk_render_dist + 1, 1);
-        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, player.safeTeleportMarginY, margin));
-        // Find new chunks
-        for(let i = 0; i < spiral_moves_3d.length; i++) {
-            const addr = chunk_addr.add(spiral_moves_3d[i].pos);
-            list.push(this.getOrAdd(addr));
-        }
-        return list;
-    }
-
-    // Check player visible chunks
-    checkPlayerVisibleChunks(player, force) {
-
-        player.chunk_addr = getChunkAddr(player.state.pos);
-
-        if (force || !player.chunk_addr_o.equal(player.chunk_addr)) {
-
-            const added_vecs        = new VectorCollector();
-            const chunk_render_dist = player.state.chunk_render_dist;
-            const margin            = Math.max(chunk_render_dist + 1, 1);
-            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
-
-            //
-            const nearby = {
-                chunk_render_dist:  chunk_render_dist,
-                added:              [], // чанки, которые надо подгрузить
-                deleted:            [] // чанки, которые надо выгрузить
-            };
-
-            // Find new chunks
-            for(let i = 0; i < spiral_moves_3d.length; i++) {
-                const sm = spiral_moves_3d[i];
-                const addr = player.chunk_addr.add(sm.pos);
-                if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
-                    added_vecs.set(addr, true);
-                    if(!player.nearby_chunk_addrs.has(addr)) {
-                        player.nearby_chunk_addrs.set(addr, addr);
-                        let chunk = this.getOrAdd(addr);
-                        chunk.addPlayer(player);
-                        const hasModifiers = this.world.worldChunkFlags.has(addr, 
-                            WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID);
-                        const flags =
-                            (hasModifiers ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
-                            (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);
-                        nearby.added.push({addr, flags});
-                    }
-                }
-            }
-
-            // Check deleted
-            for(let addr of player.nearby_chunk_addrs) {
-                if(!added_vecs.has(addr)) {
-                    player.nearby_chunk_addrs.delete(addr);
-                    // @todo Возможно после выгрузки чанков что-то идёт не так (но это не точно)
-                    this.get(addr, false)?.removePlayer(player);
-                    nearby.deleted.push(addr);
-                }
-            }
-
-            // Send new chunks
-            if(nearby.added.length + nearby.deleted.length > 0) {
-                const nearby_compressed = compressNearby(nearby);
-                const packets = [{
-                    // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
-                    name: ServerClient.CMD_NEARBY_CHUNKS,
-                    data: nearby_compressed
-                }];
-                this.world.sendSelected(packets, [player.session.user_id], []);
-            }
-
-            player.chunk_addr_o = player.chunk_addr;
-
-        }
     }
 
     // Возвращает блок по абслютным координатам
