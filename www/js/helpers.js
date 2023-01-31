@@ -183,12 +183,12 @@ export class Mth {
 
     // generates from min to max, inclusive
     static randomIntRange(min, max) {
-        return Math.trunc(Math.random() * (max - min + 1) + min);
+        return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
     // generates from 0 (inclusive) to max (exclusive)
     static randomInt(maxExclusive) {
-        return Math.trunc(Math.random() * maxExclusive);
+        return Math.floor(Math.random() * maxExclusive);
     }
 }
 
@@ -1591,7 +1591,7 @@ export class Helpers {
     static getRandomInt(min, max) {
         min = Math.ceil(min);
         max = Math.floor(max);
-        return Math.trunc(Math.random() * (max - min + 1)) + min;
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     static createSkinLayer2(text, image, callback) {
