@@ -611,6 +611,7 @@ export class Window extends PIXI.Container {
     }
 
     resetHover() {
+        this.getRoot()._wmoverlay.resetTooltip()
         this.hover = false;
         for(let w of this.list.values()) {
             w.hover = false;
@@ -1383,6 +1384,10 @@ class WindowManagerOverlay extends Window {
         this.addChild(this._wmpointer, this._wmtooltip)
     }
 
+    resetTooltip() {
+        this._wmtooltip.setText('')
+    }
+
 }
 
 // WindowManager
@@ -1527,6 +1532,7 @@ export class WindowManager extends Window {
     }
 
     closeAll() {
+        this._wmoverlay.resetTooltip()
         for(let w of this.visibleWindows()) {
             w.hide()
         }
