@@ -1,23 +1,5 @@
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
-import { Player } from "../www/js/player.js";
-import { GameMode } from "../www/js/game_mode.js";
-import { ServerClient } from "../www/js/server_client.js";
-import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
-import { ServerWorld } from "./server_world.js";
-import { PlayerEvent } from "./player_event.js";
-import config from "./config.js";
-import { QuestPlayer } from "./quest/player.js";
-import { ServerPlayerInventory } from "./server_player_inventory.js";
-import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, CHUNK_SIZE_Y} from "../www/js/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../www/js/constant.js";
-import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
-import { ServerPlayerDamage } from "./player/damage.js";
-import { BLOCK } from "../www/js/blocks.js";
-import { ServerPlayerEffects } from "./player/effects.js";
-import { Effect } from "../www/js/block_type/effect.js";
-import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
-import { DBWorld } from "./db/world.js"
+import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import { NEARBY_FLAGS } from "../www/js/packet_compressor.js";
 
