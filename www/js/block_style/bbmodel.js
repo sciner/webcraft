@@ -335,18 +335,6 @@ export default class style {
                 }
                 break
             }
-            case 'lantern': {
-                const on_ceil = rotate?.y == -1;
-                model.state = on_ceil ? 'ceil' : 'floor'
-                model.hideAllExcept([model.state])
-                break
-            }
-            case 'torch': {
-                const on_wall = rotate && !rotate.y
-                model.state = on_wall ? 'wall' : 'floor'
-                model.hideAllExcept([model.state])
-                break
-            }
             case 'cactus': {
                 if(!(tblock instanceof FakeTBlock)) {
                     if(neighbours.UP && neighbours.UP.id != tblock.id) {
@@ -364,13 +352,6 @@ export default class style {
                 const age = Math.min((tblock?.extra_data?.stage ?? 0), mat.ticking.max_stage) + 1
                 model.state = `age${age}`
                 model.hideAllExcept([model.state])
-                break
-            }
-            case 'sign': {
-                const on_wall = rotate && !rotate.y
-                model.state = on_wall ? 'wall' : 'floor'
-                model.hideAllExcept([model.state])
-                style.selectTextureFromPalette(model, {name: mat.name}, tblock)
                 break
             }
             case "pane": {
@@ -552,7 +533,13 @@ export default class style {
             const condition_value = when[k]
             switch(k) {
                 case 'state': {
-                    if(model.state != condition_value) {
+                    if(model.state !== condition_value) {
+                        return false
+                    }
+                    break
+                }
+                case 'rotate.y': {
+                    if(tblock.rotate?.y !== condition_value) {
                         return false
                     }
                     break

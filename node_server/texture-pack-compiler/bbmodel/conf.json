@@ -65,8 +65,11 @@
             "sound": "madcraft:block.wood",
             "bb": {
                 "model": "torch",
-                "behavior": "torch",
                 "rotate": {"type": "cardinal_direction", "when": {"state": "wall"}},
+                "set_state": [
+                    {"name": "wall", "when": {"rotate.y": 0}},
+                    {"name": "floor"}
+                ],
                 "_particles": [
                     {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.5}]},
                     {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.25}]}
@@ -240,7 +243,13 @@
             },
             "bb": {
                 "model": "sign",
-                "behavior": "sign",
+                "set_state": [
+                    {"name": "wall", "when": {"rotate.y": 0}},
+                    {"name": "floor"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ],
                 "rotate": [
                     {"type": "cardinal_direction", "when": {"state": "wall"}},
                     {"type": "y360", "when": {"state": "floor"}}
@@ -255,7 +264,13 @@
             },
             "bb": {
                 "model": "sign",
-                "behavior": "sign",
+                "set_state": [
+                    {"name": "wall", "when": {"rotate.y": 0}},
+                    {"name": "floor"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ],
                 "rotate": [
                     {"type": "cardinal_direction", "when": {"state": "wall"}},
                     {"type": "y360", "when": {"state": "floor"}}
@@ -270,7 +285,13 @@
             },
             "bb": {
                 "model": "sign",
-                "behavior": "sign",
+                "set_state": [
+                    {"name": "wall", "when": {"rotate.y": 0}},
+                    {"name": "floor"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ],
                 "rotate": [
                     {"type": "cardinal_direction", "when": {"state": "wall"}},
                     {"type": "y360", "when": {"state": "floor"}}
@@ -285,7 +306,13 @@
             },
             "bb": {
                 "model": "sign",
-                "behavior": "sign",
+                "set_state": [
+                    {"name": "wall", "when": {"rotate.y": 0}},
+                    {"name": "floor"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ],
                 "rotate": [
                     {"type": "cardinal_direction", "when": {"state": "wall"}},
                     {"type": "y360", "when": {"state": "floor"}}
@@ -300,7 +327,13 @@
             },
             "bb": {
                 "model": "sign",
-                "behavior": "sign",
+                "set_state": [
+                    {"name": "wall", "when": {"rotate.y": 0}},
+                    {"name": "floor"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ],
                 "rotate": [
                     {"type": "cardinal_direction", "when": {"state": "wall"}},
                     {"type": "y360", "when": {"state": "floor"}}
@@ -315,7 +348,13 @@
             },
             "bb": {
                 "model": "sign",
-                "behavior": "sign",
+                "set_state": [
+                    {"name": "wall", "when": {"rotate.y": 0}},
+                    {"name": "floor"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ],
                 "rotate": [
                     {"type": "cardinal_direction", "when": {"state": "wall"}},
                     {"type": "y360", "when": {"state": "floor"}}
@@ -327,7 +366,10 @@
             "name": "LANTERN",
             "bb": {
                 "model": "lantern",
-                "behavior": "lantern"
+                "set_state": [
+                    {"name": "ceil", "when": {"rotate.y": -1}},
+                    {"name": "floor"}
+                ]
             }
         },
         {
@@ -335,7 +377,10 @@
             "name": "SOUL_LANTERN",
             "bb": {
                 "model": "soul_lantern",
-                "behavior": "lantern"
+                "set_state": [
+                    {"name": "ceil", "when": {"rotate.y": -1}},
+                    {"name": "floor"}
+                ]
             }
         },
         {
