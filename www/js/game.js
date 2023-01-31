@@ -228,7 +228,7 @@ export class GameClass {
                     // [F2]
                     case KEY.F2: {
                         if(!e.down) {
-                            if(!hud.wm.hasVisibleWindow() && this.player.session.user_id == this.world.info.user_id) {
+                            if(!hud.wm.hasVisibleWindow()) {
                                 hud.wm.getWindow('frmScreenshot').make();
                             }
                         }

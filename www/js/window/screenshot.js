@@ -2,97 +2,40 @@ import { Button } from "../../tools/gui/wm.js";
 import { Lang } from "../lang.js";
 import { Helpers } from "../helpers.js";
 import { BlankWindow } from "./blank.js";
+import { Resources } from "../resources.js";
 
 export class ScreenshotWindow extends BlankWindow {
 
     constructor(player) {
 
-        super(10, 10, 400, 420, "frmScreenshot", null, null);
+        const w = 400
+        const h = 420
+
+        super(10, 10, w, h, "frmScreenshot", null, null);
 
         this.w *= this.zoom;
         this.h *= this.zoom;
 
-        this.setBackground('./media/gui/form-empty.png')
+        this.player = player
 
-        const PADDING = 20 * this.zoom;
+        this.setBackground('./media/gui/form-empty.png', 'stretchcenter', 1)
 
         // Append JSON layout
-        this.appendLayout({
-            vLayout: {
-                type: 'VerticalLayout',
-                x: PADDING,
-                y: PADDING,
-                width: this.w - PADDING * 2,
-                visible: true,
-                gap: 20,
-                enabled: false,
-                childs: {
-                    lblDesc: {
-                        type: 'Label',
-                        word_wrap: true,
-                        width: 300 * this.zoom,
-                        height: 20 * this.zoom,
-                        title: null,
-                        autosize: false,
-                        text: 'You have taken a screenshot. Farther??',
-                        style: {
-                            font: {size: 17 * this.zoom},
-                            background: {color: '#ffffff00'}
-                        }
-                    },
-                    lblPreview: {
-                        type: 'Label',
-                        word_wrap: true,
-                        height: 200 * this.zoom,
-                        title: Lang.loading,
-                        // autosize: false,
-                        style: {
-                            padding: 0,
-                            font: {size: 17 * this.zoom},
-                            textAlign: {
-                                horizontal: 'center',
-                                vertical: 'middle'
-                            },
-                            background: {
-                                color: '#00000044',
-                                image_size_mode: 'cover', // none | stretch | cover
-                                image: null
-                            }
-                        }
-                    },
-                    btnDownload: {
-                        type: 'Button',
-                        title: 'Download screenshot',
-                        height: 40 * this.zoom,
-                        // autosize: false,
-                        onMouseDown: () => {
-                            Qubatch.hud.wm.closeAll();
-                            Helpers.downloadBlobPNG(this.screenshot_blob, 'screenshot.webp');
-                        }
-                    },
-                    btnSetCover: {
-                        type: 'Button',
-                        title: 'Set as world cover',
-                        height: 40 * this.zoom,
-                        //autosize: false,
-                        onMouseDown: () => {
-                            Qubatch.hud.wm.closeAll();
-                            this.send(true);
-                        }
-                    },
-                    btnSaveToGallery: {
-                        type: 'Button',
-                        title: 'Upload to gallery',
-                        height: 40 * this.zoom,
-                        //autosize: false,
-                        onMouseDown: () => {
-                            Qubatch.hud.wm.closeAll();
-                            this.send(false);
-                        }
-                    }
-                }
-            }
-        })
+        this.appendLayout(Resources.layout.screenshot)
+
+        const ql = this.getWindow('vLayout')
+        ql.getWindow('btnDownload').onMouseDown = () => {
+            Qubatch.hud.wm.closeAll()
+            Helpers.downloadBlobPNG(this.screenshot_blob, 'screenshot.webp')
+        }
+        ql.getWindow('btnSetCover').onMouseDown = () => {
+            Qubatch.hud.wm.closeAll()
+            this.send(true)
+        }
+        ql.getWindow('btnSaveToGallery').onMouseDown = () => {
+            Qubatch.hud.wm.closeAll()
+            this.send(false)
+        }
 
         // Add close button
         this.loadCloseButtonImage((image) => {
@@ -124,40 +67,66 @@ export class ScreenshotWindow extends BlankWindow {
 
     // Make screenshot
     make() {
+
         const ql = this.getWindow('vLayout');
         const lblPreview = ql.getWindow('lblPreview');
         lblPreview.title = Lang.loading;
 
-        if(typeof LocalServerClient != 'undefined') {
+        const im_world_admin = this.player.session.user_id == this.player.world.info.user_id
+
+        if(!im_world_admin || (typeof LocalServerClient != 'undefined')) {
             ql.delete('btnSetCover');
             ql.delete('btnSaveToGallery');
         }
 
+        // Make screenshot
         Qubatch.render.screenshot((blob) => {
-            this.show();
+
+            this.show()
+
             const fileFromBlob = new File([blob], 'image.webp', {type: 'image/webp'});
             this.screenshot_blob = blob
             this.screenshot_file = fileFromBlob;
             ql.enabled = true;
-            const img = new Image();
-            img.onload = function() {
-                lblPreview.title = '';
-                lblPreview.style.background.image = img;
-            }
-            img.src = URL.createObjectURL(fileFromBlob);
 
-        });
+            const img = new Image();
+            img.onload = () => {
+
+                lblPreview.text = '';
+                lblPreview.clip()
+                lblPreview.setBackground(img, 'cover')
+                // ql.refresh()
+
+                // generate preview
+                const MAX_PREVIEW_SIZE = 512
+                const w = Math.round(img.width > img.height ? MAX_PREVIEW_SIZE : img.width / (img.height / MAX_PREVIEW_SIZE))
+                const h = Math.round(img.height > img.width ? MAX_PREVIEW_SIZE : img.height / (img.width / MAX_PREVIEW_SIZE))
+                const canvas_preview = document.createElement('canvas')
+                canvas_preview.width = w
+                canvas_preview.height = h
+                const ctx_preview = canvas_preview.getContext('2d')
+                ctx_preview.drawImage(img, 0, 0, img.width, img.height, 0, 0, w, h)
+                canvas_preview.toBlob((previewBlob) => {
+                    this.screenshot_file_preview = new File([previewBlob], 'image-preview.webp', {type: 'image/webp'});
+                }, 'image/webp')
+
+            }
+            img.src = URL.createObjectURL(fileFromBlob)
+
+        })
+
     }
 
     // Send screenshot to server
     send(as_cover) {
         const form = new FormData();
         form.append('file', this.screenshot_file);
+        form.append('file_preview', this.screenshot_file_preview);
         form.append('world_id', Qubatch.world.info.guid);
         form.append('as_cover', as_cover);
         Qubatch.App.Screenshot(form, function(result) {
             if (result.result == "ok") {
-                vt.success("Screenshot upload to server");
+                vt.success("Screenshot uploaded to server");
             } else {
                 vt.error("Error upload screenshot");
             }

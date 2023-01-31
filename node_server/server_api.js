@@ -12,7 +12,7 @@ export class ServerAPI {
     }
 
     //
-    static async isWorldAdmin(world_guid, session) {
+    static isWorldAdmin(world_guid, session) {
         const world = Qubatch.worlds.get(world_guid);
         if(!world) {
             return false;
@@ -121,7 +121,11 @@ export class ServerAPI {
                 if (req.files && session) {
                     const filename = await ServerAPI.getDb().InsertScreenshot(world_id, params.as_cover == 'true');
                     if(filename) {
-                        const file = req.files.file;
+                        const screenshot_file = req.files.file;
+                        const screenshot_file_preview = req.files.file_preview;
+                        if(!screenshot_file_preview) {
+                            throw 'error_screenshot_preview_not_found'
+                        }
                         if(typeof fs === 'undefined') {
                             throw 'error_fs_not_found';
                             /*
@@ -135,7 +139,8 @@ export class ServerAPI {
                             if (!fs.existsSync(path)) {
                                 fs.mkdirSync(path, {recursive: true});
                             }
-                            file.mv(path + filename);
+                            screenshot_file.mv(path + filename);
+                            screenshot_file_preview.mv(path + `preview_${filename}`);
                         }
                         return {'result':'ok'};
                     }

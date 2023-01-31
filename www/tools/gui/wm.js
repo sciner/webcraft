@@ -96,7 +96,9 @@ export class Window extends PIXI.Container {
             },
             delete(id) {
                 const window = this.get(id)
-                that.removeChild([window])
+                if(window) {
+                    that.removeChild(window)
+                }
             },
             get: (id) => {
                 for(let w of this.children) {
@@ -176,7 +178,10 @@ export class Window extends PIXI.Container {
             this.style.background.resize()
         }
         if(this.text_container) {
-            this.style.padding._changed()
+            this.style.padding.resize()
+        }
+        if(this.text_container) {
+            this.style.border.resize()
         }
     }
 
@@ -865,22 +870,24 @@ export class Window extends PIXI.Container {
             if(cl instanceof Window) {
                 control = cl
             } else {
+                const x = calcLayoutSize(cl.x, 0)
+                const y = calcLayoutSize(cl.y, 0)
                 const w = calcLayoutSize(cl.width, this.w)
                 const h = calcLayoutSize(cl.height, 0)
                 switch(cl.type) {
                     case 'VerticalLayout': {
-                        control = new VerticalLayout(cl.x, cl.y, w, id);
+                        control = new VerticalLayout(x, y, w, id);
                         if(cl.childs) {
                             control.appendLayout(cl.childs)
                         }
                         break
                     }
                     case 'Label': {
-                        control = new Label(cl.x, cl.y, w, h, id, cl?.title, cl?.text)
+                        control = new Label(x, y, w, h, id, cl?.title, cl?.text)
                         break
                     }
                     case 'Button': {
-                        control = new Button(cl.x, cl.y, w, h, id, cl?.title, cl?.text)
+                        control = new Button(x, y, w, h, id, cl?.title, cl?.text)
                         break
                     }
                 }
@@ -1047,6 +1054,7 @@ export class Button extends Window {
 
         this.style.font.size = 10
         this.style.border.hidden = false
+        this.style.padding.set(10)
 
         if(this.text_container) {
             this.style.textAlign.horizontal = 'center'

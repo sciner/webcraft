@@ -264,7 +264,7 @@
 						<div class="img-cover" ng-class="{with_cover: !!item.cover}">
 							<h2 ng-if="!item.cover">{{Lang.no_cover}}</h2>
 							<p ng-if="!item.cover">{{Lang.no_cover_note}}</p>
-                            <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover}}" alt="cover" />
+                            <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover_preview ? item.cover_preview : item.cover}}" alt="cover" />
 						</div>
 					</div>
 					<div class="card-footer">

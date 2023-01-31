@@ -125,7 +125,7 @@ export class Resources {
         }
 
         // Window layouts
-        for(let name of ['quest_view']) {
+        for(let name of ['quest_view', 'screenshot']) {
             all.push(fetch(`data/layout/${name}.json`).then(response => response.json()).then(json => { this.layout[name] = json}))
         }
 

@@ -1,5 +1,6 @@
 import { PIXI } from "./pixi.js"
 import {MySprite} from "./MySpriteRenderer.js";
+import { Vector } from "../../js/helpers.js";
 
 export const USE_BITMAP_FONT = false;
 
@@ -160,6 +161,31 @@ export class BackgroundStyle {
                 // background.pivot.y = background._image.height / 2
                 break
             }
+            case 'cover': {
+                const bgSize = new Vector(window.w, window.h, 0)
+                background.width = background._texture.orig.width
+                background.height = background._texture.orig.height
+                const sp = new Vector(background.width, background.height, 0)
+                const winratio = bgSize.x / bgSize.y
+                const spratio = sp.x / sp.y
+                const pos = new PIXI.Point(0, 0)
+                let scale = 1
+                // if(type == 'cover' ? (winratio > spratio) : (winratio < spratio)) {
+                if(winratio > spratio) {
+                    // photo is wider than background
+                    scale = bgSize.x / sp.x
+                    pos.y = -((sp.y * scale) - bgSize.y) / 2
+                } else {
+                    // photo is taller than background
+                    scale = bgSize.y / sp.y
+                    pos.x = -((sp.x * scale) - bgSize.x) / 2
+                }
+                background.anchor.set(0, 0)
+                background.scale = new PIXI.Point(scale, scale)
+                background.position.x = pos.x
+                background.position.y = pos.y
+                break
+            }
             case 'stretchcenter':
             case 'centerstretch': {
                 background.position.x = window.w / 2
@@ -259,6 +285,10 @@ export class BorderStyle {
         if(this.#_wmborder) {
             this.#_wmborder.visible = !value
         }
+    }
+
+    resize() {
+        this._redraw()
     }
 
     _redraw() {
@@ -380,6 +410,10 @@ export class PaddingStyle {
         this.#_values.top = top
         this.#_values.right = right
         this.#_values.bottom = bottom
+        this._changed()
+    }
+
+    resize() {
         this._changed()
     }
 
