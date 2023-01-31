@@ -21,13 +21,13 @@ export class ServerPlayerVision {
 
     leave() {
         const {player} = this;
-        const {world} = player;
+        const {chunkManager} = player.world;
         for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
             this.safePosWaitingChunks[i].safeTeleportMarker--;
-            world.chunks.invalidate(this.safePosWaitingChunks[i]);
+            chunkManager.invalidate(this.safePosWaitingChunks[i]);
         }
         for(let addr of this.chunks) {
-            this.chunks.get(addr)?.removePlayer(player);
+            chunkManager.get(addr)?.removePlayer(player);
         }
         this.safePosWaitingChunks.length = 0;
         this.chunks.clear();
