@@ -13,7 +13,7 @@ import { getBlockImage } from "./tools/blocks.js";
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
 const ARMOR_SLOT_BACKGROUND_ACTIVE = '#828282ff'
-const DOUBLE_CLICK_TIME = 200.0;
+const DOUBLE_CLICK_TIME = 300.0;
 
 export class HelpSlot extends Label {
 
@@ -199,6 +199,9 @@ export class CraftTableSlot extends SimpleBlockSlot {
         this.slot_index = index
     }
 
+    /**
+     * @returns { import("../player_inventory.js").PlayerInventory }
+     */
     getInventory() {
         return this.ct.inventory
     }
@@ -211,6 +214,10 @@ export class CraftTableSlot extends SimpleBlockSlot {
         const dropItem  = drag.getItem()
         if(!dropItem) {
             return;
+        }
+        if(drag && drag.slot === this) {
+            drag.slot = null
+            return
         }
         const max_stack_count = BLOCK.getItemMaxStack(dropItem)
 
@@ -260,6 +267,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
         }
         drag.refresh()
         this.ct.fixAndValidateSlots('CraftTableSlot dropIncrementOrSwap')
+        return true
     }
 
 }
@@ -395,6 +403,11 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 }
                 const player      = Qubatch.player
                 const drag        = e.drag
+                if(drag && drag.slot === this) {
+                    drag.slot = null
+                    return
+                }
+
                 // @todo check instanceof!
                 // if(dropData instanceof InventoryItem) {
                 const dropItem    = drag.getItem()
@@ -490,7 +503,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         this.style.background.color = '#00000000'
     }
 
-    // Drag
+    // Mouse down
     onMouseDown(e) {
 
         if (this.options.disableIfLoading && this.ct.loading) {

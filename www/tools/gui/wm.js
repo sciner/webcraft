@@ -237,6 +237,7 @@ export class Window extends PIXI.Container {
 
     onMouseEnter() {}
     onMouseDown(e) {}
+    onMouseUp(e) {}
     onMouseMove(e) {}
     onDrop(e) {}
     onWheel(e) {}
@@ -727,6 +728,17 @@ export class Window extends PIXI.Container {
             this.onMouseLeave()
         }
         this.onMouseDown(e)
+    }
+
+    _mouseup(e) {
+        const {window, event} = this._clarifyMouseEvent(e)
+        if(window) {
+            return window._mouseup(event)
+        }
+        if(this instanceof Button) {
+            this.onMouseLeave()
+        }
+        this.onMouseUp(e)
     }
 
     // measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
@@ -1302,8 +1314,9 @@ export class SimpleBlockSlot extends Window {
         return this.item
     }
 
-    setItem(item) {
+    setItem(item, slot) {
         this.item = item
+        this.slot = slot
         return this.refresh()
     }
 
@@ -1416,6 +1429,7 @@ export class WindowManager extends Window {
             if(!canvas) throw 'error_canvas_undefined'
             canvas.addEventListener('mousemove', this.mouseEventDispatcher.bind(this))
             canvas.addEventListener('mousedown', this.mouseEventDispatcher.bind(this))
+            canvas.addEventListener('mouseup', this.mouseEventDispatcher.bind(this))
             canvas.addEventListener('mousewheel', this.mouseEventDispatcher.bind(this))
             canvas.addEventListener('wheel', this.mouseEventDispatcher.bind(this))
         }
@@ -1445,7 +1459,9 @@ export class WindowManager extends Window {
             }
         }, this._cariage_speed)
 
-        //
+        /**
+         * @type { Pointer }
+         */
         this.drag = that._wmoverlay._wmpointer
 
     }
@@ -1577,9 +1593,24 @@ export class WindowManager extends Window {
                     y:          e.offsetY - this.y
                 };
                 if(this.drag.getItem()) {
-                    this._drop(evt)
+                    // this._drop(evt)
                 } else {
                     this._mousedown(evt)
+                }
+                break
+            }
+            case 'mouseup': {
+                const evt = {
+                    shiftKey:   e.shiftKey,
+                    button_id:  e.button_id,
+                    drag:       this.drag,
+                    x:          e.offsetX - this.x,
+                    y:          e.offsetY - this.y
+                };
+                if(this.drag.getItem()) {
+                    this._drop(evt)
+                } else {
+                    this._mouseup(evt)
                 }
                 break
             }

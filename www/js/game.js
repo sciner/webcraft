@@ -133,7 +133,7 @@ export class GameClass {
             onMouseEvent: (e, x, y, type, button_id, shiftKey) => {
                 const hasVisibleWindow = hud.wm.hasVisibleWindow();
                 const DPR = isMobileBrowser() ? 1 : window.devicePixelRatio;
-                if(type == MOUSE.DOWN && hasVisibleWindow) {
+                if(([MOUSE.DOWN, MOUSE.UP].includes(type)) && hasVisibleWindow) {
                     hud.wm.mouseEventDispatcher({
                         type:       e.type,
                         shiftKey:   e.shiftKey,
