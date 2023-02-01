@@ -290,7 +290,7 @@ export default class Biome3LayerOverworld {
                                     }
 
                                     // Plants and grass (растения и трава)
-                                    const {plant_blocks} = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params);
+                                    const plant_blocks = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params)
                                     if(plant_blocks) {
                                         for(let i = 0; i < plant_blocks.length; i++) {
                                             const p = plant_blocks[i];

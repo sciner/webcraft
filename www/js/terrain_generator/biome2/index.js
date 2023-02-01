@@ -197,7 +197,7 @@ export default class Terrain_Generator extends Demo_Map {
 
                     // Ores (if this is not water, fill by ores)
                     let block_id = xyz.y < local_dirt_level ? stone_block : dirt_block;
-                    if(([grass_block_id, BLOCK.SNOW_DIRT.id].includes(block_id)) && xyz.y < value - 1) {
+                    if((grass_block_id == block_id || BLOCK.SNOW_DIRT.id == block_id) && xyz.y < value - 1) {
                         block_id = dirt_block_id;
                     }
                     chunk.setBlockIndirect(x, y, z, block_id);
