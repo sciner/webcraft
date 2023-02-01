@@ -715,7 +715,7 @@ export class ServerPlayer extends Player {
             if (params.safe) {
                 this.status = PLAYER_STATUS_WAITING_DATA;
                 this.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
-                this.teleportSafePos(new_pos);
+                this.vision.teleportSafePos(new_pos);
             } else {
                 teleported_player.wait_portal = new WorldPortalWait(
                     teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),

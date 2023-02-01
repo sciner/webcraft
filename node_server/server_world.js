@@ -226,7 +226,7 @@ export class ServerWorld {
                     fluids[i + 1] = schema.world.pos1.y + fluids[i + 1] - y
                     fluids[i + 2] = schema.world.entrance.z - fluids[i + 2]
                 }
-                await this.db.fluid.applyAnyChunk(fluids)
+                await this.db.fluid.flushWorldFluidsList(fluids)
             }
             // fill blocks
             for(let b of schema.blocks) {
@@ -880,14 +880,11 @@ export class ServerWorld {
         }
         if (actions.fluids.length > 0) {
             if (actions.fluidFlush) {
-                await this.db.fluid.applyAnyChunk(actions.fluids);
+                // TODO: for schemas - make separate action after everything!
+                await this.db.fluid.flushWorldFluidsList(actions.fluids);
                 // assume same chunk for all cells
             } else {
-                let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
-                for (let chunk of chunks) {
-                    chunk.sendFluid(chunk.fluid.saveDbBuffer());
-                    chunk.fluid.markDirtyDatabase();
-                }
+                this.chunks.fluidWorld.applyWorldFluidsList(actions.fluids);
             }
         }
         // Play sound
