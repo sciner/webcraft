@@ -46,7 +46,7 @@ export class BlockDrawer {
                         break
                     }
                     const over_block_id = cluster.getBlock(chunk, pos.x, pos.y, pos.z)
-                    if(!chunk.chunkManager.block_manager.REMOVE_ONAIR_BLOCKS_IN_CLUSTER.includes(over_block_id)) {
+                    if(!chunk.chunkManager.block_manager.REMOVE_ONAIR_BLOCKS_IN_CLUSTER[over_block_id]) {
                         break
                     }
                     cluster.setBlock(chunk, pos.x, pos.y, pos.z, BLOCK_AIR_ID)

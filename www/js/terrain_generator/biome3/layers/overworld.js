@@ -1,7 +1,7 @@
 import { Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { BLOCK } from '../../../blocks.js';
-import { DensityParams, DENSITY_AIR_THRESHOLD, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD, WATER_LEVEL } from "../terrain/manager.js";
+import { DensityParams, DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD, WATER_LEVEL } from "../terrain/manager.js";
 import { TerrainMapCell } from "../terrain/map_cell.js";
 import { TerrainMap2 } from "../terrain/map.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
@@ -174,6 +174,8 @@ export default class Biome3LayerOverworld {
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = BLOCK.DIRT.id
+        const STONE_BLOCKS              = [BLOCK.STONE.id, BLOCK.ANDESITE.id, BLOCK.DIORITE.id, BLOCK.GRANITE.id]
+        const block_result              = new MapsBlockResult()
 
         const rand_lava = new alea('random_lava_source_' + this.seed);
 
@@ -230,9 +232,9 @@ export default class Biome3LayerOverworld {
                         }
 
                         // get block
-                        let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params);
+                        let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
-                        if([BLOCK.STONE.id, BLOCK.ANDESITE.id, BLOCK.DIORITE.id, BLOCK.GRANITE.id].includes(block_id)) {
+                        if(STONE_BLOCKS.includes(block_id)) {
                             if(density < DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
                                 // generating a small amount of ore on the surface of the walls
                                 block_id = this.ore_generator.generate(xyz, block_id);

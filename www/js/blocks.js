@@ -237,10 +237,10 @@ export class BLOCK {
     static MASK_BIOME_BLOCKS                = [];
     static MASK_COLOR_BLOCKS                = [];
     static SOLID_BLOCK_ID                   = new Array(2048).fill(false)
+    static REMOVE_ONAIR_BLOCKS_IN_CLUSTER   = new Array(2048).fill(false) // this blocks must be removed over structures and buildings
     static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID                      = [];
     static bySuffix                         = {}; // map of arrays
-    static REMOVE_ONAIR_BLOCKS_IN_CLUSTER   = [] // this blocks must be removed over structures and buildings
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -921,9 +921,7 @@ export class BLOCK {
         if(block.ticking) {
             BLOCK.TICKING_BLOCKS.set(block.id, block);
         }
-        if(block.style_name == 'planting' || (block.layering && !block.layering.slab)) {
-            BLOCK.REMOVE_ONAIR_BLOCKS_IN_CLUSTER.push(block.id)
-        }
+        BLOCK.REMOVE_ONAIR_BLOCKS_IN_CLUSTER[block.id] = block.style_name == 'planting' || (block.layering && !block.layering.slab)
         if(block.bb && isScalar(block.bb?.model)) {
             const bbmodels = await Resources.loadBBModels()
             const model_name = block.bb.model
