@@ -352,8 +352,15 @@ export class VectorCollectorFlat {
 // VectorCollector...
 export class VectorCollector {
 
-    constructor(list) {
+    /**
+     * @param {Map} list 
+     * @param {int} blocks_size 
+     */
+    constructor(list, blocks_size) {
         this.clear(list);
+        if(list && !isNaN(blocks_size)) {
+            this.size = blocks_size
+        }
     }
 
     *[Symbol.iterator]() {
