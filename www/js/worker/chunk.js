@@ -296,17 +296,17 @@ export class Chunk {
 
     /**
      * Set block indirect
-     * @param {int} x 
-     * @param {int} y 
-     * @param {int} z 
-     * @param {int} block_id 
-     * @param {*} rotate 
-     * @param {*} extra_data 
-     * @param {*} entity_id 
-     * @param {*} power 
+     * @param {int} x
+     * @param {int} y
+     * @param {int} z
+     * @param {int} block_id
+     * @param {*} rotate
+     * @param {*} extra_data
+     * @param {*} entity_id
+     * @param {*} power
      * @param {boolean} check_is_solid - if true, it prevents replacing solid blocks
      * @param {boolean} destroy_fluid
-     * @returns 
+     * @returns
      */
     setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false, destroy_fluid = false) {
 
@@ -329,7 +329,9 @@ export class Chunk {
             return
         }
 
-        this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
+        if (uint16View[index] > 0) {
+            this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
+        }
 
         uint16View[index] = block_id;
         if (rotate || extra_data) {
@@ -411,7 +413,7 @@ export class Chunk {
         }
 
         /**
-         * @param {string} material_key 
+         * @param {string} material_key
          */
         const getMaterialBuf = (material_key) => {
 
@@ -439,7 +441,7 @@ export class Chunk {
         }
 
         /**
-         * @param {FakeVertices} fv 
+         * @param {FakeVertices} fv
          */
         const processFakeVertices = (fv) => {
             const matBuf = getMaterialBuf(fv.material_key)
