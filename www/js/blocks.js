@@ -236,7 +236,7 @@ export class BLOCK {
     static max_id                           = 0;
     static MASK_BIOME_BLOCKS                = [];
     static MASK_COLOR_BLOCKS                = [];
-    static SOLID_BLOCK_ID                   = [];
+    static SOLID_BLOCK_ID                   = new Array(2048).fill(false)
     static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID                      = [];
     static bySuffix                         = {}; // map of arrays
@@ -765,7 +765,7 @@ export class BLOCK {
      */
     static isSolidID(block_id) {
         if(block_id == 0) return false
-        return this.SOLID_BLOCK_ID.includes(block_id)
+        return this.SOLID_BLOCK_ID[block_id]
     }
 
     static isSimpleQube(block) {
@@ -917,14 +917,7 @@ export class BLOCK {
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
         }
-        if(block.is_solid) {
-            BLOCK.SOLID_BLOCK_ID.push(block.id)
-        } else {
-            const sidx = BLOCK.SOLID_BLOCK_ID.indexOf(block.id)
-            if(sidx >= 0) {
-                BLOCK.SOLID_BLOCK_ID.splice(sidx, 1)
-            }
-        }
+        BLOCK.SOLID_BLOCK_ID[block.id] = block.is_solid
         if(block.ticking) {
             BLOCK.TICKING_BLOCKS.set(block.id, block);
         }
