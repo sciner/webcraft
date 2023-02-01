@@ -1,4 +1,4 @@
-import { Vector } from "../../../helpers.js";
+import { IndexedColor, Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { BLOCK } from '../../../blocks.js';
 import { DensityParams, DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD, WATER_LEVEL } from "../terrain/manager.js";
@@ -196,7 +196,7 @@ export default class Biome3LayerOverworld {
                 /**
                  * @type {TerrainMapCell}
                  */
-                const cell                  = map.cells[z * CHUNK_SIZE_X + x];
+                const cell                  = map.getCell(x, z)
                 const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
                 const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
                 const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);

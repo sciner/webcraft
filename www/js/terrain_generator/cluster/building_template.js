@@ -58,13 +58,17 @@ export class BuildingTemplate {
         return default_value
     }
 
-    static addSchema(schema) {
+    static addSchema(schema, bm) {
         schema.world.pos1 = new Vector(schema.world.pos1)
         schema.world.pos2 = new Vector(schema.world.pos2)
         schema.world.entrance = new Vector(schema.world.entrance)
         schema.door_pos = new Vector(schema.door_pos)
         schema.size = new Vector(schema.size)
         this.schemas.set(schema.name, schema);
+        // precompile
+        if(bm) {
+            this.fromSchema(schema.name, bm)
+        }
     }
 
     /**

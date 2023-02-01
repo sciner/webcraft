@@ -710,11 +710,13 @@ export class GameClass {
                 for(var name in timers) {
                     const tim = timers[name];
                     var t = chunk.timers[tim.name];
-                    if(t < tim.min) tim.min = t;
-                    if(t > tim.max) tim.max = t;
-                    tim.total += t;
-                    if(t > 0) {
-                        tim.cnt_more_zero++;
+                    if(t !== undefined) {
+                        if(t < tim.min) tim.min = t;
+                        if(t > tim.max) tim.max = t;
+                        tim.total += t;
+                        if(t > 0) {
+                            tim.cnt_more_zero++;
+                        }
                     }
                 }
             }
