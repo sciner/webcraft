@@ -20,6 +20,7 @@ const PORCH_CRATER_HEIGHT = 8;
 export class BuildingTemplate {
 
     static schemas = new Map();
+    static known_templates = new Map()
 
     constructor(json, bm) {
 
@@ -47,6 +48,15 @@ export class BuildingTemplate {
             this.rotateBuildingBlockVariants(bm, all_blocks)
         }
 
+        if(!globalThis.asdsfcn) globalThis.asdsfcn = new Map()
+        let b = globalThis.asdsfcn.get(json.name)
+        if(b) {
+            b.count++
+        } else {
+            globalThis.asdsfcn.set(json.name, {name: json.name, count: 1})
+        }
+        console.table(Array.from(globalThis.asdsfcn.values()))
+
     }
 
     getMeta(name, default_value) {
@@ -66,8 +76,19 @@ export class BuildingTemplate {
         this.schemas.set(schema.name, schema);
     }
 
+    /**
+     * @param {string} name 
+     * @param {*} bm 
+     * @returns 
+     */
     static fromSchema(name, bm) {
-        return new BuildingTemplate(this.getSchema(name), bm)
+        let template = BuildingTemplate.known_templates.get(name)
+        if(template) {
+            return template
+        }
+        template = new BuildingTemplate(this.getSchema(name), bm)
+        BuildingTemplate.known_templates.set(name, template)
+        return template
     }
 
     static getSchema(name) {

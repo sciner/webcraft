@@ -270,37 +270,37 @@ export class WorldEditBuilding {
     //
     async paste(chat, player, cmd, args) {
 
-        const we = this.worldedit_instance;
-        const name = args[1];
-        const direction = Math.abs((args[2] | 0)) % 4;
-
         throw 'error_deprecated';
 
-        const copy_data = {
-            blocks: new VectorCollector(),
-            fluids: []
-        };
+        // const we = this.worldedit_instance;
+        // const name = args[1];
+        // const direction = Math.abs((args[2] | 0)) % 4;
 
-        const mirror_x = false;
-        const mirror_z = false;
+        // const copy_data = {
+        //     blocks: new VectorCollector(),
+        //     fluids: []
+        // };
 
-        const building = BuildingTemplate.fromSchema(name, BLOCK);
+        // const mirror_x = false;
+        // const mirror_z = false;
 
-        for(let block of building.rot[direction]) {
-            const item = {
-                id: block.block_id
-            }
-            for(let prop of ['extra_data', 'rotate']) {
-                if(prop in block) {
-                    item[prop] = block[prop];
-                }
-            }
-            const pos = new Vector(0, 0, 0).addByCardinalDirectionSelf(block.move, direction + 2, mirror_x, mirror_z);
-            copy_data.blocks.set(pos, item);
-        }
+        // const building = BuildingTemplate.fromSchema(name, BLOCK);
 
-        //
-        await we.cmd_paste(chat, player, cmd, args, copy_data);
+        // for(let block of building.rot[direction]) {
+        //     const item = {
+        //         id: block.block_id
+        //     }
+        //     for(let prop of ['extra_data', 'rotate']) {
+        //         if(prop in block) {
+        //             item[prop] = block[prop];
+        //         }
+        //     }
+        //     const pos = new Vector(0, 0, 0).addByCardinalDirectionSelf(block.move, direction + 2, mirror_x, mirror_z);
+        //     copy_data.blocks.set(pos, item);
+        // }
+
+        // //
+        // await we.cmd_paste(chat, player, cmd, args, copy_data);
 
     }
 
