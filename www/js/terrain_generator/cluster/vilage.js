@@ -39,20 +39,20 @@ export class ClusterVilage extends ClusterBuildingBase {
             this.building_palettes = new BuildingPalettes(this, building_palette_options, BLOCK);
 
             // Generate vilage schema
-            let t = performance.now();
+            this.timers.start('generate')
             this.schema = new VilageSchema(this, schema_options);
             const resp = this.schema.generate(this.id);
-            this.timers.generate = performance.now() - t;
+            this.timers.stop()
 
             //
-            t = performance.now();
+            this.timers.start('add_buildings')
             this.mask = resp.mask;
             for(let house of resp.house_list.values()) {
                 const size = new Vector(house.width, 5, house.depth)
                 const entrance = new Vector(house.door.x, Infinity, house.door.z)
                 this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance.add(this.coord), house.door.direction, !!house.crossroad)
             }
-            this.timers.add_buildings = performance.now() - t; t = performance.now();
+            this.timers.stop()
 
         }
 

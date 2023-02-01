@@ -68,39 +68,39 @@ export default class Biome3LayerOverworld {
         const cluster = chunk.cluster
 
         // Generate maps around chunk
-        chunk.timers.generate_maps = performance.now()
+        chunk.timers.start('generate_maps')
         const maps = this.maps.generateAround(chunk, chunk.addr, true, true)
-        chunk.timers.generate_maps = performance.now() - chunk.timers.generate_maps
+        chunk.timers.stop()
 
         const map = chunk.map = maps[4]
 
         // Generate chunk data
-        chunk.timers.generate_chunk_data = performance.now()
+        chunk.timers.start('generate_chunk_data')
         this.generateChunkData(chunk, seed, rnd)
-        chunk.timers.generate_chunk_data = performance.now() - chunk.timers.generate_chunk_data
+        chunk.timers.stop()
 
         // Mines
-        chunk.timers.generate_mines = performance.now()
+        chunk.timers.start('generate_mines')
         if(chunk.addr.y == 0) {
             const mine = MineGenerator.getForCoord(this, chunk.coord)
             mine.fillBlocks(chunk);
         }
-        chunk.timers.generate_mines = performance.now() - chunk.timers.generate_mines
+        chunk.timers.stop()
 
         // Dungeon
-        chunk.timers.generate_dungeon = performance.now()
+        chunk.timers.start('generate_dungeon')
         this.dungeon.add(chunk)
-        chunk.timers.generate_dungeon = performance.now() - chunk.timers.generate_dungeon
+        chunk.timers.stop()
 
         // Cluster
-        chunk.timers.generate_cluster = performance.now()
+        chunk.timers.start('generate_cluster')
         cluster.fillBlocks(this.maps, chunk, map, false, false)
-        chunk.timers.generate_cluster = performance.now() - chunk.timers.generate_cluster
+        chunk.timers.stop()
 
         // Plant trees
-        chunk.timers.generate_trees = performance.now()
+        chunk.timers.start('generate_trees')
         this.plantTrees(maps, chunk)
-        chunk.timers.generate_trees = performance.now() - chunk.timers.generate_trees
+        chunk.timers.stop()
 
         return map
 
@@ -180,12 +180,11 @@ export default class Biome3LayerOverworld {
         const rand_lava = new alea('random_lava_source_' + this.seed);
 
         // generate densisiy values for column
-        chunk.timers.generate_noise3d = performance.now();
+        chunk.timers.start('generate_noise3d')
         const sz = this.calcColumnNoiseSize(chunk)
-
         // TODO: for air, ignore this all?
         this.generator.noise3d.generate4(chunk.coord, sz);
-        chunk.timers.generate_noise3d = performance.now() - chunk.timers.generate_noise3d;
+        chunk.timers.stop()
 
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {

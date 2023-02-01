@@ -3162,3 +3162,29 @@ const typeSizes = {
 export function sizeOf(value) {
     return typeSizes[typeof value](value)
 }
+
+
+
+export class PerformanceTimer {
+
+    constructor() {
+        this.names = []
+    }
+
+    start(name) {
+        this.names.push({name, p: performance.now()})
+    }
+
+    stop() {
+        let keys = []
+        for(let item of this.names) {
+            keys.push(item.name)
+        }
+        const key = keys.join(' -> ')
+        const item = this.names.pop()
+        const diff = performance.now() - item.p
+        const exist_value = this[key] ?? 0
+        this[key] = exist_value + diff
+    }
+
+}

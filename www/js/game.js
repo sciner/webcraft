@@ -721,10 +721,16 @@ export class GameClass {
                 }
             }
         }
+        const round = (v) => {
+            return Math.round(v * 100) / 100
+        }
         for(var name in timers) {
             const tim = timers[name];
-            tim.avg = tim.cnt_more_zero > 0 ? Math.round(tim.total / tim.cnt_more_zero * 100) / 100 : -1;
-            tim.total = Math.round(tim.total * 100) / 100;
+            delete(tim.name)
+            tim.avg = tim.cnt_more_zero > 0 ? round(tim.total / tim.cnt_more_zero) : -1;
+            tim.total = round(tim.total)
+            tim.min = round(tim.min)
+            tim.max = round(tim.max)
             tim.cnt = cnt;
         }
         console.table(timers);
