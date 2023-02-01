@@ -48,15 +48,6 @@ export class BuildingTemplate {
             this.rotateBuildingBlockVariants(bm, all_blocks)
         }
 
-        if(!globalThis.asdsfcn) globalThis.asdsfcn = new Map()
-        let b = globalThis.asdsfcn.get(json.name)
-        if(b) {
-            b.count++
-        } else {
-            globalThis.asdsfcn.set(json.name, {name: json.name, count: 1})
-        }
-        console.table(Array.from(globalThis.asdsfcn.values()))
-
     }
 
     getMeta(name, default_value) {
