@@ -1,7 +1,4 @@
-import {getChunkAddr, SimpleQueue, Vector} from "../../../www/js/helpers.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
-import {FluidChunk} from "../../../www/js/fluid/FluidChunk.js";
-import {BaseChunk} from "../../../www/js/core/BaseChunk.js";
+import {SimpleQueue} from "../../../www/js/helpers.js";
 import {WorldChunkFlags} from "./WorldChunkFlags.js";
 import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js"
 
@@ -132,57 +129,33 @@ export class DBWorldFluid {
         }
     }
 
-    async applyLoadedChunk(chunk, fluidList) {
-        //FORCE
-        chunk.fluid.databaseID = -1;
-        this.world.chunkManager.fluidWorld.applyWorldFluidsList(fluidList);
-        await this.flushChunk(chunk);
-        chunk.sendFluid(chunk.fluid.saveDbBuffer());
-    }
-
-    async applyAnyChunk(fluidList) {
-        let chunk_addr = getChunkAddr(fluidList[0], fluidList[1], fluidList[2]);
-        let chunk = this.world.chunks?.get(chunk_addr);
-        if (chunk) {
-            await this.applyLoadedChunk(chunk, fluidList);
-        } else {
-            //TODO: GRID!
-            let buf = await this.loadChunkFluid(chunk_addr);
-
-            chunk = this.world.chunks?.get(chunk_addr);
+    async flushWorldFluidsList(fluids) {
+        const chunkManager = this.world.chunks;
+        if (!chunkManager) {
+            return;
+        }
+        const { fluidWorld } = chunkManager;
+        const fluidByChunk = fluidWorld.separateWorldFluidByChunks(fluids);
+        const saveRows = [];
+        for (let [chunk_addr, fluids] of fluidByChunk) {
+            const chunk = chunkManager.getOrRestore(chunk_addr);
+            let fluidChunk = null;
             if (chunk) {
-                //someone loaded chunk while we were loading this!
-                await this.applyLoadedChunk(chunk, fluidList);
-                return;
+                fluidWorld.applyChunkFluidList(chunk, fluids);
+                fluidChunk = chunk.fluid;
+                fluidChunk.databaseID = fluidChunk.updateID;
+            } else {
+                //TODO: bulk read
+                fluidChunk = fluidWorld.getOfflineFluidChunk(chunk_addr,
+                    await this.loadChunkFluid(chunk_addr), fluids);
             }
-
-            const sz = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-            const coord = chunk_addr.mul(sz);
-
-            const fakeChunk = {
-                tblocks: {
-                }
-            }
-            const dataChunk = new BaseChunk({size: sz});
-            const fluidChunk = new FluidChunk({
-                parentChunk: fakeChunk,
-                dataChunk,
+            saveRows.push({
+                addr: chunk_addr,
+                data: fluidChunk.saveDbBuffer()
             });
-            if (buf) {
-                fluidChunk.loadDbBuffer(buf);
-            }
-
-            const {cx, cy, cz, cw} = dataChunk;
-            for (let i = 0; i < fluidList.length; i += 4) {
-                const x = fluidList[i] - coord.x;
-                const y = fluidList[i + 1] - coord.y;
-                const z = fluidList[i + 2] - coord.z;
-                const val = fluidList[i + 3];
-                const ind = cx * x + cy * y + cz * z + cw;
-                fluidChunk.uint16View[ind] = val;
-            }
-
-            await this.saveChunkFluid(chunk_addr, fluidChunk.saveDbBuffer());
+        }
+        if (saveRows.length) {
+            await this.bulkSaveChunkFluid(saveRows);
         }
     }
 }

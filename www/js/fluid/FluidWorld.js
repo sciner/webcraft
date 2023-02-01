@@ -12,6 +12,8 @@ import {
     fluidBlockProps
 } from "./FluidConst.js";
 import {AABB} from "../core/AABB.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
+import {BaseChunk} from "../core/BaseChunk.js";
 
 export class FluidWorld {
     constructor(chunkManager) {
@@ -68,38 +70,91 @@ export class FluidWorld {
         }
     }
 
+    applyChunkFluidList(chunk, chunkFluids) {
+        const fluids = chunkFluids;
+        let {use_light} = this.chunkManager;
+        const {coord} = chunk;
+        if (use_light) {
+            //TODO: its slow!!!
+            chunk.light.beginLightChanges();
+        }
+        for (let i = 0; i < fluids.length; i += 4) {
+            chunk.fluid.setValue(fluids[i] - coord.x,
+                fluids[i + 1] - coord.y,
+                fluids[i + 2] - coord.z, fluids[i + 3]);
+        }
+        if (use_light) {
+            chunk.light.endLightChanges();
+        }
+        if (chunk.sendFluid) {
+            chunk.sendFluid(chunk.fluid.saveDbBuffer());
+        }
+    }
+
     applyWorldFluidsList(fluids) {
-        let chunks = new VectorCollector();
+        const chunks = this.separateWorldFluidByChunks(fluids);
+        for (let [chunk_addr, fluids] of chunks) {
+            const chunk = this.chunkManager.getChunk(chunk_addr);
+            if (chunk) {
+                this.applyChunkFluidList(chunk, fluids);
+            }
+        }
+    }
+
+    separateWorldFluidByChunks(fluids) {
+        let fluidByChunk = new VectorCollector();
         let {use_light} = this.chunkManager;
         if (!fluids || fluids.length === 0) {
-            return chunks;
+            return fluidByChunk;
         }
+        let prevIndex = 0;
         let chunk_addr = new Vector();
+        let prev_chunk_addr = new Vector();
+        let chunkFluids = null;
         for (let i = 0; i < fluids.length; i += 4) {
             let x = fluids[i], y = fluids[i + 1], z = fluids[i + 2], val = fluids[i + 3];
             getChunkAddr(x, y, z, chunk_addr);
-
-            let chunk = chunks.get(chunk_addr);
-            if (!chunk) {
-                chunk = this.chunkManager.getChunk(chunk_addr);
-                chunks.add(chunk_addr, chunk);
-                if (!chunk) {
-                    continue;
+            if (i === 0 || !prev_chunk_addr.equal(chunk_addr)) {
+                let rec = fluidByChunk.get(chunk_addr);
+                if (!chunkFluids) {
+                    fluidByChunk.set(chunk_addr, rec = [chunk_addr, []]);
                 }
+                chunkFluids = rec[1];
             }
-            if (use_light) {
-                //TODO: its slow!!!
-                chunk.light.beginLightChanges();
-            }
-            chunk.fluid.setValue(x - chunk.coord.x, y - chunk.coord.y, z - chunk.coord.z, val);
-            if (use_light) {
-                chunk.light.endLightChanges();
-            }
+            chunkFluids.push(x, y, z, val);
         }
-        //chunks
-        return chunks;
+        return fluidByChunk;
     }
 
+    getOfflineFluidChunk(chunk_addr, buf, fluids) {
+        //TODO: GRID!
+        const sz = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        const coord = chunk_addr.mul(sz);
+
+        const fakeChunk = {
+            tblocks: {
+            }
+        }
+        const dataChunk = new BaseChunk({size: sz});
+        const fluidChunk = new FluidChunk({
+            parentChunk: fakeChunk,
+            dataChunk,
+        });
+        if (buf) {
+            fluidChunk.loadDbBuffer(buf);
+        }
+
+        const {cx, cy, cz, cw} = dataChunk;
+        for (let i = 0; i < fluids.length; i += 4) {
+            const x = fluids[i] - coord.x;
+            const y = fluids[i + 1] - coord.y;
+            const z = fluids[i + 2] - coord.z;
+            const val = fluids[i + 3];
+            const ind = cx * x + cy * y + cz * z + cw;
+            fluidChunk.uint16View[ind] = val;
+        }
+        return fluidChunk;
+    }
 
     /**
      * utility functions
