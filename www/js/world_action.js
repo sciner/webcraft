@@ -1389,15 +1389,12 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
                         (
                             item_frame ||
                             mat_block.planting ||
-                            mat_block.style == 'cactus' ||
+                            mat_block.style_name == 'cactus' ||
                             mat_block.tags.includes('can_put_into_pot')
                         );
-    console.log('check putIntoPot')
     if(!putIntoPot) {
-        console.log('putIntoPot false')
         return false;
     }
-    console.log('putIntoPot true')
     extra_data.item = {
         id: current_inventory_item.id
     };
@@ -1415,7 +1412,6 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
         ignore_creative_game_mode: true
     };
     actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
-    console.log('step 7 ok')
     return true;
 }
 
