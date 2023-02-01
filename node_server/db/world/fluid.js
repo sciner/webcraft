@@ -1,6 +1,7 @@
 import {SimpleQueue} from "../../../www/js/helpers.js";
 import {WorldChunkFlags} from "./WorldChunkFlags.js";
-import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js"
+import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js";
+import { FluidWorld } from "../../../www/js/fluid/FluidWorld.js";
 
 export class DBWorldFluid {
     constructor(conn, world) {
@@ -131,14 +132,11 @@ export class DBWorldFluid {
 
     async flushWorldFluidsList(fluids) {
         const chunkManager = this.world.chunks;
-        if (!chunkManager) {
-            return;
-        }
-        const { fluidWorld } = chunkManager;
-        const fluidByChunk = fluidWorld.separateWorldFluidByChunks(fluids);
+        const fluidWorld = chunkManager?.fluidWorld;
+        const fluidByChunk = FluidWorld.separateWorldFluidByChunks(fluids);
         const saveRows = [];
         for (let [chunk_addr, fluids] of fluidByChunk) {
-            const chunk = chunkManager.getOrRestore(chunk_addr);
+            const chunk = chunkManager?.getOrRestore(chunk_addr);
             let fluidChunk = null;
             if (chunk) {
                 fluidWorld.applyChunkFluidList(chunk, fluids);
@@ -146,7 +144,7 @@ export class DBWorldFluid {
                 fluidChunk.databaseID = fluidChunk.updateID;
             } else {
                 //TODO: bulk read
-                fluidChunk = fluidWorld.getOfflineFluidChunk(chunk_addr,
+                fluidChunk = FluidWorld.getOfflineFluidChunk(chunk_addr,
                     await this.loadChunkFluid(chunk_addr), fluids);
             }
             saveRows.push({

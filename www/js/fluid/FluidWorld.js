@@ -92,7 +92,7 @@ export class FluidWorld {
     }
 
     applyWorldFluidsList(fluids) {
-        const chunks = this.separateWorldFluidByChunks(fluids);
+        const chunks = FluidWorld.separateWorldFluidByChunks(fluids);
         for (let [chunk_addr, fluids] of chunks) {
             const chunk = this.chunkManager.getChunk(chunk_addr);
             if (chunk) {
@@ -101,9 +101,8 @@ export class FluidWorld {
         }
     }
 
-    separateWorldFluidByChunks(fluids) {
+    static separateWorldFluidByChunks(fluids) {
         let fluidByChunk = new VectorCollector();
-        let {use_light} = this.chunkManager;
         if (!fluids || fluids.length === 0) {
             return fluidByChunk;
         }
@@ -115,9 +114,10 @@ export class FluidWorld {
             let x = fluids[i], y = fluids[i + 1], z = fluids[i + 2], val = fluids[i + 3];
             getChunkAddr(x, y, z, chunk_addr);
             if (i === 0 || !prev_chunk_addr.equal(chunk_addr)) {
+                prev_chunk_addr.copyFrom(chunk_addr);
                 let rec = fluidByChunk.get(chunk_addr);
-                if (!chunkFluids) {
-                    fluidByChunk.set(chunk_addr, rec = [chunk_addr, []]);
+                if (!rec) {
+                    fluidByChunk.set(chunk_addr, rec = [chunk_addr.clone(), []]);
                 }
                 chunkFluids = rec[1];
             }
@@ -126,7 +126,7 @@ export class FluidWorld {
         return fluidByChunk;
     }
 
-    getOfflineFluidChunk(chunk_addr, buf, fluids) {
+    static getOfflineFluidChunk(chunk_addr, buf, fluids) {
         //TODO: GRID!
         const sz = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         const coord = chunk_addr.mul(sz);
@@ -153,6 +153,7 @@ export class FluidWorld {
             const ind = cx * x + cy * y + cz * z + cw;
             fluidChunk.uint16View[ind] = val;
         }
+        fluidChunk.updateID++;
         return fluidChunk;
     }
 
