@@ -9,7 +9,7 @@ import { Sounds } from "./sounds.js";
 import { Kb} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MISUC_INITIAL_PAUSE_SECONDS } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
@@ -90,7 +90,7 @@ export class GameClass {
         this.prev_player_state  = null;
         // start playing music
         this.sounds.music.volume = this.settings.music_volume * 0.01;
-        this.sounds.music.schedulePlay(MISUC_INITIAL_PAUSE_SECONDS * 1000);
+        this.sounds.music.schedulePlay(MUSIC_INITIAL_PAUSE_SECONDS * 1000);
         //
         this.render.setPlayer(player);
         this.setInputElement(this.render.canvas);

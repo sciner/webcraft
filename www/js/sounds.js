@@ -1,5 +1,5 @@
 import { Resources } from "./resources.js";
-import { DEFAULT_SOUND_MAX_DIST, CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MISUC_PAUSE_SECONDS }  from "./constant.js";
+import { DEFAULT_SOUND_MAX_DIST, CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MUSIC_PAUSE_SECONDS }  from "./constant.js";
 
 class Music {
 
@@ -117,7 +117,7 @@ class Music {
         this._unloadTrack()
 
         if (withPause && !this.#timeoutId) {
-            this.schedulePlay(MISUC_PAUSE_SECONDS * 1000, () => {
+            this.schedulePlay(MUSIC_PAUSE_SECONDS * 1000, () => {
                 this._switchTrack(false, currentName)
             })
             return
