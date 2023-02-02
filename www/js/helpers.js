@@ -2173,6 +2173,23 @@ if(typeof fetch === 'undefined') {
     Helpers.fetchBinary = async (url) => fetch(url).then(response => response.arrayBuffer());
 }
 
+export class SpiralEntry {
+    constructor() {
+        this.pos = new Vector();
+        this.dist = dist;
+        this.chunk = null;
+        this.inNearby = false;
+    }
+
+    copyTranslate(se, translation) {
+        this.pos.copyFrom(se.pos);
+        this.pos.addSelf(translation);
+        se.dist = dist;
+        this.chunk = null;
+        this.inNearby = false;
+    }
+}
+
 // SpiralGenerator ...
 export class SpiralGenerator {
 
@@ -2235,7 +2252,10 @@ export class SpiralGenerator {
                     if(dist <= MAX_DIST) {
                         let key = vec.toString();
                         if(exists.indexOf(key) < 0) {
-                            resp.push({pos: vec, dist: dist});
+                            const entry = new SpiralEntry();
+                            entry.pos = vec;
+                            entry.dist = dist;
+                            resp.push(entry);
                             exists[key] = true;
                         }
                     }
