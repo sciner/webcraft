@@ -44,33 +44,10 @@ export class MainMenu extends BlankWindow {
     addButton(label, y, onclick) {
         const btnID = `btn_${this.id}_${y}`;
         const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
-        btn.style.background.color = '#888888ff'
-        btn.style.font.color = '#ffffffff'
+        btn.style.background.color = '#d4d0c8'
+        btn.style.font.color = '#000000bb'
         btn.style.font.size = 20
-        /*
-        btn.style.font.shadow = {
-            enable: true,
-            x: 2 * this.zoom,
-            y: 2 * this.zoom,
-            blur: 0,
-            color: 'rgba(0, 0, 0, 0.5)'
-        }
-        */
         btn.onMouseDown = onclick
-        /*
-        btn.onMouseEnter = function() {
-            this.style.background.color_save = this.style.background.color;
-            this.style.background.color = '#8892c9';
-            this.style.background.image_save = this.style.background.image;
-            this.style.background.image = null;
-        }
-        btn.onMouseLeave = function() {
-            this.style.background.color = this.style.background.color_save;
-            this.style.background.image = this.style.background.image_save;
-            this.style.background.image_save = null;
-            this.style.background.color_save = null;
-        }*/
-        // btn.style.border.color = '#ff0000';
         this.add(btn);
     }
 

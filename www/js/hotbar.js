@@ -44,12 +44,9 @@ class Strings {
     }
 
     // draw
-    draw(hud, y_margin, zoom, hud_pos, cell_size) {
+    draw(window, window_shadow) {
 
-        let draw_count = 0
-
-        // TODO: pixi
-        return
+        const texts = []
 
         // draw strings on center of display
         for(let i = 0; i < this.strings.length; i++) {
@@ -62,30 +59,17 @@ class Strings {
             if(time_remains > max_time) {
                 continue;
             }
-            //
-            y_margin += (i * cell_size / 2);
             // Text opacity
             const alpha = Math.min(2 - (time_remains / max_time) * 2, 1);
             let aa = Math.ceil(255 * alpha).toString(16);
             if(aa.length == 1) {
                 aa = '0' + aa;
             }
-            //
-            ctx.textBaseline = 'bottom';
-            ctx.font = Math.round(24 * zoom) + 'px ' + UI_FONT;
-            // Measure text
-            if(!item.measure) {
-                item.measure = ctx.measureText(item.text);
-            }
-            ctx.fillStyle = '#000000' + aa;
-            ctx.fillText(item.text, hud.width / 2 - item.measure.width / 2, hud_pos.y + cell_size - y_margin);
-            ctx.fillStyle = '#ffffff' + aa;
-            ctx.fillText(item.text, hud.width / 2 - item.measure.width / 2, hud_pos.y + cell_size - y_margin - 2 * zoom);
-            //
-            draw_count++;
+            texts.push(item.text)
         }
-
-        return draw_count > 0
+        
+        window.text = texts.join('\n')
+        window_shadow.text = texts.join('\n')
 
     }
 
@@ -111,6 +95,8 @@ export class Hotbar {
 
             this.tilemap = new MyTilemap()
             hud.wm.addChild(this.tilemap)
+
+            this.addHotbarText()
 
             // Init sprites
             this.sprites = {
@@ -157,6 +143,37 @@ export class Hotbar {
 
         })
 
+    }
+
+    addHotbarText() {
+
+        const hud = this.hud
+
+        // Hotbar text in center of screen
+        hud.wm._wmoverlay.add(this.lblHotbarTextShadow = new Window(0, 0, 0, 0, 'lblHotbarText', undefined, 'Lang.loading'))
+        this.lblHotbarTextShadow.catchEvents = false
+        this.lblHotbarTextShadow.style.textAlign.horizontal = 'center'
+        this.lblHotbarTextShadow.style.textAlign.vertical = 'bottom'
+        this.lblHotbarTextShadow.style.font.color = '#00000055'
+
+        // Hotbar text in center of screen
+        hud.wm._wmoverlay.add(this.lblHotbarText = new Window(0, 0, 0, 0, 'lblHotbarText', undefined, 'Lang.loading'))
+        this.lblHotbarText.catchEvents = false
+        this.lblHotbarText.style.textAlign.horizontal = 'center'
+        this.lblHotbarText.style.textAlign.vertical = 'bottom'
+        this.lblHotbarText.style.font.color = '#ffffff'
+
+        // const fs = this.lblHotbarText.text_container.style
+        // fs.stroke = '#00000099'
+        // fs.strokeThickness = 4
+        // fs.lineHeight = UI_ZOOM * 20
+        //
+        // fs.dropShadow = true
+        // fs.dropShadowAlpha = 1
+        // fs.dropShadowBlur = 4
+        // fs.dropShadowAngle = 0 // Math.PI / 6
+        // fs.dropShadowColor = 0x0
+        // fs.dropShadowDistance = 0
     }
 
     /**
@@ -262,12 +279,15 @@ export class Hotbar {
             })
         }
 
+        let hotbar_height = 0
+
         const mayGetDamaged = player.game_mode.mayGetDamaged();
         if (mayGetDamaged) {
             const left = 180 * this.zoom
             const right = 15 * this.zoom
             const bottom_one_line = 70 * this.zoom
             const bottom_two_line = 90 * this.zoom
+            hotbar_height = bottom_two_line
             const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
             // жизни
             const live = player.indicators.live.value;
@@ -297,6 +317,7 @@ export class Hotbar {
                 this.drawStrip(hud.width / 2 - left, hud.height - bottom_two_line, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
             }
         }
+
         // хотбар и селектор
         const sx = this.sprites.slot.width
         const sy = this.sprites.slot.height + 5 * this.zoom
@@ -309,8 +330,24 @@ export class Hotbar {
             }
         }
 
+        if(hotbar_height == 0) {
+            hotbar_height = sy
+        }
+
         // TODO: pixi
         this.drawEffects(hud)
+
+        // Draw strings
+        this.lblHotbarText.w = hud.width
+        this.lblHotbarText.h = hud.height
+        this.lblHotbarTextShadow.w = hud.width + 3
+        this.lblHotbarTextShadow.h = hud.height + 3
+
+        this.lblHotbarText.style.padding.bottom = hotbar_height + 10 * this.zoom
+        // this.lblHotbarTextShadow.style.padding.left = 2 * this.zoom
+        this.lblHotbarTextShadow.style.padding.bottom = hotbar_height + 10 * this.zoom
+
+        this.strings.draw(this.lblHotbarText, this.lblHotbarTextShadow)
 
     }
 

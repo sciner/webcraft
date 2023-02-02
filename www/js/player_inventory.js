@@ -33,6 +33,16 @@ export class PlayerInventory extends Inventory {
             // Вызывается при переключении активного слота в инвентаре
             player.resetMouseActivity();
             player.world.server.InventorySelect(this.current);
+            
+            // strings
+            const strings = Qubatch.hotbar.strings
+            if(item) {
+                const itemTitle = player.world.block_manager.getBlockTitle(item)
+                strings.updateText(0, itemTitle)
+            } else {
+                strings.setText(0, null)
+            }
+
             this.hud.refresh();
         };
         // Add this for draw on screen

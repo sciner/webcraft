@@ -238,11 +238,7 @@ export class HUD {
         this.frmMainMenu.parent.center(this.frmMainMenu)
 
         // Check if need redraw
-        const hasDrawContent = Qubatch.world && Qubatch.player && Qubatch.player.chat.hasDrawContent();
         this.prepareText()
-        // if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Qubatch.hud.wm.hasVisibleWindow() && !hasDrawContent) {
-        //     return false;
-        // }
         this.need_refresh = false;
         this.prevDrawTime = performance.now()
 

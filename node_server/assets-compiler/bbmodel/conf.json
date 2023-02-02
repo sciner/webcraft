@@ -1071,6 +1071,9 @@
         {
             "id": 911,
             "name": "BIRCH_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1091,6 +1094,9 @@
         {
             "id": 912,
             "name": "OAK_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1111,6 +1117,9 @@
         {
             "id": 913,
             "name": "ACACIA_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1131,6 +1140,9 @@
         {
             "id": 914,
             "name": "SPRUCE_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1151,6 +1163,9 @@
         {
             "id": 915,
             "name": "DARK_OAK_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1171,6 +1186,9 @@
         {
             "id": 916,
             "name": "JUNGLE_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1191,6 +1209,9 @@
         {
             "id": 917,
             "name": "CRIMSON_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1211,6 +1232,9 @@
         {
             "id": 918,
             "name": "WARPED_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1231,6 +1255,9 @@
         {
             "id": 919,
             "name": "NETHER_BRICK_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
