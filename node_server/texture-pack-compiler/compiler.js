@@ -1,8 +1,19 @@
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
+import mkdirp from 'mkdirp';
+import path from 'path';
 import { DEFAULT_TEXTURE_SUFFIXES, Spritesheet } from "./spritesheet.js";
 import { CompileData } from "./compile_data.js";
 import { DEFAULT_TX_CNT } from '../../www/js/constant.js';
+import { ArrayHelpers } from "../../www/js/helpers.js";
+
+// A folder where the music is stored on the server. It's relative to the folder with this source file.
+// It's within webcraft dir, but added to .gitignore
+const SERVER_MUSIC_DIR = '../../www/media/music/'
+
+// A folder from which the music is automaticlly copied into SERVER_MUSIC_ROOT.
+// It's outside the webcraft folder. It's relative to the folder with this source file.
+const SERVER_MUSIC_SOURCE_DIR = '../../../music/'
 
 const BLOCK_NAMES = {
     DIRT: 'DIRT',
@@ -87,6 +98,13 @@ export class Compiler {
         try {
             this.compile_data.blocks = await this.compileBlocks(this.compile_data.blocks);
             await this.export();
+        } catch(e) {
+            console.error(e);
+        }
+        try {
+            // Copy the updated music from an external repo to the place where it's served from. Don't await completion.
+            const musicChnaged = await syncDirectory(SERVER_MUSIC_SOURCE_DIR, SERVER_MUSIC_DIR, (name) => !name.startsWith('.'))
+            console.log(musicChnaged ? 'The music directory has been updated' : "The music hasn't changed")
         } catch(e) {
             console.error(e);
         }
@@ -611,4 +629,75 @@ export class Compiler {
         this.setFlammable('GLOW_LICHEN', 15, 100);
     }
 
+}
+
+/**
+ * Copies files from {@link srcDir} to {@link dstDir} if the destination doesn't exist, or is older.
+ * Deletes files and directories from {@link dstDir} if they aren't present in {@link srcDir}.
+ * Recursively processes subfolders.
+ * @return {Boolean} true if anything has been changed
+ */
+async function syncDirectory(srcDir, dstDir, filter = (fileName) => true) {
+
+    async function readdirExt(dir) {
+        const files = await fs.promises.readdir(dir) // get filenames
+        for(let i = 0; i < files.length; i++) {
+            const fullName = path.join(dir, files[i])
+            files[i] = {
+                name: files[i],
+                fullName,
+                stat: await fs.promises.stat(fullName)
+            }
+        }
+        return files
+    }
+
+    let changed = false
+    await mkdirp(dstDir)
+    const srcFiles = await readdirExt(srcDir).catch(err => {
+        throw `Can't read ${srcDir}`
+    })
+    const dstFiles = await readdirExt(dstDir)
+    const srcFilesByName = ArrayHelpers.toObject(srcFiles, (i, v) => v.name)
+    const dstFilesByName = ArrayHelpers.toObject(dstFiles, (i, v) => v.name)
+
+    // copy new and/or updated files and directories
+    for(const srcFile of srcFiles) {
+        if (!filter(srcFile.name)) {
+            continue;
+        }
+        if (srcFile.stat.isDirectory()) {
+            // sync subfolder recursively
+            const dstFullName = path.join(dstDir, srcFile.name)
+            if (await syncDirectory(srcFile.fullName, dstFullName)) {
+                changed = true
+            }
+        } else {
+            // copy the file if the destination is older, or doesn't exist, or isn't a file
+            let dstFile = dstFilesByName[srcFile.name]
+            if (dstFile?.stat?.isDirectory()) {
+                await fs.promises.rm(dstFile.fullName, { recursive: true })
+                dstFile = null
+                changed = true
+            }
+            if (!dstFile ||
+                srcFile.stat.ctimeMs > dstFile.stat.ctimeMs ||
+                srcFile.stat.mtimeMs > dstFile.stat.mtimeMs
+            ) {
+                const dstFullName = path.join(dstDir, srcFile.name)
+                await fs.promises.copyFile(srcFile.fullName, dstFullName)
+                changed = true
+            }
+        }
+    }
+
+    // delete dst files that don't exist in srcDir
+    for(const dstFile of dstFiles) {
+        if (!srcFilesByName[dstFile.name]) {
+            await fs.promises.rm(dstFile.fullName, { recursive: true })
+            changed = true
+        }
+    }
+
+    return changed
 }
