@@ -12,13 +12,18 @@ const SERVER_MUSIC_DIR = '../../www/media/music/'
 // It's outside the webcraft folder. It's relative to the folder with this source file.
 const SERVER_MUSIC_SOURCE_DIR = '../../../music/'
 
+const EMPTY_MUSIC_JSON = {
+    "type": "madcraft:music",
+    "default": []
+}
+
 export class Music_Compiler {
 
     async run() {
         try {
             // Copy the updated music from an external repo to the place where it's served from. Don't await completion.
-            const musicChnaged = await this.syncDirectory(SERVER_MUSIC_SOURCE_DIR, SERVER_MUSIC_DIR, (name) => !name.startsWith('.'))
-            console.log(musicChnaged ? 'The music directory has been updated' : "The music hasn't changed")
+            const musicChanged = await this.syncDirectory(SERVER_MUSIC_SOURCE_DIR, SERVER_MUSIC_DIR, (name) => !name.startsWith('.'))
+            console.log(musicChanged ? 'The music directory has been updated' : "The music hasn't changed")
         } catch(e) {
             console.error(e);
         }
@@ -31,6 +36,15 @@ export class Music_Compiler {
      * @return {Boolean} true if anything has been changed
      */
     async syncDirectory(srcDir, dstDir, filter = (fileName) => true) {
+
+        srcDir = path.resolve(srcDir)
+
+        if (!fs.existsSync(srcDir)) {
+            console.log(`Music directory ${srcDir} not found`)
+            // copy empty json for remove 404 http error in Resource loader
+            fs.writeFileSync(`${dstDir}/music.json`, JSON.stringify(EMPTY_MUSIC_JSON));
+            return false
+        }
 
         async function readdirExt(dir) {
             const files = await fs.promises.readdir(dir) // get filenames

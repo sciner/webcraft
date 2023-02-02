@@ -16,10 +16,8 @@ export class PlayerArm {
      */
     constructor(player, render) {
 
-        debugger
-
         const model = Resources._bbmodels.get('arm')
-        const arm = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model)
+        const arm = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
         arm.setAnimation('idle') // atack_sword
 
         //

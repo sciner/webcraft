@@ -242,7 +242,7 @@ export class ServerChat {
                 const safe = (args[0] == '/stp');
                 if(args.length == 4) {
                     args = this.parseCMD(args, ['string', '?float', '?float', '?float']);
-                    const pos = new Vector(args[1], args[2], args[3]);
+                    const pos = new Vector(args[1] ?? player.state.pos.x, args[2] ?? player.state.pos.y, args[3] ?? player.state.pos.z);
                     player.teleport({place_id: null, pos: pos, safe: safe});
                 } else if (args.length == 2) {
                     args = this.parseCMD(args, ['string', 'string']);

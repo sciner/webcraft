@@ -17,10 +17,11 @@ export class Mesh_Object_BBModel {
      * @param {Vector} rotate 
      * @param {BBModel_Model} model 
      * @param {string} animation_name 
+     * @param {boolean} doubleface 
      * 
      * @returns 
      */
-    constructor(render, pos, rotate, model, animation_name = null) {
+    constructor(render, pos, rotate, model, animation_name = null, doubleface = false) {
 
         this.model = model;
         if(!this.model) {
@@ -39,7 +40,7 @@ export class Mesh_Object_BBModel {
         this.start_time     = performance.now();
         this.resource_pack  = render.world.block_manager.resource_pack_manager.get('bbmodel');
 
-        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/regular/terrain/${model.json._properties.texture_id}`);
+        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.vertices       = [];
         this.buffer         = new GeometryTerrain(this.vertices);
         this.redraw();
