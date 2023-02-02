@@ -17,10 +17,10 @@ export class BlockDrawer {
      */
     draw(cluster, chunk, map) {
 
-        let blocks_seted = 0
+        let blocks_setted = 0
 
         if(this.list.length == 0) {
-            return blocks_seted
+            return blocks_setted
         }
 
         const pos = new Vector(0, 0, 0);
@@ -33,7 +33,7 @@ export class BlockDrawer {
             const item = this.list[i];
             pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir, this.mirror_x, this.mirror_z)
             if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map)) {
-                blocks_seted++
+                blocks_setted++
             }
             //
             if(pos.x >= 0 && pos.y >= 0 && pos.z >= 0 && pos.x < chunk.size.x && pos.y < chunk.size.y && pos.z < chunk.size.z) {
@@ -58,13 +58,13 @@ export class BlockDrawer {
                         break
                     }
                     if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, BLOCK_AIR_ID)) {
-                        blocks_seted++
+                        blocks_setted++
                     }
                 }
             }
         }
 
-        return blocks_seted
+        return blocks_setted
 
     }
 
