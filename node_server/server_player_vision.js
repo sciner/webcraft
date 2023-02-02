@@ -192,7 +192,7 @@ export class ServerPlayerVision {
         if (nearbyChunks.dirty === 0) {
             return false;
         }
-        const {spiralEntries} = this;
+        const {spiralEntries, player} = this;
         const {nearbyChunks} = this;
         const checkDelete = nearbyChunks.dirty === 2;
 
@@ -205,14 +205,16 @@ export class ServerPlayerVision {
             chunk.scanId = scanId;
             if (!nearbyChunks.has(pos)) {
                 nearbyChunks.add(pos, chunk)
-                chunk.addPlayer(this);
+                chunk.addPlayer(player);
             }
         }
 
         if (checkDelete) {
             for (let entry of nearbyChunks) {
-                if (entry.chunk.scanId !== scanId) {
+                const {chunk} = entry;
+                if (chunk.scanId !== scanId) {
                     nearbyChunks.delete(entry.pos);
+                    chunk.removePlayer(player);
                 }
             }
         }
