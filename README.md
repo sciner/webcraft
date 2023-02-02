@@ -11,13 +11,15 @@ Minecraft clone on JS
 
 ## Run and play
 
-Compilate texture pack. It require for first run the game, because textures not included in repo.
+Compile the texture pack. It's required for the first run of the game, because the textures are not included in the repo.
+Optionally, copy the music. The music is not required to run the game, and can be copied later.
 For example you can download this texture pack from https://polyflore.net/projects/depixel
 ```
-1. extract resource pack to directory ../resource-packs/1 (one level up from project root directory)
-2. cd ./node_server
-3. npm install
-4. npm run compile-assets
+1. extract the resource pack to directory ../resource-packs/1 (one level up from project root directory)
+2. (optional step) create directory ../music (on the same level as ../resource-packs), and fill it like described in ./doc/music.md
+3. cd ./node_server
+4. npm install
+5. npm run compile-assets
 ```
 
 Start server:

@@ -183,7 +183,7 @@ export class Sounds {
     static VOLUME_MAP = {
         // It's multiplied by the user-contolled music volume setting.
         // It allows us to change the music volume relative to other sounds without changing the user-controlled setting.
-        music: 0.8, // this value should be chosen taking into account DEFAULT_MUSIC_VOLUME
+        music: 0.4, // this value should be chosen taking into account DEFAULT_MUSIC_VOLUME
 
         // step: 0.1,
         entering_water: 0.1,

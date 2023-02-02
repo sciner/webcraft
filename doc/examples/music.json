@@ -1,0 +1,8 @@
+{
+    "type": "madcraft:music",
+    "default": [
+        "some track name",
+        "another track name",
+        "track 3"
+    ]
+}
