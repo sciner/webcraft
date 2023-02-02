@@ -7,6 +7,8 @@ let BuildingTemplate    = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
 
+const bulding_schemas   = [] 
+
 /**
  * @type { import("./worker/world.js").WorkerWorldManager }
 */
@@ -109,6 +111,15 @@ async function initWorld(generator, world_seed, world_guid, settings, cache) {
     //
     worlds = new WorkerWorldManager();
     await worlds.InitTerrainGenerators([generator.id]);
+
+    // bulding_schemas
+    if(bulding_schemas.length > 0) {
+        while(bulding_schemas.length > 0) {
+            const schema = bulding_schemas.shift()
+            BuildingTemplate.addSchema(schema, globalThis.BLOCK)
+        }
+    }
+    
     globalThis.world = await worlds.add(generator, world_seed, world_guid);
     // Worker inited
     worker.postMessage(['world_inited', null]);
@@ -281,7 +292,11 @@ async function onMessageFunc(e) {
         }
         case 'buildingSchemaAdd': {
             for(let schema of args.list) {
-                BuildingTemplate.addSchema(schema)
+                if(typeof world !== 'undefined') {
+                    BuildingTemplate.addSchema(schema)
+                } else {
+                    bulding_schemas.push(schema)
+                }
             }
             break
         }

@@ -8,7 +8,7 @@
     "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
     "compile-texture-pack": "cd ./texture-pack-compiler && node --experimental-json-modules --no-warnings ./index.js",
     "rollup": "(cd ../ff-worker && npm run start)",
-    "start-rebuild": "npm run rollup && npm run start",
+    "start-rollup": "npm run rollup && npm run start page.useGenWorkers=true",
     "test": "mocha"
   },
   "dependencies": {

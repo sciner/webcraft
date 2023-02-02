@@ -1,5 +1,5 @@
 import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
-import { getChunkAddr, Vector, VectorCollector } from "../helpers.js";
+import { getChunkAddr, PerformanceTimer, Vector, VectorCollector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
@@ -24,7 +24,7 @@ class MaterialBuf {
 }
 
 // ChunkManager
-export class ChunkManager {
+export class ChunkWorkerChunkManager {
 
     constructor(world) {
         this.world = world;
@@ -78,6 +78,10 @@ export class ChunkManager {
 // Chunk
 export class Chunk {
 
+    /**
+     * @param {ChunkWorkerChunkManager} chunkManager 
+     * @param {*} args 
+     */
     constructor(chunkManager, args) {
         this.chunkManager   = chunkManager;
         Object.assign(this, args);
@@ -119,40 +123,39 @@ export class Chunk {
         this.dirty              = true;
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
-        this.timers             = {
-            init:               null,
-            generate_terrain:   null,
-            generate_noise3d:   null,
-            apply_modify:       null,
-            build_vertices:     null
-        };
+        //
+        this.timers             = new PerformanceTimer()
         // 1. Initialise world array
-        this.timers.init = performance.now();
-
+        this.timers.start('init')
         this.tblocks = newTypedBlocks(this.coord, this.size);
-        this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
+        this.timers.stop()
     }
 
     doGen() {
         this.tblocks.makeBedrockEdge();
         this.chunkManager.dataWorld.addChunk(this);
+
         // 2. Generate terrain
-        this.timers.generate_terrain = performance.now();
+        this.timers.start('generate_terrain')
         this.map = this.chunkManager.world.generator.generate(this);
-        this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
+        this.timers.stop()
+
         // 3. Apply modify_list
-        this.timers.apply_modify = performance.now();
+        this.timers.start('apply_modify')
         this.applyModifyList();
         //TODO: mark neibs dirty in sync outer
         this.chunkManager.dataWorld.syncOuter(this);
-        this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
-        this.inited = true;
+        this.timers.stop()
+
+        this.inited = true
+
         return {
             key:        this.key,
             addr:       this.addr,
             tblocks:    this.tblocks,
             map:        this.map
-        };
+        }
+
     }
 
     packCells() {
@@ -189,6 +192,8 @@ export class Chunk {
         if(ml.obj) {
             ml = ml.obj;
         } else if(ml.compressed) {
+            // It's ok to not use ml.private_compressed here, because on the server
+            // there is always ml.obj, and on the client there is no ml.private_compressed.
             ml = decompressWorldModifyChunk(Uint8Array.from(atob(ml.compressed), c => c.charCodeAt(0)));
         } else {
             ml = {};
@@ -294,17 +299,17 @@ export class Chunk {
 
     /**
      * Set block indirect
-     * @param {int} x 
-     * @param {int} y 
-     * @param {int} z 
-     * @param {int} block_id 
-     * @param {*} rotate 
-     * @param {*} extra_data 
-     * @param {*} entity_id 
-     * @param {*} power 
+     * @param {int} x
+     * @param {int} y
+     * @param {int} z
+     * @param {int} block_id
+     * @param {*} rotate
+     * @param {*} extra_data
+     * @param {*} entity_id
+     * @param {*} power
      * @param {boolean} check_is_solid - if true, it prevents replacing solid blocks
      * @param {boolean} destroy_fluid
-     * @returns 
+     * @returns
      */
     setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false, destroy_fluid = false) {
 
@@ -327,7 +332,9 @@ export class Chunk {
             return
         }
 
-        this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
+        if (uint16View[index] > 0) {
+            this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
+        }
 
         uint16View[index] = block_id;
         if (rotate || extra_data) {
@@ -409,7 +416,7 @@ export class Chunk {
         }
 
         /**
-         * @param {string} material_key 
+         * @param {string} material_key
          */
         const getMaterialBuf = (material_key) => {
 
@@ -437,7 +444,7 @@ export class Chunk {
         }
 
         /**
-         * @param {FakeVertices} fv 
+         * @param {FakeVertices} fv
          */
         const processFakeVertices = (fv) => {
             const matBuf = getMaterialBuf(fv.material_key)

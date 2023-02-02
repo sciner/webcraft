@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X } from "../../chunk_const.js";
-import { DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js";
+import { DIRECTION, getChunkAddr, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
 import { AABB } from '../../core/AABB.js';
 import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
@@ -29,18 +29,11 @@ export class ClusterBuildingBase extends ClusterBase {
     //
     constructor(clusterManager, addr, biome) {
 
-        super(clusterManager, addr);
+        super(clusterManager, addr)
 
         this.buildings              = new VectorCollector()
         this.randoms                = new alea(this.id)
-
-        //
-        this.timers = {
-            generate: 0,
-            fill_blocks: 0,
-            add_buildings: 0,
-            fill_blocks_count: 0
-        }
+        this.timers                 = new PerformanceTimer()
 
     }
 
@@ -118,7 +111,7 @@ export class ClusterBuildingBase extends ClusterBase {
             return false;
         }
 
-        let t = performance.now();
+        this.timers.start('fill_blocks')
 
         // each all buildings
         for(let b of this.buildings.values()) {
@@ -144,7 +137,7 @@ export class ClusterBuildingBase extends ClusterBase {
         }
 
         //
-        this.timers.fill_blocks += performance.now() - t;
+        this.timers.stop()
         this.timers.fill_blocks_count++;
 
     }

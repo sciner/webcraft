@@ -1,5 +1,6 @@
 import { PIXI } from "./pixi.js"
 import {MySprite} from "./MySpriteRenderer.js";
+import { Vector } from "../../js/helpers.js";
 
 export const USE_BITMAP_FONT = false;
 
@@ -160,6 +161,31 @@ export class BackgroundStyle {
                 // background.pivot.y = background._image.height / 2
                 break
             }
+            case 'cover': {
+                const bgSize = new Vector(window.w, window.h, 0)
+                background.width = background._texture.orig.width
+                background.height = background._texture.orig.height
+                const sp = new Vector(background.width, background.height, 0)
+                const winratio = bgSize.x / bgSize.y
+                const spratio = sp.x / sp.y
+                const pos = new PIXI.Point(0, 0)
+                let scale = 1
+                // if(type == 'cover' ? (winratio > spratio) : (winratio < spratio)) {
+                if(winratio > spratio) {
+                    // photo is wider than background
+                    scale = bgSize.x / sp.x
+                    pos.y = -((sp.y * scale) - bgSize.y) / 2
+                } else {
+                    // photo is taller than background
+                    scale = bgSize.y / sp.y
+                    pos.x = -((sp.x * scale) - bgSize.x) / 2
+                }
+                background.anchor.set(0, 0)
+                background.scale = new PIXI.Point(scale, scale)
+                background.position.x = pos.x
+                background.position.y = pos.y
+                break
+            }
             case 'stretchcenter':
             case 'centerstretch': {
                 background.position.x = window.w / 2
@@ -194,11 +220,12 @@ export class BackgroundStyle {
     }
 
     set color(value) {
+        const window = this.#window
         const {color, alpha} = parseColorAndAlpha(value)
         this._color = value
         this.#_bgcolor.clear()
         this.#_bgcolor.beginFill(color)
-        this.#_bgcolor.drawRect(0, 0, this.#window.w, this.#window.h)
+        this.#_bgcolor.drawRect(0, 0, window.w, window.h)
         this.#_bgcolor.alpha = alpha
     }
 
@@ -258,6 +285,10 @@ export class BorderStyle {
         if(this.#_wmborder) {
             this.#_wmborder.visible = !value
         }
+    }
+
+    resize() {
+        this._redraw()
     }
 
     _redraw() {
@@ -355,6 +386,34 @@ export class PaddingStyle {
      */
     set bottom(value) {
         this.#_values.bottom = value
+        this._changed()
+    }
+
+    /**
+     * Smart set padding
+     * @param {float} left 
+     * @param {float} top 
+     * @param {float} right 
+     * @param {float} bottom 
+     */
+    set(left, top, right, bottom) {
+        if(left != undefined && top == undefined && right == undefined && bottom == undefined) {
+            top = right = bottom = left
+        } else if (left != undefined && top != undefined && right == undefined && bottom == undefined) {
+            right = left
+            bottom = top
+        }
+        if(left == undefined || top == undefined || right == undefined || bottom == undefined) {
+            throw 'error_invalid_style_padding'
+        }
+        this.#_values.left = left
+        this.#_values.top = top
+        this.#_values.right = right
+        this.#_values.bottom = bottom
+        this._changed()
+    }
+
+    resize() {
         this._changed()
     }
 
@@ -535,16 +594,18 @@ export class Style {
 
     #window
 
+    constructor() {}
+
     /**
      * @param { import("./wm.js").Window } window
      */
-    constructor(window) {
-        this.#window = window
-        this._background = new BackgroundStyle(window)
-        this._border = new BorderStyle(window)
-        this._font = new FontStyle(window)
-        this._padding = new PaddingStyle(window)
-        this._textAlign = new TextAlignStyle(window)
+    assign(window) {
+        this.#window        = window
+        this._padding       = new PaddingStyle(window)
+        this._background    = new BackgroundStyle(window)
+        this._border        = new BorderStyle(window)
+        this._font          = new FontStyle(window)
+        this._textAlign     = new TextAlignStyle(window)
     }
 
     /**
@@ -563,10 +624,9 @@ export class Style {
                 this._padding[k] = value[k]
             }
         } else {
-            for(let k in this._padding) {
-                this._padding[k] = value
-            }
+            this._padding.set(value)
         }
+        this._padding._changed()
     }
 
     /**

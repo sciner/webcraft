@@ -5,6 +5,17 @@ import { INVENTORY_DRAG_SLOT_INDEX } from "./constant.js";
 // Player inventory
 export class PlayerInventory extends Inventory {
 
+    /**
+     * @type { import("../tools/gui/wm.js").WindowManager }
+     */
+    wm
+
+    /**
+     * 
+     * @param {*} player 
+     * @param {*} state 
+     * @param { import("./hud.js").HUD } hud 
+     */
     constructor(player, state, hud) {
         super(player, {current: {index: 0, index2: -1}, items: []});
         this.hud = hud
@@ -67,14 +78,20 @@ export class PlayerInventory extends Inventory {
         return true;
     }
 
-    //
+    /**
+     * @param {*} slot 
+     * @param {*} item 
+     * @param { import("../tools/gui/wm.js").Pointer } drag
+     * @param {*} width 
+     * @param {*} height 
+     */
     setDragItem(slot, item, drag, width, height) {
         this.items[INVENTORY_DRAG_SLOT_INDEX] = item;
         if(!drag) {
             drag = this.hud.wm.drag;
         }
         if(item) {
-            drag.setItem(item)
+            drag.setItem(item, slot)
         } else {
             this.clearDragItem()
         }

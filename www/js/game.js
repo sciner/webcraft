@@ -38,8 +38,8 @@ export class GameClass {
         this.f3_used                    = false;
         // Local server client
         this.local_server_client = (globalThis.LocalServerClient !== undefined) ? new LocalServerClient() : null;
-
-        this.fix_RAF = false;
+        this.preLoop = this.preLoop.bind(this)
+        this.preLoopEnable = true
     }
 
     // Start
@@ -49,14 +49,15 @@ export class GameClass {
         // Load resources
         Resources.onLoading = resource_loading_progress;
         // we can use it both
-        const resourceTask = Resources.load({
+        await Resources.load({
             imageBitmap:    true,
             glsl:           this.render.renderBackend.kind === 'webgl',
             wgsl:           this.render.renderBackend.kind === 'webgpu'
         });
+
         //
         const blockTask = BLOCK.init(settings);
-        await Promise.all([resourceTask, blockTask]);
+        await Promise.all([blockTask]);
 
         // Make atlases
         for(const [atlas_name, item] of Object.entries(Resources.atlas)) {
@@ -103,6 +104,7 @@ export class GameClass {
             player.sendState();
         }, 50);
         // Run render loop
+        this.preLoopEnable = false
         this.render.requestAnimationFrame(this.loop);
         //
         this.bbmodelDropPaste = new BBModel_DropPaste(this)
@@ -135,7 +137,7 @@ export class GameClass {
             onMouseEvent: (e, x, y, type, button_id, shiftKey) => {
                 const hasVisibleWindow = hud.wm.hasVisibleWindow();
                 const DPR = isMobileBrowser() ? 1 : window.devicePixelRatio;
-                if(type == MOUSE.DOWN && hasVisibleWindow) {
+                if(([MOUSE.DOWN, MOUSE.UP].includes(type)) && hasVisibleWindow) {
                     hud.wm.mouseEventDispatcher({
                         type:       e.type,
                         shiftKey:   e.shiftKey,
@@ -230,7 +232,7 @@ export class GameClass {
                     // [F2]
                     case KEY.F2: {
                         if(!e.down) {
-                            if(!hud.wm.hasVisibleWindow() && this.player.session.user_id == this.world.info.user_id) {
+                            if(!hud.wm.hasVisibleWindow()) {
                                 hud.wm.getWindow('frmScreenshot').make();
                             }
                         }
@@ -422,13 +424,6 @@ export class GameClass {
                         }
                         return true;
                     }
-                    case KEY.F9: {
-                        if(!e.down) {
-                            this.fix_RAF = !this.fix_RAF;
-                            player.chat.messages.addSystem(`fix_RAF is now ${this.fix_RAF}`);
-                        }
-                        return true;
-                    }
                     // F10 (toggleUpdateChunks)
                     case KEY.F10: {
                         if(!e.down) {
@@ -543,6 +538,15 @@ export class GameClass {
         this.onControlsEnabledChanged(value);
     }
 
+    preLoop() {
+        if(this.preLoopEnable) {
+            this.render.renderBackend.resetAfter();
+            this.hud.draw()
+            this.render.renderBackend.resetBefore();
+            this.render.requestAnimationFrame(this.preLoop)
+        }
+    }
+
     /**
      * Main loop
      * @param {number} time
@@ -569,13 +573,6 @@ export class GameClass {
 
         this.world.chunkManager.update(player.pos, delta);
 
-        // Picking target
-        if (player.pickAt && player.game_mode.canBlockAction()) {
-            player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
-        } else {
-            player.pickAt.targetDescription = null;
-        }
-
         // change camera location
         this.render.setCamera(player, this.free_cam ? this.getFreeCamPos(delta) : player.getEyePos(), player.rotate, !!this.free_cam);
 
@@ -598,14 +595,8 @@ export class GameClass {
         this.hud.FPS.incr();
         this.averageClockTimer.add(performance.now() - tm);
 
-        // we must request valid loop
-        if (this.fix_RAF) {
-            setTimeout(() => {
-                this.render.requestAnimationFrame(this.loop);
-            }, 3)
-        } else {
-            this.render.requestAnimationFrame(this.loop);
-        }
+        this.render.requestAnimationFrame(this.loop)
+
     }
 
     // releaseMousePointer
@@ -723,19 +714,27 @@ export class GameClass {
                 for(var name in timers) {
                     const tim = timers[name];
                     var t = chunk.timers[tim.name];
-                    if(t < tim.min) tim.min = t;
-                    if(t > tim.max) tim.max = t;
-                    tim.total += t;
-                    if(t > 0) {
-                        tim.cnt_more_zero++;
+                    if(t !== undefined) {
+                        if(t < tim.min) tim.min = t;
+                        if(t > tim.max) tim.max = t;
+                        tim.total += t;
+                        if(t > 0) {
+                            tim.cnt_more_zero++;
+                        }
                     }
                 }
             }
         }
+        const round = (v) => {
+            return Math.round(v * 100) / 100
+        }
         for(var name in timers) {
             const tim = timers[name];
-            tim.avg = tim.cnt_more_zero > 0 ? Math.round(tim.total / tim.cnt_more_zero * 100) / 100 : -1;
-            tim.total = Math.round(tim.total * 100) / 100;
+            delete(tim.name)
+            tim.avg = tim.cnt_more_zero > 0 ? round(tim.total / tim.cnt_more_zero) : -1;
+            tim.total = round(tim.total)
+            tim.min = round(tim.min)
+            tim.max = round(tim.max)
             tim.cnt = cnt;
         }
         console.table(timers);

@@ -1,4 +1,4 @@
-import { ChunkManager, Chunk } from "./chunk.js";
+import { ChunkWorkerChunkManager, Chunk } from "./chunk.js";
 import { VectorCollector } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 
@@ -72,7 +72,7 @@ export class WorkerWorld {
         this.chunks = new VectorCollector();
         this.genQueue = new ChunkWorkQueue(this);
         this.buildQueue = null;
-        this.chunkManager = new ChunkManager(this);
+        this.chunkManager = new ChunkWorkerChunkManager(this);
         this.generator = null;
         this.activePotentialCenter = null;
     }
@@ -253,14 +253,14 @@ const buildSettings = {
 
 function buildVertices(chunk, return_map) {
     let prev_dirty = chunk.dirty;
-    let pm = performance.now();
+    chunk.timers.start('build_vertices')
     chunk.dirty = true;
     let is_builded = chunk.buildVertices(buildSettings);
     if(!is_builded) {
         chunk.dirty = prev_dirty;
         return null;
     }
-    chunk.timers.build_vertices = Math.round((performance.now() - pm) * 1000) / 1000;
+    chunk.timers.stop()
     let resp = {
         key:                    chunk.key,
         addr:                   chunk.addr,

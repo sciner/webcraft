@@ -1,7 +1,7 @@
-import { Vector } from "../../../helpers.js";
+import { IndexedColor, Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { BLOCK } from '../../../blocks.js';
-import { DensityParams, DENSITY_AIR_THRESHOLD, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD, WATER_LEVEL } from "../terrain/manager.js";
+import { DensityParams, DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD, WATER_LEVEL } from "../terrain/manager.js";
 import { TerrainMapCell } from "../terrain/map_cell.js";
 import { TerrainMap2 } from "../terrain/map.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
@@ -68,39 +68,39 @@ export default class Biome3LayerOverworld {
         const cluster = chunk.cluster
 
         // Generate maps around chunk
-        chunk.timers.generate_maps = performance.now()
+        chunk.timers.start('generate_maps')
         const maps = this.maps.generateAround(chunk, chunk.addr, true, true)
-        chunk.timers.generate_maps = performance.now() - chunk.timers.generate_maps
+        chunk.timers.stop()
 
         const map = chunk.map = maps[4]
 
         // Generate chunk data
-        chunk.timers.generate_chunk_data = performance.now()
+        chunk.timers.start('generate_chunk_data')
         this.generateChunkData(chunk, seed, rnd)
-        chunk.timers.generate_chunk_data = performance.now() - chunk.timers.generate_chunk_data
+        chunk.timers.stop()
 
         // Mines
-        chunk.timers.generate_mines = performance.now()
+        chunk.timers.start('generate_mines')
         if(chunk.addr.y == 0) {
             const mine = MineGenerator.getForCoord(this, chunk.coord)
             mine.fillBlocks(chunk);
         }
-        chunk.timers.generate_mines = performance.now() - chunk.timers.generate_mines
+        chunk.timers.stop()
 
         // Dungeon
-        chunk.timers.generate_dungeon = performance.now()
+        chunk.timers.start('generate_dungeon')
         this.dungeon.add(chunk)
-        chunk.timers.generate_dungeon = performance.now() - chunk.timers.generate_dungeon
+        chunk.timers.stop()
 
         // Cluster
-        chunk.timers.generate_cluster = performance.now()
+        chunk.timers.start('generate_cluster')
         cluster.fillBlocks(this.maps, chunk, map, false, false)
-        chunk.timers.generate_cluster = performance.now() - chunk.timers.generate_cluster
+        chunk.timers.stop()
 
         // Plant trees
-        chunk.timers.generate_trees = performance.now()
+        chunk.timers.start('generate_trees')
         this.plantTrees(maps, chunk)
-        chunk.timers.generate_trees = performance.now() - chunk.timers.generate_trees
+        chunk.timers.stop()
 
         return map
 
@@ -174,16 +174,17 @@ export default class Biome3LayerOverworld {
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = BLOCK.DIRT.id
+        const STONE_BLOCKS              = [BLOCK.STONE.id, BLOCK.ANDESITE.id, BLOCK.DIORITE.id, BLOCK.GRANITE.id]
+        const block_result              = new MapsBlockResult()
 
         const rand_lava = new alea('random_lava_source_' + this.seed);
 
         // generate densisiy values for column
-        chunk.timers.generate_noise3d = performance.now();
+        chunk.timers.start('generate_noise3d')
         const sz = this.calcColumnNoiseSize(chunk)
-
         // TODO: for air, ignore this all?
         this.generator.noise3d.generate4(chunk.coord, sz);
-        chunk.timers.generate_noise3d = performance.now() - chunk.timers.generate_noise3d;
+        chunk.timers.stop()
 
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -194,7 +195,7 @@ export default class Biome3LayerOverworld {
                 /**
                  * @type {TerrainMapCell}
                  */
-                const cell                  = map.cells[z * CHUNK_SIZE_X + x];
+                const cell                  = map.getCell(x, z)
                 const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
                 const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
                 const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);
@@ -230,9 +231,9 @@ export default class Biome3LayerOverworld {
                         }
 
                         // get block
-                        let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params);
+                        let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
-                        if([BLOCK.STONE.id, BLOCK.ANDESITE.id, BLOCK.DIORITE.id, BLOCK.GRANITE.id].includes(block_id)) {
+                        if(STONE_BLOCKS.includes(block_id)) {
                             if(density < DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
                                 // generating a small amount of ore on the surface of the walls
                                 block_id = this.ore_generator.generate(xyz, block_id);
@@ -288,7 +289,7 @@ export default class Biome3LayerOverworld {
                                     }
 
                                     // Plants and grass (растения и трава)
-                                    const {plant_blocks} = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params);
+                                    const plant_blocks = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params)
                                     if(plant_blocks) {
                                         for(let i = 0; i < plant_blocks.length; i++) {
                                             const p = plant_blocks[i];

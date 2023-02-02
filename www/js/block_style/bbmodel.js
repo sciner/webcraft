@@ -1,4 +1,4 @@
-import { calcRotateMatrix, DIRECTION, IndexedColor, mat4ToRotate, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, IndexedColor, mat4ToRotate, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BLOCK, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
@@ -8,6 +8,7 @@ import { CubeSym } from '../core/CubeSym.js';
 import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
+import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
 import { default as cauldron_style } from '../block_style/cauldron.js';
 import { default as sign_style } from '../block_style/sign.js';
@@ -117,7 +118,7 @@ export default class style {
         model.resetBehaviorChanges()
 
         xyz.set(x, y, z)
-        const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color, vertices, xyz)
+        const emmited_blocks = style.applyBehavior(model, chunk, block, neighbours, matrix, biome, dirt_color, vertices, xyz)
         x = xyz.x
         y = xyz.y
         z = xyz.z
@@ -132,8 +133,7 @@ export default class style {
         if(bb.select_texture) {
             for(let st of bb.select_texture) {
                 if(style.checkWhen(model, block, st.when)) {
-                    model.selectTextureFromPalette(st.texture)
-                    break
+                    style.selectTextureFromPalette(model, st, block)
                 }
             }
         }
@@ -190,6 +190,12 @@ export default class style {
                         case 'y360': {
                             if(tblock.rotate) {
                                 mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 2) / 4) * (2 * Math.PI))
+                            }
+                            break
+                        }
+                        case 'ydeg': {
+                            if(tblock.rotate) {
+                                mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 180) / 180) * Math.PI)
                             }
                             break
                         }
@@ -257,6 +263,7 @@ export default class style {
 
     /**
      * @param {BBModel_Model} model 
+     * @param {*} chunk 
      * @param {TBlock} tblock 
      * @param {*} neighbours 
      * @param {*} matrix 
@@ -265,7 +272,7 @@ export default class style {
      * @param {float[]} vertices
      * @param {Vector} xyz
      */
-    static applyBehavior(model, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
+    static applyBehavior(model, chunk, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
 
         const emmited_blocks = []
         const mat = tblock.material
@@ -286,6 +293,10 @@ export default class style {
 
         // 2.
         switch(behavior) {
+            case 'jukebox': {
+                cube_style.playJukeboxDisc(chunk, tblock, xyz.x, xyz.y, xyz.z)
+                break
+            }
             case 'door': {
                 const extra_data = tblock.extra_data ?? {opened: false, left: true}
                 const rotate = tblock.rotate ?? Vector.ZERO
@@ -324,29 +335,23 @@ export default class style {
                 }
                 break
             }
-            case 'lantern': {
-                const on_ceil = rotate?.y == -1;
-                model.state = on_ceil ? 'ceil' : 'floor'
-                model.hideAllExcept([model.state])
-                break
-            }
-            case 'torch': {
-                const on_wall = rotate && !rotate.y
-                model.state = on_wall ? 'wall' : 'floor'
-                model.hideAllExcept([model.state])
+            case 'cactus': {
+                if(!(tblock instanceof FakeTBlock)) {
+                    if(neighbours.UP && neighbours.UP.id != tblock.id) {
+                        model.hideAllExcept(['top'])
+                    }
+                }
+                if(tblock.extra_data?.into_pot) {
+                    // mat4.copy(matrix, tblock.matrix)
+                    mat4.scale(matrix, matrix, [.5, .5, .5])
+                    mat4.translate(matrix, matrix, [0, .5, 0]);
+                }
                 break
             }
             case 'age': {
                 const age = Math.min((tblock?.extra_data?.stage ?? 0), mat.ticking.max_stage) + 1
                 model.state = `age${age}`
                 model.hideAllExcept([model.state])
-                break
-            }
-            case 'sign': {
-                const on_wall = rotate && !rotate.y
-                model.state = on_wall ? 'wall' : 'floor'
-                model.hideAllExcept([model.state])
-                model.selectTextureFromPalette(mat.name)
                 break
             }
             case "pane": {
@@ -364,7 +369,7 @@ export default class style {
 
                 /*
                 if(typeof worker != 'undefined') {
-                    worker.postMessage(['add_bbmodel', {
+                    worker.postMessage(['add_bbmesh', {
                         block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
                         model:              model.name,
                         animation_name:     null,
@@ -393,7 +398,7 @@ export default class style {
                 if(!BLOCK.canFenceConnect(neighbours.WEST)) hide_group_names.push('west')
                 if(!BLOCK.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
-                model.selectTextureFromPalette(mat.name)
+                style.selectTextureFromPalette(model, {name: mat.name}, tblock)
                 break
             }
             case 'pot': {
@@ -528,7 +533,13 @@ export default class style {
             const condition_value = when[k]
             switch(k) {
                 case 'state': {
-                    if(model.state != condition_value) {
+                    if(model.state !== condition_value) {
+                        return false
+                    }
+                    break
+                }
+                case 'rotate.y': {
+                    if(tblock.rotate?.y !== condition_value) {
                         return false
                     }
                     break
@@ -551,6 +562,31 @@ export default class style {
             }
         }
         return true
+    }
+
+    static selectTextureFromPalette(model, texture, tblock) {
+        //
+        const makeTextureName = (name) => {
+            if(!name) {
+                return 
+            }
+            if(tblock && tblock.material) {
+                name = name.replace('%block_name%', tblock.material.name)
+                if(name.startsWith('%extra_data.')) {
+                    const field_name = StringHelpers.trim(name.substring(12), '%')
+                    name = null
+                    if(tblock.extra_data) {
+                        name = tblock.extra_data[field_name]
+                    }
+                }
+            }
+            return name
+        }
+        //
+        const texture_name = makeTextureName(texture.name) || makeTextureName(texture.empty)
+        if(texture_name) {
+            model.selectTextureFromPalette(texture.group, texture_name)
+        }
     }
 
     // Stand

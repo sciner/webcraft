@@ -67,6 +67,15 @@ export const Lang = new Proxy(
             return this.getOrNull(prop) ?? prop;
         },
 
+        /**
+         * @param {string} prop 
+         * @param {string} default_value 
+         * @returns {string}
+         */
+        getOrDefault(prop, default_value) {
+            return this.getOrNull(prop) ?? default_value
+        },
+
         getOrNull(prop) {
             if (prop.startsWith("!lang")) {
                 return prop.substr(5);

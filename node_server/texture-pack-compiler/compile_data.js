@@ -15,9 +15,9 @@ const START_CANDLE              = 1532; // ... 1547
 const START_WOOD_ID             = 221;
 const START_PETRIFIED_SLAB_ID   = 203; //
 const START_BANNER_ID           = 778;
-const START_FENCE_GATE_ID       = 911;
 const START_NUMBER_ID           = 209;
-const START_SLOPE_ID            = 919;
+const START_FENCE_GATE_ID       = 911;
+const START_SLOPE_ID            = 920;
 const START_CHAIR_ID            = 300;
 const START_STOOL_ID            = 320;
 
@@ -682,6 +682,7 @@ export class CompileData {
             {name: 'JUNGLE', 'texture': `block/jungle_planks.png`},
             {name: 'CRIMSON', 'texture': `block/crimson_planks.png`},
             {name: 'WARPED', 'texture': `block/warped_planks.png`},
+            {name: 'NETHER_BRICK', 'texture': `block/nether_bricks.png`},
         ];
         for(let p of FENCE_GATE_PALETTE) {
             const b = {
@@ -789,12 +790,12 @@ export class CompileData {
     initChairAndStool() {
 
         const FURNITURE_MATERIALS = [
-            {prefix: 'OAK', log: 'oak_log', texture: 'block/oak_log_top.png'},
             {prefix: 'BIRCH', log: 'birch_log', texture: 'block/birch_log_top.png'},
-            {prefix: 'SPRUCE', log: 'spruce_log', texture: 'block/spruce_log_top.png'},
+            {prefix: 'OAK', log: 'oak_log', texture: 'block/oak_log_top.png'},
             {prefix: 'ACACIA', log: 'acacia_log', texture: 'block/acacia_log_top.png'},
-            {prefix: 'JUNGLE', log: 'jungle_log', texture: 'block/jungle_log_top.png'},
+            {prefix: 'SPRUCE', log: 'spruce_log', texture: 'block/spruce_log_top.png'},
             {prefix: 'DARK_OAK', log: 'dark_oak_log', texture: 'block/dark_oak_log_top.png'},
+            {prefix: 'JUNGLE', log: 'jungle_log', texture: 'block/jungle_log_top.png'},
             {prefix: 'CRIMSON', log: 'crimson_stem', texture: 'block/crimson_stem_top.png'},
             {prefix: 'WARPED', log: 'warped_stem', texture: 'block/warped_stem_top.png'}
         ];

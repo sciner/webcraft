@@ -6,7 +6,7 @@
  */
 
 function testDayLight() {
-    world.chunkManager = new ChunkManager();
+    world.chunkManager = new LightWorkerChunkManager();
     world.light = new LightQueue({offset: 0});
     world.dayLight = new LightQueue({offset: OFFSET_DAY});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY});
@@ -51,7 +51,7 @@ function testDayLight() {
 }
 
 function testDisperse() {
-    world.chunkManager = new ChunkManager();
+    world.chunkManager = new LightWorkerChunkManager();
     world.light = new LightQueue({offset: 0});
     world.dayLight = new LightQueue({offset: OFFSET_DAY});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY, disperse: Math.ceil(maxLight / 2)});

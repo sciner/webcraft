@@ -56,7 +56,8 @@ export class BBModel_Cube extends BBModel_Child {
     pushVertices(vertices, pos, lm, parentMatrix, emmit_particles_func) {
         const worldMatrix = mat4.multiply(tempMat, parentMatrix, this.matrix);
         const model = this.model
-        const faces = model.selected_texture_name ? this.faces_palette?.get(model.selected_texture_name) : this.faces
+        const force_texture_name = this.selected_texture_name ?? model.selected_texture_name
+        const faces = force_texture_name ? this.faces_palette?.get(force_texture_name) : this.faces
         if(!faces) {
             debugger
             throw 'error_bbcube_no_faces'

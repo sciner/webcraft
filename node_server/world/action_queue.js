@@ -8,8 +8,14 @@ export class WorldActionQueue {
         this.list = new SimpleQueue();
     }
 
+    get length() { return this.list.length }
+
     add(actor, actions) {
         this.list.push({actor, actions});
+    }
+
+    addFirst(actor, actions) {
+        this.list.unshift({actor, actions});
     }
 
     async run() {
@@ -24,6 +30,8 @@ export class WorldActionQueue {
                 if(!player) {
                     continue;
                 }
+                // if the action was postponed until a chunk loads, and the player reconnected - update it
+                item.actor = player;
             }
             // Apply actions
             // let pn = performance.now();

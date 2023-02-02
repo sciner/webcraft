@@ -1,7 +1,7 @@
 import {Color, Helpers, AlphabetTexture} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
-import { DEFAULT_ATLAS_SIZE, DEFAULT_TX_SIZE } from './constant.js';
+import { DEFAULT_ATLAS_SIZE, DEFAULT_TX_SIZE, LIGHT_TYPE_RTX } from './constant.js';
 
 let tmpCanvas;
 
@@ -199,7 +199,7 @@ export class BaseResourcePack {
 
         canvas.width = canvas.height = 0;
 
-        if ('image_n' in textureInfo) {
+        if ('image_n' in textureInfo && settings.use_light == LIGHT_TYPE_RTX) {
             const { texture } = await this._loadTexture(
                 this.dir + textureInfo.image_n,
                 settings,

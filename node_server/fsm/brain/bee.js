@@ -78,7 +78,7 @@ export class Brain extends FSMBrain {
     }
 
     // возвращение в улей
-    async doReturnToHome(delta) {
+    doReturnToHome(delta) {
         const mob = this.mob;
         const block = this.getFlightBlocks(false);
         
@@ -105,7 +105,7 @@ export class Brain extends FSMBrain {
             if(tblock && tblock.hasTag('bee_nest')) {
                 // console.log('found BeeNest');
                 const nest = new BeeNest(tblock);
-                await nest.appendMob(mob);
+                nest.appendMob(mob);
             }
         }
     }
@@ -253,7 +253,7 @@ export class Brain extends FSMBrain {
         mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
     }
     
-    async onDamage(actor, val, type_damage) {
+    onDamage(actor, val, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
         const live = mob.indicators.live;
@@ -271,13 +271,13 @@ export class Brain extends FSMBrain {
         }
         live.value -= val;
         if (live.value <= 0) {
-            await mob.kill();
+            mob.kill();
             this.onKill(actor, type_damage);
         } else {
             const actions = new WorldAction();
             actions.addPlaySound({ tag: 'madcraft:block.' + mob.type, action: 'hurt', pos: mob.pos.clone() });
             world.actions_queue.add(actor, actions);
-            mob.save();
+            mob.markDirty();
         }
     }
     

@@ -1,7 +1,7 @@
-import { ArrayOrMap, StringHelpers } from "../www/js/helpers.js";
+import { ArrayOrMap, StringHelpers, unixTime } from "../www/js/helpers.js";
 
 export function epochMillis() {
-    return ~~Date.now();
+    return Date.now();
 }
 
 /**
@@ -184,6 +184,7 @@ export class DelayedCalls {
      *      beforeDelayedSaving(args: Object): Any  // optional
      *      afterDelayedLoading(args: Any): Object  // optional
      *  }
+     * beforeDelayedSaving and afterDelayedLoading can be used to convert (object references <-> ids)
      * 
      * @param {Boolean} sometimesSerialize - if it's true, half the time arguments are
      *  serialized and deserialized before a normal call. It helps debugging: ensures
@@ -193,6 +194,7 @@ export class DelayedCalls {
         this.calleesById = calleesById;
         this.list = []; // sorted by time ascending
         this.debugSometimesSerialize = debugSometimesSerialize
+        this.dirty = false;
     }
 
     get length() {
@@ -219,6 +221,7 @@ export class DelayedCalls {
                     if (callee.beforeDelayedSaving) {
                         args = callee.beforeDelayedSaving(args);
                     }
+                    // not deepClone - it's intentional, we need to see the effect of stringiy
                     args = JSON.parse(JSON.stringify(args));
                     if (callee.afterDelayedLoading) {
                         args = callee.afterDelayedLoading(args);
@@ -232,6 +235,7 @@ export class DelayedCalls {
             index--;
         }
         this.list.splice(index, 0, entry);
+        this.dirty = true;
     }
 
     execute(contextArgs) {
@@ -253,17 +257,22 @@ export class DelayedCalls {
         }
         if (i > 0) {
             this.list.splice(0, i);
+            this.dirty = true;
         }
     }
 
     serialize() {
-        for (let entry of this.list) {
+        const list = [...this.list];
+        for (let i = 0; i < list.length; i++) {
+            let entry = list[i];
             const callee = this.calleesById[entry.id];
             if (callee.beforeDelayedSaving) {
+                entry = ObjectHelpers.deepClone(entry);
                 entry.args = callee.beforeDelayedSaving(entry.args);
+                list[i] = entry;
             }
         }
-        return JSON.stringify(this.list);
+        return JSON.stringify(list);
     }
 
     deserialize(str) {

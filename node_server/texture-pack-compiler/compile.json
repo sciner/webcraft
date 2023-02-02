@@ -4525,7 +4525,7 @@
                         {"name": "WHEAT_SEEDS", "count": {"min": 1, "max": 1}}
                     ],
                     "complete": [
-                        {"name": "WHEAT_SEEDS", "count": {"min": 0, "max": 3}},
+                        {"name": "WHEAT_SEEDS", "count": {"min": 1, "max": 2}},
                         {"name": "WHEAT", "count": {"min": 1, "max": 2}}
                     ]
                 }
@@ -4937,7 +4937,9 @@
                 "texture": "item/flower_pot.png"
             },
             "mining_time": 0,
-            "extra_data": {"item_id": null},
+            "extra_data": {
+               "item": null 
+            },
             "tags": [
                 "pot",
                 "no_drop_ao"
@@ -6018,6 +6020,7 @@
             "sound": "madcraft:block.wood",
             "height": 0.666,
             "transparent": true,
+            "can_rotate": true,
             "material": {
                 "id": "wood"
             },
@@ -7290,7 +7293,16 @@
             "sound": "madcraft:block.glass",
             "material": {"id": "glass"},
             "extra_data": {
-                "level": 0
+                "state": {
+                    "level": 0,
+                    "first": 0,
+                    "second": 0,
+                    "power": false
+                }
+            },
+            "is_entity": true,
+            "chest": {
+                "slots": 1
             },
             "light_power": {
                 "r": 80,
@@ -7484,6 +7496,17 @@
                 "id": "wood"
             },
             "texture": "block/crimson_planks.png"
+        },
+        {
+            "id": 1317,
+            "name": "WARPED_FENCE",
+            "transparent": true,
+            "style": "fence",
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/warped_planks.png"
         },
         {
             "id": 1499,

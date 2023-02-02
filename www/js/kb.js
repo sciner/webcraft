@@ -65,8 +65,8 @@ export class Kb {
         canvas.addEventListener('wheel', function(e) {
             e.button_id = e.which
             that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.WHEEL, e.which, e.shiftKey)
+            e.preventDefault()
             return false
-            // event.preventDefault()
         }, false)
 
         document.addEventListener('paste', function(e) {

@@ -13,7 +13,7 @@ export const POWER_NO                       = 0;
 export const ITEM_LABEL_MAX_LENGTH          = 19;
 
 // Свойства, которые могут сохраняться в БД
-export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'extra_data', 'rotate'];
+export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data', 'rotate']; // for reference only, unused. See BLOCK.convertBlockToDBItem.
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 
 /**
@@ -54,6 +54,28 @@ NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 // tags (string[])              - Array of string tags
 // texture (array | function)   - ?
 // transparent (bool)           - Not cube
+
+export class DBItemBlock {
+
+    constructor(id, extra_data) {
+        this.id = id
+        if(extra_data) {
+            this.extra_data = null
+        }
+    }
+
+    /**
+     * @return {DBItemBlock}
+     */
+    static cloneFrom(block) {
+        const result = new DBItemBlock(block.id)
+        for(let k in block)  {
+            result[k] = block[k]
+        }
+        return result
+    }
+
+}
 
 class Block {
 
@@ -214,11 +236,11 @@ export class BLOCK {
     static max_id                           = 0;
     static MASK_BIOME_BLOCKS                = [];
     static MASK_COLOR_BLOCKS                = [];
-    static SOLID_BLOCK_ID                   = [];
+    static SOLID_BLOCK_ID                   = new Array(2048).fill(false)
+    static REMOVE_ONAIR_BLOCKS_IN_CLUSTER   = new Array(2048).fill(false) // this blocks must be removed over structures and buildings
     static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID                      = [];
     static bySuffix                         = {}; // map of arrays
-    static REMOVE_ONAIR_BLOCKS_IN_CLUSTER   = [] // this blocks must be removed over structures and buildings
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -259,7 +281,10 @@ export class BLOCK {
     //     return index;
     // }
 
-    // Return new simplified item
+    /**
+     * Returns a new simplified item (for inventory, drop item).
+     * For blocks, use {@link convertBlockToDBItem} instead.
+     */
     static convertItemToDBItem(item) {
         if(!item || !('id' in item)) {
             return null;
@@ -267,7 +292,7 @@ export class BLOCK {
         const resp = {
             id: item.id
         };
-        for(let k of ITEM_DB_PROPS) {
+        for(let k of ITEM_INVENTORY_PROPS) {
             let v = item[k];
             if(v !== undefined && v !== null) {
                 resp[k] = v;
@@ -346,6 +371,46 @@ export class BLOCK {
         if (item.extra_data && typeof item.extra_data === 'object') {
             // copy it even if (b.extra_data == null) to allow naming any item.
             resp.extra_data = item.extra_data;
+        }
+        return resp;
+    }
+
+    /**
+     * Combined old {@link convertItemToDBItem} and checks from old DBWorld.blockSet.
+     * Specifically for blocks: expects that {@link item} may be TBlock, doesn't return count, optimization for AIR.
+     */
+    static convertBlockToDBItem(item) {
+        if(item && item instanceof DBItemBlock) {
+            return item
+        }
+        if(!item || !('id' in item)) {
+            return null;
+        }
+        const resp = new DBItemBlock(item.id)
+        if (resp.id) {  // AIR blocks are very common, they don't have properties
+            let v;
+            // For non-existing items matrial is DUMMY. That's how it was done in DBWorld.blockSet().
+            // First check the material, then access potentially slow tblock.rotate.
+            if (this.fromId(resp.id).can_rotate) {
+                v = item.rotate;
+                if (v !== null && v !== undefined) {
+                    resp.rotate = v;
+                }
+            }
+            v = item.entity_id;     // avoid accessing tblock.entity_id twice
+            if (v) {
+                resp.entity_id = v;
+            }
+            v = item.extra_data;    // avoid accessing tblock.extra_data twice
+            if (v) {
+                resp.extra_data = v;
+            }
+            // Power in blocks is never used and not fully supported, e.g. it's lost in the old DBWorld.updateChunks.
+            // TODO either use and fully support, or remove it.
+            v = item.power;
+            if (v) {
+                resp.power = v;
+            }
         }
         return resp;
     }
@@ -540,6 +605,11 @@ export class BLOCK {
         return extra_data;
     }
 
+    // The majority of block changes are setting air blocks. This method is optimized for this case.
+    static fastStringify(block) {
+        return block.id ? JSON.stringify(block) : AIR_BLOCK_STRINGIFIED;
+    }
+
     // Returns a block structure for the given id.
     static fromId(id) {
         const resp = this.BLOCK_BY_ID[id];
@@ -640,8 +710,7 @@ export class BLOCK {
             } else {
                 group = 'doubleface';
             }
-        } else
-        if((block.tags.includes('alpha')) || ['thin'].includes(block.style_name)) {
+        } else if((block.tags.includes('alpha')) || ['thin'].includes(block.style_name)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
         } else if(block.style_name == 'pane' || block.is_glass) {
@@ -696,7 +765,7 @@ export class BLOCK {
      */
     static isSolidID(block_id) {
         if(block_id == 0) return false
-        return this.SOLID_BLOCK_ID.includes(block_id)
+        return this.SOLID_BLOCK_ID[block_id]
     }
 
     static isSimpleQube(block) {
@@ -823,7 +892,7 @@ export class BLOCK {
                 block.tags.push('doubleface');
             }
         }
-        block.group             = this.getBlockStyleGroup(block);
+        block.group             = block.group ?? this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
@@ -848,20 +917,11 @@ export class BLOCK {
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
         }
-        if(block.is_solid) {
-            BLOCK.SOLID_BLOCK_ID.push(block.id)
-        } else {
-            const sidx = BLOCK.SOLID_BLOCK_ID.indexOf(block.id)
-            if(sidx >= 0) {
-                BLOCK.SOLID_BLOCK_ID.splice(sidx, 1)
-            }
-        }
+        BLOCK.SOLID_BLOCK_ID[block.id] = block.is_solid
         if(block.ticking) {
             BLOCK.TICKING_BLOCKS.set(block.id, block);
         }
-        if(block.style_name == 'planting' || (block.layering && !block.layering.slab)) {
-            BLOCK.REMOVE_ONAIR_BLOCKS_IN_CLUSTER.push(block.id)
-        }
+        BLOCK.REMOVE_ONAIR_BLOCKS_IN_CLUSTER[block.id] = block.style_name == 'planting' || (block.layering && !block.layering.slab)
         if(block.bb && isScalar(block.bb?.model)) {
             const bbmodels = await Resources.loadBBModels()
             const model_name = block.bb.model
@@ -1424,3 +1484,5 @@ BLOCK.init = async function(settings) {
         }
     });
 };
+
+const AIR_BLOCK_STRINGIFIED = '{"id":0}';

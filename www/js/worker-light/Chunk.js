@@ -198,11 +198,11 @@ export class Chunk {
                 const new_value = (Math.round(R) << 12)
                     + (Math.round(15.0 - G) << 8)
                     + (Math.round(B * 15.0) << 4)
-                    + (Math.round(A * 15.0) << 0);
+                    + (Math.round(A * 0.5 * 15.0) << 0);
                 result[ind++] = new_value;
                 if (prev_value != new_value) {
                     changed = true;
-                    
+
                 }
                 if ((prev_value & 0xf00) !== (new_value & 0xf00)) {
                     changedDay = true;
@@ -218,12 +218,12 @@ export class Chunk {
                 result[ind++] = Math.round(R * 255.0 / 15.0);
                 result[ind++] = Math.round(255.0 - (G * 255.0 / 15.0));
                 result[ind++] = Math.round(B * 255.0);
-                result[ind++] = Math.round(A * 255.0);
+                result[ind++] = Math.round(A * 0.5 * 255.0);
                 if (!changed) {
                     if (pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
                         changed = true;
                     }
-                    
+
                 }
                 changedDay = changedDay || pv2 !== result[ind - 3];
                 this.result_crc_sum += (
@@ -239,10 +239,14 @@ export class Chunk {
             for (let z = 0; z < outerSize.z; z++)
                 for (let x = 0; x < outerSize.x; x++) {
                     const coord0 = sx * x + sy * y + sz * z;
+
+                    const block = (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 1: 0;
+                    const ao = (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0;
+
                     addResult1(adjustLight(uint8View[coord0 + OFFSET_LIGHT]),
                         adjustLight(uint8View[coord0 + OFFSET_DAY]),
-                        (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 1 : 0,
-                        (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0);
+                        block,
+                        ao + block);
                 }
 
         const addResult2 = (R, G, B, A) => {

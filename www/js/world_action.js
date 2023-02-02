@@ -548,30 +548,42 @@ export class WorldAction {
         });
     }
 
+    /**
+     * Creates a WorldAction with the same id and parameters, but without any actual actions.
+     * The new action has no notify callback, to avoid calling it multiple times.
+     */
+    createSimilarEmpty() {
+        const options = this.blocks.options;
+        return new WorldAction(this.id, this.world, options.ignore_check_air, options.on_block_set, null);
+    }
+
     // Add play sound
     addPlaySound(item) {
         this.play_sound.push(item);
     }
 
+    addBlock(item) {
+        if(!item.action_id) {
+            throw 'error_undefined_action_id';
+        }
+        /*if(!item.item.extra_data && item.item.id > 0) {
+            const extra_data = BLOCK.makeExtraData(item.item, item.pos);
+            if(extra_data) {
+                throw 'error_empty_extra_data';
+                // item.item.extra_data = extra_data;
+            }
+        }*/
+        if(item.pos.x != Math.floor(item.pos.x)) throw 'error_invalid_block_pos'
+        if(item.pos.y != Math.floor(item.pos.y)) throw 'error_invalid_block_pos'
+        if(item.pos.z != Math.floor(item.pos.z)) throw 'error_invalid_block_pos'
+        this.blocks.list.push(item)
+    }
+
     // Add block
     addBlocks(items) {
         for(let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if(!item.action_id) {
-                throw 'error_undefined_action_id';
-            }
-            /*if(!item.item.extra_data && item.item.id > 0) {
-                const extra_data = BLOCK.makeExtraData(item.item, item.pos);
-                if(extra_data) {
-                    throw 'error_empty_extra_data';
-                    // item.item.extra_data = extra_data;
-                }
-            }*/
-            if(item.pos.x != Math.floor(item.pos.x)) throw 'error_invalid_block_pos';
-            if(item.pos.y != Math.floor(item.pos.y)) throw 'error_invalid_block_pos';
-            if(item.pos.z != Math.floor(item.pos.z)) throw 'error_invalid_block_pos';
+            this.addBlock(items[i])
         }
-        this.blocks.list.push(...items);
     }
 
     addFluids(fluids, offset) {
@@ -906,7 +918,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // 1. Change extra data
     if(e.changeExtraData) {
-        for(let func of [editSign]) {
+        for(let func of [editSign, editBeacon]) {
             if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1377,6 +1389,7 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
                         (
                             item_frame ||
                             mat_block.planting ||
+                            mat_block.style_name == 'cactus' ||
                             mat_block.tags.includes('can_put_into_pot')
                         );
     if(!putIntoPot) {
@@ -1613,6 +1626,20 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
 async function noSetOnTop(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const noSetOnTop = world_material.tags.includes('no_set_on_top');
     return noSetOnTop && pos.n.y == 1;
+}
+
+// Edit beacon
+async function editBeacon(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (world_material.id != BLOCK.BEACON.id) {
+        return false
+    }
+    const item = e.extra_data.slots[0]
+    if (item && item.count == 1 && [BLOCK.GOLD_INGOT.id, BLOCK.IRON_INGOT.id, BLOCK.NETHERITE_INGOT.id, BLOCK.DIAMOND.id, BLOCK.EMERALD.id].includes(item.id)) {
+        e.extra_data.slots = {}
+        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        return true
+    }
+    return true // @todo false error server
 }
 
 // Edit sign
@@ -2054,9 +2081,9 @@ async function openFenceGate(e, world, pos, player, world_block, world_material,
         extra_data = {};
     }
     if (rotate.x == 0 || rotate.x == 2) {
-        extra_data.facing = (pos.z - player.pos.z) > 0 ? 'east' : 'west';
+        extra_data.facing = (pos.z - player.pos.z) > 0 ? 'north' : 'south';
     } else {
-        extra_data.facing = (pos.x - player.pos.x) > 0 ? 'north' : 'south';
+        extra_data.facing = (pos.x - player.pos.x) > 0 ? 'east' : 'west';
     }
     extra_data.opened = extra_data && !extra_data.opened;
     if(world_material.sound) {

@@ -1,7 +1,6 @@
 import {BLOCK} from "../../www/js/blocks.js";
-import { getChunkAddr, Vector, VectorCollector } from "../../www/js/helpers.js";
+import { getChunkAddr, sizeOf, Vector, VectorCollector } from "../../www/js/helpers.js";
 import {WorldAction} from "../../www/js/world_action.js";
-import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "../../www/js/fluid/FluidConst.js";
 import { WorldEditBuilding } from "./worldedit/building.js";
@@ -14,11 +13,70 @@ export default class WorldEdit {
 
     static targets = ['chat'];
 
+    constructor() {
+        this.id = performance.now()
+        this.initWorker()
+    }
+
+    initWorker() {
+        this.worker = new Worker(globalThis.__dirname + '/plugins/worldedit/worker.js');
+        const onmessage = (data) => {
+            if(data instanceof MessageEvent) {
+                data = data.data
+            }
+            // console.log('worker -> chat_worldedit', data)
+            const cmd = data[0];
+            const args = data[1];
+            switch(cmd) {
+                case 'schem_loaded': {
+                    const user_id = args.args.user_id
+                    const player = this.world.players.get(user_id)
+                    if(player) {
+                        player._world_edit_copy = args._world_edit_copy
+                        player._world_edit_copy.blocks = new VectorCollector(player._world_edit_copy.blocks.list, player._world_edit_copy.blocks.size)
+                        this.chat.sendSystemChatMessageToSelectedPlayers(args.msg, [user_id])
+                    }
+                    break;
+                }
+                case 'schem_error': {
+                    const user_id = args.args.user_id
+                    const player = this.world.players.get(user_id)
+                    if(player) {
+                        // player.sendError(args.e)
+                        this.chat.sendSystemChatMessageToSelectedPlayers(args.e, [user_id])
+                    }
+                    break
+                }
+            }
+        }
+        const onerror = (e) => {
+            console.error(e)
+            debugger
+        };
+        if('onmessage' in this.worker) {
+            this.worker.onmessage = onmessage;
+            this.worker.onerror = onerror;
+        } else {
+            this.worker.on('message', onmessage);
+            this.worker.on('error', onerror);
+        }
+    }
+
+    // postWorkerMessage
+    postWorkerMessage(cmd) {
+        this.worker.postMessage(cmd)
+    }
+
     onGame(game) {}
 
     onWorld(world) {}
 
     onChat(chat) {
+        
+        if(!this.world) {
+            this.chat = chat
+            this.world = chat.world
+        }
 
         this.building = new WorldEditBuilding(this);
 
@@ -354,43 +412,46 @@ export default class WorldEdit {
         let affected_count = 0;
         //
         const data = copy_data ?? player._world_edit_copy;
-        const blockIter = data.blocks.entries();
-        let chunk_addr = null;
-        let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
+        const chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
         const action_id = ServerClient.BLOCK_ACTION_CREATE;
+        let chunk_addr = null;
         let actions = null;
-        for(let [bpos, item] of blockIter) {
-            const shift = bpos;
-            const pos = player_pos.add(shift);
-            chunk_addr = getChunkAddr(pos, chunk_addr);
-            if(!chunk_addr_o.equal(chunk_addr)) {
-                chunk_addr_o.copyFrom(chunk_addr);
-                actions = actions_list.get(chunk_addr);
-                if(!actions) {
-                    actions = createwWorldActions();
-                    actions_list.set(chunk_addr, actions);
-                }
+        //
+        const getChunkActions = (chunk_addr) => {
+            if(chunk_addr_o.equal(chunk_addr)) {
+                return actions
             }
-            actions.addBlocks([{pos, item, action_id}]);
-            affected_count++;
+            chunk_addr_o.copyFrom(chunk_addr);
+            actions = actions_list.get(chunk_addr);
+            if(actions) {
+                return actions
+            }
+            actions = createwWorldActions()
+            actions_list.set(chunk_addr, actions)
+            return actions
         }
+        // blocks
+        for(const [bpos, item] of data.blocks.entries()) {
+            const pos = player_pos.add(bpos)
+            chunk_addr = getChunkAddr(pos, chunk_addr)
+            actions = getChunkActions(chunk_addr)
+            actions.addBlock({pos, item, action_id})
+            affected_count++
+        }
+        // fluids
         if (data.fluids && data.fluids.length > 0) {
             const fluids = data.fluids;
             for (let i = 0; i < fluids.length; i += 4) {
-                let x = fluids[i] + player_pos.x, y = fluids[i + 1] + player_pos.y, z = fluids[i + 2] + player_pos.z, val = fluids[i + 3];
+                const x = fluids[i] + player_pos.x,
+                      y = fluids[i + 1] + player_pos.y,
+                      z = fluids[i + 2] + player_pos.z,
+                      val = fluids[i + 3];
                 chunk_addr = getChunkAddr(x, y, z, chunk_addr);
-                if(!chunk_addr_o.equal(chunk_addr)) {
-                    chunk_addr_o.copyFrom(chunk_addr);
-                    actions = actions_list.get(chunk_addr);
-                    if(!actions) {
-                        actions = createwWorldActions();
-                        actions_list.set(chunk_addr, actions);
-                    }
-                }
+                actions = getChunkActions(chunk_addr)
                 actions.addFluids([x, y, z, val]);
-                actions.fluidFlush = true;
+                actions.fluidFlush = true
+                affected_count++
             }
-            affected_count++;
         }
         let cnt = 0;
         const notify = {
@@ -708,25 +769,28 @@ export default class WorldEdit {
         //
         switch(action) {
             case 'save': {
-                throw 'error_not_implemented';
-                break;
+                throw 'error_not_implemented'
             }
             case 'load': {
-                let p = performance.now();
-                const reader = new SchematicReader();
-                const schem = await reader.read(args[2]);
-                if(reader.blocks.size > 0) {
-                    player._world_edit_copy = {
-                        quboid: null,
-                        blocks: reader.blocks,
-                        fluids: reader.fluids,
-                        player_pos: null
-                    };
-                }
-                p = Math.round((performance.now() - p) * 1000) / 1000000;
-                console.log('schematic version', schem.version);
-                const size = new Vector(schem.size).toHash();
-                msg = `... loaded (${reader.blocks.size} blocks, size: ${size}, load time: ${p} sec). Version: ${schem.version}. Paste it with //paste`;
+                const filename = args[2]
+                const user_id = player.session.user_id
+                this.postWorkerMessage(['schem_load', {filename, user_id}])
+                return
+                // let p = performance.now();
+                // const reader = new SchematicReader();
+                // const schem = await reader.read(args[2]);
+                // if(reader.blocks.size > 0) {
+                //     player._world_edit_copy = {
+                //         quboid: null,
+                //         blocks: reader.blocks,
+                //         fluids: reader.fluids,
+                //         player_pos: null
+                //     };
+                // }
+                // p = Math.round((performance.now() - p) * 1000) / 1000000;
+                // console.log('schematic version', schem.version);
+                // const size = new Vector(schem.size).toHash();
+                // msg = `... loaded (${reader.blocks.size} blocks, size: ${size}, load time: ${p} sec). Version: ${schem.version}. Paste it with //paste`;
                 break;
             }
             default: {

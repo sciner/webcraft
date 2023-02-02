@@ -54,7 +54,7 @@ export class Brain extends FSMBrain {
     }
     
     // Chasing a player
-    async doCatch(delta) {
+    doCatch(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
         const difficulty = world.rules.getValue('difficulty');
@@ -129,7 +129,7 @@ export class Brain extends FSMBrain {
     }
 
     //
-    async mobDetonation(rad) {
+    mobDetonation(rad) {
         const mob = this.mob;
         const world = mob.getWorld();
         const mobPos = mob.pos.clone();
@@ -140,7 +140,7 @@ export class Brain extends FSMBrain {
         // Extrude blocks
         actions.makeExplosion(mobPosCenter, rad, true, 1/3, 4);
         // Kill mob
-        await mob.kill();
+        mob.kill();
         // Add sound
         actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'explode', pos: mobPosCenter.clone() });
         // Custom packets for every player near

@@ -7,8 +7,9 @@ import { GameClass } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE, DEFAULT_MUSIC_VOLUME } from "../constant.js";
-import { BgEffect } from './bg_effect.js';
+// import { BgEffect } from './bg_effect.js';
 import  registerTextFilter from './angular/textfilter.js';
+import { Resources } from '../resources.js';
 // import { PlayerWindowManager } from '../player_window_manager.js';
 
 function isSupported() {
@@ -17,12 +18,12 @@ function isSupported() {
         console.error('Browser not supported:', 'Webgl2 context is required');
         return false;
     }
-    
+
     const canvas = document.createElement('canvas');
 
     //
     try {
-        
+
         // context should be stable and without fails
         const gl = canvas.getContext('webgl2', {stencil: true, failIfMajorPerformanceCaveat: true});
 
@@ -60,8 +61,14 @@ globalThis.MOUSE = MOUSE;
 globalThis.KEY = KEY;
 
 globalThis.randomUUID = () => {
-    return crypto.randomUUID();
-};
+    if(crypto.randomUUID) {
+        return crypto.randomUUID()
+    } else {
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        )
+    }
+}
 
 const app = angular.module('gameApp', []);
 registerTextFilter(app);
@@ -73,6 +80,7 @@ let gameCtrl = async function($scope, $timeout) {
     await Lang.init();
     $scope.Lang = Lang;
     $scope.current_lang = null;
+    $scope.loading_completed = false;
     for(let item of Lang.list) {
         if(item.active) {
             $scope.current_lang = item;
@@ -122,9 +130,27 @@ let gameCtrl = async function($scope, $timeout) {
         });
     }
     $scope.App.onError = (message) => {
+        if (typeof message !== 'string') {
+            // It happens: an exception Object is thrown on the server and sent as an error.
+            // Don't show it, but log it.
+            console.error(JSON.stringify(message))
+            message = 'error'
+        }
+        // special option - show alert
+        let alert = false
+        if (message.startsWith('!alert')) {
+            message = message.substring(6)
+            console.error(message)
+            alert = true
+        }
         // Multilingual messages
         message = Lang[message]
-        vt.error(message);
+
+        if (alert) {
+            window.alert(message)
+        } else {
+            vt.error(message)
+        }
     };
 
     //
@@ -457,7 +483,7 @@ let gameCtrl = async function($scope, $timeout) {
     };
 
     // Start world
-    $scope.StartWorld = function(world_guid) {
+    $scope.StartWorld = async function(world_guid) {
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
@@ -478,8 +504,11 @@ let gameCtrl = async function($scope, $timeout) {
         document.getElementById('bg-circles_area')?.remove();
         // stop background animation effect
         $scope.bg?.stop();
+
         // Show Loading...
-        Qubatch.hud.draw();
+        await this.showSplash()
+
+        // Continue loading
         $timeout(async function() {
             const options = $scope.settings.form;
             const server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
@@ -497,12 +526,45 @@ let gameCtrl = async function($scope, $timeout) {
             player.JoinToWorld(world, () => {
                 Qubatch.Started(player);
             });
-        });
-    };
+        })
+
+    }
+
+    $scope.showSplash = async () => {
+
+        /**
+         * @type {GameClass}
+         */
+        const Q = Qubatch
+        const render = Q.render
+        const renderBackend = render.renderBackend
+
+        // we can use it both
+        await Resources.preload({
+            imageBitmap:    true,
+            glsl:           renderBackend.kind === 'webgl',
+            wgsl:           renderBackend.kind === 'webgpu'
+        })
+
+        await renderBackend.init({
+            blocks: Resources.shaderBlocks
+        })
+
+        render.resetAfter();
+        Q.hud.wm.initRender(render)
+        render.resetBefore();
+
+        const bodyClassList = document.querySelector('body').classList
+        bodyClassList.add('started')
+
+        // Start drawing HUD with loading screen
+        render.requestAnimationFrame(Q.preLoop)
+    }
 
     // loadingComplete
     $scope.loadingComplete = function() {
         document.getElementById('loading').classList.add('loading-complete');
+        $scope.loading_completed = true;
     }
 
     // My games
@@ -579,11 +641,11 @@ let gameCtrl = async function($scope, $timeout) {
                         return;
                     }
                     $scope.App.GetWorldPublicInfo({worldGuid},
-                        worldInfo => this.showWorldInfo(worldInfo, 'approve-join'), 
+                        worldInfo => this.showWorldInfo(worldInfo, 'approve-join'),
                         error => this.handleNoWorldOrOtherError(error));
 
                 }
-                
+
             },
             showWorldInfo: function(worldInfo, mode){
                 this.worldInfo = worldInfo;
@@ -605,14 +667,14 @@ let gameCtrl = async function($scope, $timeout) {
                 if (worldGuid) {
                     if (!$scope.App.isLogged()) {
                         $scope.App.GetWorldPublicInfo({worldGuid},
-                             worldInfo => this.showWorldInfo(worldInfo, 'login'), 
+                             worldInfo => this.showWorldInfo(worldInfo, 'login'),
                              error => this.handleNoWorldOrOtherError(error));
                     }
                 }
             }
         },
-        
-        
+
+
     };
 
     // New world
@@ -770,7 +832,7 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.Qubatch      = globalThis.Qubatch;
     $scope.skin         = new SkinManager($scope, $timeout);
     $scope.texture_pack = new TexturePackManager($scope);
-    $scope.onShow       = { 
+    $scope.onShow       = {
         'skin': () => { $scope.skin.onShow(); }
     };
     $scope.newgame.init();
@@ -784,8 +846,8 @@ let gameCtrl = async function($scope, $timeout) {
         });
     });
 
-    //
-    $scope.bg = new BgEffect();
+    // Background animation
+    // $scope.bg = new BgEffect()
 
     // show the window after everything is initilized
     $scope.current_window.show('main');

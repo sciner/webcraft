@@ -8,52 +8,56 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 //
 class AnvilSlot extends CraftTableSlot {
+
     constructor(x, y, w, h, id, title, text, ct) {
         super(x, y, w, h, id, title, text, ct, null);
-        
         this.ct = ct;
-
-        this.onMouseEnter = function() {
-            this.style.background.color = '#ffffff55';
-        };
-
-        this.onMouseLeave = function() {
-            this.style.background.color = '#00000000';
-        };
-        
-        this.onMouseDown = function(e) { 
-            const dragItem = this.getItem();
-            if (!dragItem) {
-                return;
-            }
-            if (this == ct.result_slot) {
-                ct.useRecipe();
-            }
-            this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
-            this.setItem(null)
-            ct.updateResult()
-        };
-        
-        this.onDrop = function(e) {
-            if (this == ct.result_slot) {
-                return;
-            }
-            const oldItem = this.getItem();
-            this.dropIncrementOrSwap(e, oldItem);
-            // Если это первый слот
-            if (this == ct.first_slot) {
-                const oldCurrentLabel = oldItem && ItemHelpers.getLabel(oldItem);
-                const newCurrentLabel = ItemHelpers.getLabel(this.getItem());
-                if (oldCurrentLabel !== newCurrentLabel) {
-                    ct.lbl_edit.text = newCurrentLabel
-                }
-            }
-            ct.updateResult();
-        };
     }
-    
+
+    onMouseEnter() {
+        this.style.background.color = '#ffffff55';
+    }
+
+    onMouseLeave() {
+        this.style.background.color = '#00000000';
+    }
+
+    onMouseDown(e) { 
+        const ct = this.ct
+        const dragItem = this.getItem()
+        if (!dragItem) {
+            return
+        }
+        if (this == ct.result_slot) {
+            ct.useRecipe();
+        }
+        this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
+        this.setItem(null)
+        ct.updateResult()
+    }
+
+    onDrop(e) {
+        const ct = this.ct
+        if (this == ct.result_slot) {
+            return;
+        }
+        const oldItem = this.getItem();
+        if(!this.dropIncrementOrSwap(e, oldItem)) {
+            return
+        }
+        // Если это первый слот
+        if (this == ct.first_slot) {
+            const oldCurrentLabel = oldItem && ItemHelpers.getLabel(oldItem);
+            const newCurrentLabel = ItemHelpers.getLabel(this.getItem());
+            if (oldCurrentLabel !== newCurrentLabel) {
+                ct.lbl_edit.text = newCurrentLabel
+            }
+        }
+        ct.updateResult();
+    }
+
     getInventory() {
-        return this.ct.inventory;
+        return this.ct.inventory
     }
 
 }

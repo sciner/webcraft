@@ -347,6 +347,8 @@ export class DBGame {
         });
         if(rows) {
             for(let row of rows) {
+                const cover = row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null
+                const cover_preview = cover ? (cover.startsWith('scr') ? `preview_${cover}` : null) : null
                 const world = {
                     'id':           row.id,
                     'user_id':      row.user_id,
@@ -354,7 +356,8 @@ export class DBGame {
                     'guid':         row.guid,
                     'title':        row.title,
                     'seed':         row.seed,
-                    'cover':        row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null,
+                    'cover':        cover,
+                    'cover_preview':cover_preview,
                     'game_mode':    row.game_mode,
                     'generator':    JSON.parse(row.generator),
                     'pos_spawn':    null,
@@ -530,7 +533,7 @@ export class DBGame {
     }
     
     async InsertScreenshot(guid, cover) {
-        const filename = randomUUID() + '.webp';
+        const filename = 'scr' + randomUUID() + '.webp';
         // Проверям существование мира
         const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [guid]);
         if (!row) {

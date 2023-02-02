@@ -13,7 +13,7 @@ import { getBlockImage } from "./tools/blocks.js";
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
 const ARMOR_SLOT_BACKGROUND_ACTIVE = '#828282ff'
-const DOUBLE_CLICK_TIME = 200.0;
+const DOUBLE_CLICK_TIME = 300.0;
 
 export class HelpSlot extends Label {
 
@@ -163,8 +163,13 @@ export class CraftTableSlot extends SimpleBlockSlot {
      * @param {?object} item
      * @returns
      */
-    async setItem(item, update_inventory = true) {
-
+    setItem(item, update_inventory = true) {
+        if (item && item.count <= 0) {
+            if (item.count < 0) {
+                window.alert('item.count < 0')
+            }
+            item = null
+        }
         if(!super.setItem(item)) {
             return
         }
@@ -194,6 +199,9 @@ export class CraftTableSlot extends SimpleBlockSlot {
         this.slot_index = index
     }
 
+    /**
+     * @returns { import("../player_inventory.js").PlayerInventory }
+     */
     getInventory() {
         return this.ct.inventory
     }
@@ -206,6 +214,10 @@ export class CraftTableSlot extends SimpleBlockSlot {
         const dropItem  = drag.getItem()
         if(!dropItem) {
             return;
+        }
+        if(drag && drag.slot === this) {
+            drag.slot = null
+            return
         }
         const max_stack_count = BLOCK.getItemMaxStack(dropItem)
 
@@ -254,6 +266,8 @@ export class CraftTableSlot extends SimpleBlockSlot {
             player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
         }
         drag.refresh()
+        this.ct.fixAndValidateSlots('CraftTableSlot dropIncrementOrSwap')
+        return true
     }
 
 }
@@ -295,6 +309,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
             });
         }
         this.parent.checkRecipe();
+        this.parent.fixAndValidateSlots('CraftTableResultSlot useRecipe')
     }
 
     // setupHandlers...
@@ -329,6 +344,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
             }
             //
             that.useRecipe();
+            this.parent.fixAndValidateSlots('CraftTableResultSlot onDrop')
         }
 
         // Drag & drop
@@ -354,6 +370,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
             }
             // set drag item
             this.parent.inventory.setDragItem(this, dragItem, e.drag, this.w, this.h);
+            this.parent.fixAndValidateSlots('CraftTableResultSlot onMouseDown')
         }
 
     }
@@ -386,6 +403,11 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 }
                 const player      = Qubatch.player
                 const drag        = e.drag
+                if(drag && drag.slot === this) {
+                    drag.slot = null
+                    return
+                }
+
                 // @todo check instanceof!
                 // if(dropData instanceof InventoryItem) {
                 const dropItem    = drag.getItem()
@@ -434,23 +456,25 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             if (need_count == 0) {
                                 break
                             }
-                            const item = v.item
+                            let item = v.item
                             let minus_count = item.count < need_count ? item.count : need_count;
                             need_count -= minus_count
                             dropItem.count += minus_count
                             drag.refresh()
                             item.count -= minus_count
-                            if (item.count < 1) {
-                                if (v.chest) {
-                                    slots[v.index].setItem(null, e)
-                                } else {
-                                    player.inventory.setItem(v.index, null)
-                                }
+                            if (item.count === 0) {
+                                item = null
+                            }
+                            if (v.chest) {
+                                slots[v.index].setItem(item, e)
+                            } else {
+                                player.inventory.setItem(v.index, item)
                             }
                             if (this.parent.lastChange) { // present in chests, not in craft windows
                                 this.parent.lastChange.type = INVENTORY_CHANGE_MERGE_SMALL_STACKS;
                             }
                         }
+                        this.ct.fixAndValidateSlots('CraftTableInventorySlot doubleClick')
                         return
                     }
                 }
@@ -479,7 +503,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         this.style.background.color = '#00000000'
     }
 
-    // Drag
+    // Mouse down
     onMouseDown(e) {
 
         if (this.options.disableIfLoading && this.ct.loading) {
@@ -507,6 +531,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             dragItem.count = split_count;
             targetItem.count -= split_count;
             this.setItem(targetItem, e);
+            this.ct.fixAndValidateSlots('CraftTableInventorySlot right button')
         } else {
             if(e.shiftKey) {
                 switch(this.parent.id) {
@@ -525,9 +550,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             }
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
                         }
-                        if(targetItem.count == 0) {
-                            that.setItem(null, e);
-                        }
+                        this.setItem(targetItem, e)
+                        this.ct.fixAndValidateSlots('CraftTableInventorySlot shiftKey frmInventory')
                         break;
                     }
                     case 'frmBarrel':
@@ -543,10 +567,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         let srcListFirstIndexOffset = 0
                         let targetList = srcList
                         this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset)
-                        if(targetItem.count == 0) {
-                            that.setItem(null, e)
-                        }
+                        this.setItem(targetItem, e)
                         this.parent.lastChange.type = INVENTORY_CHANGE_SHIFT_SPREAD
+                        this.ct.fixAndValidateSlots('CraftTableInventorySlot INVENTORY_CHANGE_SHIFT_SPREAD')
                         break
                     }
                     case 'frmCraft': {
@@ -554,9 +577,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         let srcListFirstIndexOffset = 0
                         let targetList = srcList
                         this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset)
-                        if(targetItem.count == 0) {
-                            that.setItem(null, e)
-                        }
+                        this.setItem(targetItem, e)
+                        this.ct.fixAndValidateSlots('CraftTableInventorySlot frmCraft')
                     }
                     default: {
                         console.log('this.parent.id', this.parent.id)
@@ -570,6 +592,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         this.getInventory().setDragItem(this, dragItem, e.drag, that.width, that.height)
         this.prev_mousedown_time = performance.now()
         this.prev_mousedown_button = e.button_id
+        this.ct.fixAndValidateSlots('CraftTableInventorySlot onMouseDown')
     }
 
     get readonly() {
@@ -825,6 +848,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         if(this.inventory_slots) {
             this.inventory_slots.map(slot => slot.setItem(slot.getItem()))
         }
+        this.fixAndValidateSlots('clearCraft')
     }
 
     getCraftSlotItemsArray() {
@@ -839,9 +863,10 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             if (item) {
                 result.push(InventoryComparator.makeItemCompareKey(item));
                 item.count -= ArrayOrScalar.get(count, i)
-                slot.setItem(item.count > 0 ? item : null)
+                slot.setItem(item)
             }
         }
+        this.fixAndValidateSlots('getUsedItemsKeysAndDecrement')
         return result;
     }
 
@@ -907,6 +932,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
                 // or there is no change
                 hasResources.has.length === 0
             ) {
+                this.fixAndValidateSlots('autoRecipe')
                 return;
             }
             // Here the slots may contain: pattern items, empty items that should be set according to the pattern,
@@ -925,6 +951,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
                 Qubatch.player.inventory.decrementByIndex(r.item_index);
             }
         } while (shiftKey);
+        this.fixAndValidateSlots('autoRecipe')
     }
 
     // слоты помощи в крафте

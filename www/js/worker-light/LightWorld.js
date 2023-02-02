@@ -14,7 +14,8 @@ import {DirNibbleQueue} from "./DirNibbleQueue.js";
 import {WorldGroundLevel} from "./GroundLevel.js"
 import {Chunk} from "./Chunk.js";
 
-export class ChunkManager {
+export class LightWorkerChunkManager {
+
     constructor(world) {
         this.chunks = new VectorCollector();
         this.list = [];
@@ -55,7 +56,7 @@ export class ChunkManager {
 
 export class LightWorld {
     constructor(worker, worldId) {
-        this.chunkManager = new ChunkManager(this);
+        this.chunkManager = new LightWorkerChunkManager(this);
         this.light = new LightQueue(this, {offset: 0, dirCount: 6});
         this.dayLight = new LightQueue(this,
             {

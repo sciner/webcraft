@@ -48,6 +48,20 @@ class RiverPoint {
 
 }
 
+export class MapsBlockResult {
+
+    constructor(dirt_layer, block_id) {
+        this.set(dirt_layer, block_id)
+    }
+
+    set(dirt_layer, block_id) {
+        this.dirt_layer = dirt_layer
+        this.block_id = block_id
+        return this
+    }
+
+}
+
 //
 export class DensityParams {
 
@@ -440,9 +454,11 @@ export class TerrainMapManager2 {
      * @param {int} not_air_count
      * @param {TerrainMapCell} cell
      * @param {DensityParams} density_params
-     * @returns
+     * @param {MapsBlockResult} block_result
+     * 
+     * @returns {MapsBlockResult}
      */
-    getBlock(xyz, not_air_count, cell, density_params) {
+    getBlock(xyz, not_air_count, cell, density_params, block_result) {
 
         const dirt_layers = cell.biome.dirt_layers;
         const dist_percent = cell.preset.dist_percent;
@@ -495,8 +511,12 @@ export class TerrainMapManager2 {
             if(d4 > .5) block_id = BLOCK.DIORITE.id
             if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = BLOCK.GRANITE.id
         }
+        
+        if(!block_result) {
+            return block_result = new MapsBlockResult(dirt_layer, block_id)
+        }
 
-        return {dirt_layer, block_id};
+        return block_result.set(dirt_layer, block_id)
 
     }
 

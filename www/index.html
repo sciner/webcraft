@@ -40,8 +40,13 @@
 	<!-- Third party -->
     <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="vendors/angular.min.js"></script>
+    <% if(page.useGenWorkers) {%>
+    <script src="js-gen/controller_bundle.js" type="module"></script>
+    <% } else { %>
     <script src="js/ui/controller.js" type="module"></script>
+    <% } %>
     <script>
+        globalThis.useGenWorkers = <%= page.useGenWorkers %>;
         function isMobileBrowser() {
             return 'ontouchstart' in document.documentElement;
         }
@@ -59,7 +64,7 @@
         window.addEventListener('resize', windowResized, true);
     </script>
 </head>
-<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: Qubatch && login.logged}" onload="windowResized()">
+<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: loading_completed && login.logged}" onload="windowResized()">
 
     <div id="bg-circles_area">
         <ul class="circles">
@@ -75,16 +80,16 @@
         <!-- Joystick -->
         <div id="Joystick">
             <div id="Joystick-left" class="joystick" ng-if="isJoystickControl()">
-                <img src="/media/joystick/joystick-base.png" style="pointer-events: none;" />
+                <img ng-src="/media/joystick/joystick-base.png" style="pointer-events: none;" />
                 <div id="stick" style="position: absolute; left:32px; top:32px;" style="pointer-events: none;" >
-                    <img src="/media/joystick/joystick-red.png" />
+                    <img ng-src="/media/joystick/joystick-red.png" />
                 </div>
             </div>
             <div id="Joystick-right" class="joystick" ng-if="isJoystickControl()">
-                <div style="left: 37px; top: -2px;" ng-mousedown="Qubatch.Joystick.action('walk', true)" ng-mouseup="Qubatch.Joystick.action('walk', false)" ontouchstart="Qubatch.Joystick.action('walk', true)" ontouchend="Qubatch.Joystick.action('walk', false)"><img src="/media/joystick/walk.png" /></div>
-                <div style="left: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('atack', true)" ng-mouseup="Qubatch.Joystick.action('atack', false)" ontouchstart="Qubatch.Joystick.action('atack', true)" ontouchend="Qubatch.Joystick.action('atack', false)"><img src="/media/joystick/atack.png" /></div>
-                <div style="right: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('jump', true)" ng-mouseup="Qubatch.Joystick.action('jump', false)" ontouchstart="Qubatch.Joystick.action('jump', true)" ontouchend="Qubatch.Joystick.action('jump', false)"><img src="/media/joystick/jump.png" /></div>
-                <div style="left: 37px; bottom: 0px;" ng-mousedown="Qubatch.Joystick.action('place', true)" ng-mouseup="Qubatch.Joystick.action('place', false)" ontouchstart="Qubatch.Joystick.action('place', true)" ontouchend="Qubatch.Joystick.action('place', false)"><img src="/media/joystick/place.png" /></div>
+                <div style="left: 37px; top: -2px;" ng-mousedown="Qubatch.Joystick.action('walk', true)" ng-mouseup="Qubatch.Joystick.action('walk', false)" ontouchstart="Qubatch.Joystick.action('walk', true)" ontouchend="Qubatch.Joystick.action('walk', false)"><img ng-src="/media/joystick/walk.png" /></div>
+                <div style="left: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('atack', true)" ng-mouseup="Qubatch.Joystick.action('atack', false)" ontouchstart="Qubatch.Joystick.action('atack', true)" ontouchend="Qubatch.Joystick.action('atack', false)"><img ng-src="/media/joystick/atack.png" /></div>
+                <div style="right: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('jump', true)" ng-mouseup="Qubatch.Joystick.action('jump', false)" ontouchstart="Qubatch.Joystick.action('jump', true)" ontouchend="Qubatch.Joystick.action('jump', false)"><img ng-src="/media/joystick/jump.png" /></div>
+                <div style="left: 37px; bottom: 0px;" ng-mousedown="Qubatch.Joystick.action('place', true)" ng-mouseup="Qubatch.Joystick.action('place', false)" ontouchstart="Qubatch.Joystick.action('place', true)" ontouchend="Qubatch.Joystick.action('place', false)"><img ng-src="/media/joystick/place.png" /></div>
             </div>
         </div>
 
@@ -104,7 +109,7 @@
         
     </div>
 
-    <canvas id="bg-canvas"></canvas>
+    <!-- <canvas id="bg-canvas"></canvas> -->
 
     <!-- shareGame -->
     <div id="form-shareGame" class="form-normal visible_only_in_game_menu visible_in_game_menu" ng-if="shareGame.visible">
@@ -156,12 +161,12 @@
     </div>
 
     <!-- Start page -->
-    <div class="start-page" ng-if="Qubatch && !login.logged">
+    <div class="start-page" ng-if="loading_completed && !login.logged">
         <input id="sign-modal-toggle" type="checkbox" class="hidden">
         <div class="bg" ng-init="initSelects()">
             <div class="container">
                 <div class="block">
-                    <img class="logo" src="style/img/logo.webp" alt="">
+                    <img class="logo" ng-src="style/img/logo.webp" alt="">
                     <div class="step-1">
                         <label for="sign-modal-toggle" class="btn primary" style="width: 210px; margin-bottom: 60px;">{{Lang.start_game}}</label>
                     </div>
@@ -197,10 +202,10 @@
                     </div>
                     <div class="social">
                         <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
-                            <img src="style/img/discord.svg" alt="">
+                            <img ng-src="style/img/discord.svg" alt="">
                         </a>
                         <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
-                            <img src="style/img/youtube.svg" alt="">
+                            <img ng-src="style/img/youtube.svg" alt="">
                         </a>
                     </div>
                 </div>
@@ -215,7 +220,7 @@
 		<header class="animate__animated animate__fadeIn">
 			<nav class="tabs">
 				<div class="logo cpointer" ng-click="current_window.show('main')">
-					<img src="style/img/logo.webp" alt="">
+					<img ng-src="style/img/logo.webp" alt="">
 				</div>
 				<div class="tabs-block">
 					<!-- <button class="tab">{{Lang.servers}}</button>
@@ -224,7 +229,7 @@
 				</div>
 				<div class="user-block">
 					<button class="tab user" ng-class="{ active: current_window.id == 'skin'}" ng-click="skin.toggle()">
-						<img src="media/design/icon-head.png" alt="">
+						<img ng-src="media/design/icon-head.png" alt="">
 						@{{Qubatch.App.session.username}}
 					</button>
 					<button class="tab" ng-class="{ active: current_window.id == 'settings'}"  href="#" ng-click="settings.toggle()">
@@ -259,7 +264,7 @@
 						<div class="img-cover" ng-class="{with_cover: !!item.cover}">
 							<h2 ng-if="!item.cover">{{Lang.no_cover}}</h2>
 							<p ng-if="!item.cover">{{Lang.no_cover_note}}</p>
-                            <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover}}" alt="cover" />
+                            <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover_preview ? item.cover_preview : item.cover}}" alt="cover" />
 						</div>
 					</div>
 					<div class="card-footer">
@@ -288,10 +293,10 @@
             <!-- Social -->
 			<div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/discord.svg" alt="">
+                    <img ng-src="style/img/discord.svg" alt="">
                 </a>
                 <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/youtube.svg" alt="">
+                    <img ng-src="style/img/youtube.svg" alt="">
                 </a>
             </div>
 
@@ -460,7 +465,7 @@
                 <div id="skins-slider" class="keen-slider zoom-out">
                     <div class="keen-slider__slide zoom-out__slide" ng-repeat="k in skin.list track by k.id">
                         <div>
-                            <img ng-src="{{k.preview}}" alt="preview skin" />
+                            <!-- <img ng-src="{{k.preview}}" alt="preview skin" /> -->
                         </div>
                     </div>
                 </div>
@@ -470,7 +475,9 @@
                     </button>
                     <canvas id="skin_container" ng-init="skin.initSkinView3d()"></canvas>
                     <div id="skins-preview-slider" class="keen-slider thumbnail">
-                        <div class="keen-slider__slide" ng-repeat="k in skin.list track by k.id"><img ng-src="{{k.preview}}"/></div>
+                        <div class="keen-slider__slide" ng-repeat="k in skin.list track by k.id">
+                            <!-- <img ng-src="{{k.preview}}"/> -->
+                        </div>
                     </div>
                     <button id="slider-next" class="slider-btn" onclick="sliderNext()">
                         <i class="icon-chevron-right"></i>
@@ -505,10 +512,10 @@
             </div> -->
             <div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/discord.svg" alt="">
+                    <img ng-src="style/img/discord.svg" alt="">
                 </a>
                 <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/youtube.svg" alt="">
+                    <img ng-src="style/img/youtube.svg" alt="">
                 </a>
             </div>
         </div>
@@ -547,10 +554,10 @@
             </div>
             <div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/discord.svg" alt="">
+                    <img ng-src="style/img/discord.svg" alt="">
                 </a>
                 <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
-                    <img src="style/img/youtube.svg" alt="">
+                    <img ng-src="style/img/youtube.svg" alt="">
                 </a>
             </div>
         </div>

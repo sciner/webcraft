@@ -2,7 +2,8 @@ import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
+    CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW } from "./chunk_const.js";
 import { DEFAULT_TX_CNT } from "./constant.js";
 
 const {mat4, quat} = glMatrix;
@@ -182,12 +183,12 @@ export class Mth {
 
     // generates from min to max, inclusive
     static randomIntRange(min, max) {
-        return Math.random() * (max - min + 1) + min | 0;
+        return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
     // generates from 0 (inclusive) to max (exclusive)
     static randomInt(maxExclusive) {
-        return Math.random() * maxExclusive | 0;
+        return Math.floor(Math.random() * maxExclusive);
     }
 }
 
@@ -351,8 +352,15 @@ export class VectorCollectorFlat {
 // VectorCollector...
 export class VectorCollector {
 
-    constructor(list) {
+    /**
+     * @param {Map} list 
+     * @param {int} blocks_size 
+     */
+    constructor(list, blocks_size) {
         this.clear(list);
+        if(list && !isNaN(blocks_size)) {
+            this.size = blocks_size
+        }
     }
 
     *[Symbol.iterator]() {
@@ -437,6 +445,43 @@ export class VectorCollector {
             this.size++;
         }
         return v;
+    }
+
+    /**
+     * Updates a value (existing or non-existng), possibly setting it or deleting it.
+     * It's faster than getting and then setting a value.
+     * @param {Vector} vec
+     * @param {Function} mapFn is called for the existing value (or undefined, if there is no value).
+     *   If its result is not null, it's set as the new value.
+     *   If its result is null, the value is deleted.
+     * @return the new value.
+     */
+    update(vec, mapFn) {
+        let byY = this.list.get(vec.x);
+        if (byY == null) {
+            byY = new Map();
+            this.list.set(vec.x, byY);
+        }
+        let byZ = byY.get(vec.y);
+        if (byZ == null) {
+            byZ = new Map();
+            byY.set(vec.y, byZ);
+        }
+        const oldV = byZ.get(vec.z);
+        const newV = mapFn(oldV);
+        if (newV != null) {
+            if (newV !== oldV) {
+                if (oldV === undefined && !byZ.has(vec.z)) { // fast check, then slow
+                    this.size++;
+                }
+                byZ.set(vec.z, newV);
+            }
+        } else {
+            if (byZ.delete(vec.z)) {
+                this.size--;
+            }
+        }
+        return newV;
     }
 
     delete(vec) {
@@ -1260,10 +1305,14 @@ export class Vector {
 
     // Return flat index of chunk block
     getFlatIndexInChunk() {
-        let x = (this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X) % CHUNK_SIZE_X;
-        let y = (this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y) % CHUNK_SIZE_Y;
-        let z = (this.z - Math.floor(this.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z) % CHUNK_SIZE_Z;
+        let x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
+        let y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
+        let z = this.z - Math.floor(this.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
         return (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+    }
+
+    relativePosToFlatIndexInChunk() {
+        return CHUNK_SIZE_X * (CHUNK_SIZE_Z * this.y + this.z) + this.x;
     }
 
     //
@@ -1272,6 +1321,25 @@ export class Vector {
         this.x = index % CHUNK_SIZE_X;
         this.y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
         this.z = (index % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - this.x) / CHUNK_SIZE_X;
+        return this;
+    }
+
+    worldPosToChunkIndex() {
+        const x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
+        const y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
+        const z = this.z - Math.floor(this.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
+        return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
+    }
+
+    relativePosToChunkIndex() {
+        return CHUNK_CX * this.x + CHUNK_CY * this.y + CHUNK_CZ * this.z + CHUNK_CW;
+    }
+
+    fromChunkIndex(index) {
+        this.x = index % CHUNK_OUTER_SIZE_X - CHUNK_PADDING;
+        index  = index / CHUNK_OUTER_SIZE_X | 0;
+        this.z = index % CHUNK_OUTER_SIZE_Z - CHUNK_PADDING;
+        this.y = (index / CHUNK_OUTER_SIZE_Z | 0) - CHUNK_PADDING;
         return this;
     }
 
@@ -1526,11 +1594,11 @@ export class Helpers {
         return dist;
     }
 
-    // getRandomInt...
+    // getRandomInt возвращает случайное целое число в диапазоне от min до max (min <= N <= max)
     static getRandomInt(min, max) {
         min = Math.ceil(min);
         max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min)) + min; // Максимум не включается, минимум включается
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     static createSkinLayer2(text, image, callback) {
@@ -1735,6 +1803,16 @@ export class StringHelpers {
             : str;
     }
 
+    static count(str, subStr) {
+        let res = 0;
+        let ind = str.indexOf(subStr);
+        while (ind >= 0) {
+            res++;
+            ind = str.indexOf(subStr, ind + 1);
+        }
+        return res;
+    }
+
     static capitalizeChatAt(str, index) {
         return this.replaceCharAt(str, index, str.charAt(index).toUpperCase());
     }
@@ -1796,7 +1874,7 @@ export class ArrayHelpers {
     static sum(arr, mapper = (it) => it) {
         var sum = 0;
         for (let i = 0; i < arr.length; i++) {
-            sum += mapper(arr);
+            sum += mapper(arr[i]);
         }
         return sum;
     }
@@ -1879,6 +1957,14 @@ export class ArrayHelpers {
             arr.fill(fill);
         }
         return arr;
+    }
+
+    static create(length, createElementFn) {
+        const res = new Array(length);
+        for(let i = 0; i < length; i++) {
+            res[i] = createElementFn(i);
+        }
+        return res;
     }
 }
 
@@ -2739,13 +2825,15 @@ export class SimpleQueue {
     }
 
     push(v) {
-        if (this.length === this.arr.length) {
-            // grow: copy the beginning into the end; the beginning becomes empty
-            for(var i = 0; i < this.length; i++) {
-                this.arr.push(this.arr[i]);
-            }
-        }
+        this._grow();
         this.arr[(this.left + this.length) % this.arr.length] = v;
+        this.length++;
+    }
+
+    unshift(v) {
+        this._grow();
+        this.left = (this.left + this.arr.length - 1) % this.arr.length;
+        this.arr[this.left] = v;
         this.length++;
     }
 
@@ -2765,6 +2853,15 @@ export class SimpleQueue {
         }
     }
 
+    _grow() {
+        if (this.length === this.arr.length) {
+            // grow: copy the beginning into the end; the beginning becomes empty.
+            // At least one element is pushed.
+            for(var i = 0; i <= this.left; i++) {
+                this.arr.push(this.arr[i]);
+            }
+        }
+    }
 }
 
 // A matrix that has indices in [minRow..(minRow + rows - 1), minCol..(minCol + cols - 1)]
@@ -3067,4 +3164,30 @@ const typeSizes = {
 };
 export function sizeOf(value) {
     return typeSizes[typeof value](value)
+}
+
+
+
+export class PerformanceTimer {
+
+    constructor() {
+        this.names = []
+    }
+
+    start(name) {
+        this.names.push({name, p: performance.now()})
+    }
+
+    stop() {
+        let keys = []
+        for(let item of this.names) {
+            keys.push(item.name)
+        }
+        const key = keys.join(' -> ')
+        const item = this.names.pop()
+        const diff = performance.now() - item.p
+        const exist_value = this[key] ?? 0
+        this[key] = exist_value + diff
+    }
+
 }

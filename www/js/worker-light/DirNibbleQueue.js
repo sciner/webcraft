@@ -131,6 +131,13 @@ export class DirNibbleQueue {
             if (chunk !== newChunk) {
                 chunk = newChunk;
                 lightChunk = chunk.lightChunk;
+
+                if (!lightChunk.nibbleDims) {
+                    // dayLight somehow goes under y<0 limit, where it shouldn't.
+                    // probably chunk ID conflict
+                    continue;
+                }
+
                 uint8View = lightChunk.uint8View;
                 outerSize = lightChunk.outerSize;
                 strideBytes = lightChunk.strideBytes;

@@ -25,9 +25,9 @@ export default function randomTicker(world, actions, world_light, tblock) {
         _rnd_pos
             .copyFrom(tblock.posworld)
             .addScalarSelf(
-                Helpers.getRandomInt(-1, 2),
-                Helpers.getRandomInt(-2, 3),
-                Helpers.getRandomInt(-1, 2)
+                Helpers.getRandomInt(-1, 1),
+                Helpers.getRandomInt(-2, 2),
+                Helpers.getRandomInt(-1, 1)
             );
         const rnd_block = world.getBlock(_rnd_pos);
         if(rnd_block && rnd_block.id == BLOCK.DIRT.id) {

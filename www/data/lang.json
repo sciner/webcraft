@@ -149,8 +149,9 @@
         "error_skin_size_must_be_64": {"en": "The skin size must be 64x64", "ru": "Размер скина должен быть 64x64", "fr": "", "es": "", "man": ""},
         "error_this_skin_already_exists": {"en": "This skin already exists and can't be added", "ru": "Этот скин уже существует и не может быть добавлен", "fr": "", "es": "", "man": ""},
         "server_error_try_later": {"en": "Server error. Try again later.", "ru": "Ошибка сервера. Попробуйте позже.", "fr": "", "es": "", "man": ""},
-        "error_inventory_mismatch": {"en": "Error: inventory mismatch.", "ru": "Ошибка: несовпадение инвентаря."},
-        "error_incorrect_value": {"en": "Error: incorrect value."},
+        "error_inventory_mismatch": {"en": "Error: inventory mismatch.", "ru": "Ошибка: несовпадение инвентаря.", "fr": "", "es": "", "man": ""},
+        "error_incorrect_value": {"en": "Error: incorrect value.", "fr": "", "es": "", "man": ""},
+        "error": {"en": "Error", "ru": "Ошибка", "fr": "", "es": "", "man": ""},
         "error_chest_too_far": {"en": "The chest is too far", "ru": "Сундук слишклм далеко", "es": "", "man": ""},
         "chest_loading": {"en": "LOADING...", "ru": "ЗАГРУЗКА...", "fr": "", "es": "", "man": ""},
         "effect_removed": {"en": "Effect \"%0\" removed", "ru": "Эффект \"%0\" удалён", "fr": "", "es": "", "man": ""},
@@ -160,6 +161,10 @@
         "effect_add_ok": {"en": "Effect \"%0\" added for %1 sec", "ru": "Эффект \"%0\" добавлен на %1 сек", "fr": "", "es": "", "man": ""},
         "effect_all_removed": {"en": "All effects removed", "ru": "Все эффекты удалены", "fr": "", "es": "", "man": ""},
         "music_volume": {"en": "Music volume", "ru": "Громкость музыки", "fr": "", "es": "", "man": ""},
-        "error_command_not_working_in_this_game_mode": {"en": "Command not working in this game mode", "ru": "Команда не работает в текущем игровом режиме", "fr": "", "es": "", "man": ""}
+        "error_command_not_working_in_this_game_mode": {"en": "Command not working in this game mode", "ru": "Команда не работает в текущем игровом режиме", "fr": "", "es": "", "man": ""},
+        "beacon_primary": {"en": "Primary Power", "ru": "Основной эффект", "fr": "", "es": "", "man": ""},
+        "inventory": {"en": "Inventory", "ru": "Инвентарь", "fr": "", "es": "", "man": ""},
+        "beacon_secondary": {"en": "Secondary Power", "ru": "Вторичный эффект", "fr": "", "es": "", "man": ""},
+        "shutdown_initiated_by": {"en": "Server shutdown initiated by %0", "ru": "Выключение сервера инициировано %0", "fr": "", "es": "", "man": ""}
     }
 }

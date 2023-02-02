@@ -14,10 +14,13 @@ import { WorldActionQueue } from "./world/action_queue.js";
 import { WorldMobManager } from "./world/mob_manager.js";
 import { WorldAdminManager } from "./world/admin_manager.js";
 import { WorldChestManager } from "./world/chest_manager.js";
+import { WorldDBActor } from "./db/world/WorldDBActor.js";
+import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
+import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
-import { BLOCK } from "../www/js/blocks.js";
+import { BLOCK, DBItemBlock } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
@@ -25,6 +28,7 @@ import { GAME_DAY_SECONDS, GAME_ONE_SECOND, WORLD_TYPE_BUILDING_SCHEMAS, PLAYER_
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
+import { SHUTDOWN_ADDITIONAL_TIMEOUT } from "./server_constant.js"
 
 import { WorldAction } from "../www/js/world_action.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
@@ -44,9 +48,13 @@ export class ServerWorld {
 
         this.block_manager = block_manager;
         this.updatedBlocksByListeners = [];
+
+        // An object with fields { resolve, gentle }. Gentle means to wait unil the action queue is empty
+        this.shuttingDown = null;
     }
 
-    async initServer(world_guid, db_world, new_title) {
+    async initServer(world_guid, db_world, new_title, game) {
+        this.game = game;
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
@@ -77,7 +85,7 @@ export class ServerWorld {
                 this.brains.add(fn, module.Brain);
             });
         }
-        t = performance.now() - t;
+        t = performance.now() - t | 0;
         if (t > 50) {
             console.log('Importing tickers, listeners & brains: ' + t + ' ms');
         }
@@ -87,7 +95,15 @@ export class ServerWorld {
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
 
-        await this.makeBuildingsWorld()
+        this.worldChunkFlags = new WorldChunkFlags(this);
+        this.dbActor        = new WorldDBActor(this);
+
+        const madeBuildings = await this.makeBuildingsWorld();
+
+        if (!madeBuildings) {
+            await this.dbActor.crashRecovery();
+            await this.db.compressModifiers(); // Do we really need it?
+        }
 
         // Server ore generator
         this.ore_generator  = new WorldOreGenerator(this.info.ore_seed, false)
@@ -115,13 +131,15 @@ export class ServerWorld {
         this.weather        = Weather.CLEAR;
         //
         this.players        = new ServerPlayerManager(this);
-        this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
+        this.all_drop_items = this.chunks.itemWorld.all_drop_items; // Store refs to all loaded drop items in the world
         //
         await this.models.init();
         await this.quests.init();
         await this.admins.load();
-        await this.restoreModifiedChunks();
-        await this.db.fluid.restoreFluidChunks();
+        t = performance.now();
+        await this.worldChunkFlags.restore();
+        await this.db.mobs.initChunksWithMobs();
+        console.log(`Restored ${this.worldChunkFlags.size} chunks, ${this.db.mobs._addrByMobId.size} mobs, elapsed: ${performance.now() - t | 0} ms`)
         await this.chunks.initWorker();
         await this.chunks.initWorkers(world_guid);
 
@@ -132,14 +150,14 @@ export class ServerWorld {
             await this.rules.setValue('randomTickSpeed', '0')
         }
 
-        //
-        this.saveWorldTimer = setInterval(() => {
-            // let pn = performance.now();
-            this.save();
-            // calc time elapsed
-            // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
-        }, 5000);
         await this.tick();
+    }
+
+    // Closes the world on a critical error. It must never resolve.
+    async terminate(text, err) {
+        text && console.error(text);
+        err && console.error(err);
+        process.exit();
     }
 
     getDefaultPlayerIndicators() {
@@ -208,7 +226,7 @@ export class ServerWorld {
                     fluids[i + 1] = schema.world.pos1.y + fluids[i + 1] - y
                     fluids[i + 2] = schema.world.entrance.z - fluids[i + 2]
                 }
-                await this.db.fluid.applyAnyChunk(fluids)
+                await this.db.fluid.flushWorldFluidsList(fluids)
             }
             // fill blocks
             for(let b of schema.blocks) {
@@ -227,12 +245,12 @@ export class ServerWorld {
 
         // store modifiers in db
         let t = performance.now()
-        await this.db.blockSetBulk(this, null, blocks)
+        await this.db.chunks.bulkInsertWorldModify(blocks)
         console.log('Building: store modifiers in db ...', performance.now() - t)
 
         // compress chunks in db
         t = performance.now()
-        await this.db.updateChunks(chunks_addr.keys());
+        await this.db.chunks.insertRebuildModifiers(chunks_addr.keys())
         console.log('Building: compress chunks in db ...', performance.now() - t)
 
         // reread info
@@ -261,7 +279,7 @@ export class ServerWorld {
             return;
         }
         // находим игроков
-        for (const [_, player] of this.players.all()) {
+        for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
                 // количество мобов одного типа в радусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie', 'skeleton']);
@@ -355,8 +373,19 @@ export class ServerWorld {
         this.info.calendar.day_time = Math.round((age - this.info.calendar.age) * GAME_DAY_SECONDS);
     }
 
+    async shutdown() {
+        await this.db.fluid.flushAll()
+        await this.dbActor.forceSaveWorld()
+        // resolve the promise of this world shutting down after an additional timeout
+        setTimeout(this.shuttingDown.resolve, SHUTDOWN_ADDITIONAL_TIMEOUT)
+        await new Promise(() => {}) // await forever
+    }
+
     // World tick
     async tick() {
+        if (this.shuttingDown && !this.shuttingDown.gentle) {
+            await this.shutdown()
+        }
         const started = performance.now();
         let delta = 0;
         if (this.pn) {
@@ -395,22 +424,37 @@ export class ServerWorld {
             //
             await this.actions_queue.run();
             this.ticks_stat.add('actions_queue');
+            if (this.shuttingDown?.gentle && this.actions_queue.length === 0) {
+                await this.shutdown()
+            }
             //
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
-            //
+
+            // Do different periodic tasks in different ticks to reduce lag spikes
             if(this.ticks_stat.number % 100 == 0) {
+                //
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
-            }
-            // Auto spawn hostile mobs
-            if(this.ticks_stat.number % 100 == 0) {
+                // Auto spawn hostile mobs
                 this.autoSpawnHostileMobs();
                 this.ticks_stat.add('auto_spawn_hostile_mobs');
+            } else if (!this.givePriorityToSavingFluids &&
+                await this.dbActor.saveWorldIfNecessary() // World transaction
+            ) {
+                this.ticks_stat.add('world_transaction_sync');
+            } else {
+                // We mustn't save fluids (synchronously) while the world transaction is writing, because it'll cause long waiting.
+                if (!this.dbActor.savingWorldNow) {
+                    // Save fluids
+                    await this.db.fluid.saveFluids();
+                    this.ticks_stat.add('db_fluid_save');
+                    this.givePriorityToSavingFluids = false;
+                } else {
+                    // Ensure that even if the world transaction takes all the time, it'll give at least 1 tick to fluids
+                    this.givePriorityToSavingFluids = true;
+                }
             }
-            // Save fluids
-            this.ticks_stat.add('db_fluid_save');
-            await this.db.fluid.saveFluids();
             this.ticks_stat.end();
         }
         //
@@ -422,32 +466,31 @@ export class ServerWorld {
         );
     }
 
-    save() {
-        for(const [_, player] of this.players.all()) {
-            this.db.savePlayerState(player);
-        }
-    }
-
     // onPlayer
     async onPlayer(player, skin) {
+        const user_id = player.session.user_id;
         // 1. Delete previous connections
-        const existing_player = this.players.get(player.session.user_id);
+        const existing_player = this.players.get(user_id);
         if(existing_player) {
             console.log('OnPlayer delete previous connection for: ' + player.session.username);
             await this.onLeave(existing_player);
         }
+        // If thre is a copy of this player player waiting to be saved right now, wait until it's saved and forgotten.
+        // It's slow, but safe. TODO restore players without waiting
+        await this.players.getDeleted(user_id)?.savingPromise;
         // 2. Insert to DB if new player
         player.init(await this.db.registerPlayer(this, player));
         player.state.skin = skin;
         player.updateHands();
         await player.initQuests();
+        // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
-        // 3. Insert to array
-        this.players.list.set(player.session.user_id, player);
-        // 4. Send about all other players
+        // 4. Insert to array
+        this.players.list.set(user_id, player);
+        // 5. Send about all other players
         const all_players_packets = [];
-        for (const [_, p] of this.players.all()) {
-            if (p.session.user_id != player.session.user_id) {
+        for (const p of this.players.values()) {
+            if (p.session.user_id != user_id) {
                 all_players_packets.push({
                     name: ServerClient.CMD_PLAYER_JOIN,
                     data: p.exportState()
@@ -455,18 +498,18 @@ export class ServerWorld {
             }
         }
         player.sendPackets(all_players_packets);
-        // 5. Send to all about new player
+        // 6. Send to all about new player
         this.sendAll([{
             name: ServerClient.CMD_PLAYER_JOIN,
             data: player.exportState()
         }], []);
-        // 6. Write to chat about new player
+        // 7. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
-        // 7. Drop item if stored
+        // 8. Drop item if stored
         if (player.inventory.moveOrDropFromDragSlot()) {
-            await player.inventory.save();
+            player.inventory.markDirty();
         }
-        // 8. Send CMD_CONNECTED
+        // 9. Send CMD_CONNECTED
         player.sendPackets([{
             name: ServerClient.CMD_CONNECTED, data: {
                 session: player.session,
@@ -478,19 +521,16 @@ export class ServerWorld {
                 }
             }
         }]);
-        // 9. Add night vision for building world
+        // 10. Add night vision for building world
         if(this.isBuildingWorld()) {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
         }
-        // 10. Check player visible chunks
-        this.chunks.checkPlayerVisibleChunks(player, true);
     }
 
     // onLeave
     async onLeave(player) {
         if (this.players.exists(player?.session?.user_id)) {
             this.players.delete(player.session.user_id);
-            await this.db.savePlayerState(player);
             player.onLeave();
             // Notify other players about leave me
             const packets = [{
@@ -552,47 +592,16 @@ export class ServerWorld {
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
-            const packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: e
-                }
-            }];
-            if(player) {
-                this.sendSelected(packets, [player.session.user_id], []);
-            }
+            player?.sendError(e);
         }
-    }
-
-    /**
-     * Restore modified chunks list
-     */
-    async restoreModifiedChunks() {
-        this.chunkModifieds = new VectorCollector();
-        const list = await this.db.chunkBecameModified();
-        for(let addr of list) {
-            this.chunkBecameModified(addr);
-        }
-        return true;
-    }
-
-    // Chunk has modifiers
-    chunkHasModifiers(addr) {
-        return this.chunkModifieds.has(addr) || this.db.fluid.knownFluidChunks.has(addr);
-    }
-
-    // Add chunk to modified
-    chunkBecameModified(addr) {
-        if (this.chunkModifieds.has(addr)) {
-            return false;
-        }
-        return this.chunkModifieds.set(addr, addr);
     }
 
     // Юзер начал видеть этот чанк
     async loadChunkForPlayer(player, addr) {
         const chunk = this.chunks.get(addr);
+        // this is an old request for re-sync after player started seeing chunk, in case modifiers are different now
         if (!chunk) {
+            // chunk was already unloaded while being in NEARBY array - that's a critical error!
             throw 'Chunk not found';
         }
         chunk.addPlayerLoadRequest(player);
@@ -614,6 +623,17 @@ export class ServerWorld {
     }
 
     /**
+     * It does everything that needs to be done when a block extra_data is modified:
+     * marks the block as dirty, updates the chunk modifiers.
+     */
+    onBlockExtraDataModified(tblock, pos = tblock.posworld.clone()) {
+        const item = tblock.convertToDBItem();
+        const data = { pos, item };
+        tblock.chunk.dbActor.markBlockDirty(data, tblock.index, BLOCK_DIRTY.UPDATE_EXTRA_DATA);
+        tblock.chunk.addModifiedBlock(pos, item, item.id);
+    }
+
+    /**
      * @return {ServerChunkManager}
      */
     get chunkManager() {
@@ -624,13 +644,14 @@ export class ServerWorld {
     async applyActions(server_player, actions) {
         const chunks_packets = new VectorCollector();
         //
-        const getChunkPackets = (pos) => {
-            const chunk_addr = getChunkAddr(pos);
-            const chunk = this.chunks.get(chunk_addr);
+        const getChunkPackets = (pos, chunk_addr) => {
+            if(!chunk_addr) {
+                chunk_addr = getChunkAddr(pos)
+            }
             let cps = chunks_packets.get(chunk_addr);
             if (!cps) {
                 cps = {
-                    chunk: chunk,
+                    chunk: this.chunks.get(chunk_addr),
                     packets: [],
                     custom_packets: []
                 };
@@ -708,42 +729,37 @@ export class ServerWorld {
             // trick for worldedit plugin
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
-            const use_tx = actions.blocks.list.length > 1;
-            if (use_tx) {
-                await this.db.TransactionBegin();
-            }
             try {
-                let chunk_addr = new Vector(0, 0, 0);
-                let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
+                const block_pos_in_chunk = new Vector(Infinity, Infinity, Infinity);
+                const chunk_addr = new Vector(0, 0, 0);
+                const prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
                 let chunk = null;
-                const modified_chunks = new VectorCollector();
-                const all = [];
-                const create_block_list = [];
+                let postponedActions = null; // WorldAction containing a subset of actions.blocks, postponed until the current chunk loads
                 const previous_item = {id: 0}
+                let cps = null;
                 for (let params of actions.blocks.list) {
-                    params.item = this.block_manager.convertItemToDBItem(params.item);
-                    chunk_addr = getChunkAddr(params.pos, chunk_addr);
+                    const block_pos = new Vector(params.pos).flooredSelf();
+                    params.pos = block_pos;
+                    //
+                    if(!(params.item instanceof DBItemBlock)) {
+                        if(!globalThis.asdfasdf) globalThis.asdfasdf = 0
+                        if(globalThis.asdfasdf++ % 1000 == 0) console.log(globalThis.asdfasdf)
+                        params.item = this.block_manager.convertBlockToDBItem(params.item)
+                    }
+                    //
+                    getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
+                        cps = getChunkPackets(null, chunk_addr);
                         chunk?.light?.flushDelta();
-                        modified_chunks.set(chunk_addr, true);
-                        chunk = this.chunks.get(chunk_addr);
-                        prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+                        chunk = this.chunks.getOrRestore(chunk_addr);
+                        postponedActions = null; // the new chunk must create its own postponedActions
+                        prev_chunk_addr.copyFrom(chunk_addr);
                     }
-                    if(params.action_id != ServerClient.BLOCK_ACTION_MODIFY) {
-                        create_block_list.push(params);
-                    } else {
-                        all.push(this.db.blockSet(this, server_player, params));
-                    }
-
-                    let isLoaded = chunk && chunk.isReady();
-                    if (chunk && !isLoaded) {
-                        // TODO: wtf to do here? we are loading info from the database currently!
-                        console.log(`Potential problem with setting a block and loading chunk pos=${params.pos} item=${params.item}`);
-                    }
+                    const isReady = chunk && chunk.isReady();
                     // 2. Mark as became modifieds
-                    this.chunkBecameModified(chunk_addr);
+                    this.worldChunkFlags.add(chunk_addr, WorldChunkFlags.MODIFIED_BLOCKS);
                     // 3.
-                    if (chunk && chunk.tblocks && isLoaded) {
+                    if (isReady) {
                         let sanitizedParams = params;
                         const sanitizedItem = shallowCloneAndSanitizeIfPrivate(params.item);
                         if (sanitizedItem) {
@@ -751,10 +767,7 @@ export class ServerWorld {
                             sanitizedParams = {...params};
                             sanitizedParams.item = sanitizedItem;
                         }
-
-                        const block_pos = new Vector(params.pos).flooredSelf();
-                        const block_pos_in_chunk = block_pos.sub(chunk.coord);
-                        const cps = getChunkPackets(params.pos);
+                        block_pos_in_chunk.copyFrom(block_pos).subSelf(chunk.coord)
                         cps.packets.push({
                             name: ServerClient.CMD_BLOCK_SET,
                             data: sanitizedParams
@@ -796,6 +809,7 @@ export class ServerWorld {
                                 }
                             }
                         }
+
                         // 4. Store in chunk tblocks
                         const oldLight = tblock.lightSource;
                         chunk.tblocks.delete(block_pos_in_chunk);
@@ -805,7 +819,10 @@ export class ServerWorld {
                             chunk.light.currentDelta.push(tblock.index);
                         }
                         // 5. Store in modify list
-                        chunk.addModifiedBlock(block_pos, params.item);
+                        chunk.addModifiedBlock(block_pos, params.item, oldId);
+                        // Mark the block as dirty and remember the change to be saved to DB
+                        chunk.dbActor.markBlockDirty(params, tblock.index);
+
                         if (on_block_set) {
                             // a.
                             chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
@@ -845,37 +862,29 @@ export class ServerWorld {
                             }
                         }
                     } else {
-                        // TODO: Chunk not found in pos
+                        if (chunk) {
+                            // The chunk exists, but not ready yet. Queue the block action until the chunk is loaded.
+                            postponedActions = postponedActions ?? chunk.getOrCreatePendingAction(server_player, actions)
+                            postponedActions.addBlock(params);
+                        } else {
+                            this.dbActor.addChunklessBlockChange(chunk_addr, params);
+                        }
                     }
                 }
                 chunk?.light?.flushDelta();
-                if(create_block_list.length > 0) {
-                    all.push(this.db.blockSetBulk(this, server_player, create_block_list));
-                }
-                await Promise.all(all);
-                await this.db.updateChunks(Array.from(modified_chunks.keys()));
-                if (use_tx) {
-                    await this.db.TransactionCommit();
-                }
             } catch(e) {
                 console.error('error', e);
-                if (use_tx) {
-                    await this.db.TransactionRollback();
-                }
                 throw e;
             }
             this.addUpdatedBlocksActions(this.updatedBlocksByListeners);
         }
         if (actions.fluids.length > 0) {
             if (actions.fluidFlush) {
-                await this.db.fluid.applyAnyChunk(actions.fluids);
+                // TODO: for schemas - make separate action after everything!
+                await this.db.fluid.flushWorldFluidsList(actions.fluids);
                 // assume same chunk for all cells
             } else {
-                let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
-                for (let chunk of chunks) {
-                    chunk.sendFluid(chunk.fluid.saveDbBuffer());
-                    chunk.fluid.markDirtyDatabase();
-                }
+                this.chunks.fluidWorld.applyWorldFluidsList(actions.fluids);
             }
         }
         // Play sound
@@ -958,9 +967,11 @@ export class ServerWorld {
         }
         //
         for (let cp of chunks_packets) {
-            if (cp.chunk) {
+            if (cp.chunk && cp.packets.length > 0 || cp.custom_packets.length > 0) {
                 // send 1
-                cp.chunk.sendAll(cp.packets, []);
+                if(cp.packets.length > 0) {
+                    cp.chunk.sendAll(cp.packets, []);
+                }
                 // send 2
                 for (let i = 0; i < cp.custom_packets.length; i++) {
                     const item = cp.custom_packets[i];
@@ -980,17 +991,14 @@ export class ServerWorld {
         if(actions.mobs.spawn.length > 0) {
             for(let i = 0; i < actions.mobs.spawn.length; i++) {
                 const params = actions.mobs.spawn[i];
-                await this.mobs.create(params);
+                this.mobs.create(params);
             }
         }
         // Activate mobs
         // мало кода, но работает медленнее ;)
         // actions.mobs.activate.map((_, v) => await this.mobs.activate(v.entity_id, v.spawn_pos, v.rotate));
-        if(actions.mobs.activate.length > 0) {
-            for(let i = 0; i < actions.mobs.activate.length; i++) {
-                const params = actions.mobs.activate[i];
-                await this.mobs.activate(params.entity_id, params.spawn_pos, params.rotate);
-            }
+        for(const params of actions.mobs.activate) {
+            await this.mobs.activate(params.entity_id, params.spawn_pos, params.rotate);
         }
     }
 

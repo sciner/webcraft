@@ -216,8 +216,7 @@ export class PlayerModel extends MobModel {
         try {
             item = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO);
         } catch(e) {
-            console.log(e);
-            //
+            console.error(e)
         }
 
         if (!item) {
@@ -288,7 +287,7 @@ export class PlayerModel extends MobModel {
         this.nametag.updateMatrix();
 
         this.changeSlots(this.activeSlotsData);
-        console.log(this.armor.head)
+        // console.log(this.armor.head)
     }
 
     update(render, camPos, delta, speed) {

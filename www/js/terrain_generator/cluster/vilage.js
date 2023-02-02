@@ -39,20 +39,20 @@ export class ClusterVilage extends ClusterBuildingBase {
             this.building_palettes = new BuildingPalettes(this, building_palette_options, BLOCK);
 
             // Generate vilage schema
-            let t = performance.now();
+            this.timers.start('generate')
             this.schema = new VilageSchema(this, schema_options);
             const resp = this.schema.generate(this.id);
-            this.timers.generate = performance.now() - t;
+            this.timers.stop()
 
             //
-            t = performance.now();
+            this.timers.start('add_buildings')
             this.mask = resp.mask;
             for(let house of resp.house_list.values()) {
                 const size = new Vector(house.width, 5, house.depth)
                 const entrance = new Vector(house.door.x, Infinity, house.door.z)
                 this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance.add(this.coord), house.door.direction, !!house.crossroad)
             }
-            this.timers.add_buildings = performance.now() - t; t = performance.now();
+            this.timers.stop()
 
         }
 
@@ -99,7 +99,7 @@ export class ClusterVilage extends ClusterBuildingBase {
                     {class: 'BuildingBlocks', max_count: 2, chance: .1, block_templates: ['waterwell', 'waterwell2']},
                     {class: 'Farmland',       max_count: Infinity, chance: .2},
                     {class: 'BuildingBlocks', max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
-                    {class: 'BuildingBlocks', max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', /*'farmer_house',*/ 'medium_house', 'underearth_tower', 'structure1']},
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', /*'farmer_house',*/ 'medium_house', 'underearth_tower', 'structure1', 'oak_house_small', 'stone_house_small']},
                     {class: 'BuildingBlocks', max_count: Infinity, chance: .42, block_templates: ['tiny_mart']},
                     {class: 'BuildingBlocks', max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2'/*, 'sand_house'*/]},
                     // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)

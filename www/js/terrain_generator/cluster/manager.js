@@ -31,12 +31,12 @@ export class ClusterManager {
      */
     getForCoord(coord, map_manager) {
         const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(this.size).flooredSelf()
-        const center_coord = addr.mul(this.size).addScalarSelf(this.size.x / 2, this.size.y / 2, this.size.z / 2)
-        const biome = map_manager?.calcBiome ? map_manager.calcBiome(center_coord) : null
         let cluster = this.all.get(addr);
         if(cluster) {
             return cluster;
         }
+        const center_coord = addr.mul(this.size).addScalarSelf(this.size.x / 2, this.size.y / 2, this.size.z / 2)
+        const biome = map_manager?.calcBiome ? map_manager.calcBiome(center_coord) : null
         const rand = new alea(this.seed + '_' + addr.toHash());
         const r = rand.double();
         if(this.version == 2) {

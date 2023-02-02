@@ -1,3 +1,4 @@
+import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { Vector, VectorCollector, SimpleShiftedMatrix } from "../../helpers.js";
 
 const BLOCKS_CAN_BE_FLOOR = [468]; // DIRT_PATH
@@ -20,13 +21,14 @@ const PORCH_CRATER_HEIGHT = 8;
 export class BuildingTemplate {
 
     static schemas = new Map();
+    static known_templates = new Map()
 
     constructor(json, bm) {
 
         if(!json) debugger
         if(!bm) debugger
 
-        for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks']) {
+        for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks', 'fluids']) {
             if(prop in json) {
                 switch(prop) {
                     case 'door_pos':
@@ -45,6 +47,7 @@ export class BuildingTemplate {
             this.rot = [ [], [], [], [] ]
             const {all_blocks} = this.prepareBlocks(bm)
             this.rotateBuildingBlockVariants(bm, all_blocks)
+            this.prepareFluids()
         }
 
     }
@@ -57,17 +60,32 @@ export class BuildingTemplate {
         return default_value
     }
 
-    static addSchema(schema) {
+    static addSchema(schema, bm) {
         schema.world.pos1 = new Vector(schema.world.pos1)
         schema.world.pos2 = new Vector(schema.world.pos2)
         schema.world.entrance = new Vector(schema.world.entrance)
         schema.door_pos = new Vector(schema.door_pos)
         schema.size = new Vector(schema.size)
         this.schemas.set(schema.name, schema);
+        // precompile
+        if(bm) {
+            this.fromSchema(schema.name, bm)
+        }
     }
 
+    /**
+     * @param {string} name 
+     * @param {*} bm 
+     * @returns 
+     */
     static fromSchema(name, bm) {
-        return new BuildingTemplate(this.getSchema(name), bm)
+        let template = BuildingTemplate.known_templates.get(name)
+        if(template) {
+            return template
+        }
+        template = new BuildingTemplate(this.getSchema(name), bm)
+        BuildingTemplate.known_templates.set(name, template)
+        return template
     }
 
     static getSchema(name) {
@@ -178,6 +196,33 @@ export class BuildingTemplate {
 
         return {all_blocks, min}
 
+    }
+
+    prepareFluids() {
+        const fluids = this.fluids
+        if(!fluids || fluids.length == 0) {
+            return false
+        }
+        const directions = [0, 1, 2, 3]
+        for(let i = 0; i < fluids.length; i += 4) {
+            // TODO: Need to detect flowing fluids too 
+            const fluid_id = fluids[i + 3]
+            let block_id = 0
+            if(fluid_id & FLUID_WATER_ID) block_id = 200
+            if(fluid_id & FLUID_LAVA_ID) block_id = 170
+            const block = {
+                block_id: block_id,
+                move: new Vector(
+                    fluids[i + 0],
+                    fluids[i + 1],
+                    fluids[i + 2]
+                )
+            }
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i];
+                this.rot[direction].push(block);
+            }
+        }
     }
 
     /**

@@ -43,7 +43,7 @@ export class ClusterBase {
 
     /**
      * Set block
-     * @param {*} chunk 
+     * @param { import("../../worker/chunk.js").Chunk } chunk 
      * @param {int} x 
      * @param {int} y 
      * @param {int} z 
@@ -308,27 +308,6 @@ export class ClusterBase {
         return true;
     }
 
-    // Add fence
-    addFence(coord, size) {
-        const dx = coord.x - this.coord.x;
-        const dz = coord.z - this.coord.z;
-        let fence_point = new ClusterPoint(2, [BLOCK.COBBLESTONE_WALL.id, BLOCK.OAK_FENCE.id], 1, null, null, 1);
-        let fence_point_torch = new ClusterPoint(3, [BLOCK.COBBLESTONE_WALL.id, BLOCK.OAK_FENCE.id, BLOCK.TORCH.id], 1, null, null, 1);
-        for(let i = 0; i < size.x; i++) {
-            for(let j = 0; j < size.z; j++) {
-                if(i == 0 || j == 0 || i == size.x - 1 || j == size.z - 1) {
-                    const x = dx + i;
-                    const z = dz + j;
-                    if((i+j+coord.x+coord.z) % 20 == 0) {
-                        this.mask[z * this.size.x + x] = fence_point_torch;
-                    } else {
-                        this.mask[z * this.size.x + x] = fence_point;
-                    }
-                }
-            }
-        }
-    }
-
     // Add road platform
     addRoadPlatform(coord, size, road_block_palette) {
         const dx = coord.x - this.coord.x;
@@ -436,110 +415,6 @@ export class ClusterBase {
         }
         */
 
-    }
-
-    // Draw walls
-    draw4Walls(chunk, pos, size, block_palette) {
-        const bx = pos.x - chunk.coord.x;
-        const by = pos.y - chunk.coord.y;
-        const bz = pos.z - chunk.coord.z;
-        const xyz = new Vector(0, 0, 0);
-        block_palette.reset();
-        for(let i = 0; i < size.x; i++) {
-            for(let j = 0; j < size.z; j++) {
-                for(let k = 0; k < size.y - 1; k++) {
-                    const x = bx + i;
-                    const y = by + k;
-                    const z = bz + j;
-                    xyz.copyFrom(pos).add(i, k, j);
-                    const block_id = block_palette.next().id;
-                    if(i < 1 || j < 1 || k < 0 || i > size.x - 2 || j > size.z - 2 || k > size.y - 1) {
-                        this.setBlock(chunk, x, y, z, block_id, null);
-                    } else {
-                        this.setBlock(chunk, x, y, z, 0, null);
-                    }
-                }
-            }
-        }
-    }
-
-    // Add pitched roof
-    drawPitchedRoof(chunk, pos, size, dir, block) {
-        switch(dir) {
-            // Look to north
-            case DIRECTION.NORTH: {
-                for(let i = 0; i < size.x; i++) {
-                    for(let k = 0; k < size.y; k++) {
-                        const x = pos.x - chunk.coord.x + i;
-                        const y = pos.y - chunk.coord.y + k;
-                        const z = pos.z - chunk.coord.z - k;
-                        this.setBlock(chunk, x, y, z, block.id, {x: 0, y: 0, z: 0});
-                    }
-                }
-                break;
-            }
-            // Look to south
-            case DIRECTION.SOUTH: {
-                for(let i = 0; i < size.x; i++) {
-                    for(let k = 0; k < size.y; k++) {
-                        const x = pos.x - chunk.coord.x + i;
-                        const y = pos.y - chunk.coord.y + k;
-                        const z = pos.z - chunk.coord.z + k;
-                        this.setBlock(chunk, x, y, z, block.id, {x: 2, y: 0, z: 0});
-                    }
-                }
-                break;
-            }
-            // Look to west
-            case DIRECTION.WEST: {
-                for(let j = 0; j < size.z; j++) {
-                    for(let k = 0; k < size.y; k++) {
-                        const x = pos.x - chunk.coord.x + k;
-                        const y = pos.y - chunk.coord.y + k;
-                        const z = pos.z - chunk.coord.z + j;
-                        this.setBlock(chunk, x, y, z, block.id, {x: 1, y: 0, z: 0});
-                    }
-                }
-                break;
-            }
-            // Look to east
-            case DIRECTION.EAST: {
-                for(let j = 0; j < size.z; j++) {
-                    for(let k = 0; k < size.y; k++) {
-                        const x = pos.x - chunk.coord.x - k;
-                        const y = pos.y - chunk.coord.y + k;
-                        const z = pos.z - chunk.coord.z + j;
-                        this.setBlock(chunk, x, y, z, block.id, {x: 3, y: 0, z: 0});
-                    }
-                }
-                break;
-            }
-        }
-    }
-
-    // Add flat roof
-    drawFlatRoof(chunk, pos, size, block) {
-        const bx = pos.x - chunk.coord.x;
-        const by = pos.y - chunk.coord.y;
-        const bz = pos.z - chunk.coord.z;
-        const xyz = new Vector(0, 0, 0);
-        // block_palette.reset();
-        for(let i = 0; i < size.x; i++) {
-            for(let j = 0; j < size.z; j++) {
-                for(let k = 0; k < size.y; k++) {
-                    const x = bx + i;
-                    const y = by + k;
-                    const z = bz + j;
-                    xyz.copyFrom(pos).add(i, k, j);
-                    const block_id = block.id; // block_palette.next().id;
-                    //if(i < 1 || j < 1 || k < 0 || i > size.x - 2 || j > size.z - 2 || k > size.y - 1) {
-                        this.setBlock(chunk, x, y, z, block_id, null);
-                    //} else {
-                    //    this.setBlock(chunk, x, y, z, 0, null);
-                    //}
-                }
-            }
-        }
     }
 
     // Return extra data for block MOB_SPAWN
