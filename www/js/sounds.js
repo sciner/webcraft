@@ -45,7 +45,7 @@ class Music {
      * @param {Number} volume from 0 to 1.
      */
     set volume(volume) {
-        volume /= 10
+        volume /= 5
         this.#volume = volume
         this.howl?.volume(this._getTrackVolume())
     }
