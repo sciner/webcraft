@@ -1,11 +1,12 @@
 import { Resources } from "./resources.js";
-import { DEFAULT_SOUND_MAX_DIST, CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION }  from "./constant.js";
+import { DEFAULT_SOUND_MAX_DIST, CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MISUC_PAUSE_SECONDS }  from "./constant.js";
 
 class Music {
 
     #tracklistName
     #volume
     #playing
+    #timeoutId
 
     constructor(config) {
         this.config     = config
@@ -14,6 +15,7 @@ class Music {
         // It indicates whether the miusic should be played, not whether it's actually playing.
         // It's possible that (#playing === true), but no track is chosen for the crrent tracklist.
         this.#playing   = false
+        this.#timeoutId = null // while the timeout exists, no other timeout can be created, and no music can be played
 
         this.track      = null
         this.howl       = null
@@ -23,6 +25,16 @@ class Music {
          * ends. Use it to switch tracklist not abruptly. Setting the tracklist directly clers this value.
          */
         this.nextTracklistName   = null
+    }
+
+    schedulePlay(timeout, cb = () => this.play()) {
+        if (this.#timeoutId) {
+            return
+        }
+        this.#timeoutId = setTimeout(() => {
+            this.#timeoutId = null
+            cb()
+        }, timeout)
     }
 
     get volume() { return this.#volume }
@@ -44,7 +56,7 @@ class Music {
      */
     play() {
         this.#playing = true
-        if (this.#volume) { // start actually playing only in the volume is not zero
+        if (this.#volume && !this.#timeoutId) { // start actually playing only in the volume is not zero
             if (this.howl) {
                 if (!this.howl.playing()) {
                     this.howl.play()
@@ -79,7 +91,7 @@ class Music {
         // if the track needs to be changed
         const trackFits = tracks?.find(it => it.name === this.track?.name)
         if (!trackFits) {
-            if (this.#playing && this.#volume) {
+            if (this.#playing && this.#volume && !this.#timeoutId) {
                 this._switchTrack()
             } else {
                 this._unloadTrack()
@@ -100,9 +112,17 @@ class Music {
         this.howl = null
     }
 
-    _switchTrack() {
-        const currentName = this.track?.name
+    _switchTrack(withPause = false, currentName = null) {
+        currentName = this.track?.name ?? currentName
         this._unloadTrack()
+
+        if (withPause && !this.#timeoutId) {
+            this.schedulePlay(MISUC_PAUSE_SECONDS * 1000, () => {
+                this._switchTrack(false, currentName)
+            })
+            return
+        }
+
         // switch the tracklist if the change was planned before
         if (this.nextTracklistName) {
             this.#tracklistName = this.nextTracklistName
@@ -126,10 +146,10 @@ class Music {
         }
 
         // create a howl
-        const onend = () => {
+        const onend = (withPause) => {
             if (this.howl === howl) {
                 // It's still the main howl. Start a new track.
-                this._switchTrack()
+                this._switchTrack(withPause)
             } else {
                 // It's the fading howl that finished before fading out. Unload it.
                 howl.unload()
@@ -139,8 +159,8 @@ class Music {
             src: [CLIENT_MUSIC_ROOT + encodeURIComponent(this.track.name) + '.ogg'],
             html5: true,    // enable streaming
             ...this.track.props,
-            onend,
-            onloaderror: onend,
+            onend: () => onend(true),
+            onloaderror: () => onend(false),
             onfade: () => {
                 // Fade is called to gently switch tracks.
                 // The caller already strated a new track, if they wanted to.

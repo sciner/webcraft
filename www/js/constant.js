@@ -139,8 +139,12 @@ export const KEY = {
 };
 
 export const CLIENT_SKIN_ROOT = './media/models/player_skins/';
+
+// music
 export const CLIENT_MUSIC_ROOT = './media/music/';
 export const MUSIC_FADE_DURATION = 1500;
+export const MISUC_INITIAL_PAUSE_SECONDS = 150
+export const MISUC_PAUSE_SECONDS = 300
 
 export const SKIN_RIGHTS_DEFAULT = 0;
 export const SKIN_RIGHTS_FREE = 1;
