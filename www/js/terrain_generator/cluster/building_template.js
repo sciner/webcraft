@@ -1,3 +1,4 @@
+import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { Vector, VectorCollector, SimpleShiftedMatrix } from "../../helpers.js";
 
 const BLOCKS_CAN_BE_FLOOR = [468]; // DIRT_PATH
@@ -27,7 +28,7 @@ export class BuildingTemplate {
         if(!json) debugger
         if(!bm) debugger
 
-        for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks']) {
+        for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks', 'fluids']) {
             if(prop in json) {
                 switch(prop) {
                     case 'door_pos':
@@ -46,6 +47,7 @@ export class BuildingTemplate {
             this.rot = [ [], [], [], [] ]
             const {all_blocks} = this.prepareBlocks(bm)
             this.rotateBuildingBlockVariants(bm, all_blocks)
+            this.prepareFluids()
         }
 
     }
@@ -194,6 +196,33 @@ export class BuildingTemplate {
 
         return {all_blocks, min}
 
+    }
+
+    prepareFluids() {
+        const fluids = this.fluids
+        if(!fluids || fluids.length == 0) {
+            return false
+        }
+        const directions = [0, 1, 2, 3]
+        for(let i = 0; i < fluids.length; i += 4) {
+            // TODO: Need to detect flowing fluids too 
+            const fluid_id = fluids[i + 3]
+            let block_id = 0
+            if(fluid_id & FLUID_WATER_ID) block_id = 200
+            if(fluid_id & FLUID_LAVA_ID) block_id = 170
+            const block = {
+                block_id: block_id,
+                move: new Vector(
+                    fluids[i + 0],
+                    fluids[i + 1],
+                    fluids[i + 2]
+                )
+            }
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i];
+                this.rot[direction].push(block);
+            }
+        }
     }
 
     /**

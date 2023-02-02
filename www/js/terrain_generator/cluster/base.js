@@ -43,7 +43,7 @@ export class ClusterBase {
 
     /**
      * Set block
-     * @param {*} chunk 
+     * @param { import("../../worker/chunk.js").Chunk } chunk 
      * @param {int} x 
      * @param {int} y 
      * @param {int} z 

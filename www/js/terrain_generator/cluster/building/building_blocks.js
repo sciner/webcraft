@@ -60,9 +60,7 @@ export class BuildingBlocks extends Building {
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []
         // draw chunk blocks
-        if(this.blocks.list.length > 0) {
-            this.blocks.draw(cluster, chunk, map)
-        }
+        this.blocks.draw(cluster, chunk, map)
     }
 
 }
