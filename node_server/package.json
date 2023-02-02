@@ -6,7 +6,7 @@
     "start": "node --experimental-json-modules --no-warnings --max-old-space-size=8192 ./index.js",
     "inspect": "node --experimental-json-modules --no-warnings --inspect --max-old-space-size=8192 ./index.js",
     "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
-    "compile-texture-pack": "cd ./texture-pack-compiler && node --experimental-json-modules --no-warnings ./index.js",
+    "compile-assets": "cd ./assets-compiler && node --experimental-json-modules --no-warnings ./index.js",
     "rollup": "(cd ../ff-worker && npm run start)",
     "start-rollup": "npm run rollup && npm run start page.useGenWorkers=true",
     "test": "mocha"

@@ -13,13 +13,12 @@ www/js-gen
 *.REMOTE.*
 node_modules
 package-lock.json
-Mickey Mouse.obj
 .DS_Store
 *.schematic
 *.schem
 www/resource_packs/base/blocks.json
 www/resource_packs/base/textures/*.*
-node_server/texture-pack-compiler/resource-packs/
+node_server/assets-compiler/resource-packs/
 node_server/tmp
 www/media/models/player_skins/u
 www/media/music
@@ -28,4 +27,3 @@ www/resource_packs/bbmodel/textures/*.jpg
 www/resource_packs/bbmodel/textures/*.jpeg
 www/resource_packs/bbmodel/*.json
 www/data/bbmodel
-_node_server/texture-pack-compiler/bbmodel/models

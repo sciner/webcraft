@@ -1,7 +1,9 @@
-import { BBModel_Compiler } from "./bbmodel_compiler.js";
 import { Compiler } from "./compiler.js";
+import { BBModel_Compiler } from "./bbmodel_compiler.js";
+import { Music_Compiler } from "./music_compiler.js";
 
-const options = {
+// Textures
+const compiler = new Compiler({
     resolution: 32,
     texture_pack_dir: [
         // '../../../resource-packs/faithfull_pbr',
@@ -16,21 +18,22 @@ const options = {
         'textures/painting.png',
         'textures/alphabet_msdf.png',
     ]
-};
-
-// Textures
-const compiler = new Compiler(options);
+});
 await compiler.init();
 compiler.run();
 
-// bbmodels
+// BBmodels
 const bbcompiler = new BBModel_Compiler({
     resolution:         32,
     tx_cnt:             32,
     model_dir:          "./bbmodel/models",
     output_dir:         "../../www/resource_packs/bbmodel",
     conf:               "./bbmodel/conf.json",
-    texture_pack_dir:   options.texture_pack_dir,
+    // texture_pack_dir:   options.texture_pack_dir,
 });
 await bbcompiler.init();
 await bbcompiler.run(compiler);
+
+// Music
+const musiccomipller = new Music_Compiler()
+await musiccomipller.run()
