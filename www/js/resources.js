@@ -1,6 +1,6 @@
 import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
-import { CLIENT_SKIN_ROOT } from "./constant.js";
+import { CLIENT_SKIN_ROOT, CLIENT_MUSIC_ROOT } from "./constant.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
 
 export const COLOR_PALETTE = {
@@ -90,6 +90,7 @@ export class Resources {
         this.physics            = {};
         this.models             = {};
         this.sounds             = {};
+        this.music              = null;
         this.sound_sprite_main  = {};
         this.weather            = {};
         this.blockDayLight      = null;
@@ -111,6 +112,9 @@ export class Resources {
         all.push(loadImage('media/shadow.png').then((img) => { this.shadow.main = img}));
         all.push(loadImage('media/debug_frame.png').then((img) => { this.pickat.debug = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
+        all.push(fetch(CLIENT_MUSIC_ROOT + 'music.json')
+            .then(response => response.ok ? response.json() : null)
+            .then(json => { this.music = json;}))
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
 
         /**

@@ -1935,11 +1935,14 @@ export class ArrayHelpers {
         }
     }
 
-    // Returns Object whose keys are the array values, and values are the given value (true by default).
-    static valuesToObjectKeys(arr, value = true) {
+    static toObject(arr, toKeyFn = (ind, value) => ind, toValueFn = (ind, value) => value) {
         const res = {};
-        for(let v of arr) {
-            res[v] = value;
+        if (typeof toValueFn !== 'function') {
+            toValueFn = () => toValueFn;
+        }
+        for(let i = 0; i < arr.length; i++) {
+            const v = arr[i];
+            res[toKeyFn(i, v)] = toValueFn(i, v);
         }
         return res;
     }

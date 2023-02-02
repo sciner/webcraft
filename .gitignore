@@ -22,6 +22,7 @@ www/resource_packs/base/textures/*.*
 node_server/texture-pack-compiler/resource-packs/
 node_server/tmp
 www/media/models/player_skins/u
+www/media/music
 www/resource_packs/bbmodel/textures/*.png
 www/resource_packs/bbmodel/textures/*.jpg
 www/resource_packs/bbmodel/textures/*.jpeg
