@@ -9,7 +9,7 @@ export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
 export const DEFAULT_SOUND_MAX_DIST         = 16;
 // The default value of the music volume seting, from 0 to 100. It should be be chosen taking into account Sounds.VOLUME_MAP.music
-export const DEFAULT_MUSIC_VOLUME           = 50;
+export const DEFAULT_MUSIC_VOLUME           = 20;
 export const NO_TICK_BLOCKS                 = false;
 export const BODY_ROTATE_SPEED              = 7;
 export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
