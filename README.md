@@ -17,7 +17,7 @@ For example you can download this texture pack from https://polyflore.net/projec
 1. extract resource pack to directory ../resource-packs/1 (one level up from project root directory)
 2. cd ./node_server
 3. npm install
-4. npm run compile-texture-pack
+4. npm run compile-assets
 ```
 
 Start server:
