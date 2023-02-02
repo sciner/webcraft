@@ -6,7 +6,6 @@ import { NEARBY_FLAGS } from "../www/js/packet_compressor.js";
 export class NearbyCollector {
     constructor() {
         this.inner = new VectorCollector();
-        this.chunk_render_dist = 0;
         this.markClean();
     }
 
@@ -40,10 +39,17 @@ export class NearbyCollector {
          */
         this.dirty = 0;
         this.added = [];
-        this.removed = [];
+        this.deleted = [];
     }
 
-    calculate() {
+    add(pos, elem) {
+        this.inner.add(pos, elem);
+        this.added.push(pos.clone());
+    }
+
+    delete(pos) {
+        this.inner.delete(pos);
+        this.deleted.push(pos.clone());
     }
 }
 
@@ -155,7 +161,6 @@ export class ServerPlayerVision {
         this.spiralCenter.copyFrom(centerAddr);
         this.spiralRadius = margin;
 
-        this.nearbyChunks.chunk_render_dist = chunk_render_dist;
         this.nearbyChunks.markDirtyDelete();
         this.checkSpiralChunks();
     }
@@ -187,11 +192,32 @@ export class ServerPlayerVision {
         if (nearbyChunks.dirty === 0) {
             return false;
         }
-
+        const {spiralEntries} = this;
         const {nearbyChunks} = this;
         const checkDelete = nearbyChunks.dirty === 2;
 
-        return true;
+        const scanId = ++ServerChunk.SCAN_ID;
+        for (let i = 0; i < spiralEntries.length; i++) {
+            const {pos, chunk} = spiralEntries[i];
+            if (!chunk) {
+                continue;
+            }
+            chunk.scanId = scanId;
+            if (!nearbyChunks.has(pos)) {
+                nearbyChunks.add(pos, chunk)
+                chunk.addPlayer(this);
+            }
+        }
+
+        if (checkDelete) {
+            for (let entry of nearbyChunks) {
+                if (entry.chunk.scanId !== scanId) {
+                    nearbyChunks.delete(entry.pos);
+                }
+            }
+        }
+
+        return nearbyChunks.added.length + nearbyChunks.removed.length > 0;
     }
 
     updateVisibleChunks(force) {

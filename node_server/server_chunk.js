@@ -112,6 +112,8 @@ let global_uniqId = 0;
 // Server chunk
 export class ServerChunk {
 
+    static SCAN_ID = 0;
+
     constructor(world, addr) {
         this.world          = world;
         this.chunkManager   = world.chunks;
@@ -150,6 +152,7 @@ export class ServerChunk {
         this.pendingWorldActions = null;
         // one row of "chunks" table, with additional fields { exists, chunk, dirty }
         this.chunkRecord    = null;
+        this.scanId = -1;
 
         this.light = new ChunkLight(this);
     }
@@ -253,7 +256,6 @@ export class ServerChunk {
     // Add player connection
     addPlayer(player) {
         this.connections.set(player.session.user_id, player);
-        player.addChunk(this);
     }
 
     // Добавление игрока, которому после прогрузки чанка нужно будет его отправить
@@ -480,7 +482,7 @@ export class ServerChunk {
 
     async loadMobs() {
         this.setState(CHUNK_STATE.LOADING_MOBS);
-        
+
         // load various data in parallel
         const chunkRecordMobsPromise = this.world.db.chunks.getChunkOfChunk(this).then( async chunkRecord => {
             this.chunkRecord = chunkRecord;
@@ -816,7 +818,7 @@ export class ServerChunk {
     onNeighbourChanged(tblock, neighbour, previous_neighbour) {
 
         const world = this.world;
-        
+
         // метод работы со сталактитами и сталагмитами
         const changePointedDripstone = () => {
             const up = tblock?.extra_data?.up;

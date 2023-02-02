@@ -19,7 +19,8 @@ import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_t
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
 import { DBWorld } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
-import { compressNearby } from "../www/js/packet_compressor.js";
+import {compressNearby, NEARBY_FLAGS} from "../www/js/packet_compressor.js";
+import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 
 export class NetworkMessage {
     constructor({
@@ -304,13 +305,6 @@ export class ServerPlayer extends Player {
         this.state.hands.right = makeHand(right_hand_material);
     }
 
-    /**
-     * @param {ServerChunk} chunk
-     */
-    addChunk(chunk) {
-        this.vision.chunks.set(chunk.addr, chunk.addr);
-    }
-
     get rotateDegree() {
         // Rad to degree
         return this.#_rotateDegree.set(
@@ -503,17 +497,27 @@ export class ServerPlayer extends Player {
     // Check player visible chunks
     checkVisibleChunks(force) {
         const {vision, world} = this;
-        const nearby = vision.updateVisibleChunks(force);
-        // Send new chunks
-        if(nearby && nearby.added.length + nearby.deleted.length > 0) {
-            const nearby_compressed = compressNearby(nearby);
-            const packets = [{
-                // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
-                name: ServerClient.CMD_NEARBY_CHUNKS,
-                data: nearby_compressed
-            }];
-            world.sendSelected(packets, [this.session.user_id], []);
+        if (!vision.updateNearby()) {
+            return;
         }
+        const nearby = {
+            added: vision.nearbyChunks.added.map((addr) => {
+                const chunk = world.chunkManager.get(addr);
+                const hasModifiers = world.worldChunkFlags.has(addr,
+                    WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID);
+                const flags =
+                    (hasModifiers ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
+                    (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);
+            }),
+            deleted: vision.nearbyChunks.deleted,
+        }
+        const nearby_compressed = compressNearby(nearby);
+        const packets = [{
+            // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
+            name: ServerClient.CMD_NEARBY_CHUNKS,
+            data: nearby_compressed
+        }];
+        world.sendSelected(packets, [this.session.user_id], []);
     }
 
     // Send other players states for me

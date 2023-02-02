@@ -2178,7 +2178,6 @@ export class SpiralEntry {
         this.pos = new Vector();
         this.dist = dist;
         this.chunk = null;
-        this.inNearby = false;
     }
 
     copyTranslate(se, translation) {
@@ -2186,7 +2185,6 @@ export class SpiralEntry {
         this.pos.addSelf(translation);
         se.dist = dist;
         this.chunk = null;
-        this.inNearby = false;
     }
 }
 
