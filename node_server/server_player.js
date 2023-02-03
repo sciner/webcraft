@@ -160,9 +160,6 @@ export class ServerPlayer extends Player {
         // TODO: Maybe set the session here, and not in cmd_connect? (to avoid redundant select)
         const session = await Qubatch.db.GetPlayerSession(session_id);
 
-        if(!globalThis.askjdhg) globalThis.askjdhg = 0
-        console.log(globalThis.askjdhg++)
-
         this.conn               = conn;
         this.world              = world;
         this.raycaster          = new Raycaster(world);
