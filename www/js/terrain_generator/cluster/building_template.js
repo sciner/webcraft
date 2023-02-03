@@ -706,7 +706,7 @@ export class BuildingTemplate {
             } else if(['armor_stand'].includes(mat.style_name)) {
                 rot3(block)
 
-            } else if(['rails'].includes(mat.style_name)) {
+            } else if(['rail', 'rails'].includes(mat.style_name)) {
                 rot_rails(block)
 
             } else if(mat.can_rotate && block.rotate) {
