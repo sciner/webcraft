@@ -329,7 +329,12 @@ export class Chat extends TextBox {
                     }
                 }
                 let texts = m.text.split('\n')
-                strings.push(...texts)
+                for(let i = texts.length - 1; i >= 0; i--) {
+                    const text = i === 0
+                        ? m.username + ': ' + texts[i]
+                        : '  ' + texts[i]
+                    strings.push(text)
+                }
                 // for(let i = texts.length - 1; i >= 0; i--) {
                 //     let text = texts[i];
                 //     var leftMargin = margin;
