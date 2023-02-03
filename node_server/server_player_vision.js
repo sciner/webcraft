@@ -1,5 +1,5 @@
 import {getChunkAddr, SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
-import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
+import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "../www/js/chunk_const.js";
 import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import { NEARBY_FLAGS } from "../www/js/packet_compressor.js";
 import {ServerChunk} from "./server_chunk.js";
@@ -87,6 +87,7 @@ export class ServerPlayerVision {
     leave() {
         const {player} = this;
         this.flushSafeWaiting();
+        this.flushSpiral();
         this.waitEntries.length = 0;
         this.waitSafeEntries.length = 0;
         this.spiralEntries.length = 0;
@@ -110,8 +111,20 @@ export class ServerPlayerVision {
         const {chunkManager} = player.world;
         const {safePosWaitingChunks} = this;
         for (let i = 0; i < safePosWaitingChunks.length; i++) {
-            safePosWaitingChunks[i].safeTeleportMarker--;
-            chunkManager.invalidate(safePosWaitingChunks[i]);
+            const chunk = safePosWaitingChunks[i];
+            chunk.safeTeleportMarker--;
+            chunkManager.invalidate(chunk);
+        }
+        safePosWaitingChunks.length = 0;
+    }
+
+    flushSpiral() {
+        const {spiralEntries} = this;
+        for (let i = 0; i < spiralEntries.length; i++) {
+            const {chunk} = spiralEntries[i];
+            if (chunk) {
+                chunk.spiralMarker--;
+            }
         }
     }
 
@@ -126,9 +139,14 @@ export class ServerPlayerVision {
                 const entry = waitSafeEntries[i];
                 let chunk = chunkManager.getOrRestore(entry.pos);
                 if (chunk) {
-                    entry.chunk = chunk;
-                    this.safePosWaitingChunks.push(chunk);
-                    chunk.safeTeleportMarker++;
+                    if (chunk.load_state >=6) {
+                        console.log("WTF?");
+                        waitSafeEntries[j++] = entry;
+                    } else {
+                        entry.chunk = chunk;
+                        this.safePosWaitingChunks.push(chunk);
+                        chunk.safeTeleportMarker++;
+                    }
                 } else {
                     waitSafeEntries[j++] = entry;
                 }
@@ -179,6 +197,7 @@ export class ServerPlayerVision {
         const margin            = this.spiralRadius = Math.max(chunk_render_dist + 1, 1);
         const centerAddr        = this.spiralCenter = player.chunk_addr;
         const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+        this.flushSpiral();
         while (spiralEntries.length < spiral_moves_3d.length) {
             spiralEntries.push(new SpiralEntry());
         }
@@ -187,6 +206,7 @@ export class ServerPlayerVision {
             spiralEntries[i].copyTranslate(spiral_moves_3d[i], centerAddr);
         }
 
+        this.waitEntries.length = 0;
         this.spiralLoading = 0;
         this.spiralWaiting = 0;
         this.spiralCenter.copyFrom(centerAddr);
@@ -206,9 +226,10 @@ export class ServerPlayerVision {
         //TODO: ALLOW_NEGATIVE_Y ?
         for (let i = this.spiralLoading; i < n; i++) {
             const entry = spiralEntries[i];
-            if (!entry.chunk) {
+            if (!entry.chunk || entry.chunk.load_state >= CHUNK_STATE.UNLOADING) {
                 entry.chunk = chunkManager.getOrRestore(entry.pos);
                 if (entry.chunk) {
+                    entry.chunk.spiralMarker++;
                     found++;
                 }
             }
@@ -235,6 +256,7 @@ export class ServerPlayerVision {
             if (!chunk) {
                 continue;
             }
+
             chunk.scanId = scanId;
             if (!nearbyChunks.has(pos)) {
                 nearbyChunks.add(pos, chunk)

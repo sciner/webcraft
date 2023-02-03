@@ -145,6 +145,7 @@ export class ServerChunk {
         this.dbActor        = world.dbActor.getOrCreateChunkActor(this);
         this.readyPromise   = Promise.resolve(); // It's used only to reach CHUNK_STATE.READY
         this.safeTeleportMarker = 0;
+        this.spiralMarker       = 0;
         this.unloadingStartedTime = null; // to determine when to dispose it
         this.unloadedStuff      = []; // everything unloaded that can be restored (drop items, mobs) in one list
         this.unloadedStuffDirty = false;
@@ -536,7 +537,7 @@ export class ServerChunk {
     }
 
     shouldUnload() {
-        if (this.connections.size + this.safeTeleportMarker > 0) {
+        if (this.connections.size + this.safeTeleportMarker + this.spiralMarker > 0) {
             return false
         }
         if (this.load_state === CHUNK_STATE.LOADING_MOBS

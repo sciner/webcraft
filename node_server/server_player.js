@@ -363,7 +363,16 @@ export class ServerPlayer extends Player {
             this.vision.preTick(false);
         } else {
             this.checkWaitingData();
+            if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+                this.claimChunks();
+            }
         }
+    }
+
+    claimChunks() {
+        this.vision.preTick(true);
+        this.vision.postTick();
+        this.checkVisibleChunks();
     }
 
     postTick(delta, tick_number) {
@@ -490,7 +499,6 @@ export class ServerPlayer extends Player {
             data: {}
         }];
         this.world.packets_queue.add([this.session.user_id], packets);
-        this.vision.preTick(true);
     }
 
     // Check player visible chunks
