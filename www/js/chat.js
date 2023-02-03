@@ -47,10 +47,15 @@ export class Chat extends TextBox {
         };
         //
         this.history = {
+            last: null,
             list: [],
             draft: [],
             index: -1,
             add(buffer) {
+                if (JSON.stringify(this.last) === JSON.stringify(buffer)) {
+                    return
+                }
+                this.last = buffer
                 this.list.push(buffer);
                 this.save();
                 this.reset();
