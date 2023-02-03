@@ -164,28 +164,33 @@ export class ServerChat {
                 }
                 break;
             case '/help': {
-                let commands = [
-                    '/weather (' + Weather.NAMES.join(' | ') + ')',
-                    '/gamemode [world] (survival | creative | adventure | spectator | get)',
-                    '/tp -> teleport',
-                    '/stp -> safe teleport',
-                    '/spawnpoint',
-                    '/seed',
-                    '/give <item> [<count>]',
-                    '/helpadmin'
-                ];
+                let commands
+                if (args[1] === 'admin') {
+                    checkIsAdmin()
+                    commands = [
+                        '/admin (list | add <username> | remove <username>)',
+                        '/time (add <int> | set (<int>|day|midnight|night|noon))',
+                        'Server stats:',
+                        '  /tps [chunk]',
+                        '  /tps2 [chunk]',
+                        '  /sysstat',
+                        '  /astat',
+                        '/shutdown [gentle | force]'
+                    ]
+                } else {
+                    commands = [
+                        '/weather (' + Weather.NAMES.join(' | ') + ')',
+                        '/gamemode [world] (survival | creative | adventure | spectator | get)',
+                        '/tp -> teleport',
+                        '/stp -> safe teleport',
+                        '/spawnpoint',
+                        '/seed',
+                        '/give <item> [<count>]',
+                        '/help [admin]'
+                    ]
+                }
                 this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [player.session.user_id]);
                 break;
-            }
-            case '/helpadmin': {
-                checkIsAdmin()
-                const commands = [
-                    '/admin (list | add <username> | remove <username>)',
-                    'Server stats: /tps /tps2 /sysstat /astat',
-                    '/shutdown [gentle | force]'
-                ]
-                this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [user_id])
-                break
             }
             case '/gamemode':
                 if(!this.world.admins.checkIsAdmin(player)) {
@@ -270,16 +275,18 @@ export class ServerChat {
                 break;
             }
             case '/tps': {
+                const table = this.getTickStats(args[1])
                 let temp = [];
-                for(let [k, v] of Object.entries(this.world.ticks_stat)) {
-                    if(['start', 'add', 'values', 'pn_values', 'pn', 'end', 'number', 'min'].indexOf(k) >= 0) continue;
+                const keys = ['tps', 'last', 'total', 'count', 'max']
+                for(let k of keys) {
+                    const v = table[k]
                     temp.push(k + ': ' + Math.round(v * 1000) / 1000);
                 }
                 this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
                 break;
             }
             case '/tps2': {
-                const table = this.world.ticks_stat.toTable();
+                const table = this.getTickStats(args[1]).toTable()
                 this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;
             }
@@ -483,4 +490,9 @@ export class ServerChat {
         return resp;
     }
 
+    getTickStats(name) {
+        return name === 'chunk'
+            ? this.world.chunkManager.ticks_stat
+            : this.world.ticks_stat
+    }
 }
