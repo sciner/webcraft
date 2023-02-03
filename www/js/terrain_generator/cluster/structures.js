@@ -24,7 +24,8 @@ export class ClusterStructures extends ClusterBuildingBase {
 
         const schemas = [
             'structure1', 'structure2', 'mine', 'underearth_tower',
-            'broken_castle', 'ornated_stone_tower_ruins'
+            'broken_castle', 'ornated_stone_tower_ruins',
+            'structure3', 'structure4', 'structure5', 'structure6', 'small_lake'
         ]
 
         /**
