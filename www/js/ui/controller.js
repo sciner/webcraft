@@ -321,7 +321,7 @@ let gameCtrl = async function($scope, $timeout) {
             fov: DEFAULT_FOV_NORMAL,
             music_volume: DEFAULT_MUSIC_VOLUME,
             texture_pack: 'base',
-            render_distance: 4,
+            render_distance: 5,
             use_light: 1,
             beautiful_leaves: true,
             mipmap: false,
