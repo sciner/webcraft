@@ -195,7 +195,8 @@ export class WorkerWorld {
                     // key: ci.key,
                     tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
                     ticking_blocks: ci.ticking_blocks,
-                    packedCells: chunk.packCells()
+                    packedCells: chunk.packCells(),
+                    genQueueSize: genQueue.size()
                 }
 
                 globalThis.worker.postMessage(['blocks_generated', ci2]);
@@ -242,6 +243,13 @@ export class WorkerWorld {
 
         if (buildResults.length > 0) {
             worker.postMessage(['vertices_generated', buildResults]);
+        }
+        if (genQueue.size() === 0) {
+            if (!genQueue.hitZero) {
+                genQueue.hitZero = true;
+            } else {
+                worker.postMessage(['gen_queue_size', {genQueueSize: 0}]);
+            }
         }
         return loops;
     }

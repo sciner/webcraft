@@ -1,15 +1,13 @@
 import {ServerChunk} from "./server_chunk.js";
-import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT} from "../www/js/chunk_const.js";
+import { PLAYER_STATUS_WAITING_DATA } from "../www/js/constant.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, Mth} from "../www/js/helpers.js";
-import {ServerClient} from "../www/js/server_client.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
 import {FluidWorldQueue} from "../www/js/fluid/FluidWorldQueue.js";
 import {ChunkDataTexture} from "../www/js/light/ChunkDataTexture.js";
 import {ItemWorld} from "./ItemWorld.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
-import { compressNearby, NEARBY_FLAGS } from "../www/js/packet_compressor.js";
 import { WorldPortal } from "../www/js/portal.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
@@ -49,6 +47,7 @@ export class ServerChunkManager {
         this.initRandomTickers(random_tickers);
         this.use_light              = true;
         this.chunkDataTexture       = new ChunkDataTexture();
+        this.genQueueSize          = 0;
         this.lightProps = {
             texFormat: 'rgba8unorm',
             depthMul: 1,
@@ -74,9 +73,14 @@ export class ServerChunkManager {
                 }
                 case 'blocks_generated': {
                     let chunk = this.get(args.addr);
+                    this.genQueueSize = args.genQueueSize;
                     if(chunk) {
                         chunk.readyPromise = chunk.onBlocksGenerated(args);
                     }
+                    break;
+                }
+                case 'gen_queue_size': {
+                    this.genQueueSize = args.genQueueSize;
                     break;
                 }
                 default: {
@@ -440,6 +444,40 @@ export class ServerChunkManager {
             });
         }
         this.postWorkerMessage(['destroyMap', { players }]);
+    }
+
+    tickChunkQueue(maxQueue) {
+        if (this.genQueueSize > maxQueue) {
+            return;
+        }
+        const world = this.world;
+        let all = [];
+        let waitAddrs = new VectorCollector();
+        for(const p of world.players.values()) {
+            let waits = p.vision.waitEntries;
+            if (p.status === PLAYER_STATUS_WAITING_DATA) {
+                waits = p.vision.waitSafeEntries;
+            }
+            for (let entry of waits) {
+                if (this.getOrRestore(entry.pos)) {
+                    continue;
+                }
+                all.push(entry);
+            }
+        }
+        all.sort((a, b) => {
+            return a.dist - b.dist;
+        })
+        for (let i = 0; i < all.length && i < maxQueue; i++) {
+            const entry = all[i];
+            const addr = entry.pos.clone();
+            if (waitAddrs.has(addr)) {
+                continue;
+            }
+            waitAddrs.add(addr, addr);
+            this.getOrAdd(addr);
+            this.genQueueSize ++;
+        }
     }
 
     //

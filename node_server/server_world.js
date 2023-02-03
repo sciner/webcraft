@@ -40,6 +40,7 @@ import { Effect } from "../www/js/block_type/effect.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
+export const NEW_CHUNKS_PER_TICK        = 50;
 
 export class ServerWorld {
 
@@ -409,7 +410,11 @@ export class ServerWorld {
             this.ticks_stat.add('mobs');
             // 3.
             for(const [_, player] of this.players.all()) {
-                await player.tick(delta, this.ticks_stat.number);
+                await player.preTick(delta, this.ticks_stat.number);
+            }
+            this.chunks.tickChunkQueue(NEW_CHUNKS_PER_TICK);
+            for(const [_, player] of this.players.all()) {
+                player.postTick(delta, this.ticks_stat.number);
             }
             this.ticks_stat.add('players');
             //

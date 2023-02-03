@@ -197,6 +197,10 @@ export class ChunkManager {
                     }
                     break;
                 }
+                case 'gen_queue_size': {
+                    //nothing, server-only
+                    break;
+                }
                 case 'vertices_generated': {
                     for(let i = 0; i < args.length; i++) {
                         const result = args[i];
