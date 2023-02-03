@@ -2,15 +2,19 @@ import {getChunkAddr, SpiralEntry, SpiralGenerator, Vector, VectorCollector} fro
 import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import { NEARBY_FLAGS } from "../www/js/packet_compressor.js";
+import {ServerChunk} from "./server_chunk.js";
+
+const PLAYER_CHUNK_QUEUE_SIZE = 20;
 
 export class NearbyCollector {
     constructor() {
         this.inner = new VectorCollector();
         this.markClean();
+        this.chunk_render_dist = 0;
     }
 
     *[Symbol.iterator]() {
-        for (let x of this.inner) {
+        for (let value of this.inner) {
             yield value;
         }
     }
@@ -64,7 +68,7 @@ export class ServerPlayerVision {
         this.safeTeleportMarginY = 2;
         this.safePosInitialOverride = null;
 
-        this.spiralCenter           = new Vector(0, 0, 0);
+        this.spiralCenter           = new Vector(Infinity, 0, 0);
 
         // new logic here!
         this.waitSafeEntries = [];
@@ -82,53 +86,74 @@ export class ServerPlayerVision {
 
     leave() {
         const {player} = this;
-        const {chunkManager} = player.world;
-        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
-            this.safePosWaitingChunks[i].safeTeleportMarker--;
-            chunkManager.invalidate(this.safePosWaitingChunks[i]);
-        }
-        for(let chunk of this.nearbyChunks.inner) {
+        this.flushSafeWaiting();
+        this.waitEntries.length = 0;
+        this.waitSafeEntries.length = 0;
+        this.spiralEntries.length = 0;
+        for(let chunk of this.nearbyChunks) {
             chunk?.removePlayer(player);
         }
-        this.safePosWaitingChunks.length = 0;
         this.nearbyChunks.clear();
     }
 
     initSpawn() {
-        const {player} = this;
-        this.safePosWaitingChunks = this.queryVisibleChunks();
-        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
-            this.safePosWaitingChunks[i].safeTeleportMarker++;
-        }
-    }
-
-    checkWaitingChunks() {
-        let i = 0;
-        while (i < this.safePosWaitingChunks.length) {
-            if (this.safePosWaitingChunks[i].isReady()) {
-                this.safePosWaitingChunks[i].safeTeleportMarker--;
-                this.safePosWaitingChunks[i] = this.safePosWaitingChunks[this.safePosWaitingChunks.length - 1];
-                --this.safePosWaitingChunks.length;
-            } else {
-                ++i;
-            }
-        }
-        return i;
+        this.safeVisibleChunks();
     }
 
     teleportSafePos(new_pos) {
-        this.safePosWaitingChunks = this.queryVisibleChunks(new_pos);
-        for (let i = 0; i < this.safePosWaitingChunks.length; i++) {
-            this.safePosWaitingChunks[i].safeTeleportMarker++;
-        }
+        this.safeVisibleChunks(new_pos);
         this.safePosInitialOverride = new_pos;
+    }
+
+    flushSafeWaiting() {
+        const {player} = this;
+        const {chunkManager} = player.world;
+        const {safePosWaitingChunks} = this;
+        for (let i = 0; i < safePosWaitingChunks.length; i++) {
+            safePosWaitingChunks[i].safeTeleportMarker--;
+            chunkManager.invalidate(safePosWaitingChunks[i]);
+        }
+    }
+
+    checkWaitingState() {
+        const { waitSafeEntries, safePosWaitingChunks } = this;
+        const { chunkManager } = this.player.world;
+
+        let n = waitSafeEntries.length;
+        if (n > 0) {
+            let j = 0;
+            for (let i = 0; i < n; i++) {
+                const entry = waitSafeEntries[i];
+                let chunk = chunkManager.getOrRestore(entry.pos);
+                if (chunk) {
+                    entry.chunk = chunk;
+                    this.safePosWaitingChunks.push(chunk);
+                    chunk.safeTeleportMarker++;
+                } else {
+                    waitSafeEntries[j++] = entry;
+                }
+            }
+            waitSafeEntries.length = j;
+        }
+
+        n = safePosWaitingChunks.length;
+        let ready = 0;
+        for (let i = 0; i < n; i++) {
+            if (safePosWaitingChunks[i].isReady()) {
+                ready++;
+            }
+        }
+        const wait = n - ready + waitSafeEntries.length;
+        if (wait === 0) {
+            this.flushSafeWaiting();
+        }
+        return wait;
     }
 
     // forces chunks visible to the player to load, and return their list
     queryVisibleChunks(posOptioanl, chunk_render_dist = 0) {
         const {player} = this;
-        const {chunkManager} = player.world;
-        var list = [];
+        let list = [];
         const pos = posOptioanl || player.state.pos;
         const chunk_addr = getChunkAddr(pos);
         chunk_render_dist = chunk_render_dist || player.safeTeleportMargin;
@@ -136,10 +161,16 @@ export class ServerPlayerVision {
         const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, player.safeTeleportMarginY, margin));
         // Find new chunks
         for(let i = 0; i < spiral_moves_3d.length; i++) {
-            const addr = chunk_addr.add(spiral_moves_3d[i].pos);
-            list.push(chunkManager.getOrAdd(addr));
+            const entry = new SpiralEntry().copyTranslate(spiral_moves_3d[i], chunk_addr);
+            list.push(entry);
         }
         return list;
+    }
+
+    safeVisibleChunks(posOptioanl, chunk_render_dist) {
+        this.waitSafeEntries = this.queryVisibleChunks(posOptioanl, chunk_render_dist);
+        this.waitSafeEntries.forEach((x) => x.dist = 0);
+        this.flushSafeWaiting();
     }
 
     genSpiral() {
@@ -148,7 +179,7 @@ export class ServerPlayerVision {
         const margin            = this.spiralRadius = Math.max(chunk_render_dist + 1, 1);
         const centerAddr        = this.spiralCenter = player.chunk_addr;
         const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
-        while (spiralEntries.length < spiral_moves_3d) {
+        while (spiralEntries.length < spiral_moves_3d.length) {
             spiralEntries.push(new SpiralEntry());
         }
         let n = spiralEntries.length = spiral_moves_3d.length;
@@ -161,6 +192,7 @@ export class ServerPlayerVision {
         this.spiralCenter.copyFrom(centerAddr);
         this.spiralRadius = margin;
 
+        this.nearbyChunks.chunk_render_dist = chunk_render_dist;
         this.nearbyChunks.markDirtyDelete();
         this.checkSpiralChunks();
     }
@@ -171,6 +203,7 @@ export class ServerPlayerVision {
         const {chunkManager} = world;
         let n = spiralEntries.length;
         let found = 0;
+        //TODO: ALLOW_NEGATIVE_Y ?
         for (let i = this.spiralLoading; i < n; i++) {
             const entry = spiralEntries[i];
             if (!entry.chunk) {
@@ -189,11 +222,11 @@ export class ServerPlayerVision {
     }
 
     updateNearby() {
+        const {spiralEntries, nearbyChunks, player} = this;
+        const {world} = player;
         if (nearbyChunks.dirty === 0) {
             return false;
         }
-        const {spiralEntries, player} = this;
-        const {nearbyChunks} = this;
         const checkDelete = nearbyChunks.dirty === 2;
 
         const scanId = ++ServerChunk.SCAN_ID;
@@ -210,109 +243,63 @@ export class ServerPlayerVision {
         }
 
         if (checkDelete) {
-            for (let entry of nearbyChunks) {
-                const {chunk} = entry;
+            for (let chunk of nearbyChunks) {
                 if (chunk.scanId !== scanId) {
-                    nearbyChunks.delete(entry.pos);
+                    nearbyChunks.delete(chunk.addr);
                     chunk.removePlayer(player);
                 }
             }
         }
 
-        return nearbyChunks.added.length + nearbyChunks.removed.length > 0;
+        if (nearbyChunks.added.length > 0) {
+            nearbyChunks.added = nearbyChunks.added.map((addr) => {
+                const chunk = world.chunkManager.get(addr);
+                const hasModifiers = world.worldChunkFlags.has(addr,
+                    WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID);
+                const flags =
+                    (hasModifiers ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
+                    (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);
+                return {addr, flags}
+            })
+        }
+
+        return nearbyChunks.added.length + nearbyChunks.deleted.length > 0;
     }
 
-    updateVisibleChunks(force) {
-        const {player, nearby_chunk_addrs, spiralEntries} = this;
-        const {world} = player;
-        const {chunkManager} = world;
+    preTick(force) {
+        const {player} = this;
         player.chunk_addr = getChunkAddr(player.state.pos);
-
-        let nearby = {
-            chunk_render_dist:  chunk_render_dist,
-            added:              [], // чанки, которые надо подгрузить
-            deleted:            [] // чанки, которые надо выгрузить
-        }
-        if (force || !this.spiralCenter.equal(player.chunk_addr)) {
+        if (force || !player.chunk_addr.equal(this.spiralCenter)) {
+            //TODO: do this even rarely!
             this.genSpiral();
         }
-
-        const added_vecs        = new VectorCollector();
-        const chunk_render_dist = player.state.chunk_render_dist;
-        const margin            = Math.max(chunk_render_dist + 1, 1);
-        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
-
-        //
-        const nearby = {
-
-        };
-
-        // Find new chunks
-        for(let i = 0; i < spiral_moves_3d.length; i++) {
-            const sm = spiral_moves_3d[i];
-            const addr = player.chunk_addr.add(sm.pos);
-            if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
-                added_vecs.set(addr, true);
-                if(!nearby_chunk_addrs.has(addr)) {
-                    nearby_chunk_addrs.set(addr, addr);
-                    let chunk = chunkManager.getOrAdd(addr);
-                    chunk.addPlayer(player);
-                    const hasModifiers = world.worldChunkFlags.has(addr,
-                        WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID);
-                    const flags =
-                        (hasModifiers ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
-                        (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);
-                    nearby.added.push({addr, flags});
-                }
-            }
-        }
-
-        // Check deleted
-        for(let addr of nearby_chunk_addrs) {
-            if(!added_vecs.has(addr)) {
-                nearby_chunk_addrs.delete(addr);
-                chunkManager.get(addr, false)?.removePlayer(player);
-                nearby.deleted.push(addr);
-            }
-        }
-
-        return nearby;
+        this.populateWaitingAddrs();
     }
 
-    checkWaitingAddrs() {
-        const {waitSafeEntries, waitEntries} = this;
-        const { chunkManager } = this.player.world;
-        let n = waitSafeEntries.length;
-        if (n > 0) {
-            let j = 0;
-            for (let i = 0; i < n; i++) {
-                const entry = waitSafeEntries[i];
-                let chunk = chunkManager.getOrRestore(entry.pos);
-                if (chunk) {
-                    entry.chunk = chunk;
-                    this.safePosWaitingChunks.push(chunk);
-                    chunk.safeTeleportMarker++;
-                } else {
-                    waitSafeEntries[j++] = entry;
-                }
-            }
-            waitSafeEntries.length = j;
-        }
-        n = waitEntries.length;
+    postTick() {
+        this.checkSpiralChunks();
+    }
+
+    populateWaitingAddrs() {
+        this.checkSpiralChunks();
+        const {waitEntries, spiralEntries} = this;
+
+        let n = waitEntries.length;
         if (n > 0) {
             let j = 0;
             for (let i = 0; i < n; i++) {
                 const entry = waitEntries[i];
-                let chunk = chunkManager.getOrRestore(entry.pos);
-                if (chunk) {
-                    entry.chunk = chunk;
-                } else {
+                if (!entry.chunk) {
                     waitEntries[j++] = entry;
                 }
             }
-            if (waitEntries.length > j) {
-                waitEntries.length = j;
-                this.nearbyChunks.markDirtyAdd();
+            waitEntries.length = j;
+        }
+
+        while (this.spiralWaiting < spiralEntries.length && waitEntries.length < PLAYER_CHUNK_QUEUE_SIZE) {
+            const entry = spiralEntries[this.spiralWaiting++];
+            if (!entry.chunk) {
+                waitEntries.push(entry);
             }
         }
     }

@@ -282,7 +282,7 @@ export class ServerPlayer extends Player {
         value = Math.max(value, 2);
         value = Math.min(value, 16);
         this.state.chunk_render_dist = value;
-        this.checkVisibleChunks(true);
+        this.vision.preTick(true);
         this.world.db.changeRenderDist(this, value);
     }
 
@@ -355,27 +355,26 @@ export class ServerPlayer extends Player {
         };
     }
 
-    async tick(delta, tick_number) {
-        // 1.
-        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
-            this.checkVisibleChunks(false);
-        }
-        // 2.
-        this.sendNearPlayers();
-        // 3.
-        this.checkIndicators(tick_number);
-        // 4.
+    async preTick(delta, tick_number) {
         if(tick_number % 2 == 1) this.checkInPortal();
         // 5.
         await this.checkWaitPortal();
-        if (this.status === PLAYER_STATUS_WAITING_DATA) {
-            // will checkVisibleChunks inside if its ready
+        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+            this.vision.preTick(false);
+        } else {
             this.checkWaitingData();
         }
-        // 6.
+    }
+
+    postTick(delta, tick_number) {
+        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+            this.vision.postTick();
+        }
+        this.checkVisibleChunks();
+        this.sendNearPlayers();
+        this.checkIndicators(tick_number);
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
-        // 7.
         this.effects.checkEffects();
     }
 
@@ -469,7 +468,7 @@ export class ServerPlayer extends Player {
 
     checkWaitingData() {
         // check if there are any chunks not generated; remove generated chunks from the list
-        if (this.vision.checkWaitingChunks() > 0) {
+        if (this.vision.checkWaitingState() > 0) {
             return;
         }
             // teleport
@@ -491,27 +490,24 @@ export class ServerPlayer extends Player {
             data: {}
         }];
         this.world.packets_queue.add([this.session.user_id], packets);
-        this.checkVisibleChunks(true);
+        this.vision.preTick(true);
     }
 
     // Check player visible chunks
-    checkVisibleChunks(force) {
+    checkVisibleChunks() {
         const {vision, world} = this;
         if (!vision.updateNearby()) {
             return;
         }
+        const nc = vision.nearbyChunks;
         const nearby = {
-            added: vision.nearbyChunks.added.map((addr) => {
-                const chunk = world.chunkManager.get(addr);
-                const hasModifiers = world.worldChunkFlags.has(addr,
-                    WorldChunkFlags.MODIFIED_BLOCKS | WorldChunkFlags.MODIFIED_FLUID);
-                const flags =
-                    (hasModifiers ? NEARBY_FLAGS.HAS_MODIFIERS : 0) |
-                    (chunk.hasOtherData() ? NEARBY_FLAGS.HAS_OTHER_DATA : 0);
-            }),
-            deleted: vision.nearbyChunks.deleted,
+            chunk_render_dist: nc.chunk_render_dist,
+            added: nc.added,
+            deleted: nc.deleted,
         }
+
         const nearby_compressed = compressNearby(nearby);
+        vision.nearbyChunks.markClean();
         const packets = [{
             // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
             name: ServerClient.CMD_NEARBY_CHUNKS,
@@ -727,7 +723,7 @@ export class ServerPlayer extends Player {
                     params
                 );
                 teleported_player.state.pos = new_pos;
-                teleported_player.checkVisibleChunks(true);
+                teleported_player.vision.checkSpiralChunks();
             }
         }
     }

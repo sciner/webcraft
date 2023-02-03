@@ -353,8 +353,8 @@ export class VectorCollectorFlat {
 export class VectorCollector {
 
     /**
-     * @param {Map} list 
-     * @param {int} blocks_size 
+     * @param {Map} list
+     * @param {int} blocks_size
      */
     constructor(list, blocks_size) {
         this.clear(list);
@@ -612,7 +612,7 @@ export class Color {
     }
 
     /**
-     * @param {boolean} remove_alpha 
+     * @param {boolean} remove_alpha
      * @returns {string}
      */
     toHex(remove_alpha = false) {
@@ -2015,7 +2015,7 @@ export class ArrayOrScalar {
 
 /**
  * Helper methods for working with an Object, Array or Map in the same way - like a map.
- * 
+ *
  * There are 2 modes when working with arrays:
  * 1. By default, undefined vallues are used to mark empty elements. All other values can be stored and read.
  * 2. If emptyValue parameter in methods is set to null, then:
@@ -2023,7 +2023,7 @@ export class ArrayOrScalar {
  *  - both undefined and null are skipped during iteration.
  *  - nulls are used to mark empty array elements.
  * It assumes the user doesn't put undefined or emptyValue into a Map or an Object.
- * 
+ *
  * It can be optimized at the expense of code size.
  */
 export class ArrayOrMap {
@@ -2096,7 +2096,7 @@ export class ArrayOrMap {
         }
     }
 
-    /** 
+    /**
      * Yields [key, value], except those with values undefined and {@link emptyValue}.
      * Note: the same muatble entry is reused.
      */
@@ -2176,15 +2176,16 @@ if(typeof fetch === 'undefined') {
 export class SpiralEntry {
     constructor() {
         this.pos = new Vector();
-        this.dist = dist;
+        this.dist = 0;
         this.chunk = null;
     }
 
     copyTranslate(se, translation) {
         this.pos.copyFrom(se.pos);
         this.pos.addSelf(translation);
-        se.dist = dist;
+        this.dist = se.dist;
         this.chunk = null;
+        return this;
     }
 }
 
@@ -3135,12 +3136,12 @@ export async function blobToImage(blob) {
 }
 
 /**
- * @param {Image,Canvas} image 
- * @param {int} x 
- * @param {int} y 
- * @param {int} width 
- * @param {int} height 
- * @param {int} dest_width 
+ * @param {Image,Canvas} image
+ * @param {int} x
+ * @param {int} y
+ * @param {int} width
+ * @param {int} height
+ * @param {int} dest_width
  */
 export async function cropToImage(image, x, y, width, height, dest_width, dest_height) {
 
