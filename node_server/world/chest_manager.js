@@ -677,6 +677,7 @@ export class WorldChestManager {
         extra_data.can_destroy = false;
         extra_data.slots = this.treasure_sets.generateSlots(this.world, pos,
             extra_data.params.source, DEFAULT_CHEST_SLOT_COUNT);
+        delete extra_data.generate;
         this.world.onBlockExtraDataModified(tblock, pos);
     }
 
