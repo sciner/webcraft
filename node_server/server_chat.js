@@ -172,9 +172,9 @@ export class ServerChat {
                         '/time (add <int> | set (<int>|day|midnight|night|noon))',
                         'Server stats:',
                         '  /tps [chunk]',
-                        '  /tps2 [chunk]',
+                        '  /tps2 [chunk] [recent]',
                         '  /sysstat',
-                        '  /astat',
+                        '  /astat [recent]',
                         '/shutdown [gentle | force]'
                     ]
                 } else {
@@ -275,7 +275,7 @@ export class ServerChat {
                 break;
             }
             case '/tps': {
-                const table = this.getTickStats(args[1])
+                const table = this.getTickStats(args)
                 let temp = [];
                 const keys = ['tps', 'last', 'total', 'count', 'max']
                 for(let k of keys) {
@@ -286,13 +286,15 @@ export class ServerChat {
                 break;
             }
             case '/tps2': {
-                const table = this.getTickStats(args[1]).toTable()
+                const recent = args.includes('recent')
+                const table = this.getTickStats(args).toTable(recent)
                 this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;
             }
             case '/astat': { // async stats. They show what's happeing with DB queries and other async stuff
+                const recent = args.includes('recent')
                 const dbActor = this.world.dbActor
-                const table = dbActor.asyncStats.toTable()
+                const table = dbActor.asyncStats.toTable(recent)
                 table['World transaction now'] = dbActor.savingWorldNow
                     ? `running for ${(performance.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
                     : 'not running';
@@ -490,8 +492,8 @@ export class ServerChat {
         return resp;
     }
 
-    getTickStats(name) {
-        return name === 'chunk'
+    getTickStats(args) {
+        return args.includes('chunk')
             ? this.world.chunkManager.ticks_stat
             : this.world.ticks_stat
     }

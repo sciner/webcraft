@@ -31,23 +31,27 @@ export class WorldTickStat {
         this.min = Number.MAX_SAFE_INTEGER;
         this.max = 0;
         this.values = {}
+        this.started = null
         for(let stat_name of stat_names) {
             this.values[stat_name] = { min: Infinity, max: -Infinity, avg: 0, sum: 0 }
         }
-        this.slidingBegin = performance.now()
         this._moveSlidingWindow() // call it twice to create new and old values
         this._moveSlidingWindow()
     }
 
     add(field) {
         const value = this.values[field];
+        const slidingValue = this.slidingCurrent.values[field]
         if (value) {
             const elapsed = performance.now() - this.pn_values;
             value.sum += elapsed;
             if (elapsed < value.min) value.min = elapsed;
             if (elapsed > value.max) value.max = elapsed;
             value.avg = value.sum / this.count;
-            this.slidingCurrent[field] += elapsed;
+
+            slidingValue.sum += elapsed
+            if (elapsed < slidingValue.min) slidingValue.min = elapsed
+            if (elapsed > slidingValue.max) slidingValue.max = elapsed
         } else {
             console.error('invalid tick stat value: ' + field);
         }
@@ -57,7 +61,8 @@ export class WorldTickStat {
     start() {
         this.pn = performance.now();
         this.pn_values = performance.now();
-        if (this.slidingBegin + WorldTickStat.SLIDING_WINDOW < this.pn) {
+        this.started = this.started ?? this.pn
+        if (this.slidingOld.started + WorldTickStat.SLIDING_WINDOW < this.pn) {
             this._moveSlidingWindow()
         }
     }
@@ -74,11 +79,12 @@ export class WorldTickStat {
             this.count++;
             if (this.last < this.min) this.min = this.last;
             if (this.last > this.max) this.max = this.last;
+
+            this.slidingCurrent.count++
         }
     }
 
-    toTable() {
-        const slidingWindowSeconds = (performance.now() - this.slidingBeginOld) * 0.001
+    toTable(recent = false) {
         const displayNames = {}
         const tableValues = {}
         const valueLens = {}
@@ -87,7 +93,9 @@ export class WorldTickStat {
         const that = this
         function addValue(colName, value) {
             const decimals = that.decimals[colName] ?? that.decimals.default ?? 2
-            value = value.toFixed(decimals)
+            value = value !== Infinity && value !== -Infinity
+                ? value.toFixed(decimals)
+                : ''
             row[colName] = value
             displayNames[colName] = colName
             valueLens[colName] = Math.max(valueLens[colName] ?? 0, value.length)
@@ -95,12 +103,26 @@ export class WorldTickStat {
 
         for(let [rowName, rowStats] of Object.entries(this.values)) {
             row = {}
-            for(let [colName, value] of Object.entries(rowStats)) {
-                addValue(colName, value)
+            let started, sum
+            if (recent) {
+                started = this.slidingOld.started
+                const values0 = this.slidingOld.values[rowName]
+                const values1 = this.slidingCurrent.values[rowName]
+                addValue('min', Math.min(values0.min, values1.min))
+                addValue('max', Math.max(values0.max, values1.max))
+                const count = this.slidingOld.count + this.slidingCurrent.count
+                sum = values0.sum + values1.sum
+                addValue('avg', count ? sum / count : 0)
+            } else {
+                started = this.started
+                sum = rowStats.sum
+                for(let [colName, value] of Object.entries(rowStats)) {
+                    addValue(colName, value)
+                }
             }
-            if (slidingWindowSeconds) {
-                const perSecond = (this.slidingOld[rowName] + this.slidingCurrent[rowName]) / slidingWindowSeconds
-                addValue('ms/sec', perSecond)
+            const seconds = (performance.now() - started) * 0.001
+            if (seconds) {
+                addValue('ms/sec', sum / seconds)
             }
             tableValues[rowName] = row
         }
@@ -118,8 +140,13 @@ export class WorldTickStat {
 
     _moveSlidingWindow() {
         this.slidingOld     = this.slidingCurrent
-        this.slidingCurrent = ArrayHelpers.toObject(this.stat_names, (i, name) => name, 0)
-        this.slidingBeginOld= this.slidingBegin
-        this.slidingBegin   = performance.now()
+        this.slidingCurrent = {
+            values: ArrayHelpers.toObject(this.stat_names, 
+                (i, name) => name,
+                () => { return { min: Infinity, max: -Infinity, count: 0, sum: 0 } }
+            ),
+            count: 0,
+            started: performance.now()
+        }
     }
 }
