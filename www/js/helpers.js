@@ -485,11 +485,26 @@ export class VectorCollector {
     }
 
     delete(vec) {
-        if(this.list?.get(vec.x)?.get(vec.y)?.delete(vec.z)) {
-            this.size--;
-            return true;
+        let resp = false
+        const x = this.list?.get(vec.x)
+        if(x) {
+            const y = x.get(vec.y)
+            if(y) {
+                const z = y.get(vec.z)
+                if(z) {
+                    y.delete(vec.z)
+                    resp = true
+                    this.size--
+                    if(y.size == 0) {
+                        x.delete(vec.y)
+                        if(x.size == 0) {
+                            this.list.delete(vec.x)
+                        }
+                    }
+                }
+            }
         }
-        return false;
+        return resp
     }
 
     has(vec) {
