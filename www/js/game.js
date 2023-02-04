@@ -44,6 +44,7 @@ export class GameClass {
 
     // Start
     async Start(server_url, world_guid, settings, resource_loading_progress) {
+        Qubatch.game = this;
         this.settings = settings;
 
         // Load resources

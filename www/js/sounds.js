@@ -1,5 +1,8 @@
 import { Resources } from "./resources.js";
-import { DEFAULT_SOUND_MAX_DIST, CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MUSIC_PAUSE_SECONDS }  from "./constant.js";
+import { CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MUSIC_PAUSE_SECONDS,
+    VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
+    DEFAULT_SOUND_MAX_DIST }  from "./constant.js";
+import { Mth, Vector } from "./helpers.js";
 
 class Music {
 
@@ -178,6 +181,141 @@ class Music {
     }
 }
 
+class VolumetricSound {
+
+    /**
+     * Sound sprites for each sound type.
+     * See also {@link VOLUMETRIC_SOUND_TYPES}
+     */
+    static SOUNDS = [
+        {   // flowing water
+            tag:    'madcraft:environment',
+            action: 'rain',
+            index:  0
+        },
+        {   // flowing lava
+            tag:    'madcraft:fire',
+            action: 'crackles',
+            index:  0
+        }
+    ]
+
+    constructor(sounds) {
+        this.sounds = sounds
+        this.world = sounds.world
+        this.sound_sprite_main = sounds.sound_sprite_main
+        this.tracks     = new Array(VOLUMETRIC_SOUND_TYPES)
+        this.soundIds   = new Array(VOLUMETRIC_SOUND_TYPES)
+        // A data structure taht we receive from the volumetric sound worker
+        this.workerResult   = null
+        // the last known player direction
+        this.forward = new Vector()
+
+        // temporary variables
+        this.volumes    = new Array(VOLUMETRIC_SOUND_TYPES)
+        this.stereos    = new Array(VOLUMETRIC_SOUND_TYPES)
+        this.sumLeft    = new Array(VOLUMETRIC_SOUND_TYPES)
+        this.sumRight   = new Array(VOLUMETRIC_SOUND_TYPES)
+
+        if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
+            
+            // TODO
+            this.worker = null
+
+        } else {
+            this.worker = new Worker('./js/sound_worker.js'/*, {type: 'module'}*/)
+            this.worker.onerror = (e) => {
+                debugger
+            }
+        }
+
+        const that = this
+        this.worker.onmessage = function(msg) {
+            msg = msg.data ?? msg
+            const cmd = msg[0]
+            const args = msg[1]
+            switch(cmd) {
+                case 'query_chunks':
+                    that.world.chunkManager.fluidWorld.onQueryFlowing(args)
+                    break
+                case 'result':
+                    that.onWorkerResult(args)
+                    break
+            }
+        }
+    }
+
+    setPosOrientation(pos, forward) {
+        this.worker?.postMessage(['player_pos', pos])
+        this.forward.copyFrom(forward)
+        this.update()
+    }
+
+    onWorkerResult(workerResult) {
+        this.workerResult = workerResult
+        this.update()
+    }
+
+    update() {
+        if (this.workerResult) {
+            this.estimate()
+            this.updateHowls()
+        }
+    }
+
+    /**
+     * It calculates stereo for each sound type based on the player's direction.
+     * It doesn't acccount for the player's position. A worker should accound for it and send an update.
+     */
+    estimate() {
+        const angle = Math.atan2(this.forward.z, this.forward.x)
+        const floatSector = angle * VOLUMETRIC_SOUND_ANGLE_TO_SECTOR
+        const lerpAmount = floatSector - Math.floor(floatSector)
+        const sector0 = Math.floor(floatSector) & VOLUMETRIC_SOUND_SECTOR_INDEX_MASK
+        const sector1 = (sector0 + 1) & VOLUMETRIC_SOUND_SECTOR_INDEX_MASK
+        for(let type = 0; type < VOLUMETRIC_SOUND_TYPES; type++) {
+            const typeResult = this.workerResult[type]
+            if (typeResult) {
+                this.volumes[type] = Math.min(typeResult.volume * Sounds.VOLUME_MAP.volumetric, 1)
+                this.stereos[type] = Mth.lerp(lerpAmount, typeResult.stereo[sector0], typeResult.stereo[sector1])
+            } else {
+                this.volumes[type] = 0
+            }
+        }
+    }
+
+    updateHowls() {
+        for(let type = 0; type < VOLUMETRIC_SOUND_TYPES; type++) {
+            const volume = this.volumes[type]
+            let soundId = this.soundIds[type]
+            if (volume) {
+                const sound = VolumetricSound.SOUNDS[type]
+                if (soundId == null) {
+                    // get the sound properties
+                    const list = this.sounds.getTagActionList(sound.tag, sound.action)
+                    const track = list[sound.index]
+                    this.tracks[type] = track
+                    // start playing it
+                    soundId = this.sound_sprite_main.play(track.name)
+                    this.soundIds[type] = soundId
+                    this.sound_sprite_main.loop(true, soundId)
+                    this.sounds.applySoundProps(soundId, 1, track.props)
+                }
+                // update its dynamic properties
+                const track = this.tracks[type]
+                this.sound_sprite_main.volume(track.props.volume * volume, soundId)
+                this.sound_sprite_main.stereo(this.stereos[type], soundId)
+            } else {
+                // stop playing
+                if (soundId && this.sound_sprite_main.playing(soundId)) {
+                    this.sound_sprite_main.stop(soundId)
+                }
+                this.soundIds[type] = null
+            }
+        }
+    }
+}
+
 export class Sounds {
     static VOLUME_MAP = {
         // It's multiplied by the user-contolled music volume setting.
@@ -193,8 +331,11 @@ export class Sounds {
         step: 0.2,
         water_splash: 0.2,
         burp: 0.4,
+
+        volumetric: 0.3 // it's applied to all volumetric sounds
     };
 
+    /* It's not used and probably configured not optimally
     static PANNER_ATTR = {
         coneInnerAngle: 360,
         coneOuterAngle: 360,
@@ -205,6 +346,7 @@ export class Sounds {
         refDistance: 1,
         rolloffFactor: 1,
     };
+    */
 
     /**
      * @type {Sounds}
@@ -218,6 +360,7 @@ export class Sounds {
 
     constructor(player) {
         this.#player = player;
+        this.world = player.world;
 
         this.tags = {};
 
@@ -226,7 +369,8 @@ export class Sounds {
         this.sound_sprite_main = new Howl(Resources.sound_sprite_main);
 
         // default panner attr
-        this.sound_sprite_main.pannerAttr(Sounds.PANNER_ATTR);
+        // Disabling this line has no noticeable effect, it's not used
+        //this.sound_sprite_main.pannerAttr(Sounds.PANNER_ATTR);
 
         for(let item of Resources.sounds) {
             this.add(item);
@@ -234,6 +378,8 @@ export class Sounds {
         this.add(Resources.music ?? { type: 'madcraft:music' });
 
         this.music = new Music(this.tags['madcraft:music']);
+
+        this.volumetricSound = new VolumetricSound(this)
 
         // to prvent Howler from periodically suspend itself, which also suspends Tracker_Player
         Howler.autoSuspend = false;
@@ -368,8 +514,8 @@ export class Sounds {
             let estimatedVolume = track.props.volume;
 
             if (pos) {
-                const { lerpPos, forward } = this.#player;
-                const dist = lerpPos.distance(pos);
+                const eyePos = this.#player.getEyePos();
+                const dist = eyePos.distance(pos);
                 estimatedVolume *= this.voice_calculation(dist, maxDist);
             }
             
@@ -425,13 +571,14 @@ export class Sounds {
     update() {
         // spatial audio
 
-        const { lerpPos, forward } = this.#player;
+        const { forward } = this.#player;
+        const eyePos = this.#player.getEyePos();
 
         // Howler.pos
         this.setPos(
-            lerpPos.x,
-            lerpPos.z,
-            lerpPos.y,
+            eyePos.x,
+            eyePos.z,
+            eyePos.y,
         );
 
         // Howler.orientation
@@ -442,6 +589,7 @@ export class Sounds {
             0,  0,  1
         );
 
+        this.volumetricSound.setPosOrientation(eyePos, forward)
     }
 
     //

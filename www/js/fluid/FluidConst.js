@@ -1,5 +1,11 @@
-export const FLUID_LEVEL_MASK = 15;
+export const FLUID_LEVEL_WITHOUT_SOURCE_MASK = 7;
 export const FLUID_SOURCE_MASK = 8;
+/**
+ * 0 - источник
+ * 1,2,3,4,5,6,7 - разные степени уменьшения
+ * 8 - это "стекла сверху", типа уровень 0 но странноватый. Для звуков 8-ки игнорить.
+ */
+export const FLUID_LEVEL_MASK = 15;
 export const FLUID_WATER_ID = 16;
 export const FLUID_LAVA_ID = 32;
 export const FLUID_TYPE_MASK = 48;
@@ -33,6 +39,8 @@ export const OFFSET_BLOCK_PROPS = 1;
 export const FLUID_STRIDE = 2;
 
 export const PACKED_CELL_LENGTH = 5;
+
+export const FLOWING_DIFF_TYPE_MASK_SHL = 2
 
 export function isFluidId(blockId) {
     if (blockId == 200 || blockId == 202) {

@@ -48,6 +48,10 @@ export class FluidWorld {
             });
             chunk.tblocks.fluid = chunk.fluid;
         }
+        if (chunk.wantsFlowingQueryId) {
+            chunk.fluid.startTrackingAndSendFlowing(chunk.wantsFlowingQueryId)
+            delete chunk.wantsFlowingQueryId
+        }
         if (this.queue) {
             this.queue.addChunk(chunk.fluid);
         }
@@ -62,6 +66,23 @@ export class FluidWorld {
         }
         chunk.fluid.dispose();
         chunk.fluid = null;
+    }
+
+    onQueryFlowing(queriedChunks) {
+        for(const q of queriedChunks) {
+            const chunk = this.chunkManager.getChunk(q)
+            if (!chunk) {
+                // Send nothing. The sound worker will keep asking for it periodically.
+            } else if (chunk.fluid) {
+                chunk.fluid.startTrackingAndSendFlowing(q.queryId)
+            } else {
+                chunk.wantsFlowingQueryId = q.queryId // when the cunk loads, it'll send its flowing blocks
+            }
+        }
+    }
+
+    sendFlowingDiff(msg) {
+        Qubatch.game.sounds.volumetricSound.worker.postMessage(['flowing_diff', msg])
     }
 
     startMeshing(fluidChunk) {
