@@ -270,34 +270,15 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
 
     const checkInstrument = (item, drop) => {
         if (!drop?.instrument) {
-            return true;
+            return true
         }
         if (!item) {
-            return false;
+            return false
         }
-        if (drop.instrument == "wood" || drop.instrument == "gold") {
-            if ([BLOCK.WOODEN_PICKAXE.id, BLOCK.GOLDEN_PICKAXE.id, BLOCK.STONE_PICKAXE.id, BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
-                return true;
-            }
-        }
-        if (drop.instrument == "stone") {
-            if ([BLOCK.STONE_PICKAXE.id, BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
-                return true;
-            }
-        }
-        if (drop.instrument == "iron") {
-            if ([BLOCK.IRON_PICKAXE.id, BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
-                return true;
-            }
-        }
-        if (drop.instrument == "diamond") {
-            if ([BLOCK.DIAMOND_PICKAXE.id, BLOCK.NETHERITE_PICKAXE.id].includes(item)) {
-                return true;
-            }
-        }
-        return false;
+        const name = BLOCK.fromId(item).name
+        console.log(name)
+        return drop.instrument.includes(name) || drop.instrument.find(el => name.endsWith(el)) != null
     }
-
     const drop_item = tblock.material.drop_item;
     // новый функционал
     if (Array.isArray(drop_item)) {
