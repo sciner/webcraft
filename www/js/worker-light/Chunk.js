@@ -1,15 +1,15 @@
 import {Vector} from '../helpers.js';
 import {
-    adjustLight,
     adjustSrc,
     BITS_QUEUE_BLOCK_INDEX,
     DIR_COUNT,
     DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, LIGHT_STRIDE_BYTES_NORMAL, MASK_SRC_AMOUNT, MASK_SRC_AO,
-    MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT, OFFSET_NORMAL,
+    MASK_SRC_BLOCK, OFFSET_LIGHT,
     OFFSET_SOURCE
 } from "./LightConst.js";
 import {DataChunk} from "../core/DataChunk.js";
 import {ChunkGroundLevel} from "./GroundLevel.js"
+import {LightCalc} from "./LightCalc.js";
 
 function calcDif26(size, out) {
     //TODO: move to BaseChunk
@@ -28,8 +28,8 @@ export class Chunk {
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
         this.uniqId = args.uniqId;
         this.lastID = 0;
+        this.lastAO = 0;
         this.sentID = 0;
-        this.removed = false;
         this.waveCounter = 0;
         this.crc = 0;
 
@@ -79,8 +79,7 @@ export class Chunk {
     }
 
     init() {
-        this.resultLen = this.outerLen;
-        this.lightResult = null;
+        this.calc = new LightCalc(this);
     }
 
     fillOuter() {
@@ -162,141 +161,7 @@ export class Chunk {
                 }
         if (found) {
             this.lastID++;
-        }
-    }
-
-    calcResult(is4444, hasNormals) {
-        const {lightChunk} = this;
-        const {outerSize, uint8View, strideBytes} = lightChunk;
-        const elemPerBlock = is4444 ? 1 : 4;
-        const depthMul = hasNormals ? 2 : 1;
-        if (!this.lightResult) {
-            if (is4444) {
-                this.lightResult = new Uint16Array(this.resultLen * elemPerBlock * depthMul);
-            } else {
-                this.lightResult = new Uint8Array(this.resultLen * elemPerBlock * depthMul);
-            }
-        }
-
-        const result = this.lightResult;
-        const sy = outerSize.x * outerSize.z * strideBytes, sx = strideBytes, sz = outerSize.x * strideBytes;
-
-        //TODO: separate multiple cycle
-
-        // Light + AO
-        let changed = false;
-        let changedDay = false;
-        let pv1, pv2, pv3, pv4, pv5, pv6, pv7, pv8;
-        let ind = 0, ind2 = lightChunk.outerLen * elemPerBlock;
-
-        this.result_crc_sum = 0;
-
-        //
-        const addResult1 = (R, G, B, A) => {
-            if (is4444) {
-                const prev_value = result[ind];
-                const new_value = (Math.round(R) << 12)
-                    + (Math.round(15.0 - G) << 8)
-                    + (Math.round(B * 15.0) << 4)
-                    + (Math.round(A * 0.5 * 15.0) << 0);
-                result[ind++] = new_value;
-                if (prev_value != new_value) {
-                    changed = true;
-
-                }
-                if ((prev_value & 0xf00) !== (new_value & 0xf00)) {
-                    changedDay = true;
-                }
-                this.result_crc_sum += new_value;
-            } else {
-                if (!changed) {
-                    pv1 = result[ind + 0];
-                    pv2 = result[ind + 1];
-                    pv3 = result[ind + 2];
-                    pv4 = result[ind + 3];
-                }
-                result[ind++] = Math.round(R * 255.0 / 15.0);
-                result[ind++] = Math.round(255.0 - (G * 255.0 / 15.0));
-                result[ind++] = Math.round(B * 255.0);
-                result[ind++] = Math.round(A * 0.5 * 255.0);
-                if (!changed) {
-                    if (pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
-                        changed = true;
-                    }
-
-                }
-                changedDay = changedDay || pv2 !== result[ind - 3];
-                this.result_crc_sum += (
-                    result[ind - 4] +
-                    result[ind - 3] +
-                    result[ind - 2] +
-                    result[ind - 1]
-                );
-            }
-        };
-
-        for (let y = 0; y < outerSize.y; y++)
-            for (let z = 0; z < outerSize.z; z++)
-                for (let x = 0; x < outerSize.x; x++) {
-                    const coord0 = sx * x + sy * y + sz * z;
-
-                    const block = (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 1: 0;
-                    const ao = (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0;
-
-                    addResult1(adjustLight(uint8View[coord0 + OFFSET_LIGHT]),
-                        adjustLight(uint8View[coord0 + OFFSET_DAY]),
-                        block,
-                        ao + block);
-                }
-
-        const addResult2 = (R, G, B, A) => {
-            if (!changed) {
-                pv1 = result[ind + 0];
-                pv2 = result[ind + 1];
-                pv3 = result[ind + 2];
-                pv4 = result[ind + 3];
-            }
-            result[ind++] = R;
-            result[ind++] = G;
-            result[ind++] = B;
-            result[ind++] = Math.round(A * 255.0);
-            if (!changed) {
-                if (pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
-                    changed = true;
-                }
-            }
-            changedDay = changedDay || pv2 !== result[ind - 3];
-            this.result_crc_sum += (
-                result[ind - 4] +
-                result[ind - 3] +
-                result[ind - 2] +
-                result[ind - 1]
-            );
-        };
-
-        if (hasNormals) {
-            const dataView = lightChunk.dataView;
-            for (let y = 0; y < outerSize.y; y++)
-                for (let z = 0; z < outerSize.z; z++)
-                    for (let x = 0; x < outerSize.x; x++) {
-                        const coord0 = sx * x + sy * y + sz * z;
-                        let dx = uint8View[coord0 + OFFSET_NORMAL];
-                        let dz = uint8View[coord0 + OFFSET_NORMAL + 1];
-                        let dy = uint8View[coord0 + OFFSET_NORMAL + 2];
-                        let light = uint8View[coord0 + OFFSET_LIGHT] > 0 ? 1 : 0;
-                        addResult2(light * dx, light * dz, light * dy, light);
-                    }
-        }
-
-        //
-        if (changed) {
-            this.crc++;
-        } else {
-            // TODO: find out why are there so many calcResults
-            // console.log('WTF');
-        }
-        if (changedDay) {
-            this.groundLevel.calcMinLightY(is4444);
+            this.lastAO++;
         }
     }
 }

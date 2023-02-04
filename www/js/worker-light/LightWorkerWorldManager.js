@@ -14,8 +14,8 @@ export class LightWorkerWorldManager {
         this.worker = worker;
 
         this.renderOptions = {
-            texFormat: 'rgba8',
-            hasNormals: false
+            hasNormals: false,
+            hasTexture: false,
         }
 
         MultiQueue.defaultPool = new QueuePagePool({pageSize: defPageSize});

@@ -136,7 +136,7 @@ export class Chunk {
 
     getLightTexture(render) {
         const cm = this.getChunkManager();
-        if (!this.light.lightData || !cm) {
+        if (!this.light.lightTexData || !cm) {
             return null;
         }
         const {lightProps} = cm;
@@ -157,7 +157,7 @@ export class Chunk {
                 depth: (this.size.y + 2) * lightProps.depthMul,
                 type: lightProps.texFormat,
                 filter: 'linear',
-                data: this.light.lightData
+                data: this.light.lightTexData
             })
             this.light._dataTextureDirty = true;
         }

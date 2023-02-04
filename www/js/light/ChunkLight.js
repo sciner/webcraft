@@ -12,20 +12,20 @@ export class ChunkLight {
         this._dataTextureDirty = false;
         this._tempLightSource = null;
         this.lightData = null;
+        this.lightTexData = null;
 
         this.currentDelta = [];
     }
 
     onGenerated(args) {
         const chunk = this.parentChunk;
-        const chunkManager = chunk.chunkManager;
-        const lp = chunkManager.lightProps;
-        const arrClass = lp.texFormat === 'rgb565unorm' || lp.texFormat === 'rgba4unorm'
-            ? Uint16Array : Uint8Array;
-        this.lightData = args.lightmap_buffer ? new arrClass(args.lightmap_buffer) : null;
+        this.lightData = args.lightData || this.lightData;
         chunk.tblocks.lightData = this.lightData;
-        if (this.lightTex !== null) {
-            this.lightTex.update(this.lightData)
+        if (args.lightTexData) {
+            this.lightTexData = args.lightTexData;
+            if (this.lightTex !== null) {
+                this.lightTex.update(this.lightTexData)
+            }
         }
     }
 
