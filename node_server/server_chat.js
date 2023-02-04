@@ -95,7 +95,6 @@ export class ServerChat {
         switch (cmd) {
             case "/kill": {
                 args = this.parseCMD(args, ['string', 'string'])
-                console.log(args)
                 if (args[1] == 'mobs') {
                     this.world.mobs.kill()
                 }
