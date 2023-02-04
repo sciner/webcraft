@@ -27,6 +27,14 @@ export class WorldMobManager {
         this.inactiveByEntityIdBeingWritten = null;
     }
 
+    // убить всех мобов
+    kill() {
+        const mobs = this.list.values()
+        for (const mob of mobs) {
+            mob.kill()
+        }
+    }
+
     add(mob) {
         this.list.set(mob.id, mob);
     }

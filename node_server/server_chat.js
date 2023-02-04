@@ -93,6 +93,14 @@ export class ServerChat {
         let args = text.split(' ');
         let cmd = args[0].toLowerCase();
         switch (cmd) {
+            case "/kill": {
+                args = this.parseCMD(args, ['string', 'string'])
+                console.log(args)
+                if (args[1] == 'mobs') {
+                    this.world.mobs.kill()
+                }
+                break
+            }
             case "/admin": {
                 if (args.length < 2) {
                     throw 'Invalid arguments count';
