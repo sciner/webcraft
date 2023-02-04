@@ -3,6 +3,7 @@ import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
 import { DBWorldMob } from "./db/world/mob.js"
+import { AABB } from "../www/js/core/AABB.js";
 
 //
 export class MobState {
@@ -81,6 +82,19 @@ export class Mob {
         // To determine when to make regular saves. Add a random to spread different mobs over different transactions.
         this.lastSavedTime  = performance.now() + Math.random() * 0.5 * MOB_SAVE_PERIOD;
         this.lastSavedPos   = new Vector(this.pos); // to force saving is the position changed to much
+        this.box = new AABB
+    }
+
+    get aabb() {
+        this.box.set(
+            this.pos.x - this.width / 2,
+            this.pos.y,
+            this.pos.z - this.width / 2,
+            this.pos.x + this.width / 2,
+            this.pos.y + this.height,
+            this.pos.z + this.width / 2
+        )
+        return this.box
     }
 
     get chunk_addr() {
