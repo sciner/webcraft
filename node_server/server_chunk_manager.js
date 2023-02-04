@@ -93,10 +93,10 @@ export class ServerChunkManager {
         };
         if('onmessage' in this.worker) {
             this.worker.onmessage = onmessage;
-            this.worker.onerror = onerror;
+            // this.worker.onerror = onerror;
         } else {
             this.worker.on('message', onmessage);
-            this.worker.on('error', onerror);
+            // this.worker.on('error', onerror);
         }
         const promise = new Promise((resolve, reject) => {
             this.resolve_worker = resolve;

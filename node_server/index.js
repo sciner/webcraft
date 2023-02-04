@@ -53,7 +53,7 @@ Lang.init();
 global.__dirname        = path.resolve();
 global.Worker           = Worker;
 global.fs               = fs;
-global.config           = config;
+global.config           = await config;
 global.plugins          = new PluginManager();
 global.Qubatch          = new ServerGame();
 global.randomUUID       = () => {

@@ -158,7 +158,11 @@ export class ServerWorld {
     async terminate(text, err) {
         text && console.error(text);
         err && console.error(err);
-        process.exit();
+        if(typeof process == 'undefined') {
+            console.log('process need to terminate')
+        } else {
+            process.exit();
+        }
     }
 
     getDefaultPlayerIndicators() {

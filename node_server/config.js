@@ -1,3 +1,4 @@
+import { Vector } from "../www/js/helpers.js";
 import conf from "./conf.json" assert { type: "json" };
 import conf_world from "./conf_world.json" assert { type: "json" };
 
@@ -22,4 +23,20 @@ if(typeof process != 'undefined') {
     });
 }
 
-export default {...conf, ...conf_world};
+export default await new Promise(async resolve => {
+
+    for(let k in conf_world.building_schemas) {
+        const item = conf_world.building_schemas[k]
+        await import(`./data/building_schema/${item.name}.json`, {assert: { type: 'json' }}).then(module => {
+            const json = module.default
+            json.name = item.name
+            json.meta = json.meta ?? {}
+            item.entrance = new Vector(json.world.entrance)
+            json.world = {...json.world, ...item}
+            conf_world.building_schemas[k] = json
+        })
+    }
+
+    resolve({...conf, ...conf_world})
+
+})

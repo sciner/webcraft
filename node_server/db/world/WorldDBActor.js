@@ -410,7 +410,7 @@ export class WorldDBActor {
         push(recoveryInsertUnsavedChunkXYZs.length / 3);
         push(recoveryInsertUnsavedChunkXYZs);
 
-        this.pushPromises(this.db.saveRecoveryBlob(blob));
+        this.pushPromises(this.db.saveRecoveryBlob(new Uint8Array(blob.buffer)));
     }
 
     async crashRecovery() {
@@ -440,11 +440,11 @@ export class WorldDBActor {
             await this.db.TransactionBegin();
 
             if (needRebuildChunkModifiers) {
-                console.warn('Special recovey mode: rebuilding ALL world_modify_chunks...');
+                console.warn('Special recovery mode: rebuilding ALL world_modify_chunks...');
                 const result = await this.db.chunks.insertRebuildModifiers();
                 logElapsed(result);
             } else if (needUnpackBlockModifiers) {
-                console.warn('Special recovey mode: unpacking ALL world_modify_chunks into world_modify...');
+                console.warn('Special recovery mode: unpacking ALL world_modify_chunks into world_modify...');
                 await this.db.chunks.unpackAllChunkModifiers();
                 logElapsed();
             } else {
@@ -457,7 +457,7 @@ export class WorldDBActor {
                 // We know rowIds of these chunks, so they exist. Update them.
                 const updateRowIdLength = blob[++ind];
                 if (updateRowIdLength) {
-                    console.log(`Crash recovey: update ${updateRowIdLength} unsaved chunks by rowId...`);
+                    console.log(`Crash recovery: update ${updateRowIdLength} unsaved chunks by rowId...`);
                     const rows = [];
                     for(let i = 0; i < updateRowIdLength; i++) {
                         rows.push(blob[++ind]);
@@ -469,7 +469,7 @@ export class WorldDBActor {
                 // We don't know rowIds of these chunks, but we know they exist. Update them.
                 const updateXYZLength = blob[++ind];
                 if (updateXYZLength) {
-                    console.log(`Crash recovey: update ${updateXYZLength} unsaved chunks by addr...`);
+                    console.log(`Crash recovery: update ${updateXYZLength} unsaved chunks by addr...`);
                     const rows = [];
                     for(let i = 0; i < updateXYZLength; i++) {
                         rows.push([blob[++ind], blob[++ind], blob[++ind]]);
@@ -481,7 +481,7 @@ export class WorldDBActor {
                 // We don't know rowIds of these chunks, so they don't exist. Insert them.
                 const insertXYZLength = blob[++ind];
                 if (insertXYZLength) {
-                    console.log(`Crash recovey: insert ${insertXYZLength} unsaved chunks...`);
+                    console.log(`Crash recovery: insert ${insertXYZLength} unsaved chunks...`);
                     const rows = [];
                     for(let i = 0; i < insertXYZLength; i++) {
                         rows.push([blob[++ind], blob[++ind], blob[++ind]]);
@@ -491,7 +491,7 @@ export class WorldDBActor {
                 }
             }
             // to avoid repeating recovery if we crash again before the 1st world transaction
-            this.db.saveRecoveryBlob(null);
+            await this.db.saveRecoveryBlob(null);
         } catch (e) {
             // The game can't continue. The DB transcation will rollback automatically.
             await this.world.terminate("Error in crashRecovery", e);
@@ -499,7 +499,7 @@ export class WorldDBActor {
 
         await this.db.TransactionCommit();
 
-        delete this.world.info.unsaved; // no need to rember it
+        delete this.world.info.recovery; // no need to rember it
     }
 
     _createWorldSavingPromise() {

@@ -1,9 +1,9 @@
-import { Helpers, unixTime, md5 } from "../../../www/js/helpers.js";
-import { PLAYER_SKIN_TYPES, SKIN_RIGHTS_FREE, SKIN_RIGHTS_UPLOADED, 
-    CLIENT_SKIN_ROOT } from "../../../www/js/constant.js";
+import { unixTime, md5 } from "../../../www/js/helpers.js";
+import { PLAYER_SKIN_TYPES, SKIN_RIGHTS_FREE, SKIN_RIGHTS_UPLOADED, CLIENT_SKIN_ROOT } from "../../../www/js/constant.js";
 import { Buffer } from 'node:buffer';
 import skiaCanvas from 'skia-canvas';
 import mkdirp from 'mkdirp';
+import skins_json from "../../../www/media/models/database.json" assert { type: "json" };
 
 const SKIN_ROOT = '../www/media/models/player_skins/'
 const UPLOAD_SKIN_DIR = 'u/'; // a dir in SKIN_ROOT for uploaded skins
@@ -19,11 +19,13 @@ export class DBGameSkins {
         this.loadStaticSkins();
     }
 
+    /**
+     * static list loads once, then we access it instantly when needed
+     */
     loadStaticSkins() {
-        // static list loads once, then we access it instantly when needed
-        this.staticSkinsPromise = Helpers.fetchJSON('../../www/media/models/database.json').then(json => {
-            return new Map(json.player_skins.map(it => [it.id, it]));
-        });
+        this.staticSkinsPromise = new Promise((resolve) => {
+            resolve(new Map(skins_json.player_skins.map(it => [it.id, it])))
+        })
     }
 
     hashImage(img) {
