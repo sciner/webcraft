@@ -2,9 +2,13 @@ import {ServerClient} from "../www/js/server_client.js";
 import {DIRECTION, Vector} from "../www/js/helpers.js";
 import {WorldAction} from "../www/js/world_action.js";
 import { Weather } from "../www/js/block_type/weather.js";
+import { MobSpawnParams } from "./mob.js";
 
 export class ServerChat {
 
+    /**
+     * @param {import("./server_world.js").ServerWorld } world 
+     */
     constructor(world) {
         this.world = world;
         this.onCmdCallbacks = [];
@@ -352,14 +356,7 @@ export class ServerChat {
             }
             case '/spawnmob': {
                 args = this.parseCMD(args, ['string', '?float', '?float', '?float', 'string', 'string']);
-                // @ParamMobAdd
-                let params = {
-                    type:   args[4],
-                    skin:   args[5],
-                    pos:    player.state.pos.clone(),
-                    pos_spawn:    player.state.pos.clone(),
-                    rotate: new Vector(0, 0, player.state.rotate.z)
-                }; 
+                const pos = player.state.pos.clone()
                 // x
                 if (args[1] !== null) {
                     params.pos.x = args[1];
@@ -372,6 +369,13 @@ export class ServerChat {
                 if (args[3] !== null) {
                     params.pos.z = args[3];
                 }
+                // @ParamMobAdd
+                const params = new MobSpawnParams(
+                    pos,
+                    new Vector(0, 0, player.state.rotate.z),
+                    args[4],
+                    args[5],
+                )
                 // spawn
                 this.world.mobs.spawn(player, params);
                break;

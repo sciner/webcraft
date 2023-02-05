@@ -35,6 +35,7 @@ import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
 import { TBlock } from "../www/js/typed_blocks3.js";
 import { Effect } from "../www/js/block_type/effect.js";
+import { MobSpawnParams } from "./mob.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -282,7 +283,7 @@ export class ServerWorld {
         // находим игроков
         for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
-                // количество мобов одного типа в радусе спауна
+                // количество мобов одного типа в радиусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie', 'skeleton']);
                 if (mobs.length <= 4) {
                     // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
@@ -310,13 +311,7 @@ export class ServerWorld {
                                 // тип мобов для спауна
                                 const type_mob = (Math.random() < 0.5) ? 'zombie' : 'skeleton';
                                 spawn_pos.addSelf(new Vector(0.5, 0, 0.5));
-                                const params = {
-                                    type:       type_mob,
-                                    skin:       'base',
-                                    pos:        spawn_pos,
-                                    pos_spawn:  spawn_pos,
-                                    rotate:     0,
-                                };
+                                const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), type_mob, 'base')
                                 const actions = new WorldAction(null, this, false, false);
                                 actions.spawnMob(params);
                                 this.actions_queue.add(null, actions);

@@ -130,12 +130,11 @@ export class ServerChunk {
         this.randomTickingBlockCount = 0;
         this.block_random_tickers = this.getChunkManager().block_random_tickers;
         this.options        = {};
-        if(['biome2'].indexOf(world.info.generator.id) >= 0) {
-            this.mobGenerator   = new MobGenerator(this);
+        // World mobs generator
+        if(world.getGeneratorOptions('auto_generate_mobs', false)) {
+            this.mobGenerator = new MobGenerator(this);
         }
-        //if(['npc'].indexOf(world.info.generator.id) >= 0) {
-        //    this.mobGenerator = new MobGenerator(this);
-        //}
+        //
         this.setState(CHUNK_STATE.NEW);
         this.dataChunk      = null;
         this.fluid          = null;
