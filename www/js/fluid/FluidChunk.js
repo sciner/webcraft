@@ -5,12 +5,12 @@ import {
     FLUID_STRIDE, FLUID_TYPE_MASK,
     FLUID_WATER_ID, FLUID_WATER_INTERACT, fluidBlockProps, OFFSET_BLOCK_PROPS,
     OFFSET_FLUID,
-    FLOWING_DIFF_TYPE_MASK_SHL, FLUID_LEVEL_WITHOUT_SOURCE_MASK
+    FLUID_LEVEL_MASK
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
 import {AABB} from "../core/AABB.js";
 import { gzip, ungzip } from '../../vendors/pako.esm.min.mjs';
-import { Vector } from "../helpers.js";
+import { FluidChunkFlowing } from "./FluidChunkFlowing.js";
 
 export class FluidChunk {
     constructor({dataChunk, dataId, parentChunk = null, world = null}) {
@@ -31,19 +31,7 @@ export class FluidChunk {
         this.boundsID = -1;
         this.meshID = -1;
 
-        /**
-         * Client-only.
-         * If it's not null, it'a a Map of changes of floing blocks since the last call of
-         * {@link startTrackingAndSendFlowing} or {@link _sendFlowingDiff}. The keys are indices.
-         * The values contain:
-         * - in bits {@link FLUID_TYPE_MASK} the type of a flowing fluid (0 - no flowing fluid).
-         * - in bits ({@link FLUID_TYPE_MASK} << {@link FLOWING_DIFF_TYPE_MASK_SHL}) - the value that was before the current diff.
-         *   These previous values are internal and should be ignored by the end-user of the changes.
-         */
-        this.flowingDiffByIndex = null;
-
-        /** Client-only. All flowing fluid blocks, in the same format as {@link flowingDiffByIndex} */
-        this.flowingByIndex = null;
+        this.flowing = null; // Client-only
 
         /**
          * local bounds INCLUDE
@@ -111,127 +99,8 @@ export class FluidChunk {
      * It sends the map of all flowing blocks.
      */
     startTrackingAndSendFlowing(queryId) {
-        if (this.lastFlowingQueryId === queryId) {
-            return // skip repeated queries for the same sound chunk placeholder
-        }
-        this.lastFlowingQueryId = queryId
-
-        if (!this.flowingByIndex) {
-            this._rebuildFlowingByIndex()
-        }
-        // we're sending everything, so the diff should be cleared (and maybe created if it doesn't exist)
-        this.flowingDiffByIndex = new Map()
-
-        Qubatch.game.sounds.volumetric.onFlowingDiff({
-            addr: this.parentChunk.addr,
-            map: this.flowingByIndex,
-            all: true
-        })
-    }
-
-    _sendFlowingDiff() {
-        if (this.flowingDiffByIndex.size) {
-            Qubatch.game.sounds.volumetric.onFlowingDiff({
-                addr: this.parentChunk.addr,
-                map: this.flowingDiffByIndex
-            })
-            this.flowingDiffByIndex = new Map()
-        }
-    }
-
-    _rebuildFlowingByIndex() {
-        const {cx, cy, cz, cw, size} = this.dataChunk
-        const {uint8View} = this
-        this.flowingByIndex = new Map()
-        for (let y = 0; y < size.y; y++) {
-            for (let z = 0; z < size.z; z++) {
-                let index = y * cy + z * cz + cw
-                for (let x = 0; x < size.x; x++) {
-                    const v = uint8View[index * FLUID_STRIDE + OFFSET_FLUID]
-                    if (v & FLUID_LEVEL_WITHOUT_SOURCE_MASK) {
-                        this.flowingByIndex.set(index, v & FLUID_TYPE_MASK)
-                    }
-                    index += cx
-                }
-            }
-        }
-    }
-
-    /**
-     * It checks that the flowing type has changed. If it has, it updates the map of flowing blocks.
-     * @param {Int} index - block index, non-flat
-     * @param {Int} value - the new fluid value
-     * @param {Int} prev - the previous fluid value
-     */
-    _updateFlowingDiffByIndexFluid(index, value, prev) {
-        const newFlowing = value & FLUID_LEVEL_WITHOUT_SOURCE_MASK
-            ? value & FLUID_TYPE_MASK
-            : 0
-        const prevFlowing = prev & FLUID_LEVEL_WITHOUT_SOURCE_MASK
-            ? prev & FLUID_TYPE_MASK
-            : 0
-        if (newFlowing !== prevFlowing) {
-            this._updateFlowingDiffByIndex(index, newFlowing, prevFlowing)
-        }
-    }
-
-    /**
-     * Unlike {@link _updateFlowingDiffByIndexFluid}, it doesn't check that the vaue has chenged, but it's a bit faster.
-     * @param {Int} index - block index, non-flat
-     * @param {Int} newFlowing - the new value that contains only bits in {@link FLUID_TYPE_MASK}
-     * @param {Int} prevFlowing - the previous value that contains only bits in {@link FLUID_TYPE_MASK}
-     */
-    _updateFlowingDiffByIndex(index, newFlowing, prevFlowing) {
-        const oldDiff = this.flowingDiffByIndex.get(index)
-        if (oldDiff == null) {
-            const newDiff = newFlowing | (prevFlowing << FLOWING_DIFF_TYPE_MASK_SHL)
-            this.flowingDiffByIndex.set(index, newDiff)
-        } else {
-            const oldFlowing = (oldDiff >> FLOWING_DIFF_TYPE_MASK_SHL) & FLUID_TYPE_MASK
-            if (newFlowing !== oldFlowing) {
-                const newDiff = newFlowing | (oldFlowing << FLOWING_DIFF_TYPE_MASK_SHL)
-                this.flowingDiffByIndex.set(index, newDiff)
-            } else {
-                // there have been multiple changes, and in the end we set the same value as before the diff was created
-                this.flowingDiffByIndex.delete(index)
-            }
-        }
-        if (newFlowing) {
-            this.flowingByIndex.set(index, newFlowing)
-        } else {
-            this.flowingByIndex.delete(index)
-        }
-    }
-
-    /** 
-     * Changes {@link flowingDiffByIndex} and {@link flowingByIndex} as if all 
-     * flowing blocks filtered by {@link filterIndex} are deleted.
-     */
-    _deleteFlowing(filterIndex = () => ture) {
-        const SHIFTED_MASK = FLUID_TYPE_MASK << FLOWING_DIFF_TYPE_MASK_SHL
-        for (const [index, diff] of this.flowingDiffByIndex) {
-            if (!filterIndex(index)) {
-                continue
-            }
-            const old = diff & SHIFTED_MASK
-            if (old === 0) {
-                this.flowingDiffByIndex.delete(index)
-            } else if ((diff & FLUID_TYPE_MASK) !== 0) {
-                this.flowingDiffByIndex.set(old)
-            }
-        }
-        for (const index of this.flowingByIndex.keys()) {
-            if (filterIndex(index)) {
-                this.flowingByIndex.delete(index)
-            }
-        }
-    }
-
-    _deleteFlowingBoundsY(y_min, y_max) {
-        this._deleteFlowing(index => {
-            const y = Vector.yFromChunkIndex(index)
-            return y >= y_min && y <= y_max
-        })
+        this.flowing = this.flowing ?? new FluidChunkFlowing(this)
+        this.flowing.sendAll(queryId)
     }
 
     setValuePortals(index, wx, wy, wz, value, portals, portalLen) {
@@ -381,9 +250,7 @@ export class FluidChunk {
                 }
             }
             // update the flowing diff in the same volume that we just cleared
-            if (this.flowingDiffByIndex) {
-                this._deleteFlowingBoundsY(bounds.y_min, bounds.y_max);
-            }
+            this.flowing?.deleteBoundsY(bounds.y_min, bounds.y_max);
             for (let y = bounds.y_min; y <= bounds.y_max; y++) {
                 let x_min = arr[k++], x_max = arr[k++], z_min = arr[k++], z_max = arr[k++];
                 bounds.x_min = Math.min(bounds.x_min, x_min);
@@ -401,8 +268,8 @@ export class FluidChunk {
                             if ((val & FLUID_TYPE_MASK) === FLUID_TYPE_MASK) { // WRONG FLUID TYPE
                                 val = 0;
                             } else {
-                                if (this.flowingDiffByIndex && (val & FLUID_LEVEL_WITHOUT_SOURCE_MASK)) {
-                                    this._updateFlowingDiffByIndex(index, val & FLUID_TYPE_MASK, 0)
+                                if (this.flowing && (val & FLUID_LEVEL_MASK)) {
+                                    this.flowing.updateByIndexDiff(index, val & FLUID_TYPE_MASK, 0)
                                 }
                             }
                         }
@@ -443,9 +310,7 @@ export class FluidChunk {
                 }
             }
             // update the flowing diff in the same volume that we just cleared
-            if (this.flowingDiffByIndex) {
-                this._deleteFlowingBoundsY(bounds.y_min, bounds.y_max);
-            }
+            this.flowing?.deleteBoundsY(bounds.y_min, bounds.y_max);
             let s = 0;
             for (let y = bounds.y_min; y <= bounds.y_max; y++) {
                 let x_min = dims[s++], x_max = dims[s++] - 1, z_min = dims[s++], z_max = dims[s++] - 1;
@@ -464,8 +329,8 @@ export class FluidChunk {
                             if ((val & FLUID_TYPE_MASK) === FLUID_TYPE_MASK) { // WRONG FLUID TYPE
                                 val = 0;
                             } else {
-                                if (this.flowingDiffByIndex && (val & FLUID_LEVEL_WITHOUT_SOURCE_MASK)) {
-                                    this._updateFlowingDiffByIndex(index, val & FLUID_TYPE_MASK, 0)
+                                if (this.flowing && (val & FLUID_LEVEL_MASK)) {
+                                    this.flowing.updateByIndexDiff(index, val & FLUID_TYPE_MASK, 0)
                                 }
                             }
                         }
@@ -489,9 +354,7 @@ export class FluidChunk {
             this.databaseID = this.updateID;
             this.savedBuffer = stateArr;
         }
-        if (this.flowingDiffByIndex) {
-            this._sendFlowingDiff();
-        }
+        this.flowing?.sendDiff();
     }
 
     setFluidIndirect(x, y, z, block_id) {
@@ -605,9 +468,7 @@ export class FluidChunk {
                 if (diffFluidType) {
                     diffFluidType.push(ind);
                 }
-                if (this.flowingDiffByIndex) {
-                    this._updateFlowingDiffByIndexFluid(ind, val, old);
-                }
+                this.flowing?.updateByIndexFluid(ind, val, old);
             }
             this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = val;
 
@@ -640,9 +501,7 @@ export class FluidChunk {
                 }
             }
         }
-        if (this.flowingDiffByIndex) {
-            this._sendFlowingDiff();
-        }
+        this.flowing?.sendDiff();
     }
 
     markDirtyMesh() {
@@ -682,5 +541,3 @@ export class FluidChunk {
         }
     }
 }
-
-const tmpVec = new Vector()

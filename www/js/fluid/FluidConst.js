@@ -1,4 +1,3 @@
-export const FLUID_LEVEL_WITHOUT_SOURCE_MASK = 7;
 export const FLUID_SOURCE_MASK = 8;
 /**
  * 0 - источник
@@ -39,8 +38,6 @@ export const OFFSET_BLOCK_PROPS = 1;
 export const FLUID_STRIDE = 2;
 
 export const PACKED_CELL_LENGTH = 5;
-
-export const FLOWING_DIFF_TYPE_MASK_SHL = 2
 
 export function isFluidId(blockId) {
     if (blockId == 200 || blockId == 202) {
