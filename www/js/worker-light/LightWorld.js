@@ -211,7 +211,7 @@ export class LightWorld {
                         addr: chunk.addr,
                         lightData: chunk.calc.lightData,
                         lightTexData: chunk.calc.lightTexData,
-                        lightID: chunk.lastID,
+                        lightID: chunk.sentID,
                         uniqId: chunk.uniqId,
                     }], /*[chunk.calc.lightTexData.buffer]*/);
                     endChunks++;
@@ -222,7 +222,7 @@ export class LightWorld {
                     chunk.sentID = chunk.calc.dataID;
                     this.postMessage(['light_generated', {
                         addr: chunk.addr,
-                        lightData: chunk.lightData,
+                        lightData: chunk.calc.lightData,
                         lightID: chunk.sentID,
                         uniqId: chunk.uniqId,
                     }]);
