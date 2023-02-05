@@ -1,10 +1,13 @@
-import {BLOCK} from "../blocks.js";
-
 export class Instrument_Hand {
 
+    /**
+     * @param { import("../player_inventory.js").PlayerInventory } inventory 
+     * @param {*} inventory_item 
+     */
     constructor(inventory, inventory_item) {
+        const bm = inventory.player.world.block_manager
         this.inventory_item = inventory_item;
-        this.material = inventory_item ? BLOCK.fromId(inventory_item.id) : null;
+        this.material = inventory_item ? bm.fromId(inventory_item.id) : null;
         this.inventory = inventory;
     }
 

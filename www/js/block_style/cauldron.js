@@ -1,13 +1,16 @@
-import {DIRECTION, Vector, IndexedColor, QUAD_FLAGS} from '../helpers.js';
-import { BLOCK } from "../blocks.js";
+import { DIRECTION, Vector, IndexedColor, QUAD_FLAGS } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 
 // Cauldron
 export default class style {
 
-    // getRegInfo
-    static getRegInfo() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['cauldron'],
             func: this.func,
@@ -24,8 +27,10 @@ export default class style {
 
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex, only_fluid = false) {
-        
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+
+        const bm = style.block_manager
+
+        if(!block || typeof block == 'undefined' || block.id == bm.AIR.id) {
             return;
         }
 
@@ -35,10 +40,10 @@ export default class style {
         const lava = extra_data?.lava ?? false // если внутри лава
         const water = extra_data?.water ?? false // если внутри вода
         const snow = extra_data?.snow ?? false // если внутри снег
-        const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.FORWARD);
-        const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
-        const c_inner = BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST);
+        const c_up = bm.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_side = bm.calcMaterialTexture(block.material, DIRECTION.FORWARD);
+        const c_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
+        const c_inner = bm.calcMaterialTexture(block.material, DIRECTION.EAST);
         let parts = [];
         parts.push(...[
             {
@@ -85,15 +90,15 @@ export default class style {
             const w = only_fluid ? 0.6 : 0.75;
             let blockFluid = null;
             if (water) {
-                blockFluid = BLOCK.STILL_WATER;
+                blockFluid = bm.STILL_WATER;
             }
             if (lava) {
-                blockFluid = BLOCK.STILL_LAVA;
+                blockFluid = bm.STILL_LAVA;
             }
             if (blockFluid) {
                 const side = 'up';
                 const dir = blockFluid.UP;
-                const anim_frames = BLOCK.getAnimations(blockFluid, side);
+                const anim_frames = bm.getAnimations(blockFluid, side);
                 let lm = IndexedColor.WHITE.clone();
                 let flags = QUAD_FLAGS.NO_AO;
                 if(blockFluid.tags.indexOf('multiply_color') >= 0) {
@@ -104,7 +109,7 @@ export default class style {
                     flags |= QUAD_FLAGS.FLAG_ANIMATED;
                     lm.b = anim_frames;
                 }
-                const t = BLOCK.calcMaterialTexture(blockFluid, dir, w, w);
+                const t = bm.calcMaterialTexture(blockFluid, dir, w, w);
                 vertices.push(x + 0.5, z + 0.5, y1,
                     w, 0, 0,
                     0, w, 0,
@@ -114,7 +119,7 @@ export default class style {
             }
             if (snow) {
                 const lm = IndexedColor.WHITE;
-                const t = BLOCK.calcMaterialTexture(BLOCK.POWDER_SNOW, DIRECTION.UP, w, w);
+                const t = bm.calcMaterialTexture(bm.POWDER_SNOW, DIRECTION.UP, w, w);
                 vertices.push(x + 0.5, z + 0.5, y1,
                     w, 0, 0,
                     0, w, 0,

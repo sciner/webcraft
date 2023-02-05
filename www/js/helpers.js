@@ -8,6 +8,10 @@ import { DEFAULT_TX_CNT } from "./constant.js";
 
 const {mat4, quat} = glMatrix;
 
+const DEFAULT_PROPERTIES_EQUAL_FN = (a, b) => ObjectHelpers.deepEqual(a, b);
+
+export const TX_CNT = DEFAULT_TX_CNT;
+
 export const CAMERA_MODE = {
     COUNT: 3,
     SHOOTER: 0,
@@ -15,7 +19,75 @@ export const CAMERA_MODE = {
     THIRD_PERSON_FRONT: 2
 };
 
-export const TX_CNT = DEFAULT_TX_CNT;
+/**
+ * @param {string} url 
+ * @param {*} callback 
+ */
+ function loadText(url, callback) {
+    let xobj = new XMLHttpRequest();
+    xobj.overrideMimeType('application/json');
+    xobj.open('GET', url, true); // Replace 'my_data' with the path to your file
+    xobj.onreadystatechange = function() {
+        if (xobj.readyState == 4 && xobj.status == '200') {
+            // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+            callback(xobj.responseText);
+        }
+    };
+    xobj.send(null);
+}
+
+function toType(a) {
+    // Get fine type (object, array, function, null, error, date ...)
+    return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
+}
+
+function isDeepObject(obj) {
+    return "Object" === toType(obj);
+}
+
+/**
+ * Returns an euler angle representation of a quaternion
+ * @param  {vec3} out Euler angles, pitch-yaw-roll
+ * @param  {quat} mat Quaternion
+ * @return {vec3} out
+ */
+ function getEuler(out, quat) {
+    let x = quat[0],
+        y = quat[1],
+        z = quat[2],
+        w = quat[3],
+        x2 = x * x,
+        y2 = y * y,
+        z2 = z * z,
+        w2 = w * w;
+
+    let unit = x2 + y2 + z2 + w2;
+    let test = x * w - y * z;
+
+    if (test > (0.5 - glMatrix.EPSILON) * unit) {
+        // singularity at the north pole
+        out[0] = Math.PI / 2;
+        out[1] = 2 * Math.atan2(y, x);
+        out[2] = 0;
+    } else if (test < -(0.5 - glMatrix.EPSILON) * unit) { //TODO: Use glmatrix.EPSILON
+        // singularity at the south pole
+        out[0] = -Math.PI / 2;
+        out[1] = 2 * Math.atan2(y, x);
+        out[2] = 0;
+    } else {
+        out[0] = Math.asin(2 * (x * z - w * y));
+        out[1] = Math.atan2(2 * (x * w + y * z), 1 - 2 * (z2 + w2));
+        out[2] = Math.atan2(2 * (x * y + z * w), 1 - 2 * (y2 + z2));
+    }
+
+    const TO_DEG = 180 / Math.PI;
+
+    out[0] *= TO_DEG;
+    out[1] *= TO_DEG;
+    out[2] *= TO_DEG;
+
+    return out;
+}
 
 /**
  * Lerp any value between
@@ -220,7 +292,14 @@ export function makeChunkEffectID(chunk_addr, material_key) {
     return resp;
 }
 
-// Возвращает адрес чанка по глобальным абсолютным координатам
+/**
+ * Возвращает адрес чанка по глобальным абсолютным координатам
+ * @param { float|Vector } x 
+ * @param { float|Vector } y 
+ * @param { float } z 
+ * @param { ?Vector } v 
+ * @returns { Vector }
+ */
 export function getChunkAddr(x, y, z, v = null) {
     if(x instanceof Vector || typeof x == 'object') {
         v = y;
@@ -246,6 +325,167 @@ export function chunkAddrToCoord(addr, result) {
     result.y = addr.y * CHUNK_SIZE_Y;
     result.z = addr.z * CHUNK_SIZE_Z;
 }
+
+export function unixTime() {
+    return ~~(Date.now() / 1000);
+}
+
+/**
+ *
+ * @param {string} seed
+ * @param {int} len
+ * @returns
+ */
+export function createFastRandom(seed, len = 512) {
+    const random_alea = new alea(seed);
+    // fast random
+    const randoms = new Array(len); // new Float32Array(len)
+    for(let i = 0; i < len; i++) {
+        randoms[i] = random_alea.double();
+    }
+    let random_index = 0;
+    // return random_alea.double
+    return () => randoms[random_index++ % len];
+}
+
+export function fromMat3(a, b) {
+    //transponse too!
+    a[ 0] = b[ 0];
+    a[ 1] = b[ 3];
+    a[ 2] = b[ 6];
+
+    a[ 4] = b[ 1];
+    a[ 5] = b[ 4];
+    a[ 6] = b[ 7];
+
+    a[ 8] = b[ 2];
+    a[ 9] = b[ 5];
+    a[10] = b[ 8];
+
+    a[ 3] = a[ 7] = a[11] =
+    a[12] = a[13] = a[14] = 0;
+    a[15] = 1.0;
+
+    return a;
+}
+
+// calcRotateMatrix
+export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
+    // Can rotate
+    if(material.can_rotate) {
+        //
+        if(rotate) {
+
+            if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+                matrix = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
+                /*
+                // Use matrix instead!
+                if (matrix) {
+                    mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                    matrix = tempMatrix;
+                } else {
+                    matrix = CubeSym.matrices[cardinal_direction];
+                }
+                */
+            } else if(rotate.y != 0) {
+                if(material.tags.includes('rotate_by_pos_n')) {
+                    matrix = mat4.create();
+                    if(rotate.y == 1) {
+                        // on the floor
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI);
+                    } else {
+                        // on the ceil
+                        mat4.rotateZ(matrix, matrix, Math.PI);
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI*2);
+                    }
+                }
+            }
+        }
+    }
+    return matrix;
+}
+
+// md5
+export let md5 = (function() {
+    var MD5 = function (d, outputEncoding) {
+        const binaryStr = V(Y(X(d), 8 * d.length));
+        if (outputEncoding) { // 'base64', 'base64url', etc. - supported only in node.js
+            return Buffer.from(binaryStr, 'binary').toString(outputEncoding);
+        }
+        return M(binaryStr); // hex (lowercase) encoding by default
+    }
+    function M (d) {
+        for (var _, m = '0123456789abcdef', f = '', r = 0; r < d.length; r++) {
+            _ = d.charCodeAt(r)
+            f += m.charAt(_ >>> 4 & 15) + m.charAt(15 & _)
+        }
+        return f
+    }
+    function X (d) {
+        for (var _ = Array(d.length >> 2), m = 0; m < _.length; m++) {
+            _[m] = 0
+        }
+        for (m = 0; m < 8 * d.length; m += 8) {
+            _[m >> 5] |= (255 & d.charCodeAt(m / 8)) << m % 32
+        }
+        return _
+    }
+    function V (d) {
+        for (var _ = '', m = 0; m < 32 * d.length; m += 8) _ += String.fromCharCode(d[m >> 5] >>> m % 32 & 255)
+        return _
+    }
+    function Y (d, _) {
+        d[_ >> 5] |= 128 << _ % 32
+        d[14 + (_ + 64 >>> 9 << 4)] = _
+        for (var m = 1732584193, f = -271733879, r = -1732584194, i = 271733878, n = 0; n < d.length; n += 16) {
+            var h = m
+            var t = f
+            var g = r
+            var e = i
+            f = md5ii(f = md5ii(f = md5ii(f = md5ii(f = md5hh(f = md5hh(f = md5hh(f = md5hh(f = md5gg(f = md5gg(f = md5gg(f = md5gg(f = md5ff(f = md5ff(f = md5ff(f = md5ff(f, r = md5ff(r, i = md5ff(i, m = md5ff(m, f, r, i, d[n + 0], 7, -680876936), f, r, d[n + 1], 12, -389564586), m, f, d[n + 2], 17, 606105819), i, m, d[n + 3], 22, -1044525330), r = md5ff(r, i = md5ff(i, m = md5ff(m, f, r, i, d[n + 4], 7, -176418897), f, r, d[n + 5], 12, 1200080426), m, f, d[n + 6], 17, -1473231341), i, m, d[n + 7], 22, -45705983), r = md5ff(r, i = md5ff(i, m = md5ff(m, f, r, i, d[n + 8], 7, 1770035416), f, r, d[n + 9], 12, -1958414417), m, f, d[n + 10], 17, -42063), i, m, d[n + 11], 22, -1990404162), r = md5ff(r, i = md5ff(i, m = md5ff(m, f, r, i, d[n + 12], 7, 1804603682), f, r, d[n + 13], 12, -40341101), m, f, d[n + 14], 17, -1502002290), i, m, d[n + 15], 22, 1236535329), r = md5gg(r, i = md5gg(i, m = md5gg(m, f, r, i, d[n + 1], 5, -165796510), f, r, d[n + 6], 9, -1069501632), m, f, d[n + 11], 14, 643717713), i, m, d[n + 0], 20, -373897302), r = md5gg(r, i = md5gg(i, m = md5gg(m, f, r, i, d[n + 5], 5, -701558691), f, r, d[n + 10], 9, 38016083), m, f, d[n + 15], 14, -660478335), i, m, d[n + 4], 20, -405537848), r = md5gg(r, i = md5gg(i, m = md5gg(m, f, r, i, d[n + 9], 5, 568446438), f, r, d[n + 14], 9, -1019803690), m, f, d[n + 3], 14, -187363961), i, m, d[n + 8], 20, 1163531501), r = md5gg(r, i = md5gg(i, m = md5gg(m, f, r, i, d[n + 13], 5, -1444681467), f, r, d[n + 2], 9, -51403784), m, f, d[n + 7], 14, 1735328473), i, m, d[n + 12], 20, -1926607734), r = md5hh(r, i = md5hh(i, m = md5hh(m, f, r, i, d[n + 5], 4, -378558), f, r, d[n + 8], 11, -2022574463), m, f, d[n + 11], 16, 1839030562), i, m, d[n + 14], 23, -35309556), r = md5hh(r, i = md5hh(i, m = md5hh(m, f, r, i, d[n + 1], 4, -1530992060), f, r, d[n + 4], 11, 1272893353), m, f, d[n + 7], 16, -155497632), i, m, d[n + 10], 23, -1094730640), r = md5hh(r, i = md5hh(i, m = md5hh(m, f, r, i, d[n + 13], 4, 681279174), f, r, d[n + 0], 11, -358537222), m, f, d[n + 3], 16, -722521979), i, m, d[n + 6], 23, 76029189), r = md5hh(r, i = md5hh(i, m = md5hh(m, f, r, i, d[n + 9], 4, -640364487), f, r, d[n + 12], 11, -421815835), m, f, d[n + 15], 16, 530742520), i, m, d[n + 2], 23, -995338651), r = md5ii(r, i = md5ii(i, m = md5ii(m, f, r, i, d[n + 0], 6, -198630844), f, r, d[n + 7], 10, 1126891415), m, f, d[n + 14], 15, -1416354905), i, m, d[n + 5], 21, -57434055), r = md5ii(r, i = md5ii(i, m = md5ii(m, f, r, i, d[n + 12], 6, 1700485571), f, r, d[n + 3], 10, -1894986606), m, f, d[n + 10], 15, -1051523), i, m, d[n + 1], 21, -2054922799), r = md5ii(r, i = md5ii(i, m = md5ii(m, f, r, i, d[n + 8], 6, 1873313359), f, r, d[n + 15], 10, -30611744), m, f, d[n + 6], 15, -1560198380), i, m, d[n + 13], 21, 1309151649), r = md5ii(r, i = md5ii(i, m = md5ii(m, f, r, i, d[n + 4], 6, -145523070), f, r, d[n + 11], 10, -1120210379), m, f, d[n + 2], 15, 718787259), i, m, d[n + 9], 21, -343485551)
+            m = safeadd(m, h)
+            f = safeadd(f, t)
+            r = safeadd(r, g)
+            i = safeadd(i, e)
+        }
+        return [m, f, r, i]
+    }
+    function md5cmn (d, _, m, f, r, i) {
+        return safeadd(bitrol(safeadd(safeadd(_, d), safeadd(f, i)), r), m)
+    }
+    function md5ff (d, _, m, f, r, i, n) {
+        return md5cmn(_ & m | ~_ & f, d, _, r, i, n)
+    }
+    function md5gg (d, _, m, f, r, i, n) {
+        return md5cmn(_ & f | m & ~f, d, _, r, i, n)
+    }
+    function md5hh (d, _, m, f, r, i, n) {
+        return md5cmn(_ ^ m ^ f, d, _, r, i, n)
+    }
+    function md5ii (d, _, m, f, r, i, n) {
+        return md5cmn(m ^ (_ | ~f), d, _, r, i, n)
+    }
+    function safeadd (d, _) {
+        var m = (65535 & d) + (65535 & _)
+        return (d >> 16) + (_ >> 16) + (m >> 16) << 16 | 65535 & m
+    }
+    function bitrol (d, _) {
+        return d << _ | d >>> 32 - _
+    }
+    function MD5Unicode(buffer, outputEncoding){
+        if (!(buffer instanceof Uint8Array || typeof Buffer === 'function' && buffer instanceof Buffer)) {
+            buffer = new TextEncoder().encode(typeof buffer==='string' ? buffer : JSON.stringify(buffer));
+        }
+        var binary = [];
+        var bytes = new Uint8Array(buffer);
+        for (var i = 0, il = bytes.byteLength; i < il; i++) {
+            binary.push(String.fromCharCode(bytes[i]));
+        }
+        return MD5(binary.join(''), outputEncoding);
+    }
+
+    return MD5Unicode;
+})();
 
 // VectorCollectorFlat...
 export class VectorCollectorFlat {
@@ -671,6 +911,8 @@ export class Vector {
     static ZERO = new Vector(0.0, 0.0, 0.0);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
+
+    static SHAPE_PIVOT = new Vector(.5, .5, .5);
 
     // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
     static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
@@ -1398,24 +1640,19 @@ export class Vec3 extends Vector {
         return new Vec3(this.x + x, this.y + y, this.z + z);
     }
 }
-
-export const SIX_VECS = {
-    south: new Vector(7, 0, 0),
-    west: new Vector(22, 0, 0),
-    north: new Vector(18, 0, 0),
-    east: new Vector(13, 0, 0),
-    up: new Vector(0, 1, 0),
-    down: new Vector(0, -1, 0)
-};
-
 export class IndexedColor {
+
+    static WHITE = new IndexedColor(48, 528, 0);
+    static GRASS = new IndexedColor(132, 485, 0);
+    static WATER = new IndexedColor(132, 194, 0);
+
+    // static WHITE = null;
+    // static GRASS = null;
+    // static WATER = null;
+
     static packLm(lm) {
         return IndexedColor.packArg(lm.r, lm.g, lm.b);
     }
-
-    static WHITE = null;
-    static GRASS = null;
-    static WATER = null;
 
     static packArg(palU, palV, palMode) {
         palU = Math.round(palU);
@@ -1483,75 +1720,163 @@ export class IndexedColor {
 
 }
 
-IndexedColor.WHITE = new IndexedColor(48, 528, 0);
-IndexedColor.GRASS = new IndexedColor(132, 485, 0);
-IndexedColor.WATER = new IndexedColor(132, 194, 0);
+export function mat4ToRotate(matrix) {
+    // calc rotate
+    const out = new Vector(0, 0, 0)
+    const _quat = quat.create();
+    mat4.getRotation(_quat, matrix);
+    getEuler(out, _quat)
+    out.swapXZSelf().divScalar(180).multiplyScalarSelf(Math.PI)
+    return out
+}
 
-export let QUAD_FLAGS = {}
-    QUAD_FLAGS.NORMAL_UP = 1 << 0;
-    QUAD_FLAGS.MASK_BIOME = 1 << 1;
-    QUAD_FLAGS.NO_AO = 1 << 2;
-    QUAD_FLAGS.NO_FOG = 1 << 3;
-    QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
-    QUAD_FLAGS.FLAG_ANIMATED = 1 << 5;
-    QUAD_FLAGS.FLAG_TEXTURE_SCROLL = 1 << 6;
-    QUAD_FLAGS.NO_CAN_TAKE_AO = 1 << 7;
-    QUAD_FLAGS.QUAD_FLAG_OPACITY = 1 << 8;
-    QUAD_FLAGS.QUAD_FLAG_SDF = 1 << 9;
-    QUAD_FLAGS.NO_CAN_TAKE_LIGHT = 1 << 10;
-    QUAD_FLAGS.FLAG_TRIANGLE = 1 << 11;
-    QUAD_FLAGS.FLAG_MIR2_TEX = 1 << 12;
-    QUAD_FLAGS.FLAG_MULTIPLY_COLOR = 1 << 13;
-    QUAD_FLAGS.FLAG_LEAVES = 1 << 14;
-    QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
-    // Starting from this flag, we can add new flags to fields that contain QUAD_FLAGS, e.g. Mesh_Effect_Particle.flags
-    QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION = 1 << 16;
-    QUAD_FLAGS.NEXT_UNUSED_FLAG = 1 << 17;
+export async function blobToImage(blob) {
 
-export let ROTATE = {};
-    ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
-    ROTATE.W = CubeSym.ROT_Y; // left, x decreases
-    ROTATE.N = CubeSym.ID; // back, z increases
-    ROTATE.E = CubeSym.ROT_Y3; // right, x increases
+    if (blob == null) {
+        throw 'error_empty_blob'
+    }
 
-export let NORMALS = {};
-    NORMALS.FORWARD          = new Vector(0, 0, 1);
-    NORMALS.BACK             = new Vector(0, 0, -1);
-    NORMALS.LEFT             = new Vector(-1, 0, 0);
-    NORMALS.RIGHT            = new Vector(1, 0, 0);
-    NORMALS.UP               = new Vector(0, 1, 0);
-    NORMALS.DOWN             = new Vector(0, -1, 0);
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(blob)
+        let img = new Image()
+        img.onload = () => {
+            URL.revokeObjectURL(url)
+            resolve(img)
+        }
+        img.onerror = (e) => {
+            URL.revokeObjectURL(url)
+            reject(e)
+        }
+        img.src = url
+    })
 
-// Direction enumeration
-export let DIRECTION = {};
-    DIRECTION.UP        = CubeSym.ROT_X;
-    DIRECTION.DOWN      = CubeSym.ROT_X3;
-    DIRECTION.LEFT      = CubeSym.ROT_Y;
-    DIRECTION.RIGHT     = CubeSym.ROT_Y3;
-    DIRECTION.FORWARD   = CubeSym.ID;
-    DIRECTION.BACK      = CubeSym.ROT_Y2;
-    // Aliases
-    DIRECTION.WEST      = DIRECTION.LEFT;
-    DIRECTION.EAST      = DIRECTION.RIGHT
-    DIRECTION.NORTH     = DIRECTION.FORWARD;
-    DIRECTION.SOUTH     = DIRECTION.BACK;
+    /*
+    const file = new File([blob], 'image.png', {type: 'image/png'})
+    const url = URL.createObjectURL(file)
+    return new Promise(resolve => {
+        const img = new Image()
+        img.onload = () => {
+            URL.revokeObjectURL(url)
+            // resolve(img)
+            resolve(img)
+        }
+        img.src = url
+    });
+    */
 
-export let DIRECTION_BIT = {};
-    DIRECTION_BIT.UP    = 0;
-    DIRECTION_BIT.DOWN  = 1;
-    DIRECTION_BIT.EAST  = 2; // X increases
-    DIRECTION_BIT.WEST  = 3; // X decreases
-    DIRECTION_BIT.NORTH = 4; // Z increases
-    DIRECTION_BIT.SOUTH = 5; // Z decreases
+}
 
-// Direction names
-export let DIRECTION_NAME = {};
-    DIRECTION_NAME.up        = DIRECTION.UP;
-    DIRECTION_NAME.down      = DIRECTION.DOWN;
-    DIRECTION_NAME.left      = DIRECTION.LEFT;
-    DIRECTION_NAME.right     = DIRECTION.RIGHT;
-    DIRECTION_NAME.forward   = DIRECTION.FORWARD;
-    DIRECTION_NAME.back      = DIRECTION.BACK;
+/**
+ * @param {Image,Canvas} image
+ * @param {int} x
+ * @param {int} y
+ * @param {int} width
+ * @param {int} height
+ * @param {int} dest_width
+ */
+export async function cropToImage(image, x, y, width, height, dest_width, dest_height) {
+
+    if(!dest_width) {
+        dest_width = width
+        dest_height = height
+    }
+
+    if(!dest_height) {
+        dest_height = dest_width
+    }
+
+    // TODO: need to cache atlas sprites
+
+    const item_image = document.createElement('canvas')
+    item_image.width = dest_width
+    item_image.height = dest_height
+    const item_ctx = item_image.getContext('2d')
+
+    item_ctx.drawImage(image, x, y, width, height, 0, 0, dest_width, dest_height)
+
+    return new Promise((resolve, reject) => {
+        item_image.toBlob((blob) => {
+            resolve(blobToImage(blob))
+        })
+    })
+
+}
+
+export function sizeOf(value) {
+    const typeSizes = {
+        "undefined": () => 0,
+        "boolean": () => 4,
+        "number": () => 8,
+        "string": item => 2 * item.length,
+        "object": item => !item ? 0 : (
+            ('byteLength' in item) ? item.byteLength :
+            (Object.keys(item).reduce((total, key) => sizeOf(key) + sizeOf(item[key]) + total, 0))
+        )
+    };
+    return typeSizes[typeof value](value)
+}
+
+export function deepAssign(options) {
+    return function deepAssignWithOptions (target, ...sources) {
+        sources.forEach( (source) => {
+
+            if (!isDeepObject(source) || !isDeepObject(target))
+                return;
+
+            // Copy source's own properties into target's own properties
+            function copyProperty(property) {
+                const descriptor = Object.getOwnPropertyDescriptor(source, property);
+                //default: omit non-enumerable properties
+                if (descriptor.enumerable || options.nonEnum) {
+                    // Copy in-depth first
+                    if (isDeepObject(source[property]) && isDeepObject(target[property]))
+                        descriptor.value = deepAssign(options)(target[property], source[property]);
+                    //default: omit descriptors
+                    if (options.descriptors)
+                        Object.defineProperty(target, property, descriptor); // shallow copy descriptor
+                    else
+                        target[property] = descriptor.value; // shallow copy value only
+                }
+            }
+
+            // Copy string-keyed properties
+            Object.getOwnPropertyNames(source).forEach(copyProperty);
+
+            //default: omit symbol-keyed properties
+            if (options.symbols)
+                Object.getOwnPropertySymbols(source).forEach(copyProperty);
+
+            //default: omit prototype's own properties
+            if (options.proto)
+                // Copy souce prototype's own properties into target prototype's own properties
+                deepAssign(Object.assign({},options,{proto:false})) (// Prevent deeper copy of the prototype chain
+                    Object.getPrototypeOf(target),
+                    Object.getPrototypeOf(source)
+                );
+
+        });
+        return target;
+    }
+}
+
+// digestMessage
+export async function digestMessage(message) {
+    const msgUint8 = new TextEncoder().encode(message);                           // encode as (utf-8) Uint8Array
+    const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8);           // hash the message
+    const hashArray = Array.from(new Uint8Array(hashBuffer));                     // convert buffer to byte array
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
+    return hashHex;
+}
+
+//
+export function isMobileBrowser() {
+    return 'ontouchstart' in document.documentElement;
+}
+
+//
+export function isScalar(v) {
+    return !(typeof v === 'object' && v !== null);
+}
 
 export class Helpers {
 
@@ -1766,6 +2091,45 @@ export class Helpers {
         return Math.round(pos1.distance(pos2) / delta * 360) / 100;
     }
 
+}
+
+// Make fetch functions
+if(typeof fetch === 'undefined') {
+    // Hello eval ;)
+    const code = `Helpers.fetch = async (url) => import(url);
+    Helpers.fetchJSON = async (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);
+    Helpers.fetchBinary = async (url) => {
+        let binary = fs.readFileSync(url);
+        return binary.buffer;
+    };`;
+    var obj = Helpers;
+    var func = new Function("Helpers", "window", "'use strict';" + code);
+    func.call(obj, obj, obj);
+} else {
+    Helpers.fetch = async (url) => fetch(url);
+    Helpers.fetchJSON = async (url, useCache = false, namespace = '') => {
+        const cacheKey = namespace + '|' + url;
+
+        if (useCache && Helpers.cache.has(cacheKey)) {
+            return Promise.resolve(JSON.parse(Helpers.cache.get(cacheKey)));
+        }
+
+        const respt = await fetch(url);
+
+        // if cache is presented - store text response
+        // then we can use this inside a worker
+        if (useCache) {
+            const text = await respt.text();
+
+            Helpers.cache.set(cacheKey, text);
+
+            return JSON.parse(text);
+        }
+
+        return respt.json()
+    };
+
+    Helpers.fetchBinary = async (url) => fetch(url).then(response => response.arrayBuffer());
 }
 
 export class StringHelpers {
@@ -2150,45 +2514,6 @@ export class ArrayOrMap {
     }
 }
 
-// Make fetch functions
-if(typeof fetch === 'undefined') {
-    // Hello eval ;)
-    const code = `Helpers.fetch = async (url) => import(url);
-    Helpers.fetchJSON = async (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);
-    Helpers.fetchBinary = async (url) => {
-        let binary = fs.readFileSync(url);
-        return binary.buffer;
-    };`;
-    var obj = Helpers;
-    var func = new Function("Helpers", "window", "'use strict';" + code);
-    func.call(obj, obj, obj);
-} else {
-    Helpers.fetch = async (url) => fetch(url);
-    Helpers.fetchJSON = async (url, useCache = false, namespace = '') => {
-        const cacheKey = namespace + '|' + url;
-
-        if (useCache && Helpers.cache.has(cacheKey)) {
-            return Promise.resolve(JSON.parse(Helpers.cache.get(cacheKey)));
-        }
-
-        const respt = await fetch(url);
-
-        // if cache is presented - store text response
-        // then we can use this inside a worker
-        if (useCache) {
-            const text = await respt.text();
-
-            Helpers.cache.set(cacheKey, text);
-
-            return JSON.parse(text);
-        }
-
-        return respt.json()
-    };
-
-    Helpers.fetchBinary = async (url) => fetch(url).then(response => response.arrayBuffer());
-}
-
 export class SpiralEntry {
     constructor() {
         this.pos = new Vector();
@@ -2286,19 +2611,6 @@ export class SpiralGenerator {
 
 }
 
-function loadText(url, callback) {
-    let xobj = new XMLHttpRequest();
-    xobj.overrideMimeType('application/json');
-    xobj.open('GET', url, true); // Replace 'my_data' with the path to your file
-    xobj.onreadystatechange = function() {
-        if (xobj.readyState == 4 && xobj.status == '200') {
-            // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
-            callback(xobj.responseText);
-        }
-    };
-    xobj.send(null);
-}
-
 export class Vector4 {
 
     constructor(x, y, width, height) {
@@ -2341,28 +2653,6 @@ export class AverageClockTimer {
         this.avg = (this.sum / this.history.length) || 0;
     }
 
-}
-
-export function unixTime() {
-    return ~~(Date.now() / 1000);
-}
-
-/**
- *
- * @param {string} seed
- * @param {int} len
- * @returns
- */
-export function createFastRandom(seed, len = 512) {
-    const random_alea = new alea(seed);
-    // fast random
-    const randoms = new Array(len); // new Float32Array(len)
-    for(let i = 0; i < len; i++) {
-        randoms[i] = random_alea.double();
-    }
-    let random_index = 0;
-    // return random_alea.double
-    return () => randoms[random_index++ % len];
 }
 
 // FastRandom...
@@ -2516,63 +2806,6 @@ export class AlphabetTexture {
 
 }
 
-export function fromMat3(a, b) {
-    //transponse too!
-    a[ 0] = b[ 0];
-    a[ 1] = b[ 3];
-    a[ 2] = b[ 6];
-
-    a[ 4] = b[ 1];
-    a[ 5] = b[ 4];
-    a[ 6] = b[ 7];
-
-    a[ 8] = b[ 2];
-    a[ 9] = b[ 5];
-    a[10] = b[ 8];
-
-    a[ 3] = a[ 7] = a[11] =
-    a[12] = a[13] = a[14] = 0;
-    a[15] = 1.0;
-
-    return a;
-}
-
-// calcRotateMatrix
-export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
-    // Can rotate
-    if(material.can_rotate) {
-        //
-        if(rotate) {
-
-            if (CubeSym.matrices[cardinal_direction][4] <= 0) {
-                matrix = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
-                /*
-                // Use matrix instead!
-                if (matrix) {
-                    mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
-                    matrix = tempMatrix;
-                } else {
-                    matrix = CubeSym.matrices[cardinal_direction];
-                }
-                */
-            } else if(rotate.y != 0) {
-                if(material.tags.includes('rotate_by_pos_n')) {
-                    matrix = mat4.create();
-                    if(rotate.y == 1) {
-                        // on the floor
-                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI);
-                    } else {
-                        // on the ceil
-                        mat4.rotateZ(matrix, matrix, Math.PI);
-                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI*2);
-                    }
-                }
-            }
-        }
-    }
-    return matrix;
-}
-
 // maybe move other related methods here
 export class ObjectHelpers {
 
@@ -2692,161 +2925,6 @@ export class ObjectHelpers {
         return '{' + keys.join(',') + '}';
     }
 }
-
-function toType(a) {
-    // Get fine type (object, array, function, null, error, date ...)
-    return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
-}
-
-function isDeepObject(obj) {
-    return "Object" === toType(obj);
-}
-
-export function deepAssign(options) {
-    return function deepAssignWithOptions (target, ...sources) {
-        sources.forEach( (source) => {
-
-            if (!isDeepObject(source) || !isDeepObject(target))
-                return;
-
-            // Copy source's own properties into target's own properties
-            function copyProperty(property) {
-                const descriptor = Object.getOwnPropertyDescriptor(source, property);
-                //default: omit non-enumerable properties
-                if (descriptor.enumerable || options.nonEnum) {
-                    // Copy in-depth first
-                    if (isDeepObject(source[property]) && isDeepObject(target[property]))
-                        descriptor.value = deepAssign(options)(target[property], source[property]);
-                    //default: omit descriptors
-                    if (options.descriptors)
-                        Object.defineProperty(target, property, descriptor); // shallow copy descriptor
-                    else
-                        target[property] = descriptor.value; // shallow copy value only
-                }
-            }
-
-            // Copy string-keyed properties
-            Object.getOwnPropertyNames(source).forEach(copyProperty);
-
-            //default: omit symbol-keyed properties
-            if (options.symbols)
-                Object.getOwnPropertySymbols(source).forEach(copyProperty);
-
-            //default: omit prototype's own properties
-            if (options.proto)
-                // Copy souce prototype's own properties into target prototype's own properties
-                deepAssign(Object.assign({},options,{proto:false})) (// Prevent deeper copy of the prototype chain
-                    Object.getPrototypeOf(target),
-                    Object.getPrototypeOf(source)
-                );
-
-        });
-        return target;
-    }
-}
-
-const DEFAULT_PROPERTIES_EQUAL_FN = (a, b) => ObjectHelpers.deepEqual(a, b);
-
-// digestMessage
-export async function digestMessage(message) {
-    const msgUint8 = new TextEncoder().encode(message);                           // encode as (utf-8) Uint8Array
-    const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8);           // hash the message
-    const hashArray = Array.from(new Uint8Array(hashBuffer));                     // convert buffer to byte array
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
-    return hashHex;
-}
-
-//
-export function isMobileBrowser() {
-    return 'ontouchstart' in document.documentElement;
-}
-
-//
-export function isScalar(v) {
-    return !(typeof v === 'object' && v !== null);
-}
-
-// md5
-export let md5 = (function() {
-    var MD5 = function (d, outputEncoding) {
-        const binaryStr = V(Y(X(d), 8 * d.length));
-        if (outputEncoding) { // 'base64', 'base64url', etc. - supported only in node.js
-            return Buffer.from(binaryStr, 'binary').toString(outputEncoding);
-        }
-        return M(binaryStr); // hex (lowercase) encoding by default
-    }
-    function M (d) {
-        for (var _, m = '0123456789abcdef', f = '', r = 0; r < d.length; r++) {
-            _ = d.charCodeAt(r)
-            f += m.charAt(_ >>> 4 & 15) + m.charAt(15 & _)
-        }
-        return f
-    }
-    function X (d) {
-        for (var _ = Array(d.length >> 2), m = 0; m < _.length; m++) {
-            _[m] = 0
-        }
-        for (m = 0; m < 8 * d.length; m += 8) {
-            _[m >> 5] |= (255 & d.charCodeAt(m / 8)) << m % 32
-        }
-        return _
-    }
-    function V (d) {
-        for (var _ = '', m = 0; m < 32 * d.length; m += 8) _ += String.fromCharCode(d[m >> 5] >>> m % 32 & 255)
-        return _
-    }
-    function Y (d, _) {
-        d[_ >> 5] |= 128 << _ % 32
-        d[14 + (_ + 64 >>> 9 << 4)] = _
-        for (var m = 1732584193, f = -271733879, r = -1732584194, i = 271733878, n = 0; n < d.length; n += 16) {
-            var h = m
-            var t = f
-            var g = r
-            var e = i
-            f = md5ii(f = md5ii(f = md5ii(f = md5ii(f = md5hh(f = md5hh(f = md5hh(f = md5hh(f = md5gg(f = md5gg(f = md5gg(f = md5gg(f = md5ff(f = md5ff(f = md5ff(f = md5ff(f, r = md5ff(r, i = md5ff(i, m = md5ff(m, f, r, i, d[n + 0], 7, -680876936), f, r, d[n + 1], 12, -389564586), m, f, d[n + 2], 17, 606105819), i, m, d[n + 3], 22, -1044525330), r = md5ff(r, i = md5ff(i, m = md5ff(m, f, r, i, d[n + 4], 7, -176418897), f, r, d[n + 5], 12, 1200080426), m, f, d[n + 6], 17, -1473231341), i, m, d[n + 7], 22, -45705983), r = md5ff(r, i = md5ff(i, m = md5ff(m, f, r, i, d[n + 8], 7, 1770035416), f, r, d[n + 9], 12, -1958414417), m, f, d[n + 10], 17, -42063), i, m, d[n + 11], 22, -1990404162), r = md5ff(r, i = md5ff(i, m = md5ff(m, f, r, i, d[n + 12], 7, 1804603682), f, r, d[n + 13], 12, -40341101), m, f, d[n + 14], 17, -1502002290), i, m, d[n + 15], 22, 1236535329), r = md5gg(r, i = md5gg(i, m = md5gg(m, f, r, i, d[n + 1], 5, -165796510), f, r, d[n + 6], 9, -1069501632), m, f, d[n + 11], 14, 643717713), i, m, d[n + 0], 20, -373897302), r = md5gg(r, i = md5gg(i, m = md5gg(m, f, r, i, d[n + 5], 5, -701558691), f, r, d[n + 10], 9, 38016083), m, f, d[n + 15], 14, -660478335), i, m, d[n + 4], 20, -405537848), r = md5gg(r, i = md5gg(i, m = md5gg(m, f, r, i, d[n + 9], 5, 568446438), f, r, d[n + 14], 9, -1019803690), m, f, d[n + 3], 14, -187363961), i, m, d[n + 8], 20, 1163531501), r = md5gg(r, i = md5gg(i, m = md5gg(m, f, r, i, d[n + 13], 5, -1444681467), f, r, d[n + 2], 9, -51403784), m, f, d[n + 7], 14, 1735328473), i, m, d[n + 12], 20, -1926607734), r = md5hh(r, i = md5hh(i, m = md5hh(m, f, r, i, d[n + 5], 4, -378558), f, r, d[n + 8], 11, -2022574463), m, f, d[n + 11], 16, 1839030562), i, m, d[n + 14], 23, -35309556), r = md5hh(r, i = md5hh(i, m = md5hh(m, f, r, i, d[n + 1], 4, -1530992060), f, r, d[n + 4], 11, 1272893353), m, f, d[n + 7], 16, -155497632), i, m, d[n + 10], 23, -1094730640), r = md5hh(r, i = md5hh(i, m = md5hh(m, f, r, i, d[n + 13], 4, 681279174), f, r, d[n + 0], 11, -358537222), m, f, d[n + 3], 16, -722521979), i, m, d[n + 6], 23, 76029189), r = md5hh(r, i = md5hh(i, m = md5hh(m, f, r, i, d[n + 9], 4, -640364487), f, r, d[n + 12], 11, -421815835), m, f, d[n + 15], 16, 530742520), i, m, d[n + 2], 23, -995338651), r = md5ii(r, i = md5ii(i, m = md5ii(m, f, r, i, d[n + 0], 6, -198630844), f, r, d[n + 7], 10, 1126891415), m, f, d[n + 14], 15, -1416354905), i, m, d[n + 5], 21, -57434055), r = md5ii(r, i = md5ii(i, m = md5ii(m, f, r, i, d[n + 12], 6, 1700485571), f, r, d[n + 3], 10, -1894986606), m, f, d[n + 10], 15, -1051523), i, m, d[n + 1], 21, -2054922799), r = md5ii(r, i = md5ii(i, m = md5ii(m, f, r, i, d[n + 8], 6, 1873313359), f, r, d[n + 15], 10, -30611744), m, f, d[n + 6], 15, -1560198380), i, m, d[n + 13], 21, 1309151649), r = md5ii(r, i = md5ii(i, m = md5ii(m, f, r, i, d[n + 4], 6, -145523070), f, r, d[n + 11], 10, -1120210379), m, f, d[n + 2], 15, 718787259), i, m, d[n + 9], 21, -343485551)
-            m = safeadd(m, h)
-            f = safeadd(f, t)
-            r = safeadd(r, g)
-            i = safeadd(i, e)
-        }
-        return [m, f, r, i]
-    }
-    function md5cmn (d, _, m, f, r, i) {
-        return safeadd(bitrol(safeadd(safeadd(_, d), safeadd(f, i)), r), m)
-    }
-    function md5ff (d, _, m, f, r, i, n) {
-        return md5cmn(_ & m | ~_ & f, d, _, r, i, n)
-    }
-    function md5gg (d, _, m, f, r, i, n) {
-        return md5cmn(_ & f | m & ~f, d, _, r, i, n)
-    }
-    function md5hh (d, _, m, f, r, i, n) {
-        return md5cmn(_ ^ m ^ f, d, _, r, i, n)
-    }
-    function md5ii (d, _, m, f, r, i, n) {
-        return md5cmn(m ^ (_ | ~f), d, _, r, i, n)
-    }
-    function safeadd (d, _) {
-        var m = (65535 & d) + (65535 & _)
-        return (d >> 16) + (_ >> 16) + (m >> 16) << 16 | 65535 & m
-    }
-    function bitrol (d, _) {
-        return d << _ | d >>> 32 - _
-    }
-    function MD5Unicode(buffer, outputEncoding){
-        if (!(buffer instanceof Uint8Array || typeof Buffer === 'function' && buffer instanceof Buffer)) {
-            buffer = new TextEncoder().encode(typeof buffer==='string' ? buffer : JSON.stringify(buffer));
-        }
-        var binary = [];
-        var bytes = new Uint8Array(buffer);
-        for (var i = 0, il = bytes.byteLength; i < il; i++) {
-            binary.push(String.fromCharCode(bytes[i]));
-        }
-        return MD5(binary.join(''), outputEncoding);
-    }
-
-    return MD5Unicode;
-})();
 
 // A queue backed by an array that wraps around.
 // shift() and length are compatible with that of Array.
@@ -3061,148 +3139,6 @@ export class SpatialDeterministicRandom {
     }
 }
 
-/**
- * Returns an euler angle representation of a quaternion
- * @param  {vec3} out Euler angles, pitch-yaw-roll
- * @param  {quat} mat Quaternion
- * @return {vec3} out
- */
- function getEuler(out, quat) {
-    let x = quat[0],
-        y = quat[1],
-        z = quat[2],
-        w = quat[3],
-        x2 = x * x,
-        y2 = y * y,
-        z2 = z * z,
-        w2 = w * w;
-
-    let unit = x2 + y2 + z2 + w2;
-    let test = x * w - y * z;
-
-    if (test > (0.5 - glMatrix.EPSILON) * unit) {
-        // singularity at the north pole
-        out[0] = Math.PI / 2;
-        out[1] = 2 * Math.atan2(y, x);
-        out[2] = 0;
-    } else if (test < -(0.5 - glMatrix.EPSILON) * unit) { //TODO: Use glmatrix.EPSILON
-        // singularity at the south pole
-        out[0] = -Math.PI / 2;
-        out[1] = 2 * Math.atan2(y, x);
-        out[2] = 0;
-    } else {
-        out[0] = Math.asin(2 * (x * z - w * y));
-        out[1] = Math.atan2(2 * (x * w + y * z), 1 - 2 * (z2 + w2));
-        out[2] = Math.atan2(2 * (x * y + z * w), 1 - 2 * (y2 + z2));
-    }
-
-    const TO_DEG = 180 / Math.PI;
-
-    out[0] *= TO_DEG;
-    out[1] *= TO_DEG;
-    out[2] *= TO_DEG;
-
-    return out;
-}
-
-export function mat4ToRotate(matrix) {
-    // calc rotate
-    const out = new Vector(0, 0, 0)
-    const _quat = quat.create();
-    mat4.getRotation(_quat, matrix);
-    getEuler(out, _quat)
-    out.swapXZSelf().divScalar(180).multiplyScalarSelf(Math.PI)
-    return out
-}
-
-export async function blobToImage(blob) {
-
-    if (blob == null) {
-        throw 'error_empty_blob'
-    }
-
-    return new Promise((resolve, reject) => {
-        const url = URL.createObjectURL(blob)
-        let img = new Image()
-        img.onload = () => {
-            URL.revokeObjectURL(url)
-            resolve(img)
-        }
-        img.onerror = (e) => {
-            URL.revokeObjectURL(url)
-            reject(e)
-        }
-        img.src = url
-    })
-
-    /*
-    const file = new File([blob], 'image.png', {type: 'image/png'})
-    const url = URL.createObjectURL(file)
-    return new Promise(resolve => {
-        const img = new Image()
-        img.onload = () => {
-            URL.revokeObjectURL(url)
-            // resolve(img)
-            resolve(img)
-        }
-        img.src = url
-    });
-    */
-
-}
-
-/**
- * @param {Image,Canvas} image
- * @param {int} x
- * @param {int} y
- * @param {int} width
- * @param {int} height
- * @param {int} dest_width
- */
-export async function cropToImage(image, x, y, width, height, dest_width, dest_height) {
-
-    if(!dest_width) {
-        dest_width = width
-        dest_height = height
-    }
-
-    if(!dest_height) {
-        dest_height = dest_width
-    }
-
-    // TODO: need to cache atlas sprites
-
-    const item_image = document.createElement('canvas')
-    item_image.width = dest_width
-    item_image.height = dest_height
-    const item_ctx = item_image.getContext('2d')
-
-    item_ctx.drawImage(image, x, y, width, height, 0, 0, dest_width, dest_height)
-
-    return new Promise((resolve, reject) => {
-        item_image.toBlob((blob) => {
-            resolve(blobToImage(blob))
-        })
-    })
-
-}
-
-const typeSizes = {
-    "undefined": () => 0,
-    "boolean": () => 4,
-    "number": () => 8,
-    "string": item => 2 * item.length,
-    "object": item => !item ? 0 : (
-        ('byteLength' in item) ? item.byteLength :
-        (Object.keys(item).reduce((total, key) => sizeOf(key) + sizeOf(item[key]) + total, 0))
-    )
-};
-export function sizeOf(value) {
-    return typeSizes[typeof value](value)
-}
-
-
-
 export class PerformanceTimer {
 
     constructor() {
@@ -3226,3 +3162,78 @@ export class PerformanceTimer {
     }
 
 }
+
+export const SIX_VECS = {
+    south: new Vector(7, 0, 0),
+    west: new Vector(22, 0, 0),
+    north: new Vector(18, 0, 0),
+    east: new Vector(13, 0, 0),
+    up: new Vector(0, 1, 0),
+    down: new Vector(0, -1, 0)
+};
+
+export let QUAD_FLAGS = {}
+    QUAD_FLAGS.NORMAL_UP = 1 << 0;
+    QUAD_FLAGS.MASK_BIOME = 1 << 1;
+    QUAD_FLAGS.NO_AO = 1 << 2;
+    QUAD_FLAGS.NO_FOG = 1 << 3;
+    QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
+    QUAD_FLAGS.FLAG_ANIMATED = 1 << 5;
+    QUAD_FLAGS.FLAG_TEXTURE_SCROLL = 1 << 6;
+    QUAD_FLAGS.NO_CAN_TAKE_AO = 1 << 7;
+    QUAD_FLAGS.QUAD_FLAG_OPACITY = 1 << 8;
+    QUAD_FLAGS.QUAD_FLAG_SDF = 1 << 9;
+    QUAD_FLAGS.NO_CAN_TAKE_LIGHT = 1 << 10;
+    QUAD_FLAGS.FLAG_TRIANGLE = 1 << 11;
+    QUAD_FLAGS.FLAG_MIR2_TEX = 1 << 12;
+    QUAD_FLAGS.FLAG_MULTIPLY_COLOR = 1 << 13;
+    QUAD_FLAGS.FLAG_LEAVES = 1 << 14;
+    QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
+    // Starting from this flag, we can add new flags to fields that contain QUAD_FLAGS, e.g. Mesh_Effect_Particle.flags
+    QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION = 1 << 16;
+    QUAD_FLAGS.NEXT_UNUSED_FLAG = 1 << 17;
+
+export let ROTATE = {};
+    ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
+    ROTATE.W = CubeSym.ROT_Y; // left, x decreases
+    ROTATE.N = CubeSym.ID; // back, z increases
+    ROTATE.E = CubeSym.ROT_Y3; // right, x increases
+
+export let NORMALS = {};
+    NORMALS.FORWARD          = new Vector(0, 0, 1);
+    NORMALS.BACK             = new Vector(0, 0, -1);
+    NORMALS.LEFT             = new Vector(-1, 0, 0);
+    NORMALS.RIGHT            = new Vector(1, 0, 0);
+    NORMALS.UP               = new Vector(0, 1, 0);
+    NORMALS.DOWN             = new Vector(0, -1, 0);
+
+// Direction enumeration
+export let DIRECTION = {};
+    DIRECTION.UP        = CubeSym.ROT_X;
+    DIRECTION.DOWN      = CubeSym.ROT_X3;
+    DIRECTION.LEFT      = CubeSym.ROT_Y;
+    DIRECTION.RIGHT     = CubeSym.ROT_Y3;
+    DIRECTION.FORWARD   = CubeSym.ID;
+    DIRECTION.BACK      = CubeSym.ROT_Y2;
+    // Aliases
+    DIRECTION.WEST      = DIRECTION.LEFT;
+    DIRECTION.EAST      = DIRECTION.RIGHT
+    DIRECTION.NORTH     = DIRECTION.FORWARD;
+    DIRECTION.SOUTH     = DIRECTION.BACK;
+
+export let DIRECTION_BIT = {};
+    DIRECTION_BIT.UP    = 0;
+    DIRECTION_BIT.DOWN  = 1;
+    DIRECTION_BIT.EAST  = 2; // X increases
+    DIRECTION_BIT.WEST  = 3; // X decreases
+    DIRECTION_BIT.NORTH = 4; // Z increases
+    DIRECTION_BIT.SOUTH = 5; // Z decreases
+
+// Direction names
+export let DIRECTION_NAME = {};
+    DIRECTION_NAME.up        = DIRECTION.UP;
+    DIRECTION_NAME.down      = DIRECTION.DOWN;
+    DIRECTION_NAME.left      = DIRECTION.LEFT;
+    DIRECTION_NAME.right     = DIRECTION.RIGHT;
+    DIRECTION_NAME.forward   = DIRECTION.FORWARD;
+    DIRECTION_NAME.back      = DIRECTION.BACK;

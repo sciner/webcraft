@@ -20,6 +20,12 @@ export const DEFAULT_CELL = {
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
+    /**
+     * @param { import("../../worker/world.js").WorkerWorld } world 
+     * @param { string } seed 
+     * @param { string } world_id 
+     * @param { object } options 
+     */
     constructor(world, seed, world_id, options) {
 
         const al = new alea(seed)
@@ -30,7 +36,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.world          = world
         this.tempAlea       = al
         this.block_manager  = BLOCK
-        this.clusterManager = new ClusterManager(world.chunkManager, seed, 2)
+        this.clusterManager = new ClusterManager(world, seed, 2)
 
     }
 

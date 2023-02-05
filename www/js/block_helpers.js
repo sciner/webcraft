@@ -1,4 +1,5 @@
-import { BLOCK, ITEM_LABEL_MAX_LENGTH } from "./blocks.js";
+import { BLOCK } from "./blocks.js";
+import { ITEM_LABEL_MAX_LENGTH } from "./constant.js";
 import { ROTATE, Vector, ObjectHelpers } from "./helpers.js";
 
 export class ChestHelpers {

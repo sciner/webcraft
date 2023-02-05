@@ -3,9 +3,7 @@ import {
     FLUID_WATER_INTERACT16, FLUID_WATER_REMOVE16,
     FLUID_WATER_ABOVE_INTERACT16, FLUID_WATER_ABOVE_REMOVE16
 } from "./FluidConst.js";
-import {
-    BLOCK
-} from "./../blocks.js";
+
 import {SingleQueue} from "../light/MultiQueue.js";
 import { Vector } from "../helpers.js";
 

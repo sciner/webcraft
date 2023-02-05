@@ -5,7 +5,11 @@ import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 // WorkerWorldManager
 export class WorkerWorldManager {
 
-    constructor() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     */
+    constructor(block_manager) {
+        this.block_manager = block_manager
         this.all = new Map();
         this.list = [];
         this.curIndex = 0;
@@ -32,7 +36,7 @@ export class WorkerWorldManager {
         if(this.all.has(key)) {
             return this.all.get(key);
         }
-        const world = new WorkerWorld();
+        const world = new WorkerWorld(this.block_manager);
         const generator_class = this.terrainGenerators.get(generator_id);
         await world.init(seed, world_id, generator_class, generator_options)
         this.all.set(key, world);
@@ -68,7 +72,11 @@ export class WorkerWorldManager {
 // World
 export class WorkerWorld {
 
-    constructor() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     */
+     constructor(block_manager) {
+        this.block_manager = block_manager
         this.chunks = new VectorCollector();
         this.genQueue = new ChunkWorkQueue(this);
         this.buildQueue = null;

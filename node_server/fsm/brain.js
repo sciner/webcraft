@@ -4,7 +4,6 @@ import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";
-import { BLOCK } from "../../www/js/blocks.js";
 import { Mob } from "../mob.js";
 import { EnumDamage } from "../../www/js/enums/enum_damage.js";
 import { EnumDifficulty } from "../../www/js/enums/enum_difficulty.js";
@@ -127,11 +126,12 @@ export class FSMBrain {
         const pos = position.floored();
         const world = this.mob.getWorld()
         let block = world.getBlock(pos);
-        if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style_name == 'planting'))) {
+        const AIR = world.block_manager.AIR
+        if (block && ((block.id == AIR.id && block.fluid == 0) || (block.material.style_name == 'planting'))) {
             block = world.getBlock(pos.offset(0, -1, 0));
-            if (block && block.id != BLOCK.AIR.id) {
+            if (block && block.id != AIR.id) {
                 block = world.getBlock(pos.offset(0, 1, 0));
-                if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style_name == 'planting'))) {
+                if (block && ((block.id == AIR.id && block.fluid == 0) || (block.material.style_name == 'planting'))) {
                     return true;
                 }
             }
@@ -157,6 +157,7 @@ export class FSMBrain {
     onLive() {
         const mob = this.mob;
         const world = mob.getWorld();
+        const bm = world.block_manager
         const chunk = world.chunks.get(mob.chunk_addr);
         if (!chunk) {
             return;
@@ -171,15 +172,15 @@ export class FSMBrain {
         this.under_id = under.id;
         this.legs_id = legs.id;
         this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        this.in_fire = (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id);
+        this.in_fire = (legs.id == bm.FIRE.id || legs.id == bm.CAMPFIRE.id);
         this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
         this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
         this.is_wall = (ahead.id != 0 && ahead.id != -1 && ahead.material.style_name != 'planting' && ahead.material.style_name != 'chicken_nest') || (alegs.material.style_name == 'fence');
-        this.is_fire = (alegs.id == BLOCK.FIRE.id || alegs.id == BLOCK.CAMPFIRE.id);
+        this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
         this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.time_fire == 0;
         this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        this.is_gate = ahead.id != BLOCK.AIR.id;
+        this.is_gate = ahead.id != bm.AIR.id;
         // стоит в лаве
         if (this.in_lava) {
             if (this.timer_lava_damage <= 0) {

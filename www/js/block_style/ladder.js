@@ -1,12 +1,16 @@
-import {DIRECTION, IndexedColor, QUAD_FLAGS} from '../helpers.js';
+import {DIRECTION, IndexedColor, Vector } from '../helpers.js';
 import {pushSym} from '../core/CubeSym.js';
-import {BLOCK, shapePivot} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
 // Лестница
 export default class style {
 
-    static getRegInfo() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['ladder'],
             aabb: style.computeAABB,
@@ -18,7 +22,7 @@ export default class style {
         const cardinal_direction = tblock.getCardinalDirection()
         const width = 3 / 15.9
         return [
-            new AABB(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot)
+            new AABB(0, 0, 0, 1, 1, width).rotate(cardinal_direction, Vector.SHAPE_PIVOT)
         ]
     }
 
@@ -38,7 +42,7 @@ export default class style {
         let flags       = 0;
 
         // Texture color multiplier
-        c = BLOCK.calcTexture(texture, DIRECTION.BACK);
+        c = style.block_manager.calcTexture(texture, DIRECTION.BACK);
         let pp = IndexedColor.packLm(lm);
 
         pushSym(vertices, cardinal_direction,

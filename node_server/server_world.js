@@ -18,7 +18,7 @@ import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
-import { BLOCK, DBItemBlock } from "../www/js/blocks.js";
+import { DBItemBlock } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
@@ -648,6 +648,7 @@ export class ServerWorld {
     //
     async applyActions(server_player, actions) {
         const chunks_packets = new VectorCollector();
+        const bm = this.block_manager
         //
         const getChunkPackets = (pos, chunk_addr) => {
             if(!chunk_addr) {
@@ -804,7 +805,7 @@ export class ServerWorld {
                             const listeners = this.blockListeners.beforeBlockChangeListeners[oldId];
                             if (listeners) {
                                 for(let listener of listeners) {
-                                    const newMaterial = BLOCK.BLOCK_BY_ID[params.item.id];
+                                    const newMaterial = bm.BLOCK_BY_ID[params.item.id];
                                     var res = listener.onBeforeBlockChange(chunk, tblock, newMaterial, true);
                                     if (typeof res === 'number') {
                                         chunk.addDelayedCall(listener.onBeforeBlockChangeCalleeId, res, [block_pos]);
@@ -840,7 +841,7 @@ export class ServerWorld {
                             const listeners = this.blockListeners.afterBlockChangeListeners[tblock.id];
                             if (listeners) {
                                 for(let listener of listeners) {
-                                    const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];
+                                    const oldMaterial = bm.BLOCK_BY_ID[oldId];
                                     const res = listener.onAfterBlockChange(chunk, tblock, oldMaterial, true);
                                     if (typeof res === 'number') {
                                         chunk.addDelayedCall(listener.onAfterBlockChangeCalleeId, res, [block_pos, oldMaterial.id]);

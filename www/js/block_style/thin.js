@@ -1,5 +1,4 @@
-import {DIRECTION, IndexedColor, NORMALS, QUAD_FLAGS, ROTATE} from '../helpers.js';
-import {BLOCK, shapePivot} from "../blocks.js";
+import {DIRECTION, IndexedColor, NORMALS, QUAD_FLAGS, ROTATE, Vector} from '../helpers.js';
 import { CubeSym } from '../core/CubeSym.js';
 import { WorldPortal } from '../portal.js';
 import { TBlock } from '../typed_blocks3.js';
@@ -8,7 +7,12 @@ import { AABB } from '../core/AABB.js';
 // Панель
 export default class style {
 
-    static getRegInfo() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['thin'],
             aabb: style.computeAABB,
@@ -34,7 +38,7 @@ export default class style {
             } if(cardinal_direction == CubeSym.ROT_Z) {
                 cardinal_direction = ROTATE.N
             }
-            shapes.push(new AABB(0, 0, .5-1/16, 1, 1, .5+1/16).rotate(cardinal_direction, shapePivot))
+            shapes.push(new AABB(0, 0, .5-1/16, 1, 1, .5+1/16).rotate(cardinal_direction, Vector.SHAPE_PIVOT))
         }
         return shapes
     }
@@ -45,17 +49,18 @@ export default class style {
             return;
         }
 
+        const bm = style.block_manager
         const cardinal_direction = block.getCardinalDirection();
 
         const material  = block.material;
         let texture     = material.texture;
         let bH          = 1.0;
         let lm          = IndexedColor.WHITE;
-        let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
+        let c           = bm.calcTexture(texture, DIRECTION.FORWARD);
         let flags       = 0;
 
         // Animations
-        const anim_frames = BLOCK.getAnimations(material, 'up');
+        const anim_frames = bm.getAnimations(material, 'up');
         if(anim_frames > 0) {
             lm.b = anim_frames;
             flags |= QUAD_FLAGS.FLAG_ANIMATED;

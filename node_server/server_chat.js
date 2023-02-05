@@ -1,6 +1,5 @@
 import {ServerClient} from "../www/js/server_client.js";
 import {DIRECTION, Vector} from "../www/js/helpers.js";
-import {BLOCK} from "../www/js/blocks.js";
 import {WorldAction} from "../www/js/world_action.js";
 import { Weather } from "../www/js/block_type/weather.js";
 
@@ -148,10 +147,11 @@ export class ServerChat {
                     name = args[1];
                     cnt = args[2];
                 }
+                const bm = this.world.block_manager
                 cnt = Math.max(cnt | 0, 1);
-                const b = BLOCK.fromName(name.toUpperCase());
+                const b = bm.fromName(name.toUpperCase());
                 if(b && b.id > 0) {
-                    const block = BLOCK.convertItemToInventoryItem(b, b, true);
+                    const block = bm.convertItemToInventoryItem(b, b, true);
                     block.count = cnt;
                     const ok = player.inventory.increment(block, true);
                     if(ok) {
@@ -374,7 +374,8 @@ export class ServerChat {
                     throw 'error_not_permitted';
                 }
                 const pos = player.state.pos.floored();
-                const cd = BLOCK.getCardinalDirection(player.rotateDegree.clone());
+                const bm = this.world.block_manager
+                const cd = bm.getCardinalDirection(player.rotateDegree.clone());
                 let ax = 0, az = 0;
                 switch(cd) {
                     case DIRECTION.WEST: {
@@ -395,7 +396,7 @@ export class ServerChat {
                     }
                 }
                 const actions = new WorldAction(null, this.world, false, false);
-                const item = {id: BLOCK.STONE.id};
+                const item = {id: bm.STONE.id};
                 const action_id = ServerClient.BLOCK_ACTION_CREATE;
                 pos.x += 1 * ax;
                 pos.z += 1 * az;

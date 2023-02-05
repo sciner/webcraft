@@ -22,6 +22,7 @@ export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', '
 export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER'];
 export const NO_CREATABLE_BLOCKS            = ['BEDROCK', 'UNCERTAIN_STONE'];
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= ['BEDROCK'];
+export const ITEM_LABEL_MAX_LENGTH          = 19;
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
@@ -49,6 +50,8 @@ export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
+
+export const LEAVES_TYPE                    = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
 
 // player
 export const PLAYER_ZOOM                    = 1;

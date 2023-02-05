@@ -19,7 +19,6 @@ export class QuestActionSetBlock extends QuestActionBase {
             id: e.data.block.id,
             count: 1
         };
-        console.log(this.block_id, item)
         if(item.id == this.block_id) {
             this.value = (this.value | 0) + item.count;
             this.update();
