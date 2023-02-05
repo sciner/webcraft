@@ -616,7 +616,7 @@ export class GameClass {
             return;
         }
 
-        if(!this.world || this.player.controls.enabled) {
+        if(!this.world || !this.player || this.player.controls.enabled) {
             return;
         }
 

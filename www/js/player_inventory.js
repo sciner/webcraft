@@ -79,8 +79,8 @@ export class PlayerInventory extends Inventory {
         if(this.hud) {
             this.hud.refresh();
             try {
-                const frmRecipe = this.hud.wm.getWindow('frmRecipe');
-                frmRecipe.paginator.update();
+                const frmRecipe = this.hud.wm.getVisibleWindowOrNull('frmRecipe');
+                frmRecipe?.paginator.update();
             } catch(e) {
                 // do nothing
             }
