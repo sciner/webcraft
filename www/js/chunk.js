@@ -136,7 +136,7 @@ export class Chunk {
 
     getLightTexture(render) {
         const cm = this.getChunkManager();
-        if (!this.light.lightData || !cm) {
+        if (!this.light.hasTexture || !cm) {
             return null;
         }
         const {lightProps} = cm;
@@ -151,14 +151,15 @@ export class Chunk {
         }
 
         if (!this.light.lightTex) {
-            const lightTex = this.light.lightTex = cm.lightPool.alloc({
+            this.light.lightTex = cm.lightPool.alloc({
                 width: this.size.x + 2,
                 height: this.size.z + 2,
                 depth: (this.size.y + 2) * lightProps.depthMul,
                 type: lightProps.texFormat,
                 filter: 'linear',
-                data: this.light.lightData
+                data: this.light.lightTexData
             })
+            this.light.lightTexData = null;
             this.light._dataTextureDirty = true;
         }
 

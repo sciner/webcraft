@@ -144,13 +144,13 @@ export class Renderer {
         if (renderBackend.gl) {
             // world.chunkManager.setLightTexFormat('rgba4unorm', false);
             if (settings.use_light === LIGHT_TYPE_RTX) {
-                world.chunkManager.setLightTexFormat('rgba8unorm', true);
+                world.chunkManager.setLightTexFormat(true);
                 renderBackend.globalUniforms.useNormalMap = true;
             } else {
-                world.chunkManager.setLightTexFormat('rgba4unorm', false);
+                world.chunkManager.setLightTexFormat(false);
             }
         } else {
-            world.chunkManager.setLightTexFormat('rgba8unorm', false);
+            world.chunkManager.setLightTexFormat(false);
         }
 
 
