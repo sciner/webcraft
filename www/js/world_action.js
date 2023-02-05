@@ -276,7 +276,6 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
             return false
         }
         const name = BLOCK.fromId(item).name
-        console.log(name)
         return drop.instrument.includes(name) || drop.instrument.find(el => name.endsWith(el)) != null
     }
     const drop_item = tblock.material.drop_item;
