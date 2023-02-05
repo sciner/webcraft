@@ -276,7 +276,7 @@ export class ServerWorld {
         const good_world_for_spawn = !this.isBuildingWorld();
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
-        if(!auto_generate_mobs || !good_world_for_spawn) {
+        if(!auto_generate_mobs || !good_world_for_spawn || !this.rules.getValue('doMobSpawning')) {
             return;
         }
         // находим игроков
@@ -298,7 +298,6 @@ export class ServerWorld {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
                         if (this.getLight() > 6) {
-                            // console.log((head.lightValue >> 8))
                             if ((head.lightValue >> 8) != 0xFF) {
                                 return;
                             }
