@@ -7,9 +7,6 @@ export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 230.1;
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
-export const DEFAULT_SOUND_MAX_DIST         = 16;
-// The default value of the music volume seting, from 0 to 100. It should be be chosen taking into account Sounds.VOLUME_MAP.music
-export const DEFAULT_MUSIC_VOLUME           = 20;
 export const NO_TICK_BLOCKS                 = false;
 export const BODY_ROTATE_SPEED              = 7;
 export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
@@ -52,6 +49,46 @@ export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
 
 export const LEAVES_TYPE                    = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
+
+// ========================= Sound options =========================
+
+export const DEFAULT_SOUND_MAX_DIST         = 16
+// The default value of the music volume seting, from 0 to 100. It should be be chosen taking into account Sounds.VOLUME_MAP.music
+export const DEFAULT_MUSIC_VOLUME           = 20;
+
+// Volumetric sound types. See also: VolumetricSound.SOUNDS
+export const VOLUMETRIC_SOUND_TYPES         = 2
+export const VOLUMETRIC_SOUND_TYPE_WATER    = 0
+export const VOLUMETRIC_SOUND_TYPE_LAVA     = 1
+
+/**
+ * Distant sounds are presented as volume of all sounds coming from a horizontal sector.
+ * i-th secotor (from 0 to (2^SECTORS_BITS - 1)) contains all sound sources whose angle is closest to
+ *   i * 2 * PI / (2^SECTORS_BITS)
+ */
+export const VOLUMETRIC_SOUND_SECTOR_BITS = 5 // the minimum correct value is 2, but the minimum sane value is 4
+// derived sectors constants
+export const VOLUMETRIC_SOUND_SECTORS = 1 << VOLUMETRIC_SOUND_SECTOR_BITS
+export const VOLUMETRIC_SOUND_SECTOR_INDEX_MASK = VOLUMETRIC_SOUND_SECTORS - 1
+export const VOLUMETRIC_SOUND_ANGLE_TO_SECTOR = VOLUMETRIC_SOUND_SECTORS / (2 * Math.PI)
+
+// The same meaning as refDistance in pannerAttr() with 'inverse' model.
+// The larger it is, the less saound falls off with the distance.
+export const VOLUMETRIC_SOUND_REF_DISTANCE     = 2
+
+export const VOLUMETRIC_SOUND_MAX_DISTANCE     = 40
+
+// The maximum time before changes to sound blocks are used to calculate the updated sound.
+export const VOLUMETRIC_SOUND_DIRTY_BLOCKS_TTL = 50
+
+// The maximum movement of the player that can be made withour re-calculating the sound summary
+export const VOLUMETRIC_SOUND_SUMMARY_VALID_DISTANCE = 1.4
+
+// temporal smoothing of the sound worker results
+export const VOLUMETRIC_SOUND_MAX_VOLUME_CHANGE_PER_SECOND = 2.0
+export const VOLUMETRIC_SOUND_MAX_STEREO_CHANGE_PER_SECOND = 2.0
+
+// ========================= Player options =========================
 
 // player
 export const PLAYER_ZOOM                    = 1;

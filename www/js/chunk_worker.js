@@ -302,9 +302,3 @@ async function onMessageFunc(e) {
         }
     }
 }
-
-if(typeof process !== 'undefined') {
-    import('worker_threads').then(module => module.parentPort.on('message', onMessageFunc));
-} else {
-    onmessage = onMessageFunc
-}
