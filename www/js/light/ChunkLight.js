@@ -13,6 +13,7 @@ export class ChunkLight {
         this._tempLightSource = null;
         this.lightData = null;
         this.lightTexData = null;
+        this.hasTexture = false;
 
         this.currentDelta = [];
     }
@@ -22,9 +23,11 @@ export class ChunkLight {
         this.lightData = args.lightData || this.lightData;
         chunk.tblocks.lightData = this.lightData;
         if (args.lightTexData) {
-            this.lightTexData = args.lightTexData;
+            this.hasTexture = true;
             if (this.lightTex !== null) {
-                this.lightTex.update(this.lightTexData)
+                this.lightTex.update(args.lightTexData)
+            } else {
+                this.lightTexData = args.lightTexData;
             }
         }
     }
