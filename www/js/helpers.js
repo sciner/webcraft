@@ -1953,7 +1953,8 @@ export class ArrayHelpers {
     static toObject(arr, toKeyFn = (ind, value) => ind, toValueFn = (ind, value) => value) {
         const res = {};
         if (typeof toValueFn !== 'function') {
-            toValueFn = () => toValueFn;
+            const value = toValueFn;
+            toValueFn = () => value;
         }
         for(let i = 0; i < arr.length; i++) {
             const v = arr[i];
