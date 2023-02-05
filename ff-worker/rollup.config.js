@@ -53,6 +53,27 @@ export default [{
 }
 ,
 {
+    input: './sound_worker_bundle.js',
+    treeshake: false,
+    output: {
+        inlineDynamicImports: true,
+        file: '../www/js-gen/sound_worker_bundle.js',
+        format: 'cjs',
+    },
+    plugins: [
+        commonjs(),
+        terser({
+            // remove all comments
+            format: {
+                comments: false
+            },
+            // prevent any compression
+            compress: false
+        })
+    ]
+}
+,
+{
     input: './controller_bundle.js',
     treeshake: false,
     output: {
