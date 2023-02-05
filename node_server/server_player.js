@@ -5,7 +5,6 @@ import { ServerClient } from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
 import { PlayerEvent } from "./player_event.js";
-import config from "./config.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
@@ -34,7 +33,6 @@ export class NetworkMessage {
     }
 }
 
-const EMULATED_PING             = config.Debug ? Math.random() * 100 : 0;
 const MAX_COORD                 = 2000000000;
 const MAX_RANDOM_TELEPORT_COORD = 2000000;
 

@@ -1,5 +1,3 @@
-import config from "./config.js";
-
 import { Brains } from "./fsm/index.js";
 import { DropItem } from "./drop_item.js";
 import { ServerChat } from "./server_chat.js";
@@ -38,9 +36,7 @@ import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modif
 import { TBlock } from "../www/js/typed_blocks3.js";
 import { Effect } from "../www/js/block_type/effect.js";
 
-// for debugging client time offset
-export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
-export const NEW_CHUNKS_PER_TICK        = 50;
+export const NEW_CHUNKS_PER_TICK = 50;
 
 export class ServerWorld {
 
@@ -56,8 +52,8 @@ export class ServerWorld {
 
     async initServer(world_guid, db_world, new_title, game) {
         this.game = game;
-        if (SERVE_TIME_LAG) {
-            console.log('[World] Server time lag ', SERVE_TIME_LAG);
+        if (SERVER_TIME_LAG) {
+            console.log('[World] Server time lag ', SERVER_TIME_LAG);
         }
         const newTitlePromise = new_title ? db_world.setTitle(new_title) : Promise.resolve();
         var t = performance.now();
@@ -266,7 +262,7 @@ export class ServerWorld {
     }
 
     get serverTime() {
-        return Date.now() + SERVE_TIME_LAG;
+        return Date.now() + SERVER_TIME_LAG;
     }
 
     // Return world info

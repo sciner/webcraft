@@ -15,7 +15,6 @@ export default class WorldEdit {
 
     constructor() {
         this.id = performance.now()
-        this.initWorker()
     }
 
     initWorker() {
@@ -64,6 +63,9 @@ export default class WorldEdit {
 
     // postWorkerMessage
     postWorkerMessage(cmd) {
+        if(!this.worker) {
+            this.initWorker()
+        }
         this.worker.postMessage(cmd)
     }
 

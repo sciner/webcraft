@@ -5,16 +5,13 @@ import conf_world from "./conf_world.json" assert { type: "json" };
 if(typeof process != 'undefined') {
     process.argv.forEach((e, i) => {
         // should skip first
-        if(i===0) {
+        if(i === 0) {
             return;
         }
-
         const [name, value] = e.replace('--', '').split('=');
-
         if (!(name in conf)) {
             return;
         }
-
         if (typeof value ==='undefined') {
             conf[name] = true;
         } else {
@@ -23,20 +20,43 @@ if(typeof process != 'undefined') {
     });
 }
 
-export default await new Promise(async resolve => {
+const all = []
 
-    for(let k in conf_world.building_schemas) {
-        const item = conf_world.building_schemas[k]
-        await import(`./data/building_schema/${item.name}.json`, {assert: { type: 'json' }}).then(module => {
-            const json = module.default
-            json.name = item.name
-            json.meta = json.meta ?? {}
-            item.entrance = new Vector(json.world.entrance)
-            json.world = {...json.world, ...item}
-            conf_world.building_schemas[k] = json
+for(let k in conf_world.building_schemas) {
+    const item = conf_world.building_schemas[k]
+    all.push(import(`./data/building_schema/${item.name}.js`).then(module => {
+        const json = module.default
+        json.name = item.name
+        json.meta = json.meta ?? {}
+        item.entrance = new Vector(json.world.entrance)
+        json.world = {...json.world, ...item}
+        conf_world.building_schemas[k] = json
+    }))
+}
+
+for(let k in conf_world.chat_plugins) {
+    const file = conf_world.chat_plugins[k]
+    delete(conf_world.chat_plugins[k])
+    if(file.startsWith('-')) {
+        continue
+    }
+    all.push(import(`./plugins/${file}.js`).then(module => {
+        conf_world.chat_plugins[file] = module.default
+    }))
+}
+
+export class Config {
+
+    constructor() {
+        Object.assign(this, conf)
+        Object.assign(this, conf_world)
+    }
+
+    static init() {
+        return new Promise(async resolve => {
+            await Promise.all(all)
+            resolve(new Config())
         })
     }
 
-    resolve({...conf, ...conf_world})
-
-})
+}

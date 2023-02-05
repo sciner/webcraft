@@ -1,8 +1,5 @@
 import { unixTime, md5 } from "../../../www/js/helpers.js";
 import { PLAYER_SKIN_TYPES, SKIN_RIGHTS_FREE, SKIN_RIGHTS_UPLOADED, CLIENT_SKIN_ROOT } from "../../../www/js/constant.js";
-import { Buffer } from 'node:buffer';
-import skiaCanvas from 'skia-canvas';
-import mkdirp from 'mkdirp';
 import skins_json from "../../../www/media/models/database.json" assert { type: "json" };
 
 const SKIN_ROOT = '../www/media/models/player_skins/'
