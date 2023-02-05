@@ -12,7 +12,7 @@ export class BlockDrawer {
 
     /**
      * @param { import("./base.js").ClusterBase } cluster
-     * @param {*} chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {*} map
      */
     draw(cluster, chunk, map) {

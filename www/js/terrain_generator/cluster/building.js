@@ -106,7 +106,7 @@ export class Building {
 
     /**
      * @param { import("./base.js").ClusterBase } cluster
-     * @param {*} chunk
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {boolean} draw_natural_basement
      */
     draw(cluster, chunk, draw_natural_basement = true) {

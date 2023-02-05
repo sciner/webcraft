@@ -12,7 +12,10 @@ export class TerrainMap2 extends TerrainMap {
      * @type { import("../aquifera.js").Aquifera }
      */
     // aquifera
-        
+
+    /**
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     */
     constructor(chunk, options, noise2d) {
         super(chunk, options);
         this._tree_neighbours = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -20,7 +23,7 @@ export class TerrainMap2 extends TerrainMap {
     }
 
     /**
-     * @param {*} chunk 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param { import("../../cluster/base.js").ClusterBase } cluster
      * @param {*} aleaRandom 
      * @param {float} rnd 
@@ -83,8 +86,7 @@ export class TerrainMap2 extends TerrainMap {
     }
 
     /**
-     * 
-     * @param {*} chunk 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {*} seed 
      * @param {TerrainMapManager2} manager 
      */

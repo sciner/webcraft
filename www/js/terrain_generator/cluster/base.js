@@ -46,7 +46,7 @@ export class ClusterBase {
 
     /**
      * Set block
-     * @param { import("../../worker/chunk.js").Chunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {int} x 
      * @param {int} y 
      * @param {int} z 
@@ -97,7 +97,7 @@ export class ClusterBase {
 
     /**
      * Return block ID from pos
-     * @param { import("../../worker/chunk.js").Chunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param { int } x 
      * @param { int } y 
      * @param { int } z 
@@ -224,7 +224,7 @@ export class ClusterBase {
     /**
      * Fill chunk blocks
      * @param {*} maps 
-     * @param { import("../../worker/chunk.js").Chunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {*} map 
      * @returns 
      */
@@ -311,7 +311,7 @@ export class ClusterBase {
 
     /**
      * Add NPC
-     * @param { import("../../worker/chunk.js").Chunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param { Vector } pos 
      * @returns { boolean }
      */
@@ -347,7 +347,7 @@ export class ClusterBase {
     }
     
     /**
-     * @param { import("../../worker/chunk.js").Chunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param { Vector } pos 
      * @param { Vector } size 
      * @param { object } block 
@@ -371,7 +371,7 @@ export class ClusterBase {
     }
 
     /**
-     * @param { import("../../worker/chunk.js").Chunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param { Vector } pos 
      * @param { Vector } size 
      * @param { object } block 

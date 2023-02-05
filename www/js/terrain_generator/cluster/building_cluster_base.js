@@ -103,7 +103,15 @@ export class ClusterBuildingBase extends ClusterBase {
 
     }
 
-    // Fill chunk blocks
+    /**
+     * Fill chunk blocks
+     * @param {*} maps 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk  
+     * @param {*} map 
+     * @param {boolean} fill_blocks 
+     * @param {boolean} calc_building_y 
+     * @returns 
+     */
     fillBlocks(maps, chunk, map, fill_blocks = true, calc_building_y = true) {
 
         if(this.is_empty) {
@@ -144,7 +152,7 @@ export class ClusterBuildingBase extends ClusterBase {
     /**
      * Draw part of building on map
      * 
-     * @param {*} chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {object[]} maps 
      * @param {*} building 
      * @param {*} map 
@@ -165,7 +173,13 @@ export class ClusterBuildingBase extends ClusterBase {
 
     }
 
-    //
+    /**
+     * 
+     * @param {*} maps 
+         * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param {*} building 
+     * @returns 
+     */
     fixBuildingHeight(maps, chunk, building) {
 
         if(this.clusterManager.chunkManager.world.generator.layers) {

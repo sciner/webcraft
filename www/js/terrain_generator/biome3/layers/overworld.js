@@ -58,7 +58,7 @@ export default class Biome3LayerOverworld {
     }
 
     /**
-     * @param {object} chunk 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {string} seed 
      * @param {*} rnd 
      * @returns {TerrainMap2}
@@ -109,6 +109,7 @@ export default class Biome3LayerOverworld {
     /**
      * Plant chunk trees
      * @param {[]TerrainMap2} maps 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
      */
     plantTrees(maps, chunk) {
         for(let i = 0; i < maps.length; i++) {
@@ -140,7 +141,7 @@ export default class Biome3LayerOverworld {
     }
 
     /**
-     * @param {Chunk} chunk 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @returns 
      */
      calcColumnNoiseSize(chunk) {
@@ -162,7 +163,11 @@ export default class Biome3LayerOverworld {
         return resp
     }
 
-    //
+    /**
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param {*} seed 
+     * @param {*} rnd 
+     */
     generateChunkData(chunk, seed, rnd) {
 
         /**

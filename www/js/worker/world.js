@@ -1,4 +1,4 @@
-import { ChunkWorkerChunkManager, Chunk } from "./chunk.js";
+import { ChunkWorkerChunkManager, ChunkWorkerChunk } from "./chunk.js";
 import { VectorCollector } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 
@@ -107,7 +107,7 @@ export class WorkerWorld {
         if(this.chunks.has(args.addr)) {
             return this.chunks.get(args.addr);
         }
-        let chunk = new Chunk(this.chunkManager, args);
+        let chunk = new ChunkWorkerChunk(this.chunkManager, args);
         this.chunks.add(args.addr, chunk);
         chunk.init();
         this.genQueue.push(chunk);

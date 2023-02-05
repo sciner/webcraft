@@ -332,7 +332,7 @@ export class MineGenerator {
 
     /**
      * TO DO EN генерация бокса внутри чанка, генерация с вероятностью установки
-     * @param {Chunk} chunk
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {number} minX
      * @param {number} minY
      * @param {number} minZ
@@ -367,7 +367,7 @@ export class MineGenerator {
 
     /**
      * TO DO EN замена воздуха на блок с вероятностью
-     * @param {Chunk} chunk
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {number} minX
      * @param {number} minY
      * @param {number} minZ
@@ -400,7 +400,7 @@ export class MineGenerator {
 
     /**
      * TO DO EN замена не воздуха на блок с вероятностью
-     * @param {Chunk} chunk
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {number} minX
      * @param {number} minY
      * @param {number} minZ

@@ -240,7 +240,11 @@ export class CaveGenerator {
         this._neighb        = new Vector(0, 0, 0);
     }
 
-    // add
+    /**
+     * Add cave
+     * @param {Vector} chunk_addr 
+     * @returns {boolean}
+     */
     add(chunk_addr) {
 
         if(chunk_addr.y < 0 || chunk_addr.y > 2) {
@@ -261,7 +265,7 @@ export class CaveGenerator {
     }
 
     /**
-     * getNeighbourLines
+     * return neighbour lines
      * @param { Vector } chunk_addr
      * @returns
      */
@@ -269,7 +273,10 @@ export class CaveGenerator {
         return this.lines.get(chunk_addr);
     }
 
-    // Инициализация пещер во всех чанках вокруг центрального chunk_addr
+    /**
+     * Инициализация пещер во всех чанках вокруг центрального chunk_addr
+     * @param {Vector} chunk_addr 
+     */
     addSpiral(chunk_addr) {
         for (let i = 0; i < this.spiral_moves.length; i++) {
             const sm = this.spiral_moves[i];
