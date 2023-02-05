@@ -1,12 +1,14 @@
 let soundMap = null
+let playerPos = null
+let playerPosTimeout = null
 
 const worker = {
     init: function () {
         if (typeof process !== 'undefined') {
             import('worker_threads').then(module => {
-                this.parentPort = module.parentPort;
-                this.parentPort.on('message', onMessageFunc);
-            });
+                this.parentPort = module.parentPort
+                this.parentPort.on('message', onMessageFunc)
+            })
         } else {
             onmessage = onMessageFunc
         }
@@ -14,9 +16,9 @@ const worker = {
 
     postMessage: function (message) {
         if (this.parentPort) {
-            this.parentPort.postMessage(message);
+            this.parentPort.postMessage(message)
         } else {
-            postMessage(message);
+            postMessage(message)
         }
     }
 }
@@ -44,16 +46,17 @@ async function onMessageFunc(msg) {
     const cmd = msg[0]
     switch(cmd) {
         case 'player_pos':
-            soundMap.onPlayerPos(msg[1])
+            playerPos = msg[1]
+            // Skip multiple 'player_pos' messages if there is a queue. We only need the last one.
+            if (!playerPosTimeout) {
+                playerPosTimeout = setTimeout(() => {
+                    playerPosTimeout = null
+                    soundMap.onPlayerPos(playerPos)
+                }, 1)
+            }
             break
         case 'flowing_diff':
             soundMap.onFlowingDiff(msg[1])
             break
     }
-}
-
-if (typeof process !== 'undefined') {
-    import('worker_threads').then(module => module.parentPort.on('message', onMessageFunc))
-} else {
-    onmessage = onMessageFunc
 }

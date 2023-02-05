@@ -115,6 +115,12 @@ export class Mth {
             );
     }
 
+    static clampModule(value, maxModule) {
+        return value >= maxModule
+            ? maxModule
+            : (value < -maxModule ? -maxModule : value)
+    }
+
     static repeat(value, length) {
         return Mth.clamp(value - Math.floor(value / length) * length, 0.0, length);
     }
@@ -1983,7 +1989,7 @@ export class ArrayHelpers {
         return arr;
     }
 
-    static copyFrom(dst, src) {
+    static copyToFrom(dst, src) {
         // it might be not the fastest, needs profiling
         dst.length = 0
         dst.push(...src)

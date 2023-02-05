@@ -119,16 +119,19 @@ export class FluidChunk {
         if (!this.flowingByIndex) {
             this._rebuildFlowingByIndex()
         }
-        this.world.sendFlowingDiff({
+        // we're sending everything, so the diff should be cleared (and maybe created if it doesn't exist)
+        this.flowingDiffByIndex = new Map()
+
+        Qubatch.game.sounds.volumetric.onFlowingDiff({
             addr: this.parentChunk.addr,
-            all: true,
-            map: this.flowingByIndex
+            map: this.flowingByIndex,
+            all: true
         })
     }
 
     _sendFlowingDiff() {
         if (this.flowingDiffByIndex.size) {
-            this.world.sendFlowingDiff({
+            Qubatch.game.sounds.volumetric.onFlowingDiff({
                 addr: this.parentChunk.addr,
                 map: this.flowingDiffByIndex
             })

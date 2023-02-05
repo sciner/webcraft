@@ -217,13 +217,13 @@ class SoundChunk {
         tmpVec.fromChunkIndex(ind)
         const exType = this.byIndex.get(ind) ?? null
         if (exType !== type) {
-            if (exType != null) {
+            if (exType !== null) {
                 this.addToMips(tmpVec.x, tmpVec.y, tmpVec.z, exType, -1)
             }
             if (type !== null) {
                 this.addToMips(tmpVec.x, tmpVec.y, tmpVec.z, type, 1)
                 this.byIndex.set(ind, type)
-            } else if (exType != null) {
+            } else if (exType !== null) {
                 this.byIndex.delete(ind)
             }
         }
@@ -343,7 +343,7 @@ class SoundSummary {
         // add uniform sources
         this.sumUniform = this.uniform
         // add far sources to the sum by sector
-        ArrayHelpers.copyFrom(this.sumBySector, this.far)
+        ArrayHelpers.copyToFrom(this.sumBySector, this.far)
 
         this.addNearSources(playerPos)
 

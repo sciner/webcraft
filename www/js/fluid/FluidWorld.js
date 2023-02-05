@@ -81,10 +81,6 @@ export class FluidWorld {
         }
     }
 
-    sendFlowingDiff(msg) {
-        Qubatch.game.sounds.volumetricSound.worker.postMessage(['flowing_diff', msg])
-    }
-
     startMeshing(fluidChunk) {
         if (this.mesher) {
             this.mesher.dirtyChunks.push(fluidChunk);

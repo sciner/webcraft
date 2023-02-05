@@ -76,10 +76,14 @@ export const VOLUMETRIC_SOUND_REF_DISTANCE     = 2
 export const VOLUMETRIC_SOUND_MAX_DISTANCE     = 40
 
 // The maximum time before changes to sound blocks are used to calculate the updated sound.
-export const VOLUMETRIC_SOUND_DIRTY_BLOCKS_TTL = 500
+export const VOLUMETRIC_SOUND_DIRTY_BLOCKS_TTL = 50
 
 // The maximum movement of the player that can be made withour re-calculating the sound summary
 export const VOLUMETRIC_SOUND_SUMMARY_VALID_DISTANCE = 1.4
+
+// temporal smoothing of the sound worker results
+export const VOLUMETRIC_SOUND_MAX_VOLUME_CHANGE_PER_SECOND = 2.0
+export const VOLUMETRIC_SOUND_MAX_STEREO_CHANGE_PER_SECOND = 2.0
 
 // ========================= Player options =========================
 

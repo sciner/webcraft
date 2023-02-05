@@ -1,8 +1,9 @@
 import { Resources } from "./resources.js";
 import { CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MUSIC_PAUSE_SECONDS,
     VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
+    VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_MAX_VOLUME_CHANGE_PER_SECOND, VOLUMETRIC_SOUND_MAX_STEREO_CHANGE_PER_SECOND,
     DEFAULT_SOUND_MAX_DIST }  from "./constant.js";
-import { Mth, Vector } from "./helpers.js";
+import { Mth, Vector, ArrayHelpers } from "./helpers.js";
 
 class Music {
 
@@ -183,6 +184,8 @@ class Music {
 
 class VolumetricSound {
 
+    static TELEPORT_DISTANCE = 20
+
     /**
      * Sound sprites for each sound type.
      * See also {@link VOLUMETRIC_SOUND_TYPES}
@@ -201,27 +204,39 @@ class VolumetricSound {
     ]
 
     constructor(sounds) {
+        if (VolumetricSound.SOUNDS.length !== VOLUMETRIC_SOUND_TYPES) {
+            throw new Error()
+        }
+        this._disabled = Sounds.VOLUME_MAP.volumetric === 0
+        if (this._disabled) {
+            return
+        }
         this.sounds = sounds
         this.world = sounds.world
         this.sound_sprite_main = sounds.sound_sprite_main
         this.tracks     = new Array(VOLUMETRIC_SOUND_TYPES)
-        this.soundIds   = new Array(VOLUMETRIC_SOUND_TYPES)
-        // A data structure taht we receive from the volumetric sound worker
-        this.workerResult   = null
-        // the last known player direction
-        this.forward = new Vector()
+        // the last known player position and direction
+        this.pos        = new Vector()
+        this.forward    = new Vector()
 
-        // temporary variables
-        this.volumes    = new Array(VOLUMETRIC_SOUND_TYPES)
-        this.stereos    = new Array(VOLUMETRIC_SOUND_TYPES)
-        this.sumLeft    = new Array(VOLUMETRIC_SOUND_TYPES)
-        this.sumRight   = new Array(VOLUMETRIC_SOUND_TYPES)
+        this.lastTemporalSmoothingTime = null
+        this.types = VolumetricSound.SOUNDS.map( sound => {
+            const list = this.sounds.getTagActionList(sound.tag, sound.action)
+            return {
+                soundId: null,              // id of the playing soun in the current how
+                track: list[sound.index],   // sound sprite properties
+                // the current values
+                volume: 0,
+                stereo: 0,
+                stereoLUT: new Array(VOLUMETRIC_SOUND_SECTORS).fill(0),
+                // the last values acquired from the worker - targets of temporal smoothing
+                volumeTarget: 0,
+                stereoLUTTarget: null
+            }
+        })
 
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
-            
-            // TODO
-            this.worker = null
-
+            this.worker = new Worker('./js-gen/sound_worker_bundle.js')
         } else {
             this.worker = new Worker('./js/sound_worker.js'/*, {type: 'module'}*/)
             this.worker.onerror = (e) => {
@@ -239,27 +254,77 @@ class VolumetricSound {
                     that.world.chunkManager.fluidWorld.onQueryFlowing(args)
                     break
                 case 'result':
-                    that.onWorkerResult(args)
+                    that._onWorkerResult(args)
                     break
             }
         }
     }
 
     setPosOrientation(pos, forward) {
+        if (this._disabled) {
+            return
+        }
         this.worker?.postMessage(['player_pos', pos])
+        if (this.pos.distance(pos) > VolumetricSound.TELEPORT_DISTANCE) {
+            // far teleport detected - stop the sound at the new place immediately
+            for(const t of this.types) {
+                t.volume = 0
+                t.volumeTarget = 0
+            }
+        }
+        this.pos.copyFrom(pos)
         this.forward.copyFrom(forward)
-        this.update()
+        this._update()
     }
 
-    onWorkerResult(workerResult) {
-        this.workerResult = workerResult
-        this.update()
+    _onWorkerResult(workerResult) {
+        // set the worker result as the next targets of temporal smoothing
+        for(let type = 0; type < VOLUMETRIC_SOUND_TYPES; type++) {
+            const typeResult = workerResult[type]
+            const t = this.types[type]
+            if (typeResult) {
+                t.volumeTarget = Math.min(typeResult.volume * Sounds.VOLUME_MAP.volumetric, 1)
+                t.stereoLUTTarget = typeResult.stereo
+            } else {
+                t.volumeTarget = 0
+            }
+        }
+        this._update()
     }
 
-    update() {
-        if (this.workerResult) {
-            this.estimate()
-            this.updateHowls()
+    onFlowingDiff(msg) {
+        this.worker.postMessage(['flowing_diff', msg])
+    }
+
+    _update() {
+        this._temporalSmoothing()
+        this._estimateStereo()
+        this._updateHowls()
+    }
+
+    /** Updates the current volume and stereo LU based on the target volume and stereo LUT */
+    _temporalSmoothing() {
+        const now = performance.now()
+        this.lastTemporalSmoothingTime = this.lastTemporalSmoothingTime ?? now
+        const dt = now - this.lastTemporalSmoothingTime
+        this.lastTemporalSmoothingTime  = now
+        if (dt === 0) {
+            return
+        }
+        for(const t of this.types) {
+            if (t.stereoLUTTarget) {
+                if (t.volume === 0) {
+                    // if the sound was silent, set the stereo instantly, no need to smooth it
+                    ArrayHelpers.copyToFrom(t.stereoLUT, t.stereoLUTTarget)
+                } else {
+                    const maxChange = dt * 0.001 * VOLUMETRIC_SOUND_MAX_STEREO_CHANGE_PER_SECOND
+                    for(let i = 0; i < VOLUMETRIC_SOUND_SECTORS; i++) {
+                        t.stereoLUT[i] += Mth.clampModule(t.stereoLUTTarget[i] - t.stereoLUT[i], maxChange)
+                    }
+                }
+            }
+            const maxChange = dt * 0.001 * VOLUMETRIC_SOUND_MAX_VOLUME_CHANGE_PER_SECOND
+            t.volume += Mth.clampModule(t.volumeTarget - t.volume, maxChange)
         }
     }
 
@@ -267,50 +332,36 @@ class VolumetricSound {
      * It calculates stereo for each sound type based on the player's direction.
      * It doesn't acccount for the player's position. A worker should accound for it and send an update.
      */
-    estimate() {
+    _estimateStereo() {
         const angle = Math.atan2(this.forward.z, this.forward.x)
         const floatSector = angle * VOLUMETRIC_SOUND_ANGLE_TO_SECTOR
         const lerpAmount = floatSector - Math.floor(floatSector)
         const sector0 = Math.floor(floatSector) & VOLUMETRIC_SOUND_SECTOR_INDEX_MASK
         const sector1 = (sector0 + 1) & VOLUMETRIC_SOUND_SECTOR_INDEX_MASK
-        for(let type = 0; type < VOLUMETRIC_SOUND_TYPES; type++) {
-            const typeResult = this.workerResult[type]
-            if (typeResult) {
-                this.volumes[type] = Math.min(typeResult.volume * Sounds.VOLUME_MAP.volumetric, 1)
-                this.stereos[type] = Mth.lerp(lerpAmount, typeResult.stereo[sector0], typeResult.stereo[sector1])
-            } else {
-                this.volumes[type] = 0
-            }
+        for(const t of this.types) {
+            t.stereo = Mth.lerp(lerpAmount, t.stereoLUT[sector0], t.stereoLUT[sector1])
         }
     }
 
-    updateHowls() {
-        for(let type = 0; type < VOLUMETRIC_SOUND_TYPES; type++) {
-            const volume = this.volumes[type]
-            let soundId = this.soundIds[type]
-            if (volume) {
-                const sound = VolumetricSound.SOUNDS[type]
-                if (soundId == null) {
-                    // get the sound properties
-                    const list = this.sounds.getTagActionList(sound.tag, sound.action)
-                    const track = list[sound.index]
-                    this.tracks[type] = track
+    _updateHowls() {
+        for(const t of this.types) {
+            if (t.volume) {
+                const track = t.track
+                if (t.soundId == null) {
                     // start playing it
-                    soundId = this.sound_sprite_main.play(track.name)
-                    this.soundIds[type] = soundId
-                    this.sound_sprite_main.loop(true, soundId)
-                    this.sounds.applySoundProps(soundId, 1, track.props)
+                    t.soundId = this.sound_sprite_main.play(track.name)
+                    this.sound_sprite_main.loop(true, t.soundId)
+                    this.sounds.applySoundProps(t.soundId, 1, track.props)
                 }
                 // update its dynamic properties
-                const track = this.tracks[type]
-                this.sound_sprite_main.volume(track.props.volume * volume, soundId)
-                this.sound_sprite_main.stereo(this.stereos[type], soundId)
+                this.sound_sprite_main.volume(track.props.volume * t.volume, t.soundId)
+                this.sound_sprite_main.stereo(t.stereo, t.soundId)
             } else {
                 // stop playing
-                if (soundId && this.sound_sprite_main.playing(soundId)) {
-                    this.sound_sprite_main.stop(soundId)
+                if (t.soundId && this.sound_sprite_main.playing(t.soundId)) {
+                    this.sound_sprite_main.stop(t.soundId)
                 }
-                this.soundIds[type] = null
+                t.soundId = null
             }
         }
     }
@@ -322,6 +373,10 @@ export class Sounds {
         // It allows us to change the music volume relative to other sounds without changing the user-controlled setting.
         music: 0.4, // this value should be chosen taking into account DEFAULT_MUSIC_VOLUME
 
+        // It's applied to all volumetric sounds.
+        // Set it to 0 to disable this subsystem completely (the worker won't be created).
+        volumetric: 0.3,
+
         // step: 0.1,
         entering_water: 0.1,
         exiting_water: 0.1,
@@ -330,9 +385,7 @@ export class Sounds {
         hit: 0.2,
         step: 0.2,
         water_splash: 0.2,
-        burp: 0.4,
-
-        volumetric: 0.3 // it's applied to all volumetric sounds
+        burp: 0.4
     };
 
     /* It's not used and probably configured not optimally
@@ -379,7 +432,7 @@ export class Sounds {
 
         this.music = new Music(this.tags['madcraft:music']);
 
-        this.volumetricSound = new VolumetricSound(this)
+        this.volumetric = new VolumetricSound(this)
 
         // to prvent Howler from periodically suspend itself, which also suspends Tracker_Player
         Howler.autoSuspend = false;
@@ -589,7 +642,7 @@ export class Sounds {
             0,  0,  1
         );
 
-        this.volumetricSound.setPosOrientation(eyePos, forward)
+        this.volumetric.setPosOrientation(eyePos, forward)
     }
 
     //
