@@ -49,6 +49,8 @@ const MAX_DISTANCE_SQR = VOLUMETRIC_SOUND_MAX_DISTANCE * VOLUMETRIC_SOUND_MAX_DI
 /** The distance squared, from which an additional volume falloff is applied. See {@link falloffExtraFar} */
 const MID_DISTANCE_SQR = MAX_DISTANCE_SQR * 0.75 * 0.75
 
+const tmpVec = new Vector()
+
 /**
  * Here the volume falls off with the distance squared.
  * But after the final adjustemnts, the volume will fall off inversely to the distance.
@@ -837,5 +839,3 @@ export class SoundMap {
     }
 
 }
-
-const tmpVec = new Vector()
