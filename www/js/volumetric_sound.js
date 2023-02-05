@@ -108,15 +108,14 @@ const MIPS = new Array(MAX_LEVEL + 1)
 function initMIPS() {
     let cellXZ = 1
     let sizeXZ = CHUNK_SIZE_X
-    let strideType = 2 // [volume, 2 * SUM(y + 0.5)]
+    let strideZ = 2 // [volume, 2 * SUM(y + 0.5)]
     let prevCellY = 1
     for(let level = 0; level <= MAX_LEVEL; level++) {
         const cellY = CELL_SIZE_Y[level]
         const sizeY = CHUNK_SIZE_Y / cellY
 
-        const strideX = strideType * VOLUMETRIC_SOUND_TYPES
-        const strideY = strideX * sizeXZ
-        const strideZ = strideY * sizeY
+        const strideY = strideZ * sizeXZ
+        const strideX = strideY * sizeY
         // the upper bounds of the maximum possible element value: sum coordinates (CHUNK_SIZE_Y - 1) multiplied by volume
         const maxValue = cellXZ * cellY * cellXZ * (2 * (CHUNK_SIZE_Y - 1) + 1)
 
@@ -129,14 +128,14 @@ function initMIPS() {
             dividerY:   cellY / prevCellY,  // we don't compute divisorXZ, it's known to be 1 or 2
             sizeXZ,
             sizeY,
-            strideType, strideX, strideY, strideZ,
-            size: sizeXZ * strideZ,
+            strideX, strideY, strideZ,
+            size: sizeXZ * strideX,
             arrayClass: ArrayHelpers.uintArrayClassForMaxValue(maxValue)
         }
         prevCellY = cellY
         sizeXZ *= 0.5
         cellXZ *= 2
-        strideType = 4 // [volume, 2 * SUM(x + 0.5), 2 * SUM(y + 0.5), 2 * SUM(z + 0.5)]
+        strideZ = 4 // [volume, 2 * SUM(x + 0.5), 2 * SUM(y + 0.5), 2 * SUM(z + 0.5)]
     }
 }
 initMIPS()
@@ -187,18 +186,29 @@ class SoundChunk {
         // for each block index (non-flat), type of the sound block
         this.byIndex = new Map()
         // for each mip level, 3D array. Each cell is described by a groups of comsecutive elements
-        this.arr = ArrayHelpers.create(MAX_LEVEL + 1, level => {
-            const arrayClass = MIPS[level].arrayClass
-            return new arrayClass(MIPS[level].size)
-        })
-        // Min/max coordinates in the smalest mip map level that have any content.
-        // We never decrease these limits when the blocks are removed, but it's still a useful optimization
-        this.maxLevelMinX = Infinity
-        this.maxLevelMinY = Infinity
-        this.maxLevelMinZ = Infinity
-        this.maxLevelMaxX = -Infinity
-        this.maxLevelMaxY = -Infinity
-        this.maxLevelMaxZ = -Infinity
+        this.mipsByType = new Array(VOLUMETRIC_SOUND_TYPES)
+    }
+
+    _getOrCreateMips(type) {
+        let res = this.mipsByType[type]
+        if (res == null) {
+            res = {
+                arr: ArrayHelpers.create(MAX_LEVEL + 1, level => {
+                    const arrayClass = MIPS[level].arrayClass
+                    return new arrayClass(MIPS[level].size)
+                }),
+                // Min/max coordinates in the smalest mip map level that have any content.
+                // We never decrease these limits when the blocks are removed, but it's still a useful optimization
+                maxLevelMinX: Infinity,
+                maxLevelMinY: Infinity,
+                maxLevelMinZ: Infinity,
+                maxLevelMaxX: -Infinity,
+                maxLevelMaxY: -Infinity,
+                maxLevelMaxZ: -Infinity
+            }
+            this.mipsByType[type] = res
+        }
+        return res
     }
 
     onFlowingDiff(flowingDiff) {
@@ -248,8 +258,9 @@ class SoundChunk {
         let x = x0 | 0
         let y = Math.floor(y0 * MIP0.cellYinv)
         let z = z0 | 0
-        let ind = type * MIP0.strideType + x * MIP0.strideX + y * MIP0.strideY + z * MIP0.strideZ
-        let arr = this.arr[0]
+        let ind = x * MIP0.strideX + y * MIP0.strideY + z * MIP0.strideZ
+        const mips = this._getOrCreateMips(type)
+        let arr = mips.arr[0]
         arr[ind] += delta
         arr[ind + 1] += dy
 
@@ -258,19 +269,19 @@ class SoundChunk {
             x >>= 1
             y = Math.floor(y0 * mip.cellYinv)
             z >>= 1
-            ind = type * mip.strideType + x * mip.strideX + y * mip.strideY + z * mip.strideZ
-            arr = this.arr[level]
+            ind = x * mip.strideX + y * mip.strideY + z * mip.strideZ
+            arr = mips.arr[level]
             arr[ind] += delta
             arr[ind + 1] += dx
             arr[ind + 2] += dy
             arr[ind + 3] += dz
         }
-        if (this.maxLevelMinX > x) this.maxLevelMinX = x
-        if (this.maxLevelMinY > y) this.maxLevelMinY = y
-        if (this.maxLevelMinZ > z) this.maxLevelMinZ = z
-        if (this.maxLevelMaxX < x) this.maxLevelMaxX = x
-        if (this.maxLevelMaxY < y) this.maxLevelMaxY = y
-        if (this.maxLevelMaxZ < z) this.maxLevelMaxZ = z
+        if (mips.maxLevelMinX > x) mips.maxLevelMinX = x
+        if (mips.maxLevelMinY > y) mips.maxLevelMinY = y
+        if (mips.maxLevelMinZ > z) mips.maxLevelMinZ = z
+        if (mips.maxLevelMaxX < x) mips.maxLevelMaxX = x
+        if (mips.maxLevelMaxY < y) mips.maxLevelMaxY = y
+        if (mips.maxLevelMaxZ < z) mips.maxLevelMaxZ = z
     }
 }
 
@@ -590,23 +601,27 @@ export class SoundMap {
             if (!(chunk instanceof SoundChunk && chunk.byIndex.size)) {
                 continue
             }
-            for(let mipX = chunk.maxLevelMinX; mipX <= chunk.maxLevelMaxX; mipX++) {
-                const worldX = chunk.coord.x + (mipX << MAX_LEVEL) + 0.5
-                const indX = mipX * MIP_MAX.strideX
-                for(let mipY = chunk.maxLevelMinY; mipY <= chunk.maxLevelMaxY; mipY++) {
-                    const worldY = chunk.coord.y + mipY * MIP_MAX.cellY + 0.5
-                    const indY = indX + mipY * MIP_MAX.strideY
-                    for(let mipZ = chunk.maxLevelMinZ; mipZ <= chunk.maxLevelMaxZ; mipZ++) {
-                        const worldZ = chunk.coord.z + (mipZ << MAX_LEVEL) + 0.5
-                        let ind = indY + mipZ * MIP_MAX.strideZ
-                        for(let type = 0; type < VOLUMETRIC_SOUND_TYPES; type++) {
+            for(let type = 0; type < VOLUMETRIC_SOUND_TYPES; type++) {
+                const mips = chunk.mipsByType[type]
+                if (mips == null) {
+                    continue
+                }
+                for(let mipX = mips.maxLevelMinX; mipX <= mips.maxLevelMaxX; mipX++) {
+                    const worldX = chunk.coord.x + (mipX << MAX_LEVEL) + 0.5
+                    const indX = mipX * MIP_MAX.strideX
+                    for(let mipY = mips.maxLevelMinY; mipY <= mips.maxLevelMaxY; mipY++) {
+                        const worldY = chunk.coord.y + mipY * MIP_MAX.cellY + 0.5
+                        const indY = indX + mipY * MIP_MAX.strideY
+                        for(let mipZ = mips.maxLevelMinZ; mipZ <= mips.maxLevelMaxZ; mipZ++) {
+                            const worldZ = chunk.coord.z + (mipZ << MAX_LEVEL) + 0.5
+                            const ind = indY + mipZ * MIP_MAX.strideZ
+                        
                             this.playerRelativeX = this.playerPos.x - chunk.coord.x
                             this.playerRelativeY = this.playerPos.y - chunk.coord.y
                             this.playerRelativeZ = this.playerPos.z - chunk.coord.z
-                            this.addToSummary(chunk, 
+                            this.addToSummary(mips, 
                                 mipX, worldX, mipY, worldY, mipZ, worldZ,
                                 MIP_MAX, type, ind)
-                            ind += MIP_MAX.strideType
                         }
                     }
                 }
@@ -662,7 +677,7 @@ export class SoundMap {
     }
 
     /**
-     * @param {SoundChunk} chunk
+     * @param {Object} mips - mip maps for this type of sound
      * @param {Int} mipX - from 0 to {@link mip}.sizeXZ
      * @param {Int} mipY - from 0 to {@link mip}.sizeY
      * @param {Int} mipZ - from 0 to {@link mip}.sizeXZ
@@ -671,9 +686,9 @@ export class SoundMap {
      * @param {Int} worldZ
      * @param {Object} mip - one of {@link MIPS}
      */
-    addToSummary(chunk, mipX, worldX, mipY, worldY, mipZ, worldZ, mip, type, ind) {
+    addToSummary(mips, mipX, worldX, mipY, worldY, mipZ, worldZ, mip, type, ind) {
         const level = mip.level
-        const arr = chunk.arr[level]
+        const arr = mips.arr[level]
         let volume = arr[ind]
         if (volume === 0) {
             return
@@ -760,21 +775,21 @@ export class SoundMap {
         const mipZ1 = mipZ + 1
         const worldX1 = worldX + smaller.cellXZ
         const worldZ1 = worldZ + smaller.cellXZ
-        ind = mipX * smaller.strideX + mipY * smaller.strideY + mipZ * smaller.strideZ + type * smaller.strideType
+        ind = mipX * smaller.strideX + mipY * smaller.strideY + mipZ * smaller.strideZ
         let indX1 = ind + smaller.strideX
-        this.addToSummary(chunk, mipX,  worldX,  mipY, worldY, mipZ,  worldZ,  smaller, type, ind)
-        this.addToSummary(chunk, mipX,  worldX,  mipY, worldY, mipZ1, worldZ1, smaller, type, ind + smaller.strideZ)
-        this.addToSummary(chunk, mipX1, worldX1, mipY, worldY, mipZ,  worldZ,  smaller, type, indX1)
-        this.addToSummary(chunk, mipX1, worldX1, mipY, worldY, mipZ1, worldZ1, smaller, type, indX1 + smaller.strideZ)
+        this.addToSummary(mips, mipX,  worldX,  mipY, worldY, mipZ,  worldZ,  smaller, type, ind)
+        this.addToSummary(mips, mipX,  worldX,  mipY, worldY, mipZ1, worldZ1, smaller, type, ind + smaller.strideZ)
+        this.addToSummary(mips, mipX1, worldX1, mipY, worldY, mipZ,  worldZ,  smaller, type, indX1)
+        this.addToSummary(mips, mipX1, worldX1, mipY, worldY, mipZ1, worldZ1, smaller, type, indX1 + smaller.strideZ)
         if (mip.dividerY !== 1) { // then mip.dividerY === 2
             mipY++
             worldY  += smaller.cellY
             ind     += smaller.strideY
             indX1   += smaller.strideY
-            this.addToSummary(chunk, mipX,  worldX,  mipY, worldY, mipZ,  worldZ,  smaller, type, ind)
-            this.addToSummary(chunk, mipX,  worldX,  mipY, worldY, mipZ1, worldZ1, smaller, type, ind + smaller.strideZ)
-            this.addToSummary(chunk, mipX1, worldX1, mipY, worldY, mipZ,  worldZ,  smaller, type, indX1)
-            this.addToSummary(chunk, mipX1, worldX1, mipY, worldY, mipZ1, worldZ1, smaller, type, indX1 + smaller.strideZ)
+            this.addToSummary(mips, mipX,  worldX,  mipY, worldY, mipZ,  worldZ,  smaller, type, ind)
+            this.addToSummary(mips, mipX,  worldX,  mipY, worldY, mipZ1, worldZ1, smaller, type, ind + smaller.strideZ)
+            this.addToSummary(mips, mipX1, worldX1, mipY, worldY, mipZ,  worldZ,  smaller, type, indX1)
+            this.addToSummary(mips, mipX1, worldX1, mipY, worldY, mipZ1, worldZ1, smaller, type, indX1 + smaller.strideZ)
         }
     }
 
