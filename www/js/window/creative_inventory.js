@@ -1,4 +1,4 @@
-import { Button, Graphics, Label, TextEdit, Window } from "../../tools/gui/wm.js";
+import { Button, Label, TextEdit, Window } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";

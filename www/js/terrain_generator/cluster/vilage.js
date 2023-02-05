@@ -1,9 +1,8 @@
-import { DIRECTION, Vector, VectorCollector} from "../../helpers.js";
+import {  Vector, VectorCollector} from "../../helpers.js";
 import { CLUSTER_PADDING } from "./base.js";
 import { VilageSchema } from "./vilage_schema.js";
 import { BuildingPalettes } from "./building/palette.js";
 import { impl as alea } from '../../../vendors/alea.js';
-import { BLOCK } from "../../blocks.js";
 
 // Buildings
 import { building_classes } from "./building/all.js";
@@ -24,19 +23,21 @@ export class ClusterVilage extends ClusterBuildingBase {
         this.randoms                = new alea(this.id);
         this.use_road_as_gangway    = this.randoms.double() <= USE_ROAD_AS_GANGWAY;
 
+        const bm = this.block_manager
+
         if(!this.is_empty) {
 
             this.flat               = this.randoms.double() >= .8;
             this.max_height         = this.flat ? 1 : 30;
-            this.wall_block         = this.flat ? BLOCK.STONE_BRICKS.id : BLOCK.OAK_PLANKS.id;
-            this.road_block         = this.createBlockPalette([{value: BLOCK.DIRT_PATH, chance: 1}]);
+            this.wall_block         = this.flat ? bm.STONE_BRICKS.id : bm.OAK_PLANKS.id;
+            this.road_block         = this.createBlockPalette([{value: bm.DIRT_PATH, chance: 1}]);
             this.road_block.reset();
-            this.basement_block     = this.flat ? BLOCK.POLISHED_ANDESITE.id : BLOCK.COBBLESTONE.id;
+            this.basement_block     = this.flat ? bm.POLISHED_ANDESITE.id : bm.COBBLESTONE.id;
 
             const {schema_options, building_palette_options} = this.initVilageOptions(biome)
 
             // Building palettes
-            this.building_palettes = new BuildingPalettes(this, building_palette_options, BLOCK);
+            this.building_palettes = new BuildingPalettes(this, building_palette_options, bm);
 
             // Generate vilage schema
             this.timers.start('generate')

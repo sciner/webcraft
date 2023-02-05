@@ -109,7 +109,7 @@ async function initWorld(generator, world_seed, world_guid, settings, cache) {
 
     await globalThis.BLOCK.init(settings);
     //
-    worlds = new WorkerWorldManager();
+    worlds = new WorkerWorldManager(globalThis.BLOCK);
     await worlds.InitTerrainGenerators([generator.id]);
 
     // bulding_schemas

@@ -42,7 +42,7 @@ export class Biome3LayerManager {
     }
 
     /**
-     * @param {object} chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @returns 
      */
     getLayer(chunk) {
@@ -61,7 +61,7 @@ export class Biome3LayerManager {
     }
 
     /**
-     * @param {object} chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {string} chunk_seed 
      * @param {*} rnd 
      * @returns {Default_Terrain_Map}

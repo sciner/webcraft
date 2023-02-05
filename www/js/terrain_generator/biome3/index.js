@@ -1,7 +1,7 @@
 import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from "../default.js";
 import { IndexedColor } from "../../helpers.js";
 import { createNoise2D } from '../../../vendors/simplex-noise.js';
-import { Chunk } from "../../worker/chunk.js";
+import { ChunkWorkerChunk } from "../../worker/chunk.js";
 import { NoiseFactory } from "./NoiseFactory.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { GENERATOR_OPTIONS } from "./terrain/manager.js";
@@ -20,6 +20,12 @@ export const DEFAULT_CELL = {
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
+    /**
+     * @param { import("../../worker/world.js").WorkerWorld } world 
+     * @param { string } seed 
+     * @param { string } world_id 
+     * @param { object } options 
+     */
     constructor(world, seed, world_id, options) {
 
         const al = new alea(seed)
@@ -30,7 +36,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.world          = world
         this.tempAlea       = al
         this.block_manager  = BLOCK
-        this.clusterManager = new ClusterManager(world.chunkManager, seed, 2)
+        this.clusterManager = new ClusterManager(world, seed, 2)
 
     }
 
@@ -52,7 +58,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     /**
      * Generate
-     * @param {Chunk} chunk 
+     * @param { ChunkWorkerChunk } chunk 
      * @returns 
      */
     generate(chunk) {
@@ -70,7 +76,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     /**
-     * @param {*} chunk 
+     * @param { ChunkWorkerChunk } chunk 
      * @returns {Default_Terrain_Map}
      */
     generateDefaultMap(chunk) {

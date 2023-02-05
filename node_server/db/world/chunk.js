@@ -1,4 +1,3 @@
-import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector, unixTime, getChunkAddr } from "../../../www/js/helpers.js";
 import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { decompressModifiresList } from "../../../www/js/compress/world_modify_chunk.js";
@@ -59,7 +58,7 @@ export class DBWorldChunk {
      * @yields fields of worlds_modify { params, entity_id, extra_data, block_id }
      */
     *_itemWMFields(item) {
-        yield BLOCK.fastStringify(item);
+        yield this.world.block_manager.fastStringify(item);
         yield item.entity_id ?? null;
         yield item.extra_data ? JSON.stringify(item.extra_data) : null;
         yield item.id;

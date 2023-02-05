@@ -1,5 +1,4 @@
 import { FSMBrain } from "../brain.js";
-import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
 import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
@@ -27,11 +26,12 @@ export class Brain extends FSMBrain {
         this.nest = null;   // гнездо 
         this.health = 4;    // максимальное здоровье
         this.distance_view = 6; // дистанция на которм виден игрок
+        const bm = mob.getWorld().block_manager
         this.targets = [
-            BLOCK.WHEAT_SEEDS.id,
-            BLOCK.MELON_SEEDS.id,
-            BLOCK.PUMPKIN_SEEDS.id,
-            BLOCK.BEETROOT_SEEDS.id
+            bm.WHEAT_SEEDS.id,
+            bm.MELON_SEEDS.id,
+            bm.PUMPKIN_SEEDS.id,
+            bm.BEETROOT_SEEDS.id
         ];
     }
     
@@ -45,7 +45,7 @@ export class Brain extends FSMBrain {
             if (!block) {
                 return;
             }
-            if (block.id == BLOCK.CHICKEN_NEST.id && block.extra_data.eggs < COUNT_EGGS_IN_NEST) {
+            if (block.id == world.block_manager.CHICKEN_NEST.id && block.extra_data.eggs < COUNT_EGGS_IN_NEST) {
                 this.egg_timer = performance.now();
                 this.nest_timer = performance.now();
                 this.nest = block;
@@ -71,7 +71,7 @@ export class Brain extends FSMBrain {
                 actions.addBlocks([{
                     pos: this.nest.posworld, 
                     item: {
-                        id: BLOCK.CHICKEN_NEST.id,
+                        id: world.block_manager.CHICKEN_NEST.id,
                         extra_data: {
                             eggs: this.nest.extra_data.eggs + 1
                         }
@@ -100,12 +100,13 @@ export class Brain extends FSMBrain {
     onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
+        const bm = world.block_manager
         const items = [];
         const actions = new WorldAction();
-        items.push({ id: type_damage != EnumDamage.FIRE ? BLOCK.CHICKEN.id : BLOCK.COOKED_CHICKEN.id, count: 1 });
+        items.push({ id: type_damage != EnumDamage.FIRE ? bm.CHICKEN.id : bm.COOKED_CHICKEN.id, count: 1 });
         const rnd_count_feather = (Math.random() * 2) | 0;
         if (rnd_count_feather > 0) {
-            items.push({ id: BLOCK.FEATHER.id, count: rnd_count_feather });
+            items.push({ id: bm.FEATHER.id, count: rnd_count_feather });
         }
         actions.addDropItem({ pos: mob.pos, items: items, force: true });
         actions.addPlaySound({ tag: 'madcraft:block.chicken', action: 'death', pos: mob.pos.clone() });
@@ -119,9 +120,10 @@ export class Brain extends FSMBrain {
         }
         
         const mob = this.mob;
-        const world = mob.getWorld();
+        const world = mob.getWorld()
+        const bm = world.block_manager
         
-        if (id == BLOCK.WHEAT_SEEDS.id) {
+        if (id == bm.WHEAT_SEEDS.id) {
             console.log('use');
             return true;
         }

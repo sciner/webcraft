@@ -11,15 +11,13 @@ import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
 import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
-import { BLOCK } from "../www/js/blocks.js";
 import { ServerPlayerEffects } from "./player/effects.js";
 import { Effect } from "../www/js/block_type/effect.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
+import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
 import { DBWorld } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
-import {compressNearby, NEARBY_FLAGS} from "../www/js/packet_compressor.js";
-import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
+import {compressNearby} from "../www/js/packet_compressor.js";
 
 export class NetworkMessage {
     constructor({
@@ -742,7 +740,7 @@ export class ServerPlayer extends Player {
                 const item = this.inventory.items[this.inventory.current.index];
                 if (item.id == this.cast.id) {
                     // если предмет это еда
-                    const block = BLOCK.fromId(this.cast.id);
+                    const block = this.world.block_manager.fromId(this.cast.id);
                     if (block.food) {
                         this.setFoodLevel(block.food.amount, block.food.saturation);
                     }
@@ -801,11 +799,12 @@ export class ServerPlayer extends Player {
             return true;
         }
         const world = this.world;
+        const bm = world.block_manager
         const world_block = world.getBlock(new Vector(data.pos));
         if (!world_block) {
             return false;
         }
-        const block = BLOCK.fromId(world_block.id);
+        const block = bm.fromId(world_block.id);
         if (!block) {
             return false;
         }
@@ -813,7 +812,7 @@ export class ServerPlayer extends Player {
         if (!head) {
             return false;
         }
-        const instrument = BLOCK.fromId(this.state.hands.right.id);
+        const instrument = bm.fromId(this.state.hands.right.id);
         let mul = world.getGeneratorOptions('tool_mining_speed', 1);
         mul *= (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) ? 0.2 : 1;
         mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
@@ -832,7 +831,7 @@ export class ServerPlayer extends Player {
 
     // использование предметов и оружия
     onAttackEntity(button_id, mob_id, player_id) {
-        const item = BLOCK.fromId(this.state.hands.right.id);
+        const item = this.world.block_manager.fromId(this.state.hands.right.id);
         const damage = item?.damage ? item.damage : 1;
         const delay = item?.speed ? 200 / item.speed : 200;
         const time = performance.now() - this.timer_reload;

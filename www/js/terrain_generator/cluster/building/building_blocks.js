@@ -5,6 +5,15 @@ import { Building } from "../building.js";
 // 
 export class BuildingBlocks extends Building {
 
+    /**
+     * @param {*} cluster 
+     * @param {float} seed 
+     * @param {Vector} coord 
+     * @param {Vector} entrance 
+     * @param {int} door_direction 
+     * @param {Vector} size 
+     * @param {*} building_template 
+     */
     constructor(cluster, seed, coord, entrance, door_direction, size, building_template) {
         super(cluster, seed, coord, entrance, door_direction, size, building_template)
         this.chunks = new VectorCollector()
@@ -52,7 +61,7 @@ export class BuildingBlocks extends Building {
 
     /**
      * @param { import("../base.js").ClusterBase } cluster
-     * @param {*} chunk 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {*} map
      */
     draw(cluster, chunk, map) {

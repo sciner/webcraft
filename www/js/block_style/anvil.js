@@ -1,11 +1,15 @@
 import { DIRECTION, IndexedColor } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
 // Наковальня
 export default class style {
-    
-    static getRegInfo() {
+
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['anvil'],
             func: this.func,
@@ -30,13 +34,13 @@ export default class style {
         }
         
         const texture = block.material.texture;
-        const side = BLOCK.calcTexture(texture, DIRECTION.WEST);
+        const side = style.block_manager.calcTexture(texture, DIRECTION.WEST);
         let up = side;
         const damage = block.extra_data?.damage;
         if (damage == 1) {
-            up = BLOCK.calcTexture(texture, DIRECTION.NORTH);
+            up = style.block_manager.calcTexture(texture, DIRECTION.NORTH);
         } else if (damage == 2) {
-            up = BLOCK.calcTexture(texture, DIRECTION.SOUTH);
+            up = style.block_manager.calcTexture(texture, DIRECTION.SOUTH);
         }
         const cd = block.getCardinalDirection();
         box(16, 10, 6, 10, cd, vertices, side, up, x, y, z);
