@@ -120,7 +120,11 @@ class Music {
         currentName = this.track?.name ?? currentName
         this._unloadTrack()
 
-        if (withPause && !this.#timeoutId) {
+        if (this.#timeoutId) {
+            return // it's already scheduled. It'll start later. Don't start anything now.
+        }
+
+        if (withPause) {
             this.schedulePlay(MUSIC_PAUSE_SECONDS * 1000, () => {
                 this._switchTrack(false, currentName)
             })
