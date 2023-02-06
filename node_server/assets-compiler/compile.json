@@ -9441,6 +9441,63 @@
                 "east": "block/cauldron_inner.png",
                 "down": "block/cauldron_bottom.png"
             }
+        },
+        {
+            "id": 1042,
+            "name": "CHORUS_PLANT",
+            "sound": "madcraft:block.grass",
+            "style": "chorus",
+            "transparent": true,
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "up": "block/chorus_flower.png",
+                "side": "block/chorus_plant.png",
+                "down": "block/chorus_flower_dead.png"
+            },
+            "ticking": {
+                "type": "chorus"
+            },
+            "extra_data": {
+                "stage": 0,
+                "east": false,
+                "west": false,
+                "north":false,
+                "south": false,
+                "up": false,
+                "down": false
+            }
+        },
+        {
+            "id": 1043,
+            "name": "CHORUS_FRUIT",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ],
+            "food": {
+                "amount": 4,
+                "saturation": 0.3
+            },
+            "texture": "item/chorus_fruit.png",
+            "coocked_item": {"name": "POPPED_CHORUS_FRUIT", "count": 1}
+        },
+        {
+            "id": 1044,
+            "name": "POPPED_CHORUS_FRUIT",
+            "style": "extruder",
+            "diagonal": true,
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            },
+            "texture": "item/popped_chorus_fruit.png"
         }
         
     ]
