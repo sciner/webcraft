@@ -10,7 +10,7 @@ export class QuestActionBase {
         this.update();
     }
 
-    async checkAndMarkDirty() {
+    checkAndMarkDirty() {
         return this.#quest.checkAndMarkDirty();
     }
 
@@ -20,7 +20,7 @@ export class QuestActionBase {
     }
 
     // processTriggerEvent...
-    async processTriggerEvent(quest, e) {
+    processTriggerEvent(quest, e) {
         // need to process player game event
     }
 

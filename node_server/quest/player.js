@@ -106,7 +106,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.SET_BLOCK) {
-                    await action.processTriggerEvent(quest, e);
+                    action.processTriggerEvent(quest, e);
                 }
             }
         }
@@ -134,7 +134,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.PICKUP) {
-                    await action.processTriggerEvent(quest, e);
+                    action.processTriggerEvent(quest, e);
                 }
             }
         }
@@ -156,7 +156,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.CRAFT) {
-                    await action.processTriggerEvent(quest, e);
+                    action.processTriggerEvent(quest, e);
                 }
             }
         }
@@ -179,7 +179,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.PICKUP) {
-                    await action.processTriggerEvent(quest, e);
+                    action.processTriggerEvent(quest, e);
                 }
             }
         }
