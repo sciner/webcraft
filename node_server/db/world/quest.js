@@ -141,7 +141,7 @@ export class DBWorldQuest {
      * @param {Array of Array} rows - the results of {@link playerQuestToRow}
      * @param {Int} dt - unix time
      */
-    bulkInsertPlayerQuests(rows, dt) {
+    async bulkInsertPlayerQuests(rows, dt) {
         return rows.length
             ? run(this.conn, this.BULK_INSERT_PLAYER_QUESTS, {
                   ":jsonRows": JSON.stringify(rows),
@@ -160,7 +160,7 @@ export class DBWorldQuest {
     `);
 
     /** @param {Array of Array} rows - the results of {@link playerQuestToRow} */
-    bulkUpdatePlayerQuests(rows) {
+    async bulkUpdatePlayerQuests(rows) {
         return rows.length
             ? run(this.conn, this.BULK_UPDATE_PLAYER_QUESTS, {
                   ":jsonRows": JSON.stringify(rows),
