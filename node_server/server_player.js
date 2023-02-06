@@ -8,7 +8,7 @@ import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../www/js/constant.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE, PLAYER_WIDTH, PLAYER_HEIGHT } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { ServerPlayerEffects } from "./player/effects.js";
@@ -17,7 +17,9 @@ import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_t
 import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
 import { DBWorld } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
-import {compressNearby} from "../www/js/packet_compressor.js";
+import {compressNearby, NEARBY_FLAGS} from "../www/js/packet_compressor.js";
+import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
+import { AABB } from "../www/js/core/AABB.js"
 
 export class NetworkMessage {
     constructor({
@@ -99,6 +101,8 @@ export class ServerPlayer extends Player {
         this.sharedProps = new ServerPlayerSharedProps(this);
 
         this.timer_reload = performance.now();
+
+        this._aabb = new AABB()
     }
 
     init(init_info) {
@@ -381,6 +385,26 @@ export class ServerPlayer extends Player {
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
         this.effects.checkEffects();
+        //this.updateAABB()
+    }
+
+    isAlive() { 
+        return this.live_level > 0 
+    }
+
+    /**
+     * @returns {AABB}
+     */
+    get aabb() {
+        this._aabb.set(
+            this.state.pos.x - PLAYER_WIDTH / 2,
+            this.state.pos.y,
+            this.state.pos.z - PLAYER_WIDTH / 2,
+            this.state.pos.x + PLAYER_WIDTH / 2,
+            this.state.pos.y + PLAYER_HEIGHT,
+            this.state.pos.z + PLAYER_WIDTH / 2
+        )
+        return this._aabb
     }
 
     async checkWaitPortal() {
