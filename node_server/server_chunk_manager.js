@@ -299,7 +299,7 @@ export class ServerChunkManager {
         if(invChunks.length === 0) {
             return false;
         }
-        const p = performance.now();
+        let p = performance.now();
 
         let cnt = 0;
         for (let i = 0; i < invChunks.length; i++) {
@@ -322,10 +322,14 @@ export class ServerChunkManager {
             return false;
         }
 
-        this.dataWorld.removeChunks(invChunks);
+        const elapsed1 = Math.round((performance.now() - p) * 10) / 10;
+        p = performance.now();
 
-        const elapsed = Math.round((performance.now() - p) * 10) / 10;
-        console.debug(`Unload invalid chunks: ${cnt}; elapsed: ${elapsed} ms`);
+        this.dataWorld.removeChunks(invChunks);
+        invChunks.length = 0;
+
+        const elapsed2 = Math.round((performance.now() - p) * 10) / 10;
+        console.debug(`Unload invalid chunks: ${cnt}; elapsed: ${elapsed1} ms , ${elapsed2} ms`);
         return true;
     }
 
@@ -427,7 +431,7 @@ export class ServerChunkManager {
     }
 
     _getUnloadedChunksTtl() {
-        Mth.lerpLUT(this.unloading_chunks.size, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT);
+        return Mth.lerpLUT(this.unloading_chunks.size, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT) * 1000;
     }
 
     chunkUnloaded(chunk) {
