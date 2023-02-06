@@ -74,7 +74,7 @@ export class DBWorldQuest {
     }
 
     /**
-     * @return {Map of Object} all quest groups, each containing a subset of its quests.
+     * @return {Map of Object} all quest groups, each containing a subset of its quests (where is_default = 1).
      * Keys = group ids
      * Values: {
      *  id      Int
@@ -141,7 +141,7 @@ export class DBWorldQuest {
      * @param {Array of Array} rows - the results of {@link playerQuestToRow}
      * @param {Int} dt - unix time
      */
-    async bulkInsertPlayerQuests(rows, dt) {
+    bulkInsertPlayerQuests(rows, dt) {
         return rows.length
             ? run(this.conn, this.BULK_INSERT_PLAYER_QUESTS, {
                   ":jsonRows": JSON.stringify(rows),
@@ -160,7 +160,7 @@ export class DBWorldQuest {
     `);
 
     /** @param {Array of Array} rows - the results of {@link playerQuestToRow} */
-    async bulkUpdatePlayerQuests(rows) {
+    bulkUpdatePlayerQuests(rows) {
         return rows.length
             ? run(this.conn, this.BULK_UPDATE_PLAYER_QUESTS, {
                   ":jsonRows": JSON.stringify(rows),

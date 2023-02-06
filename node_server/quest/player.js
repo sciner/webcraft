@@ -49,7 +49,7 @@ export class QuestPlayer {
     }
 
     // Starts all default quests if a player has no quests
-    async startDefaultQuests() {
+    startDefaultQuests() {
         // Get all quest groups in game
         const all_enabled_quest_groups = this.quest_manager.getGroupsWithDefaultQuests();
         for(let group of all_enabled_quest_groups) {
