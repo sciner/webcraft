@@ -78,12 +78,8 @@ export class PlayerInventory extends Inventory {
         this.player.state.hands.right = this.current_item;
         if(this.hud) {
             this.hud.refresh();
-            try {
-                const frmRecipe = this.hud.wm.getWindow('frmRecipe');
-                frmRecipe.paginator.update();
-            } catch(e) {
-                // do nothing
-            }
+            const frmRecipe = this.hud.wm.getVisibleWindowOrNull('frmRecipe');
+            frmRecipe?.paginator.update();
         }
         return true;
     }

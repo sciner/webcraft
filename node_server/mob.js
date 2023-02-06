@@ -5,6 +5,28 @@ import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
 import { DBWorldMob } from "./db/world/mob.js"
 import { AABB } from "../www/js/core/AABB.js";
 
+export class MobSpawnParams {
+
+    /**
+     * @type { int }
+     */
+    id
+
+    /**
+     * @type { string }
+     */
+    entity_id
+
+    constructor(pos, rotate, type, skin) {
+        this.pos = new Vector(pos)
+        this.pos_spawn = new Vector(pos)
+        this.rotate = new Vector(rotate)
+        this.type = type
+        this.skin = skin
+    }
+
+}
+
 //
 export class MobState {
     
@@ -120,7 +142,12 @@ export class Mob {
         return this.#brain;
     }
 
-    // Create new mob
+    /**
+     * Create new mob
+     * @param {*} world 
+     * @param { MobSpawnParams } params 
+     * @returns { ?Mob }
+     */
     static create(world, params) {
         const model = world.models.list.get(params.type);
         if(!model) {
@@ -148,6 +175,10 @@ export class Mob {
         return new Mob(world, params, false);
     }
 
+    /**
+     * @param {float} delta 
+     * @returns 
+     */
     tick(delta) {
         if(this.indicators.live.value == 0) {
             return false;
@@ -156,6 +187,9 @@ export class Mob {
         this.#brain.tick(delta);
     }
 
+    /**
+     * @param {Vector} vec 
+     */
     addVelocity(vec) {
         this.#brain.pc.player_state.vel.addSelf(vec);
         this.#brain.pc.tick(0);
@@ -227,12 +261,15 @@ export class Mob {
 
     // Deactivate
     deactivate() {
-        this.is_active  = false;
+        this.is_active = false;
         this.dirtyFlags |= Mob.DIRTY_FLAG_FULL_UPDATE;
         this.#world.mobs.inactiveByEntityId.set(this.entity_id, this);
         this.onUnload();
     }
 
+    /**
+     * @returns {boolean}
+     */
     isAlive() {
         return this.indicators.live.value > 0;
     }
@@ -258,6 +295,9 @@ export class Mob {
         }, true);
     }
 
+    /**
+     * @returns {MobState}
+     */
     exportState() {
         return new MobState(this.id, this.pos, this.rotate, this.extra_data);
     }
@@ -304,4 +344,5 @@ export class Mob {
         DBWorldMob.upgradeRowToInsert(row, this);
         underConstruction.insertMobRows.push(row);
     }
+
 }

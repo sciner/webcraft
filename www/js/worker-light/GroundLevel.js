@@ -26,6 +26,7 @@ export class ChunkGroundLevel {
         this.chunk = chunk;
         this.worldGroundLevel = chunk.world.groundLevel;
 
+        this.dayID = 0;
         this.minLightY = [];
         for(let z = 0; z < chunk.size.z; z += GROUND_BUCKET_SIZE) {
             for(let x = 0; x < chunk.size.x; x += GROUND_BUCKET_SIZE) {
@@ -44,9 +45,19 @@ export class ChunkGroundLevel {
         this.xzKey = chunk.addr.x.toString() + '_' + chunk.addr.z;
     }
 
-    calcMinLightY(is4444) {
+    check() {
+        if (this.dayID === this.chunk.calc.dayID) {
+            return false;
+        }
+        this.dayID = this.chunk.calc.dayID;
+        this.calcMinLightY();
+        return true;
+    }
+
+    calcMinLightY() {
         const chunk = this.chunk;
-        const {outerSize, size, lightChunk, lightResult} = chunk;
+        const {outerSize, size, lightChunk} = chunk;
+        const {lightData} = chunk.calc;
 
         // strides for chunk.lightResult
         const rsx = 1;
@@ -61,13 +72,11 @@ export class ChunkGroundLevel {
         const szBucket = size.x / GROUND_BUCKET_SIZE | 0;
 
         function isDryLit(ind, indUint8View) {
-            const hasLight = is4444
-                ? (lightResult[ind] & 0xF00) !== 0xF00
-                : lightResult[ind * 4 + 1] !== 0xFF;
+            const hasLight = (lightData[ind] & 0xF0) !== 0;
             return hasLight && (uint8View[indUint8View + OFFSET_SOURCE] & MASK_SRC_BLOCK) === 0;
         }
 
-        for(var i = 0; i < this.minLightY.length; i++) {
+        for(let i = 0; i < this.minLightY.length; i++) {
             this.minLightY[i].y = Infinity;
         }
         // for each column

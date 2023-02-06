@@ -3,9 +3,7 @@ import {
     FLUID_WATER_INTERACT16, FLUID_WATER_REMOVE16,
     FLUID_WATER_ABOVE_INTERACT16, FLUID_WATER_ABOVE_REMOVE16
 } from "./FluidConst.js";
-import {
-    BLOCK
-} from "./../blocks.js";
+
 import {SingleQueue} from "../light/MultiQueue.js";
 import { Vector } from "../helpers.js";
 
@@ -124,6 +122,11 @@ export class FluidChunkEvents {
                 }
     }
 
+    /**
+     * @param {Function} cb. Calback arguments:
+     *   - pos: Vector (mutable, can't be saved!!)
+     *   - isAbove: Boolean. True if the even is caused by the change of the fluid in the block above the current block.
+     */
     process(cb) {
         let {list, qplace} = this;
         const {outerSize, pos, cw} = this.fluidChunk.dataChunk;

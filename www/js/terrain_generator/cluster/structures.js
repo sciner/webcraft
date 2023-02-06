@@ -1,8 +1,7 @@
-import { ClusterBuildingBase, getAheadMove } from "./building_cluster_base.js";
-import { BLOCK } from "../../blocks.js";
+import { ClusterBuildingBase } from "./building_cluster_base.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import { BuildingTemplate } from "./building_template.js";
-import { DIRECTION, Vector } from "../../helpers.js";
+import { Vector } from "../../helpers.js";
 
 //
 export class ClusterStructures extends ClusterBuildingBase {
@@ -20,7 +19,7 @@ export class ClusterStructures extends ClusterBuildingBase {
 
         this.moveToRandomCorner()
 
-        const bm = BLOCK
+        const bm = this.block_manager
 
         const schemas = [
             'structure1', 'structure2', 'mine', 'underearth_tower',

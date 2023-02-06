@@ -1,12 +1,16 @@
 import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {pushSym} from '../core/CubeSym.js';
-import {BLOCK, shapePivot} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
 // Люк
 export default class style {
 
-    static getRegInfo() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['trapdoor'],
             aabb: style.computeAABB,
@@ -15,18 +19,19 @@ export default class style {
     }
 
     static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const bm = style.block_manager
         const shapes = []
         const cardinal_direction = tblock.getCardinalDirection()
-        const opened = BLOCK.isOpened(tblock)
-        const on_ceil = BLOCK.isOnCeil(tblock)
+        const opened = bm.isOpened(tblock)
+        const on_ceil = bm.isOnCeil(tblock)
         const sz = 3 / 16 // 15.9;
         if(opened) {
-            shapes.push(new AABB(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot))
+            shapes.push(new AABB(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, Vector.SHAPE_PIVOT))
         } else {
             if(on_ceil) {
-                shapes.push(new AABB(0, 1-sz, 0, 1, 1, 1, sz).rotate(cardinal_direction, shapePivot))
+                shapes.push(new AABB(0, 1-sz, 0, 1, 1, 1, sz).rotate(cardinal_direction, Vector.SHAPE_PIVOT))
             } else {
-                shapes.push(new AABB(0, 0, 0, 1, sz, 1, sz).rotate(cardinal_direction, shapePivot))
+                shapes.push(new AABB(0, 0, 0, 1, sz, 1, sz).rotate(cardinal_direction, Vector.SHAPE_PIVOT))
             }
         }
         return shapes
@@ -34,7 +39,9 @@ export default class style {
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+        const bm = style.block_manager
+
+        if(!block || typeof block == 'undefined' || block.id == bm.AIR.id) {
             return;
         }
 
@@ -93,9 +100,9 @@ export default class style {
         //     cardinal_direction = CubeSym.add(CubeSym.ROT_Z2, cardinal_direction);
         // }
         if(block.extra_data.opened) {
-            let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-            let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
-            let tex_side = BLOCK.calcTexture(texture, DIRECTION_LEFT);
+            let tex_up_down = bm.calcTexture(texture, DIRECTION_FORWARD);
+            let tex_front  = bm.calcTexture(texture, DIRECTION_UP);
+            let tex_side = bm.calcTexture(texture, DIRECTION_LEFT);
             let x_pos = 0;
             let z_pos = 0;
             let y_pos = 0; // нарисовать в нижней части блока
@@ -119,9 +126,9 @@ export default class style {
                 x_pos - .5, y_pos - .5, z_pos - .5,
                 size.x, size.y, size.z, tex_up_down, tex_front, tex_side, block.extra_data.opened, on_ceil);
         } else {
-            let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_UP);
-            let tex_front  = BLOCK.calcTexture(texture, DIRECTION_LEFT);
-            let tex_side = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
+            let tex_up_down = bm.calcTexture(texture, DIRECTION_UP);
+            let tex_front  = bm.calcTexture(texture, DIRECTION_LEFT);
+            let tex_side = bm.calcTexture(texture, DIRECTION_FORWARD);
             let y_pos = on_ceil ? 1 - thickness : 0; // нарисовать в верхней части блока
             tex_front[1] -= (thickness * 2 +  .5/16) / TX_CNT;
             tex_front[3] = thickness / TX_CNT;

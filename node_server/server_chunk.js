@@ -1,12 +1,11 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_STATE } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
-import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { dropBlock, WorldAction } from "../www/js/world_action.js";
 import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "../www/js/constant.js";
-import { compressWorldModifyChunk, decompressModifiresList } from "../www/js/compress/world_modify_chunk.js";
+import { compressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
@@ -131,12 +130,11 @@ export class ServerChunk {
         this.randomTickingBlockCount = 0;
         this.block_random_tickers = this.getChunkManager().block_random_tickers;
         this.options        = {};
-        if(['biome2'].indexOf(world.info.generator.id) >= 0) {
-            this.mobGenerator   = new MobGenerator(this);
+        // World mobs generator
+        if(world.getGeneratorOptions('auto_generate_mobs', false)) {
+            this.mobGenerator = new MobGenerator(this);
         }
-        //if(['npc'].indexOf(world.info.generator.id) >= 0) {
-        //    this.mobGenerator = new MobGenerator(this);
-        //}
+        //
         this.setState(CHUNK_STATE.NEW);
         this.dataChunk      = null;
         this.fluid          = null;
@@ -474,7 +472,7 @@ export class ServerChunk {
         this.randomTickingBlockCount = 0;
         for(let i = 0; i < this.tblocks.id.length; i++) {
             const block_id = this.tblocks.id[i];
-            if(BLOCK.isRandomTickingBlock(block_id)) {
+            if(this.world.block_manager.isRandomTickingBlock(block_id)) {
                 this.randomTickingBlockCount++;
             }
         }
@@ -565,7 +563,7 @@ export class ServerChunk {
                 _pos.fromFlatChunkIndex(index);
                 // @todo if chest
                 if(!block || block.id != current_block_on_pos.id) {
-                    block = BLOCK.fromId(current_block_on_pos.id);
+                    block = this.world.block_manager.fromId(current_block_on_pos.id);
                 }
                 if(block.ticking && current_block_on_pos.extra_data && !('notick' in current_block_on_pos.extra_data)) {
                     this.ticking_blocks.add(_pos.add(this.coord));
@@ -667,7 +665,7 @@ export class ServerChunk {
     // getBlockAsItem
     getBlockAsItem(pos, y, z) {
         const block = this.getBlock(pos, y, z);
-        return BLOCK.convertBlockToDBItem(block);
+        return this.world.block_manager.convertBlockToDBItem(block);
     }
 
     getFluidValue(pos, y, z) {
@@ -701,6 +699,7 @@ export class ServerChunk {
 
         let actions;
         const world = this.world;
+        const bm = world.block_manager
 
         //
         const addBlock = (pos, item) => {
@@ -715,17 +714,17 @@ export class ServerChunk {
             if(require_support == 'uncertain_stone') {
                 // определяем неопределенный камень
                 const item = {
-                    id: BLOCK.STONE.id
+                    id: bm.STONE.id
                 }
                 // количество сплошных блоков вокруг текущего блока
                 const solid_neightbours_count = tblock.tb.blockSolidNeighboursCount(tblock.vec.x, tblock.vec.y, tblock.vec.z)
                 // если блок прикрывал сплошной блок
-                if(solid_neightbours_count == 6 || (BLOCK.isSolidID(previous_neighbour.id) && solid_neightbours_count == min_solid_count)) {
+                if(solid_neightbours_count == 6 || (bm.isSolidID(previous_neighbour.id) && solid_neightbours_count == min_solid_count)) {
                     // 1. Если сейчас вокруг блока 5 сплошных блоков, а убрали сплошной,
                     //    значит текущий блок только что был "вскрыт" и его можно превратить в руду)
                     // 2. Если вокруг блока 6 сплошных, значит убрали блок в радиусе 2 блока от текущего и также нужно его определить сейчас,
                     //    чтобы при дальнейшем продолжении раскопок в данном направлении блоки уже были определенными и не "мерцали"
-                    item.id = world.ore_generator.generate(tblock.posworld, BLOCK.STONE.id)
+                    item.id = world.ore_generator.generate(tblock.posworld, bm.STONE.id)
                 }
                 addBlock(tblock.posworld.clone(), item)
             }
@@ -766,7 +765,9 @@ export class ServerChunk {
     // On block set
     async onBlockSet(item_pos, item, previous_item) {
 
+        const bm = this.world.block_manager
         const tblock = this.world.getBlock(item_pos);
+
         if(tblock) {
             const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
             const neighbours = tblock.getNeighbours(this.world, cache);
@@ -780,13 +781,13 @@ export class ServerChunk {
 
         switch(item.id) {
             // 1. Make snow golem
-            case BLOCK.LIT_PUMPKIN.id: {
+            case bm.LIT_PUMPKIN.id: {
                 const pos = item_pos.clone();
                 pos.y--;
                 let under1 = this.world.getBlock(pos.clone());
                 pos.y--;
                 let under2 = this.world.getBlock(pos.clone());
-                if(under1?.id == BLOCK.POWDER_SNOW.id && under2?.id == BLOCK.POWDER_SNOW.id) {
+                if(under1?.id == bm.POWDER_SNOW.id && under2?.id == bm.POWDER_SNOW.id) {
                     pos.addSelf(new Vector(.5, 0, .5));
                     const params = {
                         type           : 'snow_golem',
@@ -798,9 +799,9 @@ export class ServerChunk {
                     this.world.mobs.create(params);
                     const actions = new WorldAction(null, this.world, false, false);
                     actions.addBlocks([
-                        {pos: item_pos, item: {id: BLOCK.AIR.id}, destroy_block_id: item.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
-                        {pos: under1.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: under1?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
-                        {pos: under2.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: under2?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}
+                        {pos: item_pos, item: {id: bm.AIR.id}, destroy_block_id: item.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
+                        {pos: under1.posworld, item: {id: bm.AIR.id}, destroy_block_id: under1?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
+                        {pos: under2.posworld, item: {id: bm.AIR.id}, destroy_block_id: under2?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}
                     ])
                     this.world.actions_queue.add(null, actions);
                 }
@@ -819,12 +820,13 @@ export class ServerChunk {
     onNeighbourChanged(tblock, neighbour, previous_neighbour) {
 
         const world = this.world;
+        const bm = world.block_manager
 
         // метод работы со сталактитами и сталагмитами
         const changePointedDripstone = () => {
             const up = tblock?.extra_data?.up;
             const block = this.getBlock(neighbour.posworld.offset(0, up ? 2 : -2, 0), null, true);
-            if (block?.id == BLOCK.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
+            if (block?.id == bm.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
                 const actions = new WorldAction();
                 actions.addBlocks([{
                     pos: block.posworld.clone(),
@@ -846,9 +848,9 @@ export class ServerChunk {
             const actions = new WorldAction(null, world, false, true);
             //
             if(generate_destroy) {
-                actions.addBlocks([{pos: pos.clone(), item: {id: BLOCK.AIR.id}, destroy_block_id: tblock.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+                actions.addBlocks([{pos: pos.clone(), item: {id: bm.AIR.id}, destroy_block_id: tblock.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
             } else {
-                actions.addBlocks([{pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+                actions.addBlocks([{pos: pos.clone(), item: {id: bm.AIR.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
             }
             //
             if (!tblock.material.tags.includes('no_drop')) {
@@ -869,7 +871,7 @@ export class ServerChunk {
         // Different behavior, depending on whether the neighbor was destroyed or created
         if(neighbour_destroyed) {
 
-            if (tblock.id == BLOCK.SNOW.id && neighbourPos.y < pos.y) {
+            if (tblock.id == bm.SNOW.id && neighbourPos.y < pos.y) {
                 return createDrop(tblock, true);
             }
 
@@ -1047,7 +1049,7 @@ export class ServerChunk {
                     break;
                 }
                 case 'chest': {
-                    const chestId = BLOCK.CHEST.id;
+                    const chestId = bm.CHEST.id;
                     // check if we can combine two halves into a double chest
                     if (neighbourPos.y !== pos.y ||
                         tblock.material.id !== chestId ||
@@ -1057,8 +1059,8 @@ export class ServerChunk {
                     ) {
                         break;
                     }
-                    const dir = BLOCK.getCardinalDirection(rot);
-                    if (dir !== BLOCK.getCardinalDirection(neighbour.rotate)) {
+                    const dir = bm.getCardinalDirection(rot);
+                    if (dir !== bm.getCardinalDirection(neighbour.rotate)) {
                         break;
                     }
                     var newType = null;
@@ -1074,7 +1076,7 @@ export class ServerChunk {
                         if (farNeighbour &&
                             farNeighbour.material.id === chestId &&
                             farNeighbour.extra_data?.type == null &&
-                            dir === BLOCK.getCardinalDirection(farNeighbour.rotate)
+                            dir === bm.getCardinalDirection(farNeighbour.rotate)
                         ) {
                             break;
                         }
@@ -1113,7 +1115,7 @@ export class ServerChunk {
                     // заменяем неопределенный камень на просто камень,
                     // потому что рядом с ним поставили какой-то блок
                     const item = {
-                        id: BLOCK.STONE.id
+                        id: bm.STONE.id
                     }
                     const actions = new WorldAction(null, null, false, false);
                     actions.addBlocks([{
@@ -1138,6 +1140,7 @@ export class ServerChunk {
     // Store in modify list
     addModifiedBlock(pos, item, previousId) {
         const ml = this.modify_list;
+        const bm = this.world.block_manager
         if(!ml.obj) ml.obj = {};
         pos = Vector.vectorify(pos);
         ml.obj[pos.getFlatIndexInChunk()] = item;
@@ -1145,12 +1148,12 @@ export class ServerChunk {
         ml.private_compressed = null;
         if(item) {
             // calculate random ticked blocks
-            if(BLOCK.BLOCK_BY_ID[previousId]?.random_ticker) {
+            if(bm.BLOCK_BY_ID[previousId]?.random_ticker) {
                 this.randomTickingBlockCount--;
             }
             //
             if(item.id) {
-                const block = BLOCK.fromId(item.id);
+                const block = bm.fromId(item.id);
                 if(block.random_ticker) {
                     this.randomTickingBlockCount++;
                 }
@@ -1220,7 +1223,7 @@ export class ServerChunk {
         const that = this;
         function processResult(res, calleeId) {
             if (typeof res === 'number') {
-                that.addDelayedCall(calleeId, res, [pos]);
+                that.addDelayedCall(calleeId, res, [pos.clone()]);
             } else {
                 TickerHelpers.pushBlockUpdates(that.blocksUpdatedByListeners, res);
             }

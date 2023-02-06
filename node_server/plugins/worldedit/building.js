@@ -1,8 +1,5 @@
-import { Vector, VectorCollector } from "../../../www/js/helpers.js";
-
-import fs from "fs";
+import { Vector } from "../../../www/js/helpers.js";
 import { BuildingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
-import { BLOCK } from "../../../www/js/blocks.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
 //
@@ -242,10 +239,10 @@ export class WorldEditBuilding {
         }
 
         // export
-        const file_name = `./data/building_schema/${building.name}.json`;
+        const file_name = `./data/building_schema/${building.name}.js`;
 
         // Write building to file
-        const json = JSON.stringify(building)
+        const json = 'export default '.JSON.stringify(building)
         fs.writeFileSync(file_name, json)
 
         // Update in memory

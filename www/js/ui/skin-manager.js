@@ -115,13 +115,13 @@ export class SkinManager {
     }
 
     onCurrentSkinChange() {
-        this.#controller.$apply(() => {
+        // this.#controller.$apply(() => {
             if(this.skinViewer) {
                 const model = this.currentSkin.type ? 'slim' : 'default';
                 this.skinViewer.loadSkin(this.currentSkin.file, {model})
             }
             this.currentSkinIsOwned = this.currentSkin?.owned || false;
-        });
+        // });
     }
 
     reloadSkins() {
@@ -166,6 +166,9 @@ export class SkinManager {
 
     //
     initProfilePage() {
+        if(typeof initProfilePage == 'undefined') {
+            return false
+        }
         if(this.$timeout) {
             this.$timeout(() => {
                 this.catchSlider(initProfilePage(this.index));

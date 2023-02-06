@@ -4,11 +4,13 @@ import {
     FLUID_LAVA_ID,
     FLUID_STRIDE, FLUID_TYPE_MASK,
     FLUID_WATER_ID, FLUID_WATER_INTERACT, fluidBlockProps, OFFSET_BLOCK_PROPS,
-    OFFSET_FLUID
+    OFFSET_FLUID,
+    FLUID_LEVEL_MASK
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
 import {AABB} from "../core/AABB.js";
 import { gzip, ungzip } from '../../vendors/pako.esm.min.mjs';
+import { FluidChunkFlowing } from "./FluidChunkFlowing.js";
 
 export class FluidChunk {
     constructor({dataChunk, dataId, parentChunk = null, world = null}) {
@@ -28,6 +30,8 @@ export class FluidChunk {
         this.updateID = 0;
         this.boundsID = -1;
         this.meshID = -1;
+
+        this.flowing = null; // Client-only
 
         /**
          * local bounds INCLUDE
@@ -90,6 +94,15 @@ export class FluidChunk {
         return pcnt;
     }
 
+    /**
+     * It starts tracking changes of blocks with flowing fluids in this chunk, if it isn't being tracking them already.
+     * It sends the map of all flowing blocks.
+     */
+    startTrackingAndSendFlowing(queryId) {
+        this.flowing = this.flowing ?? new FluidChunkFlowing(this)
+        this.flowing.sendAll(queryId)
+    }
+
     setValuePortals(index, wx, wy, wz, value, portals, portalLen) {
         const {safeAABB} = this.dataChunk;
         if (safeAABB.contains(wx, wy, wz)) {
@@ -121,13 +134,15 @@ export class FluidChunk {
         const {uint8View} = this;
         this._localBounds.set(size.x, size.y, size.z, 0, 0, 0);
         for (let y = 0; y < size.y; y++)
-            for (let z = 0; z < size.z; z++)
+            for (let z = 0; z < size.z; z++) {
+                let index = y * cy + z * cz + cw;
                 for (let x = 0; x < size.x; x++) {
-                    let index = x * cx + y * cy + z * cz + cw;
                     if (uint8View[index * FLUID_STRIDE + OFFSET_FLUID] > 0) {
                         this._localBounds.addPoint(x, y, z);
                     }
+                    index += cx;
                 }
+            }
     }
 
     /**
@@ -165,9 +180,9 @@ export class FluidChunk {
         arr.push(bounds.y_min, bounds.y_max + 1);
         for (let y = bounds.y_min; y <= bounds.y_max; y++) {
             let x_min = size.x, x_max = 0, z_min = size.z, z_max = 0;
-            for (let z = bounds.z_min; z <= bounds.z_max; z++)
+            for (let z = bounds.z_min; z <= bounds.z_max; z++) {
+                let index = bounds.x_min * cx + y * cy + z * cz + cw;
                 for (let x = bounds.x_min; x <= bounds.x_max; x++) {
-                    let index = x * cx + y * cy + z * cz + cw;
                     const val = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
                     if (val > 0) {
                         x_min = Math.min(x_min, x);
@@ -175,18 +190,22 @@ export class FluidChunk {
                         z_min = Math.min(z_min, z);
                         z_max = Math.max(z_max, z);
                     }
+                    index += cx;
                 }
+            }
             arr.push(x_min, x_max + 1, z_min, z_max + 1);
         }
             //TODO: encode 0 +1 -1 here
         let k = 2;
         for (let y = bounds.y_min; y <= bounds.y_max; y++) {
             let x_min = arr[k++], x_max = arr[k++] - 1, z_min = arr[k++], z_max = arr[k++] - 1;
-            for (let z = z_min; z <= z_max; z++)
+            for (let z = z_min; z <= z_max; z++) {
+                let index = x_min * cx + y * cy + z * cz + cw;
                 for (let x = x_min; x <= x_max; x++) {
-                    let index = x * cx + y * cy + z * cz + cw;
                     arr.push(uint8View[index * FLUID_STRIDE + OFFSET_FLUID]);
+                    index += cx;
                 }
+            }
         }
 
         if (arr.length > 128) {
@@ -221,13 +240,17 @@ export class FluidChunk {
                 if (y >= bounds.y_min && y <= bounds.y_max) {
                     continue;
                 }
-                for (let z = 0; z < size.z; z++)
+                for (let z = 0; z < size.z; z++) {
+                    let index = y * cy + z * cz + cw;
                     for (let x = 0; x < size.x; x++) {
                         //TODO: calc changed bounds here
-                        let index = x * cx + y * cy + z * cz + cw;
                         uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
+                        index += cx;
                     }
+                }
             }
+            // update the flowing diff in the same volume that we just cleared
+            this.flowing?.deleteBoundsY(bounds.y_min, bounds.y_max);
             for (let y = bounds.y_min; y <= bounds.y_max; y++) {
                 let x_min = arr[k++], x_max = arr[k++], z_min = arr[k++], z_max = arr[k++];
                 bounds.x_min = Math.min(bounds.x_min, x_min);
@@ -235,7 +258,8 @@ export class FluidChunk {
                 bounds.z_min = Math.min(bounds.z_min, z_min);
                 bounds.z_max = Math.max(bounds.z_max, z_max);
 
-                for (let z = 0; z < size.z; z++)
+                for (let z = 0; z < size.z; z++) {
+                    let index = y * cy + z * cz + cw;
                     for (let x = 0; x < size.x; x++) {
                         let val = 0;
                         if (x >= x_min && x <= x_max
@@ -243,11 +267,16 @@ export class FluidChunk {
                             val = arr[k++];
                             if ((val & FLUID_TYPE_MASK) === FLUID_TYPE_MASK) { // WRONG FLUID TYPE
                                 val = 0;
+                            } else {
+                                if (this.flowing && (val & FLUID_LEVEL_MASK)) {
+                                    this.flowing.updateByIndexDiff(index, val & FLUID_TYPE_MASK, 0)
+                                }
                             }
                         }
-                        let index = x * cx + y * cy + z * cz + cw;
                         uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = val;
+                        index += cx;
                     }
+                }
             }
         } else {
             //new version!
@@ -266,18 +295,22 @@ export class FluidChunk {
                 if (y >= bounds.y_min && y <= bounds.y_max) {
                     continue;
                 }
-                for (let z = 0; z < size.z; z++)
+                for (let z = 0; z < size.z; z++) {
+                    let index = y * cy + z * cz + cw;
                     for (let x = 0; x < size.x; x++) {
                         //TODO: calc changed bounds here
-                        let index = x * cx + y * cy + z * cz + cw;
                         if (diffFluidType) {
                             if (uint8View[index * FLUID_STRIDE + OFFSET_FLUID] > 0) {
                                 diffFluidType.push(index);
                             }
                         }
                         uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
+                        index += cx;
                     }
+                }
             }
+            // update the flowing diff in the same volume that we just cleared
+            this.flowing?.deleteBoundsY(bounds.y_min, bounds.y_max);
             let s = 0;
             for (let y = bounds.y_min; y <= bounds.y_max; y++) {
                 let x_min = dims[s++], x_max = dims[s++] - 1, z_min = dims[s++], z_max = dims[s++] - 1;
@@ -286,7 +319,8 @@ export class FluidChunk {
                 bounds.z_min = Math.min(bounds.z_min, z_min);
                 bounds.z_max = Math.max(bounds.z_max, z_max);
 
-                for (let z = 0; z < size.z; z++)
+                for (let z = 0; z < size.z; z++) {
+                    let index = y * cy + z * cz + cw;
                     for (let x = 0; x < size.x; x++) {
                         let val = 0;
                         if (x >= x_min && x <= x_max
@@ -294,9 +328,12 @@ export class FluidChunk {
                             val = arr[k++];
                             if ((val & FLUID_TYPE_MASK) === FLUID_TYPE_MASK) { // WRONG FLUID TYPE
                                 val = 0;
+                            } else {
+                                if (this.flowing && (val & FLUID_LEVEL_MASK)) {
+                                    this.flowing.updateByIndexDiff(index, val & FLUID_TYPE_MASK, 0)
+                                }
                             }
                         }
-                        let index = x * cx + y * cy + z * cz + cw;
 
                         if (diffFluidType) {
                             if ((uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_TYPE_MASK) !== (val & FLUID_TYPE_MASK)) {
@@ -304,7 +341,9 @@ export class FluidChunk {
                             }
                         }
                         uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = val;
+                        index += cx;
                     }
+                }
             }
         }
 
@@ -315,6 +354,7 @@ export class FluidChunk {
             this.databaseID = this.updateID;
             this.savedBuffer = stateArr;
         }
+        this.flowing?.sendDiff();
     }
 
     setFluidIndirect(x, y, z, block_id) {
@@ -403,14 +443,16 @@ export class FluidChunk {
         const {BLOCK_BY_ID} = BLOCK;
 
         for (let y = 0; y < outerSize.y; y++)
-            for (let z = 0; z < outerSize.z; z++)
+            for (let z = 0; z < outerSize.z; z++) {
+                let index = y * cy + z * cz;
                 for (let x = 0; x < outerSize.x; x++) {
-                    let index = x * cx + y * cy + z * cz;
                     let props = 0;
                     const blockId = id[index];
                     props = blockId ? this.world.blockPropsById[blockId] : 0;
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
+                    index += cx;
                 }
+            }
     }
 
     applyDelta(deltaBuf, usePortals = false, diffFluidType = null) {
@@ -421,8 +463,12 @@ export class FluidChunk {
         for (let i = 0; i < deltaBuf.length; i += 3) {
             let ind = deltaBuf[i] + (deltaBuf[i + 1] << 8);
             let val = deltaBuf[i + 2];
-            if (diffFluidType && this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] !== val) {
-                diffFluidType.push(ind);
+            const old = this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID];
+            if (old !== val) {
+                if (diffFluidType) {
+                    diffFluidType.push(ind);
+                }
+                this.flowing?.updateByIndexFluid(ind, val, old);
             }
             this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = val;
 
@@ -455,6 +501,7 @@ export class FluidChunk {
                 }
             }
         }
+        this.flowing?.sendDiff();
     }
 
     markDirtyMesh() {

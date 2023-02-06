@@ -1,168 +1,168 @@
-import {BLOCK} from "../../www/js/blocks.js";
 import {ServerClient} from "../../www/js/server_client.js";
 
-const recipes = [
+const recipes_src = [
     {
-        'product': BLOCK.NETHER_WART.id,
-        'bottle': BLOCK.WATER_BOTTLE.id,
-        'result': BLOCK.AWKWARD.id
+        'product': 'NETHER_WART',
+        'bottle': 'WATER_BOTTLE',
+        'result': 'AWKWARD'
     },
     
     {
-        'product': BLOCK.GLOWSTONE_DUST.id,
-        'bottle': BLOCK.SPEED.id,
-        'result': BLOCK.SPEED_2.id
+        'product': 'GLOWSTONE_DUST',
+        'bottle': 'SPEED',
+        'result': 'SPEED_2'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.SPEED.id,
-        'result': BLOCK['SPEED_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'SPEED',
+        'result': 'SPEED_+'
     },
     {
-        'product': BLOCK.BLAZE_POWDER.id,
-        'bottle': BLOCK.AWKWARD.id,
-        'result': BLOCK.STRENGTH.id
+        'product': 'BLAZE_POWDER',
+        'bottle': 'AWKWARD',
+        'result': 'STRENGTH'
     },
     {
-        'product': BLOCK.GLOWSTONE_DUST.id,
-        'bottle': BLOCK.STRENGTH.id,
-        'result': BLOCK.STRENGTH_2.id
+        'product': 'GLOWSTONE_DUST',
+        'bottle': 'STRENGTH',
+        'result': 'STRENGTH_2'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.STRENGTH.id,
-        'result': BLOCK['STRENGTH_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'STRENGTH',
+        'result': 'STRENGTH_+'
     },
     // прыгучесть
     {
-        'product': BLOCK.RABBIT_FOOT.id,
-        'bottle': BLOCK.AWKWARD.id,
-        'result': BLOCK.JUMP_BOOST.id
+        'product': 'RABBIT_FOOT',
+        'bottle': 'AWKWARD',
+        'result': 'JUMP_BOOST'
     },
     {
-        'product': BLOCK.GLOWSTONE_DUST.id,
-        'bottle': BLOCK.JUMP_BOOST.id,
-        'result': BLOCK.JUMP_BOOST_2.id
+        'product': 'GLOWSTONE_DUST',
+        'bottle': 'JUMP_BOOST',
+        'result': 'JUMP_BOOST_2'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.JUMP_BOOST.id,
-        'result': BLOCK['JUMP_BOOST_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'JUMP_BOOST',
+        'result': 'JUMP_BOOST_+'
     },
     // зелье замедления
     {
-        'product': BLOCK.FERMENTED_SPIDER_EYE.id,
-        'bottle': BLOCK.JUMP_BOOST.id,
-        'result': BLOCK.SLOWNESS.id
+        'product': 'FERMENTED_SPIDER_EYE',
+        'bottle': 'JUMP_BOOST',
+        'result': 'SLOWNESS'
     },
     {
-        'product': BLOCK.FERMENTED_SPIDER_EYE.id,
-        'bottle': BLOCK.SPEED.id,
-        'result': BLOCK.SLOWNESS.id
+        'product': 'FERMENTED_SPIDER_EYE',
+        'bottle': 'SPEED',
+        'result': 'SLOWNESS'
     },
     {
-        'product': BLOCK.GLOWSTONE_DUST.id,
-        'bottle': BLOCK.SLOWNESS.id,
-        'result': BLOCK.SLOWNESS_4.id
+        'product': 'GLOWSTONE_DUST',
+        'bottle': 'SLOWNESS',
+        'result': 'SLOWNESS_4'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.SLOWNESS.id,
-        'result': BLOCK['SLOWNESS_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'SLOWNESS',
+        'result': 'SLOWNESS_+'
     },
     // зелье востановления здоровья
     {
-        'product': BLOCK.GLISTERING_MELON_SLICE.id,
-        'bottle': BLOCK.AWKWARD.id,
-        'result': BLOCK.INSTANT_HEALTH.id
+        'product': 'GLISTERING_MELON_SLICE',
+        'bottle': 'AWKWARD',
+        'result': 'INSTANT_HEALTH'
     },
     {
-        'product': BLOCK.GLOWSTONE_DUST.id,
-        'bottle': BLOCK.INSTANT_HEALTH.id,
-        'result': BLOCK.INSTANT_HEALTH_2.id
+        'product': 'GLOWSTONE_DUST',
+        'bottle': 'INSTANT_HEALTH',
+        'result': 'INSTANT_HEALTH_2'
     },
     // зелье урона
     {
-        'product': BLOCK.FERMENTED_SPIDER_EYE.id,
-        'bottle': BLOCK.INSTANT_HEALTH.id,
-        'result': BLOCK.INSTANT_DAMAGE.id
+        'product': 'FERMENTED_SPIDER_EYE',
+        'bottle': 'INSTANT_HEALTH',
+        'result': 'INSTANT_DAMAGE'
     },
     {
-        'product': BLOCK.FERMENTED_SPIDER_EYE.id,
-        'bottle': BLOCK.POISON.id,
-        'result': BLOCK.INSTANT_DAMAGE.id
+        'product': 'FERMENTED_SPIDER_EYE',
+        'bottle': 'POISON',
+        'result': 'INSTANT_DAMAGE'
     },
     {
-        'product': BLOCK.GLOWSTONE_DUST.id,
-        'bottle': BLOCK.INSTANT_DAMAGE.id,
-        'result': BLOCK.INSTANT_DAMAGE_2.id
+        'product': 'GLOWSTONE_DUST',
+        'bottle': 'INSTANT_DAMAGE',
+        'result': 'INSTANT_DAMAGE_2'
     },
     // отравление
     {
-        'product': BLOCK.SPIDER_EYE.id,
-        'bottle': BLOCK.AWKWARD.id,
-        'result': BLOCK.POISON.id
+        'product': 'SPIDER_EYE',
+        'bottle': 'AWKWARD',
+        'result': 'POISON'
     },
     {
-        'product': BLOCK.GLOWSTONE_DUST.id,
-        'bottle': BLOCK.POISON.id,
-        'result': BLOCK.POISON_2.id
+        'product': 'GLOWSTONE_DUST',
+        'bottle': 'POISON',
+        'result': 'POISON_2'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.POISON.id,
-        'result': BLOCK['POISON_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'POISON',
+        'result': 'POISON_+'
     },
     // регенерация здоровья
     {
-        'product': BLOCK.GHAST_TEAR.id,
-        'bottle': BLOCK.AWKWARD.id,
-        'result': BLOCK.REGENERATION.id
+        'product': 'GHAST_TEAR',
+        'bottle': 'AWKWARD',
+        'result': 'REGENERATION'
     },
     {
-        'product': BLOCK.GLOWSTONE_DUST.id,
-        'bottle': BLOCK.REGENERATION.id,
-        'result': BLOCK.REGENERATION_2.id
+        'product': 'GLOWSTONE_DUST',
+        'bottle': 'REGENERATION',
+        'result': 'REGENERATION_2'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.REGENERATION.id,
-        'result': BLOCK['REGENERATION_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'REGENERATION',
+        'result': 'REGENERATION_+'
     },
     // огнестойкость
     {
-        'product': BLOCK.MAGMA_CREAM.id,
-        'bottle': BLOCK.AWKWARD.id,
-        'result': BLOCK.FIRE_RESISTANCE.id
+        'product': 'MAGMA_CREAM',
+        'bottle': 'AWKWARD',
+        'result': 'FIRE_RESISTANCE'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.REGENERATION.id,
-        'result': BLOCK['FIRE_RESISTANCE_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'REGENERATION',
+        'result': 'FIRE_RESISTANCE_+'
     },
     // подводное дыхание
     {
-        'product': BLOCK.PUFFERFISH.id,
-        'bottle': BLOCK.AWKWARD.id,
-        'result': BLOCK.RESPIRATION.id
+        'product': 'PUFFERFISH',
+        'bottle': 'AWKWARD',
+        'result': 'RESPIRATION'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.RESPIRATION.id,
-        'result': BLOCK['RESPIRATION_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'RESPIRATION',
+        'result': 'RESPIRATION_+'
     },
     // ночное зрение
     {
-        'product': BLOCK.GOLDEN_CARROT.id,
-        'bottle': BLOCK.AWKWARD.id,
-        'result': BLOCK.NIGHT_VISION.id
+        'product': 'GOLDEN_CARROT',
+        'bottle': 'AWKWARD',
+        'result': 'NIGHT_VISION'
     },
     {
-        'product': BLOCK.REDSTONE_WIRE.id,
-        'bottle': BLOCK.NIGHT_VISION.id,
-        'result': BLOCK['NIGHT_VISION_+'].id
+        'product': 'REDSTONE_WIRE',
+        'bottle': 'NIGHT_VISION',
+        'result': 'NIGHT_VISION_+'
     },
-];
+]
+const recipes = []
 
 function getResult(product, bottle) {
     if (!product || !bottle) {
@@ -182,8 +182,20 @@ export default class Ticker {
 
     //
     static func(tick_number, world, chunk, v) {
+
+        const bm = world.block_manager;
+        if(recipes.length == 0) {
+            for(let src of recipes_src) {
+                const item = {
+                    product: bm.fromName(src.product).id,
+                    bottle: bm.fromName(src.bottle).id,
+                    result: bm.fromName(src.result).id
+                }
+                recipes.push(item)
+            }
+        }
+
         const max_ticks = 50;
-        
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         // fuel
@@ -203,7 +215,7 @@ export default class Ticker {
         const blaze_slot = extra_data.slots[0]; //blaze
         if(state.fuel_time == 0) {
             const ing_slot = extra_data.slots[1]; //ингридиенты
-            if(blaze_slot && blaze_slot.id == BLOCK.BLAZE_POWDER.id) {
+            if(blaze_slot && blaze_slot.id == bm.BLAZE_POWDER.id) {
                 const add_fuel_ticks = 80 * 20;
                 state.max_time = state.fuel_time = add_fuel_ticks;
                 is_update = true;

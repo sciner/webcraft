@@ -12,7 +12,7 @@ export class PlayerArm {
 
     /**
      * @param { import("./player.js").ServerPlayer } player
-     * @param { import("./render.js").ServerPlayer } render
+     * @param { import("./render.js").Renderer } render
      */
     constructor(player, render) {
 

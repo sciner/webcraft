@@ -358,8 +358,10 @@ export class Window extends PIXI.Container {
     }
 
     set visible(value) {
+        if (super.visible != value) {
+            visible_change_count++
+        }
         super.visible = value
-        visible_change_count++
     }
 
     getRoot() {
@@ -1593,7 +1595,7 @@ export class WindowManager extends Window {
                     y:          e.offsetY - this.y
                 };
                 if(this.drag.getItem()) {
-                    // this._drop(evt)
+                     //this._drop(evt)
                 } else {
                     this._mousedown(evt)
                 }

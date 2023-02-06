@@ -209,7 +209,6 @@ export class Hotbar {
         this.inventory = inventory
 
         this.createInventorySlots(40)
-
     }
 
     //
@@ -260,7 +259,7 @@ export class Hotbar {
 
         const player  = this.inventory.player;
 
-        const visible = !player.game_mode.isSpectator()
+        const visible = !player.game_mode.isSpectator() && hud.isActive()
 
         this.inventory_slots.visible = visible
 

@@ -1,6 +1,5 @@
 import {Vector, unixTime} from '../../www/js/helpers.js';
 import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
-import { SQLiteServerConnector } from './connector/sqlite.js';
 
 export class DBGame {
 
@@ -16,43 +15,6 @@ export class DBGame {
 
     // Migrations
     async applyMigrations() {
-
-        async function ranameWorldsUniqueTitle(conn) {
-            const rows = await conn.all("SELECT id, title, LOWER(title) low, guid FROM world");
-            const map = {};
-            const newMap = {};
-            for(var row of rows) {
-                map[row.low] = map[row.low] || [];
-                map[row.low].push(row);
-                newMap[row.low] = true;
-            }
-            for(var low in map) {
-                const arr = map[low];
-                for(var i = 1; i < arr.length; i++) {
-                    var row = arr[i];
-                    // choose a new title
-                    var tryN = 2;
-                    var newTitle;
-                    do {
-                        newTitle = row.title + '_' + tryN;
-                        tryN++;
-                    } while (newMap[newTitle.toLowerCase()]);
-                    newMap[newTitle.toLowerCase()] = true;
-                    // rename in the game DB
-                    await conn.run("UPDATE world SET title = ? WHERE id = ?", [newTitle, row.id]);
-                    // rename in the world DB
-                    const fileName = `../world/${row.guid}/world.sqlite`;
-                    try {
-                        const worldConn = await SQLiteServerConnector.connect(fileName);
-                        await worldConn.run("UPDATE world SET title = ?", newTitle);
-                        await worldConn.close();
-                        console.log(`Renamed world id=${row.id} ${row.guid} "${row.title}" -> "${newTitle}"`);
-                    } catch {
-                        console.error(`Can't rename world id=${row.id} in ${fileName} "${row.title}" -> "${newTitle}"`);
-                    }
-                }
-            }
-        }
 
         let version = 0;
         
@@ -174,8 +136,6 @@ export class DBGame {
                 SELECT id, guid, username, dt, skin, password, flags FROM user`,
             'DROP TABLE user',
             'ALTER TABLE user_copy RENAME TO user',
-            // change world.title COLLATE NOCASE
-            ranameWorldsUniqueTitle,
             `CREATE TABLE "world_copy" (
                 "id"	INTEGER,
                 "guid"	text NOT NULL,

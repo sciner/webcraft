@@ -1,6 +1,6 @@
-import { noise, alea } from "./default.js";
+import { alea } from "./default.js";
 import { BLOCK } from "../blocks.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { Vector } from "../helpers.js";
 
 // Ores

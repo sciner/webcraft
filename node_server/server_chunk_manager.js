@@ -1,4 +1,5 @@
 import {ServerChunk} from "./server_chunk.js";
+import { WorldTickStat } from "./world/tick_stat.js";
 import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT} from "../www/js/chunk_const.js";
 import { PLAYER_STATUS_WAITING_DATA } from "../www/js/constant.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, Mth} from "../www/js/helpers.js";
@@ -17,6 +18,8 @@ async function waitABit() {
 
 export class ServerChunkManager {
 
+    static STAT_NAMES = ['unload', 'load', 'generate_mobs', 'ticking_chunks', 'delayed_calls', 'dispose']
+
     constructor(world, random_tickers) {
         this.world                  = world;
         this.worldId                = 'SERVER';
@@ -28,6 +31,7 @@ export class ServerChunkManager {
         this.invalid_chunks_queue   = [];
         this.disposed_chunk_addrs   = [];
         this.unloading_chunks       = new VectorCollector(); // conatins both CHUNK_STATE.UNLOADING and CHUNK_STATE.UNLOADED
+        this.ticks_stat             = new WorldTickStat(ServerChunkManager.STAT_NAMES)
         //
         this.DUMMY = {
             id:         world.block_manager.DUMMY.id,
@@ -93,10 +97,10 @@ export class ServerChunkManager {
         };
         if('onmessage' in this.worker) {
             this.worker.onmessage = onmessage;
-            this.worker.onerror = onerror;
+            // this.worker.onerror = onerror;
         } else {
             this.worker.on('message', onmessage);
-            this.worker.on('error', onerror);
+            // this.worker.on('error', onerror);
         }
         const promise = new Promise((resolve, reject) => {
             this.resolve_worker = resolve;
@@ -169,7 +173,9 @@ export class ServerChunkManager {
     }
 
     async tick(tick_number) {
+        this.ticks_stat.start();
         this.unloadInvalidChunks();
+        this.ticks_stat.add('unload');
 
         let pn = performance.now();
 
@@ -184,6 +190,7 @@ export class ServerChunkManager {
         }
         // Flush all bulk selects (including those created not in the current call).
         this.world.db.flushBulkSelectQueries();
+        this.ticks_stat.add('load');
         // 2. queue chunks for generate mobs
         if(this.chunk_queue_gen_mobs.size > 0) {
             for(const [addr, chunk] of this.chunk_queue_gen_mobs.entries()) {
@@ -193,6 +200,7 @@ export class ServerChunkManager {
                 }
             }
         }
+        this.ticks_stat.add('generate_mobs');
         // 3. tick for chunks
         if(this.ticking_chunks.size > 0) {
             for(let addr of this.ticking_chunks) {
@@ -209,11 +217,13 @@ export class ServerChunkManager {
                 chunk.tick(tick_number);
             }
         }
+        this.ticks_stat.add('ticking_chunks');
         for(let chunk of this.chunks_with_delayed_calls) {
             if (chunk.isReady()) {
                 chunk.executeDelayedCalls();
             }
         }
+        this.ticks_stat.add('delayed_calls');
         // 4. Dispose unloaded chunks
         let ttl = this._getUnloadedChunksTtl();
         for(const chunk of this.unloading_chunks) {
@@ -229,6 +239,8 @@ export class ServerChunkManager {
             this.postLightWorkerMessage(['destructChunk', this.disposed_chunk_addrs]);
             this.disposed_chunk_addrs.length = 0;
         }
+        this.ticks_stat.add('dispose');
+        this.ticks_stat.end();
     }
 
     // random chunk tick
@@ -287,7 +299,7 @@ export class ServerChunkManager {
         if(invChunks.length === 0) {
             return false;
         }
-        const p = performance.now();
+        let p = performance.now();
 
         let cnt = 0;
         for (let i = 0; i < invChunks.length; i++) {
@@ -310,10 +322,14 @@ export class ServerChunkManager {
             return false;
         }
 
-        this.dataWorld.removeChunks(invChunks);
+        const elapsed1 = Math.round((performance.now() - p) * 10) / 10;
+        p = performance.now();
 
-        const elapsed = Math.round((performance.now() - p) * 10) / 10;
-        console.debug(`Unload invalid chunks: ${cnt}; elapsed: ${elapsed} ms`);
+        this.dataWorld.removeChunks(invChunks);
+        invChunks.length = 0;
+
+        const elapsed2 = Math.round((performance.now() - p) * 10) / 10;
+        console.debug(`Unload invalid chunks: ${cnt}; elapsed: ${elapsed1} ms , ${elapsed2} ms`);
         return true;
     }
 
@@ -415,7 +431,7 @@ export class ServerChunkManager {
     }
 
     _getUnloadedChunksTtl() {
-        Mth.lerpLUT(this.unloading_chunks.size, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT);
+        return Mth.lerpLUT(this.unloading_chunks.size, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT) * 1000;
     }
 
     chunkUnloaded(chunk) {

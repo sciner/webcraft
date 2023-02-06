@@ -1,7 +1,6 @@
-import { ITEM_LABEL_MAX_LENGTH } from "../blocks.js";
 import { ItemHelpers } from "../block_helpers.js";
 import { Button, Label, TextEdit } from "../../tools/gui/wm.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_SLOT_SIZE, ITEM_LABEL_MAX_LENGTH } from "../constant.js";
 import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";

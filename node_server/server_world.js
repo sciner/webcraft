@@ -1,5 +1,3 @@
-import config from "./config.js";
-
 import { Brains } from "./fsm/index.js";
 import { DropItem } from "./drop_item.js";
 import { ServerChat } from "./server_chat.js";
@@ -20,7 +18,7 @@ import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
-import { BLOCK, DBItemBlock } from "../www/js/blocks.js";
+import { DBItemBlock } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
@@ -37,10 +35,9 @@ import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
 import { TBlock } from "../www/js/typed_blocks3.js";
 import { Effect } from "../www/js/block_type/effect.js";
+import { MobSpawnParams } from "./mob.js";
 
-// for debugging client time offset
-export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
-export const NEW_CHUNKS_PER_TICK        = 50;
+export const NEW_CHUNKS_PER_TICK = 50;
 
 export class ServerWorld {
 
@@ -56,8 +53,8 @@ export class ServerWorld {
 
     async initServer(world_guid, db_world, new_title, game) {
         this.game = game;
-        if (SERVE_TIME_LAG) {
-            console.log('[World] Server time lag ', SERVE_TIME_LAG);
+        if (SERVER_TIME_LAG) {
+            console.log('[World] Server time lag ', SERVER_TIME_LAG);
         }
         const newTitlePromise = new_title ? db_world.setTitle(new_title) : Promise.resolve();
         var t = performance.now();
@@ -158,7 +155,11 @@ export class ServerWorld {
     async terminate(text, err) {
         text && console.error(text);
         err && console.error(err);
-        process.exit();
+        if(typeof process == 'undefined') {
+            console.log('process need to terminate')
+        } else {
+            process.exit();
+        }
     }
 
     getDefaultPlayerIndicators() {
@@ -262,7 +263,7 @@ export class ServerWorld {
     }
 
     get serverTime() {
-        return Date.now() + SERVE_TIME_LAG;
+        return Date.now() + SERVER_TIME_LAG;
     }
 
     // Return world info
@@ -276,13 +277,13 @@ export class ServerWorld {
         const good_world_for_spawn = !this.isBuildingWorld();
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
-        if(!auto_generate_mobs || !good_world_for_spawn) {
+        if(!auto_generate_mobs || !good_world_for_spawn || !this.rules.getValue('doMobSpawning')) {
             return;
         }
         // находим игроков
         for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
-                // количество мобов одного типа в радусе спауна
+                // количество мобов одного типа в радиусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie', 'skeleton']);
                 if (mobs.length <= 4) {
                     // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
@@ -298,7 +299,6 @@ export class ServerWorld {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
                         if (this.getLight() > 6) {
-                            // console.log((head.lightValue >> 8))
                             if ((head.lightValue >> 8) != 0xFF) {
                                 return;
                             }
@@ -311,13 +311,7 @@ export class ServerWorld {
                                 // тип мобов для спауна
                                 const type_mob = (Math.random() < 0.5) ? 'zombie' : 'skeleton';
                                 spawn_pos.addSelf(new Vector(0.5, 0, 0.5));
-                                const params = {
-                                    type:       type_mob,
-                                    skin:       'base',
-                                    pos:        spawn_pos,
-                                    pos_spawn:  spawn_pos,
-                                    rotate:     0,
-                                };
+                                const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), type_mob, 'base')
                                 const actions = new WorldAction(null, this, false, false);
                                 actions.spawnMob(params);
                                 this.actions_queue.add(null, actions);
@@ -648,6 +642,7 @@ export class ServerWorld {
     //
     async applyActions(server_player, actions) {
         const chunks_packets = new VectorCollector();
+        const bm = this.block_manager
         //
         const getChunkPackets = (pos, chunk_addr) => {
             if(!chunk_addr) {
@@ -804,7 +799,7 @@ export class ServerWorld {
                             const listeners = this.blockListeners.beforeBlockChangeListeners[oldId];
                             if (listeners) {
                                 for(let listener of listeners) {
-                                    const newMaterial = BLOCK.BLOCK_BY_ID[params.item.id];
+                                    const newMaterial = bm.BLOCK_BY_ID[params.item.id];
                                     var res = listener.onBeforeBlockChange(chunk, tblock, newMaterial, true);
                                     if (typeof res === 'number') {
                                         chunk.addDelayedCall(listener.onBeforeBlockChangeCalleeId, res, [block_pos]);
@@ -840,7 +835,7 @@ export class ServerWorld {
                             const listeners = this.blockListeners.afterBlockChangeListeners[tblock.id];
                             if (listeners) {
                                 for(let listener of listeners) {
-                                    const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];
+                                    const oldMaterial = bm.BLOCK_BY_ID[oldId];
                                     const res = listener.onAfterBlockChange(chunk, tblock, oldMaterial, true);
                                     if (typeof res === 'number') {
                                         chunk.addDelayedCall(listener.onAfterBlockChangeCalleeId, res, [block_pos, oldMaterial.id]);

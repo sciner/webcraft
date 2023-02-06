@@ -1,11 +1,10 @@
 import { Button, Window, Label} from "../../tools/gui/wm.js"
-import { INVENTORY_SLOT_SIZE, SKIN_RIGHTS_DEFAULT } from "../constant.js"
+import { INVENTORY_SLOT_SIZE } from "../constant.js"
 import { Resources } from "../resources.js"
 import { BaseChestWindow } from "./base_chest_window.js"
 import { Vector } from "../helpers.js"
 import { Effect } from "../block_type/effect.js"
 import { Lang } from "../lang.js";
-import { BLOCK } from "../blocks.js"
 
 // кнопки активации
 class OkButton extends Window {
@@ -28,7 +27,9 @@ class OkButton extends Window {
     onMouseLeave() {
         this.setBackground(this.ct.atlas.getSpriteFromMap('button'))
     }
+
 }
+
 // кнопки эффектов
 class EffectButton extends Window {
     
@@ -128,6 +129,7 @@ export class BeaconWindow extends BaseChestWindow {
                 close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
             }
         })
+        this.bm = inventory.player.world.block_manager
         this.atlas = Resources.atlas.bn
         this.setBackground(this.atlas.getSpriteFromMap('background'))
         // надписи на окне
@@ -150,6 +152,7 @@ export class BeaconWindow extends BaseChestWindow {
             slot.x += 55 * this.zoom
         }
     }
+
     onShow() {
         super.onShow()
         this.tmp_state = this.state
@@ -183,6 +186,7 @@ export class BeaconWindow extends BaseChestWindow {
         lbl.setBackground(Resources.inventory.atlas.getSpriteFromMap('IRON_INGOT'))
         this.add(lbl)
     }
+
     createButtons() {
         const size = INVENTORY_SLOT_SIZE * this.zoom
         const self = this
@@ -198,7 +202,7 @@ export class BeaconWindow extends BaseChestWindow {
             const pos = self.info.pos
             const block = Qubatch.world.getBlock(pos)
             const item = block.extra_data.slots[0]
-            if (!item || item.count != 1 || ![BLOCK.GOLD_INGOT.id, BLOCK.IRON_INGOT.id, BLOCK.NETHERITE_INGOT.id, BLOCK.DIAMOND.id, BLOCK.EMERALD.id].includes(item.id)) {
+            if (!item || item.count != 1 || ![this.bm.GOLD_INGOT.id, this.bm.IRON_INGOT.id, this.bm.NETHERITE_INGOT.id, this.bm.DIAMOND.id, this.bm.EMERALD.id].includes(item.id)) {
                 return
             }
             const extra_data = block.extra_data
@@ -207,6 +211,7 @@ export class BeaconWindow extends BaseChestWindow {
             Qubatch.world.changeBlockExtraData(pos, extra_data)
         }
     }
+
     updateButtons() {
         this.btn_speed.setEnable(this?.tmp_state?.level > 0 ? true : false)
         this.btn_haste.setEnable(this?.tmp_state?.level > 0 ? true : false)
@@ -224,4 +229,5 @@ export class BeaconWindow extends BaseChestWindow {
         this.btn_double.setDown(this?.tmp_state?.second == 0 ? true : false)
         this.btn_double.setIconName(Effect.get()[this.tmp_state.first].icon)
     }
+
 }
