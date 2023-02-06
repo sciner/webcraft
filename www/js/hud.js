@@ -265,11 +265,11 @@ export class HUD {
             // Draw game technical info
             this.drawInfo()
             this.drawAverageFPS()
-            // Draw HUD components
-            for(let t of this.items) {
-                for(let e of t) {
-                    e.item.drawHUD(this)
-                }
+        }
+
+        for(const item of this.items) {
+            for(const e of item) {
+                e.item.drawHUD(this)
             }
         }
 

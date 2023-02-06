@@ -165,6 +165,10 @@
         "beacon_primary": {"en": "Primary Power", "ru": "Основной эффект", "fr": "", "es": "", "man": ""},
         "inventory": {"en": "Inventory", "ru": "Инвентарь", "fr": "", "es": "", "man": ""},
         "beacon_secondary": {"en": "Secondary Power", "ru": "Вторичный эффект", "fr": "", "es": "", "man": ""},
-        "shutdown_initiated_by": {"en": "Server shutdown initiated by %0", "ru": "Выключение сервера инициировано %0", "fr": "", "es": "", "man": ""}
+        "shutdown_initiated_by": {"en": "Server shutdown initiated by %0", "ru": "Выключение сервера инициировано %0", "fr": "", "es": "", "man": ""},
+        "screen_download": {"en": "Download screenshot", "ru": "Загрузить скриншот", "fr": "", "es": "", "man": ""},
+        "screen_cover": {"en": "Set as world cover", "ru": "Сделать обложкой мира", "fr": "", "es": "", "man": ""},
+        "screen_gallery": {"en": "Upload to gallery", "ru": "Добавить в галерею", "fr": "", "es": "", "man": ""},
+        "screen_taken": {"en": "You have taken a screenshot. Farther?", "ru": "Вы сделали снимок экрана. Что дальше?", "fr": "", "es": "", "man": ""}
     }
 }
