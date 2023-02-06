@@ -88,6 +88,21 @@ export const VOLUMETRIC_SOUND_SUMMARY_VALID_DISTANCE = 1.4
 export const VOLUMETRIC_SOUND_MAX_VOLUME_CHANGE_PER_SECOND = 2.0
 export const VOLUMETRIC_SOUND_MAX_STEREO_CHANGE_PER_SECOND = 2.0
 
+/**
+ * When the spund source is at a different height than the player, the absolute difference
+ * of their horizontal coordinates affect stereo separation less. It's more physically accurate.
+ * But in the game, it sounds better if this effect is less pronounced. The value is from 0 to 1.
+ * 0 - Y is ignored (e.g. if a block is 20 blcoks below, and 2 blocks to the left, it'll sound
+ * only in the left ear), 1 - fully affects (e.g. the previous block will sound almost the same in both ears).
+ */
+export const VOLUMETRIC_SOUND_HEIGHT_AFFECTS_STEREO = 0.5
+
+/**
+ * From 0.1 to 1. It makes area of the sound compressed in Y direction, and makes the
+ * volume to fall of faster in Y direction. It's helps resuce underground noises.
+ */
+export const VOLUMETRIC_SOUND_ELLIPSOID_Y_RADIUS = 0.5
+
 // ========================= Player options =========================
 
 // player

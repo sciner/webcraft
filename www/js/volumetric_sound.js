@@ -3,7 +3,8 @@ import { getChunkAddr, chunkAddrToCoord, Vector, SimpleShifted3DArray, ArrayHelp
 import { VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_TYPE_WATER, VOLUMETRIC_SOUND_TYPE_LAVA,
     VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
     VOLUMETRIC_SOUND_REF_DISTANCE, VOLUMETRIC_SOUND_MAX_DISTANCE,
-    VOLUMETRIC_SOUND_DIRTY_BLOCKS_TTL, VOLUMETRIC_SOUND_SUMMARY_VALID_DISTANCE } from "./constant.js";
+    VOLUMETRIC_SOUND_DIRTY_BLOCKS_TTL, VOLUMETRIC_SOUND_SUMMARY_VALID_DISTANCE,
+    VOLUMETRIC_SOUND_HEIGHT_AFFECTS_STEREO, VOLUMETRIC_SOUND_ELLIPSOID_Y_RADIUS } from "./constant.js";
 import { FLUID_WATER_ID, FLUID_LAVA_ID, FLUID_TYPE_MASK } from "./fluid/FluidConst.js";
 
 // How often does it ask FluidWorld for the mising chunks
@@ -48,6 +49,8 @@ const REF_DISTANCE_SQR = VOLUMETRIC_SOUND_REF_DISTANCE * VOLUMETRIC_SOUND_REF_DI
 const MAX_DISTANCE_SQR = VOLUMETRIC_SOUND_MAX_DISTANCE * VOLUMETRIC_SOUND_MAX_DISTANCE
 /** The distance squared, from which an additional volume falloff is applied. See {@link falloffExtraFar} */
 const MID_DISTANCE_SQR = MAX_DISTANCE_SQR * 0.75 * 0.75
+
+const ELLIPSOID_Y_INV_SQR = 1 / (VOLUMETRIC_SOUND_ELLIPSOID_Y_RADIUS * VOLUMETRIC_SOUND_ELLIPSOID_Y_RADIUS)
 
 const tmpVec = new Vector()
 
@@ -104,10 +107,8 @@ function toSector(x, z) {
     return Math.round(Math.atan2(z, x) * VOLUMETRIC_SOUND_ANGLE_TO_SECTOR) & VOLUMETRIC_SOUND_SECTOR_INDEX_MASK
 }
 
-// descriptions of MIP levels
-const MIPS = new Array(MAX_LEVEL + 1)
-
-function initMIPS() {
+function createMIPS() {
+    const mips = new Array(MAX_LEVEL + 1)
     let cellXZ = 1
     let sizeXZ = CHUNK_SIZE_X
     let strideZ = 2 // [volume, 2 * SUM(y + 0.5)]
@@ -121,9 +122,9 @@ function initMIPS() {
         // the upper bounds of the maximum possible element value: sum coordinates (CHUNK_SIZE_Y - 1) multiplied by volume
         const maxValue = cellXZ * cellY * cellXZ * (2 * (CHUNK_SIZE_Y - 1) + 1)
 
-        MIPS[level] = {
+        mips[level] = {
             level,
-            smaller: MIPS[level - 1],
+            smaller: mips[level - 1],
             cellXZ,
             cellY,
             cellYinv:   1 / cellY,          // we don't compute cellXZinv, because we can use >> level
@@ -139,11 +140,65 @@ function initMIPS() {
         cellXZ *= 2
         strideZ = 4 // [volume, 2 * SUM(x + 0.5), 2 * SUM(y + 0.5), 2 * SUM(z + 0.5)]
     }
+    return mips
 }
-initMIPS()
 
+// descriptions of MIP levels
+const MIPS = createMIPS()
 const MIP0 = MIPS[0]
 const MIP_MAX = MIPS[MAX_LEVEL]
+
+class StereoHeightCompensator {
+    static SIZE = 16
+    /**
+     * For each elevation (angle from the earth surface), we calculate the volume in channels
+     * as if the sound source was in the plane separating forward and rear hemispeheres.
+     * This is the maximum possible stereo separation for a source with this elevation.
+     * 
+     * Then we calcualte and remember the fraction of the volume that is the same in both ears.
+     * This fraction won't be affected by the horizontal positioning. The rest if the sound is fully affected.
+     * 
+     * Instead of actual elevations, the LUT is by (dy^2)/(distance^2).
+     * 
+     * https://webaudio.github.io/web-audio-api/#Spatialization-equal-power-panning
+     */
+    static UNIFORM_PART_BY_ELEVATION_SIN_SQR = ArrayHelpers.create(StereoHeightCompensator.SIZE, ind => {
+        const elevationSin = Math.sqrt(ind / (StereoHeightCompensator.SIZE - 1))
+        const elevation = Math.asin(elevationSin) // 0..PI/2, 0 -> full separation
+        // the azimuth for a source on (x, z) plane that gives the same stereo separation as this sound on (y, z) plane
+        const fakeAzimuth = Mth.PI_DIV2 - elevation // 0..PI/2, PI/2 -> full separation
+        // some redundant operations, but it's for clarity, to match the equal-power panning algorithm
+        const stereoX = (fakeAzimuth + Mth.PI_DIV2) * Mth.PI_INV    // 0.5..1, 1 -> full separation
+        const stereoAngle = stereoX * Mth.PI_DIV2               // PI/4..PI/2, PI/2 -> full separation
+        
+        // this is physically inaccurate, but it looks kind of what we need, kind of works.
+        // IDK if we should use squares of sin and cos, or their plain values.
+        let ear1 = Math.cos(stereoAngle)
+        let ear2 = Math.sin(stereoAngle) // ear2 >= ear1
+        if (ear2 + EPS < ear1) {
+            throw new Error()
+        }
+        ear1 *= ear1
+        ear2 *= ear2
+        const separatedPart = (ear2 - ear1) / (ear2 + ear1)
+
+        // This part is correct. We need Math.min(1, ) only because of a small error like 1.00000000000002
+        const uniformPart = 1 - separatedPart
+        return Math.min(1, uniformPart * VOLUMETRIC_SOUND_HEIGHT_AFFECTS_STEREO)
+    })
+
+    static getUniformPart(dySqr, distSqr) {
+        if (dySqr === distSqr) {
+            return 1
+        }
+        const lut = StereoHeightCompensator.UNIFORM_PART_BY_ELEVATION_SIN_SQR
+        const elevatonSinSqr = dySqr / distSqr
+        const sacled = elevatonSinSqr * (lut.length - 1)
+        const ind0 = Math.floor(sacled)
+        const ind1 = ind0 + 1
+        return Mth.lerp(sacled - ind0, lut[ind0], lut[ind1])
+    }
+}
 
 /** Used insetad of {@link SoundChunk} until we get the data. */
 class SoundChunkPlaceholder {
@@ -399,17 +454,12 @@ class SoundSummary {
             // The volume is already adjusted for the difference in height.
             // Adjust it only for the horizontal distance
             const dx    = src.x - playerPos.x
-            const dySqr = src.dySqr
+            const dySqrElliptic = src.dySqr * ELLIPSOID_Y_INV_SQR
             const dz    = src.z - playerPos.z
             const horizDistSqr  = dx * dx + dz * dz
-            const distSqr       = horizDistSqr + dySqr
-            const volume        = src.volume * relativeFalloffByDistanceSqr(dySqr, distSqr)
-
-            // Replace this sound source with two: one is at the same Y as the player, with the maximum stereo separation.
-            // The other is at the same (x, z) as the player, with no stereo separation.
-            const stereoSeparatedPart = Math.sqrt(horizDistSqr / (distSqr + EPS))            
-            this.sumBySector[toSector(dx, dz)]  += volume * stereoSeparatedPart
-            this.sumUniform                     += volume * (1 - stereoSeparatedPart)
+            const volume        = src.volume *
+                relativeFalloffByDistanceSqr(dySqrElliptic, horizDistSqr + dySqrElliptic)
+            this.sumBySector[toSector(dx, dz)]  += volume
         }
     }
 }
@@ -446,6 +496,7 @@ export class SoundMap {
         this.summaryMips = ArrayHelpers.create(MAX_SUMMARY_LEVEL + 1, level => {
             const sizeXY = SUMMARY_MIP_SIZE_XY - (level === MAX_SUMMARY_LEVEL ? 1 : 0)
             return {
+                level,
                 arr: ArrayHelpers.create(sizeXY * sizeXY * VOLUMETRIC_SOUND_TYPES, i => {
                     return {
                         type:   i % VOLUMETRIC_SOUND_TYPES,
@@ -695,6 +746,9 @@ export class SoundMap {
         if (volume === 0) {
             return
         }
+        if (volume === undefined) {
+            throw new Error()
+        }
 
         if (level > MAX_SUMMARY_LEVEL) { // if we can't add it whole to the summary mip map
             const sm = this.summaryMips[MAX_SUMMARY_LEVEL]
@@ -720,24 +774,11 @@ export class SoundMap {
 
             // If it's 1*Y*1 cell, it can't be divided. Add it to 0th level mip, if it's not empty
             if (level === 0) {
-                // replace the sound source with a different worldY by the sound with the same worldY, but lower volume
                 const volumeInvDiv2 = 0.5 / volume
                 const dx = worldX - this.playerPos.x
                 const dy = arr[ind + 1] * volumeInvDiv2 - this.playerRelativeY
                 const dz = worldZ - this.playerPos.z
-                const horizDistSqr = dx * dx + dz * dz
-                const dySqr     = dy * dy
-                volume *= relativeFalloffByDistanceSqr(horizDistSqr, horizDistSqr + dySqr)
-
-                // add to the summary mip map cell
-                const smX = worldX - sm.minX | 0    // truncate because worldX has +0.5 added
-                const smZ = worldZ - sm.minZ | 0
-                const summaryInd    = (sm.sizeXY * smX + smZ) * VOLUMETRIC_SOUND_TYPES + type
-                const summaryValue  = sm.arr[summaryInd]
-                summaryValue.sum        += volume
-                summaryValue.sumX       += volume * worldX  // + 0.5 is already included in worldX
-                summaryValue.sumDYSqr   += volume * dySqr
-                summaryValue.sumZ       += volume * worldZ
+                this.addToSummaryMip(sm, worldX, worldZ, dx, dy, dz, volume, type)
                 return
             }
              
@@ -745,24 +786,13 @@ export class SoundMap {
             if (worldX < sm.minXcenter || worldX >= sm.maxXcenter ||
                 worldZ < sm.minZcenter || worldZ >= sm.maxZcenter
             ) {
-                // replace the sound source with a different worldY by the sound with the same worldY, but lower volume
                 const volumeInvDiv2 = 0.5 / volume
                 const dx = arr[ind + 1] * volumeInvDiv2 - this.playerRelativeX
                 const dy = arr[ind + 2] * volumeInvDiv2 - this.playerRelativeY
                 const dz = arr[ind + 3] * volumeInvDiv2 - this.playerRelativeZ
-                const horizDistSqr  = dx * dx + dz * dz
-                const dySqr         = dy * dy
-                volume *= relativeFalloffByDistanceSqr(horizDistSqr, horizDistSqr + dySqr)
-
-                // add to the summary mip map cell
-                const smX = (worldX - sm.minX) >> level
-                const smZ = (worldZ - sm.minZ) >> level
-                const summaryInd    = (sm.sizeXY * smX + smZ) * VOLUMETRIC_SOUND_TYPES + type
-                const summaryValue  = sm.arr[summaryInd]
-                summaryValue.sum        += volume
-                summaryValue.sumX       += volume * (this.playerPos.x + dx)
-                summaryValue.sumDYSqr   += volume * dySqr
-                summaryValue.sumZ       += volume * (this.playerPos.z + dz)
+                worldX = this.playerPos.x + dx
+                worldZ = this.playerPos.z + dz
+                this.addToSummaryMip(sm, worldX, worldZ, dx, dy, dz, volume, type)
                 return
             }
             // It's inside the smaller summary mip level. Continue, and divide it recursively.
@@ -771,7 +801,7 @@ export class SoundMap {
         // Divide it recursively
         const smaller = mip.smaller
         mipX *= 2
-        mipY *= smaller.dividerY
+        mipY *= mip.dividerY
         mipZ *= 2
         const mipX1 = mipX + 1
         const mipZ1 = mipZ + 1
@@ -795,6 +825,34 @@ export class SoundMap {
         }
     }
 
+    addToSummaryMip(sm, worldX, worldZ, dx, dy, dz, volume, type) {
+        const horizDistSqr  = dx * dx + dz * dz
+        const dySqr         = dy * dy
+        const ellipticDistSqr = horizDistSqr + dySqr * ELLIPSOID_Y_INV_SQR
+        if (ellipticDistSqr >= MAX_DISTANCE_SQR) {
+            return // it's too far
+        }
+        // Replace the sound source by the sound with the same worldY as the player, but lower volume
+        volume *= relativeFalloffByDistanceSqr(horizDistSqr, ellipticDistSqr) * falloffExtraFar(ellipticDistSqr)
+
+        // Replace this sound source with two: one is at the same Y as the player, with the maximum stereo separation.
+        // The other is at the same (x, z) as the player, with no stereo separation.
+        const uniforPart = StereoHeightCompensator.getUniformPart(dySqr, horizDistSqr + dySqr)
+        this.summaries[type].uniform    += volume * uniforPart
+        volume *= (1 - uniforPart)
+
+        // add to the summary mip map cell
+        const level = sm.level
+        const smX = (worldX - sm.minX) >> level
+        const smZ = (worldZ - sm.minZ) >> level
+        const summaryInd    = (sm.sizeXY * smX + smZ) * VOLUMETRIC_SOUND_TYPES + type
+        const summaryValue  = sm.arr[summaryInd]
+        summaryValue.sum        += volume
+        summaryValue.sumX       += volume * worldX
+        summaryValue.sumDYSqr   += volume * dySqr
+        summaryValue.sumZ       += volume * worldZ
+    }
+
     addToSummaryFar(arr, mip, type, ind) {
         const sum = arr[ind]
         if (mip.level < MAX_SUMMARY_LEVEL || !sum) {
@@ -806,18 +864,19 @@ export class SoundMap {
         const dy = arr[ind + 2] * sumInvDiv2 - this.playerRelativeY
         const dz = arr[ind + 3] * sumInvDiv2 - this.playerRelativeZ
         const horizDistSqr  = dx * dx + dz * dz
-        const distSqr       = horizDistSqr + dy * dy
-        if (distSqr > MAX_DISTANCE_SQR) {
+        const dySqr         = dy * dy
+        const ellipticDistSqr = horizDistSqr + dySqr * ELLIPSOID_Y_INV_SQR
+        if (ellipticDistSqr >= MAX_DISTANCE_SQR) {
             return // it's too far
         }
-        const volume = sum * falloffByDistanceSqr(distSqr) * falloffExtraFar(distSqr)
+        const volume = sum * falloffByDistanceSqr(ellipticDistSqr) * falloffExtraFar(ellipticDistSqr)
 
         // Replace this sound source with two: one is at the same Y as the player, with the maximum stereo separation.
         // The other is at the same (x, z) as the player, with no stereo separation.
-        const stereoSeparatedPart = Math.sqrt(horizDistSqr / (distSqr + EPS))
+        const uniforPart = StereoHeightCompensator.getUniformPart(dySqr, horizDistSqr + dySqr)
         const summary = this.summaries[type]
-        summary.far[toSector(dx, dz)]   += volume * stereoSeparatedPart
-        summary.uniform                 += volume * (1 - stereoSeparatedPart)
+        summary.far[toSector(dx, dz)]   += volume * (1 - uniforPart)
+        summary.uniform                 += volume * uniforPart
     }
 
     calcSummaryNear() {
