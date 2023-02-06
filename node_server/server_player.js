@@ -199,7 +199,7 @@ export class ServerPlayer extends Player {
             this.world.network_stat.in += message.length;
             this.world.network_stat.in_count++;
             const packet = JSON.parse(message);
-            this.world.packet_reader.read(this, packet);
+            await this.world.packet_reader.read(this, packet);
         } catch(e) {
             this.sendError('error_invalid_command');
         }
