@@ -32,10 +32,10 @@ export class QuestMenu extends Window {
     update(groups) {
         // save active menu
         const active_quest = this.quest_viewer.quest;
+
         // remove previous menu items
-        for(let id of this.list.keys()) {
-            this.delete(id);
-        }
+        this.list.clear();
+
         // create menu items
         this.init(groups);
         // refresh quest view
