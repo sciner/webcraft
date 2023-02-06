@@ -1,5 +1,8 @@
 import { preprocessSQL, run } from "../db_helpers.js";
 
+const INSERT = {}
+const UPDATE = {}
+
 export class DBWorldQuest {
 
     constructor(conn, world) {
@@ -148,32 +151,32 @@ export class DBWorldQuest {
      * @param {Int} dt - unix time
     */
     async bulkInsertPlayerQuests(rows, dt) {
-        return rows.length ? run(this.conn, this.BULK_INSERT_PLAYER_QUESTS, {
+        INSERT.BULK_PLAYER_QUESTS = INSERT.BULK_PLAYER_QUESTS ?? preprocessSQL(`
+            INSERT INTO user_quest (
+                dt, user_id, quest_id,
+                is_completed, in_progress, actions
+            ) SELECT
+                :dt, %0, %1,
+                %2, %3, %4
+            FROM json_each(:jsonRows)
+        `);
+        return rows.length ? run(this.conn, INSERT.BULK_PLAYER_QUESTS, {
             ':jsonRows': JSON.stringify(rows),
             ':dt': dt
         }) : null;
-    };
-    BULK_INSERT_PLAYER_QUESTS = preprocessSQL(`
-        INSERT INTO user_quest (
-            dt, user_id, quest_id,
-            is_completed, in_progress, actions
-        ) SELECT
-            :dt, %0, %1,
-            %2, %3, %4
-        FROM json_each(:jsonRows)
-    `);
+    }
 
     /** @param {Array of Array} rows - the results of {@link playerQuestToRow} */
     async bulkUpdatePlayerQuests(rows) {
-        return rows.length ? run(this.conn, this.BULK_UPDATE_PLAYER_QUESTS, {
+        UPDATE.BULK_PLAYER_QUESTS = UPDATE.BULK_PLAYER_QUESTS ?? preprocessSQL(`
+            UPDATE user_quest
+            SET is_completed = %2, in_progress = %3, actions = %4
+            FROM json_each(:jsonRows)
+            WHERE user_id = %0 AND quest_id = %1
+        `);
+        return rows.length ? run(this.conn, UPDATE.BULK_PLAYER_QUESTS, {
             ':jsonRows': JSON.stringify(rows)
         }) : null;
-    };
-    BULK_UPDATE_PLAYER_QUESTS = preprocessSQL(`
-        UPDATE user_quest
-        SET is_completed = %2, in_progress = %3, actions = %4
-        FROM json_each(:jsonRows)
-        WHERE user_id = %0 AND quest_id = %1
-    `);
+    }
 
 }
