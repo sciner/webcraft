@@ -158,7 +158,7 @@ export default class style {
         }
 
         if(is_grass) {
-            dy -= .15;
+            // dy -= .15;
             flag |= QUAD_FLAGS.FLAG_LEAVES;
         } else if (is_flower) {
             flag |= QUAD_FLAGS.FLAG_LEAVES;

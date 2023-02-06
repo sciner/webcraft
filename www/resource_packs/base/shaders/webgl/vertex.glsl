@@ -89,7 +89,7 @@ void main() {
 
     v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
 
-    if(flagLeaves == 1 && gl_VertexID == 1) {
+    if(flagLeaves == 1 && (gl_VertexID == 1 || gl_VertexID == 0 || gl_VertexID == 3)) {
         v_chunk_pos.x += sin((u_time / 1000. + v_chunk_pos.x) * wing_speed) * wing_amplitude;
         // v_chunk_pos.y += sin((u_time / 1000. + v_chunk_pos.y) * wing_speed) * wing_amplitude;
         // v_chunk_pos.z += sin((u_time / 1000. + v_chunk_pos.z) * wing_speed) * wing_amplitude;
