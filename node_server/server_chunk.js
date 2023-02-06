@@ -1223,7 +1223,7 @@ export class ServerChunk {
         const that = this;
         function processResult(res, calleeId) {
             if (typeof res === 'number') {
-                that.addDelayedCall(calleeId, res, [pos]);
+                that.addDelayedCall(calleeId, res, [pos.clone()]);
             } else {
                 TickerHelpers.pushBlockUpdates(that.blocksUpdatedByListeners, res);
             }
