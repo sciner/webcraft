@@ -6,8 +6,8 @@
 
 #include<terrain_attrs_vert>
 
-float wing_speed = 2.;
-float wing_smplitude = 0.1;
+float wing_speed = 2.5;
+float wing_amplitude = 0.3;
 
 void main() {
     #include<terrain_read_flags_vert>
@@ -90,9 +90,9 @@ void main() {
     v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
 
     if(flagLeaves == 1 && gl_VertexID == 1) {
-        v_chunk_pos.x += sin((u_time / 1000. + v_chunk_pos.x) * wing_speed) * wing_smplitude;
-        // v_chunk_pos.y += sin((u_time / 1000. + v_chunk_pos.y) * wing_speed) * wing_smplitude;
-        // v_chunk_pos.z += sin((u_time / 1000. + v_chunk_pos.z) * wing_speed) * wing_smplitude;
+        v_chunk_pos.x += sin((u_time / 1000. + v_chunk_pos.x) * wing_speed) * wing_amplitude;
+        // v_chunk_pos.y += sin((u_time / 1000. + v_chunk_pos.y) * wing_speed) * wing_amplitude;
+        // v_chunk_pos.z += sin((u_time / 1000. + v_chunk_pos.z) * wing_speed) * wing_amplitude;
     }
 
     v_world_pos = v_chunk_pos + u_add_pos;

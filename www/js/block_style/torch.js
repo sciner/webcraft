@@ -66,10 +66,6 @@ export default class style {
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-            return;
-        }
-
         const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
         const pos               = new Vector(0, 0, 0);

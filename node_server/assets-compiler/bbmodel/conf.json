@@ -524,6 +524,9 @@
             "id": 58,
             "name": "CRAFTING_TABLE",
             "transparent": true,
+            "tags": [
+                "no_drop_ao"
+            ],
             "bb": {
                 "model": "crafting_table",
                 "rotate": {"type": "cardinal_direction"}

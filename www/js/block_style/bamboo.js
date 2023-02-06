@@ -62,10 +62,6 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-            return;
-        }
-
         let stage = block?.extra_data ? block.extra_data.stage : 3;
 
         const no_random_pos = block.hasTag('no_random_pos');

@@ -66,10 +66,6 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-            return;
-        }
-
         const material = block.material;
         const flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.NO_AO;
 

@@ -45,11 +45,7 @@ export default class style {
 
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
-        
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-            return;
-        }
-        
+
         const extra_data = block.extra_data;
         const material = block.material;
         const texture = BLOCK.calcTexture(material.texture, DIRECTION.WEST);

@@ -3634,41 +3634,26 @@
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "inventory": {
                 "style": "extruder",
-                "texture": "block/tall_grass_top.png"
+                "texture": "./textures/tall_grass.png"
             },
             "material": {
                 "id": "plant"
             },
             "texture": {
-                "up": "block/tall_grass_top.png",
-                "down": "block/tall_grass_bottom.png"
+                "side": "./textures/tall_grass.png"
             },
             "texture_variants": [
-                {
-                    "up": "block/tall_grass/tall_grass1_top.png",
-                    "down": "block/tall_grass/tall_grass1_bottom.png"
-                },
-                {
-                    "up": "block/tall_grass/tall_grass2_top.png",
-                    "down": "block/tall_grass/tall_grass2_bottom.png"
-                },
-                {
-                    "up": "block/tall_grass/tall_grass3_top.png",
-                    "down": "block/tall_grass/tall_grass3_bottom.png"
-                },
-                {
-                    "up": "block/tall_grass/tall_grass4_top.png",
-                    "down": "block/tall_grass/tall_grass4_bottom.png"
-                },
-                {
-                    "up": "block/tall_grass/tall_grass5_top.png",
-                    "down": "block/tall_grass/tall_grass5_bottom.png"
-                }
+                {"side": "block/tall_grass/tall_grass1.png"},
+                {"side": "block/tall_grass/tall_grass2.png"},
+                {"side": "block/tall_grass/tall_grass3.png"},
+                {"side": "block/tall_grass/tall_grass4.png"},
+                {"side": "block/tall_grass/tall_grass5.png"}
             ],
             "compile": {
                 "filter": "brightness(115%)"
             },
             "tags": [
+                "is_tall_grass",
                 "mask_biome"
             ]
         },
@@ -9451,7 +9436,31 @@
                 "east": "block/cauldron_inner.png",
                 "down": "block/cauldron_bottom.png"
             }
+        },
+        {
+            "id": 95,
+            "name": "PEBBLES",
+            "passable": 1,
+            "transparent": true,
+            "can_rotate": true,
+            "style": "pebbles",
+            "sound": "madcraft:block.stone",
+            "texture": "block/cobblestone.png",
+            "texture_variants": [
+                "block/cobblestone.png",
+                "block/andesite.png",
+                "block/granite.png",
+                "block/diorite.png"
+            ],
+            "tags": [
+                "_set_only_fullface",
+                "rotate_by_pos_n_6",
+                "no_drop_ao",
+                "no_drop"
+            ],
+            "material": {
+                "id": "stone"
+            }
         }
-        
     ]
 }
