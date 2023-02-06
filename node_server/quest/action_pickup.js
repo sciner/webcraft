@@ -14,7 +14,7 @@ export class QuestActionPickup extends QuestActionBase {
     }
 
     // processTriggerEvent...
-    async processTriggerEvent(quest, e) {
+    processTriggerEvent(quest, e) {
         // pickup events have "items", inventory events - "item"
         const items = e.data.items || [e.data.item];
         for(let item of items) {
@@ -25,7 +25,7 @@ export class QuestActionPickup extends QuestActionBase {
                 this.value = Math.max(this.value | 0, hasCount);
                 this.update();
                 console.log(`Action changed: ${quest.title} ${this.value}/${this.cnt} ... ${this.ok}`);
-                await this.checkAndMarkDirty();
+                this.checkAndMarkDirty();
             }
         }
     }

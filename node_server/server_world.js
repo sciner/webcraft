@@ -132,7 +132,7 @@ export class ServerWorld {
         this.all_drop_items = this.chunks.itemWorld.all_drop_items; // Store refs to all loaded drop items in the world
         //
         await this.models.init();
-        await this.quests.init();
+        this.quests.init();
         await this.admins.load();
         t = performance.now();
         await this.worldChunkFlags.restore();

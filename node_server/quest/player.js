@@ -49,7 +49,7 @@ export class QuestPlayer {
     }
 
     // Starts all default quests if a player has no quests
-    async startDefaultQuests() {
+    startDefaultQuests() {
         // Get all quest groups in game
         const all_enabled_quest_groups = this.quest_manager.getGroupsWithDefaultQuests();
         for(let group of all_enabled_quest_groups) {
@@ -91,7 +91,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onSetBlock(e) {
+    onSetBlock(e) {
         const block = this.world.block_manager.fromId(e.data.block.id);
         if(!block) {
             throw 'error_invalid_block';
@@ -106,7 +106,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.SET_BLOCK) {
-                    await action.processTriggerEvent(quest, e);
+                    action.processTriggerEvent(quest, e);
                 }
             }
         }
@@ -114,7 +114,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onDestroyBlock(e) {
+    onDestroyBlock(e) {
         const block = this.world.block_manager.fromId(e.data.block_id);
         if(!block) {
             throw 'error_invalid_block';
@@ -124,7 +124,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onPickup(e) {
+    onPickup(e) {
         for(let quest of this.quests.values()) {
             if(quest.is_completed) {
                 continue;
@@ -134,14 +134,14 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.PICKUP) {
-                    await action.processTriggerEvent(quest, e);
+                    action.processTriggerEvent(quest, e);
                 }
             }
         }
     }
 
     // Handler
-    async onCraft(e) {
+    onCraft(e) {
         const item = e.data.item;
         const block = this.world.block_manager.fromId(item.block_id);
         if(!block) {
@@ -156,7 +156,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.CRAFT) {
-                    await action.processTriggerEvent(quest, e);
+                    action.processTriggerEvent(quest, e);
                 }
             }
         }
@@ -164,7 +164,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onItemToInventory(e) {
+    onItemToInventory(e) {
         const item = e.data.item;
         const block = this.world.block_manager.fromId(item.block_id);
         if(!block) {
@@ -179,7 +179,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.PICKUP) {
-                    await action.processTriggerEvent(quest, e);
+                    action.processTriggerEvent(quest, e);
                 }
             }
         }
