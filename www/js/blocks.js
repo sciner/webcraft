@@ -1,16 +1,16 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers, isScalar, cropToImage } from './helpers.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { StringHelpers } from "./helpers.js";
 import { Lang } from "./lang.js";
+import { LEAVES_TYPE } from "./constant.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202, 415];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 export const POWER_NO                       = 0;
-export const ITEM_LABEL_MAX_LENGTH          = 19;
 
 // Свойства, которые могут сохраняться в БД
 export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data', 'rotate']; // for reference only, unused. See BLOCK.convertBlockToDBItem.
@@ -27,16 +27,13 @@ export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'e
  */
 export const EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT = ['age', 'label'];
 
-export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
-export const shapePivot = new Vector(.5, .5, .5);
-
 export let NEIGHB_BY_SYM = {};
-NEIGHB_BY_SYM[DIRECTION.FORWARD] = 'NORTH';
-NEIGHB_BY_SYM[DIRECTION.BACK] = 'SOUTH';
-NEIGHB_BY_SYM[DIRECTION.LEFT] = 'WEST';
-NEIGHB_BY_SYM[DIRECTION.RIGHT] = 'EAST';
-NEIGHB_BY_SYM[DIRECTION.DOWN] = 'DOWN';
-NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
+    NEIGHB_BY_SYM[DIRECTION.FORWARD] = 'NORTH';
+    NEIGHB_BY_SYM[DIRECTION.BACK] = 'SOUTH';
+    NEIGHB_BY_SYM[DIRECTION.LEFT] = 'WEST';
+    NEIGHB_BY_SYM[DIRECTION.RIGHT] = 'EAST';
+    NEIGHB_BY_SYM[DIRECTION.DOWN] = 'DOWN';
+    NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 
 // BLOCK PROPERTIES:
 // fluid (bool)                 - Is fluid
@@ -1219,7 +1216,7 @@ export class BLOCK {
 
     //
     static registerStyle(style) {
-        let reg_info = style.getRegInfo();
+        let reg_info = style.getRegInfo(BLOCK);
         for(let style of reg_info.styles) {
             BLOCK.styles.set(style, reg_info);
         }

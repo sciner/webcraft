@@ -22,6 +22,7 @@ if(typeof process != 'undefined') {
 
 const all = []
 
+// 1. load building_schemas
 for(let k in conf_world.building_schemas) {
     const item = conf_world.building_schemas[k]
     all.push(import(`./data/building_schema/${item.name}.js`).then(module => {
@@ -34,6 +35,7 @@ for(let k in conf_world.building_schemas) {
     }))
 }
 
+// 2. load chat_plugins
 for(let k in conf_world.chat_plugins) {
     const file = conf_world.chat_plugins[k]
     delete(conf_world.chat_plugins[k])

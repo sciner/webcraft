@@ -1,11 +1,14 @@
 import {ServerClient} from "../www/js/server_client.js";
 import {DIRECTION, Vector} from "../www/js/helpers.js";
-import {BLOCK} from "../www/js/blocks.js";
 import {WorldAction} from "../www/js/world_action.js";
 import { Weather } from "../www/js/block_type/weather.js";
+import { MobSpawnParams } from "./mob.js";
 
 export class ServerChat {
 
+    /**
+     * @param {import("./server_world.js").ServerWorld } world 
+     */
     constructor(world) {
         this.world = world;
         this.onCmdCallbacks = [];
@@ -93,6 +96,13 @@ export class ServerChat {
         let args = text.split(' ');
         let cmd = args[0].toLowerCase();
         switch (cmd) {
+            case "/kill": {
+                args = this.parseCMD(args, ['string', 'string'])
+                if (args[1] == 'mobs') {
+                    this.world.mobs.kill()
+                }
+                break
+            }
             case "/admin": {
                 if (args.length < 2) {
                     throw 'Invalid arguments count';
@@ -148,10 +158,11 @@ export class ServerChat {
                     name = args[1];
                     cnt = args[2];
                 }
+                const bm = this.world.block_manager
                 cnt = Math.max(cnt | 0, 1);
-                const b = BLOCK.fromName(name.toUpperCase());
+                const b = bm.fromName(name.toUpperCase());
                 if(b && b.id > 0) {
-                    const block = BLOCK.convertItemToInventoryItem(b, b, true);
+                    const block = bm.convertItemToInventoryItem(b, b, true);
                     block.count = cnt;
                     const ok = player.inventory.increment(block, true);
                     if(ok) {
@@ -164,28 +175,33 @@ export class ServerChat {
                 }
                 break;
             case '/help': {
-                let commands = [
-                    '/weather (' + Weather.NAMES.join(' | ') + ')',
-                    '/gamemode [world] (survival | creative | adventure | spectator | get)',
-                    '/tp -> teleport',
-                    '/stp -> safe teleport',
-                    '/spawnpoint',
-                    '/seed',
-                    '/give <item> [<count>]',
-                    '/helpadmin'
-                ];
+                let commands
+                if (args[1] === 'admin') {
+                    checkIsAdmin()
+                    commands = [
+                        '/admin (list | add <username> | remove <username>)',
+                        '/time (add <int> | set (<int>|day|midnight|night|noon))',
+                        'Server stats:',
+                        '  /tps [chunk]',
+                        '  /tps2 [chunk] [recent]',
+                        '  /sysstat',
+                        '  /astat [recent]',
+                        '/shutdown [gentle | force]'
+                    ]
+                } else {
+                    commands = [
+                        '/weather (' + Weather.NAMES.join(' | ') + ')',
+                        '/gamemode [world] (survival | creative | adventure | spectator | get)',
+                        '/tp -> teleport',
+                        '/stp -> safe teleport',
+                        '/spawnpoint',
+                        '/seed',
+                        '/give <item> [<count>]',
+                        '/help [admin]'
+                    ]
+                }
                 this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [player.session.user_id]);
                 break;
-            }
-            case '/helpadmin': {
-                checkIsAdmin()
-                const commands = [
-                    '/admin (list | add <username> | remove <username>)',
-                    'Server stats: /tps /tps2 /sysstat /astat',
-                    '/shutdown [gentle | force]'
-                ]
-                this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [user_id])
-                break
             }
             case '/gamemode':
                 if(!this.world.admins.checkIsAdmin(player)) {
@@ -270,22 +286,26 @@ export class ServerChat {
                 break;
             }
             case '/tps': {
+                const table = this.getTickStats(args)
                 let temp = [];
-                for(let [k, v] of Object.entries(this.world.ticks_stat)) {
-                    if(['start', 'add', 'values', 'pn_values', 'pn', 'end', 'number', 'min'].indexOf(k) >= 0) continue;
+                const keys = ['tps', 'last', 'total', 'count', 'max']
+                for(let k of keys) {
+                    const v = table[k]
                     temp.push(k + ': ' + Math.round(v * 1000) / 1000);
                 }
                 this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
                 break;
             }
             case '/tps2': {
-                const table = this.world.ticks_stat.toTable();
+                const recent = args.includes('recent')
+                const table = this.getTickStats(args).toTable(recent)
                 this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;
             }
             case '/astat': { // async stats. They show what's happeing with DB queries and other async stuff
+                const recent = args.includes('recent')
                 const dbActor = this.world.dbActor
-                const table = dbActor.asyncStats.toTable()
+                const table = dbActor.asyncStats.toTable(recent)
                 table['World transaction now'] = dbActor.savingWorldNow
                     ? `running for ${(performance.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
                     : 'not running';
@@ -336,14 +356,7 @@ export class ServerChat {
             }
             case '/spawnmob': {
                 args = this.parseCMD(args, ['string', '?float', '?float', '?float', 'string', 'string']);
-                // @ParamMobAdd
-                let params = {
-                    type:   args[4],
-                    skin:   args[5],
-                    pos:    player.state.pos.clone(),
-                    pos_spawn:    player.state.pos.clone(),
-                    rotate: new Vector(0, 0, player.state.rotate.z)
-                }; 
+                const pos = player.state.pos.clone()
                 // x
                 if (args[1] !== null) {
                     params.pos.x = args[1];
@@ -356,6 +369,13 @@ export class ServerChat {
                 if (args[3] !== null) {
                     params.pos.z = args[3];
                 }
+                // @ParamMobAdd
+                const params = new MobSpawnParams(
+                    pos,
+                    new Vector(0, 0, player.state.rotate.z),
+                    args[4],
+                    args[5],
+                )
                 // spawn
                 this.world.mobs.spawn(player, params);
                break;
@@ -365,7 +385,8 @@ export class ServerChat {
                     throw 'error_not_permitted';
                 }
                 const pos = player.state.pos.floored();
-                const cd = BLOCK.getCardinalDirection(player.rotateDegree.clone());
+                const bm = this.world.block_manager
+                const cd = bm.getCardinalDirection(player.rotateDegree.clone());
                 let ax = 0, az = 0;
                 switch(cd) {
                     case DIRECTION.WEST: {
@@ -386,7 +407,7 @@ export class ServerChat {
                     }
                 }
                 const actions = new WorldAction(null, this.world, false, false);
-                const item = {id: BLOCK.STONE.id};
+                const item = {id: bm.STONE.id};
                 const action_id = ServerClient.BLOCK_ACTION_CREATE;
                 pos.x += 1 * ax;
                 pos.z += 1 * az;
@@ -483,4 +504,9 @@ export class ServerChat {
         return resp;
     }
 
+    getTickStats(args) {
+        return args.includes('chunk')
+            ? this.world.chunkManager.ticks_stat
+            : this.world.ticks_stat
+    }
 }

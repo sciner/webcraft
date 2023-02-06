@@ -21,11 +21,17 @@ for(let i = 0; i < randoms.length; i++) {
 
 // Terrain generator class
 export default class Terrain_Generator extends Demo_Map {
-
+    
+    /**
+     * @param { import("../../worker/world.js").WorkerWorld } world
+     * @param { string } seed 
+     * @param { string } world_id 
+     * @param { object } options 
+     */
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
         this.world = world;
-        this.clusterManager = new ClusterManager(world.chunkManager, seed);
+        this.clusterManager = new ClusterManager(world, seed);
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;

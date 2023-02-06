@@ -1,9 +1,6 @@
 import { FSMBrain } from "../brain.js";
-import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
-import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
-import { ServerClient } from "../../../www/js/server_client.js";
 import { EnumDifficulty } from "../../../www/js/enums/enum_difficulty.js";
 
 // @todo Недоработанный мозг скелета, надо будет всё поправить (убираем фикс размера, пока нет лука)
@@ -169,8 +166,9 @@ export class Brain extends FSMBrain {
         const items = [];
         const actions = new WorldAction();
         const rnd_count_bone = (Math.random() * 2) | 0;
+        const bm = world.block_manager
         if (rnd_count_bone > 0) {
-            items.push({ id: BLOCK.BONE.id, count: rnd_count_bone });
+            items.push({ id: bm.BONE.id, count: rnd_count_bone });
         }
  
         if (items.length > 0) {

@@ -24,7 +24,6 @@ const msgQueue = [];
 const worker = {
     init: function () {
         if (typeof process !== 'undefined') {
-            import('fs').then(fs => global.fs = fs);
             import('worker_threads').then(module => {
                 this.parentPort = module.parentPort;
                 this.parentPort.on('message', onMessageFunc);
@@ -108,10 +107,4 @@ async function onMessageFunc(e) {
             world.onMessage([cmd, args]);
         }
     }
-}
-
-if (typeof process !== 'undefined') {
-    import('worker_threads').then(module => module.parentPort.on('message', onMessageFunc));
-} else {
-    onmessage = onMessageFunc
 }

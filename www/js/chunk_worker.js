@@ -109,7 +109,7 @@ async function initWorld(generator, world_seed, world_guid, settings, cache) {
 
     await globalThis.BLOCK.init(settings);
     //
-    worlds = new WorkerWorldManager();
+    worlds = new WorkerWorldManager(globalThis.BLOCK);
     await worlds.InitTerrainGenerators([generator.id]);
 
     // bulding_schemas
@@ -301,10 +301,4 @@ async function onMessageFunc(e) {
             break
         }
     }
-}
-
-if(typeof process !== 'undefined') {
-    import('worker_threads').then(module => module.parentPort.on('message', onMessageFunc));
-} else {
-    onmessage = onMessageFunc
 }

@@ -1410,7 +1410,7 @@
             "drop_item": [
                 {
                     "name":"GOLD_ORE",
-                    "instrument":"stone" 
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"] 
                 }
             ],
             "texture": "block/gold_ore.png",
@@ -1573,8 +1573,18 @@
                 "no_drop_ao"
             ],
             "material": {
-                "id": "stone"
-            }
+                "id": "web"
+            },
+            "drop_item": [
+                {
+                    "name":"STRING",
+                    "instrument":["_SWORD"] 
+                },
+                {
+                    "name":"COBWEB",
+                    "instrument":["SHEARS"] 
+                }
+            ]
         },
         {
             "id": 31,
@@ -1933,7 +1943,7 @@
             "drop_item": [
                 {
                     "name":"DIAMOND",
-                    "instrument":"iron" 
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"] 
                 }
             ],
             "texture": "block/diamond_ore.png",

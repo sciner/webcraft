@@ -14,11 +14,17 @@ export const CLUSTER_SIZE_V2 = new Vector(256, 200, 256)
 // ClusterManager
 export class ClusterManager {
 
-    // All clusters
-    constructor(chunkManager, seed, version) {
+    /**
+     * All clusters
+     * @param { import("../../worker/world.js").WorkerWorld } world 
+     * @param {*} seed 
+     * @param {*} version 
+     */
+    constructor(world, seed, version) {
         this.seed = seed;
         this.version = version;
-        this.chunkManager = chunkManager;
+        this.world = world
+        this.chunkManager = world.chunkManager;
         this.all = new VectorCollector();
         this.size = new Vector(version == 2 ? CLUSTER_SIZE_V2 : CLUSTER_SIZE)
     }

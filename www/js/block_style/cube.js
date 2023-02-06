@@ -2,13 +2,12 @@
 
 import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, Color} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
-import { BLOCK, LEAVES_TYPE } from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
+import { GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { GRASS_PALETTE_OFFSET } from '../constant.js';
 
 const {mat4} = glMatrix;
 
@@ -59,7 +58,12 @@ for(let i = 0; i < randoms.length; i++) {
 
 export default class style {
 
-    static getRegInfo() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['cube', 'default'],
             func: this.func,
@@ -74,7 +78,7 @@ export default class style {
         let height = material.height ? material.height : 1;
         let depth = material.depth ? material.depth : width;
 
-        if(for_physic && block.id == BLOCK.SOUL_SAND.id) {
+        if(for_physic && block.id == style.block_manager.SOUL_SAND.id) {
             height = 14/16;
         }
 
@@ -140,6 +144,7 @@ export default class style {
 
     //
     static putIntoPot(vertices, material, pivot, matrix, pos, biome, dirt_color) {
+        const bm = style.block_manager
         const width = 8/32;
         const {x, y, z} = pos;
         const aabb = new AABB();
@@ -151,9 +156,9 @@ export default class style {
             y + 1 - 6/32,
             z + .5 + width/2
         );
-        const c_up = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
-        const c_down = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN);
-        const c_side = BLOCK.calcMaterialTexture(material, DIRECTION.LEFT);
+        const c_up = bm.calcMaterialTexture(material, DIRECTION.UP);
+        const c_down = bm.calcMaterialTexture(material, DIRECTION.DOWN);
+        const c_side = bm.calcMaterialTexture(material, DIRECTION.LEFT);
 
         let flags = 0;
 
@@ -266,13 +271,14 @@ export default class style {
             return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color);
         }
 
+        const bm                    = style.block_manager
         const material              = block.material;
         const no_anim               = material.is_simple_qube || !material.texture_animations;
 
         // Beautiful leaves
         const sheared = (block?.extra_data?.sheared) ? block?.extra_data?.sheared : false;
         if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL && !sheared) {
-            const leaves_tex = BLOCK.calcTexture(material.texture, 'round');
+            const leaves_tex = bm.calcTexture(material.texture, 'round');
             _lm_leaves.copyFrom(dirt_color);
             // _lm_leaves.r += (Math.random() - Math.random()) * 24;
             // _lm_leaves.g += (Math.random() - Math.random()) * 24;
@@ -342,7 +348,7 @@ export default class style {
 
         if(material.is_simple_qube) {
 
-            force_tex = BLOCK.calcTexture(material.texture, DIRECTION.UP);
+            force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
 
         } else {
 
@@ -367,7 +373,7 @@ export default class style {
             // Texture color multiplier
             if(block.hasTag('mask_biome')) {
                 lm.copyFrom(dirt_color)
-                if(block.id == BLOCK.GRASS_BLOCK.id) {
+                if(block.id == bm.GRASS_BLOCK.id) {
                     lm.r += GRASS_PALETTE_OFFSET;
                 }
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
@@ -429,7 +435,7 @@ export default class style {
             let replace_side_tex = false;
             if(material.is_dirt && ('height' in material)) {
                 const up_mat = neighbours.UP?.material;
-                if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == BLOCK.DIRT_PATH.id))) {
+                if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == bm.DIRT_PATH.id))) {
                     replace_side_tex = true;
                 }
             }
@@ -460,7 +466,7 @@ export default class style {
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         if(material.random_rotate_up) {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
-            if(block.id == BLOCK.LILY_PAD.id) {
+            if(block.id == bm.LILY_PAD.id) {
                 axes_down = UP_AXES[rv % 4];
             } else {
                 axes_up = UP_AXES[rv % 4];
@@ -470,7 +476,7 @@ export default class style {
 
         //
         const calcSideParams = (side, dir, width, height) => {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, side);
+            const anim_frames = no_anim ? 0 : bm.getAnimations(material, side);
             const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             if(material.name == 'FURNACE' && dir == DIRECTION.NORTH) {
                 const fuel_time = block?.extra_data?.state?.fuel_time ?? 0;
@@ -478,7 +484,7 @@ export default class style {
                     dir = 'north_on';
                 }
             }
-            const t = force_tex || BLOCK.calcMaterialTexture(material, dir, width, height, block);
+            const t = force_tex || bm.calcMaterialTexture(material, dir, width, height, block);
             const f = flags | upFlags | sideFlags | animFlag;
             if((f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
                 lm.b = t[3] * TX_CNT;
@@ -525,8 +531,8 @@ export default class style {
         pushAABB(vertices, _aabb, pivot, matrix, sides, _center.set(x, y, z));
 
         // Add animations
-        if(typeof worker != 'undefined' && block.id == BLOCK.SOUL_SAND.id) {
-            if (neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id) {
+        if(typeof worker != 'undefined' && block.id == bm.SOUL_SAND.id) {
+            if (neighbours.UP?.id == bm.BUBBLE_COLUMN.id) {
                 worker.postMessage(['add_animated_block', {
                     block_pos: block.posworld,
                     pos: [block.posworld.add(new Vector(.5, .5, .5))],
@@ -539,7 +545,7 @@ export default class style {
         }
 
         // Jukebox
-        if(block.id == BLOCK.JUKEBOX.id) {
+        if(block.id == bm.JUKEBOX.id) {
             style.playJukeboxDisc(chunk, block, x, y, z)
         }
 
