@@ -9444,16 +9444,15 @@
         },
         {
             "id": 1042,
-            "name": "CHORUS_PLANT",
+            "name": "CHORUS_FLOWER",
             "sound": "madcraft:block.grass",
-            "style": "chorus",
+            "style": "default",
             "transparent": true,
             "material": {
                 "id": "plant"
             },
             "texture": {
-                "up": "block/chorus_flower.png",
-                "side": "block/chorus_plant.png",
+                "side": "block/chorus_flower.png",
                 "down": "block/chorus_flower_dead.png"
             },
             "ticking": {
@@ -9471,6 +9470,19 @@
         },
         {
             "id": 1043,
+            "name": "CHORUS_PLANT",
+            "sound": "madcraft:block.grass",
+            "style": "chorus",
+            "transparent": true,
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "side": "block/chorus_plant.png"
+            }
+        },
+        {
+            "id": 1044,
             "name": "CHORUS_FRUIT",
             "item": {"name": "food"},
             "style": "extruder",
@@ -9489,7 +9501,7 @@
             "coocked_item": {"name": "POPPED_CHORUS_FRUIT", "count": 1}
         },
         {
-            "id": 1044,
+            "id": 1045,
             "name": "POPPED_CHORUS_FRUIT",
             "style": "extruder",
             "diagonal": true,
