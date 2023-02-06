@@ -6,7 +6,7 @@ export class QuestManager {
         this.#world = world;
     }
 
-    async init() {
+    init() {
         this.groupsWithDefaultQuestsById = this.#world.db.quests.getGroupsWithDefaultQuests();
         this.groupsWithDefaultQuestsList = Array.from(this.groupsWithDefaultQuestsById.values());
     }
