@@ -1595,6 +1595,7 @@ export class WindowManager extends Window {
                     x:          e.offsetX - this.x,
                     y:          e.offsetY - this.y
                 };
+                this.drag.slot = null // if a slot previously remembered itself in this.darg when clicked, forget it
                 if(this.drag.getItem()) {
                      //this._drop(evt)
                 } else {

@@ -116,6 +116,11 @@ class CreativeInventoryCollection extends Window {
         const dropFunc = function(e) {
             const that      = this
             const drag      = e.drag
+            // prevent dropping into the same sloft after the mouse is released
+            if(drag?.slot === this) {
+                drag.slot = null
+                return
+            }
             const dropItem  = drag.getItem() // что перетащили
             let targetItem  = this.getItem() // куда перетащили
             if(targetItem && dropItem.id == targetItem.id) {
