@@ -91,7 +91,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onSetBlock(e) {
+    onSetBlock(e) {
         const block = BLOCK.fromId(e.data.block.id);
         if(!block) {
             throw 'error_invalid_block';
@@ -114,7 +114,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onDestroyBlock(e) {
+    onDestroyBlock(e) {
         const block = BLOCK.fromId(e.data.block_id);
         if(!block) {
             throw 'error_invalid_block';
@@ -124,7 +124,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onPickup(e) {
+    onPickup(e) {
         for(let quest of this.quests.values()) {
             if(quest.is_completed) {
                 continue;
@@ -141,7 +141,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onCraft(e) {
+    onCraft(e) {
         const item = e.data.item;
         const block = BLOCK.fromId(item.block_id);
         if(!block) {
@@ -164,7 +164,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    async onItemToInventory(e) {
+    onItemToInventory(e) {
         const item = e.data.item;
         const block = BLOCK.fromId(item.block_id);
         if(!block) {
