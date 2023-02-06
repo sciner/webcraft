@@ -105,7 +105,7 @@ export class ServerPlayer extends Player {
 
         this.timer_reload = performance.now();
 
-        this.box = new AABB()
+        this._aabb = new AABB()
     }
 
     init(init_info) {
@@ -395,8 +395,11 @@ export class ServerPlayer extends Player {
         return this.live_level > 0 
     }
 
+    /**
+     * @returns {AABB}
+     */
     get aabb() {
-        this.box.set(
+        this._aabb.set(
             this.state.pos.x - PLAYER_WIDTH / 2,
             this.state.pos.y,
             this.state.pos.z - PLAYER_WIDTH / 2,
@@ -404,7 +407,7 @@ export class ServerPlayer extends Player {
             this.state.pos.y + PLAYER_HEIGHT,
             this.state.pos.z + PLAYER_WIDTH / 2
         )
-        return this.box
+        return this._aabb
     }
 
     async checkWaitPortal() {

@@ -82,11 +82,14 @@ export class Mob {
         // To determine when to make regular saves. Add a random to spread different mobs over different transactions.
         this.lastSavedTime  = performance.now() + Math.random() * 0.5 * MOB_SAVE_PERIOD;
         this.lastSavedPos   = new Vector(this.pos); // to force saving is the position changed to much
-        this.box = new AABB
+        this._aabb = new AABB
     }
 
+    /**
+     * @returns {AABB}
+     */
     get aabb() {
-        this.box.set(
+        this._aabb.set(
             this.pos.x - this.width / 2,
             this.pos.y,
             this.pos.z - this.width / 2,
@@ -94,7 +97,7 @@ export class Mob {
             this.pos.y + this.height,
             this.pos.z + this.width / 2
         )
-        return this.box
+        return this._aabb
     }
 
     get chunk_addr() {
