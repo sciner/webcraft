@@ -2,11 +2,11 @@ import { FSMStack } from "./stack.js";
 import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
-import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
+import { Raycaster } from "../../www/js/Raycaster.js";
 import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";
 import { Mob } from "../mob.js";
 import { EnumDamage } from "../../www/js/enums/enum_damage.js";
-import { EnumDifficulty } from "../../www/js/enums/enum_difficulty.js";
+// import { EnumDifficulty } from "../../www/js/enums/enum_difficulty.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
 import { WorldAction } from "../../www/js/world_action.js";
 
@@ -121,7 +121,11 @@ export class FSMBrain {
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
 
-    // на этом месте можно стоять
+    /**
+     * На этом месте можно стоять?
+     * @param {Vector} position 
+     * @returns {boolean}
+     */
     isStandAt(position) {
         const pos = position.floored();
         const world = this.mob.getWorld()
@@ -139,7 +143,10 @@ export class FSMBrain {
         return false;
     }
 
-    // Returns the position of the eyes of the mob
+    /**
+     * Returns the position of the eyes of the mob
+     * @returns {Vector}
+     */
     getEyePos() {
         const mob = this.mob;
         const subY = 0;
@@ -149,6 +156,9 @@ export class FSMBrain {
         return this._eye_pos.set(mob.pos.x, mob.pos.y + this.height * 0.85 - subY, mob.pos.z);
     }
 
+    /**
+     * @returns {float}
+     */
     get height() {
         return this.pc.physics.playerHeight;
     }
@@ -439,10 +449,11 @@ export class FSMBrain {
     }
 
     /**
-    * Использовать предмет на мобе
-    * actor - игрок
-    * item - item
-    */
+     * Использовать предмет на мобе
+     * @param {*} actor игрок
+     * @param {*} item item
+     * @returns {boolean}
+     */
     onUse(actor, item){
         return false;
     }

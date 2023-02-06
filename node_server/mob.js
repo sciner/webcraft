@@ -17,6 +17,12 @@ export class MobSpawnParams {
      */
     entity_id
 
+    /**
+     * @param {Vector} pos 
+     * @param {Vector} rotate 
+     * @param {string} type Model of mob
+     * @param {string} skin Model skin id
+     */
     constructor(pos, rotate, type, skin) {
         this.pos = new Vector(pos)
         this.pos_spawn = new Vector(pos)
@@ -30,6 +36,12 @@ export class MobSpawnParams {
 //
 export class MobState {
     
+    /**
+     * @param {int} id 
+     * @param {Vector} pos 
+     * @param {Vector} rotate 
+     * @param {?object} extra_data 
+     */
     constructor(id, pos, rotate, extra_data) {
         this.id = id;
         this.pos = pos;
@@ -66,13 +78,36 @@ export class Mob {
     static DIRTY_FLAG_UPDATE        = 0x4; // It indicates that something important has changed. Saving in the next transaction won't be skipped.
     static DIRTY_FLAG_SAVED_DEAD    = 0x8; // If the mob is dead and was already saved as dead, it won't be saved again.
 
+    /**
+     * @type { import("./server_world.js").ServerWorld }
+     */
     #world;
+
+    /**
+     * @type { import("./fsm/brain.js").FSMBrain }
+     */
     #brain;
+
+    /**
+     * @type {Vector}
+     */
     #chunk_addr;
+
+    /**
+     * @type {Vector}
+     */
     #forward;
 
+    /**
+     * 
+     * @param { import("./server_world.js").ServerWorld } world 
+     * @param {*} params 
+     * @param {*} existsInDB 
+     */
     constructor(world, params, existsInDB) {
+
         this.#world         = world;
+
         // Read params
         this.id             = params.id,
         this.entity_id      = params.entity_id,
@@ -122,10 +157,16 @@ export class Mob {
         return this._aabb
     }
 
+    /**
+     * @returns {Vector}
+     */
     get chunk_addr() {
         return getChunkAddr(this.pos, this.#chunk_addr);
     }
 
+    /**
+     * @returns {Vector}
+     */
     get forward() {
         return this.#forward.set(
             Math.sin(this.rotate.z),
@@ -134,17 +175,23 @@ export class Mob {
         );
     }
 
+    /**
+     * @returns { import("./server_world.js").ServerWorld }
+     */
     getWorld() {
         return this.#world;
     }
-    
+
+    /**
+     * @returns { import("./fsm/brain.js").FSMBrain }
+     */
     getBrain() {
         return this.#brain;
     }
 
     /**
      * Create new mob
-     * @param {*} world 
+     * @param { import("./server_world.js").ServerWorld } world 
      * @param { MobSpawnParams } params 
      * @returns { ?Mob }
      */
@@ -249,6 +296,7 @@ export class Mob {
         }
     }
 
+    // Kill
     kill() {
         if(this.already_killed) {
             return false;
@@ -279,7 +327,11 @@ export class Mob {
         return !player || player.status !== PLAYER_STATUS_ALIVE || !player.game_mode.getCurrent().can_take_damage;
     }
 
-    //
+    /**
+     * @param { import("./server_world.js").ServerWorld } world 
+     * @param {*} row 
+     * @returns {Mob}
+     */
     static fromRow(world, row) {
         return new Mob(world, {
             id:         row.id,
@@ -302,6 +354,11 @@ export class Mob {
         return new MobState(this.id, this.pos, this.rotate, this.extra_data);
     }
 
+    /**
+     * @param {*} underConstruction 
+     * @param {boolean} force 
+     * @returns 
+     */
     writeToWorldTransaction(underConstruction, force = false) {
         const dirtyFlags = this.dirtyFlags;
         if (dirtyFlags & Mob.DIRTY_FLAG_SAVED_DEAD) {
