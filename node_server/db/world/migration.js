@@ -1,5 +1,4 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
-import { DBWorldChunk } from "./chunk.js"
 
 // Migrations
 export class DBWorldMigration {
@@ -881,9 +880,7 @@ export class DBWorldMigration {
             'DROP INDEX world_modify_chunk_xyz', // add "index" field to this one
             'CREATE INDEX world_modify_chunk_xyz_index ON world_modify (chunk_x, chunk_z, chunk_y, "index")',
             // there was int32 overflow in delayed_calls times
-            'UPDATE chunk SET delayed_calls = NULL',
-            // rebuild world_modify_chunk.data without duplicate ids
-            DBWorldChunk.UPDATE_REBUILD_MODIFIERS_DATA_ONLY
+            'UPDATE chunk SET delayed_calls = NULL'
         ]});
 
         for(let m of migrations) {

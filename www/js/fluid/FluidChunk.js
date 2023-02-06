@@ -526,6 +526,11 @@ export class FluidChunk {
             return;
         }
         if (this.world.database) {
+            // Mark it as having modifications ASAP, so the client knows it must be requested.
+            // Use a rounabout way to access the server's class static property from a client without importing it.
+            const worldChunkFlags = this.world.world.worldChunkFlags; // .world.world is not a typo
+            worldChunkFlags.add(this.parentChunk.addr, worldChunkFlags.constructor.MODIFIED_FLUID);
+            // Queue its saving in DB
             this.world.database.dirtyChunks.push(this);
         }
     }

@@ -122,6 +122,11 @@ export class FluidChunkEvents {
                 }
     }
 
+    /**
+     * @param {Function} cb. Calback arguments:
+     *   - pos: Vector (mutable, can't be saved!!)
+     *   - isAbove: Boolean. True if the even is caused by the change of the fluid in the block above the current block.
+     */
     process(cb) {
         let {list, qplace} = this;
         const {outerSize, pos, cw} = this.fluidChunk.dataChunk;

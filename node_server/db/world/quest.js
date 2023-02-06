@@ -1,5 +1,8 @@
 import { preprocessSQL, run } from "../db_helpers.js";
 
+const INSERT = {}
+const UPDATE = {}
+
 export class DBWorldQuest {
     constructor(conn, world) {
         this.conn = conn;

@@ -14,6 +14,9 @@ import { DBWorldChunk } from "./world/chunk.js";
 import { compressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
 
+const INSERT = {}
+const UPDATE = {}
+
 // World database provider
 export class DBWorld {
 
@@ -281,16 +284,16 @@ export class DBWorld {
     }
 
     async bulkUpdateInventory(rows) {
+        UPDATE.BULK_INVENTORY = UPDATE.BULK_INVENTORY ?? preprocessSQL(`
+            UPDATE user
+            SET inventory = %1
+            FROM json_each(?)
+            WHERE user.id = %0
+        `);
         return rows.length
-            ? run(this.conn, this.BULK_UPDATE_INVENTORY, [JSON.stringify(rows)])
+            ? run(this.conn, UPDATE.BULK_INVENTORY, [JSON.stringify(rows)])
             : null;
-    };
-    BULK_UPDATE_INVENTORY = preprocessSQL(`
-        UPDATE user
-        SET inventory = %1
-        FROM json_each(?)
-        WHERE user.id = %0
-    `);
+    }
 
     static toPlayerUpdateRow(player) {
         const state = player.state;
@@ -304,17 +307,17 @@ export class DBWorld {
     }
 
     async bulkUpdatePlayerState(rows, dt) {
-        return rows.length ? run(this.conn, this.BULK_UPDATE_PLAYER_STATE, {
+        UPDATE.BULK_PLAYER_STATE = UPDATE.BULK_PLAYER_STATE ?? preprocessSQL(`
+            UPDATE user
+            SET pos = %1, rotate = %2, indicators = %3, stats = %4, dt_moved = :dt
+            FROM json_each(:jsonRows)
+            WHERE user.id = %0
+        `);
+        return rows.length ? run(this.conn, UPDATE.BULK_PLAYER_STATE, {
             ':jsonRows': JSON.stringify(rows),
             ':dt':  dt
         }) : null;
-    };
-    BULK_UPDATE_PLAYER_STATE = preprocessSQL(`
-        UPDATE user
-        SET pos = %1, rotate = %2, indicators = %3, stats = %4, dt_moved = :dt
-        FROM json_each(:jsonRows)
-        WHERE user.id = %0
-    `);
+    }
 
     // changePosSpawn...
     async changePosSpawn(player, params) {
@@ -357,35 +360,35 @@ export class DBWorld {
     }
 
     async bulkInsertDropItems(rows, dt) {
-        return rows.length ? run(this.conn, this.BULK_INSERT_DROP_ITEMS, {
+        INSERT.BULK_DROP_ITEMS = INSERT.BULK_DROP_ITEMS ?? preprocessSQL(`
+            INSERT INTO drop_item (entity_id, dt, items, x, y, z)
+            SELECT %0, %1, %2, %3, %4, %5
+            FROM json_each(:jsonRows)
+        `);
+        return rows.length ? run(this.conn, INSERT.BULK_DROP_ITEMS, {
             ':jsonRows': JSON.stringify(rows),
             ':dt': dt
         }) : null;
-    };
-    BULK_INSERT_DROP_ITEMS = preprocessSQL(`
-        INSERT INTO drop_item (entity_id, dt, items, x, y, z)
-        SELECT %0, %1, %2, %3, %4, %5
-        FROM json_each(:jsonRows)
-    `);
+    }
 
     async bulkUpdateDropItems(rows) {
-        return rows.length ? run(this.conn, this.BULK_UPDATE_DROP_ITEMS, {
+        UPDATE.BULK_DROP_ITEMS = UPDATE.BULK_DROP_ITEMS ?? preprocessSQL(`
+            UPDATE drop_item
+            SET dt = %1, items = %2, x = %3, y = %4, z = %5
+            FROM json_each(:jsonRows)
+            WHERE entity_id = %0
+        `);
+        return rows.length ? run(this.conn, UPDATE.BULK_DROP_ITEMS, {
             ':jsonRows': JSON.stringify(rows)
         }) : null;
-    };
-    BULK_UPDATE_DROP_ITEMS = preprocessSQL(`
-        UPDATE drop_item
-        SET dt = %1, items = %2, x = %3, y = %4, z = %5
-        FROM json_each(:jsonRows)
-        WHERE entity_id = %0
-    `);
+    }
 
     async bulkDeleteDropItems(entityIds) {
         return entityIds.length ? run(this.conn, 
             'DELETE FROM drop_item WHERE entity_id IN (SELECT value FROM json_each(?))',
             [JSON.stringify(entityIds)]
         ) : null;
-    };
+    }
 
     // Delete all old drop items
     async removeDeadDrops() {
