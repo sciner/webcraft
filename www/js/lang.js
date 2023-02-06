@@ -44,7 +44,7 @@ export const Lang = new Proxy(
         //
         getTranslateFromJSON(json_string) {
             try {
-                const obj = JSON.parse(json_string);
+                const obj = JSON.parse(json_string ?? null);
                 if(!obj) {
                     return json_string;
                 }

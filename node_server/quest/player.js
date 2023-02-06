@@ -1,4 +1,3 @@
-import {BLOCK} from "../../www/js/blocks.js";
 import {PlayerEvent} from "../player_event.js";
 import {Quest} from "./quest.js";
 import {QuestGroup} from "./quest_group.js";
@@ -12,6 +11,7 @@ export class QuestPlayer {
     constructor(quest_manager, player) {
         this.quest_manager = quest_manager;
         this.player = player;
+        this.world = player.world
     }
 
     async init() {
@@ -92,7 +92,7 @@ export class QuestPlayer {
 
     // Handler
     onSetBlock(e) {
-        const block = BLOCK.fromId(e.data.block.id);
+        const block = this.world.block_manager.fromId(e.data.block.id);
         if(!block) {
             throw 'error_invalid_block';
         }
@@ -115,7 +115,7 @@ export class QuestPlayer {
 
     // Handler
     onDestroyBlock(e) {
-        const block = BLOCK.fromId(e.data.block_id);
+        const block = this.world.block_manager.fromId(e.data.block_id);
         if(!block) {
             throw 'error_invalid_block';
         }
@@ -143,7 +143,7 @@ export class QuestPlayer {
     // Handler
     onCraft(e) {
         const item = e.data.item;
-        const block = BLOCK.fromId(item.block_id);
+        const block = this.world.block_manager.fromId(item.block_id);
         if(!block) {
             throw 'error_invalid_block';
         }
@@ -166,7 +166,7 @@ export class QuestPlayer {
     // Handler
     onItemToInventory(e) {
         const item = e.data.item;
-        const block = BLOCK.fromId(item.block_id);
+        const block = this.world.block_manager.fromId(item.block_id);
         if(!block) {
             throw 'error_invalid_block';
         }
@@ -199,4 +199,5 @@ export class QuestPlayer {
             quest.writeToWorldTransaction(underConstruction);
         }
     }
+
 }

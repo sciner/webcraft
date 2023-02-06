@@ -1,6 +1,4 @@
-import { CHUNK_SIZE_Y } from "../../chunk_const.js";
-import {DIRECTION, Vector} from "../../helpers.js";
-import {BLOCK} from "../../blocks.js";
+import { Vector} from "../../helpers.js";
 import {impl as alea} from '../../../vendors/alea.js';
 
 export const NEAR_MASK_MAX_DIST = 10
@@ -24,9 +22,14 @@ export class ClusterPoint {
 // ClusterBase
 export class ClusterBase {
 
-    // constructor
+    /**
+     * @param { import("./manager.js").ClusterManager } clusterManager 
+     * @param { Vector } addr 
+     * @param { ?Vector } size 
+     */
     constructor(clusterManager, addr, size) {
         this.clusterManager = clusterManager;
+        this.block_manager  = clusterManager.world.block_manager
         this.y_base         = 80;
         this.addr           = addr;
         this.size           = new Vector(clusterManager.size)
@@ -43,7 +46,7 @@ export class ClusterBase {
 
     /**
      * Set block
-     * @param { import("../../worker/chunk.js").Chunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {int} x 
      * @param {int} y 
      * @param {int} z 
@@ -63,13 +66,14 @@ export class ClusterBase {
         } else {
             return false;
         }
+        const bm = this.block_manager
         if(map) {
             // IMPORTANT: replace structure dirt blocks
-            if(block_id == BLOCK.GRASS_BLOCK.id || block_id == BLOCK.DIRT.id) {
+            if(block_id == bm.GRASS_BLOCK.id || block_id == bm.DIRT.id) {
                 const cell = map.getCell(x, z)
                 const cdl = cell.dirt_layer
                 if(cdl) {
-                    const layer_index = Math.min(block_id == BLOCK.DIRT.id ? 1 : 0, cdl.blocks.length - 1)
+                    const layer_index = Math.min(block_id == bm.DIRT.id ? 1 : 0, cdl.blocks.length - 1)
                     block_id = cdl.blocks[layer_index]
                 }
             }
@@ -85,13 +89,20 @@ export class ClusterBase {
             }
         }
         chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid, destroy_fluid)
-        if(BLOCK.TICKING_BLOCKS.has(block_id)) {
+        if(bm.TICKING_BLOCKS.has(block_id)) {
             chunk.addTickingBlock(chunk.coord.offset(x, y, z));
         }
         return true;
     }
 
-    // Return block from pos
+    /**
+     * Return block ID from pos
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param { int } x 
+     * @param { int } y 
+     * @param { int } z 
+     * @returns {int}
+     */
     getBlock(chunk, x, y, z) {
         const {cx, cy, cz, cw} = chunk.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
@@ -210,7 +221,13 @@ export class ClusterBase {
         return resp;
     }
 
-    // Fill chunk blocks
+    /**
+     * Fill chunk blocks
+     * @param {*} maps 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param {*} map 
+     * @returns 
+     */
     fillBlocks(maps, chunk, map) {
         if(this.is_empty) {
             return false;
@@ -218,6 +235,7 @@ export class ClusterBase {
         const START_X           = chunk.coord.x - this.coord.x;
         const START_Z           = chunk.coord.z - this.coord.z;
         const CHUNK_Y_BOTTOM    = chunk.coord.y;
+        const bm                = this.block_manager
         //
         // this.road_block.reset();
         // fill roards and basements
@@ -235,7 +253,7 @@ export class ClusterBase {
                         /*if(this.use_road_as_gangway && point.block_id == this.road_block) {
                             let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
-                                this.setBlock(chunk, i, y, j, BLOCK.OAK_PLANKS.id, null);
+                                this.setBlock(chunk, i, y, j, bm.OAK_PLANKS.id, null);
                             }
                         }*/
                         continue;
@@ -255,7 +273,7 @@ export class ClusterBase {
                         for(let k = point.height; k <= 0; k++) {
                             let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < chunk.size.y) {
-                                let block_id = k == point.height ? point.block_id : BLOCK.AIR.id;
+                                let block_id = k == point.height ? point.block_id : bm.AIR.id;
                                 if(is_array) {
                                     block_id = point.block_id[ai++];
                                 }
@@ -291,19 +309,25 @@ export class ClusterBase {
         return this.mask[index];
     }
 
-    // Add NPC
+    /**
+     * Add NPC
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param { Vector } pos 
+     * @returns { boolean }
+     */
     addNPC(chunk, pos) {
+        const bm = this.block_manager
         // Auto generate mobs
         const auto_generate_mobs = this.clusterManager.chunkManager.world.getGeneratorOptions('auto_generate_mobs', true);
         if(!auto_generate_mobs) {
-            return;
+            return false;
         }
-        let rel_pos = pos.sub(chunk.coord);
+        const rel_pos = pos.sub(chunk.coord);
         if(rel_pos.x < 0 || rel_pos.y < 0 || rel_pos.z < 0 || rel_pos.x >= chunk.size.x || rel_pos.y >= chunk.size.y || rel_pos.z >= chunk.size.z) {
             return false;
         }
-        const npc_extra_data = BLOCK.calculateExtraData(this.generateNPCSpawnExtraData(), rel_pos);
-        this.setBlock(chunk, rel_pos.x, rel_pos.y, rel_pos.z, BLOCK.MOB_SPAWN.id, null, npc_extra_data);
+        const npc_extra_data = bm.calculateExtraData(this.generateNPCSpawnExtraData(), rel_pos);
+        this.setBlock(chunk, rel_pos.x, rel_pos.y, rel_pos.z, bm.MOB_SPAWN.id, null, npc_extra_data);
         chunk.addTickingBlock(pos);
         return true;
     }
@@ -321,8 +345,15 @@ export class ClusterBase {
             }
         }
     }
-
-    //
+    
+    /**
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param { Vector } pos 
+     * @param { Vector } size 
+     * @param { object } block 
+     * @param { Vector } rotate 
+     * @param {*} extra_data 
+     */
     drawQuboid(chunk, pos, size, block, rotate, extra_data) {
         const bx = pos.x - chunk.coord.x;
         const by = pos.y - chunk.coord.y;
@@ -339,13 +370,19 @@ export class ClusterBase {
         }
     }
 
-    //
+    /**
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param { Vector } pos 
+     * @param { Vector } size 
+     * @param { object } block 
+     */
     drawNaturalBasement(chunk, pos, size, block) {
 
         // console.log(pos.toHash())
-
         //const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y - size.y + 1, pos.z + size.z)
         //if(!chunk.aabb.intersect(aabb)) return false
+
+        const bm = this.block_manager
 
         let bx = pos.x - chunk.coord.x;
         let by = pos.y - chunk.coord.y;
@@ -357,7 +394,7 @@ export class ClusterBase {
         for(let x = -m; x < size.x + m; x++) {
             for(let z = -m; z < size.z + m; z++) {
                 for(let y = 0; y < height; y++) {
-                    this.setBlock(chunk, x + bx, by + y * ysign, z + bz, y == 0 ? BLOCK.GRASS_BLOCK.id : BLOCK.DIRT.id)
+                    this.setBlock(chunk, x + bx, by + y * ysign, z + bz, y == 0 ? bm.GRASS_BLOCK.id : bm.DIRT.id)
                 }
             }
         }
@@ -380,7 +417,7 @@ export class ClusterBase {
                     const dist = center.distance(_vec);
                     if(dist < Math.max(size.x, size.z) * rad_coef) {
                         const block_id = this.getBlock(chunk, x, y, z);
-                        if(block_id == 0 || block_id > 0 && BLOCK.canReplace(block_id)) {
+                        if(block_id == 0 || block_id > 0 && bm.canReplace(block_id)) {
                             let block_id = block.id;
                             // blocks
                             if(chunk.map && x >= 0 && z >= 0 && x < chunk.size.x && z < chunk.size.z) {
@@ -404,8 +441,8 @@ export class ClusterBase {
                             this.setBlock(chunk, x, y, z, block_id);
                             if(y > 0) {
                                 let under_block_id = this.getBlock(chunk, x, y - 1, z);
-                                if(under_block_id == BLOCK.GRASS_BLOCK.id) {
-                                    this.setBlock(chunk, x, y - 1, z, BLOCK.DIRT.id);
+                                if(under_block_id == bm.GRASS_BLOCK.id) {
+                                    this.setBlock(chunk, x, y - 1, z, bm.DIRT.id);
                                 }
                             }
                         }

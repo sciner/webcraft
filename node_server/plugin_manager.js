@@ -6,7 +6,6 @@ export class PluginManager {
         this.targets.set('game', []);
         this.targets.set('world',  []);
         this.targets.set('chat',  []);
-        console.log(Object.entries(config.chat_plugins))
         for(const [file, plugin] of Object.entries(config.chat_plugins)) {
             for(let target of plugin.targets) {
                 if(!this.targets.has(target)) {

@@ -22,7 +22,7 @@ export class Brain extends FSMBrain {
         this.distance_view = 6; // дистанция на которм виден игрок
         this.count_grass = 0;  // количество травы
         this.targets = [
-            BLOCK.WHEAT.id
+            mob.getWorld().block_manager.WHEAT.id
         ];
     }
 
@@ -46,29 +46,30 @@ export class Brain extends FSMBrain {
     doEat(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
+        const bm = world.block_manager
         if (this.count_grass > 5) {
             this.count_grass = 0;
             this.is_shaered = false;
         }
         if (this.is_shaered) {
-            if (this.legs_id == BLOCK.TALL_GRASS.id) {
+            if (this.legs_id == bm.TALL_GRASS.id) {
                 const actions = new WorldAction();
                 actions.addBlocks([
                     {
                         pos: mob.pos.floored(), 
-                        item: {id : BLOCK.AIR.id}, 
+                        item: {id : bm.AIR.id}, 
                         action_id: ServerClient.BLOCK_ACTION_REPLACE
                     }
                 ]);
                 world.actions_queue.add(null, actions); 
                 this.count_grass++;
             } else {
-                if (this.under_id == BLOCK.GRASS_BLOCK.id) {
+                if (this.under_id == bm.GRASS_BLOCK.id) {
                     const actions = new WorldAction();
                     actions.addBlocks([
                         {
                             pos: mob.pos.offset(0, -1, 0).floored(), 
-                            item: {id : BLOCK.DIRT.id}, 
+                            item: {id : bm.DIRT.id}, 
                             action_id: ServerClient.BLOCK_ACTION_REPLACE
                         }
                     ]);
@@ -87,7 +88,8 @@ export class Brain extends FSMBrain {
         const items = [];
         const actions = new WorldAction();
         const rnd_count_mutton = (Math.random() * 2) | 0;
-        items.push({ id: type_damage != EnumDamage.FIRE ? BLOCK.MUTTON.id : BLOCK.COOKED_MUTTON.id, count: rnd_count_mutton + 1 });
+        const bm = world.block_manager
+        items.push({ id: type_damage != EnumDamage.FIRE ? bm.MUTTON.id : bm.COOKED_MUTTON.id, count: rnd_count_mutton + 1 });
         if (!this.is_shaered) {
             const drop_block = world.block_manager.fromName('WHITE_WOOL');
             items.push({ id: drop_block.id, count: 1 });
@@ -105,8 +107,9 @@ export class Brain extends FSMBrain {
         
         const mob = this.mob;
         const world = mob.getWorld();
+        const bm = world.block_manager
         
-        if (id == BLOCK.SHEARS.id && !this.is_shaered) {
+        if (id == bm.SHEARS.id && !this.is_shaered) {
             this.is_shaered = true;
             const actions = new WorldAction();
 

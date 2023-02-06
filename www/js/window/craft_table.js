@@ -1,4 +1,3 @@
-import {BLOCK} from "../blocks.js";
 import {Button, Label} from "../../tools/gui/wm.js";
 import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";

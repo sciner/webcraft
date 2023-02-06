@@ -76,7 +76,7 @@ export class ChunkWorkerChunkManager {
 }
 
 // Chunk
-export class Chunk {
+export class ChunkWorkerChunk {
 
     /**
      * @param {ChunkWorkerChunkManager} chunkManager 
@@ -368,7 +368,7 @@ export class Chunk {
         const {vertices, vertExtraLen} = this.tblocks;
         const {cx, cy, cz, cw, uint16View} = this.tblocks.dataChunk;
         const {BLOCK_BY_ID} = BLOCK;
-        const neibMat = Chunk.neibMat;
+        const neibMat = ChunkWorkerChunk.neibMat;
         const cache = BLOCK_CACHE;
 
         const block = this.tblocks.get(new Vector(0, 0, 0), null, cw);
@@ -612,7 +612,7 @@ export class Chunk {
         }
 
         const serializedVertices = this.serializedVertices = {}
-        const removedEntries = Chunk.removedEntries;
+        const removedEntries = ChunkWorkerChunk.removedEntries;
 
         this.totalPages = 0;
         for (let entry of this.vertexBuffers) {

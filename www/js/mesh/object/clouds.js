@@ -8,7 +8,7 @@ import { DEFAULT_CLOUD_HEIGHT } from '../../constant.js';
 
 const {mat4} = glMatrix;
 
-const push_cube = push_cube_style.getRegInfo().func;
+const push_cube = push_cube_style.func;
 
 const CLOUDS_TEX_SIZE = 64;
 const CLOUDS_TEX_SCALE = new Vector(16, 4, 16);

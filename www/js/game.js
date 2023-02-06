@@ -44,6 +44,7 @@ export class GameClass {
 
     // Start
     async Start(server_url, world_guid, settings, resource_loading_progress) {
+        Qubatch.game = this;
         this.settings = settings;
 
         // Load resources
@@ -616,7 +617,7 @@ export class GameClass {
             return;
         }
 
-        if(!this.world || this.player.controls.enabled) {
+        if(!this.world || !this.player || this.player.controls.enabled) {
             return;
         }
 
