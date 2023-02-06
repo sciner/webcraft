@@ -1595,7 +1595,7 @@ export class WindowManager extends Window {
                     y:          e.offsetY - this.y
                 };
                 if(this.drag.getItem()) {
-                     this._drop(evt)
+                     //this._drop(evt)
                 } else {
                     this._mousedown(evt)
                 }
@@ -1610,7 +1610,7 @@ export class WindowManager extends Window {
                     y:          e.offsetY - this.y
                 };
                 if(this.drag.getItem()) {
-                    //this._drop(evt)
+                    this._drop(evt)
                 } else {
                     this._mouseup(evt)
                 }
