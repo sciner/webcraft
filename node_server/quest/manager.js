@@ -7,7 +7,7 @@ export class QuestManager {
     }
 
     async init() {
-        this.groupsWithDefaultQuestsById = await this.#world.db.quests.getGroupsWithDefaultQuests();
+        this.groupsWithDefaultQuestsById = this.#world.db.quests.getGroupsWithDefaultQuests();
         this.groupsWithDefaultQuestsList = Array.from(this.groupsWithDefaultQuestsById.values());
     }
 
@@ -24,8 +24,8 @@ export class QuestManager {
         return await this.#world.db.quests.loadPlayerQuests(player);
     }
 
-    async loadQuest(quest_id) {
-        return await this.#world.db.quests.load(quest_id);
+    loadQuest(quest_id) {
+        return this.#world.db.quests.load(quest_id);
     }
 
 }

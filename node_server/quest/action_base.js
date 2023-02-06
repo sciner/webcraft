@@ -5,12 +5,8 @@ export class QuestActionBase {
 
     constructor(quest, params) {
         this.#quest = quest;
-        for(let k in params) {
-            this[k] = params[k];
-        }
-        if(!('value' in this)) {
-            this.value = null;
-        }
+        this.value = null;
+        Object.assign(this, params);
         this.update();
     }
 

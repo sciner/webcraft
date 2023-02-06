@@ -31,6 +31,7 @@ export class DBWorld {
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.mobs.init();
         this.quests = new DBWorldQuest(this.conn, this.world);
+        await this.quests.init();
         this.portal = new DBWorldPortal(this.conn, this.world);
         this.fluid = new DBWorldFluid(this.conn, this.world);
         this.chunks = new DBWorldChunk(this.conn, this.world);

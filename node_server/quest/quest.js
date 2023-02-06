@@ -136,7 +136,7 @@ export class Quest {
         this.markDirty();
         // @todo Сделать доступными новые квесты в ветке
         for(let next_quest_id of this.#next_quests) {
-            const next_quest = await this.#quest_player.quest_manager.loadQuest(next_quest_id);
+            const next_quest = this.#quest_player.quest_manager.loadQuest(next_quest_id);
             this.#quest_player.addQuest(next_quest, true);
         }
         // отправить сообщение
