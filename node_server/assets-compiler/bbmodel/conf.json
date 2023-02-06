@@ -56,7 +56,8 @@
         {"name": "bed",                 "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "chair",               "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "stool",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "cactus",              "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "cactus",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "sweet_berry_bush",    "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -1896,6 +1897,13 @@
                     },
                     {"name": "bottom"}
                 ]
+            }
+        },
+        {
+            "_id": 1004,
+            "name": "SWEET_BERRY_BUSH",
+            "bb": {
+                "model": "sweet_berry_bush"
             }
         }
     ]

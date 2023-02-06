@@ -865,12 +865,18 @@ export class BLOCK {
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering;
-        block.is_grass          = ['GRASS', 'TALL_GRASS'].includes(block.name);
-        block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
+        block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
+        block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style_name == 'banner';
+        // swinging_in_the_wind
+        if(block.is_grass || block.is_leaves || block.tags.includes('flower')) {
+            if(!block.tags.includes('swinging_in_the_wind')) {
+                block.tags.push('swinging_in_the_wind')
+            }
+        }
         if (block.chest) {
             /* Properties:
                 slots: Int

@@ -4533,7 +4533,10 @@
                 "max_stage": 7,
                 "times_per_stage": 8
             },
-            "tags": ["agriculture"],
+            "tags": [
+                "agriculture",
+                "swinging_in_the_wind"
+            ],
             "texture": "item/wheat_seeds.png",
             "stage_textures": [
                 "block/wheat_stage0.png",
@@ -5196,7 +5199,8 @@
             },
             "tags": [
                 "no_drop",
-                "mask_biome"
+                "mask_biome",
+                "swinging_in_the_wind"
             ]
         },
         {
@@ -5297,6 +5301,9 @@
                 "id": "plant"
             },
             "item": {"name": "food"},
+            "tags": [
+                "swinging_in_the_wind"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.3

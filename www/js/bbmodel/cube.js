@@ -1,6 +1,6 @@
 import { default as default_style } from '../block_style/default.js';
 import { BBModel_Child } from "./child.js";
-import { Vector } from "../helpers.js";
+import { QUAD_FLAGS, Vector } from "../helpers.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
@@ -24,9 +24,12 @@ export class BBModel_Cube extends BBModel_Child {
     }
 
     setFaces(faces) {
-        const flag = null
+        let flag = 0
         this.faces = {}
         if(faces) {
+            // if(this.json.name.includes('#grass')) {
+            //     flag |= QUAD_FLAGS.FLAG_LEAVES
+            // }
             for(let f in faces) {
                 // remove empty faces
                 const face = faces[f]

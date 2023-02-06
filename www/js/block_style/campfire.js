@@ -108,7 +108,7 @@ export default class style {
         if(active) {
             const chains = [];
             const flame_animations = BLOCK.getAnimations(block.material, 'up');
-            const flame_flags = QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_AO;
+            const flame_flags = QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_AO; // | QUAD_FLAGS.FLAG_LEAVES;
             chains.push({
                 pos: pos,
                 width: 1,

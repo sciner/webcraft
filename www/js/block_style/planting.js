@@ -157,10 +157,7 @@ export default class style {
             }
         }
 
-        if(is_grass) {
-            // dy -= .15;
-            flag |= QUAD_FLAGS.FLAG_LEAVES;
-        } else if (is_flower) {
+        if(block.hasTag('swinging_in_the_wind')) {
             flag |= QUAD_FLAGS.FLAG_LEAVES;
         }
 
