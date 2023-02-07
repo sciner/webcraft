@@ -164,6 +164,17 @@ void main() {
     v_chunk_pos = blockPos + subPos;
 
     v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
-    v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
+
+    // Waves
+    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    float x = v_world_pos.x + cam_period.x;
+    float y = v_world_pos.y + cam_period.y;
+    float waves_amp = 18.;
+    float waves_freq = 10.;
+    float wind_shift = sin(u_time / 500. + x * waves_freq) / waves_amp +
+                       cos(u_time / 500. + y * waves_freq) / waves_amp;
+    v_world_pos.z += wind_shift;
+
+    v_position = (u_worldView * vec4(v_world_pos, 1.0)).xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
 }
