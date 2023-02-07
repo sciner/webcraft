@@ -3410,7 +3410,8 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
     // Starting from this flag, we can add new flags to fields that contain QUAD_FLAGS, e.g. Mesh_Effect_Particle.flags
     QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION = 1 << 16;
-    QUAD_FLAGS.NEXT_UNUSED_FLAG = 1 << 17;
+    QUAD_FLAGS.FLAG_RAIN_OPACITY = 1 << 17;
+    QUAD_FLAGS.NEXT_UNUSED_FLAG = 1 << 18;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front, z decreases

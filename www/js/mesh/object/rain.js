@@ -71,7 +71,7 @@ export default class Mesh_Object_Rain {
         const snow      = this.type == 'snow';
         const vertices  = [];
         const lm        = new IndexedColor((snow ? SNOW_SPEED_X : 0), snow ? SNOW_SPEED : RAIN_SPEED, 0);
-        const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
+        const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_RAIN_OPACITY;
         const pp        = lm.pack();
 
         let quads       = 0;

@@ -173,6 +173,10 @@ void main() {
             color.rgb *= combinedLight * sunNormalLight;
         }
 
+        if(v_flagFlagRainOpacity > .5) {
+             color.a *= u_rain_strength;
+        }
+
         outColor = color;
         outColor.rgb = colorCorrection(outColor.rgb);
 

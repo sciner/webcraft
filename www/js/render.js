@@ -957,19 +957,37 @@ export class Renderer {
      * @param {ChunkManager} chunkManager
      */
     setWeather(weather, chunkManager) {
+        if(this.timeKillRain) {
+            clearInterval(this.timeKillRain)
+            this.timeKillRain = null
+        }
         let rain = this.meshes.get('weather');
-        if(!rain || rain.type != Weather.getName(weather)) {
+        this.weather_name = Weather.getName(weather)
+        if((!rain || rain.type != this.weather_name) && weather != Weather.CLEAR) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, Weather.getName(weather), chunkManager);
+            rain = new Mesh_Object_Rain(this, this.weather_name, chunkManager);
             this.meshes.add(rain, 'weather');
         }
-        rain.enabled = weather != Weather.CLEAR;
+        if(!rain) {
+            return
+        }
+        const enabled_val = weather != Weather.CLEAR
+        if(enabled_val) {
+            rain.enabled = enabled_val;
+        } else {
+            this.timeKillRain = setInterval(() => {
+                if(this.rain_strength_val == 0) {
+                    rain.enabled = false
+                    clearInterval(this.timeKillRain)
+                }
+            }, 50)
+        }
     }
 
     getWeather() {
-        const name = this.meshes.get('weather')?.type;
+        const name = this.weather_name // this.meshes.get('weather')?.type;
         return Weather.BY_NAME[name] || Weather.CLEAR;
     }
 
