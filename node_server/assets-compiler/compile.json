@@ -9445,11 +9445,10 @@
         {
             "id": 1042,
             "name": "CHORUS_FLOWER",
-            "sound": "madcraft:block.grass",
             "style": "default",
             "transparent": true,
             "material": {
-                "id": "plant"
+                "id": "stone"
             },
             "texture": {
                 "side": "block/chorus_flower.png",
@@ -9471,11 +9470,10 @@
         {
             "id": 1043,
             "name": "CHORUS_PLANT",
-            "sound": "madcraft:block.grass",
             "style": "chorus",
             "transparent": true,
             "material": {
-                "id": "plant"
+                "id": "stone"
             },
             "texture": {
                 "side": "block/chorus_plant.png"
