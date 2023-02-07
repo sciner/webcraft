@@ -53,8 +53,13 @@ export const LEAVES_TYPE                    = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
 // ========================= Sound options =========================
 
 export const DEFAULT_SOUND_MAX_DIST         = 16
+
 // The default value of the music volume seting, from 0 to 100. It should be be chosen taking into account Sounds.VOLUME_MAP.music
-export const DEFAULT_MUSIC_VOLUME           = 20;
+export const DEFAULT_MUSIC_VOLUME           = 20
+export const CLIENT_MUSIC_ROOT              = './media/music/'
+export const MUSIC_FADE_DURATION            = 1500
+export const MUSIC_INITIAL_PAUSE_SECONDS    = 75
+export const MUSIC_PAUSE_SECONDS            = 300
 
 // Volumetric sound types. See also: VolumetricSound.SOUNDS
 export const VOLUMETRIC_SOUND_TYPES         = 2
@@ -179,12 +184,6 @@ export const KEY = {
 };
 
 export const CLIENT_SKIN_ROOT = './media/models/player_skins/';
-
-// music
-export const CLIENT_MUSIC_ROOT = './media/music/';
-export const MUSIC_FADE_DURATION = 1500;
-export const MUSIC_INITIAL_PAUSE_SECONDS = 150
-export const MUSIC_PAUSE_SECONDS = 300
 
 export const SKIN_RIGHTS_DEFAULT = 0;
 export const SKIN_RIGHTS_FREE = 1;
