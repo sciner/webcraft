@@ -5,6 +5,7 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
     CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW } from "./chunk_const.js";
 import { DEFAULT_TX_CNT } from "./constant.js";
+import { fastmap } from "../vendors/fastmap.js";
 
 const {mat4, quat} = glMatrix;
 
@@ -716,6 +717,201 @@ export class VectorCollector {
         let byZ = byY.get(vec.y);
         if (byZ == null) {
             byZ = new Map();
+            byY.set(vec.y, byZ);
+        }
+        const oldV = byZ.get(vec.z);
+        const newV = mapFn(oldV);
+        if (newV != null) {
+            if (newV !== oldV) {
+                if (oldV === undefined && !byZ.has(vec.z)) { // fast check, then slow
+                    this.size++;
+                }
+                byZ.set(vec.z, newV);
+            }
+        } else {
+            if (byZ.delete(vec.z)) {
+                this.size--;
+            }
+        }
+        return newV;
+    }
+
+    delete(vec) {
+        let resp = false
+        const x = this.list?.get(vec.x)
+        if(x) {
+            const y = x.get(vec.y)
+            if(y) {
+                const z = y.get(vec.z)
+                if(z) {
+                    y.delete(vec.z)
+                    resp = true
+                    this.size--
+                    if(y.size == 0) {
+                        x.delete(vec.y)
+                        if(x.size == 0) {
+                            this.list.delete(vec.x)
+                        }
+                    }
+                }
+            }
+        }
+        return resp
+    }
+
+    has(vec) {
+        return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
+    }
+
+    get(vec) {
+        return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
+    }
+
+    keys() {
+        let resp = [];
+        for (let [xk, x] of this.list) {
+            for (let [yk, y] of x) {
+                for (let [zk, z] of y) {
+                    resp.push(new Vector(xk|0, yk|0, zk|0));
+                }
+            }
+        }
+        return resp;
+    }
+
+    values() {
+        let resp = [];
+        for(let item of this) {
+            resp.push(item);
+        }
+        return resp;
+    }
+
+    reduce(max_size) {
+        if(this.size < max_size) {
+            return false;
+        }
+    }
+
+}
+
+
+// VectorCollector...
+export class VectorCollector2 {
+
+    /**
+     * @param {Map} list
+     * @param {int} size
+     */
+    constructor(list, size) {
+        this.clear(list);
+        if(list && !isNaN(size)) {
+            this.size = size
+        }
+    }
+
+    *[Symbol.iterator]() {
+        for (let x of Object.values(this.list)) {
+            for (let y of Object.values(x)) {
+                for (let value of Object.values(y)) {
+                    yield value;
+                }
+            }
+        }
+    }
+
+    entries(aabb) {
+        const that = this;
+        return (function* () {
+            if(that.size == 0) {
+                return;
+            }
+            const vec = new Vector(0, 0, 0);
+            for (let [xk, x] of that.list) {
+                if(aabb && (xk < aabb.x_min || xk > aabb.x_max)) continue;
+                for (let [yk, y] of x) {
+                    if(aabb && (yk < aabb.y_min || yk > aabb.y_max)) continue;
+                    for (let [zk, value] of y) {
+                        if(aabb && (zk < aabb.z_min || zk > aabb.z_max)) continue;
+                        vec.set(xk|0, yk|0, zk|0);
+                        yield [vec, value];
+                    }
+                }
+            }
+        })()
+    }
+
+    clear(list) {
+        this.list = list ? list : fastmap()
+        this.size = 0;
+    }
+
+    set(vec, value) {
+        let size = this.size;
+        if(!this.list.has(vec.x)) this.list.set(vec.x, fastmap());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, fastmap());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
+            this.size++;
+        }
+        if (typeof value === 'function') {
+            value = value(vec);
+        }
+        this.list.get(vec.x).get(vec.y).set(vec.z, value);
+        return this.size > size;
+    }
+
+    add(vec, value) {
+        if(!this.list.has(vec.x)) this.list.set(vec.x, fastmap());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, fastmap());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
+            if (typeof value === 'function') {
+                value = value(vec);
+            }
+            this.list.get(vec.x).get(vec.y).set(vec.z, value);
+            this.size++;
+        }
+        return this.list.get(vec.x).get(vec.y).get(vec.z);
+    }
+
+    // If the element exists, returns it. Otherwise sets it to the result of createFn().
+    getOrSet(vec, createFn) {
+        let byY = this.list.get(vec.x);
+        if (byY == null) {
+            byY = fastmap();
+            this.list.set(vec.x, byY);
+        }
+        let byZ = byY.get(vec.y);
+        if (byZ == null) {
+            byZ = fastmap();
+            byY.set(vec.y, byZ);
+        }
+        let v = byZ.get(vec.z);
+        if (v == null && !byZ.has(vec.z)) {
+            v = createFn(vec);
+            byZ.set(vec.z, v);
+            this.size++;
+        }
+        return v;
+    }
+
+    /**
+     * Updates a value (existing or non-existng), possibly setting it or deleting it.
+     * It's faster than getting and then setting a value.
+     * @param {Vector} vec
+     * @param {Function} mapFn is called for the existing value (or undefined, if there is no value).
+     *   If its result is not null, it's set as the new value.
+     *   If its result is null, the value is deleted.
+     * @return the new value.
+     */
+    update(vec, mapFn) {
+        let byY = this.list.get(vec.x);
+        if (byY == null) {
+            byY = fastmap();
+            this.list.set(vec.x, byY);
+        }
+        let byZ = byY.get(vec.y);
+        if (byZ == null) {
+            byZ = fastmap();
             byY.set(vec.y, byZ);
         }
         const oldV = byZ.get(vec.z);
@@ -3360,21 +3556,23 @@ export class SpatialDeterministicRandom {
 
 export class PerformanceTimer {
 
+    #names = []
+
     constructor() {
-        this.names = []
+        this.#names = []
     }
 
     start(name) {
-        this.names.push({name, p: performance.now()})
+        this.#names.push({name, p: performance.now()})
     }
 
     stop() {
         let keys = []
-        for(let item of this.names) {
+        for(let item of this.#names) {
             keys.push(item.name)
         }
         const key = keys.join(' -> ')
-        const item = this.names.pop()
+        const item = this.#names.pop()
         const diff = performance.now() - item.p
         const exist_value = this[key] ?? 0
         this[key] = exist_value + diff
@@ -3457,3 +3655,75 @@ export let DIRECTION_NAME = {};
     DIRECTION_NAME.right     = DIRECTION.RIGHT;
     DIRECTION_NAME.forward   = DIRECTION.FORWARD;
     DIRECTION_NAME.back      = DIRECTION.BACK;
+
+// // Test VectorCollector vs VectorCollector2
+// if(typeof process === 'undefined') {
+
+//     const size = new Vector(10, 1000, 1000)
+//     let _vec = new Vector(0, 0, 0)
+//     const stat = []
+
+//     for(const [name, vc] of Object.entries({VectorCollector: new VectorCollector(), VectorCollector2: new VectorCollector2()})) {
+
+//         let value = 0
+//         let checksum = 0
+//         const timer = new PerformanceTimer()
+//         timer.start(name)
+
+//         // set
+//         timer.start('set')
+//         for(let x = 0; x < size.x; x++) {
+//             for(let y = 0; y < size.y; y++) {
+//                 for(let z = 0; z < size.z; z++) {
+//                     checksum += ++value
+//                     vc.set(_vec.set(x, y, z), value)
+//                 }
+//             }
+//         }
+//         timer.stop()
+
+//         // get
+//         timer.start('get')
+//         for(let x = 0; x < size.x; x++) {
+//             for(let y = 0; y < size.y; y++) {
+//                 for(let z = 0; z < size.z; z++) {
+//                     checksum -= vc.get(_vec.set(x, y, z))
+//                 }
+//             }
+//         }
+//         timer.stop()
+
+//         // each
+//         timer.start('each')
+//         for(const v of vc) {
+//             checksum += v
+//         }
+//         timer.stop()
+
+//         // entries
+//         timer.start('entries')
+//         for(const [k, v] of vc.entries()) {
+//             checksum -= v
+//         }
+//         timer.stop()
+
+//         // delete
+//         timer.start('delete')
+//         for(let x = 0; x < size.x; x++) {
+//             for(let y = 0; y < size.y; y++) {
+//                 for(let z = 0; z < size.z; z++) {
+//                     vc.delete(_vec.set(x, y, z))
+//                 }
+//             }
+//         }
+//         timer.stop()
+
+//         timer.stop()
+
+//         stat.push(...Object.entries(timer), checksum)
+
+//     }
+
+//     console.table(stat)
+
+// }
