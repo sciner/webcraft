@@ -74,7 +74,7 @@ export class Renderer {
         this.frame              = 0;
         this.env                = new Environment(this);
         this.camera_mode        = CAMERA_MODE.SHOOTER;
-        this.rain_strength_val   = 0
+        this.rain               = null
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -655,8 +655,8 @@ export class Renderer {
         globalUniforms.localLigthRadius = 0;
 
         // rain strength
-        const weather = this.getWeather()
-        globalUniforms.rainStrength = this.rain_strength_val = Helpers.clamp(this.rain_strength_val + delta / 1000 * (weather ? 1 : -1), 0, 1)
+        this.rain?.update(this.getWeather(), delta)
+        globalUniforms.rainStrength = this.rain?.strength_val ?? 0
 
         let blockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
         let nightshift = 1.;
@@ -969,6 +969,7 @@ export class Renderer {
             }
             rain = new Mesh_Object_Rain(this, this.weather_name, chunkManager);
             this.meshes.add(rain, 'weather');
+            this.rain = rain
         }
         if(!rain) {
             return
@@ -976,13 +977,6 @@ export class Renderer {
         const enabled_val = weather != Weather.CLEAR
         if(enabled_val) {
             rain.enabled = enabled_val;
-        } else {
-            this.timeKillRain = setInterval(() => {
-                if(this.rain_strength_val == 0) {
-                    rain.enabled = false
-                    clearInterval(this.timeKillRain)
-                }
-            }, 50)
         }
     }
 

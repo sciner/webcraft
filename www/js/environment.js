@@ -572,6 +572,7 @@ export class Environment {
         this.sunDir = [0.9593, 1.0293, 0.6293];
         this.brightness = 1.;
         this.nightshift = 1.; // it's 1 above the surface, and 0 deep beow
+        this._skyColor = [0, 0, 0];
         
         // similar to nightshift, but based on estimated depth
         this.horizonBrightness = 1;
@@ -812,6 +813,19 @@ export class Environment {
         this.hbLastTime = performance.now();
     }
 
+    /**
+     * Interpolates a weather-based value between the clear weather and the current strength of the rainy/snowy weather.
+     * @param {Function} getWeatherValue takes a weather, returns the value from that weather
+     */
+    lerpWeatherValue(getWeatherValue) {
+        const clearValue = getWeatherValue(Weather.CLEAR)
+        const rain = Qubatch.render.rain
+        const rainWeather = rain?.weather
+        return rainWeather
+            ? Mth.lerp(rain.strength_val, clearValue, getWeatherValue(rainWeather))
+            : clearValue 
+    }
+
     updateFogState() {
         if (!this._fogDirty) {
             return;
@@ -836,9 +850,9 @@ export class Environment {
 
         const lum = easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) ;// base.color.lum() / this._refLum;
 
-        this._computedBrightness = lum * Weather.GLOBAL_BRIGHTNESS[weather];
+        this._computedBrightness = lum * this.lerpWeatherValue(weather => Weather.GLOBAL_BRIGHTNESS[weather]);
 
-        const value = this.brightness * lum * Weather.FOG_BRIGHTNESS[weather];
+        const value = this.brightness * lum * this.lerpWeatherValue(weather => Weather.FOG_BRIGHTNESS[weather]);;
         const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.horizonBrightness * value);
 
         for (let i = 0; i < 3; i ++) {
@@ -921,8 +935,11 @@ export class Environment {
         const { width, height }  = render.renderBackend.size;
 
         const uniforms = this.skyBox.shader.uniforms;
-        const weather = render.getWeather();
-        uniforms['u_baseColor'].value = Weather.SKY_COLOR[weather];
+
+        for(let i = 0; i < 3; i++) {
+            this._skyColor[i] = this.lerpWeatherValue(weather => Weather.SKY_COLOR[weather][i])
+        }
+        uniforms['u_baseColor'].value = this._skyColor
         uniforms['u_nightshift'].value = this.nightshift;
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
