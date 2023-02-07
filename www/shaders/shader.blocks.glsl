@@ -51,6 +51,7 @@
     //
     uniform float u_brightness;
     uniform float u_time;
+    uniform float u_rain_strength;
     uniform vec2 u_resolution;
     uniform float u_eyeinwater;
     uniform vec3 u_shift;
@@ -249,6 +250,77 @@
         }
 
         return vec4(mipOffset, mipScale);
+    }
+#endif
+
+#ifdef raindrops_define_func
+    vec2 randVec(float inVal) {
+        return vec2(fract(sin(dot(vec2(inVal*1.1,2352.75053) ,vec2(12.9898,78.233))) * 43758.5453)-0.5,
+            fract(sin(dot(vec2(715.23515, inVal) ,vec2(27.2311,31.651))) * 65161.6513)-0.5);
+    }
+
+    float randFloat(vec2 inVal) {
+        return fract(sin(dot(vec2(inVal.x, inVal.y) ,vec2(89.4516,35.516))) * 13554.3651);
+    }
+
+    vec4 rainDrops(vec3 pos) {
+
+        float iTime = u_time / 1000.;
+
+        // Controls:
+        float zoom = 0.6 + 0.46 * sin(iTime * 0.6);
+        zoom = 1.0;
+        float sharpness = 4.5 * zoom; // maybe plug in ddx and ddy here to mimic mip-mapping (avoid artifacts at long distances)
+        // sharpness = 6.5; // uncomment this line to see when it's not "blurring" when zoomed out, crispy!
+        float expansionSpeed = 4.0;
+        float rainSpeed = 1.6;
+        float numRings = 3.0;
+        const float numIterations = 1.;
+        float strength = 0.3;
+        
+        // other numbers:
+        const float pi = 3.141592;
+        float newTime = iTime * rainSpeed;
+        
+        vec2 uv;
+        vec2 uvStep;
+        vec4 resp = vec4(0.);
+        for(float iterations = 0.; iterations < numIterations; iterations++) {
+            for(float x = -1.; x <= 1.; x++) {
+                for(float y = -1.; y <= 1.; y++) {
+
+                    uv = pos.xy;
+                    uv /= zoom;
+                    uv += iterations * vec2(3.21, 2.561);
+                    uv += vec2(x * 0.3333, y * 0.3333);
+                    uvStep = (ceil((uv * 1.0 - vec2(.5, .5))) / 1.);
+                    uvStep += vec2(x, y) * 100.;
+                    uv = vec2(fract(uv.x + 0.5) - .5, fract(uv.y + 0.5) - .5);
+
+                    // Variables:
+                    float timeRand = randFloat(uvStep);
+                    float timeLoop = fract(newTime+timeRand);
+                    float timeIter = floor(newTime+timeRand);
+
+                    /// Creating ringMap:
+                    float ringMap = sharpness * 9. * distance(uv, randVec(timeIter+uvStep.x + uvStep.y) * 0.5);
+                    // float ringMap = sharpness*9.*distance(uv, randVec(0.)*0.);
+                    float clampMinimum = -(1. + ((numRings - 1.) * 2.0));
+                    ringMap = clamp((ringMap - expansionSpeed * sharpness * timeLoop) + 1., clampMinimum, 1.);
+
+                    // Rings and result
+                    float rings = (cos((ringMap + newTime) * pi) + 1.0) / 2.;
+                    rings *= pow(1. - timeLoop, 2.);
+                    float bigRing = sin((ringMap - clampMinimum) / (1. - clampMinimum) * pi);
+                    float result = rings * bigRing;
+                    resp += vec4(result) * strength;
+
+                }
+            }
+        }
+
+        return resp;
+
     }
 #endif
 
@@ -679,4 +751,12 @@
     colour = clamp(colour + vec3(0.0, 0.35, 0.5), 0.0, 1.0);
     color.rgb *= colour.rgb;
 
+#endif
+
+#ifdef raindrops_onwater
+    if(u_rain_strength > 0.) {
+        vec3 cam_period2 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+        vec3 pos = vec3(v_world_pos.xy + cam_period2.xy, 0.);
+        color.rgb += rainDrops(pos * 2.).rgb * u_rain_strength;
+    }
 #endif
