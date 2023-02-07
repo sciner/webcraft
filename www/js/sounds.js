@@ -120,7 +120,11 @@ class Music {
         currentName = this.track?.name ?? currentName
         this._unloadTrack()
 
-        if (withPause && !this.#timeoutId) {
+        if (this.#timeoutId) {
+            return // it's already scheduled. It'll start later. Don't start anything now.
+        }
+
+        if (withPause) {
             this.schedulePlay(MUSIC_PAUSE_SECONDS * 1000, () => {
                 this._switchTrack(false, currentName)
             })
@@ -589,6 +593,15 @@ export class Sounds {
         }
 
         return track_id;
+    }
+
+    getTrackProps(tag, action, index = 0) {
+        const list = this.getTagActionList(tag, action)
+        return list ? list[index]?.props : null
+    }
+
+    setVolume(track_id, volume) {
+        this.sound_sprite_main.volume(volume, track_id)
     }
 
     //
