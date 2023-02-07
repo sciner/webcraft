@@ -51,7 +51,7 @@ vec4 rainDrops(vec3 pos, vec2 fragCoord) {
     float sharpness = 4.5 * zoom; // maybe plug in ddx and ddy here to mimic mip-mapping (avoid artifacts at long distances)
     // sharpness = 6.5; // uncomment this line to see when it's not "blurring" when zoomed out, crispy!
     float expansionSpeed = 4.0;
-    float rainSpeed = 0.6;
+    float rainSpeed = 1.6;
     float numRings = 3.0;
     const float numIterations = 1.;
     float strength = 0.3;
