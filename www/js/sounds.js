@@ -595,6 +595,15 @@ export class Sounds {
         return track_id;
     }
 
+    getTrackProps(tag, action, index = 0) {
+        const list = this.getTagActionList(tag, action)
+        return list ? list[index]?.props : null
+    }
+
+    setVolume(track_id, volume) {
+        this.sound_sprite_main.volume(volume, track_id)
+    }
+
     //
     applySoundProps(track_id, volume, props) {
         this.sound_sprite_main.volume(volume, track_id);
