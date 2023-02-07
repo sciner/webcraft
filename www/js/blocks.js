@@ -747,7 +747,7 @@ export class BLOCK {
         if(block.id == 0) {
             return false
         }
-        return block.style_name == 'default' &&
+        return (block.style_name == 'default' || block.tags.includes('ore')) &&
             !block.is_fluid &&
             !block.transparent &&
             !block.is_leaves &&
