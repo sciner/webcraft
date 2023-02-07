@@ -82,6 +82,11 @@ export class ServerPlayerVision {
         this.spiralLoading = 0;
         this.spiralWaiting = 0;
         this.spiralRadius = 0;
+
+        /**
+         * dont kill chunks that are a bit further player spiral
+         */
+        this.extraRadius = 2;
     }
 
     leave() {
@@ -243,7 +248,8 @@ export class ServerPlayerVision {
     }
 
     updateNearby() {
-        const {spiralEntries, nearbyChunks, player} = this;
+        const {spiralEntries, nearbyChunks, player,
+            spiralCenter, spiralRadius, extraRadius} = this;
         const {world} = player;
         if (nearbyChunks.dirty === 0) {
             return false;
@@ -266,7 +272,8 @@ export class ServerPlayerVision {
 
         if (checkDelete) {
             for (let chunk of nearbyChunks) {
-                if (chunk.scanId !== scanId) {
+                if (chunk.scanId !== scanId
+                    && spiralCenter.distance(chunk.addr) > spiralRadius + extraRadius) {
                     nearbyChunks.delete(chunk.addr);
                     chunk.removePlayer(player);
                 }
