@@ -317,6 +317,7 @@ export class GlobalUniformGroup {
         this.useNormalMap = false;
 
         this.localLigthRadius = 0;
+        this.rainStrength = 0;
         this.lightOverride = -1;
     }
 
