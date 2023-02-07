@@ -74,7 +74,7 @@ export class Renderer {
         this.frame              = 0;
         this.env                = new Environment(this);
         this.camera_mode        = CAMERA_MODE.SHOOTER;
-        this.rain_strenth_val   = 0
+        this.rain_strength_val   = 0
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -656,7 +656,7 @@ export class Renderer {
 
         // rain strength
         const weather = this.getWeather()
-        globalUniforms.rainStrength = this.rain_strenth_val = Helpers.clamp(this.rain_strenth_val + delta / 1000 * (weather ? 1 : -1), 0, 1)
+        globalUniforms.rainStrength = this.rain_strength_val = Helpers.clamp(this.rain_strength_val + delta / 1000 * (weather ? 1 : -1), 0, 1)
 
         let blockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
         let nightshift = 1.;
