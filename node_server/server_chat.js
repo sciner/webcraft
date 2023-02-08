@@ -299,8 +299,8 @@ export class ServerChat {
             }
             case '/tps2': {
                 for(const arg of args) {
-                    if (!['/tps2', 'chunk', 'mob', 'recent'].includes(arg)) {
-                        const USAGE = '/tps2 [chunk|mob] [recent]'
+                    if (!['/tps2', 'chunk', 'chunks', 'mob', 'mobs', 'recent'].includes(arg)) {
+                        const USAGE = '!lang/tps2 [chunk|mob] [recent]'
                         this.sendSystemChatMessageToSelectedPlayers(USAGE, player)
                         return
                     }
@@ -417,11 +417,14 @@ export class ServerChat {
                 break
             }
             case '/sysstat': {
+                const chunkManager = world.chunkManager
                 const stat = {
                     mobs_count:     world.mobs.count(),
                     drop_items:     world.all_drop_items.size,
                     players:        world.players.count,
-                    chunks:         world.chunkManager.all.size,
+                    chunks:         chunkManager.all.size,
+                    unloading_chunks_size:  chunkManager.unloading_chunks.size,
+                    unloading_state_count:  chunkManager.unloading_state_count,
                     actions_queue:  world.actions_queue.length,
                     dirty_actors:   world.dbActor.dirtyActors.size,
                     net_in:         world.network_stat.in.toLocaleString() + ` bytes (packets: ${world.network_stat.in_count})`,
