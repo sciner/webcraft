@@ -23,9 +23,12 @@ export default class Chat_Gamerule {
                             return true;
                         } else if(args.length == 2) {
                             const value = world.rules.getValue(rule_code);
-                            world.chat.sendSystemChatMessageToSelectedPlayers(`Gamerule ${rule_code} is currently set to: ${value}`, [player.session.user_id]);
+                            world.chat.sendSystemChatMessageToSelectedPlayers(`Gamerule ${rule_code} is currently set to: ${value}`, player);
                             return true;
                         }
+                    } else {
+                        world.chat.sendSystemChatMessageToSelectedPlayers(world.rules.getTable(), player, true);
+                        return true;
                     }
                     break;
                 }

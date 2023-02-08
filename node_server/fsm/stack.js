@@ -6,9 +6,8 @@ export class FSMStack {
     
     tick(delta, context) {
         let currentStateFunction = this.getCurrentState();
-        if (currentStateFunction != null) {
-            currentStateFunction.call(context, delta);
-        }
+        currentStateFunction?.call(context, delta);
+        return currentStateFunction;
     }
     
     popState() {

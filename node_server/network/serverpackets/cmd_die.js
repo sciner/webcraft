@@ -10,7 +10,7 @@ export class CMD_DIE {
             name: ServerClient.CMD_DIE,
             data: {}
         }];
-        player.world.sendSelected(packets, [player.session.user_id], []);
+        player.world.sendSelected(packets, player);
     }
 
 }

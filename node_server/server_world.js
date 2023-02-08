@@ -120,7 +120,9 @@ export class ServerWorld {
         this.packets_queue  = new WorldPacketQueue(this);
         // statistics
         this.ticks_stat     = new WorldTickStat();
-        this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0};
+        this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0, 
+            out_count_by_type: null, in_count_by_type: null,
+            out_size_by_type: null, in_size_by_type: null };
         this.start_time     = performance.now();
         this.weather_update_time = 0;
         this.info.calendar  = {age: 0, day_time: 0};
@@ -403,11 +405,11 @@ export class ServerWorld {
             await this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
             // 3.
-            for(const [_, player] of this.players.all()) {
+            for(const player of this.players.values()) {
                 await player.preTick(delta, this.ticks_stat.number);
             }
             this.chunks.tickChunkQueue(NEW_CHUNKS_PER_TICK);
-            for(const [_, player] of this.players.all()) {
+            for(const player of this.players.values()) {
                 player.postTick(delta, this.ticks_stat.number);
             }
             this.ticks_stat.add('players');
@@ -545,12 +547,12 @@ export class ServerWorld {
     /**
      * Send commands for all except player id list
      * @param {Object[]} packets
-     * @param {number[]} except_players  ID of players
+     * @param {?number[]} except_players  ID of players
      * @return {void}
      */
-    sendAll(packets, except_players) {
-        for (const [_, player] of this.players.all()) {
-            if (except_players && except_players.indexOf(player.session.user_id) >= 0) {
+    sendAll(packets, except_players = null) {
+        for (const player of this.players.values()) {
+            if (except_players?.includes(player.session.user_id)) {
                 continue;
             }
             player.sendPackets(packets);
@@ -560,26 +562,28 @@ export class ServerWorld {
     /**
      * Отправить только указанным
      * @param {Object[]} packets
-     * @param {number[]} selected_players ID of players
-     * @param {number[]} except_players  ID of players
+     * @param {number[] | ServerPlayer} selected_players IDs of players or a single ServerPlayer
+     * @param {?number[]} except_players  ID of players.
+     *   It's ignored if {@link selected_players} is ServerPlayer.
      * @return {void}
      */
-    sendSelected(packets, selected_players, except_players) {
+    sendSelected(packets, selected_players, except_players = null) {
+        if (selected_players.sendPackets) { // fast check if it's a ServerPlayer
+            selected_players.sendPackets(packets)
+            return
+        }
         for (const user_id of selected_players) {
-            if (except_players && except_players.includes(user_id)) {
+            if (except_players?.includes(user_id)) {
                 continue;
             }
             const player = this.players.get(user_id);
-            if (player) {
-                player.sendPackets(packets);
-            }
+            player?.sendPackets(packets);
         }
-        return true;
     }
 
     //
     sendUpdatedInfo() {
-        for(const [_, player] of this.players.all()) {
+        for(const player of this.players.values()) {
             player.sendWorldInfo(true);
         }
     }
@@ -1083,7 +1087,7 @@ export class ServerWorld {
         for(const addr of this.chunkManager.ticking_chunks.keys()) {
             const chunk = this.chunkManager.get(addr);
             if(chunk) {
-                for(const [_, ticking_block] of chunk.ticking_blocks.blocks.entries()) {
+                for(const ticking_block of chunk.ticking_blocks.blocks.values()) {
                     if(ticking_block.ticking.type == 'bee_nest') {
                         const tblock = this.getBlock(ticking_block.pos);
                         if(tblock && tblock.id > 0 && tblock.hasTag('bee_nest')) {

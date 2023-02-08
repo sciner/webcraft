@@ -200,9 +200,17 @@ export class ServerPlayer extends Player {
             await waitPing();
         }
         try {
-            this.world.network_stat.in += message.length;
-            this.world.network_stat.in_count++;
+            const ns = this.world.network_stat
+            ns.in += message.length;
+            ns.in_count++;
             const packet = JSON.parse(message);
+            if (ns.in_count_by_type) {
+                const name  = packet.name
+                ns.in_count_by_type[name] = (ns.in_count_by_type[name] ?? 0) + 1
+                if (ns.in_size_by_type) {
+                    ns.in_size_by_type[name] = (ns.in_size_by_type[name] ?? 0) + message.length
+                }
+            }
             await this.world.packet_reader.read(this, packet);
         } catch(e) {
             this.sendError('error_invalid_command');
@@ -216,7 +224,7 @@ export class ServerPlayer extends Player {
                 message
             }
         }]
-        this.world.sendSelected(packets, [this.session.user_id], [])
+        this.world.sendSelected(packets, this)
     }
 
     // onLeave...
@@ -242,21 +250,34 @@ export class ServerPlayer extends Player {
      * @param {NetworkMessage[]} packets
      */
     sendPackets(packets) {
-        packets.forEach(e => {
-            e.time = this.world.serverTime;
-        });
+        const ns = this.world.network_stat;
 
-        packets = JSON.stringify(packets);
-        this.world.network_stat.out += packets.length;
-        this.world.network_stat.out_count++;
+        // time is the same for all commands, so it's saved once in the 1st of them
+        if (packets.length) {
+            packets[0].time = this.world.serverTime;
+        }
+        const json = JSON.stringify(packets)
+
+        ns.out += json.length;
+        ns.out_count++;
+        if (ns.out_count_by_type) {
+            for(const p of packets) {
+                const name = p.name
+                ns.out_count_by_type[name] = (ns.out_count_by_type[name] ?? 0) + 1
+                if (ns.out_size_by_type) {
+                    const len = packets.length > 1 ? JSON.stringify(p).length : json.length
+                    ns.out_size_by_type[name] = (ns.out_size_by_type[name] ?? 0) + len
+                }
+            }
+        }
 
         if (!EMULATED_PING) {
-            this.conn.send(packets);
+            this.conn.send(json);
             return;
         }
 
         setTimeout(() => {
-            this.conn.send(packets);
+            this.conn.send(json);
         }, EMULATED_PING);
     }
 
@@ -541,7 +562,7 @@ export class ServerPlayer extends Player {
             name: ServerClient.CMD_NEARBY_CHUNKS,
             data: nearby_compressed
         }];
-        world.sendSelected(packets, [this.session.user_id], []);
+        world.sendSelected(packets, this);
     }
 
     // Send other players states for me
@@ -574,7 +595,7 @@ export class ServerPlayer extends Player {
         }
         this.prev_near_players = current_visible_players;
         if(packets.length > 0) {
-            this.world.sendSelected(packets, [this.session.user_id]);
+            this.world.sendSelected(packets, this);
         }
     }
 
@@ -616,7 +637,7 @@ export class ServerPlayer extends Player {
                 }
             });
 
-            this.world.sendSelected(packets, [this.session.user_id], []);
+            this.world.sendSelected(packets, this);
             // @todo notify all about change?
         }
     }

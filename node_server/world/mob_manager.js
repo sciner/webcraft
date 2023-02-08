@@ -1,9 +1,12 @@
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { Mob, MobSpawnParams } from "../mob.js";
 import { DEAD_MOB_TTL } from "../server_constant.js";
+import { WorldTickStat } from "./tick_stat.js";
 
 // Store refs to all loaded mobs in the world
 export class WorldMobManager {
+
+    static STAT_NAMES = ['update_chunks', 'unload', 'other', 'onLive', 'onFind']
 
     /**
      * @param {import("../server_world.js").ServerWorld } world 
@@ -12,6 +15,8 @@ export class WorldMobManager {
 
         this.world = world;
         this.list = new Map(); // by id
+
+        this.ticks_stat = new WorldTickStat(WorldMobManager.STAT_NAMES)
 
         /**
          * Inactive mobs that are in memory. Because they are inactive, they are no in this.list.
@@ -72,8 +77,9 @@ export class WorldMobManager {
      */
     async tick(delta) {
         const world = this.world;
+        this.ticks_stat.start()
         // !Warning. All mobs must update chunks before ticks
-        for(let [mob_id, mob] of this.list) {
+        for(let mob of this.list.values()) {
             if(mob.isAlive()) {
                 const chunk_addr = mob.chunk_addr;
                 if(!mob.chunk_addr_o.equal(chunk_addr)) {
@@ -81,22 +87,26 @@ export class WorldMobManager {
                     const chunk_new = world.chunks.get(chunk_addr);
                     if(chunk_old && chunk_new) {
                         mob.chunk_addr_o.copyFrom(chunk_addr);
-                        chunk_old.mobs.delete(mob_id);
-                        chunk_new.mobs.set(mob_id, mob);
+                        chunk_old.mobs.delete(mob.id);
+                        chunk_new.mobs.set(mob.id, mob);
                     }
                 }
             }
         }
+        this.ticks_stat.add('update_chunks')
         // Ticks
         for(let mob of this.list.values()) {
             if(mob.isAlive()) {
                 mob.tick(delta);
+                this.ticks_stat.add('other')
             } else if(!mob.death_time) {
                 mob.death_time = performance.now();
             } else if(performance.now() - mob.death_time > DEAD_MOB_TTL) {
                 mob.onUnload();
+                this.ticks_stat.add('unload')
             }
         }
+        this.ticks_stat.end()
     }
 
     /**

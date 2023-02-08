@@ -200,6 +200,8 @@ export class ServerClient {
     _onMessage(event) {
 
         const cmds              = JSON.parse(event.data);
+        // time is the same for all commands, so it's saved once in the 1st of them
+        const cmdsTime          = cmds[0]?.time;
         const chunkManager      = Qubatch.world.chunkManager;
         const chunk_modifiers   = chunkManager.chunk_modifiers;
         const prev_chunk_addr   = new Vector(Infinity, Infinity, Infinity);
@@ -209,6 +211,7 @@ export class ServerClient {
         if(!chunkManager) debugger
         for(let i = cmds.length - 1; i >= 0; i--) {
             const cmd = cmds[i];
+            cmd.time = cmdsTime;
             // CMD_BLOCK_SET
             if(cmd.name == ServerClient.CMD_BLOCK_SET) {
                 chunkManager.block_sets++;

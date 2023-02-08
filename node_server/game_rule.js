@@ -1,3 +1,5 @@
+import { ObjectHelpers } from "../www/js/helpers.js";
+
 export class GameRule {
 
     #world;
@@ -14,6 +16,18 @@ export class GameRule {
             fluidTickRate:      {default: 5, min: 1, max: 1000000, type: 'int'},
             lavaSpeed:          {default: 6, min: 1, max: 6, type: 'int'}
         };
+    }
+
+    getTable() {
+        const result = ObjectHelpers.deepClone(this.default_rules)
+        for(const [name, rule] of Object.entries(result)) {
+            const obj = {
+                value:  this.getValue(name),
+                ...rule
+            }
+            result[name] = JSON.stringify(obj)
+        }
+        return result
     }
 
     // Return game rule

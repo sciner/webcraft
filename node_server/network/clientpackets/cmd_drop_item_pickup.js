@@ -82,7 +82,7 @@ export default class packet_reader {
                     name: ServerClient.CMD_PLAY_SOUND,
                     data: {tag: 'madcraft:entity.item.pickup', action: 'hit'}
                 }];
-                world.sendSelected(packets_sound, [player.session.user_id], []);
+                world.sendSelected(packets_sound, player);
 
                 // delete item for all players, who controll this chunk
                 let packets = [{

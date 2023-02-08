@@ -83,7 +83,7 @@ export default class packet_reader {
                             }
                         });
                     }
-                    world.sendSelected(packets, [player.session.user_id], []);
+                    world.sendSelected(packets, player);
                     console.error(`player patch blocks '${player.session.username}'`);
                 }
             }

@@ -28,7 +28,7 @@ export default class packet_reader {
                 data: null
             }
         ];
-        player.world.sendSelected(packets_for_player, [player.session.user_id], []);
+        player.world.sendSelected(packets_for_player, player);
         return true;
     }
 
