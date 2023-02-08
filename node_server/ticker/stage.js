@@ -71,7 +71,7 @@ export default class Ticker {
             // проверяем срубили ли кусок
             let stage = 0;
             for (stage = 1; stage < ticking.max_stage - 1; stage++) {
-                if (world.getBlock(pos.offset(0, stage, 0)).id != tblock.id) {
+                if (world.getBlock(pos.offset(0, stage, 0))?.id != tblock.id) {
                     break;
                 }
             }
