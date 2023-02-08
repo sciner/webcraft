@@ -15,6 +15,7 @@ EmptyObject.prototype.get = function(key) {
 
 EmptyObject.prototype.set = function(key, value) {
     this[key] = value
+    return this
 }
 
 EmptyObject.prototype.has = function(key) {

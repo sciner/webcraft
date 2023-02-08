@@ -821,19 +821,23 @@ export class VectorCollector2 {
     }
 
     entries(aabb) {
+
         const that = this;
+
         return (function* () {
             if(that.size == 0) {
                 return;
             }
             const vec = new Vector(0, 0, 0);
-            for (let [xk, x] of that.list) {
-                if(aabb && (xk < aabb.x_min || xk > aabb.x_max)) continue;
-                for (let [yk, y] of x) {
-                    if(aabb && (yk < aabb.y_min || yk > aabb.y_max)) continue;
-                    for (let [zk, value] of y) {
-                        if(aabb && (zk < aabb.z_min || zk > aabb.z_max)) continue;
-                        vec.set(xk|0, yk|0, zk|0);
+            for (const [x, xv] of Object.entries(that.list)) {
+                if(aabb && (x < aabb.x_min || x > aabb.x_max)) continue;
+                for (const [y, yv] of Object.entries(xv)) {
+                    if(aabb && (y < aabb.y_min || y > aabb.y_max)) continue;
+                    for (const [z, value] of Object.entries(yv)) {
+                        if(aabb && (z < aabb.z_min || z > aabb.z_max)) continue;
+                        vec.x = x
+                        vec.y = y
+                        vec.z = z
                         yield [vec, value];
                     }
                 }
@@ -858,6 +862,28 @@ export class VectorCollector2 {
         }
         this.list.get(vec.x).get(vec.y).set(vec.z, value);
         return this.size > size;
+
+        // ---------------------------------------------------
+
+        // let size = this.size;
+
+        // const getValue = () => {
+        //     if (typeof value === 'function') {
+        //         value = value(vec);
+        //     }
+        //     return value
+        // }
+
+        // let x = this.list.get(vec.x)
+        // if(!x) return !!this.list.set(vec.x, x = fastmap().set(vec.y, fastmap().set(vec.z, getValue())))
+
+        // let y = x.get(vec.y)
+        // if(!y) return !!x.set(vec.y, y = fastmap().set(vec.z, getValue()))
+
+        // if(!y.has(vec.z)) this.size++;
+        // y.set(vec.z, getValue())
+        // return this.size > size;
+
     }
 
     add(vec, value) {
@@ -3656,74 +3682,82 @@ export let DIRECTION_NAME = {};
     DIRECTION_NAME.forward   = DIRECTION.FORWARD;
     DIRECTION_NAME.back      = DIRECTION.BACK;
 
-// // Test VectorCollector vs VectorCollector2
-// if(typeof process === 'undefined') {
+// Test VectorCollector vs VectorCollector2
+if(typeof process === 'undefined') {
 
-//     const size = new Vector(10, 1000, 1000)
-//     let _vec = new Vector(0, 0, 0)
-//     const stat = []
+    const size = new Vector(10, 997, 998)
+    let _vec = new Vector(0, 0, 0)
+    const stat = []
+    let max_checksum = 0
 
-//     for(const [name, vc] of Object.entries({VectorCollector: new VectorCollector(), VectorCollector2: new VectorCollector2()})) {
+    for(const [name, vc] of Object.entries({VectorCollector: new VectorCollector(), VectorCollector2: new VectorCollector2()})) {
 
-//         let value = 0
-//         let checksum = 0
-//         const timer = new PerformanceTimer()
-//         timer.start(name)
+        let value = 0
+        let checksum = 0
+        const timer = new PerformanceTimer()
+        timer.start(name)
 
-//         // set
-//         timer.start('set')
-//         for(let x = 0; x < size.x; x++) {
-//             for(let y = 0; y < size.y; y++) {
-//                 for(let z = 0; z < size.z; z++) {
-//                     checksum += ++value
-//                     vc.set(_vec.set(x, y, z), value)
-//                 }
-//             }
-//         }
-//         timer.stop()
+        // set
+        timer.start('set')
+        for(let x = 0; x < size.x; x++) {
+            for(let y = 0; y < size.y; y++) {
+                for(let z = 0; z < size.z; z++) {
+                    checksum += ++value
+                    vc.set(_vec.set(x, y, z), value)
+                }
+            }
+        }
+        timer.stop()
 
-//         // get
-//         timer.start('get')
-//         for(let x = 0; x < size.x; x++) {
-//             for(let y = 0; y < size.y; y++) {
-//                 for(let z = 0; z < size.z; z++) {
-//                     checksum -= vc.get(_vec.set(x, y, z))
-//                 }
-//             }
-//         }
-//         timer.stop()
+        // get
+        let cs = 0
+        timer.start('get')
+        for(let x = 0; x < size.x; x++) {
+            for(let y = 0; y < size.y; y++) {
+                for(let z = 0; z < size.z; z++) {
+                    const value = vc.get(_vec.set(x, y, z))
+                    cs += value
+                    checksum -= value
+                }
+            }
+        }
+        timer.stop()
 
-//         // each
-//         timer.start('each')
-//         for(const v of vc) {
-//             checksum += v
-//         }
-//         timer.stop()
+        if(max_checksum == 0) max_checksum = cs
+        if(cs != max_checksum) throw 'invalid_max_checksum'
+        stat.push(cs)
 
-//         // entries
-//         timer.start('entries')
-//         for(const [k, v] of vc.entries()) {
-//             checksum -= v
-//         }
-//         timer.stop()
+        // each
+        timer.start('each')
+        for(const v of vc) {
+            checksum += v
+        }
+        timer.stop()
 
-//         // delete
-//         timer.start('delete')
-//         for(let x = 0; x < size.x; x++) {
-//             for(let y = 0; y < size.y; y++) {
-//                 for(let z = 0; z < size.z; z++) {
-//                     vc.delete(_vec.set(x, y, z))
-//                 }
-//             }
-//         }
-//         timer.stop()
+        // entries
+        timer.start('entries')
+        for(const [k, v] of vc.entries()) {
+            checksum -= v
+        }
+        timer.stop()
 
-//         timer.stop()
+        // delete
+        timer.start('delete')
+        for(let x = 0; x < size.x; x++) {
+            for(let y = 0; y < size.y; y++) {
+                for(let z = 0; z < size.z; z++) {
+                    vc.delete(_vec.set(x, y, z))
+                }
+            }
+        }
+        timer.stop()
 
-//         stat.push(...Object.entries(timer), checksum)
+        timer.stop()
 
-//     }
+        stat.push(...Object.entries(timer), checksum)
 
-//     console.table(stat)
+    }
 
-// }
+    console.table(stat)
+
+}
