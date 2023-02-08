@@ -397,7 +397,7 @@ export class ServerWorld {
             this.ticks_stat.start();
             // 1.
             await this.chunks.tick(this.ticks_stat.number);
-            this.ticks_stat.add('chunks');
+            this.ticks_stat.add('chunks.tick');
             // 1.
             this.chunks.randomTick(this.ticks_stat.number);
             this.ticks_stat.add('chunks_random_tick');
@@ -408,11 +408,13 @@ export class ServerWorld {
             for(const player of this.players.values()) {
                 await player.preTick(delta, this.ticks_stat.number);
             }
+            this.ticks_stat.add('player.preTick');
             this.chunks.tickChunkQueue(NEW_CHUNKS_PER_TICK);
+            this.ticks_stat.add('tickChunkQueue');
             for(const player of this.players.values()) {
                 player.postTick(delta, this.ticks_stat.number);
             }
-            this.ticks_stat.add('players');
+            this.ticks_stat.add('player.postTick');
             //
             await this.chunks.fluidWorld.queue.process();
             this.ticks_stat.add('fluid_queue');
