@@ -305,7 +305,7 @@ export class ChunkDBActor {
             this.writeDirtyBlocks(uc);
         }
 
-        if (chunk && (chunk.isReady() || uc.shutdown && chunk.load_state >= CHUNK_STATE.READY)) {
+        if (chunk && chunk.load_state >= CHUNK_STATE.READY) {
             if (chunk.unloadedStuffDirty) {
                 for(const stuff of chunk.unloadedStuff) {
                     stuff.writeToWorldTransaction(uc, true);
