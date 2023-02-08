@@ -9445,6 +9445,7 @@
         {
             "id": 1042,
             "name": "CHORUS_FLOWER",
+            "transparent": true,
             "style": "chorus",
             "material": {
                 "id": "stone"
@@ -9476,14 +9477,19 @@
             "texture": {
                 "side": "block/chorus_plant.png"
             },
-            "tags": [
-                "no_drop"
+            "drop_item": [
+                {
+                    "name":"CHORUS_FRUIT",
+                    "chance": 0.4
+                }
             ]
         },
         {
             "id": 1044,
             "name": "CHORUS_FRUIT",
-            "item": {"name": "food"},
+            "item": {
+                "name": "food"
+            },
             "style": "extruder",
             "diagonal": true,
             "material": {
@@ -9497,14 +9503,19 @@
                 "saturation": 0.3
             },
             "texture": "item/chorus_fruit.png",
-            "coocked_item": {"name": "POPPED_CHORUS_FRUIT", "count": 1}
+            "coocked_item": {
+                "name": "POPPED_CHORUS_FRUIT", 
+                "count": 1
+            }
         },
         {
             "id": 1045,
             "name": "POPPED_CHORUS_FRUIT",
             "style": "extruder",
             "diagonal": true,
-            "item": {"name": "powder"},
+            "item": {
+                "name": "powder"
+            },
             "material": {
                 "id": "powder"
             },
