@@ -9445,27 +9445,25 @@
         {
             "id": 1042,
             "name": "CHORUS_FLOWER",
-            "style": "default",
-            "transparent": true,
+            "style": "chorus",
             "material": {
                 "id": "stone"
             },
             "texture": {
-                "side": "block/chorus_flower.png",
+                "up": "block/chorus_flower.png",
                 "down": "block/chorus_flower_dead.png"
             },
             "ticking": {
                 "type": "chorus"
             },
             "extra_data": {
-                "stage": 0,
-                "east": false,
-                "west": false,
-                "north":false,
-                "south": false,
-                "up": false,
-                "down": false
-            }
+                "stage": 0
+            },
+            "drop_item": [
+                {
+                    "name":"CHORUS_FRUIT"
+                }
+            ]
         },
         {
             "id": 1043,
@@ -9477,7 +9475,10 @@
             },
             "texture": {
                 "side": "block/chorus_plant.png"
-            }
+            },
+            "tags": [
+                "no_drop"
+            ]
         },
         {
             "id": 1044,

@@ -1,9 +1,9 @@
-import {DIRECTION, Vector, IndexedColor, QUAD_FLAGS} from '../helpers.js';
+import { DIRECTION, Vector, IndexedColor } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 
-// Cauldron
+// Chorus
 export default class style {
 
     // getRegInfo
@@ -17,9 +17,13 @@ export default class style {
 
     // computeAABB
     static computeAABB(block, for_physic, no_pad) {
-        const aabb = new AABB();
-        aabb.set( 0, 0, 0, 1, 1, 1);
-        return [aabb];
+        const aabb = new AABB()
+        if (block.id == BLOCK.CHORUS_FLOWER.id) {
+            aabb.set( 0, 0, 0, 1, 1, 1)
+        } else {
+            aabb.set( .2, .2, .2, .8, .8, .8)
+        }
+        return [aabb]
     }
 
     // Build function
@@ -28,48 +32,186 @@ export default class style {
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
         }
-
-        // свечение от лавы должно быть
-        const extra_data = block.extra_data;
-        const level = extra_data?.level ?? 0 // Высота жидкости 0, 1, 2, 3
-        const lava = extra_data?.lava ?? false // если внутри лава
-        const water = extra_data?.water ?? false // если внутри вода
-        const snow = extra_data?.snow ?? false // если внутри снег
-        const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.FORWARD);
-        const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
-        const c_inner = BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST);
-        let parts = [];
-        parts.push(...[
-            {
-                "size": {"x": 16, "y": 16, "z": 16},
-                "translate": {"x": 0, "y": 0, "z": 0},
-                "faces": {
-                    "up": {"uv": [8, 8],"texture": c_up},
-                    "down": {"uv": [8, 8],"texture": c_down},
-                    "north": {"uv": [8, 8],"texture": c_side},
-                    "south": {"uv": [8, 8],"texture": c_side},
-                    "east": {"uv": [8, 8],"texture": c_side},
-                    "west": {"uv": [8, 8],"texture": c_side}
+        const parts = []
+        // это цветок хоруса
+        if (block.id == BLOCK.CHORUS_FLOWER.id) {
+            const isDead = block?.extra_data?.notick
+            const texture = BLOCK.calcMaterialTexture(block.material, isDead ? DIRECTION.DOWN : DIRECTION.UP)
+            parts.push(...[
+                {
+                    "size": { "x": 12, "y": 2, "z": 12 },
+                    "translate": { "x": 0, "y": 7, "z": 0 },
+                    "faces": {
+                        "up": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture }
+                    }
+                },
+                {
+                    "size": { "x": 12, "y": 2, "z": 12 },
+                    "translate": { "x": 0, "y": -7, "z": 0 },
+                    "faces": {
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture }
+                    }
+                },
+                {
+                    "size": { "x": 2, "y": 12, "z": 12 },
+                    "translate": { "x": 7, "y": 0, "z": 0 },
+                    "faces": {
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "up": { "uv": [8, 8], "texture": texture }
+                    }
+                },
+                {
+                    "size": { "x": 2, "y": 12, "z": 12 },
+                    "translate": { "x": -7, "y": 0, "z": 0 },
+                    "faces": {
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture },
+                        "up": { "uv": [8, 8], "texture": texture }
+                    }
+                },
+                {
+                    "size": { "x": 12, "y": 12, "z": 2 },
+                    "translate": { "x": 0, "y": 0, "z": 7 },
+                    "faces": {
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture },
+                        "up": { "uv": [8, 8], "texture": texture }
+                    }
+                },
+                {
+                    "size": { "x": 12, "y": 12, "z": 2 },
+                    "translate": { "x": 0, "y": 0, "z": -7 },
+                    "faces": {
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture },
+                        "up": { "uv": [8, 8], "texture": texture }
+                    }
                 }
-            },
-            {
-                "size": {"x": 12, "y": 10, "z": 12},
-                "translate": {"x": 0, "y": 2, "z": 0},
-                "faces": {
-                    "down": {"uv": [8, 8],"texture": c_inner},
-                    "north": {"uv": [8, 8],"texture": c_inner},
-                    "south": {"uv": [8, 8],"texture": c_inner},
-                    "east": {"uv": [8, 8],"texture": c_inner},
-                    "west": {"uv": [8, 8],"texture": c_inner}
+            ])
+        } else {
+            const texture = BLOCK.calcMaterialTexture(block.material, DIRECTION.FORWARD)
+            parts.push(...[
+                {
+                    "size": { "x": 8, "y": 8, "z": 8 },
+                    "translate": { "x": 0, "y": 0, "z": 0 },
+                    "faces": {
+                        "up": { "uv": [8, 8], "texture": texture },
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture }
+                    }
                 }
-            }
-        ]);
-
-        if(only_fluid) {
-            parts = [];
+            ])
+            // верх
+            let size = neighbours.UP.id == 0 ? 2 : 4
+            parts.push(
+                {
+                    "size": { "x": 7, "y": size, "z": 7 },
+                    "translate": { "x": 0, "y": 4 + size / 2, "z": 0 },
+                    "faces": {
+                        "up": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture }
+                    }
+                }
+            )
+            // низ
+            size = neighbours.DOWN.id == 0 ? 2 : 4
+            parts.push(
+                {
+                    "size": { "x": 7, "y": size, "z": 7 },
+                    "translate": { "x": 0, "y": -4 - size / 2, "z": 0 },
+                    "faces": {
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture }
+                    }
+                }
+            )
+            // запад
+            size = neighbours.WEST.id == 0 ? 2 : 4
+            parts.push(
+                {
+                    "size": { "x": size, "y": 7, "z": 7 },
+                    "translate": { "x": -4 - size / 2, "y": 0, "z": 0 },
+                    "faces": {
+                        "up": { "uv": [8, 8], "texture": texture },
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture }
+                    }
+                }
+            )
+            // восток
+            size = neighbours.EAST.id == 0 ? 2 : 4
+            parts.push(
+                {
+                    "size": { "x": size, "y": 7, "z": 7 },
+                    "translate": { "x": 4 + size / 2, "y": 0, "z": 0 },
+                    "faces": {
+                        "up": { "uv": [8, 8], "texture": texture },
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture }
+                    }
+                }
+            )
+            // север
+            size = neighbours.NORTH.id == 0 ? 2 : 4
+            parts.push(
+                {
+                    "size": { "x": 7, "y": 7, "z": size },
+                    "translate": { "x": 0, "y": 0, "z": 4 + size / 2 },
+                    "faces": {
+                        "up": { "uv": [8, 8], "texture": texture },
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "north": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture }
+                    }
+                }
+            )
+            // Юг
+            size = neighbours.SOUTH.id == 0 ? 2 : 4
+            parts.push(
+                {
+                    "size": { "x": 7, "y": 7, "z": size },
+                    "translate": { "x": 0, "y": 0, "z": -4 - size / 2 },
+                    "faces": {
+                        "up": { "uv": [8, 8], "texture": texture },
+                        "down": { "uv": [8, 8], "texture": texture },
+                        "south": { "uv": [8, 8], "texture": texture },
+                        "east": { "uv": [8, 8], "texture": texture },
+                        "west": { "uv": [8, 8], "texture": texture }
+                    }
+                }
+            )
         }
-
         const pos = new Vector(x, y, z)
         for (const part of parts) {
             default_style.pushPART(vertices, {
@@ -79,53 +221,6 @@ export default class style {
                 matrix:     matrix
             })
         }
-
-        if (level > 0) {
-            const y1 = y + .15 + level / 4;
-            const w = only_fluid ? 0.6 : 0.75;
-            let blockFluid = null;
-            if (water) {
-                blockFluid = BLOCK.STILL_WATER;
-            }
-            if (lava) {
-                blockFluid = BLOCK.STILL_LAVA;
-            }
-            if (blockFluid) {
-                const side = 'up';
-                const dir = blockFluid.UP;
-                const anim_frames = BLOCK.getAnimations(blockFluid, side);
-                let lm = IndexedColor.WHITE.clone();
-                let flags = QUAD_FLAGS.NO_AO;
-                if(blockFluid.tags.indexOf('multiply_color') >= 0) {
-                    lm.copyFrom(blockFluid.multiply_color);
-                    flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
-                }
-                if (anim_frames > 1) {
-                    flags |= QUAD_FLAGS.FLAG_ANIMATED;
-                    lm.b = anim_frames;
-                }
-                const t = BLOCK.calcMaterialTexture(blockFluid, dir, w, w);
-                vertices.push(x + 0.5, z + 0.5, y1,
-                    w, 0, 0,
-                    0, w, 0,
-                    t[0], t[1], t[2], t[3],
-                    lm.pack(), flags
-                );
-            }
-            if (snow) {
-                const lm = IndexedColor.WHITE;
-                const t = BLOCK.calcMaterialTexture(BLOCK.POWDER_SNOW, DIRECTION.UP, w, w);
-                vertices.push(x + 0.5, z + 0.5, y1,
-                    w, 0, 0,
-                    0, w, 0,
-                    t[0], t[1], t[2], t[3],
-                    lm.pack(), 0
-                );
-            }
-        }
-
-        return null;
-
     }
 
 }
