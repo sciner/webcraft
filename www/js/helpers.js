@@ -3682,82 +3682,82 @@ export let DIRECTION_NAME = {};
     DIRECTION_NAME.forward   = DIRECTION.FORWARD;
     DIRECTION_NAME.back      = DIRECTION.BACK;
 
-// Test VectorCollector vs VectorCollector2
-if(typeof process === 'undefined') {
+// // Test VectorCollector vs VectorCollector2
+// if(typeof process === 'undefined') {
 
-    const size = new Vector(10, 997, 998)
-    let _vec = new Vector(0, 0, 0)
-    const stat = []
-    let max_checksum = 0
+//     const size = new Vector(10, 997, 998)
+//     let _vec = new Vector(0, 0, 0)
+//     const stat = []
+//     let max_checksum = 0
 
-    for(const [name, vc] of Object.entries({VectorCollector: new VectorCollector(), VectorCollector2: new VectorCollector2()})) {
+//     for(const [name, vc] of Object.entries({VectorCollector: new VectorCollector(), VectorCollector2: new VectorCollector2()})) {
 
-        let value = 0
-        let checksum = 0
-        const timer = new PerformanceTimer()
-        timer.start(name)
+//         let value = 0
+//         let checksum = 0
+//         const timer = new PerformanceTimer()
+//         timer.start(name)
 
-        // set
-        timer.start('set')
-        for(let x = 0; x < size.x; x++) {
-            for(let y = 0; y < size.y; y++) {
-                for(let z = 0; z < size.z; z++) {
-                    checksum += ++value
-                    vc.set(_vec.set(x, y, z), value)
-                }
-            }
-        }
-        timer.stop()
+//         // set
+//         timer.start('set')
+//         for(let x = 0; x < size.x; x++) {
+//             for(let y = 0; y < size.y; y++) {
+//                 for(let z = 0; z < size.z; z++) {
+//                     checksum += ++value
+//                     vc.set(_vec.set(x, y, z), value)
+//                 }
+//             }
+//         }
+//         timer.stop()
 
-        // get
-        let cs = 0
-        timer.start('get')
-        for(let x = 0; x < size.x; x++) {
-            for(let y = 0; y < size.y; y++) {
-                for(let z = 0; z < size.z; z++) {
-                    const value = vc.get(_vec.set(x, y, z))
-                    cs += value
-                    checksum -= value
-                }
-            }
-        }
-        timer.stop()
+//         // get
+//         let cs = 0
+//         timer.start('get')
+//         for(let x = 0; x < size.x; x++) {
+//             for(let y = 0; y < size.y; y++) {
+//                 for(let z = 0; z < size.z; z++) {
+//                     const value = vc.get(_vec.set(x, y, z))
+//                     cs += value
+//                     checksum -= value
+//                 }
+//             }
+//         }
+//         timer.stop()
 
-        if(max_checksum == 0) max_checksum = cs
-        if(cs != max_checksum) throw 'invalid_max_checksum'
-        stat.push(cs)
+//         if(max_checksum == 0) max_checksum = cs
+//         if(cs != max_checksum) throw 'invalid_max_checksum'
+//         stat.push(cs)
 
-        // each
-        timer.start('each')
-        for(const v of vc) {
-            checksum += v
-        }
-        timer.stop()
+//         // each
+//         timer.start('each')
+//         for(const v of vc) {
+//             checksum += v
+//         }
+//         timer.stop()
 
-        // entries
-        timer.start('entries')
-        for(const [k, v] of vc.entries()) {
-            checksum -= v
-        }
-        timer.stop()
+//         // entries
+//         timer.start('entries')
+//         for(const [k, v] of vc.entries()) {
+//             checksum -= v
+//         }
+//         timer.stop()
 
-        // delete
-        timer.start('delete')
-        for(let x = 0; x < size.x; x++) {
-            for(let y = 0; y < size.y; y++) {
-                for(let z = 0; z < size.z; z++) {
-                    vc.delete(_vec.set(x, y, z))
-                }
-            }
-        }
-        timer.stop()
+//         // delete
+//         timer.start('delete')
+//         for(let x = 0; x < size.x; x++) {
+//             for(let y = 0; y < size.y; y++) {
+//                 for(let z = 0; z < size.z; z++) {
+//                     vc.delete(_vec.set(x, y, z))
+//                 }
+//             }
+//         }
+//         timer.stop()
 
-        timer.stop()
+//         timer.stop()
 
-        stat.push(...Object.entries(timer), checksum)
+//         stat.push(...Object.entries(timer), checksum)
 
-    }
+//     }
 
-    console.table(stat)
+//     console.table(stat)
 
-}
+// }
