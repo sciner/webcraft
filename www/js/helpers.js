@@ -631,10 +631,10 @@ export class VectorCollector {
      * It method iterates over values from group {@link groupIndex}
      */
     *subsetOfValues(groupIndex, groupsCount) {
-        for (let x of this.list.values()) {
+        for (let [x, byX] of this.list) {
             if (((x % groupsCount) + groupsCount) % groupsCount === groupIndex) {
-                for (let y of x.values()) {
-                    yield *y.values()
+                for (let byY of byX.values()) {
+                    yield *byY.values()
                 }
             }
         }
