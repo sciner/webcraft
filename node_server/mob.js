@@ -260,12 +260,11 @@ export class Mob {
         chunk = chunk ?? world.chunkManager.get(this.chunk_addr);
         if(chunk) {
             chunk.mobs.delete(this.id);
-            const connections = Array.from(chunk.connections.keys());
             const packets = [{
                 name: ServerClient.CMD_MOB_DELETE,
                 data: [this.id]
             }];
-            world.sendSelected(packets, connections, []);
+            world.sendSelected(packets, chunk.connectedPlayerIds);
         } else {
             // throw 'error_no_mob_chunk';
         }

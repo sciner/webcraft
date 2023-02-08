@@ -93,7 +93,7 @@ export class FSMBrain {
                 name: ServerClient.CMD_MOB_UPDATE,
                 data: new_state
             }];
-            world.packets_queue.add(Array.from(chunk_over.connections.keys()), packets);
+            world.packets_queue.add(chunk_over.connectedPlayerIds, packets);
         }
     }
 

@@ -643,7 +643,7 @@ export class WorldChestManager {
         if(chunk) {
             const pos = tblock.posworld;
             const players = [];
-            for(let p of Array.from(chunk.connections.values())) {
+            for(let p of chunk.connectedPlayerIds) {
                 if(except_player_ids && Array.isArray(except_player_ids)) {
                     if(except_player_ids.indexOf(p.session.user_id) >= 0) {
                         continue;

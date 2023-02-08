@@ -121,6 +121,7 @@ export class ServerChunk {
         this.coord          = this.addr.mul(this.size);
         this.uniqId         = ++global_uniqId;
         this.connections    = new Map(); // players by user_id
+        this._connectionsKeys = null; // immutable cached value of Array.from(this.connections.keys())
         this.preq           = new Map();
         this.modify_list    = {};
         this.mobs           = new Map();
@@ -183,6 +184,10 @@ export class ServerChunk {
         if (chunkManager) {
             chunkManager.chunkStateChanged(this, state_id);
         }
+    }
+
+    get connectedPlayerIds() {
+        return this._connectionsKeys ??= Array.from(this.connections.keys())
     }
 
     /**
@@ -255,6 +260,7 @@ export class ServerChunk {
     // Add player connection
     addPlayer(player) {
         this.connections.set(player.session.user_id, player);
+        this._connectionsKeys = null;
     }
 
     // Добавление игрока, которому после прогрузки чанка нужно будет его отправить
@@ -273,6 +279,7 @@ export class ServerChunk {
     removePlayer(player) {
         if(this.connections.has(player.session.user_id)) {
             this.connections.delete(player.session.user_id);
+            this._connectionsKeys = null;
             // Unload mobs for player
             // @todo перенести выгрузку мобов на сторону игрока, пусть сам их выгружает, в момент выгрузки чанков
             if(this.mobs.size > 0) {
@@ -504,10 +511,10 @@ export class ServerChunk {
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0) {
             if(this.mobs.size > 0) {
-                this.sendMobs(Array.from(this.connections.keys()));
+                this.sendMobs(this.connectedPlayerIds);
             }
             if(this.drop_items.size > 0) {
-                this.sendDropItems(Array.from(this.connections.keys()));
+                this.sendDropItems(this.connectedPlayerIds);
             }
         }
         // If some delayed calls have been loaded
@@ -591,8 +598,7 @@ export class ServerChunk {
 
     //
     sendAll(packets, except_players = null) {
-        const connections = Array.from(this.connections.keys());
-        this.world.sendSelected(packets, connections, except_players);
+        this.world.sendSelected(packets, this.connectedPlayerIds, except_players);
     }
 
     getChunkManager() {

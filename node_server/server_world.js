@@ -1029,7 +1029,7 @@ export class ServerWorld {
         //
         for(let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
-            for(let user_id of chunk.connections.keys()) {
+            for(let user_id of chunk.connectedPlayerIds) {
                 const player = all_players.get(user_id);
                 if(!player) {
                     continue
