@@ -199,7 +199,8 @@ export class ServerClient {
     // New commands from server
     _onMessage(event) {
 
-        const cmds              = JSON.parse(event.data);
+        const eventData         = JSON.parse(event.data);
+        const cmds              = eventData.commands;
         const chunkManager      = Qubatch.world.chunkManager;
         const chunk_modifiers   = chunkManager.chunk_modifiers;
         const prev_chunk_addr   = new Vector(Infinity, Infinity, Infinity);
@@ -209,6 +210,7 @@ export class ServerClient {
         if(!chunkManager) debugger
         for(let i = cmds.length - 1; i >= 0; i--) {
             const cmd = cmds[i];
+            cmd.time = eventData.time;
             // CMD_BLOCK_SET
             if(cmd.name == ServerClient.CMD_BLOCK_SET) {
                 chunkManager.block_sets++;

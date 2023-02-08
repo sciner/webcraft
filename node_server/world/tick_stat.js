@@ -20,7 +20,7 @@ export class WorldTickStat {
     #index = 0;
 
     constructor(stat_names = WorldTickStat.DEFAULT_STAT_NAMES, decimals = WorldTickStat.DEFAULT_DECIMALS) {
-        this.stat_names = stat_names
+        this.stat_names = [...stat_names]
         this.decimals   = decimals
         this.tps = 0;
         this.number = 0;
@@ -33,28 +33,40 @@ export class WorldTickStat {
         this.values = {}
         this.started = null
         for(let stat_name of stat_names) {
-            this.values[stat_name] = { min: Infinity, max: -Infinity, avg: 0, sum: 0 }
+            this.values[stat_name] = this._createValue()
         }
+        this.valuesArray = Object.values(this.values)
         this._moveSlidingWindow() // call it twice to create new and old values
         this._moveSlidingWindow()
     }
 
-    add(field) {
-        const value = this.values[field];
-        const slidingValue = this.slidingCurrent.values[field]
-        if (value) {
-            const elapsed = performance.now() - this.pn_values;
-            value.sum += elapsed;
-            if (elapsed < value.min) value.min = elapsed;
-            if (elapsed > value.max) value.max = elapsed;
-            value.avg = value.sum / this.count;
-
-            slidingValue.sum += elapsed
-            if (elapsed < slidingValue.min) slidingValue.min = elapsed
-            if (elapsed > slidingValue.max) slidingValue.max = elapsed
-        } else {
-            console.error('invalid tick stat value: ' + field);
+    add(field, allowAdding = false) {
+        let value = this.values[field];
+        if (!value) {
+            if (allowAdding) {
+                this.stat_names.push(field)
+                value  = this._createValue()
+                this.values[field] = value
+                this.valuesArray.push(value)
+                this.slidingOld.values[field]     = this._createSlidingValue()
+                this.slidingCurrent.values[field] = this._createSlidingValue()
+            } else {
+                console.error('invalid tick stat value: ' + field);
+                this.pn_values = performance.now();
+                return
+            }
         }
+
+        const elapsed = performance.now() - this.pn_values;
+        value.sum += elapsed;
+        if (elapsed < value.min) value.min = elapsed;
+        if (elapsed > value.max) value.max = elapsed;
+
+        const slidingValue = this.slidingCurrent.values[field]
+        slidingValue.sum += elapsed
+        if (elapsed < slidingValue.min) slidingValue.min = elapsed
+        if (elapsed > slidingValue.max) slidingValue.max = elapsed
+
         this.pn_values = performance.now();
     }
 
@@ -77,6 +89,9 @@ export class WorldTickStat {
 
             this.total += this.last;
             this.count++;
+            for(const value of this.valuesArray) {
+                value.avg = value.sum / this.count
+            }
             if (this.last < this.min) this.min = this.last;
             if (this.last > this.max) this.max = this.last;
 
@@ -138,12 +153,20 @@ export class WorldTickStat {
         return table
     }
 
+    _createValue() {
+        return { min: Infinity, max: -Infinity, avg: 0, sum: 0 }
+    }
+
+    _createSlidingValue() {
+        return { min: Infinity, max: -Infinity, sum: 0 }
+    }
+
     _moveSlidingWindow() {
         this.slidingOld     = this.slidingCurrent
         this.slidingCurrent = {
             values: ArrayHelpers.toObject(this.stat_names, 
                 (i, name) => name,
-                () => { return { min: Infinity, max: -Infinity, count: 0, sum: 0 } }
+                this._createSlidingValue
             ),
             count: 0,
             started: performance.now()

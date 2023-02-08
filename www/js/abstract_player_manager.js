@@ -52,11 +52,8 @@ export class AbstractPlayerManager {
      * @param {int} user_id
      * @returns 
      */
-     get(user_id) {
-        if(!this.exists(user_id)) {
-            return null
-        }
-        return this.list.get(user_id)
+    get(user_id) {
+        return this.list.get(user_id) ?? null
     }
 
     /**

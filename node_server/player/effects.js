@@ -60,7 +60,7 @@ export class ServerPlayerEffects {
         if(ret) {
             return packet
         }
-        world.sendSelected([packet], [player.session.user_id]);
+        world.sendSelected([packet], player);
     }
     
     // проверка времени наложенных эффектов
@@ -78,7 +78,7 @@ export class ServerPlayerEffects {
         }
         if (send) {
             // @todo пока тут проверям конец, потом перикунуть на клиент
-           world.sendSelected([{ name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}], [player.session.user_id]);
+           world.sendSelected([{ name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}], player);
         }
     }
     

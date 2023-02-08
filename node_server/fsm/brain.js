@@ -43,13 +43,20 @@ export class FSMBrain {
         this.resistance_light = true;
     }
 
+    addStat(name, allowAdding) {
+        this.mob.getWorld().mobs.ticks_stat.add(name, allowAdding)
+    }
+
     tick(delta) {
         const world = this.mob.getWorld();
         this.#chunk_addr = getChunkAddr(this.mob.pos, this.#chunk_addr);
         const chunk = world.chunks.get(this.#chunk_addr);
         if (chunk && chunk.isReady()) {
-            this.onLive();
-            this.stack.tick(delta, this);
+            this.onLive();            
+            const stateFunctionUsed = this.stack.tick(delta, this);
+            if (stateFunctionUsed) {
+                this.addStat(stateFunctionUsed.name, true);
+            }
         }
     }
 
@@ -246,6 +253,7 @@ export class FSMBrain {
         if (this.timer_panick > 0) {
             this.timer_panick--;
         }
+        this.addStat('onLive');
 
         this.onFind();
     }
@@ -269,6 +277,7 @@ export class FSMBrain {
             const player = friends[rnd];
             this.target = player;
         }
+        this.addStat('onFind');
     }
 
     // идти за игроком, если в руках нужный предмет

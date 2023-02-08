@@ -42,7 +42,7 @@ export class WorldPacketQueue {
             if (mob_update_packet) {
                 packets.push(mob_update_packet);
             }
-            this.world.sendSelected(packets, [user_id], []);
+            this.world.sendSelected(packets, [user_id]);
         }
         this.list.clear();
     }

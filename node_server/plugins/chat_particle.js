@@ -34,7 +34,7 @@ export default class ParticlePlugin {
                         type: type,
                         pos: pos
                     }
-                }], [player.session.user_id]);
+                }], player);
                 return true;
             }
             return false;

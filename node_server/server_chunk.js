@@ -280,14 +280,14 @@ export class ServerChunk {
                     name: ServerClient.CMD_MOB_DELETE,
                     data: Array.from(this.mobs.keys())
                 }];
-                this.world.sendSelected(packets, [player.session.user_id], []);
+                this.world.sendSelected(packets, player);
             }
             if(this.drop_items.size > 0) {
                 const packets = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,
                     data: Array.from(this.drop_items.keys())
                 }];
-                this.world.sendSelected(packets, [player.session.user_id], []);
+                this.world.sendSelected(packets, player);
             }
         }
         if(this.shouldUnload()) {
@@ -348,7 +348,7 @@ export class ServerChunk {
 
             // data.modify_list.obj = ml.obj;
         }
-        return this.world.sendSelected([{name, data}], player_ids, []);
+        return this.world.sendSelected([{name, data}], player_ids);
     }
 
     // Compress modify list
@@ -373,7 +373,7 @@ export class ServerChunk {
         for(const [_, mob] of this.mobs) {
             packets_mobs[0].data.push(mob);
         }
-        this.world.sendSelected(packets_mobs, player_user_ids, []);
+        this.world.sendSelected(packets_mobs, player_user_ids);
     }
 
     sendFluid(buf) {
@@ -410,7 +410,7 @@ export class ServerChunk {
         for(const drop_item of this.drop_items.values()) {
             packets[0].data.push(drop_item.getItemFullPacket());
         }
-        this.world.sendSelected(packets, player_user_ids, []);
+        this.world.sendSelected(packets, player_user_ids);
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -590,7 +590,7 @@ export class ServerChunk {
     }
 
     //
-    sendAll(packets, except_players) {
+    sendAll(packets, except_players = null) {
         const connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, except_players);
     }
