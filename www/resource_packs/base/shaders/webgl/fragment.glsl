@@ -159,6 +159,7 @@ void main() {
         }
 
         if(v_noCanTakeLight < 0.5) {
+            vec4 centerSample;
             #include<local_light_pass>
             #include<ao_light_pass>
             if(v_noCanTakeAO == .0) {

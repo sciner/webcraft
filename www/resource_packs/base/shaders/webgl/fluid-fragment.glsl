@@ -31,6 +31,7 @@ out vec4 outColor;
 
 #include<manual_mip_define_func>
 #include<raindrops_define_func>
+#include<shoreline_func>
 
 vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     vec2 texc = texClamped;
@@ -60,6 +61,7 @@ void main() {
     vec4 color = vec4(0.0);
     float playerLight = 0.0, sunNormalLight = 1.0;
     vec3 combinedLight = vec3(1.0);
+    vec4 centerSample;
 
     // Game
     if(u_fogOn) {
@@ -87,8 +89,9 @@ void main() {
         if(v_noCanTakeLight < 0.5) {
             #include<local_light_pass>
             #include<ao_light_pass>
+            #include<shoreline>
             // Apply light
-            color.rgb *= combinedLight * sunNormalLight;
+            color.rgb *= (combinedLight * sunNormalLight);
         } else {
             color.rgb *= sunNormalLight;
         }

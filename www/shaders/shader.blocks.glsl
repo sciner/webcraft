@@ -257,6 +257,39 @@
     }
 #endif
 
+#ifdef shoreline_func
+
+    // Simplex 2D noise
+    vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+
+    float snoise(vec2 v){
+        const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+            -0.577350269189626, 0.024390243902439);
+        vec2 i  = floor(v + dot(v, C.yy) );
+        vec2 x0 = v -   i + dot(i, C.xx);
+        vec2 i1;
+        i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+        vec4 x12 = x0.xyxy + C.xxzz;
+        x12.xy -= i1;
+        i = mod(i, 289.0);
+        vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
+        dot(x12.zw,x12.zw)), 0.0);
+        m = m*m ;
+        m = m*m ;
+        vec3 x = 2.0 * fract(p * C.www) - 1.0;
+        vec3 h = abs(x) - 0.5;
+        vec3 ox = floor(x + 0.5);
+        vec3 a0 = x - ox;
+        m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+        vec3 g;
+        g.x  = a0.x  * x0.x  + h.x  * x0.y;
+        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+        return 130.0 * dot(m, g);
+    }
+
+#endif
+
 #ifdef raindrops_define_func
     vec2 randVec(float inVal) {
         return vec2(fract(sin(dot(vec2(inVal*1.1,2352.75053) ,vec2(12.9898,78.233))) * 43758.5453)-0.5,
@@ -471,7 +504,7 @@
     }
     //TODO: clamp?
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
-    vec4 centerSample;
+    // vec4 centerSample;
     vec4 aoVector = vec4(0.0);
 
     vec3 texSize;
@@ -765,5 +798,19 @@
         vec3 cam_period2 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
         vec3 pos = vec3(v_world_pos.xy + cam_period2.xy, 0.);
         color.rgb += rainDrops(pos * 2.).rgb * u_rain_strength;
+    }
+#endif
+
+#ifdef shoreline
+    // water lighter
+    float water_lighter_limit = .02;
+    if(centerSample.z > water_lighter_limit) {
+        float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
+        // float water_lighter = min(centerSample.z / water_lighter_limit, .1);
+        vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+        float x = v_world_pos.x + cam_period.x;
+        float y = v_world_pos.y + cam_period.y;
+        // color.rgb += water_lighter * 1.25;
+        color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 100., 1.) * m / 5.;
     }
 #endif
