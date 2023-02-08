@@ -299,8 +299,8 @@ export class ServerChat {
             }
             case '/tps2': {
                 for(const arg of args) {
-                    if (!['/tps2', 'chunk', 'mob', 'recent'].includes(arg)) {
-                        const USAGE = '/tps2 [chunk|mob] [recent]'
+                    if (!['/tps2', 'chunk', 'chunks', 'mob', 'mobs', 'recent'].includes(arg)) {
+                        const USAGE = '!lang/tps2 [chunk|mob] [recent]'
                         this.sendSystemChatMessageToSelectedPlayers(USAGE, player)
                         return
                     }
