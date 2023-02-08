@@ -811,6 +811,6 @@
         float x = v_world_pos.x + cam_period.x;
         float y = v_world_pos.y + cam_period.y;
         // color.rgb += water_lighter * 1.25;
-        color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 100., 1.) * m / 5.;
+        color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 2., 1.) * m / 5.;
     }
 #endif
