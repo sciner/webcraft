@@ -799,9 +799,6 @@ export class Renderer {
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
-                    if(player.game_mode.isSurvival() || player.game_mode.isCreative()) {
-                        player.pickAt.draw();
-                    }
                     // 3. Draw players and rain
                     this.drawPlayers(delta);
                     // 4. Draw mobs
@@ -875,6 +872,10 @@ export class Renderer {
                     */
                 }
             }
+        }
+
+        if(player.game_mode.isSurvival() || player.game_mode.isCreative()) {
+            player.pickAt.draw();
         }
 
         this.debugGeom.draw(renderBackend);
