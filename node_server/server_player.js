@@ -260,12 +260,28 @@ export class ServerPlayer extends Player {
 
         ns.out += json.length;
         ns.out_count++;
-        if (ns.out_count_by_type) {
+        if (ns.out_count_by_type && packets.length) {
+            // check if we need to stringify individual packets to add their sizes to stats
+            let hasDifferentTpes = false
+            if (ns.out_size_by_type) {
+                const name = packets[0].name
+                for (let i = 1; i < packets.length; i++) {
+                    if (packets[i].name !== name) {
+                        hasDifferentTpes = true
+                        break
+                    }
+                }
+                if (!hasDifferentTpes) {
+                    ns.out_size_by_type[name] = (ns.out_size_by_type[name] ?? 0) + json.length
+                }
+            }
+            // for each packet
             for(const p of packets) {
                 const name = p.name
                 ns.out_count_by_type[name] = (ns.out_count_by_type[name] ?? 0) + 1
-                if (ns.out_size_by_type) {
-                    const len = packets.length > 1 ? JSON.stringify(p).length : json.length
+
+                if (ns.out_size_by_type && hasDifferentTpes) {
+                    const len = JSON.stringify(p).length + 1
                     ns.out_size_by_type[name] = (ns.out_size_by_type[name] ?? 0) + len
                 }
             }

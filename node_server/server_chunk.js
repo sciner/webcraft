@@ -178,10 +178,11 @@ export class ServerChunk {
 
     // Set chunk init state
     setState(state_id) {
+        const old_state = this.load_state
         this.load_state = state_id;
         const chunkManager = this.getChunkManager();
         if (chunkManager) {
-            chunkManager.chunkStateChanged(this, state_id);
+            chunkManager.chunkStateChanged(this, old_state, state_id);
         }
     }
 

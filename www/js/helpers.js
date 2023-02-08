@@ -625,6 +625,21 @@ export class VectorCollector {
         }
     }
 
+    /**
+     * All values are split into {@link groupsCount} in an undetermined, but consistent way.
+     * Goupd are numbered from 0 to {@link groupsCount} - 1.
+     * It method iterates over values from group {@link groupIndex}
+     */
+    *subsetOfValues(groupIndex, groupsCount) {
+        for (let x of this.list.values()) {
+            if (((x % groupsCount) + groupsCount) % groupsCount === groupIndex) {
+                for (let y of x.values()) {
+                    yield *y.values()
+                }
+            }
+        }
+    }
+
     entries(aabb) {
         const that = this;
         return (function* () {

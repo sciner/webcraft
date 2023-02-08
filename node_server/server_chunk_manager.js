@@ -12,6 +12,9 @@ import {DataWorld} from "../www/js/typed_blocks3.js";
 import { WorldPortal } from "../www/js/portal.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
+// Each tick (1 / UNLOADING_CHUNKS_SUBSETS) of unloading_chunks are checked.
+const UNLOADING_CHUNKS_SUBSETS = 100
+
 async function waitABit() {
     return true;
 }
@@ -31,6 +34,8 @@ export class ServerChunkManager {
         this.invalid_chunks_queue   = [];
         this.disposed_chunk_addrs   = [];
         this.unloading_chunks       = new VectorCollector(); // conatins both CHUNK_STATE.UNLOADING and CHUNK_STATE.UNLOADED
+        this.unloading_subset_index = 0 // the index of the subset of unloading_chunks that is checked in this tick
+        this.unloading_state_count  = 0 // the number of chunks with CHUNK_STATE.UNLOADING
         this.ticks_stat             = new WorldTickStat(ServerChunkManager.STAT_NAMES)
         //
         this.DUMMY = {
@@ -163,12 +168,18 @@ export class ServerChunkManager {
         return this.world;
     }
 
-    chunkStateChanged(chunk, state_id) {
+    chunkStateChanged(chunk, old_state, state_id) {
+        if (old_state === CHUNK_STATE.UNLOADING) {
+            this.unloading_state_count--;
+        }
         switch(state_id) {
             case CHUNK_STATE.READY: {
                 this.chunk_queue_gen_mobs.set(chunk.addr, chunk);
                 break;
             }
+            case CHUNK_STATE.UNLOADING:
+                this.unloading_state_count++;
+                break;
         }
     }
 
@@ -226,7 +237,8 @@ export class ServerChunkManager {
         this.ticks_stat.add('delayed_calls');
         // 4. Dispose unloaded chunks
         let ttl = this._getUnloadedChunksTtl();
-        for(const chunk of this.unloading_chunks) {
+        this.unloading_subset_index = (this.unloading_subset_index + 1) % UNLOADING_CHUNKS_SUBSETS
+        for(const chunk of this.unloading_chunks.subsetOfValues(this.unloading_subset_index, UNLOADING_CHUNKS_SUBSETS)) {
             if (chunk.load_state === CHUNK_STATE.UNLOADED &&    // if it's not still unloading
                 performance.now() - chunk.unloadingStartedTime >= ttl
             ) {
