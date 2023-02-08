@@ -767,7 +767,7 @@ export class MobModel extends NetworkPhysicObject {
         this.setSkin();
         
         // Draw in fire
-        if((this.extra_data?.time_fire ?? 0) > 0) {
+        if(this.extra_data?.in_fire) {
             this.drawInFire(render, delta);
         }
 

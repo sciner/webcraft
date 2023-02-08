@@ -44,9 +44,13 @@ export class MobState {
      */
     constructor(id, pos, rotate, extra_data) {
         this.id = id;
-        this.pos = pos;
-        this.rotate = rotate;
-        this.extra_data = extra_data;
+        this.pos = new Vector(pos).round(3);
+        this.rotate = new Vector(rotate).round(3);
+        this.extra_data = JSON.parse(JSON.stringify(extra_data))
+        if(this.extra_data?.time_fire !== undefined) {
+            this.extra_data.in_fire = this.extra_data.time_fire > 0
+            delete(this.extra_data.time_fire)
+        }
     }
 
     /**
@@ -97,6 +101,11 @@ export class Mob {
      * @type {Vector}
      */
     #forward;
+
+    /**
+     * @type { MobState }
+     */
+    #prev_state;
 
     /**
      * 
@@ -348,10 +357,20 @@ export class Mob {
     }
 
     /**
+     * @param {boolean} return_diff 
      * @returns {MobState}
      */
-    exportState() {
-        return new MobState(this.id, this.pos, this.rotate, this.extra_data);
+    exportState(return_diff = false) {
+        const new_state = new MobState(this.id, this.pos, this.rotate, this.extra_data)
+        if(return_diff && this.#prev_state) {
+            if(new_state.equal(this.#prev_state)) {
+                return null
+            }
+            if(JSON.stringify(new_state.extra_data) == JSON.stringify(this.#prev_state.extra_data)) {
+                new_state.extra_data = null
+            }
+        }
+        return this.#prev_state = new_state
     }
 
     /**

@@ -80,7 +80,9 @@ export class NetworkPhysicObject {
 
     applyState(nextPos, nextRot, sneak, extra_data) {
         this.pos = nextPos;
-        this.extra_data = extra_data;
+        if(extra_data) {
+            this.extra_data = extra_data;
+        }
         if(nextRot) {
             this.yaw = nextRot.z;
             this.pitch = nextRot.x;

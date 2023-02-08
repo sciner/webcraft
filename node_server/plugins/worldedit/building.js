@@ -242,7 +242,7 @@ export class WorldEditBuilding {
         const file_name = `./data/building_schema/${building.name}.js`;
 
         // Write building to file
-        const json = 'export default '.JSON.stringify(building)
+        const json = 'export default ' + JSON.stringify(building)
         fs.writeFileSync(file_name, json)
 
         // Update in memory

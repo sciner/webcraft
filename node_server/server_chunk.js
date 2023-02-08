@@ -113,6 +113,10 @@ export class ServerChunk {
 
     static SCAN_ID = 0;
 
+    /**
+     * @param { import("./server_world.js").ServerWorld } world
+     * @param {Vector} addr 
+     */
     constructor(world, addr) {
         this.world          = world;
         this.chunkManager   = world.chunks;
@@ -160,10 +164,16 @@ export class ServerChunk {
         return this.load_state === CHUNK_STATE.READY;
     }
 
+    /**
+     * @returns { string }
+     */
     get addrHash() { // maybe replace it with a computed string, if it's used often
         return this.addr.toHash();
     }
 
+    /**
+     * @returns { int }
+     */
     get maxBlockX() {
         return this.coord.x + (CHUNK_SIZE_X - 1);
     }
@@ -269,7 +279,10 @@ export class ServerChunk {
         }
     }
 
-    // Remove player from chunk
+    /**
+     * Remove player from chunk
+     * @param { import("./server_player.js").ServerPlayer } player
+     */
     removePlayer(player) {
         if(this.connections.has(player.session.user_id)) {
             this.connections.delete(player.session.user_id);

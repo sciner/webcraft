@@ -82,19 +82,16 @@ export class FSMBrain {
         if (!chunk_over) {
             return;
         }
-        const new_state = mob.exportState();
-        // if state changed
-        if(!mob.prev_state || !new_state.equal(mob.prev_state)) {
-            mob.prev_state = new_state;
-            mob.prev_state.rotate = mob.prev_state.rotate.clone();
-            mob.prev_state.pos = mob.prev_state.pos.clone();
-            mob.prev_state.extra_data = JSON.parse(JSON.stringify(mob.prev_state.extra_data));
-            const packets = [{
-                name: ServerClient.CMD_MOB_UPDATE,
-                data: new_state
-            }];
-            world.packets_queue.add(Array.from(chunk_over.connections.keys()), packets);
+        const new_state = mob.exportState(true)
+        // if state not changed
+        if(!new_state) {
+            return
         }
+        const packets = [{
+            name: ServerClient.CMD_MOB_UPDATE,
+            data: new_state
+        }];
+        world.packets_queue.add(Array.from(chunk_over.connections.keys()), packets);
     }
 
     // Update state and send to players
