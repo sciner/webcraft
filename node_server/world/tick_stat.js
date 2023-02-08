@@ -4,7 +4,8 @@ export class WorldTickStat {
 
     static SLIDING_WINDOW = 10000
 
-    static DEFAULT_STAT_NAMES = ['chunks', 'players', 'mobs', 'drop_items', 'packet_reader_queue',
+    static DEFAULT_STAT_NAMES = ['chunks.tick', 'player.preTick', 'tickChunkQueue', 'player.postTick',
+        'mobs', 'drop_items', 'packet_reader_queue',
         'maps_clear', 'packets_queue_send', 'chunks_random_tick', 'actions_queue', 'fluid_queue',
         'db_fluid_save', 'auto_spawn_hostile_mobs', 'world_transaction_sync'];
 
