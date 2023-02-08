@@ -252,10 +252,11 @@ export class ServerPlayer extends Player {
     sendPackets(packets) {
         const ns = this.world.network_stat;
 
-        const json = JSON.stringify({
-            time: this.world.serverTime,
-            commands: packets
-        });
+        // time is the same for all commands, so it's saved once in the 1st of them
+        if (packets.length) {
+            packets[0].time = this.world.serverTime;
+        }
+        const json = JSON.stringify(packets)
 
         ns.out += json.length;
         ns.out_count++;
@@ -264,7 +265,7 @@ export class ServerPlayer extends Player {
                 const name = p.name
                 ns.out_count_by_type[name] = (ns.out_count_by_type[name] ?? 0) + 1
                 if (ns.out_size_by_type) {
-                    const len = JSON.stringify(p).length
+                    const len = packets.length > 1 ? JSON.stringify(p).length : json.length
                     ns.out_size_by_type[name] = (ns.out_size_by_type[name] ?? 0) + len
                 }
             }
