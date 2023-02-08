@@ -30,6 +30,7 @@ out vec4 outColor;
 #include<vignetting_define_func>
 
 #include<manual_mip_define_func>
+#include<raindrops_define_func>
 
 vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     vec2 texc = texClamped;
@@ -81,6 +82,7 @@ void main() {
         float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
 
         #include<caustic_pass_onwater>
+        #include<raindrops_onwater>
 
         if(v_noCanTakeLight < 0.5) {
             #include<local_light_pass>

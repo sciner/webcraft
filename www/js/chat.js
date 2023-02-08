@@ -47,10 +47,15 @@ export class Chat extends TextBox {
         };
         //
         this.history = {
+            last: null,
             list: [],
             draft: [],
             index: -1,
             add(buffer) {
+                if (JSON.stringify(this.last) === JSON.stringify(buffer)) {
+                    return
+                }
+                this.last = buffer
                 this.list.push(buffer);
                 this.save();
                 this.reset();
@@ -324,7 +329,12 @@ export class Chat extends TextBox {
                     }
                 }
                 let texts = m.text.split('\n')
-                strings.push(...texts)
+                for(let i = texts.length - 1; i >= 0; i--) {
+                    const text = i === 0
+                        ? m.username + ': ' + texts[i]
+                        : '  ' + texts[i]
+                    strings.push(text)
+                }
                 // for(let i = texts.length - 1; i >= 0; i--) {
                 //     let text = texts[i];
                 //     var leftMargin = margin;

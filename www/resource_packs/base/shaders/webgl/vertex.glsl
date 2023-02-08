@@ -6,8 +6,8 @@
 
 #include<terrain_attrs_vert>
 
-float wing_speed = 2.;
-float wing_smplitude = 0.1;
+float wing_speed = 2.5;
+float wing_amplitude = 0.3;
 
 void main() {
     #include<terrain_read_flags_vert>
@@ -89,10 +89,13 @@ void main() {
 
     v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
 
-    if(flagLeaves == 1 && gl_VertexID == 1) {
-        v_chunk_pos.x += sin((u_time / 1000. + v_chunk_pos.x) * wing_speed) * wing_smplitude;
-        // v_chunk_pos.y += sin((u_time / 1000. + v_chunk_pos.y) * wing_speed) * wing_smplitude;
-        // v_chunk_pos.z += sin((u_time / 1000. + v_chunk_pos.z) * wing_speed) * wing_smplitude;
+    if(flagLeaves == 1 && (gl_VertexID == 1 || gl_VertexID == 0 || gl_VertexID == 3)) {
+        float amp = wing_amplitude - wing_amplitude * (mod(v_chunk_pos.x + v_chunk_pos.z, 10.) / 10. * .95);
+        float wind_shift = (sin((u_time / 1000. + (v_chunk_pos.x + v_chunk_pos.z) / 10.) * wing_speed)) * amp;
+        v_chunk_pos.x += wind_shift;
+        v_chunk_pos.y += wind_shift;
+        // v_chunk_pos.y += sin((u_time / 1000. + v_chunk_pos.y) * wing_speed) * wing_amplitude;
+        // v_chunk_pos.z += sin((u_time / 1000. + v_chunk_pos.z) * wing_speed) * wing_amplitude;
     }
 
     v_world_pos = v_chunk_pos + u_add_pos;

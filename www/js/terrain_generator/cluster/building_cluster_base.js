@@ -1,6 +1,5 @@
 import { CHUNK_SIZE_X } from "../../chunk_const.js";
 import { DIRECTION, getChunkAddr, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
-import { AABB } from '../../core/AABB.js';
 import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
@@ -104,7 +103,15 @@ export class ClusterBuildingBase extends ClusterBase {
 
     }
 
-    // Fill chunk blocks
+    /**
+     * Fill chunk blocks
+     * @param {*} maps 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk  
+     * @param {*} map 
+     * @param {boolean} fill_blocks 
+     * @param {boolean} calc_building_y 
+     * @returns 
+     */
     fillBlocks(maps, chunk, map, fill_blocks = true, calc_building_y = true) {
 
         if(this.is_empty) {
@@ -145,7 +152,7 @@ export class ClusterBuildingBase extends ClusterBase {
     /**
      * Draw part of building on map
      * 
-     * @param {*} chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {object[]} maps 
      * @param {*} building 
      * @param {*} map 
@@ -166,7 +173,13 @@ export class ClusterBuildingBase extends ClusterBase {
 
     }
 
-    //
+    /**
+     * 
+     * @param {*} maps 
+         * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param {*} building 
+     * @returns 
+     */
     fixBuildingHeight(maps, chunk, building) {
 
         if(this.clusterManager.chunkManager.world.generator.layers) {

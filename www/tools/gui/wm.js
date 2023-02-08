@@ -83,7 +83,7 @@ export class Window extends PIXI.Container {
         // List of childs
         this.list = {
             values: () => {
-                let resp = []
+                const resp = []
                 for(let w of this.children) {
                     if(w instanceof Window && w.auto_center) {
                         resp.push(w)
@@ -91,6 +91,7 @@ export class Window extends PIXI.Container {
                 }
                 return resp
             },
+            keys: () => this.children.map(c => c.id),
             has(id) {
                 return !!this.get(id)
             },
@@ -358,8 +359,10 @@ export class Window extends PIXI.Container {
     }
 
     set visible(value) {
+        if (super.visible != value) {
+            visible_change_count++
+        }
         super.visible = value
-        visible_change_count++
     }
 
     getRoot() {
@@ -1592,8 +1595,9 @@ export class WindowManager extends Window {
                     x:          e.offsetX - this.x,
                     y:          e.offsetY - this.y
                 };
+                this.drag.slot = null // if a slot previously remembered itself in this.darg when clicked, forget it
                 if(this.drag.getItem()) {
-                    // this._drop(evt)
+                     //this._drop(evt)
                 } else {
                     this._mousedown(evt)
                 }

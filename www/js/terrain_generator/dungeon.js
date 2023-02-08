@@ -114,8 +114,8 @@ export class DungeonGenerator {
         }
         // факелы
         if (light == 2) {
-            this.setBlock(chunk, x + 1, y + 3, z + 1, BLOCK.TORCH, {x: 3, y: 0, z: 0});
-            this.setBlock(chunk, x + 7, y + 3, z + 7, BLOCK.TORCH, {x: 1, y: 0, z: 0});
+            this.setBlock(chunk, x + 1, y + 2, z + 1, BLOCK.TORCH, {x: 3, y: 0, z: 0});
+            this.setBlock(chunk, x + 7, y + 2, z + 7, BLOCK.TORCH, {x: 1, y: 0, z: 0});
         }
         
         // Сундук

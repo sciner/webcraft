@@ -1,14 +1,22 @@
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
-import { ServerClient } from "../../www/js/server_client.js";
-import { Mob } from "../mob.js";
+import { Mob, MobSpawnParams } from "../mob.js";
 import { DEAD_MOB_TTL } from "../server_constant.js";
+import { WorldTickStat } from "./tick_stat.js";
 
 // Store refs to all loaded mobs in the world
 export class WorldMobManager {
 
+    static STAT_NAMES = ['update_chunks', 'unload', 'other', 'onLive', 'onFind']
+
+    /**
+     * @param {import("../server_world.js").ServerWorld } world 
+     */
     constructor(world) {
+
         this.world = world;
         this.list = new Map(); // by id
+
+        this.ticks_stat = new WorldTickStat(WorldMobManager.STAT_NAMES)
 
         /**
          * Inactive mobs that are in memory. Because they are inactive, they are no in this.list.
@@ -27,26 +35,51 @@ export class WorldMobManager {
         this.inactiveByEntityIdBeingWritten = null;
     }
 
+    // убить всех мобов
+    kill() {
+        const mobs = this.list.values()
+        for (const mob of mobs) {
+            mob.kill()
+        }
+    }
+
+    /**
+     * @param {Mob} mob 
+     */
     add(mob) {
         this.list.set(mob.id, mob);
     }
 
+    /**
+     * @param {int} id 
+     * @returns 
+     */
     get(id) {
         return this.list.get(id);
     }
 
+    /**
+     * @param {int} id 
+     */
     delete(id) {
         this.list.delete(id);
     }
 
+    /**
+     * @returns {int}
+     */
     count() {
         return this.list.size;
     }
 
+    /**
+     * @param {float} delta 
+     */
     async tick(delta) {
         const world = this.world;
+        this.ticks_stat.start()
         // !Warning. All mobs must update chunks before ticks
-        for(let [mob_id, mob] of this.list) {
+        for(let mob of this.list.values()) {
             if(mob.isAlive()) {
                 const chunk_addr = mob.chunk_addr;
                 if(!mob.chunk_addr_o.equal(chunk_addr)) {
@@ -54,25 +87,33 @@ export class WorldMobManager {
                     const chunk_new = world.chunks.get(chunk_addr);
                     if(chunk_old && chunk_new) {
                         mob.chunk_addr_o.copyFrom(chunk_addr);
-                        chunk_old.mobs.delete(mob_id);
-                        chunk_new.mobs.set(mob_id, mob);
+                        chunk_old.mobs.delete(mob.id);
+                        chunk_new.mobs.set(mob.id, mob);
                     }
                 }
             }
         }
+        this.ticks_stat.add('update_chunks')
         // Ticks
         for(let mob of this.list.values()) {
             if(mob.isAlive()) {
                 mob.tick(delta);
+                this.ticks_stat.add('other')
             } else if(!mob.death_time) {
                 mob.death_time = performance.now();
             } else if(performance.now() - mob.death_time > DEAD_MOB_TTL) {
                 mob.onUnload();
+                this.ticks_stat.add('unload')
             }
         }
+        this.ticks_stat.end()
     }
 
-    // Create mob
+    /**
+     * Create mob
+     * @param { MobSpawnParams } params 
+     * @returns { ?Mob }
+     */
     create(params) {
         const world = this.world;
         const chunk_addr = getChunkAddr(params.pos);
@@ -85,7 +126,6 @@ export class WorldMobManager {
                 if(!('pos' in params)) {
                     throw 'error_no_mob_pos';
                 }
-
                 const mob = Mob.create(world, params);
                 chunk.addMob(mob);
                 return mob;
@@ -98,7 +138,12 @@ export class WorldMobManager {
         return null;
     }
 
-    // Spawn new mob
+    /**
+     * Spawn new mob
+     * @param {import("../server_player.js").ServerPlayer } player 
+     * @param { MobSpawnParams } params 
+     * @returns { boolean }
+     */
     spawn(player, params) {
         const world = this.world;
         try {
@@ -111,9 +156,15 @@ export class WorldMobManager {
             console.log('e', e);
             player.sendError(e);
         }
+        return false
     }
 
-    //
+    /**
+     * @param {string} entity_id 
+     * @param {Vector} spawn_pos 
+     * @param {Vector} rotate 
+     * @returns 
+     */
     async activate(entity_id, spawn_pos, rotate) {
         const world = this.world;
         //
@@ -129,11 +180,11 @@ export class WorldMobManager {
             ?? await world.db.mobs.load(entity_id);
         if(mob) {
             if (!mob.isAlive()) {
-                console.error('Trying to activaite a dead mob');
+                console.error('Trying to activate a dead mob');
                 return false;
             }
             if (mob.is_active) {
-                console.error('Trying to activaite an active mob');
+                console.error('Trying to activate an active mob');
                 return false;
             }
             mob.is_active = true;

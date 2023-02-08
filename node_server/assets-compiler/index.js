@@ -6,7 +6,6 @@ import { Music_Compiler } from "./music_compiler.js";
 const compiler = new Compiler({
     resolution: 32,
     texture_pack_dir: [
-        // '../../../resource-packs/faithfull_pbr',
         '../../../resource-packs/1',
         '../../../resource-packs/2',
         '../../../resource-packs/depixel',

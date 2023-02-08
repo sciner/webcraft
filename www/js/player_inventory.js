@@ -33,6 +33,16 @@ export class PlayerInventory extends Inventory {
             // Вызывается при переключении активного слота в инвентаре
             player.resetMouseActivity();
             player.world.server.InventorySelect(this.current);
+            
+            // strings
+            const strings = Qubatch.hotbar.strings
+            if(item) {
+                const itemTitle = player.world.block_manager.getBlockTitle(item)
+                strings.updateText(0, itemTitle)
+            } else {
+                strings.setText(0, null)
+            }
+
             this.hud.refresh();
         };
         // Add this for draw on screen
@@ -68,12 +78,8 @@ export class PlayerInventory extends Inventory {
         this.player.state.hands.right = this.current_item;
         if(this.hud) {
             this.hud.refresh();
-            try {
-                const frmRecipe = this.hud.wm.getWindow('frmRecipe');
-                frmRecipe.paginator.update();
-            } catch(e) {
-                // do nothing
-            }
+            const frmRecipe = this.hud.wm.getVisibleWindowOrNull('frmRecipe');
+            frmRecipe?.paginator.update();
         }
         return true;
     }

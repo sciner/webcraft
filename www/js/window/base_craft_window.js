@@ -1,5 +1,5 @@
 import {BLOCK} from "../blocks.js";
-import { Helpers, ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
+import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
@@ -319,29 +319,29 @@ export class CraftTableResultSlot extends CraftTableSlot {
 
         // onDrop
         this.onDrop = function(e) {
-            let dragItem = this.getItem();
-            let dropItem = e.drag.getItem();
-            if(!dragItem || !dropItem) {
+            const drag = e.drag
+            let resultItem = this.getItem();
+            let dropItem = drag.getItem();
+            if(!resultItem || !dropItem) {
                 return;
             }
-            if(dragItem.id != dropItem.id) {
+            if(resultItem.id != dropItem.id) {
                 return;
             }
-            //
+            // prevent dropping into the same sloft after the mouse is released
+            if(drag?.slot === this) {
+                drag.slot = null
+                return
+            }
+            // Check if we can add drag the entire result stack to the drag item.
             const max_stack_count = BLOCK.getItemMaxStack(dropItem);
-            if(dropItem.count + dragItem.count > max_stack_count) {
+            if(dropItem.count + resultItem.count > max_stack_count) {
                 return;
             }
-            //
-            if(dropItem.count + dragItem.count < max_stack_count) {
-                dropItem.count += dragItem.count;
-                // clear result slot
-                this.setItem(null);
-            } else {
-                let remains = (dropItem.count + dragItem.count) - max_stack_count;
-                dropItem.count = max_stack_count;
-                dragItem.count = remains;
-            }
+            // The entire result stack is added to the drag item.
+            dropItem.count += resultItem.count;
+            this.setItem(null);
+            drag.setItem(dropItem);
             //
             that.useRecipe();
             this.parent.fixAndValidateSlots('CraftTableResultSlot onDrop')
@@ -886,6 +886,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
     // Автоматически расставить рецепт в слотах по указанному рецепту
     autoRecipe(recipe, shiftKey) {
+        const inventory = Qubatch.player.inventory
         // Validate area size
         if(recipe.size.width > this.area.size.width) {
             return false;
@@ -905,7 +906,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
         // if shiftKey was pressed, repeat addin 1 to eah slot until we run out of resources
         do {
-            // Find pattern slots that we can increent by 1, taking into account the items already placed.
+            // Find pattern slots that we can increment by 1, taking into account the items already placed.
             const array_needs = [...pattern.array_id];
             for(let i = 0; i < array_needs.length; i++) {
                 const item = this.craft.slots[start_index + i].getItem();
@@ -926,7 +927,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             // For each needed resource, remember its slot index as its key
             const needResourcesKeys = ArrayHelpers.create(array_needs.length, i => start_index + i);
             const needResources = Recipe.calcNeedResources(array_needs, needResourcesKeys);
-            const hasResources = Qubatch.player.inventory.hasResources(needResources);
+            const hasResources = inventory.hasResources(needResources);
             if (// if we can't increment every slot that needs it
                 hasResources.missing.length ||
                 // or there is no change
@@ -940,15 +941,19 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
             // Put the found resources into the slots
             for (const r of hasResources.has) {
-                const slot = this.craft.slots[r.key];
-                const item = slot.getItem();
+                const inventoryIndex = r.item_index
+                // increment the slot item
+                const slot = this.craft.slots[r.key]
+                let item = slot.getItem()
                 if (item == null) {
-                    const inventoryItem = Qubatch.player.inventory.items[r.item_index];
-                    slot.setItem({...inventoryItem, count: 1});
-                } else {
-                    item.count++;
+                    const inventoryItem = inventory.items[inventoryIndex]
+                    item = { ...inventoryItem, count: 0 }
                 }
-                Qubatch.player.inventory.decrementByIndex(r.item_index);
+                item.count++
+                slot.setItem(item)
+                // decrement the inventory item
+                inventory.decrementByIndex(inventoryIndex)
+                this.inventory_slots[inventoryIndex].setItem(inventory.items[inventoryIndex])
             }
         } while (shiftKey);
         this.fixAndValidateSlots('autoRecipe')

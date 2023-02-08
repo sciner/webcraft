@@ -7,9 +7,6 @@ export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 230.1;
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
-export const DEFAULT_SOUND_MAX_DIST         = 16;
-// The default value of the music volume seting, from 0 to 100. It should be be chosen taking into account Sounds.VOLUME_MAP.music
-export const DEFAULT_MUSIC_VOLUME           = 20;
 export const NO_TICK_BLOCKS                 = false;
 export const BODY_ROTATE_SPEED              = 7;
 export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
@@ -22,6 +19,7 @@ export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', '
 export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER'];
 export const NO_CREATABLE_BLOCKS            = ['BEDROCK', 'UNCERTAIN_STONE'];
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= ['BEDROCK'];
+export const ITEM_LABEL_MAX_LENGTH          = 19;
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
@@ -49,6 +47,68 @@ export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
+
+export const LEAVES_TYPE                    = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
+
+// ========================= Sound options =========================
+
+export const DEFAULT_SOUND_MAX_DIST         = 16
+
+// The default value of the music volume seting, from 0 to 100. It should be be chosen taking into account Sounds.VOLUME_MAP.music
+export const DEFAULT_MUSIC_VOLUME           = 20
+export const CLIENT_MUSIC_ROOT              = './media/music/'
+export const MUSIC_FADE_DURATION            = 1500
+export const MUSIC_INITIAL_PAUSE_SECONDS    = 75
+export const MUSIC_PAUSE_SECONDS            = 300
+
+// Volumetric sound types. See also: VolumetricSound.SOUNDS
+export const VOLUMETRIC_SOUND_TYPES         = 2
+export const VOLUMETRIC_SOUND_TYPE_WATER    = 0
+export const VOLUMETRIC_SOUND_TYPE_LAVA     = 1
+
+/**
+ * Distant sounds are presented as volume of all sounds coming from a horizontal sector.
+ * i-th secotor (from 0 to (2^SECTORS_BITS - 1)) contains all sound sources whose angle is closest to
+ *   i * 2 * PI / (2^SECTORS_BITS)
+ */
+export const VOLUMETRIC_SOUND_SECTOR_BITS = 5 // the minimum correct value is 2, but the minimum sane value is 4
+// derived sectors constants
+export const VOLUMETRIC_SOUND_SECTORS = 1 << VOLUMETRIC_SOUND_SECTOR_BITS
+export const VOLUMETRIC_SOUND_SECTOR_INDEX_MASK = VOLUMETRIC_SOUND_SECTORS - 1
+export const VOLUMETRIC_SOUND_ANGLE_TO_SECTOR = VOLUMETRIC_SOUND_SECTORS / (2 * Math.PI)
+
+// The same meaning as refDistance in pannerAttr() with 'inverse' model.
+// The larger it is, the less saound falls off with the distance.
+export const VOLUMETRIC_SOUND_REF_DISTANCE     = 2
+
+export const VOLUMETRIC_SOUND_MAX_DISTANCE     = 40
+
+// The maximum time before changes to sound blocks are used to calculate the updated sound.
+export const VOLUMETRIC_SOUND_DIRTY_BLOCKS_TTL = 50
+
+// The maximum movement of the player that can be made withour re-calculating the sound summary
+export const VOLUMETRIC_SOUND_SUMMARY_VALID_DISTANCE = 1.4
+
+// temporal smoothing of the sound worker results
+export const VOLUMETRIC_SOUND_MAX_VOLUME_CHANGE_PER_SECOND = 2.0
+export const VOLUMETRIC_SOUND_MAX_STEREO_CHANGE_PER_SECOND = 2.0
+
+/**
+ * When the spund source is at a different height than the player, the absolute difference
+ * of their horizontal coordinates affect stereo separation less. It's more physically accurate.
+ * But in the game, it sounds better if this effect is less pronounced. The value is from 0 to 1.
+ * 0 - Y is ignored (e.g. if a block is 20 blcoks below, and 2 blocks to the left, it'll sound
+ * only in the left ear), 1 - fully affects (e.g. the previous block will sound almost the same in both ears).
+ */
+export const VOLUMETRIC_SOUND_HEIGHT_AFFECTS_STEREO = 0.5
+
+/**
+ * From 0.1 to 1. It makes area of the sound compressed in Y direction, and makes the
+ * volume to fall of faster in Y direction. It's helps resuce underground noises.
+ */
+export const VOLUMETRIC_SOUND_ELLIPSOID_Y_RADIUS = 0.5
+
+// ========================= Player options =========================
 
 // player
 export const PLAYER_ZOOM                    = 1;
@@ -139,12 +199,6 @@ export const KEY = {
 };
 
 export const CLIENT_SKIN_ROOT = './media/models/player_skins/';
-
-// music
-export const CLIENT_MUSIC_ROOT = './media/music/';
-export const MUSIC_FADE_DURATION = 1500;
-export const MUSIC_INITIAL_PAUSE_SECONDS = 150
-export const MUSIC_PAUSE_SECONDS = 300
 
 export const SKIN_RIGHTS_DEFAULT = 0;
 export const SKIN_RIGHTS_FREE = 1;

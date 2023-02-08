@@ -14,7 +14,7 @@ export class ServerPlayerInventory extends Inventory {
     send() {
         this.player.world.sendSelected([
             {name: ServerClient.CMD_INVENTORY_STATE, data: this.exportItems()}
-        ], [this.player.session.user_id], []);
+        ], this.player);
     }
 
     // Saves the invenory to DB, updates hands, sends the inventory to other players,

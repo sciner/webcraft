@@ -641,18 +641,10 @@ export class TypedBlocks3 {
                         p = block_material.light_power_number;
                     }
 
-
-                    let cave = 0, day = 0;
-                    if (lightData.BYTES_PER_ELEMENT === 1) {
-                        cave = lightData[index * 4];
-                        day = lightData[index * 4 + 1];
-                        // 888
-                    } else {
-                        // 4444
-                        cave = ((lightData[index] >> 12) & 0x0f) * 255 / 15;
-                        day = ((lightData[index] >> 8) & 0x0f) * 255 / 15;
-                    }
-
+                    let cave = lightData[index] & 0x0f, day = lightData[index] >> 4;
+                    cave *= 255 / 15;
+                    day *= 255 / 15;
+                    day = 255 - day;
                     if ((p & 96) < 96) {
                         totalW += weight;
                         totalCave += cave * weight;
@@ -922,14 +914,10 @@ export class TBlock {
         if (!lightData) {
             return 0;
         }
-        if (lightData.BYTES_PER_ELEMENT === 1){
-            return lightData[index * 4] + (lightData[index * 4 + 1] << 8);
-            // 888
-        } else {
-            // 4444
-            return Math.round(((lightData[index] >> 12) & 0x0f) * 255 / 15)
-                + (Math.round(((lightData[index] >> 8) & 0x0f) * 255 / 15) << 8);
-        }
+        let cave = lightData[index] & 0x0f, day = lightData[index] >> 4;
+        day = 15 - day;
+        return Math.round(cave * 255 / 15)
+            + (Math.round(day * 255 / 15) << 8);
     }
 
     //

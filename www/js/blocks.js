@@ -1,16 +1,16 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers, isScalar, cropToImage } from './helpers.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { StringHelpers } from "./helpers.js";
 import { Lang } from "./lang.js";
+import { LEAVES_TYPE } from "./constant.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202, 415];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 export const POWER_NO                       = 0;
-export const ITEM_LABEL_MAX_LENGTH          = 19;
 
 // Свойства, которые могут сохраняться в БД
 export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data', 'rotate']; // for reference only, unused. See BLOCK.convertBlockToDBItem.
@@ -27,16 +27,13 @@ export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'e
  */
 export const EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT = ['age', 'label'];
 
-export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
-export const shapePivot = new Vector(.5, .5, .5);
-
 export let NEIGHB_BY_SYM = {};
-NEIGHB_BY_SYM[DIRECTION.FORWARD] = 'NORTH';
-NEIGHB_BY_SYM[DIRECTION.BACK] = 'SOUTH';
-NEIGHB_BY_SYM[DIRECTION.LEFT] = 'WEST';
-NEIGHB_BY_SYM[DIRECTION.RIGHT] = 'EAST';
-NEIGHB_BY_SYM[DIRECTION.DOWN] = 'DOWN';
-NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
+    NEIGHB_BY_SYM[DIRECTION.FORWARD] = 'NORTH';
+    NEIGHB_BY_SYM[DIRECTION.BACK] = 'SOUTH';
+    NEIGHB_BY_SYM[DIRECTION.LEFT] = 'WEST';
+    NEIGHB_BY_SYM[DIRECTION.RIGHT] = 'EAST';
+    NEIGHB_BY_SYM[DIRECTION.DOWN] = 'DOWN';
+    NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 
 // BLOCK PROPERTIES:
 // fluid (bool)                 - Is fluid
@@ -750,7 +747,7 @@ export class BLOCK {
         if(block.id == 0) {
             return false
         }
-        return block.style_name == 'default' &&
+        return (block.style_name == 'default' || block.tags.includes('ore')) &&
             !block.is_fluid &&
             !block.transparent &&
             !block.is_leaves &&
@@ -868,12 +865,18 @@ export class BLOCK {
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering;
-        block.is_grass          = ['GRASS', 'TALL_GRASS'].includes(block.name);
-        block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
+        block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
+        block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style_name == 'banner';
+        // swinging_in_the_wind
+        if(block.is_grass || block.is_leaves || block.tags.includes('flower')) {
+            if(!block.tags.includes('swinging_in_the_wind')) {
+                block.tags.push('swinging_in_the_wind')
+            }
+        }
         if (block.chest) {
             /* Properties:
                 slots: Int
@@ -1219,7 +1222,7 @@ export class BLOCK {
 
     //
     static registerStyle(style) {
-        let reg_info = style.getRegInfo();
+        let reg_info = style.getRegInfo(BLOCK);
         for(let style of reg_info.styles) {
             BLOCK.styles.set(style, reg_info);
         }

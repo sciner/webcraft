@@ -1,5 +1,10 @@
-export const FLUID_LEVEL_MASK = 15;
 export const FLUID_SOURCE_MASK = 8;
+/**
+ * 0 - источник
+ * 1,2,3,4,5,6,7 - разные степени уменьшения
+ * 8 - это "стекла сверху", типа уровень 0 но странноватый.
+ */
+export const FLUID_LEVEL_MASK = 15;
 export const FLUID_WATER_ID = 16;
 export const FLUID_LAVA_ID = 32;
 export const FLUID_TYPE_MASK = 48;

@@ -1,5 +1,4 @@
-import {BLOCK} from "../../www/js/blocks.js";
-import { getChunkAddr, sizeOf, Vector, VectorCollector } from "../../www/js/helpers.js";
+import { getChunkAddr, Vector, VectorCollector } from "../../www/js/helpers.js";
 import {WorldAction} from "../../www/js/world_action.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "../../www/js/fluid/FluidConst.js";
@@ -15,7 +14,6 @@ export default class WorldEdit {
 
     constructor() {
         this.id = performance.now()
-        this.initWorker()
     }
 
     initWorker() {
@@ -64,6 +62,9 @@ export default class WorldEdit {
 
     // postWorkerMessage
     postWorkerMessage(cmd) {
+        if(!this.worker) {
+            this.initWorker()
+        }
         this.worker.postMessage(cmd)
     }
 
@@ -159,7 +160,7 @@ export default class WorldEdit {
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
         //
         let actions = new WorldAction(null, null, true, false/*, false*/);
-        actions.addBlocks([{pos: player.pos1, item: {id: BLOCK.NUM1.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        actions.addBlocks([{pos: player.pos1, item: {id: this.world.block_manager.NUM1.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
         chat.world.actions_queue.add(null, actions);
     }
 
@@ -180,7 +181,7 @@ export default class WorldEdit {
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
         //
         let actions = new WorldAction(null, null, true, false/*, false*/);
-        actions.addBlocks([{pos: player.pos2, item: {id: BLOCK.NUM2.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        actions.addBlocks([{pos: player.pos2, item: {id: this.world.block_manager.NUM2.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
         chat.world.actions_queue.add(null, actions);
     }
 
@@ -674,6 +675,7 @@ export default class WorldEdit {
     //set 10%0,20%dirt
     //set 10%dirt,gold_block
     createBlocksPalette(args) {
+        const bm = this.world.block_manager
         args = new String(args);
         const blocks = args.trim().split(',');
         const blockChances = [];
@@ -699,16 +701,16 @@ export default class WorldEdit {
         for(let item of blockChances) {
             let b = null;
             if(isNaN(item.name)) {
-                b = BLOCK.fromName(item.name.toUpperCase());
+                b = bm.fromName(item.name.toUpperCase());
             } else {
-                b = BLOCK.fromId(parseInt(item.name));
+                b = bm.fromId(parseInt(item.name));
             }
             if(!b || b.id < 0) throw 'error_invalid_block';
             if(b.deprecated) throw 'error_block_is_deprecated';
             if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
             //
             const block_id = b.id;
-            const extra_data = BLOCK.makeExtraData(b, fake_pos, fake_orientation, null);
+            const extra_data = bm.makeExtraData(b, fake_pos, fake_orientation, null);
             if(extra_data) {
                 item.extra_data = extra_data;
             }

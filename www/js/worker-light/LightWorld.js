@@ -76,8 +76,8 @@ export class LightWorld {
         this.groundLevel = new WorldGroundLevel(this);
 
         this.renderOptions = {
-            texFormat: 'rgba8',
-            hasNormals: false
+            hasNormals: false,
+            hasTexture: false,
         }
 
         this.worker = worker;
@@ -87,7 +87,7 @@ export class LightWorld {
     }
 
     setRenderOptions(args) {
-        this.renderOptions.texFormat = args.texFormat;
+        this.renderOptions.hasTexture = args.hasTexture;
         this.renderOptions.hasNormals = !!args.hasNormals;
         this.light.setNormals(this.renderOptions.hasNormals);
     }
@@ -110,9 +110,9 @@ export class LightWorld {
         this.groundLevel.onCheckPotential();
     }
 
-    postMessage(msg) {
+    postMessage(msg, transfer) {
         msg.unshift(this.worldId);
-        this.worker.postMessage(msg);
+        this.worker.postMessage(msg, transfer);
     }
 
     setChunkBlock({addr, list}) {
@@ -137,7 +137,7 @@ export class LightWorld {
             // push ao
             const setAo = ((src & MASK_SRC_AO) !== (old_src & MASK_SRC_AO));
             if (setAo) {
-                chunk.lastID++;
+                chunk.lastAO++;
             }
             //TODO: move it to adjust func
             if ((src & MASK_SRC_REST) !== (old_src & MASK_SRC_REST)) {
@@ -151,7 +151,7 @@ export class LightWorld {
                     const ind = other.indexByWorld(x, y, z);
                     other.setUint8ByInd(ind, OFFSET_SOURCE, src)
                     if (setAo) {
-                        other.rev.lastID++;
+                        other.rev.lastAO++;
                     }
                 }
             }
@@ -193,45 +193,49 @@ export class LightWorld {
         this.isEmptyQueue = ready === 0;
         this.checkPotential();
 
-        const {renderOptions} = this;
         let {curChunkIndex} = this;
         const chunkList = this.chunkManager.list;
+        const {hasTexture, hasNormals} = this.renderOptions;
+        let dayChanged = false;
         for (let loop = chunkList.length - 1; loop >= 0; loop--) {
             curChunkIndex = (curChunkIndex + 1) % chunkList.length;
 
             const chunk = chunkList[curChunkIndex];
             if (chunk.waveCounter !== 0)
                 continue;
-            if (chunk.sentID === chunk.lastID)
-                continue;
-            chunk.sentID = chunk.lastID;
-
-            chunk.calcResult(renderOptions.texFormat === 'rgba4unorm', renderOptions.hasNormals);
-
-            // no need to send if no changes
-            if (chunk.crc != chunk.crcO) {
-                chunk.crcO = chunk.crc;
-                const is_zero = (chunk.result_crc_sum == 0 && (
-                    (!('result_crc_sumO' in chunk)) ||
-                    (chunk.result_crc_sumO == 0)
-                ));
-                chunk.result_crc_sumO = chunk.result_crc_sum;
-                if (!is_zero) {
-                    // console.log(8)
+            chunk.calc.checkAll(hasTexture, hasNormals);
+            if (hasTexture) {
+                if (chunk.sentID !== chunk.calc.texID) {
+                    chunk.sentID = chunk.calc.texID;
                     this.postMessage(['light_generated', {
                         addr: chunk.addr,
-                        lightmap_buffer: chunk.lightResult.buffer,
-                        lightID: chunk.lastID,
+                        lightData: chunk.calc.lightData,
+                        lightTexData: chunk.calc.lightTexData,
+                        lightID: chunk.sentID,
+                        uniqId: chunk.uniqId,
+                    }], /*[chunk.calc.lightTexData.buffer]*/);
+                    endChunks++;
+                }
+                dayChanged = dayChanged || chunk.groundLevel.check();
+            } else {
+                if (chunk.sentID !== chunk.calc.dataID) {
+                    chunk.sentID = chunk.calc.dataID;
+                    this.postMessage(['light_generated', {
+                        addr: chunk.addr,
+                        lightData: chunk.calc.lightData,
+                        lightID: chunk.sentID,
                         uniqId: chunk.uniqId,
                     }]);
+                    endChunks++;
                 }
-                this.groundLevel.estimateIfNecessary();
             }
-
-            endChunks++;
             if (endChunks >= resultLimit) {
                 break;
             }
+        }
+        this.curChunkIndex = curChunkIndex;
+        if (dayChanged) {
+            this.groundLevel.estimateIfNecessary();
         }
     }
 

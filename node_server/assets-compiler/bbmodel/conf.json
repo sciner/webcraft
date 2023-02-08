@@ -56,7 +56,8 @@
         {"name": "bed",                 "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "chair",               "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "stool",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "cactus",              "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "cactus",              "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "sweet_berry_bush",    "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -524,6 +525,9 @@
             "id": 58,
             "name": "CRAFTING_TABLE",
             "transparent": true,
+            "tags": [
+                "no_drop_ao"
+            ],
             "bb": {
                 "model": "crafting_table",
                 "rotate": {"type": "cardinal_direction"}
@@ -1071,6 +1075,9 @@
         {
             "id": 911,
             "name": "BIRCH_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1091,6 +1098,9 @@
         {
             "id": 912,
             "name": "OAK_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1111,6 +1121,9 @@
         {
             "id": 913,
             "name": "ACACIA_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1131,6 +1144,9 @@
         {
             "id": 914,
             "name": "SPRUCE_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1151,6 +1167,9 @@
         {
             "id": 915,
             "name": "DARK_OAK_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1171,6 +1190,9 @@
         {
             "id": 916,
             "name": "JUNGLE_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1191,6 +1213,9 @@
         {
             "id": 917,
             "name": "CRIMSON_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1211,6 +1236,9 @@
         {
             "id": 918,
             "name": "WARPED_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1231,6 +1259,9 @@
         {
             "id": 919,
             "name": "NETHER_BRICK_FENCE_GATE",
+            "inventory": {
+                "move": {"x": 0, "y": 0, "z": -0.15}
+            },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
@@ -1866,6 +1897,13 @@
                     },
                     {"name": "bottom"}
                 ]
+            }
+        },
+        {
+            "_id": 1004,
+            "name": "SWEET_BERRY_BUSH",
+            "bb": {
+                "model": "sweet_berry_bush"
             }
         }
     ]

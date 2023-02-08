@@ -9,7 +9,7 @@ export class CMD_ENTITY_INDICATORS {
                 indicators: player.state.indicators
             }
         }];
-        player.world.sendSelected(packets, [player.session.user_id], []);
+        player.world.sendSelected(packets, player);
     }
 
 }

@@ -1,6 +1,5 @@
-import {IndexedColor, DIRECTION, QUAD_FLAGS, Color, Vector, calcRotateMatrix} from '../helpers.js';
+import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
@@ -17,6 +16,11 @@ const MELON_ATTACHED_PLANES = [
 const DEFAULT_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}}
+];
+
+const TALL_GRASS_PLANES = [
+    {"size": {"x": 0, "y": 32, "z": 16}, "uv": [8, 16], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 32, "z": 16}, "uv": [8, 16], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}}
 ];
 
 const AGRICULTURE_PLANES = [
@@ -54,7 +58,12 @@ export default class style {
 
     static lm = new IndexedColor();
 
-    static getRegInfo() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['planting'],
             func: this.func,
@@ -92,7 +101,7 @@ export default class style {
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         const material = block.material;
-        const cardinal_direction = block.getCardinalDirection();
+        const is_tall_grass = block.hasTag('is_tall_grass')
 
         // Get texture
         let texture_dir = DIRECTION.DOWN;
@@ -106,30 +115,37 @@ export default class style {
                     texture_dir = DIRECTION.NORTH;
                 }
             }
+        } else if(is_tall_grass && block.extra_data?.is_head) {
+            return
         } else {
-            if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
+            if('has_head' in material && block.extra_data?.is_head) {
                 texture_dir = DIRECTION.UP;
             }
         }
 
         //
+        const bm = style.block_manager
+        const cardinal_direction = block.getCardinalDirection();
         const is_flower = block.hasTag('flower');
         const is_agriculture = block.hasTag('agriculture');
         const is_grass = material.is_grass;
         const random_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
 
-        let texture = BLOCK.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms[random_index]);
+        let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms[random_index]);
 
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
         style.lm.set(IndexedColor.WHITE);
-        style.lm.b = BLOCK.getAnimations(material, 'up');
+        style.lm.b = bm.getAnimations(material, 'up');
         if(style.lm.b > 1) {
             flag |= QUAD_FLAGS.FLAG_ANIMATED;
         }
 
-        //
+        if(is_tall_grass) {
+            dy += .5
+        }
+
         if(material.planting) {
             if(neighbours && neighbours.DOWN) {
                 const under_height = neighbours.DOWN.material.height;
@@ -141,8 +157,7 @@ export default class style {
             }
         }
 
-        if(is_grass) {
-            dy -= .15;
+        if(block.hasTag('swinging_in_the_wind')) {
             flag |= QUAD_FLAGS.FLAG_LEAVES;
         }
 
@@ -152,7 +167,7 @@ export default class style {
             if(is_grass || is_flower) {
                 dx = randoms[random_index] * 12/16 - 6/16;
                 dz = randoms[RANDOMS_COUNT - random_index] * 12/16 - 6/16;
-                dy -= .2 * randoms[random_index];
+                // dy -= .2 * randoms[random_index];
                 if(!matrix) {
                     matrix = mat4.create();
                 }
@@ -168,7 +183,7 @@ export default class style {
         }
 
         // Planes
-        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : DEFAULT_PLANES);
+        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? TALL_GRASS_PLANES : DEFAULT_PLANES));
 
         // Sunflower
         if (material.name == 'SUNFLOWER') {
@@ -177,19 +192,19 @@ export default class style {
             if (block.extra_data?.is_head) {
                 planes = SUNFLOWER_PLANES;
             } else {
-                texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
+                texture = bm.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
             }
         }
 
         // Melon seeds
         if (material.name == 'MELON_SEEDS' || material.name == 'PUMPKIN_SEEDS') {
-            const is_west = (material.name == 'MELON_SEEDS') ? neighbours.WEST.id == BLOCK.MELON.id : neighbours.WEST.id == BLOCK.PUMPKIN.id;
-            const is_east = (material.name == 'MELON_SEEDS') ? neighbours.EAST.id == BLOCK.MELON.id : neighbours.EAST.id == BLOCK.PUMPKIN.id;
-            const is_north = (material.name == 'MELON_SEEDS') ? neighbours.NORTH.id == BLOCK.MELON.id : neighbours.NORTH.id == BLOCK.PUMPKIN.id;
-            const is_south = (material.name == 'MELON_SEEDS') ? neighbours.SOUTH.id == BLOCK.MELON.id : neighbours.SOUTH.id == BLOCK.PUMPKIN.id;
+            const is_west = (material.name == 'MELON_SEEDS') ? neighbours.WEST.id == bm.MELON.id : neighbours.WEST.id == bm.PUMPKIN.id;
+            const is_east = (material.name == 'MELON_SEEDS') ? neighbours.EAST.id == bm.MELON.id : neighbours.EAST.id == bm.PUMPKIN.id;
+            const is_north = (material.name == 'MELON_SEEDS') ? neighbours.NORTH.id == bm.MELON.id : neighbours.NORTH.id == bm.PUMPKIN.id;
+            const is_south = (material.name == 'MELON_SEEDS') ? neighbours.SOUTH.id == bm.MELON.id : neighbours.SOUTH.id == bm.PUMPKIN.id;
             if (is_west || is_east || is_north || is_south) {
                 dy = -0.2;
-                texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
+                texture = bm.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
                 planes = MELON_ATTACHED_PLANES;
                 if (is_north) {
                     planes[0].rot[1] = Math.PI;
@@ -202,7 +217,7 @@ export default class style {
                 }
             } else {
                 dy = 0.2 * block.extra_data.stage - 0.9;
-                texture = BLOCK.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
+                texture = bm.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
             }
         }
 
@@ -210,7 +225,7 @@ export default class style {
             const plane = planes[i];
             // fill object
             if (!isNaN(plane.material)) {
-                texture = BLOCK.calcMaterialTexture(material, plane.material);
+                texture = bm.calcMaterialTexture(material, plane.material);
             }
             _pl.size     = plane.size;
             _pl.uv       = plane.uv;

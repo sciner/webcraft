@@ -84,15 +84,15 @@ export class Quest {
         this.db_in_progress = v;
     }
 
-    async checkAndMarkDirty() {
-        await this.check();
+    checkAndMarkDirty() {
+        this.check();
         this.markDirty();
         // обновить квесты у игрока
         this.#quest_player.sendAll();
     }
 
     // Check
-    async check() {
+    check() {
         if(this.is_completed) {
             return false;
         }
@@ -108,12 +108,12 @@ export class Quest {
         }
         //
         if(ok) {
-            await this.complete();
+            this.complete();
         }
     }
 
     // Quest completed
-    async complete() {
+    complete() {
         const server_player = this.#player;
         //
         console.log(`Quest ${this.id} completed by ${server_player.session.username}`);
@@ -136,7 +136,7 @@ export class Quest {
         this.markDirty();
         // @todo Сделать доступными новые квесты в ветке
         for(let next_quest_id of this.#next_quests) {
-            const next_quest = await this.#quest_player.quest_manager.loadQuest(next_quest_id);
+            const next_quest = this.#quest_player.quest_manager.loadQuest(next_quest_id);
             this.#quest_player.addQuest(next_quest, true);
         }
         // отправить сообщение

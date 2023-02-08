@@ -1,8 +1,6 @@
 import { impl as alea } from '../../../vendors/alea.js';
-import { BLOCK } from "../../blocks.js";
 import { AABB } from '../../core/AABB.js';
-import { DIRECTION, getChunkAddr, Vector } from "../../helpers.js";
-import { ClusterPoint } from "./base.js";
+import { getChunkAddr, Vector } from "../../helpers.js";
 import { BlockDrawer } from './block_drawer.js';
 import { getAheadMove } from './building_cluster_base.js';
 
@@ -60,14 +58,23 @@ export class Building {
 
     }
 
+    /**
+     * @returns {Vector}
+     */
     get pos() {
         return this.entrance.add(Vector.YP)
     }
 
+    /**
+     * @returns {int}
+     */
     get direction() {
         return this.door_direction;
     }
 
+    /**
+     * @returns {Vector}
+     */
     get ahead_entrance() {
         return this.entrance
             .clone()
@@ -77,7 +84,12 @@ export class Building {
     }
 
     addBlocks() {}
-
+    
+    /**
+     * @param {*} biome 
+     * @param {float} temperature 
+     * @param {float} humidity 
+     */
     setBiome(biome, temperature, humidity) {
         this.biome = biome;
         this.temperature = temperature;
@@ -94,7 +106,7 @@ export class Building {
 
     /**
      * @param { import("./base.js").ClusterBase } cluster
-     * @param {*} chunk
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {boolean} draw_natural_basement
      */
     draw(cluster, chunk, draw_natural_basement = true) {
@@ -105,10 +117,14 @@ export class Building {
             const dby = 0 // this.building_template ? this.building_template.world.entrance.y - 2 : 0 // 2 == 1 уровень ниже пола + изначально вход в конструкторе стоит на высоте 1 метра над землей
             const coord = new Vector(this.aabb.x_min, this.coord.y + dby, this.aabb.z_min)
             const size = new Vector(this.size.x, -height, this.size.z)
-            cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE)
+            const bm = cluster.clusterManager.world.block_manager
+            cluster.drawNaturalBasement(chunk, coord, size, bm.STONE)
         }
     }
 
+    /**
+     * @param {int} y 
+     */
     setY(y) {
 
         if(this.building_template) {
@@ -191,6 +207,9 @@ export class Building {
         size.z = Math.abs(signed_size.z);
     }
 
+    /**
+     * @returns {AABB}
+     */
     getRealAABB() {
         const coord = new Vector(0, 0, 0);
         const size = new Vector(1, 0, 1)
@@ -226,6 +245,9 @@ export class Building {
 
     }
 
+    /**
+     * @param {Vector} vec 
+     */
     moveXZTo(vec) {
         const aabb = this.aabb // this.getRealAABB()
         const diff = new Vector(aabb.x_min, aabb.y_min, aabb.z_min).subSelf(vec).multiplyScalarSelf(-1)
@@ -235,6 +257,7 @@ export class Building {
     /**
      * For old style generators
      * @param {*} chunk
+     * @param {*} maps
      * @deprecated
      */
     findYOld(chunk, maps) {

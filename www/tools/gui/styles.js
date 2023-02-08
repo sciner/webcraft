@@ -1,5 +1,5 @@
 import { PIXI } from "./pixi.js"
-import {MySprite} from "./MySpriteRenderer.js";
+import { MySprite } from "./MySpriteRenderer.js";
 import { Vector } from "../../js/helpers.js";
 
 export const USE_BITMAP_FONT = false;
@@ -572,6 +572,7 @@ export class FontStyle {
         this._color = value
         if(this.#window.text_container?.style) {
             this.#window.text_container.style.fill = color
+            this.#window.text_container.alpha = alpha
         }
     }
 

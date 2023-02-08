@@ -131,7 +131,8 @@ export class Biomes {
                 frequency: .5,
                 list: [
                     {percent: .85, blocks: [{id: BLOCK.GRASS.id}]},
-                    {percent: .15, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]}
+                    {percent: .01, blocks: [{id: BLOCK.PEBBLES.id}]},
+                    {percent: .14, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]}
                 ]
             };
         }
@@ -194,7 +195,8 @@ export class Biomes {
                 {percent: .578, blocks: [{id: BLOCK.GRASS.id}]},
                 {percent: .095, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                 {percent: .300, blocks: [{id: BLOCK.FERN.id}]},
-                {percent: .007, blocks: [{id: BLOCK.DEAD_BUSH.id}]},
+                {percent: .0025, blocks: [{id: BLOCK.DEAD_BUSH.id}]},
+                {percent: .0025, blocks: [{id: BLOCK.PEBBLES.id}]},
                 {percent: .011, blocks: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
             ]
         }, new IndexedColor(200, 510, 0), new IndexedColor(255, 255, 0), TAIGA_BUILDINGS);
@@ -359,7 +361,8 @@ export class Biomes {
             {
                 frequency: PLANTS_FREQUENCY / 1,
                 list: [
-                    {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
+                    {percent: .1, blocks: [{id: BLOCK.PEBBLES.id}]},
+                    {percent: .9, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             },
             null, undefined, undefined, DESERT_BUILDINGS
@@ -377,7 +380,8 @@ export class Biomes {
             {
                 frequency: PLANTS_FREQUENCY / 1,
                 list: [
-                    {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
+                    {percent: .1, blocks: [{id: BLOCK.PEBBLES.id}]},
+                    {percent: .9, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             },
             null, undefined, undefined, DESERT_BUILDINGS

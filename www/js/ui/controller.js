@@ -321,7 +321,7 @@ let gameCtrl = async function($scope, $timeout) {
             fov: DEFAULT_FOV_NORMAL,
             music_volume: DEFAULT_MUSIC_VOLUME,
             texture_pack: 'base',
-            render_distance: 4,
+            render_distance: 5,
             use_light: 1,
             beautiful_leaves: true,
             mipmap: false,
@@ -401,7 +401,7 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.boot = {
         loading: false,
         latest_save: false,
-        init: function() {
+        init() {
             // do nothing
         }
     };
@@ -410,7 +410,7 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.DeleteWorld = {
         world_guid: '',
         world_title: '',
-        showModal: function(world_guid) {
+        showModal(world_guid) {
             $scope.modalWindow.show('modal-delete-world');
             this.world_guid = world_guid;
             for(let w of $scope.mygames.list) {
@@ -420,7 +420,7 @@ let gameCtrl = async function($scope, $timeout) {
                 }
             }
         },
-        delete: function() {
+        delete() {
             var world_guid = this.world_guid;
             window.event.preventDefault();
             window.event.stopPropagation();
@@ -743,6 +743,10 @@ let gameCtrl = async function($scope, $timeout) {
                         break;
                     }
                 }
+            },
+            next() {
+                this.index = (this.index + 1) % this.list.length
+                this.select(this.current)
             },
             select(generator) {
                 const form = $scope.newgame.form;

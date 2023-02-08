@@ -40,6 +40,7 @@
         "terracota": {"mining": {"time": 5, "instruments": ["pickaxe"], "blast_resistance": 4.2}},
         "water": {"mining": {"time": -1, "instruments": [], "blast_resistance": 100}},
         "wood": {"mining": {"time": 4, "instruments": ["axe"], "instrument_boost": 2, "blast_resistance": 2}},
-        "wool": {"mining": {"time": 2, "instruments": ["shears"], "blast_resistance": 0.8}}
+        "wool": {"mining": {"time": 2, "instruments": ["shears"], "blast_resistance": 0.8}},
+        "web": {"mining": {"time": 1, "instruments": ["shears", "sword"], "blast_resistance": 0.8}}
     }
 }

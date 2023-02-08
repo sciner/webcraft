@@ -1,4 +1,4 @@
-import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector } from '../../helpers.js';
+import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector, Helpers } from '../../helpers.js';
 import GeometryTerrain from "../../geometry_terrain.js";
 import { BLEND_MODES } from '../../renders/BaseRenderer.js';
 import { AABB } from '../../core/AABB.js';
@@ -6,6 +6,7 @@ import { Resources } from '../../resources.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import {impl as alea} from "../../../vendors/alea.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
+import { Weather } from '../../block_type/weather.js';
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -42,6 +43,8 @@ export default class Mesh_Object_Rain {
         this.type           = type;
         this.chunkManager   = chunkManager;
         this.player         = render.player;
+        this.strength_val   = 0
+        this.weather        = Weather.BY_NAME[type]
         
         // Material (rain)
         const mat = render.defaultShader.materials.doubleface_transparent;
@@ -53,9 +56,14 @@ export default class Mesh_Object_Rain {
             minFilter: 'nearest',
             magFilter: 'nearest'
         }));
-        
-        if (this.type == 'rain') {
-            this.sound_id = Qubatch.sounds.play('madcraft:environment', 'rain', null, true);  
+
+        // if this weather has an associted soundtrack, start it
+        this.defaultVolume = Qubatch.sounds.getTrackProps('madcraft:environment', this.type)?.volume
+        if (this.defaultVolume) {
+            this.sound_id = Qubatch.sounds.play('madcraft:environment', this.type, null, true)
+            
+            // Start quiet. It'll change the volume with time.
+            Qubatch.sounds.setVolume(this.sound_id, 0)
         }
 
     }
@@ -71,7 +79,7 @@ export default class Mesh_Object_Rain {
         const snow      = this.type == 'snow';
         const vertices  = [];
         const lm        = new IndexedColor((snow ? SNOW_SPEED_X : 0), snow ? SNOW_SPEED : RAIN_SPEED, 0);
-        const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
+        const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_RAIN_OPACITY;
         const pp        = lm.pack();
 
         let quads       = 0;
@@ -129,7 +137,15 @@ export default class Mesh_Object_Rain {
     }
 
     //
-    update(delta) {
+    update(weather, delta) {
+        const old_strength_val = this.strength_val
+        this.strength_val = Helpers.clamp(this.strength_val + delta / 1000 * (weather ? 1 : -1), 0, 1)
+        if (this.sound_id && this.strength_val !== old_strength_val) {
+            Qubatch.sounds.setVolume(this.sound_id, this.defaultVolume * this.strength_val)
+        }
+        if (!weather && this.strength_val == 0) {
+            this.enabled = false
+        }
     }
 
     /**

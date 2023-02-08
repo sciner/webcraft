@@ -1,9 +1,7 @@
 import { FSMBrain } from "../brain.js";
-import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
 import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
-import { ServerClient } from "../../../www/js/server_client.js";
 import { EnumDifficulty } from "../../../www/js/enums/enum_difficulty.js";
 
 export class Brain extends FSMBrain {
@@ -178,15 +176,16 @@ export class Brain extends FSMBrain {
         const items = [];
         const actions = new WorldAction();
         const rnd_count_flesh = (Math.random() * 2) | 0;
+        const bm = world.block_manager
         if (rnd_count_flesh > 0) {
-            items.push({ id: BLOCK.ROTTEN_FLESH.id, count: rnd_count_flesh });
+            items.push({ id: bm.ROTTEN_FLESH.id, count: rnd_count_flesh });
         }
         if (Math.random() < 0.025) {
             const drop = (Math.random() * 2) | 0;
             switch (drop) {
-                case 0: items.push({ id: BLOCK.IRON_INGOT.id, count: 1 }); break;
-                case 1: items.push({ id: BLOCK.CARROT.id, count: 1 }); break;
-                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? BLOCK.POTATO.id : BLOCK.BACKED_POTATO.id, count: 1 }); break;
+                case 0: items.push({ id: bm.IRON_INGOT.id, count: 1 }); break;
+                case 1: items.push({ id: bm.CARROT.id, count: 1 }); break;
+                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? bm.POTATO.id : bm.BACKED_POTATO.id, count: 1 }); break;
             }
         }
         if (items.length > 0) {

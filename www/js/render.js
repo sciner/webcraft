@@ -74,6 +74,7 @@ export class Renderer {
         this.frame              = 0;
         this.env                = new Environment(this);
         this.camera_mode        = CAMERA_MODE.SHOOTER;
+        this.rain               = null
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -144,13 +145,13 @@ export class Renderer {
         if (renderBackend.gl) {
             // world.chunkManager.setLightTexFormat('rgba4unorm', false);
             if (settings.use_light === LIGHT_TYPE_RTX) {
-                world.chunkManager.setLightTexFormat('rgba8unorm', true);
+                world.chunkManager.setLightTexFormat(true);
                 renderBackend.globalUniforms.useNormalMap = true;
             } else {
-                world.chunkManager.setLightTexFormat('rgba4unorm', false);
+                world.chunkManager.setLightTexFormat(false);
             }
         } else {
-            world.chunkManager.setLightTexFormat('rgba8unorm', false);
+            world.chunkManager.setLightTexFormat(false);
         }
 
 
@@ -650,8 +651,12 @@ export class Renderer {
         const { renderBackend, player } = this;
         const { size, globalUniforms } = renderBackend;
 
-        globalUniforms.resolution       = [size.width, size.height];
+        globalUniforms.resolution = [size.width, size.height];
         globalUniforms.localLigthRadius = 0;
+
+        // rain strength
+        this.rain?.update(this.getWeather(), delta)
+        globalUniforms.rainStrength = this.rain?.strength_val ?? 0
 
         let blockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
         let nightshift = 1.;
@@ -794,9 +799,6 @@ export class Renderer {
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
-                    if(player.game_mode.isSurvival() || player.game_mode.isCreative()) {
-                        player.pickAt.draw();
-                    }
                     // 3. Draw players and rain
                     this.drawPlayers(delta);
                     // 4. Draw mobs
@@ -870,6 +872,10 @@ export class Renderer {
                     */
                 }
             }
+        }
+
+        if(player.game_mode.isSurvival() || player.game_mode.isCreative()) {
+            player.pickAt.draw();
         }
 
         this.debugGeom.draw(renderBackend);
@@ -952,19 +958,31 @@ export class Renderer {
      * @param {ChunkManager} chunkManager
      */
     setWeather(weather, chunkManager) {
+        if(this.timeKillRain) {
+            clearInterval(this.timeKillRain)
+            this.timeKillRain = null
+        }
         let rain = this.meshes.get('weather');
-        if(!rain || rain.type != Weather.getName(weather)) {
+        this.weather_name = Weather.getName(weather)
+        if((!rain || rain.type != this.weather_name) && weather != Weather.CLEAR) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, Weather.getName(weather), chunkManager);
+            rain = new Mesh_Object_Rain(this, this.weather_name, chunkManager);
             this.meshes.add(rain, 'weather');
+            this.rain = rain
         }
-        rain.enabled = weather != Weather.CLEAR;
+        if(!rain) {
+            return
+        }
+        const enabled_val = weather != Weather.CLEAR
+        if(enabled_val) {
+            rain.enabled = enabled_val;
+        }
     }
 
     getWeather() {
-        const name = this.meshes.get('weather')?.type;
+        const name = this.weather_name // this.meshes.get('weather')?.type;
         return Weather.BY_NAME[name] || Weather.CLEAR;
     }
 

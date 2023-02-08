@@ -44,6 +44,7 @@ export class GameClass {
 
     // Start
     async Start(server_url, world_guid, settings, resource_loading_progress) {
+        Qubatch.game = this;
         this.settings = settings;
 
         // Load resources
@@ -91,7 +92,7 @@ export class GameClass {
         this.prev_player_state  = null;
         // start playing music
         this.sounds.music.volume = this.settings.music_volume * 0.01;
-        this.sounds.music.schedulePlay(MUSIC_INITIAL_PAUSE_SECONDS * 1000 * Math.random() * .5);
+        this.sounds.music.schedulePlay(MUSIC_INITIAL_PAUSE_SECONDS * 1000 * Math.random());
         //
         this.render.setPlayer(player);
         this.setInputElement(this.render.canvas);
@@ -616,7 +617,7 @@ export class GameClass {
             return;
         }
 
-        if(!this.world || this.player.controls.enabled) {
+        if(!this.world || !this.player || this.player.controls.enabled) {
             return;
         }
 

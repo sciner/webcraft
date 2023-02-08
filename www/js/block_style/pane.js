@@ -74,10 +74,6 @@ export default class style {
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-            return;
-        }
-
         if(block.material.name == 'IRON_BARS') {
 
             const texture = BLOCK.calcTexture(block.material.texture, DIRECTION.DOWN);

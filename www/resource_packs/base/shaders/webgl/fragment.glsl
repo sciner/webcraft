@@ -82,8 +82,10 @@ void main() {
     vec3 combinedLight = vec3(1.0);
 
     // Game
-    if(u_fogOn) {
+    // if(u_fogOn) {
+
         if(v_flagQuadSDF > 0.5) {
+
             // sdf pipeline
 
             // text not should be mip-mapped
@@ -118,10 +120,11 @@ void main() {
                 discard;
             }
         } else {
+
             // default texture fetch pipeline
 
-            mipData = manual_mip(v_texcoord0, size);
             biome = ivec2(round(v_color.rg));
+            mipData = manual_mip(v_texcoord0, size);
             color = sampleAtlassTexture (mipData, texClamped, biome);
             if (u_useNormalMap > 0.5) {
                 uvNormal = texture(u_texture_n, texClamped * mipData.zw + mipData.xy).rgb * 2.0 - 1.0;
@@ -153,7 +156,6 @@ void main() {
                 #include<enchanted_animation>
             }
 
-
         }
 
         if(v_noCanTakeLight < 0.5) {
@@ -166,15 +168,20 @@ void main() {
                 #include<normal_light_pass>
             }
             if(u_eyeinwater > 0. && v_useFog > 0.5) {
+                // caustics on underwater blocks
                 #include<caustic1_pass>
-                // include<caustic2_pass>
             }
             // Apply light
             color.rgb *= combinedLight * sunNormalLight;
         }
 
+        if(v_flagFlagRainOpacity > .5) {
+             color.a *= u_rain_strength;
+        }
+
+        // float dist = distance(vec3(0., 0., 1.4), v_world_pos) / 64.;
         outColor = color;
-        outColor.rgb = colorCorrection(outColor.rgb);
+        // outColor.rgb = colorCorrection(outColor.rgb);
 
         #include<fog_frag>
         if(u_crosshairOn) {
@@ -182,10 +189,10 @@ void main() {
         }
         #include<vignetting_call_func>
 
-    } else {
-        outColor = texture(u_texture, texClamped);
-        if(outColor.a < 0.1) discard;
-        outColor *= v_color;
-    }
+    // } else {
+    //     outColor = texture(u_texture, texClamped);
+    //     if(outColor.a < 0.1) discard;
+    //     outColor *= v_color;
+    // }
 
 }

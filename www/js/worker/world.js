@@ -1,11 +1,15 @@
-import { ChunkWorkerChunkManager, Chunk } from "./chunk.js";
+import { ChunkWorkerChunkManager, ChunkWorkerChunk } from "./chunk.js";
 import { VectorCollector } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 
 // WorkerWorldManager
 export class WorkerWorldManager {
 
-    constructor() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     */
+    constructor(block_manager) {
+        this.block_manager = block_manager
         this.all = new Map();
         this.list = [];
         this.curIndex = 0;
@@ -32,7 +36,7 @@ export class WorkerWorldManager {
         if(this.all.has(key)) {
             return this.all.get(key);
         }
-        const world = new WorkerWorld();
+        const world = new WorkerWorld(this.block_manager);
         const generator_class = this.terrainGenerators.get(generator_id);
         await world.init(seed, world_id, generator_class, generator_options)
         this.all.set(key, world);
@@ -68,7 +72,11 @@ export class WorkerWorldManager {
 // World
 export class WorkerWorld {
 
-    constructor() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     */
+     constructor(block_manager) {
+        this.block_manager = block_manager
         this.chunks = new VectorCollector();
         this.genQueue = new ChunkWorkQueue(this);
         this.buildQueue = null;
@@ -99,7 +107,7 @@ export class WorkerWorld {
         if(this.chunks.has(args.addr)) {
             return this.chunks.get(args.addr);
         }
-        let chunk = new Chunk(this.chunkManager, args);
+        let chunk = new ChunkWorkerChunk(this.chunkManager, args);
         this.chunks.add(args.addr, chunk);
         chunk.init();
         this.genQueue.push(chunk);
@@ -195,7 +203,8 @@ export class WorkerWorld {
                     // key: ci.key,
                     tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
                     ticking_blocks: ci.ticking_blocks,
-                    packedCells: chunk.packCells()
+                    packedCells: chunk.packCells(),
+                    genQueueSize: genQueue.size()
                 }
 
                 globalThis.worker.postMessage(['blocks_generated', ci2]);
@@ -242,6 +251,13 @@ export class WorkerWorld {
 
         if (buildResults.length > 0) {
             worker.postMessage(['vertices_generated', buildResults]);
+        }
+        if (genQueue.size() === 0) {
+            if (!genQueue.hitZero) {
+                genQueue.hitZero = true;
+            } else {
+                worker.postMessage(['gen_queue_size', {genQueueSize: 0}]);
+            }
         }
         return loops;
     }

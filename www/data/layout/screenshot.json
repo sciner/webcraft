@@ -13,7 +13,7 @@
                 "word_wrap": true,
                 "height": 20,
                 "title": null,
-                "text": "You have taken a screenshot. Farther?",
+                "text": "Lang.screen_taken",
                 "style": {
                     "font": {
                         "size": 17
@@ -47,18 +47,45 @@
             },
             "btnDownload": {
                 "type": "Button",
-                "title": "Download screenshot",
-                "_height": 40
+                "title": "Lang.screen_download",
+                "style": {
+                    "padding": 5,
+                    "font": {
+                        "size": 17
+                    },
+                    "textAlign": {
+                        "horizontal": "center",
+                        "vertical": "middle"
+                    }
+                }
             },
             "btnSetCover": {
                 "type": "Button",
-                "title": "Set as world cover",
-                "_height": 40
+                "title": "Lang.screen_cover",
+                "style": {
+                    "padding": 5,
+                    "font": {
+                        "size": 17
+                    },
+                    "textAlign": {
+                        "horizontal": "center",
+                        "vertical": "middle"
+                    }
+                }
             },
             "btnSaveToGallery": {
                 "type": "Button",
-                "title": "Upload to gallery",
-                "_height": 40
+                "title": "Lang.screen_gallery",
+                "style": {
+                    "padding": 5,
+                    "font": {
+                        "size": 17
+                    },
+                    "textAlign": {
+                        "horizontal": "center",
+                        "vertical": "middle"
+                    }
+                }
             }
         }
     }

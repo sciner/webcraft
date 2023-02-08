@@ -163,6 +163,10 @@ export class BBModel_Compiler_Base {
                     model.polygons += 2
                     const face = el.faces[side];
                     if('texture' in face && 'uv' in face) {
+                        if(face.texture === null) {
+                            delete(el.faces[side])
+                            continue
+                        }
                         let face_texture_id = face.texture + '';
                         if(face_texture_id !== null) {
 
@@ -175,10 +179,15 @@ export class BBModel_Compiler_Base {
 
                                 const uv = face.uv
 
-                                const uvx1 = Math.min(uv[0], uv[2]) * texture_item.scale_x
-                                const uvy1 = Math.min(uv[1], uv[3]) * texture_item.scale_y
-                                const uvx2 = Math.max(uv[0], uv[2]) * texture_item.scale_x
-                                const uvy2 = Math.max(uv[1], uv[3]) * texture_item.scale_y
+                                // const uvx1 = Math.min(uv[0], uv[2]) * texture_item.scale_x
+                                // const uvy1 = Math.min(uv[1], uv[3]) * texture_item.scale_y
+                                // const uvx2 = Math.max(uv[0], uv[2]) * texture_item.scale_x
+                                // const uvy2 = Math.max(uv[1], uv[3]) * texture_item.scale_y
+
+                                const uvx1 = uv[2] * texture_item.scale_x
+                                const uvy1 = uv[3] * texture_item.scale_y
+                                const uvx2 = uv[0] * texture_item.scale_x
+                                const uvy2 = uv[1] * texture_item.scale_y
 
                                 //
                                 const uvw = uvx2 - uvx1
@@ -189,8 +198,8 @@ export class BBModel_Compiler_Base {
                                 face.uv = [
                                     ((texture_item.x * tx_sz + uvx1 + uvw / 2)),
                                     ((texture_item.y * tx_sz + uvy1 + uvh / 2)),
-                                    uvw,
-                                    uvh
+                                    -uvw,
+                                    -uvh
                                 ];
 
                             }
@@ -208,11 +217,12 @@ export class BBModel_Compiler_Base {
                         case 'west': side = 'east'; break;
                         case 'east': side = 'west'; break;
                         case 'up': {
-                            face.uv[3] *= -1
+                            face.uv[2] *= -1
+                            // face.uv[3] *= -1
                             break;
                         }
                         case 'down': {
-                            face.uv[2] *= -1
+                            // face.uv[2] *= -1
                             face.uv[3] *= -1
                             break;
                         }

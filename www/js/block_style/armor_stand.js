@@ -1,5 +1,4 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
@@ -17,8 +16,13 @@ for(let i = 0; i < randoms.length; i++) {
 
 // стойка для доспехов
 export default class style {
-    
-    static getRegInfo() {
+
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['armor_stand'],
             func: this.func,
@@ -39,11 +43,12 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
+        const bm = style.block_manager
         const rot = Math.round((((block.rotate.x - 2) / 4) * (Math.PI * 2)) / 0.5233) * 0.5233;
         const head_rot_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
         const head_rot = randoms[head_rot_index] * .2 - .1;
-        const planks = BLOCK.calcTexture(BLOCK.OAK_LOG.texture, DIRECTION.UP);
-        const stone = BLOCK.calcTexture(BLOCK.STONE.texture, DIRECTION.UP);
+        const planks = bm.calcTexture(bm.OAK_LOG.texture, DIRECTION.UP);
+        const stone = bm.calcTexture(bm.STONE.texture, DIRECTION.UP);
         const flag = 0;
         const parts = [];
         const stand = [];

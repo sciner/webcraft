@@ -88,8 +88,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     /**
-     *
-     * @param { Chunk } chunk
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @returns
      */
     generate(chunk) {

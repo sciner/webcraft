@@ -1,11 +1,14 @@
 import {ServerClient} from "../www/js/server_client.js";
 import {DIRECTION, Vector} from "../www/js/helpers.js";
-import {BLOCK} from "../www/js/blocks.js";
 import {WorldAction} from "../www/js/world_action.js";
 import { Weather } from "../www/js/block_type/weather.js";
+import { MobSpawnParams } from "./mob.js";
 
 export class ServerChat {
 
+    /**
+     * @param {import("./server_world.js").ServerWorld } world 
+     */
     constructor(world) {
         this.world = world;
         this.onCmdCallbacks = [];
@@ -32,8 +35,7 @@ export class ServerChat {
             this.world.db.insertChatMessage(player, params);
             this.world.sendAll(packets, [player.session.user_id]);
         } catch(e) {
-            let players = [player.session.user_id];
-            this.sendSystemChatMessageToSelectedPlayers(e, players)
+            this.sendSystemChatMessageToSelectedPlayers(e, player)
         }
     }
 
@@ -72,9 +74,9 @@ export class ServerChat {
             }
         ];
         if (selected_players) {
-            this.world.sendSelected(packets, selected_players, []);
+            this.world.sendSelected(packets, selected_players);
         } else {
-            this.world.sendAll(packets, []);
+            this.world.sendAll(packets);
         }
     }
 
@@ -88,11 +90,18 @@ export class ServerChat {
             }
         }
 
-        const user_id = player.session.user_id
+        const world = this.world
         let text = original_text.replace(/  +/g, ' ').trim();
         let args = text.split(' ');
         let cmd = args[0].toLowerCase();
         switch (cmd) {
+            case "/kill": {
+                args = this.parseCMD(args, ['string', 'string'])
+                if (args[1] == 'mobs') {
+                    this.world.mobs.kill()
+                }
+                break
+            }
             case "/admin": {
                 if (args.length < 2) {
                     throw 'Invalid arguments count';
@@ -103,7 +112,7 @@ export class ServerChat {
                 switch (args[1]) {
                     case 'list': {
                         const admin_list = this.world.admins.getList().join(', ');
-                        this.sendSystemChatMessageToSelectedPlayers(`admin_list|${admin_list}`, [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers(`admin_list|${admin_list}`, player);
                         break;
                     }
                     case 'add': {
@@ -111,7 +120,7 @@ export class ServerChat {
                             throw 'Invalid arguments count';
                         }
                         await this.world.admins.add(player, args[2]);
-                        this.sendSystemChatMessageToSelectedPlayers('admin_added', [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers('admin_added', player);
                         break;
                     }
                     case 'remove': {
@@ -119,7 +128,7 @@ export class ServerChat {
                             throw 'Invalid arguments count';
                         }
                         await this.world.admins.remove(player, args[2]);
-                        this.sendSystemChatMessageToSelectedPlayers('admin_removed', [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers('admin_removed', player);
                         break;
                     }
                     default: {
@@ -129,7 +138,7 @@ export class ServerChat {
                 break;
             }
             case '/seed': {
-                this.sendSystemChatMessageToSelectedPlayers(`generator_seed|${this.world.info.seed}`, [player.session.user_id]);
+                this.sendSystemChatMessageToSelectedPlayers(`generator_seed|${this.world.info.seed}`, player);
                 break;
             }
             case '/give':
@@ -148,44 +157,52 @@ export class ServerChat {
                     name = args[1];
                     cnt = args[2];
                 }
+                const bm = this.world.block_manager
                 cnt = Math.max(cnt | 0, 1);
-                const b = BLOCK.fromName(name.toUpperCase());
+                const b = bm.fromName(name.toUpperCase());
                 if(b && b.id > 0) {
-                    const block = BLOCK.convertItemToInventoryItem(b, b, true);
+                    const block = bm.convertItemToInventoryItem(b, b, true);
                     block.count = cnt;
                     const ok = player.inventory.increment(block, true);
                     if(ok) {
-                        this.sendSystemChatMessageToSelectedPlayers(`given|${b.name}`, [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers(`given|${b.name}`, player);
                     } else {
-                        this.sendSystemChatMessageToSelectedPlayers(`error_no_place_in_inventory`, [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers(`error_no_place_in_inventory`, player);
                     }
                 } else {
-                    this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, [player.session.user_id]);
+                    this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, player);
                 }
                 break;
             case '/help': {
-                let commands = [
-                    '/weather (' + Weather.NAMES.join(' | ') + ')',
-                    '/gamemode [world] (survival | creative | adventure | spectator | get)',
-                    '/tp -> teleport',
-                    '/stp -> safe teleport',
-                    '/spawnpoint',
-                    '/seed',
-                    '/give <item> [<count>]',
-                    '/helpadmin'
-                ];
-                this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [player.session.user_id]);
+                let commands
+                if (args[1] === 'admin') {
+                    checkIsAdmin()
+                    commands = [
+                        '/admin (list | add <username> | remove <username>)',
+                        '/time (add <int> | set (<int>|day|midnight|night|noon))',
+                        '/gamerule [<name> [<value>]]',
+                        'Server stats:',
+                        '  /tps [chunk|mob]',
+                        '  /tps2 [chunk|mob] [recent]',
+                        '  /sysstat',
+                        '  /netstat (in|out|all) [off|count|full|reset]',
+                        '  /astat [recent]',
+                        '/shutdown [gentle|force]'
+                    ]
+                } else {
+                    commands = [
+                        '/weather (' + Weather.NAMES.join(' | ') + ')',
+                        '/gamemode [world] (survival | creative | adventure | spectator | get)',
+                        '/tp -> teleport',
+                        '/stp -> safe teleport',
+                        '/spawnpoint',
+                        '/seed',
+                        '/give <item> [<count>]',
+                        '/help [admin]'
+                    ]
+                }
+                this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), player);
                 break;
-            }
-            case '/helpadmin': {
-                checkIsAdmin()
-                const commands = [
-                    '/admin (list | add <username> | remove <username>)',
-                    'Server stats: /tps /tps2 /sysstat /astat',
-                    '/shutdown [gentle | force]'
-                ]
-                this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [user_id])
-                break
             }
             case '/gamemode':
                 if(!this.world.admins.checkIsAdmin(player)) {
@@ -207,15 +224,15 @@ export class ServerChat {
                     } else if (target == 'world') {
                         this.world.info.game_mode = game_mode_id;
                         await this.world.db.setWorldGameMode(this.world.info.guid, game_mode_id);
-                        this.sendSystemChatMessageToSelectedPlayers('Done', [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers('Done', player);
                     } else {
                         throw 'Invalid target';
                     }
                 } else {
                     if (target == '') {
-                        this.sendSystemChatMessageToSelectedPlayers('Player game mode id: ' + player.game_mode.current.id, [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers('Player game mode id: ' + player.game_mode.current.id, player);
                     } else if (target == 'world') {
-                        this.sendSystemChatMessageToSelectedPlayers('World game mode id: ' + this.world.info.game_mode, [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers('World game mode id: ' + this.world.info.game_mode, player);
                     } else {
                         throw 'Invalid target';
                     }
@@ -227,13 +244,13 @@ export class ServerChat {
                 if (args[1] === 'gentle') {
                     gentle = true
                 } else if (args[1] !== 'force') {
-                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)\n"gentle" delays starting of shutdown until the actions queue is empty', [user_id])
+                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)\n"gentle" delays starting of shutdown until the actions queue is empty', player)
                     break
                 }
                 const msg = 'shutdown_initiated_by|' + player.session.username
                 const res = this.world.game.shutdown(msg, gentle)
                 if (!res) {
-                    this.sendSystemChatMessageToSelectedPlayers('!langThe game is already in the process of shutting down.', [user_id])
+                    this.sendSystemChatMessageToSelectedPlayers('!langThe game is already in the process of shutting down.', player)
                 }
                 break
             }
@@ -270,35 +287,144 @@ export class ServerChat {
                 break;
             }
             case '/tps': {
+                const table = this.getTickStats(args)
                 let temp = [];
-                for(let [k, v] of Object.entries(this.world.ticks_stat)) {
-                    if(['start', 'add', 'values', 'pn_values', 'pn', 'end', 'number', 'min'].indexOf(k) >= 0) continue;
+                const keys = ['tps', 'last', 'total', 'count', 'max']
+                for(let k of keys) {
+                    const v = table[k]
                     temp.push(k + ': ' + Math.round(v * 1000) / 1000);
                 }
-                this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
+                this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), player);
                 break;
             }
             case '/tps2': {
-                const table = this.world.ticks_stat.toTable();
-                this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
+                for(const arg of args) {
+                    if (!['/tps2', 'chunk', 'chunks', 'mob', 'mobs', 'recent'].includes(arg)) {
+                        const USAGE = '!lang/tps2 [chunk|mob] [recent]'
+                        this.sendSystemChatMessageToSelectedPlayers(USAGE, player)
+                        return
+                    }
+                }
+                const recent = args.includes('recent')
+                const table = this.getTickStats(args).toTable(recent)
+                this.sendSystemChatMessageToSelectedPlayers(table, player, true);
                 break;
             }
             case '/astat': { // async stats. They show what's happeing with DB queries and other async stuff
+                const recent = args.includes('recent')
                 const dbActor = this.world.dbActor
-                const table = dbActor.asyncStats.toTable()
+                const table = dbActor.asyncStats.toTable(recent)
                 table['World transaction now'] = dbActor.savingWorldNow
                     ? `running for ${(performance.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
                     : 'not running';
-                this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
+                this.sendSystemChatMessageToSelectedPlayers(table, player, true);
                 break;
             }
+            case '/netstat': {
+                checkIsAdmin()
+                const USAGE = '!langUsage: /netstat (in|out|all) [off|count|full|reset]' +
+                    '\n  Network stats by packet type.' +
+                    '\n  - with 2 arguments: the command prints the stats' +
+                    '\n  - with 3 arguments: the command changes how the stats are collected' +
+                    '\n  Warning: enabling "full" net stats for "out" or "all" directions causes slowdown!'
+                let isOut = false, isIn = false
+                switch(args[1]) {
+                    case 'in':  isIn = true;    break
+                    case 'out': isOut = true;   break
+                    case 'all':
+                        isIn = true
+                        isOut = true
+                        break
+                    default:
+                        this.sendSystemChatMessageToSelectedPlayers(USAGE, player)
+                        return
+                }
+                const ns = world.network_stat
+                if (args.length === 2) {
+                    let res = '!lang\n'
+                    const oldResLength = res.length
+                    if (isIn) {
+                        if (ns.in_count_by_type) {
+                            res += 'Incoming count by messagse type:\n' + this.netStatsTable(ns.in_count_by_type)
+                        }
+                        if (ns.in_size_by_type) {
+                            res += 'Incoming size by messagse type:\n' + this.netStatsTable(ns.in_size_by_type)
+                        }
+                    }
+                    if (isOut) {
+                        if (ns.out_count_by_type) {
+                            res += 'Outgoing count by messagse type:\n' + this.netStatsTable(ns.out_count_by_type)
+                        }
+                        if (ns.out_size_by_type) {
+                            res += 'Outgoing size by messagse type:\n' + this.netStatsTable(ns.out_size_by_type)
+                        }
+                    }
+                    if (oldResLength === res.length) {
+                        res = "!langTo view stats, first enable collecting them. Call /netstat without arguments for more information."
+                    }
+                    this.sendSystemChatMessageToSelectedPlayers(res, player)
+                    return
+                }
+                switch(args[2]) {
+                    case 'off':
+                        if (isIn) {
+                            ns.in_count_by_type     = null
+                            ns.in_size_by_type      = null
+                        }
+                        if (isOut) {
+                            ns.out_count_by_type    = null
+                            ns.out_size_by_type     = null
+                        }
+                        break
+                    case 'count':
+                        if (isIn) {
+                            ns.in_count_by_type     ??= {}
+                            ns.in_size_by_type      = null
+                        }
+                        if (isOut) {
+                            ns.out_count_by_type    ??= {}
+                            ns.out_size_by_type     = null
+                        }
+                        break
+                    case 'full':
+                        if (isIn) {
+                            ns.in_count_by_type     ??= {}
+                            ns.in_size_by_type      ??= {}
+                        }
+                        if (isOut) {
+                            ns.out_count_by_type    ??= {}
+                            ns.out_size_by_type     ??= {}
+                        }
+                        break
+                    case 'reset':
+                        if (isIn) {
+                            ns.in_count_by_type &&= {}
+                            ns.in_size_by_type  &&= {}
+                            ns.in_count = 0
+                            ns.in       = 0
+                        }
+                        if (isOut) {
+                            ns.out_count_by_type &&= {}
+                            ns.out_size_by_typ   &&= {}
+                            ns.out_count    = 0
+                            ns.out          = 0
+                        }
+                        break
+                    default:
+                        this.sendSystemChatMessageToSelectedPlayers(USAGE, player, true)
+                        return
+                }
+                break
+            }
             case '/sysstat': {
-                const world = this.world
+                const chunkManager = world.chunkManager
                 const stat = {
                     mobs_count:     world.mobs.count(),
                     drop_items:     world.all_drop_items.size,
                     players:        world.players.count,
-                    chunks:         world.chunkManager.all.size,
+                    chunks:         chunkManager.all.size,
+                    unloading_chunks_size:  chunkManager.unloading_chunks.size,
+                    unloading_state_count:  chunkManager.unloading_state_count,
                     actions_queue:  world.actions_queue.length,
                     dirty_actors:   world.dbActor.dirtyActors.size,
                     net_in:         world.network_stat.in.toLocaleString() + ` bytes (packets: ${world.network_stat.in_count})`,
@@ -327,7 +453,7 @@ export class ServerChat {
                 stat.ticking_blocks = stat.ticking_blocks.replaceAll('{', '');
                 stat.ticking_blocks = stat.ticking_blocks.replaceAll('}', '');
                 //
-                this.sendSystemChatMessageToSelectedPlayers(stat, [player.session.user_id], true);
+                this.sendSystemChatMessageToSelectedPlayers(stat, player, true);
                 break;
             }
             case '/spawnpoint': {
@@ -336,14 +462,7 @@ export class ServerChat {
             }
             case '/spawnmob': {
                 args = this.parseCMD(args, ['string', '?float', '?float', '?float', 'string', 'string']);
-                // @ParamMobAdd
-                let params = {
-                    type:   args[4],
-                    skin:   args[5],
-                    pos:    player.state.pos.clone(),
-                    pos_spawn:    player.state.pos.clone(),
-                    rotate: new Vector(0, 0, player.state.rotate.z)
-                }; 
+                const pos = player.state.pos.clone()
                 // x
                 if (args[1] !== null) {
                     params.pos.x = args[1];
@@ -356,6 +475,13 @@ export class ServerChat {
                 if (args[3] !== null) {
                     params.pos.z = args[3];
                 }
+                // @ParamMobAdd
+                const params = new MobSpawnParams(
+                    pos,
+                    new Vector(0, 0, player.state.rotate.z),
+                    args[4],
+                    args[5],
+                )
                 // spawn
                 this.world.mobs.spawn(player, params);
                break;
@@ -365,7 +491,8 @@ export class ServerChat {
                     throw 'error_not_permitted';
                 }
                 const pos = player.state.pos.floored();
-                const cd = BLOCK.getCardinalDirection(player.rotateDegree.clone());
+                const bm = this.world.block_manager
+                const cd = bm.getCardinalDirection(player.rotateDegree.clone());
                 let ax = 0, az = 0;
                 switch(cd) {
                     case DIRECTION.WEST: {
@@ -386,7 +513,7 @@ export class ServerChat {
                     }
                 }
                 const actions = new WorldAction(null, this.world, false, false);
-                const item = {id: BLOCK.STONE.id};
+                const item = {id: bm.STONE.id};
                 const action_id = ServerClient.BLOCK_ACTION_CREATE;
                 pos.x += 1 * ax;
                 pos.z += 1 * az;
@@ -483,4 +610,28 @@ export class ServerChat {
         return resp;
     }
 
+    getTickStats(args) {
+        if (args.includes('chunk') || args.includes('chunks')) {
+            return this.world.chunkManager.ticks_stat
+        }
+        if (args.includes('mob') || args.includes('mobs')) {
+            return this.world.mobs.ticks_stat
+        }
+        return this.world.ticks_stat
+    }
+
+    netStatsTable(obj) {
+        const PER_ROW = 5
+        const res = []
+        const entries = Object.entries(obj)
+        entries.sort((a, b) => a[0] - b[0])
+        for(const [type, stat] of entries) {
+            if (res.length % (PER_ROW + 1) === PER_ROW) {
+                res.push('\n')
+            }
+            res.push(` ${type.toString().padStart(3)}: ${stat.toString().padEnd(13)} `)
+        }
+        res.push('\n')
+        return res.join('')
+    }
 }

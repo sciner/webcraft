@@ -17,7 +17,7 @@ export default class packet_reader {
         let world_guid = packet.data.world_guid;
         player.session = await Qubatch.db.GetPlayerSession(player.session_id);
         Log.append('CmdConnect', {world_guid, session: player.session});
-        player.world.onPlayer(player, player.skin);
+        await player.world.onPlayer(player, player.skin);
         return true;
     }
 

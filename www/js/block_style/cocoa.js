@@ -44,10 +44,6 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-            return;
-        }
-
         const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const stage             = block.extra_data.stage;
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;

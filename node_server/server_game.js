@@ -7,7 +7,6 @@ import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
-import { Helpers, Vector } from '../www/js/helpers.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
@@ -124,93 +123,9 @@ export class ServerGame {
             this.db = db
             global.Log = new GameLog(this.db);
         });
-        await this.initWorkers();
-
-        // Load building template schemas
-        for(let item of config.building_schemas) {
-            await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
-
-                // fix entrance
-                if(item.name == 'test225') {
-                    const fix = new Vector(0, 1, 0)
-                    item.pos1.y -= fix.y
-                    item.pos2.y -= fix.y
-                    //json.world.entrance.x += fix.x
-                    // json.world.entrance.y += fix.y
-                    //json.world.entrance.z += fix.z
-                    for(let block of json.blocks) {
-                        block.move.x += fix.x
-                        block.move.y += fix.y
-                        block.move.z += fix.z
-                    }
-                     fs.writeFileSync(`./data/building_schema/${item.name}.json`, JSON.stringify(json))
-                }
-
-                json.name = item.name
-                json.meta = json.meta ?? {}
-                item.entrance = new Vector(json.world.entrance)
-
-                json.world = {...json.world, ...item}
-                BuildingTemplate.addSchema(json)
-            })
-        }
-
-        // Create websocket server
-        this.wsServer = new WebSocketServer({noServer: true,
-            perMessageDeflate: {
-                zlibDeflateOptions: {
-                    // See zlib defaults.
-                    chunkSize: 1024,
-                    memLevel: 7,
-                    level: 3
-                },
-                zlibInflateOptions: {
-                    chunkSize: 10 * 1024
-                },
-                // Other options settable:
-                clientNoContextTakeover: true, // Defaults to negotiated value.
-                serverNoContextTakeover: true, // Defaults to negotiated value.
-                serverMaxWindowBits: 10, // Defaults to negotiated value.
-                // Below options specified as default values.
-                concurrencyLimit: 10, // Limits zlib concurrency for perf.
-                threshold: 1024 // Size (in bytes) below which messages
-                // should not be compressed if context takeover is disabled.
-            }
-        }); // {port: 5701}
-        // New player connection
-        this.wsServer.on('connection', (conn, req) => {
-            if (this.shutdownPromise) {
-                return // don't accept connections when shutting down
-            }
-            console.log('New player connection');
-            const query         = url.parse(req.url, true).query;
-            const world_guid    = query.world_guid;
-            // Get loaded world
-            let world = this.getLoadedWorld(world_guid);
-            const onWorld = async () => {
-                if (this.shutdownPromise) {
-                    return // don't join players when shutting down
-                }
-                Log.append('WsConnected', {world_guid, session_id: query.session_id});
-                const player = new ServerPlayer();
-                player.onJoin(query.session_id, parseFloat(query.skin), conn, world);
-                const game_world = await this.db.getWorld(world_guid);
-                await this.db.IncreasePlayCount(game_world.id, query.session_id);
-            };
-            if(world) {
-                onWorld();
-            } else {
-                new Promise(resolve => {
-                    const hInterval = setInterval(() => {
-                        world = this.getLoadedWorld(world_guid);
-                        if(world) {
-                            clearInterval(hInterval);
-                            resolve();
-                        }
-                    }, 10);
-                }).then(onWorld);
-            }
-        });
+        await this.initWorkers()
+        await this.initBuildings(config)
+        await this.initWs()
     }
 
     initWorkers() {
@@ -247,4 +162,78 @@ export class ServerGame {
             this.lightWorker.on('error', onerror);
         });
     }
+
+    /**
+     * Load building template schemas
+     */
+    async initBuildings(config) {
+        for(let json of config.building_schemas) {
+            BuildingTemplate.addSchema(json)
+        }
+    }
+
+    /**
+     * Create websocket server
+     */
+    async initWs() {
+
+        this.wsServer = new WebSocketServer({noServer: true,
+            perMessageDeflate: {
+                zlibDeflateOptions: {
+                    // See zlib defaults.
+                    chunkSize: 1024,
+                    memLevel: 7,
+                    level: 3
+                },
+                zlibInflateOptions: {
+                    chunkSize: 10 * 1024
+                },
+                // Other options settable:
+                clientNoContextTakeover: true, // Defaults to negotiated value.
+                serverNoContextTakeover: true, // Defaults to negotiated value.
+                serverMaxWindowBits: 10, // Defaults to negotiated value.
+                // Below options specified as default values.
+                concurrencyLimit: 10, // Limits zlib concurrency for perf.
+                threshold: 1024 // Size (in bytes) below which messages
+                // should not be compressed if context takeover is disabled.
+            }
+        }); // {port: 5701}
+
+        // New player connection
+        this.wsServer.on('connection', (conn, req) => {
+            if (this.shutdownPromise) {
+                return // don't accept connections when shutting down
+            }
+            console.log('New player connection');
+            const query         = url.parse(req.url, true).query;
+            const world_guid    = query.world_guid;
+            // Get loaded world
+            let world = this.getLoadedWorld(world_guid);
+            const onWorld = async () => {
+                if (this.shutdownPromise) {
+                    return // don't join players when shutting down
+                }
+                Log.append('WsConnected', {world_guid, session_id: query.session_id});
+                const player = new ServerPlayer();
+                player.onJoin(query.session_id, parseFloat(query.skin), conn, world);
+                const game_world = await this.db.getWorld(world_guid);
+                await this.db.IncreasePlayCount(game_world.id, query.session_id);
+            };
+            if(world) {
+                onWorld();
+            } else {
+                new Promise(resolve => {
+                    const hInterval = setInterval(() => {
+                        world = this.getLoadedWorld(world_guid);
+                        if(world) {
+                            clearInterval(hInterval);
+                            resolve();
+                        }
+                    }, 10);
+                }).then(onWorld);
+            }
+        });
+
+    }
+
 }

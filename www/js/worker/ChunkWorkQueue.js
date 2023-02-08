@@ -17,6 +17,8 @@ export class ChunkWorkQueue {
         this.lastSortMs = performance.now() - 1000;
         this.maxSortTime = 15; // in ms
         this.needSort = false;
+
+        this.hitZero = false;
     }
 
     size() {
@@ -80,6 +82,7 @@ export class ChunkWorkQueue {
         } else {
             this.added.push(chunk);
         }
+        this.hitZero = false;
     }
 
     relaxEntries() {

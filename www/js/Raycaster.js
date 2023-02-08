@@ -134,17 +134,19 @@ export class Raycaster {
             mob_distance: null,
             mob: null
         };
-        if(Qubatch?.world?.mobs) {
-            for(let [_, mob] of Qubatch.world.mobs.list) {
+        if(this.world?.mobs) {
+            for(const [_, mob] of this.world.mobs.list) {
                 mob.raycasted = false;
                 if(!mob.aabb || !mob.isAlive()) {
-                    continue;
+                    continue
                 }
-                if(mob.tPos.distance(pos) > max_distance) {
-                    continue;
+                // @todo костыль, на сервере нет tPos
+                const tPos = mob?.tPos ? mob.tPos : mob.pos
+                if(tPos.distance(pos) > max_distance) {
+                    continue
                 }
                 if(this.intersectBox(mob.aabb, pos, dir)) {
-                    let dist = mob.tPos.distance(pos);
+                    const dist = tPos.distance(pos);
                     if(resp.mob) {
                         if(dist < resp.mob_distance) {
                             resp.mob = mob;
@@ -166,18 +168,19 @@ export class Raycaster {
             player_distance: null,
             player: null
         };
-        if(Qubatch?.world?.players) {
-            for (const [_, player] of Qubatch.world.players.list) {
-                // @todo не передаются количество жизней isAlive();
+        if(this.world?.players) {
+            for (const [_, player] of this.world.players.list) {
                 player.raycasted = false;
                 if(!player.aabb || !player.isAlive()) {
                     continue;
                 }
-                if(player.tPos.distance(pos) > max_distance) {
+                // @todo костыль, на сервере нет tPos
+                const tPos = player?.tPos ? player.tPos : player.state.pos
+                if(tPos.distance(pos) > max_distance) {
                     continue;
                 }
                 if(this.intersectBox(player.aabb, pos, dir)) {
-                    const dist = player.tPos.distance(pos);
+                    const dist = tPos.distance(pos);
                     if(resp.entity) {
                         if(dist < resp.distance) {
                             resp.player = player;

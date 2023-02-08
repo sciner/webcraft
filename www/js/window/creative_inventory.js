@@ -1,4 +1,4 @@
-import { Button, Graphics, Label, TextEdit, Window } from "../../tools/gui/wm.js";
+import { Button, Label, TextEdit, Window } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
@@ -116,6 +116,11 @@ class CreativeInventoryCollection extends Window {
         const dropFunc = function(e) {
             const that      = this
             const drag      = e.drag
+            // prevent dropping into the same sloft after the mouse is released
+            if(drag?.slot === this) {
+                drag.slot = null
+                return
+            }
             const dropItem  = drag.getItem() // что перетащили
             let targetItem  = this.getItem() // куда перетащили
             if(targetItem && dropItem.id == targetItem.id) {
@@ -161,8 +166,8 @@ class CreativeInventoryCollection extends Window {
                 this.max_height = y + this.cell_size
             }
             const lblSlot = new CraftTableInventorySlot(x, y + 3 * this.zoom, sz, sz - 3 * this.zoom, 'lblCollectionSlot' + (i), null, null, this.parent, null)
-            lblSlot.onMouseDown = onMouseDownFunc
             lblSlot.onDrop = dropFunc
+            lblSlot.onMouseDown = onMouseDownFunc
             this.container.add(lblSlot)
             this.container.h = lblSlot.y + lblSlot.h
             lblSlot.setItem(all_blocks[i])

@@ -5,21 +5,21 @@ import { ServerClient } from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
 import { PlayerEvent } from "./player_event.js";
-import config from "./config.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../www/js/constant.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE, PLAYER_WIDTH, PLAYER_HEIGHT } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
-import { BLOCK } from "../www/js/blocks.js";
 import { ServerPlayerEffects } from "./player/effects.js";
 import { Effect } from "../www/js/block_type/effect.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
+import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "../www/js/fluid/FluidConst.js";
 import { DBWorld } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
-import { compressNearby } from "../www/js/packet_compressor.js";
+import {compressNearby, NEARBY_FLAGS} from "../www/js/packet_compressor.js";
+import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
+import { AABB } from "../www/js/core/AABB.js"
 
 export class NetworkMessage {
     constructor({
@@ -33,7 +33,6 @@ export class NetworkMessage {
     }
 }
 
-const EMULATED_PING             = config.Debug ? Math.random() * 100 : 0;
 const MAX_COORD                 = 2000000000;
 const MAX_RANDOM_TELEPORT_COORD = 2000000;
 
@@ -102,6 +101,8 @@ export class ServerPlayer extends Player {
         this.sharedProps = new ServerPlayerSharedProps(this);
 
         this.timer_reload = performance.now();
+
+        this._aabb = new AABB()
     }
 
     init(init_info) {
@@ -199,10 +200,18 @@ export class ServerPlayer extends Player {
             await waitPing();
         }
         try {
-            this.world.network_stat.in += message.length;
-            this.world.network_stat.in_count++;
+            const ns = this.world.network_stat
+            ns.in += message.length;
+            ns.in_count++;
             const packet = JSON.parse(message);
-            this.world.packet_reader.read(this, packet);
+            if (ns.in_count_by_type) {
+                const name  = packet.name
+                ns.in_count_by_type[name] = (ns.in_count_by_type[name] ?? 0) + 1
+                if (ns.in_size_by_type) {
+                    ns.in_size_by_type[name] = (ns.in_size_by_type[name] ?? 0) + message.length
+                }
+            }
+            await this.world.packet_reader.read(this, packet);
         } catch(e) {
             this.sendError('error_invalid_command');
         }
@@ -215,7 +224,7 @@ export class ServerPlayer extends Player {
                 message
             }
         }]
-        this.world.sendSelected(packets, [this.session.user_id], [])
+        this.world.sendSelected(packets, this)
     }
 
     // onLeave...
@@ -241,21 +250,50 @@ export class ServerPlayer extends Player {
      * @param {NetworkMessage[]} packets
      */
     sendPackets(packets) {
-        packets.forEach(e => {
-            e.time = this.world.serverTime;
-        });
+        const ns = this.world.network_stat;
 
-        packets = JSON.stringify(packets);
-        this.world.network_stat.out += packets.length;
-        this.world.network_stat.out_count++;
+        // time is the same for all commands, so it's saved once in the 1st of them
+        if (packets.length) {
+            packets[0].time = this.world.serverTime;
+        }
+        const json = JSON.stringify(packets)
+
+        ns.out += json.length;
+        ns.out_count++;
+        if (ns.out_count_by_type && packets.length) {
+            // check if we need to stringify individual packets to add their sizes to stats
+            let hasDifferentTpes = false
+            if (ns.out_size_by_type) {
+                const name = packets[0].name
+                for (let i = 1; i < packets.length; i++) {
+                    if (packets[i].name !== name) {
+                        hasDifferentTpes = true
+                        break
+                    }
+                }
+                if (!hasDifferentTpes) {
+                    ns.out_size_by_type[name] = (ns.out_size_by_type[name] ?? 0) + json.length
+                }
+            }
+            // for each packet
+            for(const p of packets) {
+                const name = p.name
+                ns.out_count_by_type[name] = (ns.out_count_by_type[name] ?? 0) + 1
+
+                if (ns.out_size_by_type && hasDifferentTpes) {
+                    const len = JSON.stringify(p).length + 1
+                    ns.out_size_by_type[name] = (ns.out_size_by_type[name] ?? 0) + len
+                }
+            }
+        }
 
         if (!EMULATED_PING) {
-            this.conn.send(packets);
+            this.conn.send(json);
             return;
         }
 
         setTimeout(() => {
-            this.conn.send(packets);
+            this.conn.send(json);
         }, EMULATED_PING);
     }
 
@@ -281,7 +319,7 @@ export class ServerPlayer extends Player {
         value = Math.max(value, 2);
         value = Math.min(value, 16);
         this.state.chunk_render_dist = value;
-        this.checkVisibleChunks(true);
+        this.vision.preTick(true);
         this.world.db.changeRenderDist(this, value);
     }
 
@@ -302,13 +340,6 @@ export class ServerPlayer extends Player {
         let right_hand_material = inventory.items[inventory.current.index];
         this.state.hands.left = makeHand(left_hand_material);
         this.state.hands.right = makeHand(right_hand_material);
-    }
-
-    /**
-     * @param {ServerChunk} chunk
-     */
-    addChunk(chunk) {
-        this.vision.chunks.set(chunk.addr, chunk.addr);
     }
 
     get rotateDegree() {
@@ -361,28 +392,56 @@ export class ServerPlayer extends Player {
         };
     }
 
-    async tick(delta, tick_number) {
-        // 1.
-        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
-            this.checkVisibleChunks(false);
-        }
-        // 2.
-        this.sendNearPlayers();
-        // 3.
-        this.checkIndicators(tick_number);
-        // 4.
+    async preTick(delta, tick_number) {
         if(tick_number % 2 == 1) this.checkInPortal();
         // 5.
         await this.checkWaitPortal();
-        if (this.status === PLAYER_STATUS_WAITING_DATA) {
-            // will checkVisibleChunks inside if its ready
+        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+            this.vision.preTick(false);
+        } else {
             this.checkWaitingData();
+            if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+                this.claimChunks();
+            }
         }
-        // 6.
+    }
+
+    claimChunks() {
+        this.vision.preTick(true);
+        this.vision.postTick();
+        this.checkVisibleChunks();
+    }
+
+    postTick(delta, tick_number) {
+        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+            this.vision.postTick();
+        }
+        this.checkVisibleChunks();
+        this.sendNearPlayers();
+        this.checkIndicators(tick_number);
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
-        // 7.
         this.effects.checkEffects();
+        //this.updateAABB()
+    }
+
+    isAlive() { 
+        return this.live_level > 0 
+    }
+
+    /**
+     * @returns {AABB}
+     */
+    get aabb() {
+        this._aabb.set(
+            this.state.pos.x - PLAYER_WIDTH / 2,
+            this.state.pos.y,
+            this.state.pos.z - PLAYER_WIDTH / 2,
+            this.state.pos.x + PLAYER_WIDTH / 2,
+            this.state.pos.y + PLAYER_HEIGHT,
+            this.state.pos.z + PLAYER_WIDTH / 2
+        )
+        return this._aabb
     }
 
     async checkWaitPortal() {
@@ -475,7 +534,7 @@ export class ServerPlayer extends Player {
 
     checkWaitingData() {
         // check if there are any chunks not generated; remove generated chunks from the list
-        if (this.vision.checkWaitingChunks() > 0) {
+        if (this.vision.checkWaitingState() > 0) {
             return;
         }
             // teleport
@@ -497,23 +556,29 @@ export class ServerPlayer extends Player {
             data: {}
         }];
         this.world.packets_queue.add([this.session.user_id], packets);
-        this.checkVisibleChunks(true);
     }
 
     // Check player visible chunks
-    checkVisibleChunks(force) {
+    checkVisibleChunks() {
         const {vision, world} = this;
-        const nearby = vision.updateVisibleChunks(force);
-        // Send new chunks
-        if(nearby && nearby.added.length + nearby.deleted.length > 0) {
-            const nearby_compressed = compressNearby(nearby);
-            const packets = [{
-                // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
-                name: ServerClient.CMD_NEARBY_CHUNKS,
-                data: nearby_compressed
-            }];
-            world.sendSelected(packets, [this.session.user_id], []);
+        if (!vision.updateNearby()) {
+            return;
         }
+        const nc = vision.nearbyChunks;
+        const nearby = {
+            chunk_render_dist: nc.chunk_render_dist,
+            added: nc.added,
+            deleted: nc.deleted,
+        }
+
+        const nearby_compressed = compressNearby(nearby);
+        vision.nearbyChunks.markClean();
+        const packets = [{
+            // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
+            name: ServerClient.CMD_NEARBY_CHUNKS,
+            data: nearby_compressed
+        }];
+        world.sendSelected(packets, this);
     }
 
     // Send other players states for me
@@ -546,7 +611,7 @@ export class ServerPlayer extends Player {
         }
         this.prev_near_players = current_visible_players;
         if(packets.length > 0) {
-            this.world.sendSelected(packets, [this.session.user_id]);
+            this.world.sendSelected(packets, this);
         }
     }
 
@@ -588,7 +653,7 @@ export class ServerPlayer extends Player {
                 }
             });
 
-            this.world.sendSelected(packets, [this.session.user_id], []);
+            this.world.sendSelected(packets, this);
             // @todo notify all about change?
         }
     }
@@ -723,7 +788,7 @@ export class ServerPlayer extends Player {
                     params
                 );
                 teleported_player.state.pos = new_pos;
-                teleported_player.checkVisibleChunks(true);
+                teleported_player.vision.checkSpiralChunks();
             }
         }
     }
@@ -736,7 +801,7 @@ export class ServerPlayer extends Player {
                 const item = this.inventory.items[this.inventory.current.index];
                 if (item.id == this.cast.id) {
                     // если предмет это еда
-                    const block = BLOCK.fromId(this.cast.id);
+                    const block = this.world.block_manager.fromId(this.cast.id);
                     if (block.food) {
                         this.setFoodLevel(block.food.amount, block.food.saturation);
                     }
@@ -795,11 +860,12 @@ export class ServerPlayer extends Player {
             return true;
         }
         const world = this.world;
+        const bm = world.block_manager
         const world_block = world.getBlock(new Vector(data.pos));
         if (!world_block) {
             return false;
         }
-        const block = BLOCK.fromId(world_block.id);
+        const block = bm.fromId(world_block.id);
         if (!block) {
             return false;
         }
@@ -807,7 +873,7 @@ export class ServerPlayer extends Player {
         if (!head) {
             return false;
         }
-        const instrument = BLOCK.fromId(this.state.hands.right.id);
+        const instrument = bm.fromId(this.state.hands.right.id);
         let mul = world.getGeneratorOptions('tool_mining_speed', 1);
         mul *= (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) ? 0.2 : 1;
         mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
@@ -826,7 +892,7 @@ export class ServerPlayer extends Player {
 
     // использование предметов и оружия
     onAttackEntity(button_id, mob_id, player_id) {
-        const item = BLOCK.fromId(this.state.hands.right.id);
+        const item = this.world.block_manager.fromId(this.state.hands.right.id);
         const damage = item?.damage ? item.damage : 1;
         const delay = item?.speed ? 200 / item.speed : 200;
         const time = performance.now() - this.timer_reload;

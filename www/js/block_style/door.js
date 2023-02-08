@@ -1,6 +1,5 @@
 import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {CubeSym, pushSym} from '../core/CubeSym.js';
-import {BLOCK, shapePivot} from "../blocks.js";
 import { TBlock } from '../typed_blocks3.js';
 import { AABB } from '../core/AABB.js';
 
@@ -9,7 +8,12 @@ const Z_FIGHT_ERROR = 1/200;
 // Дверь
 export default class style {
 
-    static getRegInfo() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['door'],
             aabb: style.computeAABB,
@@ -26,19 +30,21 @@ export default class style {
      */
     static computeAABB(tblock, for_physic, world, neighbours, expanded) {
         let cardinal_direction = CubeSym.dirAdd(tblock.getCardinalDirection(), CubeSym.ROT_Y2);
-        if(BLOCK.isOpened(tblock)) {
+        if(style.block_manager.isOpened(tblock)) {
             cardinal_direction = CubeSym.dirAdd(cardinal_direction, tblock.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);
         }
         let width = tblock.material?.bb ? 2 : 3
         const sz = width / 15.9
         return [
-            new AABB(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot)
+            new AABB(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, Vector.SHAPE_PIVOT)
         ]
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+        const bm = style.block_manager
+
+        if(!block || typeof block == 'undefined' || block.id == bm.AIR.id) {
             return;
         }
 
@@ -106,9 +112,9 @@ export default class style {
         if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
             texture_dir = DIRECTION.UP;
         }
-        let tex_up_down = BLOCK.calcTexture(texture, texture_dir);
-        let tex_front  = BLOCK.calcTexture(texture, texture_dir);
-        let tex_side = BLOCK.calcTexture(texture, texture_dir);
+        let tex_up_down = bm.calcTexture(texture, texture_dir);
+        let tex_front  = bm.calcTexture(texture, texture_dir);
+        let tex_side = bm.calcTexture(texture, texture_dir);
         let x_pos = 0;
         let z_pos = 0;
         let y_pos = 0; // нарисовать в нижней части блока

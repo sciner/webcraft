@@ -48,10 +48,6 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-            return;
-        }
-
         // Textures
         const c_top = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);

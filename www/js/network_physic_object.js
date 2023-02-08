@@ -1,11 +1,5 @@
-import {Color, getChunkAddr, Mth, Vector} from './helpers.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { AABB, AABBSideParams, pushAABB } from './core/AABB.js';
-
-import {BLEND_MODES} from "./renders/BaseRenderer.js";
-import {Resources} from "./resources.js";
-import GeometryTerrain from "./geometry_terrain.js";
-const {mat4} = glMatrix;
+import { getChunkAddr, Mth, Vector} from './helpers.js';
+import { AABB } from './core/AABB.js';
 
 // AABBDrawable
 export class AABBDrawable extends AABB {
@@ -86,7 +80,9 @@ export class NetworkPhysicObject {
 
     applyState(nextPos, nextRot, sneak, extra_data) {
         this.pos = nextPos;
-        this.extra_data = extra_data;
+        if(extra_data) {
+            this.extra_data = extra_data;
+        }
         if(nextRot) {
             this.yaw = nextRot.z;
             this.pitch = nextRot.x;

@@ -1,4 +1,4 @@
-import { Vector } from "./helpers.js";
+import { SimpleShifted3DArray, Vector } from "./helpers.js";
 import { MobModel } from "./mob_model.js";
 import { ServerClient } from "./server_client.js";
 
@@ -33,18 +33,23 @@ export class MobManager {
                 }
                 case ServerClient.CMD_MOB_UPDATE: {
                     if(Array.isArray(cmd.data)) {
-                        for(let i = 0; i < cmd.data.length; i += 6) {
+                        const add_pos = cmd.data.slice(0, 3)
+                        for(let i = 3; i < cmd.data.length; i += 6) {
                             const mob = this.list.get(cmd.data[i]);
                             if(mob) {
                                 const new_state = {
-                                    pos: new Vector(cmd.data[i + 1], cmd.data[i + 2], cmd.data[i + 3]),
+                                    pos: new Vector(
+                                        cmd.data[i + 1] + add_pos[0],
+                                        cmd.data[i + 2] + add_pos[1],
+                                        cmd.data[i + 3] + add_pos[2]
+                                    ),
                                     rotate: new Vector(0, 0, cmd.data[i + 4]), // new Vector(cmd.data[i + 4], cmd.data[i + 5], cmd.data[i + 6]),
                                     extra_data: cmd.data[i + 5],
                                     time: cmd.time
                                 };
                                 mob.applyNetState(new_state);
                                 // частицы смерти
-                                if (!new_state.extra_data.is_alive) {
+                                if (new_state.extra_data && !new_state.extra_data.is_alive) {
                                     Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
                                 }
                             } else {

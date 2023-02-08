@@ -1,6 +1,5 @@
 import {Vector} from "../../helpers.js";
 import {ClusterBase, ClusterPoint} from "./base.js";
-import { BLOCK } from "../../blocks.js";
 
 //
 export class ClusterPyramid extends ClusterBase {
@@ -10,7 +9,7 @@ export class ClusterPyramid extends ClusterBase {
         this.max_height  = 1;
         this.is_empty = false;
         if(!this.is_empty) {
-            const block = BLOCK.MOSSY_STONE_BRICKS;
+            const block = this.block_manager.MOSSY_STONE_BRICKS;
             let points = new Map();
             const addBlock = (x, z, height) => {
                 let point = points.get(height);

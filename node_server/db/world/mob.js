@@ -3,6 +3,13 @@ import { getChunkAddr, Vector, VectorCollector } from '../../../www/js/helpers.j
 import { Mob } from "../../mob.js";
 import { BulkSelectQuery, preprocessSQL, run } from "../db_helpers.js";
 
+const BULK_UPDATE_FIELDS = 'x = %1, y = %2, z = %3, indicators = %4, extra_data = %5, rotate = %6'
+
+const INSERT = {}
+const UPDATE = {}
+
+const tmpAddr = new Vector()
+
 export class DBWorldMob {
 
     constructor(conn, world, getDefaultPlayerStats, getDefaultPlayerIndicators) {
@@ -143,7 +150,13 @@ export class DBWorldMob {
     }
 
     async bulkUpdate(rows) {
-        return rows.length ? run(this.conn, this.BULK_UPDATE, {
+        UPDATE.BULK = UPDATE.BULK ?? preprocessSQL(`
+            UPDATE entity
+            SET ${BULK_UPDATE_FIELDS}
+            FROM json_each(:jsonRows)
+            WHERE entity.id = %0
+        `);
+        return rows.length ? run(this.conn, UPDATE.BULK, {
             ':jsonRows': JSON.stringify(rows)
         }).then(() => {
             for(const row of rows) {
@@ -151,14 +164,7 @@ export class DBWorldMob {
                 this._cacheMob(row[0], true, row[1], row[2], row[3]);
             }
         }) : null;
-    };
-    BULK_UPDATE_FIELDS = 'x = %1, y = %2, z = %3, indicators = %4, extra_data = %5, rotate = %6'
-    BULK_UPDATE = preprocessSQL(`
-        UPDATE entity
-        SET ${this.BULK_UPDATE_FIELDS}
-        FROM json_each(:jsonRows)
-        WHERE entity.id = %0
-    `);
+    }
 
     /** Upgrdaes a result of {@link toUpdateRow} to a row that can be passed to {@link bulkFullUpdate} */
     static upgradeRowToFullUpdate(row, mob) {
@@ -169,20 +175,20 @@ export class DBWorldMob {
     }
 
     async bulkFullUpdate(rows) {
-        return rows.length ? run(this.conn, this.BULK_FULL_UPDATE, {
+        UPDATE.BULK_FULL = UPDATE.BULK_FULL ?? preprocessSQL(`
+            UPDATE entity
+            SET ${BULK_UPDATE_FIELDS}, is_active = %7, pos_spawn = %8
+            FROM json_each(:jsonRows)
+            WHERE entity.id = %0
+        `);
+        return rows.length ? run(this.conn, UPDATE.BULK_FULL, {
             ':jsonRows': JSON.stringify(rows)
         }).then(() => {
             for(const row of rows) {
                 this._cacheMob(row[0], row[7], row[1], row[2], row[3]);
             }
         }) : null;
-    };
-    BULK_FULL_UPDATE = preprocessSQL(`
-        UPDATE entity
-        SET ${this.BULK_UPDATE_FIELDS}, is_active = %7, pos_spawn = %8
-        FROM json_each(:jsonRows)
-        WHERE entity.id = %0
-    `);
+    }
 
     /** Upgrdaes a result of {@link upgradeRowToFullUpdate} to a row that can be passed to {@link bulkInsert} */
     static upgradeRowToInsert(row, mob) {
@@ -190,7 +196,22 @@ export class DBWorldMob {
     }
 
     async bulkInsert(rows, dt) {
-        return rows.length ? run(this.conn, this.BULK_INSERT, {
+        INSERT.BULK = INSERT.BULK ?? preprocessSQL(`
+            INSERT INTO entity (
+                id,
+                x, y, z,
+                indicators, extra_data, rotate, -- common for all updates
+                is_active, pos_spawn,           -- included in a full update
+                entity_id, type, skin, dt       -- insert only
+            ) SELECT
+                %0,
+                %1, %2, %3,
+                %4, %5, %6,
+                %7, %8,
+                %9, %10, %11, :dt
+            FROM json_each(:jsonRows)
+        `);
+        return rows.length ? run(this.conn, INSERT.BULK, {
             ':jsonRows': JSON.stringify(rows),
             ':dt': dt
         }).then(() => {
@@ -198,22 +219,7 @@ export class DBWorldMob {
                 this._cacheMob(row[0], row[7], row[1], row[2], row[3]);
             }
         }) : null;
-    };
-    BULK_INSERT = preprocessSQL(`
-        INSERT INTO entity (
-            id,
-            x, y, z,
-            indicators, extra_data, rotate, -- common for all updates
-            is_active, pos_spawn,           -- included in a full update
-            entity_id, type, skin, dt       -- insert only
-        ) SELECT
-            %0,
-            %1, %2, %3,
-            %4, %5, %6,
-            %7, %8,
-            %9, %10, %11, :dt
-        FROM json_each(:jsonRows)
-    `);
+    }
 
     async bulkDelete(ids) {
         return ids.length ? run(this.conn,
@@ -224,8 +230,6 @@ export class DBWorldMob {
                 this._cacheMob(id, false);
             }
         }) : null;
-    };
+    }
 
 }
-
-const tmpAddr = new Vector();

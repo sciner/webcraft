@@ -56,6 +56,7 @@ export class ChunkManager {
         this.lightPool              = null;
         this.lightProps = {
             texFormat: 'rgba8unorm',
+            hasTexture: true,
             depthMul: 1,
         }
 
@@ -195,6 +196,10 @@ export class ChunkManager {
                     if(chunk) {
                         chunk.onBlocksGenerated(args);
                     }
+                    break;
+                }
+                case 'gen_queue_size': {
+                    //nothing, server-only
                     break;
                 }
                 case 'vertices_generated': {
@@ -360,10 +365,12 @@ export class ChunkManager {
         this.update_chunks = !this.update_chunks;
     }
 
-    setLightTexFormat(texFormat, hasNormals) {
-        this.lightProps.texFormat = texFormat;
+    setLightTexFormat(hasNormals) {
         this.lightProps.depthMul = hasNormals ? 2 : 1;
-        this.lightWorker.postMessage([this.worldId, 'initRender', { texFormat, hasNormals }])
+        this.lightWorker.postMessage([this.worldId, 'initRender', {
+            hasTexture: true,
+            hasNormals
+        }])
     }
 
     /**

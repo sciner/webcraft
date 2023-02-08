@@ -3,15 +3,54 @@ import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
 import { DBWorldMob } from "./db/world/mob.js"
+import { AABB } from "../www/js/core/AABB.js";
+
+export class MobSpawnParams {
+
+    /**
+     * @type { int }
+     */
+    id
+
+    /**
+     * @type { string }
+     */
+    entity_id
+
+    /**
+     * @param {Vector} pos 
+     * @param {Vector} rotate 
+     * @param {string} type Model of mob
+     * @param {string} skin Model skin id
+     */
+    constructor(pos, rotate, type, skin) {
+        this.pos = new Vector(pos)
+        this.pos_spawn = new Vector(pos)
+        this.rotate = new Vector(rotate)
+        this.type = type
+        this.skin = skin
+    }
+
+}
 
 //
 export class MobState {
     
+    /**
+     * @param {int} id 
+     * @param {Vector} pos 
+     * @param {Vector} rotate 
+     * @param {?object} extra_data 
+     */
     constructor(id, pos, rotate, extra_data) {
         this.id = id;
-        this.pos = pos;
-        this.rotate = rotate;
-        this.extra_data = extra_data;
+        this.pos = new Vector(pos).round(3);
+        this.rotate = new Vector(rotate).round(3);
+        this.extra_data = JSON.parse(JSON.stringify(extra_data))
+        if(this.extra_data?.time_fire !== undefined) {
+            this.extra_data.in_fire = this.extra_data.time_fire > 0
+            delete(this.extra_data.time_fire)
+        }
     }
 
     /**
@@ -43,13 +82,41 @@ export class Mob {
     static DIRTY_FLAG_UPDATE        = 0x4; // It indicates that something important has changed. Saving in the next transaction won't be skipped.
     static DIRTY_FLAG_SAVED_DEAD    = 0x8; // If the mob is dead and was already saved as dead, it won't be saved again.
 
+    /**
+     * @type { import("./server_world.js").ServerWorld }
+     */
     #world;
+
+    /**
+     * @type { import("./fsm/brain.js").FSMBrain }
+     */
     #brain;
+
+    /**
+     * @type {Vector}
+     */
     #chunk_addr;
+
+    /**
+     * @type {Vector}
+     */
     #forward;
 
+    /**
+     * @type { MobState }
+     */
+    #prev_state;
+
+    /**
+     * 
+     * @param { import("./server_world.js").ServerWorld } world 
+     * @param {*} params 
+     * @param {*} existsInDB 
+     */
     constructor(world, params, existsInDB) {
+
         this.#world         = world;
+
         // Read params
         this.id             = params.id,
         this.entity_id      = params.entity_id,
@@ -81,12 +148,34 @@ export class Mob {
         // To determine when to make regular saves. Add a random to spread different mobs over different transactions.
         this.lastSavedTime  = performance.now() + Math.random() * 0.5 * MOB_SAVE_PERIOD;
         this.lastSavedPos   = new Vector(this.pos); // to force saving is the position changed to much
+        this._aabb = new AABB
     }
 
+    /**
+     * @returns {AABB}
+     */
+    get aabb() {
+        this._aabb.set(
+            this.pos.x - this.width / 2,
+            this.pos.y,
+            this.pos.z - this.width / 2,
+            this.pos.x + this.width / 2,
+            this.pos.y + this.height,
+            this.pos.z + this.width / 2
+        )
+        return this._aabb
+    }
+
+    /**
+     * @returns {Vector}
+     */
     get chunk_addr() {
         return getChunkAddr(this.pos, this.#chunk_addr);
     }
 
+    /**
+     * @returns {Vector}
+     */
     get forward() {
         return this.#forward.set(
             Math.sin(this.rotate.z),
@@ -95,15 +184,26 @@ export class Mob {
         );
     }
 
+    /**
+     * @returns { import("./server_world.js").ServerWorld }
+     */
     getWorld() {
         return this.#world;
     }
-    
+
+    /**
+     * @returns { import("./fsm/brain.js").FSMBrain }
+     */
     getBrain() {
         return this.#brain;
     }
 
-    // Create new mob
+    /**
+     * Create new mob
+     * @param { import("./server_world.js").ServerWorld } world 
+     * @param { MobSpawnParams } params 
+     * @returns { ?Mob }
+     */
     static create(world, params) {
         const model = world.models.list.get(params.type);
         if(!model) {
@@ -131,6 +231,10 @@ export class Mob {
         return new Mob(world, params, false);
     }
 
+    /**
+     * @param {float} delta 
+     * @returns 
+     */
     tick(delta) {
         if(this.indicators.live.value == 0) {
             return false;
@@ -139,6 +243,9 @@ export class Mob {
         this.#brain.tick(delta);
     }
 
+    /**
+     * @param {Vector} vec 
+     */
     addVelocity(vec) {
         this.#brain.pc.player_state.vel.addSelf(vec);
         this.#brain.pc.tick(0);
@@ -198,6 +305,7 @@ export class Mob {
         }
     }
 
+    // Kill
     kill() {
         if(this.already_killed) {
             return false;
@@ -210,12 +318,15 @@ export class Mob {
 
     // Deactivate
     deactivate() {
-        this.is_active  = false;
+        this.is_active = false;
         this.dirtyFlags |= Mob.DIRTY_FLAG_FULL_UPDATE;
         this.#world.mobs.inactiveByEntityId.set(this.entity_id, this);
         this.onUnload();
     }
 
+    /**
+     * @returns {boolean}
+     */
     isAlive() {
         return this.indicators.live.value > 0;
     }
@@ -225,7 +336,11 @@ export class Mob {
         return !player || player.status !== PLAYER_STATUS_ALIVE || !player.game_mode.getCurrent().can_take_damage;
     }
 
-    //
+    /**
+     * @param { import("./server_world.js").ServerWorld } world 
+     * @param {*} row 
+     * @returns {Mob}
+     */
     static fromRow(world, row) {
         return new Mob(world, {
             id:         row.id,
@@ -241,10 +356,28 @@ export class Mob {
         }, true);
     }
 
-    exportState() {
-        return new MobState(this.id, this.pos, this.rotate, this.extra_data);
+    /**
+     * @param {boolean} return_diff 
+     * @returns {MobState}
+     */
+    exportState(return_diff = false) {
+        const new_state = new MobState(this.id, this.pos, this.rotate, this.extra_data)
+        if(return_diff && this.#prev_state) {
+            if(new_state.equal(this.#prev_state)) {
+                return null
+            }
+            if(JSON.stringify(new_state.extra_data) == JSON.stringify(this.#prev_state.extra_data)) {
+                new_state.extra_data = null
+            }
+        }
+        return this.#prev_state = new_state
     }
 
+    /**
+     * @param {*} underConstruction 
+     * @param {boolean} force 
+     * @returns 
+     */
     writeToWorldTransaction(underConstruction, force = false) {
         const dirtyFlags = this.dirtyFlags;
         if (dirtyFlags & Mob.DIRTY_FLAG_SAVED_DEAD) {
@@ -287,4 +420,5 @@ export class Mob {
         DBWorldMob.upgradeRowToInsert(row, this);
         underConstruction.insertMobRows.push(row);
     }
+
 }
