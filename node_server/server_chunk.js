@@ -901,6 +901,13 @@ export class ServerChunk {
                     }
                     break;
                 }
+                case 'chorus': {
+                    // only bottom
+                    if(neighbourPos.y <= pos.y) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
                 case 'lantern': {
                     // top and bottom
                     if(neighbourPos.y < pos.y && roty == 1) {

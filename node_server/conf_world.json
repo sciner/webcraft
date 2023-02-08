@@ -26,7 +26,8 @@
         "fire",
         "tnt",
         "brewing",
-        "dripstone"
+        "dripstone",
+        "chorus"
     ],
     "random_tickers": [
         "grass_block"
