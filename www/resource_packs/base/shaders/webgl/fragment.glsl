@@ -160,23 +160,6 @@ void main() {
 
         if(v_noCanTakeLight < 0.5) {
 
-            if(v_flagLeavesUnusualColor > .5) {
-                float fsc = v_flagLeavesUnusualColor;
-                if(fsc > .5 && fsc < 1.5) {
-                    // violet
-                    color.rgb = (1. - color.rgb);
-                    color.rgb = 0.5 + 2. * (color.rgb - 0.55);
-                } else if(fsc > 1.5 && fsc < 2.5) {
-                    // orange
-                    color.r = color.g;
-                    color.rgb *= vec3(2., .75, 0.) * .75;
-                } else if(fsc > 2.5 && fsc < 3.5) {
-                    // yellow
-                    color.r = color.g;
-                    color.rgb *= vec3(3.0, 2.5, 0.) * .75;
-                }
-            }
-
             vec4 centerSample;
             #include<local_light_pass>
             #include<ao_light_pass>

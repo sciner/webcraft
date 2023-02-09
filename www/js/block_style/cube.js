@@ -29,9 +29,9 @@ const _pl = {};
 const _vec = new Vector(0, 0, 0);
 
 const LEAVES_COLOR_FLAGS = [
-    QUAD_FLAGS.FLAG_LEAVES_UNUSUAL_COLOR,
-    QUAD_FLAGS.FLAG_LEAVES_UNUSUAL_COLOR_2,
-    QUAD_FLAGS.FLAG_LEAVES_UNUSUAL_COLOR_3
+    new IndexedColor(28, 540, 0), // pink
+    new IndexedColor(20, 524, 0), // orange
+    new IndexedColor(28, 524, 0), // yellow
 ]
 
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
@@ -297,7 +297,10 @@ export default class style {
             let flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES
             if(block.extra_data) {
                 if(block.extra_data && block.extra_data.v != undefined) {
-                    flag |= LEAVES_COLOR_FLAGS[block.extra_data.v]
+                    const color = LEAVES_COLOR_FLAGS[block.extra_data.v]
+                    _lm_leaves.r = color.r
+                    _lm_leaves.g = color.g
+                    debugger
                 }
             }
             for(let i = 0; i < leaves_planes.length; i++) {

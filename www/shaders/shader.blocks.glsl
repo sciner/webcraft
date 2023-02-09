@@ -34,9 +34,6 @@
     #define LOOK_AT_CAMERA_HOR 15
     #define FLAG_ENCHANTED_ANIMATION 16
     #define FLAG_RAIN_OPACITY 17
-    #define FLAG_LEAVES_UNUSUAL_COLOR 18
-    #define FLAG_LEAVES_UNUSUAL_COLOR_2 19
-    #define FLAG_LEAVES_UNUSUAL_COLOR_3 20
 
 #endif
 
@@ -138,7 +135,6 @@
     out float v_flagEnchantedAnimation;
     out float v_flagScroll;
     out float v_flagFlagRainOpacity;
-    out float v_flagLeavesUnusualColor;
 
     //--
 #endif
@@ -172,7 +168,6 @@
     in float v_flagEnchantedAnimation;
     in float v_flagFlagRainOpacity;
     in float v_flagLeaves;
-    in float v_flagLeavesUnusualColor;
 
     out vec4 outColor;
 #endif
@@ -409,13 +404,6 @@
     int flagLeaves = (flags >> FLAG_LEAVES) & 1;
     int flagEnchantedAnimation = (flags >> FLAG_ENCHANTED_ANIMATION) & 1;
     int flagFlagRainOpacity = (flags >> FLAG_RAIN_OPACITY) & 1;
-    int flagLeavesUnusualColor = (flags >> FLAG_LEAVES_UNUSUAL_COLOR) & 1;
-
-    if(((flags >> FLAG_LEAVES_UNUSUAL_COLOR_2) & 1) == 1) {
-        flagLeavesUnusualColor = 2;
-    } else if(((flags >> FLAG_LEAVES_UNUSUAL_COLOR_3) & 1) == 1) {
-        flagLeavesUnusualColor = 3;
-    }
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -429,7 +417,6 @@
     v_flagLeaves = float(flagLeaves);
     v_flagEnchantedAnimation = float(flagEnchantedAnimation);
     v_flagFlagRainOpacity = float(flagFlagRainOpacity);
-    v_flagLeavesUnusualColor = float(flagLeavesUnusualColor);
 
     //--
 #endif
