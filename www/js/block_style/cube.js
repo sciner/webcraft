@@ -28,6 +28,12 @@ const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
 
+const LEAVES_COLOR_FLAGS = [
+    QUAD_FLAGS.FLAG_LEAVES_UNUSUAL_COLOR,
+    QUAD_FLAGS.FLAG_LEAVES_UNUSUAL_COLOR_2,
+    QUAD_FLAGS.FLAG_LEAVES_UNUSUAL_COLOR_3
+]
+
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const _aabb = new AABB();
@@ -288,6 +294,12 @@ export default class style {
             // Shift the horizontal plane randomly, to prevent a visible big plane.
             // Alternate shift by 0.25 block up/down from the center + some random.
             leaves_planes[0].move.y = ((x + z) % 2 - 0.5) * 0.5 + (r2 - 0.5) * 0.3;
+            let flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES
+            if(block.extra_data) {
+                if(block.extra_data && block.extra_data.v != undefined) {
+                    flag |= LEAVES_COLOR_FLAGS[block.extra_data.v]
+                }
+            }
             for(let i = 0; i < leaves_planes.length; i++) {
                 const plane = leaves_planes[i];
                 // fill object
@@ -301,7 +313,7 @@ export default class style {
                     z + (plane.move?.z || 0)
                 );
                 _pl.matrix   = leaves_matrices[i];
-                _pl.flag     = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES;
+                _pl.flag     = flag;
                 _pl.texture  = leaves_tex;
                 default_style.pushPlane(vertices, _pl);
             }
