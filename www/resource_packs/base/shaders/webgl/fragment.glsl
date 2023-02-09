@@ -12,13 +12,52 @@
 
 #include<manual_mip_define_func>
 
-//vec3 gamma(vec3 color){
-//    return pow(color, vec3(1.0/2.0));
-//}
-
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
+
+//******************************************************************************
+
+    float Color_GetSaturation(vec3 c) {
+        return max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+    }
+
+    float Color_GetLuminosity(vec3 c) {
+        return 0.3*c.r + 0.59*c.g + 0.11*c.b;
+    }
+
+    vec3 Color_SetLuminosity(vec3 c, float lum) {
+        float d = lum - Color_GetLuminosity(c);
+        c.rgb += vec3(d,d,d);
+
+        // clip back into legal range
+        lum = Color_GetLuminosity(c);
+        float cMin = min(c.r, min(c.g, c.b));
+        float cMax = max(c.r, max(c.g, c.b));
+
+        if(cMin < 0.) {
+            c = mix(vec3(lum,lum,lum), c, lum / (lum - cMin));
+        }
+
+        if(cMax > 1.) {
+            c = mix(vec3(lum,lum,lum), c, (1. - lum) / (cMax - lum));
+        }
+
+        return c;
+    }
+
+    vec3 BlendMode_Color(vec3 base, vec3 blend) {
+        return Color_SetLuminosity(blend, Color_GetLuminosity(base));
+    }
+
+    // Generic algorithm to desaturate images used in most game engines
+    vec3 generic_desaturate(vec3 color, float factor) {
+        vec3 lum = vec3(0.299, 0.587, 0.114);
+        vec3 gray = vec3(dot(lum, color));
+        return mix(color, gray, factor);
+    }
+
+//******************************************************************************
 
 vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     vec2 texc = texClamped;
@@ -29,7 +68,15 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         float mask_shift = v_color.b;
         vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(mask_shift, 1.), texc.y) * mipData.zw + mipData.xy);
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
-        color.rgb += color_mask.rgb * color_mult.rgb;
+        // Old Blend Mode
+        // color.rgb += color_mask.rgb * color_mult.rgb;
+        // Photoshop Blend Mode @Color
+        color.rgb += BlendMode_Color(color_mask.rgb, color_mult.rgb);
+        // color correction
+        color.rgb = pow(color.rgb, vec3(1.0 / 0.5)); // gamma
+        color.rgb = color.rgb + .15; // brightness
+        color.rgb = generic_desaturate(color.rgb, 0.25); // desaturate
+
     } else if (v_flagMultiplyColor > 0.0) {
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
         color.rgb *= color_mult.rgb;

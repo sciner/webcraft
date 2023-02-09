@@ -1608,7 +1608,7 @@
             "material": {
                 "id": "plant"
             },
-            "compile": {
+            "_compile": {
                 "filter": "brightness(110%)"
             },
             "tags": [
@@ -3649,7 +3649,7 @@
                 {"side": "block/tall_grass/tall_grass4.png"},
                 {"side": "block/tall_grass/tall_grass5.png"}
             ],
-            "compile": {
+            "_compile": {
                 "filter": "brightness(115%)"
             },
             "tags": [

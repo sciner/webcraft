@@ -300,7 +300,6 @@ export default class style {
                     const color = LEAVES_COLOR_FLAGS[block.extra_data.v]
                     _lm_leaves.r = color.r
                     _lm_leaves.g = color.g
-                    debugger
                 }
             }
             for(let i = 0; i < leaves_planes.length; i++) {
