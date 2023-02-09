@@ -85,14 +85,14 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         if(v_flagMaskColorAdd > .5) {
             color.rgb += color_mask.rgb * color_mult.rgb;
         } else {
-            // color.rgb += color_mask.rgb * color_mult.rgb;
+            color.rgb += color_mask.rgb * color_mult.rgb;
 
             // color_mask.rgb = pow(color_mask.rgb, vec3(0.850));
             // color.rgb += pow(color_mask.rgb * color_mult.rgb, vec3(1.0 / 0.85));
             // color.rgb += 
 
             // Photoshop Blend Mode @Color
-            color.rgb += BlendMode_Color(color_mask.rgb, color_mult.rgb);
+            // color.rgb += BlendMode_Color(color_mask.rgb, color_mult.rgb);
 
             // color correction
             // color.rgb = pow(color.rgb, vec3(1.0 / 0.5)); // gamma
@@ -110,9 +110,9 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     //    color.rgb *= 2.0;
     //}
 
-    color.rgb = pow(color.rgb, vec3(1.0 / 0.6)); // gamma
-    color.rgb = brightnessContrast(color.rgb, 0.05, 0.8); // brightness + contrast
-    color.rgb = generic_desaturate(color.rgb, 0.15); // desaturate
+    // color.rgb = pow(color.rgb, vec3(1.0 / 0.6)); // gamma
+    // color.rgb = brightnessContrast(color.rgb, 0.05, 0.8); // brightness + contrast
+    // color.rgb = generic_desaturate(color.rgb, 0.15); // desaturate
 
     return color;
 }

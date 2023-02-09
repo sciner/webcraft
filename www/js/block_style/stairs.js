@@ -1,5 +1,4 @@
 import {DIRECTION, ROTATE, TX_CNT, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { CubeSym } from "../core/CubeSym.js";
 
@@ -10,8 +9,12 @@ const depth = 1;
 // Ступеньки
 export default class style {
 
-    //
-    static getRegInfo() {
+    /**
+     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @returns 
+     */
+    static getRegInfo(block_manager) {
+        style.block_manager = block_manager
         return {
             styles: ['stairs'],
             func: style.func,
@@ -32,7 +35,7 @@ export default class style {
         const {x, y, z}             = pos;
         const aabbs                 = [];
         const cardinal_direction    = block.getCardinalDirection();
-        const on_ceil               = BLOCK.isOnCeil(block);
+        const on_ceil               = style.block_manager.isOnCeil(block);
 
         //
         let sw = cardinal_direction == DIRECTION.NORTH || cardinal_direction == DIRECTION.EAST;
@@ -59,7 +62,7 @@ export default class style {
 
         // Prepare for tops
         // Даже не пытайся это понять и переделать
-        const n = BLOCK.autoNeighbs(chunkManager, pos, cardinal_direction, neighbours);
+        const n = style.block_manager.autoNeighbs(chunkManager, pos, cardinal_direction, neighbours);
         let changed = false;
         if(style.checkIfSame(n.SOUTH, on_ceil)) {
             // удаление лишних
@@ -140,7 +143,7 @@ export default class style {
 
     // Return TRUE if block sames
     static checkIfSame(checked_block, on_ceil) {
-        const checked_block_on_ceil = BLOCK.isOnCeil(checked_block);
+        const checked_block_on_ceil = style.block_manager.isOnCeil(checked_block);
         if(checked_block_on_ceil != on_ceil) {
             return false;
         }
@@ -155,8 +158,8 @@ export default class style {
         const pos                   = new Vector(x, y, z);
 
         // полная текстура
-        const c_up = BLOCK.calcTexture(texture, DIRECTION.UP);
-        const c_south = BLOCK.calcMaterialTexture(material, DIRECTION.SOUTH, width, height);
+        const c_up = style.block_manager.calcTexture(texture, DIRECTION.UP);
+        const c_south = style.block_manager.calcMaterialTexture(material, DIRECTION.SOUTH, width, height);
         const c_north = [...c_south];
 
         const info = style.calculate(block, pos, neighbours);

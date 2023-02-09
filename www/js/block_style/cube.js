@@ -297,7 +297,7 @@ export default class style {
             let flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES
             if(block.extra_data) {
                 if(block.extra_data && block.extra_data.v != undefined) {
-                    const color = LEAVES_COLOR_FLAGS[block.extra_data.v]
+                    const color = LEAVES_COLOR_FLAGS[block.extra_data.v % LEAVES_COLOR_FLAGS.length]
                     _lm_leaves.r = color.r
                     _lm_leaves.g = color.g
                 }
