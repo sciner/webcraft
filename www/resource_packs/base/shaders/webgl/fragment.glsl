@@ -27,8 +27,11 @@ float rand(vec2 co) {
     }
 
     vec3 Color_SetLuminosity(vec3 c, float lum) {
+
+        vec3 cc = c;
         float d = lum - Color_GetLuminosity(c);
         c.rgb += vec3(d,d,d);
+        c.rgb = clamp(c.rgb, vec3(0.), vec3(1.));
 
         // clip back into legal range
         lum = Color_GetLuminosity(c);
@@ -36,11 +39,11 @@ float rand(vec2 co) {
         float cMax = max(c.r, max(c.g, c.b));
 
         if(cMin < 0.) {
-            c = mix(vec3(lum,lum,lum), c, lum / (lum - cMin));
+            c = mix(vec3(lum,lum,lum), cc, lum / (lum - cMin));
         }
 
         if(cMax > 1.) {
-            c = mix(vec3(lum,lum,lum), c, (1. - lum) / (cMax - lum));
+            c = mix(vec3(lum,lum,lum), cc, (1. - lum) / (cMax - lum));
         }
 
         return c;
@@ -55,6 +58,16 @@ float rand(vec2 co) {
         vec3 lum = vec3(0.299, 0.587, 0.114);
         vec3 gray = vec3(dot(lum, color));
         return mix(color, gray, factor);
+    }
+
+    // Generic algorithm to desaturate images used in most game engines
+    vec3 generic_desaturate2(vec3 color, float factor) {
+        vec3 gray = vec3( dot( color , vec3( 0.2126 , 0.7152 , 0.0722 ) ) );
+        return  mix( color , gray , factor );
+    }
+
+    vec3 brightnessContrast(vec3 value, float brightness, float contrast) {
+        return (value - 0.5) * contrast + 0.5 + brightness;
     }
 
 //******************************************************************************
@@ -72,12 +85,20 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         if(v_flagMaskColorAdd > .5) {
             color.rgb += color_mask.rgb * color_mult.rgb;
         } else {
+            // color.rgb += color_mask.rgb * color_mult.rgb;
+
+            // color_mask.rgb = pow(color_mask.rgb, vec3(0.850));
+            // color.rgb += pow(color_mask.rgb * color_mult.rgb, vec3(1.0 / 0.85));
+            // color.rgb += 
+
             // Photoshop Blend Mode @Color
             color.rgb += BlendMode_Color(color_mask.rgb, color_mult.rgb);
+
             // color correction
-            color.rgb = pow(color.rgb, vec3(1.0 / 0.5)); // gamma
-            color.rgb = color.rgb + .15; // brightness
-            color.rgb = generic_desaturate(color.rgb, 0.25); // desaturate
+            // color.rgb = pow(color.rgb, vec3(1.0 / 0.5)); // gamma
+            // color.rgb = color.rgb + .15; // brightness
+            // color.rgb = generic_desaturate(color.rgb, 0.25); // desaturate
+
         }
 
     } else if (v_flagMultiplyColor > 0.0) {
@@ -88,6 +109,10 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     //if(v_flagEnchantedAnimation > 0.0) {
     //    color.rgb *= 2.0;
     //}
+
+    color.rgb = pow(color.rgb, vec3(1.0 / 0.6)); // gamma
+    color.rgb = brightnessContrast(color.rgb, 0.05, 0.8); // brightness + contrast
+    color.rgb = generic_desaturate(color.rgb, 0.15); // desaturate
 
     return color;
 }
