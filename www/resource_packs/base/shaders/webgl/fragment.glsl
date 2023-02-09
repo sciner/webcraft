@@ -69,13 +69,16 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(mask_shift, 1.), texc.y) * mipData.zw + mipData.xy);
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
         // Old Blend Mode
-        // color.rgb += color_mask.rgb * color_mult.rgb;
-        // Photoshop Blend Mode @Color
-        color.rgb += BlendMode_Color(color_mask.rgb, color_mult.rgb);
-        // color correction
-        color.rgb = pow(color.rgb, vec3(1.0 / 0.5)); // gamma
-        color.rgb = color.rgb + .15; // brightness
-        color.rgb = generic_desaturate(color.rgb, 0.25); // desaturate
+        if(v_flagMaskColorAdd > .5) {
+            color.rgb += color_mask.rgb * color_mult.rgb;
+        } else {
+            // Photoshop Blend Mode @Color
+            color.rgb += BlendMode_Color(color_mask.rgb, color_mult.rgb);
+            // color correction
+            color.rgb = pow(color.rgb, vec3(1.0 / 0.5)); // gamma
+            color.rgb = color.rgb + .15; // brightness
+            color.rgb = generic_desaturate(color.rgb, 0.25); // desaturate
+        }
 
     } else if (v_flagMultiplyColor > 0.0) {
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
@@ -186,7 +189,7 @@ void main() {
             }
 
             // text not allow to discard in this place
-            if(v_flagFlagOpacity != 0.) {
+            if(v_flagOpacity != 0.) {
                 color.a *= v_color.b / 255.0;
             } else {
                 if(color.a < 0.1) discard;
@@ -224,7 +227,7 @@ void main() {
             color.rgb *= combinedLight * sunNormalLight;
         }
 
-        if(v_flagFlagRainOpacity > .5) {
+        if(v_flagRainOpacity > .5) {
              color.a *= u_rain_strength;
         }
 

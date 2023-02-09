@@ -65,7 +65,7 @@ export default class style {
         // Texture color multiplier
         if(block.id == BLOCK.VINE.id) {
             lm = dirt_color;
-            flags = QUAD_FLAGS.MASK_BIOME;
+            flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
         }
         // Рисуем грани блока
         if(block.extra_data) {

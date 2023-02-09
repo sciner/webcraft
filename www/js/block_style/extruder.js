@@ -182,7 +182,7 @@ export default class style {
             flags = QUAD_FLAGS.MASK_BIOME;
         } else if(block.hasTag('mask_color') && material.mask_color) {
             lm = material.mask_color;
-            flags = QUAD_FLAGS.MASK_BIOME;
+            flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
         }
         let pp = IndexedColor.packLm(lm);
 

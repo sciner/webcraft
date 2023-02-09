@@ -174,7 +174,7 @@ export default class style {
             lm = dirt_color || IndexedColor.GRASS;
             flags = QUAD_FLAGS.MASK_BIOME;
         } else if(material.tags.includes('mask_color')) {
-            flags = QUAD_FLAGS.MASK_BIOME;
+            flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             lm = material.mask_color;
         }
 
@@ -395,8 +395,8 @@ export default class style {
             }
             if(block.hasTag('mask_color')) {
                 lm = material.mask_color;
-                sideFlags = QUAD_FLAGS.MASK_BIOME;
-                upFlags = QUAD_FLAGS.MASK_BIOME;
+                sideFlags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
+                upFlags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             }
             if(block.hasTag('multiply_color')) {
                 lm = material.multiply_color;

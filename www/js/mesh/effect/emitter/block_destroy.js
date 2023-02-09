@@ -150,7 +150,7 @@ export default class emitter {
                 flags |= QUAD_FLAGS.MASK_BIOME;
             } else if(this.block_manager.MASK_COLOR_BLOCKS.includes(block.id)) {
                 lm.set(block.mask_color.r, block.mask_color.g, block.mask_color.b);
-                flags |= QUAD_FLAGS.MASK_BIOME;
+                flags |= QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             } else if(block.tags.includes('multiply_color')) {
                 lm.set(block.multiply_color.r, block.multiply_color.g, block.multiply_color.b);
                 flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;

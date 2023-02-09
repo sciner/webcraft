@@ -82,7 +82,7 @@ void main() {
     v_texcoord1_diff = uvCenter1 - uvCenter0;
 
     if(u_fogOn) {
-        if (flagBiome == 0) {
+        if (flagBiome + flagMaskColorAdd == 0) {
             v_color.a = 0.0;
         }
     }

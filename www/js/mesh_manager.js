@@ -200,7 +200,7 @@ export class MeshManager {
                     //flags       = flags | QUAD_FLAGS.MASK_BIOME;
                 } else if(block_manager.MASK_COLOR_BLOCKS.indexOf(mat.id) >= 0) {
                     lm = mat.mask_color;
-                    flags = QUAD_FLAGS.MASK_BIOME;
+                    flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
                 }
                 //
                 for(let i = 0; i < count; i++) {

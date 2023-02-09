@@ -34,6 +34,7 @@
     #define LOOK_AT_CAMERA_HOR 15
     #define FLAG_ENCHANTED_ANIMATION 16
     #define FLAG_RAIN_OPACITY 17
+    #define FLAG_MASK_COLOR_ADD 18
 
 #endif
 
@@ -125,7 +126,7 @@
 
     // quad flags
     out float v_noCanTakeAO;
-    out float v_flagFlagOpacity;
+    out float v_flagOpacity;
     out float v_flagQuadSDF;
     out float v_noCanTakeLight;
     out float v_Triangle;
@@ -134,7 +135,8 @@
     out float v_flagLeaves;
     out float v_flagEnchantedAnimation;
     out float v_flagScroll;
-    out float v_flagFlagRainOpacity;
+    out float v_flagRainOpacity;
+    out float v_flagMaskColorAdd;
 
     //--
 #endif
@@ -160,14 +162,15 @@
 
     // quad flags
     in float v_noCanTakeAO;
-    in float v_flagFlagOpacity;
+    in float v_flagOpacity;
     in float v_flagQuadSDF;
     in float v_noCanTakeLight;
     in float v_Triangle;
     in float v_flagMultiplyColor;
     in float v_flagEnchantedAnimation;
-    in float v_flagFlagRainOpacity;
+    in float v_flagRainOpacity;
     in float v_flagLeaves;
+    in float v_flagMaskColorAdd;
 
     out vec4 outColor;
 #endif
@@ -403,12 +406,13 @@
     int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
     int flagLeaves = (flags >> FLAG_LEAVES) & 1;
     int flagEnchantedAnimation = (flags >> FLAG_ENCHANTED_ANIMATION) & 1;
-    int flagFlagRainOpacity = (flags >> FLAG_RAIN_OPACITY) & 1;
+    int flagRainOpacity = (flags >> FLAG_RAIN_OPACITY) & 1;
+    int flagMaskColorAdd = (flags >> FLAG_MASK_COLOR_ADD) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
     v_noCanTakeAO = float(flagNoCanTakeAO);
-    v_flagFlagOpacity = float(flagFlagOpacity);
+    v_flagOpacity = float(flagFlagOpacity);
     v_flagQuadSDF = float(flagQuadSDF);
     v_noCanTakeLight = float(flagNoCanTakeLight);
     v_Triangle = float(flagTriangle);
@@ -416,7 +420,8 @@
     v_flagMultiplyColor = float(flagMultiplyColor);
     v_flagLeaves = float(flagLeaves);
     v_flagEnchantedAnimation = float(flagEnchantedAnimation);
-    v_flagFlagRainOpacity = float(flagFlagRainOpacity);
+    v_flagRainOpacity = float(flagRainOpacity);
+    v_flagMaskColorAdd = float(flagMaskColorAdd);
 
     //--
 #endif
