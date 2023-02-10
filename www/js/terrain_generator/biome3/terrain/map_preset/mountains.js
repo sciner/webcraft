@@ -1,3 +1,5 @@
+import { Mth } from "../../../../helpers.js";
+import { DENSITY_AIR_THRESHOLD } from "../manager.js";
 import { DensityParams } from "../manager_vars.js";
 
 export class MapPresetMountains {
@@ -7,6 +9,7 @@ export class MapPresetMountains {
         this.chance = 40;
         this.relief = 4;
         this.mid_level = 6;
+        this.max_height = 150;
     }
 
     /**
@@ -21,35 +24,22 @@ export class MapPresetMountains {
      */
     calcDensity(xyz, cell, dist_percent, noise2d, generator_options, result) {
 
-        if(!cell.mountain_density) {
-            const NOISE_SCALE = 100
-            const HEIGHT_SCALE = 150 * dist_percent;
-            const max_height = generator_options.WATER_LINE +
-                               this.mountainFractalNoise(
-                                   noise2d,
-                                   xyz.x/3, xyz.z/3,
-                                   4, // -- Octaves (Integer that is >1)
-                                   3, // -- Lacunarity (Number that is >1)
-                                   0.35, // -- Persistence (Number that is >0 and <1)
-                                   NOISE_SCALE,
-                               ) * HEIGHT_SCALE;
-            const d1 = 0;
-            const d2 = 0;
-            const d3 = (
-                noise2d(xyz.x/25, xyz.z/25) +
-                noise2d((xyz.x + 1000) / 25, (xyz.z + 1000) / 25)
-            ) / 2;
-            const d4 = 0;
-            cell.mountain_density = new DensityParams(d1, d2, d3, d4, 1);
-            cell.mountain_density.max_height = max_height;
-            cell.mountain_density_zero = new DensityParams(d1, d2, d3, d4, 0);
+        if(cell.mountains_max_height === undefined) {
+            const NOISE_SCALE = 200
+            const HEIGHT_SCALE = this.max_height * dist_percent;
+            cell.mountains_height =  generator_options.WATER_LINE +
+                this.mountainFractalNoise(
+                    noise2d,
+                    xyz.x/3, xyz.z/3,
+                    4, // -- Octaves (Integer that is >1)
+                    3, // -- Lacunarity (Number that is >1)
+                    0.35, // -- Persistence (Number that is >0 and <1)
+                    NOISE_SCALE,
+                ) * HEIGHT_SCALE;
         }
 
-        const dens = xyz.y < cell.mountain_density.max_height ? cell.mountain_density : cell.mountain_density_zero;
-
-        result.set(dens.d1, dens.d2, dens.d3, dens.d4, dens.density)
-        result.fixed_density = dens.density
-
+        const density = Mth.clamp(DENSITY_AIR_THRESHOLD + (cell.mountains_height - xyz.y) / 64, 0, 1)
+        result.density = density + result.d3 / 7.5
         return result
 
     }

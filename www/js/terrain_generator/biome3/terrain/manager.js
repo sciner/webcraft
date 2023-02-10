@@ -280,8 +280,12 @@ export class TerrainMapManager2 {
     }
 
     getMaxY(cell) {
-        const {relief, mid_level} = cell.preset;
-        return Math.max(0, (1 - DENSITY_AIR_THRESHOLD) * relief + mid_level * 2) + WATER_LEVEL;
+        const {relief, mid_level, op} = cell.preset;
+        let val = (1 - DENSITY_AIR_THRESHOLD) * relief + mid_level * 2;
+        if (op.max_height !== undefined) {
+            val = Math.max(val, op.max_height + 1);
+        }
+        return val + WATER_LEVEL;
     }
 
     /**
@@ -305,29 +309,29 @@ export class TerrainMapManager2 {
         const under_waterline = xyz.y < WATER_LEVEL;
         const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
         const under_earth_height = WATER_LEVEL - xyz.y
-        const under_earth_coeff = under_earth_height > 0 ? Math.min(under_earth_height/64, 1) : 0
-        const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
+        const under_earth_coeff = under_earth_height > 0 ? Math.min(under_earth_height/64, 1) : 0 // затухание естественных пещер от 3д шума
+
+        let h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
         //
         if(!_aquifera_params.inside) {
+            let height_check = h + under_earth_coeff < DENSITY_AIR_THRESHOLD;
             // Если это блок воздуха
-            if(h + under_earth_coeff < DENSITY_AIR_THRESHOLD) {
+            if (height_check) {
+                if (op.max_height !== undefined) {
+                    height_check = xyz.y - WATER_LEVEL >= op.max_height + 1;
+                }
+            }
+            if (height_check) {
                 if(out_density_params) {
                     return out_density_params.reset()
                 }
                 return ZeroDensity;
             }
         }
-
         //
         const res = out_density_params || new DensityParams(0, 0, 0, 0, 0, 0);
         res.reset()
-
-        if(op.calcDensity) {
-            op.calcDensity(xyz, cell, dist_percent, this.noise2d, GENERATOR_OPTIONS, res)
-        } else {
-            this.noise3d.fetchGlobal4(xyz, res);
-        }
 
         // Check if inside aquifera
         if(_aquifera_params.inside) {
@@ -339,26 +343,36 @@ export class TerrainMapManager2 {
             }
         }
 
-        const {d1, d2, d3, d4} = res;
+        let density = 0;
+        this.noise3d.fetchGlobal4(xyz, res);
 
-        let density = (
+        const {d1, d2, d3, d4} = res;
+        density = (
             // 64/120 + 32/120 + 16/120 + 8/120
             (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
             / 2 + .5
         ) * h + under_earth_coeff;
 
-        if(res.fixed_density !== null) {
-            // density = Math.max(res.fixed_density * (dist_percent), density)
-            density = Math.max(res.fixed_density, density)
+        if (op.calcDensity && dist_percent > 1e-3) {
+            res.density = density;
+            op.calcDensity(xyz, cell, dist_percent, this.noise2d, GENERATOR_OPTIONS, res)
+            let mountmul = 500 / 100 * dist_percent;
+            if (mountmul < 1) {
+                if (mountmul > 0) {
+                    density += (res.density - density) * mountmul;
+                }
+            } else {
+                density = res.density;
+            }
         }
 
-        // // rivers/реки
-        // if(cell.river_point) {
-        //     const {value, percent, percent_sqrt, river_percent, waterfront_percent} = cell.river_point;
-        //     const river_vert_dist = WATER_LEVEL - xyz.y;
-        //     const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent_sqrt)) / Math.PI);
-        //     density = Math.min(density, density * river_density + (d3 * .1) * percent_sqrt);
-        // }
+        // rivers/реки
+        if(cell.river_point) {
+            const {value, percent, percent_sqrt, river_percent, waterfront_percent} = cell.river_point;
+            const river_vert_dist = WATER_LEVEL - xyz.y;
+            const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent_sqrt)) / Math.PI);
+            density = Math.min(density, density * river_density + (d3 * .1) * percent_sqrt);
+        }
 
         // Если это твердый камень, то попробуем превратить его в пещеру
         const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
