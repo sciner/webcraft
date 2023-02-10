@@ -160,6 +160,10 @@ export class Biomes {
 
         this.byName = new Map();
         this.byID = new Map();
+
+        /**
+         * @type { Biome[] }
+         */
         this.list = [];
     
         // Снежные биомы
@@ -454,7 +458,7 @@ export class Biomes {
     /**
      * @param {float} temperature 
      * @param {float} humidity 
-     * @returns 
+     * @returns { Biome }
      */
     getBiome(temperature, humidity) {
 

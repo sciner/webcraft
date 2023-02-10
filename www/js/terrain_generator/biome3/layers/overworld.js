@@ -1,7 +1,7 @@
-import { IndexedColor, Vector } from "../../../helpers.js";
+import { Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { BLOCK } from '../../../blocks.js';
-import { DensityParams, DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD, WATER_LEVEL } from "../terrain/manager.js";
+import { DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager.js";
 import { TerrainMapCell } from "../terrain/map_cell.js";
 import { TerrainMap2 } from "../terrain/map.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
@@ -11,6 +11,7 @@ import { WorldClientOreGenerator } from "../client_ore_generator.js";
 import { DungeonGenerator } from "../../dungeon.js";
 
 import { alea } from "../../default.js";
+import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
@@ -32,7 +33,7 @@ export default class Biome3LayerOverworld {
         this.noise2d = generator.noise2d
         this.noise3d = generator.noise3d
 
-        this.maps = new TerrainMapManager2(seed, world_id, generator.noise2d, generator.noise3d);
+        this.maps = new TerrainMapManager2(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager);
 
         this.ore_generator = new WorldClientOreGenerator(world_id)
         this.clusterManager = generator.clusterManager
