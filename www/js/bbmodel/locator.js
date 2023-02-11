@@ -34,7 +34,11 @@ export class BBModel_Locator extends BBModel_Child {
         tempVec3[2] = this.json.position[2] / 16;
         vec3.transformMat4(tempVec3, tempVec3, parent_matrix);
         _emmiter_pos.copy(tempVec3)
-        emmit_particles_func(StringHelpers.trim(this.name, '_'), _emmiter_pos)
+        if(emmit_particles_func) {
+            emmit_particles_func(StringHelpers.trim(this.name, '_'), _emmiter_pos)
+        } else {
+            console.error('empty_emmit_particles_func')
+        }
     }
 
 }

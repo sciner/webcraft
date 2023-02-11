@@ -35,6 +35,7 @@
     #define FLAG_ENCHANTED_ANIMATION 16
     #define FLAG_RAIN_OPACITY 17
     #define FLAG_MASK_COLOR_ADD 18
+    #define FLAG_WAVES_VERTEX 19
 
 #endif
 
@@ -408,6 +409,7 @@
     int flagEnchantedAnimation = (flags >> FLAG_ENCHANTED_ANIMATION) & 1;
     int flagRainOpacity = (flags >> FLAG_RAIN_OPACITY) & 1;
     int flagMaskColorAdd = (flags >> FLAG_MASK_COLOR_ADD) & 1;
+    int flagWavesVertex = (flags >> FLAG_WAVES_VERTEX) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -819,4 +821,18 @@
         // color.rgb += water_lighter * 1.25;
         color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 2., 1.) * m / 5.;
     }
+#endif
+
+#ifdef waves_vertex_func
+
+    float getWaveValue() {
+        vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+        float x = v_world_pos.x + cam_period.x;
+        float y = v_world_pos.y + cam_period.y;
+        float waves_amp = 30.;
+        float waves_freq = 10.;
+        return sin(u_time / 500. + x * waves_freq) / waves_amp +
+               cos(u_time / 500. + y * waves_freq) / waves_amp;     
+    }
+
 #endif
