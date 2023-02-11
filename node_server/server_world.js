@@ -16,7 +16,7 @@ import { WorldDBActor } from "./db/world/WorldDBActor.js";
 import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
 import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
-import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
+import { ArrayHelpers, getChunkAddr, Vector, VectorCollector, PerformanceTimer } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { DBItemBlock } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
@@ -477,23 +477,43 @@ export class ServerWorld {
 
     // onPlayer
     async onPlayer(player, skin) {
+        const timer = new PerformanceTimer();
+        const rndToken = Math.random() * 1000000 | 0;
         const user_id = player.session.user_id;
         // 1. Delete previous connections
         const existing_player = this.players.get(user_id);
         if(existing_player) {
-            console.log('OnPlayer delete previous connection for: ' + player.session.username);
+            console.log(`OnPlayer delete previous connection for: ${player.session.username}, token=${rndToken}`);
+            timer.start('onLeave');
             await this.onLeave(existing_player);
+            timer.stop();
+            console.log(`finished onLeave, token=${rndToken}`);
         }
         // If thre is a copy of this player player waiting to be saved right now, wait until it's saved and forgotten.
         // It's slow, but safe. TODO restore players without waiting
-        await this.players.getDeleted(user_id)?.savingPromise;
+        const savingPromise = this.players.getDeleted(user_id)?.savingPromise;
+        if (savingPromise) {
+            console.log(`awaiting savingPromise, token=${rndToken}`);
+            timer.start('savingPromise');
+            await savingPromise;
+            timer.stop();
+            console.log(`finished savingPromise, token=${rndToken}`);
+        }
         // 2. Insert to DB if new player
+        timer.start('registerPlayer');
+        console.log(`awaiting registerPlayer, token=${rndToken}`);
         player.init(await this.db.registerPlayer(this, player));
+        console.log(`finished registerPlayer, token=${rndToken}`);
         player.state.skin = skin;
         player.updateHands();
+        timer.stop().start('initQuests');
+        console.log(`awaiting initQuests, token=${rndToken}`);
         await player.initQuests();
+        console.log(`finished initQuests, token=${rndToken}`);
+        timer.stop().start('initWaitingDataForSpawn');
         // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
+        timer.stop();
         // 4. Insert to array
         this.players.list.set(user_id, player);
         // 5. Send about all other players
@@ -511,7 +531,7 @@ export class ServerWorld {
         this.sendAll([{
             name: ServerClient.CMD_PLAYER_JOIN,
             data: player.exportState()
-        }], []);
+        }]);
         // 7. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, Array.from(this.players.keys()));
         // 8. Drop item if stored
@@ -534,6 +554,11 @@ export class ServerWorld {
         if(this.isBuildingWorld()) {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
         }
+        if (timer.sum() > 50) {
+            const values = JSON.stringify(timer.round().filter())
+            this.chat.sendSystemChatMessageToSelectedPlayers('!langTimes in onPlayer(), ms: ' + values, player)
+        }
+        console.log(`finished onPlayer, token=${rndToken}`);
     }
 
     // onLeave
