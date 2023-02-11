@@ -98,7 +98,7 @@ export class GameRule {
         // Save to DB and send to players
         await world.db.saveGameRules(world.info.guid, world.info.rules);
         world.sendUpdatedInfo();
-        world.chat.sendSystemChatMessageToSelectedPlayers(`Game rule '${rule_code}' changed to '${value}'`, world.players.keys());
+        world.chat.sendSystemChatMessageToSelectedPlayers(`Game rule '${rule_code}' changed to '${value}'`, Array.from(world.players.keys()));
 
         //
         if(rule_code == 'lavaSpeed') {

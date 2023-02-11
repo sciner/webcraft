@@ -96,7 +96,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             this.mesh_group.buildVertices(x, y, z, true, matrix, pivot);
 
             if(block?.extra_data?.enchantments) {
-                for(const [_, mesh] of this.mesh_group.meshes.entries()) {
+                for(const mesh of this.mesh_group.meshes.values()) {
                     mesh.buffer.changeFlags(QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION, 'or');
                 }
             }

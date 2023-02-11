@@ -418,7 +418,11 @@ export class DBGame {
         return lastID;
     }
 
-    // getWorldID... Возвращает ID мира по его GUID
+    /**
+     * Возвращает ID мира по его GUID
+     * @param {string} world_guid 
+     * @returns { int }
+     */
     async getWorldID(world_guid) {
         const row = await this.conn.get("SELECT id FROM world WHERE guid = ?", [world_guid]);
         if(!row) {

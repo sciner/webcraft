@@ -384,7 +384,7 @@ export class ServerChunk {
             name: ServerClient.CMD_MOB_ADD,
             data: []
         }];
-        for(const [_, mob] of this.mobs) {
+        for(const mob of this.mobs.values()) {
             packets_mobs[0].data.push(mob);
         }
         this.world.sendSelected(packets_mobs, player_user_ids);
@@ -939,7 +939,7 @@ export class ServerChunk {
                 case 'item_frame': {
                     // 6 sides
                     let drop = false;
-                    console.log(neighbourPos.z > pos.z, SIX_VECS.north, rot);
+                    // console.log(neighbourPos.z > pos.z, SIX_VECS.north, rot);
                     if(neighbourPos.z > pos.z && SIX_VECS.south.equal(rot)) {
                         drop = true;
                     } else if(neighbourPos.z < pos.z && SIX_VECS.north.equal(rot)) {

@@ -97,7 +97,7 @@ export class ServerAPI {
                 for(let world of Qubatch.worlds.values()) {
                     if(world.info) {
                         const info = {...world.info, players: []};
-                        for(const [_, player] of world.players.all()) {
+                        for(const player of world.players.values()) {
                             info.players.push({
                                 user_id: player.session.user_id,
                                 username: player.session.username,

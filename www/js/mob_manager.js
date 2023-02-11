@@ -122,7 +122,7 @@ export class MobManager {
 
     // Play mob idle or step sounds
     playSounds() {
-        for(const [_, mob] of this.list.entries()) {
+        for(const mob of this.list.values()) {
             if(Math.random() < .01) {
                 const effect = Math.random() > .75 ? 'idle' : 'step';
                 if(Qubatch.sounds.play('madcraft:block.' + mob.type, effect, mob._pos)) {

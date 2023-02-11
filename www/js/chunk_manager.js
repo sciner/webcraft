@@ -287,12 +287,6 @@ export class ChunkManager {
         this.use_light                = settings.use_light != LIGHT_TYPE_NO;
         this.worker_counter           = this.use_light ? 2 : 1;
 
-        // // bbmodels
-        // const bbmodels = {}
-        // for(const [name, bbmodel] of Resources._bbmodels.entries()) {
-        //     bbmodels[name] = bbmodel.json
-        // }
-
         this.postWorkerMessage(['init', {
             generator,
             world_seed,

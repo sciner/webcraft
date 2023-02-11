@@ -135,7 +135,7 @@ export class Raycaster {
             mob: null
         };
         if(this.world?.mobs) {
-            for(const [_, mob] of this.world.mobs.list) {
+            for(const mob of this.world.mobs.list.values()) {
                 mob.raycasted = false;
                 if(!mob.aabb || !mob.isAlive()) {
                     continue
@@ -169,7 +169,7 @@ export class Raycaster {
             player: null
         };
         if(this.world?.players) {
-            for (const [_, player] of this.world.players.list) {
+            for (const player of this.world.players.list.values()) {
                 player.raycasted = false;
                 if(!player.aabb || !player.isAlive()) {
                     continue;

@@ -51,6 +51,12 @@ export class ServerWorld {
         this.shuttingDown = null;
     }
 
+    /**
+     * @param {string} world_guid 
+     * @param { import("./db/world.js").DBWorld } db_world 
+     * @param {string} new_title 
+     * @param {*} game 
+     */
     async initServer(world_guid, db_world, new_title, game) {
         this.game = game;
         if (SERVER_TIME_LAG) {
@@ -254,7 +260,7 @@ export class ServerWorld {
 
         // compress chunks in db
         t = performance.now()
-        await this.db.chunks.insertRebuildModifiers(chunks_addr.keys())
+        await this.db.chunks.insertRebuildModifiers(Array.from(chunks_addr.keys()))
         console.log('Building: compress chunks in db ...', performance.now() - t)
 
         // reread info
@@ -507,7 +513,7 @@ export class ServerWorld {
             data: player.exportState()
         }], []);
         // 7. Write to chat about new player
-        this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
+        this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, Array.from(this.players.keys()));
         // 8. Drop item if stored
         if (player.inventory.moveOrDropFromDragSlot()) {
             player.inventory.markDirty();

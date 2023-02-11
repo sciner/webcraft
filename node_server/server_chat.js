@@ -462,7 +462,13 @@ export class ServerChat {
             }
             case '/spawnmob': {
                 args = this.parseCMD(args, ['string', '?float', '?float', '?float', 'string', 'string']);
-                const pos = player.state.pos.clone()
+                // @ParamMobAdd
+                const params = new MobSpawnParams(
+                    player.state.pos.clone(),
+                    new Vector(0, 0, player.state.rotate.z),
+                    args[4],
+                    args[5],
+                )
                 // x
                 if (args[1] !== null) {
                     params.pos.x = args[1];
@@ -475,13 +481,6 @@ export class ServerChat {
                 if (args[3] !== null) {
                     params.pos.z = args[3];
                 }
-                // @ParamMobAdd
-                const params = new MobSpawnParams(
-                    pos,
-                    new Vector(0, 0, player.state.rotate.z),
-                    args[4],
-                    args[5],
-                )
                 // spawn
                 this.world.mobs.spawn(player, params);
                break;

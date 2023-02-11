@@ -593,7 +593,7 @@ export class TerrainMapManager2 {
         // 3. Find door Y position for cluster buildings
         if(!map.cluster.is_empty && map.cluster.buildings) {
 
-            for(const [_, building] of map.cluster.buildings.entries()) {
+            for(const building of map.cluster.buildings.values()) {
 
                 if(!building.entrance || building.entrance.y != Infinity) {
                     continue
@@ -646,7 +646,7 @@ export class TerrainMapManager2 {
     //
     destroyAroundPlayers(players) {
         let cnt_destroyed = 0;
-        for(let [map_addr, _] of this.maps_cache.entries()) {
+        for(let map_addr of this.maps_cache.keys()) {
             let can_destroy = true;
             for(let player of players) {
                 const {chunk_render_dist, chunk_addr} = player;

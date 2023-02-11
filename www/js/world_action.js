@@ -792,7 +792,7 @@ export class WorldAction {
         }
 
         //
-        for(let [vec, _] of extruded_blocks.entries()) {
+        for(let vec of extruded_blocks.keys()) {
             // 1. check under
             const check_under_poses = [
                 vec.clone().addSelf(new Vector(0, 1, 0)),
@@ -953,7 +953,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
         if(mat_block && (mat_block.deprecated || NO_CREATABLE_BLOCKS.includes(mat_block.name))) {
-            console.error('mat_block.deprecated');
+            console.warn('warning_mat_block.deprecated');
             return actions;
         }
 
@@ -966,7 +966,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
         // Дальше идут действия, которые обязательно требуют, чтобы в инвентаре что-то было выбрано
         if(!current_inventory_item || current_inventory_item.count < 1) {
-            console.error('no current_inventory_item');
+            console.warn('warning_no_current_inventory_item');
             return actions;
         }
 
@@ -1367,10 +1367,14 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
     const putIntoPot = !e.shiftKey && world_material &&
                         (world_material.tags.includes('pot')) &&
                         (
-                            item_frame ||
-                            mat_block.planting ||
-                            mat_block.style_name == 'cactus' ||
-                            mat_block.tags.includes('can_put_into_pot')
+                            item_frame || (
+                                mat_block &&
+                                (
+                                    mat_block.planting ||
+                                    mat_block.style_name == 'cactus' ||
+                                    mat_block.tags.includes('can_put_into_pot')
+                                )
+                            )
                         );
     if(!putIntoPot) {
         return false;
@@ -1588,7 +1592,7 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
     // check if someone else is sitting
     const above_sit_pos = sit_pos.clone();
     above_sit_pos.y += 0.5; // the actual sitting player pos may be slightly above sit_pos
-    for(const [_, p] of world.players.eachContainingVec(above_sit_pos)) {
+    for(const p of world.players.eachContainingVec(above_sit_pos)) {
         if (p.sharedProps.user_id !== player.session.user_id && p.sharedProps.sitting) {
             return false;
         }
@@ -1749,7 +1753,7 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
         actions.addBlocks(arr);
         //
         if(portal_ids.size > 0 && Qubatch.is_server) {
-            for(let portal_id of Array.from(portal_ids.keys())) {
+            for(let portal_id of portal_ids.keys()) {
                 console.log('delete portal ', portal_id);
                 world.db.portal.delete(player, portal_id);
             }

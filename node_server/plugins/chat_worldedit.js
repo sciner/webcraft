@@ -460,7 +460,7 @@ export default class WorldEdit {
             total_actions_count: actions_list.size,
             message: 'WorldEdit paste completed!'
         };
-        for(const [_, actions] of actions_list.entries()) {
+        for(const actions of actions_list.values()) {
             if(player) {
                 if(cnt == 0 || cnt == actions_list.size - 1) {
                     actions.notify = notify;

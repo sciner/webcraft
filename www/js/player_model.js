@@ -225,7 +225,7 @@ export class PlayerModel extends MobModel {
         
         // slot.holder.terrainGeometry = item.buffer;
         // slot.holder.material = item.material;
-        for(let [_, mesh] of item.mesh_group.meshes.entries()) {
+        for(let mesh of item.mesh_group.meshes.values()) {
             slot.holder.terrainGeometry = mesh.buffer;
             slot.holder.material = mesh.material;
             break;

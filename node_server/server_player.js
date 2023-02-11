@@ -590,7 +590,7 @@ export class ServerPlayer extends Player {
         //
         const packets = [];
         const current_visible_players = new Map();
-        for(const [_, player] of this.world.players.all()) {
+        for(const player of this.world.players.values()) {
             const user_id = player.session.user_id;
             if(this.session.user_id == user_id) {
                 continue;
@@ -723,7 +723,7 @@ export class ServerPlayer extends Player {
             // teleport player to player
             let from_player = null;
             let to_player = null;
-            for(const [_, player] of world.players.all()) {
+            for(const player of world.players.values()) {
                 const username = player.session?.username?.toLowerCase();
                 if(username == params.p2p.from.toLowerCase()) {
                     from_player = player;

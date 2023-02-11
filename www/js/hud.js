@@ -465,13 +465,13 @@ export class HUD {
         if(draw_player_list) {
             this.text += '\nOnline:\n';
             let pcnt = 0;
-            for(const [_, p] of world.players.all()) {
-                this.text += p.username;
-                if(p.itsMe()) {
+            for(const player of world.players.values()) {
+                this.text += player.username;
+                if(player.itsMe()) {
                     this.text += ' (YOU)';
                 } else {
-                    if(p.distance) {
-                        this.text += ` ... ${p.distance}m`;
+                    if(player.distance) {
+                        this.text += ` ... ${player.distance}m`;
                     }
                 }
                 this.text += '\n';

@@ -783,23 +783,32 @@ export class VectorCollector {
     }
 
     keys() {
-        let resp = [];
-        for (let [xk, x] of this.list) {
-            for (let [yk, y] of x) {
-                for (let [zk, z] of y) {
-                    resp.push(new Vector(xk|0, yk|0, zk|0));
+        const that = this;
+        return (function* () {
+            if(that.size == 0) {
+                return;
+            }
+            for (let [xk, x] of that.list) {
+                for (let [yk, y] of x) {
+                    for (let zk of y.keys()) {
+                        yield new Vector(xk|0, yk|0, zk|0)
+                    }
                 }
             }
-        }
-        return resp;
+        })()
     }
 
     values() {
-        let resp = [];
-        for(let item of this) {
-            resp.push(item);
-        }
-        return resp;
+        const that = this;
+        return (function* () {
+            for (let x of that.list.values()) {
+                for (let y of x.values()) {
+                    for (let value of y.values()) {
+                        yield value;
+                    }
+                }
+            }
+        })()
     }
 
     reduce(max_size) {

@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector } from "../../www/js/helpers.js";
+import { Vector } from "../../www/js/helpers.js";
 import { isBlockRoughlyWithinPickatRange } from "../../www/js/block_helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK } from "../../www/js/blocks.js";
@@ -16,6 +16,9 @@ const CHANGE_RESULT_FLAG_INVENTORY = 4;
 
 export class WorldChestManager {
 
+    /**
+     * @param { import("../server_world.js").ServerWorld } world 
+     */
     constructor(world) {
         this.world = world;
         this.treasure_sets = new Treasure_Sets(world, config.treasure_chests)
@@ -643,7 +646,7 @@ export class WorldChestManager {
         if(chunk) {
             const pos = tblock.posworld;
             const players = [];
-            for(let p of Array.from(chunk.connections.values())) {
+            for(let p of chunk.connections.values()) {
                 if(except_player_ids && Array.isArray(except_player_ids)) {
                     if(except_player_ids.indexOf(p.session.user_id) >= 0) {
                         continue;

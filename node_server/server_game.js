@@ -87,7 +87,7 @@ export class ServerGame {
         if (this.shutdownPromise) {
             return // don't load new worlds when shutting down
         }
-        for(const [world_guid, _] of this.worlds_loading.entries()) {
+        for(const world_guid of this.worlds_loading.keys()) {
             console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
             const p = performance.now();
             const worldTitlePromise = this.db.getWorld(world_guid);

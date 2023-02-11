@@ -192,8 +192,8 @@ export class ServerChunkManager {
 
         // 1. queue chunks for load
         if(this.chunk_queue_load.size > 0) {
-            for(const [addr, chunk] of this.chunk_queue_load.entries()) {
-                this.chunk_queue_load.delete(addr);
+            for(const chunk of this.chunk_queue_load.values()) {
+                this.chunk_queue_load.delete(chunk.addr);
                 if(chunk.load_state === CHUNK_STATE.NEW) {
                     chunk.load();
                 }
@@ -204,8 +204,8 @@ export class ServerChunkManager {
         this.ticks_stat.add('load');
         // 2. queue chunks for generate mobs
         if(this.chunk_queue_gen_mobs.size > 0) {
-            for(const [addr, chunk] of this.chunk_queue_gen_mobs.entries()) {
-                this.chunk_queue_gen_mobs.delete(addr);
+            for(const chunk of this.chunk_queue_gen_mobs.values()) {
+                this.chunk_queue_gen_mobs.delete(chunk.addr);
                 if(chunk.load_state === CHUNK_STATE.READY) {
                     chunk.generateMobs();
                 }

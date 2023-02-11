@@ -45,7 +45,7 @@ export class MeshManager {
 
         this.particle_textures.set('destroy_block', []);
 
-        for(const [k, arr] of this.particle_textures.entries()) {
+        for(const arr of this.particle_textures.values()) {
             for(let i in arr) {
                 arr[i][0] += .5;
                 arr[i][1] += .5;
@@ -105,7 +105,7 @@ export class MeshManager {
         if(!chunk) {
             return false;
         }
-        for(const [key, mesh] of chunk.entries()) {
+        for(const key of chunk.keys()) {
             this.remove(key, Qubatch.render);
         }
         this.chunks.delete(chunk_addr_hash);
