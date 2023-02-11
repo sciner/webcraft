@@ -85,16 +85,16 @@ void main() {
 
         #include<raindrops_onwater>
 
-        // // vintage sepia
-        // vec3 sepia = vec3(1.2, 1.0, 0.8);
-        // float grey = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-        // vec3 sepiaColour = vec3(grey) * sepia;
-        // color.rgb = mix(color.rgb, vec3(sepiaColour), 0.65);
-        // // swap r & b
-        // float bb = color.b;
-        // color.b = color.r;
-        // color.r = bb;
-        // // vintage sepia
+        // vintage sepia
+        vec3 sepia = vec3(1.2, 1.0, 0.8);
+        float grey = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+        vec3 sepiaColour = vec3(grey) * sepia;
+        color.rgb = mix(color.rgb, vec3(sepiaColour), 0.4);
+        // swap r & b
+        float bb = color.b;
+        color.b = color.r;
+        color.r = bb;
+        // vintage sepia
 
         if(v_noCanTakeLight < 0.5) {
             #include<local_light_pass>
