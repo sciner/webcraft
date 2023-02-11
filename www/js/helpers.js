@@ -3627,6 +3627,15 @@ export class PerformanceTimer {
         return this
     }
 
+    filter(minTime = 1) {
+        for(const key in this) {
+            if (this[key] < minTime) {
+                delete this[key]
+            }
+        }
+        return this
+    }
+
     sum() {
         return ArrayHelpers.sum(Object.values(this))
     }

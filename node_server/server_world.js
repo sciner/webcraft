@@ -504,9 +504,10 @@ export class ServerWorld {
         console.log(`awaiting initQuests, token=${rndToken}`);
         await player.initQuests();
         console.log(`finished initQuests, token=${rndToken}`);
-        timer.stop();
+        timer.stop().start('initWaitingDataForSpawn');
         // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
+        timer.stop();
         // 4. Insert to array
         this.players.list.set(user_id, player);
         // 5. Send about all other players
@@ -548,9 +549,10 @@ export class ServerWorld {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
         }
         if (timer.sum() > 50) {
-            const values = JSON.stringify(timer.round())
+            const values = JSON.stringify(timer.round().filter())
             this.chat.sendSystemChatMessageToSelectedPlayers('!langTimes in onPlayer(), ms: ' + values, player)
         }
+        console.log(`finished onPlayer, token=${rndToken}`);
     }
 
     // onLeave
