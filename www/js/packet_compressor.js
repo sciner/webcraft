@@ -25,7 +25,7 @@ export function compressNearby(nearby, use_start_vec = true) {
             end_vec = new Vector(0, 0, 0);
             end_vec.copyFrom(nearby.deleted[0]);
         }
-    } else {
+    } else if (nearby.deleted.length) {
         start_vec.copyFrom(nearby.deleted[0]);
     }
     //

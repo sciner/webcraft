@@ -40,7 +40,7 @@ export class Quest {
         this.#dirtyFlags    = 0;
         if (isNew) {
             this.#dirtyFlags = Quest.DIRTY_FLAG_NEW;
-            this.#player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_QUESTS;
+            this.#player.dbDirtyFlags |= ServerPlayer.DB_DIRTY_FLAG_QUESTS;
         }
         // Parse actions
         this.actions = [];
@@ -145,8 +145,8 @@ export class Quest {
 
     // Marks that the quest must be saved in the next world transaction
     markDirty() {
-        this.#dirtyFlags        |= Quest.DIRTY_FLAG_UPDATED;
-        this.#player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_QUESTS;
+        this.#dirtyFlags          |= Quest.DIRTY_FLAG_UPDATED;
+        this.#player.dbDirtyFlags |= ServerPlayer.DB_DIRTY_FLAG_QUESTS;
     }
 
     writeToWorldTransaction(underConstruction) {

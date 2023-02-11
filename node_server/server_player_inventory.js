@@ -8,7 +8,7 @@ export class ServerPlayerInventory extends Inventory {
 
     // Marks that the inventory needs to be saved in the next transaction
     markDirty() {
-        this.player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_INVENTORY;
+        this.player.dbDirtyFlags |= ServerPlayer.DB_DIRTY_FLAG_INVENTORY;
     }
 
     send() {
