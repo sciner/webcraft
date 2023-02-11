@@ -247,9 +247,6 @@ export class TerrainMapManager2 {
      */
     getPreset(xz) {
 
-        if(!globalThis.ddd) globalThis.ddd=0
-        if(globalThis.ddd++%1000==0) console.log(globalThis.ddd)
-
         const RAD = 1000; // радиус области
         const TRANSITION_WIDTH = 256; // ширина перехода межу областью и равниной
 

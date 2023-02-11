@@ -136,6 +136,7 @@ export default class emitter {
 
     //
     calcPPAndFlags(pos, block, chunk) {
+        debugger
         // Color masks
         let flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA; // QUAD_FLAGS.NO_AO;
         let lm = _lm_grass.copyFrom(IndexedColor.WHITE);
