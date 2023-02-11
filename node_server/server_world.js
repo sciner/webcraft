@@ -539,7 +539,6 @@ export class ServerWorld {
         if(this.isBuildingWorld()) {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
         }
-        player.debugOnPlayerTimer = timer
         if (timer.sum() > 50) {
             const values = JSON.stringify(timer.round())
             this.chat.sendSystemChatMessageToSelectedPlayers('!langTimes in onPlayer(), ms: ' + values, player)
