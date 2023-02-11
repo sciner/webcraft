@@ -3617,8 +3617,19 @@ export class PerformanceTimer {
         const diff = performance.now() - item.p
         const exist_value = this[key] ?? 0
         this[key] = exist_value + diff
+        return this
     }
 
+    round() {
+        for(const key in this) {
+            this[key] = Math.round(this[key])
+        }
+        return this
+    }
+
+    sum() {
+        return ArrayHelpers.sum(Object.values(this))
+    }
 }
 
 export const SIX_VECS = {

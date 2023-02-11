@@ -16,7 +16,7 @@ import { WorldDBActor } from "./db/world/WorldDBActor.js";
 import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
 import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
-import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
+import { ArrayHelpers, getChunkAddr, Vector, VectorCollector, PerformanceTimer } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { DBItemBlock } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
@@ -471,21 +471,32 @@ export class ServerWorld {
 
     // onPlayer
     async onPlayer(player, skin) {
+        const timer = new PerformanceTimer();
         const user_id = player.session.user_id;
         // 1. Delete previous connections
         const existing_player = this.players.get(user_id);
         if(existing_player) {
             console.log('OnPlayer delete previous connection for: ' + player.session.username);
+            timer.start('onLeave');
             await this.onLeave(existing_player);
+            timer.stop();
         }
         // If thre is a copy of this player player waiting to be saved right now, wait until it's saved and forgotten.
         // It's slow, but safe. TODO restore players without waiting
-        await this.players.getDeleted(user_id)?.savingPromise;
+        const savingPromise = this.players.getDeleted(user_id)?.savingPromise;
+        if (savingPromise) {
+            timer.start('savingPromise');
+            await savingPromise;
+            timer.stop();
+        }
         // 2. Insert to DB if new player
+        timer.start('registerPlayer');
         player.init(await this.db.registerPlayer(this, player));
         player.state.skin = skin;
         player.updateHands();
+        timer.stop().start('initQuests');
         await player.initQuests();
+        timer.stop();
         // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
         // 4. Insert to array
@@ -505,7 +516,7 @@ export class ServerWorld {
         this.sendAll([{
             name: ServerClient.CMD_PLAYER_JOIN,
             data: player.exportState()
-        }], []);
+        }]);
         // 7. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
         // 8. Drop item if stored
@@ -527,6 +538,11 @@ export class ServerWorld {
         // 10. Add night vision for building world
         if(this.isBuildingWorld()) {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
+        }
+        player.debugOnPlayerTimer = timer
+        if (timer.sum() > 50) {
+            const values = JSON.stringify(timer.round())
+            this.chat.sendSystemChatMessageToSelectedPlayers('!langTimes in onPlayer(), ms: ' + values, player)
         }
     }
 
