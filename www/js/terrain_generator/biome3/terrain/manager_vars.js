@@ -1,5 +1,63 @@
 export const WATER_LEVEL = 80;
 
+export class ClimateParams {
+
+    /**
+     * @ype { float }
+     */
+    temperature
+
+    /**
+     * @ype { float }
+     */
+    humidity
+
+    /**
+     * @param { float } temperature
+     * @param { float } humidity
+     */
+    constructor(temperature, humidity) {
+        this.set(temperature, humidity)
+    }
+
+    /**
+     * @param { float } temperature
+     * @param { float } humidity
+     */
+    set(temperature, humidity) {
+        this.temperature = temperature
+        this.humidity = humidity
+    }
+
+}
+
+export class MapCellPreset {
+
+    /**
+     * @param {string} id 
+     * @param {object} options options
+     * @param {float} options.chance 
+     * @param {float} options.relief кривизна рельефа
+     * @param {float} options.mid_level базовая высота поверхности относительно уровня моря
+     */
+    constructor(id, {chance, relief, mid_level}) {
+        this.id = id;
+        this.chance = chance;
+        this.relief = relief;
+        this.mid_level = mid_level;
+    }
+
+    /**
+     * @param { Vector } xz 
+     * @param { ClimateParams } params
+     * @returns { boolean }
+     */
+    modifyClimate(xz, params) {
+        return false
+    }
+
+}
+
 //
 export class DensityParams {
 

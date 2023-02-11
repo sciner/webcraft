@@ -1,15 +1,25 @@
-import { Mth } from "../../../../helpers.js";
+import { Mth, Vector } from "../../../../helpers.js";
 import { DENSITY_AIR_THRESHOLD } from "../manager.js";
-import { DensityParams } from "../manager_vars.js";
+import { ClimateParams, DensityParams, MapCellPreset } from "../manager_vars.js";
 
-export class MapPresetMountains {
+export class MapCellPreset_Mountains extends MapCellPreset {
 
     constructor() {
-        this.id = 'mountains';
-        this.chance = 40;
-        this.relief = 4;
-        this.mid_level = 6;
+        super('mountains', {chance: 4, relief: 4, mid_level: 6})
         this.max_height = 150;
+        this.noise_scale = 200
+        this.climate = new ClimateParams(.6, .75) // Лес
+    }
+
+    /**
+     * @param { Vector } xz 
+     * @param { ClimateParams } params
+     * @returns { boolean }
+     */
+    modifyClimate(xz, params) {
+        params.temperature = this.climate.temperature
+        params.humidity = this.climate.humidity
+        return true
     }
 
     /**
@@ -25,7 +35,6 @@ export class MapPresetMountains {
     calcDensity(xyz, cell, dist_percent, noise2d, generator_options, result) {
 
         if(cell.mountains_max_height === undefined) {
-            const NOISE_SCALE = 200
             const HEIGHT_SCALE = this.max_height * dist_percent;
             cell.mountains_height =  generator_options.WATER_LINE +
                 this.mountainFractalNoise(
@@ -34,12 +43,22 @@ export class MapPresetMountains {
                     4, // -- Octaves (Integer that is >1)
                     3, // -- Lacunarity (Number that is >1)
                     0.35, // -- Persistence (Number that is >0 and <1)
-                    NOISE_SCALE,
+                    this.noise_scale,
                 ) * HEIGHT_SCALE;
         }
 
         const density = Mth.clamp(DENSITY_AIR_THRESHOLD + (cell.mountains_height - xyz.y) / 64, 0, 1)
+
+        // add some roughness
         result.density = density + result.d3 / 7.5
+
+        // cheese holes
+        // if(result.density > .7) {
+        //     if((result.d2 + result.d3 * .1 + result.d4 * .2) > .5) {
+        //         result.density = DENSITY_AIR_THRESHOLD;
+        //     }
+        // }
+
         return result
 
     }
