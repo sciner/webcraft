@@ -472,30 +472,38 @@ export class ServerWorld {
     // onPlayer
     async onPlayer(player, skin) {
         const timer = new PerformanceTimer();
+        const rndToken = Math.random() * 1000000 | 0;
         const user_id = player.session.user_id;
         // 1. Delete previous connections
         const existing_player = this.players.get(user_id);
         if(existing_player) {
-            console.log('OnPlayer delete previous connection for: ' + player.session.username);
+            console.log(`OnPlayer delete previous connection for: ${player.session.username}, token=${rndToken}`);
             timer.start('onLeave');
             await this.onLeave(existing_player);
             timer.stop();
+            console.log(`finished onLeave, token=${rndToken}`);
         }
         // If thre is a copy of this player player waiting to be saved right now, wait until it's saved and forgotten.
         // It's slow, but safe. TODO restore players without waiting
         const savingPromise = this.players.getDeleted(user_id)?.savingPromise;
         if (savingPromise) {
+            console.log(`awaiting savingPromise, token=${rndToken}`);
             timer.start('savingPromise');
             await savingPromise;
             timer.stop();
+            console.log(`finished savingPromise, token=${rndToken}`);
         }
         // 2. Insert to DB if new player
         timer.start('registerPlayer');
+        console.log(`awaiting registerPlayer, token=${rndToken}`);
         player.init(await this.db.registerPlayer(this, player));
+        console.log(`finished registerPlayer, token=${rndToken}`);
         player.state.skin = skin;
         player.updateHands();
         timer.stop().start('initQuests');
+        console.log(`awaiting initQuests, token=${rndToken}`);
         await player.initQuests();
+        console.log(`finished initQuests, token=${rndToken}`);
         timer.stop();
         // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
