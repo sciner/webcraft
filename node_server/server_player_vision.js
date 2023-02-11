@@ -219,17 +219,18 @@ export class ServerPlayerVision {
 
         this.nearbyChunks.chunk_render_dist = chunk_render_dist;
         this.nearbyChunks.markDirtyDelete();
-        this.checkSpiralChunks();
+        this.checkSpiralChunks(spiralEntries.length);
     }
 
-    checkSpiralChunks() {
+    checkSpiralChunks(maxScan = PLAYER_CHUNK_QUEUE_SIZE * 2) {
         const {player, spiralEntries} = this;
         const {world} = player;
         const {chunkManager} = world;
         let n = spiralEntries.length;
         let found = 0;
         //TODO: ALLOW_NEGATIVE_Y ?
-        for (let i = this.spiralLoading; i < n; i++) {
+        let rightScan = Math.min(n, this.spiralLoading + maxScan);
+        for (let i = this.spiralLoading; i < rightScan; i++) {
             const entry = spiralEntries[i];
             if (!entry.chunk || entry.chunk.load_state >= CHUNK_STATE.UNLOADING) {
                 entry.chunk = chunkManager.getOrRestore(entry.pos);
