@@ -85,6 +85,8 @@ void main() {
 
         #include<raindrops_onwater>
 
+        // #include<swamp_fog>
+
         // // vintage sepia
         // vec3 sepia = vec3(1.2, 1.0, 0.8);
         // float grey = dot(color.rgb, vec3(0.299, 0.587, 0.114));

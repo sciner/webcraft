@@ -836,3 +836,21 @@
     }
 
 #endif
+
+#ifdef swamp_fog
+    // swamp fog
+    vec3 cam_period4 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    float z = v_world_pos.z + cam_period4.z;
+    float start_fog = 81.;
+    float fog_height = 3.;
+    float mul = .5;
+    float a = mul;
+    if(z <= start_fog + fog_height) {
+        if(z >= start_fog) {
+            a = clamp((1. - (z - start_fog) / fog_height) * mul, .0, 1.);
+        }
+        float dist = distance(vec3(0., 0., 1.4), v_world_pos) / 8.;
+        a *= clamp(dist, 0., 1.);
+        color.rgb = mix(color.rgb, vec3(.2, .4, .0), a);
+    }
+#endif

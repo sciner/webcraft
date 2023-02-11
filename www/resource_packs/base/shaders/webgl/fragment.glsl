@@ -256,6 +256,8 @@ void main() {
              color.a *= u_rain_strength;
         }
 
+        // #include<swamp_fog>
+
         // float dist = distance(vec3(0., 0., 1.4), v_world_pos) / 64.;
         outColor = color;
         // outColor.rgb = colorCorrection(outColor.rgb);
