@@ -276,6 +276,9 @@ export class World {
                         pos: mod.pos,
                         item: {id: tblock.id}
                     };
+                    if(tblock.extra_data) {
+                        destroy_data.item.extra_data = tblock.extra_data
+                    }
                     Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos.add(new Vector(.5, .5, .5)), false);
                     this.onBlockDestroy(destroy_data.pos, destroy_data.item);
                 }

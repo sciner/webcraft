@@ -1,3 +1,4 @@
+import { LEAVES_COLOR_FLAGS } from "../../../block_style/cube.js";
 import { CHUNK_SIZE_X } from "../../../chunk_const.js";
 import { ChunkManager } from "../../../chunk_manager.js";
 import { GRASS_PALETTE_OFFSET } from "../../../constant.js";
@@ -25,7 +26,7 @@ export default class emitter {
         }
 
         const block         = this.block_manager.fromId(args.block.id);
-        const {pp, flags}   = this.calcPPAndFlags(pos, block, chunk);
+        const {pp, flags}   = this.calcPPAndFlags(chunk, pos, block, args.block.extra_data);
         const {material, c} = this.calcMaterialAndTexture(block);
 
         //
@@ -134,8 +135,15 @@ export default class emitter {
         return {material, c};
     }
 
-    //
-    calcPPAndFlags(pos, block, chunk) {
+    /**
+     * 
+     * @param {*} chunk 
+     * @param {Vector} pos 
+     * @param {object} block 
+     * @param {?object} extra_data 
+     * @returns 
+     */
+    calcPPAndFlags(chunk, pos, block, extra_data) {
         // Color masks
         let flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA; // QUAD_FLAGS.NO_AO;
         let lm = _lm_grass.copyFrom(IndexedColor.WHITE);
@@ -148,6 +156,12 @@ export default class emitter {
                     lm.r += GRASS_PALETTE_OFFSET;
                 }
                 flags |= QUAD_FLAGS.MASK_BIOME;
+                // leaves custom color
+                if(extra_data && extra_data.v != undefined) {
+                    const color = LEAVES_COLOR_FLAGS[extra_data.v % LEAVES_COLOR_FLAGS.length]
+                    lm.r = color.r
+                    lm.g = color.g
+                }
             } else if(this.block_manager.MASK_COLOR_BLOCKS.includes(block.id)) {
                 lm.set(block.mask_color.r, block.mask_color.g, block.mask_color.b);
                 flags |= QUAD_FLAGS.FLAG_MASK_COLOR_ADD;

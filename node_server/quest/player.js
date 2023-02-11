@@ -115,7 +115,7 @@ export class QuestPlayer {
 
     // Handler
     onDestroyBlock(e) {
-        const block = this.world.block_manager.fromId(e.data.block_id);
+        const block = this.world.block_manager.fromId(e.data.block.id);
         if(!block) {
             throw 'error_invalid_block';
         }

@@ -95,6 +95,13 @@ void main() {
     // special effect for sunrise 
     color = mix(color, u_fogColor.rgb, u_fogColor.a);
 
+    // // vintage sepia
+    // vec3 sepia = vec3(1.2, 1.0, 0.8);
+    // float grey = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+    // vec3 sepiaColour = vec3(grey) * sepia;
+    // color.rgb = mix(color.rgb, vec3(sepiaColour), 0.5);
+    // // vintage sepia
+
     outColor = vec4(color, 1.);
 
     #include<crosshair_call_func>

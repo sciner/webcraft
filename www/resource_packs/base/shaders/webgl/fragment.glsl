@@ -261,6 +261,15 @@ void main() {
         // outColor.rgb = colorCorrection(outColor.rgb);
 
         #include<fog_frag>
+
+        // // vintage sepia
+        // vec3 sepia = vec3(1.2, 1.0, 0.8);
+        // float grey = dot(outColor.rgb, vec3(0.299, 0.587, 0.114));
+        // vec3 sepiaColour = vec3(grey) * sepia;
+        // outColor.rgb = mix(outColor.rgb, vec3(sepiaColour), 0.5);
+        // outColor.rgb = mix(outColor.rgb, vec3(.0, .0, 1.), .025);
+        // // vintage sepia
+
         if(u_crosshairOn) {
             #include<crosshair_call_func>
         }

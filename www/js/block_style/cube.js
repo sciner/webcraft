@@ -28,7 +28,7 @@ const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
 
-const LEAVES_COLOR_FLAGS = [
+export const LEAVES_COLOR_FLAGS = [
     new IndexedColor(28, 540, 0), // pink
     new IndexedColor(20, 524, 0), // orange
     new IndexedColor(28, 524, 0), // yellow
