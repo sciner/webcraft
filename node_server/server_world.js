@@ -812,7 +812,7 @@ export class ServerWorld {
                         // 0. Play particle animation on clients
                         if (!ignore_check_air) {
                             if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
-                                if (params.destroy_block_id > 0) {
+                                if (params.destroy_block.id > 0) {
                                     const except_players = [];
                                     if(server_player) except_players.push(server_player)
                                     cps.custom_packets.push({
@@ -821,7 +821,7 @@ export class ServerWorld {
                                             name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
                                             data: {
                                                 pos: params.pos.add(new Vector(.5, .5, .5)),
-                                                item: { id: params.destroy_block_id }
+                                                item: params.destroy_block
                                             }
                                         }]
                                     });
@@ -888,7 +888,7 @@ export class ServerWorld {
                                 PlayerEvent.trigger({
                                     type: PlayerEvent.DESTROY_BLOCK,
                                     player: server_player,
-                                    data: { pos: params.pos, block_id: params.destroy_block_id }
+                                    data: { pos: params.pos, block: params.destroy_block }
                                 });
                             } else if (params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
                                 PlayerEvent.trigger({

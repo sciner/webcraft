@@ -813,9 +813,9 @@ export class ServerChunk {
                     this.world.mobs.create(params);
                     const actions = new WorldAction(null, this.world, false, false);
                     actions.addBlocks([
-                        {pos: item_pos, item: {id: bm.AIR.id}, destroy_block_id: item.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
-                        {pos: under1.posworld, item: {id: bm.AIR.id}, destroy_block_id: under1?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
-                        {pos: under2.posworld, item: {id: bm.AIR.id}, destroy_block_id: under2?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}
+                        {pos: item_pos, item: {id: bm.AIR.id}, destroy_block: {id: item.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY},
+                        {pos: under1.posworld, item: {id: bm.AIR.id}, destroy_block: {id: under1?.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY},
+                        {pos: under2.posworld, item: {id: bm.AIR.id}, destroy_block: {id: under2?.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY}
                     ])
                     this.world.actions_queue.add(null, actions);
                 }
@@ -862,7 +862,7 @@ export class ServerChunk {
             const actions = new WorldAction(null, world, false, true);
             //
             if(generate_destroy) {
-                actions.addBlocks([{pos: pos.clone(), item: {id: bm.AIR.id}, destroy_block_id: tblock.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+                actions.addBlocks([{pos: pos.clone(), item: {id: bm.AIR.id}, destroy_block: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
             } else {
                 actions.addBlocks([{pos: pos.clone(), item: {id: bm.AIR.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
             }

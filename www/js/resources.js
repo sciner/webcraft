@@ -105,7 +105,7 @@ export class Resources {
 
         // Others
         all.push(loadImage('media/block_day_light.png').then((img) => { this.blockDayLight = img}));
-        all.push(loadImage('media/mask_color.png').then((img) => { this.maskColor = img}));
+        all.push(loadImage('media/mask_color_with_swamp.png').then((img) => { this.maskColor = img}));
         all.push(loadImage('media/rain.png').then((img) => { this.weather.rain = img}));
         all.push(loadImage('media/snow.png').then((img) => { this.weather.snow = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));

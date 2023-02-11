@@ -28,7 +28,7 @@ const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
 
-const LEAVES_COLOR_FLAGS = [
+export const LEAVES_COLOR_FLAGS = [
     new IndexedColor(28, 540, 0), // pink
     new IndexedColor(20, 524, 0), // orange
     new IndexedColor(28, 524, 0), // yellow
@@ -482,6 +482,7 @@ export default class style {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
             if(block.id == bm.LILY_PAD.id) {
                 axes_down = UP_AXES[rv % 4];
+                flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX;
             } else {
                 axes_up = UP_AXES[rv % 4];
             }

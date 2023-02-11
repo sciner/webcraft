@@ -1,39 +1,39 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
-import { Vector, VectorCollector } from "../../../helpers.js";
-import { BLOCK } from '../../../blocks.js';
-
-import { Biomes } from "./../biomes.js";
+import { Helpers, Vector, VectorCollector } from "../../../helpers.js";
+import { Biome, Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 import { Aquifera, AquiferaParams } from "../aquifera.js";
-import { getAheadMove } from "../../cluster/building_cluster_base.js";
+import { WATER_LEVEL, DensityParams, MapCellPreset, ClimateParams } from "./manager_vars.js";
+
+// Presets
+import { MapCellPreset_Mountains } from "./map_preset/mountains.js";
+import { MapCellPreset_SnowCoveredMountains } from "./map_preset/snow_covered_mountains.js";
+import { MapCellPreset_Swamp } from "./map_preset/swamp.js";
+import { MapCellPreset_Ices } from "./map_preset/ices.js";
 
 export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
 export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
 export const MAX_TREES_PER_CHUNK        = 16; // Максимальное число деревьев в чанке
 export const TREE_MIN_Y_SPACE           = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
-export const BUILDING_MIN_Y_SPACE       = 10; // Минимальное число блоков воздуха для устновки дома
-export const WATER_LEVEL                = 80;
+export const BUILDING_MIN_Y_SPACE       = 10; // Минимальное число блоков воздуха для установки дома
 export const DENSITY_AIR_THRESHOLD      = .6; // всё что больше этого значения - камень
 export const UNCERTAIN_ORE_THRESHOLD    = .025;
 
-let mountain_desert_mats = [];
+// Water
+const WATER_START                       = 0;
+const WATER_STOP                        = 1.5;
+const WATERFRONT_STOP                   = 24.0;
+const WATER_PERCENT                     = WATER_STOP / (WATERFRONT_STOP - WATER_START);
+const RIVER_FULL_WIDTH                  = WATERFRONT_STOP - WATER_START;
 
-function initMats() {
-    mountain_desert_mats = [
-        BLOCK.ORANGE_TERRACOTTA.id,
-        BLOCK.LIGHT_GRAY_TERRACOTTA.id,
-        BLOCK.BROWN_TERRACOTTA.id,
-        BLOCK.TERRACOTTA.id,
-        BLOCK.WHITE_TERRACOTTA.id,
-        BLOCK.WHITE_TERRACOTTA.id,
-        // BLOCK.PINK_TERRACOTTA.id,
-        // BLOCK.YELLOW_TERRACOTTA.id,
-    ];
-}
-
-const _aquifera_params = new AquiferaParams()
+// Rivers
+const RIVER_SCALE                       = .5;
+const RIVER_NOISE_SCALE                 = 4.5;
+const RIVER_OCTAVE_1                    = 512 / RIVER_SCALE;
+const RIVER_OCTAVE_2                    = RIVER_OCTAVE_1 / RIVER_NOISE_SCALE;
+const RIVER_OCTAVE_3                    = 48 / RIVER_SCALE;
 
 //
 class RiverPoint {
@@ -62,112 +62,85 @@ export class MapsBlockResult {
 
 }
 
-//
-export class DensityParams {
+class MapCellPresetResult {
 
     /**
-     * @param {float} d1
-     * @param {float} d2
-     * @param {float} d3
-     * @param {float} d4
-     * @param {float} density
-     * @param {float} dcaves
-     * @param {boolean} in_aquifera
-     * @param {int} local_water_line
+     * @param {float} relief 
+     * @param {float} mid_level 
+     * @param {float} radius 
+     * @param {float} dist 
+     * @param {float} dist_percent 
+     * @param {*} op 
+     * @param {*} density_coeff 
      */
-    constructor(d1, d2, d3, d4, density, dcaves = 0, in_aquifera = false, local_water_line = WATER_LEVEL) {
-        return this.set(d1, d2, d3, d4, density, dcaves, in_aquifera, local_water_line)
-    }
-
-    /**
-     * @param {float} d1
-     * @param {float} d2
-     * @param {float} d3
-     * @param {float} d4
-     * @param {float} density
-     * @param {float} dcaves
-     * @param {boolean} in_aquifera
-     * @param {int} local_water_line
-     */
-    set(d1, d2, d3, d4, density, dcaves = 0, in_aquifera = false, local_water_line = WATER_LEVEL) {
-        this.d1 = d1;
-        this.d2 = d2;
-        this.d3 = d3;
-        this.d4 = d4;
-        this.density = density;
-        this.dcaves = dcaves || 0;
-        this.in_aquifera = !!in_aquifera
-        this.local_water_line = local_water_line ?? WATER_LEVEL
-        return this;
-    }
-
-    reset() {
-        return this.set(0, 0, 0, 0, 0, 0);
+    constructor(relief, mid_level, radius, dist, dist_percent, op, density_coeff) {
+        this.relief = relief;
+        this.mid_level = mid_level;
+        this.radius = radius;
+        this.dist = dist;
+        this.dist_percent = dist_percent;
+        this.op = op;
+        this.density_coeff = density_coeff;
     }
 
 }
 
-const ZeroDensity = new DensityParams(0, 0, 0, 0, 0, 0);
-
 export const GENERATOR_OPTIONS = {
-    WATER_LINE:             80, // Ватер-линия
+    WATER_LINE:             WATER_LEVEL, // Ватер-линия
     SCALE_EQUATOR:          1280 * .5 * 3, // Масштаб для карты экватора
     SCALE_BIOM:             640  * .5, // Масштаб для карты шума биомов
     SCALE_HUMIDITY:         320  * .5, // Масштаб для карты шума влажности
     SCALE_VALUE:            250  * .5 // Масштаб шума для карты высот
 };
 
-export const DEFAULT_DENSITY_COEFF = {
+const DEFAULT_DENSITY_COEFF = {
     d1: 0.5333,
     d2: 0.2667,
     d3: 0.1333,
     d4: 0.0667
 }
 
-//
-const WATER_START           = 0;
-const WATER_STOP            = 1.5;
-const WATERFRONT_STOP       = 24.0;
-const WATER_PERCENT         = WATER_STOP / (WATERFRONT_STOP - WATER_START);
-const RIVER_FULL_WIDTH      = WATERFRONT_STOP - WATER_START;
-
-// Rivers
-const RIVER_SCALE = .5;
-const RIVER_NOISE_SCALE = 4.5;
-const RIVER_OCTAVE_1 = 512 / RIVER_SCALE;
-const RIVER_OCTAVE_2 = RIVER_OCTAVE_1 / RIVER_NOISE_SCALE;
-const RIVER_OCTAVE_3 = 48 / RIVER_SCALE;
-
 const MAP_PRESETS = {
-    // relief - кривизна рельефа
-    // mid_level - базовая высота поверхности
-    norm:               {id: 'norm', chance: 7, relief: 4, mid_level: 6, is_plain: true/*, grass_block_id: BLOCK.GRASS_BLOCK.id*/},
-    mountains:          {id: 'mountains', chance: 4, relief: 48, mid_level: 8/*, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id*/},
-    high_noise:         {id: 'high_noise', chance: 4, relief: 128, mid_level: 24/*, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id*/},
-    high_coarse_noise:  {id: 'high_coarse_noise', chance: 4, relief: 128, mid_level: 24/*, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id*/},
-    // gori:               {id: 'gori', chance: 40, relief: 128, mid_level: 24/*, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id*/}
+    norm:                       new MapCellPreset('norm',               { chance: 7, relief: 4, mid_level: 6}),
+    small_mountains:            new MapCellPreset('small_mountains',    { chance: 4, relief: 48, mid_level: 8 }),
+    high_noise:                 new MapCellPreset('high_noise',         { chance: 4, relief: 128, mid_level: 24 }),
+    high_coarse_noise:          new MapCellPreset('high_coarse_noise',  { chance: 4, relief: 128, mid_level: 24 }),
+    mountains:                  new MapCellPreset_Mountains(),
+    snow_covered_mountains:     new MapCellPreset_SnowCoveredMountains(),
+    swamp:                      new MapCellPreset_Swamp(),
+    ices:                       new MapCellPreset_Ices()
 };
 
-const size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-
 //
-const temp_chunk = {
+const _temp_chunk = {
     addr: new Vector(),
     coord: new Vector(),
-    size: size
+    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
 };
+
+const ZeroDensity = new DensityParams(0, 0, 0, 0, 0, 0);
+const _aquifera_params = new AquiferaParams()
 
 // Map manager
 export class TerrainMapManager2 {
 
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
+    static _climateParams = new ClimateParams();
 
-    constructor(seed, world_id, noise2d, noise3d) {
+    /**
+     * @param {*} seed 
+     * @param {*} world_id 
+     * @param {*} noise2d 
+     * @param {*} noise3d
+     * @param { import("../../../blocks.js").BLOCK } block_manager 
+     */
+    constructor(seed, world_id, noise2d, noise3d, block_manager) {
         this.seed = seed;
         this.world_id = world_id;
         this.noise2d = noise2d;
         this.noise3d = noise3d;
+        this.block_manager = block_manager;
         this.maps_cache = new VectorCollector();
         this.biomes = new Biomes(noise2d);
         // Presets by chances
@@ -179,10 +152,24 @@ export class TerrainMapManager2 {
             }
         }
         this.rnd_presets = new alea(seed);
-        this.presets.sort(() => .5 - this.rnd_presets.double());
-
+        this.float_seed = this.rnd_presets.double()
+        this.presets.sort(() => .5 - this.float_seed);
         this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
-        initMats();
+        this.initMats();
+    }
+
+    initMats() {
+        this.mountain_desert_mats = []
+        for(let name of ['ORANGE_TERRACOTTA', 'LIGHT_GRAY_TERRACOTTA',
+            'BROWN_TERRACOTTA',
+            'TERRACOTTA',
+            'WHITE_TERRACOTTA',
+            'WHITE_TERRACOTTA',
+            // 'PINK_TERRACOTTA',
+            // 'YELLOW_TERRACOTTA'
+        ]) {
+            this.mountain_desert_mats.push(this.block_manager.fromName(name).id)
+        }
     }
 
     // Delete map for unused chunk
@@ -212,9 +199,9 @@ export class TerrainMapManager2 {
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
                 TerrainMapManager2._temp_vec3.set(x, -chunk_addr.y, z);
-                temp_chunk.addr.copyFrom(chunk_addr).addSelf(TerrainMapManager2._temp_vec3);
-                temp_chunk.coord.copyFrom(temp_chunk.addr).multiplyVecSelf(size);
-                const map = this.generateMap(chunk, temp_chunk, noisefn);
+                _temp_chunk.addr.copyFrom(chunk_addr).addSelf(TerrainMapManager2._temp_vec3);
+                _temp_chunk.coord.copyFrom(_temp_chunk.addr).multiplyVecSelf(_temp_chunk.size);
+                const map = this.generateMap(chunk, _temp_chunk, noisefn);
                 if(Math.abs(x) < 2 && Math.abs(z) < 2) {
                     maps.push(map);
                 }
@@ -248,15 +235,24 @@ export class TerrainMapManager2 {
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
 
-    //
-    getPreset(xyz) {
+    rnd(x, z) {
+        const resp = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453 + this.float_seed
+        return resp - Math.floor(resp)
+    }
+
+    /**
+     * Return cell preset
+     * @param { Vector } xz 
+     * @returns { MapCellPresetResult }
+     */
+    getPreset(xz) {
 
         const RAD = 1000; // радиус области
-        const TRANSITION_WIDTH = 64; // ширина перехода межу областью и равниной
+        const TRANSITION_WIDTH = 256; // ширина перехода межу областью и равниной
 
         // центр области
-        const center_x = Math.round(xyz.x / RAD) * RAD;
-        const center_z = Math.round(xyz.z / RAD) * RAD;
+        const center_x = Math.round(xz.x / RAD) * RAD;
+        const center_z = Math.round(xz.z / RAD) * RAD;
 
         // базовые кривизна рельефа и высота поверхности
         let op                  = MAP_PRESETS.norm;
@@ -264,12 +260,12 @@ export class TerrainMapManager2 {
         let mid_level           = op.mid_level;
 
         // частичное занижение общего уровня, чтобы равнины становились ближе к воде
-        let deform_mid_level = -Math.abs(this.noise2d(xyz.x/500, xyz.z/500) * 4);
+        let deform_mid_level = -Math.abs(this.noise2d(xz.x/500, xz.z/500) * 4);
         if(deform_mid_level > 0) deform_mid_level /= 3;
         mid_level += deform_mid_level;
 
         // угол к центру области
-        const angle = this.angleTo(xyz, center_x, center_z);
+        const angle = this.angleTo(xz, center_x, center_z);
 
         // Формируем неровное очертание области вокруг его центра
         // https://www.benfrederickson.com/flowers-from-simplex-noise/
@@ -285,53 +281,34 @@ export class TerrainMapManager2 {
         const max_dist = radius;
 
         // Расстояние до центра области
-        const lenx = center_x - xyz.x;
-        const lenz = center_z - xyz.z;
+        const lenx = center_x - xz.x;
+        const lenz = center_z - xz.z;
         const dist = Math.sqrt(lenx * lenx + lenz * lenz);
+        const dist_percent = 1 - Math.min(dist/radius, 1); // 1 in center
 
         if((dist < max_dist)) {
             // выбор типа области настроек
-            const index = Math.abs(Math.round(center_x * 654 + center_x + center_z)) % this.presets.length;
+            const index = Math.floor(this.rnd(center_x / RAD, center_z / RAD) * this.presets.length)
             op = this.presets[index];
             // "перетекание" ландшафта
-            const perc = 1 - Math.min(Math.max((dist - (max_dist - TRANSITION_WIDTH)) / TRANSITION_WIDTH, 0), 1);
+            let perc = 1 - Helpers.clamp((dist - (max_dist - TRANSITION_WIDTH)) / TRANSITION_WIDTH, 0, 1);
             relief += ( (op.relief - MAP_PRESETS.norm.relief) * perc);
+            // relief += Mth.lerp(perc, MAP_PRESETS.norm.relief, op.relief/2 + op.relief/2*perc);
             mid_level += (op.mid_level - MAP_PRESETS.norm.mid_level) * perc;
         }
-
-        const dist_percent = 1 - Math.min(dist/radius, 1); // 1 in center
         const density_coeff = op.density_coeff ?? DEFAULT_DENSITY_COEFF;
 
-        return {relief, mid_level, radius, dist, dist_percent, op, density_coeff}
+        return new MapCellPresetResult(relief, mid_level, radius, dist, dist_percent, op, density_coeff)
 
-    }
-
-    // Шум для гор
-    mountainFractalNoise(x, y, octaves, lacunarity, persistence, scale) {
-        // The sum of our octaves
-        let value = 0
-        // These coordinates will be scaled the lacunarity
-        let x1 = x
-        let y1 = y
-        // Determines the effect of each octave on the previous sum
-        let amplitude = 1
-        for (let i = 1; i < octaves; i++) {
-            // Multiply the noise output by the amplitude and add it to our sum
-            value += this.noise2d(x1 / scale, y1 / scale) * amplitude;
-            // Scale up our perlin noise by multiplying the coordinates by lacunarity
-            y1 *= lacunarity
-            x1 *= lacunarity
-            // Reduce our amplitude by multiplying it by persistence
-            amplitude *= persistence
-        }
-        // It is possible to have an output value outside of the range [-1,1]
-        // For consistency let's clamp it to that range
-        return Math.abs(value); // Helpers.clamp(value, -1, 1)
     }
 
     getMaxY(cell) {
-        const {relief, mid_level} = cell.preset;
-        return Math.max(0, (1 - DENSITY_AIR_THRESHOLD) * relief + mid_level * 2) + WATER_LEVEL;
+        const {relief, mid_level, op} = cell.preset;
+        let val = (1 - DENSITY_AIR_THRESHOLD) * relief + mid_level * 2;
+        if (op.max_height !== undefined) {
+            val = Math.max(val, op.max_height + 1);
+        }
+        return val + WATER_LEVEL;
     }
 
     /**
@@ -346,39 +323,7 @@ export class TerrainMapManager2 {
      */
     calcDensity(xyz, cell, out_density_params = null, map) {
 
-        const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
-
-        // TODO: GENERATOR_OPTIONS.WATER_LINE or WATER_LEVEL ?
-
-        /*
-        if(op.id == 'gori') {
-
-            if(!cell.mountain_density) {
-                const NOISE_SCALE = 100
-                const HEIGHT_SCALE = 164 * dist_percent;
-                const max_height = GENERATOR_OPTIONS.WATER_LINE + this.mountainFractalNoise(xyz.x/3, xyz.z/3,
-                    4, // -- Octaves (Integer that is >1)
-                    3, // -- Lacunarity (Number that is >1)
-                    0.35, // -- Persistence (Number that is >0 and <1)
-                    NOISE_SCALE,
-                ) * HEIGHT_SCALE;
-                // const density = xyz.y < max_height ? 1 : 0;
-                const d1 = 0;
-                const d2 = 0;
-                const d3 = (
-                    this.noise2d(xyz.x/25, xyz.z/25) +
-                    this.noise2d((xyz.x + 1000) / 25, (xyz.z + 1000) / 25)
-                ) / 2;
-                const d4 = 0;
-                cell.mountain_density = new DensityParams(d1, d2, d3, d4, 1);
-                cell.mountain_density.max_height = max_height;
-                cell.mountain_density_zero = new DensityParams(d1, d2, d3, d4, 0);
-            }
-
-            return xyz.y < cell.mountain_density.max_height ? cell.mountain_density : cell.mountain_density_zero;
-
-        }
-        */
+        const {relief, mid_level, dist_percent, op, density_coeff} = cell.preset;
 
         // Aquifera
         map.aquifera.calcInside(xyz, _aquifera_params)
@@ -387,24 +332,29 @@ export class TerrainMapManager2 {
         const under_waterline = xyz.y < WATER_LEVEL;
         const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
         const under_earth_height = WATER_LEVEL - xyz.y
-        const under_earth_coeff = under_earth_height > 0 ? Math.min(under_earth_height/64, 1) : 0
-        const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
+        const under_earth_coeff = under_earth_height > 0 ? Math.min(under_earth_height/64, 1) : 0 // затухание естественных пещер от 3д шума
+
+        let h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
         //
         if(!_aquifera_params.inside) {
+            let height_check = h + under_earth_coeff < DENSITY_AIR_THRESHOLD;
             // Если это блок воздуха
-            if(h + under_earth_coeff < DENSITY_AIR_THRESHOLD) {
+            if (height_check) {
+                if (op.max_height !== undefined) {
+                    height_check = xyz.y - WATER_LEVEL >= op.max_height + 1;
+                }
+            }
+            if (height_check) {
                 if(out_density_params) {
                     return out_density_params.reset()
                 }
                 return ZeroDensity;
             }
         }
-
         //
         const res = out_density_params || new DensityParams(0, 0, 0, 0, 0, 0);
         res.reset()
-        this.noise3d.fetchGlobal4(xyz, res);
 
         // Check if inside aquifera
         if(_aquifera_params.inside) {
@@ -416,13 +366,28 @@ export class TerrainMapManager2 {
             }
         }
 
-        const {d1, d2, d3, d4} = res;
+        let density = 0;
+        this.noise3d.fetchGlobal4(xyz, res);
 
-        let density = (
+        const {d1, d2, d3, d4} = res;
+        density = (
             // 64/120 + 32/120 + 16/120 + 8/120
             (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
             / 2 + .5
         ) * h + under_earth_coeff;
+
+        if (op.calcDensity && dist_percent > 1e-3) {
+            res.density = density;
+            op.calcDensity(xyz, cell, dist_percent, this.noise2d, GENERATOR_OPTIONS, res)
+            let mountmul = 500 / 100 * dist_percent;
+            if (mountmul < 1) {
+                if (mountmul > 0) {
+                    density += (res.density - density) * mountmul;
+                }
+            } else {
+                density = res.density;
+            }
+        }
 
         // rivers/реки
         if(cell.river_point) {
@@ -449,7 +414,6 @@ export class TerrainMapManager2 {
     }
 
     /**
-     *
      * @param {Vector} xyz
      * @param {int} not_air_count
      * @param {TerrainMapCell} cell
@@ -463,6 +427,7 @@ export class TerrainMapManager2 {
         const dirt_layers = cell.biome.dirt_layers;
         const dist_percent = cell.preset.dist_percent;
         const {d1, d2, d3, d4, density} = density_params;
+        const bm = this.block_manager
 
         // 1. select dirt layer
         let dirt_layer = dirt_layers[0];
@@ -479,9 +444,9 @@ export class TerrainMapManager2 {
 
         if(cell.biome.title == 'Пустыня' && cell.preset.op.id == 'high_noise' && cell.preset.dist_percent + d3 * .25 > .5 ) {
             const v = (d3 + 1) / 2;
-            const index = xyz.y % mountain_desert_mats.length
+            const index = xyz.y % this.mountain_desert_mats.length
             const dd = Math.floor(index * v);
-            block_id = mountain_desert_mats[dd % mountain_desert_mats.length];
+            block_id = this.mountain_desert_mats[dd % this.mountain_desert_mats.length];
 
         } else {
             // 2. select block in dirt layer
@@ -506,10 +471,10 @@ export class TerrainMapManager2 {
 
         }
 
-        if(block_id == BLOCK.STONE.id) {
-            if(d1 > .5) block_id = BLOCK.ANDESITE.id
-            if(d4 > .5) block_id = BLOCK.DIORITE.id
-            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = BLOCK.GRANITE.id
+        if(block_id == bm.STONE.id) {
+            if(d1 > .5) block_id = bm.ANDESITE.id
+            if(d4 > .5) block_id = bm.DIORITE.id
+            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = bm.GRANITE.id
         }
         
         if(!block_result) {
@@ -520,6 +485,11 @@ export class TerrainMapManager2 {
 
     }
 
+    /**
+     * @param {int} x 
+     * @param {int} z 
+     * @returns {?RiverPoint}
+     */
     makeRiverPoint(x, z) {
         x += 91234;
         z -= 95678;
@@ -533,12 +503,27 @@ export class TerrainMapManager2 {
         return null;
     }
 
-    calcBiome(xz) {
+    /**
+     * @param {Vector} xz 
+     * @param { MapCellPreset } preset
+     * 
+     * @returns { Biome }
+     */
+    calcBiome(xz, preset) {
+
+        const params = TerrainMapManager2._climateParams
 
         // Create map cell
-        const temperature = this.biomes.calcNoise(xz.x / 1.15, xz.z / 1.15, 3, .9);
-        const humidity = this.biomes.calcNoise(xz.x * .5, xz.z * .5, 2);
-        const biome = this.biomes.getBiome(temperature, humidity);
+        params.set(
+            this.biomes.calcNoise(xz.x / 1.15, xz.z / 1.15, 3, .9),
+            this.biomes.calcNoise(xz.x * .5, xz.z * .5, 2)
+        );
+
+        if(preset.op?.modifyClimate) {
+            preset.op.modifyClimate(xz, params)
+        }
+
+        const biome = this.biomes.getBiome(params);
 
         return biome; // {biome, temperature, humidity};
 
@@ -572,11 +557,12 @@ export class TerrainMapManager2 {
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
                 // Create map cell
-                const biome = this.calcBiome(xyz);
+                const preset = this.getPreset(xyz);
+                const biome = this.calcBiome(xyz, preset);
                 const dirt_block_id = biome.dirt_layers[0];
                 const cell = new TerrainMapCell(value, biome.humidity, biome.temperature, biome, dirt_block_id);
                 cell.river_point = this.makeRiverPoint(xyz.x, xyz.z);
-                cell.preset = this.getPreset(xyz);
+                cell.preset = preset
                 cell.dirt_level = Math.floor((this.noise2d(xyz.x / 16, xyz.z / 16) + 2)); // динамическая толщина дерна
                 map.cells[z * CHUNK_SIZE_X + x] = cell;
 
@@ -622,7 +608,7 @@ export class TerrainMapManager2 {
                             // set building cell for biome info
                             // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
                             // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-                            const biome = this.calcBiome(xyz)
+                            const biome = this.calcBiome(xyz, preset)
                             building.setBiome(biome, biome.temperature, biome.humidity)
                             break
                         }

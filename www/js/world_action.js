@@ -380,7 +380,11 @@ class DestroyBlocks {
             return false;
         }
         cv.add(tblock.posworld, true);
-        actions.addBlocks([{pos: tblock.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: tblock.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+        const destroyed_block = {pos: tblock.posworld, item: {id: BLOCK.AIR.id}, destroy_block: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY}
+        if(tblock.extra_data) {
+            destroyed_block.destroy_block.extra_data = tblock.extra_data
+        }
+        actions.addBlocks([destroyed_block]);
         //
         if(tblock.material.sound) {
             actions.addPlaySound({tag: tblock.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
@@ -1465,7 +1469,7 @@ async function putInBucket(e, world, pos, player, world_block, world_material, m
             // put in bucket
             actions.putInBucket(item);
             // destroy world block
-            actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+            actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block: {id: world_material.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
             added_to_bucket = true;
         }
     } else if (pos.fluidLeftTop) {
@@ -1673,7 +1677,7 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
     if(extra_data?.pieces) {
         extra_data.pieces--;
         if(extra_data.pieces == 0) {
-            actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+            actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block: {id: world_material.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'burp', pos: new Vector(pos), except_players: [player.session.user_id]});
         } else {
             actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);

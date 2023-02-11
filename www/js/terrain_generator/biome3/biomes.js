@@ -1,6 +1,7 @@
 import { BLOCK } from '../../blocks.js';
 import { IndexedColor } from '../../helpers.js';
 import { TREES } from '../biomes.js';
+import { ClimateParams } from './terrain/manager_vars.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
@@ -160,6 +161,10 @@ export class Biomes {
 
         this.byName = new Map();
         this.byID = new Map();
+
+        /**
+         * @type { Biome[] }
+         */
         this.list = [];
     
         // Снежные биомы
@@ -264,13 +269,13 @@ export class Biomes {
             ]
         }, undefined, new IndexedColor(140, 480, 0), new IndexedColor(1, 254, 0));
         this.addBiome(134, 'Холмистое болото', 0.8, 0.9);
-        this.addBiome(16, 'Пляж', 0.8, 0.4,                          [{blocks: [BLOCK.SANDSTONE.id, BLOCK.SAND.id]}, {blocks: [BLOCK.STONE.id]}]);
+        this.addBiome(16, 'Пляж', 0.8, 0.4, [{blocks: [BLOCK.SANDSTONE.id, BLOCK.SAND.id]}, {blocks: [BLOCK.STONE.id]}]);
         // this.addBiome('Река', 0.5, 0.5);
         // this.addBiome('Океан', 0.5, 0.5);
         // this.addBiome('Глубокий океан', 0.5, 0.5);
         // this.addBiome('Умеренный океан', 0.8, 0.5);
         // this.addBiome('Глубокий умеренный океан.', 0.8, 0.5);
-    
+
         // Теплые биомы
         this.addBiome(21, 'Джунгли', 0.95, 0.9, undefined, {
                 frequency: TREE_FREQUENCY * 40,
@@ -423,22 +428,36 @@ export class Biomes {
 
     }
 
+    /**
+     * @param {int} x 
+     * @param {int} z 
+     * @returns { Biome }
+     */
+    getPaletteBiome(x, z) {
+        x = x | 0
+        z = z | 0
+        const palette_index = [z * this.scale + x]
+        return this.biomes_palette[palette_index]
+    }
+
     calcPalette() {
 
         this.biomes_palette = new Array(this.scale * this.scale);
 
         let m = new Map();
+        // debugger
         for(let x = 0; x < this.scale; x++) {
             for(let z = 0; z < this.scale; z++) {
                 const temp = x / this.scale
                 const temp_value = temp * 3 - 1;
                 const humidity = z / this.scale;
-                const humidity_value = humidity * 2 - 1;
+                const humidity_value = humidity // * 2 - 1;
                 let min_dist = Infinity;
                 let biome = null;
                 for(let bi in this.list) {
                     const b = this.list[bi];
-                    const dist = (temp_value - b.temp) * (temp_value - b.temp) + (humidity_value - b.humidity) * (humidity_value - b.humidity);
+                    const dist = Math.sqrt((temp_value - b.temperature) * (temp_value - b.temperature) +
+                                 (humidity_value - b.humidity) * (humidity_value - b.humidity))
                     if(dist < min_dist) {
                         min_dist = dist;
                         biome = b;
@@ -452,11 +471,10 @@ export class Biomes {
     }
 
     /**
-     * @param {float} temperature 
-     * @param {float} humidity 
-     * @returns 
+     * @param {ClimateParams} Params 
+     * @returns { Biome }
      */
-    getBiome(temperature, humidity) {
+    getBiome(params) {
 
         /*
         const temp_value = temp * 3 - 1;
@@ -476,8 +494,8 @@ export class Biomes {
 
         // return this.byName.get('Холмистая пустыня')
 
-        let x = Math.floor(this.scale * temperature);
-        let z = Math.floor(this.scale * humidity);
+        let x = Math.floor(this.scale * params.temperature);
+        let z = Math.floor(this.scale * params.humidity);
         x = Math.max(Math.min(x, this.scale - 1), 0)
         z = Math.max(Math.min(z, this.scale - 1), 0)
 
