@@ -638,8 +638,8 @@ export class WorldChestManager {
     }
 
     /**
-     * @param {TBlock} tblock of the chest
-     * @param {Int []} except_player_ids - ids of excluded players, optional
+     * @param { import("../../www/js/typed_blocks3.js").TBlock } tblock of the chest
+     * @param {int[]} except_player_ids - ids of excluded players, optional
      */
     sendChestToPlayers(tblock, except_player_ids = null) {
         const chunk = this.world.chunks.get(tblock.chunk_addr);

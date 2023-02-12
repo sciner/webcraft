@@ -297,7 +297,7 @@ export class DBWorldChunk {
     }
 
     /**
-     * @param {Vector-like} addr
+     * @param {VectorLike} addr
      * @param {Object} data_patch - object with keys = flat indexes, and values = items
      * @param {binary} compressed
      * @param {binary} private_compressed
@@ -400,7 +400,7 @@ export class DBWorldChunk {
 
     /**
      * Inserts rebuilt records into world_modify_chunks, either all or selected addresses.
-     * @param {Array of {x, y, z}} addresses - optional.
+     * @param {Vector[]} addresses - optional.
      *   If we need to rebuild all chunks, providing the list of all addresses increases speed.
      */
     async insertRebuildModifiers(addresses = null) {

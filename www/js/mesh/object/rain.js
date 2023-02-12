@@ -5,7 +5,7 @@ import { AABB } from '../../core/AABB.js';
 import { Resources } from '../../resources.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import {impl as alea} from "../../../vendors/alea.js";
-import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_IS_SNOWY } from "../../fluid/FluidConst.js";
+import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../../fluid/FluidConst.js";
 import { Weather } from '../../block_type/weather.js';
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
@@ -48,7 +48,7 @@ export default class Mesh_Object_Rain {
      * 
      * @param {*} render 
      * @param {string} type rain|snow 
-     * @param {*} chunkManager 
+     * @param { import("../../chunk_manager.js").ChunkManager } chunkManager 
      */
     constructor(render, type, chunkManager) {
 
@@ -376,13 +376,15 @@ export default class Mesh_Object_Rain {
         if(!_chunk || !_chunk.addr.equal(_chunk_addr)) {
             _chunk = this.chunkManager.getChunk(_chunk_addr)
         }
-        if(!_chunk) {
+        if(!_chunk?.packedCells) {
             return false;
         }
         const x = pos.x - _chunk_addr.x * CHUNK_SIZE_X;
         const z = pos.z - _chunk_addr.z * CHUNK_SIZE_Z;
         const cell_index = z * CHUNK_SIZE_X + x;
-        return _chunk.packedCells ? _chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_IS_SNOWY] > 0 : false;
+        const biome_id = _chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_BIOME_ID]
+        const biome = this.chunkManager.biomes.byID.get(biome_id)
+        return biome?.is_snowy ?? false
     }
 
 }

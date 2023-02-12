@@ -1,5 +1,8 @@
 export class QuestManager {
 
+    /**
+     * @type { import("../server_world.js").ServerWorld }
+     */
     #world;
 
     constructor(world) {
@@ -19,7 +22,10 @@ export class QuestManager {
         return this.groupsWithDefaultQuestsById.get(groupId);
     }
 
-    /** @return {Array} of player quests */
+    /**
+     * @param {*} player of player quests
+     * @returns {[]}
+     */
     async loadPlayerQuests(player) {
         return await this.#world.db.quests.loadPlayerQuests(player);
     }

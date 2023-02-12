@@ -77,7 +77,7 @@ export class DBWorldQuest {
     }
 
     /**
-     * @return {Map of Object} all quest groups, each containing a subset of its quests (where is_default = 1).
+     * @type {Map<string, object>} all quest groups, each containing a subset of its quests (where is_default = 1).
      * Keys = group ids
      * Values: {
      *  id      Int
@@ -89,7 +89,10 @@ export class DBWorldQuest {
         return this.defaultGroups;
     }
 
-    // loadPlayerQuests...
+    /**
+     * @param { import("../../server_player.js").ServerPlayer } player 
+     * @returns 
+     */
     async loadPlayerQuests(player) {
         if (player.world.isBuildingWorld()) {
             return [];

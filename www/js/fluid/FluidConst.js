@@ -37,7 +37,7 @@ export const OFFSET_FLUID = 0;
 export const OFFSET_BLOCK_PROPS = 1;
 export const FLUID_STRIDE = 2;
 
-export const PACKED_CELL_LENGTH = 6;
+export const PACKED_CELL_LENGTH = 5;
 export const PACKET_CELL_DIRT_COLOR_R   = 0;
 export const PACKET_CELL_DIRT_COLOR_G   = 1;
 export const PACKET_CELL_WATER_COLOR_R  = 2;

@@ -160,6 +160,10 @@ export class Biomes {
     initBiomes() {
 
         this.byName = new Map();
+
+        /**
+         * @type {Map<string, Biome>}
+         */
         this.byID = new Map();
 
         /**
