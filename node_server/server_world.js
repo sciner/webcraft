@@ -456,7 +456,7 @@ export class ServerWorld {
                 // We mustn't save fluids (synchronously) while the world transaction is writing, because it'll cause long waiting.
                 if (!this.dbActor.savingWorldNow) {
                     // Save fluids
-                    await this.db.fluid.saveFluids();
+                    this.db.fluid.saveFluids(); // it's ok to not await it here
                     this.ticks_stat.add('db_fluid_save');
                     this.givePriorityToSavingFluids = false;
                 } else {
