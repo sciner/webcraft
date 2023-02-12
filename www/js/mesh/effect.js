@@ -207,7 +207,7 @@ export class Mesh_Effect {
      */
     draw(render, delta) {
 
-        if(this.p_count < 0) {
+        if(this.p_count < 1) {
             return false;
         }
 
@@ -235,6 +235,8 @@ export class Mesh_Effect {
             );
             this.material.lightTex = null;
         }
+
+        return true
 
     }
 
