@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": false,
+        "noEmitOnError": false,
+        "removeComments": false,
+        "sourceMap": false,
+        "strict": false,
+        "target": "es2022",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "outDir": "js"
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
