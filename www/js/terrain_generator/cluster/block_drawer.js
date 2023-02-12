@@ -1,13 +1,12 @@
-import { Vector, VectorCollector } from "../../helpers.js";
+import { Vector, VectorCollector, VectorCardinalTransformer } from "../../helpers.js";
 
 //
 export class BlockDrawer {
 
     constructor(object) {
         this.object = object;
-        this.mirror_x = false;
-        this.mirror_z = false;
         this.list = [];
+        this.transformer = new VectorCardinalTransformer()
     }
 
     /**
@@ -24,14 +23,14 @@ export class BlockDrawer {
         }
 
         const pos = new Vector(0, 0, 0);
-        const block_coord = this.object.pos.clone().subSelf(chunk.coord);
-        const dir = this.object.direction;
+        const obj = this.object
+        this.transformer.initBuildingToChunk(obj, chunk)
         const two2map = new VectorCollector()
         const _pos2d = new Vector();
 
         for(let i = 0; i < this.list.length; i++) {
             const item = this.list[i];
-            pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir, this.mirror_x, this.mirror_z)
+            this.transformer.transform(item.move, pos)
             if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map)) {
                 blocks_setted++
             }

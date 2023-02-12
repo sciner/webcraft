@@ -23,18 +23,25 @@ const RAF_MS = 20; //ms per one world update
 const worker = globalThis.worker = {
 
     init: function() {
+        /** It allows us to see where the exception occurs in the worker. */
+        async function tryOnMessageFunc(e) {
+            return onMessageFunc(e).catch(err => {
+                console.log(err)
+                throw err
+            })
+        }
         if(typeof process !== 'undefined') {
             import('fs').then(fs => global.fs = fs);
             import('path').then(module => global.path = module);
             import('worker_threads').then(module => {
                 this.parentPort = module.parentPort;
-                this.parentPort.on('message', onMessageFunc);
+                this.parentPort.on('message', tryOnMessageFunc);
                 //options.context.parentPort = module.parentPort;
                 //options.context.parentPort.on('message', onMessageFunc);
 
             });
         } else {
-            onmessage = onMessageFunc
+            onmessage = tryOnMessageFunc
         }
     },
 

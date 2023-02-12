@@ -132,8 +132,7 @@ export class ClusterBuildingBase extends ClusterBase {
                 }
             }
 
-            // если строение частично или полностью находится в этом чанке
-            if(b.entrance.y != Infinity && b.aabb.intersect(chunk.aabb)) {
+            if(b.entrance.y != Infinity) {
                 this.drawBulding(chunk, maps, b, map)
             }
 
@@ -165,12 +164,22 @@ export class ClusterBuildingBase extends ClusterBase {
             return
         }
 
+        // если строение частично или полностью находится в этом чанке
+        const buildingIntersects = building.aabb.intersect(chunk.aabb)
+
         // for old version of terrain generator
-        this.fixBuildingHeight(maps, chunk, building)
-
+        // Call it before drawing anything.
+        if (buildingIntersects) {
+            this.fixBuildingHeight(maps, chunk, building)
+        }
+        // draw basement before the building
+        if (building.getautoBasementAABB()?.intersect(chunk.aabb)) {
+            building.drawAutoBasement(this, chunk)
+        }
         // draw building
-        building.draw(this, chunk, map)
-
+        if (buildingIntersects) {
+            building.draw(this, chunk, map)
+        }
     }
 
     /**

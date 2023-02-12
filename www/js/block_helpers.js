@@ -160,3 +160,54 @@ export class ItemHelpers {
         item.extra_data[fieldName] = (item.extra_data[fieldName] ?? 0) + delta;
     }
 }
+
+/**
+ * @param {Chunk|ServerChunk|ChunkWorkerChunk} chunk
+ * @param {AABB} clampedAABB - in the chunk coordinate system, clamped to the clunk's size
+ * @param {Int} setpXZ - a tweak to make the algorithm less precise, but faster
+ * @param {Int} setpY - a tweak to make the algorithm less precise, but faster
+ * @return {Int} y of the lowest non-solid block that ha only non-solid blocks above it in the given volume.
+ *   It scans blocks from above.
+ *   It ignores blocks below the 1st enocountered solid block (e.g. it ignores caverns below the surface).
+ *   If there is no such block in {@link clampedAABB}, it returns clampedAABB.y_max.
+ */
+export function findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, clampedAABB, setpXZ = 2, stepY = 2) {
+    const bm = chunk.chunkManager.block_manager
+    if (stepY !== 2 && stepY !== 1) {
+        throw new Error()
+    }
+    const ids = chunk.tblocks.id
+    const CHUNK_CY = chunk.tblocks.dataChunk.cy // if we import it as constant, static initialization order breaks somewhere else :(
+    let yMin = clampedAABB.y_max
+    const y_max_incl = yMin - 1
+    for(let x = clampedAABB.x_min; x < clampedAABB.x_max; x += setpXZ) {
+        for(let z = clampedAABB.z_min; z < clampedAABB.z_max; z += setpXZ) {
+            let ind = Vector.relativePosToChunkIndex(x, y_max_incl, z)
+            let y = y_max_incl
+            let currentStepY = stepY
+            // find the highest solid block
+            while(y >= clampedAABB.y_min) {
+                if (bm.isSolidID(ids[ind])) {
+                    // increase precision to 1 block
+                    if (currentStepY !== 1 && y !== y_max_incl && bm.isSolidID(ids[ind + CHUNK_CY])) {
+                        y++
+                    }
+                    break
+                }
+                if (y - 1 === clampedAABB.y_min) { // make the final stpep smaller if necessary
+                    currentStepY = 1
+                }
+                ind -= currentStepY * CHUNK_CY
+                y -= currentStepY
+            }
+            y++ // the lowest non-solid block above a solid block
+            if (yMin > y) {
+                if (y === clampedAABB.y_min) {
+                    return clampedAABB.y_min
+                }
+                yMin = y
+            }
+        }
+    }
+    return yMin
+}

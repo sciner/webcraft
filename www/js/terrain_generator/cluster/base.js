@@ -47,9 +47,9 @@ export class ClusterBase {
     /**
      * Set block
      * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {int} x 
-     * @param {int} y 
-     * @param {int} z 
+     * @param {int} x - reltive to the chunk
+     * @param {int} y - reltive to the chunk
+     * @param {int} z - reltive to the chunk
      * @param {int} block_id 
      * @param {*} rotate 
      * @param {*} extra_data 
@@ -93,6 +93,17 @@ export class ClusterBase {
             chunk.addTickingBlock(chunk.coord.offset(x, y, z));
         }
         return true;
+    }
+
+    setSolidBlockId(chunk, x, y, z, block_id) {
+        this.setBlock(chunk, x, y, z, block_id,
+            null,   // rotate
+            null,   // extra_data
+            false,  // check_is_solid
+            true,   // destroy_fluid
+            false,  // candidate_for_cap_block
+            null    // map
+        )
     }
 
     /**
@@ -373,7 +384,7 @@ export class ClusterBase {
     /**
      * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param { Vector } pos 
-     * @param { Vector } size 
+     * @param { Vector } size - y may be negative. It means "draw below pos.y"
      * @param { object } block 
      */
     drawNaturalBasement(chunk, pos, size, block) {

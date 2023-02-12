@@ -1,6 +1,8 @@
 import { impl as alea } from '../../../vendors/alea.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { AABB } from '../../core/AABB.js';
-import { getChunkAddr, Vector } from "../../helpers.js";
+import { getChunkAddr, Vector, VectorCardinalTransformer } from "../../helpers.js";
+import { findLowestNonSolidYFromAboveInChunkAABBRelative } from "../../block_helpers.js";
 import { BlockDrawer } from './block_drawer.js';
 import { getAheadMove } from './building_cluster_base.js';
 
@@ -11,6 +13,25 @@ export const ROOF_TYPE_PITCHED = 'pitched';
 export const ROOF_TYPE_FLAT = 'flat';
 
 const DEFAULT_DOOR_POS = new Vector(0, 0, 0);
+
+// It describes the shape of the basement's borders.
+// For each horizontal distance from the ground floor, it's minimum and maximum depth to draw earth blocks.
+export const BASEMNET_DEPTHS_BY_DISTANCE = [
+    {min: 0, max: 7},
+    {min: 1, max: 7},
+    {min: 2, max: 6},
+    {min: 3, max: 6},
+    {min: 4, max: 5},
+    {min: 5, max: 5}
+]
+export const BASEMENT_FLAT_ADD_XZ = 1       // How many flat blocks are added around the gound floor
+export const BASEMENT_SLOPE_SCALE_XZ = 0.7  // How wide/narrow the rounded borders around the basement are
+export const BASEMENT_MATRIX_PAD = 3
+export const BASEMENT_BOTTOM_BULGE_BLOCKS = 2   // How many bllocks are added to the depth of the basement at its center
+export const BASEMENT_BOTTOM_BULGE_PERCENT = 0.1 // Which fraction of the basement's width is added to its depth at its center
+
+const CHUNK_AABB = new AABB(0, 0, 0, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
+const tmpTransformer = new VectorCardinalTransformer()
 
 // Base building
 export class Building {
@@ -40,6 +61,8 @@ export class Building {
         this.building_template  = building_template
         this.door_direction     = door_direction
         this.coord              = coord
+        this.mirror_x           = false
+        this.mirror_z           = false
         this.entrance           = _entrance
         this.size               = _size
         this.materials          = null
@@ -52,6 +75,7 @@ export class Building {
                                         coord.y + _size.y,
                                         coord.z + _size.z
                                     )
+        this._autoBasemntAABB       = this.building_template?.autoBasement && new AABB()
 
         // blocks
         this.blocks = new BlockDrawer(this)
@@ -111,14 +135,54 @@ export class Building {
      */
     draw(cluster, chunk, draw_natural_basement = true) {
         // TODO: need to draw one block of air ahead door bottom
-        // natural basement
-        if(draw_natural_basement) {
+        // This code draws a rectangular basement if the new "autoBasement" is absent.
+        // The new "autoBasement" is drawn in a separate place because it requires checking its own AABB, instead of the building's AABB
+        if(draw_natural_basement && !this.building_template?.autoBasement) {
             const height = 4
             const dby = 0 // this.building_template ? this.building_template.world.entrance.y - 2 : 0 // 2 == 1 уровень ниже пола + изначально вход в конструкторе стоит на высоте 1 метра над землей
             const coord = new Vector(this.aabb.x_min, this.coord.y + dby, this.aabb.z_min)
             const size = new Vector(this.size.x, -height, this.size.z)
             const bm = cluster.clusterManager.world.block_manager
             cluster.drawNaturalBasement(chunk, coord, size, bm.STONE)
+        }
+    }
+
+    /**
+     * @param {ClusterVillage} cluster
+     * @param {import("../../worker/chunk.js").ChunkWorkerChunk} chunk
+     */
+    drawAutoBasement(cluster, chunk) {
+        const bm = cluster.block_manager
+        const basement = this.building_template.autoBasement
+        const objToChunk = new VectorCardinalTransformer().initBuildingToChunk(this, chunk)
+        const chunkToObj = new VectorCardinalTransformer().inverse(objToChunk)
+        const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
+        // AABB of the part of the basemenet in this chunk, clamped to chunk
+        const aabbInObj = basement.aabb.clone().setIntersect(chunkAabbInObj)
+        const aabbInChunk = objToChunk.tranformAABB(aabbInObj, new AABB())
+        const posInChunk = new Vector()
+
+        // find the lowest surface point (approximately)
+        const yMinNonSolidInChunk = findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, aabbInChunk)
+        const yMinNonSolidInObj = chunkToObj.transformY(yMinNonSolidInChunk)
+        if (yMinNonSolidInObj >= aabbInObj.y_max) {
+            return // there is nothing to draw
+        }
+
+        // draw the basemenet
+        for(let [x, z, ys] of basement.y_by_xz.entries(aabbInObj.x_min, aabbInObj.z_min, aabbInObj.x_max, aabbInObj.z_max)) {
+            if (!ys) {
+                continue
+            }
+            const y_max_incl = ys.max - 1
+            const y_min = Math.max(aabbInObj.y_min, ys.min, yMinNonSolidInObj)
+            const y_max = Math.min(aabbInObj.y_max, ys.max)
+            objToChunk.transformXZ(x, z, posInChunk)
+            for(let y = y_min; y < y_max; y++) {
+                const block_id = y === y_max_incl ? bm.GRASS_BLOCK.id : bm.DIRT.id
+                const yInChunk = objToChunk.transformY(y)
+                cluster.setSolidBlockId(chunk, posInChunk.x, yInChunk, posInChunk.z, block_id)
+            }
         }
     }
 
@@ -219,6 +283,18 @@ export class Building {
         coord.y = this.coord.y
         coord.z += this.coord.z - entrance.z
         return new AABB(coord.x, coord.y, coord.z, coord.x + this.size.x, coord.y + this.size.y, coord.z + this.size.z).translate(0, this.building_template.door_pos.y, 0)
+    }
+
+    /**
+     * Call it only after getRealAABB(), because getRealAABB() modifies the buildng's position.
+     * @return {AABB} of basement in the worlds's coordinate system.
+     */
+    getautoBasementAABB() {
+        if (this._autoBasemntAABB) {
+            tmpTransformer.initBuildingToWorld(this)
+            tmpTransformer.tranformAABB(this.building_template.autoBasement.aabb, this._autoBasemntAABB)
+        }
+        return this._autoBasemntAABB
     }
 
     /**

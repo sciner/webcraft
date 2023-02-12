@@ -146,7 +146,7 @@ export class AABB {
             vec.z + radius);
     }
 
-    setIntersect(aabb1, aabb2) {
+    setIntersect(aabb1, aabb2 = this) {
         this.x_min = Math.max(aabb1.x_min, aabb2.x_min);
         this.x_max = Math.min(aabb1.x_max, aabb2.x_max);
         this.y_min = Math.max(aabb1.y_min, aabb2.y_min);
@@ -268,6 +268,10 @@ export class AABB {
         this.z_min += z;
         this.z_max += z;
         return this;
+    }
+
+    translateByVec(vec) {
+        return this.translate(vec.x, vec.y, vec.z);
     }
 
     addPoint(x, y, z) {
