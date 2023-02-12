@@ -643,6 +643,19 @@ export class VectorCollectorFlat {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
     }
 
+    values() {
+        const that = this;
+        return (function* () {
+            for (let x of that.list.values()) {
+                for (let y of x.values()) {
+                    for (let value of y.values()) {
+                        yield value;
+                    }
+                }
+            }
+        })()
+    }
+
 }
 
 // VectorCollector...

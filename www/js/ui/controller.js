@@ -324,6 +324,7 @@ let gameCtrl = async function($scope, $timeout) {
             render_distance: 5,
             use_light: 1,
             beautiful_leaves: true,
+            leaf_fall: true,
             mipmap: false,
             mobs_draw_debug_grid: false,
             chunks_draw_debug_grid: false,
