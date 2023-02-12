@@ -274,6 +274,12 @@ export class Mth {
     static randomInt(maxExclusive) {
         return Math.floor(Math.random() * maxExclusive);
     }
+
+    static round(value, decimals) {
+        decimals = Math.pow(10, decimals)
+        return Math.round(value * decimals) / decimals
+    }
+
 }
 
 export class IvanArray {
@@ -2612,6 +2618,19 @@ export class ArrayHelpers {
             ? Uint8Array
             : (maxValue <= 0xffff ? Uint16Array : Uint32Array)
     }
+    
+    /**
+     * Return random item from array
+     * @param {*[]} arr 
+     * @returns 
+     */
+    static randomItem(arr) {
+        if(!Array.isArray(arr) || arr.length == 0) {
+            return undefined
+        }
+        return arr[(Math.random() * arr.length) | 0]
+    }
+
 }
 
 // Helper methods to work with an array or a scalar in the same way.

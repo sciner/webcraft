@@ -5,7 +5,7 @@
             "underwater_ambience"
         ],
         "rain": [
-            "rain"
+            "rain|loop=true"
         ],
         "entering_water": [
             "entering_water"

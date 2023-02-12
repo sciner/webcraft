@@ -62,7 +62,7 @@ export default class emitter {
         const small = this.args.small;
         const scale = this.args.scale;
         const force = this.args.force * 3;
-        const count = small ? 5 : 30;
+        const count = this.args.count ?? (small ? 5 : 30);
 
         const resp = [];
 

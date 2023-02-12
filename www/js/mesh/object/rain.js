@@ -1,4 +1,4 @@
-import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector, Helpers } from '../../helpers.js';
+import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector, Mth, ArrayHelpers } from '../../helpers.js';
 import GeometryTerrain from "../../geometry_terrain.js";
 import { BLEND_MODES } from '../../renders/BaseRenderer.js';
 import { AABB } from '../../core/AABB.js';
@@ -15,6 +15,7 @@ const SNOW_SPEED_X      = 16;
 const RAIN_RAD          = 8;
 const RAIN_START_Y      = 128;
 const RAIN_HEIGHT       = 128;
+const RAIN_HEARING_DIST = 10; // maximum hearing distance for player
 
 const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
 const randoms = new Array(RANDOMS_COUNT);
@@ -34,7 +35,7 @@ export default class Mesh_Object_Rain {
     #_enabled           = false;
     #_map               = new VectorCollector();
     #_player_block_pos  = new Vector();
-    #_version           = 0;
+    #_player_pos        = new Vector();
     #_blocks_sets       = 0;
 
     constructor(render, type, chunkManager) {
@@ -45,6 +46,8 @@ export default class Mesh_Object_Rain {
         this.player         = render.player;
         this.strength_val   = 0
         this.weather        = Weather.BY_NAME[type]
+        this.player_dist    = Infinity
+        this.contact_blocks = [] // блоки, которые дождь принял за препятствие и ниже них не льёт
         
         // Material (rain)
         const mat = render.defaultShader.materials.doubleface_transparent;
@@ -61,7 +64,6 @@ export default class Mesh_Object_Rain {
         this.defaultVolume = Qubatch.sounds.getTrackProps('madcraft:environment', this.type)?.volume
         if (this.defaultVolume) {
             this.sound_id = Qubatch.sounds.play('madcraft:environment', this.type, null, true)
-            
             // Start quiet. It'll change the volume with time.
             Qubatch.sounds.setVolume(this.sound_id, 0)
         }
@@ -138,10 +140,14 @@ export default class Mesh_Object_Rain {
 
     //
     update(weather, delta) {
-        const old_strength_val = this.strength_val
-        this.strength_val = Helpers.clamp(this.strength_val + delta / 1000 * (weather ? 1 : -1), 0, 1)
-        if (this.sound_id && this.strength_val !== old_strength_val) {
-            Qubatch.sounds.setVolume(this.sound_id, this.defaultVolume * this.strength_val)
+        if (this.sound_id) {
+            const old_volume = this.volume
+            this.strength_val = Mth.clamp(this.strength_val + delta / 1000 * (weather ? 1 : -1), 0, 1)
+            const hearing_dist_volume = Mth.clamp(1 - this.player_dist / RAIN_HEARING_DIST, 0, 1)
+            this.volume = Mth.round(this.defaultVolume * Math.min(this.strength_val, hearing_dist_volume), 3)
+            if(old_volume != this.volume) {
+                Qubatch.sounds.setVolume(this.sound_id, this.volume)
+            }
         }
         if (!weather && this.strength_val == 0) {
             this.enabled = false
@@ -150,7 +156,7 @@ export default class Mesh_Object_Rain {
 
     /**
      * Draw particles
-     * @param {Renderer} render Renderer
+     * @param { import("../../render.js").Renderer } render Renderer
      * @param {float} delta Delta time from previous call
      * @memberOf Mesh_Object_Raindrop
      */
@@ -161,6 +167,17 @@ export default class Mesh_Object_Rain {
         }
 
         render.renderBackend.drawMesh(this.buffer, this.material, this.pos);
+
+        // random raindrop particles on earth
+        // let prev_item = null
+        // for(let i = 0; i < 10; i++) {
+        //     const item = ArrayHelpers.randomItem(this.contact_blocks)
+        //     if(item !== prev_item) {
+        //         const scale = Mth.clamp(1 - this.#_player_pos.distance(item.pos) / 8, 0, 1) * .5
+        //         render.destroyBlock({id: 202}, item.pos.add(new Vector(Math.random(), 1, Math.random())), true, scale, .5, 1)
+        //         prev_item = item
+        //     }
+        // }
 
     }
 
@@ -180,6 +197,7 @@ export default class Mesh_Object_Rain {
             }
         } else {
             this.#_player_block_pos.copyFrom(player.blockPos);
+            this.#_player_pos.copyFrom(player.lerpPos);
             this.#_map.clear();
             // update
             const vec = new Vector();
@@ -221,7 +239,8 @@ export default class Mesh_Object_Rain {
         const block_pos     = new Vector();
         const chunk_size    = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         const chunk_addr    = new Vector();
-        const chunk_addr_o  = new Vector(Infinity, Infinity, Infinity);
+
+        this.contact_blocks = []
 
         // check chunks available
         const chunk_y_max = Math.floor(RAIN_START_Y / CHUNK_SIZE_Y);
@@ -240,6 +259,8 @@ export default class Mesh_Object_Rain {
             }
         }
 
+        let min_player_dist = Infinity
+
         //
         let block = null;
         let cx = 0, cy = 0, cz = 0, cw = 0;
@@ -250,9 +271,8 @@ export default class Mesh_Object_Rain {
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, RAIN_START_Y - k, pos.z + j);
                     getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
-                    if(!chunk_addr.equal(chunk_addr_o)) {
+                    if(!chunk || !chunk.addr.equal(chunk_addr)) {
                         chunk = this.chunkManager.getChunk(chunk_addr);
-                        chunk_addr_o.copyFrom(chunk_addr);
                         const dc = chunk.tblocks.dataChunk;
                         cx = dc.cx;
                         cy = dc.cy;
@@ -271,6 +291,11 @@ export default class Mesh_Object_Rain {
                             block = chunk.tblocks.get(block_pos, block);
                             checked_blocks++;
                             if(block && (block.id > 0 || block.fluid > 0) && !block.material.invisible_for_rain) {
+                                let player_dist = this.#_player_pos.distance(block.posworld)
+                                if(player_dist < min_player_dist) {
+                                    min_player_dist = player_dist
+                                }
+                                this.contact_blocks.push({block, pos: block.posworld})
                                 this.#_map.set(vec, k)
                                 break;
                             }
@@ -280,9 +305,10 @@ export default class Mesh_Object_Rain {
             }
         }
 
-        p = performance.now() - p;
+        this.player_dist = min_player_dist - 1
+
         this.createBuffer(TARGET_TEXTURES);
-        // console.log('tm', checked_blocks, p);
+        // console.log('tm', checked_blocks, Mth.round(performance.now() - p, 3));
         return true;
         
     }

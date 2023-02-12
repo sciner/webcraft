@@ -917,9 +917,9 @@ export class Renderer {
     }
 
     // Destroy block particles
-    destroyBlock(block, pos, small, scale = 1, force = 1) {
+    destroyBlock(block, pos, small, scale = 1, force = 1, count) {
         const block_manager = Qubatch.world.block_manager;
-        this.meshes.effects.createEmitter('destroy_block',  pos, {block, small, scale, force, block_manager});
+        this.meshes.effects.createEmitter('destroy_block', pos, {block, small, scale, force, block_manager, count});
     }
 
     // Add particles
