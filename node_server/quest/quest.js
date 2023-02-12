@@ -19,9 +19,9 @@ export class Quest {
 
     /**
      * @param {QuestPlayer} quest_player
-     * @param {Object} quest - either an existing quest of this player returned by {@link DBWorldQuest.loadPlayerQuests},
+     * @param { object } quest - either an existing quest of this player returned by {@link DBWorldQuest.loadPlayerQuests},
      *  or a general quest description returned by {@link DBWorldQuest.load}, {@link DBWorldQuest.defaults} or 
-     * @param {Boolean} isNew - true if the quest is just created, and not addede to the DB,
+     * @param { boolean } isNew - true if the quest is just created, and not addede to the DB,
      *  false if it already exists in DB
      */
     constructor(quest_player, quest, isNew) {

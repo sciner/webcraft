@@ -290,9 +290,9 @@ export class Inventory {
      * Decrements the item count by {@link count} or by as much as posible, and removes the
      * item from list if the count becomes 0.
      * @param {Array|Object} list
-     * @param {Int} index
-     * @param {Int} count
-     * @return {Int} - the amount actually subtracted
+     * @param { int } index
+     * @param { int } count
+     * @return { int } - the amount actually subtracted
      */
     static decrementByIndex(list, index, count = 1) {
         const item = list[index];
@@ -327,7 +327,7 @@ export class Inventory {
      * в (текущем инвентаре + дополнительном списке предметов) по указанному списку.
      * @param {Array} resources - the array of needed resources, see {@link Recipe.calcNeedResources}
      * @param {Array} additionalItems - optional additional items, g.e. from craft slots.
-     * @returns {Object} with properties:
+     * @returns { object } with properties:
      *  - missing: Array - mising resuces
      *  - has: Array - the found resources
      */

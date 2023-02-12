@@ -720,7 +720,7 @@ export class ServerPlayer extends Player {
 
     /**
      * Teleport
-     * @param {Object} params
+     * @param { object } params
      * @return {void}
      */
     teleport(params) {

@@ -321,7 +321,7 @@ export class BLOCK {
      *   item is expected to have an entity, and doesn't have it.
      * - it assumes malicios intent, and does extra validation.
      * 
-     * @param {Object} an inventory item that came from client
+     * @param { object } an inventory item that came from client
      * @return a new valid inventory item, or null.
      */
     static sanitizeAndValidateInventoryItem(item) {

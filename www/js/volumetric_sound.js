@@ -231,7 +231,7 @@ class SoundChunk {
 
     /**
      * @param {Vector} addr
-     * @param {Int} queryId it stays the same for {@link SoundChunkPlaceholder} and the chunk
+     * @param { int } queryId it stays the same for {@link SoundChunkPlaceholder} and the chunk
      *   created on its place. But it'll be diferent after the chunk is forgotten aand a new
      *   placeholder is created. It's used to skip diffs that come to a previous instance of this chunk.
      */
@@ -298,11 +298,11 @@ class SoundChunk {
 
     /**
      * Adds or subtracts a sound block from all mip levels.
-     * @param {Int} x0 - the x coordinate relative to the chunk
-     * @param {Int} y0
-     * @param {Int} z0
-     * @param {Int} type from 0 to ({@link VOLUMETRIC_SOUND_TYPES} - 1)
-     * @param {Int} delta -1 or 1
+     * @param { int } x0 - the x coordinate relative to the chunk
+     * @param { int } y0
+     * @param { int } z0
+     * @param { int } type from 0 to ({@link VOLUMETRIC_SOUND_TYPES} - 1)
+     * @param { int } delta -1 or 1
      */
     addToMips(x0, y0, z0, type, delta) {
         // Add 0.5 to coordinates to make the sound come from the center of the block.
@@ -730,14 +730,14 @@ export class SoundMap {
     }
 
     /**
-     * @param {Object} mips - mip maps for this type of sound
-     * @param {Int} mipX - from 0 to {@link mip}.sizeXZ
-     * @param {Int} mipY - from 0 to {@link mip}.sizeY
-     * @param {Int} mipZ - from 0 to {@link mip}.sizeXZ
-     * @param {Int} worldX - botom-left corner of the cuboid + 0.5
-     * @param {Int} worldY
-     * @param {Int} worldZ
-     * @param {Object} mip - one of {@link MIPS}
+     * @param { object } mips - mip maps for this type of sound
+     * @param { int } mipX - from 0 to {@link mip}.sizeXZ
+     * @param { int } mipY - from 0 to {@link mip}.sizeY
+     * @param { int } mipZ - from 0 to {@link mip}.sizeXZ
+     * @param { int } worldX - botom-left corner of the cuboid + 0.5
+     * @param { int } worldY
+     * @param { int } worldZ
+     * @param { object } mip - one of {@link MIPS}
      */
     addToSummary(mips, mipX, worldX, mipY, worldY, mipZ, worldZ, mip, type, ind) {
         const level = mip.level

@@ -54,7 +54,7 @@ export class DropItem {
         }
     }
 
-    /** @return {Object} data to send in CMD_DROP_ITEM_ADDED and CMD_DROP_ITEM_FULL_UPDATE */
+    /** @return { object } data to send in CMD_DROP_ITEM_ADDED and CMD_DROP_ITEM_FULL_UPDATE */
     getItemFullPacket() {
         return {
             entity_id:  this.entity_id,

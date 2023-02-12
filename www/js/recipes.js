@@ -112,8 +112,8 @@ export class Recipe {
      * Calculates an array of adaptive patterns for craft slots with the given number
      * of columns. It may contain 0, 1 or 2 elements (the second one is mirrored).
      * @param keys
-     * @param {Int} rows - the maximum number of craft slot rows
-     * @param {Int} cols - the number of craft slots columns
+     * @param { int } rows - the maximum number of craft slot rows
+     * @param { int } cols - the number of craft slots columns
      * @returns a non-empty array of patterns, or null if there are no patterns.
      */
     calcAdaptivePatterns(keys, rows, cols) {
@@ -208,8 +208,8 @@ export class Recipe {
 
     /**
      * @param {Array of Int} item_ids - for each crafting slot, id of its item, or null
-     * @param {Object} area_size - {width, height}
-     * @return {Object} - an object that contains all the necessary information to search
+     * @param { object } area_size - {width, height}
+     * @return { object } - an object that contains all the necessary information to search
      *  or match recipes to the given slots. It can be searched by {@link findAdaptivePattern}
      */
     static craftingSlotsToSearchPattern(item_ids, area_size) {
@@ -286,7 +286,7 @@ export class RecipeManager {
             map: new Map(),
             /**
              * @param {Array of Int} pattern_array - array of item ids, one per slot of the input area.
-             * @param {Object} area_size {width, height}
+             * @param { object } area_size {width, height}
              */
             searchRecipe: function(searchPattern) {
                 for(let recipe of this.list) {
@@ -560,7 +560,7 @@ export class RecipeManager {
     }
 
     /**
-     * @param {Object} template - see doc/recipes.md
+     * @param { object } template - see doc/recipes.md
      * @returns {Array} - entries (blocks with additional data) that match the template.
      */
     getResultTemplateEntries(template, template_name) {
@@ -599,9 +599,9 @@ export class RecipeManager {
     }
 
     /**
-     * @param {Object} resultBlock
+     * @param { object } resultBlock
      * @param {nameBase} - the name of resultBlock without its suffix
-     * @param {Object} template - the value of item in the template. See doc/recipes.md
+     * @param { object } template - the value of item in the template. See doc/recipes.md
      * @return a recipe item (i.e. a string or array of strings) consisting of blocks that match the arguments.
      */
     getIngredientTemplateItem(resultBlock, nameBase, template) {
@@ -781,11 +781,11 @@ export class RecipeManager {
     /**
      * Subtracts the used resurces from the simple items, and adds the result to them.
      * Returns teh resulting item.
-     * @param {Object} used_recipe - see {@link InventoryComparator.checkEqual}, fields:
+     * @param { object } used_recipe - see {@link InventoryComparator.checkEqual}, fields:
      *   recipe_id: Int
      *   used_items_keys: Array of String
      *   count: Int
-     * @param {Object} recipe
+     * @param { object } recipe
      * @param {Array of Item} used_items - the item.count is ignored, and used_recipe.count is for all items
      * @throws if it's imposible
      */

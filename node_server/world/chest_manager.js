@@ -28,7 +28,7 @@ export class WorldChestManager {
      * Returns a vaild chest by pos, or throws an exception.
      * Optionally, it can return null if the chunk is mising.
      * @param {Vector} pos
-     * @param {Boolean} nullIfNotLoaded - if it's true and the chunk is missing,
+     * @param {boolean} nullIfNotLoaded - if it's true and the chunk is missing,
      *      then instead of throwing an exception, it return null. The default is false.
      * @returns {TBlock} chest
      */
@@ -52,7 +52,7 @@ export class WorldChestManager {
 
     /**
      * @param {Vector} pos
-     * @returns {Object} {
+     * @returns { object } {
      *   chest: ?TBlock   // if the chest is loaded and valid
      *   error: ?String   // otherwise
      * }
@@ -77,7 +77,7 @@ export class WorldChestManager {
      * - rearranges the server inventory according to the state of the client's inventory before the last change;
      * - applies the change described by the client to the server chests and inventory;
      * - saves and sends the changes.
-     * @param {Object} params - see BaseChestWindow.confirmAction(), BaseChestWindow.lastChange
+     * @param { object } params - see BaseChestWindow.confirmAction(), BaseChestWindow.lastChange
      */
     async confirmPlayerAction(player, params) {
 
@@ -354,9 +354,9 @@ export class WorldChestManager {
         /**
          * Adds the source item to compatible item stacks or free places.
          * Subtracts from the source item's count. Updates reult flags.
-         * @param {Object} slot - the source item
-         * @param {Boolean} targetIsChest - whether it shoukld be added to the chest, or to the inventory
-         * @return {Int} the result flags
+         * @param { object } slot - the source item
+         * @param { boolean } targetIsChest - whether it shoukld be added to the chest, or to the inventory
+         * @return { int } the result flags
          */
         function spreadToList(slot, targetIsChest) {
             const list = targetIsChest ? srvChest : srvInv;

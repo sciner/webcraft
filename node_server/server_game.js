@@ -44,9 +44,9 @@ export class ServerGame {
 
     /** 
      * @param {String} msg - broadcasted to all players in all worlds
-     * @param {Boolean} gentle - if it's true, each world will start its shutdown only after its
+     * @param { boolean } gentle - if it's true, each world will start its shutdown only after its
      *   actions_queue is empty
-     * @return {Boolean} true if success
+     * @return { boolean } true if success
      */
     shutdown(msg, gentle) {
         if (this.shutdownPromise) {

@@ -296,13 +296,13 @@ export class Color {
  */
 
 /**
- * @typedef {Object} IAnyColorRecord
+ * @typedef { object } IAnyColorRecord
  * @property {number} pos
  * @property {number | Color | Array<number>} color
  */
 
 /**
- * @typedef {Object} IColorRecord
+ * @typedef { object } IColorRecord
  * @property {number} pos
  * @property {Color} color
  */

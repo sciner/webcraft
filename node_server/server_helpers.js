@@ -69,7 +69,7 @@ async function rollupImport(dir, file) {
  *   from a module. Implementations: {@link simpleImport}, {@link importClassInstance}.
  * @param {Map, Object or Array} result - the resulting mapping of transformed keys
  *   to loaded objects, see {@link parseManyToMany}.
- * @param {Object} uniqueImports - collects all unique [config_value, imported_objct] here.
+ * @param { object } uniqueImports - collects all unique [config_value, imported_objct] here.
  * @returns the result parametr,.
  */
 
@@ -176,7 +176,7 @@ export function importClassInstanceWithId(module, str, fullImportString) {
 
 export class DelayedCalls {
     /**
-     * @param {Object} calleesById - keys are ids, 
+     * @param { object } calleesById - keys are ids, 
      *  values are objects:
      *  {
      *      delayedCall(args...)
@@ -186,7 +186,7 @@ export class DelayedCalls {
      *  }
      * beforeDelayedSaving and afterDelayedLoading can be used to convert (object references <-> ids)
      * 
-     * @param {Boolean} sometimesSerialize - if it's true, half the time arguments are
+     * @param { boolean } sometimesSerialize - if it's true, half the time arguments are
      *  serialized and deserialized before a normal call. It helps debugging: ensures
      * that callees work with both direct and deserialized arguments.
      */

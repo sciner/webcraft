@@ -11,14 +11,14 @@ import { WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 
 /**
  * World generation unfo passed from server
- * @typedef {Object} TWorldInfo
+ * @typedef { object } TWorldInfo
  * @property {{id: string}} generator
  * @property {string} game_mode
  * @property {string} guid
  * @property {number} id
  * @property {{x: number, y: number, z: number}} pos_spawn
  * @property {string} seed
- * @property {Object} state
+ * @property { object } state
  * @property {string} title
  * @property {number} user_id
  */

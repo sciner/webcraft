@@ -109,7 +109,7 @@ export class WorldDBActor {
 
     /**
      * It saves all the changes the world state in one transaction.
-     * @param {Boolean} shutdown - if it's true, all changes must be written, and
+     * @param { boolean } shutdown - if it's true, all changes must be written, and
      *   the game will stop after that.
      *   It's different from world.shuttingDown. When world.shuttingDown is not null,
      *   the game may continue for some time:

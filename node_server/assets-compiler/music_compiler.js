@@ -33,7 +33,7 @@ export class Music_Compiler {
      * Copies files from {@link srcDir} to {@link dstDir} if the destination doesn't exist, or is older.
      * Deletes files and directories from {@link dstDir} if they aren't present in {@link srcDir}.
      * Recursively processes subfolders.
-     * @return {Boolean} true if anything has been changed
+     * @return { boolean } true if anything has been changed
      */
     async syncDirectory(srcDir, dstDir, filter = (fileName) => true) {
 

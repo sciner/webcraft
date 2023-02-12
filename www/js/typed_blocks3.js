@@ -1258,7 +1258,7 @@ export class BlockAccessor {
     }
 
     /**
-     * @returns {Int} world coordinate X of the current point.
+     * @returns { int } world coordinate X of the current point.
      */
     get x() {
         return this._tbCoord.x + this._vec.x;
@@ -1281,7 +1281,7 @@ export class BlockAccessor {
 
     /**
      * Sets the world coordinat X of the current position.
-     * @param {Int} x
+     * @param { int } x
      */
     set x(x) {
         const rx = x - this._tbCoord.x;
@@ -1315,9 +1315,9 @@ export class BlockAccessor {
 
     /**
      * Sets the current world position.
-     * @param {Int} x
-     * @param {Int} y
-     * @param {Int} z
+     * @param { int } x
+     * @param { int } y
+     * @param { int } z
      * @returns {BlockAccessor} this
      */
     setXYZ(x, y, z) {
@@ -1349,9 +1349,9 @@ export class BlockAccessor {
 
     /**
      * Adds to the coordinates of the current world position.
-     * @param {Int} dx
-     * @param {Int} dy
-     * @param {Int} dz
+     * @param { int } dx
+     * @param { int } dy
+     * @param { int } dz
      * @returns {BlockAccessor} this
      */
     addXYZ(dx, dy, dz) {
@@ -1359,7 +1359,7 @@ export class BlockAccessor {
     }
 
     /**
-     * @returns {Int} id of the current block, or null if the chunk is not generated.
+     * @returns { int } id of the current block, or null if the chunk is not generated.
      */
     get idOrNull() {
         return this.tblockOrNull?.id;
@@ -1367,21 +1367,21 @@ export class BlockAccessor {
 
     /**
      * @param {Any} def - the default value
-     * @returns {Int} id of the current block, or the default value if the chunk is not generated.
+     * @returns { int } id of the current block, or the default value if the chunk is not generated.
      */
     idOr(def) {
         return this.tblockOrNull ? this.tblockOrNull.id : def;
     }
 
     /**
-     * @returns {Object} the properties of the current block, or null if the chunk is not generated.
+     * @returns { object } the properties of the current block, or null if the chunk is not generated.
      */
     get materialOrNull() {
         return this.tblockOrNull?.material;
     }
 
     /**
-     * @returns {Object} the properties of the current block, or {@link BLOCK.DUMMY}
+     * @returns { object } the properties of the current block, or {@link BLOCK.DUMMY}
      *      if the chunk is not generated.
      */
     get materialOrDUMMY() {
@@ -1390,7 +1390,7 @@ export class BlockAccessor {
 
     /**
      * @param {Any} def - the default value
-     * @returns {Object} the properties of the current block, or the default value
+     * @returns { object } the properties of the current block, or the default value
      *      if the chunk is not generated.
      */
     materialOr(def) {

@@ -58,7 +58,7 @@ class CompressedModifiersBuilder {
  * Compress chunk modifiers
  * @param {Object[]} json 
  * @param {boolean} need_to_gzip 
- * @returns {Object} contains 2 fields:
+ * @returns { object } contains 2 fields:
  *  "piblic" - compreseed modifiers that are sent to the client and contains:
  *    - normal blocks;
  *    - stripped-down versions of some special blocks, e.g. chests without slots.

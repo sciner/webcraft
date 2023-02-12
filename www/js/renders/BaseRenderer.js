@@ -5,12 +5,16 @@ import {BatchSystem} from "./batch/BatchSystem.js";
 const {mat4} = glMatrix;
 
 /**
- * @typedef {Object} PassOptions
+ * @typedef { object } PassOptions
  * @property {[number, number, number, number]} [fogColor]
  * @property {boolean} [clearColor]
  * @property {boolean} [clearDepth]
  * @property {BaseRenderTarget} [target]
  * @property {[number, number, number, number]} [viewport]
+ */
+
+/**
+ * BaseRenderTarget
  */
 export class BaseRenderTarget {
     constructor (context, options = {width: 1, height: 1, depth: true}) {

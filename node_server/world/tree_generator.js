@@ -23,7 +23,7 @@ export class TreeGenerator extends Default_Terrain_Generator {
     /**
      * Generates a tree.
      * 
-     * @param {Object} m - the parameters. Some of its posible fields:
+     * @param { object } m - the parameters. Some of its posible fields:
      *  {
      *      etra_data: { style, height },
      *      effects

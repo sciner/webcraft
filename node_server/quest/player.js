@@ -29,7 +29,7 @@ export class QuestPlayer {
 
     /**
      * Adds a new quest to the current quests. It'll be saved in the next world transaction.
-     * @param {Object} dbQuest - one quest returned by {@link DBWorldQuest.load},
+     * @param { object } dbQuest - one quest returned by {@link DBWorldQuest.load},
      *  {@link DBWorldQuest.defaults} or {@link DBWorldQuest.loadPlayerQuests}
      */
     addQuest(dbQuest, isNew) {

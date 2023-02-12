@@ -2536,7 +2536,7 @@ export class ArrayHelpers {
      * Ensures that the first sortedLength elements are the same as if the entire array
      * was sorted. The order of the remaining elemnets is undefin.
      * It has O(length) time.
-     * @param {Int} sortedLength - the number of first array elements that will be sorted.
+     * @param { int } sortedLength - the number of first array elements that will be sorted.
      */
     static partialSort(arr, sortedLength = arr.length, compare,
         // do not pass the last 2 arguments - they are internal
@@ -3552,7 +3552,7 @@ export class SpatialDeterministicRandom {
     /**
      * @param {Vector-like} pos
      * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - a signed 32-bit value based on the current world positon,
+     * @returns { int } - a signed 32-bit value based on the current world positon,
      *      world seed and spice.
      */
     static int32(world, pos, spice = null) {
@@ -3575,7 +3575,7 @@ export class SpatialDeterministicRandom {
      * Generates 31-bit unsigned int.
      * @param {Vector-like} pos
      * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - an unsigned 31-bit value based on the current world positon,
+     * @returns { int } - an unsigned 31-bit value based on the current world positon,
      *      world seed and spice.
      */
     static uint(world, pos, spice = null) {
@@ -3598,9 +3598,9 @@ export class SpatialDeterministicRandom {
      * Note: the distribution is not uniform for very large numbers.
      *
      * @param {Vector-like} pos
-     * @param {Int} max - the maximum value (exclusive)
+     * @param { int } max - the maximum value (exclusive)
      * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - a value from min to max, based on the current world positon,
+     * @returns { int } - a value from min to max, based on the current world positon,
      *      world seed and spice.
      */
     static int(world, pos, max, spice = null) {
@@ -3612,10 +3612,10 @@ export class SpatialDeterministicRandom {
      * Note: the distribution is not uniform for very large numbers.
      *
      * @param {Vector-like} pos
-     * @param {Int} min - the minium value (inclusive)
-     * @param {Int} max - the maximum value (inclusive)
+     * @param { int } min - the minium value (inclusive)
+     * @param { int } max - the maximum value (inclusive)
      * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - a value from min to max, based on the current world positon,
+     * @returns { int } - a value from min to max, based on the current world positon,
      *      world seed and spice.
      */
     static intRange(world, pos, min, max, spice = null) {

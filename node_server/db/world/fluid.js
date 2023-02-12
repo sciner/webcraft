@@ -64,7 +64,10 @@ export class DBWorldFluid {
         // console.log(`saving fluid ${chunk_addr}`)
     }
 
-    /** @param {Array of Objects} rows {addr, data} */
+    /**
+     * @param {object[]} rows {addr, data}
+     * @returns 
+     */
     async bulkSaveChunkFluid(rows) {
         const worldChunkFlags = this.world.worldChunkFlags
         const insertRows = []

@@ -32,7 +32,7 @@ export class InventoryComparator {
     }
 
     /**
-     * @param {Object} item
+     * @param { object } item
      * @param {(Array of Int)|Int|Object} needs - array of item ids, an item id, or an item
      */
     static itemMatchesNeeds(item, needs) {
@@ -82,7 +82,7 @@ export class InventoryComparator {
      * Sanitizes (see {@link BLOCK.sanitizeAndValidateInventoryItem}) and validates
      * the items from the client.
      * @param {Array or Object} list - the items
-     * @param {Object} keysObject - optional - provides keys that are being processed.
+     * @param { object } keysObject - optional - provides keys that are being processed.
      *   The values are boolean, indicating whether the key is non-optional.
      * @return null if success, or the first invlid item or error message
      */
@@ -142,7 +142,7 @@ export class InventoryComparator {
      *   count: (Int|Array of Int)          // the number of used items
      *   label: String                      // for anvil only
      * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
-     * @return {Boolean} true if equal
+     * @return { boolean } true if equal
      */
     static checkEqual(old_items, new_items, used_recipes, recipeManager) {
         let old_simple = InventoryComparator.groupToSimpleItems(old_items);

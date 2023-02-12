@@ -60,7 +60,7 @@ export class DBWorldQuest {
     }
 
     /**
-     * @return {Object} - one quest with actions and rewards {
+     * @return { object } - one quest with actions and rewards {
      *  id              Int
      *  quest_group_id  Int
      *  title           String
@@ -145,7 +145,7 @@ export class DBWorldQuest {
 
     /**
      * @param {Array of Array} rows - the results of {@link playerQuestToRow}
-     * @param {Int} dt - unix time
+     * @param { int } dt - unix time
      */
     async bulkInsertPlayerQuests(rows, dt) {
         return rows.length
