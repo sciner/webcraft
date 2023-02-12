@@ -16,7 +16,7 @@ import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
+import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
@@ -1164,7 +1164,7 @@ export class Player {
         const x = this.blockPos.x - this.chunkAddr.x * CHUNK_SIZE_X;
         const z = this.blockPos.z - this.chunkAddr.z * CHUNK_SIZE_Z;
         const cell_index = z * CHUNK_SIZE_X + x;
-        return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 4] : 0;
+        return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_BIOME_ID] : 0;
     }
 
     updateArmor() {

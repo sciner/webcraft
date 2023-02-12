@@ -26,7 +26,7 @@ import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, 
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
-import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
+import { PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
@@ -678,8 +678,8 @@ export class Renderer {
                     const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X;
                     const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z;
                     const cell_index = z * CHUNK_SIZE_X + x;
-                    const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 2];
-                    const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 3];
+                    const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R];
+                    const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G];
                     const color = this.maskColorTex.getColorAt(x_pos, y_pos)
                     p.color[0] = color.r / 255;
                     p.color[1] = color.g / 255;

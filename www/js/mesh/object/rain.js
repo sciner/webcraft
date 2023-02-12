@@ -5,13 +5,13 @@ import { AABB } from '../../core/AABB.js';
 import { Resources } from '../../resources.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import {impl as alea} from "../../../vendors/alea.js";
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
+import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_IS_SNOWY } from "../../fluid/FluidConst.js";
 import { Weather } from '../../block_type/weather.js';
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
 const SNOW_SPEED        = 42;
-const SNOW_SPEED_X      = 16;
+const SNOW_SPEED_X      = 0;
 const RAIN_RAD          = 8;
 const RAIN_START_Y      = 128;
 const RAIN_HEIGHT       = 128;
@@ -23,6 +23,9 @@ const a = new alea('random_plants_position');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
+
+const _chunk_addr = new Vector(Infinity, Infinity, Infinity)
+let _chunk = null;
 
 /**
  * Draw rain over player
@@ -38,23 +41,32 @@ export default class Mesh_Object_Rain {
     #_player_pos        = new Vector();
     #_blocks_sets       = 0;
 
+    sound_id            = null
+    type                = null
+
+    /**
+     * 
+     * @param {*} render 
+     * @param {string} type rain|snow 
+     * @param {*} chunkManager 
+     */
     constructor(render, type, chunkManager) {
 
         this.life           = 1;
         this.type           = type;
         this.chunkManager   = chunkManager;
         this.player         = render.player;
+        this.render         = render;
+
         this.strength_val   = 0
         this.weather        = Weather.BY_NAME[type]
         this.player_dist    = Infinity
         this.contact_blocks = [] // блоки, которые дождь принял за препятствие и ниже них не льёт
-        
-        // Material (rain)
-        const mat = render.defaultShader.materials.doubleface_transparent;
 
         // Material
-        this.material = mat.getSubMat(render.renderBackend.createTexture({
-            source: Resources.weather[type],
+        const mat = this.render.defaultShader.materials.doubleface_transparent;
+        this.material = mat.getSubMat(this.render.renderBackend.createTexture({
+            source: Resources.weather.image,
             blendMode: BLEND_MODES.MULTIPLY,
             minFilter: 'nearest',
             magFilter: 'nearest'
@@ -78,12 +90,8 @@ export default class Mesh_Object_Rain {
      */
     createBuffer(c) {
 
-        const snow      = this.type == 'snow';
         const vertices  = [];
-        const lm        = new IndexedColor((snow ? SNOW_SPEED_X : 0), snow ? SNOW_SPEED : RAIN_SPEED, 0);
         const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_RAIN_OPACITY;
-        const pp        = lm.pack();
-
         let quads       = 0;
 
         if(this.buffer) {
@@ -94,22 +102,29 @@ export default class Mesh_Object_Rain {
         let chunk_addr = null;
         const chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
-        for(let [vec, height] of this.#_map.entries()) {
+        const pp_rain = new IndexedColor(0, RAIN_SPEED, 0).pack()
+        const pp_snow = new IndexedColor(SNOW_SPEED_X, SNOW_SPEED, 0).pack()
 
-            chunk_addr = getChunkAddr(vec, chunk_addr).multiplyVecSelf(chunk_size);
-            const rx = vec.x - chunk_addr.x;
-            const rz = vec.z - chunk_addr.z;
+        for (let [xz, height] of this.#_map.entries()) {
+
+            chunk_addr = getChunkAddr(xz, chunk_addr).multiplyVecSelf(chunk_size);
+
+            const rx = xz.x - chunk_addr.x;
+            const rz = xz.z - chunk_addr.z;
+            const is_snow = this.isSnowCell(xz);
+            const pp = is_snow ? pp_snow : pp_rain;
 
             const rnd_index = Math.abs(Math.round(rx * CHUNK_SIZE_Z + rz)) % randoms.length;
             const rnd = randoms[rnd_index];
 
             const add = rnd;
             height += add;
-            const x = vec.x - this.pos.x + (rnd * .2 - .1)
+            const x = xz.x - this.pos.x + (rnd * .2 - .1)
             const y = add + 1;
-            const z = vec.z - this.pos.z + (rnd * .2 - .1)
+            const z = xz.z - this.pos.z + (rnd * .2 - .1);
+            c[0] = is_snow ? 0.75 : 0.25;
             const c2 = [...c];
-            const uvSize0 = c[2];
+            const uvSize0 = c[2] / 2;
             const uvSize1 = -height * c[3];
             // SOUTH
             vertices.push(
@@ -251,7 +266,9 @@ export default class Mesh_Object_Rain {
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, chunk_addr_y * CHUNK_SIZE_Y, pos.z + j);
                     getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
-                    chunk = this.chunkManager.getChunk(chunk_addr);
+                    if(!chunk || !chunk.addr.equal(chunk_addr)) {
+                        chunk = this.chunkManager.getChunk(chunk_addr)
+                    }
                     if(!chunk || !chunk.tblocks) {
                         return false;
                     }
@@ -264,6 +281,7 @@ export default class Mesh_Object_Rain {
         //
         let block = null;
         let cx = 0, cy = 0, cz = 0, cw = 0;
+        chunk = null
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
                 for(let k = 0; k <= RAIN_HEIGHT; k++) {
@@ -291,9 +309,13 @@ export default class Mesh_Object_Rain {
                             block = chunk.tblocks.get(block_pos, block);
                             checked_blocks++;
                             if(block && (block.id > 0 || block.fluid > 0) && !block.material.invisible_for_rain) {
-                                let player_dist = this.#_player_pos.distance(block.posworld)
-                                if(player_dist < min_player_dist) {
-                                    min_player_dist = player_dist
+                                const is_snow = this.isSnowCell(block.posworld)
+                                const is_rain = !is_snow
+                                if(is_rain) {
+                                    let player_dist = this.#_player_pos.distance(block.posworld)
+                                    if(player_dist < min_player_dist) {
+                                        min_player_dist = player_dist
+                                    }
                                 }
                                 this.contact_blocks.push({block, pos: block.posworld})
                                 this.#_map.set(vec, k)
@@ -341,6 +363,26 @@ export default class Mesh_Object_Rain {
      */
     isAlive() {
         return this.enabled;
+    }
+
+    /**
+     * Снежная ячейка или нет
+     * @params { Vector } xz
+     * @returns { boolean }
+     */
+    isSnowCell(xz) {
+        const pos = xz.floored();
+        getChunkAddr(pos.x, pos.y, pos.z, _chunk_addr);
+        if(!_chunk || !_chunk.addr.equal(_chunk_addr)) {
+            _chunk = this.chunkManager.getChunk(_chunk_addr)
+        }
+        if(!_chunk) {
+            return false;
+        }
+        const x = pos.x - _chunk_addr.x * CHUNK_SIZE_X;
+        const z = pos.z - _chunk_addr.z * CHUNK_SIZE_Z;
+        const cell_index = z * CHUNK_SIZE_X + x;
+        return _chunk.packedCells ? _chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_IS_SNOWY] > 0 : false;
     }
 
 }
