@@ -243,8 +243,16 @@ export class ServerChat {
                 let gentle = false
                 if (args[1] === 'gentle') {
                     gentle = true
-                } else if (args[1] !== 'force') {
-                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)\n"gentle" delays starting of shutdown until the actions queue is empty', player)
+                } else if (args[1] === 'force') {
+                    // continue
+                } else if (this.world.actions_queue.length === 0) {
+                    // The action queue is empty, so we can proceed without bothering the user with questions.
+                    // Choose "gentle" in case a lot of actions suddenly happen, to be conpletely safe.
+                    gentle = true
+                } else {
+                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)]\n' +
+                        '"gentle" delays starting of shutdown until the actions queue is empty.\n' +
+                        `There are ${this.world.actions_queue.length} actions queued.`, player)
                     break
                 }
                 const msg = 'shutdown_initiated_by|' + player.session.username
