@@ -389,7 +389,7 @@ export function makeChunkEffectID(chunk_addr, material_key) {
  */
 export function getChunkAddr(x: IVector | number, y: IVector | number | null, z : number, v : Vector | null = null) : Vector {
     if(x instanceof Vector || typeof x == 'object') {
-        v = y;
+        v = y as any;
 
         y = x.y;
         z = x.z;
@@ -397,8 +397,8 @@ export function getChunkAddr(x: IVector | number, y: IVector | number | null, z 
     }
     //
     v = v || new Vector();
-    v.x = Math.floor(x / CHUNK_SIZE_X);
-    v.y = Math.floor(y / CHUNK_SIZE_Y);
+    v.x = Math.floor(x as any / CHUNK_SIZE_X);
+    v.y = Math.floor(y as any / CHUNK_SIZE_Y);
     v.z = Math.floor(z / CHUNK_SIZE_Z);
     // Fix negative zero
     if(v.x == 0) {v.x = 0;}
@@ -493,7 +493,7 @@ export function calcRotateMatrix(material, rotate : IVector, cardinal_direction 
 
 // md5
 export let md5 = (function() {
-    var MD5 = function (d, outputEncoding : string) {
+    var MD5 = function (d, outputEncoding? : BufferEncoding) {
         const binaryStr = V(Y(X(d), 8 * d.length));
         if (outputEncoding) { // 'base64', 'base64url', etc. - supported only in node.js
             return Buffer.from(binaryStr, 'binary').toString(outputEncoding);
@@ -1096,15 +1096,11 @@ export class Vector implements IVector {
         yield this.z;
     }
 
-    // array like object lenght
-    get length() : number {
-        return 3;
-    }
-
     /**
      * @return {number}
      */
-    length() {
+    // @ts-ignore
+    length() : float {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
@@ -1549,21 +1545,21 @@ export class Vector implements IVector {
             return this;
         }
 
-        // array like object with length 3 or more
-        // for gl-matix
-        if (from.length >= 3) {
-            this.x = from[0];
-            this.y = from[1];
-            this.z = from[2];
-
-            return this;
-        }
-
         // object is simple and has x, y, z props
         if ('x' in from) {
             this.x = from.x;
             this.y = from.y;
             this.z = from.z;
+        }
+
+        // array like object with length 3 or more
+        // for gl-matix
+        if ((from as any).length >= 3) {
+            this.x = from[0];
+            this.y = from[1];
+            this.z = from[2];
+
+            return this;
         }
 
         return this;
@@ -1575,7 +1571,7 @@ export class Vector implements IVector {
      * @return {Vector}
      */
     rotY(dir : number) : Vector {
-        let tmp_x = this.x, tmp_y = this.y, tmp_z = this.z;
+        let tmp_x = this.x, tmp_z = this.z;
         if (dir == DIRECTION.EAST) {
             this.x = tmp_z;
             this.z = 15 - tmp_x;
@@ -1893,7 +1889,7 @@ export async function cropToImage(image, x, y, width, height, dest_width, dest_h
 
     item_ctx.drawImage(image, x, y, width, height, 0, 0, dest_width, dest_height)
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _) => {
         item_image.toBlob((blob) => {
             resolve(blobToImage(blob))
         })
@@ -2097,8 +2093,8 @@ export class Helpers {
             0, 0, 0, 0, 0, false, false, false,
             false, 0, null);
             lnk.dispatchEvent(event);
-        } else if (lnk.fireEvent) {
-            lnk.fireEvent('onclick');
+        } else {
+            (lnk as any).fireEvent?.('onclick');
         }
     }
 
@@ -2421,7 +2417,7 @@ export class ArrayHelpers {
         }
     }
 
-    static toObject(arr, toKeyFn = (ind, value) => ind, toValueFn = (ind, value) => value) {
+    static toObject(arr, toKeyFn = (ind : number, _ : any) => ind, toValueFn = (_ : number, value : any) => value) {
         const res = {};
         if (typeof toValueFn !== 'function') {
             const value = toValueFn;
@@ -2479,10 +2475,6 @@ export class ArrayOrScalar {
     // Returns Array or null as is. Non-null scalars are wraped into an array.
     static toArray(v) {
         return (v == null || Array.isArray(v)) ? v : [v];
-    }
-
-    static length(v) {
-        return Array.isArray(v) ? v.length : v;
     }
 
     static get(v: any[], index: number) {
@@ -2673,7 +2665,7 @@ export class SpiralGenerator {
             return SpiralGenerator.cache.get[margin];
         }
         var resp = [];
-        function rPush(vec) {
+        function rPush(vec : IVector) {
             // Если позиция на расстояние видимости (считаем честно, по кругу)
             let x = vec.x - size / 2;
             let z = vec.z - size / 2;
@@ -2682,8 +2674,8 @@ export class SpiralGenerator {
                 resp.push(vec);
             }
         }
-        let iInd = parseInt(size / 2);
-        let jInd = parseInt(size / 2);
+        let iInd = Math.trunc(size / 2);
+        let jInd = Math.trunc(size / 2);
         let iStep = 1;
         let jStep = 1;
         rPush(new Vector(iInd, 0, jInd));
@@ -2942,7 +2934,7 @@ export class AlphabetTexture {
     }
 
     // getStringUVs...
-    static getStringUVs(str, init_new) {
+    static getStringUVs(str : string) {
         AlphabetTexture.init();
         const chars = RuneStrings.toArray(str);
         const resp = [];

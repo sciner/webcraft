@@ -8,6 +8,7 @@
         "target": "es2022",
         "module": "es2022",
         "noUnusedLocals": true,
+        "inlineSourceMap": true,
         "noUnusedParameters": true,
         "moduleResolution": "node",
         "resolveJsonModule": true,

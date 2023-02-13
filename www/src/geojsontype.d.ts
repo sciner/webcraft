@@ -33,25 +33,25 @@ declare interface IGeoTreeNew {
     bones: IGeoTreeBones[];
 }
 
-declare type IVector = [number, number, number];
+declare type VectorLike3 = [number, number, number];
 
 declare interface IGeoTreeBones {
     name: string;
     parent?: string;
-    pivot?: IVector;
-    rotation?: IVector;
+    pivot?: VectorLike3;
+    rotation?: VectorLike3;
     // legacy 1.8
-    bind_pose_rotation?: IVector;
+    bind_pose_rotation?: VectorLike3;
     cubes?: IGeoCube[];
     mirror?: boolean;
     terrainGeometry?: any;
 }
 
 declare interface IGeoCube {
-    origin?: IVector;
-    rotation?: IVector;
-    size?: IVector;
-    pivot?: IVector;
+    origin?: VectorLike3;
+    rotation?: VectorLike3;
+    size?: VectorLike3;
+    pivot?: VectorLike3;
     inflate?: 0.5;
     uv: [number, number];
     mirror?: boolean;

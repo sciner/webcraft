@@ -3,9 +3,9 @@ declare const Qubatch: any // GameClass // | ServerGame
 declare const vt: any // GameClass // | ServerGame
 
 //
-declare type float = number;
-declare type int = number;
-declare type byte = number;
+declare type float = number&{};
+declare type int = number&{};
+declare type byte = number&{};
 declare type imat3 = float[];
 declare type imat4 = float[] | Float32Array;
 
