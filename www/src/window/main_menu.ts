@@ -3,6 +3,7 @@ import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 
 export class MainMenu extends BlankWindow {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text) {
 
@@ -21,7 +22,7 @@ export class MainMenu extends BlankWindow {
             Qubatch.hud.wm.closeAll();
             Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
         });
-        
+
         this.addButton(Lang.btn_statistics, 180, () => {
             Qubatch.hud.wm.closeAll();
             Qubatch.hud.wm.getWindow('frmStats').show();

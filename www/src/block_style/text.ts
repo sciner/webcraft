@@ -26,6 +26,7 @@ import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 
 // Табличка
 export default class style {
+    [key: string]: any;
 
     static _aabb = new AABB();
     static _aabbc = new AABB();

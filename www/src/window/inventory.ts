@@ -10,10 +10,11 @@ const PLAYER_BOX_WIDTH = 98;
 const PLAYER_BOX_HEIGHT = 140;
 
 export class InventoryWindow extends BaseCraftWindow {
+    [key: string]: any;
 
     /**
      * @param { import("../player_inventory.js").PlayerInventory } inventory
-     * @param {*} recipes 
+     * @param {*} recipes
      */
     constructor(inventory, recipes) {
 
@@ -93,7 +94,7 @@ export class InventoryWindow extends BaseCraftWindow {
         this.setHelperSlots(null)
         super.onShow()
     }
-        
+
     // Обработчик закрытия формы
     onHide() {
         // Close recipe window

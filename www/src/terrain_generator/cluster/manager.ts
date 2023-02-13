@@ -13,12 +13,13 @@ export const CLUSTER_SIZE_V2 = new Vector(256, 200, 256)
 
 // ClusterManager
 export class ClusterManager {
+    [key: string]: any;
 
     /**
      * All clusters
-     * @param { import("../../worker/world.js").WorkerWorld } world 
-     * @param {*} seed 
-     * @param {*} version 
+     * @param { import("../../worker/world.js").WorkerWorld } world
+     * @param {*} seed
+     * @param {*} version
      */
     constructor(world, seed, version) {
         this.seed = seed;
@@ -31,9 +32,9 @@ export class ClusterManager {
 
     /**
      * Return existing cluster or create new and return
-     * @param {Vector} coord 
-     * @param {TerrainMapManager2} map_manager 
-     * @returns 
+     * @param {Vector} coord
+     * @param {TerrainMapManager2} map_manager
+     * @returns
      */
     getForCoord(coord, map_manager) {
         const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(this.size).flooredSelf()

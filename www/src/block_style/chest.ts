@@ -8,7 +8,8 @@ const {mat4} = glMatrix;
 
 // стойка для доспехов
 export default class style {
-    
+    [key: string]: any;
+
     static getRegInfo() {
         return {
             styles: ['chest'],
@@ -16,7 +17,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(1/16, 0, 1/16, 15/16, 14/16, 15/16);
@@ -34,7 +35,7 @@ export default class style {
         }
         return [aabb]
     }
-    
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         if(!block || typeof block == 'undefined') {
@@ -43,7 +44,7 @@ export default class style {
 
         const type = block.extra_data?.type || 'side';
         const texName = type === 'left' ? 'right' : type; // use 'right' texture for both sides
-        
+
         const tex = block.material.texture[texName];
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, null, tex);
 
@@ -226,7 +227,7 @@ export default class style {
         }
 
     }
-    
+
 }
 
 const tmp_vec = new Vector();

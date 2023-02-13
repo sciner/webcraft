@@ -3,6 +3,7 @@ import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../../effect.js";
 import { Mesh_Effect_Particle } from "../particle.js";
 
 class EnderChest_Particle extends Mesh_Effect_Particle {
+    [key: string]: any;
 
     constructor(start_pos, args) {
         super(args);
@@ -21,6 +22,7 @@ class EnderChest_Particle extends Mesh_Effect_Particle {
 }
 
 export default class emitter {
+    [key: string]: any;
 
     static textures = [
         [0, 6], [1, 6], [2, 6]

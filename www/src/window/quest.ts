@@ -7,6 +7,7 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 
 export class QuestWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor(player) {
 
@@ -63,7 +64,7 @@ export class QuestWindow extends BlankWindow {
         Qubatch.releaseMousePointer()
         super.onShow()
     }
-    
+
     // Обработчик закрытия формы
     onHide() {
         super.onHide()

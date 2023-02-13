@@ -4,6 +4,7 @@ import {CLIENT_SKIN_ROOT} from '../constant.js';
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 
 export class SkinManager {
+    [key: string]: any;
 
     #controller;
 

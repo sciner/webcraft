@@ -2,6 +2,7 @@ import { Vector, VectorCollector } from "../../helpers.js";
 
 //
 export class BlockDrawer {
+    [key: string]: any;
 
     constructor(object) {
         this.object = object;

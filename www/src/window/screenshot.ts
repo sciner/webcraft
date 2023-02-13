@@ -5,6 +5,7 @@ import { BlankWindow } from "./blank.js";
 import { Resources } from "../resources.js";
 
 export class ScreenshotWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor(player) {
 

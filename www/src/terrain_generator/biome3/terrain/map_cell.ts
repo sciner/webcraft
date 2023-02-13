@@ -2,6 +2,7 @@ import { Default_Terrain_Map_Cell } from "../../default.js";
 
 // Map cell
 export class TerrainMapCell extends Default_Terrain_Map_Cell {
+    [key: string]: any;
 
     constructor(value, humidity, temperature, biome, dirt_block_id) {
         super(biome);
@@ -15,11 +16,11 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
     }
 
     /**
-     * @param {Vector} xyz 
-     * @param {int} block_id 
+     * @param {Vector} xyz
+     * @param {int} block_id
      */
     genPlantOrGrass(x, y, z, size, block_id, rnd, density_params) {
-        
+
         const biome = this.biome
         const FLOWERS_THRESHOLD = .3
 

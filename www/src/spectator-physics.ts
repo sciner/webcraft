@@ -4,6 +4,7 @@ import { KEY, SPECTATOR_SPEED_MUL } from "./constant.js";
 import { Vector } from "./helpers.js";
 
 export class PlayerControl  {
+    [key: string]: any;
 
     constructor(options) {
         this.mouseX             = 0;
@@ -32,6 +33,7 @@ export class PlayerControl  {
 }
 
 export class SpectatorPlayerControl {
+    [key: string]: any;
 
     constructor(world, start_position) {
         this.world              = world;

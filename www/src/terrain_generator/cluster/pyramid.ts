@@ -3,6 +3,7 @@ import {ClusterBase, ClusterPoint} from "./base.js";
 
 //
 export class ClusterPyramid extends ClusterBase {
+    [key: string]: any;
 
     constructor(clusterManager, addr) {
         super(clusterManager, addr);

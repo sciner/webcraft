@@ -4,11 +4,12 @@ import { BlankWindow } from "./blank.js";
 
 // кнопки перелистывания
 class ActiveButton extends Window {
-    
+    [key: string]: any;
+
     constructor(x, y, sx, sy, id, icon, ct) {
-        
+
         super(x, y, sx, sy, id, null, null);
-        
+
         this.ct = ct;
         this.style.border.hidden = true;
         this.style.background.image = './media/gui/book.png';
@@ -27,13 +28,13 @@ class ActiveButton extends Window {
         this.setIcon(icon);
         this.setEnable(true);
         */
-        
+
         this.onMouseEnter = function() {
             if (this.enable) {
                 this.style.background.sprite.x = 54;
             }
         };
-        
+
         this.onMouseLeave = function() {
             if (this.enable) {
                 this.style.background.sprite.x = 8;
@@ -52,7 +53,7 @@ class ActiveButton extends Window {
             }
         };
     }
-    
+
     setEnable(val) {
         this.enable = val;
         /*
@@ -64,7 +65,7 @@ class ActiveButton extends Window {
         }
         */
     }
-    
+
     setIcon(name) {
         /*
         // TODO: pixi
@@ -82,10 +83,11 @@ class ActiveButton extends Window {
         }
         */
     }
-    
+
 }
 
 export class BookWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor(player) {
 
@@ -151,7 +153,7 @@ export class BookWindow extends BlankWindow {
         this.lbl_text.word_wrap = true;
         this.add(this.lbl_text);
     }
-    
+
     createButtons() {
         this.btn_next = new ActiveButton(220 * this.zoom, 320 * this.zoom, 32 * this.zoom, 26 * this.zoom, 'btnNext', 'next', this);
         this.btn_back = new ActiveButton(40 * this.zoom, 320 * this.zoom, 32 * this.zoom, 26 * this.zoom, 'btnBack', 'back', this);
@@ -159,7 +161,7 @@ export class BookWindow extends BlankWindow {
         this.add(this.btn_next);
         this.add(this.btn_back);
     }
-    
+
     draw(ctx, ax, ay) {
         if (this.pages.length > 0) {
             this.lbl_pages.setText('Страница ' + (this.page + 1) + ' из ' + this.pages.length);

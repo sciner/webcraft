@@ -7,6 +7,7 @@ import { getBlockImage } from "./tools/blocks.js";
 const COLOR_RED = '#A15151';
 
 export class RecipeSlot extends Window {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, recipe, block, ct) {
 
@@ -79,6 +80,7 @@ export class RecipeSlot extends Window {
 
 // RecipeWindow...
 export class RecipeWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor(recipe_manager) {
 

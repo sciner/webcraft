@@ -2,6 +2,7 @@ import { ClimateParams } from "../manager_vars.js";
 import { MapCellPreset_Mountains } from "./mountains.js";
 
 export class MapCellPreset_Swamp extends MapCellPreset_Mountains {
+    [key: string]: any;
 
     constructor() {
         super()

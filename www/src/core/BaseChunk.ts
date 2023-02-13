@@ -4,6 +4,7 @@ import {Vector} from "../helpers.js";
 const tempAABB = new AABB();
 
 export class BaseChunk {
+    [key: string]: any;
     constructor({size, nibble}) {
         this.outerAABB = new AABB();
         this.safeAABB = new AABB();
@@ -284,6 +285,7 @@ export class BaseChunk {
 }
 
 export class Portal {
+    [key: string]: any;
     constructor({aabb, fromRegion, toRegion}) {
         this.aabb = aabb;
         this.volume = (aabb.x_max - aabb.x_min) * (aabb.y_max - aabb.y_min) * (aabb.z_max - aabb.z_min);

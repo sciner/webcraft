@@ -10,6 +10,7 @@ import {
 } from "./LightConst.js";
 
 export class LightCalc {
+    [key: string]: any;
     constructor(chunk) {
         this.chunk = chunk;
         this.resultLen = chunk.outerLen;

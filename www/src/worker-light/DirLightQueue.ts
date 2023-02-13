@@ -8,6 +8,7 @@ import {
 } from "./LightConst.js";
 
 export class DirLightQueue {
+    [key: string]: any;
     constructor(world, {offset, disperse}) {
         this.world = world;
         this.waves = new MultiQueue({pageSize: defPageSize, maxPriority: 256});

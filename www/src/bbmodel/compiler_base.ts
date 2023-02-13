@@ -2,6 +2,7 @@ import { Spritesheet_Base } from "../core/spritesheet_base.js";
 import { isScalar } from "../helpers.js";
 
 export class BBModel_Compiler_Base {
+    [key: string]: any;
 
     //
     constructor(options) {

@@ -9,6 +9,7 @@ const lm        = IndexedColor.WHITE
 const vecZero   = Vector.ZERO.clone()
 
 export class PlayerArm {
+    [key: string]: any;
 
     /**
      * @param { import("./player.js").ServerPlayer } player

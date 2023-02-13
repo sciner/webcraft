@@ -55,6 +55,7 @@ const temp_chunk = {
 
 // Map manager
 export class TerrainMapManager {
+    [key: string]: any;
 
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
@@ -295,6 +296,7 @@ export class TerrainMapManager {
 
 // Map
 export class TerrainMap extends Default_Terrain_Map {
+    [key: string]: any;
 
     static _cells;
 
@@ -568,6 +570,7 @@ export class TerrainMap extends Default_Terrain_Map {
 
 // Map cell
 export class TerrainMapCell extends Default_Terrain_Map_Cell {
+    [key: string]: any;
 
     constructor(value, humidity, equator, biome, dirt_block_id) {
         super(biome);

@@ -2,6 +2,7 @@ import {Vector} from '../helpers.js';
 import {BaseTexture3D, RegionTexture3D} from "../renders/BaseTexture3D.js";
 
 export class GridCubeTexture {
+    [key: string]: any;
     constructor({textureOptions, dims, context}) {
         this.textureOptions = textureOptions;
         this.dims = dims;
@@ -44,6 +45,7 @@ export class GridCubeTexture {
 }
 
 export class CubeTexturePool {
+    [key: string]: any;
     constructor(context, {
         defWidth = 18,
         defHeight = 18,

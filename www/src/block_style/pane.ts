@@ -9,6 +9,7 @@ const {mat4} = glMatrix;
 
 // Панель
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

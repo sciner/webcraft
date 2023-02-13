@@ -9,12 +9,13 @@ const IN_CREATIVE_INVENTORY_DEFAULT = true;
 
 /**
  * Contains all enchentments, and some static methods to read them from an item.
- * 
+ *
  * Similar to {@link BLOCK}, Enchantments contains all enchantment names as properties, e.g. these are the same:
  *   Enchantments['Feather Falling'].id
  *   Enchantments.byName['Feather Falling'].id
  */
 export class Enchantments {
+    [key: string]: any;
 
     /* Fields are automaticaly added:
         id: String

@@ -2,6 +2,7 @@ import {BaseTerrainShader} from "../BaseShader.js";
 import {TerrainTextureUniforms} from "../common.js";
 
 export class WebGPUTerrainShader extends BaseTerrainShader{
+    [key: string]: any;
     /**
      *
      * @param {WebGPURenderer} context

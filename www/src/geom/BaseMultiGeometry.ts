@@ -1,6 +1,7 @@
 import GeometryTerrain from "../geometry_terrain.js";
 
 export class BaseMultiGeometry {
+    [key: string]: any;
     static strideFloats = 10;
     static sortAss = (a, b) => {
         return a - b;

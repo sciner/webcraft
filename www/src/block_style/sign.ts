@@ -21,6 +21,7 @@ const cubeSymAxis = [
 
 // Табличка
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {
@@ -45,7 +46,7 @@ export default class style {
         const resp      = [];
         const width     = .5;
         const height    = 1;
- 
+
         // Center
         if(block.rotate.y == 0) {
             const mul = 1.01;
@@ -121,7 +122,7 @@ export default class style {
             pivot,
             matrix,
             {
-                up:     new AABBSideParams(c, 0, 0, null, null, true), // flag: 0, anim: 1 implicit 
+                up:     new AABBSideParams(c, 0, 0, null, null, true), // flag: 0, anim: 1 implicit
                 down:   new AABBSideParams(c, 0, 0, null, null, true),
                 south:  new AABBSideParams(c, 0, 0, null, null, true),
                 north:  new AABBSideParams(c, 0, 0, null, null, true),
@@ -140,7 +141,7 @@ export default class style {
                 pivot,
                 matrix,
                 {
-                    up:     new AABBSideParams(c_down, 0, 1, null, null, true), // flag: 0, anim: 1 implicit 
+                    up:     new AABBSideParams(c_down, 0, 1, null, null, true), // flag: 0, anim: 1 implicit
                     down:   new AABBSideParams(c_down, 0, 1, null, null, true),
                     south:  new AABBSideParams(c_down, 0, 1, null, null, true),
                     north:  new AABBSideParams(c_down, 0, 1, null, null, true),

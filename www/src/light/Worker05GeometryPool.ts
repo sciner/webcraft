@@ -1,6 +1,7 @@
 import {GeometryPool} from "./GeometryPool.js";
 
 export class Worker05GeometryPool extends GeometryPool {
+    [key: string]: any;
     constructor(context, {
         pageSize = 256,
         pageCount = 100,
@@ -40,6 +41,7 @@ export class Worker05GeometryPool extends GeometryPool {
 }
 
 export class Worker05GeometryPage {
+    [key: string]: any;
     constructor({sizeQuads = 256, instanceSize = 16}) {
         this.sizeQuads = sizeQuads;
         this.instanceSize = instanceSize;
@@ -54,6 +56,7 @@ export class Worker05GeometryPage {
 }
 
 export class Worker05SubGeometry {
+    [key: string]: any;
     constructor({pool, chunkDataId}) {
         this.pool = pool;
         this.pages = [];

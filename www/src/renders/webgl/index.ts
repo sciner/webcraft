@@ -41,6 +41,7 @@ const TEXTURE_MODE = {
 }
 
 export class WebGLCubeShader extends WebGLUniversalShader {
+    [key: string]: any;
 
     constructor(context, options) {
         super(context, options);
@@ -96,6 +97,7 @@ export class WebGLCubeShader extends WebGLUniversalShader {
 }
 
 export class WebGLCubeGeometry extends BaseCubeGeometry {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
 
@@ -127,6 +129,7 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
 }
 
 export class WebGLTexture extends BaseTexture {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
 
@@ -298,6 +301,7 @@ export class WebGLTexture extends BaseTexture {
 }
 
 export default class WebGLRenderer extends BaseRenderer {
+    [key: string]: any;
 
     constructor(view, options) {
         super(view, options);

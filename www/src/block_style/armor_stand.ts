@@ -16,10 +16,11 @@ for(let i = 0; i < randoms.length; i++) {
 
 // стойка для доспехов
 export default class style {
+    [key: string]: any;
 
     /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
-     * @returns 
+     * @param { import("../blocks.js").BLOCK } block_manager
+     * @returns
      */
     static getRegInfo(block_manager) {
         style.block_manager = block_manager
@@ -29,7 +30,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         if (for_physic) {
             return [];
@@ -38,7 +39,7 @@ export default class style {
         aabb.set(0.16, 0, 0.16, 0.84, 1, 0.84);
         return [aabb];
     }
-    
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
         if(!block || typeof block == 'undefined') {
             return;
@@ -94,7 +95,7 @@ export default class style {
                     "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
                 }
             },
-            // body 
+            // body
             {
                 "size": {"x": 8, "y": 2, "z": 2},
                 "translate": {"x":0, "y": 4.5, "z": 0},
@@ -124,7 +125,7 @@ export default class style {
                     "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
                     "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
                 }
-            }, 
+            },
             {
                 "size": {"x": 10, "y": 3, "z": 3},
                 "translate": {"x":0, "y": 14, "z": 0},
@@ -198,7 +199,7 @@ export default class style {
                 matrix:     matrix
             });
         }
-        
+
     }
-    
+
 }

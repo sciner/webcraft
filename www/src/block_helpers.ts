@@ -3,6 +3,7 @@ import { ITEM_LABEL_MAX_LENGTH } from "./constant.js";
 import { ROTATE, Vector, ObjectHelpers } from "./helpers.js";
 
 export class ChestHelpers {
+    [key: string]: any;
 
     // If block is a half-chest, it returns the expected position of the other half.
     // Otherwise it returns null.
@@ -88,6 +89,7 @@ export function isBlockRoughlyWithinPickatRange(player, margin, pos, pos2 = null
 }
 
 export class ItemHelpers {
+    [key: string]: any;
 
     /**
      * Validates and possibly changes (possibly to null) a label entered by a user.

@@ -3,21 +3,22 @@ import { Building } from "../building.js";
 
 // Farmland
 export class Farmland extends Building {
+    [key: string]: any;
 
     static SIZE_LIST = Building.makeRandomSizeList([3, 5, 7, 7, 10, 10, 10, 13, 13, 13, 16, 16, 16]);
 
     /**
-     * @param { import("../base.js").ClusterBase } cluster 
-     * @param {float} seed 
-     * @param {Vector} coord 
-     * @param {Vector} entrance 
-     * @param {int} door_direction 
-     * @param {Vector} size 
+     * @param { import("../base.js").ClusterBase } cluster
+     * @param {float} seed
+     * @param {Vector} coord
+     * @param {Vector} entrance
+     * @param {int} door_direction
+     * @param {Vector} size
      */
     constructor(cluster, seed, coord, entrance, door_direction, size) {
-        
+
         size.y = 2;
-        
+
         super(cluster, seed, coord, entrance, door_direction, size);
 
         const bm = cluster.block_manager

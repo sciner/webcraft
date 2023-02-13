@@ -34,6 +34,7 @@ const AMETHYST_CLUSTER_CHANCE   = 0.1;
 
 // Генерация пещер нижнего мира
 export default class Terrain_Generator extends Default_Terrain_Generator {
+    [key: string]: any;
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);

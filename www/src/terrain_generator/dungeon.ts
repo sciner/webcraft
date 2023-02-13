@@ -9,11 +9,12 @@ const _vec = new Vector(0, 0, 0);
 const HIDE_DUNGEON = false;
 
 export class DungeonGenerator {
-    
+    [key: string]: any;
+
     constructor(seed) {
         this.seed = typeof seed != 'undefined' ? seed : 'default_seed'; // unique world seed
     }
-    
+
     add(chunk) {
         const random = new alea(this.seed + chunk.addr.toString());
         // 8 попыток установки
@@ -29,7 +30,7 @@ export class DungeonGenerator {
             }
         }
     }
-    
+
     /*
     * Данж заброшенный колодец
     */
@@ -44,16 +45,16 @@ export class DungeonGenerator {
         let block_wall_4 = BLOCK.LODESTONE;
         let block_wall_5 = BLOCK.DARK_OAK_FENCE;
         let block_wall_6 = BLOCK.STONE_BRICK_SLAB;
-        
+
         // Тип освещения
         let light = alea.double() * 3 | 0;
         let web = true;
         let ice = false;
-        
+
         if (biome.id == 30 || biome.id == 31 || biome.id == 26) {
             ice = true;
         }
-        
+
         // песок, как строительный материал
         if (biome.id == 2 || biome.id == 36 || biome.id == 35) {
             block_wall_1 = BLOCK.WHITE_TERRACOTTA;
@@ -75,12 +76,12 @@ export class DungeonGenerator {
         this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_wall_1, 0.2);
         this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_wall_2, 0.5);
         this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, (!ice) ? block_wall_3 : BLOCK.ICE, 0.3);
-        
+
         // свечи в стенах
         if (light == 0) {
             this.genBoxNoAir(chunk, alea, x, y + 2, z, 9, 2, 9, BLOCK.WHITE_CANDLE, 0.05);
         }
-        
+
         this.genBoxNoAir(chunk, alea, x, y + 1, z, 9, 1, 9, block_wall_4, 0.5);
         this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 1, 7, 1, BLOCK.AIR);
         this.genBoxNoAir(chunk, alea, x + 1, y + 1, z + 1, 7, 3, 7, BLOCK.AIR);
@@ -117,10 +118,10 @@ export class DungeonGenerator {
             this.setBlock(chunk, x + 1, y + 2, z + 1, BLOCK.TORCH, {x: 3, y: 0, z: 0});
             this.setBlock(chunk, x + 7, y + 2, z + 7, BLOCK.TORCH, {x: 1, y: 0, z: 0});
         }
-        
+
         // Сундук
         this.setBlock(chunk, x + 3, y + 1, z + 3, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: 'treasure_room'}});
-        
+
         //Спавнер
         const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
         this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
@@ -128,7 +129,7 @@ export class DungeonGenerator {
             skin: 'base',
             max_ticks: 800
         });
-        
+
         if (!HIDE_DUNGEON) {
             this.genBox(chunk, alea, x + 3, y + 9, z + 3, 3, 1, 3, block_wall_1);
             this.genBox(chunk, alea, x + 3, y + 10, z + 4, 1, 2, 1, block_wall_5);
@@ -177,7 +178,7 @@ export class DungeonGenerator {
         }
         return true;
     }
-    
+
     // Проверям, что при возведении стены будет не менее 1 пустоты, размером с игрока
     checkwallVerical(x, y, z) {
         const top = this.getBlock(chunk, x, y + 1, z);
@@ -188,31 +189,31 @@ export class DungeonGenerator {
             }
         }
     }
-    
+
     genDung(chunk, alea, x, y, z) {
-        
+
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 5, 7, BLOCK.STONE_BRICKS);
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 5, 7, BLOCK.MOSSY_STONE_BRICKS, 0.5);
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 5, 7, BLOCK.MOSS_BLOCK, 0.3);
         this.genBoxNoAir(chunk, alea, x, y + 1, z, 7, 1, 7, BLOCK.LODESTONE);
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 1, 7, BLOCK.AIR, 0.1);
         this.genBox(chunk, alea, x + 1, y + 1, z + 1, 5, 3, 5, BLOCK.AIR);
-        
+
         this.genBox(chunk, alea, x + 6, y + 1, z + 3, 1, 3, 1, BLOCK.AIR);
-        
+
         this.genBox(chunk, alea, x + 7, y, z, 7, 5, 7, BLOCK.STONE_BRICKS);
         this.genBox(chunk, alea, x + 7, y, z, 7, 5, 7, BLOCK.MOSSY_STONE_BRICKS, 0.5);
         this.genBox(chunk, alea, x + 7, y, z, 7, 5, 7, BLOCK.MOSS_BLOCK, 0.3);
         this.genBox(chunk, alea, x + 7, y + 1, z, 7, 1, 7, BLOCK.LODESTONE);
         this.genBox(chunk, alea, x + 7, y + 1, z + 1, 5, 3, 5, BLOCK.AIR);
-        
+
         // Декор
         this.deleteWall(chunk, alea, x, y, z);
         this.setBlock(chunk, x + 6, y + 3, z + 3, BLOCK.IRON_BARS);
-        
+
         const rotate = new Vector(DIRECTION.NORTH, 0, 0);
         this.setBlock(chunk, x + 10, y + 1, z + 1, BLOCK.CHEST, rotate, {generate: true, params: {source: 'treasure_room'}});
-        
+
         // Спавнер
         const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
         this.setBlock(chunk, x + 9, y + 1, z + 3, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
@@ -224,7 +225,7 @@ export class DungeonGenerator {
     }
 
     checkPosition(chunk, x, y, z) {
-        
+
         if ( x > 3 || x < 1 || z > 9 || z < 1) {
             return false;
         }
@@ -269,12 +270,12 @@ export class DungeonGenerator {
         }
 
         return false;
-        
+
     }
-    
+
     //
     deleteWall(chunk, alea, x, y, z) {
-        
+
         for (let i = 0; i < 6; i++) {
             const top = this.getBlock(chunk, x - 1, y + 2, i + z);
             if(top && top.id == 0) {
@@ -284,7 +285,7 @@ export class DungeonGenerator {
                 }
             }
         }
-        
+
         for(let i = 0; i < 6; i++) {
             const top = this.getBlock(chunk, x + i, y + 2, z - 1);
             if(top && top.id == 0) {
@@ -294,7 +295,7 @@ export class DungeonGenerator {
                 }
             }
         }
-        
+
         for(let i = 0; i < 6; i++) {
             const top = this.getBlock(chunk, x + i, y + 2, z + 7);
             if(top && top.id == 0) {
@@ -304,9 +305,9 @@ export class DungeonGenerator {
                 }
             }
         }
-        
+
     }
-    
+
     genBox(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id : 0}, chance = 1, rotate = null, extra_data = null) {
         for (let x = minX; x < nX + minX; ++x) {
             for (let y = minY; y < nY + minY; ++y) {
@@ -321,7 +322,7 @@ export class DungeonGenerator {
             }
         }
     }
-    
+
     genBoxAir(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id : 0}, chance = 1) {
         for (let x = minX; x < nX + minX; ++x) {
             for (let y = minY; y < nY + minY; ++y) {
@@ -339,7 +340,7 @@ export class DungeonGenerator {
             }
         }
     }
-    
+
     genBoxNoAir(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id : 0}, chance = 1) {
         for (let x = minX; x < nX + minX; ++x) {
             for (let y = minY; y < nY + minY; ++y) {
@@ -359,8 +360,8 @@ export class DungeonGenerator {
             }
         }
     }
-    
-    
+
+
     setBlock(chunk, x, y, z, block_type, rotate, extra_data) {
         if (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             const { tblocks } = chunk;
@@ -373,11 +374,11 @@ export class DungeonGenerator {
             }
         }
     }
-    
+
     getBlock(chunk, x, y, z) {
         if (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             return chunk.tblocks.get(_vec.set(x, y, z));
         }
     }
-    
+
 }

@@ -18,6 +18,7 @@ import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
 const BIG_STONE_DESNSITY = 0.6;
 
 export default class Biome3LayerOverworld {
+    [key: string]: any;
 
     /**
      * @param { import("../index.js").Terrain_Generator } generator
@@ -43,8 +44,8 @@ export default class Biome3LayerOverworld {
     }
 
     /**
-     * @param {Vector} xyz 
-     * @param {boolean} has_cluster 
+     * @param {Vector} xyz
+     * @param {boolean} has_cluster
      * @returns {float}
      */
     calcBigStoneDensity(xyz, has_cluster) {
@@ -59,9 +60,9 @@ export default class Biome3LayerOverworld {
     }
 
     /**
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {string} seed 
-     * @param {*} rnd 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @param {string} seed
+     * @param {*} rnd
      * @returns {TerrainMap2}
      */
     generate(chunk, seed, rnd) {
@@ -109,8 +110,8 @@ export default class Biome3LayerOverworld {
 
     /**
      * Plant chunk trees
-     * @param {[]TerrainMap2} maps 
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param {[]TerrainMap2} maps
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
      */
     plantTrees(maps, chunk) {
         for(let i = 0; i < maps.length; i++) {
@@ -142,8 +143,8 @@ export default class Biome3LayerOverworld {
     }
 
     /**
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @returns 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @returns
      */
      calcColumnNoiseSize(chunk) {
         let maxY = WATER_LEVEL
@@ -165,9 +166,9 @@ export default class Biome3LayerOverworld {
     }
 
     /**
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {*} seed 
-     * @param {*} rnd 
+     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @param {*} seed
+     * @param {*} rnd
      */
     generateChunkData(chunk, seed, rnd) {
 
@@ -420,8 +421,8 @@ export default class Biome3LayerOverworld {
 
     /**
      * Dump biome
-     * @param {Vector} xyz 
-     * @param {Biome} biome 
+     * @param {Vector} xyz
+     * @param {Biome} biome
      */
      dumpBiome(xyz, biome) {
         if(!globalThis.used_biomes) {

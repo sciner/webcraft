@@ -63,10 +63,11 @@ for(let i = 0; i < randoms.length; i++) {
 }
 
 export default class style {
+    [key: string]: any;
 
     /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
-     * @returns 
+     * @param { import("../blocks.js").BLOCK } block_manager
+     * @returns
      */
     static getRegInfo(block_manager) {
         style.block_manager = block_manager
@@ -199,11 +200,11 @@ export default class style {
 
     /**
      * Can draw face
-     * @param {*} block 
-     * @param {*} neighbour 
-     * @param {boolean} drawAllSides 
-     * @param {int} dir 
-     * @returns 
+     * @param {*} block
+     * @param {*} neighbour
+     * @param {boolean} drawAllSides
+     * @param {int} dir
+     * @returns
      */
     static canDrawFace(block, neighbour, drawAllSides, dir) {
         if(!neighbour) {
@@ -567,11 +568,11 @@ export default class style {
     }
 
     /**
-     * @param {*} chunk 
-     * @param {*} tblock 
-     * @param {int} x 
-     * @param {int} y 
-     * @param {int} z 
+     * @param {*} chunk
+     * @param {*} tblock
+     * @param {int} x
+     * @param {int} y
+     * @param {int} z
      * @returns {boolean}
      */
     static playJukeboxDisc(chunk, tblock, x, y, z) {

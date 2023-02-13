@@ -4,6 +4,7 @@ import { createNoise3D } from '../../../vendors/simplex-noise.js';
 import { impl as alea } from '../../../vendors/alea.js';
 
 export class WorldClientOreGenerator {
+    [key: string]: any;
 
     /**
      * @param {string} seed 

@@ -3,6 +3,7 @@ import { CreativeInventoryWindow } from "./creative_inventory.js";
 import { InventoryWindow } from "./inventory.js";
 
 export class InGameMain extends Window {
+    [key: string]: any;
 
     constructor(player, inventory, recipes) {
 

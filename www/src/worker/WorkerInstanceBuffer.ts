@@ -1,6 +1,7 @@
 import {Worker05SubGeometry} from "../light/Worker05GeometryPool.js";
 
 export class WorkerInstanceBuffer {
+    [key: string]: any;
     constructor({
                     material_key,
                     geometryPool,

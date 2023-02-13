@@ -4,6 +4,7 @@ import { INVENTORY_DRAG_SLOT_INDEX } from "./constant.js";
 
 // Player inventory
 export class PlayerInventory extends Inventory {
+    [key: string]: any;
 
     /**
      * @type { import("../tools/gui/wm.js").WindowManager }

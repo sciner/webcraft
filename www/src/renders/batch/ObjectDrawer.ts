@@ -1,5 +1,6 @@
 export class ObjectDrawer
 {
+    [key: string]: any;
     constructor(context)
     {
         this.context = context;

@@ -3,6 +3,7 @@ import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../../effect.js";
 import { Mesh_Effect_Particle } from "../particle.js";
 
 export default class emitter {
+    [key: string]: any;
 
     static textures = [
         [0, 0], [1, 0], [2, 0], [3, 0]

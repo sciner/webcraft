@@ -3,6 +3,7 @@ import {FLUID_TYPE_MASK, fluidLightPower} from "../fluid/FluidConst.js";
 import {BLOCK} from "../blocks.js";
 
 export class ChunkLight {
+    [key: string]: any;
     constructor(parentChunk) {
         this.parentChunk = parentChunk;
         this.lightTex = null;

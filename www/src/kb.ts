@@ -1,7 +1,8 @@
 export class Kb {
+    [key: string]: any;
 
     constructor(canvas, options) {
-        
+
         let that            = this;
         this.canvas         = canvas;
         this.options        = options;
@@ -87,7 +88,7 @@ export class Kb {
 
     /**
      * skip next events on this duration
-     * @param {number} delta 
+     * @param {number} delta
      * @returns {number}
      */
     skipUntil(delta) {

@@ -9,6 +9,7 @@ export {alea, noise};
 
 // Map cell
 export class Default_Terrain_Map_Cell {
+    [key: string]: any;
 
     constructor(biome) {
         this.biome = biome;
@@ -18,6 +19,7 @@ export class Default_Terrain_Map_Cell {
 
 //
 export class Default_Terrain_Map {
+    [key: string]: any;
 
     constructor(addr, size, coord, options, cells) {
         this.chunk = {addr, size, coord};
@@ -40,6 +42,7 @@ export class Default_Terrain_Map {
 
 //
 export class Default_Terrain_Generator {
+    [key: string]: any;
 
     constructor(seed, world_id, options, noise2d, noise3d) {
         this.voxel_buildings = [];

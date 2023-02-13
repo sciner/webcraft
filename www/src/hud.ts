@@ -10,6 +10,7 @@ import { Mesh_Effect } from "./mesh/effect.js";
 
 // QuestActionType
 export class QuestActionType {
+    [key: string]: any;
 
     static PICKUP       = 1; // Добыть
     static CRAFT        = 2; // Скрафтить
@@ -20,6 +21,7 @@ export class QuestActionType {
 }
 
 class HUDLabel extends Label {
+    [key: string]: any;
 
     constructor(x, y, w, h, id) {
         super(x, y, w, h, id)
@@ -31,6 +33,7 @@ class HUDLabel extends Label {
 }
 
 class HUDWindow extends Window {
+    [key: string]: any;
 
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
@@ -99,6 +102,7 @@ class HUDWindow extends Window {
 
 // Canvas used to draw HUD
 export class HUD {
+    [key: string]: any;
 
     constructor(canvas) {
 

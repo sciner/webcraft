@@ -26,6 +26,7 @@ import {
 } from './LightConst.js';
 
 export class LightQueue {
+    [key: string]: any;
     constructor(world, {offset, dirCount, capacity, nibbleSource}) {
         this.world = world;
         // deque structure=

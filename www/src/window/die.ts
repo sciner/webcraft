@@ -4,6 +4,7 @@ import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 
 export class DieWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor() {
 
@@ -93,5 +94,5 @@ export class DieWindow extends BlankWindow {
         }
         this.add(btnReturn);
     }
-    
+
 }

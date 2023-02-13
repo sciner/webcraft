@@ -12,6 +12,7 @@ export const INVENTORY_CHANGE_CLOSE_WINDOW = 3;
 export const INVENTORY_CHANGE_SHIFT_SPREAD = 4;
 
 export class Inventory {
+    [key: string]: any;
 
     temp_vec = new Vector();
 

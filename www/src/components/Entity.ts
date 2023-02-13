@@ -3,6 +3,7 @@ import { Model } from "./Model.js";
 import { Transform } from "./Transform.js";
 
 export class Entity {
+    [key: string]: any;
     /**
      * @type {[key: string] : typeof Component}
      */

@@ -15,6 +15,7 @@ import {isFluidId, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID, PACKET_CELL_DIRT_CO
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
 
 class MaterialBuf {
+    [key: string]: any;
 
     constructor() {
         this.buf = null
@@ -25,6 +26,7 @@ class MaterialBuf {
 
 // ChunkManager
 export class ChunkWorkerChunkManager {
+    [key: string]: any;
 
     constructor(world) {
         this.world = world;
@@ -77,10 +79,11 @@ export class ChunkWorkerChunkManager {
 
 // Chunk
 export class ChunkWorkerChunk {
+    [key: string]: any;
 
     /**
-     * @param {ChunkWorkerChunkManager} chunkManager 
-     * @param {*} args 
+     * @param {ChunkWorkerChunkManager} chunkManager
+     * @param {*} args
      */
     constructor(chunkManager, args) {
         this.chunkManager   = chunkManager;

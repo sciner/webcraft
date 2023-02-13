@@ -59,6 +59,7 @@ const setFromUnitVectors = (q, vFrom, vTo ) => {
 }
 
 export class ModelSlot {
+    [key: string]: any;
     constructor(name = '', parent = null) {
         /**
          * @type { SceneNode }
@@ -75,18 +76,19 @@ export class ModelSlot {
 }
 
 export class PlayerAnimation extends MobAnimation {
+    [key: string]: any;
 
     head({
         part, animable
     }) {
-        let pitch = animable.pitch; 
+        let pitch = animable.pitch;
 
-        if(pitch < -0.5) { 
-            pitch = -0.5; 
-        } 
+        if(pitch < -0.5) {
+            pitch = -0.5;
+        }
 
-        if(pitch > 0.5) { 
-            pitch = 0.5; 
+        if(pitch > 0.5) {
+            pitch = 0.5;
         }
 
         const yaw = animable.body_rotate * HEAD_MAX_ROTATE_ANGLE;
@@ -100,6 +102,7 @@ export class PlayerAnimation extends MobAnimation {
 
 // An adapter that allows using ServerPlayer and PlayerModel in the same way
 class PlayerModelSharedProps {
+    [key: string]: any;
     constructor(playerModel) {
         this.p = playerModel;
     }
@@ -112,6 +115,7 @@ class PlayerModelSharedProps {
 }
 
 export class PlayerModel extends MobModel {
+    [key: string]: any;
 
     constructor(props) {
         super({type: 'player', skin: '1', ...props});
@@ -212,7 +216,7 @@ export class PlayerModel extends MobModel {
         }
 
         let item;
-        
+
         try {
             item = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO);
         } catch(e) {
@@ -222,7 +226,7 @@ export class PlayerModel extends MobModel {
         if (!item) {
             return;
         }
-        
+
         // slot.holder.terrainGeometry = item.buffer;
         // slot.holder.material = item.material;
         for(let mesh of item.mesh_group.meshes.values()) {
@@ -260,11 +264,11 @@ export class PlayerModel extends MobModel {
 
     postLoad(render, tree) {
         super.postLoad(tree);
-        
+
         for(let i = 0; i < tree.length; i++) {
             tree[i].scale.set([this.scale, this.scale, this.scale]);
         }
-        
+
         if (this.nametag || !this.sceneTree) {
             return;
         }
@@ -283,7 +287,7 @@ export class PlayerModel extends MobModel {
 
         this.sceneTree[0].addChild(this.nametag);
         this.nametag.scale.set([0.005, 1, 0.005]);
-        
+
         this.nametag.updateMatrix();
 
         this.changeSlots(this.activeSlotsData);
@@ -313,7 +317,7 @@ export class PlayerModel extends MobModel {
         const d = camPos.distance(this.pos);
         const dx = camPos.x - this.pos.x;
         const dy = camPos.y - this.pos.y - this.nametag.position[2];
-        const dz = camPos.z - this.pos.z;        
+        const dz = camPos.z - this.pos.z;
         const d2 = Math.hypot(dz, dx)
         const pitch = Math.PI / 2 - Math.atan2(d2, dy);
         const yaw = this.yaw + Math.PI/2 + Math.atan2(dz, dx);
@@ -413,14 +417,14 @@ export class PlayerModel extends MobModel {
     }
 
     /**
-     * @param {Vector} pos 
-     * @param {Vector} rotate 
-     * @param {boolean} sneak 
-     * @param {boolean} moving 
-     * @param {boolean} running 
-     * @param {*} hands 
-     * @param {boolean} lies 
-     * @param {boolean} sitting 
+     * @param {Vector} pos
+     * @param {Vector} rotate
+     * @param {boolean} sneak
+     * @param {boolean} moving
+     * @param {boolean} running
+     * @param {*} hands
+     * @param {boolean} lies
+     * @param {boolean} sitting
      */
     setProps(pos, rotate, sneak, moving, running, hands, lies, sitting, health) {
         this.pos.copyFrom(pos);
@@ -452,7 +456,7 @@ export class PlayerModel extends MobModel {
         this.prev_pos.copyFrom(this.pos);
         super.draw(render, camPos, delta, speed);
     }
-    
+
     isAlive() {
         return this.health > 0;
     }

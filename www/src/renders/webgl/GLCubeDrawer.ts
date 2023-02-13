@@ -1,6 +1,7 @@
 import {ObjectDrawer} from "../batch/ObjectDrawer.js";
 
 export class GLCubeDrawer extends ObjectDrawer {
+    [key: string]: any;
     draw(cube) {
         const { context } = this;
         if (context._mat) {

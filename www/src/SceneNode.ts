@@ -3,6 +3,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 const {mat4, vec3, quat} = glMatrix;
 
 export class SceneNode {
+    [key: string]: any;
     constructor(parent = null) {
         /**
          * @type {SceneNode[]}

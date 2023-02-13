@@ -1,6 +1,7 @@
 import {ObjectDrawer} from "../batch/ObjectDrawer.js";
 
 export class GPUCubeDrawer extends ObjectDrawer {
+    [key: string]: any;
     draw(cube) {
         const { context } = this;
         if (geom.size === 0) {

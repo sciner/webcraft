@@ -14,6 +14,7 @@ const lm = IndexedColor.WHITE.clone();
 
 // Фонарь
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

@@ -15,6 +15,7 @@ const TARGET_TEXTURES = [.5, .5, 1, 1];
 const half = new Vector(0.5, 0.5, 0.5);
 
 export class PickAt {
+    [key: string]: any;
 
     constructor(world, render, onTarget, onInteractEntity, onInteractFluid) {
         this.world              = world;

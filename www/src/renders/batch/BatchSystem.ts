@@ -5,6 +5,7 @@ import { ObjectDrawer } from './ObjectDrawer.js';
  */
 export class BatchSystem
 {
+    [key: string]: any;
     constructor(context)
     {
         this.context = context;

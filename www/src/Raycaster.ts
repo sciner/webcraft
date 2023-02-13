@@ -12,6 +12,7 @@ const check = new Vector(0, 0, 0);
 const startBlock = new Vector(0, 0, 0);
 
 export class RaycasterResult {
+    [key: string]: any;
 
     /**
      * @param {Vector} pos
@@ -60,6 +61,7 @@ export class RaycasterResult {
 }
 
 export class Raycaster {
+    [key: string]: any;
 
     constructor(world) {
         this.world = world;

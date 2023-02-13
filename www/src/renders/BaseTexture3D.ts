@@ -2,6 +2,7 @@ import {Vector} from '../helpers.js';
 import BaseRenderer from "./BaseRenderer.js";
 
 export class BaseTexture3D {
+    [key: string]: any;
     constructor(context, {
         width = 1,
         height = 1,
@@ -62,6 +63,7 @@ export class BaseTexture3D {
 }
 
 export class RegionTexture3D {
+    [key: string]: any;
     constructor(context, {
         baseTexture = null,
         width = 0,

@@ -5,6 +5,7 @@ import { Vector } from "./helpers.js";
 const {mat4} = glMatrix;
 
 export class Camera {
+    [key: string]: any;
     static PERSP_CAMERA = 'perspective';
     static ORTHO_CAMERA = 'ortho';
 
@@ -37,7 +38,7 @@ export class Camera {
         this.viewMatrix = mat4.create();
         this.bobPrependMatrix = mat4.create();
 
-        // not fully required 
+        // not fully required
         this._viewProjMatrix = null ;//mat4.create();
 
         this.pos = new Vector();
@@ -93,8 +94,8 @@ export class Camera {
 
     /**
      * Set camera state
-     * @param {Vector} pos 
-     * @param {Vector} rotate 
+     * @param {Vector} pos
+     * @param {Vector} rotate
      * @param {mat4} bobMatrix - matrix of player movement
      */
     set (pos, rotate, bobMatrix = null) {
@@ -156,8 +157,8 @@ export class Camera {
 
     /**
      * Apply camera state onto unfiforms
-     * @param {GlobalUniformGroup} gu 
-     * @param {boolean} update - force update before apply to uniforms 
+     * @param {GlobalUniformGroup} gu
+     * @param {boolean} update - force update before apply to uniforms
      */
     use(gu, update = false) {
         if (update) {

@@ -12,6 +12,7 @@ const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 
 
 // Забор
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {
@@ -22,11 +23,11 @@ export default class style {
     }
 
     /**
-     * @param {TBlock} tblock 
-     * @param {boolean} for_physic 
-     * @param {*} world 
-     * @param {*} neighbours 
-     * @param {boolean} expanded 
+     * @param {TBlock} tblock
+     * @param {boolean} for_physic
+     * @param {*} world
+     * @param {*} neighbours
+     * @param {boolean} expanded
      */
     static computeAABB(tblock, for_physic, world, neighbours, expanded) {
         const CENTER_WIDTH      = 8 / 16

@@ -3,6 +3,7 @@ import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
 
 export class BaseInventoryWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, inventory) {
 
@@ -38,9 +39,9 @@ export class BaseInventoryWindow extends BlankWindow {
     /**
      * It's to find a possible bug where an item gets count=0.
      * It sets null to slots with count=0 and notifies the player.
-     * 
+     *
      * TODO remove its usage after the "count": 0 bug is fixed.
-     * 
+     *
      * @param {String} context - a string that helps identify where and why the error occurs.
      */
     fixAndValidateSlots(context) {

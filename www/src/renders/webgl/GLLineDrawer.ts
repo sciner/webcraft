@@ -84,6 +84,7 @@ void main() {
  * PixiJS BatchRenderer for chunk array
  */
 export class GLLineDrawer extends ObjectDrawer {
+    [key: string]: any;
     constructor(context) {
         super(context);
     }

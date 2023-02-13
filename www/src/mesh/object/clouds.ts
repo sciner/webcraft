@@ -43,6 +43,7 @@ const FakeCloudWorld = {
 }
 
 export default class Mesh_Object_Clouds {
+    [key: string]: any;
 
     // Constructor
     constructor(gl, height) {
@@ -132,7 +133,7 @@ export default class Mesh_Object_Clouds {
         for(let mx = -2; mx <= 2; mx++) {
             for(let mz = -2; mz <= 2; mz++) {
                 this.pos.set(x + mx * size + 1/2, cam_pos.y, z + mz * size + 1/2);
-                render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);        
+                render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);
             }
         }
 

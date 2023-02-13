@@ -2,6 +2,7 @@ import { BaseResourcePack } from "./base_resource_pack.js";
 import { Resources } from "./resources.js";
 
 export class ResourcePackManager {
+    [key: string]: any;
 
     // constructor
     constructor(BLOCK) {

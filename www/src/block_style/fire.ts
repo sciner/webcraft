@@ -8,6 +8,7 @@ const {mat4} = glMatrix;
 
 // fire
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {
@@ -17,7 +18,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const shapes = []
         if(for_physic) {
@@ -99,7 +100,7 @@ export default class style {
                 texture:    [...texture]
             });
         }
-        
+
     }
 
 }

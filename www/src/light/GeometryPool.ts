@@ -1,6 +1,7 @@
 import { GeometryTerrain16 } from "../geom/TerrainGeometry16.js";
 
 export class GeometryPool {
+    [key: string]: any;
     constructor(context) {
         this.context = context;
     }
@@ -18,6 +19,7 @@ export class GeometryPool {
 }
 
 export class TrivialGeometryPool extends GeometryPool {
+    [key: string]: any;
     constructor(context, options) {
         super(context);
     }

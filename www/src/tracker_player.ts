@@ -8,6 +8,7 @@ const VOLUME_DISCRETE = MAX_AUDIBILITY_DIST;
 const FADEIN_MS = 3000;
 
 export class Tracker_Player {
+    [key: string]: any;
     static MASTER_VOLUME = 0.1;
 
     constructor() {
@@ -33,7 +34,7 @@ export class Tracker_Player {
             ...Sounds.PANNER_ATTR,
 
             rolloffFactor: 0.25,
-  
+
             // juckbox listen at 64 blocks
             maxDistance: 64,
 
@@ -60,7 +61,7 @@ export class Tracker_Player {
                 // jukebox.volume = MAX_VOLUME;
                 return jukebox.load(buffer);
             })
-            .then(() => {    
+            .then(() => {
                 jukebox.play()
             })
     }

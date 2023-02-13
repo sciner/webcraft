@@ -3,6 +3,7 @@ import { DENSITY_AIR_THRESHOLD } from "../manager.js";
 import { ClimateParams, DensityParams, MapCellPreset } from "../manager_vars.js";
 
 export class MapCellPreset_Mountains extends MapCellPreset {
+    [key: string]: any;
 
     constructor() {
         super('mountains', {chance: 4, relief: 4, mid_level: 6})
@@ -12,7 +13,7 @@ export class MapCellPreset_Mountains extends MapCellPreset {
     }
 
     /**
-     * @param { Vector } xz 
+     * @param { Vector } xz
      * @param { ClimateParams } params
      * @returns { boolean }
      */
@@ -23,13 +24,13 @@ export class MapCellPreset_Mountains extends MapCellPreset {
     }
 
     /**
-     * @param {Vector} xyz 
-     * @param {TerrainMapCell} cell 
-     * @param {float} dist_percent 
+     * @param {Vector} xyz
+     * @param {TerrainMapCell} cell
+     * @param {float} dist_percent
      * @param {*} generator_options
      * @param {*} noise2d
-     * @param {DensityParams} result 
-     * 
+     * @param {DensityParams} result
+     *
      * @returns {DensityParams}
      */
     calcDensity(xyz, cell, dist_percent, noise2d, generator_options, result) {

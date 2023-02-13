@@ -6,6 +6,7 @@ const {mat4} = glMatrix;
 
 //
 export class BBModel_Group extends BBModel_Child {
+    [key: string]: any;
 
     /**
      * @param {string} name

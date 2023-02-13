@@ -10,6 +10,7 @@ const {mat4} = glMatrix;
 
 // гнездо для кур
 export default class style {
+    [key: string]: any;
     
     static getRegInfo() {
         return {

@@ -1,6 +1,7 @@
 import GeometryTerrain from "../geometry_terrain.js";
 
 class QuadAttr {
+    [key: string]: any;
     /**
      *
      * @param {Float32Array} buffer
@@ -31,6 +32,7 @@ class QuadAttr {
 }
 
 export class GeometryTerrain16 {
+    [key: string]: any;
     constructor(vertices) {
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;

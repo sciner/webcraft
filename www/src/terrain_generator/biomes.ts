@@ -15,6 +15,7 @@ const biome_stat = {
 
 // 1. Trees
 export class TREES {
+    [key: string]: any;
 
     static init() {
         if(TREES.BIRCH) {

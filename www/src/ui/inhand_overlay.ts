@@ -6,6 +6,7 @@ import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 
 class ItemUseAnimation {
+    [key: string]: any;
     static NONE = 0;
     static EAT = 1;
     static DRINK = 2;
@@ -15,11 +16,13 @@ class ItemUseAnimation {
 }
 
 export class InteractionHand {
+    [key: string]: any;
     static MAIN_HAND = 1;
     static OFF_HAND = 2;
 }
 
 export class HumanoidArm {
+    [key: string]: any;
     static LEFT = new HumanoidArm("options.mainHand.left");
     static RIGHT = new HumanoidArm("options.mainHand.right");
     constructor(name) {
@@ -51,6 +54,7 @@ export function swapMatrixYZ(matrix) {
 }
 
 export class InHandOverlay {
+    [key: string]: any;
 
     constructor (skinId, render) {
 

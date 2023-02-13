@@ -2,6 +2,7 @@ import {Worker05SubGeometry} from "../light/Worker05GeometryPool.js";
 import {FluidMultiGeometry} from "./FluidMultiGeometry.js";
 
 export class FluidSubGeometry extends Worker05SubGeometry {
+    [key: string]: any;
     constructor(params) {
         super(params);
     }

@@ -2,6 +2,7 @@ import {Vector} from "../helpers.js";
 import {BaseChunk} from "./BaseChunk.js";
 
 export class RegionChunk extends BaseChunk {
+    [key: string]: any;
     constructor({size, dataChunk}) {
         super(size);
         this.dataChunk = dataChunk;

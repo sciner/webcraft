@@ -7,6 +7,7 @@ const living_blocks = [88, 415]; // [BLOCK.SOUL_SAND.id, BLOCK.BUBBLE_COLUMN.id]
 const CHANCE = 0.03;
 
 export default class emitter {
+    [key: string]: any;
 
     static textures = [
         [0, 5]

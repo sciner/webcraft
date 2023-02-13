@@ -17,6 +17,7 @@ for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
 
 //
 class Strings {
+    [key: string]: any;
 
     constructor() {
         this.strings = [
@@ -24,7 +25,7 @@ class Strings {
             {text: null, set_time: null, measure: null, max_time: null}
         ];
     }
-    
+
     // set new text
     setText(index, text, max_time) {
         this.strings[index].text = text;
@@ -67,7 +68,7 @@ class Strings {
             }
             texts.push(item.text)
         }
-        
+
         window.text = texts.join('\n')
         window_shadow.text = texts.join('\n')
 
@@ -76,6 +77,7 @@ class Strings {
 }
 
 export class Hotbar {
+    [key: string]: any;
 
     constructor(hud) {
 
@@ -90,7 +92,7 @@ export class Hotbar {
         all.push(this.effect_icons = new SpriteAtlas().fromFile('./media/gui/inventory2.png'))
 
         this.icons_atlas = Resources.atlas.icons
-        
+
         Promise.all(all).then(_ => {
 
             this.tilemap = new MyTilemap()
@@ -202,7 +204,7 @@ export class Hotbar {
     }
 
     /**
-     * @param {PlayerInventory} inventory 
+     * @param {PlayerInventory} inventory
      */
     setInventory(inventory) {
 
@@ -290,7 +292,7 @@ export class Hotbar {
             const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
             // жизни
             const live = player.indicators.live.value;
-            // моргание от урона 
+            // моргание от урона
             const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
             const low_live = live < 3
             if (player.getEffectLevel(Effect.POISON) > 0) {
@@ -313,7 +315,7 @@ export class Hotbar {
             // броня
             const armor = this.inventory.getArmorLevel()
             if (armor > 0) {
-                this.drawStrip(hud.width / 2 - left, hud.height - bottom_two_line, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black) 
+                this.drawStrip(hud.width / 2 - left, hud.height - bottom_two_line, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black)
             }
         }
 

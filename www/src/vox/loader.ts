@@ -1,6 +1,7 @@
 import {Helpers} from "../helpers.js";
 
 export class Vox_Loader {
+    [key: string]: any;
 
     constructor(url, onload) {
         if(url) {

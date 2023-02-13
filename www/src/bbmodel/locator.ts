@@ -8,6 +8,7 @@ const tempVec3 = vec3.create();
 
 //
 export class BBModel_Locator extends BBModel_Child {
+    [key: string]: any;
 
     /**
      * @param {Vector} size

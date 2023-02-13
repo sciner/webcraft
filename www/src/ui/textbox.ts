@@ -3,6 +3,7 @@ import { Label, Window } from "../../tools/gui/wm.js";
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
 export class TextBox {
+    [key: string]: any;
 
     /**
      * @type {Window}
@@ -29,10 +30,10 @@ export class TextBox {
 
     /**
      * @param { import("../hud.js").HUD } hud
-     * @returns 
+     * @returns
      */
     init(hud) {
-        
+
         const CHAT_INPUT_FONT = 'UbuntuMono-Regular'
         this.chat_input = new Window(0, 0, 0, 0, 'chat_input')
 
@@ -115,7 +116,7 @@ export class TextBox {
         this.carriage += cnt;
         this.carriage = Math.min(Math.max(this.carriage, 0), this.buffer.length);
     }
-    
+
     typeChar(charCode, ch) {
         if(!this.active) {
             return;
@@ -146,7 +147,7 @@ export class TextBox {
             this.moveCarriage(chars.length);
         }
     }
-    
+
     backspace() {
         if(!this.active) {
             return;
@@ -175,7 +176,7 @@ export class TextBox {
     onKeyEnd() {
         this.moveCarriage(this.buffer.length);
     }
-    
+
     keyPress(keyCode) {
         if(!this.active) {
             return;

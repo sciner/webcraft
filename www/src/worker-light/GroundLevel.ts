@@ -21,6 +21,7 @@ const GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR =
     (GROUND_ESTIMATION_MAX_DIST + CHUNK_SIZE_X / 2) * (GROUND_ESTIMATION_MAX_DIST + CHUNK_SIZE_X / 2);
 
 export class ChunkGroundLevel {
+    [key: string]: any;
 
     constructor(chunk) {
         this.chunk = chunk;
@@ -127,6 +128,7 @@ export class ChunkGroundLevel {
 }
 
 export class WorldGroundLevel {
+    [key: string]: any;
 
     constructor(world) {
         this.world = world;

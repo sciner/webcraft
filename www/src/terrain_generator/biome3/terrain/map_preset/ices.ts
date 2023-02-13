@@ -3,6 +3,7 @@ import { ClimateParams, DensityParams, WATER_LEVEL } from "../manager_vars.js";
 import { MapCellPreset_Mountains } from "./mountains.js";
 
 export class MapCellPreset_Ices extends MapCellPreset_Mountains {
+    [key: string]: any;
 
     constructor() {
         super()
@@ -13,13 +14,13 @@ export class MapCellPreset_Ices extends MapCellPreset_Mountains {
     }
 
     /**
-     * @param {Vector} xyz 
-     * @param {TerrainMapCell} cell 
-     * @param {float} dist_percent 
+     * @param {Vector} xyz
+     * @param {TerrainMapCell} cell
+     * @param {float} dist_percent
      * @param {*} generator_options
      * @param {*} noise2d
-     * @param {DensityParams} result 
-     * 
+     * @param {DensityParams} result
+     *
      * @returns {DensityParams}
      */
     calcDensity(xyz, cell, dist_percent, noise2d, generator_options, result) {

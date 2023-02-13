@@ -8,6 +8,7 @@ const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
 const SYSTEM_NAME               = '<MadCraft>';
 
 export class Chat extends TextBox {
+    [key: string]: any;
 
     constructor(player) {
         super(UI_ZOOM);
@@ -284,7 +285,7 @@ export class Chat extends TextBox {
 
     /**
      * @param { import("./hud.js").HUD } hud
-     * @returns 
+     * @returns
      */
     drawHUD(hud) {
 

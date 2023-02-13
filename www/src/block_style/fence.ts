@@ -4,6 +4,7 @@ import { AABB } from '../core/AABB.js';
 
 // Забор
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

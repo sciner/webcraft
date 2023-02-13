@@ -2,6 +2,7 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class ChestWindow extends BaseChestWindow {
+    [key: string]: any;
 
     constructor(inventory) {
 

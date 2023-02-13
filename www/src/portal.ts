@@ -13,6 +13,7 @@ export const PORTAL_TYPES = [
 
 //
 export class WorldPortalWait {
+    [key: string]: any;
 
     constructor(old_pos, new_pos, params) {
         this.params         = params;
@@ -26,6 +27,7 @@ export class WorldPortalWait {
 
 //
 export class WorldPortal {
+    [key: string]: any;
 
     constructor(pos, rotate, size, player_pos, portal_block_id, type = null) {
         this.pos                = pos;

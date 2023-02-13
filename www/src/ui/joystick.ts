@@ -2,6 +2,7 @@ import { MAGIC_ROTATE_DIV, MOUSE } from "../constant.js";
 import { Vector } from "../helpers.js";
 
 export class JoystickController {
+    [key: string]: any;
 
     constructor(stickID, maxDistance, deadzone, player, kb) {
 
@@ -10,7 +11,7 @@ export class JoystickController {
         this.value = null;
         this.id = stickID;
         let stick = document.getElementById(stickID);
-        
+
         if(!stick) {
             return;
         }
@@ -20,7 +21,7 @@ export class JoystickController {
         // track touch identifier in case multiple joysticks present
         this.touchId = null;
         this.active = false;
-        this.value = { x: 0, y: 0 }; 
+        this.value = { x: 0, y: 0 };
         let self = this;
 
         function handleDown(event) {

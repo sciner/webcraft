@@ -9,6 +9,7 @@ const vecZero   = Vector.ZERO.clone();
 
 // Mesh_Object_BBModel
 export class Mesh_Object_BBModel {
+    [key: string]: any;
 
     /**
      * 

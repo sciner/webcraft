@@ -4,6 +4,7 @@
  */
 export class ViewableBuffer
 {
+    [key: string]: any;
     constructor(sizeOrBuffer)
     {
         if (typeof sizeOrBuffer === 'number')

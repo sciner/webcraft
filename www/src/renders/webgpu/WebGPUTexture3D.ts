@@ -12,6 +12,7 @@ const SZ = {
 }
 
 export class WebGPUTexture3D extends BaseTexture3D {
+    [key: string]: any;
     bind() {
         if (this.dirty) {
             return this.upload();

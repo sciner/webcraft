@@ -3,6 +3,7 @@ import {TerrainMultiGeometry} from "./TerrainMultiGeometry.js";
 import {GeometryPool} from "./GeometryPool.js";
 
 export class Basic05GeometryPool extends GeometryPool {
+    [key: string]: any;
     constructor(context, {
         pageSize = 256,
         pageCount = 1000,

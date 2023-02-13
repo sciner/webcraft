@@ -12,6 +12,7 @@ let global_uniqId = 0;
 
 // Creates a new chunk
 export class Chunk {
+    [key: string]: any;
 
     getChunkManager() {
         return this.chunkManager;

@@ -9,6 +9,7 @@ const zeroVec = new Vector();
 
 //
 export class BBModel_Cube extends BBModel_Child {
+    [key: string]: any;
 
     /**
      * @param { import("./model.js").BBModel_Model } model

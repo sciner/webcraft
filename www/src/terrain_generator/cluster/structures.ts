@@ -5,6 +5,7 @@ import { Vector } from "../../helpers.js";
 
 //
 export class ClusterStructures extends ClusterBuildingBase {
+    [key: string]: any;
 
     constructor(clusterManager, addr) {
 
@@ -28,8 +29,8 @@ export class ClusterStructures extends ClusterBuildingBase {
         ]
 
         /**
-         * @param {string} schema_name 
-         * @param {Vector} coord 
+         * @param {string} schema_name
+         * @param {Vector} coord
          */
         const addStructure = (schema_name, coord, door_direction) => {
 
@@ -68,7 +69,7 @@ export class ClusterStructures extends ClusterBuildingBase {
             const coord = this.coord.clone().addScalarSelf(128, 0, 128)
             const door_direction = Math.floor(this.randoms.double() * 4)
             addStructure('underearth_rooms', coord, door_direction)
-    
+
         } else {
 
             for(let x = 32; x <= 224; x += 64) {
@@ -89,7 +90,7 @@ export class ClusterStructures extends ClusterBuildingBase {
                         // building.moveXZTo(this.coord)
 
                         addStructure(schema_name, coord, door_direction)
-                        
+
                     }
                 }
             }

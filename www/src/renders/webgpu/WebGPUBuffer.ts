@@ -1,6 +1,7 @@
 import {BaseBuffer} from "../BaseRenderer.js";
 
 export class WebGPUBuffer extends BaseBuffer {
+    [key: string]: any;
     /**
      *
      * @param {WebGPURenderer} context

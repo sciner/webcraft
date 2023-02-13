@@ -4,6 +4,7 @@ import { QuestGroup } from "./group.js";
 
 //
 export class QuestMenu extends Window {
+    [key: string]: any;
 
     //
     constructor(x, y, w, h, id, title, text) {

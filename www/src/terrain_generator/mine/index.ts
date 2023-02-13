@@ -5,6 +5,7 @@ import { BLOCK } from '../../blocks.js';
 import { alea } from "../default.js";
 
 export default class MineGenerator2 extends Default_Terrain_Generator {
+    [key: string]: any;
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);

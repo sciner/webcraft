@@ -7,6 +7,7 @@ const Z_FIGHT_ERROR = 1/200;
 
 // Дверь
 export default class style {
+    [key: string]: any;
 
     /**
      * @param { import("../blocks.js").BLOCK } block_manager 

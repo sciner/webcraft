@@ -13,6 +13,7 @@ const lm = IndexedColor.WHITE.clone();
 
 // Свечи
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

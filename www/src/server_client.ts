@@ -1,6 +1,7 @@
 import { getChunkAddr, Vector } from "./helpers.js";
 
 export class ServerClient {
+    [key: string]: any;
 
     static cmd_titles               = null;
 
@@ -361,7 +362,7 @@ export class ServerClient {
 
     // Save inventory
     InventoryNewState(state, used_recipes, recipe_manager_type = null, dont_check_equal = false) {
-        this.Send({name: ServerClient.CMD_INVENTORY_NEW_STATE, 
+        this.Send({name: ServerClient.CMD_INVENTORY_NEW_STATE,
             data: {state, used_recipes, recipe_manager_type, dont_check_equal}
         });
     }

@@ -1,6 +1,7 @@
 import {BaseLineShader} from "../BaseShader.js";
 
 export class WebGLLineShader extends BaseLineShader {
+    [key: string]: any;
     /**
      *
      * @param {WebGLRenderer} context
@@ -77,7 +78,7 @@ export class WebGLLineShader extends BaseLineShader {
         gl.uniform2fv(this.u_resolution, gu.resolution);
         gl.uniform1f(this.u_time, gu.time);
         gl.uniform1f(this.u_eyeinwater, 1.);
-        
+
     }
 
     setStaticUniforms() {

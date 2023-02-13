@@ -13,6 +13,7 @@ const USE_ROAD_AS_GANGWAY   = 0;
 
 // Vilage cluster
 export class ClusterVilage extends ClusterBuildingBase {
+    [key: string]: any;
 
     //
     constructor(clusterManager, addr, biome) {

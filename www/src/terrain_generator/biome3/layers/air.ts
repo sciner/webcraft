@@ -2,6 +2,7 @@
  * Generate underworld infinity air
  */
 export default class Biome3LayerAir {
+    [key: string]: any;
 
     /**
      * @param { import("../index.js").default } generator

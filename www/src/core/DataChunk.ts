@@ -2,6 +2,7 @@ import {BaseChunk} from "./BaseChunk.js";
 import {Vector} from "../helpers.js";
 
 export class DataChunk extends BaseChunk {
+    [key: string]: any;
     constructor({size, strideBytes, nibble}) {
         super({size, nibble});
         this.initData(strideBytes);

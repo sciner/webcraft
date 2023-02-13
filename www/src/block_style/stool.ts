@@ -8,6 +8,7 @@ const {mat4} = glMatrix;
 
 // табуретка
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

@@ -6,6 +6,7 @@ import { CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MUSIC_PAUSE_SECONDS,
 import { Mth, Vector, ArrayHelpers } from "./helpers.js";
 
 class Music {
+    [key: string]: any;
 
     #tracklistName
     #volume
@@ -187,6 +188,7 @@ class Music {
 }
 
 class VolumetricSound {
+    [key: string]: any;
 
     static TELEPORT_DISTANCE = 20
 
@@ -372,6 +374,7 @@ class VolumetricSound {
 }
 
 export class Sounds {
+    [key: string]: any;
     static VOLUME_MAP = {
         // It's multiplied by the user-contolled music volume setting.
         // It allows us to change the music volume relative to other sounds without changing the user-controlled setting.

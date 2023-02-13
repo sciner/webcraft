@@ -2,6 +2,7 @@ import { Helpers } from "./helpers.js";
 
 // FPS
 export class FPSCounter {
+    [key: string]: any;
 
     constructor() {
         this.cnt        = 0;

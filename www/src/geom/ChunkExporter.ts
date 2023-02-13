@@ -5,6 +5,7 @@ import {chunkAddrToCoord, getChunkAddr, Helpers, Vector} from "../helpers.js";
 import {ExportFluidHelper} from "../fluid/ExportFluidHelper.js";
 
 export class ChunkExporter {
+    [key: string]: any;
 
     constructor(chunkManager) {
         this.chunkManager = chunkManager;

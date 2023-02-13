@@ -1,4 +1,5 @@
 export class Effect {
+    [key: string]: any;
     
     static SPEED = 0;
     static SLOWNESS = 1;

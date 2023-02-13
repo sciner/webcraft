@@ -16,6 +16,7 @@ const MAX_DETONATION_TIME           = 2000; // ms
 const OLD_SKIN                      = false;
 
 export class Traversable {
+    [key: string]: any;
 
     constructor() {
 
@@ -37,6 +38,7 @@ export class Traversable {
 }
 
 export class Animable {
+    [key: string]: any;
 
     constructor() {
         /**
@@ -47,12 +49,13 @@ export class Animable {
         this.pos;
         this.parts;
         this.animationScript;
-        
+
     }
 
 }
 
 export class TraversableRenderer {
+    [key: string]: any;
 
     /**
      *
@@ -128,6 +131,7 @@ export class TraversableRenderer {
 }
 
 export class Animator {
+    [key: string]: any;
 
     prepare(animable) {
     }
@@ -138,10 +142,11 @@ export class Animator {
 }
 
 export class MobAnimator extends Animator {
+    [key: string]: any;
 
     prepare(animable) {
         const { sceneTree: trees, parts = {} } = animable;
-        
+
         for(const p of ['head', 'arm', 'leg', 'wing', 'body']) {
             parts[p] = [];
         }
@@ -158,13 +163,13 @@ export class MobAnimator extends Animator {
             let arm;
             let head;
             let wing;
-            
+
             head = tree.findNode('Head');
             head && heads.push(head);
-            
+
             head = tree.findNode('head');
             head && heads.push(head);
-            
+
             for(let i = 0; i < 8; i ++) {
                 leg = tree.findNode('leg' + i);
                 leg && legs.push(leg);
@@ -175,26 +180,26 @@ export class MobAnimator extends Animator {
                 wing = tree.findNode('wing' + i);
                 wing && wings.push(wing);
             }
-            
+
             leg = tree.findNode('LeftLeg');
             leg && legs.push(leg);
-            
+
             leg = tree.findNode('RightLeg');
             leg && legs.push(leg);
-            
+
             arm = tree.findNode('RightArm');
             arm && arms.push(arm);
-            
+
             arm = tree.findNode('LeftArm');
             arm && arms.push(arm);
-            
+
             parts['head'].push(...heads);
             parts['arm'].push(...arms);
             parts['leg'].push(...legs);
             parts['wing'].push(...wings);
             parts['body'].push(...[tree.findNode('Body')]);
         }
-        
+
         animable.parts = parts;
     }
 
@@ -270,6 +275,7 @@ export class MobAnimator extends Animator {
 }
 
 export class MobAnimation {
+    [key: string]: any;
 
     head({
         part, index, delta, animable, camPos
@@ -474,6 +480,7 @@ export class MobAnimation {
 }
 
 export class MobModel extends NetworkPhysicObject {
+    [key: string]: any;
 
     constructor(props) {
 
@@ -529,10 +536,10 @@ export class MobModel extends NetworkPhysicObject {
         this.animator = new MobAnimator();
 
         this.animationScript = new MobAnimation();
-        
+
         this.armor = null;
         this.prev = {
-            head: null, 
+            head: null,
             body: null,
             leg: null,
             boot: null,
@@ -684,22 +691,22 @@ export class MobModel extends NetworkPhysicObject {
 
     /**
      * Draw mob model
-     * @param {Renderer} render 
-     * @param {Vector} camPos 
-     * @param {float} delta 
-     * @param {float} speed 
+     * @param {Renderer} render
+     * @param {Vector} camPos
+     * @param {float} delta
+     * @param {float} speed
      * @param {boolean} draw_debug_grid
-     * @returns 
+     * @returns
      */
     draw(render, camPos, delta, speed, draw_debug_grid = false) {
-        
+
         this.lazyInit(render);
         this.update(render, camPos, delta, speed);
 
         if (!this.sceneTree) {
             return null;
         }
-        
+
         // If mob die
         if(this.isAlive() === false) {
             // first enter to this code
@@ -761,11 +768,11 @@ export class MobModel extends NetworkPhysicObject {
             }
             this.detonation_started_info = null;
         }
-        
+
         this.setArmor();
-        
+
         this.setSkin();
-        
+
         // Draw in fire
         if(this.extra_data?.in_fire) {
             this.drawInFire(render, delta);
@@ -788,7 +795,7 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     /**
-     * @param {Renderer} render 
+     * @param {Renderer} render
      */
     drawInFire(render, delta) {
         if(this.fire_mesh) {
@@ -805,7 +812,7 @@ export class MobModel extends NetworkPhysicObject {
         const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
-    
+
     /**
      * @param {Renderer} render
      * @param {ImageBitmap | Image} image
@@ -819,8 +826,8 @@ export class MobModel extends NetworkPhysicObject {
         });
         return render.defaultShader.materials.doubleface_transparent.getSubMat(texture);
     }
-    
-    
+
+
     // Loads the player head model into a vertex buffer for rendering.
     /**
      *
@@ -830,12 +837,12 @@ export class MobModel extends NetworkPhysicObject {
         if (this.sceneTree) {
             return;
         }
-        
+
         if (this.type.startsWith('player')) {
             this.type = PLAYER_SKIN_TYPES[this.skin.type];
         }
-        
-        // загружеам ресурсы 
+
+        // загружеам ресурсы
         const asset = await Resources.getModelAsset(this.type);
         if (!asset) {
             console.error("Can't locate model for loadModel:", this.type);
@@ -845,7 +852,7 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
- 
+
         let image;
         if (this.type.startsWith('player')) {
             image = await asset.getPlayerSkin(this.skin.file);
@@ -859,7 +866,7 @@ export class MobModel extends NetworkPhysicObject {
             }
             // загружем скин для моба
             this.prev.skin = this.skin = this.skin || asset.baseSkin;
-            this.material = this.textures.get(this.skin); 
+            this.material = this.textures.get(this.skin);
         }
         // если игрок зомби или скелет, загружаем броню для них
         if (this.type.startsWith('player') || this.type == 'zombie' || this.type == 'skeleton') {
@@ -867,7 +874,7 @@ export class MobModel extends NetworkPhysicObject {
             if (!armor) {
                 console.log("Can't locate armor model");
                 return null;
-            } 
+            }
             for (const title in armor.skins) {
                 const image = await armor.getSkin(title);
                 const texture = this.getTexture(render, image);
@@ -904,7 +911,7 @@ export class MobModel extends NetworkPhysicObject {
             this.fire_mesh.destroy();
         }
     }
-    
+
     setSkin() {
         if (this?.extra_data?.skin && this.extra_data.skin != this.prev.skin) {
             if (this.textures.has(this.extra_data.skin)) {
@@ -913,7 +920,7 @@ export class MobModel extends NetworkPhysicObject {
             this.prev.skin = this.extra_data.skin;
         }
     }
-    
+
     // установка армора
     setArmor() {
         if (!this.sceneTree[1]) {
@@ -928,7 +935,7 @@ export class MobModel extends NetworkPhysicObject {
                 const item = BLOCK.fromId(armor.head);
                 this.sceneTree[1].children[0].material = (armor.head == 273) ? this.textures.get('turtle_layer_1') : this.textures.get(item.material.id +'_layer_1');
             } else {
-                this.sceneTree[1].children[0].material = null; 
+                this.sceneTree[1].children[0].material = null;
             }
             this.prev.head = armor.head;
         }
@@ -940,7 +947,7 @@ export class MobModel extends NetworkPhysicObject {
                 this.sceneTree[1].children[1].material = null;
             }
             this.sceneTree[1].children[1].children[0].material = this.sceneTree[1].children[1].material;
-            this.sceneTree[1].children[1].children[1].material = this.sceneTree[1].children[1].material; 
+            this.sceneTree[1].children[1].children[1].material = this.sceneTree[1].children[1].material;
             this.prev.body = armor.body;
         }
         if (armor.leg != this.prev.leg) {

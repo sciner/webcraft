@@ -1,6 +1,7 @@
 import { Resources } from "../resources.js";
 
 export class TexturePackManager {
+    [key: string]: any;
 
     constructor($scope) {
         this.$scope = $scope;

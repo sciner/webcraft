@@ -4,6 +4,7 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 const {mat4} = glMatrix;
 
 export class BaseShader {
+    [key: string]: any;
     constructor(context, options) {
         this.context = context;
         this.options = options;
@@ -23,6 +24,7 @@ export class BaseShader {
 }
 
 export class BaseCubeShader extends BaseShader {
+    [key: string]: any;
 
     /**
      *
@@ -99,6 +101,7 @@ export class BaseCubeShader extends BaseShader {
 }
 
 export class BaseTerrainShader extends BaseShader {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
 
@@ -128,6 +131,7 @@ export class BaseTerrainShader extends BaseShader {
 }
 
 export class BaseLineShader extends BaseShader {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
 

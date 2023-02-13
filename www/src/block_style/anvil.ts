@@ -3,10 +3,11 @@ import { AABB } from '../core/AABB.js';
 
 // Наковальня
 export default class style {
+    [key: string]: any;
 
     /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
-     * @returns 
+     * @param { import("../blocks.js").BLOCK } block_manager
+     * @returns
      */
     static getRegInfo(block_manager) {
         style.block_manager = block_manager
@@ -16,7 +17,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         const cd = block.getCardinalDirection();
@@ -27,12 +28,12 @@ export default class style {
         }
         return [aabb];
     }
-    
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
         if(typeof block == 'undefined') {
             return;
         }
-        
+
         const texture = block.material.texture;
         const side = style.block_manager.calcTexture(texture, DIRECTION.WEST);
         let up = side;
@@ -48,7 +49,7 @@ export default class style {
         box(10, 8, 1, 4, cd, vertices, side, side, x, y, z);
         box(12, 12, 4, 0, cd, vertices, side, side, x, y, z);
     }
-    
+
 }
 
 function box(width, length, height, shift, dir, vertices, texture, texture_up, x, y, z) {

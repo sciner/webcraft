@@ -1,4 +1,5 @@
 export class TerrainSubGeometry {
+    [key: string]: any;
     constructor({baseGeometry, pool, sizeQuads = 0, sizePages = 0}) {
         this.baseGeometry = baseGeometry;
         this.pool = pool;

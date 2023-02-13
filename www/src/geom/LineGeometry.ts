@@ -1,6 +1,7 @@
 import {Vector} from "../helpers.js";
 
 export class LineGeometry {
+    [key: string]: any;
     static strideFloats = 8;
 
     constructor() {

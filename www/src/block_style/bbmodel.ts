@@ -33,6 +33,7 @@ for(let i = 0; i < randoms.length; i++) {
 
 // Block model
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

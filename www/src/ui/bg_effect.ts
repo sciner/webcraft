@@ -19,6 +19,7 @@ var shapes = [];
 
 // Shape
 class Shape {
+    [key: string]: any;
 
     constructor(ctx, x, y, i) {
         this.ctx = ctx;
@@ -111,6 +112,7 @@ class Shape {
 
 // background animation effect
 export class BgEffect {
+    [key: string]: any;
 
     constructor() {
 

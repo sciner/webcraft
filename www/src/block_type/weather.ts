@@ -1,5 +1,6 @@
 export class Weather {
-  
+    [key: string]: any;
+
     static CLEAR = 0;
     static RAIN = 1;
     static SNOW = 2;
@@ -16,9 +17,9 @@ export class Weather {
     static GLOBAL_BRIGHTNESS = [1.0, 0.98, 1.0];
 
     static FOG_BRIGHTNESS = [1.0, 0.95, 1.0];
-    
+
     static getName(id) {
         return this.NAMES[id] || 'clear';
     }
-    
+
 }

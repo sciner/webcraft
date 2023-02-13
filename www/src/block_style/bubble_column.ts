@@ -1,6 +1,7 @@
 import { AABB } from '../core/AABB.js';
 
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {
@@ -9,7 +10,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);

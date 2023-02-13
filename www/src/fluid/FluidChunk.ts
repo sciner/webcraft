@@ -13,6 +13,7 @@ import { gzip, ungzip } from '../../vendors/pako.esm.min.mjs';
 import { FluidChunkFlowing } from "./FluidChunkFlowing.js";
 
 export class FluidChunk {
+    [key: string]: any;
     constructor({dataChunk, dataId, parentChunk = null, world = null}) {
         this.dataChunk = dataChunk;
         this.dataId = dataId;

@@ -4,10 +4,11 @@ import {ObjectHelpers, ArrayOrMap, ArrayOrScalar} from "./helpers.js"
 import { AnvilRecipeManager } from "./recipes_anvil.js";
 
 export class InventoryComparator {
+    [key: string]: any;
 
     // The values can be either classes, of async functions that return classes (for lazy initialization)
     static recipeManagers = {
-        'crafting': 
+        'crafting':
             async function() {
                 const rm = new RecipeManager();
                 await rm.load(() => {});

@@ -18,6 +18,7 @@ import { default as Mesh_Effect_Emitter_Dripping } from "./emitter/dripping.js";
  * Создает и уничтожает эмиттеры, помещает сгенерированные эмиттерами частиц в меш
  */
 export class Mesh_Effect_Manager {
+    [key: string]: any;
 
     // Init effects
     constructor(mesh_manager) {

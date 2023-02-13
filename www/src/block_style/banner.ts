@@ -28,6 +28,7 @@ const cubeSymAxis = [
 
 // Баннер
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {
@@ -56,7 +57,7 @@ export default class style {
         const rotate    = block.rotate || Vector.ZERO;
 
         const on_wall = (block.extra_data?.on_wall || rotate.y == 0) || false;
- 
+
         // Center
         if(on_wall) {
             const mul = 1.01;

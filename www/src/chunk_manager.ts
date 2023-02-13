@@ -31,6 +31,7 @@ const CC = [
 
 //
 export class ChunkManager {
+    [key: string]: any;
 
     /**
      * @type {ChunkManager}

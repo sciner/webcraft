@@ -1,4 +1,5 @@
 export class XMEffects {
+    [key: string]: any;
 
     constructor(player) {
 
@@ -375,6 +376,7 @@ export class XMEffects {
     }
 }
 export class Envelope {
+    [key: string]: any;
 
     constructor(points, type, sustain, loopstart, loopend) {
         this.points = points;
@@ -405,6 +407,7 @@ export class Envelope {
     }
 }
 export class EnvelopeFollower {
+    [key: string]: any;
 
     constructor(env) {
         this.env = env;

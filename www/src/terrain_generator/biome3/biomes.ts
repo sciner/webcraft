@@ -28,6 +28,7 @@ const TAIGA_BUILDINGS = {others: [
 ]}
 
 export class Biome {
+    [key: string]: any;
 
     constructor(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, building_options) {
         this.id = id;
@@ -61,6 +62,7 @@ export class Biome {
 }
 
 export class Biomes {
+    [key: string]: any;
 
     constructor(noise2d) {
         this.noise2d = noise2d;

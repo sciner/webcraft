@@ -8,6 +8,7 @@ const revChunkSort = (a, b) => {
  * Queue either for generator either for buildVertices
  */
 export class ChunkWorkQueue {
+    [key: string]: any;
     constructor(world) {
         this.world = world;
         this.added = [];

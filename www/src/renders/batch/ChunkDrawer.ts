@@ -22,6 +22,7 @@ export function nextPow2(v)
  * PixiJS BatchRenderer for chunk array
  */
 export class ChunkDrawer extends ObjectDrawer {
+    [key: string]: any;
     constructor(context) {
         super(context);
 

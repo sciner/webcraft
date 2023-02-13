@@ -2,6 +2,7 @@ import {Basic05GeometryPool} from "../light/Basic05GeometryPool.js";
 import {FluidMultiGeometry} from "./FluidMultiGeometry.js";
 
 export class FluidGeometryPool extends Basic05GeometryPool {
+    [key: string]: any;
     constructor(context, {
         pageSize = 256,
         pageCount = 100,

@@ -23,6 +23,7 @@ for(let i = 0; i < randoms.length; i++) {
 
 // Горшок
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {
@@ -133,15 +134,15 @@ export default class style {
     }
 
     /**
-     * @param {int} x 
-     * @param {int} y 
+     * @param {int} x
+     * @param {int} y
      * @param {int} z
-     * @param {TBlock} tblock 
-     * @param {*} pivot 
-     * @param {*} matrix 
-     * @param {*} biome 
-     * @param {IndexedColor} dirt_color 
-     * @returns 
+     * @param {TBlock} tblock
+     * @param {*} pivot
+     * @param {*} matrix
+     * @param {*} biome
+     * @param {IndexedColor} dirt_color
+     * @returns
      */
     static emmitInpotBlock(x, y, z, tblock, pivot, matrix, biome, dirt_color) {
 
@@ -149,7 +150,7 @@ export default class style {
         if(tblock.extra_data && tblock.extra_data?.item?.id) {
             flower_block_id = tblock.extra_data?.item.id;
         }
-		
+
 		matrix = mat4.create()
         mat4.scale(matrix, matrix, [.3, .5, .3])
         mat4.translate(matrix, matrix, [0, -2/16, 0])

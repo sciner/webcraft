@@ -6,6 +6,7 @@ import { AABB } from '../core/AABB.js';
 
 // Панель
 export default class style {
+    [key: string]: any;
 
     /**
      * @param { import("../blocks.js").BLOCK } block_manager 

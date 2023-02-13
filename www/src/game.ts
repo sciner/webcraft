@@ -27,6 +27,7 @@ globalThis.UI_FONT = 'Ubuntu';
 
 // Main game class
 export class GameClass {
+    [key: string]: any;
 
     constructor() {
         this.is_server                  = false;

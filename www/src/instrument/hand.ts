@@ -1,8 +1,9 @@
 export class Instrument_Hand {
+    [key: string]: any;
 
     /**
-     * @param { import("../player_inventory.js").PlayerInventory } inventory 
-     * @param {*} inventory_item 
+     * @param { import("../player_inventory.js").PlayerInventory } inventory
+     * @param {*} inventory_item
      */
     constructor(inventory, inventory_item) {
         const bm = inventory.player.world.block_manager

@@ -88,8 +88,8 @@ export let DIRECTION_NAME = {
 };
 
 /**
- * @param {string} url 
- * @param {*} callback 
+ * @param {string} url
+ * @param {*} callback
  */
  function loadText(url: string, callback: any) {
     let xobj = new XMLHttpRequest();
@@ -212,6 +212,7 @@ export function lerpComplex (a, b, t, res) {
 }
 
 export class Mth {
+    [key: string]: any;
 
     static PI_MUL2  = Math.PI * 2
     static PI_DIV2  = Math.PI / 2
@@ -351,6 +352,7 @@ export class Mth {
 }
 
 export class IvanArray {
+    [key: string]: any;
     arr: any[];
     count: number;
     constructor() {
@@ -382,10 +384,10 @@ export function makeChunkEffectID(chunk_addr, material_key) {
 
 /**
  * Возвращает адрес чанка по глобальным абсолютным координатам
- * @param x 
- * @param y 
- * @param z 
- * @param v 
+ * @param x
+ * @param y
+ * @param z
+ * @param v
  */
 export function getChunkAddr(x: IVector | number, y: IVector | number | null, z : number, v : Vector | null = null) : Vector {
     if(x instanceof Vector || typeof x == 'object') {
@@ -575,6 +577,7 @@ export let md5 = (function() {
 
 // VectorCollectorFlat...
 export class VectorCollectorFlat {
+    [key: string]: any;
     flat: any[];
     free_indexes: any[];
     size: number;
@@ -681,6 +684,7 @@ export class VectorCollectorFlat {
 
 // VectorCollector...
 export class VectorCollector {
+    [key: string]: any;
     size: any;
     list: any;
 
@@ -899,6 +903,7 @@ export class VectorCollector {
 
 // Color
 export class Color {
+    [key: string]: any;
     r: number;
     g: number;
     b: number;
@@ -1058,7 +1063,7 @@ export class Vector implements IVector {
     /**
      * returns v or a new Vector based on it
      * @param v : IVector
-     * @returns 
+     * @returns
      */
     static vectorify(v: Vector | IVector | number[]) {
         return v instanceof Vector ? v : new Vector(v);
@@ -1468,10 +1473,10 @@ export class Vector implements IVector {
     }
 
     /**
-     * @param x 
-     * @param y 
-     * @param z 
-     * @returns 
+     * @param x
+     * @param y
+     * @param z
+     * @returns
      */
     set(x: Vector | IVector | number[] | number, y: number, z: number) : Vector {
         if (x && typeof x == 'object') {
@@ -1717,9 +1722,10 @@ export class Vector implements IVector {
 }
 
 export class Vec3 extends Vector {
+    [key: string]: any;
 
     /**
-     * @param vec 
+     * @param vec
      */
     add(vec: IVector) : Vec3 {
         this.x += vec.x;
@@ -1735,6 +1741,7 @@ export class Vec3 extends Vector {
 }
 
 export class IndexedColor {
+    [key: string]: any;
 
     static WHITE = new IndexedColor(48, 528, 0);
     static GRASS = new IndexedColor(132, 485, 0);
@@ -1974,6 +1981,7 @@ export function isScalar(v : any) : boolean {
 }
 
 export class Helpers {
+    [key: string]: any;
 
     static cache = new Map();
     static fetch : Function;
@@ -2236,6 +2244,7 @@ if(typeof fetch === 'undefined') {
 }
 
 export class StringHelpers {
+    [key: string]: any;
 
     // Like String.split, but splits only on the 1st separator, i.e. maximum in 2 parts.
     static splitFirst(str, separatpr) {
@@ -2311,6 +2320,7 @@ export class StringHelpers {
 }
 
 export class ArrayHelpers {
+    [key: string]: any;
 
     // elements order is not preserved
     static fastDelete(arr, index) {
@@ -2454,11 +2464,11 @@ export class ArrayHelpers {
             ? Uint8Array
             : (maxValue <= 0xffff ? Uint16Array : Uint32Array)
     }
-    
+
     /**
      * Return random item from array
-     * @param {*[]} arr 
-     * @returns 
+     * @param {*[]} arr
+     * @returns
      */
     static randomItem(arr : any[]) : any {
         if(!Array.isArray(arr) || arr.length == 0) {
@@ -2471,6 +2481,7 @@ export class ArrayHelpers {
 
 // Helper methods to work with an array or a scalar in the same way.
 export class ArrayOrScalar {
+    [key: string]: any;
 
     // Returns Array or null as is. Non-null scalars are wraped into an array.
     static toArray(v) {
@@ -2526,6 +2537,7 @@ export class ArrayOrScalar {
  * It can be optimized at the expense of code size.
  */
 export class ArrayOrMap {
+    [key: string]: any;
 
     static get(collection, key) {
         return collection instanceof Map ? collection.get(key) : collection[key];
@@ -2634,6 +2646,7 @@ export class ArrayOrMap {
 }
 
 export class SpiralEntry {
+    [key: string]: any;
     dist: number;
     pos: Vector;
     chunk: any;
@@ -2654,6 +2667,7 @@ export class SpiralEntry {
 
 // SpiralGenerator ...
 export class SpiralGenerator {
+    [key: string]: any;
 
     static cache = new Map();
     static cache3D = {};
@@ -2734,6 +2748,7 @@ export class SpiralGenerator {
 }
 
 export class Vector4 {
+    [key: string]: any;
     x: number;
     y: number;
     height: number;
@@ -2749,6 +2764,7 @@ export class Vector4 {
 
 // AverageClockTimer
 export class AverageClockTimer {
+    [key: string]: any;
     sum: number;
     history_index: number;
     history: number[];
@@ -2793,6 +2809,7 @@ export class AverageClockTimer {
 
 // FastRandom...
 export class FastRandom {
+    [key: string]: any;
     int32s: any[];
     doubles: any[];
     index: number;
@@ -2827,6 +2844,7 @@ export class FastRandom {
 }
 
 export class RuneStrings {
+    [key: string]: any;
 
     static toArray(str : string) {
         return runes(str);
@@ -2862,6 +2880,7 @@ export class RuneStrings {
 
 // AlphabetTexture
 export class AlphabetTexture {
+    [key: string]: any;
 
     static width            = 1024;
     static height           = 1024;
@@ -2953,6 +2972,7 @@ export class AlphabetTexture {
 
 // maybe move other related methods here
 export class ObjectHelpers {
+    [key: string]: any;
 
     static isEmpty(obj) {
         for (let _ in obj) {
@@ -3075,6 +3095,7 @@ export class ObjectHelpers {
 // shift() and length are compatible with that of Array.
 // push() is not fully compatible with Array: it doesn't support multiple arguments.
 export class SimpleQueue {
+    [key: string]: any;
     arr: any[];
     left: number;
     length: number;
@@ -3127,6 +3148,7 @@ export class SimpleQueue {
 
 // A matrix that has indices in [minRow..(minRow + rows - 1), minCol..(minCol + cols - 1)]
 export class SimpleShiftedMatrix {
+    [key: string]: any;
     minRow: any;
     minCol: any;
     rows: any;
@@ -3218,6 +3240,7 @@ export class SimpleShiftedMatrix {
 
 /** A 3D array (backed by an Array or a typed array) whose bottom-left corner may differ from (0,0,0). */
 export class SimpleShifted3DArray {
+    [key: string]: any;
     minX: any;
     minY: any;
     minZ: any;
@@ -3299,7 +3322,7 @@ export class SimpleShifted3DArray {
         }
         return this.arr[ind]
     }
-    
+
     get(x, y, z) {
         return this.arr[this.toInd(x, y, z)]
     }
@@ -3438,6 +3461,7 @@ export class SimpleShifted3DArray {
  * Returns a random number based on world seed, block position, and some object.
  */
 export class SpatialDeterministicRandom {
+    [key: string]: any;
 
     /**
      * @param {Vector-like} pos
@@ -3514,6 +3538,7 @@ export class SpatialDeterministicRandom {
 }
 
 export class PerformanceTimer {
+    [key: string]: any;
 
     #names : {name: string, p: number}[] = []
 

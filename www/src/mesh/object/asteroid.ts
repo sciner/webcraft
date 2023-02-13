@@ -7,6 +7,7 @@ const {mat4} = glMatrix;
 
 // Mesh_Object_Asteroid
 export class Mesh_Object_Asteroid extends NetworkPhysicObject {
+    [key: string]: any;
 
     static neighbours = null;
 

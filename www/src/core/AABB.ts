@@ -46,6 +46,7 @@ export const PLANES = {
 }
 
 export class AABB {
+    [key: string]: any;
     x_min: any;
     y_min: any;
     z_min: any;
@@ -168,7 +169,7 @@ export class AABB {
         return this.x_min >= this.x_max && this.y_min >= this.y_max && this.z_min >= this.z_max;
     }
 
-    applyMatrix(matrix : mat3, pivot : IVector) : AABB {
+    applyMatrix(matrix : imat3, pivot : IVector) : AABB {
         if (pivot) {
             this.x_min -= pivot.x;
             this.y_min -= pivot.y;
@@ -318,6 +319,7 @@ export class AABB {
 }
 
 export class AABBPool {
+    [key: string]: any;
     _list: AABB[];
     constructor() {
         this._list = [];
@@ -335,6 +337,7 @@ export class AABBPool {
 }
 
 export class AABBSideParams {
+    [key: string]: any;
     uv?: float[];
     flag: int = 0;
     anim: any;
@@ -363,7 +366,7 @@ export class AABBSideParams {
 }
 
 export function pushTransformed(
-    vertices, mat : mat4, pivot : number[] | IVector,
+    vertices, mat : imat4, pivot : number[] | IVector,
     cx, cz, cy,
     x0, z0, y0,
     ux, uz, uy,

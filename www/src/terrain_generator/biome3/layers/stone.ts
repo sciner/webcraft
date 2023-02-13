@@ -2,6 +2,7 @@
  * Generate underworld infinity stones
  */
 export default class Biome3LayerStone {
+    [key: string]: any;
 
     /**
      * @param { import("../index.js").Terrain_Generator } generator

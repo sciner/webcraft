@@ -3,6 +3,7 @@ import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../../effect.js";
 import { Mesh_Effect_Particle } from "../particle.js";
 
 export default class emitter {
+    [key: string]: any;
 
     static textures = [
         [0, 5]
@@ -37,7 +38,7 @@ export default class emitter {
         if(this.ticks++ > 1) {
             return [];
         }
-        
+
         const resp = [];
         const {texture, texture_index} = getEffectTexture(emitter.textures);
         for(let i = 0; i < 10; i++) {

@@ -10,6 +10,7 @@ const FIX_POS = new Vector(8, -8, -8);
 
 //
 export class BBModel_Model {
+    [key: string]: any;
 
     constructor(json) {
         this.json = json

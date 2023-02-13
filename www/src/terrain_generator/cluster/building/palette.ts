@@ -4,6 +4,7 @@ import { BuildingTemplate } from "../building_template.js";
 
 // Palettes
 export class BuildingPalettes {
+    [key: string]: any;
 
     constructor(cluster, rules, bm) {
         /**
@@ -23,8 +24,8 @@ export class BuildingPalettes {
      * @param {Vector} coord
      * @param {Vector} entrance
      * @param {boolean} is_crossroad
-     * 
-     * @returns 
+     *
+     * @returns
      */
     next(cluster, seed, door_direction, size, coord, entrance, is_crossroad = false) {
 
@@ -58,6 +59,7 @@ export class BuildingPalettes {
 
 // Palette
 export class BuldingPalette {
+    [key: string]: any;
 
     constructor(cluster, buildings, bm) {
         this.bm = bm;

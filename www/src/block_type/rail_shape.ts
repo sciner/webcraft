@@ -4,6 +4,7 @@ import { ServerClient } from "../server_client.js";
 import { TBlock } from '../typed_blocks3.js';
 
 export class RailShape {
+    [key: string]: any;
 
     static RAIL_ID          = 26;
     static POWERED_RAIL_ID  = 34;

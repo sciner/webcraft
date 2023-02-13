@@ -19,12 +19,13 @@ export const DEFAULT_CELL = {
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
+    [key: string]: any;
 
     /**
-     * @param { import("../../worker/world.js").WorkerWorld } world 
-     * @param { string } seed 
-     * @param { string } world_id 
-     * @param { object } options 
+     * @param { import("../../worker/world.js").WorkerWorld } world
+     * @param { string } seed
+     * @param { string } world_id
+     * @param { object } options
      */
     constructor(world, seed, world_id, options) {
 
@@ -58,8 +59,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     /**
      * Generate
-     * @param { ChunkWorkerChunk } chunk 
-     * @returns 
+     * @param { ChunkWorkerChunk } chunk
+     * @returns
      */
     generate(chunk) {
 
@@ -76,7 +77,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     /**
-     * @param { ChunkWorkerChunk } chunk 
+     * @param { ChunkWorkerChunk } chunk
      * @returns {Default_Terrain_Map}
      */
     generateDefaultMap(chunk) {

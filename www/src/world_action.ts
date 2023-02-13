@@ -356,6 +356,7 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
 
 // Destroy blocks
 class DestroyBlocks {
+    [key: string]: any;
 
     /**
      * @param { import("../../node_server/server_world.js").ServerWorld } world
@@ -484,6 +485,7 @@ class DestroyBlocks {
 
 // WorldAction
 export class WorldAction {
+    [key: string]: any;
 
     #world;
 
@@ -594,7 +596,7 @@ export class WorldAction {
         }
         this.put_in_backet = item;
     }
-    // 
+    //
     putInBottle(item) {
         if(this.put_in_bottle) {
             throw 'error_put_already';
@@ -603,8 +605,8 @@ export class WorldAction {
     }
 
     /**
-     * @param {TBlock} tblock 
-     * @returns 
+     * @param {TBlock} tblock
+     * @returns
      */
     dropChest(tblock) {
         if(!tblock.extra_data?.slots || tblock.hasTag('store_items_in_chest')) {
@@ -757,8 +759,8 @@ export class WorldAction {
                 if (pos.equal(vec_center)) { // просто удаляем центральный блок ( это tnt)
                     this.addBlocks([
                         {
-                            pos: pos.clone(), 
-                            item: air, 
+                            pos: pos.clone(),
+                            item: air,
                             action_id: ServerClient.BLOCK_ACTION_REPLACE
                         }
                     ]);
@@ -766,14 +768,14 @@ export class WorldAction {
                     if (!block.tblock.extra_data.explode) {
                         this.addBlocks([
                             {
-                                pos: pos.clone(), 
+                                pos: pos.clone(),
                                 item: {
-                                    id: BLOCK.TNT.id, 
+                                    id: BLOCK.TNT.id,
                                     extra_data: {
-                                        explode: true, 
+                                        explode: true,
                                         fuse: 8
                                     }
-                                }, 
+                                },
                                 action_id: ServerClient.BLOCK_ACTION_MODIFY
                             }
                         ]);
@@ -781,8 +783,8 @@ export class WorldAction {
                 } else {
                     this.addBlocks([
                         {
-                            pos: pos.clone(), 
-                            item: air, 
+                            pos: pos.clone(),
+                            item: air,
                             action_id: ServerClient.BLOCK_ACTION_REPLACE
                         }
                     ]);
@@ -847,11 +849,11 @@ export class WorldAction {
 }
 
 /**
- * @param {*} pos 
- * @param {object} mat 
- * @param {boolean} to_top 
- * @param {boolean} check_opposite 
- * @returns 
+ * @param {*} pos
+ * @param {object} mat
+ * @param {boolean} to_top
+ * @param {boolean} check_opposite
+ * @returns
  */
 function simplifyPos(world, pos, mat, to_top, check_opposite = true) {
     if(pos.n.y === 0 && !mat.layering && !mat.tags.includes('rotate_by_pos_n') && !mat.tags.includes('rotate_by_pos_n_5') && !mat.tags.includes('rotate_by_pos_n_6') && !mat.tags.includes('rotate_by_pos_n_xyz') && !mat.tags.includes('trapdoor') && !mat.tags.includes('stairs')) {
@@ -980,7 +982,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 return actions;
             }
         }
-        
+
         // Другие действия с инструментами/предметами в руке
         if(mat_block.item && mat_block.style_name != 'planting') {
             // Use intruments
@@ -1044,7 +1046,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
 
             // Запрет установки блока на блоки, которые занимает игрок
-            if (mat_block.passable == 0 && 
+            if (mat_block.passable == 0 &&
                 !(orientation.y == 0 && mat_block.tags.includes("rotate_by_pos_n_5"))
             ) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
@@ -1126,7 +1128,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     }
                 }
             }
-            
+
             new_item.extra_data = new_item.extra_data || BLOCK.makeExtraData(mat_block, pos, new_item.rotate, world);
             // If painting
             if(mat_block.id == BLOCK.PAINTING.id) {
@@ -2272,16 +2274,16 @@ async function useCauldron(e, world, pos, player, world_block, world_material, m
     }
     const updateCauldron = (lava, water, snow, level) => {
         actions.addBlocks([{
-            pos: position, 
+            pos: position,
             item: {
-                id: BLOCK.CAULDRON.id, 
-                extra_data: { 
+                id: BLOCK.CAULDRON.id,
+                extra_data: {
                     level: level,
                     lava: lava,
                     water: water,
-                    snow: snow 
+                    snow: snow
                 }
-            }, 
+            },
             action_id: ServerClient.BLOCK_ACTION_MODIFY
         }]);
     }
@@ -2291,7 +2293,7 @@ async function useCauldron(e, world, pos, player, world_block, world_material, m
         updateCauldron(false, true, false, extra_data.level + 1);
         return true;
     }
-    if (current_inventory_item.id == BLOCK.WATER_BUCKET.id) { 
+    if (current_inventory_item.id == BLOCK.WATER_BUCKET.id) {
         actions.decrement = true;
         updateCauldron(false, true, false, 3);
         return true;

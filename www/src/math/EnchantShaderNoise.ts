@@ -14,6 +14,7 @@ const min = Math.min
 const pow = Math.pow
 
 export class EnchantShaderNoise {
+    [key: string]: any;
 
     constructor() {
         this.m = mat3.clone([-2, -1, 2, 3, -2, 1, 1, 2, 2]);
@@ -59,26 +60,26 @@ export class EnchantShaderNoise {
         if(!item?.extra_data?.enchantments) {
             return image
         }
-    
+
         if(slot.item_prev != item) {
-    
+
             // TODO: clear prev data from this.item_canvas
             slot.item_prev = item
-    
+
             const scnv = document.createElement('canvas')
             scnv.width = icon.width
             scnv.height = icon.height
             const sctx = scnv.getContext('2d')
-    
+
             const scnv2 = document.createElement('canvas')
             scnv2.width = icon.width
             scnv2.height = icon.height
             const sctx2 = scnv2.getContext('2d')
             sctx2.drawImage(image, icon.x, icon.y, icon.width, icon.height, 0, 0, icon.width, icon.height)
-    
+
             const imageData = sctx2.getImageData(0, 0, icon.width, icon.height)
             const orig_pixels_data = Array.from(imageData.data)
-    
+
             slot.item_canvas = {
                 scnv,
                 sctx,
@@ -89,10 +90,10 @@ export class EnchantShaderNoise {
             }
 
         }
-    
+
         const imageData = slot.item_canvas.imageData
         const orig_pixels_data = slot.item_canvas.orig_pixels_data
-    
+
         // Copy result to source
         const pixs = imageData.data
         let idx = 0
@@ -105,13 +106,13 @@ export class EnchantShaderNoise {
                 idx += 4
             }
         }
-    
+
         slot.item_canvas.sctx.putImageData(imageData, 0, 0)
         icon.x = 0
         icon.y = 0
-    
+
         return slot.item_canvas.scnv
-    
+
     }
 
 }

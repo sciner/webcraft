@@ -23,6 +23,7 @@ export const COLOR_PALETTE = {
 };
 
 export class Resources {
+    [key: string]: any;
 
     static async getModelAsset(key) {
         if (!this.models[key]) {
@@ -418,7 +419,7 @@ export class Resources {
     static async loadMaterials() {
         return  Helpers.fetchJSON('../data/materials.json', true);
     }
-    
+
     // Load BBModels
     static async _loadBBModels() {
         if(Resources._bbmodels) {

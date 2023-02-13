@@ -4,6 +4,7 @@ import { isScalar } from "../helpers.js";
 const atlases = new Map()
 
 export class SpriteAtlas {
+    [key: string]: any;
 
     constructor() {
         this.sheet = null;

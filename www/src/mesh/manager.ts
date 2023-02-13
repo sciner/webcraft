@@ -4,6 +4,7 @@ import { Mesh_Effect_Manager } from "./effect/manager.js";
 
 // MeshManager
 export class MeshManager {
+    [key: string]: any;
 
     constructor() {
         this.chunks = new Map();

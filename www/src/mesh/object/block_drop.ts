@@ -9,6 +9,7 @@ const tmpMatrix = mat4.create();
 
 // Mesh_Object_Block_Drop
 export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
+    [key: string]: any;
 
     static neighbours = null;
 
@@ -202,7 +203,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // Calc matrices
         mat4.identity(this.modelMatrix);
-        mat4.translate(this.modelMatrix, this.modelMatrix, 
+        mat4.translate(this.modelMatrix, this.modelMatrix,
             [
                 (this.posFact.x - this.chunk.coord.x),
                 (this.posFact.z - this.chunk.coord.z),
@@ -221,8 +222,8 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
      * Push draw task directly without any pre-computation.
      * Any matrix updates should be applied manually
      * Allow prepend matrix to modelMatrix
-     * @param {Render} render 
-     * @param {mat4} prePendMatrix 
+     * @param {Render} render
+     * @param {mat4} prePendMatrix
      */
      drawDirectly(render, prePendMatrix = null) {
         if (this.isDead()){

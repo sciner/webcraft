@@ -1,6 +1,7 @@
 import {BaseCubeShader} from "../BaseShader.js";
 
 export class WebGPUCubeShader extends BaseCubeShader {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
 

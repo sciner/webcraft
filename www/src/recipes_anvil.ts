@@ -30,6 +30,7 @@ const REPAIR_BY_MATERIALS = {
 };
 
 export class AnvilRecipeManager {
+    [key: string]: any;
 
     constructor() {
         this.recipes = new Map();

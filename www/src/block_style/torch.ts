@@ -22,6 +22,7 @@ const lm = IndexedColor.WHITE.clone();
 const aabb = new AABB();
 
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {
@@ -60,7 +61,7 @@ export default class style {
 
         aabb.y_min -= Math.sin(rotTorch) * h * 2;
         aabb.y_max += Math.sin(rotTorch) * h * 2;
-         
+
         return [aabb];
     }
 

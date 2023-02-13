@@ -227,6 +227,7 @@ export function pushPlanedGeomCorrect (
 
 // push_plane
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

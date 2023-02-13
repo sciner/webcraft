@@ -8,6 +8,7 @@ const {mat4} = glMatrix;
 
 // Mesh_Object_BeaconRay
 export class Mesh_Object_BeaconRay {
+    [key: string]: any;
 
     // Constructor
     constructor(args) {

@@ -8,6 +8,7 @@ const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 
 
 // style pointed_dripstone
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {
@@ -17,7 +18,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(0.25, 0, 0.25, 0.75, 1, 0.75);
@@ -47,7 +48,7 @@ export default class style {
             });
         }
         //
-        
+
         // анимация капель
         if (typeof worker != 'undefined' && extra_data?.up == true) {
             worker.postMessage(['delete_animated_block', block.posworld]);

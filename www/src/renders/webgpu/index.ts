@@ -14,6 +14,7 @@ import {GPUMeshDrawer} from "./GPUMeshDrawer.js";
 import {GPUCubeDrawer} from "./GPUCubeDrawer.js";
 
 export default class WebGPURenderer extends BaseRenderer{
+    [key: string]: any;
     constructor(view, options) {
         super(view, options);
         /**

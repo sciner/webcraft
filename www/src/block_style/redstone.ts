@@ -56,6 +56,7 @@ export function pushTransformed(
 }
 
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

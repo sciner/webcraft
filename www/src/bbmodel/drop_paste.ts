@@ -6,6 +6,7 @@ import { BBModel_Compiler_Base } from "./compiler_base.js";
 import { BBModel_Model } from "./model.js";
 
 class FastCompiller extends BBModel_Compiler_Base {
+    [key: string]: any;
 
     createTextureID() {
         const resp = randomUUID()
@@ -15,6 +16,7 @@ class FastCompiller extends BBModel_Compiler_Base {
 }
 
 export class BBModel_DropPaste {
+    [key: string]: any;
 
     /** 
      * @param { import("../game.js").GameClass } game

@@ -34,6 +34,7 @@ let _chunk = null;
  * @param {Vector} pos Player position
  */
 export default class Mesh_Object_Rain {
+    [key: string]: any;
 
     #_enabled           = false;
     #_map               = new VectorCollector();

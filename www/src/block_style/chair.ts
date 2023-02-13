@@ -9,6 +9,7 @@ const pivot = {x: 0.5, y: 0.5, z: 0.5};
 
 // стул
 export default class style {
+    [key: string]: any;
     
     static getRegInfo() {
         return {

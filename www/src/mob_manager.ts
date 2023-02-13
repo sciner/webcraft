@@ -3,9 +3,10 @@ import { MobModel } from "./mob_model.js";
 import { ServerClient } from "./server_client.js";
 
 export class MobManager {
+    [key: string]: any;
 
     #world;
-	
+
     constructor(world) {
         this.#world = world;
         /**

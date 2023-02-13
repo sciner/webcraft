@@ -16,7 +16,7 @@ let MAX_LEVEL
 let CELL_SIZE_Y
 /**
  * The size of sound map in chunks.
- * 
+ *
  * It must be even. The player always is in one of the 2x2x2 central chunks.
  * It's to handle when a player walks between two neighbouring chunks often.
  */
@@ -57,12 +57,12 @@ const tmpVec = new Vector()
 /**
  * Here the volume falls off with the distance squared.
  * But after the final adjustemnts, the volume will fall off inversely to the distance.
- * 
+ *
  * The genral idea:
  * - at the end, {@link toVolume} applies sqrt() from the sum of volumes of blocks as a range compresson, so 100 blocks
  *   sound only 10 times louder than 1.
  * - it also turns the previously applied quadratic distance adjustment to linear.
- * 
+ *
  * After {@link toVolume} and not counting {@link falloffExtraFar},
  * the result should be identical to PannerNode with
  *  - distanceModel = "inverse"
@@ -70,7 +70,7 @@ const tmpVec = new Vector()
  *  - rolloffFactor = 1
  * altough the formula is simplified for this particular case.
  * see {@link https://developer.mozilla.org/en-US/docs/Web/API/PannerNode/distanceModel}
- * 
+ *
  * @param {Float} distanceSqr - distance^2 to the sound source
  * @return volume multiplier
  */
@@ -149,17 +149,18 @@ const MIP0 = MIPS[0]
 const MIP_MAX = MIPS[MAX_LEVEL]
 
 class StereoHeightCompensator {
+    [key: string]: any;
     static SIZE = 16
     /**
      * For each elevation (angle from the earth surface), we calculate the volume in channels
      * as if the sound source was in the plane separating forward and rear hemispeheres.
      * This is the maximum possible stereo separation for a source with this elevation.
-     * 
+     *
      * Then we calcualte and remember the fraction of the volume that is the same in both ears.
      * This fraction won't be affected by the horizontal positioning. The rest if the sound is fully affected.
-     * 
+     *
      * Instead of actual elevations, the LUT is by (dy^2)/(distance^2).
-     * 
+     *
      * https://webaudio.github.io/web-audio-api/#Spatialization-equal-power-panning
      */
     static UNIFORM_PART_BY_ELEVATION_SIN_SQR = ArrayHelpers.create(StereoHeightCompensator.SIZE, ind => {
@@ -170,7 +171,7 @@ class StereoHeightCompensator {
         // some redundant operations, but it's for clarity, to match the equal-power panning algorithm
         const stereoX = (fakeAzimuth + Mth.PI_DIV2) * Mth.PI_INV    // 0.5..1, 1 -> full separation
         const stereoAngle = stereoX * Mth.PI_DIV2               // PI/4..PI/2, PI/2 -> full separation
-        
+
         // this is physically inaccurate, but it looks kind of what we need, kind of works.
         // IDK if we should use squares of sin and cos, or their plain values.
         let ear1 = Math.cos(stereoAngle)
@@ -202,7 +203,8 @@ class StereoHeightCompensator {
 
 /** Used insetad of {@link SoundChunk} until we get the data. */
 class SoundChunkPlaceholder {
-    
+    [key: string]: any;
+
     static queryId = 0
 
     constructor(x, y, z) {
@@ -228,6 +230,7 @@ class SoundChunkPlaceholder {
 
 /** Contains hierarchical data of sound blocks in one chunk */
 class SoundChunk {
+    [key: string]: any;
 
     /**
      * @param {Vector} addr
@@ -349,6 +352,7 @@ class SoundChunk {
  * When a player moves farther away, the summary must be re-calculated.
  */
 class SoundSummary {
+    [key: string]: any;
 
     /**
      * Pre-calculate LUT.
@@ -469,6 +473,7 @@ class SoundSummary {
  * It computes SoundSummary for different locations by the complete data.
  */
 export class SoundMap {
+    [key: string]: any;
     constructor() {
         this.playerPos  = null          // the current world position of the player's head
         this.playerAddr = new Vector()  // the address of the current player's head chunk
@@ -489,7 +494,7 @@ export class SoundMap {
 
         this.summaries = ArrayHelpers.create(VOLUMETRIC_SOUND_TYPES, () => new SoundSummary())
         this.lastSummaryTime = performance.now()
-        
+
         // temporary values used to compute SoundSummary
 
         // 2D mip maps of sound sources
@@ -553,7 +558,7 @@ export class SoundMap {
         const dx = (addr.x <= x) ? (addr.x - x) : (addr.x - (x + 1))
         const dy = (addr.y <= y) ? (addr.y - y) : (addr.y - (y + 1))
         const dz = (addr.z <= z) ? (addr.z - z) : (addr.z - (z + 1))
-        
+
         // Move if necessary
         if (this.chunks.shift(dx, dy, dz, null)) {
             // if we moved - query the mising chunks
@@ -668,11 +673,11 @@ export class SoundMap {
                         for(let mipZ = mips.maxLevelMinZ; mipZ <= mips.maxLevelMaxZ; mipZ++) {
                             const worldZ = chunk.coord.z + (mipZ << MAX_LEVEL) + 0.5
                             const ind = indY + mipZ * MIP_MAX.strideZ
-                        
+
                             this.playerRelativeX = this.playerPos.x - chunk.coord.x
                             this.playerRelativeY = this.playerPos.y - chunk.coord.y
                             this.playerRelativeZ = this.playerPos.z - chunk.coord.z
-                            this.addToSummary(mips, 
+                            this.addToSummary(mips,
                                 mipX, worldX, mipY, worldY, mipZ, worldZ,
                                 MIP_MAX, type, ind)
                         }
@@ -686,7 +691,7 @@ export class SoundMap {
     prepareSummaryCalculation() {
         const playerX = this.playerPos.x
         const playerZ = this.playerPos.z
-        
+
         // Postition all the levels centered around the player.
         // Each level covers a whole number of the upper (smaller) level's cells.
         let sizeXZ  = SUMMARY_MIP_SIZE_XY - 1
@@ -754,7 +759,7 @@ export class SoundMap {
             const sm = this.summaryMips[MAX_SUMMARY_LEVEL]
             // If it's completely ouside the summary mip map, add it whole to the far sources.
             // Account for +0.5 in worldX and worldY.
-            if (Math.floor(worldX + mip.cellXZ) <= sm.minX || worldX >= sm.maxX || 
+            if (Math.floor(worldX + mip.cellXZ) <= sm.minX || worldX >= sm.maxX ||
                 Math.floor(worldZ + mip.cellXZ) <= sm.minZ || worldZ >= sm.maxZ
             ) {
                 this.addToSummaryFar(arr, mip, type, ind)
@@ -765,7 +770,7 @@ export class SoundMap {
             const sm = this.summaryMips[level]
             // Check if the current cuboid is outside the mip map only for the maximum level.
             // If we pass this check for the maximum level, we'll pass it for others too.
-            if (level === MAX_SUMMARY_LEVEL && 
+            if (level === MAX_SUMMARY_LEVEL &&
                 (worldX < sm.minX || worldX >= sm.maxX || worldZ < sm.minZ || worldZ >= sm.maxZ)
             ) {
                 this.addToSummaryFar(arr, mip, type, ind)
@@ -781,7 +786,7 @@ export class SoundMap {
                 this.addToSummaryMip(sm, worldX, worldZ, dx, dy, dz, volume, type)
                 return
             }
-             
+
             // if it's outside the smaller summary mip map, add it to this summary mip level
             if (worldX < sm.minXcenter || worldX >= sm.maxXcenter ||
                 worldZ < sm.minZcenter || worldZ >= sm.maxZcenter

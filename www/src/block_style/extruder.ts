@@ -60,6 +60,7 @@ export function pushTransformed(
 
 // World
 class FakeCloudWorld {
+    [key: string]: any;
 
     constructor() {
         let that = this;
@@ -103,6 +104,7 @@ class FakeCloudWorld {
 
 // Экструдированные блоки
 export default class style {
+    [key: string]: any;
 
     static lm = new IndexedColor();
 

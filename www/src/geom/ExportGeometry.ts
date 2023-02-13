@@ -3,6 +3,7 @@ import GeometryTerrain from "../geometry_terrain.js";
 import {QUAD_FLAGS} from "../helpers.js";
 
 export class BaseExportGeometry {
+    [key: string]: any;
     constructor({
                     vertexStrideFloats,
                     instanceStrideFloats
@@ -58,6 +59,7 @@ const quadData = new Float32Array([
 ]);
 
 export class ExportGeometry16 extends BaseExportGeometry {
+    [key: string]: any;
     static options = {
         vertexStrideFloats: 16,
         instanceStrideFloats: 16 * 4,

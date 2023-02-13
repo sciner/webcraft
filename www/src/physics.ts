@@ -1,6 +1,7 @@
 // Physics simulator.
 export class Physics {
-	
+    [key: string]: any;
+
     constructor(world) {
         this.lastStep = -1;
         // Assigns a world to simulate to this physics simulator.
@@ -8,7 +9,7 @@ export class Physics {
     }
 
     init() {
-        
+
     }
 
     // Perform one iteration of physics simulation.
@@ -46,7 +47,7 @@ export class Physics {
                 }
             }
         }
-        
+
         /*
 
         // Fluids

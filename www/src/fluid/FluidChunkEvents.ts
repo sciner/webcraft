@@ -10,6 +10,7 @@ import { Vector } from "../helpers.js";
 const QUEUE_INTERACT = 1;
 
 export class FluidChunkEvents {
+    [key: string]: any;
     constructor(fluidWorld, fluidChunk) {
         this.fluidWorld = fluidWorld;
         this.fluidChunk = fluidChunk;

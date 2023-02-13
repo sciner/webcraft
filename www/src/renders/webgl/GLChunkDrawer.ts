@@ -1,6 +1,7 @@
 import {ChunkDrawer} from "../batch/ChunkDrawer.js";
 
 export class GLChunkDrawer extends ChunkDrawer {
+    [key: string]: any;
     constructor(context) {
         super(context);
 

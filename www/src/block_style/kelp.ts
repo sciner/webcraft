@@ -5,6 +5,7 @@ import { default as default_style } from './default.js';
 
 // kelp
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {
@@ -14,7 +15,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);

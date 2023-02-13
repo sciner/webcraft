@@ -3,6 +3,7 @@ import { AABB } from "./core/AABB.js";
 import { Vector } from "./helpers.js";
 
 export class AbstractPlayerManager {
+    [key: string]: any;
 
     #world;
 
@@ -12,7 +13,7 @@ export class AbstractPlayerManager {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @returns { object[] }
      */
     *eachContainingVec(vec) {
@@ -55,7 +56,7 @@ export class AbstractPlayerManager {
     /**
      * Return player by following user_id
      * @param {int} user_id
-     * @returns 
+     * @returns
      */
     get(user_id) {
         return this.list.get(user_id) ?? null
@@ -63,7 +64,7 @@ export class AbstractPlayerManager {
 
     /**
      * Return true if player exists by following user_id
-     * @param {int} user_id 
+     * @param {int} user_id
      * @returns {boolean}
      */
     exists(user_id) {
@@ -72,7 +73,7 @@ export class AbstractPlayerManager {
 
     /**
      * Delete player from list by following user_id
-     * @param {int} user_id 
+     * @param {int} user_id
      * @returns {boolean}
      */
     delete(user_id) {

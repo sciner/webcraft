@@ -1,6 +1,7 @@
 export const WATER_LEVEL = 80;
 
 export class ClimateParams {
+    [key: string]: any;
 
     /**
      * @ype { float }
@@ -32,11 +33,12 @@ export class ClimateParams {
 }
 
 export class MapCellPreset {
+    [key: string]: any;
 
     /**
-     * @param {string} id 
+     * @param {string} id
      * @param {object} options options
-     * @param {float} options.chance 
+     * @param {float} options.chance
      * @param {float} options.relief кривизна рельефа
      * @param {float} options.mid_level базовая высота поверхности относительно уровня моря
      */
@@ -48,7 +50,7 @@ export class MapCellPreset {
     }
 
     /**
-     * @param { Vector } xz 
+     * @param { Vector } xz
      * @param { ClimateParams } params
      * @returns { boolean }
      */
@@ -60,6 +62,7 @@ export class MapCellPreset {
 
 //
 export class DensityParams {
+    [key: string]: any;
 
     /**
      * @param {float} d1

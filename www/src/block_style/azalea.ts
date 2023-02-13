@@ -12,6 +12,7 @@ const WIDTH_INNER = 4/16;
 
 // Azalea
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

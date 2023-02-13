@@ -3,9 +3,10 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { DROP_LIFE_TIME_SECONDS } from "./constant.js";
 
 export class DropItemManager {
+    [key: string]: any;
 
     #world;
-	
+
     constructor(world) {
         this.#world = world;
         this.list = new Map();

@@ -17,6 +17,7 @@ const {mat4} = glMatrix;
  * BaseRenderTarget
  */
 export class BaseRenderTarget {
+    [key: string]: any;
     constructor (context, options = {width: 1, height: 1, depth: true}) {
         this.context = context;
         this.options = options;
@@ -139,6 +140,7 @@ export class BaseRenderTarget {
 }
 
 export class BaseBuffer {
+    [key: string]: any;
     constructor(context, options = {}) {
         this.context = context;
         this.options = options;
@@ -179,6 +181,7 @@ export class BaseBuffer {
 }
 
 export class BaseTexture {
+    [key: string]: any;
     /**
      *
      * @param {BaseRenderer} context
@@ -266,6 +269,7 @@ export const BLEND_MODES = {
 }
 
 export class BaseMaterial {
+    [key: string]: any;
     constructor(context, options) {
         this.context = context;
         this.options = options;
@@ -298,6 +302,7 @@ export class BaseMaterial {
 }
 
 export class GlobalUniformGroup {
+    [key: string]: any;
 
     constructor(options) {
         this.projMatrix         = mat4.create();
@@ -332,6 +337,7 @@ export class GlobalUniformGroup {
 }
 
 export class CubeMesh {
+    [key: string]: any;
 
     constructor(shader, geom) {
         this.shader = shader;
@@ -366,6 +372,7 @@ export class CubeMesh {
 }
 
 export class BaseCubeGeometry {
+    [key: string]: any;
 
     constructor(context, options) {
         this.context = context;
@@ -401,6 +408,7 @@ export class BaseCubeGeometry {
 }
 
 export default class BaseRenderer {
+    [key: string]: any;
     /**
      *
      * @param {HTMLCanvasElement} view

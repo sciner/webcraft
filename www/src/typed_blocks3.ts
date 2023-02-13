@@ -25,6 +25,7 @@ export const CC = [
 
 // BlockNeighbours
 export class BlockNeighbours {
+    [key: string]: any;
 
     constructor() {
         this.pcnt   = 6;
@@ -40,6 +41,7 @@ export class BlockNeighbours {
 
 // VectorCollector...
 export class VectorCollector1D {
+    [key: string]: any;
     constructor(dims, list) {
         this.dims = dims;
         this.sy = dims.x * dims.z;
@@ -110,6 +112,7 @@ export class VectorCollector1D {
 
 //
 export class TypedBlocks3 {
+    [key: string]: any;
 
     constructor(coord, chunkSize) {
         this.addr       = getChunkAddr(coord);
@@ -663,6 +666,7 @@ export class TypedBlocks3 {
 }
 
 export class DataWorld {
+    [key: string]: any;
     constructor(chunkManager) {
         const INF = 1000000000;
         this.chunkManager = chunkManager;
@@ -798,6 +802,7 @@ export class DataWorld {
 }
 
 export class TBlock {
+    [key: string]: any;
 
     constructor(tb, vec, index) {
         this.init(tb, vec, index);
@@ -1196,6 +1201,7 @@ const tmp_BlockAccessor_Vector = new Vector();
  * for any prolonged time; it must be re-created, or reset by calling init().
  */
 export class BlockAccessor {
+    [key: string]: any;
 
     /**
      * @param {World} world

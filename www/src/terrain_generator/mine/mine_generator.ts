@@ -19,6 +19,7 @@ export const NODE_COUNT = new Vector(MINE_SIZE.x / NODE_SIZE.x, MINE_SIZE.y / NO
  * @param {object} options options
  */
 export class MineGenerator {
+    [key: string]: any;
 
     static all = new VectorCollector();
 
@@ -332,7 +333,7 @@ export class MineGenerator {
 
     /**
      * TO DO EN генерация бокса внутри чанка, генерация с вероятностью установки
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
      * @param {number} minX
      * @param {number} minY
      * @param {number} minZ
@@ -367,7 +368,7 @@ export class MineGenerator {
 
     /**
      * TO DO EN замена воздуха на блок с вероятностью
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
      * @param {number} minX
      * @param {number} minY
      * @param {number} minZ
@@ -400,7 +401,7 @@ export class MineGenerator {
 
     /**
      * TO DO EN замена не воздуха на блок с вероятностью
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
      * @param {number} minX
      * @param {number} minY
      * @param {number} minZ

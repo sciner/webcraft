@@ -4,6 +4,7 @@ import { Vector } from "../helpers.js";
 const FLOWING_DIFF_TYPE_MASK_SHL = 2
 
 export class FluidChunkFlowing {
+    [key: string]: any;
 
     constructor(fluidChunk) {
         this.fluidChunk = fluidChunk
@@ -54,7 +55,7 @@ export class FluidChunkFlowing {
             all: true
         })
     }
-    
+
     sendDiff() {
         if (this.diffByIndex.size) {
             Qubatch.game.sounds.volumetric.onFlowingDiff({
@@ -82,7 +83,7 @@ export class FluidChunkFlowing {
             this.updateByIndexDiff(index, newFlowing, prevFlowing)
         }
     }
-    
+
     /**
      * Unlike {@link updateByIndexFluid}, it doesn't check that the vaue has chenged, but it's a bit faster.
      * @param { int } index - block index, non-flat
@@ -117,9 +118,9 @@ export class FluidChunkFlowing {
             return y >= y_min && y <= y_max
         })
     }
-    
-    /** 
-     * Changes {@link diffByIndex} and {@link byIndex} as if all 
+
+    /**
+     * Changes {@link diffByIndex} and {@link byIndex} as if all
      * flowing blocks filtered by {@link filterIndex} are deleted.
      */
     _delete(filterIndex = () => ture) {

@@ -18,6 +18,7 @@ const slope_axes = [
 
 // Рельсы
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

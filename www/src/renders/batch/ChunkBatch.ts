@@ -15,6 +15,7 @@
  * copied from PixiJS
  */
 export class ChunkBatch {
+    [key: string]: any;
     constructor() {
         this.lightTextures = [];
         this.lightTextureCount = 0;

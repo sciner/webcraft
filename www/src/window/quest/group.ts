@@ -1,6 +1,7 @@
 import {Label} from "../../../tools/gui/wm.js";
 
 export class QuestGroup extends Label {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);

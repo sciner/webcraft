@@ -19,6 +19,7 @@ for(let i = 0; i < randoms.length; i++) {
 
 //
 export default class style {
+    [key: string]: any;
 
     //
     static pushPlane(vertices, plane) {

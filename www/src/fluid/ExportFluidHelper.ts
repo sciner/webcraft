@@ -44,6 +44,7 @@ const cubeVert = [
 ];
 
 export class ExportFluidHelper {
+    [key: string]: any;
     constructor() {
         // this.vertexStrideFloats = 16;
         // this.instanceStrideFloats = 16 * 4;

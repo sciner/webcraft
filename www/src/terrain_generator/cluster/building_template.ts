@@ -20,6 +20,7 @@ const PORCH_CRATER_HEIGHT = 8;
 
 //
 export class BuildingTemplate {
+    [key: string]: any;
 
     static schemas = new Map();
     static known_templates = new Map()
@@ -84,9 +85,9 @@ export class BuildingTemplate {
     }
 
     /**
-     * @param {string} name 
-     * @param {*} bm 
-     * @returns 
+     * @param {string} name
+     * @param {*} bm
+     * @returns
      */
     static fromSchema(name, bm) {
         let template = BuildingTemplate.known_templates.get(name)
@@ -109,7 +110,7 @@ export class BuildingTemplate {
 
     /**
      * Create rotated variants
-     * @param {*} bm 
+     * @param {*} bm
      */
     prepareBlocks(bm) {
 
@@ -215,7 +216,7 @@ export class BuildingTemplate {
         }
         const directions = [0, 1, 2, 3]
         for(let i = 0; i < fluids.length; i += 4) {
-            // TODO: Need to detect flowing fluids too 
+            // TODO: Need to detect flowing fluids too
             const fluid_id = fluids[i + 3]
             let block_id = 0
             if(fluid_id & FLUID_WATER_ID) block_id = 200
@@ -237,7 +238,7 @@ export class BuildingTemplate {
 
     /**
      * Create rotated variants
-     * @param {*} bm 
+     * @param {*} bm
      */
     rotateBuildingBlockVariants(bm, all_blocks) {
 
@@ -318,9 +319,9 @@ export class BuildingTemplate {
 
     /**
      * Заполнение "внутренностей" постройки воздухом
-     * @param {*} bm 
-     * @param {VectorCollector} all_blocks 
-     * @param {Vector} min 
+     * @param {*} bm
+     * @param {VectorCollector} all_blocks
+     * @param {Vector} min
      */
     _fillAir(bm, all_blocks, min) {
 
@@ -427,7 +428,7 @@ export class BuildingTemplate {
             porchMin.minSelf(tmpVec);
             porchMax.maxSelf(tmpVec);
 
-            // Find the floor height. It must be at the same height as the 
+            // Find the floor height. It must be at the same height as the
             // previous position, or 1 block below it
             for(let i = 0; i < 3; i++) {
                 if (tmpVec.y < min.y) {
@@ -460,7 +461,7 @@ export class BuildingTemplate {
                 porch.set(x, z, { porch: false });
                 return;
             }
-            
+
             // The porch has a ceiling. Ensure that there are at least 2 air blocks above.
             porch.set(x, z, {
                 porch: true,
@@ -553,15 +554,15 @@ export class BuildingTemplate {
     }
 
     /**
-     * @param {VectorCollector} all_blocks 
-     * @param {[][]} rot 
-     * @param {*} bm 
-     * @param {int[]} directions 
+     * @param {VectorCollector} all_blocks
+     * @param {[][]} rot
+     * @param {*} bm
+     * @param {int[]} directions
      */
     static rotateBlocksProperty(all_blocks, rot, bm, directions) {
 
         const ROT_N = [18, 22, 7, 13];
-    
+
         //
         const rot_none = (block) => {
             for(let i = 0; i < directions.length; i++) {

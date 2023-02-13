@@ -32,6 +32,7 @@ const ATTACK_PROCESS_FINISHED = 2;
 
 // Creates a new local player manager.
 export class Player {
+    [key: string]: any;
 
     #forward = new Vector(0, 0, 0);
 

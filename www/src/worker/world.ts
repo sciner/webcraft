@@ -4,9 +4,10 @@ import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 
 // WorkerWorldManager
 export class WorkerWorldManager {
+    [key: string]: any;
 
     /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @param { import("../blocks.js").BLOCK } block_manager
      */
     constructor(block_manager) {
         this.block_manager = block_manager
@@ -71,9 +72,10 @@ export class WorkerWorldManager {
 
 // World
 export class WorkerWorld {
+    [key: string]: any;
 
     /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
+     * @param { import("../blocks.js").BLOCK } block_manager
      */
      constructor(block_manager) {
         this.block_manager = block_manager

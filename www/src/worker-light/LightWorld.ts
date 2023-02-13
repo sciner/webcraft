@@ -15,6 +15,7 @@ import {WorldGroundLevel} from "./GroundLevel.js"
 import {Chunk} from "./Chunk.js";
 
 export class LightWorkerChunkManager {
+    [key: string]: any;
 
     constructor(world) {
         this.chunks = new VectorCollector();
@@ -55,6 +56,7 @@ export class LightWorkerChunkManager {
 }
 
 export class LightWorld {
+    [key: string]: any;
     constructor(worker, worldId) {
         this.chunkManager = new LightWorkerChunkManager(this);
         this.light = new LightQueue(this, {offset: 0, dirCount: 6});

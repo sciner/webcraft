@@ -2,6 +2,7 @@ import { Vector } from "../helpers.js";
 import { BLOCK } from "../blocks.js";
 
 export class Vox_Mesh {
+    [key: string]: any;
 
     constructor(model, coord, shift, material, rotate) {
 

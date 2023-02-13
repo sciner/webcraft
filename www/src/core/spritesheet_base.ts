@@ -1,4 +1,5 @@
 export class Spritesheet_Base {
+    [key: string]: any;
 
     constructor(id, tx_cnt, tx_sz, options) {
         this.id                 = id;

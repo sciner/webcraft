@@ -24,6 +24,7 @@ let neighbours_map = [
 
 // Mesh group
 export class MeshGroup {
+    [key: string]: any;
 
     constructor() {
         this.vc         = new VectorCollector();

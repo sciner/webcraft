@@ -1,6 +1,7 @@
 import { ChargingStationWindow, ChestWindow, DoubleChestWindow, CraftTable, CreativeInventoryWindow, DieWindow, EditSignWindow, FurnaceWindow, InventoryWindow, NotImplementedWindow, QuestWindow, StatsWindow, AnvilWindow, BeaconWindow, ScreenshotWindow, BookWindow, InGameMain, BarrelWindow, EnderChestWindow, ModeWindow, BrewingWindow} from "./window/index.js";
 
 export class PlayerWindowManager {
+    [key: string]: any;
 
     constructor(player) {
         this.player = player;

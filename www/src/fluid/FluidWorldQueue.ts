@@ -4,6 +4,7 @@ import {SimpleQueue} from "../helpers.js";
 import {FluidChunkEvents} from "./FluidChunkEvents.js";
 
 export class FluidWorldQueue {
+    [key: string]: any;
     constructor(fluidWorld) {
         this.world = fluidWorld;
         this.pool = new QueuePagePool({

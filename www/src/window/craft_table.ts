@@ -5,6 +5,7 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
+    [key: string]: any;
 
     constructor(inventory, recipes) {
 

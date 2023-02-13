@@ -7,6 +7,7 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 //
 class AnvilSlot extends CraftTableSlot {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, ct) {
         super(x, y, w, h, id, title, text, ct, null);
@@ -63,6 +64,7 @@ class AnvilSlot extends CraftTableSlot {
 
 //
 export class AnvilWindow extends BaseCraftWindow {
+    [key: string]: any;
 
     constructor(inventory) {
         

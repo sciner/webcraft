@@ -2,6 +2,7 @@ import { Helpers, getChunkAddr, Vector, DIRECTION, QUAD_FLAGS, makeChunkEffectID
 import { Particles_Effects } from "./particles/effects.js";
 
 export class Particle {
+    [key: string]: any;
 
     constructor(texture, life, invert_percent, min_percent, gravity, speed, flags, lm) {
         this.texture            = texture;
@@ -18,6 +19,7 @@ export class Particle {
 
 // MeshManager
 export class MeshManager {
+    [key: string]: any;
 
     constructor() {
 

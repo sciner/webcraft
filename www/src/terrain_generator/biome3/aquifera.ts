@@ -6,6 +6,7 @@ import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js'
 export const AQUIFERA_UP_PADDING = 10
 
 export class AquiferaParams {
+    [key: string]: any;
 
     constructor() {
         this.reset()
@@ -29,6 +30,7 @@ export class AquiferaParams {
 }
 
 export class Aquifera {
+    [key: string]: any;
 
     /**
      * @param {Vector} coord 

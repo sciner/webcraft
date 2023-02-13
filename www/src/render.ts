@@ -57,6 +57,7 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
+    [key: string]: any;
 
     constructor(qubatchRenderSurfaceId) {
         this.xrMode             = false;

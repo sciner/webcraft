@@ -1,6 +1,7 @@
 import {BaseMaterial} from "../BaseRenderer.js";
 
 export class WebGPUMaterial extends BaseMaterial {
+    [key: string]: any;
 
     /**
      *

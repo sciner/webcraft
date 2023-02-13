@@ -20,6 +20,7 @@ function calcDif26(size, out) {
 }
 
 export class Chunk {
+    [key: string]: any;
     constructor(world, args) {
         this.world = world;
         this.dataId = args.dataId;

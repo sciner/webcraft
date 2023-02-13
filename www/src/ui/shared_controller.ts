@@ -17,6 +17,7 @@ globalThis.randomUUID = () => {
 
 //
 export class NewWorldForm {
+    [key: string]: any;
 
     constructor() {
         this.title = '';
@@ -33,6 +34,7 @@ export class NewWorldForm {
  * This class is used in another related project. DO NOT DELETE !!!
  */
 export class Shared_Controller {
+    [key: string]: any;
 
     constructor() {
         this.isSupportedBrowser = this.isSupported();

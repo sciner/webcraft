@@ -6,6 +6,7 @@ Resources.loadPainting();
 
 // Картина
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

@@ -1,6 +1,7 @@
 import {Vector} from "./helpers.js";
 
 export class Sphere {
+    [key: string]: any;
 
     constructor(center, radius) {
         this.center = center;
@@ -10,6 +11,7 @@ export class Sphere {
 }
 
 export class Plane {
+    [key: string]: any;
 
 	constructor( normal = new Vector( 1, 0, 0 ), constant = 0 ) {
 		// normal is assumed to be normalized
@@ -35,12 +37,12 @@ export class Plane {
 		return this;
 	}
 
-	setFromCoplanarPoints( a, b, c ) {
-		const normal = _vector1.subVectors( c, b ).cross( _vector2.subVectors( a, b ) ).normalize();
-		// Q: should an error be thrown if normal is zero (e.g. degenerate plane)?
-		this.setFromNormalAndCoplanarPoint( normal, a );
-		return this;
-	}
+	// setFromCoplanarPoints( a, b, c ) {
+	// 	const normal = _vector1.subVectors( c, b ).cross( _vector2.subVectors( a, b ) ).normalize();
+	// 	// Q: should an error be thrown if normal is zero (e.g. degenerate plane)?
+	// 	this.setFromNormalAndCoplanarPoint( normal, a );
+	// 	return this;
+	// }
 
 	copy( plane ) {
 		this.normal.copyFrom( plane.normal );
@@ -74,23 +76,23 @@ export class Plane {
 		return target.copyFrom( this.normal ).multiplyScalarSelf( - this.distanceToPoint( point ) ).add( point );
 	}
 
-	intersectLine( line, target ) {
-		const direction = line.delta( _vector1 );
-		const denominator = this.normal.dot( direction );
-		if ( denominator === 0 ) {
-			// line is coplanar, return origin
-			if ( this.distanceToPoint( line.start ) === 0 ) {
-				return target.copyFrom( line.start );
-			}
-			// Unsure if this is the correct method to handle this case.
-			return null;
-		}
-		const t = - ( line.start.dot( this.normal ) + this.constant ) / denominator;
-		if ( t < 0 || t > 1 ) {
-			return null;
-		}
-		return target.copyFrom( direction ).multiplyScalarSelf( t ).add( line.start );
-	}
+	// intersectLine( line, target ) {
+	// 	const direction = line.delta( _vector1 );
+	// 	const denominator = this.normal.dot( direction );
+	// 	if ( denominator === 0 ) {
+	// 		// line is coplanar, return origin
+	// 		if ( this.distanceToPoint( line.start ) === 0 ) {
+	// 			return target.copyFrom( line.start );
+	// 		}
+	// 		// Unsure if this is the correct method to handle this case.
+	// 		return null;
+	// 	}
+	// 	const t = - ( line.start.dot( this.normal ) + this.constant ) / denominator;
+	// 	if ( t < 0 || t > 1 ) {
+	// 		return null;
+	// 	}
+	// 	return target.copyFrom( direction ).multiplyScalarSelf( t ).add( line.start );
+	// }
 
 	intersectsLine( line ) {
 		// Note: this tests if a line intersects the plane, not whether it (or its end-points) are coplanar with it.
@@ -111,13 +113,13 @@ export class Plane {
 		return target.copyFrom( this.normal ).multiplyScalarSelf( - this.constant );
 	}
 
-	applyMatrix4( matrix, optionalNormalMatrix ) {
-		const normalMatrix = optionalNormalMatrix || _normalMatrix.getNormalMatrix( matrix );
-		const referencePoint = this.coplanarPoint( _vector1 ).applyMatrix4( matrix );
-		const normal = this.normal.applyMatrix3( normalMatrix ).normalize();
-		this.constant = - referencePoint.dot( normal );
-		return this;
-	}
+	// applyMatrix4( matrix, optionalNormalMatrix ) {
+	// 	const normalMatrix = optionalNormalMatrix || _normalMatrix.getNormalMatrix( matrix );
+	// 	const referencePoint = this.coplanarPoint( _vector1 ).applyMatrix4( matrix );
+	// 	const normal = this.normal.applyMatrix3( normalMatrix ).normalize();
+	// 	this.constant = - referencePoint.dot( normal );
+	// 	return this;
+	// }
 
 	translate( offset ) {
 		this.constant -= offset.dot( this.normal );
@@ -128,15 +130,16 @@ export class Plane {
 		return plane.normal.equals( this.normal ) && ( plane.constant === this.constant );
 	}
 
-	clone() {
-		return new this.constructor().copyFrom( this );
-	}
+	// clone() {
+	// 	return new this.constructor().copyFrom( this );
+	// }
 
 }
 
 Plane.prototype.isPlane = true;
 
 class Frustum {
+    [key: string]: any;
 
 	constructor( p0 = new Plane(), p1 = new Plane(), p2 = new Plane(), p3 = new Plane(), p4 = new Plane(), p5 = new Plane() ) {
 		this.planes = [ p0, p1, p2, p3, p4, p5 ];
@@ -177,19 +180,19 @@ class Frustum {
 		return this;
 	}
 
-	intersectsObject( object ) {
-		const geometry = object.geometry;
-		if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
-		_sphere.copyFrom( geometry.boundingSphere ).applyMatrix4( object.matrixWorld );
-		return this.intersectsSphere( _sphere );
-	}
+	// intersectsObject( object ) {
+	// 	const geometry = object.geometry;
+	// 	if ( geometry.boundingSphere === null ) geometry.computeBoundingSphere();
+	// 	_sphere.copyFrom( geometry.boundingSphere ).applyMatrix4( object.matrixWorld );
+	// 	return this.intersectsSphere( _sphere );
+	// }
 
-	intersectsSprite( sprite ) {
-		_sphere.center.set( 0, 0, 0 );
-		_sphere.radius = 0.7071067811865476;
-		_sphere.applyMatrix4( sprite.matrixWorld );
-		return this.intersectsSphere( _sphere );
-	}
+	// intersectsSprite( sprite ) {
+	// 	_sphere.center.set( 0, 0, 0 );
+	// 	_sphere.radius = 0.7071067811865476;
+	// 	_sphere.applyMatrix4( sprite.matrixWorld );
+	// 	return this.intersectsSphere( _sphere );
+	// }
 
 	intersectsSphere( sphere ) {
 		const planes = this.planes;
@@ -204,20 +207,20 @@ class Frustum {
 		return true;
 	}
 
-	intersectsBox( box ) {
-		const planes = this.planes;
-		for ( let i = 0; i < 6; i ++ ) {
-			const plane = planes[ i ];
-			// corner at max distance
-			_vector.x = plane.normal.x > 0 ? box.max.x : box.min.x;
-			_vector.y = plane.normal.y > 0 ? box.max.y : box.min.y;
-			_vector.z = plane.normal.z > 0 ? box.max.z : box.min.z;
-			if ( plane.distanceToPoint( _vector ) < 0 ) {
-				return false;
-			}
-		}
-		return true;
-	}
+	// intersectsBox( box ) {
+	// 	const planes = this.planes;
+	// 	for ( let i = 0; i < 6; i ++ ) {
+	// 		const plane = planes[ i ];
+	// 		// corner at max distance
+	// 		_vector.x = plane.normal.x > 0 ? box.max.x : box.min.x;
+	// 		_vector.y = plane.normal.y > 0 ? box.max.y : box.min.y;
+	// 		_vector.z = plane.normal.z > 0 ? box.max.z : box.min.z;
+	// 		if ( plane.distanceToPoint( _vector ) < 0 ) {
+	// 			return false;
+	// 		}
+	// 	}
+	// 	return true;
+	// }
 
 	containsPoint( point ) {
 		const planes = this.planes;
@@ -229,13 +232,14 @@ class Frustum {
 		return true;
 	}
 
-	clone() {
-		return new this.constructor().copyFrom( this );
-	}
+	// clone() {
+	// 	return new this.constructor().copyFrom( this );
+	// }
 
 }
 
 export class FrustumProxy extends Frustum {
+    [key: string]: any;
 
 	constructor() {
 		super();
@@ -243,7 +247,7 @@ export class FrustumProxy extends Frustum {
 	}
 
 	//
-	setFromProjectionMatrix(matrix, camPos) {
+	setFromProjectionMatrix(matrix, camPos?) {
 		this.camPos.copyFrom(camPos);
 		return super.setFromProjectionMatrix(matrix);
 	}

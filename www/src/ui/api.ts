@@ -1,4 +1,5 @@
 export class API_Client {
+    [key: string]: any;
 
     constructor(api_url) {
         this.api_url = api_url || '';

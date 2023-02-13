@@ -1,6 +1,7 @@
 import { BaseBuffer } from "../BaseRenderer.js";
 
 export class WebGLBuffer extends BaseBuffer {
+    [key: string]: any;
     /**
      *
      * @param { WebGLRenderer } context

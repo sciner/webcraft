@@ -1,6 +1,7 @@
 import {IndexedColor} from './helpers.js';
 
 class QuadAttr {
+    [key: string]: any;
     /**
      *
      * @param {Float32Array} buffer
@@ -31,6 +32,7 @@ class QuadAttr {
 }
 
 export default class GeometryTerrain {
+    [key: string]: any;
     constructor(vertices, chunkId) {
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;

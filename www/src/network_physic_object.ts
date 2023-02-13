@@ -3,6 +3,7 @@ import { AABB } from './core/AABB.js';
 
 // AABBDrawable
 export class AABBDrawable extends AABB {
+    [key: string]: any;
 
     draw(render, pos, delta, do_draw) {
         if (do_draw) {
@@ -15,6 +16,7 @@ export class AABBDrawable extends AABB {
 
 // NetworkPhysicObject
 export class NetworkPhysicObject {
+    [key: string]: any;
 
     constructor(pos, rotate) {
 

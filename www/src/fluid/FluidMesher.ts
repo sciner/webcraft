@@ -4,6 +4,7 @@ import {FluidInstanceBuffer} from "./FluidInstanceBuffer.js";
 import {buildFluidVertices} from "./FluidBuildVertices.js";
 
 export class FluidMesher {
+    [key: string]: any;
     constructor(world) {
         this.world = world;
         this.dirtyChunks = [];

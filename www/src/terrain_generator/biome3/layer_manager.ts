@@ -4,6 +4,7 @@ import Biome3LayerOverworld from "./layers/overworld.js";
 import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 
 export class Biome3LayerManager {
+    [key: string]: any;
 
     constructor(generator, list) {
         

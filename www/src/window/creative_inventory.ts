@@ -7,6 +7,7 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 
 class CreativeInventoryCollection extends Window {
+    [key: string]: any;
 
     //
     constructor(x, y, w, h, id, title, text) {
@@ -195,6 +196,7 @@ class CreativeInventoryCollection extends Window {
 
 // CreativeInventoryWindow...
 export class CreativeInventoryWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor(inventory) {
 

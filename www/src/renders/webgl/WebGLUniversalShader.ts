@@ -72,6 +72,7 @@ const GL_TYPE_FUNC = {
 }
 
 export class UniformBinding {
+    [key: string]: any;
     /**
      * @param {WebGLActiveInfo} info
      * @param {WebGLUniformLocation} location
@@ -184,6 +185,7 @@ export class UniformBinding {
 }
 
 export class WebGLUniversalShader extends BaseShader {
+    [key: string]: any;
     /**
      *
      * @param {WebGLRenderer} context

@@ -5,6 +5,7 @@ import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 
 // кактус
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {
@@ -13,7 +14,7 @@ export default class style {
             aabb: this.computeAABB
         }
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabb = new AABB()
         aabb.set(1/16, 0, 1/16, 15/16, 1, 15/16);

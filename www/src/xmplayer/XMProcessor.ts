@@ -16,8 +16,9 @@ const context = globalThis;
 const popfilter_alpha = 0.9837;
 
 class XMProcessor extends AudioWorkletProcessor {
+    [key: string]: any;
     static processorKey = 'xm-processor';
-    
+
     constructor() {
         super();
         this.playing = false;
@@ -52,11 +53,11 @@ class XMProcessor extends AudioWorkletProcessor {
                 data,
                 messageId,
             }, transferable ? transferable : undefined);
-    
-            this.messageId ++;    
+
+            this.messageId ++;
         });
     }
- 
+
     onMessage({ data: msgData }) {
         const { messageId, data, type } = msgData;
 
@@ -281,13 +282,13 @@ class XMProcessor extends AudioWorkletProcessor {
                     */
                     // length / pointers are all specified in bytes; fixup for 16-bit samples
                     samps.push({
-                        len: samplen, 
+                        len: samplen,
                         loop: samploop,
-                        looplen: samplooplen, 
-                        note: sampnote, 
+                        looplen: samplooplen,
+                        note: sampnote,
                         fine: sampfinetune,
-                        pan: samppan, 
-                        type: samptype, 
+                        pan: samppan,
+                        type: samptype,
                         vol: sampvol,
                         fileoffset: sampleoffset,
                         sampledata: null,
@@ -375,7 +376,7 @@ class XMProcessor extends AudioWorkletProcessor {
         const ticklen = 0 | (f_smp * 2.5 / this.xm.bpm);
 
         let buflen = dataL.length;
- 
+
         /*
         for (let i = 0; i < buflen; i++) {
             dataL[i] = 0;
@@ -384,7 +385,7 @@ class XMProcessor extends AudioWorkletProcessor {
         */
 
         let offset = 0;
-        
+
         // var scopewidth = this.XMView.scope_width;
 
         while (buflen > 0 && this.playing) {
@@ -405,7 +406,7 @@ class XMProcessor extends AudioWorkletProcessor {
                     }
                 }*/
 
-                // VU[j] = 
+                // VU[j] =
                 this.MixChannelIntoBuf(
                     this.xm.channelinfo[j], offset, offset + tickduration, dataL, dataR) /
                     tickduration;
@@ -422,7 +423,7 @@ class XMProcessor extends AudioWorkletProcessor {
             }
 
             const position = context.currentTime + (0.0 + offset) / f_smp;
-            
+
             /*
             if (this.XMView.pushEvent) {
                 this.XMView.pushEvent({
@@ -488,7 +489,7 @@ class XMProcessor extends AudioWorkletProcessor {
         if (typeof this.next_row === "undefined") {
             this.next_row = this.cur_row + 1;
         }
-        
+
         this.cur_row = this.next_row;
         this.next_row++;
 

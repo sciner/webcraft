@@ -55,6 +55,7 @@ const _vec = new Vector(0, 0, 0);
 
 // Растения/Цепи
 export default class style {
+    [key: string]: any;
 
     static lm = new IndexedColor();
 

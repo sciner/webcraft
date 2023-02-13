@@ -6,6 +6,7 @@ import {
 } from './LightConst.js';
 
 export class LightWorkerWorldManager {
+    [key: string]: any;
 
     constructor(worker) {
         this.all = new Map();

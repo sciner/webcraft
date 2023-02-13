@@ -5,6 +5,7 @@ export const NEAR_MASK_MAX_DIST = 10
 export const CLUSTER_PADDING    = 8
 
 export class ClusterPoint {
+    [key: string]: any;
 
     constructor(height, block_id, margin, info, building, y_shift) {
         this.height         = height;
@@ -21,11 +22,12 @@ export class ClusterPoint {
 
 // ClusterBase
 export class ClusterBase {
+    [key: string]: any;
 
     /**
-     * @param { import("./manager.js").ClusterManager } clusterManager 
-     * @param { Vector } addr 
-     * @param { ?Vector } size 
+     * @param { import("./manager.js").ClusterManager } clusterManager
+     * @param { Vector } addr
+     * @param { ?Vector } size
      */
     constructor(clusterManager, addr, size) {
         this.clusterManager = clusterManager;
@@ -46,19 +48,19 @@ export class ClusterBase {
 
     /**
      * Set block
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {int} x 
-     * @param {int} y 
-     * @param {int} z 
-     * @param {int} block_id 
-     * @param {*} rotate 
-     * @param {*} extra_data 
-     * @param {boolean} check_is_solid 
-     * @param {boolean} destroy_fluid  
-     * @param {boolean} candidate_for_cap_block 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @param {int} x
+     * @param {int} y
+     * @param {int} z
+     * @param {int} block_id
+     * @param {*} rotate
+     * @param {*} extra_data
+     * @param {boolean} check_is_solid
+     * @param {boolean} destroy_fluid
+     * @param {boolean} candidate_for_cap_block
      * @param {?object} map
-     * 
-     * @returns 
+     *
+     * @returns
      */
     setBlock(chunk, x, y, z, block_id, rotate, extra_data, check_is_solid = false, destroy_fluid = false, candidate_for_cap_block = false, map = null) {
         if(x >= 0 && y >= 0 && z >= 0 && x < chunk.size.x && y < chunk.size.y && z < chunk.size.z) {
@@ -97,10 +99,10 @@ export class ClusterBase {
 
     /**
      * Return block ID from pos
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param { int } x 
-     * @param { int } y 
-     * @param { int } z 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @param { int } x
+     * @param { int } y
+     * @param { int } z
      * @returns {int}
      */
     getBlock(chunk, x, y, z) {
@@ -223,10 +225,10 @@ export class ClusterBase {
 
     /**
      * Fill chunk blocks
-     * @param {*} maps 
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {*} map 
-     * @returns 
+     * @param {*} maps
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @param {*} map
+     * @returns
      */
     fillBlocks(maps, chunk, map) {
         if(this.is_empty) {
@@ -311,8 +313,8 @@ export class ClusterBase {
 
     /**
      * Add NPC
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param { Vector } pos 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @param { Vector } pos
      * @returns { boolean }
      */
     addNPC(chunk, pos) {
@@ -345,14 +347,14 @@ export class ClusterBase {
             }
         }
     }
-    
+
     /**
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param { Vector } pos 
-     * @param { Vector } size 
-     * @param { object } block 
-     * @param { Vector } rotate 
-     * @param {*} extra_data 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @param { Vector } pos
+     * @param { Vector } size
+     * @param { object } block
+     * @param { Vector } rotate
+     * @param {*} extra_data
      */
     drawQuboid(chunk, pos, size, block, rotate, extra_data) {
         const bx = pos.x - chunk.coord.x;
@@ -371,10 +373,10 @@ export class ClusterBase {
     }
 
     /**
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param { Vector } pos 
-     * @param { Vector } size 
-     * @param { object } block 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
+     * @param { Vector } pos
+     * @param { Vector } size
+     * @param { object } block
      */
     drawNaturalBasement(chunk, pos, size, block) {
 
@@ -398,7 +400,7 @@ export class ClusterBase {
                 }
             }
         }
-        
+
         /*
         const randoms = new alea(`natural_basement_${pos.x}_${pos.y}_${pos.z}`);
         const center = new Vector(bx + size.x/2, by + size.y, bz + size.z/2)

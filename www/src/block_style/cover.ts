@@ -4,6 +4,7 @@ import { AABB } from '../core/AABB.js';
 
 // поверхность
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {
@@ -12,7 +13,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         if (for_physic) {
             return [];
@@ -109,16 +110,16 @@ function plate(dir, vertices, texture, x, y, z, flags, lm, rot) {
                 vertices.push( x + 0.5, z + 0.5, y + 0.02, 1, 0, 0, 0, 1, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             }
             break;
-        case DIRECTION.SOUTH: 
+        case DIRECTION.SOUTH:
             vertices.push( x + 0.5, z + 0.98, y + 0.5, 1, 0, 0, 0, 0, 1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             break;
-        case DIRECTION.NORTH: 
+        case DIRECTION.NORTH:
             vertices.push( x + 0.5, z + 0.02, y + 0.5, 1, 0, 0, 0, 0, -1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             break;
-        case DIRECTION.EAST: 
+        case DIRECTION.EAST:
             vertices.push( x + 0.02, z + 0.5, y + 0.5, 0, 1, 0, 0, 0, 1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             break;
-        case DIRECTION.WEST: 
+        case DIRECTION.WEST:
             vertices.push( x + 0.98, z + 0.5, y + 0.5, 0, 1, 0, 0, 0, -1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             break;
     }

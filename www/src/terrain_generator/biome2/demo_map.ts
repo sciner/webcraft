@@ -20,6 +20,7 @@ const vox_templates = {};
 
 // Terrain generator class
 export default class Demo_Map extends Default_Terrain_Generator {
+    [key: string]: any;
 
     async init() {
         this.islands                = [];

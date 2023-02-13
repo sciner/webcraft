@@ -19,6 +19,7 @@ export const getAheadMove = (dir) => {
 
 // Building base cluster
 export class ClusterBuildingBase extends ClusterBase {
+    [key: string]: any;
 
     /**
      * @type {BuildingPalettes}

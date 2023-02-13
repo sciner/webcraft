@@ -21,6 +21,7 @@ const _temp_shift_pos = new Vector(0, 0, 0);
 
 // Bamboo
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

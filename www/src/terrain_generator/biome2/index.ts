@@ -21,12 +21,13 @@ for(let i = 0; i < randoms.length; i++) {
 
 // Terrain generator class
 export default class Terrain_Generator extends Demo_Map {
-    
+    [key: string]: any;
+
     /**
      * @param { import("../../worker/world.js").WorkerWorld } world
-     * @param { string } seed 
-     * @param { string } world_id 
-     * @param { object } options 
+     * @param { string } seed
+     * @param { string } world_id
+     * @param { object } options
      */
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
@@ -301,7 +302,7 @@ export default class Terrain_Generator extends Demo_Map {
             const mine = MineGenerator.getForCoord(this, chunk.coord);
             mine.fillBlocks(chunk);
         }
-        
+
         // Dungeon
         this.dungeon.add(chunk);
 

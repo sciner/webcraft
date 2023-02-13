@@ -7,11 +7,13 @@ import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 import { Particle_Hand } from "../mesh/object/block_hand.js";
 
 export class InteractionHand {
+    [key: string]: any;
     static MAIN_HAND = 1;
     static OFF_HAND = 2;
 }
 
 export class HumanoidArm {
+    [key: string]: any;
     static LEFT = new HumanoidArm("options.mainHand.left");
     static RIGHT = new HumanoidArm("options.mainHand.right");
     constructor(name) {
@@ -26,6 +28,7 @@ const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
 
 export class InHandOverlay {
+    [key: string]: any;
 
     constructor (skinId, render) {
 

@@ -9,6 +9,7 @@ export let PHYS_TYPE = {
 const chunkPos = new Vector();
 
 export class ChunkLocal {
+    [key: string]: any;
     constructor(w, h, d) {
         this.size = new Vector(w, h, d);
         this.offset = new Vector(w>>1, h>>1, d>>1);

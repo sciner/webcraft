@@ -7,6 +7,7 @@ import { InventoryComparator } from "./inventory_comparator.js";
 const MAX_SIZE = 3;
 
 export class Recipe {
+    [key: string]: any;
 
     constructor(recipe, variant_index, size, keys) {
 
@@ -36,10 +37,10 @@ export class Recipe {
     }
 
     /**
-     * 
-     * @param {*} pattern 
-     * @param {*} keys 
-     * @returns 
+     *
+     * @param {*} pattern
+     * @param {*} keys
+     * @returns
      */
     fixPattern(pattern, keys) {
         // добираем сверху пустыми строками
@@ -75,7 +76,7 @@ export class Recipe {
             array_keys = new Array(array_needs.size);
             for(let i = 0; i < array_needs.length; i++) {
                 array_keys[i] = ObjectHelpers.sortedStringify(array_needs[i]);
-            }    
+            }
         }
         const need_resources = new Map();
         for(let i = 0; i < array_needs.length; i++) {
@@ -277,6 +278,7 @@ export class Recipe {
 }
 
 export class RecipeManager {
+    [key: string]: any;
 
     constructor(force_load) {
         this.all = [];
@@ -418,7 +420,7 @@ export class RecipeManager {
             }
         }
     }
-    
+
     md5s(text) {
         const guid = md5(text);
         return guid.substring(0, 8) + '-' +
@@ -647,7 +649,7 @@ export class RecipeManager {
     }
 
     generateTemplates(recipes) {
-        
+
         function isItemTemplate(item) {
             return typeof item === 'object' && !Array.isArray(item);
         }
@@ -750,7 +752,7 @@ export class RecipeManager {
                 BLOCK.getBySuffix(suffix).filter(filter).map(it => it.name));
         }
 
-        const specialItems = { 
+        const specialItems = {
             'special:planks':       bySuffix('_PLANKS'),
             'special:wooden_slab':  bySuffix('_SLAB', it => it.material.id === 'wood'),
             'special:log':          bySuffix('_LOG'),
@@ -797,7 +799,7 @@ export class RecipeManager {
         const need_resources = ObjectHelpers.deepClone(recipe.need_resources, 2);
         for(let used_item of used_items) {
             const item_id = used_item.id;
-            const resource = need_resources.find(it => 
+            const resource = need_resources.find(it =>
                 it.count && InventoryComparator.itemMatchesNeeds(used_item, it.needs)
             );
             if (!resource) {

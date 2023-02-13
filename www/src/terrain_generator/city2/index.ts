@@ -11,6 +11,7 @@ const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
 let vox_templates = {};
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
+    [key: string]: any;
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);

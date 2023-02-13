@@ -22,6 +22,7 @@ const _temp_shift_pos = new Vector(0, 0, 0);
 
 // Костёр
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

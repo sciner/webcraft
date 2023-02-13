@@ -1,5 +1,6 @@
 // @ts-check
 export class XMPlayer {
+    [key: string]: any;
     constructor() {
         this.audioctx = null;
         this.gainNode = null;

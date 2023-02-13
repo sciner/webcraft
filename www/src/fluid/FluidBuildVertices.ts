@@ -5,6 +5,7 @@ import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT, PACKE
 export const fluidMaterials = [];
 
 class FluidMaterial {
+    [key: string]: any;
     constructor(block) {
         this.block = block;
         this.upTex = BLOCK.calcTexture(block.texture, DIRECTION.UP);

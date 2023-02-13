@@ -9,6 +9,7 @@ const _pos_floored = new Vector(0, 0, 0);
 const _lm_grass = new IndexedColor(0, 0, 0);
 
 export default class emitter {
+    [key: string]: any;
 
     constructor(pos, args) {
 
@@ -136,12 +137,12 @@ export default class emitter {
     }
 
     /**
-     * 
-     * @param {*} chunk 
-     * @param {Vector} pos 
-     * @param {object} block 
-     * @param {?object} extra_data 
-     * @returns 
+     *
+     * @param {*} chunk
+     * @param {Vector} pos
+     * @param {object} block
+     * @param {?object} extra_data
+     * @returns
      */
     calcPPAndFlags(chunk, pos, block, extra_data) {
         // Color masks

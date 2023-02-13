@@ -5,6 +5,7 @@ import { default as default_style } from './default.js';
 
 // Chorus
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

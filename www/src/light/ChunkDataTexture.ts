@@ -1,4 +1,5 @@
 export class ChunkDataTexture {
+    [key: string]: any;
     constructor() {
         this.chunks = [];
         this.keepAlive = [];

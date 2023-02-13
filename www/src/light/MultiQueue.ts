@@ -1,4 +1,5 @@
 class QueuePage {
+    [key: string]: any;
     constructor(size, bytesPerElement = 4) {
         this.size = size;
         if (bytesPerElement === 4) {
@@ -17,6 +18,7 @@ class QueuePage {
 }
 
 export class QueuePagePool {
+    [key: string]: any;
     constructor({pageSize, bytesPerElement = 4}) {
         this.pageSize = pageSize;
         this.pages = [];
@@ -42,6 +44,7 @@ export class QueuePagePool {
 }
 
 export class SingleQueue {
+    [key: string]: any;
     constructor({pagePool, priority = 0}) {
         this.pagePool = pagePool;
         this.priority = priority;
@@ -106,6 +109,7 @@ export class SingleQueue {
 }
 
 export class MultiQueue {
+    [key: string]: any;
     static defaultPool = null;
 
     static getDefaultPool(pageSize) {

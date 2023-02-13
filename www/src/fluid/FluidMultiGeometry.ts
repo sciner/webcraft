@@ -1,6 +1,7 @@
 import {BaseMultiGeometry} from "../geom/BaseMultiGeometry.js";
 
 export class FluidMultiGeometry extends BaseMultiGeometry {
+    [key: string]: any;
     static strideFloats = 16;
     static vertexPerInstance = 4;
     static indexPerInstance = 6;

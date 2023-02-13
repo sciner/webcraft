@@ -10,6 +10,7 @@ const tempQuat = quat.create();
 oneArr[0] = oneArr[1] = oneArr[2] = 1;
 
 export class BBModel_Child {
+    [key: string]: any;
 
     /**
      * @param { import("./model.js").BBModel_Model } model

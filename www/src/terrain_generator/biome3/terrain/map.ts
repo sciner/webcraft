@@ -8,6 +8,7 @@ import { TerrainMapCell } from "./map_cell.js";
 import { DensityParams } from "./manager_vars.js";
 
 export class TerrainMap2 extends TerrainMap {
+    [key: string]: any;
 
     /**
      * @type { import("../aquifera.js").Aquifera }

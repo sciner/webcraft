@@ -25,6 +25,7 @@ const HORIZON_BRIGHTNESS_MAX_DEPTH = 8;
 const HORIZON_MAX_BRIGHTNES_PER_SECOND = 0.5;
 
 export class FogPreset {
+    [key: string]: any;
     /**
      *
      * @param {IFogPreset} [fogPreset]
@@ -157,6 +158,7 @@ export class FogPreset {
 }
 
 export class Color {
+    [key: string]: any;
     /**
      *
      * @param {number | Color | Array<number> } anyData
@@ -309,6 +311,7 @@ export class Color {
 
 
 export class Gradient {
+    [key: string]: any;
     /**
      *
      * @param {IAnyColorRecordMap| Array<IAnyColorRecord> | Gradient | Color} gradData
@@ -446,6 +449,7 @@ function luminance (color) {
 }
 
 class InterpolateTask {
+    [key: string]: any;
     constructor({
         from,
         to,
@@ -492,6 +496,7 @@ class InterpolateTask {
 }
 
 class PresetInterpolationTask extends InterpolateTask {
+    [key: string]: any;
     _eval (factor) {
         const sunFactor = this.context ? this.context._sunFactor : 1;
         return this.from.lerpTo(this.to, factor, sunFactor, this.value || new FogPreset());
@@ -549,6 +554,7 @@ export const SETTINGS = {
 };
 
 export class Environment {
+    [key: string]: any;
     /**
      *
      * @param {Renderer} context

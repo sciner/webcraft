@@ -14,6 +14,7 @@ const HEIGHT    = 16/PPB;
 
 // Azalea
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

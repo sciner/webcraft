@@ -26,6 +26,7 @@ const TEXTURE_TYPE_FORMAT = {
 }
 
 export class WebGLTexture3D extends BaseTexture3D {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
     }

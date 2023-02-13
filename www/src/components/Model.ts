@@ -6,6 +6,7 @@ import { Transform } from "./Transform.js";
  * Include renderable for execution render process
  */
 export class Model extends Component {
+    [key: string]: any;
     static key = 'model';
 
     constructor() {

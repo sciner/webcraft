@@ -5,6 +5,7 @@ import { RailShape } from '../block_type/rail_shape.js';
 
 // Рельсы
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

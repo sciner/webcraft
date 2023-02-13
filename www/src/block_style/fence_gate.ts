@@ -6,6 +6,7 @@ const SIZE = 1 / 16;
 
 // Калитка
 export default class style {
+    [key: string]: any;
 
     static getRegInfo() {
         return {

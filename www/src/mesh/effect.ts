@@ -29,6 +29,7 @@ export function getEffectTexture(textures) {
  * Меш, который состоит из сгенерированных эмиттерами частиц
  */
 export class Mesh_Effect {
+    [key: string]: any;
 
     static current_count = 0;
 
@@ -59,7 +60,7 @@ export class Mesh_Effect {
 
     /**
      * Add particle
-     * @param {Mesh_Effect_Particle} particle 
+     * @param {Mesh_Effect_Particle} particle
      */
     add(particle) {
 
@@ -202,8 +203,8 @@ export class Mesh_Effect {
     /**
      * Draw effect mesh
      * @param { import("../render.js").Renderer } render
-     * @param {float} delta 
-     * @returns 
+     * @param {float} delta
+     * @returns
      */
     draw(render, delta) {
 

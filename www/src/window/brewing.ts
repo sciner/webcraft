@@ -3,6 +3,7 @@ import { Vector } from "../helpers.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class BrewingWindow extends BaseChestWindow {
+    [key: string]: any;
 
     constructor(inventory) {
 

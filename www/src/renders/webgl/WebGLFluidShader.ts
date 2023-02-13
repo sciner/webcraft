@@ -3,6 +3,7 @@ import { QUAD_FLAGS } from '../../helpers.js';
 import { DEFAULT_ATLAS_SIZE } from '../../constant.js';
 
 export class WebGLFluidShader extends WebGLTerrainShader {
+    [key: string]: any;
     /**
      *
      * @param {WebGLRenderer} context

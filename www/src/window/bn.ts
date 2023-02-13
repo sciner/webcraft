@@ -8,6 +8,7 @@ import { Lang } from "../lang.js";
 
 // кнопки активации
 class OkButton extends Window {
+    [key: string]: any;
     
     constructor(x, y, size, id, icon, ct) {
         
@@ -32,6 +33,7 @@ class OkButton extends Window {
 
 // кнопки эффектов
 class EffectButton extends Window {
+    [key: string]: any;
     
     constructor(x, y, size, id, icon, ct) {
         
@@ -120,6 +122,7 @@ class EffectButton extends Window {
 }
 
 export class BeaconWindow extends BaseChestWindow {
+    [key: string]: any;
 
     constructor(inventory) {
         super(0, 0, 459, 438, 'frmBeacon', null, null, inventory, {

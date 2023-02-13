@@ -37,6 +37,7 @@ const RIVER_OCTAVE_3                    = 48 / RIVER_SCALE;
 
 //
 class RiverPoint {
+    [key: string]: any;
 
     constructor(value) {
         this.value = value;
@@ -49,6 +50,7 @@ class RiverPoint {
 }
 
 export class MapsBlockResult {
+    [key: string]: any;
 
     constructor(dirt_layer, block_id) {
         this.set(dirt_layer, block_id)
@@ -63,6 +65,7 @@ export class MapsBlockResult {
 }
 
 class MapCellPresetResult {
+    [key: string]: any;
 
     /**
      * @param {float} relief 
@@ -123,6 +126,7 @@ const _aquifera_params = new AquiferaParams()
 
 // Map manager
 export class TerrainMapManager2 {
+    [key: string]: any;
 
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();

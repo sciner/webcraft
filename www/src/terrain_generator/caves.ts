@@ -97,6 +97,7 @@ function traceVec3(p1, p2) {
 
 // CaveLine...
 class CaveLine {
+    [key: string]: any;
 
     constructor(p_start, p_end, rad, aabb) {
         this.p_start = p_start;
@@ -109,6 +110,7 @@ class CaveLine {
 
 // Cave...
 export class Cave {
+    [key: string]: any;
 
     static generateLines(lines, addr, aleaRandom) {
 
@@ -229,6 +231,7 @@ export class Cave {
 
 // CaveGenerator...
 export class CaveGenerator {
+    [key: string]: any;
 
     constructor(seed) {
         this.seed           = typeof seed != 'undefined' ? seed : 'default_seed'; // unique world seed

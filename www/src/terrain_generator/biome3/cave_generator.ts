@@ -9,6 +9,7 @@ export const BIOME3_CAVE_LAYERS = [
 ];
 
 export class CaveGenerator {
+    [key: string]: any;
 
     constructor(chunk_coord, noisefn, cave_layers) {
 
@@ -73,7 +74,7 @@ export class CaveGenerator {
                 if(sponge_cave_density < 0) {
                     let densisiy = DENSITY_AIR_THRESHOLD // плотность воздуха
                     if(sponge_cave_density > -0.1) {
-                        // плотность нужная для формирования легкого налета полезных ископаемых 
+                        // плотность нужная для формирования легкого налета полезных ископаемых
                         densisiy += UNCERTAIN_ORE_THRESHOLD * .999
                     }
                     return densisiy

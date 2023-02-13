@@ -25,6 +25,7 @@ for(let i = 0; i < randoms.length; i++) {
 
 // Горшок
 export default class style {
+    [key: string]: any;
 
     // getRegInfo
     static getRegInfo() {

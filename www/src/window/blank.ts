@@ -2,6 +2,7 @@ import { Window } from "../../tools/gui/wm.js";
 
 //
 export class BlankWindow extends Window {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)

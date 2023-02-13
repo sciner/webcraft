@@ -13,7 +13,8 @@ globalThis.DIR_HOR = 0;
 globalThis.DIR_VER = 1;
 
 export class VilageSchema {
-    
+    [key: string]: any;
+
     constructor(cluster, settings = {}) {
         this.cluster = cluster;
         this.fill_house_map = false;
@@ -90,7 +91,7 @@ export class VilageSchema {
             return;
         }
         this.crossroads.set(vec, {cnt: 1});
-    } 
+    }
 
     //
     isDamagedRoad() {

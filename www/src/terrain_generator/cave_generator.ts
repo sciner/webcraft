@@ -8,6 +8,7 @@ const CAVE_LAYERS = [
                     ];
 
 export class CaveGenerator {
+    [key: string]: any;
 
     constructor(chunk_coord, noisefn) {
 

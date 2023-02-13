@@ -8,10 +8,11 @@ const depth = 1;
 
 // Ступеньки
 export default class style {
+    [key: string]: any;
 
     /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
-     * @returns 
+     * @param { import("../blocks.js").BLOCK } block_manager
+     * @returns
      */
     static getRegInfo(block_manager) {
         style.block_manager = block_manager

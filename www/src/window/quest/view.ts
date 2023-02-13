@@ -5,6 +5,7 @@ import { Helpers } from "../../helpers.js";
 
 // QuestActionType
 export class QuestActionType {
+    [key: string]: any;
 
     static PICKUP       = 1; // Добыть
     static CRAFT        = 2; // Скрафтить
@@ -16,6 +17,7 @@ export class QuestActionType {
 
 // QuestView
 export class QuestView extends Window {
+    [key: string]: any;
 
     //
     constructor(x, y, w, h, id, title, text) {
@@ -51,7 +53,7 @@ export class QuestView extends Window {
         const lDesc = ql.getWindow('lDesc');
         const lblActions = ql.getWindow('lblActions');
         const lblRewards = ql.getWindow('lblRewards');
-        
+
         //
         lblTitle.text = quest.title
         lDesc.text = quest.description
@@ -104,7 +106,7 @@ export class QuestView extends Window {
 
         //
         ql.refresh();
-        
+
     }
 
 }

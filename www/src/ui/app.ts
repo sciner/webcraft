@@ -3,6 +3,7 @@ import {} from './clipboard.js';
 import {Helpers} from '../helpers.js';
 
 export class UIApp {
+    [key: string]: any;
 
     constructor() {
         this.api = Qubatch.local_server_client?.getAPIClient() || new API_Client();

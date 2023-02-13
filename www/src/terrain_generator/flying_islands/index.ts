@@ -10,6 +10,7 @@ const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
 
 export default class Terrain_Generator extends Demo_Map {
+    [key: string]: any;
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);

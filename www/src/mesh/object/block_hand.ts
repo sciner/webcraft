@@ -10,6 +10,7 @@ const tmpMatrix = mat4.create();
  * Model handler class for local player in-hand overlay
  */
 export class Particle_Hand {
+    [key: string]: any;
 
     static async getSkinImage(id) {
         const stiveData = Resources.models['player:steve'];
@@ -33,10 +34,10 @@ export class Particle_Hand {
     }
 
     /**
-     * 
+     *
      * @param {string} skinId - id of skin, '1' by default
-     * @param {Renderer} render 
-     * @param {boolean} left - left arm style 
+     * @param {Renderer} render
+     * @param {boolean} left - left arm style
      */
     constructor(skinId, render, left = false) {
 
@@ -47,7 +48,7 @@ export class Particle_Hand {
         this.material = null;
 
         this.modelMatrix = mat4.create();
-        
+
         this.pos = new Vector(0, 0, 0);
 
         this.buffer = null;
@@ -55,12 +56,12 @@ export class Particle_Hand {
         mat4.scale(this.modelMatrix, this.modelMatrix, [1.5,1.5,1.5])
         mat4.rotateX(this.modelMatrix, this.modelMatrix, Math.PI / 2);
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, Math.PI);
-        
+
         this.init(skinId, render);
     }
 
     async init(skinId, render) {
-        
+
         const { image, stive } = await Particle_Hand.getSkinImage(skinId);
 
         this.texture = render.renderBackend.createTexture({
@@ -71,7 +72,7 @@ export class Particle_Hand {
         });
 
         this.material = render.defaultShader.materials.doubleface_transparent.getSubMat(this.texture);
-        
+
         const handData = {
             origin: [-2, 0, 2],
             size: [stive ? 4 : 3, 12, 4],
@@ -107,8 +108,8 @@ export class Particle_Hand {
      * Push draw task directly without any pre-computation.
      * Any matrix updates should be applied manually
      * Allow prepend matrix to modelMatrix
-     * @param {Rendere} render 
-     * @param {mat4} prePendMatrix 
+     * @param {Rendere} render
+     * @param {mat4} prePendMatrix
      */
     drawDirectly(render, prePendMatrix = null) {
         if (!this.buffer || !this.material) {

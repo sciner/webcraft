@@ -8,6 +8,7 @@ const GAME_MODE_LIST = ['survival', 'creative', 'adventure', 'spectator']
 const ICON_SCALE = .9
 
 export class ModeWindow extends Window {
+    [key: string]: any;
 
     constructor(player) {
 
@@ -64,7 +65,7 @@ export class ModeWindow extends Window {
         this.prev_mode = this.player.game_mode.current.id;
         if(this.prev_mode != this.mode) {
             player.world.server.Send({
-                name: ServerClient.CMD_GAMEMODE_SET, 
+                name: ServerClient.CMD_GAMEMODE_SET,
                 data: {
                     id: this.mode
                 }
@@ -101,5 +102,5 @@ export class ModeWindow extends Window {
         this.lblTitle.setText(Lang.getOrUnchanged(`gamemode_${this.mode}`));
 
     }
-    
+
 }

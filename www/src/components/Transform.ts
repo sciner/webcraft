@@ -57,6 +57,7 @@ const COPY_VECTOR_STORAGE = [0,0,0];
  * Transform component for scene system
  */
 export class Transform extends Component {
+    [key: string]: any;
     static key = 'transform';
 
     constructor() {

@@ -2,6 +2,7 @@ import {BaseTerrainShader} from "../BaseShader.js";
 import { MIN_BRIGHTNESS } from "../../constant.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {
+    [key: string]: any;
     /**
      *
      * @param {WebGLRenderer} context

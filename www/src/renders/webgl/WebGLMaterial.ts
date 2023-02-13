@@ -2,6 +2,7 @@ import {BaseMaterial, BLEND_MODES} from "../BaseRenderer.js";
 import {TerrainTextureUniforms} from "../common.js";
 
 export class WebGLMaterial extends BaseMaterial {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
 

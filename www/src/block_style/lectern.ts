@@ -8,7 +8,8 @@ const {mat4} = glMatrix;
 
 // Наковальня
 export default class style {
-    
+    [key: string]: any;
+
     static getRegInfo() {
         return {
             styles: ['lectern'],
@@ -16,25 +17,25 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);
         return [aabb];
     }
-    
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        
+
         const texture = block.material.texture;
         const up = BLOCK.calcTexture(texture, DIRECTION.UP);
         const side = BLOCK.calcTexture(texture, DIRECTION.WEST);
         const front = BLOCK.calcTexture(texture, DIRECTION.NORTH);
         const base = BLOCK.calcTexture(texture, DIRECTION.DOWN);
         const bottom = BLOCK.calcTexture(BLOCK.OAK_PLANKS.texture, DIRECTION.UP);
-        
+
         const flag = 0;
         const parts = [];
         parts.push(...[
@@ -77,13 +78,13 @@ export default class style {
         const cd = block.getCardinalDirection();
         matrix = mat4.create();
         switch(cd) {
-            case DIRECTION.NORTH: 
+            case DIRECTION.NORTH:
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
-            case DIRECTION.WEST: 
+            case DIRECTION.WEST:
                 mat4.rotateY(matrix, matrix, Math.PI / 2);
                 break;
-            case DIRECTION.EAST: 
+            case DIRECTION.EAST:
                 mat4.rotateY(matrix, matrix, -Math.PI / 2);
                 break;
         }
@@ -97,13 +98,13 @@ export default class style {
                 matrix:     matrix
             });
         }
-        
+
         if(block.extra_data?.book) {
             drawBook(vertices, pos, matrix);
         }
-        
+
     }
-    
+
 }
 
 function drawBook(vertices, pos, matrix) {
@@ -118,7 +119,7 @@ function drawBook(vertices, pos, matrix) {
                 "up": {"uv": [3, 5], "flag": flag, "texture": book}
             },
             "rot": [-Math.PI / 12, Math.PI / 140, -Math.PI / 36]
-        }, 
+        },
         {
             "size": {"x": 6, "y": 1, "z": 10},
             "translate": {"x": 3.7, "y": 7.6, "z": 1},
@@ -152,7 +153,7 @@ function drawBook(vertices, pos, matrix) {
             "rot": [-Math.PI / 12, -Math.PI / 140, Math.PI / 36]
         }
     ]);
-          
+
     const lm = IndexedColor.WHITE;
     for(let part of parts) {
         default_style.pushPART(vertices, {

@@ -4,6 +4,7 @@ import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 export class StatsWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor(player) {
 

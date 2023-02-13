@@ -3,6 +3,7 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 
 export class NotImplementedWindow extends BlankWindow {
+    [key: string]: any;
 
     constructor() {
 

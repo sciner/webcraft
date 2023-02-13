@@ -5,6 +5,7 @@ export const GAME_MODE = {};
     GAME_MODE.SPECTATOR = 'spectator';
 
 export class GameMode {
+    [key: string]: any;
 
     constructor(player, game_mode_id) {
         this.player = player;

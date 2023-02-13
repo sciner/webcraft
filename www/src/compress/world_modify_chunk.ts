@@ -7,6 +7,7 @@ const ROW_D = '\t';
 const VERSION_1 = '1';
 
 class CompressedModifiersBuilder {
+    [key: string]: any;
     constructor() {
         this.resp = [VERSION_1];
         this.prev_id = null;

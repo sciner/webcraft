@@ -6,6 +6,7 @@ import { DEFAULT_ATLAS_SIZE, DEFAULT_TX_SIZE, LIGHT_TYPE_RTX } from './constant.
 let tmpCanvas;
 
 export class BaseResourcePack {
+    [key: string]: any;
 
     constructor(BLOCK, location, id) {
         this.BLOCK = BLOCK;

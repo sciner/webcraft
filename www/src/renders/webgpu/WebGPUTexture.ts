@@ -10,6 +10,7 @@ const TEXTURE_TYPE_FORMAT = {
 }
 
 export class WebGPUTexture extends BaseTexture {
+    [key: string]: any;
     bind() {
         if (this.dirty) {
             return this.upload();
@@ -28,7 +29,7 @@ export class WebGPUTexture extends BaseTexture {
 
         const isCube = Array.isArray(this.source) && this.source.length === 6;
 
-        const format = this.type in TEXTURE_TYPE_FORMAT 
+        const format = this.type in TEXTURE_TYPE_FORMAT
             ? TEXTURE_TYPE_FORMAT[this.type].format
             : this.type;
 

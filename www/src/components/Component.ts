@@ -1,4 +1,5 @@
 export class Component {
+    [key: string]: any;
     static key = 'dummy';
     /**
      * @type {typeof Component[]}

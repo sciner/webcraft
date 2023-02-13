@@ -3,6 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {AbstractPlayerManager} from "./abstract_player_manager.js";
 
 export class PlayerManager extends AbstractPlayerManager {
+    [key: string]: any;
 
     constructor(world) {
         super(world)
@@ -52,12 +53,12 @@ export class PlayerManager extends AbstractPlayerManager {
     setState(cmd) {
 
         const {
-            data, time, 
+            data, time,
         } = cmd;
 
         const player = this.get(data.id);
 
-        if(!player) { 
+        if(!player) {
             return;
         }
 
@@ -76,7 +77,7 @@ export class PlayerManager extends AbstractPlayerManager {
                 hands: data.hands
             });
         }
-    
+
     }
 
     getMyself() {

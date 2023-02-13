@@ -16,6 +16,7 @@ const ARMOR_SLOT_BACKGROUND_ACTIVE = '#828282ff'
 const DOUBLE_CLICK_TIME = 300.0;
 
 export class HelpSlot extends Label {
+    [key: string]: any;
 
     constructor(x, y, sz, id, ct) {
         super(x, y, sz, sz, id, null, null)
@@ -113,6 +114,7 @@ export class HelpSlot extends Label {
 }
 
 export class CraftTableSlot extends SimpleBlockSlot {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
         super(x, y, w, h, id, null, '')
@@ -274,6 +276,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
 
 //
 export class CraftTableResultSlot extends CraftTableSlot {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, ct) {
         super(x, y, w, h, id, title, text, ct, null);
@@ -378,6 +381,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
 }
 
 export class CraftTableInventorySlot extends CraftTableSlot {
+    [key: string]: any;
 
     /**
      * @param {Float} x - screen poition x
@@ -679,6 +683,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
 // Ячейка рецепта
 export class CraftTableRecipeSlot extends CraftTableInventorySlot {
+    [key: string]: any;
 
     /**
      * Вызывается после изменения любой из её ячеек
@@ -695,6 +700,7 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
 }
 
 export class ArmorSlot extends CraftTableInventorySlot {
+    [key: string]: any;
 
     constructor(x, y, s, id, ct) {
 
@@ -758,6 +764,7 @@ export class ArmorSlot extends CraftTableInventorySlot {
 }
 
 export class BaseCraftWindow extends BaseInventoryWindow {
+    [key: string]: any;
 
     /**
     * Итоговый слот (то, что мы получим)

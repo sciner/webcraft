@@ -5,6 +5,7 @@ import { Vector } from "../../helpers.js";
 const oneVector = new Vector(1, 1, 1);
 
 export class Noise3d {
+    [key: string]: any;
     constructor(factory, seed, randomFunc) {
         this.factory = factory;
         this.seed = seed;
@@ -89,6 +90,7 @@ export class Noise3d {
 }
 
 export class NoiseFactory {
+    [key: string]: any;
     constructor() {
         this.outputSize = 0;
     }

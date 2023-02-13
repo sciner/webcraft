@@ -19,7 +19,7 @@ export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'e
 /**
  * Normally if there is any extra data, it's retained when a block is placed, otherwise
  * {@link BLOCK.makeExtraData} is called, see {@link doBlockAction}.
- * 
+ *
  * For these fields the semantics is different:
  * 1. If block.is_entirty == true, they can be merged with {@link BLOCK.makeExtraData}.
  * E.g. a chest retains its label, but also gets the default placed chest properties.
@@ -53,6 +53,7 @@ export let NEIGHB_BY_SYM = {};
 // transparent (bool)           - Not cube
 
 export class DBItemBlock {
+    [key: string]: any;
 
     constructor(id, extra_data) {
         this.id = id
@@ -75,16 +76,18 @@ export class DBItemBlock {
 }
 
 class Block {
+    [key: string]: any;
 
     constructor() {}
 
 }
 
 export class FakeVertices {
+    [key: string]: any;
 
     /**
-     * @param {string} material_key 
-     * @param {float[]} vertices 
+     * @param {string} material_key
+     * @param {float[]} vertices
      */
     constructor(material_key, vertices) {
         this.material_key = material_key
@@ -95,6 +98,7 @@ export class FakeVertices {
 
 //
 export class FakeTBlock {
+    [key: string]: any;
 
     constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome, dirt_color) {
         this.id = id;
@@ -139,6 +143,7 @@ export class FakeTBlock {
 
 //
 export class DropItemVertices extends FakeTBlock {
+    [key: string]: any;
 
     constructor(id, extra_data, pos, rotate, matrix, vertice_groups) {
         super(id, extra_data, pos, rotate, null, matrix, null, null, null);
@@ -149,6 +154,7 @@ export class DropItemVertices extends FakeTBlock {
 
 //
 class Block_Material {
+    [key: string]: any;
 
     static materials = {
         data: null,
@@ -223,6 +229,7 @@ export function getBlockNeighbours(world, pos) {
 }
 
 export class BLOCK {
+    [key: string]: any;
 
     static list                             = new Map();
     static styles                           = new Map();
@@ -315,12 +322,12 @@ export class BLOCK {
      * 4. The these fields have the correct types.
      * 5. "count" and "power" are within the allowed range.
      * It doesn't validate the content of extra_data.
-     * 
+     *
      * It's similar to {@link convertItemToInventoryItem}, but there are differences:
-     * - it assumes the item is from the client inventory, not a BLOCK. E.g. it fails if the 
+     * - it assumes the item is from the client inventory, not a BLOCK. E.g. it fails if the
      *   item is expected to have an entity, and doesn't have it.
      * - it assumes malicios intent, and does extra validation.
-     * 
+     *
      * @param { object } an inventory item that came from client
      * @return a new valid inventory item, or null.
      */
@@ -757,7 +764,7 @@ export class BLOCK {
     }
 
     /**
-     * @param {int} block_id 
+     * @param {int} block_id
      * @returns {boolean}
      */
     static isSolidID(block_id) {
@@ -1313,14 +1320,14 @@ export class BLOCK {
 
     /**
      * Return block shapes
-     * 
-     * @param {Vector} pos 
+     *
+     * @param {Vector} pos
      * @param { import("./typed_blocks3.js").TBlock } tblock
      * @param { import("./world.js").World } world
-     * @param {boolean} for_physic 
-     * @param {boolean} expanded 
-     * @param {*} neighbours 
-     * 
+     * @param {boolean} for_physic
+     * @param {boolean} expanded
+     * @param {*} neighbours
+     *
      * @returns {array[]}
      */
     static getShapes(pos, tblock, world, for_physic, expanded, neighbours) {

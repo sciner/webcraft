@@ -140,6 +140,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
 }
 
 export class FluidChunkQueue {
+    [key: string]: any;
     constructor(fluidWorld, fluidChunk) {
         this.fluidWorld = fluidWorld;
         this.fluidChunk = fluidChunk;

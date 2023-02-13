@@ -26,6 +26,7 @@ import type { BLOCK } from "./blocks";
 
 // World container
 export class World {
+    [key: string]: any;
 
     static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 10000;

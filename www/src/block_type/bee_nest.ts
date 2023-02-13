@@ -2,6 +2,7 @@ import { WorldAction } from "../world_action.js";
 import { ServerClient } from "../server_client.js";
 
 export class BeeNest {
+    [key: string]: any;
 
     constructor(tblock) {
         this.tblock = tblock;

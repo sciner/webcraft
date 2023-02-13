@@ -5,6 +5,7 @@ import GeometryTerrain from "../geometry_terrain.js";
 const {mat4} = glMatrix;
 
 export class Mesh_Default {
+    [key: string]: any;
 
     // Constructor
     constructor(gl, pos, file, callback) {

@@ -16,6 +16,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BaseChunk} from "../core/BaseChunk.js";
 
 export class FluidWorld {
+    [key: string]: any;
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
         this.world = chunkManager.getWorld();

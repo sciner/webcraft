@@ -14,6 +14,7 @@ const DEFAULT_DOOR_POS = new Vector(0, 0, 0);
 
 // Base building
 export class Building {
+    [key: string]: any;
 
     /**
      * @param {*} cluster
@@ -84,11 +85,11 @@ export class Building {
     }
 
     addBlocks() {}
-    
+
     /**
-     * @param {*} biome 
-     * @param {float} temperature 
-     * @param {float} humidity 
+     * @param {*} biome
+     * @param {float} temperature
+     * @param {float} humidity
      */
     setBiome(biome, temperature, humidity) {
         this.biome = biome;
@@ -106,7 +107,7 @@ export class Building {
 
     /**
      * @param { import("./base.js").ClusterBase } cluster
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
+     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
      * @param {boolean} draw_natural_basement
      */
     draw(cluster, chunk, draw_natural_basement = true) {
@@ -123,7 +124,7 @@ export class Building {
     }
 
     /**
-     * @param {int} y 
+     * @param {int} y
      */
     setY(y) {
 
@@ -222,7 +223,7 @@ export class Building {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      */
     translateXZ(vec) {
 
@@ -246,7 +247,7 @@ export class Building {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      */
     moveXZTo(vec) {
         const aabb = this.aabb // this.getRealAABB()

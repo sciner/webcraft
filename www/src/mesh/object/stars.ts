@@ -21,6 +21,7 @@ for(let i = 0; i < STARS_COUNT; i++) {
 
 // Stars
 export class Mesh_Object_Stars {
+    [key: string]: any;
 
     // Constructor
     constructor() {

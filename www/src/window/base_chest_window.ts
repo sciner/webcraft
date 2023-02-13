@@ -14,6 +14,7 @@ import { Lang } from "../lang.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 
 export class BaseChestWindow extends BaseInventoryWindow {
+    [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, inventory, options) {
 

@@ -4,6 +4,7 @@
 import { BaseRenderTarget } from "../BaseRenderer.js";
 
 export class WebGPURenderTarget extends BaseRenderTarget {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
 
@@ -38,10 +39,10 @@ export class WebGPURenderTarget extends BaseRenderTarget {
             usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
         });
 
-    
+
         encoder.copyTextureToBuffer({
             texture: this.texture.texture,
-            origin: [0,0,0]  
+            origin: [0,0,0]
         }, {
             buffer: gpuBuffer,
             bytesPerRow: this.width * 4,

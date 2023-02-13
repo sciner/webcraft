@@ -9,6 +9,7 @@ const ORE_RANDOMS_SIMPLE    = [];
 
 // OreSource
 class OreSource {
+    [key: string]: any;
 
     constructor(pos, rad, block_id, max_y) {
         this.pos = pos;
@@ -21,6 +22,7 @@ class OreSource {
 
 // OreGenerator
 export class OreGenerator {
+    [key: string]: any;
 
     //
     constructor(seed, noisefn, noise3d, map) {

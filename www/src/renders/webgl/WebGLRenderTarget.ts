@@ -1,6 +1,7 @@
 import { BaseRenderTarget } from "../BaseRenderer.js";
 
 export class WebGLRenderTarget extends BaseRenderTarget {
+    [key: string]: any;
     constructor(context, options) {
         super(context, options);
 

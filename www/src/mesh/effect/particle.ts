@@ -21,6 +21,7 @@ export const PARTICLE_FLAG_BOUNCE_CEILING = QUAD_FLAGS.NEXT_UNUSED_FLAG;
  * Базовая частица эффекта с реализацией физики
  */
 export class Mesh_Effect_Particle {
+    [key: string]: any;
 
     constructor(args) {
 
