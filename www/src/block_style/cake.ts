@@ -29,7 +29,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const pieces = tblock?.extra_data?.pieces || 7;
         const percent = (pieces * 4) / SIZE;
@@ -53,7 +53,7 @@ export default class style {
             z + .5 + WIDTH/2,
         );
 
-        if(!no_pad) {
+        if(!expanded) {
             aabb.pad(1/500);
         }
 
@@ -88,7 +88,7 @@ export default class style {
             c_south_north[0] -= ((1 - percent) * SIZE / PPB) / TX_CNT / 2;
         }
 
-        const aabb = style.computeAABB(block, true, true)[0];
+        const aabb = style.computeAABB(block, true, undefined, undefined, true)[0];
         aabb.translate(x, y, z);
 
         // Push vertices down

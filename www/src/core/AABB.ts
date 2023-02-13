@@ -349,18 +349,18 @@ export class AABBSideParams {
     [key: string]: any;
     uv?: float[];
     flag: int = 0;
-    anim: any;
-    lm?: null;
+    anim: number = 0;
+    lm: IndexedColor | null = null;
     axes?: null;
     autoUV: boolean = false;
     rawColor?: null;
     offset?: null;
 
-    constructor(uv, flag : int, anim, lm = null, axes = null, autoUV : boolean = false, rawColor = null, offset = null) {
+    constructor(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes = null, autoUV : boolean = false, rawColor = null, offset = null) {
         this.set(uv, flag, anim, lm, axes, autoUV, rawColor, offset)
     }
 
-    set(uv, flag : int, anim, lm = null, axes = null, autoUV : boolean = false, rawColor = null, offset = null) {
+    set(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes = null, autoUV : boolean = false, rawColor = null, offset = null) {
         this.uv       = uv;
         this.flag     = flag;
         this.anim     = anim;
@@ -450,7 +450,7 @@ export function pushTransformed(
  * @param sides
  * @param center - center wicha AABB is placed, same as [x, y, z] in push transformed
  */
-export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: null | Vector | number[] = null, matrix: null | number[] = null, sides: TSideSet, center: IVector) {
+export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: null | Vector | number[] = null, matrix: null | imat4 = null, sides: TSideSet, center: IVector) {
 
     matrix = matrix || defaultMatrix;
     center = center || defalutCenter;

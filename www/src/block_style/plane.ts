@@ -20,6 +20,7 @@ import {IndexedColor} from "../helpers.js";
  * @param {*} dx
  * @param {*} dy
  * @param {*} dz
+ * @param {*} ignore_back_side
  */
  export function pushPlanedGeom (
     vertices,
@@ -31,7 +32,7 @@ import {IndexedColor} from "../helpers.js";
     flags,
     sym = 0,
     dx = 0, dy = 0, dz = 0,
-    ignore_back_side
+    ignore_back_side : boolean
 ) {
     [z, y]   = [y, z];
     [zp, yp] = [yp, zp];

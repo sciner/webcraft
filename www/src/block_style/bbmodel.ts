@@ -6,7 +6,6 @@ import { CubeSym } from '../core/CubeSym.js';
 
 import { default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
-import { default as fence_style } from '../block_style/fence.js';
 import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
 import { default as cauldron_style } from '../block_style/cauldron.js';
@@ -15,6 +14,9 @@ import { default as sign_style } from '../block_style/sign.js';
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 import {impl as alea} from "../../vendors/alea.js";
+import type { BBModel_Model } from '../bbmodel/model.js';
+import type { Biome } from '../terrain_generator/biome3/biomes.js';
+
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
 
@@ -28,6 +30,25 @@ const randoms = new Array(RANDOMS_COUNT)
 const a = new alea('randoms')
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double()
+}
+
+class BBModel_TextureRule {
+    /**
+     * Texture name
+     */
+    name: string
+    /**
+     * Target group for change texture
+     */
+    group?: string
+    /**
+     * This texture apply if name calculate as empty
+     */
+    empty?: string
+    /**
+     * Conditions for apply this texture
+     */
+    when?: Map<string, any>
 }
 
 // Block model
@@ -51,7 +72,7 @@ export default class style {
      * 
      * @returns {AABB[]}
      */
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) {
 
         const bb = tblock.material.bb
         const behavior = bb.behavior || bb.model.name
@@ -105,10 +126,7 @@ export default class style {
         }
 
         const bb = block.material.bb
-        /**
-         * @type {BBModel_Model}
-         */
-        const model = bb.model
+        const model : BBModel_Model = bb.model
 
         if(!model) {
             return;
@@ -241,7 +259,7 @@ export default class style {
 
     }
 
-    static postBehavior(x, y, z, model, tblock, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks) {
+    static postBehavior(x : number, y : number, z : number, model : BBModel_Model, tblock : TBlock, neighbours, pivot, matrix : imat4, biome : Biome, dirt_color : IndexedColor, emmited_blocks: any[]) {
 
         const mat = tblock.material
         const bb = mat.bb
@@ -264,25 +282,13 @@ export default class style {
 
     }
 
-    /**
-     * @param {BBModel_Model} model 
-     * @param {*} chunk 
-     * @param {TBlock} tblock 
-     * @param {*} neighbours 
-     * @param {*} matrix 
-     * @param {*} biome 
-     * @param {IndexedColor} dirt_color
-     * @param {float[]} vertices
-     * @param {Vector} xyz
-     */
-    static applyBehavior(model, chunk, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
+    static applyBehavior(model : BBModel_Model, chunk, tblock : TBlock, neighbours, matrix : imat4, biome, dirt_color : IndexedColor, vertices : float[], xyz : Vector) {
 
         const bm = style.block_manager
         const emmited_blocks = []
         const mat = tblock.material
         const bb = mat.bb
         const behavior = bb.behavior || bb.model.name
-        const rotate = tblock.rotate
 
         // 1.
         if(bb.set_state /* && !(tblock instanceof FakeTBlock) */) {
@@ -416,14 +422,12 @@ export default class style {
                 const info      = stairs_style.calculate(tblock, Vector.ZERO.clone(), neighbours)
                 const on_ceil   = info.on_ceil
                 const fix_rot   = on_ceil ? Math.PI / 2 : 0
-                const sw        = !!info.sides[DIRECTION.SOUTH]
-                const se        = !!info.sides[DIRECTION.EAST]
-                const en        = !!info.sides[DIRECTION.NORTH]
-                const nw        = !!info.sides[DIRECTION.WEST]
+                const sw        = !!info.sides[DIRECTION.SOUTH] ? 1 : 0
+                const se        = !!info.sides[DIRECTION.EAST] ? 1 : 0
+                const en        = !!info.sides[DIRECTION.NORTH] ? 1 : 0
+                const nw        = !!info.sides[DIRECTION.WEST] ? 1 : 0
 
-                let rotY        = 0
-
-                const rules = [
+                const rules : [float, float, float, float, string[], float][] = [
                     // between
                     [0, 1, 1, 0, ['inner', 'outer'], Math.PI],
                     [1, 1, 0, 0, ['inner', 'outer'], Math.PI / 2],
@@ -441,6 +445,7 @@ export default class style {
                     [1, 1, 0, 1, ['between', 'outer'], fix_rot],
                 ]
 
+                let rotY = 0
                 for(let rule of rules) {
                     if(en == rule[0] && se == rule[1] && sw == rule[2] && nw == rule[3]) {
                         model.hideGroups(rule[4])
@@ -474,13 +479,8 @@ export default class style {
 
     }
 
-    /**
-     * @param {BBModel_Model} model
-     * @param {*} matrix 
-     * @param {int} cd 
-     */
-    static rotateByCardinal4sides(model, matrix, cd) {
-        switch(cd) {
+    static rotateByCardinal4sides(model : BBModel_Model, matrix : imat4, cardinal_direction : int) {
+        switch(cardinal_direction) {
             case DIRECTION.NORTH:
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
@@ -493,12 +493,7 @@ export default class style {
         }
     }
 
-    /*
-     * @param {BBModel_Model} model 
-     * @param {TBlock} tblock
-     * @param {*} matrix
-     */
-    static addParticles(model, tblock, matrix, particles) {
+    static addParticles(model : BBModel_Model, tblock : TBlock, matrix : imat4, particles) {
         if(typeof worker == 'undefined') {
             return
         }
@@ -522,14 +517,7 @@ export default class style {
         }
     }
 
-    /**
-     * @param {BBModel_Model} model
-     * @param {TBlock} tblock
-     * @param {object} when
-     * 
-     * @returns {boolean}
-     */
-    static checkWhen(model, tblock, when) {
+    static checkWhen(model : BBModel_Model, tblock : TBlock, when : object) : boolean {
         if(!when) {
             return true
         }
@@ -568,9 +556,9 @@ export default class style {
         return true
     }
 
-    static selectTextureFromPalette(model, texture, tblock) {
+    static selectTextureFromPalette(model : BBModel_Model, texture : BBModel_TextureRule, tblock : TBlock) {
         //
-        const makeTextureName = (name) => {
+        const makeTextureName = (name : string) => {
             if(!name) {
                 return 
             }
@@ -594,34 +582,34 @@ export default class style {
     }
 
     // Stand
-    static drawDebugStand(vertices, pos, lm, matrix) {
-        const bm = style.block_manager
-        const flag = 0;
-        const stone = bm.calcTexture(bm.STONE.texture, DIRECTION.WEST);
-        const stand = [];
-        stand.push(...[
-            // stand
-            {
-                "size": {"x": 16, "y": .5, "z": 16},
-                "translate": {"x":0, "y": -7.5, "z": 0},
-                "faces": {
-                    "up": {"uv": [8, 8], "flag": flag, "texture": stone},
-                    "down": {"uv": [8, 8], "flag": flag, "texture": stone},
-                    "north": {"uv": [8, 8], "flag": flag, "texture": stone},
-                    "south": {"uv": [8, 8], "flag": flag, "texture": stone},
-                    "west":  {"uv": [8, 8], "flag": flag, "texture": stone},
-                    "east":  {"uv": [8, 8], "flag": flag, "texture": stone}
-                }
-            }
-        ]);
-        for(const el of stand) {
-            default_style.pushPART(vertices, {
-                ...el,
-                lm:         lm,
-                pos:        pos,
-                matrix:     matrix
-            });
-        }
-    }
+    // static drawDebugStand(vertices, pos, lm, matrix) {
+    //     const bm = style.block_manager
+    //     const flag = 0;
+    //     const stone = bm.calcTexture(bm.STONE.texture, DIRECTION.WEST);
+    //     const stand = [];
+    //     stand.push(...[
+    //         // stand
+    //         {
+    //             "size": {"x": 16, "y": .5, "z": 16},
+    //             "translate": {"x":0, "y": -7.5, "z": 0},
+    //             "faces": {
+    //                 "up": {"uv": [8, 8], "flag": flag, "texture": stone},
+    //                 "down": {"uv": [8, 8], "flag": flag, "texture": stone},
+    //                 "north": {"uv": [8, 8], "flag": flag, "texture": stone},
+    //                 "south": {"uv": [8, 8], "flag": flag, "texture": stone},
+    //                 "west":  {"uv": [8, 8], "flag": flag, "texture": stone},
+    //                 "east":  {"uv": [8, 8], "flag": flag, "texture": stone}
+    //             }
+    //         }
+    //     ]);
+    //     for(const el of stand) {
+    //         default_style.pushPART(vertices, {
+    //             ...el,
+    //             lm:         lm,
+    //             pos:        pos,
+    //             matrix:     matrix
+    //         });
+    //     }
+    // }
 
 }

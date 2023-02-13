@@ -16,6 +16,8 @@ export const POWER_NO                       = 0;
 export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data', 'rotate']; // for reference only, unused. See BLOCK.convertBlockToDBItem.
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 
+const AIR_BLOCK_STRINGIFIED = '{"id":0}';
+
 /**
  * Normally if there is any extra data, it's retained when a block is placed, otherwise
  * {@link BLOCK.makeExtraData} is called, see {@link doBlockAction}.
@@ -1086,7 +1088,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir, width, height, block, force_tex, random_double) {
+    static calcMaterialTexture(material, dir : int, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float) {
 
         let mat_texture = material?.texture
         if(material?.texture_variants && (random_double != undefined)) {
@@ -1494,5 +1496,3 @@ BLOCK.init = async function(settings) {
 };
 
 export type BlockManager = typeof BLOCK;
-
-const AIR_BLOCK_STRINGIFIED = '{"id":0}';

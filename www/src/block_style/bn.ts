@@ -18,7 +18,7 @@ export default class style {
         };
     }
     
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);
         return [aabb];
@@ -51,7 +51,7 @@ export default class style {
     
 }
 
-function box(width, length, height, shift, vertices, texture, texture_up, x, y, z, flags) {
+function box(width, length, height, shift, vertices, texture, texture_up, x, y, z, flags : int = 0) {
     width /= 16;
     shift /= 16;
     height /= 16;

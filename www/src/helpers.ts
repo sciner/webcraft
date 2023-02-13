@@ -1766,7 +1766,7 @@ export class IndexedColor {
         return (palMode << 20) | (palV << 10) | (palU << 0);
     }
 
-    constructor(r, g, b) {
+    constructor(r : int = 0, g : int = 0, b : int = 0) {
         this.r = r | 0;
         this.g = g | 0;
         this.b = b | 0;

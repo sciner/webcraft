@@ -20,7 +20,7 @@ export default class style {
         };
     }
 
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const shapes = [] // x1 y1 z1 x2 y2 z2
         const material = tblock.material
         // F R B L

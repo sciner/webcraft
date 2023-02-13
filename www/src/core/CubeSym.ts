@@ -188,10 +188,10 @@ init();
 // console.log(`matrices generated for ${perf} ms`);
 export function pushSym(
         vertices, sym,
-        cx, cz, cy,
-        x0, z0, y0,
-        ux, uz, uy, vx, vz, vy,
-        c0, c1, c2, c3,
+        cx: float, cz: float, cy: float,
+        x0: float, z0: float, y0: float,
+        ux: float, uz: float, uy: float, vx: float, vz: float, vy: float,
+        c0: float, c1: float, c2: float, c3: float,
         pp, flags
     ) {
     const mat = CubeSym.matrices[sym];

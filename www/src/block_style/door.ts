@@ -21,7 +21,7 @@ export default class style {
         };
     }
 
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let cardinal_direction = CubeSym.dirAdd(tblock.getCardinalDirection(), CubeSym.ROT_Y2);
         if(style.block_manager.isOpened(tblock)) {
             cardinal_direction = CubeSym.dirAdd(cardinal_direction, tblock.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);

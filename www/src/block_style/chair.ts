@@ -23,7 +23,7 @@ export default class style {
         };
     }
     
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let aabb = new AABB().set(2/16, 0, 2/16, 14/16, 26/16, 14/16);
         if(for_physic) {
             aabb.y_max = 11/16;

@@ -22,7 +22,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         if(for_physic || !tblock) {
             return [];

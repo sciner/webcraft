@@ -22,7 +22,7 @@ export default class style {
         };
     }
 
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const aabb = new AABB();
         aabb.set(1/16, 0, 1/16, 15/16, 14/16, 15/16);
         const type = tblock.extra_data?.type;

@@ -36,7 +36,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let aabb = new AABB();
         aabb.set(
             0 + .5 - WIDTH / 2,
@@ -53,7 +53,7 @@ export default class style {
     }
 
     // Build function
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix : imat4, pivot, force_tex) {
 
         const sz = 1024;
         const is_head = !!block.extra_data?.is_head;

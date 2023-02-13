@@ -26,7 +26,7 @@ export default class style {
      * @param {*} neighbours 
      * @param {boolean} expanded 
      */
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const bm = style.block_manager
         const shapes = []
         const height = 1
@@ -140,7 +140,7 @@ export default class style {
             };
 
             // Geometries
-            const parts = [main_part];
+            const parts : any[] = [main_part];
 
             const cn = bm.canPaneConnect(neighbours.NORTH);
             const cs = bm.canPaneConnect(neighbours.SOUTH);

@@ -18,7 +18,7 @@ export default class style {
         };
     }
 
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         if (for_physic) {
             return [];
         }
@@ -88,10 +88,10 @@ export default class style {
                 plate(DIRECTION.EAST, vertices, tex_side, x, y, z, flags, lm);
             }
             if (block.extra_data.down) {
-                plate(DIRECTION.DOWN, vertices, tex_side, x, y, z, flags, lm, block.extra_data.rotate);
+                plate(DIRECTION.DOWN, vertices, tex_side, x, y, z, flags, lm, !!block.extra_data.rotate);
             }
             if (block.extra_data.up) {
-                plate(DIRECTION.UP, vertices, tex_side, x, y, z, flags, lm, block.extra_data.rotate);
+                plate(DIRECTION.UP, vertices, tex_side, x, y, z, flags, lm, !!block.extra_data.rotate);
             }
         } else if(block.rotate) {
             plate(block.rotate.x, vertices, tex_side, x, y, z, flags, lm);
@@ -99,7 +99,7 @@ export default class style {
     }
 }
 
-function plate(dir, vertices, texture, x, y, z, flags, lm, rot) {
+function plate(dir : int, vertices, texture, x, y, z, flags : int, lm : IndexedColor, rot : boolean = false) {
     switch(dir) {
         case DIRECTION.DOWN:
             if (rot) {

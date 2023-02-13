@@ -37,7 +37,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let y = 0;
         let aabb = new AABB();
         const w = 1;
@@ -197,7 +197,7 @@ export default class style {
     }
 
     //
-    static pushChains(vertices, chains, anim) {
+    static pushChains(vertices, chains) {
         const _aabb_chain_middle = new AABB();
         let pivot = null;
         let matrix = null;

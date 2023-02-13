@@ -52,7 +52,20 @@ for(let i = 0; i < randoms.length; i++) {
 }
 
 //
-const _pl = {};
+const _pl = {
+    size: null,
+    uv: null,
+    rot: null,
+    lm: null,
+    pos: null,
+    x: null,
+    y: null,
+    z: null,
+    matrix: null,
+    flag: null,
+    texture: null,
+};
+
 const _vec = new Vector(0, 0, 0);
 
 // Растения/Цепи
@@ -72,7 +85,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE;
         aabb.set(0, 0, 0, 0, 0, 0)
@@ -136,7 +149,7 @@ export default class style {
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
-        style.lm.set(IndexedColor.WHITE);
+        style.lm.copyFrom(IndexedColor.WHITE);
         style.lm.b = bm.getAnimations(material, 'up');
         if(style.lm.b > 1) {
             flag |= QUAD_FLAGS.FLAG_ANIMATED;
@@ -177,7 +190,7 @@ export default class style {
 
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
-            style.lm.set(dirt_color);
+            style.lm.copyFrom(dirt_color);
             style.lm.r += GRASS_PALETTE_OFFSET;
             flag |= QUAD_FLAGS.MASK_BIOME;
         }

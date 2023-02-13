@@ -30,7 +30,7 @@ const TAIGA_BUILDINGS = {others: [
 export class Biome {
     [key: string]: any;
 
-    constructor(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, building_options) {
+    constructor(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color? : IndexedColor, water_color? : IndexedColor, no_smooth_heightmap : boolean = false, building_options?) {
         this.id = id;
         this.title = title;
         this.temperature = temperature;
@@ -92,7 +92,7 @@ export class Biomes {
         return (resp / 2 + .5) / div;
     }
 
-    addBiome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, building_options) {
+    addBiome(id: int, title : string, temperature : float, humidity: float, dirt_layers : any[], trees, plants, grass, dirt_color : IndexedColor, water_color : IndexedColor, building_options) {
         // const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [
@@ -153,7 +153,7 @@ export class Biomes {
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
         water_color = water_color ?? DEFAULT_WATER_COLOR;
         const no_smooth_heightmap = true;
-        const biome = new Biome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, building_options);
+        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, building_options);
         this.list.push(biome);
         this.byName.set(title, biome);
         this.byID.set(biome.id, biome);
