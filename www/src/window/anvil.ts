@@ -4,7 +4,7 @@ import { INVENTORY_SLOT_SIZE, ITEM_LABEL_MAX_LENGTH } from "../constant.js";
 import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
-import {BLOCK} from "../blocks";
+import { BLOCK } from "../blocks.js";
 
 //
 class AnvilSlot extends CraftTableSlot {

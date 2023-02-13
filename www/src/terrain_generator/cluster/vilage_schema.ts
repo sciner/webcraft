@@ -9,8 +9,8 @@ for(let i = 0; i < randoms.length; i++) {
 }
 
 // Dev sandbox
-globalThis.DIR_HOR = 0;
-globalThis.DIR_VER = 1;
+const DIR_HOR = 0;
+const DIR_VER = 1;
 
 export class VilageSchema {
     [key: string]: any;

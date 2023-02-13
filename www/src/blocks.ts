@@ -100,7 +100,7 @@ export class FakeVertices {
 export class FakeTBlock {
     [key: string]: any;
 
-    constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome, dirt_color) {
+    constructor(id, extra_data?, pos?, rotate?, pivot?, matrix?, tags?, biome?, dirt_color?) {
         this.id = id;
         this.extra_data = extra_data;
         this.pos = pos;
@@ -1157,10 +1157,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры
-    static calcTexture(c, dir, tx_cnt) {
-        if(typeof tx_cnt == 'undefined') {
-            tx_cnt = TX_CNT;
-        }
+    static calcTexture(c, dir, tx_cnt = TX_CNT) {
         if (c instanceof Array) {
             // do nothing
         } else if(c instanceof Function) {
