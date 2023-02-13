@@ -4,6 +4,7 @@
         "noEmitOnError": false,
         "noUnusedLocals": false,
         "noUnusedParameters": false,
+        "importsNotUsedAsValues": "error",
         "removeComments": false,
         "sourceMap": false,
         "strict": false,
