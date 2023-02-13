@@ -5,6 +5,7 @@ import {impl as alea} from "../../vendors/alea.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from "../constant.js";
 import type { BlockManager } from "../blocks.js";
+import type { TBlock } from "../typed_blocks3.js";
 
 const {mat4} = glMatrix;
 
@@ -36,7 +37,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         let y = 0;
         let aabb = new AABB();
         const w = 1;

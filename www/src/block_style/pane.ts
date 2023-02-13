@@ -2,6 +2,7 @@ import { IndexedColor, Vector, DIRECTION } from '../helpers.js';
 import { default as default_style } from './default.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // Панель
 export default class style {
@@ -25,7 +26,7 @@ export default class style {
      * @param {*} neighbours 
      * @param {boolean} expanded 
      */
-    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const bm = style.block_manager
         const shapes = []
         const height = 1

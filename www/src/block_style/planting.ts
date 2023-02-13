@@ -7,6 +7,7 @@ import { default as default_style, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { GRASS_PALETTE_OFFSET } from '../constant.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -71,9 +72,9 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
 
-        const aabb_size = block.material.aabb_size || DEFAULT_AABB_SIZE;
+        const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE;
         aabb.set(0, 0, 0, 0, 0, 0)
         aabb
             .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
@@ -81,12 +82,12 @@ export default class style {
             .div(TX_SIZE);
 
         // Rotate
-        if(block.getCardinalDirection) {
-            let cardinal_direction = block.getCardinalDirection();
+        if(tblock.getCardinalDirection) {
+            let cardinal_direction = tblock.getCardinalDirection();
             let matrix = CubeSym.matrices[cardinal_direction];
             // on the ceil
-            if(block.rotate && block.rotate.y == -1) {
-                if(block.material.tags.includes('rotate_by_pos_n')) {
+            if(tblock.rotate && tblock.rotate.y == -1) {
+                if(tblock.material.tags.includes('rotate_by_pos_n')) {
                     aabb.translate(0, 1 - aabb.y_max, 0)
                 }
             }

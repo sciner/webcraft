@@ -1,6 +1,7 @@
 import { DIRECTION, Vector} from '../helpers.js';
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // кактус
 export default class style {
@@ -17,7 +18,7 @@ export default class style {
         }
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const aabb = new AABB()
         aabb.set(1/16, 0, 1/16, 15/16, 1, 15/16);
         return [aabb]

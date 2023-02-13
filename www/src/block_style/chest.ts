@@ -3,6 +3,7 @@ import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -21,12 +22,12 @@ export default class style {
         };
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const aabb = new AABB();
         aabb.set(1/16, 0, 1/16, 15/16, 14/16, 15/16);
-        const type = block.extra_data?.type;
+        const type = tblock.extra_data?.type;
         if (type) {
-            const dir = style.block_manager.getCardinalDirection(block.rotate);
+            const dir = style.block_manager.getCardinalDirection(tblock.rotate);
             const sign = type === 'left' ? 1 : -1;
             const len = for_physic ? 1/16 : 1;
             tmp_vec.set(len * sign, 0, 0);

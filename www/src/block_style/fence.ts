@@ -1,6 +1,7 @@
 import { DIRECTION, IndexedColor, ROTATE } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // Забор
 export default class style {
@@ -17,7 +18,7 @@ export default class style {
         };
     }
     
-    static computeAABB(tblock, for_physic, world, neighbours) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const bm = style.block_manager
         const shapes = []
         if(!world) {

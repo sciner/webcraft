@@ -3,6 +3,7 @@ import {BlockManager, FakeTBlock} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import {CubeSym} from "../core/CubeSym.js";
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -35,7 +36,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
 
         if(for_physic) {
             return [];
@@ -50,7 +51,7 @@ export default class style {
         const height    = 1;
 
         // Center
-        if(block.rotate.y == 0) {
+        if(tblock.rotate.y == 0) {
             const mul = 1.01;
             aabb = new AABB();
             aabb.set(
@@ -62,7 +63,7 @@ export default class style {
                 z + .5 + CONNECT_Z*mul/2,
             );
             const dist = -(.5 - aabb.depth / 2);
-            const dir = CubeSym.dirAdd(block.rotate.x, CubeSym.ROT_Y2);
+            const dir = CubeSym.dirAdd(tblock.rotate.x, CubeSym.ROT_Y2);
             aabb.rotate(dir, aabb.center);
             aabb.translate(cubeSymAxis[dir][0] * dist, -(.2 + aabb.height) / 2, cubeSymAxis[dir][1] * dist);
         } else {

@@ -2,6 +2,7 @@
 declare const Qubatch: any // GameClass // | ServerGame
 declare const UI_ZOOM: number
 declare const vt: any
+declare function randomUUID() : string
 
 //
 declare type float = number&{};
@@ -29,6 +30,15 @@ interface IChatCommand {
     name: int
     data: any,
     time: number,
+}
+
+interface IBlockItem {
+    id: int
+    extra_data?: any,
+    power?: number,
+    entity_id?: string,
+    rotate? : IVector,
+    count?: number,
 }
 
 interface Dict<ValueType=any> {

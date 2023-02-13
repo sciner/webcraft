@@ -7,6 +7,7 @@ import { AABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_ATLAS_SIZE } from '../constant.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat3} = glMatrix;
 
@@ -70,7 +71,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         let hw = 1 / 2;
         let sign_height = .05;
         aabb.set(

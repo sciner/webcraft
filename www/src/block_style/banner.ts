@@ -3,6 +3,7 @@ import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import {CubeSym} from "../core/CubeSym.js";
 import type {BlockManager} from "../blocks.js";
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -42,7 +43,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
 
         if(for_physic) {
             return [];
@@ -56,9 +57,9 @@ export default class style {
         const resp      = [];
         const width     = .5;
         const height    = 1;
-        const rotate    = block.rotate || Vector.ZERO;
+        const rotate    = tblock.rotate || Vector.ZERO;
 
-        const on_wall = (block.extra_data?.on_wall || rotate.y == 0) || false;
+        const on_wall = (tblock.extra_data?.on_wall || rotate.y == 0) || false;
 
         // Center
         if(on_wall) {

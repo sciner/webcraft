@@ -2,6 +2,7 @@ import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
 import {AABB} from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const WIDTH =  12 / 32;
 const HEIGHT = 14 / 32;
@@ -29,10 +30,10 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic, world, neighbours, expanded) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         let y = 0;
-        const is_bb_model = block.material?.bb
-        if(block.rotate.y == -1) {
+        const is_bb_model = tblock.material?.bb
+        if(tblock.rotate.y == -1) {
             if(is_bb_model) {
                 y += 1 - HEIGHT - HEIGHT_INNER - 3/16
             } else {

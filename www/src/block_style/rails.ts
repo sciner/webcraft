@@ -2,6 +2,7 @@ import { IndexedColor, DIRECTION } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { RailShape } from '../block_type/rail_shape.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // Рельсы
 export default class style {
@@ -18,12 +19,12 @@ export default class style {
         };
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         if(for_physic) {
             return [];
         }
         const aabb = new AABB();
-        if (RailShape.isTilted(block.extra_data.shape)) {
+        if (RailShape.isTilted(tblock.extra_data.shape)) {
             aabb.set(0, 0, 0, 1, 0.5, 1);
             return [aabb];
         } else {

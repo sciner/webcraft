@@ -1,6 +1,7 @@
 import { DIRECTION, IndexedColor } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // Наковальня
 export default class style {
@@ -17,9 +18,9 @@ export default class style {
         };
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const aabb = new AABB();
-        const cd = block.getCardinalDirection();
+        const cd = tblock.getCardinalDirection();
         if (cd == DIRECTION.WEST || cd == DIRECTION.EAST) {
            aabb.set(0.12, 0, 0, 0.88, 1, 1);
         } else {

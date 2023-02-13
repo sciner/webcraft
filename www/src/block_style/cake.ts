@@ -3,6 +3,7 @@ import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from '../constant.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -28,9 +29,9 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic, no_pad) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
 
-        const pieces = block?.extra_data?.pieces || 7;
+        const pieces = tblock?.extra_data?.pieces || 7;
         const percent = (pieces * 4) / SIZE;
 
         let w = WIDTH;

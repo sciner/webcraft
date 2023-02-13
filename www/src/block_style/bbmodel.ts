@@ -51,7 +51,7 @@ export default class style {
      * 
      * @returns {AABB[]}
      */
-    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
 
         const bb = tblock.material.bb
         const behavior = bb.behavior || bb.model.name

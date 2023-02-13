@@ -5,6 +5,7 @@ import {impl as alea} from "../../vendors/alea.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from "../constant.js";
 import type {BlockManager} from "../blocks.js";
+import type { TBlock } from "../typed_blocks3.js";
 
 const {mat4} = glMatrix;
 
@@ -35,14 +36,14 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
 
         let x = 0;
         let y = 0;
         let z = 0;
         let margin = for_physic ? 0 : 1/16;
 
-        _temp_shift_pos.copyFrom(block.posworld).subSelf(block.tb.coord);
+        _temp_shift_pos.copyFrom(tblock.posworld).subSelf(tblock.tb.coord);
 
         // Random shift
         const index = Math.abs(Math.round(_temp_shift_pos.x * CHUNK_SIZE_Z + _temp_shift_pos.z)) % 256;

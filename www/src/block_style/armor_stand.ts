@@ -5,6 +5,7 @@ import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -30,7 +31,7 @@ export default class style {
         };
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         if (for_physic) {
             return [];
         }

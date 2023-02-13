@@ -3,6 +3,7 @@ import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -21,25 +22,25 @@ export default class style {
         };
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const shapes = []
         if(for_physic) {
             return shapes
         }
-        if(block.extra_data) {
-            if (block.extra_data.north) {
+        if(tblock.extra_data) {
+            if (tblock.extra_data.north) {
                 shapes.push(new AABB(0, 0, 0.94, 1, 1, 1))
             }
-            if (block.extra_data.south) {
+            if (tblock.extra_data.south) {
                 shapes.push(new AABB(0, 0, 0, 1, 1, 0.06))
             }
-            if (block.extra_data.west) {
+            if (tblock.extra_data.west) {
                 shapes.push(new AABB(0, 0, 0, 0.06, 1, 1))
             }
-            if (block.extra_data.east) {
+            if (tblock.extra_data.east) {
                 shapes.push(new AABB(0.94, 0, 0, 1, 1, 1))
             }
-            if (block.extra_data.up) {
+            if (tblock.extra_data.up) {
                 shapes.push(new AABB(0, 0, 0, 1, 0.06, 1))
             }
         }

@@ -2,6 +2,7 @@ import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {pushSym} from '../core/CubeSym.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // Люк
 export default class style {
@@ -18,7 +19,7 @@ export default class style {
         };
     }
 
-    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const bm = style.block_manager
         const shapes = []
         const cardinal_direction = tblock.getCardinalDirection()

@@ -5,6 +5,7 @@ import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -35,13 +36,13 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const aabb = new AABB().set(0, 0, 0, 1, .1, 1)
-        const cardinal_direction = block.getCardinalDirection();
+        const cardinal_direction = tblock.getCardinalDirection();
         const matrix = CubeSym.matrices[cardinal_direction]
         // on the ceil
-        if(block.rotate && block.rotate.y == -1) {
-            if(block.material.tags.includes('rotate_by_pos_n')) {
+        if(tblock.rotate && tblock.rotate.y == -1) {
+            if(tblock.material.tags.includes('rotate_by_pos_n')) {
                 aabb.translate(0, 1 - aabb.y_max, 0)
             }
         }

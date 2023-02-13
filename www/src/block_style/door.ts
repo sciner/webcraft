@@ -2,6 +2,7 @@ import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {CubeSym, pushSym} from '../core/CubeSym.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const Z_FIGHT_ERROR = 1/200;
 
@@ -20,14 +21,7 @@ export default class style {
         };
     }
 
-    /**
-     * @param {TBlock} tblock 
-     * @param {boolean} for_physic 
-     * @param {*} world 
-     * @param {*} neighbours 
-     * @param {boolean} expanded 
-     */
-    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         let cardinal_direction = CubeSym.dirAdd(tblock.getCardinalDirection(), CubeSym.ROT_Y2);
         if(style.block_manager.isOpened(tblock)) {
             cardinal_direction = CubeSym.dirAdd(cardinal_direction, tblock.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);

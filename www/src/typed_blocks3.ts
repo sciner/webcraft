@@ -42,7 +42,7 @@ export class BlockNeighbours {
 // VectorCollector...
 export class VectorCollector1D {
     [key: string]: any;
-    constructor(dims, list) {
+    constructor(dims, list?) {
         this.dims = dims;
         this.sy = dims.x * dims.z;
         this.sz = dims.x;
@@ -114,7 +114,7 @@ export class VectorCollector1D {
 export class TypedBlocks3 {
     [key: string]: any;
 
-    constructor(coord, chunkSize) {
+    constructor(coord : Vector, chunkSize: Vector) {
         this.addr       = getChunkAddr(coord);
         this.coord      = coord;
         this.chunkSize  = chunkSize;
@@ -155,7 +155,7 @@ export class TypedBlocks3 {
     getNeightboursChunks(world) {
         const {dataChunk, addr} = this;
         let nc = {};
-        for (let i=0;i<dataChunk.portals.length;i++) {
+        for (let i = 0; i < dataChunk.portals.length; i++) {
             if (dataChunk.portals[i].volume > 8) {
                 const other = dataChunk.portals[i].toRegion.rev.pos;
                 if (addr.x < this.addr.x) {
@@ -178,7 +178,6 @@ export class TypedBlocks3 {
                 }
             }
         }
-
         return nc;
     }
 
@@ -474,7 +473,7 @@ export class TypedBlocks3 {
         }
     }
 
-    setBlockId(x, y, z, id) {
+    setBlockId(x : int, y : int, z : int, id : int) {
         const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         this.id[index] = id;
@@ -804,7 +803,9 @@ export class DataWorld {
 export class TBlock {
     [key: string]: any;
 
-    constructor(tb, vec, index) {
+    tb : TypedBlocks3
+
+    constructor(tb : TypedBlocks3, vec : Vector, index? : int) {
         this.init(tb, vec, index);
     }
 
@@ -834,7 +835,7 @@ export class TBlock {
     // Clones essential data as POJO.
     // The result can be used in WorldAction.addBlocks() to create/modify the same block
     clonePOJO() {
-        let res = { id: this.id };
+        let res : IBlockItem = { id: this.id };
         if (res.id) {  // AIR blocks are very common, they don't have properties
             if (BLOCK.BLOCK_BY_ID[res.id]?.can_rotate && this.rotate) {
                 res.rotate = { ...this.rotate };
@@ -857,7 +858,7 @@ export class TBlock {
         return res;
     }
 
-    get posworld() {
+    get posworld() : Vector {
         return this.vec.add(this.tb.coord);
     }
 
@@ -865,7 +866,7 @@ export class TBlock {
         return this.tb.addr;
     }
 
-    get has_oxygen() {
+    get has_oxygen() : boolean {
         if(!this.material.has_oxygen) {
             return false;
         }
@@ -876,15 +877,15 @@ export class TBlock {
     }
 
     //
-    get pos() {
+    get pos() : Vector {
         return this.vec;
     }
 
     //
-    get id() {
+    get id() : int {
         return this.tb.id[this.index];
     }
-    set id(value) {
+    set id(value: int) {
         // let cu = this.tb.id[this.index];
         // this.tb.non_zero += (!cu && value) ? 1 : ((cu && !value) ? -1 : 0);
         this.tb.setBlockId(this.vec.x, this.vec.y, this.vec.z, value);
@@ -932,7 +933,10 @@ export class TBlock {
         return resp;
     }
     set power(value) {
-        if(value) return this.tb.power.set(this.vec, value);
+        if(value) {
+            this.tb.power.set(this.vec, value)
+            return
+        }
         this.tb.power.delete(this.vec);
     }
 
@@ -941,7 +945,10 @@ export class TBlock {
         return this.tb.rotate.get(this.vec);
     }
     set rotate(value) {
-        if(value) return this.tb.rotate.set(this.vec, value);
+        if(value) {
+            this.tb.rotate.set(this.vec, value)
+            return
+        }
         this.tb.rotate.delete(this.vec);
     }
 
@@ -950,7 +957,10 @@ export class TBlock {
         return this.tb.entity_id.get(this.vec);
     }
     set entity_id(value) {
-        if(value) return this.tb.entity_id.set(this.vec, value);
+        if(value) {
+            this.tb.entity_id.set(this.vec, value)
+            return
+        }
         this.tb.entity_id.delete(this.vec);
     }
 
@@ -959,7 +969,10 @@ export class TBlock {
         return this.tb.texture.get(this.vec);
     }
     set texture(value) {
-        if(value) return this.tb.texture.set(this.vec, value);
+        if(value) {
+            this.tb.texture.set(this.vec, value)
+            return
+        }
         this.tb.texture.delete(this.vec);
     }
 
@@ -968,7 +981,10 @@ export class TBlock {
         return this.tb.extra_data.get(this.vec);
     }
     set extra_data(value) {
-        if(value) return this.tb.extra_data.set(this.vec, value);
+        if(value) {
+            this.tb.extra_data.set(this.vec, value)
+            return
+        }
         this.tb.extra_data.delete(this.vec);
     }
 
@@ -977,7 +993,10 @@ export class TBlock {
         return this.tb.falling.get(this.vec);
     }
     set falling(value) {
-        if(value) return this.tb.falling.set(this.vec, value);
+        if(value) {
+            this.tb.falling.set(this.vec, value)
+            return
+        }
         this.tb.falling.delete(this.vec);
     }
 
@@ -986,7 +1005,10 @@ export class TBlock {
         return this.tb.vertices.get(this.vec);
     }
     set vertices(value) {
-        if(value !== null) return this.tb.vertices.set(this.vec, value);
+        if(value !== null) {
+            this.tb.vertices.set(this.vec, value)
+            return
+        }
         this.tb.vertices.delete(this.vec);
     }
 
@@ -995,7 +1017,10 @@ export class TBlock {
         return this.tb.shapes.get(this.vec);
     }
     set shapes(value) {
-        if(value) return this.tb.shapes.set(this.vec, value);
+        if(value) {
+            this.tb.shapes.set(this.vec, value)
+            return
+        }
         this.tb.shapes.delete(this.vec);
     }
 
@@ -1028,7 +1053,10 @@ export class TBlock {
         return this.tb.position.get(this.vec);
     }
     set position(value) {
-        if(value) return this.tb.position.set(this.vec, value);
+        if(value) {
+            this.tb.position.set(this.vec, value)
+            return
+        }
         this.tb.position.delete(this.vec);
     }
     get metadata() {

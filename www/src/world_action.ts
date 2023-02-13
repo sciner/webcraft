@@ -257,7 +257,7 @@ function makeDropItem(block, item) {
  *
  * @returns {object[]} dropped blocks
  */
-export function dropBlock(player, tblock, actions, force, current_inventory_item) {
+export function dropBlock(player, tblock, actions, force, current_inventory_item? : any) {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
@@ -266,23 +266,23 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
         return [];
     }
 
-    const instrument = current_inventory_item ? current_inventory_item.id : null;
+    const instrument_block_id : number | null = current_inventory_item ? current_inventory_item.id : null;
 
-    const checkInstrument = (item, drop) => {
+    const checkInstrument = (block_id : int, drop) => {
         if (!drop?.instrument) {
             return true
         }
-        if (!item) {
+        if (!block_id) {
             return false
         }
-        const name = BLOCK.fromId(item).name
+        const name = BLOCK.fromId(block_id).name
         return drop.instrument.includes(name) || drop.instrument.find(el => name.endsWith(el)) != null
     }
     const drop_item = tblock.material.drop_item;
     // новый функционал
     if (Array.isArray(drop_item)) {
         for (const drop of drop_item) {
-            if (drop && checkInstrument(instrument, drop)) {
+            if (drop && checkInstrument(instrument_block_id, drop)) {
                 const block = BLOCK.fromName(drop?.name);
                 const chance = drop.chance ?? 1;
                 if(Math.random() < chance) {
@@ -381,7 +381,7 @@ class DestroyBlocks {
             return false;
         }
         cv.add(tblock.posworld, true);
-        const destroyed_block = {pos: tblock.posworld, item: {id: BLOCK.AIR.id}, destroy_block: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY}
+        const destroyed_block = {pos: tblock.posworld, item: {id: BLOCK.AIR.id}, destroy_block: {id: tblock.id} as IBlockItem, action_id: ServerClient.BLOCK_ACTION_DESTROY}
         if(tblock.extra_data) {
             destroyed_block.destroy_block.extra_data = tblock.extra_data
         }
@@ -660,7 +660,7 @@ export class WorldAction {
                 pos: pos,
                 items: [
                     // @todo need to calculate drop item ID and count
-                    { id: mat.id, count: 1 }
+                    { id: mat.id, count: 1 } as IBlockItem
                 ]
             }
             if(mat.chest) {
@@ -855,7 +855,7 @@ export class WorldAction {
  * @param {boolean} check_opposite
  * @returns
  */
-function simplifyPos(world, pos, mat, to_top, check_opposite = true) {
+function simplifyPos(world, pos, mat, to_top, check_opposite : boolean = true) {
     if(pos.n.y === 0 && !mat.layering && !mat.tags.includes('rotate_by_pos_n') && !mat.tags.includes('rotate_by_pos_n_5') && !mat.tags.includes('rotate_by_pos_n_6') && !mat.tags.includes('rotate_by_pos_n_xyz') && !mat.tags.includes('trapdoor') && !mat.tags.includes('stairs')) {
         const side_y = to_top ? -1 : 1
         const tblock = world.getBlock(new Vector(pos).addScalarSelf(pos.n.x, side_y, pos.n.z))
@@ -1083,7 +1083,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
 
             // Create block
-            const new_item = {
+            const new_item : IBlockItem = {
                 id: mat_block.id,
                 rotate: orientation
             };
@@ -1461,7 +1461,7 @@ async function putInBucket(e, world, pos, player, world_block, world_material, m
         // get filled bucket
         const filled_bucket = BLOCK.fromName(world_material.put_in_bucket);
         if(filled_bucket) {
-            const item = {
+            const item : IBlockItem = {
                 id: filled_bucket.id,
                 count: 1
             };
@@ -1868,7 +1868,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
                 if(height > 2) {
                     // Блок портала
-                    const portal_block = {
+                    const portal_block : IBlockItem = {
                         id: BLOCK.NETHER_PORTAL.id,
                         rotate: new Vector(
                             (right_dir == DIRECTION.EAST) ? DIRECTION.SOUTH : DIRECTION.EAST,
@@ -1946,18 +1946,18 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
     // поджигаем блок
     const air_block = world.getBlock(position);
     if (pos.n.y != -1 && air_block.id == BLOCK.AIR.id && air_block.fluid == 0) {
-        const data = {age: 0};
+        const extra_data : any = {age: 0};
         let block = world.getBlock(position.offset(1, 0, 0));
-        data.east = (block?.material?.flammable) ? true : false;
+        extra_data.east = (block?.material?.flammable) ? true : false;
         block = world.getBlock(position.offset(-1, 0, 0));
-        data.west = (block?.material?.flammable) ? true : false;
+        extra_data.west = (block?.material?.flammable) ? true : false;
         block = world.getBlock(position.offset(0, 0, 1));
-        data.north = (block?.material?.flammable) ? true : false;
+        extra_data.north = (block?.material?.flammable) ? true : false;
         block = world.getBlock(position.offset(0, 0, -1));
-        data.south = (block?.material?.flammable) ? true : false;
+        extra_data.south = (block?.material?.flammable) ? true : false;
         block = world.getBlock(position.offset(0, -1, 0));
-        data.up = (block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id) ? true : false;
-        actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        extra_data.up = (block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id) ? true : false;
+        actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
         return true;
     }
 
@@ -2036,7 +2036,7 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
         actions.decrement = true;
         actions.addBlocks([{pos: block.posworld, item: {id: block.id, extra_data: block.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     } else if (world_block.id != mat_block.id){
-        const data = {};
+        const data : any = {};
         if (pos.n.y == 1) {
             data.up = true;
         }

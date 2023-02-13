@@ -25,14 +25,7 @@ export default class style {
         };
     }
 
-    /**
-     * @param {TBlock} tblock
-     * @param {boolean} for_physic
-     * @param {*} world
-     * @param {*} neighbours
-     * @param {boolean} expanded
-     */
-    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const bm                = style.block_manager
         const CENTER_WIDTH      = 8 / 16
         const CONNECT_HEIGHT    = 14 / 16

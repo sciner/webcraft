@@ -21,7 +21,7 @@ export default class style {
         };
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const aabb = new AABB();
         aabb.set(0.25, 0, 0.25, 0.75, 1, 0.75);
         return [aabb];

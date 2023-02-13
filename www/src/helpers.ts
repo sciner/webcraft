@@ -722,7 +722,7 @@ export class VectorCollector {
         }
     }
 
-    entries(aabb: AABB) {
+    entries(aabb?: AABB) {
         const that = this;
         return (function* () {
             if(that.size == 0) {

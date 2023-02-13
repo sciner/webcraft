@@ -2,6 +2,7 @@ import { DIRECTION, Vector, IndexedColor, QUAD_FLAGS } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // Cauldron
 export default class style {
@@ -19,7 +20,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic, no_pad) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const aabb = new AABB();
         aabb.set( 0, 0, 0, 1, 1, 1);
         return [aabb];

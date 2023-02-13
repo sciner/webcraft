@@ -1,6 +1,7 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // поверхность
 export default class style {
@@ -17,38 +18,38 @@ export default class style {
         };
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         if (for_physic) {
             return [];
         }
         const shapes = [];
-        if(block.extra_data) {
-            if (block.extra_data.south) {
+        if(tblock.extra_data) {
+            if (tblock.extra_data.south) {
                 shapes.push(new AABB().set(0, 0, 0.9, 1, 1, 1));
             }
-            if (block.extra_data.north) {
+            if (tblock.extra_data.north) {
                 shapes.push(new AABB().set(0, 0, 0, 1, 1, 0.1));
             }
-            if (block.extra_data.east) {
+            if (tblock.extra_data.east) {
                 shapes.push(new AABB().set(0, 0, 0, 0.1, 1, 1));
             }
-            if (block.extra_data.west) {
+            if (tblock.extra_data.west) {
                 shapes.push(new AABB().set(0.9, 0, 0, 1, 1, 1));
             }
-            if (block.extra_data.down) {
+            if (tblock.extra_data.down) {
                 shapes.push(new AABB().set(0, 0.9, 0, 1, 1, 1));
             }
-            if (block.extra_data.up) {
+            if (tblock.extra_data.up) {
                 shapes.push(new AABB().set(0, 0, 0, 1, 0.1, 1));
             }
-        } else if (block.rotate) {
-            if (block.rotate.x == DIRECTION.SOUTH) {
+        } else if (tblock.rotate) {
+            if (tblock.rotate.x == DIRECTION.SOUTH) {
                 shapes.push(new AABB().set(0, 0, 0.9, 1, 1, 1));
-            } else if (block.rotate.x == DIRECTION.NORTH) {
+            } else if (tblock.rotate.x == DIRECTION.NORTH) {
                 shapes.push(new AABB().set(0, 0, 0, 1, 1, 0.1));
-            } else if (block.rotate.x == DIRECTION.EAST) {
+            } else if (tblock.rotate.x == DIRECTION.EAST) {
                 shapes.push(new AABB().set(0, 0, 0, 0.1, 1, 1));
-            } else if (block.rotate.x == DIRECTION.WEST) {
+            } else if (tblock.rotate.x == DIRECTION.WEST) {
                 shapes.push(new AABB().set(0.9, 0, 0, 1, 1, 1));
             }
         }

@@ -3,6 +3,7 @@ import {AABB} from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const WIDTH =  16 / 32;
 const HEIGHT = 20 / 32;
@@ -27,7 +28,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         let y = 1 - .85;
         let aabb = new AABB();
         aabb.set(
@@ -38,7 +39,7 @@ export default class style {
             y + HEIGHT,
             0 + .5 + WIDTH / 2,
         );
-        const a = ((block.rotate.x - 1) / 4) * (2 * Math.PI);
+        const a = ((tblock.rotate.x - 1) / 4) * (2 * Math.PI);
         aabb.translate(.22 * Math.cos(a), 0, .22 * Math.sin(a));
         return [aabb];
     }

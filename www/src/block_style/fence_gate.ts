@@ -1,6 +1,7 @@
 import {DIRECTION, IndexedColor} from '../helpers.js';
 import {AABB} from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const SIZE = 1 / 16;
 
@@ -20,9 +21,9 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const aabb = new AABB();
-        const cardinal_direction = block.getCardinalDirection();
+        const cardinal_direction = tblock.getCardinalDirection();
         if (!for_physic) {
             if (cardinal_direction == DIRECTION.WEST || cardinal_direction == DIRECTION.EAST) {
                 aabb.set(6 * SIZE, 4 * SIZE, 0, 10 * SIZE, 16 * SIZE, 16 * SIZE);
@@ -30,7 +31,7 @@ export default class style {
                 aabb.set(0, 4 * SIZE, 6 * SIZE, 16 * SIZE, 16 * SIZE, 10 * SIZE);
             }
         } else {
-            if (!block.extra_data.opened) {
+            if (!tblock.extra_data.opened) {
                 if (cardinal_direction == DIRECTION.WEST || cardinal_direction == DIRECTION.EAST) {
                     aabb.set(6 * SIZE, 0, 0, 10 * SIZE, 25 * SIZE, 16 * SIZE);
                 } else {

@@ -2,6 +2,7 @@ import {DIRECTION, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { CubeSym } from "../core/CubeSym.js";
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const width = 1;
 const height = .5;
@@ -22,7 +23,7 @@ export default class style {
         };
     }
 
-    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const f = !!expanded ? .001 : 0;
         return style
             .calculate(tblock, tblock.posworld, neighbours, world.chunkManager)

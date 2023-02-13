@@ -3,6 +3,7 @@ import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 const pivot = {x: 0.5, y: 0.5, z: 0.5};
@@ -22,12 +23,12 @@ export default class style {
         };
     }
     
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         let aabb = new AABB().set(2/16, 0, 2/16, 14/16, 26/16, 14/16);
         if(for_physic) {
             aabb.y_max = 11/16;
         }
-        if (block?.extra_data?.is_head) {
+        if (tblock?.extra_data?.is_head) {
             aabb.translate(0, -1, 0);
         }
         return [aabb]

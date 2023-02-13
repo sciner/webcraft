@@ -2,6 +2,7 @@ import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import {Resources} from "../resources.js";
 import { Vector } from '../helpers.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 Resources.loadPainting();
 
@@ -21,9 +22,9 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
 
-        if(for_physic || !block) {
+        if(for_physic || !tblock) {
             return [];
         }
 
@@ -46,9 +47,9 @@ export default class style {
             z + .5 + depth/2
         );
 
-        if(block.extra_data) {
-            aabb.set(...block.extra_data.aabb)
-                .translate(-block.posworld.x, -block.posworld.y, -block.posworld.z);
+        if(tblock.extra_data) {
+            aabb.set(...tblock.extra_data.aabb)
+                .translate(-tblock.posworld.x, -tblock.posworld.y, -tblock.posworld.z);
         }
 
         //

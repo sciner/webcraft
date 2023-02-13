@@ -1,5 +1,6 @@
 import type { BlockManager } from '../blocks.js';
 import { AABB } from '../core/AABB.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 export default class style {
     [key: string]: any;
@@ -15,7 +16,7 @@ export default class style {
         };
     }
 
-    static computeAABB(block, for_physic) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);
         return [aabb];

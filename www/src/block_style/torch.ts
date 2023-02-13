@@ -4,6 +4,7 @@ import { AABB } from '../core/AABB.js';
 import { DIRECTION, QUAD_FLAGS, IndexedColor, Vector } from '../helpers.js';
 import { default as default_style } from './default.js';
 import type { BlockManager } from "../blocks.js";
+import type { TBlock } from "../typed_blocks3.js";
 
 const { mat3 } = glMatrix;
 
@@ -35,10 +36,10 @@ export default class style {
         };
     }
 
-    static computeAABB(block) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const {
             rotate
-        } = block;
+        } = tblock;
 
         const h = 2 / 16;
         let torch_height = 10/16;

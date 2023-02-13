@@ -9,6 +9,7 @@ import { default as default_style } from './default.js';
 import { GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -78,19 +79,19 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block, for_physic) {
-        const material = block.material;
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+        const material = tblock.material;
         let width = material.width ? material.width : 1;
         let height = material.height ? material.height : 1;
         let depth = material.depth ? material.depth : width;
 
-        if(for_physic && block.id == style.block_manager.SOUL_SAND.id) {
+        if(for_physic && tblock.id == style.block_manager.SOUL_SAND.id) {
             height = 14/16;
         }
 
         // Button
         if(material.is_button) {
-            if(block.extra_data?.pressed) {
+            if(tblock.extra_data?.pressed) {
                 height /= 2;
             }
         }
@@ -101,11 +102,11 @@ export default class style {
 
         // Высота наслаеваемых блоков хранится в extra_data
         if(material.is_layering) {
-            if(block.extra_data) {
-                height = block.extra_data?.height || height;
+            if(tblock.extra_data) {
+                height = tblock.extra_data?.height || height;
             }
             if(material.layering.slab) {
-                if(style.isOnCeil(block)) {
+                if(style.isOnCeil(tblock)) {
                     y += material.layering.height;
                 }
             }
@@ -123,12 +124,12 @@ export default class style {
         );
 
         //
-        if(block.getCardinalDirection) {
-            const cardinal_direction = block.getCardinalDirection();
+        if(tblock.getCardinalDirection) {
+            const cardinal_direction = tblock.getCardinalDirection();
             const matrix = CubeSym.matrices[cardinal_direction];
             // on the ceil
-            if(block.rotate && block.rotate.y == -1) {
-                if(block.material.tags.includes('rotate_by_pos_n')) {
+            if(tblock.rotate && tblock.rotate.y == -1) {
+                if(tblock.material.tags.includes('rotate_by_pos_n')) {
                     aabb.translate(0, 1 - aabb.y_max, 0)
                 }
             }

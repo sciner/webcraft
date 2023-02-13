@@ -3,6 +3,7 @@ import { CubeSym } from '../core/CubeSym.js';
 import { WorldPortal } from '../portal.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import type { TBlock } from '../typed_blocks3.js';
 
 // Панель
 export default class style {
@@ -19,14 +20,7 @@ export default class style {
         };
     }
 
-    /**
-     * @param {TBlock} tblock 
-     * @param {boolean} for_physic 
-     * @param {*} world 
-     * @param {*} neighbours 
-     * @param {boolean} expanded 
-     */
-    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
         const shapes = [] // x1 y1 z1 x2 y2 z2
         const material = tblock.material
         // F R B L

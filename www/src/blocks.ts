@@ -55,7 +55,7 @@ export let NEIGHB_BY_SYM = {};
 export class DBItemBlock {
     [key: string]: any;
 
-    constructor(id, extra_data) {
+    constructor(id : int, extra_data? : any) {
         this.id = id
         if(extra_data) {
             this.extra_data = null
@@ -65,7 +65,7 @@ export class DBItemBlock {
     /**
      * @return {DBItemBlock}
      */
-    static cloneFrom(block) {
+    static cloneFrom(block: { [x: string]: any }): DBItemBlock {
         const result = new DBItemBlock(block.id)
         for(let k in block)  {
             result[k] = block[k]
@@ -675,7 +675,7 @@ export class BLOCK {
     }
 
     // Can replace
-    static canReplace(block_id, extra_data, replace_with_block_id) {
+    static canReplace(block_id : int, extra_data : any, replace_with_block_id? : int) : boolean {
         if(block_id == 0) {
             return true;
         }
