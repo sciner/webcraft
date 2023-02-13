@@ -29,3 +29,7 @@ interface IChatCommand {
     data: any,
     time: number,
 }
+
+interface Dict<ValueType=any> {
+    [key: string]: ValueType
+}

@@ -1,5 +1,4 @@
 import {API_Client} from './api.js';
-import {} from './clipboard.js';
 import {Helpers} from '../helpers.js';
 
 export class UIApp {
@@ -17,8 +16,8 @@ export class UIApp {
 
     // Minecraft compatibility seed
     GenerateSeed(value) {
-        let isInt = !isNaN(value) && 
-                   parseInt(Number(value)) == value && 
+        let isInt = !isNaN(value) &&
+                   Math.trunc(Number(value)) == value &&
                    !isNaN(parseInt(value, 10));
         if(isInt) {
             return value + '';
@@ -186,17 +185,6 @@ export class UIApp {
     async Gamemodes(form, callback, callback_error, callback_progress, callback_final) {
         let result = null;
         await this.api.call(this, '/api/Game/Gamemodes', form, (resp) => {
-            result = resp;
-            if(callback) {
-                callback(result);
-            }
-        }, callback_error, callback_progress, callback_final);
-        return result;
-    }
-
-    async UploadSkin(form, callback, callback_error, callback_progress, callback_final) {
-        let result = null;
-        await this.api.call(this, '/api/Skin/Upload', form, (resp) => {
             result = resp;
             if(callback) {
                 callback(result);

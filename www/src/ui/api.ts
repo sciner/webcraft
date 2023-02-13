@@ -1,8 +1,8 @@
 export class API_Client {
     [key: string]: any;
 
-    constructor(api_url) {
-        this.api_url = api_url || '';
+    constructor(api_url = '') {
+        this.api_url = api_url;
     }
 
     // Организует вызов API, обработку ответа и вызов callback-функции
@@ -25,7 +25,7 @@ export class API_Client {
             method:                 'POST',
             headers:                headers,
             body:                   data instanceof FormData ? data : JSON.stringify(data),
-            uploadEventHandlers:    {}
+            uploadEventHandlers:    {} as Dict
         };
         if(callback_progress instanceof Function) {
             options.uploadEventHandlers.progress = callback_progress;

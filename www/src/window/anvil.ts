@@ -4,6 +4,7 @@ import { INVENTORY_SLOT_SIZE, ITEM_LABEL_MAX_LENGTH } from "../constant.js";
 import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
+import {BLOCK} from "../blocks";
 
 //
 class AnvilSlot extends CraftTableSlot {
@@ -22,7 +23,7 @@ class AnvilSlot extends CraftTableSlot {
         this.style.background.color = '#00000000';
     }
 
-    onMouseDown(e) { 
+    onMouseDown(e) {
         const ct = this.ct
         const dragItem = this.getItem()
         if (!dragItem) {
@@ -67,9 +68,9 @@ export class AnvilWindow extends BaseCraftWindow {
     [key: string]: any;
 
     constructor(inventory) {
-        
+
         super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
-        
+
         this.w *= this.zoom;
         this.h *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
@@ -87,19 +88,19 @@ export class AnvilWindow extends BaseCraftWindow {
 
             // Add labels to window
             this.add(new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Repair & Name'))
-    
+
             // Ширина / высота слота
             this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
-            
+
              // Создание слотов для инвентаря
             this.createInventorySlots(this.cell_size)
-    
+
             // Создание слотов для крафта
             this.createCraft(this.cell_size);
-    
+
             // Редактор названия предмета
             this.createEdit()
-    
+
             // Add close button
             this.loadCloseButtonImage((image) => {
                 // Add buttons
@@ -117,7 +118,7 @@ export class AnvilWindow extends BaseCraftWindow {
         })
 
     }
-        
+
     // Обработчик закрытия формы
     onHide() {
         this.clearCraft()
@@ -125,7 +126,7 @@ export class AnvilWindow extends BaseCraftWindow {
         Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.used_recipes, 'anvil')
         this.used_recipes = []
     }
-    
+
     // Обработчик открытия формы
     onShow() {
         this.lbl_edit.text = ''
@@ -136,7 +137,7 @@ export class AnvilWindow extends BaseCraftWindow {
     onPaste(str) {
         this.lbl_edit.paste(str)
     }
-    
+
     async createEdit() {
 
         this.lbl_edit = new TextEdit(118 * this.zoom, 40 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'lbl_edit', null, 'Hello, World!')
@@ -154,7 +155,7 @@ export class AnvilWindow extends BaseCraftWindow {
         this.lbl_edit.style.background.color = '#00000000'
         this.lbl_edit.onChange = this.updateResult.bind(this)
         this.add(this.lbl_edit)
-        
+
     }
 
     createCraft(cell_size) {
@@ -210,7 +211,7 @@ export class AnvilWindow extends BaseCraftWindow {
             label: this.current_recipe_label
         });
     }
-    
+
     draw(ctx, ax, ay) {
         super.draw(ctx, ax, ay);
         if(this.result_slot.getItem() == null) {
@@ -231,7 +232,7 @@ export class AnvilWindow extends BaseCraftWindow {
                 );
             }
         }
-        
+
     }
-    
+
 }

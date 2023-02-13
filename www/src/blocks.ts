@@ -230,6 +230,7 @@ export function getBlockNeighbours(world, pos) {
 
 export class BLOCK {
     [key: string]: any;
+    static [key: string]: any;
 
     static list                             = new Map();
     static styles                           = new Map();
@@ -1494,5 +1495,7 @@ BLOCK.init = async function(settings) {
         }
     });
 };
+
+export type BlockManager = typeof BLOCK;
 
 const AIR_BLOCK_STRINGIFIED = '{"id":0}';

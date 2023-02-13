@@ -1,3 +1,4 @@
+import { BLOCK } from '../../blocks.js';
 import { Vector } from "../../helpers.js";
 import { alea } from "../default.js";
 import { DENSITY_AIR_THRESHOLD } from "./terrain/manager.js";
@@ -33,7 +34,7 @@ export class Aquifera {
     [key: string]: any;
 
     /**
-     * @param {Vector} coord 
+     * @param {Vector} coord
      */
     constructor(coord) {
         this.options = {
@@ -72,10 +73,10 @@ export class Aquifera {
     }
 
     /**
-     * @param {Vector} xyz 
-     * @param {*} n3d 
+     * @param {Vector} xyz
+     * @param {*} n3d
      * @param {AquiferaParams} out_params
-     * 
+     *
      * @returns {boolean}
      */
     calcInside(xyz, out_params) {
