@@ -1,7 +1,6 @@
-import { ServerClient } from "../../../www/js/server_client.js";
+import { ServerClient } from '../../../www/js/server_client.js';
 
 export default class packet_reader {
-
     // must be put to queue
     static get queue() {
         return true;
@@ -12,10 +11,9 @@ export default class packet_reader {
         return ServerClient.CMD_INVENTORY_SELECT;
     }
 
-    // 
+    //
     static async read(player, packet) {
         player.inventory.setIndexes(packet.data, false);
         return true;
     }
-
 }

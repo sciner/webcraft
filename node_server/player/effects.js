@@ -1,27 +1,22 @@
-import { ServerClient } from "../../www/js/server_client.js";
+import { ServerClient } from '../../www/js/server_client.js';
 
 const MUL_TICK_SECONDS = 20;
 
 export class ServerPlayerEffects {
-    
     constructor(player) {
         this.player = player;
         this.world = player.world;
         this.effects = [];
     }
-    
-    load() {
-    
-    }
-    
-    save() {
-    
-    }
+
+    load() {}
+
+    save() {}
 
     /*
-    * Удаляем еффекты
-    * id - id эффекта
-    */
+     * Удаляем еффекты
+     * id - id эффекта
+     */
     delEffects(id) {
         for (const eff of this.effects) {
             if (eff.id == id || id == -1) {
@@ -30,11 +25,11 @@ export class ServerPlayerEffects {
             }
         }
     }
-   
-   /*
-    * Добавляет новый еффект на игрока
-    * effects - массив эффектов
-    */
+
+    /*
+     * Добавляет новый еффект на игрока
+     * effects - массив эффектов
+     */
     addEffects(effects, ret = false) {
         const player = this.player;
         const world = player.world;
@@ -42,7 +37,10 @@ export class ServerPlayerEffects {
             let add = true;
             for (const eff of this.effects) {
                 if (eff.id == effect.id) {
-                    eff.time = Math.max(eff.time, effect.time * MUL_TICK_SECONDS);
+                    eff.time = Math.max(
+                        eff.time,
+                        effect.time * MUL_TICK_SECONDS,
+                    );
                     eff.level = Math.max(eff.level, effect.level);
                     add = false;
                     break;
@@ -52,17 +50,20 @@ export class ServerPlayerEffects {
                 this.effects.push({
                     id: effect.id,
                     time: effect.time * MUL_TICK_SECONDS,
-                    level: effect.level
+                    level: effect.level,
                 });
             }
         }
-        const packet = { name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}
-        if(ret) {
-            return packet
+        const packet = {
+            name: ServerClient.CMD_EFFECTS_STATE,
+            data: { effects: this.effects },
+        };
+        if (ret) {
+            return packet;
         }
         world.sendSelected([packet], player);
     }
-    
+
     // проверка времени наложенных эффектов
     checkEffects() {
         const player = this.player;
@@ -78,14 +79,22 @@ export class ServerPlayerEffects {
         }
         if (send) {
             // @todo пока тут проверям конец, потом перикунуть на клиент
-           world.sendSelected([{ name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}], player);
+            world.sendSelected(
+                [
+                    {
+                        name: ServerClient.CMD_EFFECTS_STATE,
+                        data: { effects: this.effects },
+                    },
+                ],
+                player,
+            );
         }
     }
-    
-     /*
-    * Проверям наличие эффекта
-    * val - сам эффект
-    */
+
+    /*
+     * Проверям наличие эффекта
+     * val - сам эффект
+     */
     getEffectLevel(val) {
         for (const effect of this.effects) {
             if (effect.id == val) {
@@ -94,5 +103,4 @@ export class ServerPlayerEffects {
         }
         return 0;
     }
-    
 }

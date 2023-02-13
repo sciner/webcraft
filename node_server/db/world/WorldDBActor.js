@@ -1,15 +1,22 @@
-import { getChunkAddr, unixTime, Vector, VectorCollector } from "../../../www/js/helpers.js";
-import { Transaction } from "../db_helpers.js";
-import { ChunkDBActor, BLOCK_DIRTY } from "./ChunkDBActor.js";
-import { WORLD_TRANSACTION_PERIOD, CLEANUP_WORLD_MODIFY_PER_TRANSACTION, 
-    WORLD_MODIFY_CHUNKS_PER_TRANSACTION } from "../../server_constant.js";
-import { WorldTickStat } from "../../world/tick_stat.js";
+import {
+    getChunkAddr,
+    unixTime,
+    Vector,
+    VectorCollector,
+} from '../../../www/js/helpers.js';
+import { Transaction } from '../db_helpers.js';
+import { ChunkDBActor, BLOCK_DIRTY } from './ChunkDBActor.js';
+import {
+    WORLD_TRANSACTION_PERIOD,
+    CLEANUP_WORLD_MODIFY_PER_TRANSACTION,
+    WORLD_MODIFY_CHUNKS_PER_TRANSACTION,
+} from '../../server_constant.js';
+import { WorldTickStat } from '../../world/tick_stat.js';
 
 const RECOVERY_BLOB_VERSION = 1001;
 
 /** It manages DB queries of all things in the world that must be saved in one trascaction as a "world state". */
 export class WorldDBActor {
-
     /** It fullfills when the next (scheduled) world-saving transaction finishes. */
     worldSavingPromise;
 
@@ -68,7 +75,7 @@ export class WorldDBActor {
     async beginTransaction() {
         const prevTransactionPromise = this._transactionPromise;
         let transaction;
-        this._transactionPromise = new Promise( resolve => {
+        this._transactionPromise = new Promise((resolve) => {
             transaction = new Transaction(this.db, resolve);
         });
         // Wait for the completion of the previous transaction (successful or not).
@@ -82,7 +89,7 @@ export class WorldDBActor {
     }
 
     pushPromises(args) {
-        for(const promise of arguments) {
+        for (const promise of arguments) {
             if (promise != null) {
                 this.underConstruction.promises.push(promise);
             }
@@ -91,8 +98,10 @@ export class WorldDBActor {
 
     async saveWorldIfNecessary() {
         // if the previous transaction hasn't ended, don't start the new one, so the game loop isn't paused wait
-        if (!this.savingWorldNow &&
-            this.lastWorldTransactionStartTime + WORLD_TRANSACTION_PERIOD < performance.now()
+        if (
+            !this.savingWorldNow &&
+            this.lastWorldTransactionStartTime + WORLD_TRANSACTION_PERIOD <
+                performance.now()
         ) {
             this.totalDirtyBlocks = 0;
             await this.saveWorld();
@@ -102,9 +111,9 @@ export class WorldDBActor {
     }
 
     async forceSaveWorld() {
-        await this.savingWorldNow // wait for the current (not forced) saving to finish writing, if it is happening now
-        await this.saveWorld(true)
-        await this.savingWorldNow // wait for the forced saving to finish writing
+        await this.savingWorldNow; // wait for the current (not forced) saving to finish writing, if it is happening now
+        await this.saveWorld(true);
+        await this.savingWorldNow; // wait for the forced saving to finish writing
     }
 
     /**
@@ -124,12 +133,12 @@ export class WorldDBActor {
         const db = world.db;
         // It may be different from shutdown. Its main effect is to cause chunkless changes to be saved ASAP.
         const speedup = shutdown || world.shuttingDown;
-        
+
         // await for the previous ongoing transaction, then start a new one
         const transaction = await this.beginTransaction();
 
         let resolveSavingWorldNow;
-        this.savingWorldNow = new Promise(resolve => {
+        this.savingWorldNow = new Promise((resolve) => {
             resolveSavingWorldNow = resolve;
         });
 
@@ -158,9 +167,9 @@ export class WorldDBActor {
             // world_modify_chunk, part 1: determine who's saved
             // These are not FIFO queues, but it doesn't matter: just save as much as we can. Eventually, we'll save
             // everything. And if we crash before that, the crash recovery will fix it regardless of save order.
-            worldModifyChunksHighPriority: [],  // for chunks that are being unloaded
-            worldModifyChunksMidPriority: [],   // for chunless changes
-            worldModifyChunksLowPriority: [],   // periodicaly for all ready chunks
+            worldModifyChunksHighPriority: [], // for chunks that are being unloaded
+            worldModifyChunksMidPriority: [], // for chunless changes
+            worldModifyChunksLowPriority: [], // periodicaly for all ready chunks
             // world_modify_chunk, part 2: the actual data to be saved
             updateWorldModifyChunkById: [],
             updateWorldModifyChunkByAddr: [],
@@ -185,9 +194,9 @@ export class WorldDBActor {
             insertQuests: [],
             updateQuests: [],
             // the data to be saved in world.recovery as a BLOB
-            recoveryUpdateUnsavedChunkRowIds: [],   // if we know rowId of a chunk - put it here, it reduces the BLOB size
-            recoveryInsertUnsavedChunkXYZs: [],     // if we don't know rowId of a chunk - put its (x, y, z) here
-            recoveryUpdateUnsavedChunkXYZs: []      // for chunkless changes - the chunks exist, but we don't know their rowIds
+            recoveryUpdateUnsavedChunkRowIds: [], // if we know rowId of a chunk - put it here, it reduces the BLOB size
+            recoveryInsertUnsavedChunkXYZs: [], // if we don't know rowId of a chunk - put its (x, y, z) here
+            recoveryUpdateUnsavedChunkXYZs: [], // for chunkless changes - the chunks exist, but we don't know their rowIds
         };
         const uc = this.underConstruction; // accessible in closure after this.underConstruction is cleared
 
@@ -196,20 +205,27 @@ export class WorldDBActor {
             // Here chunks write everything they need to write in every trasaction (i.e. except world_modify_chunks).
             // Updated blocks with unknown rowIds are queued.
             // If chunks have unsaved modifiers, such chunks are queued with different priorities.
-            for(const dbActor of this.dirtyActors) {
+            for (const dbActor of this.dirtyActors) {
                 dbActor.writeToWorldTransaction(uc);
             }
 
             // Write some of the chunks modifiers, and remeber the rest in the recovery blob
-            const unloadingCount = uc.worldModifyChunksHighPriority.length + uc.worldModifyChunksMidPriority.length
+            const unloadingCount =
+                uc.worldModifyChunksHighPriority.length +
+                uc.worldModifyChunksMidPriority.length;
             let remainingCanSave = speedup
                 ? unloadingCount // save everything that wants to unload, and nothing else
-                : WORLD_MODIFY_CHUNKS_PER_TRANSACTION +
-                // to help in situations where the queue grows faster than we can write it,
-                // e.g. when teleporting a lot and tickers modify many of the chunks
-                    0.02 * unloadingCount | 0;
-            for(const list of [uc.worldModifyChunksHighPriority, uc.worldModifyChunksMidPriority, uc.worldModifyChunksLowPriority]) {
-                for(const dbActor of list) {
+                : (WORLD_MODIFY_CHUNKS_PER_TRANSACTION +
+                      // to help in situations where the queue grows faster than we can write it,
+                      // e.g. when teleporting a lot and tickers modify many of the chunks
+                      0.02 * unloadingCount) |
+                  0;
+            for (const list of [
+                uc.worldModifyChunksHighPriority,
+                uc.worldModifyChunksMidPriority,
+                uc.worldModifyChunksLowPriority,
+            ]) {
+                for (const dbActor of list) {
                     if (--remainingCanSave >= 0) {
                         dbActor.writeToWorldTransaction_world_modify_chunks(uc);
                     } else {
@@ -222,24 +238,33 @@ export class WorldDBActor {
             // 1. Bulk select their rowIds.
             // 2. For those that have rowId: remember the rowIds and do bulk update.
             // 3. For those that have no rowId: do bulk insert.
-            const slectBlocksRowIdPromise =
-                this.db.chunks.bulkSelectWorldModifyRowId(
-                    uc.updateBlocksWithUnknownRowId.map(
-                        e => [e.chunk_addr.x, e.chunk_addr.y, e.chunk_addr.z, tmpVector.copyFrom(e.pos).getFlatIndexInChunk()]
-                    )
-                ).then( correspondingRows => {
+            const slectBlocksRowIdPromise = this.db.chunks
+                .bulkSelectWorldModifyRowId(
+                    uc.updateBlocksWithUnknownRowId.map((e) => [
+                        e.chunk_addr.x,
+                        e.chunk_addr.y,
+                        e.chunk_addr.z,
+                        tmpVector.copyFrom(e.pos).getFlatIndexInChunk(),
+                    ]),
+                )
+                .then((correspondingRows) => {
                     // the returned rows have the same indices as underConstruction.updateBlocksWithUnknownRowId
-                    for(const [i, e] of uc.updateBlocksWithUnknownRowId.entries()) {
+                    for (const [
+                        i,
+                        e,
+                    ] of uc.updateBlocksWithUnknownRowId.entries()) {
                         const row = correspondingRows[i];
                         let list; // to which bulk query the row is queued
                         if (row.rowId) {
-                            if (e.newEntry) { // it's null for chunkless updates
+                            if (e.newEntry) {
+                                // it's null for chunkless updates
                                 e.newEntry.rowId = row.rowId; // remember for the future queries
                             }
                             e.rowId = row.rowId; // use it for the curent update
-                            list = (e.state === BLOCK_DIRTY.UPDATE_EXTRA_DATA)
-                                ? uc.updateBlocksExtraData
-                                : uc.updateBlocks;
+                            list =
+                                e.state === BLOCK_DIRTY.UPDATE_EXTRA_DATA
+                                    ? uc.updateBlocksExtraData
+                                    : uc.updateBlocks;
                         } else {
                             list = uc.insertBlocks;
                         }
@@ -248,30 +273,39 @@ export class WorldDBActor {
                 });
 
             const blocksQueriesPromise = slectBlocksRowIdPromise.then(() =>
-                    // it could be don in slectBlocksRowIdPromise.then(), but separated for clarity
-                    Promise.all([
-                        db.chunks.bulkInsertWorldModify(uc.insertBlocks, dt),
-                        db.chunks.bulkUpdateWorldModify(uc.updateBlocks, dt),
-                        db.chunks.bulkUpdateWorldModifyExtraData(uc.updateBlocksExtraData, dt)
-                    ]).then(async () => {
-                        // delete some old modifiers after the new ones have been inserted
-                        if (!speedup) {
-                            await this.cleanupWorldModify()
-                        }
-                    })
-                );
+                // it could be don in slectBlocksRowIdPromise.then(), but separated for clarity
+                Promise.all([
+                    db.chunks.bulkInsertWorldModify(uc.insertBlocks, dt),
+                    db.chunks.bulkUpdateWorldModify(uc.updateBlocks, dt),
+                    db.chunks.bulkUpdateWorldModifyExtraData(
+                        uc.updateBlocksExtraData,
+                        dt,
+                    ),
+                ]).then(async () => {
+                    // delete some old modifiers after the new ones have been inserted
+                    if (!speedup) {
+                        await this.cleanupWorldModify();
+                    }
+                }),
+            );
             this.pushPromises(blocksQueriesPromise);
 
             // world_modify_chunk (inserts are performed by ChunkDBActor and writeChunklessModifiers)
             this.pushPromises(
-                db.chunks.bulkUpdateWorldModifyChunksById(uc.updateWorldModifyChunkById),
-                db.chunks.bulkUpdateWorldModifyChunksByAddr(uc.updateWorldModifyChunkByAddr),
-                db.chunks.bulkUpdateChunkModifiersWithBLOBs(uc.updateWorldModifyChunksWithBLOBs)
+                db.chunks.bulkUpdateWorldModifyChunksById(
+                    uc.updateWorldModifyChunkById,
+                ),
+                db.chunks.bulkUpdateWorldModifyChunksByAddr(
+                    uc.updateWorldModifyChunkByAddr,
+                ),
+                db.chunks.bulkUpdateChunkModifiersWithBLOBs(
+                    uc.updateWorldModifyChunksWithBLOBs,
+                ),
             );
 
             // rows of "chunk" table
             this.pushPromises(
-                db.chunks.bulkInsertOrUpdateChunk(uc.insertOrUpdateChunk, dt)
+                db.chunks.bulkInsertOrUpdateChunk(uc.insertOrUpdateChunk, dt),
             );
 
             // some unloaded items have been already added from chunks
@@ -287,7 +321,7 @@ export class WorldDBActor {
                 db.mobs.bulkInsert(uc.insertMobRows, dt),
                 db.mobs.bulkFullUpdate(uc.fullUpdateMobRows),
                 db.mobs.bulkUpdate(uc.updateMobRows),
-                db.mobs.bulkDelete(uc.deleteMobIds)
+                db.mobs.bulkDelete(uc.deleteMobIds),
             );
 
             // players, player quests
@@ -298,13 +332,16 @@ export class WorldDBActor {
                 db.bulkUpdatePlayerState(uc.updatePlayerState, dt),
                 // player quests
                 db.quests.bulkInsertPlayerQuests(uc.insertQuests, dt),
-                db.quests.bulkUpdatePlayerQuests(uc.updateQuests)
+                db.quests.bulkUpdatePlayerQuests(uc.updateQuests),
             );
 
             this.writeRecoveryBlob();
-        } catch(e) {
+        } catch (e) {
             // The game can't continue. The DB transcation will rollback automatically.
-            await this.world.terminate("Error while building world-saving transaction", e);
+            await this.world.terminate(
+                'Error while building world-saving transaction',
+                e,
+            );
         }
 
         // no one should be able to add anything to this ransaction after that
@@ -313,48 +350,50 @@ export class WorldDBActor {
         // now we can safely return
         Promise.all(uc.promises).then(
             async () => {
-                await transaction.commit()
+                await transaction.commit();
                 if (!shutdown) {
-                    this.world.mobs.onWorldTransactionCommit()
-                    this.db.mobs.onWorldTransactionCommit()
-                    this.world.players.onWorldTransactionCommit()
-                    for(const actor of uc.chunklessActorsWritingWorldModifyChunks) {
-                        actor.onChunklessFlushed()
+                    this.world.mobs.onWorldTransactionCommit();
+                    this.db.mobs.onWorldTransactionCommit();
+                    this.world.players.onWorldTransactionCommit();
+                    for (const actor of uc.chunklessActorsWritingWorldModifyChunks) {
+                        actor.onChunklessFlushed();
                     }
-                    this.savingWorldNow = null
-                    this.asyncStats.add('world_transaction')
-                    this.asyncStats.end()
-                    worldSavingResolve()
+                    this.savingWorldNow = null;
+                    this.asyncStats.add('world_transaction');
+                    this.asyncStats.end();
+                    worldSavingResolve();
                 }
-                resolveSavingWorldNow()
+                resolveSavingWorldNow();
             },
-            async err => {
+            async (err) => {
                 // The game can't continue. The DB transcation will rollback automatically.
-                await that.world.terminate("Error in world-saving transaction promise", err);
-            }
+                await that.world.terminate(
+                    'Error in world-saving transaction promise',
+                    err,
+                );
+            },
         );
     }
 
     /**
-     * Selects up to {@link CLEANUP_WORLD_MODIFY_PER_TRANSACTION} chunk addresses from the queue and 
+     * Selects up to {@link CLEANUP_WORLD_MODIFY_PER_TRANSACTION} chunk addresses from the queue and
      * some and deletes old records from world_modify in those chunks.
      */
     async cleanupWorldModify() {
         const promises = [];
         this.cleanupWorldModifyPerTransaction = Math.min(
-            this.cleanupWorldModifyPerTransaction + CLEANUP_WORLD_MODIFY_PER_TRANSACTION,
-            Math.ceil(CLEANUP_WORLD_MODIFY_PER_TRANSACTION)
+            this.cleanupWorldModifyPerTransaction +
+                CLEANUP_WORLD_MODIFY_PER_TRANSACTION,
+            Math.ceil(CLEANUP_WORLD_MODIFY_PER_TRANSACTION),
         );
         const cleanupAddrByRowId = this.cleanupAddrByRowId;
-        for(const [rowId, addr] of cleanupAddrByRowId) {
+        for (const [rowId, addr] of cleanupAddrByRowId) {
             if (cleanupAddrByRowId.size > 10000) {
                 // if the queue size gets insane, just drop elements, it's unimportant
                 cleanupAddrByRowId.delete(rowId);
             } else if (this.cleanupWorldModifyPerTransaction >= 1) {
                 this.cleanupWorldModifyPerTransaction--;
-                promises.push(
-                    this.db.chunks.cleanupWorldModify(addr)
-                );
+                promises.push(this.db.chunks.cleanupWorldModify(addr));
             } else {
                 break;
             }
@@ -366,7 +405,10 @@ export class WorldDBActor {
         const pos = Vector.vectorify(params.pos);
         params.pos = pos;
 
-        const actor = this.chunklessActors.getOrSet(chunk_addr, () => new ChunkDBActor(this.world, chunk_addr));
+        const actor = this.chunklessActors.getOrSet(
+            chunk_addr,
+            () => new ChunkDBActor(this.world, chunk_addr),
+        );
         actor.markBlockDirty(params);
     }
 
@@ -374,19 +416,27 @@ export class WorldDBActor {
         const rowId = chunkDBActor.world_modify_chunk_hasRowId;
         const addr = chunkDBActor.addr;
         if (rowId === false) {
-            this.underConstruction.recoveryInsertUnsavedChunkXYZs.push(addr.x, addr.y, addr.z);
+            this.underConstruction.recoveryInsertUnsavedChunkXYZs.push(
+                addr.x,
+                addr.y,
+                addr.z,
+            );
         } else if (rowId === true) {
-            this.underConstruction.recoveryUpdateUnsavedChunkXYZs.push(addr.x, addr.y, addr.z);
-        } else { // it's a number
+            this.underConstruction.recoveryUpdateUnsavedChunkXYZs.push(
+                addr.x,
+                addr.y,
+                addr.z,
+            );
+        } else {
+            // it's a number
             this.underConstruction.recoveryUpdateUnsavedChunkRowIds.push(rowId);
         }
     }
 
     writeRecoveryBlob() {
-
         function push(values) {
             if (Array.isArray(values)) {
-                for(const v of values) {
+                for (const v of values) {
                     blob[++ind] = v;
                 }
             } else {
@@ -394,10 +444,17 @@ export class WorldDBActor {
             }
         }
 
-        const { recoveryUpdateUnsavedChunkRowIds, recoveryUpdateUnsavedChunkXYZs,
-            recoveryInsertUnsavedChunkXYZs } = this.underConstruction;
-        const blob = new Int32Array(4 + recoveryUpdateUnsavedChunkRowIds.length 
-            + recoveryUpdateUnsavedChunkXYZs.length + recoveryInsertUnsavedChunkXYZs.length);
+        const {
+            recoveryUpdateUnsavedChunkRowIds,
+            recoveryUpdateUnsavedChunkXYZs,
+            recoveryInsertUnsavedChunkXYZs,
+        } = this.underConstruction;
+        const blob = new Int32Array(
+            4 +
+                recoveryUpdateUnsavedChunkRowIds.length +
+                recoveryUpdateUnsavedChunkXYZs.length +
+                recoveryInsertUnsavedChunkXYZs.length,
+        );
         let ind = 0;
         blob[0] = RECOVERY_BLOB_VERSION;
 
@@ -410,13 +467,15 @@ export class WorldDBActor {
         push(recoveryInsertUnsavedChunkXYZs.length / 3);
         push(recoveryInsertUnsavedChunkXYZs);
 
-        this.pushPromises(this.db.saveRecoveryBlob(new Uint8Array(blob.buffer)));
+        this.pushPromises(
+            this.db.saveRecoveryBlob(new Uint8Array(blob.buffer)),
+        );
     }
 
     async crashRecovery() {
-
         function logElapsed(sqlResult) {
-            let s = '    elapsed: ' + (performance.now() - startTime | 0) + ' ms';
+            let s =
+                '    elapsed: ' + ((performance.now() - startTime) | 0) + ' ms';
             if (sqlResult?.changes != null) {
                 s += ', changes: ' + sqlResult.changes;
             }
@@ -424,14 +483,16 @@ export class WorldDBActor {
             startTime = performance.now();
         }
 
-        const wmCount   = await this.db.chunks.getWorldModifyCount();
-        const wmcCount  = await this.db.chunks.getWorldModifyChunksCount();
+        const wmCount = await this.db.chunks.getWorldModifyCount();
+        const wmcCount = await this.db.chunks.getWorldModifyChunksCount();
         // Guess special modes of recovery - when one of the tables has been manualy cleared
         const needRebuildChunkModifiers = wmcCount === 0 && wmCount > 0;
-        const needUnpackBlockModifiers  = wmcCount > 0 && wmCount === 0;
+        const needUnpackBlockModifiers = wmcCount > 0 && wmCount === 0;
 
         const recovery = this.world.info.recovery;
-        if (!(recovery || needRebuildChunkModifiers || needUnpackBlockModifiers)) {
+        if (
+            !(recovery || needRebuildChunkModifiers || needUnpackBlockModifiers)
+        ) {
             return; // probably 1st time after migration, nothing to do
         }
 
@@ -440,53 +501,68 @@ export class WorldDBActor {
             await this.db.TransactionBegin();
 
             if (needRebuildChunkModifiers) {
-                console.warn('Special recovery mode: rebuilding ALL world_modify_chunks...');
+                console.warn(
+                    'Special recovery mode: rebuilding ALL world_modify_chunks...',
+                );
                 const result = await this.db.chunks.insertRebuildModifiers();
                 logElapsed(result);
             } else if (needUnpackBlockModifiers) {
-                console.warn('Special recovery mode: unpacking ALL world_modify_chunks into world_modify...');
+                console.warn(
+                    'Special recovery mode: unpacking ALL world_modify_chunks into world_modify...',
+                );
                 await this.db.chunks.unpackAllChunkModifiers();
                 logElapsed();
             } else {
                 const blob = new Int32Array(recovery.buffer);
                 if (blob[0] !== RECOVERY_BLOB_VERSION) {
                     throw new Error('blob[0] !== RECOVERY_BLOB_VERSION');
-                }    
+                }
                 let ind = 0;
 
                 // We know rowIds of these chunks, so they exist. Update them.
                 const updateRowIdLength = blob[++ind];
                 if (updateRowIdLength) {
-                    console.log(`Crash recovery: update ${updateRowIdLength} unsaved chunks by rowId...`);
+                    console.log(
+                        `Crash recovery: update ${updateRowIdLength} unsaved chunks by rowId...`,
+                    );
                     const rows = [];
-                    for(let i = 0; i < updateRowIdLength; i++) {
+                    for (let i = 0; i < updateRowIdLength; i++) {
                         rows.push(blob[++ind]);
                     }
-                    const result = await this.db.chunks.updateRebuildModifiersByRowIds(rows);
+                    const result =
+                        await this.db.chunks.updateRebuildModifiersByRowIds(
+                            rows,
+                        );
                     logElapsed(result);
                 }
 
                 // We don't know rowIds of these chunks, but we know they exist. Update them.
                 const updateXYZLength = blob[++ind];
                 if (updateXYZLength) {
-                    console.log(`Crash recovery: update ${updateXYZLength} unsaved chunks by addr...`);
+                    console.log(
+                        `Crash recovery: update ${updateXYZLength} unsaved chunks by addr...`,
+                    );
                     const rows = [];
-                    for(let i = 0; i < updateXYZLength; i++) {
+                    for (let i = 0; i < updateXYZLength; i++) {
                         rows.push([blob[++ind], blob[++ind], blob[++ind]]);
                     }
-                    const result = await this.db.chunks.updateRebuildModifiersByXYZ(rows);
+                    const result =
+                        await this.db.chunks.updateRebuildModifiersByXYZ(rows);
                     logElapsed(result);
                 }
 
                 // We don't know rowIds of these chunks, so they don't exist. Insert them.
                 const insertXYZLength = blob[++ind];
                 if (insertXYZLength) {
-                    console.log(`Crash recovery: insert ${insertXYZLength} unsaved chunks...`);
+                    console.log(
+                        `Crash recovery: insert ${insertXYZLength} unsaved chunks...`,
+                    );
                     const rows = [];
-                    for(let i = 0; i < insertXYZLength; i++) {
+                    for (let i = 0; i < insertXYZLength; i++) {
                         rows.push([blob[++ind], blob[++ind], blob[++ind]]);
                     }
-                    const result = await this.db.chunks.insertRebuildModifiersXYZ(rows);
+                    const result =
+                        await this.db.chunks.insertRebuildModifiersXYZ(rows);
                     logElapsed(result);
                 }
             }
@@ -494,7 +570,7 @@ export class WorldDBActor {
             await this.db.saveRecoveryBlob(null);
         } catch (e) {
             // The game can't continue. The DB transcation will rollback automatically.
-            await this.world.terminate("Error in crashRecovery", e);
+            await this.world.terminate('Error in crashRecovery', e);
         }
 
         await this.db.TransactionCommit();
@@ -503,7 +579,7 @@ export class WorldDBActor {
     }
 
     _createWorldSavingPromise() {
-        this.worldSavingPromise = new Promise(resolve => {
+        this.worldSavingPromise = new Promise((resolve) => {
             this._worldSavingResolve = resolve;
         });
     }

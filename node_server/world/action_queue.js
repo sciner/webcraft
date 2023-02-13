@@ -1,33 +1,34 @@
-import { SimpleQueue } from "../../www/js/helpers.js";
+import { SimpleQueue } from '../../www/js/helpers.js';
 
 // Queue for actions
 export class WorldActionQueue {
-
     constructor(world) {
         this.world = world;
         this.list = new SimpleQueue();
     }
 
-    get length() { return this.list.length }
+    get length() {
+        return this.list.length;
+    }
 
     add(actor, actions) {
-        this.list.push({actor, actions});
+        this.list.push({ actor, actions });
     }
 
     addFirst(actor, actions) {
-        this.list.unshift({actor, actions});
+        this.list.unshift({ actor, actions });
     }
 
     async run() {
         const MAX_ACTIONS_TIME_MS = 200;
         let pn_start = performance.now();
-        while(this.list.length > 0) {
+        while (this.list.length > 0) {
             const item = this.list.shift();
             // Check player is connected
             const player_session = item.actor?.session;
-            if(player_session) {
+            if (player_session) {
                 const player = this.world.players.get(player_session.user_id);
-                if(!player) {
+                if (!player) {
                     continue;
                 }
                 // if the action was postponed until a chunk loads, and the player reconnected - update it
@@ -47,25 +48,28 @@ export class WorldActionQueue {
                 // console.info(`${time_from_start}: WorldActionsQueue: ${blocks_count} block per ${pn}ms; Queue length: ${this.list.length}`)
             }
             */
-            if(item.actions.notify) {
+            if (item.actions.notify) {
                 const notify = item.actions.notify;
-                if(('user_id' in notify) && ('user_id' in notify)) {
-                    if(notify.total_actions_count == 1) {
+                if ('user_id' in notify && 'user_id' in notify) {
+                    if (notify.total_actions_count == 1) {
                         notify.pn = pn_apply;
                     }
-                    if('pn' in notify) {
-                        const elapsed = Math.round(performance.now() - notify.pn) / 1000;
+                    if ('pn' in notify) {
+                        const elapsed =
+                            Math.round(performance.now() - notify.pn) / 1000;
                         const message = `${notify.message} for ... ${elapsed} sec`;
-                        this.world.chat.sendSystemChatMessageToSelectedPlayers(message, [notify.user_id]);
+                        this.world.chat.sendSystemChatMessageToSelectedPlayers(
+                            message,
+                            [notify.user_id],
+                        );
                     } else {
                         notify.pn = performance.now();
                     }
                 }
             }
-            if(performance.now() - pn_start >= MAX_ACTIONS_TIME_MS) {
+            if (performance.now() - pn_start >= MAX_ACTIONS_TIME_MS) {
                 break;
             }
         }
     }
-
 }

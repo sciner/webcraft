@@ -1,12 +1,13 @@
 export class WorldAdminManager {
-
     constructor(world) {
         this.world = world;
     }
 
     // Load
     async load() {
-        return this.list = await this.world.db.loadAdminList(this.world.info.id);
+        return (this.list = await this.world.db.loadAdminList(
+            this.world.info.id,
+        ));
     }
 
     // Return list
@@ -30,10 +31,13 @@ export class WorldAdminManager {
 
     // Add
     async add(player, username) {
-        if(!this.checkIsAdmin(player)) {
+        if (!this.checkIsAdmin(player)) {
             return null;
         }
-        const user = await this.world.db.findPlayer(this.world.info.id, username);
+        const user = await this.world.db.findPlayer(
+            this.world.info.id,
+            username,
+        );
         if (!user) {
             return null;
         }
@@ -43,18 +47,20 @@ export class WorldAdminManager {
 
     // Remove
     async remove(player, username) {
-        if(!this.checkIsAdmin(player)) {
+        if (!this.checkIsAdmin(player)) {
             throw 'error_not_permitted';
         }
-        const user = await this.world.db.findPlayer(this.world.info.id, username);
+        const user = await this.world.db.findPlayer(
+            this.world.info.id,
+            username,
+        );
         if (!user) {
             throw 'User not found';
         }
         if (user.id == this.world.info.user_id) {
-            throw 'Can\'t remove owner';
+            throw "Can't remove owner";
         }
         await this.world.db.setAdmin(this.world.info.id, user.id, 0);
         return await this.load();
     }
-
 }

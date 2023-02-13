@@ -1,57 +1,72 @@
-import { getChunkAddr, Vector, VectorCollector } from "../../www/js/helpers.js";
-import {WorldAction} from "../../www/js/world_action.js";
-import { ServerClient } from "../../www/js/server_client.js";
-import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "../../www/js/fluid/FluidConst.js";
-import { WorldEditBuilding } from "./worldedit/building.js";
-import { BuildingTemplate } from "../../www/js/terrain_generator/cluster/building_template.js";
+import { getChunkAddr, Vector, VectorCollector } from '../../www/js/helpers.js';
+import { WorldAction } from '../../www/js/world_action.js';
+import { ServerClient } from '../../www/js/server_client.js';
+import {
+    FLUID_LAVA_ID,
+    FLUID_TYPE_MASK,
+    FLUID_WATER_ID,
+    isFluidId,
+} from '../../www/js/fluid/FluidConst.js';
+import { WorldEditBuilding } from './worldedit/building.js';
+import { BuildingTemplate } from '../../www/js/terrain_generator/cluster/building_template.js';
 
-const MAX_SET_BLOCK         = 250000 * 4;
-const MAX_BLOCKS_PER_PASTE  = 10000;
+const MAX_SET_BLOCK = 250000 * 4;
+const MAX_BLOCKS_PER_PASTE = 10000;
 
 export default class WorldEdit {
-
     static targets = ['chat'];
 
     constructor() {
-        this.id = performance.now()
+        this.id = performance.now();
     }
 
     initWorker() {
-        this.worker = new Worker(globalThis.__dirname + '/plugins/worldedit/worker.js');
+        this.worker = new Worker(
+            globalThis.__dirname + '/plugins/worldedit/worker.js',
+        );
         const onmessage = (data) => {
-            if(data instanceof MessageEvent) {
-                data = data.data
+            if (data instanceof MessageEvent) {
+                data = data.data;
             }
             // console.log('worker -> chat_worldedit', data)
             const cmd = data[0];
             const args = data[1];
-            switch(cmd) {
+            switch (cmd) {
                 case 'schem_loaded': {
-                    const user_id = args.args.user_id
-                    const player = this.world.players.get(user_id)
-                    if(player) {
-                        player._world_edit_copy = args._world_edit_copy
-                        player._world_edit_copy.blocks = new VectorCollector(player._world_edit_copy.blocks.list, player._world_edit_copy.blocks.size)
-                        this.chat.sendSystemChatMessageToSelectedPlayers(args.msg, [user_id])
+                    const user_id = args.args.user_id;
+                    const player = this.world.players.get(user_id);
+                    if (player) {
+                        player._world_edit_copy = args._world_edit_copy;
+                        player._world_edit_copy.blocks = new VectorCollector(
+                            player._world_edit_copy.blocks.list,
+                            player._world_edit_copy.blocks.size,
+                        );
+                        this.chat.sendSystemChatMessageToSelectedPlayers(
+                            args.msg,
+                            [user_id],
+                        );
                     }
                     break;
                 }
                 case 'schem_error': {
-                    const user_id = args.args.user_id
-                    const player = this.world.players.get(user_id)
-                    if(player) {
+                    const user_id = args.args.user_id;
+                    const player = this.world.players.get(user_id);
+                    if (player) {
                         // player.sendError(args.e)
-                        this.chat.sendSystemChatMessageToSelectedPlayers(args.e, [user_id])
+                        this.chat.sendSystemChatMessageToSelectedPlayers(
+                            args.e,
+                            [user_id],
+                        );
                     }
-                    break
+                    break;
                 }
             }
-        }
-        const onerror = (e) => {
-            console.error(e)
-            debugger
         };
-        if('onmessage' in this.worker) {
+        const onerror = (e) => {
+            console.error(e);
+            debugger;
+        };
+        if ('onmessage' in this.worker) {
             this.worker.onmessage = onmessage;
             this.worker.onerror = onerror;
         } else {
@@ -62,10 +77,10 @@ export default class WorldEdit {
 
     // postWorkerMessage
     postWorkerMessage(cmd) {
-        if(!this.worker) {
-            this.initWorker()
+        if (!this.worker) {
+            this.initWorker();
         }
-        this.worker.postMessage(cmd)
+        this.worker.postMessage(cmd);
     }
 
     onGame(game) {}
@@ -73,10 +88,9 @@ export default class WorldEdit {
     onWorld(world) {}
 
     onChat(chat) {
-        
-        if(!this.world) {
-            this.chat = chat
-            this.world = chat.world
+        if (!this.world) {
+            this.chat = chat;
+            this.world = chat.world;
         }
 
         this.building = new WorldEditBuilding(this);
@@ -98,37 +112,38 @@ export default class WorldEdit {
         this.commands.set('/schematic', this.cmd_schematic);
         this.commands.set('/clearclipboard', this.cmd_clearclipboard);
         this.commands.set('/building', this.cmd_building);
-        this.commands.set('/rotate', this.cmd_rotate)
+        this.commands.set('/rotate', this.cmd_rotate);
         // this.commands.set('//line', this.);
         // this.commands.set('//flora', this.);
         // this.commands.set('//undo', this.);
 
         // On chat command
         chat.onCmd(async (player, cmd, args) => {
-            while(cmd.indexOf('//') === 0) {
-                cmd = cmd.substring(1)
+            while (cmd.indexOf('//') === 0) {
+                cmd = cmd.substring(1);
             }
             const f = this.commands.get(cmd);
-            if(f) {
-                if(!chat.world.admins.checkIsAdmin(player)) {
+            if (f) {
+                if (!chat.world.admins.checkIsAdmin(player)) {
                     throw 'error_not_permitted';
                 }
                 try {
                     await f.call(this, chat, player, cmd, args);
-                } catch(e) {
+                } catch (e) {
                     console.log(e);
                     throw e;
                 }
                 return true;
             }
         });
-
     }
 
     // Clear clipboard
     async cmd_clearclipboard(chat, player, cmd, args) {
-        delete(player._world_edit_copy);
-        chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', [player.session.user_id]);
+        delete player._world_edit_copy;
+        chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', [
+            player.session.user_id,
+        ]);
     }
 
     /**
@@ -153,14 +168,22 @@ export default class WorldEdit {
     async cmd_pos1(chat, player, cmd, args) {
         player.pos1 = player.state.pos.floored();
         let msg = `pos1 = ${player.pos1.x}, ${player.pos1.y}, ${player.pos1.z}`;
-        if(player.pos2) {
+        if (player.pos2) {
             const volume = player.pos1.volume(player.pos2);
             msg += `. Selected ${volume} blocks`;
         }
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
         //
-        let actions = new WorldAction(null, null, true, false/*, false*/);
-        actions.addBlocks([{pos: player.pos1, item: {id: this.world.block_manager.NUM1.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        let actions = new WorldAction(null, null, true, false /*, false*/);
+        actions.addBlocks([
+            {
+                pos: player.pos1,
+                item: { id: this.world.block_manager.NUM1.id },
+                action_id: ServerClient.BLOCK_ACTION_CREATE,
+            },
+        ]);
         chat.world.actions_queue.add(null, actions);
     }
 
@@ -174,14 +197,22 @@ export default class WorldEdit {
     async cmd_pos2(chat, player, cmd, args) {
         player.pos2 = player.state.pos.floored();
         let msg = `pos2 = ${player.pos2.x}, ${player.pos2.y}, ${player.pos2.z}`;
-        if(player.pos1) {
+        if (player.pos1) {
             const volume = player.pos1.volume(player.pos2);
             msg += `. Selected ${volume} blocks`;
         }
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
         //
-        let actions = new WorldAction(null, null, true, false/*, false*/);
-        actions.addBlocks([{pos: player.pos2, item: {id: this.world.block_manager.NUM2.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        let actions = new WorldAction(null, null, true, false /*, false*/);
+        actions.addBlocks([
+            {
+                pos: player.pos2,
+                item: { id: this.world.block_manager.NUM2.id },
+                action_id: ServerClient.BLOCK_ACTION_CREATE,
+            },
+        ]);
         chat.world.actions_queue.add(null, actions);
     }
 
@@ -196,16 +227,18 @@ export default class WorldEdit {
         args = chat.parseCMD(args, ['string', 'int', 'int', 'int']);
         const pos = new Vector(args[1], args[2], args[3]);
         const block = player.world.getBlock(pos);
-        if(!block) {
+        if (!block) {
             throw 'error_chunk_not_loaded';
         }
         player.pos1 = pos;
         let msg = `pos1 = ${player.pos1.x}, ${player.pos1.y}, ${player.pos1.z}`;
-        if(player.pos2) {
+        if (player.pos2) {
             const volume = player.pos1.volume(player.pos2);
             msg += `. Selected ${volume} blocks`;
         }
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
     }
 
     /**
@@ -219,16 +252,18 @@ export default class WorldEdit {
         args = chat.parseCMD(args, ['string', 'int', 'int', 'int']);
         const pos = new Vector(args[1], args[2], args[3]);
         const block = player.world.getBlock(pos);
-        if(!block) {
+        if (!block) {
             throw 'error_chunk_not_loaded';
         }
         player.pos2 = pos;
         let msg = `pos2 = ${player.pos2.x}, ${player.pos2.y}, ${player.pos2.z}`;
-        if(player.pos1) {
+        if (player.pos1) {
             const volume = player.pos1.volume(player.pos2);
             msg += `. Selected ${volume} blocks`;
         }
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
     }
 
     /**
@@ -259,11 +294,13 @@ export default class WorldEdit {
         const player_pos = player.state.pos.floored();
         player._world_edit_copy = await this.copy(qi, player_pos, chat.world);
         const msg = `${player._world_edit_copy.blocks.size} block(s) copied`;
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
     }
 
     /**
-     * @param {*} quboid 
+     * @param {*} quboid
      * @param {Vector} pos
      */
     async copy(quboid, pos, world) {
@@ -273,19 +310,23 @@ export default class WorldEdit {
         let bpos = new Vector(0, 0, 0);
         let chunk = null;
         const fluids = [];
-        for(let x = 0; x < quboid.volx; x++) {
-            for(let y = 0; y < quboid.voly; y++) {
-                for(let z = 0; z < quboid.volz; z++) {
+        for (let x = 0; x < quboid.volx; x++) {
+            for (let y = 0; y < quboid.voly; y++) {
+                for (let z = 0; z < quboid.volz; z++) {
                     bpos.set(
                         quboid.pos1.x + x * quboid.signx,
                         quboid.pos1.y + y * quboid.signy,
-                        quboid.pos1.z + z * quboid.signz
+                        quboid.pos1.z + z * quboid.signz,
                     );
                     chunk_addr = getChunkAddr(bpos, chunk_addr);
-                    if(!chunk_addr_o.equal(chunk_addr)) {
-                        chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+                    if (!chunk_addr_o.equal(chunk_addr)) {
+                        chunk_addr_o.set(
+                            chunk_addr.x,
+                            chunk_addr.y,
+                            chunk_addr.z,
+                        );
                         chunk = world.chunks.get(chunk_addr);
-                        if(!chunk) {
+                        if (!chunk) {
                             throw 'error_chunk_not_loaded';
                         }
                     }
@@ -294,18 +335,18 @@ export default class WorldEdit {
                     //if(mat.is_entity) {
                     //    continue;
                     //}
-                    if(block.id < 0) {
+                    if (block.id < 0) {
                         throw 'error_get_block';
                     }
                     const item = {
-                        id: block.id
+                        id: block.id,
                     };
                     const extra_data = block.extra_data;
-                    if(extra_data) {
+                    if (extra_data) {
                         item.extra_data = extra_data;
                     }
-                    if(mat.can_rotate) {
-                        if(block.rotate) {
+                    if (mat.can_rotate) {
+                        if (block.rotate) {
                             item.rotate = block.rotate;
                         }
                     }
@@ -324,13 +365,13 @@ export default class WorldEdit {
             quboid,
             blocks,
             player_pos: pos.clone(),
-            fluids
+            fluids,
         };
     }
 
     //
     async cmd_building(chat, player, cmd, args) {
-        if(!chat.world.admins.checkIsAdmin(player)) {
+        if (!chat.world.admins.checkIsAdmin(player)) {
             throw 'error_not_permitted';
         }
         args = chat.parseCMD(args, ['string', 'string', 'string']);
@@ -339,8 +380,7 @@ export default class WorldEdit {
 
     //
     async cmd_rotate(chat, player, cmd, args, copy_data) {
-
-        if(!player._world_edit_copy && !copy_data) {
+        if (!player._world_edit_copy && !copy_data) {
             throw 'error_not_copied_blocks';
         }
 
@@ -350,11 +390,11 @@ export default class WorldEdit {
         const dirs = {
             270: 1,
             180: 2,
-            90: 3
-        }
+            90: 3,
+        };
         let angle = args[1];
-        const dir = dirs[angle]
-        if(!dir) {
+        const dir = dirs[angle];
+        if (!dir) {
             throw 'error_no_interpolation';
         }
 
@@ -362,31 +402,42 @@ export default class WorldEdit {
         const data = copy_data ?? player._world_edit_copy;
         const new_blocks = new VectorCollector();
 
-        for(let [bpos, item] of data.blocks.entries()) {
-            const pos = new Vector(0, 0, 0).addByCardinalDirectionSelf(bpos, dir, false, false);
+        for (let [bpos, item] of data.blocks.entries()) {
+            const pos = new Vector(0, 0, 0).addByCardinalDirectionSelf(
+                bpos,
+                dir,
+                false,
+                false,
+            );
             item.block_id = item.id;
-            item.pos = pos
+            item.pos = pos;
             new_blocks.set(pos, item);
         }
 
         const rot = [[], [], [], []];
 
         // rotate blocks property
-        BuildingTemplate.rotateBlocksProperty(new_blocks, rot, chat.world.block_manager, [dir])
+        BuildingTemplate.rotateBlocksProperty(
+            new_blocks,
+            rot,
+            chat.world.block_manager,
+            [dir],
+        );
 
-        for(let i = 0; i < rot[dir].length; i++) {
-            const item = rot[dir][i]
-            const pos = item.pos
-            delete(item.pos)
-            delete(item.block_id)
-            new_blocks.set(pos, item)
+        for (let i = 0; i < rot[dir].length; i++) {
+            const item = rot[dir][i];
+            const pos = item.pos;
+            delete item.pos;
+            delete item.block_id;
+            new_blocks.set(pos, item);
         }
 
         data.blocks = new_blocks;
 
         const msg = `${data.blocks.size} block(s) rotated`;
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
-
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
     }
 
     /**
@@ -398,7 +449,7 @@ export default class WorldEdit {
      * @param {*} copy_data
      */
     async cmd_paste(chat, player, cmd, args, copy_data = null) {
-        if(!player._world_edit_copy && !copy_data) {
+        if (!player._world_edit_copy && !copy_data) {
             throw 'error_not_copied_blocks';
         }
         const pn_set = performance.now();
@@ -419,53 +470,53 @@ export default class WorldEdit {
         let actions = null;
         //
         const getChunkActions = (chunk_addr) => {
-            if(chunk_addr_o.equal(chunk_addr)) {
-                return actions
+            if (chunk_addr_o.equal(chunk_addr)) {
+                return actions;
             }
             chunk_addr_o.copyFrom(chunk_addr);
             actions = actions_list.get(chunk_addr);
-            if(actions) {
-                return actions
+            if (actions) {
+                return actions;
             }
-            actions = createwWorldActions()
-            actions_list.set(chunk_addr, actions)
-            return actions
-        }
+            actions = createwWorldActions();
+            actions_list.set(chunk_addr, actions);
+            return actions;
+        };
         // blocks
-        for(const [bpos, item] of data.blocks.entries()) {
-            const pos = player_pos.add(bpos)
-            chunk_addr = getChunkAddr(pos, chunk_addr)
-            actions = getChunkActions(chunk_addr)
-            actions.addBlock({pos, item, action_id})
-            affected_count++
+        for (const [bpos, item] of data.blocks.entries()) {
+            const pos = player_pos.add(bpos);
+            chunk_addr = getChunkAddr(pos, chunk_addr);
+            actions = getChunkActions(chunk_addr);
+            actions.addBlock({ pos, item, action_id });
+            affected_count++;
         }
         // fluids
         if (data.fluids && data.fluids.length > 0) {
             const fluids = data.fluids;
             for (let i = 0; i < fluids.length; i += 4) {
                 const x = fluids[i] + player_pos.x,
-                      y = fluids[i + 1] + player_pos.y,
-                      z = fluids[i + 2] + player_pos.z,
-                      val = fluids[i + 3];
+                    y = fluids[i + 1] + player_pos.y,
+                    z = fluids[i + 2] + player_pos.z,
+                    val = fluids[i + 3];
                 chunk_addr = getChunkAddr(x, y, z, chunk_addr);
-                actions = getChunkActions(chunk_addr)
+                actions = getChunkActions(chunk_addr);
                 actions.addFluids([x, y, z, val]);
-                actions.fluidFlush = true
-                affected_count++
+                actions.fluidFlush = true;
+                affected_count++;
             }
         }
         let cnt = 0;
         const notify = {
             user_id: player.session.user_id,
             total_actions_count: actions_list.size,
-            message: 'WorldEdit paste completed!'
+            message: 'WorldEdit paste completed!',
         };
-        for(const actions of actions_list.values()) {
-            if(player) {
-                if(cnt == 0 || cnt == actions_list.size - 1) {
+        for (const actions of actions_list.values()) {
+            if (player) {
+                if (cnt == 0 || cnt == actions_list.size - 1) {
                     actions.notify = notify;
                 }
-                cnt++
+                cnt++;
             }
             chat.world.actions_queue.add(null, actions);
         }
@@ -473,9 +524,13 @@ export default class WorldEdit {
         const msg = `${affected_count_formatted} block(s) affected`;
         const pn = Math.round((performance.now() - pn_set) * 10) / 10;
         const blocks_per_sec = Math.round(affected_count / (pn / 1000));
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
         console.log(`world_edit: ${msg}`);
-        console.log(`world_edit: cmd_paste time: ${pn} ms, chunks: ${actions_list.size}; blocks_per_sec: ${blocks_per_sec}`);
+        console.log(
+            `world_edit: cmd_paste time: ${pn} ms, chunks: ${actions_list.size}; blocks_per_sec: ${blocks_per_sec}`,
+        );
     }
 
     /**
@@ -486,62 +541,72 @@ export default class WorldEdit {
      * @param {*} args
      */
     async cmd_replace(chat, player, cmd, args) {
-        const qi            = this.getCuboidInfo(player);
-        const repl_blocks   = this.createBlocksPalette(args[1]);
-        const palette       = this.createBlocksPalette(args[2]);
-        let chunk_addr      = new Vector(0, 0, 0);
-        let chunk_addr_o    = new Vector(Infinity, Infinity, Infinity);
-        let bpos            = new Vector(0, 0, 0);
-        let chunk           = null;
-        let affected_count  = 0;
-        const pn_set        = performance.now();
+        const qi = this.getCuboidInfo(player);
+        const repl_blocks = this.createBlocksPalette(args[1]);
+        const palette = this.createBlocksPalette(args[2]);
+        let chunk_addr = new Vector(0, 0, 0);
+        let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
+        let bpos = new Vector(0, 0, 0);
+        let chunk = null;
+        let affected_count = 0;
+        const pn_set = performance.now();
         const actions = new WorldAction(null, null, true, false);
-        for(let x = 0; x < qi.volx; x++) {
-            for(let y = 0; y < qi.voly; y++) {
-                for(let z = 0; z < qi.volz; z++) {
+        for (let x = 0; x < qi.volx; x++) {
+            for (let y = 0; y < qi.voly; y++) {
+                for (let z = 0; z < qi.volz; z++) {
                     bpos.set(
                         qi.pos1.x + x * qi.signx,
                         qi.pos1.y + y * qi.signy,
-                        qi.pos1.z + z * qi.signz
+                        qi.pos1.z + z * qi.signz,
                     );
                     chunk_addr = getChunkAddr(bpos, chunk_addr);
-                    if(!chunk_addr_o.equal(chunk_addr)) {
-                        chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+                    if (!chunk_addr_o.equal(chunk_addr)) {
+                        chunk_addr_o.set(
+                            chunk_addr.x,
+                            chunk_addr.y,
+                            chunk_addr.z,
+                        );
                         chunk = chat.world.chunks.get(chunk_addr);
-                        if(!chunk) {
+                        if (!chunk) {
                             throw 'error_chunk_not_loaded';
                         }
                     }
                     let block = chunk.getBlock(bpos);
                     let mat = block.material;
-                    if(mat.is_entity) {
+                    if (mat.is_entity) {
                         continue;
                     }
-                    if(block.id < 0) {
+                    if (block.id < 0) {
                         throw 'error_error_get_block';
                     }
-                    for(let rb of repl_blocks.blocks) {
+                    for (let rb of repl_blocks.blocks) {
                         let replace = false;
                         // TODO: make this automatic (#water)
-                        if(rb.is_fluid) {
+                        if (rb.is_fluid) {
                             const fluidValue = block.fluid;
-                            if(mat.id == 0 && fluidValue > 0) {
-                                if((fluidValue & FLUID_TYPE_MASK) == FLUID_WATER_ID) {
+                            if (mat.id == 0 && fluidValue > 0) {
+                                if (
+                                    (fluidValue & FLUID_TYPE_MASK) ==
+                                    FLUID_WATER_ID
+                                ) {
                                     replace = true;
-                                } else if((fluidValue & FLUID_TYPE_MASK) == FLUID_LAVA_ID) {
+                                } else if (
+                                    (fluidValue & FLUID_TYPE_MASK) ==
+                                    FLUID_LAVA_ID
+                                ) {
                                     replace = true;
                                 }
                             }
                         } else {
                             replace = mat.id == rb.block_id;
                         }
-                        if(replace) {
+                        if (replace) {
                             actions.addBlocks([
                                 {
-                                    pos: bpos.clone(), 
-                                    item: palette.nextAsItem(), 
-                                    action_id: ServerClient.BLOCK_ACTION_CREATE
-                                }
+                                    pos: bpos.clone(),
+                                    item: palette.nextAsItem(),
+                                    action_id: ServerClient.BLOCK_ACTION_CREATE,
+                                },
                             ]);
                             affected_count++;
                             break;
@@ -553,8 +618,12 @@ export default class WorldEdit {
         //
         chat.world.actions_queue.add(null, actions);
         let msg = `${affected_count} block(s) affected`;
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
-        console.log('world_edit.replace time took: ' + (performance.now() - pn_set));
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
+        console.log(
+            'world_edit.replace time took: ' + (performance.now() - pn_set),
+        );
     }
 
     //
@@ -562,7 +631,7 @@ export default class WorldEdit {
         let total_count = qi.volume;
         const size = new Vector(qi.volx, qi.voly, qi.volz);
         const WALL_WIDTH = 1;
-        switch(quboid_fill_type_id) {
+        switch (quboid_fill_type_id) {
             // full
             case 1: {
                 // do nothing
@@ -572,8 +641,8 @@ export default class WorldEdit {
             case 2: {
                 size.x -= WALL_WIDTH * 2;
                 size.z -= WALL_WIDTH * 2;
-                if(size.x > 0 && size.y > 0 && size.z > 0) {
-                    total_count -= (size.x * size.y * size.z);
+                if (size.x > 0 && size.y > 0 && size.z > 0) {
+                    total_count -= size.x * size.y * size.z;
                 }
                 break;
             }
@@ -582,13 +651,13 @@ export default class WorldEdit {
                 size.x -= WALL_WIDTH * 2;
                 size.y -= WALL_WIDTH * 2;
                 size.z -= WALL_WIDTH * 2;
-                if(size.x > 0 && size.y > 0 && size.z > 0) {
-                    total_count -= (size.x * size.y * size.z);
+                if (size.x > 0 && size.y > 0 && size.z > 0) {
+                    total_count -= size.x * size.y * size.z;
                 }
                 break;
             }
         }
-        if(total_count > MAX_SET_BLOCK) {
+        if (total_count > MAX_SET_BLOCK) {
             throw 'error_volume_max_' + MAX_SET_BLOCK;
         }
     }
@@ -600,10 +669,10 @@ export default class WorldEdit {
         let affected_count = 0;
         this.checkQuboidAffectedBlocksLimit(qi, quboid_fill_type_id);
         //
-        for(let x = 0; x < qi.volx; x++) {
-            for(let y = 0; y < qi.voly; y++) {
-                for(let z = 0; z < qi.volz; z++) {
-                    switch(quboid_fill_type_id) {
+        for (let x = 0; x < qi.volx; x++) {
+            for (let y = 0; y < qi.voly; y++) {
+                for (let z = 0; z < qi.volz; z++) {
+                    switch (quboid_fill_type_id) {
                         // full
                         case 1: {
                             // do nothing
@@ -611,14 +680,28 @@ export default class WorldEdit {
                         }
                         // only walls
                         case 2: {
-                            if((x > 0 && y >= 0 && z > 0) && (x < qi.volx - 1 && y < qi.voly && z < qi.volz - 1)) {
+                            if (
+                                x > 0 &&
+                                y >= 0 &&
+                                z > 0 &&
+                                x < qi.volx - 1 &&
+                                y < qi.voly &&
+                                z < qi.volz - 1
+                            ) {
                                 continue;
                             }
                             break;
                         }
                         // only faces
                         case 3: {
-                            if((x > 0 && y > 0 && z > 0) && (x < qi.volx - 1 && y < qi.voly - 1 && z < qi.volz - 1)) {
+                            if (
+                                x > 0 &&
+                                y > 0 &&
+                                z > 0 &&
+                                x < qi.volx - 1 &&
+                                y < qi.voly - 1 &&
+                                z < qi.volz - 1
+                            ) {
                                 continue;
                             }
                             break;
@@ -629,7 +712,7 @@ export default class WorldEdit {
                     bpos.x += x * qi.signx;
                     bpos.y += y * qi.signy;
                     bpos.z += z * qi.signz;
-                    if(affected_count % MAX_BLOCKS_PER_PASTE == 0) {
+                    if (affected_count % MAX_BLOCKS_PER_PASTE == 0) {
                         chat.world.actions_queue.add(null, actions);
                         actions = new WorldAction(null, null, true, false);
                     }
@@ -638,26 +721,37 @@ export default class WorldEdit {
                     if (fluidId) {
                         actions.addFluids([bpos.x, bpos.y, bpos.z, fluidId]);
                     } else {
-                        actions.addBlocks([{pos: bpos, item, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                        actions.addBlocks([
+                            {
+                                pos: bpos,
+                                item,
+                                action_id: ServerClient.BLOCK_ACTION_CREATE,
+                            },
+                        ]);
                     }
                 }
             }
         }
         chat.world.actions_queue.add(null, actions);
-        chat.sendSystemChatMessageToSelectedPlayers(`${affected_count} blocks changed`, [player.session.user_id]);
-        console.log('world_edit.fill_quboid time took: ' + (performance.now() - pn_set));
+        chat.sendSystemChatMessageToSelectedPlayers(
+            `${affected_count} blocks changed`,
+            [player.session.user_id],
+        );
+        console.log(
+            'world_edit.fill_quboid time took: ' + (performance.now() - pn_set),
+        );
     }
 
     // Return quboid info
     getCuboidInfo(obj) {
-        if(!obj.pos1) {
+        if (!obj.pos1) {
             throw 'error_pos1_not_defined';
         }
-        if(!obj.pos2) {
+        if (!obj.pos2) {
             throw 'error_pos2_not_defined';
         }
         const volume = obj.pos1.volume(obj.pos2);
-        if(volume < 1) {
+        if (volume < 1) {
             throw 'error_volume_0';
         }
         return {
@@ -668,22 +762,22 @@ export default class WorldEdit {
             volz: Math.abs(obj.pos1.z - obj.pos2.z) + 1,
             signx: obj.pos1.x > obj.pos2.x ? -1 : 1,
             signy: obj.pos1.y > obj.pos2.y ? -1 : 1,
-            signz: obj.pos1.z > obj.pos2.z ? -1 : 1
+            signz: obj.pos1.z > obj.pos2.z ? -1 : 1,
         };
     }
 
     //set 10%0,20%dirt
     //set 10%dirt,gold_block
     createBlocksPalette(args) {
-        const bm = this.world.block_manager
+        const bm = this.world.block_manager;
         args = new String(args);
         const blocks = args.trim().split(',');
         const blockChances = [];
         // Parse blocks pattern
-        for(let a of blocks) {
+        for (let a of blocks) {
             let chance = 1;
             let name = null;
-            if(/[0-9]+(\\.[0-9]*)?%.*/.test(a)) {
+            if (/[0-9]+(\\.[0-9]*)?%.*/.test(a)) {
                 a = a.split('%');
                 chance = parseFloat(a[0]);
                 name = a[1];
@@ -692,29 +786,40 @@ export default class WorldEdit {
             }
             blockChances.push({
                 chance: chance,
-                name: name
+                name: name,
             });
         }
         // Check names and validate blocks
         const fake_orientation = new Vector(0, 1, 0);
-        const fake_pos = {...new Vector(0, 0, 0), n: new Vector(0, 0, 0)};
-        for(let item of blockChances) {
+        const fake_pos = { ...new Vector(0, 0, 0), n: new Vector(0, 0, 0) };
+        for (let item of blockChances) {
             let b = null;
-            if(isNaN(item.name)) {
+            if (isNaN(item.name)) {
                 b = bm.fromName(item.name.toUpperCase());
             } else {
                 b = bm.fromId(parseInt(item.name));
             }
-            if(!b || b.id < 0) throw 'error_invalid_block';
-            if(b.deprecated) throw 'error_block_is_deprecated';
-            if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
+            if (!b || b.id < 0) throw 'error_invalid_block';
+            if (b.deprecated) throw 'error_block_is_deprecated';
+            if (
+                b.item ||
+                b.next_part ||
+                b.previous_part ||
+                ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0
+            )
+                throw 'error_this_block_cannot_be_setted';
             //
             const block_id = b.id;
-            const extra_data = bm.makeExtraData(b, fake_pos, fake_orientation, null);
-            if(extra_data) {
+            const extra_data = bm.makeExtraData(
+                b,
+                fake_pos,
+                fake_orientation,
+                null,
+            );
+            if (extra_data) {
                 item.extra_data = extra_data;
             }
-            if(b.can_rotate) {
+            if (b.can_rotate) {
                 item.rotate = fake_orientation;
             }
             item.block_id = block_id;
@@ -726,11 +831,11 @@ export default class WorldEdit {
         }
         // Random fill
         let max = 0;
-        for(let block of blockChances) {
+        for (let block of blockChances) {
             max += block.chance;
         }
         let i = 0;
-        for(let block of blockChances) {
+        for (let block of blockChances) {
             let v = block.chance / max;
             i += v;
             block.chance = i;
@@ -738,28 +843,28 @@ export default class WorldEdit {
         //
         return {
             blocks: blockChances,
-            next: function() {
+            next: function () {
                 const r = Math.random();
-                for(let block of this.blocks) {
+                for (let block of this.blocks) {
                     if (r <= block.chance) {
                         return block;
                     }
                 }
                 throw 'Proportional fill pattern';
             },
-            nextAsItem: function() {
+            nextAsItem: function () {
                 const next = this.next();
                 const resp = {
-                    id: next.block_id
+                    id: next.block_id,
                 };
-                if(next.extra_data) {
+                if (next.extra_data) {
                     resp.extra_data = next.extra_data;
                 }
-                if(next.rotate) {
+                if (next.rotate) {
                     resp.rotate = next.rotate;
                 }
                 return resp;
-            }
+            },
         };
     }
 
@@ -769,15 +874,15 @@ export default class WorldEdit {
         const action = args[1];
         let msg = null;
         //
-        switch(action) {
+        switch (action) {
             case 'save': {
-                throw 'error_not_implemented'
+                throw 'error_not_implemented';
             }
             case 'load': {
-                const filename = args[2]
-                const user_id = player.session.user_id
-                this.postWorkerMessage(['schem_load', {filename, user_id}])
-                return
+                const filename = args[2];
+                const user_id = player.session.user_id;
+                this.postWorkerMessage(['schem_load', { filename, user_id }]);
+                return;
                 // let p = performance.now();
                 // const reader = new SchematicReader();
                 // const schem = await reader.read(args[2]);
@@ -800,7 +905,8 @@ export default class WorldEdit {
                 break;
             }
         }
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [
+            player.session.user_id,
+        ]);
     }
-
 }

@@ -1,8 +1,7 @@
-import { getChunkAddr, Vector } from "../../../www/js/helpers.js";
-import { ServerClient } from "../../../www/js/server_client.js";
+import { getChunkAddr, Vector } from '../../../www/js/helpers.js';
+import { ServerClient } from '../../../www/js/server_client.js';
 
 export default class packet_reader {
-
     // must be put to queue
     static get queue() {
         return true;
@@ -18,5 +17,4 @@ export default class packet_reader {
         player.inventory.cloneMaterial(new Vector(packet.data), true);
         return true;
     }
-
 }

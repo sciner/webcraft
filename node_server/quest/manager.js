@@ -1,5 +1,4 @@
 export class QuestManager {
-
     /**
      * @type { import("../server_world.js").ServerWorld }
      */
@@ -10,8 +9,11 @@ export class QuestManager {
     }
 
     init() {
-        this.groupsWithDefaultQuestsById = this.#world.db.quests.getGroupsWithDefaultQuests();
-        this.groupsWithDefaultQuestsList = Array.from(this.groupsWithDefaultQuestsById.values());
+        this.groupsWithDefaultQuestsById =
+            this.#world.db.quests.getGroupsWithDefaultQuests();
+        this.groupsWithDefaultQuestsList = Array.from(
+            this.groupsWithDefaultQuestsById.values(),
+        );
     }
 
     getGroupsWithDefaultQuests() {
@@ -33,5 +35,4 @@ export class QuestManager {
     loadQuest(quest_id) {
         return this.#world.db.quests.load(quest_id);
     }
-
 }

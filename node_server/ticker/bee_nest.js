@@ -1,18 +1,17 @@
-import { WorldAction } from "../../www/js/world_action.js";
-import { Vector } from "../../www/js/helpers.js";
-import { ServerClient } from "../../www/js/server_client.js";
+import { WorldAction } from '../../www/js/world_action.js';
+import { Vector } from '../../www/js/helpers.js';
+import { ServerClient } from '../../www/js/server_client.js';
 
 export default class Ticker {
-
-    static type = 'bee_nest'
+    static type = 'bee_nest';
 
     //
     static func(tick_number, world, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
-        if(tick_number % extra_data.max_ticks == 0) {
-            if(extra_data.bees.length > 0) {
+        if (tick_number % extra_data.max_ticks == 0) {
+            if (extra_data.bees.length > 0) {
                 const day_time = world.info.calendar.day_time;
                 if (day_time > 6000 && day_time < 18000) {
                     const item = extra_data.bees.pop();
@@ -20,23 +19,30 @@ export default class Ticker {
                     // надо каждый раз пересчитывать, потому что улей могли перенести с пчелами на новое место
                     const spawn_pos = tblock.posworld
                         .clone()
-                        .addSelf(new Vector(.5, .5, .5))
-                        .addByCardinalDirectionSelf(new Vector(0, 0, .4), tblock.rotate.x);
+                        .addSelf(new Vector(0.5, 0.5, 0.5))
+                        .addByCardinalDirectionSelf(
+                            new Vector(0, 0, 0.4),
+                            tblock.rotate.x,
+                        );
                     // const spawn_tblock = world.getBlock(spawn_pos.floored());
-                    if(item.entity_id) {
+                    if (item.entity_id) {
                         // активация ранее созданного моба
                         const params = {
-                            entity_id:  item.entity_id,
-                            spawn_pos:  spawn_pos,
-                            rotate:     new Vector(0, 0, (tblock.rotate.x / 4) * -(2 * Math.PI))
-                        }
+                            entity_id: item.entity_id,
+                            spawn_pos: spawn_pos,
+                            rotate: new Vector(
+                                0,
+                                0,
+                                (tblock.rotate.x / 4) * -(2 * Math.PI),
+                            ),
+                        };
                         Ticker.activateMob(world, params);
                     } else {
                         // первая генерация моба, если его ещё не было в БД
                         const params = {
                             type: 'bee',
                             skin: 'base',
-                            pos: spawn_pos
+                            pos: spawn_pos,
                         };
                         // create new mob in world
                         Ticker.spawnMob(world, params);
@@ -45,7 +51,7 @@ export default class Ticker {
                     updated_blocks.push({
                         pos: tblock.posworld.clone(),
                         item: tblock.convertToDBItem(),
-                        action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        action_id: ServerClient.BLOCK_ACTION_MODIFY,
                     });
                 }
             }
@@ -68,5 +74,4 @@ export default class Ticker {
         actions.spawnMob(params);
         world.actions_queue.add(null, actions);
     }
-
 }

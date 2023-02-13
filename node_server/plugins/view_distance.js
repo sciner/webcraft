@@ -1,5 +1,4 @@
 export default class Chat_ViewDistance {
-
     static targets = ['chat'];
 
     onGame(game) {}
@@ -9,11 +8,11 @@ export default class Chat_ViewDistance {
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
             console.log(cmd);
-            switch(cmd) {
+            switch (cmd) {
                 case '/vdist':
                 case '/view-distance': {
                     args = chat.parseCMD(args, ['string', 'int']);
-                    if(args.length == 2) {
+                    if (args.length == 2) {
                         player.changeRenderDist(parseInt(args[1]));
                         return true;
                     }
@@ -23,5 +22,4 @@ export default class Chat_ViewDistance {
             return false;
         });
     }
-
 }

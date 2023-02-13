@@ -1,14 +1,18 @@
 import { BLOCK } from '../../www/js/blocks.js';
 import { ServerClient } from '../../www/js/server_client.js';
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
+import {
+    FLUID_TYPE_MASK,
+    FLUID_LAVA_ID,
+    FLUID_WATER_ID,
+} from '../../www/js/fluid/FluidConst.js';
 
 export default class Ticker {
-
     static type = 'dripstone';
-    
+
     //
     static func(tick_number, world, chunk, v) {
-        const random_tick_speed = world.rules.getValue('randomTickSpeed') / 4096;
+        const random_tick_speed =
+            world.rules.getValue('randomTickSpeed') / 4096;
         const pos = v.pos.clone();
         const above = world.getBlock(pos.offset(0, 1, 0));
         if (!above || tick_number % 10 != 0) {
@@ -19,17 +23,30 @@ export default class Ticker {
         let stalactite = null;
         for (let i = 1; i < 8; i++) {
             const block = world.getBlock(pos.offset(0, -i, 0));
-            if (!block || block.id != BLOCK.POINTED_DRIPSTONE.id || !block?.extra_data?.up) {
+            if (
+                !block ||
+                block.id != BLOCK.POINTED_DRIPSTONE.id ||
+                !block?.extra_data?.up
+            ) {
                 stalactite = i - 1;
                 break;
             }
         }
         // если вручную поставили больше нормы
         if (stalactite != null) {
-            const lava = (above.id == BLOCK.AIR.id && (above.fluid & FLUID_TYPE_MASK) == FLUID_LAVA_ID);
-            const water = (above.id == BLOCK.AIR.id && (above.fluid & FLUID_TYPE_MASK) == FLUID_WATER_ID);
+            const lava =
+                above.id == BLOCK.AIR.id &&
+                (above.fluid & FLUID_TYPE_MASK) == FLUID_LAVA_ID;
+            const water =
+                above.id == BLOCK.AIR.id &&
+                (above.fluid & FLUID_TYPE_MASK) == FLUID_WATER_ID;
             const peak = world.getBlock(pos.offset(0, -stalactite, 0));
-            if (peak && peak.id == BLOCK.POINTED_DRIPSTONE.id && (water != peak?.extra_data?.water || lava != peak?.extra_data?.lava)) {
+            if (
+                peak &&
+                peak.id == BLOCK.POINTED_DRIPSTONE.id &&
+                (water != peak?.extra_data?.water ||
+                    lava != peak?.extra_data?.lava)
+            ) {
                 updated_blocks.push({
                     pos: peak.posworld,
                     item: {
@@ -37,14 +54,20 @@ export default class Ticker {
                         extra_data: {
                             up: true,
                             water: water,
-                            lava: lava
-                        }
+                            lava: lava,
+                        },
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: ServerClient.BLOCK_ACTION_MODIFY,
                 });
             }
-            const air = world.getBlock(pos.offset(0,  -stalactite - 1, 0));
-            if (air && water && (Math.random() < (random_tick_speed / 10)) && air.id == BLOCK.AIR.id && air.fluid == 0) {
+            const air = world.getBlock(pos.offset(0, -stalactite - 1, 0));
+            if (
+                air &&
+                water &&
+                Math.random() < random_tick_speed / 10 &&
+                air.id == BLOCK.AIR.id &&
+                air.fluid == 0
+            ) {
                 updated_blocks.push({
                     pos: air.posworld,
                     item: {
@@ -52,10 +75,10 @@ export default class Ticker {
                         extra_data: {
                             up: true,
                             water: true,
-                            lava: false
-                        }
+                            lava: false,
+                        },
                     },
-                    action_id: ServerClient.BLOCK_ACTION_CREATE
+                    action_id: ServerClient.BLOCK_ACTION_CREATE,
                 });
             }
             // высота сталагмита
@@ -68,35 +91,47 @@ export default class Ticker {
                 }
             }
             if (stalagmite != null) {
-                const ground = world.getBlock(pos.offset(0, -stalagmite - 1, 0));
+                const ground = world.getBlock(
+                    pos.offset(0, -stalagmite - 1, 0),
+                );
                 if (ground) {
                     if (ground.id == BLOCK.CAULDRON.id) {
-                        if ((Math.random() < (random_tick_speed / 20)) && ground.extra_data.level < 3) {
+                        if (
+                            Math.random() < random_tick_speed / 20 &&
+                            ground.extra_data.level < 3
+                        ) {
                             updated_blocks.push({
-                                pos: ground.posworld, 
-                                item: { 
-                                    id: BLOCK.CAULDRON.id, 
-                                    extra_data: { 
+                                pos: ground.posworld,
+                                item: {
+                                    id: BLOCK.CAULDRON.id,
+                                    extra_data: {
                                         level: ground.extra_data.level + 1,
                                         water: water,
                                         lava: lava,
-                                        snow: false
-                                    }
-                                }, 
-                                action_id: ServerClient.BLOCK_ACTION_MODIFY 
+                                        snow: false,
+                                    },
+                                },
+                                action_id: ServerClient.BLOCK_ACTION_MODIFY,
                             });
-                        } 
-                    } 
-                    if (stalactite != stalagmite && (ground?.material?.is_solid || (ground.id == BLOCK.POINTED_DRIPSTONE.id && ground?.extra_data?.up == false)) && (Math.random() < (random_tick_speed / 20)) && water) {
+                        }
+                    }
+                    if (
+                        stalactite != stalagmite &&
+                        (ground?.material?.is_solid ||
+                            (ground.id == BLOCK.POINTED_DRIPSTONE.id &&
+                                ground?.extra_data?.up == false)) &&
+                        Math.random() < random_tick_speed / 20 &&
+                        water
+                    ) {
                         updated_blocks.push({
-                            pos: pos.offset(0, -stalagmite, 0), 
-                            item: { 
-                                id: BLOCK.POINTED_DRIPSTONE.id, 
-                                extra_data: { 
-                                    up: false 
-                                } 
-                            }, 
-                            action_id: ServerClient.BLOCK_ACTION_CREATE 
+                            pos: pos.offset(0, -stalagmite, 0),
+                            item: {
+                                id: BLOCK.POINTED_DRIPSTONE.id,
+                                extra_data: {
+                                    up: false,
+                                },
+                            },
+                            action_id: ServerClient.BLOCK_ACTION_CREATE,
                         });
                     }
                 }
@@ -104,5 +139,4 @@ export default class Ticker {
         }
         return updated_blocks;
     }
-
 }

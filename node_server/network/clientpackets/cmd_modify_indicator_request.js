@@ -1,7 +1,6 @@
-import { ServerClient } from "../../../www/js/server_client.js";
+import { ServerClient } from '../../../www/js/server_client.js';
 
 export default class packet_reader {
-
     // must be put to queue
     static get queue() {
         return false;
@@ -13,15 +12,15 @@ export default class packet_reader {
     }
 
     /**
-     * @param {ServerPlayer} player 
-     * @param {*} packet 
-     * @returns 
+     * @param {ServerPlayer} player
+     * @param {*} packet
+     * @returns
      */
     static async read(player, packet) {
-        switch(packet.data.indicator) {
+        switch (packet.data.indicator) {
             case 'live': {
                 const value = packet.data.value;
-                if(value >= 0) {
+                if (value >= 0) {
                     throw 'error_invalid_indicator_value';
                 }
                 const comment = packet.data.comment;
@@ -30,5 +29,4 @@ export default class packet_reader {
         }
         return true;
     }
-
 }

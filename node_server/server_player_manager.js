@@ -1,9 +1,8 @@
-import { AbstractPlayerManager } from "../www/js/abstract_player_manager.js";
+import { AbstractPlayerManager } from '../www/js/abstract_player_manager.js';
 
 export class ServerPlayerManager extends AbstractPlayerManager {
-
     constructor(world) {
-        super(world)
+        super(world);
         this.deletedPlyersByUserId = new Map(); // holds deleted players until they can save their state
         this.deletedPlyersByUserIdBeingWritten = null; // to avoid errors in race conditions
     }
@@ -18,15 +17,17 @@ export class ServerPlayerManager extends AbstractPlayerManager {
     }
 
     getDeleted(user_id) {
-        return this.deletedPlyersByUserId.get(user_id) 
-            ?? this.deletedPlyersByUserIdBeingWritten?.get(user_id);
+        return (
+            this.deletedPlyersByUserId.get(user_id) ??
+            this.deletedPlyersByUserIdBeingWritten?.get(user_id)
+        );
     }
 
     writeToWorldTransaction(underConstruction) {
-        for(const player of this.list.values()) {
+        for (const player of this.list.values()) {
             player.writeToWorldTransaction(underConstruction);
         }
-        for(const player of this.deletedPlyersByUserId.values()) {
+        for (const player of this.deletedPlyersByUserId.values()) {
             player.writeToWorldTransaction(underConstruction);
         }
         this.deletedPlyersByUserIdBeingWritten = this.deletedPlyersByUserId;

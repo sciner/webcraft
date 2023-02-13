@@ -1,9 +1,8 @@
-import { ServerClient } from "../../../www/js/server_client.js";
+import { ServerClient } from '../../../www/js/server_client.js';
 
 const TIME_CAST = 28;
 
 export default class packet_reader {
-
     // must be put to queue
     static get queue() {
         return false;
@@ -28,5 +27,4 @@ export default class packet_reader {
         }
         return true;
     }
-
 }

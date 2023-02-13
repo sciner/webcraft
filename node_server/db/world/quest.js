@@ -1,7 +1,7 @@
-import { preprocessSQL, run } from "../db_helpers.js";
+import { preprocessSQL, run } from '../db_helpers.js';
 
-const INSERT = {}
-const UPDATE = {}
+const INSERT = {};
+const UPDATE = {};
 
 export class DBWorldQuest {
     constructor(conn, world) {
@@ -13,7 +13,7 @@ export class DBWorldQuest {
         // Groups
         const groups = new Map();
         const defaultGroups = new Map();
-        const groupRows = await this.conn.all("SELECT * FROM quest_group");
+        const groupRows = await this.conn.all('SELECT * FROM quest_group');
         for (let row of groupRows) {
             groups.set(row.id, { ...row, quests: [] });
             defaultGroups.set(row.id, { ...row, quests: [] });
@@ -22,7 +22,7 @@ export class DBWorldQuest {
         // Quests
         const quests = new Map();
         const questRows = await this.conn.all(
-            "SELECT id, quest_group_id, title, description, next_quests, is_default FROM quest"
+            'SELECT id, quest_group_id, title, description, next_quests, is_default FROM quest',
         );
         for (let row of questRows) {
             const quest = { ...row, actions: [], rewards: [] };
@@ -37,7 +37,7 @@ export class DBWorldQuest {
         }
 
         // Actions
-        const actionsRows = await this.conn.all("SELECT * FROM quest_action");
+        const actionsRows = await this.conn.all('SELECT * FROM quest_action');
         for (let action of actionsRows) {
             const quest = quests.get(action.quest_id);
             delete action.quest_id;
@@ -46,7 +46,7 @@ export class DBWorldQuest {
 
         // Rewards
         const rewardsRows = await this.conn.all(
-            "SELECT quest_id, block_id, cnt FROM quest_reward"
+            'SELECT quest_id, block_id, cnt FROM quest_reward',
         );
         for (let reward of rewardsRows) {
             const quest = quests.get(reward.quest_id);
@@ -90,8 +90,8 @@ export class DBWorldQuest {
     }
 
     /**
-     * @param { import("../../server_player.js").ServerPlayer } player 
-     * @returns 
+     * @param { import("../../server_player.js").ServerPlayer } player
+     * @returns
      */
     async loadPlayerQuests(player) {
         if (player.world.isBuildingWorld()) {
@@ -107,8 +107,8 @@ export class DBWorldQuest {
             FROM user_quest
             WHERE user_id = :user_id`,
             {
-                ":user_id": player.session.user_id,
-            }
+                ':user_id': player.session.user_id,
+            },
         );
 
         const quests = [];
@@ -150,8 +150,8 @@ export class DBWorldQuest {
     async bulkInsertPlayerQuests(rows, dt) {
         return rows.length
             ? run(this.conn, this.BULK_INSERT_PLAYER_QUESTS, {
-                  ":jsonRows": JSON.stringify(rows),
-                  ":dt": dt,
+                  ':jsonRows': JSON.stringify(rows),
+                  ':dt': dt,
               })
             : null;
     }
@@ -169,7 +169,7 @@ export class DBWorldQuest {
     async bulkUpdatePlayerQuests(rows) {
         return rows.length
             ? run(this.conn, this.BULK_UPDATE_PLAYER_QUESTS, {
-                  ":jsonRows": JSON.stringify(rows),
+                  ':jsonRows': JSON.stringify(rows),
               })
             : null;
     }

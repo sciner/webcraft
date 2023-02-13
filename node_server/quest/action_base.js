@@ -1,6 +1,5 @@
 // QuestActionBase
 export class QuestActionBase {
-    
     #quest;
 
     constructor(quest, params) {
@@ -23,5 +22,4 @@ export class QuestActionBase {
     processTriggerEvent(quest, e) {
         // need to process player game event
     }
-
 }

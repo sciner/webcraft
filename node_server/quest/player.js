@@ -1,17 +1,16 @@
-import {PlayerEvent} from "../player_event.js";
-import {Quest} from "./quest.js";
-import {QuestGroup} from "./quest_group.js";
-import {QuestActionType} from "./action_type.js";
-import {ServerClient} from "../../www/js/server_client.js";
-import {DBWorldQuest} from "../db/world/quest.js"
+import { PlayerEvent } from '../player_event.js';
+import { Quest } from './quest.js';
+import { QuestGroup } from './quest_group.js';
+import { QuestActionType } from './action_type.js';
+import { ServerClient } from '../../www/js/server_client.js';
+import { DBWorldQuest } from '../db/world/quest.js';
 
 // QuestPlayer
 export class QuestPlayer {
-
     constructor(quest_manager, player) {
         this.quest_manager = quest_manager;
         this.player = player;
-        this.world = player.world
+        this.world = player.world;
     }
 
     async init() {
@@ -21,7 +20,10 @@ export class QuestPlayer {
         this.handlers.set(PlayerEvent.DESTROY_BLOCK, this.onDestroyBlock);
         this.handlers.set(PlayerEvent.PICKUP_ITEMS, this.onPickup);
         this.handlers.set(PlayerEvent.CRAFT, this.onCraft);
-        this.handlers.set(PlayerEvent.PUT_ITEM_TO_INVENTORY, this.onItemToInventory);
+        this.handlers.set(
+            PlayerEvent.PUT_ITEM_TO_INVENTORY,
+            this.onItemToInventory,
+        );
         PlayerEvent.addHandler(this.player.session.user_id, this);
         //
         await this.loadQuests();
@@ -34,7 +36,7 @@ export class QuestPlayer {
      */
     addQuest(dbQuest, isNew) {
         const groupId = dbQuest.quest_group_id;
-        let group = this.groups.find(it => it.id === groupId);
+        let group = this.groups.find((it) => it.id === groupId);
         if (!group) {
             const dbGroup = this.quest_manager.getGroup(groupId);
             if (!dbGroup) {
@@ -51,24 +53,27 @@ export class QuestPlayer {
     // Starts all default quests if a player has no quests
     startDefaultQuests() {
         // Get all quest groups in game
-        const all_enabled_quest_groups = this.quest_manager.getGroupsWithDefaultQuests();
-        for(let group of all_enabled_quest_groups) {
-            for(let quest of group.quests) {
+        const all_enabled_quest_groups =
+            this.quest_manager.getGroupsWithDefaultQuests();
+        for (let group of all_enabled_quest_groups) {
+            for (let quest of group.quests) {
                 this.addQuest(quest, true);
             }
         }
     }
 
     async loadQuests() {
-        const user_quests = await this.quest_manager.loadPlayerQuests(this.player);
+        const user_quests = await this.quest_manager.loadPlayerQuests(
+            this.player,
+        );
         // Init quest objects
-        this.groups = [];           // a Map might be better for performance, but an Array was historically used
-        this.quests = new Map();    // by quest.id
+        this.groups = []; // a Map might be better for performance, but an Array was historically used
+        this.quests = new Map(); // by quest.id
         //
         if (user_quests.length == 0) {
             this.startDefaultQuests();
         } else {
-            for(const uq of user_quests) {
+            for (const uq of user_quests) {
                 this.addQuest(uq, false);
             }
         }
@@ -82,30 +87,34 @@ export class QuestPlayer {
     // sendAll...
     sendAll() {
         const data = this.getEnabled();
-        this.player.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: data}]);
+        this.player.sendPackets([
+            { name: ServerClient.CMD_QUEST_ALL, data: data },
+        ]);
     }
 
     // Send message to player chat
     sendMessage(message) {
-        this.player.world.chat.sendSystemChatMessageToSelectedPlayers(message, [this.player.session.user_id]);
+        this.player.world.chat.sendSystemChatMessageToSelectedPlayers(message, [
+            this.player.session.user_id,
+        ]);
     }
 
     // Handler
     onSetBlock(e) {
         const block = this.world.block_manager.fromId(e.data.block.id);
-        if(!block) {
+        if (!block) {
             throw 'error_invalid_block';
         }
         const pos = e.data.pos.toHash();
-        for(let quest of this.quests.values()) {
-            if(quest.is_completed) {
+        for (let quest of this.quests.values()) {
+            if (quest.is_completed) {
                 continue;
             }
-            for(let action of quest.actions) {
-                if(action.ok) {
+            for (let action of quest.actions) {
+                if (action.ok) {
                     continue;
                 }
-                if(action.quest_action_type_id == QuestActionType.SET_BLOCK) {
+                if (action.quest_action_type_id == QuestActionType.SET_BLOCK) {
                     action.processTriggerEvent(quest, e);
                 }
             }
@@ -116,7 +125,7 @@ export class QuestPlayer {
     // Handler
     onDestroyBlock(e) {
         const block = this.world.block_manager.fromId(e.data.block.id);
-        if(!block) {
+        if (!block) {
             throw 'error_invalid_block';
         }
         const pos = e.data.pos.toHash();
@@ -125,15 +134,15 @@ export class QuestPlayer {
 
     // Handler
     onPickup(e) {
-        for(let quest of this.quests.values()) {
-            if(quest.is_completed) {
+        for (let quest of this.quests.values()) {
+            if (quest.is_completed) {
                 continue;
             }
-            for(let action of quest.actions) {
-                if(action.ok) {
+            for (let action of quest.actions) {
+                if (action.ok) {
                     continue;
                 }
-                if(action.quest_action_type_id == QuestActionType.PICKUP) {
+                if (action.quest_action_type_id == QuestActionType.PICKUP) {
                     action.processTriggerEvent(quest, e);
                 }
             }
@@ -144,18 +153,18 @@ export class QuestPlayer {
     onCraft(e) {
         const item = e.data.item;
         const block = this.world.block_manager.fromId(item.block_id);
-        if(!block) {
+        if (!block) {
             throw 'error_invalid_block';
         }
-        for(let quest of this.quests.values()) {
-            if(quest.is_completed) {
+        for (let quest of this.quests.values()) {
+            if (quest.is_completed) {
                 continue;
             }
-            for(let action of quest.actions) {
-                if(action.ok) {
+            for (let action of quest.actions) {
+                if (action.ok) {
                     continue;
                 }
-                if(action.quest_action_type_id == QuestActionType.CRAFT) {
+                if (action.quest_action_type_id == QuestActionType.CRAFT) {
                     action.processTriggerEvent(quest, e);
                 }
             }
@@ -167,18 +176,18 @@ export class QuestPlayer {
     onItemToInventory(e) {
         const item = e.data.item;
         const block = this.world.block_manager.fromId(item.block_id);
-        if(!block) {
+        if (!block) {
             throw 'error_invalid_block';
         }
-        for(let quest of this.quests.values()) {
-            if(quest.is_completed) {
+        for (let quest of this.quests.values()) {
+            if (quest.is_completed) {
                 continue;
             }
-            for(let action of quest.actions) {
-                if(action.ok) {
+            for (let action of quest.actions) {
+                if (action.ok) {
                     continue;
                 }
-                if(action.quest_action_type_id == QuestActionType.PICKUP) {
+                if (action.quest_action_type_id == QuestActionType.PICKUP) {
                     action.processTriggerEvent(quest, e);
                 }
             }
@@ -189,15 +198,14 @@ export class QuestPlayer {
     // On game event
     trigger(e) {
         const handler = this.handlers.get(e.type);
-        if(handler) {
+        if (handler) {
             handler.call(this, e);
         }
     }
 
     writeToWorldTransaction(underConstruction) {
-        for(const quest of this.quests.values()) {
+        for (const quest of this.quests.values()) {
             quest.writeToWorldTransaction(underConstruction);
         }
     }
-
 }

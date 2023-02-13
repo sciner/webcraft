@@ -1,35 +1,39 @@
 {
-  "scripts": {
-    "install-ff": "(cd ../ff-worker && npm install)",
-    "install-local": "(cd ../local_server && npm install)",
-    "install-all": "npm run install-ff && npm run install-local && npm install",
-    "start": "node --experimental-json-modules --no-warnings --max-old-space-size=8192 ./index.js",
-    "inspect": "node --experimental-json-modules --no-warnings --inspect --max-old-space-size=8192 ./index.js",
-    "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
-    "compile-assets": "cd ./assets-compiler && node --experimental-json-modules --no-warnings ./index.js",
-    "rollup": "(cd ../ff-worker && npm run start)",
-    "start-rollup": "npm run rollup && npm run start page.useGenWorkers=true",
-    "test": "mocha"
-  },
-  "dependencies": {
-    "body-parser": "^1.20.0",
-    "compression": "^1.7.4",
-    "ejs": "^3.1.8",
-    "express": "^4.17.1",
-    "express-fileupload": "^1.4.0",
-    "express-less": "^0.1.0",
-    "prismarine-schematic": "github:sciner/prismarine-schematic#master",
-    "semver": "^7.3.7",
-    "simplex-noise": "^3.0.1",
-    "skia-canvas": "^0.9.30",
-    "sqlite": "^4.0.23",
-    "sqlite3": "^5.0.8",
-    "uuid": "^8.3.2",
-    "ws": "^8.2.3",
-    "mkdirp": "^1.0.4"
-  },
-  "type": "module",
-  "optionalDependencies": {
-    "utf-8-validate": "^5.0.7"
-  }
+    "scripts": {
+        "install-ff": "(cd ../ff-worker && npm install)",
+        "install-local": "(cd ../local_server && npm install)",
+        "install-all": "npm run install-ff && npm run install-local && npm install",
+        "start": "node --experimental-json-modules --no-warnings --max-old-space-size=8192 ./index.js",
+        "inspect": "node --experimental-json-modules --no-warnings --inspect --max-old-space-size=8192 ./index.js",
+        "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
+        "compile-assets": "cd ./assets-compiler && node --experimental-json-modules --no-warnings ./index.js",
+        "rollup": "(cd ../ff-worker && npm run start)",
+        "start-rollup": "npm run rollup && npm run start page.useGenWorkers=true",
+        "test": "mocha",
+        "format": "prettier --write \"**/*.{ts,js,json}\""
+    },
+    "dependencies": {
+        "body-parser": "^1.20.0",
+        "compression": "^1.7.4",
+        "ejs": "^3.1.8",
+        "express": "^4.17.1",
+        "express-fileupload": "^1.4.0",
+        "express-less": "^0.1.0",
+        "mkdirp": "^1.0.4",
+        "prismarine-schematic": "github:sciner/prismarine-schematic#master",
+        "semver": "^7.3.7",
+        "simplex-noise": "^3.0.1",
+        "skia-canvas": "^0.9.30",
+        "sqlite": "^4.0.23",
+        "sqlite3": "^5.0.8",
+        "uuid": "^8.3.2",
+        "ws": "^8.2.3"
+    },
+    "type": "module",
+    "optionalDependencies": {
+        "utf-8-validate": "^5.0.7"
+    },
+    "devDependencies": {
+        "prettier": "^2.8.4"
+    }
 }

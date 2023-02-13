@@ -1,11 +1,10 @@
-import { FSMBrain } from "../brain.js";
-import { Vector } from "../../../www/js/helpers.js";
-import { WorldAction } from "../../../www/js/world_action.js";
-import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
-import { EnumDifficulty } from "../../../www/js/enums/enum_difficulty.js";
+import { FSMBrain } from '../brain.js';
+import { Vector } from '../../../www/js/helpers.js';
+import { WorldAction } from '../../../www/js/world_action.js';
+import { EnumDamage } from '../../../www/js/enums/enum_damage.js';
+import { EnumDifficulty } from '../../../www/js/enums/enum_difficulty.js';
 
 export class Brain extends FSMBrain {
-
     constructor(mob) {
         super(mob);
         //
@@ -15,21 +14,21 @@ export class Brain extends FSMBrain {
             baseSpeed: 0.8,
             playerHeight: 1.6,
             playerHalfWidth: 0.45,
-            stepHeight: 1
+            stepHeight: 1,
         });
         this.stack.pushState(this.doStand);
-        this.health = 20;       // максимальное здоровье
+        this.health = 20; // максимальное здоровье
         this.distance_view = 40; // дистанция на которм виден игрок
         this.distance_attack = 1.5; // дистанция для атаки
         this.timer_attack = 0;
         this.interval_attack = 16;
         this.resistance_light = false; // загорается при свете
     }
-    
+
     onLive() {
         super.onLive();
     }
-    
+
     // поиск игрока для атаки
     onFind() {
         if (this.target || this.distance_view < 1) {
@@ -37,7 +36,7 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.rules.getValue('difficulty'); 
+        const difficulty = world.rules.getValue('difficulty');
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
             const rnd = (Math.random() * players.length) | 0;
@@ -45,7 +44,11 @@ export class Brain extends FSMBrain {
             this.target = player;
             // Если выбран режим hard, то устанавливаем общий таргет
             if (difficulty == EnumDifficulty.HARD) {
-                const bots = world.getMobsNear(mob.pos, this.distance_view, 'zombie');
+                const bots = world.getMobsNear(
+                    mob.pos,
+                    this.distance_view,
+                    'zombie',
+                );
                 for (const bot of bots) {
                     const brain = bot.getBrain();
                     if (!brain.target) {
@@ -55,7 +58,7 @@ export class Brain extends FSMBrain {
             }
         }
     }
-    
+
     // просто стоит на месте
     doStand(delta) {
         // нашел цель
@@ -72,12 +75,12 @@ export class Brain extends FSMBrain {
             yaw: mob.rotate.z,
             forward: false,
             jump: false,
-            sneak: false
+            sneak: false,
         });
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     // просто ходит
     doForward(delta) {
         // нашел цель
@@ -88,7 +91,8 @@ export class Brain extends FSMBrain {
         // обход препятсвия
         const mob = this.mob;
         if (this.is_wall || this.is_fire || this.is_lava) {
-            mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
+            mob.rotate.z =
+                mob.rotate.z + Math.PI / 2 + (Math.random() * Math.PI) / 2;
             this.stack.replaceState(this.doStand);
             return;
         }
@@ -101,12 +105,12 @@ export class Brain extends FSMBrain {
             yaw: mob.rotate.z,
             forward: true,
             jump: false,
-            sneak: false
+            sneak: false,
         });
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     // преследование игрока
     doCatch(delta) {
         const mob = this.mob;
@@ -131,12 +135,12 @@ export class Brain extends FSMBrain {
         this.updateControl({
             yaw: mob.rotate.z,
             forward: true, //!(this.is_abyss | this.is_well),
-            jump: this.is_water
+            jump: this.is_water,
         });
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     doAttack(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
@@ -147,7 +151,11 @@ export class Brain extends FSMBrain {
             return;
         }
         const dist = mob.pos.distance(this.target.state.pos);
-        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_gate) {
+        if (
+            mob.playerCanBeAtacked(this.target) ||
+            dist > this.distance_attack ||
+            this.is_gate
+        ) {
             this.stack.replaceState(this.doCatch);
             return;
         }
@@ -160,15 +168,21 @@ export class Brain extends FSMBrain {
         } else {
             if (this.timer_attack++ >= this.interval_attack) {
                 this.timer_attack = 0;
-                switch(difficulty) {
-                    case EnumDifficulty.EASY: this.target.setDamage(Math.random() < 0.5 ? 2 : 3); break;
-                    case EnumDifficulty.NORMAL: this.target.setDamage(3); break;
-                    case EnumDifficulty.HARD: this.target.setDamage(Math.random() < 0.5 ? 4 : 5); break;
+                switch (difficulty) {
+                    case EnumDifficulty.EASY:
+                        this.target.setDamage(Math.random() < 0.5 ? 2 : 3);
+                        break;
+                    case EnumDifficulty.NORMAL:
+                        this.target.setDamage(3);
+                        break;
+                    case EnumDifficulty.HARD:
+                        this.target.setDamage(Math.random() < 0.5 ? 4 : 5);
+                        break;
                 }
             }
         }
     }
-    
+
     // Если убили моба
     onKill(actor, type_damage) {
         const mob = this.mob;
@@ -176,36 +190,49 @@ export class Brain extends FSMBrain {
         const items = [];
         const actions = new WorldAction();
         const rnd_count_flesh = (Math.random() * 2) | 0;
-        const bm = world.block_manager
+        const bm = world.block_manager;
         if (rnd_count_flesh > 0) {
             items.push({ id: bm.ROTTEN_FLESH.id, count: rnd_count_flesh });
         }
         if (Math.random() < 0.025) {
             const drop = (Math.random() * 2) | 0;
             switch (drop) {
-                case 0: items.push({ id: bm.IRON_INGOT.id, count: 1 }); break;
-                case 1: items.push({ id: bm.CARROT.id, count: 1 }); break;
-                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? bm.POTATO.id : bm.BACKED_POTATO.id, count: 1 }); break;
+                case 0:
+                    items.push({ id: bm.IRON_INGOT.id, count: 1 });
+                    break;
+                case 1:
+                    items.push({ id: bm.CARROT.id, count: 1 });
+                    break;
+                case 2:
+                    items.push({
+                        id:
+                            type_damage != EnumDamage.FIRE
+                                ? bm.POTATO.id
+                                : bm.BACKED_POTATO.id,
+                        count: 1,
+                    });
+                    break;
             }
         }
         if (items.length > 0) {
             actions.addDropItem({ pos: mob.pos, items: items, force: true });
         }
-        actions.addPlaySound({ tag: 'madcraft:block.zombie', action: 'death', pos: mob.pos.clone() });
+        actions.addPlaySound({
+            tag: 'madcraft:block.zombie',
+            action: 'death',
+            pos: mob.pos.clone(),
+        });
         world.actions_queue.add(actor, actions);
     }
-    
-    onPanic() {
-        
-    }
-    
+
+    onPanic() {}
+
     onUse() {
         this.mob.extra_data.armor = {
-            head: 279, 
+            head: 279,
             body: 275,
             leg: null,
             boot: null,
         };
     }
-
 }

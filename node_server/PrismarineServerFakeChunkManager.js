@@ -1,8 +1,8 @@
-import { getChunkAddr, Vector } from "../www/js/helpers.js";
+import { getChunkAddr, Vector } from '../www/js/helpers.js';
 
 export class PrismarineServerFakeChunkManager {
     constructor(world) {
-        this.world = world
+        this.world = world;
         this.chunk_addr = new Vector();
     }
     getChunk(chunk_addr) {

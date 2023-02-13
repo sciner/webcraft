@@ -30,7 +30,7 @@
         },
         "alphabet": {
             "image": "/textures/alphabet_msdf.png",
-            "_canvas": {"width": 1024, "height": 1024},
+            "_canvas": { "width": 1024, "height": 1024 },
             "tx_cnt": 32,
             "minFilter": "linear",
             "magFilter": "linear",

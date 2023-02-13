@@ -1,4 +1,4 @@
-import { ArrayOrMap, StringHelpers, unixTime } from "../www/js/helpers.js";
+import { ArrayOrMap, StringHelpers, unixTime } from '../www/js/helpers.js';
 
 export function epochMillis() {
     return Date.now();
@@ -7,7 +7,7 @@ export function epochMillis() {
 /**
  * Parses a config containing many-to-many relations between keys and values,
  * and stores the result in a map, which it returns.
- * 
+ *
  * @param {Array} conf - its elements can be:
  * - scalars (which represend both a key and a value);
  * - [keys, values], where both keys and values can be scalars or arrays of scalars.
@@ -16,8 +16,11 @@ export function epochMillis() {
  *   to values. For each key, it has a list of uniques values associated with this key.
  * @returns the result parametr.
  */
-export function parseManyToMany(conf, transformKey = v => v, result = new Map()) {
-
+export function parseManyToMany(
+    conf,
+    transformKey = (v) => v,
+    result = new Map(),
+) {
     function add(key, value) {
         key = transformKey(key);
         var list = ArrayOrMap.get(result, key);
@@ -30,20 +33,22 @@ export function parseManyToMany(conf, transformKey = v => v, result = new Map())
         }
     }
 
-    for(var entry of conf) {
+    for (var entry of conf) {
         if (typeof entry !== 'object') {
             add(entry, entry);
             continue;
         }
         if (!Array.isArray(entry) || entry.length !== 2) {
-            throw new Error('Elemetns of must be scalars or 2-element arrays. Wrong entry: ' + 
-                JSON.stringify(entry));
+            throw new Error(
+                'Elemetns of must be scalars or 2-element arrays. Wrong entry: ' +
+                    JSON.stringify(entry),
+            );
         }
         var [keys, values] = entry;
         keys = Array.isArray(keys) ? keys : [keys];
         values = Array.isArray(values) ? values : [values];
-        for(let key of keys) {
-            for(let value of values) {
+        for (let key of keys) {
+            for (let value of values) {
                 add(key, value);
             }
         }
@@ -52,15 +57,16 @@ export function parseManyToMany(conf, transformKey = v => v, result = new Map())
 }
 
 async function rollupImport(dir, file) {
-    switch(dir) {
-        case './ticker/listeners/': return import(`./ticker/listeners/${file}.js`);
+    switch (dir) {
+        case './ticker/listeners/':
+            return import(`./ticker/listeners/${file}.js`);
     }
     throw new Error('Unsupported directory: ' + dir);
 }
 
 /**
  * Parses many-to-many conf and impots objects from .js modules.
- * 
+ *
  * @param {Array} conf - the reult of {@link parseManyToMany}.
  *   The values can be "moduleName", or "moduleName:importDescription".
  *   importDescription can contain ":"; only the 1st ":" is treated as a separator.
@@ -73,27 +79,33 @@ async function rollupImport(dir, file) {
  * @returns the result parametr,.
  */
 
-export async function loadMappedImports(resultMap,
+export async function loadMappedImports(
+    resultMap,
     folder,
     doImport = simpleImport,
-    uniqueImports = {}
+    uniqueImports = {},
 ) {
     // load missing unique imports into uniqueImports as promises
     const promises = [];
-    for(let list of ArrayOrMap.values(resultMap)) {
-        for(var i = 0; i < list.length; i++) {
+    for (let list of ArrayOrMap.values(resultMap)) {
+        for (var i = 0; i < list.length; i++) {
             const fullImportString = list[i];
             if (uniqueImports[fullImportString]) {
                 continue;
             }
             // declare them const, otherwise functions use the same value from the closure
-            const [moduleName, importStr_] = StringHelpers.splitFirst(fullImportString, ':');
-            const importStr = importStr_ || 'default';            
-            const p = rollupImport(folder, moduleName).then(function (module) {                    
+            const [moduleName, importStr_] = StringHelpers.splitFirst(
+                fullImportString,
+                ':',
+            );
+            const importStr = importStr_ || 'default';
+            const p = rollupImport(folder, moduleName).then(function (module) {
                 const imp = doImport(module, importStr, fullImportString);
                 if (imp == null) {
-                    moduleName = folder + moduleName + '.js'
-                    throw new Error(`Can't import ${importStr} from ${moduleName}`);
+                    moduleName = folder + moduleName + '.js';
+                    throw new Error(
+                        `Can't import ${importStr} from ${moduleName}`,
+                    );
                 }
                 return imp;
             });
@@ -103,8 +115,8 @@ export async function loadMappedImports(resultMap,
     }
     // await all promises and replace the strings with imported objects
     return await Promise.all(promises).then(async function () {
-        for(let list of ArrayOrMap.values(resultMap)) {
-            for(var i = 0; i < list.length; i++) {
+        for (let list of ArrayOrMap.values(resultMap)) {
+            for (var i = 0; i < list.length; i++) {
                 const fullImportString = list[i];
                 var imp = uniqueImports[fullImportString];
                 if (imp instanceof Promise) {
@@ -121,15 +133,17 @@ export async function loadMappedImports(resultMap,
 
 // https://stackoverflow.com/questions/526559/testing-if-something-is-a-class-in-javascript
 function isClass(obj) {
-    const isCtorClass = obj.constructor
-        && obj.constructor.toString().substring(0, 5) === 'class'
+    const isCtorClass =
+        obj.constructor &&
+        obj.constructor.toString().substring(0, 5) === 'class';
     if (obj.prototype === undefined) {
-        return isCtorClass
+        return isCtorClass;
     }
-    const isPrototypeCtorClass = obj.prototype.constructor 
-        && obj.prototype.constructor.toString
-        && obj.prototype.constructor.toString().substring(0, 5) === 'class'
-    return isCtorClass || isPrototypeCtorClass
+    const isPrototypeCtorClass =
+        obj.prototype.constructor &&
+        obj.prototype.constructor.toString &&
+        obj.prototype.constructor.toString().substring(0, 5) === 'class';
+    return isCtorClass || isPrototypeCtorClass;
 }
 
 /**
@@ -157,7 +171,8 @@ export function importClassInstance(module, str, fullImportString) {
         args = EMPTY_ARRAY;
     }
     const obj = module[name];
-    if (typeof obj !== 'function') { // it's null or object
+    if (typeof obj !== 'function') {
+        // it's null or object
         return obj;
     }
     if (isClass(obj)) {
@@ -176,7 +191,7 @@ export function importClassInstanceWithId(module, str, fullImportString) {
 
 export class DelayedCalls {
     /**
-     * @param { object } calleesById - keys are ids, 
+     * @param { object } calleesById - keys are ids,
      *  values are objects:
      *  {
      *      delayedCall(args...)
@@ -185,7 +200,7 @@ export class DelayedCalls {
      *      afterDelayedLoading(args: Any): Object  // optional
      *  }
      * beforeDelayedSaving and afterDelayedLoading can be used to convert (object references <-> ids)
-     * 
+     *
      * @param { boolean } sometimesSerialize - if it's true, half the time arguments are
      *  serialized and deserialized before a normal call. It helps debugging: ensures
      * that callees work with both direct and deserialized arguments.
@@ -193,7 +208,7 @@ export class DelayedCalls {
     constructor(calleesById, debugSometimesSerialize = true) {
         this.calleesById = calleesById;
         this.list = []; // sorted by time ascending
-        this.debugSometimesSerialize = debugSometimesSerialize
+        this.debugSometimesSerialize = debugSometimesSerialize;
         this.dirty = false;
     }
 
@@ -202,18 +217,18 @@ export class DelayedCalls {
     }
 
     /**
-     * @param {Array} args - arguments pased to the function. 
+     * @param {Array} args - arguments pased to the function.
      *    The 0th element is "this".
      */
     add(calleeId, delay, args) {
         const callee = this.calleesById[calleeId];
         if (!callee) {
-            throw new Error("Unknown calleeId: " + calleeId);
+            throw new Error('Unknown calleeId: ' + calleeId);
         }
         const entry = {
             id: calleeId,
-            time: epochMillis() + delay
-        }
+            time: epochMillis() + delay,
+        };
         if (args?.length) {
             if (this.debugSometimesSerialize) {
                 callee._debugDelayedSerialize = !callee._debugDelayedSerialize;
@@ -231,7 +246,7 @@ export class DelayedCalls {
             entry.args = args;
         }
         var index = this.list.length;
-        while(index - 1 >= 0 && entry.time < this.list[index - 1].time) {
+        while (index - 1 >= 0 && entry.time < this.list[index - 1].time) {
             index--;
         }
         this.list.splice(index, 0, entry);
@@ -289,7 +304,6 @@ export class DelayedCalls {
 const EMPTY_ARRAY = [];
 
 export class PacketHelpers {
-
     /**
      * Starts countdown of atemps and time for a packet.
      * Returns true until the coundown ends. After that, returns false.

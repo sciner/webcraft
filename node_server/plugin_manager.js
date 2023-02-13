@@ -1,14 +1,13 @@
 export class PluginManager {
-
     constructor(config) {
         // Load plugins
         this.targets = new Map();
         this.targets.set('game', []);
-        this.targets.set('world',  []);
-        this.targets.set('chat',  []);
-        for(const [file, plugin] of Object.entries(config.chat_plugins)) {
-            for(let target of plugin.targets) {
-                if(!this.targets.has(target)) {
+        this.targets.set('world', []);
+        this.targets.set('chat', []);
+        for (const [file, plugin] of Object.entries(config.chat_plugins)) {
+            for (let target of plugin.targets) {
+                if (!this.targets.has(target)) {
                     throw 'invalid_plugin_target|' + file + ':' + target;
                 }
                 this.targets.get(target).push(plugin);
@@ -18,17 +17,17 @@ export class PluginManager {
     }
 
     /**
-     * @param {string} target 
-     * @param {object} instance 
-     * @returns 
+     * @param {string} target
+     * @param {object} instance
+     * @returns
      */
     initPlugins(target, instance) {
         const resp = [];
         const targets = this.targets.get(target);
-        if(targets) {
-            for(let item of targets) {
+        if (targets) {
+            for (let item of targets) {
                 const plugin = new item(instance);
-                switch(target) {
+                switch (target) {
                     case 'game': {
                         plugin.onGame(instance);
                     }
@@ -44,5 +43,4 @@ export class PluginManager {
         }
         return resp;
     }
-
 }

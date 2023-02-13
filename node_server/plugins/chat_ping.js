@@ -1,5 +1,4 @@
 export default class Chat_Ping {
-
     static targets = ['chat'];
 
     onGame(game) {}
@@ -8,14 +7,16 @@ export default class Chat_Ping {
 
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
-            switch(cmd) {
+            switch (cmd) {
                 case '/ping': {
-                    player.world.chat.sendSystemChatMessageToSelectedPlayers(`pong`, [player.session.user_id]);
+                    player.world.chat.sendSystemChatMessageToSelectedPlayers(
+                        `pong`,
+                        [player.session.user_id],
+                    );
                     return true;
                 }
             }
             return false;
         });
     }
-
 }

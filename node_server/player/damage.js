@@ -1,8 +1,12 @@
-import { Effect } from "../../www/js/block_type/effect.js";
-import { BLOCK } from "../../www/js/blocks.js";
-import { Vector } from "../../www/js/helpers.js";
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
-import { PLAYER_STATUS_ALIVE } from "../../www/js/constant.js";
+import { Effect } from '../../www/js/block_type/effect.js';
+import { BLOCK } from '../../www/js/blocks.js';
+import { Vector } from '../../www/js/helpers.js';
+import {
+    FLUID_TYPE_MASK,
+    FLUID_LAVA_ID,
+    FLUID_WATER_ID,
+} from '../../www/js/fluid/FluidConst.js';
+import { PLAYER_STATUS_ALIVE } from '../../www/js/constant.js';
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;
@@ -17,7 +21,6 @@ const PLANTING_LOST_TICKS = 10;
 const PLANTING_PADDING_DAMAGE = 0.3;
 
 export class ServerPlayerDamage {
-    
     constructor(player) {
         this.player = player;
         this.oxygen_lost_timer = 0;
@@ -34,11 +37,11 @@ export class ServerPlayerDamage {
         this.instant_damage_timer = 0;
         this.damage = 0;
     }
-    
+
     /*
-    * Метод подсчитывает колличество урона
-    *
-    */
+     * Метод подсчитывает колличество урона
+     *
+     */
     getDamage(tick) {
         const player = this.player;
         const world = player.world;
@@ -54,13 +57,16 @@ export class ServerPlayerDamage {
         // эффект прилив здоровья
         const health_boost_lvl = effects.getEffectLevel(Effect.HEALTH_BOOST);
         max_live += 2 * health_boost_lvl;
-        
+
         let damage = this.damage;
         // Урон от голода
         if (this.food_exhaustion_level > 4) {
             this.food_exhaustion_level -= 4;
             if (this.food_saturation_level > 0) {
-                this.food_saturation_level = Math.max(this.food_saturation_level - 1, 0);
+                this.food_saturation_level = Math.max(
+                    this.food_saturation_level - 1,
+                    0,
+                );
             } else {
                 player.food_level = Math.max(player.food_level - 1, 0);
             }
@@ -88,15 +94,16 @@ export class ServerPlayerDamage {
         }
         // урон он воды и удушения эффект подводное дыханиеBLOCK.BUBBLE_COLUMN
         const is_asphyxiation = player.game_mode.current.asphyxiation;
-        const is_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        if ( is_water || (head.id > 0 && !head.has_oxygen) && is_asphyxiation) {
+        const is_water =
+            head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID;
+        if (is_water || (head.id > 0 && !head.has_oxygen && is_asphyxiation)) {
             this.oxygen_got_timer = 0;
             this.oxygen_lost_timer++;
             if (this.oxygen_lost_timer >= OXYGEN_LOST_TICKS) {
                 this.oxygen_lost_timer = 0;
                 const resp_lvl = effects.getEffectLevel(Effect.RESPIRATION);
                 if (resp_lvl == 0) {
-                    player.oxygen_level =  Math.max(player.oxygen_level - 1, 0);
+                    player.oxygen_level = Math.max(player.oxygen_level - 1, 0);
                 }
                 if (player.oxygen_level == 0) {
                     damage++;
@@ -107,16 +114,26 @@ export class ServerPlayerDamage {
             this.oxygen_got_timer++;
             if (this.oxygen_got_timer >= OXYGEN_GOT_TICKS) {
                 this.oxygen_got_timer = 0;
-                player.oxygen_level =  Math.min(player.oxygen_level + 1, ind_def.oxygen.value);
+                player.oxygen_level = Math.min(
+                    player.oxygen_level + 1,
+                    ind_def.oxygen.value,
+                );
             }
         }
         // огонь/лава с эффектом защиты от огня
-        const is_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || is_lava) {
+        const is_lava =
+            legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID;
+        if (
+            legs.id == BLOCK.FIRE.id ||
+            legs.id == BLOCK.CAMPFIRE.id ||
+            is_lava
+        ) {
             this.fire_lost_timer++;
             if (this.fire_lost_timer >= FIRE_LOST_TICKS) {
                 this.fire_lost_timer = 0;
-                const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE);
+                const fire_res_lvl = effects.getEffectLevel(
+                    Effect.FIRE_RESISTANCE,
+                );
                 if (fire_res_lvl == 0) {
                     damage = is_lava ? damage + 4 : damage + 1;
                 }
@@ -128,7 +145,7 @@ export class ServerPlayerDamage {
         const poison_lvl = effects.getEffectLevel(Effect.POISON);
         if (poison_lvl > 0) {
             this.poison_timer++;
-            if (this.poison_timer >= (POISON_TICKS / (2**(poison_lvl - 1)))) {
+            if (this.poison_timer >= POISON_TICKS / 2 ** (poison_lvl - 1)) {
                 this.poison_timer = 0;
                 if (player.live_level > 1) {
                     damage++;
@@ -141,7 +158,7 @@ export class ServerPlayerDamage {
         const wither_lvl = effects.getEffectLevel(Effect.WITHER);
         if (wither_lvl > 0) {
             this.wither_timer++;
-            if (this.wither_timer >= (WITHER_TICKS / (2**(wither_lvl - 1)))) {
+            if (this.wither_timer >= WITHER_TICKS / 2 ** (wither_lvl - 1)) {
                 this.wither_timer = 0;
                 damage++;
             }
@@ -156,11 +173,14 @@ export class ServerPlayerDamage {
             if (block.id == BLOCK.CACTUS.id) {
                 return true;
             }
-            if (block.id == BLOCK.SWEET_BERRY_BUSH.id && block?.extra_data?.stage == 3) {
+            if (
+                block.id == BLOCK.SWEET_BERRY_BUSH.id &&
+                block?.extra_data?.stage == 3
+            ) {
                 return true;
             }
             return false;
-        }
+        };
         const east = world.getBlock(position.add(Vector.XN));
         const west = world.getBlock(position.add(Vector.XP));
         const north = world.getBlock(position.add(Vector.ZP));
@@ -168,7 +188,14 @@ export class ServerPlayerDamage {
         const down = world.getBlock(position.add(Vector.YN));
         const inside = world.getBlock(position);
         const sub = player.state.pos.sub(position);
-        if ((isDamagePlanting(inside)) || (isDamagePlanting(down)) || (isDamagePlanting(east) && sub.x < PLANTING_PADDING_DAMAGE) || (isDamagePlanting(west) && sub.x > 1.0 - PLANTING_PADDING_DAMAGE) || (isDamagePlanting(south) && sub.z < PLANTING_PADDING_DAMAGE) || (isDamagePlanting(north) && sub.z > 1 - PLANTING_PADDING_DAMAGE)) {
+        if (
+            isDamagePlanting(inside) ||
+            isDamagePlanting(down) ||
+            (isDamagePlanting(east) && sub.x < PLANTING_PADDING_DAMAGE) ||
+            (isDamagePlanting(west) && sub.x > 1.0 - PLANTING_PADDING_DAMAGE) ||
+            (isDamagePlanting(south) && sub.z < PLANTING_PADDING_DAMAGE) ||
+            (isDamagePlanting(north) && sub.z > 1 - PLANTING_PADDING_DAMAGE)
+        ) {
             this.planting_lost_timer++;
             if (this.planting_lost_timer >= PLANTING_LOST_TICKS) {
                 this.planting_lost_timer = 0;
@@ -178,23 +205,30 @@ export class ServerPlayerDamage {
             this.planting_lost_timer = PLANTING_LOST_TICKS;
         }
         // моментальный урон
-        const instant_damage_lvl = effects.getEffectLevel(Effect.INSTANT_DAMAGE);
+        const instant_damage_lvl = effects.getEffectLevel(
+            Effect.INSTANT_DAMAGE,
+        );
         if (instant_damage_lvl > 0) {
             this.instant_damage_timer++;
             if (this.instant_damage_timer >= INSTANT_DAMAGE_TICKS) {
                 this.instant_damage_timer = 0;
-                damage += 3 * (2**(instant_damage_lvl - 1));
+                damage += 3 * 2 ** (instant_damage_lvl - 1);
             }
         } else {
             this.instant_damage_timer = INSTANT_DAMAGE_TICKS;
         }
         // исцеление
-        const instant_health_lvl = effects.getEffectLevel(Effect.INSTANT_HEALTH);
+        const instant_health_lvl = effects.getEffectLevel(
+            Effect.INSTANT_HEALTH,
+        );
         if (instant_health_lvl > 0) {
             this.instant_health_timer++;
             if (this.instant_health_timer >= INSTANT_HEALTH_TICKS) {
                 this.instant_health_timer = 0;
-                player.live_level = Math.min(player.live_level + 2**instant_health_lvl, max_live);
+                player.live_level = Math.min(
+                    player.live_level + 2 ** instant_health_lvl,
+                    max_live,
+                );
             }
         } else {
             this.instant_health_timer = INSTANT_HEALTH_TICKS;
@@ -203,7 +237,10 @@ export class ServerPlayerDamage {
         const reg_lvl = effects.getEffectLevel(Effect.REGENERATION);
         if (reg_lvl > 0) {
             this.live_regen_timer++;
-            if (this.live_regen_timer >= (LIVE_REGENERATIN_TICKS / (2**(reg_lvl - 1)))) {
+            if (
+                this.live_regen_timer >=
+                LIVE_REGENERATIN_TICKS / 2 ** (reg_lvl - 1)
+            ) {
                 this.live_regen_timer = 0;
                 player.live_level = Math.min(player.live_level + 1, max_live);
             }
@@ -214,49 +251,63 @@ export class ServerPlayerDamage {
         const res_lvl = effects.getEffectLevel(Effect.RESISTANCE);
         damage -= damage * res_lvl * 0.2;
         // армор
-        damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32);
+        damage = Math.round(
+            (damage * (32 - this.player.inventory.getArmorLevel())) / 32,
+        );
         if (damage > 0) {
             player.live_level = Math.max(player.live_level - damage, 0);
         }
-        
+
         this.damage = 0;
     }
-    
+
     /* Нанесение урона игроку
-    */
+     */
     addDamage(val, src) {
         const player = this.player;
-        if(player.status !== PLAYER_STATUS_ALIVE || !player.game_mode.mayGetDamaged()) {
+        if (
+            player.status !== PLAYER_STATUS_ALIVE ||
+            !player.game_mode.mayGetDamaged()
+        ) {
             return false;
         }
         this.damage = val;
     }
 
     /*
-    * добавления истощения
-    * exhaustion - уровень истощения
-    */
+     * добавления истощения
+     * exhaustion - уровень истощения
+     */
     addExhaustion(exhaustion) {
-        this.food_exhaustion_level = Math.min(this.food_exhaustion_level + exhaustion, 40);
+        this.food_exhaustion_level = Math.min(
+            this.food_exhaustion_level + exhaustion,
+            40,
+        );
     }
-    
+
     /*
-    * установка сытости и насыщения
-    * food - уровень еды
-    * saturation - уровень насыщения
-    */
+     * установка сытости и насыщения
+     * food - уровень еды
+     * saturation - уровень насыщения
+     */
     setFoodLevel(food, saturation) {
         const player = this.player;
         const ind_def = player.world.getDefaultPlayerIndicators();
-        player.food_level = Math.min(food + player.food_level, ind_def.food.value);
-        this.food_saturation_level = Math.min(this.food_saturation_level + food * saturation * 2, ind_def.food.value);
+        player.food_level = Math.min(
+            food + player.food_level,
+            ind_def.food.value,
+        );
+        this.food_saturation_level = Math.min(
+            this.food_saturation_level + food * saturation * 2,
+            ind_def.food.value,
+        );
     }
-    
+
     restoreAll() {
         const player = this.player;
         const ind_def = player.world.getDefaultPlayerIndicators();
-        player.live_level   = ind_def.live.value;
-        player.food_level   = ind_def.food.value;
+        player.live_level = ind_def.live.value;
+        player.food_level = ind_def.food.value;
         player.oxygen_level = ind_def.oxygen.value;
     }
 }

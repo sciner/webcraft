@@ -5,59 +5,59 @@
     },
     "textures": {},
     "bbmodels": [
-        {"name": "arm",                 "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "ladder",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "torch",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "fence",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "pot",                 "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "stairs",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "shulker",             "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "chest",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "anvil",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "tnt",                 "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "chain",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "sign",                "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "lantern",             "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "soul_lantern",        "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "coal_ore",            "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "copper_ore",          "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "iron_ore",            "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "diamond_ore",         "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "redstone_ore",        "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "gold_ore",            "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "lapis_lazuli_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "emerald_ore",         "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poor_copper_ore",     "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poor_diamond_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poor_emerald_ore",    "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poor_gold_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poor_iron_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poor_coal_ore",       "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "carrot",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "brown_mushroom",      "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "red_mushroom",        "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "cauldron",            "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "bookshelf",           "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "crafting_table",      "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "barrel",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "furnace",             "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "dead_bush",           "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "candle",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "rail",                "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "powered_rail",        "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "iron_bars",           "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "door",                "shift": {"x": 23, "y": 0, "z": -7}},
-        {"name": "beacon",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "bee_nest",            "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "jukebox",             "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "enchanting_table",    "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "lectern",             "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "fence_gate",          "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "bed",                 "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "chair",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "stool",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "cactus",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "sweet_berry_bush",    "shift": {"x": 16, "y": 0, "z": 0}}
+        { "name": "arm", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "ladder", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "torch", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "fence", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "pot", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "stairs", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "shulker", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "chest", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "anvil", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "tnt", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "chain", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "sign", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "lantern", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "soul_lantern", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "coal_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "copper_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "iron_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "diamond_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "redstone_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "gold_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "lapis_lazuli_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "emerald_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "poor_copper_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "poor_diamond_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "poor_emerald_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "poor_gold_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "poor_iron_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "poor_coal_ore", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "carrot", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "brown_mushroom", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "red_mushroom", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "cauldron", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "bookshelf", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "crafting_table", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "barrel", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "furnace", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "dead_bush", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "candle", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "rail", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "powered_rail", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "iron_bars", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "door", "shift": { "x": 23, "y": 0, "z": -7 } },
+        { "name": "beacon", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "bee_nest", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "jukebox", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "enchanting_table", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "lectern", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "fence_gate", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "bed", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "chair", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "stool", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "cactus", "shift": { "x": 16, "y": 0, "z": 0 } },
+        { "name": "sweet_berry_bush", "shift": { "x": 16, "y": 0, "z": 0 } }
     ],
     "blocks": [
         {
@@ -66,14 +66,25 @@
             "sound": "madcraft:block.wood",
             "bb": {
                 "model": "torch",
-                "rotate": {"type": "cardinal_direction", "when": {"state": "wall"}},
+                "rotate": {
+                    "type": "cardinal_direction",
+                    "when": { "state": "wall" }
+                },
                 "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
+                    { "name": "wall", "when": { "rotate.y": 0 } },
+                    { "name": "floor" }
                 ],
                 "_particles": [
-                    {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.5}]},
-                    {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.75, "z": 0.25}]}
+                    {
+                        "type": "torch_flame",
+                        "when": { "state": "floor" },
+                        "pos": [{ "x": 0.5, "y": 0.75, "z": 0.5 }]
+                    },
+                    {
+                        "type": "torch_flame",
+                        "when": { "state": "wall" },
+                        "pos": [{ "x": 0.5, "y": 0.75, "z": 0.25 }]
+                    }
                 ]
             }
         },
@@ -163,7 +174,7 @@
             "bb": {
                 "model": "stairs",
                 "behavior": "stairs",
-                "_rotate": {"type": "cardinal_direction"}
+                "_rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -173,7 +184,7 @@
             "bb": {
                 "model": "chest",
                 "behavior": "chest",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -194,11 +205,9 @@
             "bb": {
                 "model": "shulker",
                 "behavior": "shulker",
-                "rotate": {"type": "six"}
+                "rotate": { "type": "six" }
             },
-            "tags": [
-                "store_items_in_chest"
-            ]
+            "tags": ["store_items_in_chest"]
         },
         {
             "id": 195,
@@ -206,7 +215,7 @@
             "bb": {
                 "model": "anvil",
                 "behavior": "anvil",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -224,7 +233,7 @@
             "bb": {
                 "model": "ladder",
                 "behavior": "ladder",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -233,27 +242,28 @@
             "bb": {
                 "model": "chain",
                 "behavior": "chain",
-                "rotate": {"type": "three"}
+                "rotate": { "type": "three" }
             }
         },
         {
             "id": 642,
             "name": "BIRCH_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": { "x": 0, "y": 0, "z": -0.3 }
             },
             "bb": {
                 "model": "sign",
                 "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
+                    { "name": "wall", "when": { "rotate.y": 0 } },
+                    { "name": "floor" }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
+                "select_texture": [{ "name": "%block_name%" }],
                 "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
+                    {
+                        "type": "cardinal_direction",
+                        "when": { "state": "wall" }
+                    },
+                    { "type": "y360", "when": { "state": "floor" } }
                 ]
             }
         },
@@ -261,20 +271,21 @@
             "id": 643,
             "name": "OAK_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": { "x": 0, "y": 0, "z": -0.3 }
             },
             "bb": {
                 "model": "sign",
                 "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
+                    { "name": "wall", "when": { "rotate.y": 0 } },
+                    { "name": "floor" }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
+                "select_texture": [{ "name": "%block_name%" }],
                 "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
+                    {
+                        "type": "cardinal_direction",
+                        "when": { "state": "wall" }
+                    },
+                    { "type": "y360", "when": { "state": "floor" } }
                 ]
             }
         },
@@ -282,20 +293,21 @@
             "id": 644,
             "name": "ACACIA_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": { "x": 0, "y": 0, "z": -0.3 }
             },
             "bb": {
                 "model": "sign",
                 "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
+                    { "name": "wall", "when": { "rotate.y": 0 } },
+                    { "name": "floor" }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
+                "select_texture": [{ "name": "%block_name%" }],
                 "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
+                    {
+                        "type": "cardinal_direction",
+                        "when": { "state": "wall" }
+                    },
+                    { "type": "y360", "when": { "state": "floor" } }
                 ]
             }
         },
@@ -303,20 +315,21 @@
             "id": 645,
             "name": "SPRUCE_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": { "x": 0, "y": 0, "z": -0.3 }
             },
             "bb": {
                 "model": "sign",
                 "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
+                    { "name": "wall", "when": { "rotate.y": 0 } },
+                    { "name": "floor" }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
+                "select_texture": [{ "name": "%block_name%" }],
                 "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
+                    {
+                        "type": "cardinal_direction",
+                        "when": { "state": "wall" }
+                    },
+                    { "type": "y360", "when": { "state": "floor" } }
                 ]
             }
         },
@@ -324,20 +337,21 @@
             "id": 646,
             "name": "DARK_OAK_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": { "x": 0, "y": 0, "z": -0.3 }
             },
             "bb": {
                 "model": "sign",
                 "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
+                    { "name": "wall", "when": { "rotate.y": 0 } },
+                    { "name": "floor" }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
+                "select_texture": [{ "name": "%block_name%" }],
                 "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
+                    {
+                        "type": "cardinal_direction",
+                        "when": { "state": "wall" }
+                    },
+                    { "type": "y360", "when": { "state": "floor" } }
                 ]
             }
         },
@@ -345,20 +359,21 @@
             "id": 647,
             "name": "JUNGLE_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": { "x": 0, "y": 0, "z": -0.3 }
             },
             "bb": {
                 "model": "sign",
                 "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
+                    { "name": "wall", "when": { "rotate.y": 0 } },
+                    { "name": "floor" }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
+                "select_texture": [{ "name": "%block_name%" }],
                 "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
+                    {
+                        "type": "cardinal_direction",
+                        "when": { "state": "wall" }
+                    },
+                    { "type": "y360", "when": { "state": "floor" } }
                 ]
             }
         },
@@ -368,8 +383,8 @@
             "bb": {
                 "model": "lantern",
                 "set_state": [
-                    {"name": "ceil", "when": {"rotate.y": -1}},
-                    {"name": "floor"}
+                    { "name": "ceil", "when": { "rotate.y": -1 } },
+                    { "name": "floor" }
                 ]
             }
         },
@@ -379,8 +394,8 @@
             "bb": {
                 "model": "soul_lantern",
                 "set_state": [
-                    {"name": "ceil", "when": {"rotate.y": -1}},
-                    {"name": "floor"}
+                    { "name": "ceil", "when": { "rotate.y": -1 } },
+                    { "name": "floor" }
                 ]
             }
         },
@@ -474,9 +489,7 @@
             "bb": {
                 "model": "carrot",
                 "behavior": "age",
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             },
             "_inventory": {
                 "style": "extruder",
@@ -488,9 +501,7 @@
             "name": "BROWN_MUSHROOM",
             "bb": {
                 "model": "brown_mushroom",
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -498,9 +509,7 @@
             "name": "RED_MUSHROOM",
             "bb": {
                 "model": "red_mushroom",
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -522,21 +531,17 @@
             "name": "DEAD_BUSH",
             "bb": {
                 "model": "dead_bush",
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
             "id": 58,
             "name": "CRAFTING_TABLE",
             "transparent": true,
-            "tags": [
-                "no_drop_ao"
-            ],
+            "tags": ["no_drop_ao"],
             "bb": {
                 "model": "crafting_table",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -545,7 +550,7 @@
             "transparent": true,
             "bb": {
                 "model": "barrel",
-                "rotate": {"type": "three"}
+                "rotate": { "type": "three" }
             }
         },
         {
@@ -554,16 +559,37 @@
             "transparent": true,
             "bb": {
                 "model": "furnace",
-                "rotate": {"type": "cardinal_direction"},
+                "rotate": { "type": "cardinal_direction" },
                 "select_texture": [
-                    {"name": "furnace_lit.png", "when": {"extra_data.active": true}}
+                    {
+                        "name": "furnace_lit.png",
+                        "when": { "extra_data.active": true }
+                    }
                 ],
                 "particles": [
-                    {"when": {"extra_data.active": true}, "list": [
-                        {"type": "torch_flame", "x": 0.35, "y": 0.01, "z": 0.75},
-                        {"type": "torch_flame", "x": 0.5, "y": 0.01, "z": 0.8},
-                        {"type": "torch_flame", "x": 0.65, "y": 0.01, "z": 0.75}
-                    ]}
+                    {
+                        "when": { "extra_data.active": true },
+                        "list": [
+                            {
+                                "type": "torch_flame",
+                                "x": 0.35,
+                                "y": 0.01,
+                                "z": 0.75
+                            },
+                            {
+                                "type": "torch_flame",
+                                "x": 0.5,
+                                "y": 0.01,
+                                "z": 0.8
+                            },
+                            {
+                                "type": "torch_flame",
+                                "x": 0.65,
+                                "y": 0.01,
+                                "z": 0.75
+                            }
+                        ]
+                    }
                 ]
             }
         },
@@ -573,17 +599,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -592,17 +617,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "white_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "white_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -611,17 +635,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "orange_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "orange_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -630,17 +653,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "magenta_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "magenta_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -649,17 +671,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "light_blue_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "light_blue_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -668,17 +689,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "yellow_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "yellow_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -687,17 +707,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "lime_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "lime_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -706,17 +725,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "pink_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "pink_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -725,17 +743,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "gray_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "gray_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -744,17 +761,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "light_gray_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "light_gray_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -763,17 +779,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "cyan_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "cyan_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -782,17 +797,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "purple_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "purple_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -801,17 +815,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "blue_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "blue_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -820,17 +833,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "brown_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "brown_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -839,17 +851,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "green_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "green_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -858,17 +869,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "orange_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "orange_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -877,17 +887,16 @@
             "bb": {
                 "model": "candle",
                 "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
+                    {
+                        "name": "1candle",
+                        "when": { "extra_data.candles": null }
+                    },
+                    { "name": "2candles", "when": { "extra_data.candles": 2 } },
+                    { "name": "3candles", "when": { "extra_data.candles": 3 } },
+                    { "name": "4candles", "when": { "extra_data.candles": 4 } }
                 ],
-                "select_texture": [
-                    {"name": "black_candle.png"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "select_texture": [{ "name": "black_candle.png" }],
+                "rotate": [{ "type": "random", "axes": ["y"] }]
             }
         },
         {
@@ -897,14 +906,35 @@
                 "model": "rail",
                 "behavior": "rails",
                 "set_state": [
-                    {"name": "normal", "when": {"extra_data.shape": [null, 0, 1]}},
-                    {"name": "inclined", "when": {"extra_data.shape": [2, 3, 4, 5]}},
-                    {"name": "turn", "when": {"extra_data.shape": [6, 7, 8, 9]}}
+                    {
+                        "name": "normal",
+                        "when": { "extra_data.shape": [null, 0, 1] }
+                    },
+                    {
+                        "name": "inclined",
+                        "when": { "extra_data.shape": [2, 3, 4, 5] }
+                    },
+                    {
+                        "name": "turn",
+                        "when": { "extra_data.shape": [6, 7, 8, 9] }
+                    }
                 ],
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.shape": [1, 2, 7]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.shape": [5, 8]}},
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.shape": [3, 9]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.shape": [1, 2, 7] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.shape": [5, 8] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.shape": [3, 9] }
+                    }
                 ]
             }
         },
@@ -915,13 +945,31 @@
                 "model": "powered_rail",
                 "behavior": "rails",
                 "set_state": [
-                    {"name": "normal", "when": {"extra_data.shape": [null, 0, 1]}},
-                    {"name": "inclined", "when": {"extra_data.shape": [2, 3, 4, 5]}}
+                    {
+                        "name": "normal",
+                        "when": { "extra_data.shape": [null, 0, 1] }
+                    },
+                    {
+                        "name": "inclined",
+                        "when": { "extra_data.shape": [2, 3, 4, 5] }
+                    }
                 ],
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.shape": [1, 2, 7]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.shape": [5, 8]}},
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.shape": [3, 9]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.shape": [1, 2, 7] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.shape": [5, 8] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.shape": [3, 9] }
+                    }
                 ]
             }
         },
@@ -938,8 +986,8 @@
             "name": "BIRCH_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9},
+                "rotate": { "x": 0, "y": 0, "z": -0.7853981633974483 },
+                "move": { "x": 0, "y": -0.5, "z": -0.9 },
                 "_style": "extruder",
                 "_texture": {
                     "id": "default",
@@ -949,13 +997,11 @@
             "bb": {
                 "model": "door",
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "birch"}
+                    { "name": "_", "when": { "extra_data.is_head": true } },
+                    { "name": "birch" }
                 ],
-                "select_texture": [
-                    {"name": "birch.png"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "select_texture": [{ "name": "birch.png" }],
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -963,19 +1009,17 @@
             "name": "OAK_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": { "x": 0, "y": 0, "z": -0.7853981633974483 },
+                "move": { "x": 0, "y": -0.5, "z": -0.9 }
             },
             "bb": {
                 "model": "door",
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "oak"}
+                    { "name": "_", "when": { "extra_data.is_head": true } },
+                    { "name": "oak" }
                 ],
-                "select_texture": [
-                    {"name": "oak.png"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "select_texture": [{ "name": "oak.png" }],
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -983,19 +1027,17 @@
             "name": "ACACIA_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": { "x": 0, "y": 0, "z": -0.7853981633974483 },
+                "move": { "x": 0, "y": -0.5, "z": -0.9 }
             },
             "bb": {
                 "model": "door",
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "acacia"}
+                    { "name": "_", "when": { "extra_data.is_head": true } },
+                    { "name": "acacia" }
                 ],
-                "select_texture": [
-                    {"name": "acacia.png"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "select_texture": [{ "name": "acacia.png" }],
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -1003,19 +1045,17 @@
             "name": "SPRUCE_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": { "x": 0, "y": 0, "z": -0.7853981633974483 },
+                "move": { "x": 0, "y": -0.5, "z": -0.9 }
             },
             "bb": {
                 "model": "door",
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "spruce"}
+                    { "name": "_", "when": { "extra_data.is_head": true } },
+                    { "name": "spruce" }
                 ],
-                "select_texture": [
-                    {"name": "spruce.png"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "select_texture": [{ "name": "spruce.png" }],
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -1023,19 +1063,17 @@
             "name": "DARK_OAK_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": { "x": 0, "y": 0, "z": -0.7853981633974483 },
+                "move": { "x": 0, "y": -0.5, "z": -0.9 }
             },
             "bb": {
                 "model": "door",
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "dark_oak"}
+                    { "name": "_", "when": { "extra_data.is_head": true } },
+                    { "name": "dark_oak" }
                 ],
-                "select_texture": [
-                    {"name": "dark_oak.png"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "select_texture": [{ "name": "dark_oak.png" }],
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -1043,19 +1081,17 @@
             "name": "JUNGLE_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": { "x": 0, "y": 0, "z": -0.7853981633974483 },
+                "move": { "x": 0, "y": -0.5, "z": -0.9 }
             },
             "bb": {
                 "model": "door",
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "jungle"}
+                    { "name": "_", "when": { "extra_data.is_head": true } },
+                    { "name": "jungle" }
                 ],
-                "select_texture": [
-                    {"name": "jungle.png"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "select_texture": [{ "name": "jungle.png" }],
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -1063,19 +1099,17 @@
             "name": "IRON_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": { "x": 0, "y": 0, "z": -0.7853981633974483 },
+                "move": { "x": 0, "y": -0.5, "z": -0.9 }
             },
             "bb": {
                 "model": "door",
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "iron"}
+                    { "name": "_", "when": { "extra_data.is_head": true } },
+                    { "name": "iron" }
                 ],
-                "select_texture": [
-                    {"name": "iron.png"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "select_texture": [{ "name": "iron.png" }],
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -1100,7 +1134,7 @@
             "transparent": true,
             "bb": {
                 "model": "bee_nest",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -1110,7 +1144,7 @@
             "group": "doubleface_transparent",
             "bb": {
                 "model": "jukebox",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -1118,7 +1152,7 @@
             "name": "ENCHANTING_TABLE",
             "bb": {
                 "model": "enchanting_table",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
@@ -1126,214 +1160,367 @@
             "name": "LECTERN",
             "bb": {
                 "model": "lectern",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": { "type": "cardinal_direction" }
             }
         },
         {
             "id": 911,
             "name": "BIRCH_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
             "id": 912,
             "name": "OAK_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
             "id": 913,
             "name": "ACACIA_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
             "id": 914,
             "name": "SPRUCE_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
             "id": 915,
             "name": "DARK_OAK_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
             "id": 916,
             "name": "JUNGLE_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
             "id": 917,
             "name": "CRIMSON_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
             "id": 918,
             "name": "WARPED_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
             "id": 919,
             "name": "NETHER_BRICK_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": { "x": 0, "y": 0, "z": -0.15 }
             },
             "bb": {
                 "model": "fence_gate",
                 "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 3,
+                        "when": { "extra_data.facing": ["west"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 2,
+                        "when": { "extra_data.facing": ["north"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 1,
+                        "when": { "extra_data.facing": ["east"] }
+                    },
+                    {
+                        "type": "fixed_cardinal_direction",
+                        "value": 0,
+                        "when": { "extra_data.facing": ["south"] }
+                    }
                 ],
                 "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
+                    {
+                        "name": "close",
+                        "when": { "extra_data.opened": [false, null] }
+                    },
+                    { "name": "open", "when": { "extra_data.opened": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1341,7 +1528,7 @@
             "name": "WHITE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1349,11 +1536,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1361,7 +1546,7 @@
             "name": "ORANGE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1369,11 +1554,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1381,7 +1564,7 @@
             "name": "MAGENTA_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1389,11 +1572,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1401,7 +1582,7 @@
             "name": "LIGHT_BLUE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1409,11 +1590,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1421,7 +1600,7 @@
             "name": "YELLOW_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1429,11 +1608,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1441,7 +1618,7 @@
             "name": "LIME_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1449,11 +1626,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1461,7 +1636,7 @@
             "name": "PINK_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1469,11 +1644,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1481,7 +1654,7 @@
             "name": "GRAY_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1489,11 +1662,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1501,7 +1672,7 @@
             "name": "LIGHT_GRAY_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1509,11 +1680,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1521,7 +1690,7 @@
             "name": "CYAN_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1529,11 +1698,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1541,7 +1708,7 @@
             "name": "PURPLE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1549,11 +1716,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1561,7 +1726,7 @@
             "name": "BLUE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1569,11 +1734,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1581,7 +1744,7 @@
             "name": "BROWN_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1589,11 +1752,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1601,7 +1762,7 @@
             "name": "GREEN_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1609,11 +1770,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1621,7 +1780,7 @@
             "name": "RED_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1629,11 +1788,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1641,7 +1798,7 @@
             "name": "BLACK_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": { "x": 0, "y": 0.5, "z": -0.3 }
             },
             "bb": {
                 "model": "bed",
@@ -1649,11 +1806,9 @@
                     "type": "cardinal_direction"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "select_texture": [{ "name": "%block_name%" }]
             }
         },
         {
@@ -1661,8 +1816,8 @@
             "name": "BIRCH_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "chair",
@@ -1670,11 +1825,15 @@
                     "type": "ydeg"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
                 "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "chair" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1683,8 +1842,8 @@
             "name": "OAK_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "chair",
@@ -1692,11 +1851,15 @@
                     "type": "ydeg"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
                 "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "chair" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1705,8 +1868,8 @@
             "name": "ACACIA_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "chair",
@@ -1714,11 +1877,15 @@
                     "type": "ydeg"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
                 "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "chair" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1727,8 +1894,8 @@
             "name": "SPRUCE_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "chair",
@@ -1736,11 +1903,15 @@
                     "type": "ydeg"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
                 "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "chair" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1749,8 +1920,8 @@
             "name": "DARK_OAK_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "chair",
@@ -1758,11 +1929,15 @@
                     "type": "ydeg"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
                 "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "chair" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1771,8 +1946,8 @@
             "name": "JUNGLE_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "chair",
@@ -1780,11 +1955,15 @@
                     "type": "ydeg"
                 },
                 "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
+                    { "name": "_", "when": { "extra_data.is_head": true } }
                 ],
                 "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "chair" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1793,8 +1972,8 @@
             "name": "BIRCH_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "stool",
@@ -1802,8 +1981,12 @@
                     "type": "ydeg"
                 },
                 "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "frame" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1812,8 +1995,8 @@
             "name": "OAK_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "stool",
@@ -1821,8 +2004,12 @@
                     "type": "ydeg"
                 },
                 "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "frame" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1831,8 +2018,8 @@
             "name": "ACACIA_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "stool",
@@ -1840,8 +2027,12 @@
                     "type": "ydeg"
                 },
                 "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "frame" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1850,8 +2041,8 @@
             "name": "SPRUCE_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "stool",
@@ -1859,8 +2050,12 @@
                     "type": "ydeg"
                 },
                 "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "frame" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1869,8 +2064,8 @@
             "name": "DARK_OAK_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "stool",
@@ -1878,8 +2073,12 @@
                     "type": "ydeg"
                 },
                 "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "frame" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1888,8 +2087,8 @@
             "name": "JUNGLE_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "stool",
@@ -1897,8 +2096,12 @@
                     "type": "ydeg"
                 },
                 "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "frame" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1907,8 +2110,8 @@
             "name": "CRIMSON_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "stool",
@@ -1916,8 +2119,12 @@
                     "type": "ydeg"
                 },
                 "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "frame" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1926,8 +2133,8 @@
             "name": "WARPED_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": { "x": 0, "y": 0, "z": 3.14159 },
+                "move": { "x": 0, "y": 0, "z": -0.35 }
             },
             "bb": {
                 "model": "stool",
@@ -1935,8 +2142,12 @@
                     "type": "ydeg"
                 },
                 "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
+                    { "name": "%block_name%", "group": "frame" },
+                    {
+                        "name": "%extra_data.upholstery%",
+                        "group": "wool",
+                        "empty": "%block_name%"
+                    }
                 ]
             }
         },
@@ -1947,12 +2158,13 @@
             "bb": {
                 "model": "cactus",
                 "set_state": [
-                    {"name": "side_top", 
+                    {
+                        "name": "side_top",
                         "when": {
                             "extra_data.into_pot": true
                         }
                     },
-                    {"name": "bottom"}
+                    { "name": "bottom" }
                 ]
             }
         },

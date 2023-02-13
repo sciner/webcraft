@@ -1,15 +1,16 @@
-import { Vector } from "../../../www/js/helpers.js";
-import { isBlockRoughlyWithinPickatRange } from "../../../www/js/block_helpers.js";
-import { ServerClient } from "../../../www/js/server_client.js";
-import { PacketHelpers } from "../../server_helpers.js";
-import { CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD 
-    } from "../../../www/js/constant.js";
+import { Vector } from '../../../www/js/helpers.js';
+import { isBlockRoughlyWithinPickatRange } from '../../../www/js/block_helpers.js';
+import { ServerClient } from '../../../www/js/server_client.js';
+import { PacketHelpers } from '../../server_helpers.js';
+import {
+    CHEST_INTERACTION_MARGIN_BLOCKS,
+    CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD,
+} from '../../../www/js/constant.js';
 
 const TTL = 3000;
 const MAX_ATTEMPTS = 1000;
 
 export default class packet_reader {
-
     // must be put to queue
     static get queue() {
         return true;
@@ -23,24 +24,29 @@ export default class packet_reader {
     /**
      * Request chest content
      * @param { import("../server_player.js").ServerPlayer } player
-     * @param {*} packet 
-     * @returns 
+     * @param {*} packet
+     * @returns
      */
     static async read(player, packet) {
-
         function forceClose(removeCurrentChests) {
             if (removeCurrentChests) {
                 player.currentChests = null;
             }
-            player.sendPackets([{ 
-                name: ServerClient.CMD_CHEST_FORCE_CLOSE,
-                data: { chestSessionId: packet.data.chestSessionId }
-            }]);
+            player.sendPackets([
+                {
+                    name: ServerClient.CMD_CHEST_FORCE_CLOSE,
+                    data: { chestSessionId: packet.data.chestSessionId },
+                },
+            ]);
         }
 
-        const withinRange = isBlockRoughlyWithinPickatRange(player,
-            CHEST_INTERACTION_MARGIN_BLOCKS + CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD,
-            packet.data.pos, packet.data.otherPos);
+        const withinRange = isBlockRoughlyWithinPickatRange(
+            player,
+            CHEST_INTERACTION_MARGIN_BLOCKS +
+                CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD,
+            packet.data.pos,
+            packet.data.otherPos,
+        );
         if (!player.game_mode.canBlockAction() || !withinRange) {
             forceClose(true);
             return true;
@@ -50,7 +56,8 @@ export default class packet_reader {
         let chest;
         try {
             chest = await player.world.chests.get(pos, true);
-        } catch(e) { // chest is invalid, it's unrecoverable
+        } catch (e) {
+            // chest is invalid, it's unrecoverable
             forceClose(true);
             throw e;
         }
@@ -61,7 +68,8 @@ export default class packet_reader {
             player.currentChests.push(packet.data.otherPos);
         }
 
-        if (!chest) { // if the chest is not loaded
+        if (!chest) {
+            // if the chest is not loaded
             if (PacketHelpers.waitInQueue(packet, TTL, MAX_ATTEMPTS)) {
                 return false;
             }
@@ -72,5 +80,4 @@ export default class packet_reader {
         }
         return true;
     }
-
 }

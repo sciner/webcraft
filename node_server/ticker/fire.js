@@ -1,14 +1,20 @@
 import { BLOCK } from '../../www/js/blocks.js';
 import { Vector } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
-import { BlockUpdates } from './ticker_helpers.js'
+import { BlockUpdates } from './ticker_helpers.js';
 
-const FACES = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YN, Vector.YP];
+const FACES = [
+    Vector.XN,
+    Vector.XP,
+    Vector.ZN,
+    Vector.ZP,
+    Vector.YN,
+    Vector.YP,
+];
 
 export default class Ticker {
-
     static type = 'fire';
-    
+
     //
     static func(tick_number, world, chunk, v) {
         const random_tick_speed = world.rules.getValue('randomTickSpeed') / 410;
@@ -23,38 +29,120 @@ export default class Ticker {
         if (!block) {
             return false;
         }
-        if (!isBurnPosition(world, pos) && block.id == BLOCK.AIR.id && block.fluid == 0) {
-            updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        if (
+            !isBurnPosition(world, pos) &&
+            block.id == BLOCK.AIR.id &&
+            block.fluid == 0
+        ) {
+            updated.push({
+                pos: pos,
+                item: { id: BLOCK.AIR.id },
+                action_id: ServerClient.BLOCK_ACTION_MODIFY,
+            });
         }
-        const infiniburn = (block.id == BLOCK.NETHERRACK.id || block.id == BLOCK.SOUL_SAND.id); //Бесконечное пламя
-        if (!infiniburn && world.isRaining() && Math.random() < 0.2 + age * 0.03) {
-            return [{pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+        const infiniburn =
+            block.id == BLOCK.NETHERRACK.id || block.id == BLOCK.SOUL_SAND.id; //Бесконечное пламя
+        if (
+            !infiniburn &&
+            world.isRaining() &&
+            Math.random() < 0.2 + age * 0.03
+        ) {
+            return [
+                {
+                    pos: pos,
+                    item: { id: BLOCK.AIR.id },
+                    action_id: ServerClient.BLOCK_ACTION_MODIFY,
+                },
+            ];
         } else {
-            if (age < 15) { 
-                extra_data.west = getFlame(world.getBlock(pos.add(Vector.XN))) ? true : false;
-                extra_data.east = getFlame(world.getBlock(pos.add(Vector.XP))) ? true : false;
-                extra_data.north = getFlame(world.getBlock(pos.add(Vector.ZP))) ? true : false;
-                extra_data.south = getFlame(world.getBlock(pos.add(Vector.ZN))) ? true : false;
-                extra_data.up = block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id  ? true : false;
+            if (age < 15) {
+                extra_data.west = getFlame(world.getBlock(pos.add(Vector.XN)))
+                    ? true
+                    : false;
+                extra_data.east = getFlame(world.getBlock(pos.add(Vector.XP)))
+                    ? true
+                    : false;
+                extra_data.north = getFlame(world.getBlock(pos.add(Vector.ZP)))
+                    ? true
+                    : false;
+                extra_data.south = getFlame(world.getBlock(pos.add(Vector.ZN)))
+                    ? true
+                    : false;
+                extra_data.up =
+                    block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id
+                        ? true
+                        : false;
                 extra_data.age = Math.min(15, age + rndInt(3) / 2);
-                updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                updated.push({
+                    pos: pos,
+                    item: { id: BLOCK.FIRE.id, extra_data: extra_data },
+                    action_id: ServerClient.BLOCK_ACTION_MODIFY,
+                });
             }
             if (!infiniburn) {
                 if (!isBurnPosition(world, pos) && age > 3) {
-                    return [{pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+                    return [
+                        {
+                            pos: pos,
+                            item: { id: BLOCK.AIR.id },
+                            action_id: ServerClient.BLOCK_ACTION_MODIFY,
+                        },
+                    ];
                 }
                 if (age >= 15 && rndInt(4) == 0) {
-                    return [{pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+                    return [
+                        {
+                            pos: pos,
+                            item: { id: BLOCK.AIR.id },
+                            action_id: ServerClient.BLOCK_ACTION_MODIFY,
+                        },
+                    ];
                 }
             }
             const humidity = 0;
             // Поджигаем или уничтожаем соседей
-            setFireOrDes(world, pos.add(Vector.XN), 300 + humidity, age, updated);
-            setFireOrDes(world, pos.add(Vector.XP), 300 + humidity, age, updated);
-            setFireOrDes(world, pos.add(Vector.ZN), 300 + humidity, age, updated);
-            setFireOrDes(world, pos.add(Vector.ZP), 300 + humidity, age, updated);
-            setFireOrDes(world, pos.add(Vector.YN), 250 + humidity, age, updated);
-            setFireOrDes(world, pos.add(Vector.YP), 250 + humidity, age, updated);
+            setFireOrDes(
+                world,
+                pos.add(Vector.XN),
+                300 + humidity,
+                age,
+                updated,
+            );
+            setFireOrDes(
+                world,
+                pos.add(Vector.XP),
+                300 + humidity,
+                age,
+                updated,
+            );
+            setFireOrDes(
+                world,
+                pos.add(Vector.ZN),
+                300 + humidity,
+                age,
+                updated,
+            );
+            setFireOrDes(
+                world,
+                pos.add(Vector.ZP),
+                300 + humidity,
+                age,
+                updated,
+            );
+            setFireOrDes(
+                world,
+                pos.add(Vector.YN),
+                250 + humidity,
+                age,
+                updated,
+            );
+            setFireOrDes(
+                world,
+                pos.add(Vector.YP),
+                250 + humidity,
+                age,
+                updated,
+            );
             // Распространие огня
             for (let x = -1; x <= 1; x++) {
                 for (let z = -1; z <= 1; z++) {
@@ -67,8 +155,18 @@ export default class Ticker {
                             const position = pos.offset(x, y, z);
                             const flames = getNeighborFlame(world, position);
                             if (flames > 0) {
-                                const burns = Math.round((flames + 40 + world.rules.getValue('difficulty') * 7) / (age + 30));
-                                if (burns > 0 && rndInt(chance) <= burns && !world.isRaining()) {
+                                const burns = Math.round(
+                                    (flames +
+                                        40 +
+                                        world.rules.getValue('difficulty') *
+                                            7) /
+                                        (age + 30),
+                                );
+                                if (
+                                    burns > 0 &&
+                                    rndInt(chance) <= burns &&
+                                    !world.isRaining()
+                                ) {
                                     setFireBlock(world, position, age, updated);
                                 }
                             }
@@ -79,7 +177,6 @@ export default class Ticker {
         }
         return updated;
     }
-    
 }
 
 // Возможность воспламенения соседних блоков (зависит от материала)
@@ -135,7 +232,11 @@ function setFireOrDes(world, pos, chance, age, updated) {
         if (rndInt(age + 10) < 5) {
             setFireBlock(world, pos, age, updated);
         } else {
-            updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            updated.push({
+                pos: pos,
+                item: { id: BLOCK.AIR.id },
+                action_id: ServerClient.BLOCK_ACTION_MODIFY,
+            });
         }
     }
     if (block.id == BLOCK.TNT.id) {
@@ -150,7 +251,11 @@ function setFireBlock(world, pos, age, updated) {
         west: false,
         east: false,
         up: true,
-        age: Math.min((age + rndInt(5) / 4), 15) 
+        age: Math.min(age + rndInt(5) / 4, 15),
     };
-    updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+    updated.push({
+        pos: pos,
+        item: { id: BLOCK.FIRE.id, extra_data: data },
+        action_id: ServerClient.BLOCK_ACTION_MODIFY,
+    });
 }

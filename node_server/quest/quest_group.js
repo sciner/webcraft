@@ -1,6 +1,5 @@
 // QuestGroup
 export class QuestGroup {
-
     constructor(params) {
         this.id = params.id;
         this.title = params.title;
@@ -10,5 +9,4 @@ export class QuestGroup {
     addQuest(quest) {
         this.quests.push(quest);
     }
-
 }

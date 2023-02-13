@@ -29,46 +29,18 @@
         "dripstone",
         "chorus"
     ],
-    "random_tickers": [
-        "grass_block"
-    ],
+    "random_tickers": ["grass_block"],
     "before_block_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ],
-        [
-            "bubble_column",
-            "bubbles:ManageBubbles"
-        ]
+        [["soul_sand", "bubble_column"], "bubbles:ManageBubblesAbove"],
+        ["bubble_column", "bubbles:ManageBubbles"]
     ],
     "after_block_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ]
+        [["soul_sand", "bubble_column"], "bubbles:ManageBubblesAbove"]
     ],
     "fluid_change_listeners": [],
-    "fluid_remove_listeners": [
-        [
-            "bubble_column",
-            "bubbles:ManageBubbles"
-        ]
-    ],
+    "fluid_remove_listeners": [["bubble_column", "bubbles:ManageBubbles"]],
     "fluid_above_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ]
+        [["soul_sand", "bubble_column"], "bubbles:ManageBubblesAbove"]
     ],
     "fluid_above_remove_listeners": [],
     "chat_plugins": [
@@ -116,123 +88,47 @@
             "items": [
                 {
                     "name": "IRON_INGOT",
-                    "count": [
-                        1,
-                        1,
-                        1,
-                        1,
-                        2,
-                        2,
-                        3,
-                        5
-                    ]
+                    "count": [1, 1, 1, 1, 2, 2, 3, 5]
                 },
                 {
                     "name": "WHEAT_SEEDS",
-                    "count": [
-                        0,
-                        0,
-                        1,
-                        2,
-                        3,
-                        8
-                    ]
+                    "count": [0, 0, 1, 2, 3, 8]
                 },
                 {
                     "name": "CARROT_SEEDS",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        2,
-                        2,
-                        4,
-                        4,
-                        8
-                    ]
+                    "count": [0, 0, 0, 2, 2, 4, 4, 8]
                 },
                 {
                     "name": "STONE_SWORD",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 0, 0, 1]
                 },
                 {
                     "name": "STONE_SHOVEL",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 0, 1]
                 },
                 {
                     "name": "BREAD",
-                    "count": [
-                        1,
-                        1,
-                        2
-                    ]
+                    "count": [1, 1, 2]
                 },
                 {
                     "name": "WHEAT",
-                    "count": [
-                        1,
-                        1,
-                        2,
-                        2,
-                        3
-                    ]
+                    "count": [1, 1, 2, 2, 3]
                 },
                 {
                     "name": "APPLE",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 0, 1]
                 },
                 {
                     "name": "OAK_SIGN",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1,
-                        1,
-                        2,
-                        2,
-                        3
-                    ]
+                    "count": [0, 0, 0, 1, 1, 2, 2, 3]
                 },
                 {
                     "name": "COBBLESTONE",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        4,
-                        4,
-                        8,
-                        8,
-                        16
-                    ]
+                    "count": [0, 0, 0, 4, 4, 8, 8, 16]
                 },
                 {
                     "name": "MUSIC_DISC_3",
-                    "count": [
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 1]
                 }
             ]
         },
@@ -242,171 +138,63 @@
             "items": [
                 {
                     "name": "GOLD_INGOT",
-                    "count": [
-                        0,
-                        0,
-                        1,
-                        1,
-                        2,
-                        2,
-                        3,
-                        3,
-                        4
-                    ]
+                    "count": [0, 0, 1, 1, 2, 2, 3, 3, 4]
                 },
                 {
                     "name": "DIAMOND_SWORD",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
                 },
                 {
                     "name": "LAVA_BUCKET",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1,
-                        1
-                    ]
+                    "count": [0, 0, 0, 1, 1]
                 },
                 {
                     "name": "SOUL_SAND",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1,
-                        2
-                    ]
+                    "count": [0, 0, 0, 1, 2]
                 },
                 {
                     "name": "TNT",
-                    "count": [
-                        0,
-                        0,
-                        1,
-                        2,
-                        3,
-                        3,
-                        3,
-                        4,
-                        4,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10
-                    ]
+                    "count": [0, 0, 1, 2, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10]
                 },
                 {
                     "name": "JUKEBOX",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 1]
                 },
                 {
                     "name": "DIAMOND",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        0,
-                        1,
-                        2
-                    ]
+                    "count": [0, 0, 0, 0, 1, 2]
                 },
                 {
                     "name": "IRON_BARS",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        2,
-                        2,
-                        4,
-                        4,
-                        8
-                    ]
+                    "count": [0, 0, 0, 2, 2, 4, 4, 8]
                 },
                 {
                     "name": "MUSIC_DISC_1",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 1]
                 },
                 {
                     "name": "MUSIC_DISC_2",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 1]
                 },
                 {
                     "name": "MUSIC_DISC_4",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 1]
                 },
                 {
                     "name": "MUSIC_DISC_5",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 1]
                 },
                 {
                     "name": "MUSIC_DISC_6",
-                    "count": [
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 1]
                 },
                 {
                     "name": "MUSIC_DISC_7",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 1]
                 },
                 {
                     "name": "MUSIC_DISC_8",
-                    "count": [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        1
-                    ]
+                    "count": [0, 0, 0, 0, 0, 0, 1]
                 }
             ]
         },
