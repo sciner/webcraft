@@ -18,6 +18,7 @@ export default class style {
     static block_manager : BlockManager
 
     static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager;
         return {
             styles: ['cocoa'],
             func: this.func,

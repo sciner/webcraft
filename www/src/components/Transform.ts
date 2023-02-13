@@ -2,7 +2,7 @@ import { Vector } from '../helpers.js';
 import glMatrix from './../../vendors/gl-matrix-3.3.min.js'
 import { Component } from './Component.js';
 
-const {mat4, vec3, quat, glMatrix} = glMatrix;
+const {mat4, vec3, quat} = glMatrix;
 
 /**
  * Returns an euler angle representation of a quaternion
@@ -23,12 +23,12 @@ export function getEuler(out, quat) {
     let unit = x2 + y2 + z2 + w2;
     let test = x * w - y * z;
 
-    if (test > (0.5 - glmatrix.EPSILON) * unit) {
+    if (test > (0.5 - glMatrix.EPSILON) * unit) {
         // singularity at the north pole
         out[0] = Math.PI / 2;
         out[1] = 2 * Math.atan2(y, x);
         out[2] = 0;
-    } else if (test < -(0.5 - glmatrix.EPSILON) * unit) { //TODO: Use glmatrix.EPSILON
+    } else if (test < -(0.5 - glMatrix.EPSILON) * unit) { //TODO: Use glmatrix.EPSILON
         // singularity at the south pole
         out[0] = -Math.PI / 2;
         out[1] = 2 * Math.atan2(y, x);
@@ -197,13 +197,13 @@ export class Transform extends Component {
         }
 
         // we can't use vector directly =(
-        mat4.getTranslation(COPY_VECTOR_STORAGE, matrix);
+        mat4.getTranslation(COPY_VECTOR_STORAGE, this._matrix);
         this._position.set(...COPY_VECTOR_STORAGE);
 
-        mat4.getScaling(COPY_VECTOR_STORAGE, matrix);
+        mat4.getScaling(COPY_VECTOR_STORAGE, this._matrix);
         this._scale.set(...COPY_VECTOR_STORAGE);
 
-        mat4.getRotation(this._quat, matrix);
+        mat4.getRotation(this._quat, this._matrix);
 
         // there are not methods inside gl-matrix
         // use custom
