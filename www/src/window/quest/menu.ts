@@ -7,7 +7,7 @@ export class QuestMenu extends Window {
     [key: string]: any;
 
     //
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x, y, w, h, id, title?, text?) {
         super(x, y, w, h, id, title, text);
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;

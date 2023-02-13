@@ -1,7 +1,7 @@
 // import lang_json from "../data/lang.json" assert { type: "json" };
 import { Helpers } from "./helpers.js";
 
-export const Lang = new Proxy(
+export const Lang : Dict = new Proxy(
     {
 
         default_code: 'en',

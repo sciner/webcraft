@@ -124,7 +124,7 @@ export class DirLightQueue {
             if (old === val && !force) {
                 continue;
             }
-            let changedDisperse = (disperse > 0) && (((val === maxLight) ^ (old === maxLight)) || force);
+            let changedDisperse = (disperse > 0) && (((val === maxLight) !== (old === maxLight)) || force);
             uint8View[coordBytes + OFFSET_SOURCE] = val;
             // add to queue for light calc
             let maxVal = uint8View[coordBytes + OFFSET_LIGHT];

@@ -28,7 +28,7 @@ export class ModeWindow extends Window {
         lblHelp.style.font.align = 'center'
         this.lblHelp.style.font.color = '#ffffff'
 
-        const lblTitle = this.addComponent(w / 2, 10, w, 43, 'lblTitle', 'Test', null, 'toasts-0.png')
+        const lblTitle = this.addComponent(w / 2, 10, w, 43, 'lblTitle', 'Test', 'toasts-0.png')
         lblTitle.style.font.anchor.x = .5
         lblTitle.style.font.align = 'center'
         this.lblTitle.style.font.color = '#ffffff'
@@ -40,7 +40,7 @@ export class ModeWindow extends Window {
 
     }
 
-    addComponent(x, y, w, h, id, title, icon) {
+    addComponent(x, y, w, h, id, title, icon?) {
         const label = this[id] = new Label(x * this.zoom, y * this.zoom, w * this.zoom, h * this.zoom, id, title, title)
         if(icon) {
             label.setIcon(this.atlas.getSpriteFromMap(icon), 'centerstretch', ICON_SCALE)

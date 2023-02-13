@@ -20,7 +20,7 @@ export class QuestView extends Window {
     [key: string]: any;
 
     //
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x, y, w, h, id, title?, text?) {
 
         super(x, y, w, h, id, title, text);
 

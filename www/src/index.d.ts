@@ -1,6 +1,7 @@
 //
 declare const Qubatch: any // GameClass // | ServerGame
-declare const vt: any // GameClass // | ServerGame
+declare const UI_ZOOM: number
+declare const vt: any
 
 //
 declare type float = number&{};

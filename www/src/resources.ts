@@ -25,6 +25,34 @@ export const COLOR_PALETTE = {
 export class Resources {
     [key: string]: any;
 
+    static _bbmodels          : any;
+    static _bbmodel_promise   : any;
+    static _music_discs       : any;
+    static _painting          : any;
+    static codeMain           : any = {};
+    static codeSky            : any = {};
+    static pickat             : any = {};
+    static shadow             : any = {};
+    static clouds             : any = {};
+    static inventory          : any = {};
+    static physics            : any = {};
+    static models             : any = {};
+    static sounds             : any = {};
+    static music              : any = null;
+    static sound_sprite_main  : any = {};
+    static weather            : any = {};
+    static blockDayLight      : any = null;
+    static maskColor          : any = null;
+    static layout             : any = {}
+    static shaderBlocks       : any = {};
+    static atlas              : any = {}
+
+    static progress = {
+        loaded:     0,
+        total:      0,
+        percent:    0
+    };
+
     static async getModelAsset(key) {
         if (!this.models[key]) {
             return;
@@ -48,7 +76,6 @@ export class Resources {
     static onLoading = (state) => {};
 
     static async preload(settings) {
-        this.shaderBlocks = {};
 
         // Functions
         const loadTextFile = Resources.loadTextFile
@@ -81,28 +108,12 @@ export class Resources {
      * @returns {Promise<void>}
      */
     static load(settings) {
-        this.codeMain           = {};
-        this.codeSky            = {};
-        this.pickat             = {};
-        this.shadow             = {};
-        // this.sky                = {};
-        this.clouds             = {};
-        this.inventory          = {};
-        this.physics            = {};
-        this.models             = {};
-        this.sounds             = {};
-        this.music              = null;
-        this.sound_sprite_main  = {};
-        this.weather            = {};
-        this.blockDayLight      = null;
-        this.maskColor          = null;
-        this.layout             = {}
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
         const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
 
-        let all = [];
+        let all : any[] = [];
 
         // Others
         all.push(loadImage('media/block_day_light.png').then((img) => { this.blockDayLight = img}));
@@ -122,7 +133,6 @@ export class Resources {
          * Atlases
          * @type {Object.<string, SpriteAtlas>}
          */
-        this.atlas = {}
         for(let name of ['hotbar', 'bn', 'icons']) {
             this.atlas[name] = {}
             all.push(fetch(`data/atlas/${name}/atlas.json`).then(response => response.json()).then(json => { this.atlas[name].map = json}))
@@ -154,7 +164,7 @@ export class Resources {
         }
 
         // Painting
-        all.push[Resources.loadPainting()];
+        all.push(Resources.loadPainting());
 
         //
         all.push(Resources.loadBBModels());
@@ -163,7 +173,7 @@ export class Resources {
         all.push(fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
 
         // Clouds texture
-        all.push(loadImage('/media/clouds.png').then((image1) => {
+        all.push(loadImage('/media/clouds.png').then((image1 : CanvasImageSource) => {
             let canvas          = document.createElement('canvas');
             canvas.width        = 256;
             canvas.height       = 256;
@@ -183,11 +193,8 @@ export class Resources {
 
         // Loading progress calculator
         let d = 0;
-        this.progress = {
-            loaded:     0,
-            total:      all.length,
-            percent:    0
-        };
+        this.progress.total = all.length
+
         for (const p of all) {
             p.then(()=> {
                 d ++;
@@ -289,7 +296,7 @@ export class Resources {
             image.onload = function () {
                 resolve(image);
             };
-            image.onError = function () {
+            image.onerror = function () {
                 reject();
             };
             image.src = url;
@@ -462,7 +469,7 @@ export class Resources {
         let resp = null;
         await Helpers.fetchJSON('../data/painting.json').then(json => {
             json.sizes = new Map();
-            for(const [k, item] of Object.entries(json.frames)) {
+            for(const [k, item] of Object.entries<IPaintingFrame>(json.frames)) {
                 let sz_w = item.w / json.one_width;
                 let sz_h = item.h / json.one_height;
                 item.x /= json.sprite_width;
@@ -492,4 +499,11 @@ export class Resources {
         return Resources._music_discs = resp;
     }
 
+}
+
+export interface IPaintingFrame {
+    x: number
+    y: number
+    w: number
+    h: number
 }
