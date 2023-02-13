@@ -155,7 +155,7 @@ export default class style {
 
         // return item in frame
         if(block.extra_data && block.extra_data.item) {
-            const vg = worker.drop_item_meshes[block.extra_data.item.id];
+            const vg = QubatchChunkWorker.drop_item_meshes[block.extra_data.item.id];
 
             const scale = 0.3;
 

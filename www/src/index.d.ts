@@ -1,5 +1,7 @@
 //
 declare const Qubatch: any // GameClass // | ServerGame
+declare const QubatchChunkWorker: any;
+declare const QubatchLightWorker: any;
 declare const UI_ZOOM: number
 declare const vt: any
 declare function randomUUID() : string

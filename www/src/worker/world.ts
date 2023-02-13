@@ -1,5 +1,5 @@
 import { ChunkWorkerChunkManager, ChunkWorkerChunk } from "./chunk.js";
-import { VectorCollector } from "../helpers.js";
+import { VectorCollector, Vector, getChunkAddr } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 
 // WorkerWorldManager
@@ -105,6 +105,27 @@ export class WorkerWorld {
         }
     }
 
+    workerSetBlock(args) {
+        const chunk_addr = new Vector(0, 0, 0);
+        const pos_world = new Vector(0, 0, 0);
+        for(let i = 0; i < args.length; i++) {
+            const m = args[i];
+            // 1. Get chunk
+            getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
+            const chunk = this.getChunk(chunk_addr);
+            if(chunk) {
+                // 2. Set block
+                if(m.type) {
+                    chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
+                }
+                pos_world.set(m.pos.x - chunk.coord.x, m.pos.y - chunk.coord.y, m.pos.z - chunk.coord.z);
+                chunk.setDirtyBlocks(pos_world);
+            } else {
+                console.error('WorkerWorld.setBlock: chunk not found at addr: ', m.addr);
+            }
+        }
+    }
+
     createChunk(args) {
         if(this.chunks.has(args.addr)) {
             return this.chunks.get(args.addr);
@@ -145,6 +166,11 @@ export class WorkerWorld {
             }
         }
         return default_value;
+    }
+
+    workerSetPotential(pos: IVector) {
+        this.ensureBuildQueue();
+        this.checkPotential(new Vector().copyFrom(pos).round());
     }
 
     checkPotential(npc) {
@@ -209,7 +235,7 @@ export class WorkerWorld {
                     genQueueSize: genQueue.size()
                 }
 
-                globalThis.worker.postMessage(['blocks_generated', ci2]);
+                QubatchChunkWorker.postMessage(['blocks_generated', ci2]);
             }
 
             totalTimes += times;
@@ -252,13 +278,13 @@ export class WorkerWorld {
         // }
 
         if (buildResults.length > 0) {
-            worker.postMessage(['vertices_generated', buildResults]);
+            QubatchChunkWorker.postMessage(['vertices_generated', buildResults]);
         }
         if (genQueue.size() === 0) {
             if (!genQueue.hitZero) {
                 genQueue.hitZero = true;
             } else {
-                worker.postMessage(['gen_queue_size', {genQueueSize: 0}]);
+                QubatchChunkWorker.postMessage(['gen_queue_size', {genQueueSize: 0}]);
             }
         }
         return loops;

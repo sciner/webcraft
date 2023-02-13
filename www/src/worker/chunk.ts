@@ -230,10 +230,10 @@ export class ChunkWorkerChunk {
         let y = oy - this.coord.y;
         let z = oz - this.coord.z;
         if(x < 0 || y < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
-            return world.chunkManager.DUMMY;
+            return this.chunkManager.DUMMY;
         };
         if(z < 0 || z >= this.size.y) {
-            return world.chunkManager.DUMMY;
+            return this.chunkManager.DUMMY;
         }
         let block = null;
         try {
@@ -247,7 +247,7 @@ export class ChunkWorkerChunk {
         if(block == null) {
             return BLOCK.AIR;
         }
-        return block || world.chunkManager.DUMMY;
+        return block || this.chunkManager.DUMMY;
     }
 
     // setBlock
@@ -366,7 +366,7 @@ export class ChunkWorkerChunk {
             enableCache = false;
         }
 
-        const {materialToId, verticesPool} = this.chunkManager;
+        const {materialToId, verticesPool, world} = this.chunkManager;
         const {dataId, size, vertexBuffers} = this;
         const {vertices, vertExtraLen} = this.tblocks;
         const {cx, cy, cz, cw, uint16View} = this.tblocks.dataChunk;

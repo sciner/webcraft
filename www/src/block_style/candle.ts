@@ -90,7 +90,7 @@ export default class style {
                 }
             ]);
 
-            if(active && typeof worker != 'undefined') {
+            if(active && typeof QubatchChunkWorker != 'undefined') {
                 wick_positions.push(block.posworld.add(new Vector(-x, -y, -z)).addSelf(planes[planes.length - 1].pos));
             }
 
@@ -132,8 +132,8 @@ export default class style {
         }
 
         // Animated block effects
-        if(typeof worker != 'undefined') {
-            worker.postMessage(['add_animated_block', {
+        if(typeof QubatchChunkWorker != 'undefined') {
+            QubatchChunkWorker.postMessage(['add_animated_block', {
                 block_pos: block.posworld,
                 pos: wick_positions,
                 type: 'torch_flame'

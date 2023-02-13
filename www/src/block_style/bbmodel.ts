@@ -165,7 +165,7 @@ export default class style {
         // Add particles for block
         const particles = []
         model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix, (type, pos, args) => {
-            if(typeof worker == 'undefined') {
+            if(typeof QubatchChunkWorker == 'undefined') {
                 return
             }
             const p = new Vector(pos).addScalarSelf(.5, 0, .5)
@@ -173,7 +173,7 @@ export default class style {
         })
         style.addParticles(model, block, matrix, particles)
         if(particles.length > 0) {
-            worker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['add_animated_block', {
                 block_pos:  block.posworld,
                 list: particles
             }]);
@@ -378,8 +378,8 @@ export default class style {
                 const is_big = !!type
 
                 /*
-                if(typeof worker != 'undefined') {
-                    worker.postMessage(['add_bbmesh', {
+                if(typeof QubatchChunkWorker != 'undefined') {
+                    QubatchChunkWorker.postMessage(['add_bbmesh', {
                         block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
                         model:              model.name,
                         animation_name:     null,

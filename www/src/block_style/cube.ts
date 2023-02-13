@@ -547,16 +547,16 @@ export default class style {
         pushAABB(vertices, _aabb, pivot, matrix, sides, _center.set(x, y, z));
 
         // Add animations
-        if(typeof worker != 'undefined' && block.id == bm.SOUL_SAND.id) {
+        if(typeof QubatchChunkWorker != 'undefined' && block.id == bm.SOUL_SAND.id) {
             if (neighbours.UP?.id == bm.BUBBLE_COLUMN.id) {
-                worker.postMessage(['add_animated_block', {
+                QubatchChunkWorker.postMessage(['add_animated_block', {
                     block_pos: block.posworld,
                     pos: [block.posworld.add(new Vector(.5, .5, .5))],
                     type: 'bubble_column',
                     isBottom: true
                 }]);
             } else {
-                worker.postMessage(['delete_animated_block', block.posworld]);
+                QubatchChunkWorker.postMessage(['delete_animated_block', block.posworld]);
             }
         }
 
@@ -576,17 +576,17 @@ export default class style {
      * @returns {boolean}
      */
     static playJukeboxDisc(chunk, tblock, x, y, z) {
-        if(typeof worker === 'undefined') {
+        if(typeof QubatchChunkWorker === 'undefined') {
             return false
         }
         const disc = tblock?.extra_data?.disc || null;
         if(disc) {
-            worker.postMessage(['play_disc', {
+            QubatchChunkWorker.postMessage(['play_disc', {
                 ...disc,
                 dt: tblock.extra_data?.dt,
                 pos: chunk.coord.add(new Vector(x, y, z))
             }]);
-            worker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['add_animated_block', {
                 block_pos: tblock.posworld,
                 pos: [tblock.posworld.add(new Vector(.5, .5, .5))],
                 type: 'music_note'

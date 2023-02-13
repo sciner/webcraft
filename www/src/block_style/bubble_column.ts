@@ -25,8 +25,8 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
         // Add animations
-        if(typeof worker != 'undefined') {
-            worker.postMessage(['add_animated_block', {
+        if(typeof QubatchChunkWorker != 'undefined') {
+            QubatchChunkWorker.postMessage(['add_animated_block', {
                 block_pos: block.posworld,
                 pos: [block.posworld.add(new Vector(.5, .5, .5))],
                 type: 'bubble_column',

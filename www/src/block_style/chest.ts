@@ -222,8 +222,8 @@ export default class style {
         }
 
         // Add animations
-        if(block.material.name == 'ENDER_CHEST' && typeof worker != 'undefined') {
-            worker.postMessage(['add_animated_block', {
+        if(block.material.name == 'ENDER_CHEST' && typeof QubatchChunkWorker != 'undefined') {
+            QubatchChunkWorker.postMessage(['add_animated_block', {
                 block_pos: block.posworld,
                 pos: [block.posworld.add(new Vector(.5, .5, .5))],
                 type: 'ender_chest'

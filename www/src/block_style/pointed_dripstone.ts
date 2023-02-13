@@ -53,11 +53,11 @@ export default class style {
         //
 
         // анимация капель
-        if (typeof worker != 'undefined' && extra_data?.up == true) {
-            worker.postMessage(['delete_animated_block', block.posworld]);
+        if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up == true) {
+            QubatchChunkWorker.postMessage(['delete_animated_block', block.posworld]);
         }
-        if (typeof worker != 'undefined' && extra_data?.up == true && dir == DIRECTION.UP && (extra_data?.water || extra_data?.lava)) {
-            worker.postMessage(['add_animated_block', {
+        if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up == true && dir == DIRECTION.UP && (extra_data?.water || extra_data?.lava)) {
+            QubatchChunkWorker.postMessage(['add_animated_block', {
                 block_pos:  block.posworld,
                 pos:        [block.posworld.add(new Vector(.5, .8, .5))],
                 type:       'dripping',
