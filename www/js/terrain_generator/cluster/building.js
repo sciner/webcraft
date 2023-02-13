@@ -24,11 +24,16 @@ export const BASEMNET_DEPTHS_BY_DISTANCE = [
     {min: 4, max: 5},
     {min: 5, max: 5}
 ]
-export const BASEMENT_FLAT_ADD_XZ = 1       // How many flat blocks are added around the gound floor
-export const BASEMENT_SLOPE_SCALE_XZ = 0.7  // How wide/narrow the rounded borders around the basement are
-export const BASEMENT_MATRIX_PAD = 3
+export const BASEMENT_BORDER_SCALE_XZ = 0.7  // How wide/narrow the rounded borders around the basement are
+export const BASEMENT_MAX_PAD = 6
+export const BASEMENT_SIDE_BULGE = 0.5
+
 export const BASEMENT_BOTTOM_BULGE_BLOCKS = 2   // How many bllocks are added to the depth of the basement at its center
 export const BASEMENT_BOTTOM_BULGE_PERCENT = 0.1 // Which fraction of the basement's width is added to its depth at its center
+
+const BASEMENT_NOISE_HARSHNESS = 1.3 // from 1. Higher values make it more pronounced, often clamped to its range.
+const BASEMENT_NOISE_SCALE = 1 / 12
+const BASEMENT_NOISE_AMPLITUDE = 2.0
 
 const CHUNK_AABB = new AABB(0, 0, 0, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
 const tmpTransformer = new VectorCardinalTransformer()
@@ -81,6 +86,8 @@ export class Building {
         this.blocks = new BlockDrawer(this)
 
     }
+
+    get generator() { return this.cluster.clusterManager.world.generator }
 
     /**
      * @returns {Vector}
@@ -148,19 +155,20 @@ export class Building {
     }
 
     /**
-     * @param {ClusterVillage} cluster
      * @param {import("../../worker/chunk.js").ChunkWorkerChunk} chunk
      */
-    drawAutoBasement(cluster, chunk) {
-        const bm = cluster.block_manager
+    drawAutoBasement(chunk) {
         const basement = this.building_template.autoBasement
         const objToChunk = new VectorCardinalTransformer().initBuildingToChunk(this, chunk)
-        const chunkToObj = new VectorCardinalTransformer().inverse(objToChunk)
+        const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
         const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
-        // AABB of the part of the basemenet in this chunk, clamped to chunk
+        // AABB of the part of the basement in this chunk, clamped to chunk
+        const centerInObj = basement.aabb.center
+        const sizeInObj = basement.aabb.size
         const aabbInObj = basement.aabb.clone().setIntersect(chunkAabbInObj)
+        const centerInChunk = objToChunk.transform(centerInObj)
         const aabbInChunk = objToChunk.tranformAABB(aabbInObj, new AABB())
-        const posInChunk = new Vector()
+        const posInObj = new Vector()
 
         // find the lowest surface point (approximately)
         const yMinNonSolidInChunk = findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, aabbInChunk)
@@ -169,19 +177,52 @@ export class Building {
             return // there is nothing to draw
         }
 
-        // draw the basemenet
-        for(let [x, z, ys] of basement.y_by_xz.entries(aabbInObj.x_min, aabbInObj.z_min, aabbInObj.x_max, aabbInObj.z_max)) {
-            if (!ys) {
-                continue
-            }
-            const y_max_incl = ys.max - 1
-            const y_min = Math.max(aabbInObj.y_min, ys.min, yMinNonSolidInObj)
-            const y_max = Math.min(aabbInObj.y_max, ys.max)
-            objToChunk.transformXZ(x, z, posInChunk)
-            for(let y = y_min; y < y_max; y++) {
-                const block_id = y === y_max_incl ? bm.GRASS_BLOCK.id : bm.DIRT.id
-                const yInChunk = objToChunk.transformY(y)
-                cluster.setSolidBlockId(chunk, posInChunk.x, yInChunk, posInChunk.z, block_id)
+        const noise2d = this.generator.noise2d
+        const borderScaleInv = 1 / BASEMENT_BORDER_SCALE_XZ
+        const circleRadius = sizeInObj.horizontalLength() / 2
+        for(let cx = aabbInChunk.x_min; cx < aabbInChunk.x_max; cx++) {
+            for(let cz = aabbInChunk.z_min; cz < aabbInChunk.z_max; cz++) {
+                chunkToObj.transformXZ(cx, cz, posInObj)
+                let distance = basement.distances.get(posInObj.x, posInObj.z) // distance to the ground floor
+                // For points outside the ground floor, subtract a random amount from the distace,
+                // thus randomly making the basement wider
+                if (distance) {
+                    // map the basement point to a point of a circle around the basement
+                    const dxCenterInChunk = cx - centerInChunk.x
+                    const dzCenterInChunk = cz - centerInChunk.z
+                    const fromChunkCenterDist = Math.sqrt(dxCenterInChunk * dxCenterInChunk + dzCenterInChunk * dzCenterInChunk) + 1e-10
+                    const multilpler = circleRadius / fromChunkCenterDist
+                    const circleXInChunk = centerInChunk.x + dxCenterInChunk * multilpler
+                    const circleZInChunk = centerInChunk.z + dzCenterInChunk * multilpler
+                    const circleXInWorld = chunk.coord.x + circleXInChunk
+                    const circleZInWorld = chunk.coord.z + circleZInChunk
+                    // calculate noise in that point of circle. It's the aditional basement radius.
+                    let noise = noise2d(circleXInWorld * BASEMENT_NOISE_SCALE, circleZInWorld * BASEMENT_NOISE_SCALE)
+                    noise = Math.max(-1, Math.min(1, noise * BASEMENT_NOISE_HARSHNESS)) // make it higher values more likely
+                    noise = (noise + 1) * 0.5 * BASEMENT_NOISE_AMPLITUDE // to 0..BASEMENT_NOISE_AMPLITUDE
+                    distance = Math.max(0, distance - noise)
+                }
+                const depths = BASEMNET_DEPTHS_BY_DISTANCE[Math.round(distance * borderScaleInv)]
+                if (!depths) {
+                    continue
+                }
+                // find the properties of the column of blocks
+                const y_max = -depths.min
+                const y_min = -depths.max - Math.round(basement.bulge.bulgeByXY(posInObj.x, posInObj.z))
+                const y_max_incl = y_max - 1
+                const y_min_clamped = Math.max(aabbInObj.y_min, y_min, yMinNonSolidInObj)
+                const y_max_clamped = Math.min(aabbInObj.y_max, y_max + 1)
+                const cell  = chunk.map.getCell(cx, cz)
+                // fill the column of blocks, including the cap
+                for(let y = y_min_clamped; y < y_max_clamped; y++) {
+                    const cy = objToChunk.transformY(y)
+                    chunk.setGroundLayerIndirect(cx, cy, cz, cell, y_max_incl - y)
+                }
+                // turn grass block into dirt below the column
+                if (y_min - 1 >= aabbInObj.y_min) {
+                    const belowBasementY = objToChunk.transformY(y_min - 1)
+                    chunk.fixBelowSolidIndirect(cx, belowBasementY, cz)
+                }
             }
         }
     }

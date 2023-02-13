@@ -1,8 +1,8 @@
 import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { AABB } from '../../core/AABB.js';
 import { Vector, VectorCollector, ShiftedMatrix, VectorSet2D, SphericalBulge } from "../../helpers.js";
-import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_MATRIX_PAD, BASEMENT_FLAT_ADD_XZ, BASEMENT_SLOPE_SCALE_XZ,
-    BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT } from "./building.js";
+import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_MAX_PAD,
+    BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
 
 const BLOCKS_CAN_BE_FLOOR = [468]; // DIRT_PATH
 
@@ -50,13 +50,12 @@ export class BuildingTemplate {
          * It describes the automaticaly generated basement, in the same coordinate system as the building blocks.
          * See {@link calcAutoBasement}. Its fields: {
          *   aabb: AABB
-         *   y_by_xz: ShiftedMatrix of Objects
+         *   distances: ShiftedMatrix - 0 inside the basement, or a positive number - distance to the basement
+         *   bulge: SphericalBulge - describes the bulge of the basement's bottom
          * }
-         * For each (x, z) y_by_xz contains null or an object {min, max} - the minimum and maximum y
-         * of the basement at that point.
          * 
          * If it's null, but this.getMeta('draw_natural_basement', true) == true, a rectangular
-         * basement will be drawn, see {@link ClusterVillage.drawNaturalBasement}
+         * basement will be drawn, see ClusterBase.drawNaturalBasement
          */
         this.autoBasement = null
 
@@ -453,47 +452,47 @@ export class BuildingTemplate {
             return null
         }
         const aabb = groudFloorBlocks.calcBounds('x', 'z', new AABB())
-        aabb.pad(BASEMENT_MATRIX_PAD)
+        // calc side bulge based on aabb befre padding
+        const sideBulgeX = new SphericalBulge().init1DIntRange(aabb.x_min, aabb.x_max, BASEMENT_SIDE_BULGE)
+        const sideBulgeZ = new SphericalBulge().init1DIntRange(aabb.z_min, aabb.z_max, BASEMENT_SIDE_BULGE)
+        aabb.pad(BASEMENT_MAX_PAD)
         aabb.y_min = 0
         aabb.y_max = 0
         const size = aabb.size
+        const center = aabb.center
         // matrix that has 1 in the basement's cells (not dilated yet)
-        const shapeMat = new ShiftedMatrix(aabb.x_min, aabb.z_min, size.x, size.z, Uint8Array)
+        const shapeMat = ShiftedMatrix.createHorizontalInAABB(aabb, Uint8Array)
         for(const [row, col] of groudFloorBlocks) {
             shapeMat.set(row, col, 1)
         }
         shapeMat.fillInsides(1)
-        // distances from the outside to the basement
-        const distances = shapeMat.map(it => it === 0 ? Infinity : 0).calcDistances()
-        // find heights based on distances
-        const y_by_xz = shapeMat.createAligned()
-        const scaleInv = 1 / BASEMENT_SLOPE_SCALE_XZ
-        // prepare bottom bulge calculation
-        const halfSize = size.sub(new Vector(1, 0, 1)).mulScalar(0.5)
-        halfSize.y = 0
-        const bulge = new SphericalBulge(halfSize.length(), 
-            BASEMENT_BOTTOM_BULGE_BLOCKS + Math.min(size.x, size.z) * BASEMENT_BOTTOM_BULGE_PERCENT)
-        // for each basement (x, z)
-        for(const [relX, relZ, ind] of distances.relativeRowColIndices()) {
-            const dist = Math.round(Math.max(0, (distances.arr[ind] - BASEMENT_FLAT_ADD_XZ) * scaleInv))
-            let depths = BASEMNET_DEPTHS_BY_DISTANCE[dist]
-            if (depths) {
-                // calc bottom bulge
-                const bulgeV = Math.round(bulge.bulgeByDxDy(relX - halfSize.x, relZ - halfSize.z))
 
-                const y_min = -depths.max - bulgeV
-                y_by_xz.arr[ind] = {
-                    max: -depths.min,
-                    min: y_min
-                }
-                if (aabb.y_min > y_min) {
-                    aabb.y_min = y_min
-                }
-            }
+        // calc distances from the outside to the basement
+        const distances = shapeMat.map(it => it === 0 ? Infinity : 0).calcDistances()
+
+        // pad sides
+        for(const [x, z, ind] of distances.rowColIndices()) {
+            // Pad 1 block, so blocks just adjacent to the walls have distance 0.
+            // We *have* to always include them, becuase of buildings that darw air below the walls
+            let pad = 1
+            // make the side a little convex
+            pad += sideBulgeX.bulgeByDistance(x - center.x)
+            pad += sideBulgeZ.bulgeByDistance(z - center.z)
+            distances.arr[ind] = Math.max(distances.arr[ind] - pad, 0)
         }
+
+        const maxBotomBulge = BASEMENT_BOTTOM_BULGE_BLOCKS + Math.min(size.x, size.z) * BASEMENT_BOTTOM_BULGE_PERCENT
+        const bulge = new SphericalBulge().init2DIntRange(aabb.x_min, aabb.z_min, aabb.x_max, aabb.z_max, maxBotomBulge)
+
+        aabb.y_max++ // for cap blocks
+        aabb.y_min = -BASEMNET_DEPTHS_BY_DISTANCE[0].max
+        aabb.y_min -= Math.round(maxBotomBulge)
+        aabb.y_min-- // to fix dirt below the basement
+
         this.autoBasement = {
             aabb,
-            y_by_xz
+            distances,
+            bulge
         }
     }
 

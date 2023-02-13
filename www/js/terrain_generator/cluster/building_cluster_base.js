@@ -174,7 +174,7 @@ export class ClusterBuildingBase extends ClusterBase {
         }
         // draw basement before the building
         if (building.getautoBasementAABB()?.intersect(chunk.aabb)) {
-            building.drawAutoBasement(this, chunk)
+            building.drawAutoBasement(chunk)
         }
         // draw building
         if (buildingIntersects) {

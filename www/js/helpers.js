@@ -287,36 +287,58 @@ export class Mth {
 export class SphericalBulge {
 
     /** 
-     * @param {Float} maxDist - the max. distance from a surface point to the surface center
-     * @param {Float} maxBulge - that bulge height at the surface center
-     * @param {Float} maxBulgeOnUnitSphere - affects the shape of the curvature, from 0 to 1 not inclusive
+     * @param {float} radius - the radius of the pathc that has zon-zero bulge
+     * @param {float} maxBulge - that bulge height at the surface center
+     * @param {float} maxBulgeOnUnitSphere - affects the shape of the curvature, from 0 to 1 not inclusive
      */
-    constructor(maxDist, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+    initRadius(radius, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
         if (maxBulgeOnUnitSphere <= 0 || maxBulgeOnUnitSphere >= 1) {
             throw new Error()
         }
         this.distToCenterOnUnitSph = 1 - maxBulgeOnUnitSphere
         const maxDistSqrOnUnitSph = 1 - this.distToCenterOnUnitSph * this.distToCenterOnUnitSph
-        this.distScaleSqrInv = maxDistSqrOnUnitSph / (maxDist * maxDist)
+        this.distScaleSqrInv = maxDistSqrOnUnitSph / (radius * radius + 1e-10)
         this.bulgeScale = maxBulge / maxBulgeOnUnitSphere
+        return this
+    }
+
+    init1DIntRange(x_min, x_max_excl, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+        this.x0 = (x_min + x_max_excl - 1) * 0.5
+        const radius = 0.5 * (x_max_excl - x_min - 1 + 1e-10)
+        return this.initRadius(radius, maxBulge, maxBulgeOnUnitSphere)
+    }
+
+    init2DIntRange(x_min, y_min, x_max_excl, y_max_excl, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+        this.x0 = (x_min + x_max_excl - 1) * 0.5
+        this.y0 = (y_min + y_max_excl - 1) * 0.5
+        const dx = x_max_excl - x_min - 1
+        const dy = y_max_excl - y_min - 1
+        const radius = 0.5 * (Math.sqrt(dx * dx + dy * dy) + 1e-10)
+        return this.initRadius(radius, maxBulge, maxBulgeOnUnitSphere)
     }
 
     /**
-     * @param {Float} distSqr - the distance squared from a surface point to the center of the surface
-     * @return {Float} the height of the bulge at that point
+     * @param {float} distSqr - the distance squared from a surface point to the center of the surface
      */
-    bulgeByDistSqr(distSqr) {
+    bulgeByDistanceSqr(distSqr) {
         const distSqrOnUnitSph = distSqr * this.distScaleSqrInv
         const cathetusOnUnitSph = Math.sqrt(Math.max(1 - distSqrOnUnitSph, 0))
         return this.bulgeScale * Math.max(0, cathetusOnUnitSph - this.distToCenterOnUnitSph)
     }
 
-    /**
-     * @param {Float} distSqr - the distance squared from a surface point to the center of the surface
-     * @return {Float} the height of the bulge at that point
-     */
-    bulgeByDxDy(dx, dy) {
-        return this.bulgeByDistSqr(dx * dx + dy * dy)
+    bulgeByDistance(dist) {
+        return this.bulgeByDistanceSqr(dist * dist)
+    }
+
+    bulgeByXY(x, y) {
+        x -= this.x0
+        y -= this.y0
+        return this.bulgeByDistanceSqr(x * x + y * y)
+    }
+
+    bulgeByX(x) {
+        x -= this.x0
+        return this.bulgeByDistanceSqr(x * x)
     }
 }
 
@@ -1508,6 +1530,10 @@ export class Vector {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
+    horizontalLength() {
+        return Math.sqrt(this.x * this.x + this.z * this.z);
+    }
+
     /**
      * @param {Vector} vec
      * @return {number}
@@ -2078,7 +2104,7 @@ export class VectorCardinalTransformer {
      * Initializes this transformer as the inverse transformation of the given
      * {@link srcTransformer}, ot itself.
      */
-    inverse(srcTransformer = this) {
+    initInverse(srcTransformer = this) {
         let {kxx, kxz, kzx, kzz, x0, y0, z0} = srcTransformer
         const detInv = 1 / (kxx * kzz - kxz * kzx)
         this.kxx =  detInv * kzz
@@ -2091,7 +2117,7 @@ export class VectorCardinalTransformer {
         return this
     }
 
-    transform(src, dst = src) {
+    transform(src, dst = new Vector()) {
         let {x, z} = src
         dst.y = this.y0 + src.y
         dst.x = this.x0 + x * this.kxx + z * this.kxz
@@ -2109,15 +2135,15 @@ export class VectorCardinalTransformer {
         return this.y0 + y
     }
 
-    tranformAABB(src, dst = src) {
+    tranformAABB(src, dst) {
         const tmpVec = VectorCardinalTransformer.tmpVec
         tmpVec.set(src.x_min, src.y_min, src.z_min)
-        this.transform(tmpVec)
+        this.transform(tmpVec, tmpVec)
 
         const tmpVec2 = VectorCardinalTransformer.tmpVec2
         // (x_max, z_max) are not inclusive, but we need to transfrom the actual block coordinates (inclusive)
         tmpVec2.set(src.x_max - 1, src.y_max, src.z_max - 1)
-        this.transform(tmpVec2)
+        this.transform(tmpVec2, tmpVec2)
 
         dst.y_min = tmpVec.y
         dst.y_max = tmpVec2.y
@@ -3543,6 +3569,11 @@ export class ShiftedMatrix {
         this.arr = new arrayClass(rows * cols);
     }
 
+    static createHorizontalInAABB(aabb, arrayClass = Array) {
+        return new ShiftedMatrix(aabb.x_min, aabb.z_min, 
+            aabb.x_max - aabb.x_min, aabb.z_max - aabb.z_min, arrayClass)
+    }
+
     // Exclusive, like in AABB
     get maxRow() { return this.minRow + this.rows }
     get maxCol() { return this.minCol + this.cols }
@@ -3653,6 +3684,21 @@ export class ShiftedMatrix {
         }
     }
 
+    *rowColIndices() {
+        const entry = [0, 0, 0]
+        const cols = this.cols
+        for(let i = 0; i < this.rows; i++) {
+            let ind = i * cols
+            entry[0] = i + this.minRow
+            for(let j = 0; j < cols; j++) {
+                entry[1] = j + this.minCol
+                entry[2] = ind
+                yield entry
+                ind++
+            }
+        }
+    }
+
     toArrayOfArrays() {
         let res = [];
         for(let i = 0; i < this.rows; i++) {
@@ -3724,7 +3770,7 @@ export class ShiftedMatrix {
             throw new Error()
         }
         dst = dst ?? new ShiftedMatrix(this.minRow, this.minCol, this.rows, this.cols, arrayClass)
-        for(let ind = 0; ind <= this.arr.length; ind++) {
+        for(let ind = 0; ind < this.arr.length; ind++) {
             dst.arr[ind] = fn(this.arr[ind])
         }
         return dst
@@ -3770,9 +3816,9 @@ export class ShiftedMatrix {
         }
         queue = queue ?? new SimpleQueue()
 
-        const rowsM1 = this.rows - 1
-        const colsM1 = this.cols - 1
         const cols = this.cols
+        const rowsM1 = this.rows - 1
+        const colsM1 = cols - 1
         const arr = this.arr
         // add border cells to the queue, spread from inner cells
         for(const [row, col, ind] of this.relativeRowColIndices()) {
@@ -3804,10 +3850,10 @@ export class ShiftedMatrix {
             const ind = row * cols + col
             spread(row, col, arr[ind])
             if (row > 0 && !tmpArray[ind - cols]) {
-                add(row + 1, col, ind - cols)
+                add(row - 1, col, ind - cols)
             }
             if (row < rowsM1 && !tmpArray[ind + cols]) {
-                add(row - 1, col, ind + cols)
+                add(row + 1, col, ind + cols)
             }
             if (col > 0 && !tmpArray[ind - 1]) {
                 add(row, col - 1, ind - 1)

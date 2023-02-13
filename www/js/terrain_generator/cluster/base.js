@@ -44,6 +44,8 @@ export class ClusterBase {
         this.corner         = (clusterManager.version == 2) ? Math.floor(this.randoms.double() * 4) : undefined
     }
 
+    get generator() { return this.clusterManager.world.generator }
+
     /**
      * Set block
      * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
@@ -93,17 +95,6 @@ export class ClusterBase {
             chunk.addTickingBlock(chunk.coord.offset(x, y, z));
         }
         return true;
-    }
-
-    setSolidBlockId(chunk, x, y, z, block_id) {
-        this.setBlock(chunk, x, y, z, block_id,
-            null,   // rotate
-            null,   // extra_data
-            false,  // check_is_solid
-            true,   // destroy_fluid
-            false,  // candidate_for_cap_block
-            null    // map
-        )
     }
 
     /**
