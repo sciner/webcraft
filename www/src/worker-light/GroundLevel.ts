@@ -119,7 +119,7 @@ export class ChunkGroundLevel {
                 v.y !== v.oldY && v.oldY === column.minLightY[i].y
             ) {
                 column.minLightYDirty = true;
-                this.worldGroundLevel.minLightYDirty |= isCloseEnough;
+                this.worldGroundLevel.minLightYDirty ||= isCloseEnough;
             }
             v.oldY = v.y;
         }
@@ -179,7 +179,7 @@ export class WorldGroundLevel {
                 }
             }
         } else {
-            delete this.columns.delete(gl.xzKey);
+            this.columns.delete(gl.xzKey);
             this.minLightYDirty |= gl.hasMinLightY;
         }
     }

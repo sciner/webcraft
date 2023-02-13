@@ -103,7 +103,7 @@ export class DirNibbleQueue {
         let uint8View = null;
         let outerSize = null;
         let strideBytes = 0;
-        let aabb = 0;
+        let aabb = null;
         let outerAABB = null;
         let safeAABB = null;
         let portals = null;
@@ -211,7 +211,7 @@ export class DirNibbleQueue {
                 const curLight = uint8View[coord * strideBytes + qOffset];
                 const nibColumn = column - (lim - y1);
                 const newLight = (nibColumn >= 0 && val > nibColumn) ? defLight : 0;
-                if ((newLight !== defLight) ^ (curLight !== defLight)) {
+                if ((newLight !== defLight) !== (curLight !== defLight)) {
                     // world.dayLight.add(chunk, coord, Math.max(newLight, curLight), world.getPotential(x, y, z));
                     world.dayLight.addNow(chunk, coord, x, y1, z, newLight);
                 }

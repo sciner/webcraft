@@ -5,7 +5,7 @@ const tempAABB = new AABB();
 
 export class BaseChunk {
     [key: string]: any;
-    constructor({size, nibble}) {
+    constructor({size, nibble = null}) {
         this.outerAABB = new AABB();
         this.safeAABB = new AABB();
         this.pos = new Vector();

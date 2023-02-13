@@ -112,7 +112,7 @@ export class LightWorld {
         this.groundLevel.onCheckPotential();
     }
 
-    postMessage(msg, transfer) {
+    postMessage(msg, transfer?) {
         msg.unshift(this.worldId);
         this.worker.postMessage(msg, transfer);
     }

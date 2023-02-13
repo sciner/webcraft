@@ -27,12 +27,12 @@ import {
 
 export class LightQueue {
     [key: string]: any;
-    constructor(world, {offset, dirCount, capacity, nibbleSource}) {
+    constructor(world, {offset, dirCount, nibbleSource = false}) {
         this.world = world;
         // deque structure=
         this.deque = new MultiQueue({pageSize: defPageSize, maxPriority: maxLight + maxPotential});
         this.filled = 0;
-        this.nibbleSource = nibbleSource || false;
+        this.nibbleSource = nibbleSource;
         // offset in data
         this.qOffset = offset || 0;
         this.dirCount = dirCount || DIR_COUNT;
@@ -58,7 +58,7 @@ export class LightQueue {
      * @param coord
      * @param waveNum
      */
-    add(chunk, coord, waveNum, potential, force) {
+    add(chunk, coord, waveNum, potential, force = false) {
         if (waveNum < 0 || waveNum > maxLight) {
             waveNum = maxLight;
         }

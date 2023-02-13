@@ -1316,14 +1316,14 @@ export class Vector implements IVector {
 
     /**
      */
-    round(decimals: number) : Vector {
+    round(decimals?: number) : Vector {
         return this.clone().roundSelf(decimals);
     }
 
     /**
      * @returns {Vector}
      */
-    roundSelf(decimals: number) : Vector {
+    roundSelf(decimals?: number) : Vector {
         if(decimals) {
             decimals = Math.pow(10, decimals);
             this.x = Math.round(this.x * decimals) / decimals;

@@ -2,9 +2,9 @@
  * light worker sends messages periodically, separating light waves
  */
 let modulesReady = false;
-let Vector = null;
+let Vector: any = null;
 let LightWorkerWorldManager = null;
-let worlds = null;
+let worlds: any = null;
 
 const RAF_MS = 16; //ms per one world update
 

@@ -17,7 +17,7 @@ export class DirLightQueue {
         this.disperse = disperse || 0;
     }
 
-    add(chunk, coord, force) {
+    add(chunk, coord, force = false) {
         const {outerSize} = chunk;
         let lvl = chunk.lightChunk.outerAABB.y_min + Math.floor(coord / outerSize.x / outerSize.z); // get Y
         this.waves.push(lvl, chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));

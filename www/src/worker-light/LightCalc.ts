@@ -1,10 +1,5 @@
-import {Vector} from '../helpers.js';
 import {
-    adjustLight,
-    adjustSrc,
-    BITS_QUEUE_BLOCK_INDEX,
-    DIR_COUNT,
-    DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, LIGHT_STRIDE_BYTES_NORMAL, MASK_SRC_AMOUNT, MASK_SRC_AO,
+    MASK_SRC_AO,
     MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT, OFFSET_NORMAL,
     OFFSET_SOURCE
 } from "./LightConst.js";
