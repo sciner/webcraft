@@ -8,6 +8,7 @@ import { Vector } from "./helpers.js";
 import { ChestHelpers } from "./block_helpers.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
+import type { BLOCK } from "./blocks";
 
 /**
  * World generation unfo passed from server
@@ -28,18 +29,23 @@ export class World {
 
     static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 10000;
+    latency: number = 0;
+    info?: TWorldInfo | null;
+    serverTimeShift: number = 0;
+    settings: TWorldSettings;
+    chunkManager: ChunkManager;
+    mobs: MobManager;
+    drop_items: DropItemManager;
+    players: PlayerManager;
+    blockModifierListeners: Function[];
+    block_manager: any;
+    server?: ServerClient;
+    hello?: IChatCommand;
 
-    constructor(settings, block_manager) {
+    constructor(settings : TWorldSettings, block_manager : BLOCK) {
 
         this.settings = settings;
         this.block_manager = block_manager;
-
-        /**
-         * @type {TWorldInfo}
-         */
-        this.info = null;
-        this.serverTimeShift = 0;
-        this.latency = 0;
 
         this.chunkManager           = new ChunkManager(this);
         this.mobs                   = new MobManager(this);
@@ -57,13 +63,16 @@ export class World {
     }
 
     queryTimeSync() {
+        if(!this.server) {
+            throw 'error_server_not_inited'
+        }
         // SERVER MUST answer ASAP, because this is required for time-syncing
         this.server.Send({name: ServerClient.CMD_SYNC_TIME, data: {clientTime: Date.now()}});
 
         setTimeout(() => this.queryTimeSync(), World.TIME_SYNC_PERIOD);
     }
 
-    onTimeSync(cmd) {
+    onTimeSync(cmd : IChatCommand) {
         const { time, data } = cmd;
         const { clientTime } = data;
         const now     = Date.now();
@@ -81,36 +90,36 @@ export class World {
         return new Promise(async (res) => {
             this.server = new ServerClient(ws);
             // Add listeners for server commands
-            this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd : IChatCommand) => {
                 this.hello = cmd;
                 console.log(cmd.data);
                 this.queryTimeSync();
             });
 
-            this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd : IChatCommand) => {
                 this.setInfo(cmd);
                 res(cmd);
             });
 
-            this.server.AddCmdListener([ServerClient.CMD_WORLD_UPDATE_INFO], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_WORLD_UPDATE_INFO], (cmd : IChatCommand) => {
                 this.updateInfo(cmd);
             });
 
-            this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd : IChatCommand) => {
                 Qubatch.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
             });
 
-            this.server.AddCmdListener([ServerClient.CMD_GENERATE_PARTICLE], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_GENERATE_PARTICLE], (cmd : IChatCommand) => {
                 Qubatch.render.addParticles(cmd.data);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
-            this.server.AddCmdListener([ServerClient.CMD_SET_WEATHER], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_SET_WEATHER], (cmd : IChatCommand) => {
                 Qubatch.render.setWeather(cmd.data, this.chunkManager);
             });
 
-            this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd : IChatCommand) => {
                 for(let params of cmd.data) {
                     TrackerPlayer.stop(params.pos);
                 }

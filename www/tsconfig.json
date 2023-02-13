@@ -6,11 +6,16 @@
         "sourceMap": false,
         "strict": false,
         "target": "es2022",
+        "module": "es2022",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "noUnusedLocals": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
         "outDir": "js"
     },
+    "files": [
+        "src/package.json"
+    ],
     "include": [
         "src/**/*"
     ]

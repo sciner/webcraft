@@ -16,6 +16,7 @@ package-lock.json
 .DS_Store
 *.schematic
 *.schem
+www/js/**/*.js
 www/resource_packs/base/blocks.json
 www/resource_packs/base/textures/*.*
 node_server/assets-compiler/resource-packs/

@@ -1,3 +1,4 @@
+import type { BLOCK } from "../../blocks.js";
 import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { Vector, VectorCollector, SimpleShiftedMatrix } from "../../helpers.js";
 
@@ -23,7 +24,16 @@ export class BuildingTemplate {
     static schemas = new Map();
     static known_templates = new Map()
 
-    constructor(json, bm) {
+    name: any
+    world: any
+    meta: any
+    size: Vector = new Vector(0, 0, 0)
+    door_pos: Vector = new Vector(0, 0, 0)
+    blocks: any
+    fluids: any
+    rot: any
+
+    constructor(json : object, bm : BLOCK) {
 
         if(!json) debugger
         if(!bm) debugger
@@ -60,7 +70,7 @@ export class BuildingTemplate {
         return default_value
     }
 
-    static addSchema(schema, bm) {
+    static addSchema(schema, bm? : BLOCK) {
         schema.world.pos1 = new Vector(schema.world.pos1)
         schema.world.pos2 = new Vector(schema.world.pos2)
         schema.world.entrance = new Vector(schema.world.entrance)

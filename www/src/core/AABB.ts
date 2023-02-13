@@ -4,7 +4,7 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat3, mat4, vec3}      = glMatrix;
 const defaultPivot      = [0.5, 0.5, 0.5];
-const defalutCenter     = [0, 0, 0];
+const defalutCenter     = new Vector(0, 0, 0);
 const defaultMatrix     = mat4.create();
 const tempMatrix        = mat3.create();
 const _size             = [0, 0, 0];
@@ -46,8 +46,16 @@ export const PLANES = {
 }
 
 export class AABB {
+    x_min: any;
+    y_min: any;
+    z_min: any;
+    x_max: any;
+    y_max: any;
+    z_max: any;
+    _size: any;
+    _center: any;
 
-    constructor(xMin, yMin, zMin, xMax, yMax, zMax) {
+    constructor(xMin? : number, yMin? : number, zMin? : number, xMax? : number, yMax? : number, zMax? : number) {
         this.x_min = xMin || 0
         this.y_min = yMin || 0
         this.z_min = zMin || 0
@@ -102,11 +110,11 @@ export class AABB {
         return this._center;
     }
 
-    clone() {
+    clone() : AABB {
         return new AABB().copyFrom(this);
     }
 
-    copyFrom(aabb) {
+    copyFrom(aabb : AABB) : AABB {
         this.x_min = aabb.x_min;
         this.x_max = aabb.x_max;
         this.y_min = aabb.y_min;
@@ -116,7 +124,7 @@ export class AABB {
         return this;
     }
 
-    pad(padding) {
+    pad(padding : number) : AABB {
         this.x_min -= padding;
         this.x_max += padding;
         this.y_min -= padding;
@@ -126,7 +134,7 @@ export class AABB {
         return this;
     }
 
-    set(xMin, yMin, zMin, xMax, yMax, zMax) {
+    set(xMin : number, yMin : number, zMin : number, xMax : number, yMax : number, zMax : number) {
         this.x_min = xMin;
         this.y_min = yMin;
         this.z_min = zMin;
@@ -146,7 +154,7 @@ export class AABB {
             vec.z + radius);
     }
 
-    setIntersect(aabb1, aabb2) {
+    setIntersect(aabb1 : AABB, aabb2 : AABB) : AABB {
         this.x_min = Math.max(aabb1.x_min, aabb2.x_min);
         this.x_max = Math.min(aabb1.x_max, aabb2.x_max);
         this.y_min = Math.max(aabb1.y_min, aabb2.y_min);
@@ -156,11 +164,11 @@ export class AABB {
         return this;
     }
 
-    isEmpty() {
+    isEmpty() : boolean {
         return this.x_min >= this.x_max && this.y_min >= this.y_max && this.z_min >= this.z_max;
     }
 
-    applyMatrix(matrix, pivot) {
+    applyMatrix(matrix : mat3, pivot : IVector) : AABB {
         if (pivot) {
             this.x_min -= pivot.x;
             this.y_min -= pivot.y;
@@ -196,29 +204,29 @@ export class AABB {
         return this;
     }
 
-    contains(x, y, z) {
+    contains(x : number, y : number, z : number) : boolean {
         return x >= this.x_min && x < this.x_max
             && y >= this.y_min && y < this.y_max
             && z >= this.z_min && z < this.z_max;
     }
 
-    containsVec(vec) {
+    containsVec(vec : IVector) : boolean {
         return this.contains(vec.x, vec.y, vec.z);
     }
 
-    intersectsColumn(x, z, y, y2) {
+    intersectsColumn(x : number, z : number, y : number, y2 : number) : boolean {
         return x >= this.x_min && x < this.x_max
             && z >= this.z_min && z < this.z_max
             && y2 > this.y_min && y < this.y_max;
     }
 
-    containsColumn(x, z, y, y2) {
+    containsColumn(x : number, z : number, y : number, y2 : number) : boolean {
         return x >= this.x_min && x < this.x_max
             && z >= this.z_min && z < this.z_max
             && y >= this.y_min && y2 <= this.y_max;
     }
 
-    intersect(box) {
+    intersect(box : AABB) : boolean {
         return (box.x_min < this.x_max && this.x_min < box.x_max
             && box.y_min < this.y_max && this.y_min < box.y_max
             && box.z_min < this.z_max && this.z_min < box.z_max);
@@ -226,9 +234,8 @@ export class AABB {
 
     /**
      * rotated around 0
-     * @param sym
      */
-    rotate(sym, pivot) {
+    rotate(sym : int, pivot : IVector) : AABB {
         if (sym === 0) {
             return this;
         }
@@ -236,7 +243,7 @@ export class AABB {
         return this.applyMatrix(CubeSym.matrices[sym], pivot);
     }
 
-    toArray(target = []) {
+    toArray(target : number[] = []) : number[] {
         target[0] = this.x_min;
         target[1] = this.y_min;
         target[2] = this.z_min;
@@ -248,7 +255,7 @@ export class AABB {
         return target;
     }
 
-    fromArray(source = []) {
+    fromArray(source : number[] = []) : AABB {
         this.x_min = source[0];
         this.y_min = source[1];
         this.z_min = source[2];
@@ -260,7 +267,7 @@ export class AABB {
         return this;
     }
 
-    translate(x, y, z) {
+    translate(x : number, y : number, z : number) : AABB {
         this.x_min += x;
         this.x_max += x;
         this.y_min += y;
@@ -270,7 +277,7 @@ export class AABB {
         return this;
     }
 
-    addPoint(x, y, z) {
+    addPoint(x : number, y : number, z : number) : AABB {
         if(x < this.x_min) this.x_min = x;
         if(x > this.x_max) this.x_max = x;
         if(y < this.y_min) this.y_min = y;
@@ -281,7 +288,7 @@ export class AABB {
     }
 
     // Expand same for all sides
-    expand(x, y, z) {
+    expand(x : number, y : number, z : number) : AABB {
         this.x_min -= x;
         this.x_max += x;
         this.y_min -= y;
@@ -291,14 +298,14 @@ export class AABB {
         return this;
     }
 
-    addSelfTranslatedByVec(vec) {
+    addSelfTranslatedByVec(vec : IVector) : AABB {
         if (vec.x > 0) this.x_max += vec.x; else this.x_min += vec.x;
         if (vec.y > 0) this.y_max += vec.y; else this.y_min += vec.y;
         if (vec.z > 0) this.z_max += vec.z; else this.z_min += vec.z;
         return this;
     }
 
-    div(value) {
+    div(value : number) : AABB {
         this.x_min /= value;
         this.x_max /= value;
         this.y_min /= value;
@@ -311,15 +318,16 @@ export class AABB {
 }
 
 export class AABBPool {
+    _list: AABB[];
     constructor() {
         this._list = [];
     }
 
-    release(elem) {
+    release(elem : AABB) {
         this._list.push(elem);
     }
 
-    alloc() {
+    alloc() : AABB {
         return this._list.pop() || new AABB();
     }
 
@@ -327,12 +335,20 @@ export class AABBPool {
 }
 
 export class AABBSideParams {
+    uv?: float[];
+    flag: int = 0;
+    anim: any;
+    lm?: null;
+    axes?: null;
+    autoUV: boolean = false;
+    rawColor?: null;
+    offset?: null;
 
-    constructor(uv, flag, anim, lm = null, axes = null, autoUV = false, rawColor = null, offset = null) {
+    constructor(uv, flag : int, anim, lm = null, axes = null, autoUV : boolean = false, rawColor = null, offset = null) {
         this.set(uv, flag, anim, lm, axes, autoUV, rawColor, offset)
     }
 
-    set(uv, flag, anim, lm = null, axes = null, autoUV = false, rawColor = null, offset = null) {
+    set(uv, flag : int, anim, lm = null, axes = null, autoUV : boolean = false, rawColor = null, offset = null) {
         this.uv       = uv;
         this.flag     = flag;
         this.anim     = anim;
@@ -347,13 +363,13 @@ export class AABBSideParams {
 }
 
 export function pushTransformed(
-    vertices, mat, pivot,
+    vertices, mat : mat4, pivot : number[] | IVector,
     cx, cz, cy,
     x0, z0, y0,
     ux, uz, uy,
     vx, vz, vy,
     c0, c1, c2, c3,
-    pp, flags
+    pp, flags : int
 ) {
 
     pivot = pivot || defaultPivot;
@@ -410,20 +426,19 @@ export function pushTransformed(
 
 /**
  * Side params for cube
- * @typedef {{up?: AABBSideParams, down?: AABBSideParams, south?: AABBSideParams, north: AABBSideParams, east?: AABBSideParams, west?: AABBSideParams}} ISideSet
+ * @typedef {{up?: AABBSideParams, down?: AABBSideParams, south?: AABBSideParams, north: AABBSideParams, east?: AABBSideParams, west?: AABBSideParams}} TSideSet
  */
 
 /**
  *
- * @param {number[]} vertices
- * @param {AABB} aabb
- * @param {Vector | number[]} pivot
- * @param {number[]} matrix
- * @param {ISideSet} sides
- * @param {boolean} [autoUV]
- * @param {Vector | number[]} [center] - center wicha AABB is placed, same as [x, y, z] in push transformed
+ * @param vertices
+ * @param aabb
+ * @param pivot
+ * @param matrix
+ * @param sides
+ * @param center - center wicha AABB is placed, same as [x, y, z] in push transformed
  */
-export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, center) {
+export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: null | Vector | number[] = null, matrix: null | number[] = null, sides: TSideSet, center: IVector) {
 
     matrix = matrix || defaultMatrix;
     center = center || defalutCenter;

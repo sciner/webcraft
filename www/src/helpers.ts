@@ -5,31 +5,98 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
     CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW } from "./chunk_const.js";
 import { DEFAULT_TX_CNT } from "./constant.js";
-import { fastmap } from "../vendors/fastmap.js";
+import type { AABB } from "./core/AABB.js";
 
 const {mat4, quat} = glMatrix;
 
-const DEFAULT_PROPERTIES_EQUAL_FN = (a, b) => ObjectHelpers.deepEqual(a, b);
+// const DEFAULT_PROPERTIES_EQUAL_FN = (a, b) => ObjectHelpers.deepEqual(a, b);
 
 export const TX_CNT = DEFAULT_TX_CNT;
+
+export let ROTATE = {
+    S: CubeSym.ROT_Y2, // front, z decreases
+    W: CubeSym.ROT_Y,  // left, x decreases
+    N: CubeSym.ID,     // back, z increases
+    E: CubeSym.ROT_Y3, // right, x increases
+};
 
 export const CAMERA_MODE = {
     COUNT: 3,
     SHOOTER: 0,
     THIRD_PERSON: 1,
-    THIRD_PERSON_FRONT: 2
+    THIRD_PERSON_FRONT: 2,
+};
+
+export let QUAD_FLAGS = {
+    NORMAL_UP: 1 << 0,
+    MASK_BIOME: 1 << 1,
+    NO_AO: 1 << 2,
+    NO_FOG: 1 << 3,
+    LOOK_AT_CAMERA: 1 << 4,
+    FLAG_ANIMATED: 1 << 5,
+    FLAG_TEXTURE_SCROLL: 1 << 6,
+    NO_CAN_TAKE_AO: 1 << 7,
+    QUAD_FLAG_OPACITY: 1 << 8,
+    QUAD_FLAG_SDF:1 << 9,
+    NO_CAN_TAKE_LIGHT: 1 << 10,
+    FLAG_TRIANGLE: 1 << 11,
+    FLAG_MIR2_TEX: 1 << 12,
+    FLAG_MULTIPLY_COLOR: 1 << 13,
+    FLAG_LEAVES: 1 << 14,
+    LOOK_AT_CAMERA_HOR: 1 << 15,
+    // Starting from this flag, we can add new flags to fields
+    // that contain QUAD_FLAGS, e.g. Mesh_Effect_Particle.flags
+    FLAG_ENCHANTED_ANIMATION: 1 << 16,
+    FLAG_RAIN_OPACITY: 1 << 17,
+    FLAG_MASK_COLOR_ADD: 1 << 18,
+    FLAG_WAVES_VERTEX: 1 << 19,
+    NEXT_UNUSED_FLAG: 1 << 20,
+}
+
+// Direction enumeration
+export let DIRECTION = {
+    UP        : CubeSym.ROT_X,
+    DOWN      : CubeSym.ROT_X3,
+    LEFT      : CubeSym.ROT_Y,
+    RIGHT     : CubeSym.ROT_Y3,
+    FORWARD   : CubeSym.ID,
+    BACK      : CubeSym.ROT_Y2,
+    // Aliases
+    WEST      : CubeSym.ROT_Y, // left
+    EAST      : CubeSym.ROT_Y3, // right
+    NORTH     : CubeSym.ID, // forward
+    SOUTH     : CubeSym.ROT_Y2 // back
+};
+
+export let DIRECTION_BIT = {
+    UP    : 0,
+    DOWN  : 1,
+    EAST  : 2, // X increases
+    WEST  : 3, // X decreases
+    NORTH : 4, // Z increases
+    SOUTH : 5, // Z decreases
+};
+
+// Direction names
+export let DIRECTION_NAME = {
+    up        : DIRECTION.UP,
+    down      : DIRECTION.DOWN,
+    left      : DIRECTION.LEFT,
+    right     : DIRECTION.RIGHT,
+    forward   : DIRECTION.FORWARD,
+    back      : DIRECTION.BACK,
 };
 
 /**
  * @param {string} url 
  * @param {*} callback 
  */
- function loadText(url, callback) {
+ function loadText(url: string, callback: any) {
     let xobj = new XMLHttpRequest();
     xobj.overrideMimeType('application/json');
     xobj.open('GET', url, true); // Replace 'my_data' with the path to your file
     xobj.onreadystatechange = function() {
-        if (xobj.readyState == 4 && xobj.status == '200') {
+        if (xobj.readyState == 4 && xobj.status == 200) {
             // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
             callback(xobj.responseText);
         }
@@ -37,9 +104,10 @@ export const CAMERA_MODE = {
     xobj.send(null);
 }
 
-function toType(a) {
+function toType(a : any) : string | null {
     // Get fine type (object, array, function, null, error, date ...)
-    return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
+    const resp = ({}).toString.call(a).match(/([a-z]+)(:?\])/i)
+    return resp ? resp[1] : null;
 }
 
 function isDeepObject(obj) {
@@ -48,9 +116,9 @@ function isDeepObject(obj) {
 
 /**
  * Returns an euler angle representation of a quaternion
- * @param  {vec3} out Euler angles, pitch-yaw-roll
- * @param  {quat} mat Quaternion
- * @return {vec3} out
+ * @param  {number[]} out Euler angles, pitch-yaw-roll (vec3)
+ * @param  {number[]} quat Quaternion (vec4)
+ * @return {number[]} out (vec3)
  */
  function getEuler(out, quat) {
     let x = quat[0],
@@ -259,23 +327,23 @@ export class Mth {
      * {narrowness: 4, flatness: 0} and {narrowness: 8, flatness: 0.5} have similar
      * density at the border, but the 1st one has a sharper cenral skike.
      */
-    static toNarrowDistribution(unifirmRandom01, width, narrowness, flatness = 0) {
+    static toNarrowDistribution(unifirmRandom01: number, width: number, narrowness: number, flatness: number = 0) {
         const v = (unifirmRandom01 - 0.5) * 2;
         const vToPower = Math.pow(Math.abs(v), narrowness) * v;
         return (vToPower + flatness * (v - vToPower)) * width;
     }
 
     // generates from min to max, inclusive
-    static randomIntRange(min, max) {
+    static randomIntRange(min: number, max: number) : number {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
     // generates from 0 (inclusive) to max (exclusive)
-    static randomInt(maxExclusive) {
+    static randomInt(maxExclusive: number) : number {
         return Math.floor(Math.random() * maxExclusive);
     }
 
-    static round(value, decimals) {
+    static round(value: number, decimals: number) : number {
         decimals = Math.pow(10, decimals)
         return Math.round(value * decimals) / decimals
     }
@@ -283,6 +351,8 @@ export class Mth {
 }
 
 export class IvanArray {
+    arr: any[];
+    count: number;
     constructor() {
         this.arr = [];
         this.count = 0;
@@ -312,13 +382,12 @@ export function makeChunkEffectID(chunk_addr, material_key) {
 
 /**
  * Возвращает адрес чанка по глобальным абсолютным координатам
- * @param { float|Vector } x 
- * @param { float|Vector } y 
- * @param { float } z 
- * @param { ?Vector } v 
- * @returns { Vector }
+ * @param x 
+ * @param y 
+ * @param z 
+ * @param v 
  */
-export function getChunkAddr(x, y, z, v = null) {
+export function getChunkAddr(x: IVector | number, y: IVector | number | null, z : number, v : Vector | null = null) : Vector {
     if(x instanceof Vector || typeof x == 'object') {
         v = y;
 
@@ -338,23 +407,22 @@ export function getChunkAddr(x, y, z, v = null) {
     return v;
 }
 
-export function chunkAddrToCoord(addr, result) {
+export function chunkAddrToCoord(addr : IVector, result : IVector) {
     result.x = addr.x * CHUNK_SIZE_X;
     result.y = addr.y * CHUNK_SIZE_Y;
     result.z = addr.z * CHUNK_SIZE_Z;
 }
 
-export function unixTime() {
+export function unixTime() : int {
     return ~~(Date.now() / 1000);
 }
 
 /**
- *
  * @param {string} seed
  * @param {int} len
  * @returns
  */
-export function createFastRandom(seed, len = 512) {
+export function createFastRandom(seed : string, len : int = 512) {
     const random_alea = new alea(seed);
     // fast random
     const randoms = new Array(len); // new Float32Array(len)
@@ -366,29 +434,29 @@ export function createFastRandom(seed, len = 512) {
     return () => randoms[random_index++ % len];
 }
 
-export function fromMat3(a, b) {
-    //transponse too!
-    a[ 0] = b[ 0];
-    a[ 1] = b[ 3];
-    a[ 2] = b[ 6];
+export function fromMat3(out : imat4, b : imat3) : imat4 {
+    // transponse too!
+    out[ 0] = b[ 0];
+    out[ 1] = b[ 3];
+    out[ 2] = b[ 6];
 
-    a[ 4] = b[ 1];
-    a[ 5] = b[ 4];
-    a[ 6] = b[ 7];
+    out[ 4] = b[ 1];
+    out[ 5] = b[ 4];
+    out[ 6] = b[ 7];
 
-    a[ 8] = b[ 2];
-    a[ 9] = b[ 5];
-    a[10] = b[ 8];
+    out[ 8] = b[ 2];
+    out[ 9] = b[ 5];
+    out[10] = b[ 8];
 
-    a[ 3] = a[ 7] = a[11] =
-    a[12] = a[13] = a[14] = 0;
-    a[15] = 1.0;
+    out[ 3] = out[ 7] = out[11] =
+    out[12] = out[13] = out[14] = 0;
+    out[15] = 1.0;
 
-    return a;
+    return out;
 }
 
 // calcRotateMatrix
-export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
+export function calcRotateMatrix(material, rotate : IVector, cardinal_direction : int, matrix : imat4) {
     // Can rotate
     if(material.can_rotate) {
         //
@@ -425,7 +493,7 @@ export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
 
 // md5
 export let md5 = (function() {
-    var MD5 = function (d, outputEncoding) {
+    var MD5 = function (d, outputEncoding : string) {
         const binaryStr = V(Y(X(d), 8 * d.length));
         if (outputEncoding) { // 'base64', 'base64url', etc. - supported only in node.js
             return Buffer.from(binaryStr, 'binary').toString(outputEncoding);
@@ -507,6 +575,10 @@ export let md5 = (function() {
 
 // VectorCollectorFlat...
 export class VectorCollectorFlat {
+    flat: any[];
+    free_indexes: any[];
+    size: number;
+    list: any;
 
     constructor(list) {
         this.clear(list);
@@ -609,14 +681,14 @@ export class VectorCollectorFlat {
 
 // VectorCollector...
 export class VectorCollector {
+    size: any;
+    list: any;
 
     /**
-     * @param {Map} list
-     * @param {int} blocks_size
      */
-    constructor(list, blocks_size) {
+    constructor(list?: Map<any, any>, blocks_size: int | null = null) {
         this.clear(list);
-        if(list && !isNaN(blocks_size)) {
+        if(list && (blocks_size !== null)) {
             this.size = blocks_size
         }
     }
@@ -646,7 +718,7 @@ export class VectorCollector {
         }
     }
 
-    entries(aabb) {
+    entries(aabb: AABB) {
         const that = this;
         return (function* () {
             if(that.size == 0) {
@@ -672,7 +744,7 @@ export class VectorCollector {
         this.size = 0;
     }
 
-    set(vec, value) {
+    set(vec: IVector, value: any) : boolean {
         let size = this.size;
         if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
         if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
@@ -686,7 +758,7 @@ export class VectorCollector {
         return this.size > size;
     }
 
-    add(vec, value) {
+    add(vec : IVector, value: any) {
         if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
         if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
         if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
@@ -700,7 +772,7 @@ export class VectorCollector {
     }
 
     // If the element exists, returns it. Otherwise sets it to the result of createFn().
-    getOrSet(vec, createFn) {
+    getOrSet(vec : IVector, createFn : Function) {
         let byY = this.list.get(vec.x);
         if (byY == null) {
             byY = new Map();
@@ -729,7 +801,7 @@ export class VectorCollector {
      *   If its result is null, the value is deleted.
      * @return the new value.
      */
-    update(vec, mapFn) {
+    update(vec : IVector, mapFn : Function) {
         let byY = this.list.get(vec.x);
         if (byY == null) {
             byY = new Map();
@@ -757,7 +829,7 @@ export class VectorCollector {
         return newV;
     }
 
-    delete(vec) {
+    delete(vec : IVector) : boolean {
         let resp = false
         const x = this.list?.get(vec.x)
         if(x) {
@@ -780,7 +852,7 @@ export class VectorCollector {
         return resp
     }
 
-    has(vec) {
+    has(vec : IVector) {
         return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
     }
 
@@ -825,256 +897,39 @@ export class VectorCollector {
 
 }
 
-
-// VectorCollector...
-export class VectorCollector2 {
-
-    /**
-     * @param {Map} list
-     * @param {int} size
-     */
-    constructor(list, size) {
-        this.clear(list);
-        if(list && !isNaN(size)) {
-            this.size = size
-        }
-    }
-
-    *[Symbol.iterator]() {
-        for (let x of Object.values(this.list)) {
-            for (let y of Object.values(x)) {
-                for (let value of Object.values(y)) {
-                    yield value;
-                }
-            }
-        }
-    }
-
-    entries(aabb) {
-
-        const that = this;
-
-        return (function* () {
-            if(that.size == 0) {
-                return;
-            }
-            const vec = new Vector(0, 0, 0);
-            for (const [x, xv] of Object.entries(that.list)) {
-                if(aabb && (x < aabb.x_min || x > aabb.x_max)) continue;
-                for (const [y, yv] of Object.entries(xv)) {
-                    if(aabb && (y < aabb.y_min || y > aabb.y_max)) continue;
-                    for (const [z, value] of Object.entries(yv)) {
-                        if(aabb && (z < aabb.z_min || z > aabb.z_max)) continue;
-                        vec.x = x
-                        vec.y = y
-                        vec.z = z
-                        yield [vec, value];
-                    }
-                }
-            }
-        })()
-    }
-
-    clear(list) {
-        this.list = list ? list : fastmap()
-        this.size = 0;
-    }
-
-    set(vec, value) {
-        let size = this.size;
-        if(!this.list.has(vec.x)) this.list.set(vec.x, fastmap());
-        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, fastmap());
-        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
-            this.size++;
-        }
-        if (typeof value === 'function') {
-            value = value(vec);
-        }
-        this.list.get(vec.x).get(vec.y).set(vec.z, value);
-        return this.size > size;
-
-        // ---------------------------------------------------
-
-        // let size = this.size;
-
-        // const getValue = () => {
-        //     if (typeof value === 'function') {
-        //         value = value(vec);
-        //     }
-        //     return value
-        // }
-
-        // let x = this.list.get(vec.x)
-        // if(!x) return !!this.list.set(vec.x, x = fastmap().set(vec.y, fastmap().set(vec.z, getValue())))
-
-        // let y = x.get(vec.y)
-        // if(!y) return !!x.set(vec.y, y = fastmap().set(vec.z, getValue()))
-
-        // if(!y.has(vec.z)) this.size++;
-        // y.set(vec.z, getValue())
-        // return this.size > size;
-
-    }
-
-    add(vec, value) {
-        if(!this.list.has(vec.x)) this.list.set(vec.x, fastmap());
-        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, fastmap());
-        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
-            if (typeof value === 'function') {
-                value = value(vec);
-            }
-            this.list.get(vec.x).get(vec.y).set(vec.z, value);
-            this.size++;
-        }
-        return this.list.get(vec.x).get(vec.y).get(vec.z);
-    }
-
-    // If the element exists, returns it. Otherwise sets it to the result of createFn().
-    getOrSet(vec, createFn) {
-        let byY = this.list.get(vec.x);
-        if (byY == null) {
-            byY = fastmap();
-            this.list.set(vec.x, byY);
-        }
-        let byZ = byY.get(vec.y);
-        if (byZ == null) {
-            byZ = fastmap();
-            byY.set(vec.y, byZ);
-        }
-        let v = byZ.get(vec.z);
-        if (v == null && !byZ.has(vec.z)) {
-            v = createFn(vec);
-            byZ.set(vec.z, v);
-            this.size++;
-        }
-        return v;
-    }
-
-    /**
-     * Updates a value (existing or non-existng), possibly setting it or deleting it.
-     * It's faster than getting and then setting a value.
-     * @param {Vector} vec
-     * @param {Function} mapFn is called for the existing value (or undefined, if there is no value).
-     *   If its result is not null, it's set as the new value.
-     *   If its result is null, the value is deleted.
-     * @return the new value.
-     */
-    update(vec, mapFn) {
-        let byY = this.list.get(vec.x);
-        if (byY == null) {
-            byY = fastmap();
-            this.list.set(vec.x, byY);
-        }
-        let byZ = byY.get(vec.y);
-        if (byZ == null) {
-            byZ = fastmap();
-            byY.set(vec.y, byZ);
-        }
-        const oldV = byZ.get(vec.z);
-        const newV = mapFn(oldV);
-        if (newV != null) {
-            if (newV !== oldV) {
-                if (oldV === undefined && !byZ.has(vec.z)) { // fast check, then slow
-                    this.size++;
-                }
-                byZ.set(vec.z, newV);
-            }
-        } else {
-            if (byZ.delete(vec.z)) {
-                this.size--;
-            }
-        }
-        return newV;
-    }
-
-    delete(vec) {
-        let resp = false
-        const x = this.list?.get(vec.x)
-        if(x) {
-            const y = x.get(vec.y)
-            if(y) {
-                const z = y.get(vec.z)
-                if(z) {
-                    y.delete(vec.z)
-                    resp = true
-                    this.size--
-                    if(y.size == 0) {
-                        x.delete(vec.y)
-                        if(x.size == 0) {
-                            this.list.delete(vec.x)
-                        }
-                    }
-                }
-            }
-        }
-        return resp
-    }
-
-    has(vec) {
-        return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
-    }
-
-    get(vec) {
-        return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
-    }
-
-    keys() {
-        let resp = [];
-        for (let [xk, x] of this.list) {
-            for (let [yk, y] of x) {
-                for (let [zk, z] of y) {
-                    resp.push(new Vector(xk|0, yk|0, zk|0));
-                }
-            }
-        }
-        return resp;
-    }
-
-    values() {
-        let resp = [];
-        for(let item of this) {
-            resp.push(item);
-        }
-        return resp;
-    }
-
-    reduce(max_size) {
-        if(this.size < max_size) {
-            return false;
-        }
-    }
-
-}
-
 // Color
 export class Color {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
 
-    static componentToHex(c) {
-        var hex = c.toString(16);
+    static componentToHex(c: number) : string {
+        const hex : string = c.toString(16);
         return hex.length == 1 ? "0" + hex : hex;
     }
 
-    static hexToColor(hex_color) {
-        var c;
+    static hexToColor(hex_color: string) : Color {
+        let c : string[];
         if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex_color)) {
             c = hex_color.substring(1).split('');
-            if(c.length == 3){
+            if(c.length == 3) {
                 c = [c[0], c[0], c[1], c[1], c[2], c[2]];
             }
-            c = '0x' + c.join('');
-            return new Color((c>>16)&255, (c>>8)&255, c&255, 255); // 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
+            const i : number = parseInt('0x' + c.join(''));
+            return new Color((i>>16)&255, (i>>8)&255, i&255, 255); // 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
         }
         throw new Error('Bad Hex');
     }
 
-    constructor(r, g, b, a) {
+    constructor(r: number, g: number, b: number, a: number) {
         this.r = r;
         this.g = g;
         this.b = b;
         this.a = a;
     }
 
-    add(color) {
+    add(color: Color) : Color {
         this.r += color.r;
         this.g += color.g;
         this.b += color.b;
@@ -1082,7 +937,7 @@ export class Color {
         return this;
     }
 
-    divide(color) {
+    divide(color: Color) : Color {
         this.r /= color.r;
         this.g /= color.g;
         this.b /= color.b;
@@ -1090,7 +945,7 @@ export class Color {
         return this;
     }
 
-    set(r, g, b, a) {
+    set(r: number | Color, g: number, b: number, a: number) : Color {
         if(r instanceof Color) {
             g = r.g;
             b = r.b;
@@ -1104,17 +959,18 @@ export class Color {
         return this;
     }
 
-    copyFrom(color) {
+    copyFrom(color: Color) : Color {
         this.r = color.r;
         this.g = color.g;
         this.b = color.b;
         this.a = color.a;
+        return this
     }
 
     /**
      * @return {Color}
      */
-    toFloat()  {
+    toFloat(): Color  {
         return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
     }
 
@@ -1147,20 +1003,13 @@ export class Color {
         return [this.r, this.g, this.b, this.a];
     }
 
-    copyFrom(color) {
-        this.r = color.r;
-        this.g = color.g;
-        this.b = color.b;
-        this.a = color.a;
-    }
-
     equals(color) {
         return this.r === color.r && this.g === color.g && this.b === color.b && this.a === color.a;
     }
 
 }
 
-export class Vector {
+export class Vector implements IVector {
 
     // static cnt = 0;
     // static traces = new Map();
@@ -1179,6 +1028,9 @@ export class Vector {
 
     // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
     static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
+    x: any;
+    y: any;
+    z: any;
     static {
         for(var i = 1; i < 6; ++i) {
             this.SIX_DIRECTIONS_CUMULATIVE.push(
@@ -1191,11 +1043,11 @@ export class Vector {
 
     /**
      *
-     * @param {Vector | {x: number, y: number, z: number} | number[]} [x]
+     * @param {Vector | IVector | number[]} [x]
      * @param {number} [y]
      * @param {number} [z]
      */
-    constructor(x, y, z) {
+    constructor(x?: Vector | IVector | number[] | number, y?: number, z?: number) {
         this.x = 0;
         this.y = 0;
         this.z = 0;
@@ -1203,8 +1055,12 @@ export class Vector {
         this.set(x, y, z);
     }
 
-    // returns v or a new Vector based on it
-    static vectorify(v) {
+    /**
+     * returns v or a new Vector based on it
+     * @param v : IVector
+     * @returns 
+     */
+    static vectorify(v: Vector | IVector | number[]) {
         return v instanceof Vector ? v : new Vector(v);
     }
 
@@ -1241,15 +1097,22 @@ export class Vector {
     }
 
     // array like object lenght
-    get length() {
+    get length() : number {
         return 3;
+    }
+
+    /**
+     * @return {number}
+     */
+    length() {
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
     /**
      * Much faster than set() if we know the soure type.
      * @param {Vector} vec
      */
-    copyFrom(vec) {
+    copyFrom(vec : IVector) : Vector {
         this.x = vec.x;
         this.y = vec.y;
         this.z = vec.z;
@@ -1257,14 +1120,12 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec
-     * @return {boolean}
      */
-    equal(vec) {
+    equal(vec: IVector) : boolean {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
     }
 
-    applyCubeSymSelf(cubeSym, origin = Vector.ZERO) {
+    applyCubeSymSelf(cubeSym, origin : IVector = Vector.ZERO) {
         this.x -= origin.x;
         this.y -= origin.y;
         this.z -= origin.z;
@@ -1280,12 +1141,8 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec1
-     * @param {Vector} vec2
-     * @param {number} delta
-     * @return {void}
      */
-    lerpFrom(vec1, vec2, delta) {
+    lerpFrom(vec1: IVector, vec2: IVector, delta: float) : Vector {
         this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
         this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
         this.z = vec1.z * (1.0 - delta) + vec2.z * delta;
@@ -1293,13 +1150,8 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec1
-     * @param {Vector} vec2
-     * @param {number} delta
-     * @param {boolean} rad
-     * @return {void}
      */
-    lerpFromAngle(vec1, vec2, delta, rad = false) {
+    lerpFromAngle(vec1 :IVector, vec2: IVector, delta: float, rad : boolean = false) : Vector {
         const coef = rad
             ? 180 / Math.PI
             : 1;
@@ -1314,11 +1166,11 @@ export class Vector {
      * @param {Vector} vec
      * @return {Vector}
      */
-    add(vec) {
+    add(vec: IVector) : Vector {
         return new Vector(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }
 
-    addScalarSelf(x, y, z) {
+    addScalarSelf(x: number, y: number, z: number) : Vector {
         this.x += x;
         this.y += y;
         this.z += z;
@@ -1326,10 +1178,8 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec
-     * @return {Vector}
      */
-    addSelf(vec) {
+    addSelf(vec: IVector) : Vector {
         this.x += vec.x;
         this.y += vec.y;
         this.z += vec.z;
@@ -1337,10 +1187,8 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec
-     * @return {Vector}
      */
-    sub(vec) {
+    sub(vec: IVector) : Vector {
         return new Vector(this.x - vec.x, this.y - vec.y, this.z - vec.z);
     }
 
@@ -1348,7 +1196,7 @@ export class Vector {
      * @param {Vector} vec
      * @return {Vector}
      */
-    subSelf(vec) {
+    subSelf(vec: IVector) : Vector {
         this.x -= vec.x;
         this.y -= vec.y;
         this.z -= vec.z;
@@ -1359,18 +1207,7 @@ export class Vector {
      * @param {Vector} vec
      * @return {Vector}
      */
-    subSelf(vec) {
-        this.x -= vec.x;
-        this.y -= vec.y;
-        this.z -= vec.z;
-        return this;
-    }
-
-    /**
-     * @param {Vector} vec
-     * @return {Vector}
-     */
-    mul(vec) {
+    mul(vec: IVector) : Vector {
         return new Vector(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
 
@@ -1378,11 +1215,11 @@ export class Vector {
      * @param {Vector} vec
      * @return {Vector}
      */
-    div(vec) {
+    div(vec: IVector) : Vector {
         return new Vector(this.x / vec.x, this.y / vec.y, this.z / vec.z);
     }
 
-    zero() {
+    zero() : Vector {
         this.x = 0;
         this.y = 0;
         this.z = 0;
@@ -1390,31 +1227,20 @@ export class Vector {
     }
 
     /**
-     * @return {Vector}
      */
-    swapYZ() {
+    swapYZ() : Vector {
         return new Vector(this.x, this.z, this.y);
     }
 
     /**
-     * @return {Vector}
      */
-    swapXZSelf() {
+    swapXZSelf(): Vector {
         return this.set(this.z, this.y, this.x);
     }
 
     /**
-     * @return {number}
      */
-    length() {
-        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-    }
-
-    /**
-     * @param {Vector} vec
-     * @return {number}
-     */
-    distance(vec) {
+    distance(vec: IVector): number {
         // return this.sub(vec).length();
         // Fast method
         let x = this.x - vec.x;
@@ -1423,7 +1249,7 @@ export class Vector {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
-    distanceSqr(vec) {
+    distanceSqr(vec: IVector) : number {
         let x = this.x - vec.x;
         let y = this.y - vec.y;
         let z = this.z - vec.z;
@@ -1434,20 +1260,20 @@ export class Vector {
      * @param {Vector} vec
      * @return {number}
      */
-    horizontalDistance(vec) {
+    horizontalDistance(vec : IVector) : float {
         const x = this.x - vec.x;
         const z = this.z - vec.z;
         return Math.sqrt(x * x + z * z);
     }
 
-    horizontalDistanceSqr(vec) {
+    horizontalDistanceSqr(vec : IVector) : float {
         const x = this.x - vec.x;
         const z = this.z - vec.z;
         return x * x + z * z;
     }
 
     // distancePointLine...
-    distanceToLine(line_start, line_end, intersection = null) {
+    distanceToLine(line_start: Vector, line_end: Vector, intersection : Vector | null = null) : number {
         intersection = intersection || new Vector(0, 0, 0);
         let dist = line_start.distance(line_end);
         let u = (((this.x - line_start.x) * (line_end.x - line_start.x)) +
@@ -1465,13 +1291,13 @@ export class Vector {
     /**
      * @return {Vector}
      */
-    normal() {
+    normal() : Vector {
         if(this.x == 0 && this.y == 0 && this.z == 0) return new Vector(0, 0, 0);
         let l = this.length();
         return new Vector(this.x / l, this.y / l, this.z / l);
     }
 
-    normSelf() {
+    normSelf() : Vector {
         const l = this.length();
         this.x /= l;
         this.y /= l;
@@ -1483,21 +1309,20 @@ export class Vector {
      * @param {Vector} vec
      * @return {number}
      */
-    dot(vec) {
+    dot(vec: IVector) : number {
         return this.x * vec.x + this.y * vec.y + this.z * vec.z;
     }
 
     /**
-     * @return {Vector}
      */
-    round(decimals) {
+    round(decimals: number) : Vector {
         return this.clone().roundSelf(decimals);
     }
 
     /**
      * @returns {Vector}
      */
-    roundSelf(decimals) {
+    roundSelf(decimals: number) : Vector {
         if(decimals) {
             decimals = Math.pow(10, decimals);
             this.x = Math.round(this.x * decimals) / decimals;
@@ -1511,22 +1336,24 @@ export class Vector {
         return this;
     }
 
-    minSelf(vec) {
+    minSelf(vec: IVector) : Vector {
         this.x = Math.min(this.x, vec.x);
         this.y = Math.min(this.y, vec.y);
         this.z = Math.min(this.z, vec.z);
+        return this
     }
 
-    maxSelf(vec) {
+    maxSelf(vec: IVector) : Vector {
         this.x = Math.max(this.x, vec.x);
         this.y = Math.max(this.y, vec.y);
         this.z = Math.max(this.z, vec.z);
+        return this
     }
 
     /**
      * @return {Vector}
      */
-    toInt() {
+    toInt() : Vector {
         return new Vector(
             this.x | 0,
             this.y | 0,
@@ -1537,7 +1364,7 @@ export class Vector {
     /**
      * @return {Vector}
      */
-    clone() {
+    clone() : Vector {
         return new Vector(
             this.x,
             this.y,
@@ -1548,7 +1375,7 @@ export class Vector {
     /**
      * @return {number[]}
      */
-    toArray() {
+    toArray() : number[] {
         return [this.x, this.y, this.z];
     }
 
@@ -1560,27 +1387,25 @@ export class Vector {
     }
 
     /**
-     * @return {string}
      */
-    toChunkKey() {
+    toChunkKey() : string {
         return 'c_' + this.x + '_' + this.y + '_' + this.z;
     }
 
     /**
-     * @return {string}
      */
-    toHash() {
+    toHash() : string {
         return this.x + ',' + this.y + ',' + this.z;
     }
 
-    static toIntHash(x, y, z) {
+    static toIntHash(x : number, y : number, z : number) : number {
         x *= 39749;
         y *= 76871;
         z *= 46049;
         return x ^ (y << 21) ^ (y >> 11) ^ (z << 11) ^ (z >> 21);
     }
 
-    toIntHash() {
+    toIntHash() : number {
         return Vector.toIntHash(this.x, this.y, this.z);
     }
 
@@ -1594,18 +1419,18 @@ export class Vector {
     /**
      * @return {Vector}
      */
-    normalize() {
+    normalize() : Vector {
         return this.normal();
     }
 
-    offset(x, y, z) {
+    offset(x: number, y: number, z: number) : Vector {
         return new Vector(this.x + x, this.y + y, this.z + z);
     }
 
     /**
      * @return {Vector}
      */
-    floored() {
+    floored() : Vector {
         return new Vector(
             Math.floor(this.x),
             Math.floor(this.y),
@@ -1616,14 +1441,14 @@ export class Vector {
     /**
      * @return {Vector}
      */
-    flooredSelf() {
+    flooredSelf() : Vector {
         this.x = Math.floor(this.x);
         this.y = Math.floor(this.y);
         this.z = Math.floor(this.z);
         return this;
     }
 
-    translate(x, y, z) {
+    translate(x: number, y: number, z: number) : Vector {
         this.x += x;
         this.y += y;
         this.z += z;
@@ -1647,12 +1472,12 @@ export class Vector {
     }
 
     /**
-     *
-     * @param {Vector | {x: number, y: number, z: number} | number[]} x
-     * @param {number} [y]
-     * @param {number} [z]
+     * @param x 
+     * @param y 
+     * @param z 
+     * @returns 
      */
-    set(x, y = x, z = x) {
+    set(x: Vector | IVector | number[] | number, y: number, z: number) : Vector {
         if (x && typeof x == 'object') {
             return this.copy(x);
         }
@@ -1664,42 +1489,42 @@ export class Vector {
         return this;
     }
 
-    setScalar(x, y, z) {
+    setScalar(x: number, y: number, z: number) : Vector {
         this.x = x;
         this.y = y;
         this.z = z;
         return this;
     }
 
-    multiplyScalarSelf(scalar) {
+    multiplyScalarSelf(scalar: number) : Vector {
         this.x *= scalar;
         this.y *= scalar;
         this.z *= scalar;
         return this;
     }
 
-    multiplyVecSelf(vec) {
+    multiplyVecSelf(vec: IVector) : Vector {
         this.x *= vec.x;
         this.y *= vec.y;
         this.z *= vec.z;
         return this;
     }
 
-    divScalar(scalar) {
+    divScalar(scalar: number) : Vector {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
         return this;
     }
 
-    divScalarVec(vec) {
+    divScalarVec(vec : IVector) : Vector {
         this.x /= vec.x;
         this.y /= vec.y;
         this.z /= vec.z;
         return this;
     }
 
-    toAngles() {
+    toAngles() : Vector {
         // N = 0
         // W = 1
         // S = 2
@@ -1710,7 +1535,7 @@ export class Vector {
         return this;
     }
 
-    volume(vec) {
+    volume(vec : IVector) : number {
         const volx = Math.abs(this.x - vec.x) + 1;
         const voly = Math.abs(this.y - vec.y) + 1;
         const volz = Math.abs(this.z - vec.z) + 1;
@@ -1718,10 +1543,8 @@ export class Vector {
     }
 
     /**
-     *
-     * @param {Vector | number[] | {x: number, y: number, z: number}} from
      */
-    copy(from) {
+    copy(from: Vector | number[] | IVector) {
         if (from == null) {
             return this;
         }
@@ -1751,17 +1574,17 @@ export class Vector {
      * @param {DIRECTION_BIT} dir
      * @return {Vector}
      */
-    rotY(dir) {
+    rotY(dir : number) : Vector {
         let tmp_x = this.x, tmp_y = this.y, tmp_z = this.z;
-        if (dir == DIRECTION.EAST){
+        if (dir == DIRECTION.EAST) {
             this.x = tmp_z;
             this.z = 15 - tmp_x;
         }
-        if (dir == DIRECTION.NORTH){
+        if (dir == DIRECTION.NORTH) {
             this.x = 15 - tmp_x;
             this.z = 15 - tmp_z;
         }
-        if (dir == DIRECTION.WEST){
+        if (dir == DIRECTION.WEST) {
             this.x = 15 - tmp_z;
             this.z = tmp_x;
         }
@@ -1898,20 +1721,33 @@ export class Vector {
 }
 
 export class Vec3 extends Vector {
-    add(vec) {
+
+    /**
+     * @param vec 
+     */
+    add(vec: IVector) : Vec3 {
         this.x += vec.x;
         this.y += vec.y;
         this.z += vec.z;
+        return this
     }
-    offset(x, y, z) {
+
+    offset(x: number, y: number, z: number) : Vec3 {
         return new Vec3(this.x + x, this.y + y, this.z + z);
     }
+
 }
+
 export class IndexedColor {
 
     static WHITE = new IndexedColor(48, 528, 0);
     static GRASS = new IndexedColor(132, 485, 0);
     static WATER = new IndexedColor(132, 194, 0);
+
+    r: number;
+    g: number;
+    b: number;
+    packed: number;
 
     // static WHITE = null;
     // static GRASS = null;
@@ -1956,7 +1792,7 @@ export class IndexedColor {
         return this;
     }
 
-    clone() {
+    clone() : IndexedColor {
         return new IndexedColor(this.r, this.g, this.b);
     }
 
@@ -1979,10 +1815,6 @@ export class IndexedColor {
 
     pack() {
         return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
-    }
-
-    clone() {
-        return new IndexedColor(this.r, this.g, this.b);
     }
 
 }
@@ -2093,8 +1925,8 @@ export function deepAssign(options) {
             // Copy source's own properties into target's own properties
             function copyProperty(property) {
                 const descriptor = Object.getOwnPropertyDescriptor(source, property);
-                //default: omit non-enumerable properties
-                if (descriptor.enumerable || options.nonEnum) {
+                // default: omit non-enumerable properties
+                if (descriptor !== undefined && descriptor.enumerable || options.nonEnum) {
                     // Copy in-depth first
                     if (isDeepObject(source[property]) && isDeepObject(target[property]))
                         descriptor.value = deepAssign(options)(target[property], source[property]);
@@ -2141,21 +1973,23 @@ export function isMobileBrowser() {
 }
 
 //
-export function isScalar(v) {
+export function isScalar(v : any) : boolean {
     return !(typeof v === 'object' && v !== null);
 }
 
 export class Helpers {
 
     static cache = new Map();
-    static fetch;
+    static fetch : Function;
     static fs;
+    static fetchJSON: (url: any, useCache?: boolean, namespace?: string) => Promise<any>;
+    static fetchBinary: (url: any) => Promise<ArrayBuffer>;
 
     static setCache(cache) {
         Helpers.cache = cache;
     }
 
-    static getCache() {
+    static getCache() : Map<any, any> {
         return Helpers.cache;
     }
 
@@ -2166,7 +2000,7 @@ export class Helpers {
     }
 
     // clamp
-    static clamp(x, min, max) {
+    static clamp(x : number, min : number, max : number) : number {
         if(!min) {
             min = 0;
         }
@@ -2180,7 +2014,7 @@ export class Helpers {
 
     // str byteToHex(uint8 byte)
     // converts a single byte to a hex string
-    static byteToHex(byte) {
+    static byteToHex(byte : byte) : string {
         return ('0' + byte.toString(16)).slice(-2);
     }
 
@@ -2193,7 +2027,7 @@ export class Helpers {
         return Array.from(arr, Helpers.byteToHex).join('');
     }
 
-    static distance(p, q) {
+    static distance(p : IVector, q : IVector) : float {
         let dx   = p.x - q.x;
         let dy   = p.y - q.y;
         let dz   = p.z - q.z;
@@ -2202,17 +2036,20 @@ export class Helpers {
     }
 
     // getRandomInt возвращает случайное целое число в диапазоне от min до max (min <= N <= max)
-    static getRandomInt(min, max) {
+    static getRandomInt(min : number, max : number) : float {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    static createSkinLayer2(text, image, callback) {
-        let canvas          = document.createElement('canvas');
+    static createSkinLayer2(text : string, image : HTMLImageElement, callback: Function) {
+        const canvas          = document.createElement('canvas');
         canvas.width        = 64;
         canvas.height       = 64;
-        let ctx             = canvas.getContext('2d');
+        const ctx             = canvas.getContext('2d');
+        if(!ctx) {
+            throw 'error_empty_drawing_context'
+        }
         if(text) {
             ctx.fillStyle       = '#f5f5f5';
             ctx.fillRect(0, 0, 200, 200);
@@ -2244,9 +2081,9 @@ export class Helpers {
     }
 
     // Canvas download
-    static downloadBlobPNG(blob, filename) {
+    static downloadBlobPNG(blob : Blob, filename : string) {
         /// create an "off-screen" anchor tag
-        let lnk = document.createElement('a'), e;
+        let lnk : HTMLAnchorElement = document.createElement('a'), event;
         /// the key here is to set the download attribute of the a tag
         lnk.download = filename;
         /// convert canvas content to data-uri for link. When download
@@ -2255,20 +2092,23 @@ export class Helpers {
         lnk.href = URL.createObjectURL(blob);
         /// create a "fake" click-event to trigger the download
         if (document.createEvent) {
-            e = document.createEvent('MouseEvents');
-            e.initMouseEvent('click', true, true, window,
+            event = document.createEvent('MouseEvents');
+            event.initMouseEvent('click', true, true, window,
             0, 0, 0, 0, 0, false, false, false,
             false, 0, null);
-            lnk.dispatchEvent(e);
+            lnk.dispatchEvent(event);
         } else if (lnk.fireEvent) {
             lnk.fireEvent('onclick');
         }
     }
 
     // downloadImage
-    static downloadImage(image, filename) {
+    static downloadImage(image : HTMLImageElement, filename : string) {
         var c = document.createElement('canvas');
         var ctx = c.getContext('2d');
+        if(!ctx) {
+            throw 'error_empty_ctx'
+        }
         ctx.canvas.width  = image.width;
         ctx.canvas.height = image.height;
         ctx.drawImage(image, 0, 0);
@@ -2278,16 +2118,16 @@ export class Helpers {
         }, 'image/png');
     }
 
-    static deg2rad(degrees) {
+    static deg2rad(degrees : float) : float {
         return degrees * (Math.PI / 180);
     }
 
-    static rad2deg(radians) {
+    static rad2deg(radians : float) : float {
         return radians * 180 / Math.PI;
     }
 
-    static async loadJSON(url, callback) {
-        await loadText(url, function(text) {
+    static async loadJSON(url : string, callback : Function) {
+        loadText(url, function(text) {
             callback(JSON.parse(text));
         });
     }
@@ -2327,7 +2167,7 @@ export class Helpers {
     }
 
     // Return from green to red color depend on percentage
-    static getColorForPercentage(pct) {
+    static getColorForPercentage(pct : float) : Color {
         var percentColors = [
             {pct: 0.0, color: {r: 0xff, g: 0x00, b: 0}},
             {pct: 0.5, color: {r: 0xff, g: 0xff, b: 0}},
@@ -2354,7 +2194,7 @@ export class Helpers {
     }
 
     // Return speed
-    static calcSpeed(pos1, pos2, delta) {
+    static calcSpeed(pos1 : Vector, pos2 : IVector, delta : float) : float {
         return Math.round(pos1.distance(pos2) / delta * 360) / 100;
     }
 
@@ -2410,8 +2250,8 @@ export class StringHelpers {
     }
 
     // The same hash as used in Java: https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript
-    static hash(str) {
-        var hash = 0, i, chr;
+    static hash(str : string) : number {
+        var hash = 0, i : int, chr;
         if (str.length === 0) return hash;
         for (i = 0; i < str.length; i++) {
             chr = str.charCodeAt(i);
@@ -2421,7 +2261,7 @@ export class StringHelpers {
     }
 
     // indexTrim
-    static trim(str, ch) {
+    static trim(str : string, ch : string) : string {
         var start = 0,
             end = str.length;
         while(start < end && str[start] === ch)
@@ -2432,7 +2272,7 @@ export class StringHelpers {
     }
 
     // converts to Roman number, from https://stackoverflow.com/questions/9083037/convert-a-number-into-a-roman-numeral-in-javascript
-    static romanize(num) {
+    static romanize(num : number) {
         let lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1}, roman = '', i;
         for (i in lookup) {
             while (num >= lookup[i]) {
@@ -2443,13 +2283,13 @@ export class StringHelpers {
         return roman;
     }
 
-    static replaceCharAt(str, index, replacement) {
+    static replaceCharAt(str : string, index : int, replacement : string) : string {
         return str.charAt(index) !== replacement
             ? str.substring(0, index) + replacement + str.substring(index + replacement.length)
             : str;
     }
 
-    static count(str, subStr) {
+    static count(str : string, subStr : string) {
         let res = 0;
         let ind = str.indexOf(subStr);
         while (ind >= 0) {
@@ -2459,7 +2299,7 @@ export class StringHelpers {
         return res;
     }
 
-    static capitalizeChatAt(str, index) {
+    static capitalizeChatAt(str : string, index : int) : string {
         return this.replaceCharAt(str, index, str.charAt(index).toUpperCase());
     }
 
@@ -2496,7 +2336,7 @@ export class ArrayHelpers {
         arr.length = len;
     }
 
-    static filterSelf(arr, predicate) {
+    static filterSelf(arr : any[], predicate) {
         // fast skip elements that don't change
         var src = 0;
         while (src < arr.length && predicate(arr[src])) {
@@ -2517,7 +2357,7 @@ export class ArrayHelpers {
         arr.length = dst;
     }
 
-    static sum(arr, mapper = (it) => it) {
+    static sum(arr : any[], mapper = (it) => it) {
         var sum = 0;
         for (let i = 0; i < arr.length; i++) {
             sum += mapper(arr[i]);
@@ -2525,7 +2365,7 @@ export class ArrayHelpers {
         return sum;
     }
 
-    static growAndSet(arr, index, value, filler = undefined) {
+    static growAndSet(arr : any[], index : int, value : any, filler : any = undefined) {
         while (arr.length <= index) {
             arr.push(filler);
         }
@@ -2594,7 +2434,7 @@ export class ArrayHelpers {
         return res;
     }
 
-    static create(size, fill = null) {
+    static create(size : int, fill : Function | null = null) {
         const arr = new Array(size);
         if (typeof fill === 'function') {
             for(let i = 0; i < arr.length; i++) {
@@ -2613,7 +2453,7 @@ export class ArrayHelpers {
     }
 
     /** Returns the class of Uint primitive arrays that can hold value {@link maxValue} */
-    static uintArrayClassForMaxValue(maxValue) {
+    static uintArrayClassForMaxValue(maxValue : number) {
         return maxValue <= 0xff
             ? Uint8Array
             : (maxValue <= 0xffff ? Uint16Array : Uint32Array)
@@ -2624,7 +2464,7 @@ export class ArrayHelpers {
      * @param {*[]} arr 
      * @returns 
      */
-    static randomItem(arr) {
+    static randomItem(arr : any[]) : any {
         if(!Array.isArray(arr) || arr.length == 0) {
             return undefined
         }
@@ -2635,6 +2475,7 @@ export class ArrayHelpers {
 
 // Helper methods to work with an array or a scalar in the same way.
 export class ArrayOrScalar {
+
     // Returns Array or null as is. Non-null scalars are wraped into an array.
     static toArray(v) {
         return (v == null || Array.isArray(v)) ? v : [v];
@@ -2644,17 +2485,18 @@ export class ArrayOrScalar {
         return Array.isArray(v) ? v.length : v;
     }
 
-    static get(v, index) {
+    static get(v: any[], index: number) {
         return Array.isArray(v) ? v[index] : v;
     }
 
-    static find(fn) {
-        return Array.isArray(v)
-            ? v.find(fn)
-            : (fn(v) ? v : null);
-    }
+    // TODO: where is first arg v?
+    // static find(fn) {
+    //     return Array.isArray(v)
+    //         ? v.find(fn)
+    //         : (fn(v) ? v : null);
+    // }
 
-    static map(v, fn) {
+    static map(v: any[], fn: any) {
         return Array.isArray(v) ? v.map(fn) : fn(v);
     }
 
@@ -2800,6 +2642,9 @@ export class ArrayOrMap {
 }
 
 export class SpiralEntry {
+    dist: number;
+    pos: Vector;
+    chunk: any;
     constructor() {
         this.pos = new Vector();
         this.dist = 0;
@@ -2822,8 +2667,8 @@ export class SpiralGenerator {
     static cache3D = {};
 
     // generate ...
-    static generate(margin) {
-        let size = margin * 2;
+    static generate(margin: int) {
+        let size : number = margin * 2;
         if(SpiralGenerator.cache.has(margin)) {
             return SpiralGenerator.cache.get[margin];
         }
@@ -2860,14 +2705,14 @@ export class SpiralGenerator {
      * @param {Vector} vec_margin
      * @returns
      */
-    static generate3D(vec_margin) {
-        let cache_key = vec_margin.toString();
+    static generate3D(vec_margin : IVector) : SpiralEntry[] {
+        const cache_key = vec_margin.toString();
         if(SpiralGenerator.cache3D.hasOwnProperty(cache_key)) {
             return SpiralGenerator.cache3D[cache_key];
         }
-        let resp        = [];
-        let center      = new Vector(0, 0, 0);
-        let exists      = [];
+        const resp : SpiralEntry[] = [];
+        const center = new Vector(0, 0, 0);
+        const exists : string[] = [];
         const MAX_DIST  = vec_margin.x;
         for(let y = -vec_margin.y; y <= vec_margin.y; y++) {
             for(let x = -vec_margin.x; x <= vec_margin.x; x++) {
@@ -2881,13 +2726,13 @@ export class SpiralGenerator {
                             entry.pos = vec;
                             entry.dist = dist;
                             resp.push(entry);
-                            exists[key] = true;
+                            exists.push(key)
                         }
                     }
                 }
             }
         }
-        resp.sort(function(a, b) {
+        resp.sort(function(a : SpiralEntry, b : SpiralEntry) {
             return a.dist - b.dist;
         });
         SpiralGenerator.cache3D[cache_key] = resp;
@@ -2897,8 +2742,12 @@ export class SpiralGenerator {
 }
 
 export class Vector4 {
+    x: number;
+    y: number;
+    height: number;
+    width: number;
 
-    constructor(x, y, width, height) {
+    constructor(x : number, y : number, width : number, height : number) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -2908,6 +2757,13 @@ export class Vector4 {
 
 // AverageClockTimer
 export class AverageClockTimer {
+    sum: number;
+    history_index: number;
+    history: number[];
+    prev: number | null;
+    min: number | null;
+    max: number | null;
+    avg: number | null;
 
     constructor() {
         this.prev       = null,
@@ -2919,7 +2775,10 @@ export class AverageClockTimer {
         this.history    = new Array(60).fill(0);
     }
 
-    add(value) {
+    /**
+     * @param value : float
+     */
+    add(value: number) {
         this.prev = value;
         if(this.min === null || this.min > value) {
             this.min = value;
@@ -2942,8 +2801,16 @@ export class AverageClockTimer {
 
 // FastRandom...
 export class FastRandom {
+    int32s: any[];
+    doubles: any[];
+    index: number;
+    cnt: any;
 
-    constructor(seed, cnt) {
+    /**
+     * @param seed : string
+     * @param cnt : int
+     */
+    constructor(seed : string, cnt : int) {
         const a = new alea(seed);
         this.int32s = new Array(cnt);
         this.doubles = new Array(cnt);
@@ -2955,12 +2822,12 @@ export class FastRandom {
         }
     }
 
-    double(offset) {
+    double(offset : number) : float {
         offset = Math.abs(offset) % this.cnt;
         return this.doubles[offset];
     }
 
-    int32(offset) {
+    int32(offset : number) : int {
         offset = Math.abs(offset) % this.cnt;
         return this.int32s[offset];
     }
@@ -2969,15 +2836,15 @@ export class FastRandom {
 
 export class RuneStrings {
 
-    static toArray(str) {
+    static toArray(str : string) {
         return runes(str);
     }
 
     // Разделяет слово на строки, в которых максимум указанное в [chunk] количество букв (с учётом emoji)
-    static toChunks(str, chunk) {
+    static toChunks(str : string, chunk : int) : string[] {
         const rs = runes(str);
         if(rs.length > chunk) {
-            let i, j, resp = [];
+            let i : int, j : int, resp = [];
             for (i = 0, j = rs.length; i < j; i += chunk) {
                 resp.push(rs.slice(i, i + chunk).join(''));
             }
@@ -2987,7 +2854,7 @@ export class RuneStrings {
     }
 
     // Разделяет длинные слова пробелами (с учётом emoji)
-    static splitLongWords(str, max_len) {
+    static splitLongWords(str : string, max_len : int) {
         let text = str.replaceAll("\r", "¡");
         let temp = text.split(' ');
         for(let i = 0; i < temp.length; i++) {
@@ -3009,6 +2876,7 @@ export class AlphabetTexture {
     static char_size        = {width: 32, height: 32};
     static char_size_norm   = {width: this.char_size.width / this.width, height: this.char_size.height / this.height};
     static chars            = new Map();
+    static chars_x: any;
 
     // init...
     static init() {
@@ -3095,14 +2963,14 @@ export class AlphabetTexture {
 export class ObjectHelpers {
 
     static isEmpty(obj) {
-        for (let key in obj) {
+        for (let _ in obj) {
             return false;
         }
         return true;
     }
 
     // For now, it supports only plain objects, Array, primitives and Vector.
-    static deepClone(v, depth = Infinity) {
+    static deepClone(v, depth : int = Infinity) {
         if (v == null) {
             return v;
         }
@@ -3215,6 +3083,9 @@ export class ObjectHelpers {
 // shift() and length are compatible with that of Array.
 // push() is not fully compatible with Array: it doesn't support multiple arguments.
 export class SimpleQueue {
+    arr: any[];
+    left: number;
+    length: number;
 
     constructor() {
         this.arr = [null]; // a single element to prevent division by 0
@@ -3264,6 +3135,15 @@ export class SimpleQueue {
 
 // A matrix that has indices in [minRow..(minRow + rows - 1), minCol..(minCol + cols - 1)]
 export class SimpleShiftedMatrix {
+    minRow: any;
+    minCol: any;
+    rows: any;
+    cols: any;
+    rowsM1: number;
+    colsM1: number;
+    maxRow: number;
+    maxCol: number;
+    arr: any[];
 
     constructor(minRow, minCol, rows, cols, arrayClass = Array) {
         this.minRow = minRow;
@@ -3333,7 +3213,7 @@ export class SimpleShiftedMatrix {
     toArrayOfArrays() {
         let res = [];
         for(let i = 0; i < this.rows; i++) {
-            let s = [];
+            const s = [];
             for(let j = 0; j < this.cols; j++) {
                 s.push(this.arr[i * this.cols + j]);
             }
@@ -3341,10 +3221,28 @@ export class SimpleShiftedMatrix {
         }
         return res;
     }
+
 }
 
 /** A 3D array (backed by an Array or a typed array) whose bottom-left corner may differ from (0,0,0). */
 export class SimpleShifted3DArray {
+    minX: any;
+    minY: any;
+    minZ: any;
+    sizeX: any;
+    sizeY: any;
+    sizeZ: any;
+    sizeXM1: number;
+    sizeYM1: number;
+    sizeZM1: number;
+    maxX: any;
+    maxY: any;
+    maxZ: any;
+    arr: any[];
+    lengthM1: number;
+    strideX: number;
+    strideY: any;
+    strideZ: number;
 
     constructor(minX, minY, minZ, sizeX, sizeY, sizeZ, arrayClass = Array) {
         this.minX = minX
@@ -3555,7 +3453,7 @@ export class SpatialDeterministicRandom {
      * @returns { int } - a signed 32-bit value based on the current world positon,
      *      world seed and spice.
      */
-    static int32(world, pos, spice = null) {
+    static int32(world, pos : IVector, spice : number | null = null) {
         let res = Vector.toIntHash(pos.x, pos.y, pos.z) ^ world.info.seed;
         if (spice != null) {
             if (typeof spice === 'number') {
@@ -3625,48 +3523,63 @@ export class SpatialDeterministicRandom {
 
 export class PerformanceTimer {
 
-    #names = []
+    #names : {name: string, p: number}[] = []
+
+    result: Map<string, number> = new Map()
 
     constructor() {
         this.#names = []
     }
 
-    start(name) {
+    start(name: string) : void {
         this.#names.push({name, p: performance.now()})
     }
 
-    stop() {
-        let keys = []
+    stop() : PerformanceTimer {
+        const keys : string[] = []
         for(let item of this.#names) {
             keys.push(item.name)
         }
         const key = keys.join(' -> ')
         const item = this.#names.pop()
+        if(item === undefined) {
+            throw 'error_not_started'
+        }
         const diff = performance.now() - item.p
         const exist_value = this[key] ?? 0
-        this[key] = exist_value + diff
+        // this[key] = exist_value + diff
+        this.result.set(key, exist_value + diff)
         return this
     }
 
-    round() {
-        for(const key in this) {
-            this[key] = Math.round(this[key])
+    round() : PerformanceTimer {
+        for(const [key, value] of this.result.entries()) {
+            this.result.set(key, Math.round(value))
         }
         return this
     }
 
-    filter(minTime = 1) {
-        for(const key in this) {
-            if (this[key] < minTime) {
-                delete this[key]
+    filter(minTime : number = 1) : PerformanceTimer {
+        for(const [key, value] of this.result.entries()) {
+            if(value < minTime) {
+                this.result.delete(key)
             }
         }
         return this
     }
 
-    sum() {
-        return ArrayHelpers.sum(Object.values(this))
+    sum() : number {
+        return ArrayHelpers.sum(Array.from(this.result.values()))
     }
+
+    export() : {key: string, value: number}[] {
+        const result : {key: string, value: number}[] = []
+        for(const [key, value] of this.result.entries()) {
+            result.push({key, value})
+        }
+        return result
+    }
+
 }
 
 export const SIX_VECS = {
@@ -3678,151 +3591,11 @@ export const SIX_VECS = {
     down: new Vector(0, -1, 0)
 };
 
-export let QUAD_FLAGS = {}
-    QUAD_FLAGS.NORMAL_UP = 1 << 0;
-    QUAD_FLAGS.MASK_BIOME = 1 << 1;
-    QUAD_FLAGS.NO_AO = 1 << 2;
-    QUAD_FLAGS.NO_FOG = 1 << 3;
-    QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
-    QUAD_FLAGS.FLAG_ANIMATED = 1 << 5;
-    QUAD_FLAGS.FLAG_TEXTURE_SCROLL = 1 << 6;
-    QUAD_FLAGS.NO_CAN_TAKE_AO = 1 << 7;
-    QUAD_FLAGS.QUAD_FLAG_OPACITY = 1 << 8;
-    QUAD_FLAGS.QUAD_FLAG_SDF = 1 << 9;
-    QUAD_FLAGS.NO_CAN_TAKE_LIGHT = 1 << 10;
-    QUAD_FLAGS.FLAG_TRIANGLE = 1 << 11;
-    QUAD_FLAGS.FLAG_MIR2_TEX = 1 << 12;
-    QUAD_FLAGS.FLAG_MULTIPLY_COLOR = 1 << 13;
-    QUAD_FLAGS.FLAG_LEAVES = 1 << 14;
-    QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
-    // Starting from this flag, we can add new flags to fields that contain QUAD_FLAGS, e.g. Mesh_Effect_Particle.flags
-    QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION = 1 << 16;
-    QUAD_FLAGS.FLAG_RAIN_OPACITY = 1 << 17;
-    QUAD_FLAGS.FLAG_MASK_COLOR_ADD = 1 << 18;
-    QUAD_FLAGS.FLAG_WAVES_VERTEX = 1 << 19;
-    QUAD_FLAGS.NEXT_UNUSED_FLAG = 1 << 20;
-
-export let ROTATE = {};
-    ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
-    ROTATE.W = CubeSym.ROT_Y; // left, x decreases
-    ROTATE.N = CubeSym.ID; // back, z increases
-    ROTATE.E = CubeSym.ROT_Y3; // right, x increases
-
-export let NORMALS = {};
-    NORMALS.FORWARD          = new Vector(0, 0, 1);
-    NORMALS.BACK             = new Vector(0, 0, -1);
-    NORMALS.LEFT             = new Vector(-1, 0, 0);
-    NORMALS.RIGHT            = new Vector(1, 0, 0);
-    NORMALS.UP               = new Vector(0, 1, 0);
-    NORMALS.DOWN             = new Vector(0, -1, 0);
-
-// Direction enumeration
-export let DIRECTION = {};
-    DIRECTION.UP        = CubeSym.ROT_X;
-    DIRECTION.DOWN      = CubeSym.ROT_X3;
-    DIRECTION.LEFT      = CubeSym.ROT_Y;
-    DIRECTION.RIGHT     = CubeSym.ROT_Y3;
-    DIRECTION.FORWARD   = CubeSym.ID;
-    DIRECTION.BACK      = CubeSym.ROT_Y2;
-    // Aliases
-    DIRECTION.WEST      = DIRECTION.LEFT;
-    DIRECTION.EAST      = DIRECTION.RIGHT
-    DIRECTION.NORTH     = DIRECTION.FORWARD;
-    DIRECTION.SOUTH     = DIRECTION.BACK;
-
-export let DIRECTION_BIT = {};
-    DIRECTION_BIT.UP    = 0;
-    DIRECTION_BIT.DOWN  = 1;
-    DIRECTION_BIT.EAST  = 2; // X increases
-    DIRECTION_BIT.WEST  = 3; // X decreases
-    DIRECTION_BIT.NORTH = 4; // Z increases
-    DIRECTION_BIT.SOUTH = 5; // Z decreases
-
-// Direction names
-export let DIRECTION_NAME = {};
-    DIRECTION_NAME.up        = DIRECTION.UP;
-    DIRECTION_NAME.down      = DIRECTION.DOWN;
-    DIRECTION_NAME.left      = DIRECTION.LEFT;
-    DIRECTION_NAME.right     = DIRECTION.RIGHT;
-    DIRECTION_NAME.forward   = DIRECTION.FORWARD;
-    DIRECTION_NAME.back      = DIRECTION.BACK;
-
-// // Test VectorCollector vs VectorCollector2
-// if(typeof process === 'undefined') {
-
-//     const size = new Vector(10, 997, 998)
-//     let _vec = new Vector(0, 0, 0)
-//     const stat = []
-//     let max_checksum = 0
-
-//     for(const [name, vc] of Object.entries({VectorCollector: new VectorCollector(), VectorCollector2: new VectorCollector2()})) {
-
-//         let value = 0
-//         let checksum = 0
-//         const timer = new PerformanceTimer()
-//         timer.start(name)
-
-//         // set
-//         timer.start('set')
-//         for(let x = 0; x < size.x; x++) {
-//             for(let y = 0; y < size.y; y++) {
-//                 for(let z = 0; z < size.z; z++) {
-//                     checksum += ++value
-//                     vc.set(_vec.set(x, y, z), value)
-//                 }
-//             }
-//         }
-//         timer.stop()
-
-//         // get
-//         let cs = 0
-//         timer.start('get')
-//         for(let x = 0; x < size.x; x++) {
-//             for(let y = 0; y < size.y; y++) {
-//                 for(let z = 0; z < size.z; z++) {
-//                     const value = vc.get(_vec.set(x, y, z))
-//                     cs += value
-//                     checksum -= value
-//                 }
-//             }
-//         }
-//         timer.stop()
-
-//         if(max_checksum == 0) max_checksum = cs
-//         if(cs != max_checksum) throw 'invalid_max_checksum'
-//         stat.push(cs)
-
-//         // each
-//         timer.start('each')
-//         for(const v of vc) {
-//             checksum += v
-//         }
-//         timer.stop()
-
-//         // entries
-//         timer.start('entries')
-//         for(const [k, v] of vc.entries()) {
-//             checksum -= v
-//         }
-//         timer.stop()
-
-//         // delete
-//         timer.start('delete')
-//         for(let x = 0; x < size.x; x++) {
-//             for(let y = 0; y < size.y; y++) {
-//                 for(let z = 0; z < size.z; z++) {
-//                     vc.delete(_vec.set(x, y, z))
-//                 }
-//             }
-//         }
-//         timer.stop()
-
-//         timer.stop()
-
-//         stat.push(...Object.entries(timer), checksum)
-
-//     }
-
-//     console.table(stat)
-
-// }
+export let NORMALS = {
+    FORWARD: new Vector(0, 0, 1),
+    BACK: new Vector(0, 0, -1),
+    LEFT: new Vector(-1, 0, 0),
+    RIGHT: new Vector(1, 0, 0),
+    UP: new Vector(0, 1, 0),
+    DOWN: new Vector(0, -1, 0),
+};
