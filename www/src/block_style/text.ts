@@ -1,4 +1,4 @@
-import {AlphabetTexture, QUAD_FLAGS, Vector} from '../helpers.js';
+import { QUAD_FLAGS, Vector} from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 /**
  * @typedef {object} CharUV

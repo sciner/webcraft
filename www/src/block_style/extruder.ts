@@ -1,5 +1,5 @@
-import {IndexedColor, DIRECTION, Color, Vector, QUAD_FLAGS} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
+import type { BlockManager } from '../blocks.js';
+import {IndexedColor, DIRECTION, Vector, QUAD_FLAGS} from '../helpers.js';
 
 const {mat3, mat4} = glMatrix;
 
@@ -102,13 +102,16 @@ class FakeCloudWorld {
 
 }
 
+
 // Экструдированные блоки
 export default class style {
     [key: string]: any;
 
+    static block_manager : BlockManager
     static lm = new IndexedColor();
 
-    static getRegInfo() {
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['extruder'],
             func: this.func
@@ -134,7 +137,7 @@ export default class style {
 
         let tex = resource_pack.textures.get(texture_id);
         // Texture
-        const c = BLOCK.calcMaterialTexture(material, DIRECTION.FORWARD, null, null, null, force_tex);
+        const c = style.block_manager.calcMaterialTexture(material, DIRECTION.FORWARD, null, null, null, force_tex);
         if(!tex) {
             console.error(block.id);
         }

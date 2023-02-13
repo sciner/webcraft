@@ -1,8 +1,8 @@
-import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
-import { BLOCK } from "../blocks.js";
+import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -10,7 +10,10 @@ const {mat4} = glMatrix;
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['lectern'],
             func: this.func,
@@ -29,12 +32,13 @@ export default class style {
             return;
         }
 
+        const bm = style.block_manager
         const texture = block.material.texture;
-        const up = BLOCK.calcTexture(texture, DIRECTION.UP);
-        const side = BLOCK.calcTexture(texture, DIRECTION.WEST);
-        const front = BLOCK.calcTexture(texture, DIRECTION.NORTH);
-        const base = BLOCK.calcTexture(texture, DIRECTION.DOWN);
-        const bottom = BLOCK.calcTexture(BLOCK.OAK_PLANKS.texture, DIRECTION.UP);
+        const up = bm.calcTexture(texture, DIRECTION.UP);
+        // const side = bm.calcTexture(texture, DIRECTION.WEST);
+        const front = bm.calcTexture(texture, DIRECTION.NORTH);
+        const base = bm.calcTexture(texture, DIRECTION.DOWN);
+        const bottom = bm.calcTexture(bm.OAK_PLANKS.texture, DIRECTION.UP);
 
         const flag = 0;
         const parts = [];
@@ -108,7 +112,8 @@ export default class style {
 }
 
 function drawBook(vertices, pos, matrix) {
-    const book = BLOCK.calcTexture({'up':[24, 24]}, DIRECTION.UP);
+    const bm = style.block_manager
+    const book = bm.calcTexture({'up':[24, 24]}, DIRECTION.UP);
     const flag = 0;
     const parts = [];
     parts.push(...[

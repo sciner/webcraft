@@ -1,10 +1,10 @@
 import {calcRotateMatrix, DIRECTION, Vector} from '../helpers.js';
-import {BLOCK, DropItemVertices} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -27,8 +27,10 @@ for(let i = 0; i < randoms.length; i++) {
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['end_rod'],
             func: this.func,
@@ -72,7 +74,7 @@ export default class style {
         const tx_cnt = material.tx_cnt;
 
         // Textures
-        const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP);
         c[0] -= .5 / tx_cnt;
         c[1] -= .5 / tx_cnt;
 

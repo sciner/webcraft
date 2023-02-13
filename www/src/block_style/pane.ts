@@ -1,17 +1,16 @@
-import { IndexedColor, Vector, DIRECTION, QUAD_FLAGS } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
+import { IndexedColor, Vector, DIRECTION } from '../helpers.js';
 import { default as default_style } from './default.js';
-import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
 import { AABB } from '../core/AABB.js';
-import { TBlock } from '../typed_blocks3.js';
-
-const {mat4} = glMatrix;
+import type { BlockManager } from '../blocks.js';
 
 // Панель
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['pane'],
             aabb: style.computeAABB,
@@ -27,17 +26,18 @@ export default class style {
      * @param {boolean} expanded 
      */
     static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const bm = style.block_manager
         const shapes = []
         const height = 1
         const w = 2/16
         const w2 = w/2
         //
-        const n = BLOCK.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours);
+        const n = bm.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours);
         // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        const con_s = BLOCK.canPaneConnect(n.SOUTH);
-        const con_n = BLOCK.canPaneConnect(n.NORTH);
-        const con_w = BLOCK.canPaneConnect(n.WEST);
-        const con_e = BLOCK.canPaneConnect(n.EAST);
+        const con_s = bm.canPaneConnect(n.SOUTH);
+        const con_n = bm.canPaneConnect(n.NORTH);
+        const con_w = bm.canPaneConnect(n.WEST);
+        const con_e = bm.canPaneConnect(n.EAST);
         let remove_center = con_s || con_n || con_w || con_e;
         //
         if(con_s && con_n) {
@@ -75,25 +75,27 @@ export default class style {
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
+
         if(block.material.name == 'IRON_BARS') {
 
-            const texture = BLOCK.calcTexture(block.material.texture, DIRECTION.DOWN);
+            const texture = bm.calcTexture(block.material.texture, DIRECTION.DOWN);
             const planes = [];
             planes.push(...[
                 {"size": {"x": 2, "y": 16, "z": 2}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 0, "y": 0, "z": 0}},
                 {"size": {"x": 2, "y": 16, "z": 2}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": 0}}
             ]);
             // Проверка сторон, для рисования кусков
-            if (BLOCK.canPaneConnect(neighbours.EAST)) {
+            if (bm.canPaneConnect(neighbours.EAST)) {
                 planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [3.5, 8], "rot": [0, -Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": -4.5}}]);
             }
-            if (BLOCK.canPaneConnect(neighbours.WEST)) {
+            if (bm.canPaneConnect(neighbours.WEST)) {
                 planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [12.5, 8], "rot": [0, -Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": 4.5}}]);
             }
-            if (BLOCK.canPaneConnect(neighbours.SOUTH)) {
+            if (bm.canPaneConnect(neighbours.SOUTH)) {
                 planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [3.5, 8], "rot": [0, 0, 0], "translate": {"x": 0, "y": 0, "z": -4.5}}]);
             }
-            if (BLOCK.canPaneConnect(neighbours.NORTH)) {
+            if (bm.canPaneConnect(neighbours.NORTH)) {
                 planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [12.5, 8], "rot": [0, 0, 0], "translate": {"x": 0, "y": 0, "z": 4.5}}]);
             }
             
@@ -113,9 +115,9 @@ export default class style {
 
         } else {
 
-            const texture = BLOCK.calcTexture(block.material.texture, DIRECTION.DOWN);
-            const texture_up = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
-            const texture_up_rot = BLOCK.calcTexture(block.material.texture, 'up_rot');
+            const texture = bm.calcTexture(block.material.texture, DIRECTION.DOWN);
+            const texture_up = bm.calcTexture(block.material.texture, DIRECTION.UP);
+            const texture_up_rot = bm.calcTexture(block.material.texture, 'up_rot');
             const flag = 0;
             const lm = IndexedColor.WHITE;
             const pos = new Vector(x, y, z);
@@ -139,10 +141,10 @@ export default class style {
             // Geometries
             const parts = [main_part];
 
-            const cn = BLOCK.canPaneConnect(neighbours.NORTH);
-            const cs = BLOCK.canPaneConnect(neighbours.SOUTH);
-            const ce = BLOCK.canPaneConnect(neighbours.EAST);
-            const cw = BLOCK.canPaneConnect(neighbours.WEST);
+            const cn = bm.canPaneConnect(neighbours.NORTH);
+            const cs = bm.canPaneConnect(neighbours.SOUTH);
+            const ce = bm.canPaneConnect(neighbours.EAST);
+            const cw = bm.canPaneConnect(neighbours.WEST);
 
             // Проверка сторон, для рисования кусков
             if(cn && cs && !ce && !cw) {

@@ -1,5 +1,5 @@
 import {DIRECTION, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
+import type {BLOCK, BlockManager} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
@@ -14,8 +14,10 @@ const WIDTH_INNER = 4/16;
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['azalea'],
             func: this.func,
@@ -50,9 +52,11 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.NORTH);
-        const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
+        const bm = style.block_manager
+
+        const c_up = bm.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_side = bm.calcMaterialTexture(block.material, DIRECTION.NORTH);
+        const c_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
         const chains = [];
         chains.push({width: w, height: h, uv: [.5, .5], rot: Math.PI / 4, y: 0, translate: [0, 0, -w/2]});

@@ -1,10 +1,10 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {DIRECTION, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import {impl as alea} from "../../vendors/alea.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from "../constant.js";
+import type {BlockManager} from "../blocks.js";
 
 const {mat4} = glMatrix;
 
@@ -23,8 +23,10 @@ const _temp_shift_pos = new Vector(0, 0, 0);
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['bamboo'],
             func: this.func,
@@ -65,6 +67,7 @@ export default class style {
 
         let stage = block?.extra_data ? block.extra_data.stage : 3;
 
+        const bm = style.block_manager
         const no_random_pos = block.hasTag('no_random_pos');
         const into_pot = block.hasTag('into_pot');
 
@@ -77,11 +80,11 @@ export default class style {
         }
 
         const textures = {
-            stalk:          BLOCK.calcMaterialTexture(block.material, DIRECTION.UP), // стебель
-            stage0:         BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST), // первая стадия роста
-            singleleaf:     BLOCK.calcMaterialTexture(block.material, DIRECTION.WEST), // одинокий листик
-            leaves:         BLOCK.calcMaterialTexture(block.material, DIRECTION.SOUTH), // малая листва
-            large_leaves:   BLOCK.calcMaterialTexture(block.material, DIRECTION.NORTH) // широкая листва
+            stalk:          bm.calcMaterialTexture(block.material, DIRECTION.UP), // стебель
+            stage0:         bm.calcMaterialTexture(block.material, DIRECTION.EAST), // первая стадия роста
+            singleleaf:     bm.calcMaterialTexture(block.material, DIRECTION.WEST), // одинокий листик
+            leaves:         bm.calcMaterialTexture(block.material, DIRECTION.SOUTH), // малая листва
+            large_leaves:   bm.calcMaterialTexture(block.material, DIRECTION.NORTH) // широкая листва
         };
 
         if(into_pot) {

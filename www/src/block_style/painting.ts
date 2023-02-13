@@ -1,6 +1,7 @@
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import {Resources} from "../resources.js";
 import { Vector } from '../helpers.js';
+import type { BlockManager } from '../blocks.js';
 
 Resources.loadPainting();
 
@@ -8,8 +9,10 @@ Resources.loadPainting();
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['painting'],
             func: this.func,

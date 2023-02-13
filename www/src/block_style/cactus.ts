@@ -1,13 +1,15 @@
-import { DIRECTION, IndexedColor , Vector} from '../helpers.js';
-import { BLOCK } from "../blocks.js";
-import { default as default_style } from './default.js';
+import { DIRECTION, Vector} from '../helpers.js';
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
 
 // кактус
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['cactus'],
             func: this.func,
@@ -27,10 +29,12 @@ export default class style {
             return
         }
 
+        const bm = style.block_manager
+
         const texture = block.material.texture;
-        const tex_up = BLOCK.calcTexture(texture, DIRECTION.UP);
-        const tex_down = BLOCK.calcTexture(texture, DIRECTION.DOWN);
-        const tex_side = BLOCK.calcTexture(texture, DIRECTION.WEST);
+        const tex_up = bm.calcTexture(texture, DIRECTION.UP);
+        const tex_down = bm.calcTexture(texture, DIRECTION.DOWN);
+        const tex_side = bm.calcTexture(texture, DIRECTION.WEST);
         const pos = new Vector(x, y, z)
         const aabb = new AABB();
         aabb.set(

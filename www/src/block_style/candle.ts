@@ -1,8 +1,8 @@
 import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
 import { default as default_style, TX_SIZE } from './default.js';
 import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
+import type { BlockManager } from '../blocks.js';
 
 const WIDTH =  4 / TX_SIZE;
 const HEIGHT = 6 / TX_SIZE;
@@ -15,8 +15,10 @@ const lm = IndexedColor.WHITE.clone();
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['candle'],
             func: this.func,
@@ -49,7 +51,7 @@ export default class style {
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         const active            = block?.extra_data?.active;
-        const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
+        const c_up_top          = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const count             = Math.min(block.extra_data?.candles || 1, 4);
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 

@@ -1,9 +1,9 @@
 import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -23,8 +23,10 @@ for(let i = 0; i < randoms.length; i++) {
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['bed'],
             func: this.func,
@@ -79,7 +81,7 @@ export default class style {
         const mask_shift = lm.b = 4; // offset for mask
 
         // textures
-        const c_head = BLOCK.calcMaterialTexture(block.material, DIRECTION.SOUTH);
+        const c_head = style.block_manager.calcMaterialTexture(block.material, DIRECTION.SOUTH);
         // IMPORTANT! c_head positions must be 0x0 coord in bed texture
         c_head[0] -= 16/sz;
         c_head[1] -= 16/sz;

@@ -1,13 +1,16 @@
 import { IndexedColor, DIRECTION } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import { RailShape } from '../block_type/rail_shape.js';
+import type { BlockManager } from '../blocks.js';
 
 // Рельсы
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['rails'],
             func: this.func,
@@ -35,52 +38,53 @@ export default class style {
             return;
         }
 
+        const bm = style.block_manager
         const texture = block.material.texture;
 
         // Рисуем блок
         switch(block.extra_data?.shape ?? RailShape.NORTH_SOUTH) {
             case RailShape.NORTH_SOUTH: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.NORTH);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.NORTH);
                 break;
             }
             case RailShape.EAST_WEST: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.WEST);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.WEST);
                 break;
             }
             case RailShape.NORTH_EAST: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.SOUTH);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.SOUTH);
                 break;
             }
             case RailShape.NORTH_WEST: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.EAST);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.EAST);
                 break;
             }
             case RailShape.SOUTH_WEST: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.NORTH);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.NORTH);
                 break;
             }
             case RailShape.SOUTH_EAST: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.WEST);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.WEST);
                 break;
             }
             case RailShape.ASCENDING_NORTH: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.NORTH, DIRECTION.UP, true);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.NORTH, DIRECTION.UP, true);
                 break;
             }
             case RailShape.ASCENDING_SOUTH: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.SOUTH, DIRECTION.UP, true);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.SOUTH, DIRECTION.UP, true);
                 break;
             }
             case RailShape.ASCENDING_WEST: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.WEST, DIRECTION.UP, true);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.WEST, DIRECTION.UP, true);
                 break;
             }
             case RailShape.ASCENDING_EAST: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.EAST, DIRECTION.UP, true);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.EAST, DIRECTION.UP, true);
                 break;
             }
             default: {
-                plate(vertices, BLOCK.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.NORTH);
+                plate(vertices, bm.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.NORTH);
             }
         }
 

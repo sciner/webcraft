@@ -1,8 +1,8 @@
 import { IndexedColor, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB, AABBSideParams, PLANES, pushAABB } from '../core/AABB.js';
 import { TBlock } from '../typed_blocks3.js';
 import { default as stairs_style } from './stairs.js';
+import type { BlockManager } from '../blocks.js';
 
 const _aabb = new AABB();
 const _center = new Vector(0, 0, 0);
@@ -20,7 +20,10 @@ const slope_axes = [
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['slope'],
             func: style.func,
@@ -34,12 +37,13 @@ export default class style {
             return;
         }
 
+        const bm                = style.block_manager
         const pos               = new Vector(x, y, z);
 
         const texture           = block.material.texture;
-        const c                 = BLOCK.calcTexture(texture, DIRECTION.NORTH);
-        const c_up              = BLOCK.calcTexture(texture, DIRECTION.UP);
-        const c_down            = BLOCK.calcTexture(texture, DIRECTION.DOWN);
+        const c                 = bm.calcTexture(texture, DIRECTION.NORTH);
+        const c_up              = bm.calcTexture(texture, DIRECTION.UP);
+        const c_down            = bm.calcTexture(texture, DIRECTION.DOWN);
         const lm                = IndexedColor.WHITE;
         const cd                = block.getCardinalDirection();
         const on_ceil           = style.isOnCeil(block);

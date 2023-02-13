@@ -1,12 +1,15 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
 
 // Beacon/маяк
 export default class style {
     [key: string]: any;
-    
-    static getRegInfo() {
+
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['bn'],
             func: this.func,
@@ -25,10 +28,11 @@ export default class style {
             return;
         }
         
+        const bm = style.block_manager
         const texture = block.material.texture;
-        const beacon = BLOCK.calcTexture(texture, DIRECTION.UP);
-        const side = BLOCK.calcTexture(texture, DIRECTION.WEST);
-        const obsidian = BLOCK.calcTexture(texture, DIRECTION.DOWN);
+        const beacon = bm.calcTexture(texture, DIRECTION.UP);
+        const side = bm.calcTexture(texture, DIRECTION.WEST);
+        const obsidian = bm.calcTexture(texture, DIRECTION.DOWN);
   
         box(16, 16, 16, 0, vertices, side, side, x, y, z);
         box(12, 12, 2, 0, vertices, obsidian, obsidian, x, y, z);

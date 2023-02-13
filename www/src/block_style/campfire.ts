@@ -1,10 +1,10 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import {impl as alea} from "../../vendors/alea.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from "../constant.js";
+import type { BlockManager } from "../blocks.js";
 
 const {mat4} = glMatrix;
 
@@ -24,8 +24,10 @@ const _temp_shift_pos = new Vector(0, 0, 0);
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['campfire'],
             func: this.func,
@@ -53,13 +55,14 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
         const pos = new Vector(x, y, z);
         const active = block?.extra_data?.active;
 
         const textures = {
-            fire:  BLOCK.calcMaterialTexture(block.material, DIRECTION.UP), // пламя
-            stone:  BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN), // камень
-            planks: BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN) // доски, угли
+            fire:  bm.calcMaterialTexture(block.material, DIRECTION.UP), // пламя
+            stone:  bm.calcMaterialTexture(block.material, DIRECTION.DOWN), // камень
+            planks: bm.calcMaterialTexture(block.material, DIRECTION.DOWN) // доски, угли
         };
 
         // Add animations
@@ -108,7 +111,7 @@ export default class style {
         // Пламя
         if(active) {
             const chains = [];
-            const flame_animations = BLOCK.getAnimations(block.material, 'up');
+            const flame_animations = bm.getAnimations(block.material, 'up');
             const flame_flags = QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_AO; // | QUAD_FLAGS.FLAG_LEAVES;
             chains.push({
                 pos: pos,

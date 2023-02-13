@@ -8,6 +8,7 @@ import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import { GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -65,11 +66,9 @@ for(let i = 0; i < randoms.length; i++) {
 export default class style {
     [key: string]: any;
 
-    /**
-     * @param { import("../blocks.js").BLOCK } block_manager
-     * @returns
-     */
-    static getRegInfo(block_manager) {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
         style.block_manager = block_manager
         return {
             styles: ['cube', 'default'],

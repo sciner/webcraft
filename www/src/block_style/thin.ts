@@ -1,18 +1,16 @@
 import {DIRECTION, IndexedColor, NORMALS, QUAD_FLAGS, ROTATE, Vector} from '../helpers.js';
 import { CubeSym } from '../core/CubeSym.js';
 import { WorldPortal } from '../portal.js';
-import { TBlock } from '../typed_blocks3.js';
 import { AABB } from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
 
 // Панель
 export default class style {
     [key: string]: any;
 
-    /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
-     * @returns 
-     */
-    static getRegInfo(block_manager) {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
         style.block_manager = block_manager
         return {
             styles: ['thin'],

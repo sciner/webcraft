@@ -1,8 +1,8 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -10,7 +10,10 @@ const {mat4} = glMatrix;
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['chest'],
             func: this.func,
@@ -23,7 +26,7 @@ export default class style {
         aabb.set(1/16, 0, 1/16, 15/16, 14/16, 15/16);
         const type = block.extra_data?.type;
         if (type) {
-            const dir = BLOCK.getCardinalDirection(block.rotate);
+            const dir = style.block_manager.getCardinalDirection(block.rotate);
             const sign = type === 'left' ? 1 : -1;
             const len = for_physic ? 1/16 : 1;
             tmp_vec.set(len * sign, 0, 0);
@@ -46,7 +49,7 @@ export default class style {
         const texName = type === 'left' ? 'right' : type; // use 'right' texture for both sides
 
         const tex = block.material.texture[texName];
-        const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, null, tex);
+        const c = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, null, tex);
 
         const flag = 0;
         const cd = block.getCardinalDirection();

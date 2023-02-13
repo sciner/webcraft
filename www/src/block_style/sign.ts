@@ -1,5 +1,5 @@
 import {DIRECTION, AlphabetTexture, Vector} from '../helpers.js';
-import {BLOCK, FakeTBlock} from "../blocks.js";
+import {BlockManager, FakeTBlock} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import {CubeSym} from "../core/CubeSym.js";
@@ -23,8 +23,10 @@ const cubeSymAxis = [
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['sign'],
             func: this.func,
@@ -87,8 +89,10 @@ export default class style {
             return;
         }
 
+        const bm = style.block_manager
+
         // Texture
-        const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c = bm.calcMaterialTexture(block.material, DIRECTION.UP);
 
         const draw_bottom = block.rotate.y != 0;
 
@@ -134,7 +138,7 @@ export default class style {
 
         if(draw_bottom) {
             // Push vertices down
-            const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
+            const c_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
             pushAABB(
                 vertices,
                 aabb_down,
@@ -185,6 +189,7 @@ export default class style {
 
     //
     static makeTextBlock(tblock, aabb, pivot, matrix, x, y, z) {
+        const bm = style.block_manager
         // Return text block
         if(tblock.extra_data) {
             let text = tblock.extra_data?.text;
@@ -193,7 +198,7 @@ export default class style {
                 if(tblock.extra_data.username) sign.push(tblock.extra_data.username);
                 if(tblock.extra_data.dt) sign.push(new Date(tblock.extra_data.dt || Date.now()).toISOString().slice(0, 10));
                 return new FakeTBlock(
-                    BLOCK.TEXT.id,
+                    bm.TEXT.id,
                     {
                         ...tblock.extra_data,
                         aabb: aabb,

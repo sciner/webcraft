@@ -1,18 +1,19 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
-import { BLOCK } from "../blocks.js";
-import {impl as alea} from "../../vendors/alea.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
 // гнездо для кур
 export default class style {
     [key: string]: any;
-    
-    static getRegInfo() {
+
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['chicken_nest'],
             func: this.func,
@@ -30,7 +31,8 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        const planks = BLOCK.calcTexture(BLOCK.HAY_BLOCK.texture, DIRECTION.UP);
+        const bm = style.block_manager
+        const planks = bm.calcTexture(bm.HAY_BLOCK.texture, DIRECTION.UP);
         const parts = [];
         parts.push(...[
             {
@@ -77,7 +79,7 @@ export default class style {
         ]);
         // яйца
         const eggs = block?.extra_data?.eggs;
-        const egg = BLOCK.calcTexture(BLOCK.SAND.texture, DIRECTION.UP);
+        const egg = bm.calcTexture(bm.SAND.texture, DIRECTION.UP);
         for (let i = 0; i < eggs; i++) {
             const col = Math.floor(i / 3) * 3.2 - 3.2;
             const row = (i % 3) * 3.2 - 3.2

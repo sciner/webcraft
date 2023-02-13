@@ -6,6 +6,7 @@ import {AABB} from '../core/AABB.js';
 import { default as default_style, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { GRASS_PALETTE_OFFSET } from '../constant.js';
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -57,13 +58,10 @@ const _vec = new Vector(0, 0, 0);
 export default class style {
     [key: string]: any;
 
+    static block_manager : BlockManager
     static lm = new IndexedColor();
 
-    /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
-     * @returns 
-     */
-    static getRegInfo(block_manager) {
+    static getRegInfo(block_manager : BlockManager) {
         style.block_manager = block_manager
         return {
             styles: ['planting'],

@@ -1,14 +1,16 @@
 import { DIRECTION, Vector, IndexedColor } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
+import type { BlockManager } from '../blocks.js';
 
 // Chorus
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['chorus'],
             func: this.func,
@@ -19,7 +21,7 @@ export default class style {
     // computeAABB
     static computeAABB(block, for_physic, no_pad) {
         const aabb = new AABB()
-        if (block.id == BLOCK.CHORUS_FLOWER.id) {
+        if (block.id == style.block_manager.CHORUS_FLOWER.id) {
             aabb.set( 0, 0, 0, 1, 1, 1)
         } else {
             aabb.set( .2, .2, .2, .8, .8, .8)
@@ -30,14 +32,16 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex, only_fluid = false) {
         
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+        const bm = style.block_manager
+
+        if(!block || typeof block == 'undefined' || block.id == bm.AIR.id) {
             return;
         }
         const parts = []
         // это цветок хоруса
-        if (block.id == BLOCK.CHORUS_FLOWER.id) {
+        if (block.id == bm.CHORUS_FLOWER.id) {
             const isDead = block?.extra_data?.notick
-            const texture = BLOCK.calcMaterialTexture(block.material, isDead ? DIRECTION.DOWN : DIRECTION.UP)
+            const texture = bm.calcMaterialTexture(block.material, isDead ? DIRECTION.DOWN : DIRECTION.UP)
             parts.push(...[
                 {
                     "size": { "x": 12, "y": 2, "z": 12 },
@@ -107,7 +111,7 @@ export default class style {
                 }
             ])
         } else {
-            const texture = BLOCK.calcMaterialTexture(block.material, DIRECTION.FORWARD)
+            const texture = bm.calcMaterialTexture(block.material, DIRECTION.FORWARD)
             parts.push(...[
                 {
                     "size": { "x": 8, "y": 8, "z": 8 },

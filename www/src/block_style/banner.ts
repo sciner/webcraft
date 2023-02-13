@@ -1,8 +1,8 @@
-import {DIRECTION, AlphabetTexture, Vector, QUAD_FLAGS} from '../helpers.js';
-import {BLOCK, FakeTBlock} from "../blocks.js";
+import {DIRECTION, Vector, QUAD_FLAGS} from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import {CubeSym} from "../core/CubeSym.js";
+import type {BlockManager} from "../blocks.js";
 
 const {mat4} = glMatrix;
 
@@ -30,8 +30,10 @@ const cubeSymAxis = [
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['banner'],
             func: this.func,
@@ -100,7 +102,7 @@ export default class style {
 
         //
         const material = block.material;
-        const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP);
         const rotate = block.rotate || Vector.ZERO.clone();
         const on_wall = (block.extra_data?.on_wall || rotate.y == 0) || false;
 
@@ -178,7 +180,7 @@ export default class style {
         if(block.rotate) {
             const text = ''; // block.extra_data.color;
             return [new FakeTBlock(
-                BLOCK.TEXT.id,
+                style.block_manager.TEXT.id,
                 {
                     ...block.extra_data,
                     aabb: parts.cloth.aabb,

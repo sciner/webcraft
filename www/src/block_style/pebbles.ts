@@ -4,6 +4,7 @@ import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -22,11 +23,9 @@ const _xyz = new Vector(0, 0, 0)
 export default class style {
     [key: string]: any;
 
-    /**
-     * @param { import("../blocks.js").BLOCK } block_manager
-     * @returns
-     */
-    static getRegInfo(block_manager) {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
         style.block_manager = block_manager
         return {
             styles: ['pebbles'],

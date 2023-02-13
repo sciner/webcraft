@@ -1,6 +1,7 @@
 import {DIRECTION, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { CubeSym } from "../core/CubeSym.js";
+import type { BlockManager } from '../blocks.js';
 
 const width = 1;
 const height = .5;
@@ -10,11 +11,9 @@ const depth = 1;
 export default class style {
     [key: string]: any;
 
-    /**
-     * @param { import("../blocks.js").BLOCK } block_manager
-     * @returns
-     */
-    static getRegInfo(block_manager) {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
         style.block_manager = block_manager
         return {
             styles: ['stairs'],

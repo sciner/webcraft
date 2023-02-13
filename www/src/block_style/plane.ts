@@ -1,3 +1,4 @@
+import type { BlockManager } from "../blocks.js";
 import { pushSym } from "../core/CubeSym.js";
 import {IndexedColor} from "../helpers.js";
 
@@ -229,7 +230,10 @@ export function pushPlanedGeomCorrect (
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['plane'],
             func: this.func

@@ -1,8 +1,8 @@
 import { DIRECTION, IndexedColor, Vector, QUAD_FLAGS} from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 const pivot = {x: 0.5, y: 0.5, z: 0.5};
@@ -10,8 +10,11 @@ const pivot = {x: 0.5, y: 0.5, z: 0.5};
 // стул
 export default class style {
     [key: string]: any;
-    
-    static getRegInfo() {
+
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['chair'],
             func: this.func,
@@ -34,12 +37,13 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
+        const bm = style.block_manager
         const extra_data = block.extra_data ?? block.material.extra_data;
         if (extra_data?.is_head) {
             return;
         }
         const frame = (extra_data?.frame ? extra_data.frame : block.material.extra_data.frame).toUpperCase();
-        const log = BLOCK.calcTexture(BLOCK[frame].texture, DIRECTION.UP);
+        const log = bm.calcTexture(bm[frame].texture, DIRECTION.UP);
         const parts = [];
         parts.push(...[
             // сиденье
@@ -164,8 +168,8 @@ export default class style {
         }
         
         if (extra_data?.upholstery) {
-            const mat = BLOCK[extra_data.upholstery.toUpperCase()];
-            const upholstery = BLOCK.calcTexture(mat.texture, DIRECTION.UP);
+            const mat = bm[extra_data.upholstery.toUpperCase()];
+            const upholstery = bm.calcTexture(mat.texture, DIRECTION.UP);
             const color = new IndexedColor(mat.mask_color.r, mat.mask_color.g, 0, 0);
             const flag = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             const wools = [];

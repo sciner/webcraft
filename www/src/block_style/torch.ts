@@ -3,7 +3,7 @@ import { CubeSym } from '../core/CubeSym.js';
 import { AABB } from '../core/AABB.js';
 import { DIRECTION, QUAD_FLAGS, IndexedColor, Vector } from '../helpers.js';
 import { default as default_style } from './default.js';
-import { BLOCK } from '../blocks.js';
+import type { BlockManager } from "../blocks.js";
 
 const { mat3 } = glMatrix;
 
@@ -24,7 +24,10 @@ const aabb = new AABB();
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['torch'],
             func: this.func,
@@ -67,7 +70,7 @@ export default class style {
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
-        const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
+        const c_up_top          = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
         const pos               = new Vector(0, 0, 0);
         const rotate            = block.rotate;

@@ -1,12 +1,12 @@
 "use strict";
 
-import {Color, DIRECTION, IndexedColor, QUAD_FLAGS, TX_CNT} from '../helpers.js';
+import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
-import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_ATLAS_SIZE } from '../constant.js';
+import type { BlockManager } from '../blocks.js';
 
 const {mat3} = glMatrix;
 
@@ -14,8 +14,8 @@ const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
 const aabb = new AABB();
 
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_redstone_texture');
+const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+const a = new alea('random_redstone_texture');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = Math.round(a.double() * 100);
 }
@@ -58,7 +58,10 @@ export function pushTransformed(
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['redstone'],
             func: this.func,
@@ -80,6 +83,7 @@ export default class style {
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, _unknown, matrix = null, pivot = null, force_tex) {
 
+        const bm                = style.block_manager
         let index               = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
         const r                 = randoms[index];
         const H                 = 1;
@@ -96,23 +100,23 @@ export default class style {
         const posworld          = block.posworld;
 
         const upper_neighbours_connect = {
-            south: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x, posworld.y + 1, posworld.z - 1)), // z--
-            north: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x, posworld.y + 1, posworld.z + 1)), // z++
-            west: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x - 1, posworld.y + 1, posworld.z)), // x--
-            east: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x + 1, posworld.y + 1, posworld.z)) // x++
+            south: bm.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x, posworld.y + 1, posworld.z - 1)), // z--
+            north: bm.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x, posworld.y + 1, posworld.z + 1)), // z++
+            west: bm.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x - 1, posworld.y + 1, posworld.z)), // x--
+            east: bm.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x + 1, posworld.y + 1, posworld.z)) // x++
         };
 
         const neighbours_connect = {
-            south: BLOCK.canRedstoneDustConnect(neighbours.SOUTH) || upper_neighbours_connect.south,
-            north: BLOCK.canRedstoneDustConnect(neighbours.NORTH) || upper_neighbours_connect.north,
-            west: BLOCK.canRedstoneDustConnect(neighbours.WEST) || upper_neighbours_connect.west,
-            east: BLOCK.canRedstoneDustConnect(neighbours.EAST) || upper_neighbours_connect.east
+            south: bm.canRedstoneDustConnect(neighbours.SOUTH) || upper_neighbours_connect.south,
+            north: bm.canRedstoneDustConnect(neighbours.NORTH) || upper_neighbours_connect.north,
+            west: bm.canRedstoneDustConnect(neighbours.WEST) || upper_neighbours_connect.west,
+            east: bm.canRedstoneDustConnect(neighbours.EAST) || upper_neighbours_connect.east
         };
 
         let zconnects = 0;
         let xconnects = 0;
 
-        const c_line = BLOCK.calcTexture(redstone_textures.line[r % redstone_textures.line.length], DIRECTION.UP, tx_cnt);
+        const c_line = bm.calcTexture(redstone_textures.line[r % redstone_textures.line.length], DIRECTION.UP, tx_cnt);
 
         // South z--
         if(neighbours_connect.south) {
@@ -235,7 +239,7 @@ export default class style {
         // 1.3 Center
         const draw_center = !(zconnects == 2 && xconnects == 0 || zconnects == 0 && xconnects == 2);
         if(draw_center) {
-            const c_center = BLOCK.calcTexture(redstone_textures.dot[r % redstone_textures.dot.length], DIRECTION.UP, tx_cnt);
+            const c_center = bm.calcTexture(redstone_textures.dot[r % redstone_textures.dot.length], DIRECTION.UP, tx_cnt);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y + y_plus,

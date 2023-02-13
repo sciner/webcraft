@@ -1,9 +1,13 @@
+import type { BlockManager } from '../blocks.js';
 import { AABB } from '../core/AABB.js';
 
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['bubble_column'],
             func: this.func,

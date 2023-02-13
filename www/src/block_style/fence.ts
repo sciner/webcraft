@@ -1,12 +1,15 @@
 import { DIRECTION, IndexedColor, ROTATE } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
 
 // Забор
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['fence'],
             func: this.func,
@@ -15,6 +18,7 @@ export default class style {
     }
     
     static computeAABB(tblock, for_physic, world, neighbours) {
+        const bm = style.block_manager
         const shapes = []
         if(!world) {
             console.error('error_empty_world_for_compute_aabb')
@@ -22,22 +26,22 @@ export default class style {
         }
         const height = for_physic ? 1.5 : 1
         //
-        const n = BLOCK.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours)
+        const n = bm.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours)
         // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         // South z--
-        if(BLOCK.canFenceConnect(n.SOUTH)) {
+        if(bm.canFenceConnect(n.SOUTH)) {
             shapes.push(new AABB(.5-2/16, 5/16, 0, .5+2/16, height, .5+2/16))
         }
         // North z++
-        if(BLOCK.canFenceConnect(n.NORTH)) {
+        if(bm.canFenceConnect(n.NORTH)) {
             shapes.push(new AABB(.5-2/16, 5/16, .5-2/16, .5+2/16, height, 1))
         }
         // West x--
-        if(BLOCK.canFenceConnect(n.WEST)) {
+        if(bm.canFenceConnect(n.WEST)) {
             shapes.push(new AABB(0, 5/16, .5-2/16, .5+2/16, height, .5+2/16))
         }
         // East x++
-        if(BLOCK.canFenceConnect(n.EAST)) {
+        if(bm.canFenceConnect(n.EAST)) {
             shapes.push(new AABB(.5-2/16, 5/16, .5-2/16, 1, height, .5+2/16))
         }
         // Central
@@ -47,6 +51,7 @@ export default class style {
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
         const cardinal_direction = block.getCardinalDirection();
 
         let DIRECTION_BACK          = DIRECTION.BACK;
@@ -89,13 +94,13 @@ export default class style {
             }
         }
 
-        let tex = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
+        let tex = bm.calcTexture(texture, DIRECTION_FORWARD);
         push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1);
 
         const add_middle = false;
 
         // South
-        if(BLOCK.canFenceConnect(neighbours.SOUTH)) {
+        if(bm.canFenceConnect(neighbours.SOUTH)) {
             push_part(vertices, tex, x + .5, y + 6/16, z + .5 - 5/16, 2/16, 6/16, 2/16,);
             push_part(vertices, tex, x + .5, y + 12/16, z + .5 - 5/16, 2/16, 6/16, 2/16);
             if(add_middle) {
@@ -103,7 +108,7 @@ export default class style {
             }
         }
         // North
-        if(BLOCK.canFenceConnect(neighbours.NORTH)) {
+        if(bm.canFenceConnect(neighbours.NORTH)) {
             push_part(vertices, tex, x + .5, y + 6/16, z + .5 + 5/16, 2/16, 6/16, 2/16);
             push_part(vertices, tex, x + .5, y + 12/16, z + .5 + 5/16, 2/16, 6/16, 2/16);
             if(add_middle) {
@@ -111,7 +116,7 @@ export default class style {
             }
         }
         // West
-        if(BLOCK.canFenceConnect(neighbours.WEST)) {
+        if(bm.canFenceConnect(neighbours.WEST)) {
             push_part(vertices, tex, x + .5 - 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16);
             push_part(vertices, tex, x + .5 - 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16);
             if(add_middle) {
@@ -119,7 +124,7 @@ export default class style {
             }
         }
         // East
-        if(BLOCK.canFenceConnect(neighbours.EAST)) {
+        if(bm.canFenceConnect(neighbours.EAST)) {
             push_part(vertices, tex, x + .5 + 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16);
             push_part(vertices, tex, x + .5 + 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16);
             if(add_middle) {

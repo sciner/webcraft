@@ -1,11 +1,10 @@
-import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
-import {BLOCK, FakeTBlock} from "../blocks.js";
+import {DIRECTION, Vector} from '../helpers.js';
+import {BlockManager, FakeTBlock} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from '../constant.js';
-import { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -25,8 +24,10 @@ for(let i = 0; i < randoms.length; i++) {
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['pot'],
             func: this.func,
@@ -49,11 +50,13 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
+
         // Textures
-        const c_top = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_inner_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
+        const c_top = bm.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_side = bm.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_down = bm.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_inner_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
         c_side[1] += 10 / 32 / DEFAULT_TX_CNT;
         c_down[1] += 10 / 32 / DEFAULT_TX_CNT;

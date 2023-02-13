@@ -1,9 +1,8 @@
 import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
 import { default as default_style } from './default.js';
-import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
+import type { BlockManager } from '../blocks.js';
 
 const WIDTH =  16 / 32;
 const HEIGHT = 20 / 32;
@@ -16,8 +15,9 @@ const lm = IndexedColor.WHITE.clone();
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
         return {
             styles: ['cocoa'],
             func: this.func,
@@ -45,7 +45,7 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
+        const c_up_top          = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const stage             = block.extra_data.stage;
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
         const rot               = [0, ((3 - block.rotate.x) / 4) * (2 * Math.PI), 0];

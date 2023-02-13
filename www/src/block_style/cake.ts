@@ -1,8 +1,8 @@
 import {DIRECTION, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from '../constant.js';
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -16,8 +16,10 @@ const HEIGHT    = 16/PPB;
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['cake'],
             func: this.func,
@@ -60,12 +62,13 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
         const pieces = block?.extra_data?.pieces || 7;
         const percent = (pieces * 4) / SIZE;
 
-        const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.FORWARD);
-        const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
+        const c_up = bm.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_side = bm.calcMaterialTexture(block.material, DIRECTION.FORWARD);
+        const c_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
         let c_east = c_side;
 
         c_side[0] += (-.5 + 16/PPB) / TX_CNT;
@@ -77,7 +80,7 @@ export default class style {
         matrix = mat4.create();
 
         if(percent < 1) {
-            c_east = BLOCK.calcMaterialTexture(block.material, DIRECTION.RIGHT);
+            c_east = bm.calcMaterialTexture(block.material, DIRECTION.RIGHT);
             c_east[0] += (-.5 + 16/PPB) / TX_CNT;
             c_east[1] += (-.5 + 24/PPB) / TX_CNT;
             c_up[0] -= ((1 - percent) * SIZE / PPB) / TX_CNT / 2;

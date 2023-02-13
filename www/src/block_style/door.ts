@@ -1,7 +1,7 @@
 import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {CubeSym, pushSym} from '../core/CubeSym.js';
-import { TBlock } from '../typed_blocks3.js';
 import { AABB } from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
 
 const Z_FIGHT_ERROR = 1/200;
 
@@ -9,11 +9,9 @@ const Z_FIGHT_ERROR = 1/200;
 export default class style {
     [key: string]: any;
 
-    /**
-     * @param { import("../blocks.js").BLOCK } block_manager 
-     * @returns 
-     */
-    static getRegInfo(block_manager) {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
         style.block_manager = block_manager
         return {
             styles: ['door'],

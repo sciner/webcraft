@@ -1,7 +1,7 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import { TBlock } from '../typed_blocks3.js';
 import { AABB } from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
 
 const CENTER_WIDTH      = 8 / 16;
 const CONNECT_X         = 6 / 16;
@@ -14,7 +14,10 @@ const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['wall'],
             aabb: style.computeAABB,
@@ -30,6 +33,7 @@ export default class style {
      * @param {boolean} expanded
      */
     static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const bm                = style.block_manager
         const CENTER_WIDTH      = 8 / 16
         const CONNECT_HEIGHT    = 14 / 16
         const CONNECT_BOTTOM    = 0 / 16
@@ -41,15 +45,15 @@ export default class style {
         let zconnects = 0
         let xconnects = 0
         //
-        let n = BLOCK.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours)
+        let n = bm.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours)
         // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         // South z--
-        if(BLOCK.canWallConnect(n.SOUTH)) {
+        if(bm.canWallConnect(n.SOUTH)) {
             shapes.push(new AABB(.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z/2))
             zconnects++
         }
         // North z++
-        if(BLOCK.canWallConnect(n.NORTH)) {
+        if(bm.canWallConnect(n.NORTH)) {
             if(zconnects) {
                 shapes.pop()
                 shapes.push(new AABB(.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, 1))
@@ -59,12 +63,12 @@ export default class style {
             zconnects++
         }
         // West x--
-        if(BLOCK.canWallConnect(n.WEST)) {
+        if(bm.canWallConnect(n.WEST)) {
             shapes.push(new AABB(0, CONNECT_BOTTOM, .5-CONNECT_X/2, CONNECT_Z/2, height, .5-CONNECT_X/2 + CONNECT_X))
             xconnects++
         }
         // East x++
-        if(BLOCK.canWallConnect(n.EAST)) {
+        if(bm.canWallConnect(n.EAST)) {
             if(xconnects) {
                 shapes.pop();
                 shapes.push(new AABB(0, CONNECT_BOTTOM, .5-CONNECT_X/2, 1, height, .5-CONNECT_X/2 + CONNECT_X))
@@ -87,8 +91,10 @@ export default class style {
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
+
         // Texture
-        const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c = bm.calcMaterialTexture(block.material, DIRECTION.UP);
 
         let zconnects = 0;
         let xconnects = 0;
@@ -106,8 +112,8 @@ export default class style {
         };
 
         // South and North
-        const ss = BLOCK.canWallConnect(neighbours.SOUTH);
-        const sn = BLOCK.canWallConnect(neighbours.NORTH);
+        const ss = bm.canWallConnect(neighbours.SOUTH);
+        const sn = bm.canWallConnect(neighbours.NORTH);
         // South
         if(ss) {
             let h = checkDiag('SOUTH', 'UP') ? 1 : CONNECT_HEIGHT;
@@ -124,8 +130,8 @@ export default class style {
         }
 
         // West and East
-        const sw = BLOCK.canWallConnect(neighbours.WEST);
-        const se = BLOCK.canWallConnect(neighbours.EAST);
+        const sw = bm.canWallConnect(neighbours.WEST);
+        const se = bm.canWallConnect(neighbours.EAST);
         // West
         if(sw) {
             let h = checkDiag('WEST', 'UP') ? 1 : CONNECT_HEIGHT;

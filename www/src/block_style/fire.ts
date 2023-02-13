@@ -1,8 +1,8 @@
 import { DIRECTION, QUAD_FLAGS, IndexedColor, Vector } from '../helpers.js';
-import { BLOCK } from '../blocks.js';
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
+import type { BlockManager } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -10,8 +10,10 @@ const {mat4} = glMatrix;
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['fire'],
             func: this.func,
@@ -47,9 +49,10 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
         const extra_data = block.extra_data;
         const material = block.material;
-        const texture = BLOCK.calcTexture(material.texture, DIRECTION.WEST);
+        const texture = bm.calcTexture(material.texture, DIRECTION.WEST);
         const planes = [];
         if (extra_data) {
             if (extra_data.up) {
@@ -89,7 +92,7 @@ export default class style {
         const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_ANIMATED;
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE.clone();
-        lm.b = BLOCK.getAnimations(material, "west");
+        lm.b = bm.getAnimations(material, "west");
         for(const plane of planes) {
             default_style.pushPlane(vertices, {
                 ...plane,

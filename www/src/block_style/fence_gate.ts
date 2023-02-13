@@ -1,6 +1,6 @@
 import {DIRECTION, IndexedColor} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
 
 const SIZE = 1 / 16;
 
@@ -8,7 +8,10 @@ const SIZE = 1 / 16;
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['fence_gate'],
             func: this.func,
@@ -41,7 +44,7 @@ export default class style {
     //
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        const texture = BLOCK.calcTexture(block.material.texture, DIRECTION.FORWARD);
+        const texture = style.block_manager.calcTexture(block.material.texture, DIRECTION.FORWARD);
 
         const cardinal_direction = block.getCardinalDirection();
 

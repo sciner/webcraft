@@ -1,12 +1,15 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
 
 // поверхность
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['cover'],
             func: this.func,
@@ -59,12 +62,13 @@ export default class style {
         if(typeof block == 'undefined') {
             return;
         }
+        const bm = style.block_manager
         const texture = block.material.texture;
-        const tex_side = BLOCK.calcTexture(texture, DIRECTION.UP);
+        const tex_side = bm.calcTexture(texture, DIRECTION.UP);
         let flags = 0;
         let lm = IndexedColor.WHITE;
         // Texture color multiplier
-        if(block.id == BLOCK.VINE.id) {
+        if(block.id == bm.VINE.id) {
             lm = dirt_color;
             flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
         }

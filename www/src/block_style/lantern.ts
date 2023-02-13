@@ -1,7 +1,7 @@
 import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
 import { default as default_style } from './default.js';
+import type { BlockManager } from '../blocks.js';
 
 const WIDTH =  12 / 32;
 const HEIGHT = 14 / 32;
@@ -17,8 +17,10 @@ const lm = IndexedColor.WHITE.clone();
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['lantern'],
             func: this.func,
@@ -69,8 +71,9 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const animations_side   = BLOCK.getAnimations(block.material, 'side');
+        const bm                = style.block_manager
+        const c_up_top          = bm.calcMaterialTexture(block.material, DIRECTION.UP);
+        const animations_side   = bm.getAnimations(block.material, 'side');
         const on_ceil           = block.rotate.y == -1;
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.FLAG_ANIMATED;
 

@@ -1,8 +1,8 @@
 import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
-import { BLOCK } from '../blocks.js';
 import { AABB } from '../core/AABB.js';
 import { TBlock } from '../typed_blocks3.js';
 import { default as default_style } from './default.js';
+import type { BlockManager } from '../blocks.js';
 
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
 
@@ -10,8 +10,10 @@ const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['pointed_dripstone'],
             func: this.func,
@@ -28,9 +30,10 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
         const extra_data = block.extra_data;
         const dir = getDirection(extra_data, neighbours);
-        const texture = BLOCK.calcTexture(block.material.texture, dir);
+        const texture = bm.calcTexture(block.material.texture, dir);
         const planes = [];
         planes.push(...[
             {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [extra_data?.up ? 0 : Math.PI, extra_data?.up ? Math.PI / 4 : Math.PI * 5 / 4, 0]},
@@ -66,21 +69,22 @@ export default class style {
 }
 
 function getDirection(extra_data, neighbours) {
+    const bm = style.block_manager
     const check = (n) => {
         if(neighbours[n].tb) {
             const next_neighbours = neighbours[n].tb.getNeighbours(neighbours[n], null, BLOCK_CACHE);
-            return next_neighbours[n] && next_neighbours[n].id == BLOCK.POINTED_DRIPSTONE.id && ( (next_neighbours[n].extra_data.up == true && n == 'DOWN') || (next_neighbours[n].extra_data.up == false && n == 'UP'));
+            return next_neighbours[n] && next_neighbours[n].id == bm.POINTED_DRIPSTONE.id && ( (next_neighbours[n].extra_data.up == true && n == 'DOWN') || (next_neighbours[n].extra_data.up == false && n == 'UP'));
         }
         return false;
     };
     if (extra_data?.up) {
-        if ((neighbours.DOWN.id == BLOCK.AIR.id && neighbours.DOWN.fluid == 0) || neighbours.DOWN.id != BLOCK.POINTED_DRIPSTONE.id) {
+        if ((neighbours.DOWN.id == bm.AIR.id && neighbours.DOWN.fluid == 0) || neighbours.DOWN.id != bm.POINTED_DRIPSTONE.id) {
             return DIRECTION.UP;
         }
         if (extra_data?.up && !neighbours.DOWN?.extra_data?.up) {
             return DIRECTION.WEST;
         }
-        if (neighbours.UP.id == BLOCK.DRIPSTONE_BLOCK.id) {
+        if (neighbours.UP.id == bm.DRIPSTONE_BLOCK.id) {
             if (check('DOWN')) {
                 return DIRECTION.DOWN;
             }
@@ -90,7 +94,7 @@ function getDirection(extra_data, neighbours) {
             return DIRECTION.SOUTH;
         }
     }
-    if (neighbours.UP.id == BLOCK.AIR.id && neighbours.UP.fluid == 0) {
+    if (neighbours.UP.id == bm.AIR.id && neighbours.UP.fluid == 0) {
         return DIRECTION.UP;
     }
     if (!extra_data?.up && neighbours.UP?.extra_data?.up) {

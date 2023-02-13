@@ -280,7 +280,7 @@ export class Recipe {
 export class RecipeManager {
     [key: string]: any;
 
-    constructor(force_load) {
+    constructor(force_load: boolean | null = false) {
         this.all = [];
         this.crafting_shaped = {
             list: [],

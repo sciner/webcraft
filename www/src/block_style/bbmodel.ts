@@ -1,8 +1,7 @@
-import { calcRotateMatrix, DIRECTION, IndexedColor, mat4ToRotate, StringHelpers, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, IndexedColor, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import { BLOCK, FakeTBlock, FakeVertices } from '../blocks.js';
+import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
-import { BBModel_Model } from '../bbmodel/model.js';
 import { CubeSym } from '../core/CubeSym.js';
 
 import { default as default_style, TX_SIZE } from '../block_style/default.js';
@@ -35,7 +34,10 @@ for(let i = 0; i < randoms.length; i++) {
 export default class style {
     [key: string]: any;
 
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['bbmodel'],
             func: this.func,
@@ -78,7 +80,7 @@ export default class style {
                 return [aabb]
             }
             default: {
-                const styleVariant = BLOCK.styles.get(behavior)
+                const styleVariant = style.block_manager.styles.get(behavior)
                 if(styleVariant?.aabb) {
                     return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
                 }
@@ -275,6 +277,7 @@ export default class style {
      */
     static applyBehavior(model, chunk, tblock, neighbours, matrix, biome, dirt_color, vertices, xyz) {
 
+        const bm = style.block_manager
         const emmited_blocks = []
         const mat = tblock.material
         const bb = mat.bb
@@ -357,10 +360,10 @@ export default class style {
             }
             case "pane": {
                 const except_list = ['column']
-                if (BLOCK.canPaneConnect(neighbours.EAST)) except_list.push('east')
-                if (BLOCK.canPaneConnect(neighbours.WEST)) except_list.push('west')
-                if (BLOCK.canPaneConnect(neighbours.SOUTH)) except_list.push('south')
-                if (BLOCK.canPaneConnect(neighbours.NORTH)) except_list.push('north')
+                if (bm.canPaneConnect(neighbours.EAST)) except_list.push('east')
+                if (bm.canPaneConnect(neighbours.WEST)) except_list.push('west')
+                if (bm.canPaneConnect(neighbours.SOUTH)) except_list.push('south')
+                if (bm.canPaneConnect(neighbours.NORTH)) except_list.push('north')
                 model.hideAllExcept(except_list)
                 break
             }
@@ -394,10 +397,10 @@ export default class style {
             }
             case 'fence': {
                 const hide_group_names = [];
-                if(!BLOCK.canFenceConnect(neighbours.SOUTH)) hide_group_names.push('south')
-                if(!BLOCK.canFenceConnect(neighbours.NORTH)) hide_group_names.push('north')
-                if(!BLOCK.canFenceConnect(neighbours.WEST)) hide_group_names.push('west')
-                if(!BLOCK.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
+                if(!bm.canFenceConnect(neighbours.SOUTH)) hide_group_names.push('south')
+                if(!bm.canFenceConnect(neighbours.NORTH)) hide_group_names.push('north')
+                if(!bm.canFenceConnect(neighbours.WEST)) hide_group_names.push('west')
+                if(!bm.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
                 style.selectTextureFromPalette(model, {name: mat.name}, tblock)
                 break
@@ -461,7 +464,7 @@ export default class style {
                 if(tblock.extra_data) {
                     const vert = []
                     cauldron_style.func(tblock, vert, null, xyz.x, xyz.y, xyz.z, neighbours, biome, dirt_color, undefined, matrix, undefined, null, true)
-                    emmited_blocks.push(new FakeVertices(BLOCK.STONE.material_key, vert))
+                    emmited_blocks.push(new FakeVertices(bm.STONE.material_key, vert))
                 }
                 break
             }
@@ -592,8 +595,9 @@ export default class style {
 
     // Stand
     static drawDebugStand(vertices, pos, lm, matrix) {
+        const bm = style.block_manager
         const flag = 0;
-        const stone = BLOCK.calcTexture(BLOCK.STONE.texture, DIRECTION.WEST);
+        const stone = bm.calcTexture(bm.STONE.texture, DIRECTION.WEST);
         const stand = [];
         stand.push(...[
             // stand

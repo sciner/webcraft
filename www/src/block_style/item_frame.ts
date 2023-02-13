@@ -1,5 +1,5 @@
 import {calcRotateMatrix, DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
-import {BLOCK, DropItemVertices} from "../blocks.js";
+import {BlockManager, DropItemVertices} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
@@ -27,8 +27,10 @@ for(let i = 0; i < randoms.length; i++) {
 export default class style {
     [key: string]: any;
 
-    // getRegInfo
-    static getRegInfo() {
+    static block_manager : BlockManager
+
+    static getRegInfo(block_manager : BlockManager) {
+        style.block_manager = block_manager
         return {
             styles: ['item_frame'],
             func: this.func,
@@ -67,14 +69,15 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const bm = style.block_manager
         const material = block.material;
         const flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.NO_AO;
 
         // Textures
-        const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST);
-        const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
-        const c_inner_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
+        const c_up = bm.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_side = bm.calcMaterialTexture(block.material, DIRECTION.EAST);
+        const c_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
+        const c_inner_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
         c_side[1] += 10/32/32;
         c_down[1] += 10/32/32;
