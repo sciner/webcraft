@@ -7,7 +7,6 @@ import { GameClass } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE, DEFAULT_MUSIC_VOLUME } from "../constant.js";
-// import { BgEffect } from './bg_effect.js';
 import  registerTextFilter from './angular/textfilter.js';
 import { Resources } from '../resources.js';
 // import { PlayerWindowManager } from '../player_window_manager.js';
@@ -463,23 +462,10 @@ let gameCtrl = async function($scope, $timeout) {
     //
     $scope.toggleFullscreen = function () {
         const el = document.getElementById('qubatch-canvas-container');
-        if (!document.fullscreenElement &&    // alternative standard method
-            !document.mozFullScreenElement && !document.webkitFullscreenElement) {  // current working methods
-            if (el.requestFullscreen) {
-                el.requestFullscreen();
-            } else if (el.mozRequestFullScreen) {
-                el.mozRequestFullScreen();
-            } else if (el.webkitRequestFullscreen) {
-                el.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
-        } else {
-            if (document.cancelFullScreen) {
-                document.cancelFullScreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.webkitCancelFullScreen) {
-                document.webkitCancelFullScreen();
-            }
+        if (!document.fullscreenElement) {
+            el.requestFullscreen();
+        } else if (document.exitFullscreen) {
+            document.exitFullscreen();
         }
     };
 

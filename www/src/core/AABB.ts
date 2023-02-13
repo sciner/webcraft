@@ -345,22 +345,40 @@ export class AABBPool {
     static instance = new AABBPool();
 }
 
+export class AABBSides {
+    up?: AABBSideParams = null
+    down?: AABBSideParams = null
+    south?: AABBSideParams = null
+    north?: AABBSideParams = null
+    east?: AABBSideParams = null
+    west?: AABBSideParams = null
+
+    constructor(up?: AABBSideParams, down?: AABBSideParams, south?: AABBSideParams, north?: AABBSideParams, east?: AABBSideParams, west?: AABBSideParams) {
+        this.up = up
+        this.down = down
+        this.south = south
+        this.north = north
+        this.east = east
+        this.west = west
+    }
+}
+
 export class AABBSideParams {
     [key: string]: any;
     uv?: float[];
     flag: int = 0;
     anim: number = 0;
     lm: IndexedColor | null = null;
-    axes?: null;
+    axes?: number[][];
     autoUV: boolean = false;
     rawColor?: null;
-    offset?: null;
+    offset?: number[];
 
-    constructor(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes = null, autoUV : boolean = false, rawColor = null, offset = null) {
+    constructor(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes? : number[][], autoUV : boolean = false, rawColor = null, offset = null) {
         this.set(uv, flag, anim, lm, axes, autoUV, rawColor, offset)
     }
 
-    set(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes = null, autoUV : boolean = false, rawColor = null, offset = null) {
+    set(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes? : number[][], autoUV : boolean = false, rawColor = null, offset = null) {
         this.uv       = uv;
         this.flag     = flag;
         this.anim     = anim;

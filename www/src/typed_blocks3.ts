@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector, ObjectHelpers } from "./helpers.js";
+import { getChunkAddr, Vector, ObjectHelpers, chunkAddrToCoord } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';

@@ -1,5 +1,5 @@
 import { IndexedColor, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
-import { AABB, AABBSideParams, PLANES, pushAABB } from '../core/AABB.js';
+import { AABB, AABBSideParams, AABBSides, PLANES, pushAABB } from '../core/AABB.js';
 import { TBlock } from '../typed_blocks3.js';
 import { default as stairs_style } from './stairs.js';
 import type { BlockManager } from '../blocks.js';
@@ -66,151 +66,7 @@ export default class style {
             z + .5 + depth/2
         );
 
-        const item = {
-            cd: cd,
-            mods: {
-                // modify main slope
-                up: {
-                    axes: slope_axes[(cd + (on_ceil ? 2 : 0)) % 4],
-                    offset: [0.5, 0.5, 0.5],
-                    autoUV: false
-                }
-            },
-            deleted: [dirs_name_lower[cd]]
-        };
-
-        //
-        const cancelDelete = (side) => {
-            const index = item.deleted.indexOf(side);
-            if(index >= 0) {
-                delete(item.deleted[index]);
-                item.deleted.splice(index, 1);
-                item.deleted = Array.from(item.deleted);
-            }
-        }
-
-        if(neighbours && neighbours.UP instanceof TBlock) {
-            const info = stairs_style.calculate(block, pos, neighbours);
-            const ne = info.sides[0];
-            const wn = info.sides[1];
-            const sw = info.sides[2];
-            const es = info.sides[3];
-            const top_parts_count = (ne?1:0) + (wn?1:0) + (sw?1:0) + (es?1:0);
-            if(top_parts_count == 3) {
-                // inner corner
-                const n = neighbours[dirs_name[cd]];
-                if(n.material.tags.includes('stairs')) {
-                    const n_on_ceil = style.isOnCeil(n);
-                    let index = (cd - 1 + 4) % 4;
-                    if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
-                        item.mods[dirs_name_lower[(index + 2) % 4]] = {
-                            axes:   PLANES[dirs_name_lower[(index + 2) % 4]].axes,
-                            flag:   flag
-                        };
-                        //
-                        item.deleted = [];
-                        item.mods[dirs_name_lower[cd]] = {
-                            axes:   slope_axes[(index + (on_ceil ? 2 : 0)) % 4],
-                            autoUV: false,
-                            offset: [0.5, 0.5, 0.5],
-                            uv:     [c[0], c[1], -c[2], c[3] * ((cd == 3 || cd == 2) ? -1 : 1)]
-                        }
-                    }
-                    index = (cd + 1) % 4;
-                    if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
-                        item.mods[dirs_name_lower[(index + 2) % 4]] = {
-                            axes:   PLANES[dirs_name_lower[(index + 2) % 4]].axes,
-                            flag:   flag,
-                            uv:     [c[0], c[1], c[2], c[3]]
-                        };
-                        //
-                        item.deleted = [];
-                        item.mods[dirs_name_lower[cd]] = {
-                            autoUV: false,
-                            axes:   slope_axes[(index + (on_ceil ? 2 : 0)) % 4],
-                            offset: [0.5, 0.5, 0.5],
-                            uv:     [c[0], c[1], c[2], c[3] * (((cd == 3 || cd == 2) || (cd == 2 && on_ceil)) ? -1 : 1)]
-                        }
-                    }
-                }
-            } else if(top_parts_count == 1) {
-                // outer corner
-                if(ne) {
-                    const mir_y =  on_ceil ? 1 : -1;
-                    item.mods.up = {
-                        autoUV: false,
-                        axes:   [[-1, 0, 1 * mir_y], [0, -1, 0]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
-                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
-                    };
-                    item.mods.south = {
-                        autoUV: false,
-                        axes:   [[1, 0, 0], [0, 1, 1 * -mir_y]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
-                        offset: [0.5, 0.5, 0.5],
-                        uv:     [c[0], c[1], c[2], c[3] * -mir_y]
-                    };
-                    cancelDelete('south');
-                    item.deleted.push(...['west', dirs_name_lower[(cd + 2) % 4]]);
-                }
-                if(sw) {
-                    const mir_y =  on_ceil ? 1 : -1;
-                    item.mods.up = {
-                        autoUV: false,
-                        axes:   [[-1, 0, 0], [0, -1, 1 * -mir_y]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
-                        offset: [0.5, 0.5, 0.5],
-                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
-                    };
-                    item.mods.east = {
-                        autoUV: false,
-                        axes:   [[1, 0, 1 * mir_y], [0, 1, 0]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
-                        offset: [0.5, 0.5, 0.5],
-                        uv:     [c[0], c[1], c[2], c[3] * -mir_y]
-                    };
-                    cancelDelete('east');
-                    item.deleted.push(...['north', dirs_name_lower[(cd + 2) % 4]]);
-                }
-                if(wn) {
-                    const mir_y =  on_ceil ? 1 : -1;
-                    item.mods.up = {
-                        autoUV: false,
-                        axes:   [[0, -1, 1 * mir_y], [1, 0, 0]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
-                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
-                    };
-                    item.mods.east = {
-                        autoUV: false,
-                        axes:   [[0, 1, 0], [-1, 0, 1 * -mir_y]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
-                        offset: [0.5, 0.5, 0.5],
-                        uv:     [c[0], c[1], c[2], c[3] * -mir_y]
-                    };
-                    cancelDelete('east');
-                    item.deleted.push(...['south', dirs_name_lower[(cd + 2) % 4]]);
-                }
-                //
-                if(es) {
-                    const mir_y =  on_ceil ? 1 : -1;
-                    item.mods.west = {
-                        autoUV: false,
-                        axes:   [[0, -1, 0], [1, 0, 1 * -mir_y]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
-                        offset: [0.5, 0.5, 0.5],
-                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
-                    };
-                    item.mods.up = {
-                        autoUV: false,
-                        axes:   [[0, 1, 1 * mir_y], [-1, 0, 0]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
-                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
-                    };
-                    cancelDelete('west');
-                    item.deleted.push(...['north', dirs_name_lower[(cd + 2) % 4]]);
-                }
-            }
-        }
+        let deleted = []
 
         const _sides = {
             up: new AABBSideParams(c_up, flag, anim_frames, lm, null, false, null, [0.5, 0.5, 0.5]),
@@ -220,6 +76,11 @@ export default class style {
             west: new AABBSideParams(c,  flag, anim_frames, lm, null, true),
             east: new AABBSideParams(c, flag, anim_frames, lm, null, true)
         }
+
+        const side = _sides.up
+        side.axes = slope_axes[(cd + (on_ceil ? 2 : 0)) % 4]
+        side.offset = [0.5, 0.5, 0.5]
+        side.autoUV = false
 
         if(cd == DIRECTION.NORTH) {
             _sides.east.flag = QUAD_FLAGS.FLAG_TRIANGLE;
@@ -274,13 +135,129 @@ export default class style {
             }
         }
 
-        // apply modifications
-        for(let k in item.mods) {
-            _sides[k] = {..._sides[k], ...item.mods[k]};
+        //
+        const cancelDelete = (side : string) => {
+            const index = deleted.indexOf(side);
+            if(index >= 0) {
+                delete(deleted[index]);
+                deleted.splice(index, 1);
+                deleted = Array.from(deleted);
+            }
+        }
+
+        if(neighbours && neighbours.UP instanceof TBlock) {
+            const info = stairs_style.calculate(block, pos, neighbours);
+            const ne = info.sides[0];
+            const wn = info.sides[1];
+            const sw = info.sides[2];
+            const es = info.sides[3];
+            const top_parts_count = (ne?1:0) + (wn?1:0) + (sw?1:0) + (es?1:0);
+            if(top_parts_count == 3) {
+                // inner corner
+                const n = neighbours[dirs_name[cd]];
+                if(n.material.tags.includes('stairs')) {
+                    const n_on_ceil = style.isOnCeil(n);
+                    let index = (cd - 1 + 4) % 4;
+                    if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
+                        deleted = [];
+                        let side = _sides[dirs_name_lower[(index + 2) % 4]]
+                            side.axes = PLANES[dirs_name_lower[(index + 2) % 4]].axes,
+                            side.flag = flag
+                        //
+                        side = _sides[dirs_name_lower[cd]]
+                            side.axes    = slope_axes[(index + (on_ceil ? 2 : 0)) % 4]
+                            side.autoUV  = false
+                            side.offset  = [0.5, 0.5, 0.5]
+                            side.uv      = [c[0], c[1], -c[2], c[3] * ((cd == 3 || cd == 2) ? -1 : 1)]
+                    }
+                    index = (cd + 1) % 4;
+                    if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
+                        deleted = [];
+                        let side = _sides[dirs_name_lower[(index + 2) % 4]]
+                            side.axes    = PLANES[dirs_name_lower[(index + 2) % 4]].axes
+                            side.flag    = flag
+                            side.uv      = [c[0], c[1], c[2], c[3]]
+                        //
+                        side = _sides[dirs_name_lower[cd]]
+                            side.autoUV  = false
+                            side.axes    = slope_axes[(index + (on_ceil ? 2 : 0)) % 4]
+                            side.offset  = [0.5, 0.5, 0.5]
+                            side.uv      = [c[0], c[1], c[2], c[3] * (((cd == 3 || cd == 2) || (cd == 2 && on_ceil)) ? -1 : 1)]
+                    }
+                }
+            } else if(top_parts_count == 1) {
+                // outer corner
+                if(ne) {
+                    const mir_y =  on_ceil ? 1 : -1;
+                    let side = _sides.up
+                        side.autoUV = false
+                        side.axes   = [[-1, 0, 1 * mir_y], [0, -1, 0]]
+                        side.flag   = flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX
+                        side.uv     = [c[0], c[1], c[2], c[3] * mir_y]
+                    side = _sides.south
+                        side.autoUV = false
+                        side.axes   = [[1, 0, 0], [0, 1, 1 * -mir_y]]
+                        side.flag   = flag | QUAD_FLAGS.FLAG_TRIANGLE
+                        side.offset = [0.5, 0.5, 0.5]
+                        side.uv     = [c[0], c[1], c[2], c[3] * -mir_y]
+                    cancelDelete('south');
+                    deleted.push(...['west', dirs_name_lower[(cd + 2) % 4]]);
+                }
+                if(sw) {
+                    const mir_y =  on_ceil ? 1 : -1;
+                    let side = _sides.up
+                        side.autoUV = false
+                        side.axes   = [[-1, 0, 0], [0, -1, 1 * -mir_y]]
+                        side.flag   = flag | QUAD_FLAGS.FLAG_TRIANGLE
+                        side.offset = [0.5, 0.5, 0.5]
+                        side.uv     = [c[0], c[1], c[2], c[3] * mir_y]
+                    side = _sides.east
+                        side.autoUV = false
+                        side.axes   = [[1, 0, 1 * mir_y], [0, 1, 0]]
+                        side.flag   = flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX
+                        side.offset = [0.5, 0.5, 0.5]
+                        side.uv     = [c[0], c[1], c[2], c[3] * -mir_y]
+                    cancelDelete('east');
+                    deleted.push(...['north', dirs_name_lower[(cd + 2) % 4]]);
+                }
+                if(wn) {
+                    const mir_y =  on_ceil ? 1 : -1;
+                    let side = _sides.up
+                        side.autoUV = false,
+                        side.axes   = [[0, -1, 1 * mir_y], [1, 0, 0]],
+                        side.flag   = flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
+                        side.uv =     [c[0], c[1], c[2], c[3] * mir_y]
+                    side = _sides.east
+                        side.autoUV = false
+                        side.axes   = [[0, 1, 0], [-1, 0, 1 * -mir_y]]
+                        side.flag   = flag | QUAD_FLAGS.FLAG_TRIANGLE
+                        side.offset = [0.5, 0.5, 0.5]
+                        side.uv     = [c[0], c[1], c[2], c[3] * -mir_y]
+                    cancelDelete('east');
+                    deleted.push(...['south', dirs_name_lower[(cd + 2) % 4]]);
+                }
+                //
+                if(es) {
+                    const mir_y =  on_ceil ? 1 : -1;
+                    let side = _sides.west
+                        side.autoUV = false
+                        side.axes   = [[0, -1, 0], [1, 0, 1 * -mir_y]]
+                        side.flag   = flag | QUAD_FLAGS.FLAG_TRIANGLE
+                        side.offset = [0.5, 0.5, 0.5]
+                        side.uv     = [c[0], c[1], c[2], c[3] * mir_y]
+                    side = _sides.up
+                        side.autoUV = false,
+                        side.axes   = [[0, 1, 1 * mir_y], [-1, 0, 0]]
+                        side.flag   = flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX
+                        side.uv     = [c[0], c[1], c[2], c[3] * mir_y]
+                    cancelDelete('west');
+                    deleted.push(...['north', dirs_name_lower[(cd + 2) % 4]]);
+                }
+            }
         }
 
         // delete unused
-        for(let k of item.deleted) {
+        for(let k of deleted) {
             delete(_sides[k]);
         }
 
