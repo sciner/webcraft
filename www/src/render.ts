@@ -1,7 +1,7 @@
 "use strict";
 
 import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color, blobToImage} from "./helpers.js";
-import {CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
@@ -31,6 +31,7 @@ import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { World } from "./world.js";
 
 const {mat3, mat4} = glMatrix;
@@ -251,7 +252,7 @@ export class Renderer {
         this.clouds = this.meshes.add(new Mesh_Object_Clouds(this, DEFAULT_CLOUD_HEIGHT));
 
         // Stars
-        this.stars = this.meshes.add(new Mesh_Object_Stars(this));
+        this.stars = this.meshes.add(new Mesh_Object_Stars());
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
 

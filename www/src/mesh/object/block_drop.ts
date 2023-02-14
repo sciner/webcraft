@@ -16,7 +16,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     static mesh_groups_cache = new Map();
 
     // Constructor
-    constructor(gl, entity_id, items, pos, matrix, pivot, use_cache = false) {
+    constructor(gl, entity_id, items, pos, matrix?, pivot?, use_cache = false) {
 
         super(
             new Vector(pos.x, pos.y, pos.z),

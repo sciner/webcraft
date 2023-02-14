@@ -100,19 +100,19 @@ export class UniformBinding {
 
     /**
      * fill from declaration if makeUniform
-     * @param {} value
+     * @param {} valueArg
      * @returns
      */
-    fill(value) {
-        if (value == void 0) {
+    fill(valueArg) {
+        if (valueArg == void 0) {
             return;
         }
 
-        if (typeof value === 'object' && 'value' in value) {
+        if (typeof valueArg === 'object' && 'value' in valueArg) {
             const {
                 value = this.value,
                 isolate = this.isolate,
-            } = value;
+            } = valueArg;
 
             this.value = value;
             this.isolate = isolate;
@@ -120,7 +120,7 @@ export class UniformBinding {
             return;
         }
 
-        this.value = value;
+        this.value = valueArg;
     }
 
     upload () {

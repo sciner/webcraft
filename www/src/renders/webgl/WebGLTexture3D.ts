@@ -31,8 +31,7 @@ export class WebGLTexture3D extends BaseTexture3D {
         super(context, options);
     }
 
-    bind(location) {
-        location = location || 0;
+    bind(location = 0) {
         const {
             gl
         } = this.context;

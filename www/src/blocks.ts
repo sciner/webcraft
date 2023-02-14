@@ -1330,7 +1330,7 @@ export class BLOCK {
      *
      * @returns {array[]}
      */
-    static getShapes(pos, tblock, world, for_physic, expanded, neighbours) {
+    static getShapes(pos, tblock, world, for_physic, expanded, neighbours?) {
 
         const shapes = [] // x1 y1 z1 x2 y2 z2
         const material = tblock.material

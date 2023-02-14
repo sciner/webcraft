@@ -4,12 +4,23 @@ import { Vector } from "./helpers.js";
 
 const {mat4} = glMatrix;
 
+interface ICameraOptions {
+    type?: string
+    min?: number
+    max?: number
+    renderType?: string
+    fov?: number,
+    width?: number
+    height?: number
+    scale?: number
+}
+
 export class Camera {
     [key: string]: any;
     static PERSP_CAMERA = 'perspective';
     static ORTHO_CAMERA = 'ortho';
 
-    constructor (options = {
+    constructor (options: ICameraOptions = {
         type: 'perspective', // | 'ortho',
         min: 2/16,
         max: 1000,
