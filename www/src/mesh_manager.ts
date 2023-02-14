@@ -1,10 +1,11 @@
-import { Helpers, getChunkAddr, Vector, DIRECTION, QUAD_FLAGS, makeChunkEffectID } from "./helpers.js";
-import { Particles_Effects } from "./particles/effects.js";
+import { Helpers, getChunkAddr, Vector, DIRECTION, QUAD_FLAGS, makeChunkEffectID, IndexedColor } from "./helpers.js";
+// import { Particles_Effects } from "./particles/effects.js";
+import type { Renderer } from "./render.js";
 
 export class Particle {
     [key: string]: any;
 
-    constructor(texture, life, invert_percent, min_percent, gravity, speed, flags, lm) {
+    constructor(texture, life, invert_percent, min_percent, gravity, speed, flags : int = 0, lm : IndexedColor = null) {
         this.texture            = texture;
         this.life               = life;
         this.invert_percent     = invert_percent;
@@ -69,8 +70,8 @@ export class MeshManager {
         return mesh;
     }
 
-    remove(key, render) {
-        const keys = Array.from(this.list.keys());
+    remove(key: string, render : Renderer) {
+        const keys = Array.from(this.list.keys()) as string[];
         for(let i = 0; i < keys.length; i++) {
             const k = keys[i];
             if(k.indexOf(key) == 0) {
@@ -135,8 +136,10 @@ export class MeshManager {
             const PARTICLE_EFFECTS_ID = makeChunkEffectID(this._chunk_addr, material_key);
             let effects = this.get(PARTICLE_EFFECTS_ID);
             if(!effects) {
-                effects = new Particles_Effects(this, this._chunk_addr, material_key);
-                this.add(effects, PARTICLE_EFFECTS_ID);
+                console.error(`error_effect_not_found|${PARTICLE_EFFECTS_ID}`)
+                debugger
+                // effects = new Particles_Effects(this, this._chunk_addr, material_key);
+                // this.add(effects, PARTICLE_EFFECTS_ID);
             }
             effects.add(particle_pos, particle);
         }

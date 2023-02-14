@@ -1,15 +1,16 @@
 import { Resources } from "./resources.js";
-import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
 import { Color, Helpers, Vector, chunkAddrToCoord } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
-import { Renderer } from "./render.js";
 import { BLOCK } from "./blocks.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import type { Renderer } from "./render.js";
+import type { SceneNode } from "./SceneNode.js";
 
-const {mat4, vec3, quat} = glMatrix;
+const { quat } = glMatrix;
 
 const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
 const MAX_DETONATION_TIME           = 2000; // ms
@@ -673,7 +674,7 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
-    update(render, camPos, delta, speed) {
+    update(render : Renderer, camPos : Vector, delta : float, speed : float) {
         super.update();
 
         this.computeLocalPosAndLight(render, delta);
@@ -895,11 +896,7 @@ export class MobModel extends NetworkPhysicObject {
         this.animator.prepare(this);
     }
 
-    /**
-     * @param {Renderer} render
-     * @param {SceneNode} tree
-     */
-    postLoad(render, tree) {
+    postLoad(render : Renderer, tree : SceneNode) {
         if (!tree) {
             return;
         }

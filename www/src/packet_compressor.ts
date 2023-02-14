@@ -126,7 +126,7 @@ export function decompressNearby(str) {
             if(flags) {
                 temp = temp.substring(1);
             }
-            const addr = new Vector(0, 0, 0).set(temp.split(',').map(x => parseInt(x)));
+            const addr = new Vector(temp.split(',').map((x : string) => parseInt(x)) as [number, number, number]);
             nearby.added.push({addr, flags})
         }
     }
@@ -145,7 +145,7 @@ export function decompressNearby(str) {
         deleted = deleted.split('_');
         for(let i = 0; i < deleted.length - 1; i++) {
             const temp = deleted[i];
-            const addr = new Vector(0, 0, 0).set(temp.split(',').map(x => parseInt(x)));
+            const addr = new Vector(temp.split(',').map((x : string) => parseInt(x)) as [number, number, number]);
             nearby.deleted.push(addr)
         }
     }
@@ -160,10 +160,12 @@ export function compressPlayerStateC(state) {
 //
 export function decompressPlayerStateC(compressed_state) {
     const temp = compressed_state.split('|')
+    const pos = temp[0].substring(1).split(',').map((x : string) => parseFloat(x)) as [number, number, number]
+    const rotate = temp[1].split(',').map((x : string) => parseFloat(x)) as [number, number, number]
     const state = {
         sneak:  temp[0].substring(0, 1) == 's',
-        pos:    new Vector(0, 0, 0).set(temp[0].substring(1).split(',').map(x => parseFloat(x))),
-        rotate: new Vector(0, 0, 0).set(temp[1].split(',').map(x => parseFloat(x))),
+        pos:    new Vector(pos),
+        rotate: new Vector(rotate),
         ping:   parseFloat(temp[2])
     }
     return state;

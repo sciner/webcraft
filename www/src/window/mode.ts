@@ -21,7 +21,7 @@ export class ModeWindow extends Window {
         this.player = player
         this.mode == 'survival'
 
-        this.atlas = Resources.atlas.icons
+        this.atlas = Resources.atlas.get('icons')
 
         const lblHelp = this.addComponent(w / 2, 100, w, 43, 'lblHelp', '[ F4 ] - Дальше')
         lblHelp.style.font.anchor.x = .5

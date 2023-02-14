@@ -92,7 +92,7 @@ export class Hotbar {
         const all = []
         all.push(this.effect_icons = new SpriteAtlas().fromFile('./media/gui/inventory2.png'))
 
-        this.icons_atlas = Resources.atlas.icons
+        this.icons_atlas = Resources.atlas.get('icons')
 
         Promise.all(all).then(_ => {
 
@@ -128,19 +128,21 @@ export class Hotbar {
                 armor_half:         0.9
             }
 
-            this.hotbar_atlas = Resources.atlas.hotbar
+            this.hotbar_atlas = Resources.atlas.get('hotbar')
 
             for(const [name, scale] of Object.entries(spriteScale)) {
                 this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale * this.zoom)
             }
 
+            const bn_atlas = Resources.atlas.get('bn')
+
             // Effects sprites
             this.effect_sprites = {}
             for(let effect of Effect.get()) {
-                this.effect_sprites[effect.id] = new MySprite(Resources.atlas.bn.getSpriteFromMap(effect.icon), 1 * this.zoom)
+                this.effect_sprites[effect.id] = new MySprite(bn_atlas.getSpriteFromMap(effect.icon), 1 * this.zoom)
             }
 
-            this.sprite_effect_bg = new MySprite(Resources.atlas.bn.getSpriteFromMap('button_black'), 1 * this.zoom)
+            this.sprite_effect_bg = new MySprite(bn_atlas.getSpriteFromMap('button_black'), 1 * this.zoom)
 
             this.hud.add(this, 0)
 

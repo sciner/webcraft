@@ -45,7 +45,7 @@ export class Resources {
     static maskColor          : any = null;
     static layout             : any = {}
     static shaderBlocks       : any = {};
-    static atlas              : any = {}
+    static atlas              : Map<string, SpriteAtlas> = new Map()
 
     static progress = {
         loaded:     0,
@@ -133,10 +133,19 @@ export class Resources {
          * Atlases
          * @type {Object.<string, SpriteAtlas>}
          */
+        this.atlas = new Map()
         for(let name of ['hotbar', 'bn', 'icons']) {
-            this.atlas[name] = {}
-            all.push(fetch(`data/atlas/${name}/atlas.json`).then(response => response.json()).then(json => { this.atlas[name].map = json}))
-            all.push(loadImage(`data/atlas/${name}/atlas.png`).then(img => {this.atlas[name].image = img}))
+            all.push(new Promise(async (resolve, reject) => {
+                const atlas_files = await Promise.all([
+                    fetch(`data/atlas/${name}/atlas.json`).then(response => response.json()), // .then(json => { atlas.map = json})
+                    loadImage(`data/atlas/${name}/atlas.png`) // .then(img => { atlas.image = img})
+                ])
+                const map = atlas_files[0];
+                const image = atlas_files[1];
+                const atlas = await SpriteAtlas.fromJSON(image, map)
+                Resources.atlas.set(name, atlas)
+                resolve(atlas)
+            }))
         }
 
         // Window layouts

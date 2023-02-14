@@ -112,7 +112,7 @@ export const Lang : Dict = new Proxy(
 
     },
     {
-        get(target, prop) {
+        get(target, prop : string) {
             if(prop in target) {
                 return target[prop];
             }

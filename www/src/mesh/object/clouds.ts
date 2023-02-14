@@ -5,6 +5,7 @@ import {Resources} from "../../resources.js";
 import {BLOCK, FakeTBlock} from "../../blocks.js";
 import { AABB } from '../../core/AABB.js';
 import { DEFAULT_CLOUD_HEIGHT } from '../../constant.js';
+import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 

@@ -510,7 +510,7 @@ export class TerrainMapManager2 {
     /**
      * Return biome for coords and modify by preset
      */
-    calcBiome(xz : Vector, preset? : MapCellPreset) : Biome {
+    calcBiome(xz : Vector, preset? : MapCellPresetResult ) : Biome {
 
         const params = TerrainMapManager2._climateParams
 

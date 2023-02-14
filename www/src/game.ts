@@ -22,7 +22,6 @@ import { SpriteAtlas } from "./core/sprite_atlas.js";
 // TODO: pixi
 (globalThis as any).UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
 console.debug('zoom', UI_ZOOM)
-console.log('zoom', UI_ZOOM)
 globalThis.UI_FONT = 'Ubuntu';
 
 // Main game class
@@ -60,11 +59,6 @@ export class GameClass {
         //
         const blockTask = BLOCK.init(settings);
         await Promise.all([blockTask]);
-
-        // Make atlases
-        for(const [atlas_name, item] of Object.entries(Resources.atlas)) {
-            Resources.atlas[atlas_name] = await SpriteAtlas.fromJSON(item.image, item.map)
-        }
 
         // init world
         this.world = new World(settings, BLOCK);

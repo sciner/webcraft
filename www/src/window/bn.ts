@@ -133,7 +133,7 @@ export class BeaconWindow extends BaseChestWindow {
             }
         })
         this.bm = inventory.player.world.block_manager
-        this.atlas = Resources.atlas.bn
+        this.atlas = Resources.atlas.get('bn')
         this.setBackground(this.atlas.getSpriteFromMap('background'))
         // надписи на окне
         this.craeteLabels()
