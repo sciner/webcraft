@@ -3,6 +3,7 @@ import {impl as alea} from '../../../vendors/alea.js';
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { TerrainMap2 } from "../biome3/terrain/map.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
+import type { ClusterManager } from "./manager.js";
 
 export const NEAR_MASK_MAX_DIST = 10
 export const CLUSTER_PADDING    = 8
@@ -27,12 +28,7 @@ export class ClusterPoint {
 export class ClusterBase {
     [key: string]: any;
 
-    /**
-     * @param { import("./manager.js").ClusterManager } clusterManager
-     * @param { Vector } addr
-     * @param { ?Vector } size
-     */
-    constructor(clusterManager, addr : Vector, size? : Vector) {
+    constructor(clusterManager : ClusterManager, addr : Vector, size? : Vector) {
         this.clusterManager = clusterManager;
         this.block_manager  = clusterManager.world.block_manager
         this.y_base         = 80;

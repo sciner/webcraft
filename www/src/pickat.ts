@@ -1,4 +1,4 @@
-import {Color, getChunkAddr, Vector, unixTime, vectorToChunkAddr} from "./helpers.js";
+import { Vector, unixTime } from "./helpers.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
@@ -7,6 +7,7 @@ import { Raycaster } from "./Raycaster.js";
 import { MOUSE } from "./constant.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import {AABB} from "./core/AABB.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
@@ -53,7 +54,7 @@ export class PickAt {
         this.target_block.geom.defColor = 0xFF000000;
     }
 
-    get(pos, callback, pickat_distance, view_vector, ignore_transparent, return_fluid) {
+    get(pos, callback, pickat_distance, view_vector, ignore_transparent, return_fluid : boolean = false) {
         const render = this.render;
         pos = this._temp_pos.copyFrom(pos);
         // view_vector = null;

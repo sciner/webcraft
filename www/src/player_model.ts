@@ -5,8 +5,9 @@ import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 
-const { quat, mat4 } = glMatrix;
+const { quat } = glMatrix;
 const SWING_DURATION = 6;
 
 const KEY_SLOT_MAP = {

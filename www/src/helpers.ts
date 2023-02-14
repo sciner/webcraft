@@ -919,7 +919,7 @@ export class Color {
         throw new Error('Bad Hex');
     }
 
-    constructor(r: number, g: number, b: number, a: number) {
+    constructor(r: number, g: number, b: number, a: number = 0) {
         this.r = r;
         this.g = g;
         this.b = b;

@@ -4,6 +4,7 @@ import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
 import { BuildingPalettes } from "./building/palette.js";
+import type { ClusterManager } from "./manager.js";
 
 //
 const entranceAhead = new Vector(0, 0, 0);
@@ -27,7 +28,7 @@ export class ClusterBuildingBase extends ClusterBase {
     building_palettes
 
     //
-    constructor(clusterManager, addr, biome) {
+    constructor(clusterManager : ClusterManager, addr : Vector, biome? : any) {
 
         super(clusterManager, addr)
 

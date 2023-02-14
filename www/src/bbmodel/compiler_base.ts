@@ -19,7 +19,7 @@ export class BBModel_Compiler_Base {
         return id;
     }
 
-    async loadImage(url) {
+    async loadImage(url) : Promise<ImageBitmap> {
         return new Promise(async resolve => {
             const blob = await fetch(url).then(res => res.blob())
             resolve(createImageBitmap(blob))

@@ -114,7 +114,11 @@ export class WorldPortal {
                 const b_pos = pos.clone();
                 const actions = new WorldAction(randomUUID());
                 const frame_block = {id: portal_block_id.id};
-                const portal_block = {id: bm.NETHER_PORTAL.id, rotate: new Vector((d == 'x') ? DIRECTION.SOUTH : DIRECTION.EAST, 0, 0)};
+                const portal_block = {
+                    id: bm.NETHER_PORTAL.id,
+                    rotate: new Vector((d == 'x') ? DIRECTION.SOUTH : DIRECTION.EAST, 0, 0),
+                    extra_data: null
+                };
                 //
                 const portal = new WorldPortal(
                     pos.clone(),

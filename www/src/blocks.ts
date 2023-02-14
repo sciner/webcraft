@@ -1159,7 +1159,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры
-    static calcTexture(c, dir, tx_cnt = TX_CNT): tupleFloat4 {
+    static calcTexture(c, dir? : int, tx_cnt : int = TX_CNT): tupleFloat4 {
         if (c instanceof Array) {
             // do nothing
         } else if(c instanceof Function) {

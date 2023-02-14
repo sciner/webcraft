@@ -1,4 +1,3 @@
-import { BaseResourcePack } from "../base_resource_pack.js";
 import { DEFAULT_TX_SIZE } from "../constant.js";
 import { Vector } from "../helpers.js";
 import { Resources } from "../resources.js";

@@ -845,11 +845,7 @@ export class Player {
         }
     }
 
-    /**
-     * @param {string} name
-     * @param {*[]} args
-     */
-    triggerEvent(name, args) {
+    triggerEvent(name : string, args : object = null) {
         switch(name) {
             case 'step': {
                 this.onStep(args);
