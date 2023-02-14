@@ -1,7 +1,6 @@
 import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from "../default.js";
 import { IndexedColor } from "../../helpers.js";
 import { createNoise2D } from '../../../vendors/simplex-noise.js';
-import { ChunkWorkerChunk } from "../../worker/chunk.js";
 import { NoiseFactory } from "./NoiseFactory.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { GENERATOR_OPTIONS } from "./terrain/manager.js";
@@ -54,6 +53,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.layers = new Biome3LayerManager(this, [
             {type: 'overworld', bottom: 0, up: 7}
         ])
+
+        return true
 
     }
 

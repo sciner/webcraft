@@ -21,14 +21,12 @@ export class BiomeTree {
     height: {min: int, max: int}
     percent?: float
 
-    constructor(trunk: int, leaves: int | null, style: string, height: {min: int, max: int}, percent? : float) {
+    constructor(trunk: int, leaves: int | null, style: string, height: {min: int, max: int}, percent : float = 1) {
         this.trunk = trunk
         this.leaves = leaves
         this.style = style
         this.height = height
-        if(percent !== undefined) {
-            this.percent = percent
-        }
+        this.percent = percent
     }
 
 }

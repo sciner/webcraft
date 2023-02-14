@@ -1,4 +1,3 @@
-import {Helpers} from '../helpers.js';
 import {Resources} from '../resources.js';
 import {CLIENT_SKIN_ROOT} from '../constant.js';
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
@@ -6,9 +5,9 @@ import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 export class SkinManager {
     [key: string]: any;
 
-    #controller;
+    #controller : object;
 
-    constructor($scope, $timeout? : any) {   
+    constructor($scope : object, $timeout? : Function) {
         // https://ru.namemc.com/minecraft-skins/trending/top?page=5
         this.#controller    = $scope;
         this.$timeout       = $timeout;
@@ -23,15 +22,15 @@ export class SkinManager {
         this.restoreSkinIndex  = null;
     }
 
-    initSkinView3d(id) {
-        this.skinViewer = this._initSkinView3d('skin_container');
+    initSkinView3d(id? : string) {
+        this.skinViewer = this._initSkinView3d(id ?? 'skin_container');
     }
 
     initPreviewSkinView3d() {
         this.previewSkinViewer = this._initSkinView3d('preview_skin_container')
     }
 
-    _initSkinView3d(id) {
+    _initSkinView3d(id : string) {
         const skinViewer = new skinview3d.SkinViewer({
             canvas: document.getElementById(id),
             width: 300,

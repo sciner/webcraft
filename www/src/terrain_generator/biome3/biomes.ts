@@ -351,7 +351,7 @@ export class Biomes {
                     {percent: .3, blocks: [{id: BLOCK.GRASS.id}]},
                     {percent: .5, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                 ]
-            }, new IndexedColor(32, 345, 0), new IndexedColor(new IndexedColor(20, 140, 0), 0));
+            }, new IndexedColor(32, 345, 0), new IndexedColor(20, 140, 0));
         this.addBiome(151, 'Рельефная окраина джунглей', 0.95, 0.8);
         this.addBiome(168, 'Бамбуковые джунгли', 0.95, 0.9);
         this.addBiome(169, 'Холмистые бамбуковые джунгли', 0.95, 0.9);

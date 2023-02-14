@@ -76,7 +76,7 @@ export class TerrainMap2 extends TerrainMap {
                 }
                 const rand_height = aleaRandom.double();
                 const height = Helpers.clamp(Math.round(rand_height * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
-                const rad = Math.max(parseInt(height / 2), 2);
+                const rad = Math.max(Math.trunc(height / 2), 2);
                 const pos = new Vector(x, y, z)
                 this.trees.push({height, rad, type, pos})
                 return true;

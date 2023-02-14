@@ -20,7 +20,9 @@ export default class Terrain_Generator extends Demo_Map {
         this.dungeon = new DungeonGenerator(seed);
     }
 
-    async init() {}
+    async init() {
+        return super.init()
+    }
 
     generate(chunk) {
 
@@ -117,7 +119,7 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Trees
         if(tree_pos && tree_pos.y < 32) {
-            let type = new BiomeTree(3, 233, 'wood', { "min": 4, "max": 8 }, .99 );
+            let type = new BiomeTree(3, 233, 'wood', { "min": 4, "max": 8 }, .99);
             const r = rnd.double();
             if(r < .05) {
                 type = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.RED_MUSHROOM_BLOCK.id, 'red_mushroom', {"min": 5, "max": 12});

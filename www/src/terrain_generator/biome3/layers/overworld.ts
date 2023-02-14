@@ -2,16 +2,16 @@ import { Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { BLOCK } from '../../../blocks.js';
 import { DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager.js";
-import { TerrainMapCell } from "../terrain/map_cell.js";
-import { TerrainMap2 } from "../terrain/map.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
-import { Biome } from "../biomes.js";
 import { AQUIFERA_UP_PADDING } from "../aquifera.js";
 import { WorldClientOreGenerator } from "../client_ore_generator.js";
 import { DungeonGenerator } from "../../dungeon.js";
 
 import { alea } from "../../default.js";
 import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
+import type { TerrainMapCell } from "../terrain/map_cell.js";
+import type { TerrainMap2 } from "../terrain/map.js";
+import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
@@ -110,10 +110,8 @@ export default class Biome3LayerOverworld {
 
     /**
      * Plant chunk trees
-     * @param {[]TerrainMap2} maps
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
      */
-    plantTrees(maps, chunk) {
+    plantTrees(maps : TerrainMap2[], chunk : ChunkWorkerChunk) {
         for(let i = 0; i < maps.length; i++) {
             const m = maps[i];
             for(let j = 0; j < m.trees.length; j++) {
@@ -199,10 +197,7 @@ export default class Biome3LayerOverworld {
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
-                /**
-                 * @type {TerrainMapCell}
-                 */
-                const cell                  = map.getCell(x, z)
+                const cell = map.getCell(x, z)
                 const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
                 const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
                 const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);
