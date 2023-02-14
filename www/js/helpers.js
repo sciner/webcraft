@@ -278,6 +278,15 @@ export class Mth {
         return Math.round(value * decimals) / decimals
     }
 
+    static roundUpToPowerOfTwo(v) {
+        v--
+        v |= v >> 1
+        v |= v >> 2
+        v |= v >> 4
+        v |= v >> 8
+        v |= v >> 16
+        return v + 1
+    }
 }
 
 /**
@@ -2794,11 +2803,27 @@ export class ArrayHelpers {
         return sum;
     }
 
-    static growAndSet(arr, index, value, filler = undefined) {
-        while (arr.length <= index) {
-            arr.push(filler);
+    /** 
+     * Creates an array of at least the required length, or increases the length of the existing array.
+     * @returns {array} the given array, or a new one.
+     */
+    static ensureCapacity(arr = null, length, arrayClass = null) {
+        if (arr) {
+            arrayClass ??= arr.constructor
+            if (arrayClass !== arr.constructor) {
+                throw new Error()
+            }
+            if (arrayClass === Array) {
+                arr[length - 1] = null  // cause the array to grow
+            } else { // a typed array
+                if (arr.length < length) {
+                    arr = new arrayClass(Mth.roundUpToPowerOfTwo(length))
+                }
+            }
+        } else {
+            arr = new arrayClass(length)
         }
-        arr[index] = value;
+        return arr
     }
 
     /**
@@ -3560,18 +3585,26 @@ export class ShiftedMatrix {
     }
 
     constructor(minRow, minCol, rows, cols, arrayClass = Array) {
-        this.minRow = minRow;
-        this.minCol = minCol;
-        this.rows = rows;
-        this.cols = cols;
-        this.rowsM1 = rows - 1;
-        this.colsM1 = cols - 1;
-        this.arr = new arrayClass(rows * cols);
+        this.init(minRow, minCol, rows, cols, new arrayClass(rows * cols))
+    }
+
+    init(minRow, minCol, rows, cols, arr = null) {
+        this.minRow = minRow
+        this.minCol = minCol
+        this.rows = rows
+        this.cols = cols
+        this.rowsM1 = rows - 1
+        this.colsM1 = cols - 1
+        this.arr = arr ?? ArrayHelpers.ensureCapacity(this.arr, rows * cols)
+        return this
+    }
+
+    initHorizontalInAABB(aabb) {
+        return this.init(aabb.x_min, aabb.z_min, aabb.width, aabb.depth)
     }
 
     static createHorizontalInAABB(aabb, arrayClass = Array) {
-        return new ShiftedMatrix(aabb.x_min, aabb.z_min, 
-            aabb.x_max - aabb.x_min, aabb.z_max - aabb.z_min, arrayClass)
+        return new ShiftedMatrix(aabb.x_min, aabb.z_min, aabb.width, aabb.depth, arrayClass)
     }
 
     // Exclusive, like in AABB
@@ -3782,7 +3815,7 @@ export class ShiftedMatrix {
      * closest cell filled with 0. If {@link toOutside} == true, the cells outside the
      * matrix are considered to be 0.
      */
-    calcDistances(toOutside = false, tmpArray = null, queue = null) {
+    calcDistances(toOutside = false, tmpArray = null, tmpQueue = null) {
 
         function add(row, col, ind) {
             queue.push(row)
@@ -3810,11 +3843,11 @@ export class ShiftedMatrix {
         }
 
         if (tmpArray) {
-            tmpArray.fill(0)
+            tmpArray.fill(0, 0, this.size)
         } else {
             tmpArray = new Uint8Array(this.size)
         }
-        queue = queue ?? new SimpleQueue()
+        const queue = tmpQueue ?? new SimpleQueue()
 
         const cols = this.cols
         const rowsM1 = this.rows - 1

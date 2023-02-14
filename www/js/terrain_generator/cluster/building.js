@@ -1,7 +1,7 @@
 import { impl as alea } from '../../../vendors/alea.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { AABB } from '../../core/AABB.js';
-import { getChunkAddr, Vector, VectorCardinalTransformer } from "../../helpers.js";
+import { getChunkAddr, ShiftedMatrix, Vector, VectorCardinalTransformer } from "../../helpers.js";
 import { findLowestNonSolidYFromAboveInChunkAABBRelative } from "../../block_helpers.js";
 import { BlockDrawer } from './block_drawer.js';
 import { getAheadMove } from './building_cluster_base.js';
@@ -31,12 +31,15 @@ export const BASEMENT_SIDE_BULGE = 0.5
 export const BASEMENT_BOTTOM_BULGE_BLOCKS = 2   // How many bllocks are added to the depth of the basement at its center
 export const BASEMENT_BOTTOM_BULGE_PERCENT = 0.1 // Which fraction of the basement's width is added to its depth at its center
 
+const BASEMENT_MAX_CLUSTER_BLOCKS_HEIGHT = 1 // From 0. The maximum height at which clster blocks are used at the top of the basement
+
 const BASEMENT_NOISE_HARSHNESS = 1.3 // from 1. Higher values make it more pronounced, often clamped to its range.
 const BASEMENT_NOISE_SCALE = 1 / 12
 const BASEMENT_NOISE_AMPLITUDE = 2.0
 
 const CHUNK_AABB = new AABB(0, 0, 0, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
 const tmpTransformer = new VectorCardinalTransformer()
+const tmpYMatrix = new ShiftedMatrix(0, 0, 1, 1)
 
 // Base building
 export class Building {
@@ -158,6 +161,7 @@ export class Building {
      * @param {import("../../worker/chunk.js").ChunkWorkerChunk} chunk
      */
     drawAutoBasement(chunk) {
+        const cluster = this.cluster
         const basement = this.building_template.autoBasement
         const objToChunk = new VectorCardinalTransformer().initBuildingToChunk(this, chunk)
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
@@ -170,8 +174,9 @@ export class Building {
         const aabbInChunk = objToChunk.tranformAABB(aabbInObj, new AABB())
         const posInObj = new Vector()
 
-        // find the lowest surface point (approximately)
-        const yMinNonSolidInChunk = findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, aabbInChunk)
+        // find the lowest surface points
+        const minNonSolidYInChunkMatrix = tmpYMatrix.initHorizontalInAABB(aabbInChunk)
+        const yMinNonSolidInChunk = findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, aabbInChunk, minNonSolidYInChunkMatrix)
         const yMinNonSolidInObj = chunkToObj.transformY(yMinNonSolidInChunk)
         if (yMinNonSolidInObj >= aabbInObj.y_max) {
             return // there is nothing to draw
@@ -206,21 +211,41 @@ export class Building {
                 if (!depths) {
                     continue
                 }
-                // find the properties of the column of blocks
+                // find the max Y
                 const y_max = -depths.min
-                const y_min = -depths.max - Math.round(basement.bulge.bulgeByXY(posInObj.x, posInObj.z))
                 const y_max_incl = y_max - 1
-                const y_min_clamped = Math.max(aabbInObj.y_min, y_min, yMinNonSolidInObj)
-                const y_max_clamped = Math.min(aabbInObj.y_max, y_max + 1)
-                const cell  = chunk.map.getCell(cx, cz)
+                let y_max_clamped = Math.min(aabbInObj.y_max, y_max + 1)
+                // find the min Y
+                const minNonSolidYInChunk = minNonSolidYInChunkMatrix.get(cx, cz)
+                const minNonSolidYInObj = chunkToObj.transformY(minNonSolidYInChunk)
+                const y_min = -depths.max - Math.round(basement.bulge.bulgeByXY(posInObj.x, posInObj.z))
+                const y_min_clamped = Math.max(aabbInObj.y_min, y_min, minNonSolidYInObj)
+                // apply blocks from the cluster, but only to the lower levels of the basement (otherweise it looks wierd)
+                if (minNonSolidYInChunk > 0 && // don't apply it for the lowest level of hucnk, because we don't know the real floor
+                    y_max_incl < y_max_clamped &&   // if the tp basement block is actually drawn
+                    // if the basement isn't too high relative to the real floor
+                    y_max_incl <= minNonSolidYInObj + BASEMENT_MAX_CLUSTER_BLOCKS_HEIGHT
+                ) {
+                    const clusterPoint = cluster.getMaskByWorldXZ(cx + chunk.coord.x, cz + chunk.coord.z)
+                    const clusterBlockId = clusterPoint?.block_id
+                    if (clusterBlockId) {
+                        // draw the dirt path
+                        const cy = objToChunk.transformY(y_max_incl)
+                        chunk.setBlockIndirect(cx, cy, cz, clusterBlockId)
+                        y_max_clamped = Math.min(y_max_clamped, y_max - 1) // start 1 block below the dirt path
+                    }
+                }
                 // fill the column of blocks, including the cap
+                const cell  = chunk.map.getCell(cx, cz)
                 for(let y = y_min_clamped; y < y_max_clamped; y++) {
                     const cy = objToChunk.transformY(y)
                     chunk.setGroundLayerIndirect(cx, cy, cz, cell, y_max_incl - y)
                 }
                 // turn grass block into dirt below the column
-                if (y_min - 1 >= aabbInObj.y_min) {
-                    const belowBasementY = objToChunk.transformY(y_min - 1)
+                if (y_min_clamped < y_max && // if the colum is actually drawn (in this chunk or not - doesn't matter)
+                    y_min_clamped - 1 >= aabbInObj.y_min // if the block below the column is in this chunk
+                ) {
+                    const belowBasementY = objToChunk.transformY(y_min_clamped - 1)
                     chunk.fixBelowSolidIndirect(cx, belowBasementY, cz)
                 }
             }

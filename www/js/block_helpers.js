@@ -164,15 +164,19 @@ export class ItemHelpers {
 /**
  * @param {Chunk|ServerChunk|ChunkWorkerChunk} chunk
  * @param {AABB} clampedAABB - in the chunk coordinate system, clamped to the clunk's size
- * @param {Int} setpXZ - a tweak to make the algorithm less precise, but faster
- * @param {Int} setpY - a tweak to make the algorithm less precise, but faster
- * @return {Int} y of the lowest non-solid block that ha only non-solid blocks above it in the given volume.
+ * @param {ShiftedMatrix|undefined} outYMatrix - for each (x, y) - the found Y
+ * @param {int} setpXZ - a tweak to make the algorithm less precise, but faster
+ * @param {int} setpY - a tweak to make the algorithm less precise, but faster
+ * @return {int} y of the lowest non-solid block that ha only non-solid blocks above it in the given volume.
  *   It scans blocks from above.
  *   It ignores blocks below the 1st enocountered solid block (e.g. it ignores caverns below the surface).
  *   If there is no such block in {@link clampedAABB}, it returns clampedAABB.y_max.
  */
-export function findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, clampedAABB, setpXZ = 2, stepY = 2) {
+export function findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, clampedAABB, outYMatrix = null, setpXZ = 2, stepY = 2) {
     const bm = chunk.chunkManager.block_manager
+    if (outYMatrix) {
+        setpXZ = 1
+    }
     if (stepY !== 2 && stepY !== 1) {
         throw new Error()
     }
@@ -201,9 +205,10 @@ export function findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, clampedAA
                 y -= currentStepY
             }
             y++ // the lowest non-solid block above a solid block
+            outYMatrix?.set(x, z, y)
             if (yMin > y) {
-                if (y === clampedAABB.y_min) {
-                    return clampedAABB.y_min
+                if (!outYMatrix && y === clampedAABB.y_min) {
+                    return y // there is nothing more to search
                 }
                 yMin = y
             }

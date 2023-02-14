@@ -46,6 +46,16 @@ export class ClusterBase {
 
     get generator() { return this.clusterManager.world.generator }
 
+    getMaskByWorldXZ(x, z) {
+        x -= this.coord.x
+        z -= this.coord.z
+        const sizeX = this.size.x
+        if ((x | z) < 0 || x >= sizeX || z >= this.size.x) {
+            return null
+        }
+        return this.mask[x + z * sizeX]
+    }
+
     /**
      * Set block
      * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 

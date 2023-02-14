@@ -1,6 +1,6 @@
 import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { AABB } from '../../core/AABB.js';
-import { Vector, VectorCollector, ShiftedMatrix, VectorSet2D, SphericalBulge } from "../../helpers.js";
+import { Vector, VectorCollector, ShiftedMatrix, VectorSet2D, SphericalBulge, ArrayHelpers, SimpleQueue } from "../../helpers.js";
 import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_MAX_PAD,
     BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
 
@@ -19,6 +19,9 @@ const PORCH_CRATER_RADIUS = 2;
 const PORCH_FLAT_CRATER_RADIUS = 1;
 const PORCH_MAX_HALF_WIDTH = 1;
 const PORCH_CRATER_HEIGHT = 8;
+
+let tmpUint8Array = new Uint8Array(1)
+const tmpQueue = new SimpleQueue()
 
 //
 export class BuildingTemplate {
@@ -468,7 +471,9 @@ export class BuildingTemplate {
         shapeMat.fillInsides(1)
 
         // calc distances from the outside to the basement
-        const distances = shapeMat.map(it => it === 0 ? Infinity : 0).calcDistances()
+        const distances = shapeMat.map(it => it === 0 ? Infinity : 0)
+        tmpUint8Array = ArrayHelpers.ensureCapacity(tmpUint8Array, distances.size)
+        distances.calcDistances(false, tmpUint8Array, tmpQueue)
 
         // pad sides
         for(const [x, z, ind] of distances.rowColIndices()) {
