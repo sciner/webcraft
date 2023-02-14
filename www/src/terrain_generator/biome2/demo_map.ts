@@ -16,7 +16,7 @@ for(let i = 0; i < randoms.length; i++) {
 }
 
 //
-const vox_templates = {};
+const vox_templates : Map<string, {chunk: any, palette: any}>= new Map()
 
 // Terrain generator class
 export default class Demo_Map extends Default_Terrain_Generator {
@@ -29,6 +29,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
         if(this.world_id == 'demo') {
             await this.generateDemoMapStructures();
         }
+        return true
     }
 
     //
@@ -101,9 +102,9 @@ export default class Demo_Map extends Default_Terrain_Generator {
     drawSpiralStaircases(chunk) {
         for(let y = 0; y < chunk.size.y; y += .25) {
             let y_abs = y + chunk.coord.y;
-            let y_int = parseInt(y);
-            let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
-            let z = 8 + parseInt(Math.cos(y_abs / Math.PI) * 6);
+            let y_int = Math.trunc(y);
+            let x = 8 + Math.trunc(Math.sin(y_abs / Math.PI) * 6);
+            let z = 8 + Math.trunc(Math.cos(y_abs / Math.PI) * 6);
             let block = BLOCK.BEDROCK;
             if(y >= 1) {
                 chunk.setBlockIndirect(x, y_int - 1, z, block.id);
@@ -119,7 +120,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
     }
 
     // drawBuilding...
-    drawBuilding(xyz, x, y, z, chunk) {
+    drawBuilding(xyz : IVector, x : int, y : int, z : int, chunk) {
         let vb = this.getVoxelBuilding(xyz);
         if(vb) {
             let block = vb.getBlock(xyz);
@@ -132,7 +133,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
     }
 
     // drawIsland
-    drawIsland(xyz, x, y, z, chunk, grass_level) {
+    drawIsland(xyz : Vector, x : int, y : int, z : int, chunk : any, grass_level : int) {
         for(let i = 0; i < this.islands.length; i++) {
             const island = this.islands[i];
             let dist = xyz.distance(island.pos);
@@ -169,7 +170,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
     }
 
     // getTreasureRoomMat
-    getTreasureRoomMat(xyz, is_floor, level) {
+    getTreasureRoomMat(xyz : Vector, is_floor : boolean, level : int = 0) {
         if(!is_floor && level == 0) {
             return BLOCK.LODESTONE.id;
         }
@@ -184,7 +185,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
     }
 
     // drawTreasureRoom...
-    drawTreasureRoom(chunk, line, xyz, x, y, z) {
+    drawTreasureRoom(chunk, line, xyz : Vector, x, y, z) {
         if(xyz.y < line.p_start.y || xyz.y == line.p_start.y + Math.round(line.rad) - 1) {
             chunk.setBlockIndirect(x, y, z, this.getTreasureRoomMat(xyz, true));
         } else {
@@ -238,7 +239,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
                 122: BLOCK.SMOOTH_STONE,
                 123: BLOCK.GRAVEL,
             };
-            vox_templates.monu10 = {chunk: chunks[0], palette: palette};
+            vox_templates.set('monu10', {chunk: chunks[0], palette: palette});
         });
         await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
             let palette = {
@@ -260,10 +261,10 @@ export default class Demo_Map extends Default_Terrain_Generator {
                 184: BLOCK.GRASS_BLOCK,
                 174: BLOCK.GRASS_BLOCK,
             };
-            vox_templates.castle = {chunk: chunks[0], palette: palette};
+            vox_templates.set('castle', {chunk: chunks[0], palette: palette});
         });
-        this.voxel_buildings.push(new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
-        this.voxel_buildings.push(new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
+        this.voxel_buildings.push(new Vox_Mesh(vox_templates.get('monu10'), new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
+        this.voxel_buildings.push(new Vox_Mesh(vox_templates.get('castle'), new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
         this.islands.push({
             pos: new Vector(2865, 118, 2787),
             rad: 15

@@ -7,7 +7,7 @@ import { Lang } from "./lang.js";
 import { Vector } from "./helpers.js";
 import { ChestHelpers } from "./block_helpers.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
-import { WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
+import { MOUSE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import type { BLOCK } from "./blocks";
 
 /**
@@ -201,7 +201,7 @@ export class World {
         };
     }
 
-    getBlock(x, y, z) {
+    getBlock(x : int | IVector, y? : int, z? : int) {
         return this.chunkManager.getBlock(x, y, z);
     }
 

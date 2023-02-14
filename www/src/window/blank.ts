@@ -4,7 +4,7 @@ import { Window } from "../../tools/gui/wm.js";
 export class BlankWindow extends Window {
     [key: string]: any;
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x, y, w, h, id, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
         this.visible                = false
         this.style.background.color = '#00000000'

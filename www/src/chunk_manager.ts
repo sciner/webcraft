@@ -708,7 +708,7 @@ export class ChunkManager {
     }
 
     // Возвращает блок по абслютным координатам
-    getBlock(x, y, z, v) {
+    getBlock(x : int | IVector, y? : int, z? : int, v? : any) {
         if(x instanceof Vector || typeof x == 'object') {
             y = x.y;
             z = x.z;

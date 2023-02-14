@@ -32,7 +32,7 @@ export default class Terrain_Generator extends Demo_Map {
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
         this.world = world;
-        this.clusterManager = new ClusterManager(world, seed);
+        this.clusterManager = new ClusterManager(world, seed, 1);
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
@@ -173,7 +173,7 @@ export default class Terrain_Generator extends Demo_Map {
                             continue;
                         }
                         // Islands
-                        if(has_islands && this.drawIsland(xyz, x, y, z, chunk)) {
+                        if(has_islands && this.drawIsland(xyz, x, y, z, chunk, 0)) {
                             continue;
                         }
                         // Remove volume from terrain

@@ -4,6 +4,7 @@ import { BLOCK } from '../../blocks.js';
 import { CHUNK_SIZE } from "../../chunk_const.js";
 import { CubeSym } from '../../core/CubeSym.js';
 import { noise, alea } from "../default.js";
+import type { WorkerWorld } from '../../worker/world.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -36,13 +37,13 @@ const AMETHYST_CLUSTER_CHANCE   = 0.1;
 export default class Terrain_Generator extends Default_Terrain_Generator {
     [key: string]: any;
 
-    constructor(world, seed, world_id, options) {
+    constructor(world : WorkerWorld, seed, world_id, options) {
         super(seed, world_id, options);
         this.setSeed(seed);
     }
 
     async init() {
-        // do nothing
+        return super.init()
     }
 
     generate(chunk, aleaRandom, generate_map = true) {

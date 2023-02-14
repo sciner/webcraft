@@ -141,6 +141,7 @@ export class BaseRenderTarget {
 
 export class BaseBuffer {
     [key: string]: any;
+
     constructor(context, options = {}) {
         this.context = context;
         this.options = options;
@@ -304,7 +305,7 @@ export class BaseMaterial {
 export class GlobalUniformGroup {
     [key: string]: any;
 
-    constructor(options) {
+    constructor(options ? : any) {
         this.projMatrix         = mat4.create();
         this.viewMatrix         = mat4.create();
 

@@ -663,7 +663,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
         // 2. проход в поисках свободных слотов
         if(srcItem.count > 0) {
-            for(let index in target_list) {
+            for(let index = 0; target_list < target_list.length; index++) {
                 const slot = target_list[index];
                 if(slot instanceof CraftTableInventorySlot) {
                     if(!slot.readonly && !slot.getItem()) {

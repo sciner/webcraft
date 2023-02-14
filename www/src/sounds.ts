@@ -117,7 +117,7 @@ class Music {
         this.howl = null
     }
 
-    _switchTrack(withPause = false, currentName = null) {
+    _switchTrack(withPause : boolean = false, currentName = null) {
         currentName = this.track?.name ?? currentName
         this._unloadTrack()
 
@@ -155,7 +155,7 @@ class Music {
         }
 
         // create a howl
-        const onend = (withPause) => {
+        const onend = (withPause : boolean) => {
             if (this.howl === howl) {
                 // It's still the main howl. Start a new track.
                 this._switchTrack(withPause)

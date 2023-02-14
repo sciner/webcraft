@@ -11,7 +11,7 @@ import { Resources } from "../../resources.js";
  * 
  * @returns {?Image}
  */
-export function getBlockImage(block, size) {
+export function getBlockImage(block) {
 
     const mat = BLOCK.fromId(block.id)
     const image = Resources.inventory.image;

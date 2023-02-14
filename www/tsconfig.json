@@ -20,5 +20,9 @@
     ],
     "include": [
         "src/**/*"
+    ],
+    "exclude": [
+        "src/renders/webgpu/**/*",
+        "src/worker-light/test.ts"
     ]
 }

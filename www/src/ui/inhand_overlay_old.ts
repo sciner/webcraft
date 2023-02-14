@@ -20,7 +20,7 @@ export class HumanoidArm {
        this.name = name;
     }
     getOpposite() {
-       return this == LEFT ? RIGHT : LEFT;
+       return this == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
     }
  }
 

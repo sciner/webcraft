@@ -9,7 +9,7 @@ const COLOR_RED = '#A15151';
 export class RecipeSlot extends Window {
     [key: string]: any;
 
-    constructor(x, y, w, h, id, title, text, recipe, block, ct) {
+    constructor(x : int, y : int, w : int, h : int, id : string, title : string | null, text : string | null, recipe : any, block : any, ct? : Window) {
 
         super(x, y, w, h, id, title, text)
 

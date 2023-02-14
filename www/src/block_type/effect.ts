@@ -28,7 +28,7 @@ export class Effect {
     static INSTANT_HEALTH = 24;
     static INSTANT_DAMAGE = 25;
 
-    static get(id) {
+    static get() {
         return [
             {id: 0, title: "Скорость", icon: 'speed'},
             {id: 1, title: "Замедление", icon: 'slowness'},

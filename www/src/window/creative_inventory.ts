@@ -10,7 +10,7 @@ class CreativeInventoryCollection extends Window {
     [key: string]: any;
 
     //
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x : int, y : int, w : int, h : int, id : string, title? : string, text? : string) {
         
         super(x, y, w, h, id, title, text)
 

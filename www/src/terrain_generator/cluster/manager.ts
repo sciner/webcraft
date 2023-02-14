@@ -4,8 +4,9 @@ import {ClusterPyramid} from "./pyramid.js";
 import { ClusterStructures } from "./structures.js";
 import {ClusterEmpty} from "./empty.js";
 import {impl as alea} from '../../../vendors/alea.js';
-import { TerrainMapManager2 } from "../biome3/terrain/manager.js";
+import type { TerrainMapManager2 } from "../biome3/terrain/manager.js";
 import type { ClusterBase } from "./base.js";
+import type { WorkerWorld } from "../../worker/world.js";
 
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
@@ -18,11 +19,8 @@ export class ClusterManager {
 
     /**
      * All clusters
-     * @param { import("../../worker/world.js").WorkerWorld } world
-     * @param {*} seed
-     * @param {*} version
      */
-    constructor(world, seed, version) {
+    constructor(world : WorkerWorld, seed, version) {
         this.seed = seed;
         this.version = version;
         this.world = world

@@ -362,7 +362,7 @@ export class DungeonGenerator {
         }
     }
 
-    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_type, rotate : IVector, extra_data? : any) {
+    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_type, rotate? : IVector, extra_data? : any) {
         if (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             const { tblocks } = chunk;
             tblocks.setBlockId(x, y, z, block_type.id);

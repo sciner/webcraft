@@ -446,14 +446,11 @@ export class Biomes {
     }
 
     /**
-     * @param {int} x 
-     * @param {int} z 
-     * @returns { Biome }
      */
-    getPaletteBiome(x, z) {
+    getPaletteBiome(x: int, z: int): Biome {
         x = x | 0
         z = z | 0
-        const palette_index = [z * this.scale + x]
+        const palette_index = z * this.scale + x
         return this.biomes_palette[palette_index]
     }
 

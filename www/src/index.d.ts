@@ -1,6 +1,8 @@
 //
 declare const angular: any
 declare const SlimSelect: any
+declare const Howler: any
+declare const Howl: any
 declare const Qubatch: any // GameClass // | ServerGame
 declare const BLOCK: any;
 declare const QubatchChunkWorker: any;
@@ -28,7 +30,11 @@ interface IVector {
 interface TSideSet {}
 
 interface TWorldInfo {
-    calerndar: any
+    calendar: {
+        day_time: any,
+        age: any
+    }
+    rules: any
 }
 
 interface TWorldSettings {}

@@ -7,8 +7,8 @@ import {BLOCK, POWER_NO} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
 
-export function newTypedBlocks(x, y, z) {
-    return new TypedBlocks3(x, y, z);
+export function newTypedBlocks(coord : Vector, chunkSize: Vector) {
+    return new TypedBlocks3(coord, chunkSize);
 }
 
 export const MASK_VERTEX_MOD = 128;
