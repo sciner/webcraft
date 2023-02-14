@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, Vector, vectorToChunkAddr} from "./helpers.js";
+import {Helpers, getChunkAddr, Vector} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -201,8 +201,8 @@ export class Player {
             this.inventory.hud.refresh();
         });
         // pickAt
-        this.pickAt = new PickAt(this.world, this.render, async (...args) => {
-            return await this.onPickAtTarget(...args);
+        this.pickAt = new PickAt(this.world, this.render, async (arg1, arg2, arg3) => {
+            return await this.onPickAtTarget(arg1, arg2, arg3);
         }, async (e) => {
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
                 this.inAttackProcess = ATTACK_PROCESS_ONGOING;

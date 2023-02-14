@@ -48,7 +48,7 @@ export default class style {
         );
 
         if(tblock.extra_data) {
-            aabb.set(...tblock.extra_data.aabb)
+            aabb.set(...tblock.extra_data.aabb as tupleFloat6)
                 .translate(-tblock.posworld.x, -tblock.posworld.y, -tblock.posworld.z);
         }
 
@@ -100,10 +100,10 @@ export default class style {
 
         sides.up.uv[2] = (aabb.width * 32) / 512;
         sides.up.uv[3] = (aabb.depth * 32) / 512;
-        
+
         sides.north.uv[2] = sides.south.uv[2] = (aabb.width * 32) / 512;
         sides.north.uv[3] = sides.south.uv[3] = (aabb.height * 32) / 512;
-        
+
         sides.west.uv[2] = sides.east.uv[2] = (aabb.depth * 32) / 512;
         sides.west.uv[3] = sides.east.uv[3] = (aabb.height * 32) / 512;
 

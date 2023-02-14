@@ -10,7 +10,7 @@ export class GeometryPool {
         lastBuffer,
         vertices,
         chunkId
-    } = {}) {
+    } = {lastBuffer: null, vertices:null, chunkId:-1}) {
     }
 
     dealloc(buffer) {
@@ -25,7 +25,7 @@ export class TrivialGeometryPool extends GeometryPool {
     }
 
     alloc({ lastBuffer, vertices,
-              chunkId } = {}) {
+              chunkId } = {lastBuffer: null, vertices:null, chunkId:-1}) {
         if (lastBuffer) {
             lastBuffer.destroy();
         }

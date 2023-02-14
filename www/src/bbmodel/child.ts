@@ -16,7 +16,7 @@ export class BBModel_Child {
      * @param { import("./model.js").BBModel_Model } model
      * @param {object} json
      */
-    constructor(model, json) {
+    constructor(model?, json?) {
         this.model = model
         this.json = json
         this.pivot = new Vector()

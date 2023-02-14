@@ -2,7 +2,7 @@ declare interface IGeoFile {
     format_version: string;
     skins: Record<string, any>;
     variant?: string;
-    [key: string]: IGeoTree;
+    [key: string]: IGeoTree|any;
 }
 
 declare interface IGeoFileNew {

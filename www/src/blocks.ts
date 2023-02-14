@@ -1159,7 +1159,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры
-    static calcTexture(c, dir, tx_cnt = TX_CNT) {
+    static calcTexture(c, dir, tx_cnt = TX_CNT): tupleFloat4 {
         if (c instanceof Array) {
             // do nothing
         } else if(c instanceof Function) {
@@ -1330,7 +1330,7 @@ export class BLOCK {
      *
      * @returns {array[]}
      */
-    static getShapes(pos, tblock, world, for_physic, expanded, neighbours?) {
+    static getShapes(pos, tblock, world, for_physic, expanded, neighbours?): Array<tupleFloat6> {
 
         const shapes = [] // x1 y1 z1 x2 y2 z2
         const material = tblock.material

@@ -40,7 +40,7 @@ export class BBModel_Group extends BBModel_Child {
      * @param {*} parent_matrix
      * @param {*} emmit_particles_func
      */
-    pushVertices(vertices, pos, lm, parent_matrix, emmit_particles_func) {
+    pushVertices(vertices, pos, lm, parent_matrix, emmit_particles_func?) {
 
         const mx = mat4.create();
         mat4.copy(mx, parent_matrix);

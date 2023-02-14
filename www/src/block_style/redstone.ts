@@ -176,7 +176,7 @@ export default class style {
 
         function drawX(x, y, z) {
             y_plus += 1/500;
-            let top_vectors = [0, -1, 0, 1, 0, 0];
+            let top_vectors: tuple6 = [0, -1, 0, 1, 0, 0];
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y + y_plus,
@@ -188,7 +188,7 @@ export default class style {
 
         function drawWest(x, y, z) {
             y_plus += 1/500;
-            let top_vectors = [0, -1, 0, .5, 0, 0];
+            let top_vectors: tupleFloat6 = [0, -1, 0, .5, 0, 0];
             pushTransformed(
                 vertices, matrix, pivot,
                 x - .25, z, y + y_plus,
@@ -200,7 +200,7 @@ export default class style {
 
         function drawEast(x, y, z) {
             y_plus += 1/500;
-            let top_vectors = [0, -1, 0, .5, 0, 0];
+            let top_vectors: tupleFloat6 = [0, -1, 0, .5, 0, 0];
             pushTransformed(
                 vertices, matrix, pivot,
                 x + .25, z, y + y_plus,

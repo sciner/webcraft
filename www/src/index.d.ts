@@ -18,6 +18,9 @@ declare type byte = number&{};
 declare type imat3 = float[];
 declare type imat4 = float[] | Float32Array;
 
+declare type tupleFloat6 = [number, number, number, number, number, number]
+declare type tupleFloat4 = [number, number, number, number]
+
 /**
  * A object like Vector
  */

@@ -149,12 +149,12 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
     let sideFlags       = 0;
     let upFlags         = 0;
 
-    let top_rotate      = [xs, 0, 0, 0, zs, 0]; // Поворот верхней поверхностной текстуры
-    let bottom_rotate   = [xs, 0, 0, 0, -zs, 0];
-    let north_rotate    = [xs, 0, 0, 0, 0, -ys];
-    let south_rotate    = [xs, 0, 0, 0, 0, ys];
-    let west_rotate     = [0, -zs, 0, 0, 0, ys];
-    let east_rotate     = [0, zs, 0, 0, 0, ys];
+    let top_rotate   :tupleFloat6 = [xs, 0, 0, 0, zs, 0]; // Поворот верхней поверхностной текстуры
+    let bottom_rotate:tupleFloat6 = [xs, 0, 0, 0, -zs, 0];
+    let north_rotate :tupleFloat6 = [xs, 0, 0, 0, 0, -ys];
+    let south_rotate :tupleFloat6 = [xs, 0, 0, 0, 0, ys];
+    let west_rotate  :tupleFloat6 = [0, -zs, 0, 0, 0, ys];
+    let east_rotate  :tupleFloat6 = [0, zs, 0, 0, 0, ys];
 
     if(opened) {
         if(on_ceil) {

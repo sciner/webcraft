@@ -78,6 +78,7 @@ class Strings {
 
 export class Hotbar {
     [key: string]: any;
+    sprites: Dict<MySprite>;
 
     constructor(hud) {
 
@@ -101,7 +102,7 @@ export class Hotbar {
             this.addHotbarText()
 
             // Init sprites
-            this.sprites = {
+            const spriteScale: Dict<number> = {
 
                 slot:               1,
                 selector:           1,
@@ -129,7 +130,7 @@ export class Hotbar {
 
             this.hotbar_atlas = Resources.atlas.hotbar
 
-            for(const [name, scale] of Object.entries(this.sprites)) {
+            for(const [name, scale] of Object.entries(spriteScale)) {
                 this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale * this.zoom)
             }
 
