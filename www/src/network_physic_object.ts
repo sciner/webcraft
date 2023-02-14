@@ -73,7 +73,7 @@ export class NetworkPhysicObject {
         return this.world ? this.world.serverTimeWithLatency : Date.now();
     }
 
-    applyNetState(data = {pos: null, time: 0, rotate: null}) {
+    applyNetState(data: {pos: IVector, time: number, rotate?: Vector, tracked?: boolean} = {pos: null, time: 0, rotate: null}) {
         if (data.tracked) {
             this.tracked = true;
         }

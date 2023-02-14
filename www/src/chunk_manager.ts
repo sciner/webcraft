@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat, sizeOf, vectorToChunkAddr} from "./helpers.js";
+import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -609,7 +609,7 @@ export class ChunkManager {
     }
 
     // Update
-    update(player_pos, delta) {
+    update(player_pos?, delta?) {
 
         // let p = performance.now();
         // let p2 = performance.now();
@@ -714,7 +714,7 @@ export class ChunkManager {
             z = x.z;
             x = x.x;
         }
-        this.get_block_chunk_addr = getChunkAddr(x, y, z, this.get_block_chunk_addr);
+        this.get_block_chunk_addr = getChunkAddr(x as any, y, z, this.get_block_chunk_addr);
         let chunk = this.chunks.get(this.get_block_chunk_addr);
         if(chunk) {
             return chunk.getBlock(x, y, z, v);
@@ -783,7 +783,7 @@ export class ChunkManager {
                 pos.z += 2;
             }
             pos.x += 2;
-            const item = {
+            const item: IBlockItem = {
                 id:         mat.id,
                 extra_data: null
             };

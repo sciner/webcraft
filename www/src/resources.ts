@@ -279,7 +279,7 @@ export class Resources {
         return fetch(url).then(response => json ? response.json() : response.text());
     }
 
-    static loadImage(url,  imageBitmap) {
+    static loadImage(url,  imageBitmap): Promise<HTMLImageElement|ImageBitmap> {
         if (imageBitmap) {
             return fetch(url)
                 .then(r => r.blob())
@@ -289,6 +289,7 @@ export class Resources {
                     setTimeout(() => {
                         Qubatch.exit();
                     }, 1000);
+                    return null;
                 });
         }
         return new Promise((resolve, reject) => {

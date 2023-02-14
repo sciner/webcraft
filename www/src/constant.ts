@@ -195,7 +195,6 @@ export const KEY = {
     F10: 121,
     F11: 122,
     SLASH: 191,
-    F11: 122
 };
 
 export const CLIENT_SKIN_ROOT = './media/models/player_skins/';

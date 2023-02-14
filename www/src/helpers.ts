@@ -575,7 +575,7 @@ export class VectorCollectorFlat {
     size: number;
     list: any;
 
-    constructor(list) {
+    constructor(list?) {
         this.clear(list);
         this.flat = [];//new Array(32768);
         this.free_indexes = [];
@@ -609,7 +609,7 @@ export class VectorCollectorFlat {
         })()
     }
 
-    clear(list) {
+    clear(list?) {
         this.list = list ? list : new Map();
         this.size = 0;
         this.free_indexes = [];

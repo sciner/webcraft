@@ -25,7 +25,7 @@ import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
  * @property {*} matrix
  * @property {number[]} size (float[3])
  * @property {number[]} textureSize (float[2])
- * @property {boolean} mirror 
+ * @property {boolean} mirror
  * @property {number} inflate (Float)
  * @property {number[] | UVDefinition | UVDirections} uv
  */
@@ -44,7 +44,7 @@ const lm = 0;
 
 /**
  * Fill cube from bedrock cube notation.
- * 
+ *
  * @param {FillCubeOptions} param0
  * @param {*} target
  * @returns
@@ -53,11 +53,10 @@ export function fillCube({
     matrix,
     size,
     textureSize,
-    uv: uv_point = [0,0],
+    uv = [0,0] as (tupleFloat2 | Dict),
     mirror = false,
     inflate = 0
 }, target) {
-
     let xX = matrix[0], xY = matrix[1], xZ = matrix[2];
     let yX = matrix[4], yY = matrix[5], yZ = matrix[6];
     let zX = matrix[8], zY = matrix[9], zZ = matrix[10];
@@ -69,7 +68,7 @@ export function fillCube({
 
     // const [ sx, sy ] = uvPoint;
     const [ dx, dy, dz ] = size;
-    const uv = {
+    const uvSides = {
         north: [],
         east : [],
         south: [],
@@ -79,24 +78,24 @@ export function fillCube({
     };
 
     // old format, where uvPoint is  [x, y] which represent block of start cube-layout
-    if(Array.isArray(uv_point)) {
+    if(Array.isArray(uv)) {
         // UV
         //           X                                             Y                                   W         H
-        uv.up    =  [itx * (uv_point[0] + dz + dx / 2),            ity * (uv_point[1] + dz / 2),       dx * itx, dz * ity];
-        uv.down  =  [itx * (uv_point[0] + dz + dx + dx / 2),       ity * (uv_point[1] + dz / 2),       dx * itx, dz * ity];
-        uv.north =  [itx * (uv_point[0] + dz + dx / 2),            ity * (uv_point[1] + dz + dy / 2),  dx * itx, dy * ity];
-        uv.south =  [itx * (uv_point[0] + 2 * dz + dx + dx / 2),   ity * (uv_point[1] + dz + dy / 2),  dx * itx, dy * ity];
-        uv.east  =  [itx * (uv_point[0] + dz + dx + dz / 2),       ity * (uv_point[1] + dz + dy / 2),  dz * itx, dy * ity];
-        uv.west  =  [itx * (uv_point[0] + dz / 2),                 ity * (uv_point[1] + dz + dy / 2),  dz * itx, dy * ity];
+        uvSides.up    =  [itx * (uv[0] + dz + dx / 2),            ity * (uv[1] + dz / 2),       dx * itx, dz * ity];
+        uvSides.down  =  [itx * (uv[0] + dz + dx + dx / 2),       ity * (uv[1] + dz / 2),       dx * itx, dz * ity];
+        uvSides.north =  [itx * (uv[0] + dz + dx / 2),            ity * (uv[1] + dz + dy / 2),  dx * itx, dy * ity];
+        uvSides.south =  [itx * (uv[0] + 2 * dz + dx + dx / 2),   ity * (uv[1] + dz + dy / 2),  dx * itx, dy * ity];
+        uvSides.east  =  [itx * (uv[0] + dz + dx + dz / 2),       ity * (uv[1] + dz + dy / 2),  dz * itx, dy * ity];
+        uvSides.west  =  [itx * (uv[0] + dz / 2),                 ity * (uv[1] + dz + dy / 2),  dz * itx, dy * ity];
 
     // uv each direction
     } else {
-
-        for(const key in uv) {
+        const uv_point = uv as Dict
+        for(const key in uvSides) {
             const [x, y] = uv_point[key].uv;
             const [width, height] = uv_point[key].uv_size;
 
-            uv[key] = [
+            uvSides[key] = [
                 (x + width / 2) * itx,  // Center X
                 (y + height / 2) * ity, // Center Y
                 width * itx,            // Width
@@ -133,7 +132,7 @@ export function fillCube({
     // when size by any axes is zero we drop quads that based on this axis
     if (dx * dz > 0) {
         //up
-        c = uv.up;
+        c = uvSides.up;
         target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
             xX, xZ, xY,
             zX, zZ, zY,
@@ -141,7 +140,7 @@ export function fillCube({
             lm, flags);
 
         //down
-        c = uv.down;
+        c = uvSides.down;
         target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
             xX, xZ, xY,
             -zX, -zZ, -zY,
@@ -152,7 +151,7 @@ export function fillCube({
 
     if (dx * dy > 0) {
         //north
-        c = uv.north;
+        c = uvSides.north;
         target.push(cX - inf2 * zX, cZ - inf2 * zZ, cY - inf2 * zY,
             xX, xZ, xY,
             yX, yZ, yY,
@@ -160,7 +159,7 @@ export function fillCube({
             lm, flags);
 
         //south
-        c = uv.south;
+        c = uvSides.south;
         target.push(cX + inf2 * zX, cZ + inf2 * zZ, cY + inf2 * zY,
             xX, xZ, xY,
             -yX, -yZ, -yY,
@@ -170,7 +169,7 @@ export function fillCube({
 
     if (dy * dz > 0) {
         //west
-        c = mirror ? uv.east : uv.west;
+        c = mirror ? uvSides.east : uvSides.west;
         target.push(cX - inf2 * xX, cZ - inf2 * xZ, cY - inf2 * xY,
             zX, zZ, zY,
             -yX, -yZ, -yY,
@@ -178,7 +177,7 @@ export function fillCube({
             lm, flags);
 
         //east
-        c = mirror ? uv.west : uv.east;
+        c = mirror ? uvSides.west : uvSides.east;
         target.push(cX + inf2 * xX, cZ + inf2 * xZ, cY + inf2 * xY,
             zX, zZ, zY,
             yX, yZ, yY,

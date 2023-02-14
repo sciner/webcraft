@@ -20,7 +20,7 @@ export class GeometryPool {
 
 export class TrivialGeometryPool extends GeometryPool {
     [key: string]: any;
-    constructor(context, options) {
+    constructor(context) {
         super(context);
     }
 
