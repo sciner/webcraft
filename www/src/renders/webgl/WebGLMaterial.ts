@@ -138,21 +138,13 @@ export class WebGLMaterial extends BaseMaterial {
             cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
     }
 
+    /**
+     * unused, works only in webgpu
+     * @param addPos
+     * @param modelMatrix
+     */
     updatePos(addPos, modelMatrix = null) {
-        const { gl } = this.context;
-        const { camPos } = this.shader;
-
-        if (addPos) {
-            gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z);
-        } else {
-            gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
-        }
-
-        gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
-
-        if (modelMatrix) {
-            gl.uniformMatrix4fv(this.uModelMatrix, false, modelMatrix);
-        }
+        this.shader.updatePos(addPos, modelMatrix);
     }
 
     static texState = null;

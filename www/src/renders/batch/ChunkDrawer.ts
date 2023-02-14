@@ -54,7 +54,7 @@ export class ChunkDrawer extends ObjectDrawer {
         return buffer;
     }
 
-    draw(geom, material, chunk) {
+    draw(geom, material?, chunk?) {
         if (geom.size === 0) {
             return;
         }

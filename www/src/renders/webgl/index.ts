@@ -161,8 +161,7 @@ export class WebGLTexture extends BaseTexture {
         }
     }
 
-    bind(location) {
-        location = location || 0;
+    bind(location = 0) {
         const {
             gl
         } = this.context;
@@ -342,7 +341,6 @@ export default class WebGLRenderer extends BaseRenderer {
         this.multidrawBaseExt = this.gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
 
         this.line.init();
-        return Promise.resolve(this);
     }
 
     resetBefore() {
@@ -618,18 +616,10 @@ export default class WebGLRenderer extends BaseRenderer {
         }, format);
     }
 
-}
+    static test(view: HTMLCanvasElement, options: WebGLContextAttributes = {}) {
+        const context = view.getContext('webgl2', options);
+        return !!context;
+    }
 
-/**
- *
- * @param {HTMLCanvasElement} view
- */
-WebGLRenderer.test = function(view, options = {}) {
-    /**
-     * @type {*}
-     */
-    const context = view.getContext('webgl2', options);
-    return !!context;
+    static kind = 'webgl';
 }
-
-WebGLRenderer.kind = 'webgl';
