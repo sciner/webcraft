@@ -1,6 +1,7 @@
 import Biome3LayerStone from "./layers/stone.js";
 import Biome3LayerAir from "./layers/air.js";
 import Biome3LayerOverworld from "./layers/overworld.js";
+import Biome3LayerEnd from "./layers/end.js";
 import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 
 export class Biome3LayerManager {
@@ -12,6 +13,7 @@ export class Biome3LayerManager {
         this.layer_types = new Map()
         this.layer_types.set('overworld', Biome3LayerOverworld)
         this.layer_types.set('stone', Biome3LayerStone)
+        this.layer_types.set('end', Biome3LayerEnd)
 
         // Make layers
         this.makeLayers(list)
