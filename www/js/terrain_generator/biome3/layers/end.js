@@ -144,9 +144,11 @@ export default class Biome3LayerEnd {
         this.noise2d = generator.noise2d
         this.noise3d = generator.noise3d
         this.block_manager = generator.block_manager
-        this.city = new GeneratorCity(generator.fastRandom)
-        this.city.add(124, 280, -227, "base")
-        this.city.startHouse(8, 1, -14)
+        //this.city = new GeneratorCity(generator.fastRandom)
+        //this.city.add(124, 280, -227, "base")
+        //this.city.startHouse(8, 1, -14)
+        this.clusterManager = generator.clusterManager
+        console.log(this.clusterManager)
     }
 
     generate(chunk, seed, rnd) {
@@ -170,7 +172,7 @@ export default class Biome3LayerEnd {
                 }
             }
         //}
-        this.city.chunk(chunk, seed, rnd)
+        //this.city.chunk(chunk, seed, rnd)
         //this.genRoom(chunk, rnd)
         return this.generator.generateDefaultMap(chunk)
 
