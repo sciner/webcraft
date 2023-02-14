@@ -87,8 +87,8 @@ export class BulkSelectQuery {
 
     /**
      * Adds one row of arguments to the queue to be queird when {@link flush} is called.
-     * @param {Array of Any} srcRow - the parametrs to query one row
-     * @return {Promise of ?Object} - a promise of (one row or null)
+     * @param { *[] } srcRow - the parametrs to query one row
+     * @return { Promise<?Object> } - a promise of (one row or null)
      */
     async get(srcRow) {
         if (this.modeAll === true) {
@@ -111,7 +111,7 @@ export class BulkSelectQuery {
 
     /**
      * Queries all the data previously passed to {@link get} and {@link get}, which will allow their promises to resolve.
-     * @param {Object} uniformHostParameters - additional parameters that are not included in
+     * @param { object } uniformHostParameters - additional parameters that are not included in
      *   each row of data. The data itself is added to these parameters as a field.
      */
     flush(uniformHostParameters = {}) {
@@ -207,7 +207,7 @@ export class BulkSelectQuery {
  * Constructs and runs a query with host parameters passed as (?,?,?).
  * It's slower than passing parameters in JSON, but it can pass BLOB.
  * 
- * @param {Object} conn
+ * @param { object } conn
  * @param {String} prefix - the first part of the query string, ending with "VALUES"
  * @param {String} values - a part of the query string containing (?,?,?,...)
  * @param {String} suffix - the second part of the query string

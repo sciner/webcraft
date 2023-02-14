@@ -101,7 +101,7 @@ export class ClusterStructures extends ClusterBuildingBase {
 
             // Fill near_mask
             const margin = 3
-            for(const [_, building] of this.buildings.entries()) {
+            for(const building of this.buildings.values()) {
                 const pos = new Vector(building.aabb.x_min, 0, building.aabb.z_min)
                 for(let i = -margin; i < building.size.x + margin; i++) {
                     for(let j = -margin; j < building.size.z + margin; j++) {

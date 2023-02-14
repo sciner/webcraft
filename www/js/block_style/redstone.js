@@ -82,7 +82,7 @@ export default class style {
         let index               = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
         const r                 = randoms[index];
         const H                 = 1;
-        const flags             = QUAD_FLAGS.MASK_BIOME;
+        const flags             = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
 
         const material          = block.material;
         const redstone_textures = material.redstone.textures;

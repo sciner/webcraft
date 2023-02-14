@@ -37,8 +37,7 @@ export class WorldMobManager {
 
     // убить всех мобов
     kill() {
-        const mobs = this.list.values()
-        for (const mob of mobs) {
+        for (const mob of this.list.values()) {
             mob.kill()
         }
     }

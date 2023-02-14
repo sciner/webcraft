@@ -67,9 +67,9 @@ export class FluidChunkFlowing {
 
     /**
      * It checks that the flowing type has changed. If it has, it updates the map of flowing blocks.
-     * @param {Int} index - block index, non-flat
-     * @param {Int} value - the new fluid value
-     * @param {Int} prev - the previous fluid value
+     * @param { int } index - block index, non-flat
+     * @param { int } value - the new fluid value
+     * @param { int } prev - the previous fluid value
      */
     updateByIndexFluid(index, value, prev) {
         const newFlowing = value & FLUID_LEVEL_MASK
@@ -85,9 +85,9 @@ export class FluidChunkFlowing {
     
     /**
      * Unlike {@link updateByIndexFluid}, it doesn't check that the vaue has chenged, but it's a bit faster.
-     * @param {Int} index - block index, non-flat
-     * @param {Int} newFlowing - the new value that contains only bits in {@link FLUID_TYPE_MASK}, only if the fluid is flowing
-     * @param {Int} prevFlowing - the previous value that contains only bits in {@link FLUID_TYPE_MASK}
+     * @param { int } index - block index, non-flat
+     * @param { int } newFlowing - the new value that contains only bits in {@link FLUID_TYPE_MASK}, only if the fluid is flowing
+     * @param { int } prevFlowing - the previous value that contains only bits in {@link FLUID_TYPE_MASK}
      */
     updateByIndexDiff(index, newFlowing, prevFlowing) {
         const oldDiff = this.diffByIndex.get(index)

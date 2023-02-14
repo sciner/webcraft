@@ -16,7 +16,7 @@ import { WorldDBActor } from "./db/world/WorldDBActor.js";
 import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
 import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
-import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
+import { ArrayHelpers, getChunkAddr, Vector, VectorCollector, PerformanceTimer } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { DBItemBlock } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
@@ -51,6 +51,12 @@ export class ServerWorld {
         this.shuttingDown = null;
     }
 
+    /**
+     * @param {string} world_guid 
+     * @param { import("./db/world.js").DBWorld } db_world 
+     * @param {string} new_title 
+     * @param {*} game 
+     */
     async initServer(world_guid, db_world, new_title, game) {
         this.game = game;
         if (SERVER_TIME_LAG) {
@@ -254,7 +260,7 @@ export class ServerWorld {
 
         // compress chunks in db
         t = performance.now()
-        await this.db.chunks.insertRebuildModifiers(chunks_addr.keys())
+        await this.db.chunks.insertRebuildModifiers(Array.from(chunks_addr.keys()))
         console.log('Building: compress chunks in db ...', performance.now() - t)
 
         // reread info
@@ -450,7 +456,7 @@ export class ServerWorld {
                 // We mustn't save fluids (synchronously) while the world transaction is writing, because it'll cause long waiting.
                 if (!this.dbActor.savingWorldNow) {
                     // Save fluids
-                    await this.db.fluid.saveFluids();
+                    this.db.fluid.saveFluids(); // it's ok to not await it here
                     this.ticks_stat.add('db_fluid_save');
                     this.givePriorityToSavingFluids = false;
                 } else {
@@ -471,23 +477,43 @@ export class ServerWorld {
 
     // onPlayer
     async onPlayer(player, skin) {
+        const timer = new PerformanceTimer();
+        const rndToken = Math.random() * 1000000 | 0;
         const user_id = player.session.user_id;
         // 1. Delete previous connections
         const existing_player = this.players.get(user_id);
         if(existing_player) {
-            console.log('OnPlayer delete previous connection for: ' + player.session.username);
+            console.log(`OnPlayer delete previous connection for: ${player.session.username}, token=${rndToken}`);
+            timer.start('onLeave');
             await this.onLeave(existing_player);
+            timer.stop();
+            console.log(`finished onLeave, token=${rndToken}`);
         }
         // If thre is a copy of this player player waiting to be saved right now, wait until it's saved and forgotten.
         // It's slow, but safe. TODO restore players without waiting
-        await this.players.getDeleted(user_id)?.savingPromise;
+        const savingPromise = this.players.getDeleted(user_id)?.savingPromise;
+        if (savingPromise) {
+            console.log(`awaiting savingPromise, token=${rndToken}`);
+            timer.start('savingPromise');
+            await savingPromise;
+            timer.stop();
+            console.log(`finished savingPromise, token=${rndToken}`);
+        }
         // 2. Insert to DB if new player
+        timer.start('registerPlayer');
+        console.log(`awaiting registerPlayer, token=${rndToken}`);
         player.init(await this.db.registerPlayer(this, player));
+        console.log(`finished registerPlayer, token=${rndToken}`);
         player.state.skin = skin;
         player.updateHands();
+        timer.stop().start('initQuests');
+        console.log(`awaiting initQuests, token=${rndToken}`);
         await player.initQuests();
+        console.log(`finished initQuests, token=${rndToken}`);
+        timer.stop().start('initWaitingDataForSpawn');
         // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
+        timer.stop();
         // 4. Insert to array
         this.players.list.set(user_id, player);
         // 5. Send about all other players
@@ -505,9 +531,9 @@ export class ServerWorld {
         this.sendAll([{
             name: ServerClient.CMD_PLAYER_JOIN,
             data: player.exportState()
-        }], []);
+        }]);
         // 7. Write to chat about new player
-        this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
+        this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, Array.from(this.players.keys()));
         // 8. Drop item if stored
         if (player.inventory.moveOrDropFromDragSlot()) {
             player.inventory.markDirty();
@@ -528,6 +554,11 @@ export class ServerWorld {
         if(this.isBuildingWorld()) {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
         }
+        if (timer.sum() > 50) {
+            const values = JSON.stringify(timer.round().filter())
+            this.chat.sendSystemChatMessageToSelectedPlayers('!langTimes in onPlayer(), ms: ' + values, player)
+        }
+        console.log(`finished onPlayer, token=${rndToken}`);
     }
 
     // onLeave
@@ -781,7 +812,7 @@ export class ServerWorld {
                         // 0. Play particle animation on clients
                         if (!ignore_check_air) {
                             if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
-                                if (params.destroy_block_id > 0) {
+                                if (params.destroy_block.id > 0) {
                                     const except_players = [];
                                     if(server_player) except_players.push(server_player)
                                     cps.custom_packets.push({
@@ -790,7 +821,7 @@ export class ServerWorld {
                                             name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
                                             data: {
                                                 pos: params.pos.add(new Vector(.5, .5, .5)),
-                                                item: { id: params.destroy_block_id }
+                                                item: params.destroy_block
                                             }
                                         }]
                                     });
@@ -857,7 +888,7 @@ export class ServerWorld {
                                 PlayerEvent.trigger({
                                     type: PlayerEvent.DESTROY_BLOCK,
                                     player: server_player,
-                                    data: { pos: params.pos, block_id: params.destroy_block_id }
+                                    data: { pos: params.pos, block: params.destroy_block }
                                 });
                             } else if (params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
                                 PlayerEvent.trigger({

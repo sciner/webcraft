@@ -11,14 +11,14 @@ import { WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 
 /**
  * World generation unfo passed from server
- * @typedef {Object} TWorldInfo
+ * @typedef { object } TWorldInfo
  * @property {{id: string}} generator
  * @property {string} game_mode
  * @property {string} guid
  * @property {number} id
  * @property {{x: number, y: number, z: number}} pos_spawn
  * @property {string} seed
- * @property {Object} state
+ * @property { object } state
  * @property {string} title
  * @property {number} user_id
  */
@@ -276,6 +276,9 @@ export class World {
                         pos: mod.pos,
                         item: {id: tblock.id}
                     };
+                    if(tblock.extra_data) {
+                        destroy_data.item.extra_data = tblock.extra_data
+                    }
                     Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos.add(new Vector(.5, .5, .5)), false);
                     this.onBlockDestroy(destroy_data.pos, destroy_data.item);
                 }

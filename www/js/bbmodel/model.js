@@ -56,7 +56,7 @@ export class BBModel_Model {
                 }
             }
             //
-            for(const [_, group] of this.groups.entries()) {
+            for(const group of this.groups.values()) {
                 processGroup(group, '')
             }
         } else {

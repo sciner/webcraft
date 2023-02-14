@@ -9,6 +9,7 @@ export class DBWorldFluid {
         this.world = world;
 
         this.dirtyChunks = new SimpleQueue();
+        this.savingDirtyChunksPromise = null;
 
         this.bulkGetQuery = new BulkSelectQuery(this.conn,
             `WITH cte AS (SELECT value FROM json_each(:jsonRows))
@@ -63,7 +64,10 @@ export class DBWorldFluid {
         // console.log(`saving fluid ${chunk_addr}`)
     }
 
-    /** @param {Array of Objects} rows {addr, data} */
+    /**
+     * @param {object[]} rows {addr, data}
+     * @returns 
+     */
     async bulkSaveChunkFluid(rows) {
         const worldChunkFlags = this.world.worldChunkFlags
         const insertRows = []
@@ -97,7 +101,10 @@ export class DBWorldFluid {
         ])
     }
 
-    async saveFluids(maxSaveChunks= 10) {
+    saveFluids(maxSaveChunks= 10) {
+        if (this.savingDirtyChunksPromise) {
+            return; // it's being written now; skip saving in this tick
+        }
         const saveRows = [];
         while (this.dirtyChunks.length > 0 && maxSaveChunks !== 0) {
             const elem = this.dirtyChunks.shift();
@@ -115,12 +122,17 @@ export class DBWorldFluid {
             maxSaveChunks--;
         }
         if (saveRows.length) {
-            await this.bulkSaveChunkFluid(saveRows);
+            this.savingDirtyChunksPromise = this.bulkSaveChunkFluid(saveRows).finally(() => {
+                this.savingDirtyChunksPromise = null;
+            });
         }
     }
 
     async flushAll() {
-        await this.saveFluids(-1);
+        await this.savingDirtyChunksPromise;
+        this.savingDirtyChunksPromise = null;
+        this.saveFluids(-1);
+        return this.savingDirtyChunksPromise;
     }
 
     async flushChunk(fluidChunk) {

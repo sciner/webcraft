@@ -120,7 +120,7 @@ export class BaseResourcePack {
                 height: cnv.height / textureInfo.tx_cnt
             }
             AlphabetTexture.init();
-            for(let [_, item] of AlphabetTexture.chars.entries()) {
+            for(let item of AlphabetTexture.chars.values()) {
                 const char = item.char;
                 let py = 0;
                 if(char.length > 1) {

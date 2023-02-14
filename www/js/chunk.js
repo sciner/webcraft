@@ -284,7 +284,7 @@ export class Chunk {
         this.light.dispose();
         chunkManager.dataWorld.removeChunk(this);
         // destroy buffers
-        for (let [_, v] of this.vertices) {
+        for (let v of this.vertices.values()) {
             if (v.buffer) {
                 v.buffer.destroy();
             }

@@ -26,7 +26,7 @@ import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, 
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
-import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
+import { PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
@@ -172,7 +172,7 @@ export class Renderer {
         this.globalUniforms = renderBackend.globalUniforms;
 
         // Make materials for all shaders
-        for(let [_, rp] of BLOCK.resource_pack_manager.list) {
+        for(let rp of BLOCK.resource_pack_manager.list.values()) {
             rp.shader.materials = {
                 regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
                 doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
@@ -678,8 +678,8 @@ export class Renderer {
                     const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X;
                     const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z;
                     const cell_index = z * CHUNK_SIZE_X + x;
-                    const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 2];
-                    const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 3];
+                    const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R];
+                    const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G];
                     const color = this.maskColorTex.getColorAt(x_pos, y_pos)
                     p.color[0] = color.r / 255;
                     p.color[1] = color.g / 255;
@@ -789,7 +789,7 @@ export class Renderer {
         // layers??
         // maybe we will create a real layer group
         for(let transparent of [false, true]) {
-            for(let [_, rp] of BLOCK.resource_pack_manager.list) {
+            for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 // 2. Draw chunks
                 this.world.chunkManager.draw(this, rp, transparent);
             }
@@ -847,7 +847,7 @@ export class Renderer {
             if(this.world.info && this.world.isBuildingWorld()) {
                 const _schema_coord = new Vector(0, 0, 0)
                 const _schema_size = new Vector(0, 0, 0)
-                for(const [name, schema] of BuildingTemplate.schemas.entries()) {
+                for(const schema of BuildingTemplate.schemas.values()) {
                     _schema_size.copyFrom(schema.world.pos1).subSelf(schema.world.pos2).addScalarSelf(1, 0, 1)
                     _schema_size.y = _schema_size.y * -1 + 1
                     _schema_coord.set(schema.world.pos2.x, schema.world.pos1.y - 1, schema.world.pos2.z)
@@ -917,9 +917,9 @@ export class Renderer {
     }
 
     // Destroy block particles
-    destroyBlock(block, pos, small, scale = 1, force = 1) {
+    destroyBlock(block, pos, small, scale = 1, force = 1, count) {
         const block_manager = Qubatch.world.block_manager;
-        this.meshes.effects.createEmitter('destroy_block',  pos, {block, small, scale, force, block_manager});
+        this.meshes.effects.createEmitter('destroy_block', pos, {block, small, scale, force, block_manager, count});
     }
 
     // Add particles
@@ -993,7 +993,7 @@ export class Renderer {
         }
         const defaultShader = this.defaultShader;
         defaultShader.bind();
-        for(const [_, player] of this.world.players.all()) {
+        for(const player of this.world.players.values()) {
             if(player.itsMe()) {
                 if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
                     continue;
@@ -1134,7 +1134,7 @@ export class Renderer {
             vertices.push(...player_vertices);
         };
         // draw players shadow
-        for(const [_, player] of world.players.all()) {
+        for(const player of world.players.values()) {
             const pos = player.pos.clone();
             appendPos(pos);
         }

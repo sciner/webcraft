@@ -12,13 +12,65 @@
 
 #include<manual_mip_define_func>
 
-//vec3 gamma(vec3 color){
-//    return pow(color, vec3(1.0/2.0));
-//}
-
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
+
+//******************************************************************************
+
+    float Color_GetSaturation(vec3 c) {
+        return max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+    }
+
+    float Color_GetLuminosity(vec3 c) {
+        return 0.3*c.r + 0.59*c.g + 0.11*c.b;
+    }
+
+    vec3 Color_SetLuminosity(vec3 c, float lum) {
+
+        vec3 cc = c;
+        float d = lum - Color_GetLuminosity(c);
+        c.rgb += vec3(d,d,d);
+        c.rgb = clamp(c.rgb, vec3(0.), vec3(1.));
+
+        // clip back into legal range
+        lum = Color_GetLuminosity(c);
+        float cMin = min(c.r, min(c.g, c.b));
+        float cMax = max(c.r, max(c.g, c.b));
+
+        if(cMin < 0.) {
+            c = mix(vec3(lum,lum,lum), cc, lum / (lum - cMin));
+        }
+
+        if(cMax > 1.) {
+            c = mix(vec3(lum,lum,lum), cc, (1. - lum) / (cMax - lum));
+        }
+
+        return c;
+    }
+
+    vec3 BlendMode_Color(vec3 base, vec3 blend) {
+        return Color_SetLuminosity(blend, Color_GetLuminosity(base));
+    }
+
+    // Generic algorithm to desaturate images used in most game engines
+    vec3 generic_desaturate(vec3 color, float factor) {
+        vec3 lum = vec3(0.299, 0.587, 0.114);
+        vec3 gray = vec3(dot(lum, color));
+        return mix(color, gray, factor);
+    }
+
+    // Generic algorithm to desaturate images used in most game engines
+    vec3 generic_desaturate2(vec3 color, float factor) {
+        vec3 gray = vec3( dot( color , vec3( 0.2126 , 0.7152 , 0.0722 ) ) );
+        return  mix( color , gray , factor );
+    }
+
+    vec3 brightnessContrast(vec3 value, float brightness, float contrast) {
+        return (value - 0.5) * contrast + 0.5 + brightness;
+    }
+
+//******************************************************************************
 
 vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     vec2 texc = texClamped;
@@ -29,7 +81,26 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         float mask_shift = v_color.b;
         vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(mask_shift, 1.), texc.y) * mipData.zw + mipData.xy);
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
-        color.rgb += color_mask.rgb * color_mult.rgb;
+        // Old Blend Mode
+        if(v_flagMaskColorAdd > .5) {
+            color.rgb += color_mask.rgb * color_mult.rgb;
+        } else {
+            color.rgb += color_mask.rgb * color_mult.rgb;
+
+            // color_mask.rgb = pow(color_mask.rgb, vec3(0.850));
+            // color.rgb += pow(color_mask.rgb * color_mult.rgb, vec3(1.0 / 0.85));
+            // color.rgb += 
+
+            // Photoshop Blend Mode @Color
+            // color.rgb += BlendMode_Color(color_mask.rgb, color_mult.rgb);
+
+            // color correction
+            // color.rgb = pow(color.rgb, vec3(1.0 / 0.5)); // gamma
+            // color.rgb = color.rgb + .15; // brightness
+            // color.rgb = generic_desaturate(color.rgb, 0.25); // desaturate
+
+        }
+
     } else if (v_flagMultiplyColor > 0.0) {
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
         color.rgb *= color_mult.rgb;
@@ -38,6 +109,10 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     //if(v_flagEnchantedAnimation > 0.0) {
     //    color.rgb *= 2.0;
     //}
+
+    // color.rgb = pow(color.rgb, vec3(1.0 / 0.6)); // gamma
+    // color.rgb = brightnessContrast(color.rgb, 0.05, 0.8); // brightness + contrast
+    // color.rgb = generic_desaturate(color.rgb, 0.15); // desaturate
 
     return color;
 }
@@ -82,8 +157,10 @@ void main() {
     vec3 combinedLight = vec3(1.0);
 
     // Game
-    if(u_fogOn) {
+    // if(u_fogOn) {
+
         if(v_flagQuadSDF > 0.5) {
+
             // sdf pipeline
 
             // text not should be mip-mapped
@@ -118,10 +195,11 @@ void main() {
                 discard;
             }
         } else {
+
             // default texture fetch pipeline
 
-            mipData = manual_mip(v_texcoord0, size);
             biome = ivec2(round(v_color.rg));
+            mipData = manual_mip(v_texcoord0, size);
             color = sampleAtlassTexture (mipData, texClamped, biome);
             if (u_useNormalMap > 0.5) {
                 uvNormal = texture(u_texture_n, texClamped * mipData.zw + mipData.xy).rgb * 2.0 - 1.0;
@@ -136,7 +214,7 @@ void main() {
             }
 
             // text not allow to discard in this place
-            if(v_flagFlagOpacity != 0.) {
+            if(v_flagOpacity != 0.) {
                 color.a *= v_color.b / 255.0;
             } else {
                 if(color.a < 0.1) discard;
@@ -153,10 +231,11 @@ void main() {
                 #include<enchanted_animation>
             }
 
-
         }
 
         if(v_noCanTakeLight < 0.5) {
+
+            vec4 centerSample;
             #include<local_light_pass>
             #include<ao_light_pass>
             if(v_noCanTakeAO == .0) {
@@ -166,30 +245,42 @@ void main() {
                 #include<normal_light_pass>
             }
             if(u_eyeinwater > 0. && v_useFog > 0.5) {
+                // caustics on underwater blocks
                 #include<caustic1_pass>
-                // include<caustic2_pass>
             }
             // Apply light
             color.rgb *= combinedLight * sunNormalLight;
         }
 
-        if(v_flagFlagRainOpacity > .5) {
+        if(v_flagRainOpacity > .5) {
              color.a *= u_rain_strength;
         }
 
+        // _include<swamp_fog>
+
+        // float dist = distance(vec3(0., 0., 1.4), v_world_pos) / 64.;
         outColor = color;
-        outColor.rgb = colorCorrection(outColor.rgb);
+        // outColor.rgb = colorCorrection(outColor.rgb);
 
         #include<fog_frag>
+
+        // // vintage sepia
+        // vec3 sepia = vec3(1.2, 1.0, 0.8);
+        // float grey = dot(outColor.rgb, vec3(0.299, 0.587, 0.114));
+        // vec3 sepiaColour = vec3(grey) * sepia;
+        // outColor.rgb = mix(outColor.rgb, vec3(sepiaColour), 0.5);
+        // outColor.rgb = mix(outColor.rgb, vec3(.0, .0, 1.), .025);
+        // // vintage sepia
+
         if(u_crosshairOn) {
             #include<crosshair_call_func>
         }
         #include<vignetting_call_func>
 
-    } else {
-        outColor = texture(u_texture, texClamped);
-        if(outColor.a < 0.1) discard;
-        outColor *= v_color;
-    }
+    // } else {
+    //     outColor = texture(u_texture, texClamped);
+    //     if(outColor.a < 0.1) discard;
+    //     outColor *= v_color;
+    // }
 
 }

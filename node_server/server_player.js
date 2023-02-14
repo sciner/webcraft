@@ -54,9 +54,13 @@ class ServerPlayerSharedProps {
 
 export class ServerPlayer extends Player {
 
-    static DIRTY_FLAG_INVENTORY     = 0x1;
-    static DIRTY_FLAG_ENDER_CHEST   = 0x2;
-    static DIRTY_FLAG_QUESTS        = 0x4;
+    // These flags show what must be saved to DB
+    static DB_DIRTY_FLAG_INVENTORY     = 0x1;
+    static DB_DIRTY_FLAG_ENDER_CHEST   = 0x2;
+    static DB_DIRTY_FLAG_QUESTS        = 0x4;
+
+    // These flags show what must be sent to the client
+    static NET_DIRTY_FLAG_RENDER_DISTANCE    = 0x1;
 
     #forward;
     #_rotateDegree;
@@ -84,7 +88,8 @@ export class ServerPlayer extends Player {
         this.prev_use_portal        = null; // время последнего использования портала
         this.prev_near_players      = new Map();
         this.ender_chest            = null; // if it's not null, it's cached from DB
-        this.dirtyFlags             = 0;
+        this.dbDirtyFlags           = 0;    // what must be saved to DB
+        this.netDirtyFlags          = 0;    // what must be sent to the client
 
         // для проверки времени дейстия
         this.cast = {
@@ -318,7 +323,10 @@ export class ServerPlayer extends Player {
         }
         value = Math.max(value, 2);
         value = Math.min(value, 16);
-        this.state.chunk_render_dist = value;
+        if (this.state.chunk_render_dist != value) {
+            this.state.chunk_render_dist = value;
+            this.netDirtyFlags |= ServerPlayer.NET_DIRTY_FLAG_RENDER_DISTANCE;
+        }
         this.vision.preTick(true);
         this.world.db.changeRenderDist(this, value);
     }
@@ -561,7 +569,9 @@ export class ServerPlayer extends Player {
     // Check player visible chunks
     checkVisibleChunks() {
         const {vision, world} = this;
-        if (!vision.updateNearby()) {
+        if (!vision.updateNearby() && 
+            !(this.netDirtyFlags & ServerPlayer.NET_DIRTY_FLAG_RENDER_DISTANCE)
+        ) {
             return;
         }
         const nc = vision.nearbyChunks;
@@ -573,6 +583,7 @@ export class ServerPlayer extends Player {
 
         const nearby_compressed = compressNearby(nearby);
         vision.nearbyChunks.markClean();
+        this.netDirtyFlags &= ~ServerPlayer.NET_DIRTY_FLAG_RENDER_DISTANCE;
         const packets = [{
             // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
             name: ServerClient.CMD_NEARBY_CHUNKS,
@@ -590,7 +601,7 @@ export class ServerPlayer extends Player {
         //
         const packets = [];
         const current_visible_players = new Map();
-        for(const [_, player] of this.world.players.all()) {
+        for(const player of this.world.players.values()) {
             const user_id = player.session.user_id;
             if(this.session.user_id == user_id) {
                 continue;
@@ -709,7 +720,7 @@ export class ServerPlayer extends Player {
 
     /**
      * Teleport
-     * @param {Object} params
+     * @param { object } params
      * @return {void}
      */
     teleport(params) {
@@ -723,7 +734,7 @@ export class ServerPlayer extends Player {
             // teleport player to player
             let from_player = null;
             let to_player = null;
-            for(const [_, player] of world.players.all()) {
+            for(const player of world.players.values()) {
                 const username = player.session?.username?.toLowerCase();
                 if(username == params.p2p.from.toLowerCase()) {
                     from_player = player;
@@ -835,7 +846,7 @@ export class ServerPlayer extends Player {
     // Marks that the ender chest content needs to be saved in the next world transaction
     setEnderChest(ender_chest) {
         this.ender_chest = ender_chest
-        this.dirtyFlags |= ServerPlayer.DIRTY_FLAG_ENDER_CHEST;
+        this.dbDirtyFlags |= ServerPlayer.DB_DIRTY_FLAG_ENDER_CHEST;
     }
 
     /**
@@ -943,18 +954,18 @@ export class ServerPlayer extends Player {
         const row = DBWorld.toPlayerUpdateRow(this);
         underConstruction.updatePlayerState.push(row);
 
-        if (this.dirtyFlags & ServerPlayer.DIRTY_FLAG_INVENTORY) {
+        if (this.dbDirtyFlags & ServerPlayer.DB_DIRTY_FLAG_INVENTORY) {
             this.inventory.writeToWorldTransaction(underConstruction);
         }
-        if (this.dirtyFlags & ServerPlayer.DIRTY_FLAG_ENDER_CHEST) {
+        if (this.dbDirtyFlags & ServerPlayer.DB_DIRTY_FLAG_ENDER_CHEST) {
             underConstruction.promises.push(
                 this.world.db.saveEnderChest(this, this.ender_chest)
             );
         }
-        if (this.dirtyFlags & ServerPlayer.DIRTY_FLAG_QUESTS) {
+        if (this.dbDirtyFlags & ServerPlayer.DB_DIRTY_FLAG_QUESTS) {
             this.quests.writeToWorldTransaction(underConstruction);
         }
-        this.dirtyFlags = 0;
+        this.dbDirtyFlags = 0;
     }
 
 }

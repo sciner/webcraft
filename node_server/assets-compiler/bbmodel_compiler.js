@@ -53,7 +53,6 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
     async run(compiler) {
 
         // Compile bbmodels
-        // for(const [id, model] of this.models.entries()) {
         for(let bbmodel of this.conf.bbmodels) {
             const model_json = bbmodel.json
             const id = bbmodel.name

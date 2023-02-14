@@ -64,7 +64,7 @@ function manageBubbles(newMaterialBelow, block, newMaterial, firstRun) {
         } : {
             pos: block.posworld.clone(),
             item: BLOCK.AIR,
-            destroy_block_id: BLOCK.BUBBLE_COLUMN.id,
+            destroy_block: {id: BLOCK.BUBBLE_COLUMN.id},
             action_id: ServerClient.BLOCK_ACTION_DESTROY
         };
     }

@@ -473,7 +473,10 @@
             "name": "CARROT_SEEDS",
             "bb": {
                 "model": "carrot",
-                "behavior": "age"
+                "behavior": "age",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
             },
             "_inventory": {
                 "style": "extruder",
@@ -518,7 +521,10 @@
             "id": 32,
             "name": "DEAD_BUSH",
             "bb": {
-                "model": "dead_bush"
+                "model": "dead_bush",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
             }
         },
         {
@@ -574,6 +580,9 @@
                 ],
                 "select_texture": [
                     {"name": "candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -590,6 +599,9 @@
                 ],
                 "select_texture": [
                     {"name": "white_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -606,6 +618,9 @@
                 ],
                 "select_texture": [
                     {"name": "orange_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -622,6 +637,9 @@
                 ],
                 "select_texture": [
                     {"name": "magenta_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -638,6 +656,9 @@
                 ],
                 "select_texture": [
                     {"name": "light_blue_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -654,6 +675,9 @@
                 ],
                 "select_texture": [
                     {"name": "yellow_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -670,6 +694,9 @@
                 ],
                 "select_texture": [
                     {"name": "lime_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -686,6 +713,9 @@
                 ],
                 "select_texture": [
                     {"name": "pink_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -702,6 +732,9 @@
                 ],
                 "select_texture": [
                     {"name": "gray_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -718,6 +751,9 @@
                 ],
                 "select_texture": [
                     {"name": "light_gray_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -734,6 +770,9 @@
                 ],
                 "select_texture": [
                     {"name": "cyan_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -750,6 +789,9 @@
                 ],
                 "select_texture": [
                     {"name": "purple_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -766,6 +808,9 @@
                 ],
                 "select_texture": [
                     {"name": "blue_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -782,6 +827,9 @@
                 ],
                 "select_texture": [
                     {"name": "brown_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -798,6 +846,9 @@
                 ],
                 "select_texture": [
                     {"name": "green_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -814,6 +865,9 @@
                 ],
                 "select_texture": [
                     {"name": "orange_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },
@@ -830,6 +884,9 @@
                 ],
                 "select_texture": [
                     {"name": "black_candle.png"}
+                ],
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
                 ]
             }
         },

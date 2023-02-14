@@ -73,7 +73,7 @@ export default class style {
         ).translate(0, LEG_HEIGHT, 0);
 
         // flags
-        const flags = QUAD_FLAGS.MASK_BIOME;
+        const flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
         const lm = new IndexedColor(block.material.mask_color.r, block.material.mask_color.g, 0, 0);
         const mask_shift = lm.b = 4; // offset for mask
 

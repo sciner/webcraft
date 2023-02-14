@@ -60,7 +60,7 @@ export class DBWorldQuest {
     }
 
     /**
-     * @return {Object} - one quest with actions and rewards {
+     * @return { object } - one quest with actions and rewards {
      *  id              Int
      *  quest_group_id  Int
      *  title           String
@@ -77,7 +77,7 @@ export class DBWorldQuest {
     }
 
     /**
-     * @return {Map of Object} all quest groups, each containing a subset of its quests (where is_default = 1).
+     * @type {Map<string, object>} all quest groups, each containing a subset of its quests (where is_default = 1).
      * Keys = group ids
      * Values: {
      *  id      Int
@@ -89,7 +89,10 @@ export class DBWorldQuest {
         return this.defaultGroups;
     }
 
-    // loadPlayerQuests...
+    /**
+     * @param { import("../../server_player.js").ServerPlayer } player 
+     * @returns 
+     */
     async loadPlayerQuests(player) {
         if (player.world.isBuildingWorld()) {
             return [];
@@ -142,7 +145,7 @@ export class DBWorldQuest {
 
     /**
      * @param {Array of Array} rows - the results of {@link playerQuestToRow}
-     * @param {Int} dt - unix time
+     * @param { int } dt - unix time
      */
     async bulkInsertPlayerQuests(rows, dt) {
         return rows.length

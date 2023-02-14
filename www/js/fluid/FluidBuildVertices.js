@@ -1,6 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
-import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT, PACKED_CELL_LENGTH } from "./FluidConst.js";
+import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT, PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_R, PACKET_CELL_WATER_COLOR_G } from "./FluidConst.js";
 
 export const fluidMaterials = [];
 
@@ -236,8 +236,8 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 if ((flags & QUAD_FLAGS.FLAG_MULTIPLY_COLOR) > 0) {
                     if (packedCells) {
                         const ind = z * size.x + x;
-                        clrIndex.r = packedCells[ind * PACKED_CELL_LENGTH + 2];
-                        clrIndex.g = packedCells[ind * PACKED_CELL_LENGTH + 3];
+                        clrIndex.r = packedCells[ind * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R];
+                        clrIndex.g = packedCells[ind * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G];
                     }
                     clr = clrIndex.pack();
                 }

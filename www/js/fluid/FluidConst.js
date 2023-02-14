@@ -38,6 +38,12 @@ export const OFFSET_BLOCK_PROPS = 1;
 export const FLUID_STRIDE = 2;
 
 export const PACKED_CELL_LENGTH = 5;
+export const PACKET_CELL_DIRT_COLOR_R   = 0;
+export const PACKET_CELL_DIRT_COLOR_G   = 1;
+export const PACKET_CELL_WATER_COLOR_R  = 2;
+export const PACKET_CELL_WATER_COLOR_G  = 3;
+export const PACKET_CELL_BIOME_ID       = 4;
+export const PACKET_CELL_IS_SNOWY       = 5;
 
 export function isFluidId(blockId) {
     if (blockId == 200 || blockId == 202) {

@@ -8,7 +8,7 @@ export class ServerPlayerInventory extends Inventory {
 
     // Marks that the inventory needs to be saved in the next transaction
     markDirty() {
-        this.player.dirtyFlags |= ServerPlayer.DIRTY_FLAG_INVENTORY;
+        this.player.dbDirtyFlags |= ServerPlayer.DB_DIRTY_FLAG_INVENTORY;
     }
 
     send() {
@@ -37,11 +37,11 @@ export class ServerPlayerInventory extends Inventory {
 
     /**
      * @param {Array or Object} new_items - items from the client
-     * @param {Boolean} mustCheckEqual - if it's true, the change is accepted only if the items
+     * @param { boolean } mustCheckEqual - if it's true, the change is accepted only if the items
      *   are equal to the existing items, accoring to {@link InventoryComparator.checkEqual}
      * @param {Array of objects} used_recipes - optional, see {@link InventoryComparator.checkEqual}
      * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
-     * @return {Boolean} true if success
+     * @return { boolean } true if success
      * 
      * @todo make some validation even when {@link mustCheckEqual} === true, e.g. that there are no extra entities.
      */

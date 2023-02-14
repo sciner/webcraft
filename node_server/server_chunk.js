@@ -384,7 +384,7 @@ export class ServerChunk {
             name: ServerClient.CMD_MOB_ADD,
             data: []
         }];
-        for(const [_, mob] of this.mobs) {
+        for(const mob of this.mobs.values()) {
             packets_mobs[0].data.push(mob);
         }
         this.world.sendSelected(packets_mobs, player_user_ids);
@@ -813,9 +813,9 @@ export class ServerChunk {
                     this.world.mobs.create(params);
                     const actions = new WorldAction(null, this.world, false, false);
                     actions.addBlocks([
-                        {pos: item_pos, item: {id: bm.AIR.id}, destroy_block_id: item.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
-                        {pos: under1.posworld, item: {id: bm.AIR.id}, destroy_block_id: under1?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
-                        {pos: under2.posworld, item: {id: bm.AIR.id}, destroy_block_id: under2?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}
+                        {pos: item_pos, item: {id: bm.AIR.id}, destroy_block: {id: item.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY},
+                        {pos: under1.posworld, item: {id: bm.AIR.id}, destroy_block: {id: under1?.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY},
+                        {pos: under2.posworld, item: {id: bm.AIR.id}, destroy_block: {id: under2?.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY}
                     ])
                     this.world.actions_queue.add(null, actions);
                 }
@@ -862,7 +862,7 @@ export class ServerChunk {
             const actions = new WorldAction(null, world, false, true);
             //
             if(generate_destroy) {
-                actions.addBlocks([{pos: pos.clone(), item: {id: bm.AIR.id}, destroy_block_id: tblock.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+                actions.addBlocks([{pos: pos.clone(), item: {id: bm.AIR.id}, destroy_block: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
             } else {
                 actions.addBlocks([{pos: pos.clone(), item: {id: bm.AIR.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
             }
@@ -901,6 +901,13 @@ export class ServerChunk {
                     }
                     break;
                 }
+                case 'chorus': {
+                    // only bottom
+                    if(neighbourPos.y <= pos.y) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
                 case 'lantern': {
                     // top and bottom
                     if(neighbourPos.y < pos.y && roty == 1) {
@@ -932,7 +939,7 @@ export class ServerChunk {
                 case 'item_frame': {
                     // 6 sides
                     let drop = false;
-                    console.log(neighbourPos.z > pos.z, SIX_VECS.north, rot);
+                    // console.log(neighbourPos.z > pos.z, SIX_VECS.north, rot);
                     if(neighbourPos.z > pos.z && SIX_VECS.south.equal(rot)) {
                         drop = true;
                     } else if(neighbourPos.z < pos.z && SIX_VECS.north.equal(rot)) {

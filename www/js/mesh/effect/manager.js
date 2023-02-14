@@ -41,13 +41,13 @@ export class Mesh_Effect_Manager {
         this.effects.set('bubble', Mesh_Effect_Emitter_Bubble);
 		this.effects.set('dripping', Mesh_Effect_Emitter_Dripping);
         
-        for(const [k, c] of this.effects.entries()) {
-            if(c.textures) {
-                for(let i in c.textures) {
-                    c.textures[i][0] = (c.textures[i][0] + .5) / 8;
-                    c.textures[i][1] = (c.textures[i][1] + .5) / 8;
-                    c.textures[i][2] = 1 / 8;
-                    c.textures[i][3] = 1 / 8;
+        for(const item of this.effects.values()) {
+            if(item.textures) {
+                for(let i in item.textures) {
+                    item.textures[i][0] = (item.textures[i][0] + .5) / 8;
+                    item.textures[i][1] = (item.textures[i][1] + .5) / 8;
+                    item.textures[i][2] = 1 / 8;
+                    item.textures[i][3] = 1 / 8;
                 }
             }
         }

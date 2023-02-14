@@ -34,6 +34,8 @@
     #define LOOK_AT_CAMERA_HOR 15
     #define FLAG_ENCHANTED_ANIMATION 16
     #define FLAG_RAIN_OPACITY 17
+    #define FLAG_MASK_COLOR_ADD 18
+    #define FLAG_WAVES_VERTEX 19
 
 #endif
 
@@ -125,7 +127,7 @@
 
     // quad flags
     out float v_noCanTakeAO;
-    out float v_flagFlagOpacity;
+    out float v_flagOpacity;
     out float v_flagQuadSDF;
     out float v_noCanTakeLight;
     out float v_Triangle;
@@ -134,7 +136,8 @@
     out float v_flagLeaves;
     out float v_flagEnchantedAnimation;
     out float v_flagScroll;
-    out float v_flagFlagRainOpacity;
+    out float v_flagRainOpacity;
+    out float v_flagMaskColorAdd;
 
     //--
 #endif
@@ -160,13 +163,15 @@
 
     // quad flags
     in float v_noCanTakeAO;
-    in float v_flagFlagOpacity;
+    in float v_flagOpacity;
     in float v_flagQuadSDF;
     in float v_noCanTakeLight;
     in float v_Triangle;
     in float v_flagMultiplyColor;
     in float v_flagEnchantedAnimation;
-    in float v_flagFlagRainOpacity;
+    in float v_flagRainOpacity;
+    in float v_flagLeaves;
+    in float v_flagMaskColorAdd;
 
     out vec4 outColor;
 #endif
@@ -255,6 +260,39 @@
 
         return vec4(mipOffset, mipScale);
     }
+#endif
+
+#ifdef shoreline_func
+
+    // Simplex 2D noise
+    vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+
+    float snoise(vec2 v){
+        const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+            -0.577350269189626, 0.024390243902439);
+        vec2 i  = floor(v + dot(v, C.yy) );
+        vec2 x0 = v -   i + dot(i, C.xx);
+        vec2 i1;
+        i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+        vec4 x12 = x0.xyxy + C.xxzz;
+        x12.xy -= i1;
+        i = mod(i, 289.0);
+        vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
+        dot(x12.zw,x12.zw)), 0.0);
+        m = m*m ;
+        m = m*m ;
+        vec3 x = 2.0 * fract(p * C.www) - 1.0;
+        vec3 h = abs(x) - 0.5;
+        vec3 ox = floor(x + 0.5);
+        vec3 a0 = x - ox;
+        m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+        vec3 g;
+        g.x  = a0.x  * x0.x  + h.x  * x0.y;
+        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+        return 130.0 * dot(m, g);
+    }
+
 #endif
 
 #ifdef raindrops_define_func
@@ -369,12 +407,14 @@
     int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
     int flagLeaves = (flags >> FLAG_LEAVES) & 1;
     int flagEnchantedAnimation = (flags >> FLAG_ENCHANTED_ANIMATION) & 1;
-    int flagFlagRainOpacity = (flags >> FLAG_RAIN_OPACITY) & 1;
+    int flagRainOpacity = (flags >> FLAG_RAIN_OPACITY) & 1;
+    int flagMaskColorAdd = (flags >> FLAG_MASK_COLOR_ADD) & 1;
+    int flagWavesVertex = (flags >> FLAG_WAVES_VERTEX) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
     v_noCanTakeAO = float(flagNoCanTakeAO);
-    v_flagFlagOpacity = float(flagFlagOpacity);
+    v_flagOpacity = float(flagFlagOpacity);
     v_flagQuadSDF = float(flagQuadSDF);
     v_noCanTakeLight = float(flagNoCanTakeLight);
     v_Triangle = float(flagTriangle);
@@ -382,7 +422,8 @@
     v_flagMultiplyColor = float(flagMultiplyColor);
     v_flagLeaves = float(flagLeaves);
     v_flagEnchantedAnimation = float(flagEnchantedAnimation);
-    v_flagFlagRainOpacity = float(flagFlagRainOpacity);
+    v_flagRainOpacity = float(flagRainOpacity);
+    v_flagMaskColorAdd = float(flagMaskColorAdd);
 
     //--
 #endif
@@ -471,7 +512,7 @@
     }
     //TODO: clamp?
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
-    vec4 centerSample;
+    // vec4 centerSample;
     vec4 aoVector = vec4(0.0);
 
     vec3 texSize;
@@ -765,5 +806,51 @@
         vec3 cam_period2 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
         vec3 pos = vec3(v_world_pos.xy + cam_period2.xy, 0.);
         color.rgb += rainDrops(pos * 2.).rgb * u_rain_strength;
+    }
+#endif
+
+#ifdef shoreline
+    // water lighter
+    float water_lighter_limit = .02;
+    if(centerSample.z > water_lighter_limit) {
+        float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
+        // float water_lighter = min(centerSample.z / water_lighter_limit, .1);
+        vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+        float x = v_world_pos.x + cam_period.x;
+        float y = v_world_pos.y + cam_period.y;
+        // color.rgb += water_lighter * 1.25;
+        color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 2., 1.) * m / 5.;
+    }
+#endif
+
+#ifdef waves_vertex_func
+
+    float getWaveValue() {
+        vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+        float x = v_world_pos.x + cam_period.x;
+        float y = v_world_pos.y + cam_period.y;
+        float waves_amp = 30.;
+        float waves_freq = 10.;
+        return sin(u_time / 500. + x * waves_freq) / waves_amp +
+               cos(u_time / 500. + y * waves_freq) / waves_amp;     
+    }
+
+#endif
+
+#ifdef swamp_fog
+    // swamp fog
+    vec3 cam_period4 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    float z = v_world_pos.z + cam_period4.z;
+    float start_fog = 81.;
+    float fog_height = 3.;
+    float mul = .5;
+    float a = mul;
+    if(z <= start_fog + fog_height) {
+        if(z >= start_fog) {
+            a = clamp((1. - (z - start_fog) / fog_height) * mul, .0, 1.);
+        }
+        float dist = distance(vec3(0., 0., 1.4), v_world_pos) / 8.;
+        a *= clamp(dist, 0., 1.);
+        color.rgb = mix(color.rgb, vec3(.2, .4, .0), a);
     }
 #endif

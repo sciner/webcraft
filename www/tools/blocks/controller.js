@@ -179,7 +179,7 @@ let gameCtrl = async function($scope, $timeout) {
         },
         refresh: function() {
             this.array = [];
-            for(let [_, item] of this.list.entries()) {
+            for(let item of this.list.values()) {
                 this.array.push(item);
             }
             $timeout(() => {});
@@ -187,7 +187,7 @@ let gameCtrl = async function($scope, $timeout) {
         apply: function() {
             const blocks_json = [];
             // 1.
-            for(let [_, item] of this.list.entries()) {
+            for(let item of this.list.values()) {
                 ctx.drawImage(item.image, item.x * SPRITE_SIZE, item.y * SPRITE_SIZE);
                 blocks_json.push(
                     {

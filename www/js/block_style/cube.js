@@ -28,6 +28,12 @@ const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
 
+export const LEAVES_COLOR_FLAGS = [
+    new IndexedColor(28, 540, 0), // pink
+    new IndexedColor(20, 524, 0), // orange
+    new IndexedColor(28, 524, 0), // yellow
+]
+
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const _aabb = new AABB();
@@ -168,7 +174,7 @@ export default class style {
             lm = dirt_color || IndexedColor.GRASS;
             flags = QUAD_FLAGS.MASK_BIOME;
         } else if(material.tags.includes('mask_color')) {
-            flags = QUAD_FLAGS.MASK_BIOME;
+            flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             lm = material.mask_color;
         }
 
@@ -288,6 +294,14 @@ export default class style {
             // Shift the horizontal plane randomly, to prevent a visible big plane.
             // Alternate shift by 0.25 block up/down from the center + some random.
             leaves_planes[0].move.y = ((x + z) % 2 - 0.5) * 0.5 + (r2 - 0.5) * 0.3;
+            let flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES
+            if(block.extra_data) {
+                if(block.extra_data && block.extra_data.v != undefined) {
+                    const color = LEAVES_COLOR_FLAGS[block.extra_data.v % LEAVES_COLOR_FLAGS.length]
+                    _lm_leaves.r = color.r
+                    _lm_leaves.g = color.g
+                }
+            }
             for(let i = 0; i < leaves_planes.length; i++) {
                 const plane = leaves_planes[i];
                 // fill object
@@ -301,7 +315,7 @@ export default class style {
                     z + (plane.move?.z || 0)
                 );
                 _pl.matrix   = leaves_matrices[i];
-                _pl.flag     = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES;
+                _pl.flag     = flag;
                 _pl.texture  = leaves_tex;
                 default_style.pushPlane(vertices, _pl);
             }
@@ -381,8 +395,8 @@ export default class style {
             }
             if(block.hasTag('mask_color')) {
                 lm = material.mask_color;
-                sideFlags = QUAD_FLAGS.MASK_BIOME;
-                upFlags = QUAD_FLAGS.MASK_BIOME;
+                sideFlags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
+                upFlags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             }
             if(block.hasTag('multiply_color')) {
                 lm = material.multiply_color;
@@ -468,6 +482,7 @@ export default class style {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
             if(block.id == bm.LILY_PAD.id) {
                 axes_down = UP_AXES[rv % 4];
+                flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX;
             } else {
                 axes_up = UP_AXES[rv % 4];
             }

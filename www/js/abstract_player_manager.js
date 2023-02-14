@@ -1,5 +1,6 @@
 import { PLAYER_RADIUS } from "./constant.js";
 import { AABB } from "./core/AABB.js";
+import { Vector } from "./helpers.js";
 
 export class AbstractPlayerManager {
 
@@ -10,14 +11,18 @@ export class AbstractPlayerManager {
         this.list = new Map()
     }
 
+    /**
+     * @param {Vector} vec 
+     * @returns { object[] }
+     */
     *eachContainingVec(vec) {
         const aabb = new AABB();
-        for(const [user_id, player] of this.list.entries()) {
+        for(const player of this.list.values()) {
             // on the client, isAlive doesn't work for player model
             if (player.sharedProps.isAlive) {
                 aabb.setBottomHeightRadius(player.sharedProps.pos, player.height, PLAYER_RADIUS)
                 if (aabb.containsVec(vec)) {
-                    yield [user_id, player]
+                    yield player
                 }
             }
         }

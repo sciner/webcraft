@@ -141,7 +141,7 @@ export default class style {
                 origin: {x: shift_clotch, y: 4, z: -2.25 + shift_clotch},
                 size: {x: 28, y: 56, z: 1.5},
                 lm: material.mask_color,
-                flag: QUAD_FLAGS.MASK_BIOME,
+                flag: QUAD_FLAGS.FLAG_MASK_COLOR_ADD,
                 faces: {
                     up:     {x: 22, y: 1, w: 40, h: 2},
                     down:   {x: 62, y: 1, w: 40, h: 2},

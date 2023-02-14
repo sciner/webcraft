@@ -530,7 +530,7 @@ export class CompileData {
                 "id": START_CANDLE + i,
                 "name": color.toUpperCase() + '_CANDLE',
                 "material": {"id": "clay"},
-                "sound": "madcraft:block.wood",
+                "sound": "madcraft:block.cloth",
                 "inventory": {
                     "scale": 3
                 },

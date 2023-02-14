@@ -105,7 +105,7 @@ export class DBWorldChunk {
      * For each world block, it return the maximum rowId of this block in world_modify,
      * i.e. the latest record for this block.
      * @param {Array of Array} data [chunk_x, chunk_y, chunk_z, "index"]
-     * @return {Array of Object} { rowId: ?Int } - the same size as {@link data}
+     * @return {object[]} { rowId: ?Int } - the same size as {@link data}
      */
     async bulkSelectWorldModifyRowId(data) {
         SELECT.WM_ROW_ID = SELECT.WM_ROW_ID ?? preprocessSQL(`
@@ -120,18 +120,18 @@ export class DBWorldChunk {
     }
 
     /**
-     * @param {Block} item
+     * @param {*} block
      * @yields fields of worlds_modify { params, entity_id, extra_data, block_id }
      */
-    *_itemWMFields(item) {
-        yield this.world.block_manager.fastStringify(item);
-        yield item.entity_id ?? null;
-        yield item.extra_data ? JSON.stringify(item.extra_data) : null;
-        yield item.id;
+    *_itemWMFields(block) {
+        yield this.world.block_manager.fastStringify(block);
+        yield block.entity_id ?? null;
+        yield block.extra_data ? JSON.stringify(block.extra_data) : null;
+        yield block.id;
     }
 
     /**
-     * @param {Array of Objects} rows { ?user_id, pos, item, ?chunk_addr }
+     * @param {object[]} rows { ?user_id, pos, item, ?chunk_addr }
      *   Provide optional chunk_addr only if it's already calculated to avoid calculating it again.
      * @param {Number} dt
      * @param {Number} user_id - used if rows[i].user_id is null.
@@ -168,7 +168,7 @@ export class DBWorldChunk {
     }
 
     /**
-     * @param {Array of Object} rows {rowId: Int, item: Object}
+     * @param {object[]} rows {rowId: Int, item: Object}
      * @param {Number} dt
      */
     async bulkUpdateWorldModify(rows, dt) {
@@ -297,8 +297,8 @@ export class DBWorldChunk {
     }
 
     /**
-     * @param {Vector-like} addr
-     * @param {Object} data_patch - object with keys = flat indexes, and values = items
+     * @param {VectorLike} addr
+     * @param {object} data_patch - object with keys = flat indexes, and values = items
      * @param {binary} compressed
      * @param {binary} private_compressed
      * @return {Number} rowId of the new record
@@ -372,7 +372,7 @@ export class DBWorldChunk {
 
     /**
      * Rebuilds existing records world_modify_chunks based on world_modify.
-     * @param {Array of Int} rowIds
+     * @param {int[]} rowIds
      */
     async updateRebuildModifiersByRowIds(rowIds) {
         UPDATE.REBUILD_MODIFIERS_BY_ROWID = UPDATE.REBUILD_MODIFIERS_BY_ROWID ?? preprocessSQL(`
@@ -400,7 +400,7 @@ export class DBWorldChunk {
 
     /**
      * Inserts rebuilt records into world_modify_chunks, either all or selected addresses.
-     * @param {Array of {x, y, z}} addresses - optional.
+     * @param {Vector[]} addresses - optional.
      *   If we need to rebuild all chunks, providing the list of all addresses increases speed.
      */
     async insertRebuildModifiers(addresses = null) {

@@ -43,7 +43,9 @@ export default class packet_reader {
             // проверям скорость, если ошибка, то ворачиваем как было
             if (!correct_destroy) {
                 for (const block of actions.blocks.list) {
-                    block.item.id = block.destroy_block_id;
+                    // TODO: extra_data надо восстанавлиать
+                    // TODO: тут точно нет доверия данным от игрока?
+                    block.item.id = block.destroy_block.id;
                 }
             }
             // compare two actions

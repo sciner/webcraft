@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector } from "../../www/js/helpers.js";
+import { Vector } from "../../www/js/helpers.js";
 import { isBlockRoughlyWithinPickatRange } from "../../www/js/block_helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK } from "../../www/js/blocks.js";
@@ -16,6 +16,9 @@ const CHANGE_RESULT_FLAG_INVENTORY = 4;
 
 export class WorldChestManager {
 
+    /**
+     * @param { import("../server_world.js").ServerWorld } world 
+     */
     constructor(world) {
         this.world = world;
         this.treasure_sets = new Treasure_Sets(world, config.treasure_chests)
@@ -25,7 +28,7 @@ export class WorldChestManager {
      * Returns a vaild chest by pos, or throws an exception.
      * Optionally, it can return null if the chunk is mising.
      * @param {Vector} pos
-     * @param {Boolean} nullIfNotLoaded - if it's true and the chunk is missing,
+     * @param {boolean} nullIfNotLoaded - if it's true and the chunk is missing,
      *      then instead of throwing an exception, it return null. The default is false.
      * @returns {TBlock} chest
      */
@@ -49,7 +52,7 @@ export class WorldChestManager {
 
     /**
      * @param {Vector} pos
-     * @returns {Object} {
+     * @returns { object } {
      *   chest: ?TBlock   // if the chest is loaded and valid
      *   error: ?String   // otherwise
      * }
@@ -74,7 +77,7 @@ export class WorldChestManager {
      * - rearranges the server inventory according to the state of the client's inventory before the last change;
      * - applies the change described by the client to the server chests and inventory;
      * - saves and sends the changes.
-     * @param {Object} params - see BaseChestWindow.confirmAction(), BaseChestWindow.lastChange
+     * @param { object } params - see BaseChestWindow.confirmAction(), BaseChestWindow.lastChange
      */
     async confirmPlayerAction(player, params) {
 
@@ -351,9 +354,9 @@ export class WorldChestManager {
         /**
          * Adds the source item to compatible item stacks or free places.
          * Subtracts from the source item's count. Updates reult flags.
-         * @param {Object} slot - the source item
-         * @param {Boolean} targetIsChest - whether it shoukld be added to the chest, or to the inventory
-         * @return {Int} the result flags
+         * @param { object } slot - the source item
+         * @param { boolean } targetIsChest - whether it shoukld be added to the chest, or to the inventory
+         * @return { int } the result flags
          */
         function spreadToList(slot, targetIsChest) {
             const list = targetIsChest ? srvChest : srvInv;
@@ -635,15 +638,15 @@ export class WorldChestManager {
     }
 
     /**
-     * @param {TBlock} tblock of the chest
-     * @param {Int []} except_player_ids - ids of excluded players, optional
+     * @param { import("../../www/js/typed_blocks3.js").TBlock } tblock of the chest
+     * @param {int[]} except_player_ids - ids of excluded players, optional
      */
     sendChestToPlayers(tblock, except_player_ids = null) {
         const chunk = this.world.chunks.get(tblock.chunk_addr);
         if(chunk) {
             const pos = tblock.posworld;
             const players = [];
-            for(let p of Array.from(chunk.connections.values())) {
+            for(let p of chunk.connections.values()) {
                 if(except_player_ids && Array.isArray(except_player_ids)) {
                     if(except_player_ids.indexOf(p.session.user_id) >= 0) {
                         continue;

@@ -9,7 +9,7 @@ import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
-import {isFluidId, PACKED_CELL_LENGTH} from "../fluid/FluidConst.js";
+import {isFluidId, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID, PACKET_CELL_DIRT_COLOR_G, PACKET_CELL_DIRT_COLOR_R, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R} from "../fluid/FluidConst.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -165,11 +165,11 @@ export class ChunkWorkerChunk {
         const eps = 1e-2;
         for (let i = 0; i < len; i++) {
             const cell = cells[i];
-            packed[i * PACKED_CELL_LENGTH + 0] = Math.floor(cell.dirt_color.r + eps);
-            packed[i * PACKED_CELL_LENGTH + 1] = Math.floor(cell.dirt_color.g + eps);
-            packed[i * PACKED_CELL_LENGTH + 2] = Math.floor(cell.water_color.r + eps);
-            packed[i * PACKED_CELL_LENGTH + 3] = Math.floor(cell.water_color.g + eps);
-            packed[i * PACKED_CELL_LENGTH + 4] = Math.floor(cell.biome.id + eps);
+            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_DIRT_COLOR_R] = Math.floor(cell.dirt_color.r + eps);
+            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_DIRT_COLOR_G] = Math.floor(cell.dirt_color.g + eps);
+            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R] = Math.floor(cell.water_color.r + eps);
+            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G] = Math.floor(cell.water_color.g + eps);
+            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_BIOME_ID] = Math.floor(cell.biome.id + eps);
         }
         return packed;
     }

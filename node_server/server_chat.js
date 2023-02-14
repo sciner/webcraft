@@ -243,8 +243,16 @@ export class ServerChat {
                 let gentle = false
                 if (args[1] === 'gentle') {
                     gentle = true
-                } else if (args[1] !== 'force') {
-                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)\n"gentle" delays starting of shutdown until the actions queue is empty', player)
+                } else if (args[1] === 'force') {
+                    // continue
+                } else if (this.world.actions_queue.length === 0) {
+                    // The action queue is empty, so we can proceed without bothering the user with questions.
+                    // Choose "gentle" in case a lot of actions suddenly happen, to be conpletely safe.
+                    gentle = true
+                } else {
+                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)]\n' +
+                        '"gentle" delays starting of shutdown until the actions queue is empty.\n' +
+                        `There are ${this.world.actions_queue.length} actions queued.`, player)
                     break
                 }
                 const msg = 'shutdown_initiated_by|' + player.session.username
@@ -462,7 +470,13 @@ export class ServerChat {
             }
             case '/spawnmob': {
                 args = this.parseCMD(args, ['string', '?float', '?float', '?float', 'string', 'string']);
-                const pos = player.state.pos.clone()
+                // @ParamMobAdd
+                const params = new MobSpawnParams(
+                    player.state.pos.clone(),
+                    new Vector(0, 0, player.state.rotate.z),
+                    args[4],
+                    args[5],
+                )
                 // x
                 if (args[1] !== null) {
                     params.pos.x = args[1];
@@ -475,13 +489,6 @@ export class ServerChat {
                 if (args[3] !== null) {
                     params.pos.z = args[3];
                 }
-                // @ParamMobAdd
-                const params = new MobSpawnParams(
-                    pos,
-                    new Vector(0, 0, player.state.rotate.z),
-                    args[4],
-                    args[5],
-                )
                 // spawn
                 this.world.mobs.spawn(player, params);
                break;

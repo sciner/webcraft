@@ -448,7 +448,7 @@ const GLB_CHUNK_TYPE_BIN = 0x004E4942;
  * Compare two arrays
  * @param  {Array} array1 Array 1 to compare
  * @param  {Array} array2 Array 2 to compare
- * @return {Boolean}        Returns true if both arrays are equal
+ * @return { boolean }        Returns true if both arrays are equal
  */
 function equalArray(array1, array2) {
 
@@ -475,7 +475,7 @@ function stringToArrayBuffer(text) {
  * Is identity matrix
  *
  * @param {Matrix4} matrix
- * @returns {Boolean} Returns true, if parameter is identity matrix
+ * @returns { boolean } Returns true, if parameter is identity matrix
  */
 function isIdentityMatrix(matrix) {
 

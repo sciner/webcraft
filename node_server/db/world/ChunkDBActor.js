@@ -115,11 +115,11 @@ export class ChunkDBActor {
     }
 
     /**
-     * @param {Object} data - a value stored in {@link dirtyBlocks}. The method may 
+     * @param {object} data - a value stored in {@link dirtyBlocks}. The method may 
      *  remember the object and/or modify it. It shouldn't be used after passing to this method.
-     * @param {?Int} index - the block index, the same in TBlock.
+     * @param {?int} index - the block index, the same in TBlock.
      *  If it's not provided, it's deduced from params.pos
-     * @param {?Int} state - one of BLOCK_DIRTY.*** constants, except BLOCK_DIRTY.CLEAR.
+     * @param {?int} state - one of BLOCK_DIRTY.*** constants, except BLOCK_DIRTY.CLEAR.
      *  If it's not provided, it's deduced from params.action_id
      */
     markBlockDirty(data, index = null, state = null) {

@@ -419,19 +419,34 @@ export class Sounds {
         this.#player = player;
         this.world = player.world;
 
-        this.tags = {};
-
         this.prev_index = new Map();
 
-        this.sound_sprite_main = new Howl(Resources.sound_sprite_main);
-
-        // default panner attr
-        // Disabling this line has no noticeable effect, it's not used
-        //this.sound_sprite_main.pannerAttr(Sounds.PANNER_ATTR);
+        // looped sprite items
+        this.looped = []
+        this.tags = {};
 
         for(let item of Resources.sounds) {
             this.add(item);
         }
+
+        const sprites = Resources.sound_sprite_main.sprite
+
+        // remove gap for looped sprite items
+        for(let k in sprites) {
+            if(this.looped.includes(k)) {
+                const s = sprites[k]
+                s[0] += 25
+                s[1] -= 75
+            }
+        }
+
+        // Make howler spritesheet
+        this.sound_sprite_main = new Howl(Resources.sound_sprite_main);
+
+        // default panner attr
+        // Disabling this line has no noticeable effect, it's not used
+        // this.sound_sprite_main.pannerAttr(Sounds.PANNER_ATTR);
+
         this.add(Resources.music ?? { type: 'madcraft:music' });
 
         this.music = new Music(this.tags['madcraft:music']);
@@ -490,7 +505,6 @@ export class Sounds {
                 // An example: "wood_1|volume=1;pitch=.8"
                 let temp = item[action][i].split('|');
                 const name = temp.shift();
-
                 if(temp.length > 0) {
                     const sound_props = temp[0].split(';');
                     for(let j in sound_props) {
@@ -498,11 +512,21 @@ export class Sounds {
                         if(props_kv.length != 2) {
                             throw 'error_sound_props';
                         }
+                        const key = props_kv[0]
                         let value = props_kv[1];
                         if(!isNaN(value)) {
                             value =  parseFloat(value);
                         }
-                        props[props_kv[0]] = value;
+                        if(value == 'true') {
+                            value = true
+                        }
+                        if(value == 'false') {
+                            value = false
+                        }
+                        if(key == 'loop' && value) {
+                            this.looped.push(name)
+                        }
+                        props[key] = value;
                     }
                 }
                 item[action][i] = { name, props };
@@ -581,7 +605,8 @@ export class Sounds {
             // only sounds that can be listened at current pos will executed
             if (estimatedVolume > 0) {
                 track_id = this.sound_sprite_main.play( track.name );
-                
+
+                // TODO: почему тут передается `ignore_repeating`, а не `loop`
                 this.sound_sprite_main.loop(ignore_repeating, track_id);
  
                 if (pos) {

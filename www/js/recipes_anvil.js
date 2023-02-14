@@ -202,7 +202,7 @@ export class AnvilRecipeManager {
     }
 
     /**
-     * @returns {Object} {recipe, result} - the recipe that can be applied to the given
+     * @returns { object } {recipe, result} - the recipe that can be applied to the given
      * arguments, and the resulting item. If no recipe is applicable, returns null.
      */
     findRecipeAndResult(first_item, second_item, label, outCount) {
@@ -220,7 +220,7 @@ export class AnvilRecipeManager {
     }
 
     /**
-     * @param {Object} used_recipe - see {@link InventoryComparator.checkEqual}, fields:
+     * @param { object } used_recipe - see {@link InventoryComparator.checkEqual}, fields:
      *   recipe_id: Int
      *   used_items_keys: Array of String
      *   count: Array of Int

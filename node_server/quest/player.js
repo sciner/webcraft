@@ -29,7 +29,7 @@ export class QuestPlayer {
 
     /**
      * Adds a new quest to the current quests. It'll be saved in the next world transaction.
-     * @param {Object} dbQuest - one quest returned by {@link DBWorldQuest.load},
+     * @param { object } dbQuest - one quest returned by {@link DBWorldQuest.load},
      *  {@link DBWorldQuest.defaults} or {@link DBWorldQuest.loadPlayerQuests}
      */
     addQuest(dbQuest, isNew) {
@@ -115,7 +115,7 @@ export class QuestPlayer {
 
     // Handler
     onDestroyBlock(e) {
-        const block = this.world.block_manager.fromId(e.data.block_id);
+        const block = this.world.block_manager.fromId(e.data.block.id);
         if(!block) {
             throw 'error_invalid_block';
         }

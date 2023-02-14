@@ -30,7 +30,7 @@ export class BBModel_DropPaste {
 
         function deletePrevious() {
             // 1. delete previous meshes
-            for(const [key, mesh] of previous_meshes.entries()) {
+            for(const key of previous_meshes.keys()) {
                 game.render.meshes.remove(key, game.render)
                 previous_meshes.delete(key)
             }

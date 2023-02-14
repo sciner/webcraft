@@ -31,6 +31,7 @@ out vec4 outColor;
 
 #include<manual_mip_define_func>
 #include<raindrops_define_func>
+#include<shoreline_func>
 
 vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     vec2 texc = texClamped;
@@ -60,6 +61,7 @@ void main() {
     vec4 color = vec4(0.0);
     float playerLight = 0.0, sunNormalLight = 1.0;
     vec3 combinedLight = vec3(1.0);
+    vec4 centerSample;
 
     // Game
     if(u_fogOn) {
@@ -81,14 +83,27 @@ void main() {
         if (v_normal.z < 0.0) minecraftSun.z = 0.5;
         float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
 
-        #include<caustic_pass_onwater>
         #include<raindrops_onwater>
+
+        // _include<swamp_fog>
+
+        // // vintage sepia
+        // vec3 sepia = vec3(1.2, 1.0, 0.8);
+        // float grey = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+        // vec3 sepiaColour = vec3(grey) * sepia;
+        // color.rgb = mix(color.rgb, vec3(sepiaColour), 0.65);
+        // // swap r & b
+        // float bb = color.b;
+        // color.b = color.r;
+        // color.r = bb;
+        // // vintage sepia
 
         if(v_noCanTakeLight < 0.5) {
             #include<local_light_pass>
             #include<ao_light_pass>
+            #include<shoreline>
             // Apply light
-            color.rgb *= combinedLight * sunNormalLight;
+            color.rgb *= (combinedLight * sunNormalLight);
         } else {
             color.rgb *= sunNormalLight;
         }

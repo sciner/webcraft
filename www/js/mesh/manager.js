@@ -71,7 +71,7 @@ export class MeshManager {
         if(!chunk) {
             return false;
         }
-        for(const [key, mesh] of chunk.entries()) {
+        for(const key of chunk.keys()) {
             this.remove(key, Qubatch.render);
         }
         this.chunks.delete(chunk_addr_hash);

@@ -383,7 +383,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
      * @param {Float} x - screen poition x
      * @param {Float} y - screen poition y
      * @param {BaseChestWindow} ct - parent window
-     * @param {Object} options - optonal parameters:
+     * @param { object } options - optonal parameters:
      *  { readonly, onMouseEnterBackroundColor, disableIfLoading }
      */
     constructor(x, y, w, h, id, title, text, ct, slot_index, options = null) {

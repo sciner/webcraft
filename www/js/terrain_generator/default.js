@@ -401,9 +401,16 @@ export class Default_Terrain_Generator {
         }
 
     }
+    
+    makeLeavesExtraData(chunk, x, y, z) {
+        const pss = (chunk.coord.x + x + chunk.coord.z + z)
+        return pss % 10 == 0 ? {v: (chunk.coord.y + y) % 3} : null
+    }
 
     // Дуб, берёза
     plantOak(world, tree, chunk, x, y, z, setTreeBlock) {
+        const extra_data = this.makeLeavesExtraData(chunk, x, y, z)
+        //
         let ystart = y + tree.height;
         // ствол
         for(let p = y; p < ystart; p++) {
@@ -428,7 +435,8 @@ export class Default_Terrain_Generator {
                     const b_id = b?.id ?? 0
                     if(b_id == 0 || b_id != tree.type.trunk) {
                         this.temp_block.id = tree.type.leaves;
-                        setTreeBlock(tree, chunk, i, py, j, this.temp_block, false);
+                        // tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data
+                        setTreeBlock(tree, chunk, i, py, j, this.temp_block, false, null, extra_data);
                     }
                 }
             }
@@ -728,6 +736,10 @@ export class Default_Terrain_Generator {
 
         const orig_y = y;
 
+        const ox = x
+        const oy = y
+        const oz = z
+
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
         const height = Math.min(CHUNK_SIZE_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
         const xyz = chunk.coord.add(new Vector(x, y, z));
@@ -747,8 +759,15 @@ export class Default_Terrain_Generator {
         // рисование кроны дерева
         const generateLeaves = (x, y, z, rad) => {
             
-            const ROUND = 0;
-            const MIN_RADIUS = 4;
+            let extra_data = this.makeLeavesExtraData(chunk, ox, y, oz)
+            if(extra_data) {
+                if(extra_data.v == 0) {
+                    extra_data.v = 1
+                }
+            }
+
+            // const ROUND = 0;
+            // const MIN_RADIUS = 4;
             const LEAVES_THRESHOLD = .5;
             const LEAVES_THICNESS_MUL = (1 + 1.25 * getRandom()) // коэффициент сплющивания кроны
 
@@ -769,7 +788,16 @@ export class Default_Terrain_Generator {
 
                         // расстояния до центра "шара" кроны
                         if(dist <= rad) {
-                            setTreeBlock(tree, chunk, x + i, y + k, z + j, this.temp_block, false);
+                            // tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data
+                            if(extra_data) {
+                                if((chunk.coord.y + oy) % 2 == 0) {
+                                    extra_data = {v: Math.floor(Math.random() * 3)}
+                                    if(extra_data.v == 0) {
+                                        extra_data.v = 3
+                                    }
+                                }
+                            }
+                            setTreeBlock(tree, chunk, x + i, y + k, z + j, this.temp_block, false, null, extra_data);
                         }
 
                     }

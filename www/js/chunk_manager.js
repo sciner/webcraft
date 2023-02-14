@@ -13,7 +13,7 @@ import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
 import { LIGHT_TYPE_NO } from "./constant.js";
 import {ChunkExporter} from "./geom/ChunkExporter.js";
-// import { Resources } from "./resources.js";
+import { Biomes } from "./terrain_generator/biome3/biomes.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -77,6 +77,7 @@ export class ChunkManager {
         this.dataWorld              = new DataWorld(this);
         this.fluidWorld             = new FluidWorld(this);
         this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
+        this.biomes                 = new Biomes(null);
 
         this.chunk_modifiers        = new VectorCollector();
 
@@ -286,12 +287,6 @@ export class ChunkManager {
 
         this.use_light                = settings.use_light != LIGHT_TYPE_NO;
         this.worker_counter           = this.use_light ? 2 : 1;
-
-        // // bbmodels
-        // const bbmodels = {}
-        // for(const [name, bbmodel] of Resources._bbmodels.entries()) {
-        //     bbmodels[name] = bbmodel.json
-        // }
 
         this.postWorkerMessage(['init', {
             generator,

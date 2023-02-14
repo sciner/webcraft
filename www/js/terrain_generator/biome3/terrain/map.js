@@ -1,10 +1,11 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
-import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_AIR_THRESHOLD, DensityParams } from "./manager.js";
+import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_AIR_THRESHOLD } from "./manager.js";
 import { TerrainMap } from "../../terrain_map.js";
 import { BIOME3_CAVE_LAYERS, CaveGenerator } from "../cave_generator.js";
 import { TerrainMapCell } from "./map_cell.js";
+import { DensityParams } from "./manager_vars.js";
 
 export class TerrainMap2 extends TerrainMap {
 

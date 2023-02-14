@@ -5,6 +5,7 @@
 #include<global_uniforms_vert>
 
 #include<terrain_attrs_vert>
+#include<waves_vertex_func>
 
 float wing_speed = 2.5;
 float wing_amplitude = 0.3;
@@ -82,7 +83,7 @@ void main() {
     v_texcoord1_diff = uvCenter1 - uvCenter0;
 
     if(u_fogOn) {
-        if (flagBiome == 0) {
+        if (flagBiome + flagMaskColorAdd == 0) {
             v_color.a = 0.0;
         }
     }
@@ -99,6 +100,12 @@ void main() {
     }
 
     v_world_pos = v_chunk_pos + u_add_pos;
+
+    // Waves
+    if(flagWavesVertex > 0) {
+        v_chunk_pos.z += getWaveValue();
+    }
+
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
 

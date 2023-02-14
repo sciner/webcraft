@@ -44,9 +44,9 @@ export class ServerGame {
 
     /** 
      * @param {String} msg - broadcasted to all players in all worlds
-     * @param {Boolean} gentle - if it's true, each world will start its shutdown only after its
+     * @param { boolean } gentle - if it's true, each world will start its shutdown only after its
      *   actions_queue is empty
-     * @return {Boolean} true if success
+     * @return { boolean } true if success
      */
     shutdown(msg, gentle) {
         if (this.shutdownPromise) {
@@ -87,7 +87,7 @@ export class ServerGame {
         if (this.shutdownPromise) {
             return // don't load new worlds when shutting down
         }
-        for(const [world_guid, _] of this.worlds_loading.entries()) {
+        for(const world_guid of this.worlds_loading.keys()) {
             console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
             const p = performance.now();
             const worldTitlePromise = this.db.getWorld(world_guid);

@@ -51,7 +51,7 @@ export class DBWorldPortal {
 
     /**
      * Return nearest portal for position
-     * @param {Object} pos 
+     * @param { object } pos 
      * @param {number} max_dist 
      * @param {string} type 
      * @returns 

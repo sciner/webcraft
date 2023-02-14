@@ -275,7 +275,7 @@ export class TerrainMapManager {
 
     destroyAroundPlayers(players) {
         let cnt_destroyed = 0;
-        for(let [map_addr, _] of this.maps_cache.entries()) {
+        for(let map_addr of this.maps_cache.keys()) {
             let can_destroy = true;
             for(let player of players) {
                 const {chunk_render_dist, chunk_addr} = player;

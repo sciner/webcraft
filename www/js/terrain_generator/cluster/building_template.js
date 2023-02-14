@@ -134,7 +134,7 @@ export class BuildingTemplate {
 
                     // по 2D карте пола здания строим вертикальные столбы воздуха
                     // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
-                    for(const [vec, _] of two2map.entries()) {
+                    for(const vec of two2map.keys()) {
                         for(let y = 0; y < this.size.y; y++) {
                             const air_pos = new Vector(vec.x, min.y + y, vec.z)
                             all_blocks.set(air_pos, {block_id: 0, move: air_pos})
@@ -306,7 +306,12 @@ export class BuildingTemplate {
 
     }
 
-    // Заполнение "внутренностей" постройки воздухом
+    /**
+     * Заполнение "внутренностей" постройки воздухом
+     * @param {*} bm 
+     * @param {VectorCollector} all_blocks 
+     * @param {Vector} min 
+     */
     _fillAir(bm, all_blocks, min) {
 
         const _vec = new Vector(0, 0, 0)
@@ -671,7 +676,7 @@ export class BuildingTemplate {
             }
         }
 
-        for(const [_, block] of all_blocks.entries()) {
+        for(const block of all_blocks.values()) {
 
             // если это воздух, то просто прописываем его во все измерения
             if(block.block_id == 0) {

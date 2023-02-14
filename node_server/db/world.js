@@ -437,7 +437,7 @@ export class DBWorld {
     /**
      * TO DO EN список точек для телепортации
      * @param {number} id id игрока
-     * @return {Object} список доступных точек для телепортации
+     * @return { object } список доступных точек для телепортации
      */
     async getListTeleportPoints(id) {
         const rows = await this.conn.all("SELECT title, x, y, z FROM teleport_points WHERE user_id = :id ", {

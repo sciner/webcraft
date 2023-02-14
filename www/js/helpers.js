@@ -274,6 +274,12 @@ export class Mth {
     static randomInt(maxExclusive) {
         return Math.floor(Math.random() * maxExclusive);
     }
+
+    static round(value, decimals) {
+        decimals = Math.pow(10, decimals)
+        return Math.round(value * decimals) / decimals
+    }
+
 }
 
 export class IvanArray {
@@ -783,23 +789,32 @@ export class VectorCollector {
     }
 
     keys() {
-        let resp = [];
-        for (let [xk, x] of this.list) {
-            for (let [yk, y] of x) {
-                for (let [zk, z] of y) {
-                    resp.push(new Vector(xk|0, yk|0, zk|0));
+        const that = this;
+        return (function* () {
+            if(that.size == 0) {
+                return;
+            }
+            for (let [xk, x] of that.list) {
+                for (let [yk, y] of x) {
+                    for (let zk of y.keys()) {
+                        yield new Vector(xk|0, yk|0, zk|0)
+                    }
                 }
             }
-        }
-        return resp;
+        })()
     }
 
     values() {
-        let resp = [];
-        for(let item of this) {
-            resp.push(item);
-        }
-        return resp;
+        const that = this;
+        return (function* () {
+            for (let x of that.list.values()) {
+                for (let y of x.values()) {
+                    for (let value of y.values()) {
+                        yield value;
+                    }
+                }
+            }
+        })()
     }
 
     reduce(max_size) {
@@ -2521,7 +2536,7 @@ export class ArrayHelpers {
      * Ensures that the first sortedLength elements are the same as if the entire array
      * was sorted. The order of the remaining elemnets is undefin.
      * It has O(length) time.
-     * @param {Int} sortedLength - the number of first array elements that will be sorted.
+     * @param { int } sortedLength - the number of first array elements that will be sorted.
      */
     static partialSort(arr, sortedLength = arr.length, compare,
         // do not pass the last 2 arguments - they are internal
@@ -2603,6 +2618,19 @@ export class ArrayHelpers {
             ? Uint8Array
             : (maxValue <= 0xffff ? Uint16Array : Uint32Array)
     }
+    
+    /**
+     * Return random item from array
+     * @param {*[]} arr 
+     * @returns 
+     */
+    static randomItem(arr) {
+        if(!Array.isArray(arr) || arr.length == 0) {
+            return undefined
+        }
+        return arr[(Math.random() * arr.length) | 0]
+    }
+
 }
 
 // Helper methods to work with an array or a scalar in the same way.
@@ -3524,7 +3552,7 @@ export class SpatialDeterministicRandom {
     /**
      * @param {Vector-like} pos
      * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - a signed 32-bit value based on the current world positon,
+     * @returns { int } - a signed 32-bit value based on the current world positon,
      *      world seed and spice.
      */
     static int32(world, pos, spice = null) {
@@ -3547,7 +3575,7 @@ export class SpatialDeterministicRandom {
      * Generates 31-bit unsigned int.
      * @param {Vector-like} pos
      * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - an unsigned 31-bit value based on the current world positon,
+     * @returns { int } - an unsigned 31-bit value based on the current world positon,
      *      world seed and spice.
      */
     static uint(world, pos, spice = null) {
@@ -3570,9 +3598,9 @@ export class SpatialDeterministicRandom {
      * Note: the distribution is not uniform for very large numbers.
      *
      * @param {Vector-like} pos
-     * @param {Int} max - the maximum value (exclusive)
+     * @param { int } max - the maximum value (exclusive)
      * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - a value from min to max, based on the current world positon,
+     * @returns { int } - a value from min to max, based on the current world positon,
      *      world seed and spice.
      */
     static int(world, pos, max, spice = null) {
@@ -3584,10 +3612,10 @@ export class SpatialDeterministicRandom {
      * Note: the distribution is not uniform for very large numbers.
      *
      * @param {Vector-like} pos
-     * @param {Int} min - the minium value (inclusive)
-     * @param {Int} max - the maximum value (inclusive)
+     * @param { int } min - the minium value (inclusive)
+     * @param { int } max - the maximum value (inclusive)
      * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - a value from min to max, based on the current world positon,
+     * @returns { int } - a value from min to max, based on the current world positon,
      *      world seed and spice.
      */
     static intRange(world, pos, min, max, spice = null) {
@@ -3617,8 +3645,28 @@ export class PerformanceTimer {
         const diff = performance.now() - item.p
         const exist_value = this[key] ?? 0
         this[key] = exist_value + diff
+        return this
     }
 
+    round() {
+        for(const key in this) {
+            this[key] = Math.round(this[key])
+        }
+        return this
+    }
+
+    filter(minTime = 1) {
+        for(const key in this) {
+            if (this[key] < minTime) {
+                delete this[key]
+            }
+        }
+        return this
+    }
+
+    sum() {
+        return ArrayHelpers.sum(Object.values(this))
+    }
 }
 
 export const SIX_VECS = {
@@ -3650,7 +3698,9 @@ export let QUAD_FLAGS = {}
     // Starting from this flag, we can add new flags to fields that contain QUAD_FLAGS, e.g. Mesh_Effect_Particle.flags
     QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION = 1 << 16;
     QUAD_FLAGS.FLAG_RAIN_OPACITY = 1 << 17;
-    QUAD_FLAGS.NEXT_UNUSED_FLAG = 1 << 18;
+    QUAD_FLAGS.FLAG_MASK_COLOR_ADD = 1 << 18;
+    QUAD_FLAGS.FLAG_WAVES_VERTEX = 1 << 19;
+    QUAD_FLAGS.NEXT_UNUSED_FLAG = 1 << 20;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
