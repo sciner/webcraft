@@ -5,6 +5,7 @@ import { noise, alea } from "../default.js";
 import { CHUNK_SIZE_Y } from '../../chunk_const.js';
 import {DungeonGenerator} from "../dungeon.js";
 import Demo_Map from '../biome2/demo_map.js';
+import { BiomeTree } from '../biomes.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -43,7 +44,7 @@ export default class Terrain_Generator extends Demo_Map {
         };
 
         // setBlock
-        const setBlock = (x, y, z, block_id, extra_data) => {
+        const setBlock = (x : int, y : int, z : int, block_id : int, extra_data? : any) => {
             const index = cx * x + cy * y + cz * z + cw;
             chunk.tblocks.id[index] = block_id;
             if(extra_data) {
@@ -116,14 +117,14 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Trees
         if(tree_pos && tree_pos.y < 32) {
-            let type = { "percent": 0.99, "trunk": 3, "leaves": 233, "style": "wood", "height": { "min": 4, "max": 8 } };
+            let type = new BiomeTree(3, 233, 'wood', { "min": 4, "max": 8 }, .99 );
             const r = rnd.double();
             if(r < .05) {
-                type = {"trunk": BLOCK.MUSHROOM_STEM.id, "leaves": BLOCK.RED_MUSHROOM_BLOCK.id, "style": 'red_mushroom', "height": {"min": 5, "max": 12}};
+                type = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.RED_MUSHROOM_BLOCK.id, 'red_mushroom', {"min": 5, "max": 12});
             } else if(r < .5) {
-                type = {"trunk": BLOCK.BIRCH_LOG.id, "leaves": BLOCK.BIRCH_LEAVES.id, "style": 'wood', "height": {"min": 4, "max": 8}};
+                type = new BiomeTree(BLOCK.BIRCH_LOG.id, BLOCK.BIRCH_LEAVES.id, 'wood', {"min": 4, "max": 8});
             } else if(r < .55) {
-                type = {"trunk": BLOCK.PRISMARINE.id, "leaves": null, "style": 'tundra_stone', "height": {"min": 2, "max": 2}};
+                type = new BiomeTree(BLOCK.PRISMARINE.id, null, 'tundra_stone', {"min": 2, "max": 2});
             }
             const tree_height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
             this.plantTree(this.world,

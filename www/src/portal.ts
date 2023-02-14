@@ -18,7 +18,7 @@ export class WorldPortalWait {
     constructor(old_pos, new_pos, params) {
         this.params         = params;
         this.attempt        = 0;
-        this.chunk_addr     = getChunkAddr(new_pos);
+        this.chunk_addr     = Vector.toChunkAddr(new_pos);
         this.old_pos        = old_pos;
         this.pos            = new_pos;
     }

@@ -1,9 +1,10 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
-import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, getChunkAddr } from '../helpers.js';
+import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, getChunkAddr, IndexedColor } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 import { WorldAction } from "../world_action.js";
+import type { ChunkWorkerChunk } from "../worker/chunk.js";
 
 export {alea, noise};
 
@@ -44,7 +45,7 @@ export class Default_Terrain_Map {
 export class Default_Terrain_Generator {
     [key: string]: any;
 
-    constructor(seed, world_id, options, noise2d, noise3d) {
+    constructor(seed, world_id, options, noise2d? : any, noise3d? : any) {
         this.voxel_buildings = [];
         this.setSeed(seed);
         this.noise2d        = noise2d ?? noise.simplex2;
@@ -80,11 +81,11 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('big_oak', this.plantBigOak.bind(this)) // большой дуб
     }
 
-    async init() {
+    async init() : Promise<boolean> {
         return true;
     }
 
-    async setSeed(seed) {
+    async setSeed(seed : string) {
         this.seed = seed;
         this.seed_int = parseInt(this.seed);
         noise.seed(this.seed);
@@ -92,7 +93,7 @@ export class Default_Terrain_Generator {
     }
 
     //
-    generate(chunk) {
+    generate(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
 
         const b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.BEDROCK : BLOCK.SAND;
 
@@ -108,18 +109,16 @@ export class Default_Terrain_Generator {
             }
         }
 
-        let cell = {biome: {dirt_color: new Indexedcolor(980, 980, 0), code: 'Flat'}};
-        let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
+        const cell = {biome: {dirt_color: new IndexedColor(980, 980, 0), code: 'Flat'}};
+        const cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
 
-        return {
-            chunk: chunk,
-            options: {
-                WATER_LINE: 63, // Ватер-линия
-            },
-            info: {
-                cells: cells
-            }
-        };
+        return new Default_Terrain_Map(
+            chunk.addr,
+            chunk.size,
+            chunk.addr.mul(chunk.size),
+            {WATER_LINE: 63},
+            cells
+        );
 
     }
 
@@ -218,7 +217,7 @@ export class Default_Terrain_Generator {
     }
 
     // setBlock
-    setBlock(chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
+    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_type : any, force_replace : boolean = false, rotate? : IVector, extra_data? : any) {
         const { tblocks } = chunk;
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             if(force_replace || !tblocks.getBlockId(x, y, z)) {

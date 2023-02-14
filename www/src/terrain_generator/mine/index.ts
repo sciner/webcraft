@@ -3,6 +3,7 @@ import { DungeonGenerator } from '../dungeon.js';
 import { Default_Terrain_Generator } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { alea } from "../default.js";
+import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 
 export default class MineGenerator2 extends Default_Terrain_Generator {
     [key: string]: any;
@@ -15,9 +16,11 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
         this.dungeon = new DungeonGenerator(seed);
     }
 
-    async init() {}
+    async init() {
+        return super.init()
+    }
 
-    generate(chunk) {
+    generate(chunk : ChunkWorkerChunk) {
         const aleaRandom = new alea(this.s + chunk.addr.toString());
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {

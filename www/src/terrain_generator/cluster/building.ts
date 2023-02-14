@@ -25,7 +25,7 @@ export class Building {
      * @param {Vector} _size
      * @param {*} building_template
      */
-    constructor(cluster, seed, coord, _entrance, door_direction, _size, building_template) {
+    constructor(cluster, seed, coord, _entrance, door_direction, _size, building_template? : any) {
 
         _entrance = new Vector(_entrance)
         _entrance.y = Infinity
@@ -269,7 +269,7 @@ export class Building {
         let value2 = 0
         let value2_changed = false
         for(let entrance of [this.entrance, this.ahead_entrance]) {
-            const map_addr = getChunkAddr(entrance);
+            const map_addr = Vector.toChunkAddr(entrance);
             map_addr.y = 0;
             let entrance_map = maps.get(map_addr);
             if(entrance_map) {

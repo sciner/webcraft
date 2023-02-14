@@ -200,7 +200,7 @@ export class ServerWorld {
 
         const addBlock = (pos, item) => {
             blocks.push({pos, item})
-            chunks_addr.set(getChunkAddr(pos), true);
+            chunks_addr.set(Vector.toChunkAddr(pos), true);
         }
 
         // make road
@@ -683,7 +683,7 @@ export class ServerWorld {
         //
         const getChunkPackets = (pos, chunk_addr) => {
             if(!chunk_addr) {
-                chunk_addr = getChunkAddr(pos)
+                chunk_addr = Vector.toChunkAddr(pos)
             }
             let cps = chunks_packets.get(chunk_addr);
             if (!cps) {
@@ -784,7 +784,7 @@ export class ServerWorld {
                         params.item = this.block_manager.convertBlockToDBItem(params.item)
                     }
                     //
-                    getChunkAddr(params.pos, chunk_addr);
+                    Vector.toChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
                         cps = getChunkPackets(null, chunk_addr);
                         chunk?.light?.flushDelta();

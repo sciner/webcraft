@@ -33,7 +33,7 @@ class QuadAttr {
 
 export default class GeometryTerrain {
     [key: string]: any;
-    constructor(vertices, chunkId) {
+    constructor(vertices, chunkId? : int) {
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
         this.updateID = 0;

@@ -92,7 +92,18 @@ export class Biomes {
         return (resp / 2 + .5) / div;
     }
 
-    addBiome(id: int, title : string, temperature : float, humidity: float, dirt_layers : any[], trees, plants, grass, dirt_color : IndexedColor, water_color : IndexedColor, building_options) {
+    addBiome(
+        id: int,
+        title : string,
+        temperature : float,
+        humidity: float,
+        dirt_layers? : any[],
+        trees? : any,
+        plants? : any,
+        grass? : any,
+        dirt_color? : IndexedColor,
+        water_color? : IndexedColor,
+        building_options? : any) {
         // const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [

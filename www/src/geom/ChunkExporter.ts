@@ -270,7 +270,7 @@ export class ChunkExporter {
         terrain.innerConvertFluid = this.fluidExporter.innerConvertFluid.bind(terrain);
 
         let localPos = new Vector();
-        chunkAddrToCoord(getChunkAddr(camPos), localPos);
+        chunkAddrToCoord(Vector.toChunkAddr(camPos), localPos);
 
         this.reset();
 

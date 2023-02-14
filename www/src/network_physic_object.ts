@@ -49,7 +49,7 @@ export class NetworkPhysicObject {
     }
 
     get chunk_addr() {
-        return getChunkAddr(this.pos, this._chunk_addr);
+        return Vector.toChunkAddr(this.pos, this._chunk_addr);
     }
 
     set pos(v) {

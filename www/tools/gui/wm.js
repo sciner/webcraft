@@ -1346,7 +1346,7 @@ export class SimpleBlockSlot extends Window {
             const mat = BLOCK.fromId(item.id)
             const tintMode = item.extra_data?.enchantments ? 1 : 0
 
-            this.setBackground(getBlockImage(item, 100 * this.zoom), 'centerstretch', 1.0, tintMode)
+            this.setBackground(getBlockImage(item), 'centerstretch', 1.0, tintMode)
 
             // let font_size = 18
             const power_in_percent = mat?.item?.indicator == 'bar'

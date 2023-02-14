@@ -34,7 +34,7 @@ export class Mesh_Object_BBModel {
         this.life           = 1.0;
         this.chunk          = null;
         this.apos           = new Vector(pos) // absolute coord
-        this.chunk_addr     = getChunkAddr(this.apos);
+        this.chunk_addr     = Vector.toChunkAddr(this.apos);
         this.chunk_coord    = this.chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
@@ -44,7 +44,7 @@ export class Mesh_Object_BBModel {
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.vertices       = [];
         this.buffer         = new GeometryTerrain(this.vertices);
-        this.redraw();
+        this.redraw(0.);
 
         this.setAnimation(animation_name);
 
@@ -55,7 +55,7 @@ export class Mesh_Object_BBModel {
         this.animation_name = name;
     }
 
-    redraw(delta) {
+    redraw(delta: float) {
         this.vertices = [];
         const mx = mat4.create();
         mat4.rotateY(mx, mx, this.rotate.z + Math.PI);

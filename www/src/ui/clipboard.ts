@@ -1,15 +1,15 @@
-window.Clipboard = (function(window, document, navigator) {
-    var textArea, copy;
+export const ClipboardHelper : any = (function(window, document, navigator) {
+    var textArea : any, copy : any;
     function isOS() {
         return navigator.userAgent.match(/ipad|iphone/i);
     }
-    function createTextArea(text) {
+    function createTextArea(text : string) {
         textArea = document.createElement('textArea');
         textArea.value = text;
         document.body.appendChild(textArea);
     }
     function selectText() {
-        var range, selection;
+        var range : Range, selection : Selection | null;
         if (isOS()) {
             range = document.createRange();
             range.selectNodeContents(textArea);
@@ -25,7 +25,8 @@ window.Clipboard = (function(window, document, navigator) {
         document.execCommand('copy');
         document.body.removeChild(textArea);
     }
-    copy = function(text) {
+    copy = function(text : string) {
+        // navigator.clipboard.writeText(this.url);
         createTextArea(text);
         selectText();
         copyToClipboard();

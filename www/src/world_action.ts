@@ -489,7 +489,7 @@ export class WorldAction {
 
     #world;
 
-    constructor(id, world, ignore_check_air = false, on_block_set = true, notify = null) {
+    constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
         //
         Object.assign(this, {

@@ -387,26 +387,18 @@ export function makeChunkEffectID(chunk_addr, material_key) {
  * @param x
  * @param y
  * @param z
- * @param v
+ * @param out_vec
  */
-export function getChunkAddr(x: IVector | number, y: IVector | number | null, z : number, v : Vector | null = null) : Vector {
-    if(x instanceof Vector || typeof x == 'object') {
-        v = y as any;
-
-        y = x.y;
-        z = x.z;
-        x = x.x;
-    }
-    //
-    v = v || new Vector();
-    v.x = Math.floor(x as any / CHUNK_SIZE_X);
-    v.y = Math.floor(y as any / CHUNK_SIZE_Y);
-    v.z = Math.floor(z / CHUNK_SIZE_Z);
+export function getChunkAddr(x: number, y: number, z : number, out_vec : Vector | null = null) : Vector {
+    out_vec = out_vec || new Vector();
+    out_vec.x = Math.floor(x as any / CHUNK_SIZE_X);
+    out_vec.y = Math.floor(y as any / CHUNK_SIZE_Y);
+    out_vec.z = Math.floor(z / CHUNK_SIZE_Z);
     // Fix negative zero
-    if(v.x == 0) {v.x = 0;}
-    if(v.y == 0) {v.y = 0;}
-    if(v.z == 0) {v.z = 0;}
-    return v;
+    if(out_vec.x == 0) {out_vec.x = 0;}
+    if(out_vec.y == 0) {out_vec.y = 0;}
+    if(out_vec.z == 0) {out_vec.z = 0;}
+    return out_vec;
 }
 
 export function chunkAddrToCoord(addr : IVector, result : IVector) {
@@ -1046,8 +1038,12 @@ export class Vector implements IVector {
     static ZERO_AND_SIX_DIRECTIONS = [this.ZERO].concat(this.SIX_DIRECTIONS);
     static ZERO_AND_SIX_DIRECTIONS_CUMULATIVE = [this.ZERO].concat(this.SIX_DIRECTIONS_CUMULATIVE);
 
+    static toChunkAddr(in_vec: IVector, out_vec?: Vector) : Vector {
+        out_vec = out_vec || new Vector()
+        return getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
+    }
+
     /**
-     *
      * @param {Vector | IVector | number[]} [x]
      * @param {number} [y]
      * @param {number} [z]

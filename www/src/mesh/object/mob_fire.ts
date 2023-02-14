@@ -20,7 +20,7 @@ export class Mesh_Object_MobFire {
         this.apos           = mob.pos.clone().addScalarSelf(.5, .5, .5); // absolute coord
         this.life           = 1.0;
         this.chunk          = null;
-        this.chunk_addr     = getChunkAddr(this.apos);
+        this.chunk_addr     = Vector.toChunkAddr(this.apos);
         this.chunk_coord    = this.chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();

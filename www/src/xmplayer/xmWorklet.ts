@@ -34,7 +34,7 @@ export class XMPlayer {
         return this._volume;
     }
 
-    notify (type, data, transferable, id = null) {
+    notify (type, data? : any, transferable ? : any, id : any = null) {
         return new Promise((res) => {
             const messageId = id || this.messageId;
 
@@ -59,7 +59,7 @@ export class XMPlayer {
         }
     }
 
-    async init(context = null, destination) {
+    async init(context : any = null, destination : any = null) {
         if (!this.audioctx || (context && this.audioctx !== context)) {
             var audioContext = window.AudioContext || window.webkitAudioContext;
             this.audioctx = context || new audioContext();

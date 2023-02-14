@@ -122,6 +122,7 @@ export class World {
 
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd : IChatCommand) => {
                 for(let params of cmd.data) {
+                    // TODO: Not found global variable?
                     TrackerPlayer.stop(params.pos);
                 }
             });

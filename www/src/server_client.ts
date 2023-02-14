@@ -138,7 +138,7 @@ export class ServerClient {
     }
 
     // Add listeners for server commands
-    AddCmdListener(cmd_list, listener, user_guid) {
+    AddCmdListener(cmd_list, listener, user_guid? : string) {
         if(user_guid) {
             if(!this.cmdListenersForPlayers.has(user_guid)) {
                 this.cmdListenersForPlayers.set(user_guid, new Map());
@@ -217,7 +217,7 @@ export class ServerClient {
             if(cmd.name == ServerClient.CMD_BLOCK_SET) {
                 chunkManager.block_sets++;
                 const pos = cmd.data.pos;
-                chunk_addr = getChunkAddr(pos, chunk_addr);
+                chunk_addr = Vector.toChunkAddr(pos, chunk_addr);
                 if(!prev_chunk_addr.equal(chunk_addr)) {
                     prev_chunk_addr.copyFrom(chunk_addr);
                     arr = chunk_modifiers.get(chunk_addr);

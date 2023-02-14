@@ -1,31 +1,21 @@
+import type { Vector } from "../../../helpers";
+
 export const WATER_LEVEL = 80;
 
 export class ClimateParams {
-    [key: string]: any;
+
+    temperature: float = 0
+    humidity : float = 0
 
     /**
-     * @ype { float }
      */
-    temperature
-
-    /**
-     * @ype { float }
-     */
-    humidity
-
-    /**
-     * @param { float } temperature
-     * @param { float } humidity
-     */
-    constructor(temperature, humidity) {
+    constructor(temperature : float = 0, humidity : float = 0) {
         this.set(temperature, humidity)
     }
 
     /**
-     * @param { float } temperature
-     * @param { float } humidity
      */
-    set(temperature, humidity) {
+    set(temperature : float = 0, humidity : float = 0) {
         this.temperature = temperature
         this.humidity = humidity
     }
@@ -42,7 +32,7 @@ export class MapCellPreset {
      * @param {float} options.relief кривизна рельефа
      * @param {float} options.mid_level базовая высота поверхности относительно уровня моря
      */
-    constructor(id, {chance, relief, mid_level}) {
+    constructor(id: string, {chance, relief, mid_level}) {
         this.id = id;
         this.chance = chance;
         this.relief = relief;
@@ -50,11 +40,8 @@ export class MapCellPreset {
     }
 
     /**
-     * @param { Vector } xz
-     * @param { ClimateParams } params
-     * @returns { boolean }
      */
-    modifyClimate(xz, params) {
+    modifyClimate(xz : Vector, params : ClimateParams) : boolean {
         return false
     }
 

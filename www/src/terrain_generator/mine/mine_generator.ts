@@ -1,5 +1,5 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
-import {Vector, VectorCollector, DIRECTION} from '../../helpers.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../chunk_const.js";
+import {Vector, VectorCollector, DIRECTION, DIRECTION_BIT} from '../../helpers.js';
 import {impl as alea} from '../../../vendors/alea.js';
 import { AABB } from "../../core/AABB.js";
 
@@ -11,6 +11,12 @@ export const MINE_SIZE = new Vector(CHUNK_SIZE_X * SIZE_CLUSTER, 40, CHUNK_SIZE_
 export const NODE_SIZE = new Vector(CHUNK_SIZE_X, 4, CHUNK_SIZE_Z);
 export const NODE_COUNT = new Vector(MINE_SIZE.x / NODE_SIZE.x, MINE_SIZE.y / NODE_SIZE.y, MINE_SIZE.z / NODE_SIZE.z);
 
+export interface MineOptions {
+    size_cluster: number
+    chance_hal: float
+    chance_cross: float
+    chance_side_room: float
+}
 /**
  * Draw mines
  * @class MineGenerator
@@ -23,7 +29,7 @@ export class MineGenerator {
 
     static all = new VectorCollector();
 
-    constructor(generator, addr, options = {}) {
+    constructor(generator, addr : Vector, options : MineOptions) {
         this.generator          = generator;
         this.addr               = addr.clone();
         this.coord              = (new Vector(addr.x, addr.y, addr.z)).multiplyVecSelf(MINE_SIZE);
@@ -33,10 +39,10 @@ export class MineGenerator {
             return;
         }
         //
-        this.size_cluster       = (options.size_cluster) ? options.size_cluster : 8;
-        this.chance_hal         = (options.chance_hal) ? options.chance_hal : 0.75;
-        this.chance_cross       = (options.chance_cross) ? options.chance_cross : 0.6;
-        this.chance_side_room   = (options.chance_side_room) ? options.chance_side_room : 0.5;
+        this.size_cluster       = options?.size_cluster ?? 8
+        this.chance_hal         = options?.chance_hal ?? 0.75
+        this.chance_cross       = options?.chance_cross ?? 0.6
+        this.chance_side_room   = options?.chance_side_room ?? 0.5
         //
         this._get_vec           = new Vector(0, 0, 0);
         this.voxel_buildings    = [];
@@ -55,22 +61,22 @@ export class MineGenerator {
     }
 
     // getForCoord
-    static getForCoord(generator, coord) {
+    static getForCoord(generator, coord : IVector) {
         const addr = new Vector(coord.x, 0, coord.z).divScalarVec(MINE_SIZE).flooredSelf();
         let mine = MineGenerator.all.get(addr);
         if(mine) {
             return mine;
         }
-        let options = {
+        const options = {
             'chance_hal' : 0.4
-        };
+        } as MineOptions;
         mine = new MineGenerator(generator, addr, options);
         MineGenerator.all.set(addr, mine);
         return mine;
     }
 
     // generate node
-    genNodeMine(x, y, z, dir) {
+    genNodeMine(x, y, z, dir : int) {
 
         if (x > NODE_COUNT.x || x < 0 || y > NODE_COUNT.y || y < 0 || z > NODE_COUNT.z || z < 0) {
             return;
@@ -295,7 +301,7 @@ export class MineGenerator {
         return this.nodes.get(this._get_vec.set(x, y, z)) || null;
     }
 
-    setBlock(chunk, node, x, y, z, block_type, force_replace, rotate, extra_data) {
+    setBlock(chunk, node, x, y, z, block_type, force_replace, rotate? : IVector, extra_data? : any) {
         y += node.bottom_y;
 
         const { tblocks } = chunk;

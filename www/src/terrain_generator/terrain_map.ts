@@ -82,7 +82,7 @@ export class TerrainMapManager {
     }
 
     // Return map
-    get(addr) {
+    get(addr : IVector) {
         return this.maps_cache.get(addr);
     }
 
@@ -160,7 +160,7 @@ export class TerrainMapManager {
                 // smooth with clusters
                 if(cluster_max_height) {
                     value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
-                    value = parseInt(value);
+                    value = Math.trunc(value);
                     return {value, biome, humidity, equator};
                 } else {
                     if(!is_ocean) {
@@ -182,7 +182,7 @@ export class TerrainMapManager {
             // smooth with clusters
             value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
         }
-        value = parseInt(value);
+        value = Math.trunc(value);
         // value = Helpers.clamp(value, 4, 2500);
         biome = BIOMES.getBiome(value / 255, humidity, equator);
         // Pow
@@ -192,7 +192,7 @@ export class TerrainMapManager {
         } else {
             value = GENERATOR_OPTIONS.WATER_LINE + Math.pow(diff, 1 + diff / HW);
         }
-        value = parseInt(value);
+        value = Math.trunc(value);
         return {value, biome, humidity, equator};
     }
 
@@ -259,7 +259,7 @@ export class TerrainMapManager {
                 let dirt_block_id = biome.dirt_block[0];
                 if(biome.dirt_block.length > 1) {
                     const ns = noisefn(px / 5, pz / 5);
-                    const index = parseInt(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
+                    const index = Math.trunc(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
                     dirt_block_id = biome.dirt_block[index];
                 }
                 // Create map cell
@@ -298,7 +298,9 @@ export class TerrainMapManager {
 export class TerrainMap extends Default_Terrain_Map {
     [key: string]: any;
 
-    static _cells;
+    static _cells: any[];
+    static _vals: any[];
+    static _sums: any[];
 
     // Constructor
     constructor(chunk, options) {
@@ -317,7 +319,7 @@ export class TerrainMap extends Default_Terrain_Map {
         TerrainMap._sums = new Array(SMOOTH_ROW_COUNT * VAL_COUNT);
     }
 
-    static setPartial(x, z, cell) {
+    static setPartial(x : number, z : number, cell) {
         x += SMOOTH_RAD * 2;
         z += SMOOTH_RAD * 2;
         const ind = ((z * SMOOTH_ROW_COUNT) + x)
@@ -366,7 +368,7 @@ export class TerrainMap extends Default_Terrain_Map {
     }
 
     // Сглаживание карты высот
-    smooth(generator) {
+    smooth(generator : TerrainMapManager) {
 
         // 1. Кеширование ячеек
         let map             = null;
@@ -503,7 +505,7 @@ export class TerrainMap extends Default_Terrain_Map {
                     }
                     let r = aleaRandom.double();
                     const height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
-                    const rad = Math.max(parseInt(height / 2), 2);
+                    const rad = Math.max(Math.trunc(height / 2), 2);
                     this.trees.push({
                         biome_code: biome.code,
                         pos:        new Vector(x, y, z),

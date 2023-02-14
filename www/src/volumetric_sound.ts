@@ -548,7 +548,7 @@ export class SoundMap {
     onPlayerPos(playerPos) {
         const queriedChunks = []
         this.playerPos = playerPos
-        const addr = getChunkAddr(playerPos, this.playerAddr)
+        const addr = Vector.toChunkAddr(playerPos, this.playerAddr)
 
         // coordinates of the "lower-left" of the central chunks
         const x = this.chunks.minX + SOUND_MAP_CHUNKS_RADIUS_XZ

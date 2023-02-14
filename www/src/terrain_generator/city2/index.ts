@@ -3,6 +3,7 @@ import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import {BLOCK} from '../../blocks.js';
+import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -18,7 +19,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.setSeed(seed);
     }
 
-    async init() {
+    async init() : Promise<boolean> {
         // Костыль для NodeJS
         let root_dir = '../www';
         if(typeof process === 'undefined') {
@@ -38,6 +39,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             new Vox_Mesh(vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
             new Vox_Mesh(vox_templates.city2, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null)
         ];
+        return true
     }
 
     initPallette() {
@@ -81,18 +83,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         };
     }
 
-    /**
-     * setSeed
-     * @param { string } seed
-     */
-    setSeed(seed) {
+    async setSeed(seed : string) {
+        return super.setSeed(seed)
     }
 
     /**
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @returns
      */
-    generate(chunk) {
+    generate(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
         const { cx, cy, cz, cw } = chunk.dataChunk;
         // setBlock
         const setBlock = (x, y, z, block_id) => {

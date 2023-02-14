@@ -115,7 +115,7 @@ export class TypedBlocks3 {
     [key: string]: any;
 
     constructor(coord : Vector, chunkSize: Vector) {
-        this.addr       = getChunkAddr(coord);
+        this.addr       = Vector.toChunkAddr(coord);
         this.coord      = coord;
         this.chunkSize  = chunkSize;
         this.power      = new VectorCollector1D(chunkSize);

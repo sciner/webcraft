@@ -5,6 +5,7 @@ import { ClusterStructures } from "./structures.js";
 import {ClusterEmpty} from "./empty.js";
 import {impl as alea} from '../../../vendors/alea.js';
 import { TerrainMapManager2 } from "../biome3/terrain/manager.js";
+import type { ClusterBase } from "./base.js";
 
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
@@ -32,11 +33,8 @@ export class ClusterManager {
 
     /**
      * Return existing cluster or create new and return
-     * @param {Vector} coord
-     * @param {TerrainMapManager2} map_manager
-     * @returns
      */
-    getForCoord(coord, map_manager) {
+    getForCoord(coord : Vector, map_manager : TerrainMapManager2) : ClusterBase {
         const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(this.size).flooredSelf()
         let cluster = this.all.get(addr);
         if(cluster) {

@@ -313,7 +313,7 @@ export class RecipeWindow extends BlankWindow {
         
         this.items_count = tmp_recipes.length;
 
-        for(const index in tmp_recipes) {
+        for(let index = 0; index < tmp_recipes.length; index++) {
             if(index < min_index) {
                 continue;
             }

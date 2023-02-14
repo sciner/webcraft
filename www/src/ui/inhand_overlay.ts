@@ -29,7 +29,7 @@ export class HumanoidArm {
        this.name = name;
     }
     getOpposite() {
-       return this == LEFT ? RIGHT : LEFT;
+       return this == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
     }
  }
 
@@ -706,20 +706,20 @@ export class InHandOverlay {
         mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 * (1 + trig));
     }
 
-    /**
-    * @param {LivingEntity} player
-    * @param {ItemStack} matInHand
-    * @param {ItemTransforms.TransformType} p_109325_
-    * @param {boolean} p_109326_
-    * @param {PoseStack} modelMatrix
-    * @param {MultiBufferSource} p_109328_
-    * @param {int} p_109329_
-    */
-    renderItem(player, matInHand, p_109325_, p_109326_, modelMatrix, p_109328_, p_109329_) {
-        if (!matInHand.isEmpty()) {
-            this.itemRenderer.renderStatic(player, matInHand, p_109325_, p_109326_, modelMatrix, p_109328_, player.level, p_109329_, OverlayTexture.NO_OVERLAY, player.getId() + p_109325_.ordinal());
-        }
-    }
+    // /**
+    // * @param {LivingEntity} player
+    // * @param {ItemStack} matInHand
+    // * @param {ItemTransforms.TransformType} p_109325_
+    // * @param {boolean} p_109326_
+    // * @param {PoseStack} modelMatrix
+    // * @param {MultiBufferSource} p_109328_
+    // * @param {int} p_109329_
+    // */
+    // renderItem(player, matInHand, p_109325_, p_109326_, modelMatrix, p_109328_, p_109329_) {
+    //     if (!matInHand.isEmpty()) {
+    //         this.itemRenderer.renderStatic(player, matInHand, p_109325_, p_109326_, modelMatrix, p_109328_, player.level, p_109329_, OverlayTexture.NO_OVERLAY, player.getId() + p_109325_.ordinal());
+    //     }
+    // }
 
     /**
     * @param {PoseStack} modelMatrix

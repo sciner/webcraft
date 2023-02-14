@@ -105,7 +105,7 @@ export class DropItem {
      * It may be different from {@link inChunk}.
      */
     get chunk_addr() {
-        return getChunkAddr(this.pos, this.#chunk_addr);
+        return Vector.toChunkAddr(this.pos, this.#chunk_addr);
     }
 
     addVelocity(vec) {

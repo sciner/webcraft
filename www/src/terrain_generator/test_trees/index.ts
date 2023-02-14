@@ -4,6 +4,7 @@ import { BLOCK } from '../../blocks.js';
 import { TREES } from '../../terrain_generator/biomes.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
+import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -12,19 +13,18 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     [key: string]: any;
 
     constructor(world, seed, world_id, options) {
+        // seed, world_id, options, noise2d, noise3d
         super(seed, world_id, options);
         this.world = world;
         this.setSeed(seed);
         TREES.init();
     }
 
-    async init() {}
+    async init() : Promise<boolean> {
+        return await super.init()
+    }
 
-    /**
-     * @param {Vector} addr 
-     * @returns 
-     */
-    calcTreeOptions(addr) {
+    calcTreeOptions(addr : Vector) {
 
         const aleaRandom = new alea(addr.toHash());
         const tree_types = Object.keys(TREES);
@@ -36,7 +36,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         return {tree_type, tree_height}
     }
 
-    generate(chunk) {
+    generate(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
 
         // setBlock
         const { cx, cy, cz, cw } = chunk.dataChunk;

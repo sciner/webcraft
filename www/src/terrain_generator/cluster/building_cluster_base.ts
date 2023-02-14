@@ -206,7 +206,7 @@ export class ClusterBuildingBase extends ClusterBase {
                     if(mask_point && mask_point.height && !mask_point.height_fixed) {
                         // забираем карту того участка, где дверь, чтобы определить точный уровень пола
                         const vec = new Vector(building.coord.x + i, 0, building.coord.z + j)
-                        const map_addr = getChunkAddr(vec)
+                        const map_addr = Vector.toChunkAddr(vec)
                         let bi = maps.get(map_addr)
                         if(bi) {
                             // if map not smoothed

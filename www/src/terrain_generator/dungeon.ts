@@ -2,6 +2,7 @@ import {impl as alea} from '../../vendors/alea.js';
 import {Vector, DIRECTION} from "../helpers.js";
 import {BLOCK} from '../blocks.js';
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 const _pos = new Vector(0, 0, 0);
 const _vec = new Vector(0, 0, 0);
@@ -361,8 +362,7 @@ export class DungeonGenerator {
         }
     }
 
-
-    setBlock(chunk, x, y, z, block_type, rotate, extra_data) {
+    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_type, rotate : IVector, extra_data? : any) {
         if (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             const { tblocks } = chunk;
             tblocks.setBlockId(x, y, z, block_type.id);

@@ -1,5 +1,8 @@
 //
+declare const angular: any
+declare const SlimSelect: any
 declare const Qubatch: any // GameClass // | ServerGame
+declare const BLOCK: any;
 declare const QubatchChunkWorker: any;
 declare const QubatchLightWorker: any;
 declare const UI_ZOOM: number
@@ -24,7 +27,9 @@ interface IVector {
 
 interface TSideSet {}
 
-interface TWorldInfo {}
+interface TWorldInfo {
+    calerndar: any
+}
 
 interface TWorldSettings {}
 

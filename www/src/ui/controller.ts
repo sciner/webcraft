@@ -9,6 +9,7 @@ import { Lang } from "../lang.js";
 import { KEY, MOUSE, DEFAULT_MUSIC_VOLUME } from "../constant.js";
 import  registerTextFilter from './angular/textfilter.js';
 import { Resources } from '../resources.js';
+import { ClipboardHelper } from './clipboard.js';
 // import { PlayerWindowManager } from '../player_window_manager.js';
 
 function isSupported() {
@@ -44,7 +45,7 @@ function isSupported() {
     const isFF = navigator.userAgent.indexOf('Mozilla') > -1;
     // safari 15 is ok
     const isSafari = navigator.userAgent.indexOf('Safari') > -1;
-    const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || self.chrome;
+    const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || ('chrome' in self);
     /*
         if (isFF) {
             console.error('Browser not supported:', 'Firefox not support modules for workers');
@@ -63,7 +64,7 @@ globalThis.randomUUID = () => {
     if(crypto.randomUUID) {
         return crypto.randomUUID()
     } else {
-        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        return `${1e7}-${1e3}-${4e3}-${8e3}-${1e11}`.replace(/[018]/g, (c : any) =>
             (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
         )
     }
@@ -72,8 +73,7 @@ globalThis.randomUUID = () => {
 const app = angular.module('gameApp', []);
 registerTextFilter(app);
 
-let injectParams = ['$scope', '$timeout'];
-let gameCtrl = async function($scope, $timeout) {
+let gameCtrl = async function($scope : any, $timeout : any) {
 
     // Working with lang
     await Lang.init();
@@ -112,7 +112,7 @@ let gameCtrl = async function($scope, $timeout) {
     };
 
     Qubatch.exit = () => {
-        location = '/';
+        location.href = '/';
     };
 
     $scope.links = {
@@ -161,7 +161,7 @@ let gameCtrl = async function($scope, $timeout) {
             this.visible = !this.visible;
         },
         copy: function() {
-            Clipboard.copy(this.url);
+            ClipboardHelper.copy(this.url);
             vt.success(Lang.copied);
         }
     };
@@ -356,7 +356,7 @@ let gameCtrl = async function($scope, $timeout) {
             }
             // use_light
             if('use_light' in this.form) {
-                this.form.use_light = parseInt(this.form.use_light | 0);
+                this.form.use_light = Math.trunc(this.form.use_light | 0);
             }
             // forced Joystick control
             if(!('forced_joystick_control' in this.form)) {
@@ -375,9 +375,9 @@ let gameCtrl = async function($scope, $timeout) {
             this.form.music_volume = this.form.music_volume ?? DEFAULT_MUSIC_VOLUME;
         },
         updateSlider: function (inputId) {
-            const slider = document.getElementById(inputId);
+            const slider = (document.getElementById(inputId) as HTMLInputElement);
             const step = parseInt(slider.getAttribute("step"));
-            const perc = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+            const perc = (parseFloat(slider.value) - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min)) * 100;
             // track background
             slider.style.backgroundImage = "linear-gradient(to right, #FFAB00 " + perc + "%, #3F51B5 " + perc + "%)";
             // ticks set active
@@ -387,9 +387,9 @@ let gameCtrl = async function($scope, $timeout) {
                 var tickIndex = index * step;
                 tick.classList.remove("active");
                 tick.classList.remove("passed");
-                if (tickIndex <= Math.floor(slider.value)) {
+                if (tickIndex <= Math.floor(parseFloat(slider.value))) {
                     tick.classList.add("passed");
-                    if (tickIndex == Math.round(slider.value)) {
+                    if (tickIndex == Math.round(parseFloat(slider.value))) {
                         tick.classList.add("active");
                     }
                 }
@@ -470,7 +470,7 @@ let gameCtrl = async function($scope, $timeout) {
     };
 
     // Start world
-    $scope.StartWorld = async function(world_guid) {
+    $scope.StartWorld = async function(world_guid : string) {
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
@@ -560,12 +560,12 @@ let gameCtrl = async function($scope, $timeout) {
         shared_worlds: [],
         loading: false,
         toMain: function(){
-            location = '/';
+            location.href = '/';
         },
         load: function() {
             const session = $scope.App.getSession();
             if(!session) {
-                return that.loadingComplete();
+                return $scope.loadingComplete();
             }
             const that = this;
             that.loading = true;
@@ -646,7 +646,7 @@ let gameCtrl = async function($scope, $timeout) {
                     $scope.current_window.show('enter-world');
                     $scope.$apply();
                 } else {
-                    vt.error(message);
+                    vt.error(error.message);
                 }
             },
             checkIsWorldUrl: function(){
@@ -809,11 +809,11 @@ let gameCtrl = async function($scope, $timeout) {
 
     // modal windows show/hide
     $scope.modalWindow = {
-        show: function(modalId) {
+        show: function(modalId : string) {
             document.getElementById(modalId).style.visibility = 'visible';
             document.body.style.overflow = 'hidden';
         },
-        hide: function(modalId) {
+        hide: function(modalId : string) {
             document.getElementById(modalId).style.visibility = 'hidden';
             document.body.style.overflow = 'unset';
         },
@@ -844,12 +844,10 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.current_window.show('main');
 }
 
-gameCtrl.$inject = injectParams;
-app.controller('gameCtrl', gameCtrl);
+app.controller('gameCtrl', ['$scope', '$timeout', gameCtrl]);
 
 // myEnter directive
-let myEnterInjectParams = ['$q'];
-let directive = function($q) {
+const directive = function($q) {
     return function(scope, element, attrs) {
         element.bind('keydown keypress', function(event) {
             if(event.which === 13) {
@@ -863,8 +861,7 @@ let directive = function($q) {
         });
     };
 };
-directive.$inject = myEnterInjectParams;
-app.directive('myEnter', directive);
+app.directive('myEnter', ['$q', directive]);
 
 // from https://stackoverflow.com/questions/20146713/ng-change-on-input-type-file
 app.directive("ngUploadChange",function(){

@@ -17,7 +17,7 @@ export default class emitter {
         this.max_distance   = 24;
         this.pp             = IndexedColor.WHITE.clone().pack();
         this.pos            = pos;
-        this.chunk_addr     = getChunkAddr(this.pos);
+        this.chunk_addr     = Vector.toChunkAddr(this.pos);
         this.material_key   = MATERIAL_KEY;
         const m             = this.material_key.split('/');
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);

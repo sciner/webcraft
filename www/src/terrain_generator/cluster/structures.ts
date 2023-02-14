@@ -7,7 +7,7 @@ import { Vector } from "../../helpers.js";
 export class ClusterStructures extends ClusterBuildingBase {
     [key: string]: any;
 
-    constructor(clusterManager, addr) {
+    constructor(clusterManager, addr, biome) {
 
         super(clusterManager, addr)
 

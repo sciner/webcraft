@@ -7,7 +7,7 @@ export const CLUSTER_PADDING    = 8
 export class ClusterPoint {
     [key: string]: any;
 
-    constructor(height, block_id, margin, info, building, y_shift) {
+    constructor(height : int, block_id : int, margin : int, info, building? : any, y_shift? : int) {
         this.height         = height;
         this.block_id       = block_id;
         this.margin         = margin;
@@ -29,7 +29,7 @@ export class ClusterBase {
      * @param { Vector } addr
      * @param { ?Vector } size
      */
-    constructor(clusterManager, addr, size) {
+    constructor(clusterManager, addr : Vector, size? : Vector) {
         this.clusterManager = clusterManager;
         this.block_manager  = clusterManager.world.block_manager
         this.y_base         = 80;

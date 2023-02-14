@@ -13,22 +13,50 @@ const biome_stat = {
     equator:    {min: 999999999, max: -99999},
 };
 
+export class BiomeTree {
+    
+    trunk: int
+    leaves: int | null
+    style: string
+    height: {min: int, max: int}
+    percent?: float
+
+    constructor(trunk: int, leaves: int | null, style: string, height: {min: int, max: int}, percent? : float) {
+        this.trunk = trunk
+        this.leaves = leaves
+        this.style = style
+        this.height = height
+        if(percent !== undefined) {
+            this.percent = percent
+        }
+    }
+
+}
+
 // 1. Trees
 export class TREES {
-    [key: string]: any;
+
+    static BIRCH: BiomeTree;
+    static OAK: BiomeTree
+    static ACACIA: BiomeTree
+    static SPRUCE: BiomeTree
+    static JUNGLE: BiomeTree
+    static RED_MUSHROOM: BiomeTree
+    static BROWN_MUSHROOM: BiomeTree
+    static BIG_OAK: BiomeTree
 
     static init() {
         if(TREES.BIRCH) {
             return false;
         }
-        TREES.BIRCH             = {trunk: BLOCK.BIRCH_LOG.id, leaves: BLOCK.BIRCH_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
-        TREES.OAK               = {trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
-        TREES.ACACIA            = {trunk: BLOCK.ACACIA_LOG.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'acacia', height: {min: 5, max: 12}};
-        TREES.SPRUCE            = {trunk: BLOCK.SPRUCE_LOG.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: 22}};
-        TREES.JUNGLE            = {trunk: BLOCK.JUNGLE_LOG.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'jungle', height: {min: 1, max: 22}};
-        TREES.RED_MUSHROOM      = {trunk: BLOCK.MUSHROOM_STEM.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'red_mushroom', height: {min: 5, max: 12}};
-        TREES.BROWN_MUSHROOM    = {trunk: BLOCK.MUSHROOM_STEM.id, leaves: BLOCK.BROWN_MUSHROOM_BLOCK.id, style: 'brown_mushroom', height: {min: 5, max: 12}};
-        TREES.BIG_OAK           = {trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.OAK_LEAVES.id, style: 'big_oak', height: {min: 20, max: 35}};
+        TREES.BIRCH             = new BiomeTree(BLOCK.BIRCH_LOG.id, BLOCK.BIRCH_LEAVES.id, 'wood', {min: 4, max: 8})
+        TREES.OAK               = new BiomeTree(BLOCK.OAK_LOG.id, BLOCK.OAK_LEAVES.id, 'wood', {min: 4, max: 8})
+        TREES.ACACIA            = new BiomeTree(BLOCK.ACACIA_LOG.id, BLOCK.ACACIA_LEAVES.id, 'acacia', {min: 5, max: 12})
+        TREES.SPRUCE            = new BiomeTree(BLOCK.SPRUCE_LOG.id, BLOCK.SPRUCE_LEAVES.id, 'spruce', {min: 6, max: 22})
+        TREES.JUNGLE            = new BiomeTree(BLOCK.JUNGLE_LOG.id, BLOCK.JUNGLE_LEAVES.id, 'jungle', {min: 1, max: 22})
+        TREES.RED_MUSHROOM      = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.RED_MUSHROOM_BLOCK.id, 'red_mushroom', {min: 5, max: 12})
+        TREES.BROWN_MUSHROOM    = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.BROWN_MUSHROOM_BLOCK.id, 'brown_mushroom', {min: 5, max: 12})
+        TREES.BIG_OAK           = new BiomeTree(BLOCK.OAK_LOG.id, BLOCK.OAK_LEAVES.id, 'big_oak', {min: 20, max: 35})
         return true;
     }
 
@@ -36,6 +64,24 @@ export class TREES {
 
 // 2. Biomes
 export class  BIOMES {
+
+    static OCEAN: any
+    static RIVER: any
+    static BEACH: any
+    static TEMPERATE_DESERT: any
+    static JUNGLE: any
+    static SUBTROPICAL_DESERT: any
+    static SCORCHED: any
+    static BARE: any
+    static TUNDRA: any
+    static TAIGA: any
+    static SNOW: any
+    static SHRUBLAND: any
+    static GRASSLAND: any
+    static TEMPERATE_DECIDUOUS_FOREST: any
+    static TEMPERATE_RAIN_FOREST: any
+    static TROPICAL_SEASONAL_FOREST: any
+    static TROPICAL_RAIN_FOREST: any
 
     static init() {
 

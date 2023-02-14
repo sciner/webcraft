@@ -8,7 +8,7 @@ export class SkinManager {
 
     #controller;
 
-    constructor($scope, $timeout) {   
+    constructor($scope, $timeout? : any) {   
         // https://ru.namemc.com/minecraft-skins/trending/top?page=5
         this.#controller    = $scope;
         this.$timeout       = $timeout;

@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat, sizeOf} from "./helpers.js";
+import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat, sizeOf, vectorToChunkAddr} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -119,7 +119,7 @@ export class ChunkManager {
                     that.postWorkerMessage(['destroyMap', {
                         players: [{
                             chunk_render_dist: Qubatch.player.state.chunk_render_dist,
-                            chunk_addr: getChunkAddr(Qubatch.player.state.pos)
+                            chunk_addr: Vector.toChunkAddr(Qubatch.player.state.pos)
                         }]
                     }]);
                     //
@@ -234,7 +234,7 @@ export class ChunkManager {
                 case 'add_beacon_ray': {
                     const meshes = Qubatch.render.meshes;
                     args.pos = new Vector(args.pos);
-                    meshes.addForChunk(getChunkAddr(args.pos), new Mesh_Object_BeaconRay(args), 'beacon/' + args.pos.toHash());
+                    meshes.addForChunk(Vector.toChunkAddr(args.pos), new Mesh_Object_BeaconRay(args), 'beacon/' + args.pos.toHash());
                     break;
                 }
                 case 'del_beacon_ray': {

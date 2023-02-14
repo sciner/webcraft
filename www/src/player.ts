@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, Vector} from "./helpers.js";
+import {Helpers, getChunkAddr, Vector, vectorToChunkAddr} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -112,7 +112,7 @@ export class Player {
         this.#forward               = new Vector(0, 0, 0);
         this.blockPos               = this.getBlockPos().clone();
         this.blockPosO              = this.blockPos.clone();
-        this.chunkAddr              = getChunkAddr(this.pos);
+        this.chunkAddr              = Vector.toChunkAddr(this.pos);
         // Rotate
         this.rotate                 = new Vector(0, 0, 0);
         this.rotateDegree           = new Vector(0, 0, 0);

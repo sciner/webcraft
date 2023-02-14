@@ -5,14 +5,14 @@ import {ClusterBase, ClusterPoint} from "./base.js";
 export class ClusterPyramid extends ClusterBase {
     [key: string]: any;
 
-    constructor(clusterManager, addr) {
+    constructor(clusterManager, addr : Vector, biome? : any) {
         super(clusterManager, addr);
         this.max_height  = 1;
         this.is_empty = false;
         if(!this.is_empty) {
             const block = this.block_manager.MOSSY_STONE_BRICKS;
             let points = new Map();
-            const addBlock = (x, z, height) => {
+            const addBlock = (x: int, z: int, height: int) => {
                 let point = points.get(height);
                 if(!point) {
                     point = new ClusterPoint(height, block.id, 5, null);

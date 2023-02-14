@@ -1,5 +1,7 @@
 //TODO: recover tests
 
+import { MASK_SRC_AO, MASK_SRC_BLOCK, maxLight, OFFSET_DAY, OFFSET_LIGHT, OFFSET_SOURCE } from "./LightConst.js";
+
 /**
  *
  * @returns {boolean}

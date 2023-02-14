@@ -73,7 +73,7 @@ export class Shared_Controller {
         const isFF = navigator.userAgent.indexOf('Mozilla') > -1;
         // safari 15 is ok
         const isSafari = navigator.userAgent.indexOf('Safari') > -1;
-        const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || self.chrome;
+        const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || ('chrome' in self);
         // chrome + safari
         return isSafari || isChrome || isFF;
     }
@@ -157,7 +157,7 @@ export class Shared_Controller {
                     }
                     // use_light
                     if('use_light' in this.form) {
-                        this.form.use_light = parseInt(this.form.use_light | 0);
+                        this.form.use_light = Math.trunc(this.form.use_light | 0);
                     }
                 }
             }
@@ -249,11 +249,13 @@ export class Shared_Controller {
      */
     createWorld(form) {
         form.seed = this.App.GenerateSeed(form.seed || this.generateWorldSeed());
+        const ok = undefined
+        const err = undefined
         this.App.CreateWorld(form, ok, err);
     }
 
     // Delete world
-    deleteWorld(world_guid) {
+    deleteWorld(world_guid : string, ok? : Function, err? : Function) {
         this.App.DeleteWorld({world_guid}, ok, err);
     }
 

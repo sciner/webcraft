@@ -108,7 +108,7 @@ export default class Mesh_Object_Rain {
 
         for (let [xz, height] of this.#_map.entries()) {
 
-            chunk_addr = getChunkAddr(xz, chunk_addr).multiplyVecSelf(chunk_size);
+            chunk_addr = Vector.toChunkAddr(xz, chunk_addr).multiplyVecSelf(chunk_size);
 
             const rx = xz.x - chunk_addr.x;
             const rz = xz.z - chunk_addr.z;

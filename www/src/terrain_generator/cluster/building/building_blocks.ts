@@ -40,7 +40,7 @@ export class BuildingBlocks extends Building {
             pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir, false, false)
             actual_aabb.addPoint(pos.x, pos.y, pos.z)
             actual_aabb.addPoint(pos.x + 1, pos.y + 1, pos.z + 1)
-            getChunkAddr(pos, chunk_addr)
+            Vector.toChunkAddr(pos, chunk_addr)
             if(!chunk_addr.equal(prev_chunk_addr)) {
                 prev_chunk_addr.copyFrom(chunk_addr)
                 chunk = this.chunks.get(chunk_addr)

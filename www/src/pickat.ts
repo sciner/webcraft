@@ -1,4 +1,4 @@
-import {Color, getChunkAddr, Vector, unixTime} from "./helpers.js";
+import {Color, getChunkAddr, Vector, unixTime, vectorToChunkAddr} from "./helpers.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
@@ -234,7 +234,7 @@ export class PickAt {
             let a_pos = half.add(this.damage_block.pos);
 
             // Light
-            this.chunk_addr = getChunkAddr(this.damage_block.pos);
+            this.chunk_addr = Vector.toChunkAddr(this.damage_block.pos);
             this.chunk = this.world.chunkManager.getChunk(this.chunk_addr);
             if(this.chunk) {
                 mat4.translate(matrix, matrix,
@@ -349,7 +349,7 @@ export class PickAt {
         this.targetDescription = {
             worldPos: pos,
             posInChunk: pos.clone().subSelf(block.tb.dataChunk.pos),
-            chunkAddr: getChunkAddr(pos),
+            chunkAddr: Vector.toChunkAddr(pos),
             block: block.clonePOJO(),
             material: block.material,
             fluid: block.fluid
