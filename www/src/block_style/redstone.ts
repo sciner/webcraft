@@ -96,7 +96,7 @@ export default class style {
 
         // Texture color multiplier
         // @todo from extra_data.signal
-        const lm                = new IndexedColor(1.5 / tx_cnt * DEFAULT_ATLAS_SIZE, (16.5 + 1 / 16) / tx_cnt * DEFAULT_ATLAS_SIZE, 0, 0);
+        const lm                = new IndexedColor(1.5 / tx_cnt * DEFAULT_ATLAS_SIZE, (16.5 + 1 / 16) / tx_cnt * DEFAULT_ATLAS_SIZE, 0);
         const pp                = lm.pack();
         const posworld          = block.posworld;
 
@@ -176,7 +176,7 @@ export default class style {
 
         function drawX(x, y, z) {
             y_plus += 1/500;
-            let top_vectors: tuple6 = [0, -1, 0, 1, 0, 0];
+            let top_vectors: tupleFloat6 = [0, -1, 0, 1, 0, 0];
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y + y_plus,
