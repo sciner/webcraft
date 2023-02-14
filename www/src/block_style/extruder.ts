@@ -119,10 +119,10 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, _x, _y, _z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
-        _x *= 2;
-        _y *= 2;
-        _z *= 2;
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+        x *= 2;
+        y *= 2;
+        z *= 2;
 
         let material = block.material;
         let resource_pack = material.resource_pack;
@@ -180,7 +180,7 @@ export default class style {
         ];
 
         let lm = IndexedColor.WHITE;
-        let z = -0.5 - 0.5 / SCALE_FACTOR;
+        let fz = -0.5 - 0.5 / SCALE_FACTOR;
         let flags = QUAD_FLAGS.NO_AO;
 
         if(block.hasTag('mask_biome')) {
@@ -196,14 +196,14 @@ export default class style {
         let width = 1.0;
         // back & front, no matrices
         vertices.push(
-            _x, -scale.z * 0.5 + _z, _y,
+            x, -scale.z * 0.5 + z, y,
             MUL, 0, 0,
             0, 0, MUL * height,
             c[0], c[1], c[2], -c[3],
             pp, flags);
 
         vertices.push(
-            _x, scale.z * (MUL*0.75) + _z, _y,
+            x, scale.z * (MUL*0.75) + z, y,
             MUL, 0, 0,
             0, 0, -MUL * height,
             c[0], c[1], c[2], c[3],
@@ -212,24 +212,24 @@ export default class style {
         let uc = 1 / tex.width;
         let vc = 1 / tex.height;
 
-        for(let x = 0; x < clouds.size.x; x++) {
-            for(let y = 0; y < clouds.size.y; y++) {
-                let block  = world.chunkManager.getBlock(x, y, 0);
+        for(let fx = 0; fx < clouds.size.x; fx++) {
+            for(let fy = 0; fy < clouds.size.y; fy++) {
+                let block  = world.chunkManager.getBlock(fx, fy, 0);
                 if(!block) {
                     continue;
                 }
-                neighbours.DOWN = world.chunkManager.getBlock(x, y + 1, 0);
-                neighbours.UP = world.chunkManager.getBlock(x, y - 1, 0);
-                neighbours.WEST = world.chunkManager.getBlock(x - 1, y, 0);
-                neighbours.EAST = world.chunkManager.getBlock(x + 1, y, 0);
+                neighbours.DOWN = world.chunkManager.getBlock(fx, fy + 1, 0);
+                neighbours.UP = world.chunkManager.getBlock(fx, fy - 1, 0);
+                neighbours.WEST = world.chunkManager.getBlock(fx - 1, fy, 0);
+                neighbours.EAST = world.chunkManager.getBlock(fx + 1, fy, 0);
                 // Position of each texture pixel
-                let u = (tex_x + (x-1) + 0.5) / tex.width;
-                let v = (tex_y + (y-1) + 0.5) / tex.height;
+                let u = (tex_x + (fx-1) + 0.5) / tex.width;
+                let v = (tex_y + (fy-1) + 0.5) / tex.height;
 
                 // inline cube drawing
-                let x1 = _x + 0.5 + (x - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR
-                let y1 = _y - (y - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR - 1.5
-                let z1 = _z + z + scale.z / (ts / 16);
+                let x1 = x + 0.5 + (fx - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR
+                let y1 = y - (fy - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR - 1.5
+                let z1 = z + fz + scale.z / (ts / 16);
 
                 if(!neighbours.UP) {
                     pushTransformed(
