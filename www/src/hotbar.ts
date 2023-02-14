@@ -78,7 +78,7 @@ class Strings {
 
 export class Hotbar {
     [key: string]: any;
-    sprites: Dict<MySprite>;
+    sprites: Dict<MySprite> = {};
 
     constructor(hud) {
 
