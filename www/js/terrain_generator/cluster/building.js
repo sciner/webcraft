@@ -167,12 +167,8 @@ export class Building {
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
         const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
         // AABB of the part of the basement in this chunk, clamped to chunk
-        const centerInObj = basement.aabb.center
-        const sizeInObj = basement.aabb.size
         const aabbInObj = basement.aabb.clone().setIntersect(chunkAabbInObj)
-        const centerInChunk = objToChunk.transform(centerInObj)
         const aabbInChunk = objToChunk.tranformAABB(aabbInObj, new AABB())
-        const posInObj = new Vector()
 
         // find the lowest surface points
         const minNonSolidYInChunkMatrix = tmpYMatrix.initHorizontalInAABB(aabbInChunk)
@@ -182,6 +178,10 @@ export class Building {
             return // there is nothing to draw
         }
 
+        const sizeInObj = basement.aabb.size
+        const posInObj = new Vector()
+        const centerInObj = basement.aabb.center
+        const centerInChunk = objToChunk.transform(centerInObj)
         const noise2d = this.generator.noise2d
         const borderScaleInv = 1 / BASEMENT_BORDER_SCALE_XZ
         const circleRadius = sizeInObj.horizontalLength() / 2
@@ -211,6 +211,7 @@ export class Building {
                 if (!depths) {
                     continue
                 }
+                const cell  = chunk.map.getCell(cx, cz)
                 // find the max Y
                 const y_max = -depths.min
                 const y_max_incl = y_max - 1
@@ -229,14 +230,26 @@ export class Building {
                     const clusterPoint = cluster.getMaskByWorldXZ(cx + chunk.coord.x, cz + chunk.coord.z)
                     const clusterBlockId = clusterPoint?.block_id
                     if (clusterBlockId) {
-                        // draw the dirt path
+                        // draw the cluster block (dirt path, stone floor, etc.)
                         const cy = objToChunk.transformY(y_max_incl)
                         chunk.setBlockIndirect(cx, cy, cz, clusterBlockId)
+                        /* This code draws biome caps on top of the raised cluster blocks.
+                        But because the custer itself doesn't draw caps, the basement shouldn't do it also.
+                        Uncomment this code if the cluster draws the caps on its sloid ground blocks.
+
+                        // if it's solid, draw the biome cap on top of it
+                        const bm = cluster.clusterManager.world.block_manager
+                        if (cy + 1 < aabbInChunk.y_max && bm.isSolidID(clusterBlockId)) {
+                            const capBlockId = cell.getCapBlockId && cell.getCapBlockId()
+                            if (capBlockId) {
+                                chunk.setBlockIndirect(cx, cy + 1, cz, capBlockId)
+                            }
+                        }
+                        */
                         y_max_clamped = Math.min(y_max_clamped, y_max - 1) // start 1 block below the dirt path
                     }
                 }
                 // fill the column of blocks, including the cap
-                const cell  = chunk.map.getCell(cx, cz)
                 for(let y = y_min_clamped; y < y_max_clamped; y++) {
                     const cy = objToChunk.transformY(y)
                     chunk.setGroundLayerIndirect(cx, cy, cz, cell, y_max_incl - y)
