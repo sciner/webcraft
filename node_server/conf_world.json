@@ -1051,6 +1051,52 @@
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "floor_one",
+            "pos1": {
+                "x": -262,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -269,
+                "y": 5,
+                "z": -7
+            },
+            "entrance": {
+                "x": -265,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-14T12:06:21.011Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "floor_two",
+            "pos1": {
+                "x": -272,
+                "y": 2,
+                "z": 1
+            },
+            "pos2": {
+                "x": -283,
+                "y": 9,
+                "z": -10
+            },
+            "entrance": {
+                "x": -277,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-14T12:32:32.321Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
         }
     ]
 }

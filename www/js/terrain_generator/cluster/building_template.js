@@ -80,6 +80,7 @@ export class BuildingTemplate {
      */
     static fromSchema(name, bm) {
         let template = BuildingTemplate.known_templates.get(name)
+        console.log(template)
         if(template) {
             return template
         }

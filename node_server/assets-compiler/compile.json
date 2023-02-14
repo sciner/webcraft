@@ -7094,15 +7094,6 @@
             }
         },
         {
-            "id": 35,
-            "name": "PURPUR_BLOCK",
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "stone"
-            },
-            "texture": "block/purpur_block.png"
-        },
-        {
             "id": 42,
             "name": "PURPUR_PILLAR",
             "sound": "madcraft:block.stone",

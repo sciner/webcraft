@@ -1,18 +1,67 @@
 import { impl as alea } from "../../../../vendors/alea.js";
+import { AABB } from "../../../core/AABB.js";
 import { Vector, VectorCollector } from "../../../helpers.js";
+import { BuildingTemplate } from "../../cluster/building_template.js";
 
 /**
  * Generate underworld infinity stones
  */
+const xer = {"name":"floor_one","world":{"pos1":{"x":-262,"y":1,"z":1},"pos2":{"x":-269,"y":5,"z":-7},"entrance":{"x":-265,"y":1,"z":1}},"size":{"x":8,"y":5,"z":9},"door_pos":{"x":3,"y":0,"z":0},"blocks":[{"move":{"x":-3,"y":0,"z":1},"block_id":96},{"move":{"x":-3,"y":0,"z":2},"block_id":96},{"move":{"x":-3,"y":0,"z":3},"block_id":96},{"move":{"x":-3,"y":0,"z":4},"block_id":96},{"move":{"x":-3,"y":0,"z":5},"block_id":96},{"move":{"x":-3,"y":0,"z":6},"block_id":96},{"move":{"x":-3,"y":0,"z":7},"block_id":96},{"move":{"x":-3,"y":0,"z":8},"block_id":96},{"move":{"x":-3,"y":1,"z":1},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":-3,"y":1,"z":2},"block_id":68},{"move":{"x":-3,"y":1,"z":3},"block_id":68},{"move":{"x":-3,"y":1,"z":4},"block_id":68},{"move":{"x":-3,"y":1,"z":5},"block_id":68},{"move":{"x":-3,"y":1,"z":6},"block_id":68},{"move":{"x":-3,"y":1,"z":7},"block_id":68},{"move":{"x":-3,"y":1,"z":8},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":-3,"y":2,"z":1},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":-3,"y":2,"z":2},"block_id":68},{"move":{"x":-3,"y":2,"z":3},"block_id":480},{"move":{"x":-3,"y":2,"z":4},"block_id":68},{"move":{"x":-3,"y":2,"z":5},"block_id":68},{"move":{"x":-3,"y":2,"z":6},"block_id":480},{"move":{"x":-3,"y":2,"z":7},"block_id":68},{"move":{"x":-3,"y":2,"z":8},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":-3,"y":3,"z":1},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":-3,"y":3,"z":2},"block_id":68},{"move":{"x":-3,"y":3,"z":3},"block_id":480},{"move":{"x":-3,"y":3,"z":4},"block_id":68},{"move":{"x":-3,"y":3,"z":5},"block_id":68},{"move":{"x":-3,"y":3,"z":6},"block_id":480},{"move":{"x":-3,"y":3,"z":7},"block_id":68},{"move":{"x":-3,"y":3,"z":8},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":-2,"y":0,"z":0},"block_id":112,"extra_data":{"point":{"x":0.18322670445490985,"y":0,"z":0.16557782120457665}},"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":-2,"y":0,"z":1},"block_id":96},{"move":{"x":-2,"y":0,"z":2},"block_id":96},{"move":{"x":-2,"y":0,"z":3},"block_id":96},{"move":{"x":-2,"y":0,"z":4},"block_id":96},{"move":{"x":-2,"y":0,"z":5},"block_id":96},{"move":{"x":-2,"y":0,"z":6},"block_id":96},{"move":{"x":-2,"y":0,"z":7},"block_id":96},{"move":{"x":-2,"y":0,"z":8},"block_id":96},{"move":{"x":-2,"y":1,"z":1},"block_id":68},{"move":{"x":-2,"y":1,"z":8},"block_id":68},{"move":{"x":-2,"y":2,"z":1},"block_id":68},{"move":{"x":-2,"y":2,"z":8},"block_id":68},{"move":{"x":-2,"y":3,"z":1},"block_id":68},{"move":{"x":-2,"y":3,"z":8},"block_id":68},{"move":{"x":-1,"y":0,"z":0},"block_id":96},{"move":{"x":-1,"y":0,"z":1},"block_id":96},{"move":{"x":-1,"y":0,"z":2},"block_id":96},{"move":{"x":-1,"y":0,"z":3},"block_id":96},{"move":{"x":-1,"y":0,"z":4},"block_id":96},{"move":{"x":-1,"y":0,"z":5},"block_id":96},{"move":{"x":-1,"y":0,"z":6},"block_id":96},{"move":{"x":-1,"y":0,"z":7},"block_id":96},{"move":{"x":-1,"y":0,"z":8},"block_id":96},{"move":{"x":-1,"y":1,"z":1},"block_id":68},{"move":{"x":-1,"y":1,"z":8},"block_id":68},{"move":{"x":-1,"y":2,"z":1},"block_id":68},{"move":{"x":-1,"y":2,"z":8},"block_id":480},{"move":{"x":-1,"y":3,"z":1},"block_id":68},{"move":{"x":-1,"y":3,"z":8},"block_id":480},{"move":{"x":0,"y":0,"z":0},"block_id":96},{"move":{"x":0,"y":0,"z":1},"block_id":96},{"move":{"x":0,"y":0,"z":2},"block_id":96},{"move":{"x":0,"y":0,"z":3},"block_id":96},{"move":{"x":0,"y":0,"z":4},"block_id":96},{"move":{"x":0,"y":0,"z":5},"block_id":96},{"move":{"x":0,"y":0,"z":6},"block_id":96},{"move":{"x":0,"y":0,"z":7},"block_id":96},{"move":{"x":0,"y":0,"z":8},"block_id":96},{"move":{"x":0,"y":1,"z":8},"block_id":68},{"move":{"x":0,"y":2,"z":8},"block_id":68},{"move":{"x":0,"y":3,"z":8},"block_id":68},{"move":{"x":1,"y":0,"z":0},"block_id":96},{"move":{"x":1,"y":0,"z":1},"block_id":96},{"move":{"x":1,"y":0,"z":2},"block_id":96},{"move":{"x":1,"y":0,"z":3},"block_id":96},{"move":{"x":1,"y":0,"z":4},"block_id":96},{"move":{"x":1,"y":0,"z":5},"block_id":96},{"move":{"x":1,"y":0,"z":6},"block_id":96},{"move":{"x":1,"y":0,"z":7},"block_id":96},{"move":{"x":1,"y":0,"z":8},"block_id":96},{"move":{"x":1,"y":1,"z":8},"block_id":68},{"move":{"x":1,"y":2,"z":8},"block_id":68},{"move":{"x":1,"y":3,"z":8},"block_id":68},{"move":{"x":2,"y":0,"z":0},"block_id":96},{"move":{"x":2,"y":0,"z":1},"block_id":96},{"move":{"x":2,"y":0,"z":2},"block_id":96},{"move":{"x":2,"y":0,"z":3},"block_id":96},{"move":{"x":2,"y":0,"z":4},"block_id":96},{"move":{"x":2,"y":0,"z":5},"block_id":96},{"move":{"x":2,"y":0,"z":6},"block_id":96},{"move":{"x":2,"y":0,"z":7},"block_id":96},{"move":{"x":2,"y":0,"z":8},"block_id":96},{"move":{"x":2,"y":1,"z":1},"block_id":68},{"move":{"x":2,"y":1,"z":8},"block_id":68},{"move":{"x":2,"y":2,"z":1},"block_id":68},{"move":{"x":2,"y":2,"z":8},"block_id":480},{"move":{"x":2,"y":3,"z":1},"block_id":68},{"move":{"x":2,"y":3,"z":8},"block_id":480},{"move":{"x":3,"y":0,"z":0},"block_id":112,"extra_data":{"point":{"x":0.4332039289127465,"y":0.027812449730675315,"z":1.002}},"rotate":{"x":0,"y":0,"z":0}},{"move":{"x":3,"y":0,"z":1},"block_id":96},{"move":{"x":3,"y":0,"z":2},"block_id":96},{"move":{"x":3,"y":0,"z":3},"block_id":96},{"move":{"x":3,"y":0,"z":4},"block_id":96},{"move":{"x":3,"y":0,"z":5},"block_id":96},{"move":{"x":3,"y":0,"z":6},"block_id":96},{"move":{"x":3,"y":0,"z":7},"block_id":96},{"move":{"x":3,"y":0,"z":8},"block_id":96},{"move":{"x":3,"y":1,"z":1},"block_id":68},{"move":{"x":3,"y":1,"z":8},"block_id":68},{"move":{"x":3,"y":2,"z":1},"block_id":68},{"move":{"x":3,"y":2,"z":8},"block_id":68},{"move":{"x":3,"y":3,"z":1},"block_id":68},{"move":{"x":3,"y":3,"z":8},"block_id":68},{"move":{"x":4,"y":0,"z":1},"block_id":96},{"move":{"x":4,"y":0,"z":2},"block_id":96},{"move":{"x":4,"y":0,"z":3},"block_id":96},{"move":{"x":4,"y":0,"z":4},"block_id":96},{"move":{"x":4,"y":0,"z":5},"block_id":96},{"move":{"x":4,"y":0,"z":6},"block_id":96},{"move":{"x":4,"y":0,"z":7},"block_id":96},{"move":{"x":4,"y":0,"z":8},"block_id":96},{"move":{"x":4,"y":1,"z":1},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":4,"y":1,"z":2},"block_id":68},{"move":{"x":4,"y":1,"z":3},"block_id":68},{"move":{"x":4,"y":1,"z":4},"block_id":68},{"move":{"x":4,"y":1,"z":5},"block_id":68},{"move":{"x":4,"y":1,"z":6},"block_id":68},{"move":{"x":4,"y":1,"z":7},"block_id":68},{"move":{"x":4,"y":1,"z":8},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":4,"y":2,"z":1},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":4,"y":2,"z":2},"block_id":68},{"move":{"x":4,"y":2,"z":3},"block_id":480},{"move":{"x":4,"y":2,"z":4},"block_id":68},{"move":{"x":4,"y":2,"z":5},"block_id":68},{"move":{"x":4,"y":2,"z":6},"block_id":480},{"move":{"x":4,"y":2,"z":7},"block_id":68},{"move":{"x":4,"y":2,"z":8},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":4,"y":3,"z":1},"block_id":42,"rotate":{"x":0,"y":1,"z":0}},{"move":{"x":4,"y":3,"z":2},"block_id":68},{"move":{"x":4,"y":3,"z":3},"block_id":480},{"move":{"x":4,"y":3,"z":4},"block_id":68},{"move":{"x":4,"y":3,"z":5},"block_id":68},{"move":{"x":4,"y":3,"z":6},"block_id":480},{"move":{"x":4,"y":3,"z":7},"block_id":68},{"move":{"x":4,"y":3,"z":8},"block_id":42,"rotate":{"x":0,"y":1,"z":0}}],"rot":[],"fluids":[]}
 const MAX_GEN_DEPTH = 8
+
+class XZXer {
+    constructor(fastRandom) {
+        this.blocks = new VectorCollector()
+        this.pieces = []
+        this.x = -104
+        this.y = 320 
+        this.z = -36
+    }
+    // первая генерация
+    start() {
+        this.pieces.push({
+            "name": "base_floor",
+            'rot': 0,
+            'pos': new Vector(0, 0, 0)
+        })
+    }
+
+    // сделать прослойку, должно быть нормально
+    test(chunk, x, y, z) {
+        for (const piece of this.pieces) {
+            const block = this.getBlock((chunk.coord.x + x) - this.x,(chunk.coord.y + y) - this.y, (chunk.coord.z + z) - this.z  )
+
+           // if (chunk.coord.x + x == xer)
+        }
+    }
+
+    getBlock(x, y, z) {
+        for (const block of xer.blocks) {
+            if (block.move.x == x && block.move.y == y && block.move.z == z) {
+                return block.block_id
+            }
+        }
+        return 0
+    }
+}
+
+class Template {
+    constructor(name, pos, rotation, overwrite) {
+        this.name = name;
+		this.pos = pos;
+		this.rotation = rotation;
+		this.overwrite = overwrite;
+    }
+}
+
 class GeneratorCity {
     constructor(fastRandom) {
         this.nodes = new VectorCollector()
-        this.random = new alea('tree');
+        this.random = new alea('tree')
     }
 
-    add(x, y, z, type, rot) {
-     
+    add(x, y, z, name, rot) {
+    
     }
 
     rndInt(n) {
@@ -144,11 +193,13 @@ export default class Biome3LayerEnd {
         this.noise2d = generator.noise2d
         this.noise3d = generator.noise3d
         this.block_manager = generator.block_manager
-        //this.city = new GeneratorCity(generator.fastRandom)
+        this.city = new GeneratorCity(generator.fastRandom)
         //this.city.add(124, 280, -227, "base")
         //this.city.startHouse(8, 1, -14)
         this.clusterManager = generator.clusterManager
-        console.log(this.clusterManager)
+
+        const template       = BuildingTemplate.fromSchema('mine', this.block_manager)
+        console.log(template)
     }
 
     generate(chunk, seed, rnd) {
