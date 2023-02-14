@@ -1,6 +1,6 @@
 import { BLOCK } from '../../blocks.js';
 import { IndexedColor } from '../../helpers.js';
-import { TREES } from '../biomes.js';
+import { BiomeTree, TREES } from '../biomes.js';
 import { ClimateParams } from './terrain/manager_vars.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
@@ -26,6 +26,16 @@ const TAIGA_BUILDINGS = {others: [
     {class: 'BuildingBlocks', max_count: Infinity, chance: .7, block_templates: ['farmer_house']},
     {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_house2']},
 ]}
+
+export class BiomeDirtLayer {
+    blocks : int[] = []
+    cap_block_id : int = 0
+
+    constructor(blocks : int[] = [], cap_block_id : int = 0) {
+        this.blocks = blocks
+        this.cap_block_id = cap_block_id
+    }
+}
 
 export class Biome {
     [key: string]: any;
@@ -107,10 +117,10 @@ export class Biomes {
         // const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [
-                {blocks: [BLOCK.GRASS_BLOCK.id, BLOCK.DIRT.id, BLOCK.STONE.id]},
-                {blocks: [BLOCK.STONE.id]},
-                {blocks: [BLOCK.MOSS_BLOCK.id, BLOCK.STONE.id]
-            }];
+                new BiomeDirtLayer([BLOCK.GRASS_BLOCK.id, BLOCK.DIRT.id, BLOCK.STONE.id]),
+                new BiomeDirtLayer([BLOCK.STONE.id]),
+                new BiomeDirtLayer([BLOCK.MOSS_BLOCK.id], BLOCK.STONE.id)
+            ];
         }
         // trees
         if(!trees) {
@@ -185,7 +195,10 @@ export class Biomes {
         this.list = [];
     
         // Снежные биомы
-        const snow_dirt_layers = [{blocks: [BLOCK.SNOW_DIRT.id, BLOCK.DIRT.id, BLOCK.STONE.id]}, {blocks: [BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}];
+        const snow_dirt_layers = [
+            new BiomeDirtLayer([BLOCK.SNOW_DIRT.id, BLOCK.DIRT.id, BLOCK.STONE.id]),
+            new BiomeDirtLayer([BLOCK.STONE.id], BLOCK.SNOW.id)
+        ];
         const snow_grass = {
             frequency: GRASS_FREQUENCY / 2,
             list: [
@@ -194,7 +207,7 @@ export class Biomes {
             ]
         };
         this.addBiome(13, 'Заснеженные горы', -1, 0.5,               snow_dirt_layers, null, null, snow_grass);
-        this.addBiome(140, 'Ледяные пики', -0.8, 0.5,                 [{blocks: [BLOCK.ICE.id]}]);
+        this.addBiome(140, 'Ледяные пики', -0.8, 0.5,                [new BiomeDirtLayer([BLOCK.ICE.id])]);
         this.addBiome(12, 'Заснеженная тундра', 0, 0.5,              snow_dirt_layers, null, null, snow_grass)
         this.addBiome(30, 'Заснеженная тайга', -0.8, 0.4,            snow_dirt_layers, {
             frequency: TREE_FREQUENCY * 2,
@@ -233,7 +246,7 @@ export class Biomes {
             ]
         }, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
         this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4,   snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
-        this.addBiome(26, 'Заснеженный пляж', -0.05, 0.3,            [{blocks: [BLOCK.SANDSTONE.id, BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}, {blocks: [BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
+        this.addBiome(26, 'Заснеженный пляж', -0.05, 0.3,            [new BiomeDirtLayer([BLOCK.SANDSTONE.id, BLOCK.STONE.id], BLOCK.SNOW.id), new BiomeDirtLayer([BLOCK.STONE.id], BLOCK.SNOW.id)], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
         // this.addBiome('Замерзшая река', 0. -0.2);
         // this.addBiome('Замерзший океан', 0. -0.1);
         // this.addBiome('Глубокий замерзший океан', 0.8, -0.1);
@@ -286,7 +299,7 @@ export class Biomes {
             ]
         }, undefined, new IndexedColor(140, 480, 0), new IndexedColor(1, 254, 0));
         this.addBiome(134, 'Холмистое болото', 0.8, 0.9);
-        this.addBiome(16, 'Пляж', 0.8, 0.4, [{blocks: [BLOCK.SANDSTONE.id, BLOCK.SAND.id]}, {blocks: [BLOCK.STONE.id]}]);
+        this.addBiome(16, 'Пляж', 0.8, 0.4, [new BiomeDirtLayer([BLOCK.SANDSTONE.id, BLOCK.SAND.id]), new BiomeDirtLayer([BLOCK.STONE.id])]);
         // this.addBiome('Река', 0.5, 0.5);
         // this.addBiome('Океан', 0.5, 0.5);
         // this.addBiome('Глубокий океан', 0.5, 0.5);
@@ -371,13 +384,13 @@ export class Biomes {
         this.addBiome(15, 'Грибной берег', 0.9, 1);
         this.addBiome(2, 'Пустыня', 2, 0,
             [
-                {blocks: [BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.STONE.id]},
-                {blocks: [BLOCK.STONE.id]}
+                new BiomeDirtLayer([BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.STONE.id]),
+                new BiomeDirtLayer([BLOCK.STONE.id])
             ],
             {
                 frequency: TREE_FREQUENCY / 10,
                 list: [
-                    {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
+                    new BiomeTree(BLOCK.CACTUS.id, null, 'cactus', {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
                 ]
             },
             {
@@ -391,12 +404,12 @@ export class Biomes {
         );
         this.addBiome(17, 'Холмистая пустыня', 2, 0,
             [
-                {blocks: [BLOCK.SAND.id, BLOCK.SANDSTONE.id]}
+                new BiomeDirtLayer([BLOCK.SAND.id, BLOCK.SANDSTONE.id])
             ],
             {
                 frequency: TREE_FREQUENCY / 2,
                 list: [
-                    {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
+                    new BiomeTree(BLOCK.CACTUS.id, null, 'cactus', {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
                 ]
             },
             {

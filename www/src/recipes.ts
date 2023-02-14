@@ -392,12 +392,12 @@ export class RecipeManager {
                 let min_y = 100;
                 let max_x = -100;
                 let max_y = -100;
-                for(let row in recipe.pattern) {
+                for(let row : int = 0; row < recipe.pattern.length; row++) {
                     let s = recipe.pattern[row].trim().split('');
                     if(s.length > 0) {
                         if(row < min_y) min_y = row;
                         if(row > max_y) max_y = row;
-                        for(let col in s) {
+                        for(let col : int = 0; col < s.length; col++) {
                             if(col < min_x) min_x = col;
                             if(col > max_x) max_x = col;
                         }
@@ -421,7 +421,7 @@ export class RecipeManager {
         }
     }
 
-    md5s(text) {
+    md5s(text : string) {
         const guid = md5(text);
         return guid.substring(0, 8) + '-' +
             guid.substring(8, 12) + '-' + guid.substring(12, 16) + '-' +
@@ -689,13 +689,13 @@ export class RecipeManager {
                             key = key.toUpperCase();
                             if (key !== oldKey) {
                                 if (map[key]) {
-                                    throw ```Template keys conflict in "manual" or "additional": ${oldKey} ${key}```
+                                    throw `Template keys conflict in "manual" or "additional": ${oldKey} ${key}`
                                 }
                                 map[key] = map[oldKey];
                                 delete map[oldKey];
                             }
                             if (!BLOCK[key]) {
-                                throw ```Unknown block in template: ${oldKey}```
+                                throw `Unknown block in template: ${oldKey}`
                             }
                         }
                     }
@@ -876,7 +876,7 @@ export class RecipeManager {
         return item;
     }
 
-    preprocessTemplateList(list, force = false) {
+    preprocessTemplateList(list, force : boolean | string | null = false) {
         if (list == null) {
             if (force === false) { // treat '' as true
                 return null;

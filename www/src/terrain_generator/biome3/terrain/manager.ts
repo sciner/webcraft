@@ -52,11 +52,11 @@ class RiverPoint {
 export class MapsBlockResult {
     [key: string]: any;
 
-    constructor(dirt_layer, block_id) {
+    constructor(dirt_layer : BiomeDirtLayer = null, block_id : int = 0) {
         this.set(dirt_layer, block_id)
     }
 
-    set(dirt_layer, block_id) {
+    set(dirt_layer : BiomeDirtLayer, block_id : int) {
         this.dirt_layer = dirt_layer
         this.block_id = block_id
         return this

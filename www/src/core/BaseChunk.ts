@@ -5,6 +5,7 @@ const tempAABB = new AABB();
 
 export class BaseChunk {
     [key: string]: any;
+
     constructor({size, nibble = null}) {
         this.outerAABB = new AABB();
         this.safeAABB = new AABB();
@@ -25,7 +26,7 @@ export class BaseChunk {
         }
     }
 
-    initSize(size) {
+    initSize(size : Vector) {
         const padding = this.padding = 1;
         this.size = size;
         const outerSize = this.outerSize = new Vector(size.x + padding * 2, size.y + padding * 2, size.z + padding * 2);
@@ -64,12 +65,7 @@ export class BaseChunk {
         this.nibbleOuterLen = outerSize.x * outerSize.y * outerSize.z;
     }
 
-    /**
-     *
-     * @param {Vector} pos
-     * @returns {BaseChunk}
-     */
-    setPos(pos) {
+    setPos(pos : Vector) : BaseChunk {
         const {size, padding, outerSize} = this;
         this.pos.copyFrom(pos);
         this.aabb.set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z);
@@ -79,7 +75,7 @@ export class BaseChunk {
         return this;
     }
 
-    addSub(sub) {
+    addSub(sub : BaseChunk) {
         const {subRegions} = this;
         const x = sub.aabb.x_min;
         let i = 0, len = subRegions.length;
@@ -143,11 +139,9 @@ export class BaseChunk {
     }
 
     /**
-     *
      * @param {number} outerCoord
      */
-    subByOuter(outerCoord) {
-
+    subByOuter(outerCoord: number) {
     }
 
     _addPortal(portal) {

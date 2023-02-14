@@ -552,7 +552,7 @@ export let md5 = (function() {
     function bitrol (d, _) {
         return d << _ | d >>> 32 - _
     }
-    function MD5Unicode(buffer, outputEncoding){
+    function MD5Unicode(buffer, outputEncoding? : BufferEncoding) {
         if (!(buffer instanceof Uint8Array || typeof Buffer === 'function' && buffer instanceof Buffer)) {
             buffer = new TextEncoder().encode(typeof buffer==='string' ? buffer : JSON.stringify(buffer));
         }

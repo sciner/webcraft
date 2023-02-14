@@ -10,7 +10,7 @@ export class Camera {
     static ORTHO_CAMERA = 'ortho';
 
     constructor (options = {
-        type: 'perspective' | 'ortho',
+        type: 'perspective', // | 'ortho',
         min: 2/16,
         max: 1000,
         renderType: 'webgl',

@@ -42,6 +42,7 @@ export class BlockNeighbours {
 // VectorCollector...
 export class VectorCollector1D {
     [key: string]: any;
+
     constructor(dims, list?) {
         this.dims = dims;
         this.sy = dims.x * dims.z;
@@ -154,7 +155,7 @@ export class TypedBlocks3 {
     //
     getNeightboursChunks(world) {
         const {dataChunk, addr} = this;
-        let nc = {};
+        const nc = {} as {nx : any, px: any, ny : any, py: any, nz : any, pz: any};
         for (let i = 0; i < dataChunk.portals.length; i++) {
             if (dataChunk.portals[i].volume > 8) {
                 const other = dataChunk.portals[i].toRegion.rev.pos;
@@ -1130,54 +1131,7 @@ export class TBlock {
      * @returns
      */
     getNeighbours(world, cache) {
-        if (this.tb.getNeighbours) {
-            return this.tb.getNeighbours(this, world, cache);
-        }
-
-        const neighbours = new BlockNeighbours();
-        const nc = this.tb.getNeightboursChunks(world);
-        const pos = this.vec;
-        let chunk;
-        let is_water_count = 0;
-        // обходим соседние блоки
-        for (let i = 0; i < CC.length; i++) {
-            const p = CC[i];
-            const cb = cache[i]; // (cache && cache[i]) || new TBlock(null, new Vector());
-            const v = cb.vec;
-            const ax = pos.x + p.x;
-            const ay = pos.y + p.y;
-            const az = pos.z + p.z;
-            if(ax >= 0 && ay >= 0 && az >= 0 && ax < CHUNK_SIZE_X && ay < CHUNK_SIZE_Y && az < CHUNK_SIZE_Z) {
-                v.x = ax;
-                v.y = ay;
-                v.z = az;
-                chunk = nc.that.chunk;
-            } else {
-                v.x = (pos.x + p.x + CHUNK_SIZE_X) % CHUNK_SIZE_X;
-                v.y = (pos.y + p.y + CHUNK_SIZE_Y) % CHUNK_SIZE_Y;
-                v.z = (pos.z + p.z + CHUNK_SIZE_Z) % CHUNK_SIZE_Z;
-                if(ax < 0) {
-                    chunk = nc.nx.chunk;
-                } else if(ay < 0) {
-                    chunk = nc.ny.chunk;
-                } else if(az < 0) {
-                    chunk = nc.nz.chunk;
-                } else if(ax >= CHUNK_SIZE_X) {
-                    chunk = nc.px.chunk;
-                } else if(ay >= CHUNK_SIZE_Y) {
-                    chunk = nc.py.chunk;
-                } else if(az >= CHUNK_SIZE_Z) {
-                    chunk = nc.pz.chunk;
-                }
-            }
-            const b = neighbours[p.name] = chunk.tblocks.get(v, cb);
-            const properties = b?.properties;
-            if(!properties || properties.transparent || properties.fluid) {
-                // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
-                neighbours.pcnt--;
-            }
-        }
-        return neighbours;
+        return this.tb.getNeighbours(this, world, cache);
     }
 
     get is_fluid() {

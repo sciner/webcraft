@@ -1,4 +1,4 @@
-import {Color, Vector} from '../helpers.js';
+import {Color, Mth, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
 
@@ -622,20 +622,20 @@ export default class BaseRenderer {
             : size;
 
         const x = viewport
-            ? clamp(0, limit.width, viewport[0] || 0)
+            ? Mth.clamp(0, limit.width, viewport[0] || 0)
             : 0;
 
         const y = viewport
-            ? clamp(0, limit.height, viewport[1] || 0)
+            ? Mth.clamp(0, limit.height, viewport[1] || 0)
             : 0;
 
         const width = viewport
-            ? clamp(0, limit.width, viewport[2] || limit.width)
+            ? Mth.clamp(0, limit.width, viewport[2] || limit.width)
             : limit.width;
 
 
         const height = viewport
-            ? clamp(0, limit.height, viewport[3] || limit.height)
+            ? Mth.clamp(0, limit.height, viewport[3] || limit.height)
             : limit.height;
 
         this._viewport[0] = x;

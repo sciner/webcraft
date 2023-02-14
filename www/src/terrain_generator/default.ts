@@ -30,12 +30,8 @@ export class Default_Terrain_Map {
 
     /**
      * Return map cell
-     * @param {int} x 
-     * @param {int} z
-     * 
-     * @returns {object}
      */
-    getCell(x, z) {
+    getCell(x : int, z : int) {
         return this.cells[z * CHUNK_SIZE_X + x]
     }
 

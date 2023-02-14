@@ -1,5 +1,8 @@
 import { Vector} from "../../helpers.js";
 import {impl as alea} from '../../../vendors/alea.js';
+import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+import type { TerrainMap2 } from "../biome3/terrain/map.js";
+import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 
 export const NEAR_MASK_MAX_DIST = 10
 export const CLUSTER_PADDING    = 8
@@ -48,25 +51,12 @@ export class ClusterBase {
 
     /**
      * Set block
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param {int} x
-     * @param {int} y
-     * @param {int} z
-     * @param {int} block_id
-     * @param {*} rotate
-     * @param {*} extra_data
-     * @param {boolean} check_is_solid
-     * @param {boolean} destroy_fluid
-     * @param {boolean} candidate_for_cap_block
-     * @param {?object} map
-     *
-     * @returns
      */
-    setBlock(chunk, x, y, z, block_id, rotate, extra_data, check_is_solid = false, destroy_fluid = false, candidate_for_cap_block = false, map = null) {
+    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate : Vector | null = null, extra_data : any | null = null, check_is_solid : boolean = false, destroy_fluid : boolean = false, candidate_for_cap_block : boolean = false, map? : TerrainMap2) : boolean {
         if(x >= 0 && y >= 0 && z >= 0 && x < chunk.size.x && y < chunk.size.y && z < chunk.size.z) {
             // ok
         } else {
-            return false;
+            return false
         }
         const bm = this.block_manager
         if(map) {
@@ -86,7 +76,7 @@ export class ClusterBase {
                 if(cap_block_id && existing_block_id == 0) {
                     block_id = cap_block_id
                 } else {
-                    return
+                    return false
                 }
             }
         }
@@ -121,7 +111,7 @@ export class ClusterBase {
         let min_z = this.size.z;
         let max_x = 0;
         let max_z = 0;
-        for(let index in this.mask) {
+        for(let index : int = 0; index < this.mask.length; index++) {
             const value = this.mask[index];
             if(value && (Array.isArray(value.block_id) || value.block_id > 0)) {
                 const x = index % this.size.x;
@@ -225,12 +215,8 @@ export class ClusterBase {
 
     /**
      * Fill chunk blocks
-     * @param {*} maps
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param {*} map
-     * @returns
      */
-    fillBlocks(maps, chunk, map) {
+    fillBlocks(maps : TerrainMapManager, chunk : ChunkWorkerChunk, map: TerrainMap) {
         if(this.is_empty) {
             return false;
         }
@@ -250,7 +236,7 @@ export class ClusterBase {
                     if(point.block_id == 0) {
                         continue;
                     }
-                    const cell = map.cells[j * chunk.size.x + i];
+                    const cell = map.getCell(i, j)
                     if(cell.biome.code == 'OCEAN') {
                         /*if(this.use_road_as_gangway && point.block_id == this.road_block) {
                             let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;
@@ -266,7 +252,7 @@ export class ClusterBase {
                         for(let k = 0; k < point.height; k++) {
                             let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1 + point.y_shift;
                             if(y >= 0 && y < chunk.size.y) {
-                                this.setBlock(chunk, i, y, j, is_array ? point.block_id[k] : point.block_id, null);
+                                this.setBlock(chunk, i, y, j, is_array ? point.block_id[k] : point.block_id);
                             }
                         }
                     } else {
@@ -279,7 +265,7 @@ export class ClusterBase {
                                 if(is_array) {
                                     block_id = point.block_id[ai++];
                                 }
-                                this.setBlock(chunk, i, y, j, block_id, null);
+                                this.setBlock(chunk, i, y, j, block_id);
                             }
                         }
                     }

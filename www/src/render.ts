@@ -31,6 +31,7 @@ import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
+import type { World } from "./world.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -609,7 +610,7 @@ export class Renderer {
                     if(callback instanceof Function) {
                         callback(blob)
                     }
-                    resolve()
+                    resolve(Resources.inventory)
                 }, 'image/png')
 
             })
@@ -630,9 +631,8 @@ export class Renderer {
      * Makes the renderer start tracking a new world and set up the chunk structure.
      * world - The world object to operate on.
      * chunkSize - X, Y and Z dimensions of each chunk, doesn't have to fit exactly inside the world.
-     * @param { import("./world.js").World } world
      */
-    setWorld(world) {
+    setWorld(world : World) {
         this.world = world;
     }
 
@@ -640,7 +640,7 @@ export class Renderer {
         this.player = player;
     }
 
-    update(delta, args) {
+    update(delta : float, args) {
 
         this.frame++;
 

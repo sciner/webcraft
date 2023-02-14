@@ -165,7 +165,7 @@ export class Raycaster {
     }
 
     // Player raycaster
-    intersectPlayer(pos, dir, max_distance) {
+    intersectPlayer(pos : IVector, dir : IVector, max_distance : number) {
         const resp = {
             player_distance: null,
             player: null
@@ -183,8 +183,8 @@ export class Raycaster {
                 }
                 if(this.intersectBox(player.aabb, pos, dir)) {
                     const dist = tPos.distance(pos);
-                    if(resp.entity) {
-                        if(dist < resp.distance) {
+                    if(resp.player) {
+                        if(dist < resp.player_distance) {
                             resp.player = player;
                             resp.player_distance = dist;
                         }

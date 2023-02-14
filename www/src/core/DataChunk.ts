@@ -1,14 +1,15 @@
+import type { Vector } from "../helpers.js";
 import {BaseChunk} from "./BaseChunk.js";
-import {Vector} from "../helpers.js";
 
 export class DataChunk extends BaseChunk {
     [key: string]: any;
-    constructor({size, strideBytes, nibble}) {
+
+    constructor({size, strideBytes, nibble} : {size : Vector, strideBytes : int, nibble? : any}) {
         super({size, nibble});
         this.initData(strideBytes);
     }
 
-    initData(strideBytes) {
+    initData(strideBytes : int) {
         this.strideBytes = strideBytes;
         this.stride32 = strideBytes >> 2;
         this.stride16 = strideBytes >> 1;

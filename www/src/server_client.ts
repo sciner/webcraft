@@ -174,7 +174,7 @@ export class ServerClient {
             };
             that.ws.onopen = function(event) {
                 onOpen(event);
-                res();
+                res(event);
                 that.t = setInterval(function() {
                     that.ping_time = performance.now();
                     that.Send({
