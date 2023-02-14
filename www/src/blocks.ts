@@ -343,7 +343,7 @@ export class BLOCK {
         if (!b) {
             return null;
         }
-        const resp = {
+        const resp: IBlockItem = {
             id: item.id
         };
         // entity
@@ -896,7 +896,7 @@ export class BLOCK {
             block.chest.readonly_slots = block.chest.readonly_slots || 0;
         }
         block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent)) || ['BUBBLE_COLUMN'].includes(block.name);
-        block.transmits_light   = !block.is_dirt & (block.transparent || ['TEST', 'NUM1', 'NUM2'].includes(block.name)) // пропускает свет
+        block.transmits_light   = !block.is_dirt && (block.transparent || ['TEST', 'NUM1', 'NUM2'].includes(block.name)) // пропускает свет
         // не переносить!
         if(block.is_leaves) {
             const beautiful_leaves = resource_pack?.manager?.settings?.beautiful_leaves;
