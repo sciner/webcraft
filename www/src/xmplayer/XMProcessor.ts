@@ -221,7 +221,7 @@ class XMProcessor extends AudioWorkletProcessor {
                 number: i,
                 samplemap: null,
                 samples: null,
-            };
+            } as any;
 
             if (nsamp > 0) {
                 var samplemap = new Uint8Array(buffer, idx + 33, 96);

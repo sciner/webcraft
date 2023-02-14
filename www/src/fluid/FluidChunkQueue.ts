@@ -674,7 +674,7 @@ export class FluidChunkQueue {
                     // same type or empty
                     if (dir === 1) {
                         // going down!
-                        improve = (neibType !== 0 && neibLvl === 8) ^ !emptied;
+                        improve = (neibType !== 0 && neibLvl === 8) != !emptied;
                         if (improve && neibType === 0) {
                             flowsDown = true;
                         }

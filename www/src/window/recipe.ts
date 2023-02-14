@@ -144,13 +144,15 @@ export class RecipeWindow extends BlankWindow {
 
     }
 
-    onKeyEvent(e) {}
+    onKeyEvent(e) : boolean {
+        return false
+    }
 
-    onShow() {
+    onShow(args) {
         // Создание слотов
         this.createRecipes()
         this.paginator.update()
-        super.onShow()
+        super.onShow(args)
     }
 
     // Запоминаем какое окно вызвало окно рецептов

@@ -51,12 +51,12 @@ export class ModeWindow extends Window {
     }
 
     // When window on show
-    onShow() {
+    onShow(args) {
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
         this.mode = this.prev_mode ?? this.player.game_mode.next(true).id
         this.updateMode()
-        super.onShow()
+        super.onShow(args)
     }
 
     // Обработчик закрытия формы

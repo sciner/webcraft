@@ -64,10 +64,10 @@ export class InGameMain extends Window {
     }
 
     // Обработчик открытия формы
-    onShow() {
+    onShow(args) {
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
-        super.onShow()
+        super.onShow(args)
     }
 
 }

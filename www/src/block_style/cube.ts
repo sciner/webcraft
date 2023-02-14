@@ -5,7 +5,7 @@ import {impl as alea} from "../../vendors/alea.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
-import { BlockStyleRegInfo, default as default_style } from './default.js';
+import { BlockStyleRegInfo, default as default_style, QuadPlane } from './default.js';
 import { GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import type { BlockManager } from '../blocks.js';
@@ -27,8 +27,8 @@ mat4.scale(matrix_leaves_sqrt2, matrix_leaves_sqrt2, [1.4, 1.4, 1.4]);
 const leaves_matrices = [matrix_leaves_sqrt2, matrix_leaves_2, matrix_leaves_2];
 
 const _lm_grass = new IndexedColor(0, 0, 0);
-const _lm_leaves = new Color(0, 0, 0, 0);
-const _pl = {};
+const _lm_leaves = new IndexedColor(0, 0, 0, 0);
+const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
 
 export const LEAVES_COLOR_FLAGS = [
@@ -308,8 +308,8 @@ export default class style {
                 const plane = leaves_planes[i];
                 // fill object
                 _pl.size     = plane.size;
-                _pl.uv       = plane.uv;
-                _pl.rot      = [Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]];
+                _pl.uv       = plane.uv as [number, number];
+                _pl.rot      = new Vector(Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]);
                 _pl.lm       = _lm_leaves;
                 _pl.pos      = _vec.set(
                     x + (plane.move?.x || 0),
@@ -334,7 +334,7 @@ export default class style {
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
         let upFlags                 = flags;
-        const sides                 = {};
+        const sides                 = {} as IBlockSides;
 
         let DIRECTION_UP            = DIRECTION.UP;
         let DIRECTION_DOWN          = DIRECTION.DOWN;

@@ -128,10 +128,10 @@ export class AnvilWindow extends BaseCraftWindow {
     }
 
     // Обработчик открытия формы
-    onShow() {
+    onShow(args) {
         this.lbl_edit.text = ''
         Qubatch.releaseMousePointer()
-        super.onShow()
+        super.onShow(args)
     }
 
     onPaste(str) {

@@ -46,6 +46,19 @@ export class BlockStyle {
 
 }
 
+export class QuadPlane {
+
+    size?: IVector
+    uv: [number, number]
+    texture: [number, number, number, number]
+    rot: Vector
+    lm?: IndexedColor
+    pos: Vector
+    matrix: imat4
+    flag: int = 0
+
+}
+
 //
 export default class {
 

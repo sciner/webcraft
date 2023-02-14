@@ -782,7 +782,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         ct.add(lblResultSlot);
     }
 
-    onShow() {
+    onShow(args) {
         if(this.inventory_slots) {
             for(let slot of this.inventory_slots) {
                 if(slot) {
@@ -790,7 +790,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
                 }
             }
         }
-        super.onShow()
+        super.onShow(args)
     }
 
     /**

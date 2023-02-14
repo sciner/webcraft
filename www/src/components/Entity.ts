@@ -53,7 +53,7 @@ export class Entity {
                 continue;
             }
 
-            unrollRequired(subb, result);
+            Entity.unrollRequired(subb, result);
 
             result.push(subb);
         }
@@ -103,7 +103,7 @@ export class Entity {
 
         const newComponents = [];
 
-        for (const keys in dataModel) {
+        for (const key in dataModel) {
             this._add(key, dataModel, newComponents);
         }
 

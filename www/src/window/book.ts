@@ -131,6 +131,7 @@ export class BookWindow extends BlankWindow {
 
     // Обработчик открытия формы
     onShow(args) {
+        super.onShow(args)
         this.page = 0
         this.pages = []
         this.btn_back.setEnable(false)

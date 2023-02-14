@@ -3,6 +3,7 @@ declare const angular: any
 declare const SlimSelect: any
 declare const Howler: any
 declare const Howl: any
+declare const LocalServerClient: any
 declare const Qubatch: any // GameClass // | ServerGame
 declare const BLOCK: any;
 declare const QubatchChunkWorker: any;
@@ -62,4 +63,13 @@ interface IBlockItem {
 
 interface Dict<ValueType=any> {
     [key: string]: ValueType
+}
+
+interface IBlockSides {
+    up? : any
+    down? : any
+    north? : any
+    south? : any
+    east? : any
+    west? : any
 }

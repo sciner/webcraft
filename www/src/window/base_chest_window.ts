@@ -13,6 +13,14 @@ import { ChestHelpers, isBlockRoughlyWithinPickatRange } from "../block_helpers.
 import { Lang } from "../lang.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 
+class ChestConfirmData {
+    chestSessionId: string
+    chest: { pos: Vector, slots: {} }
+    secondChest: { pos: Vector, slots: {} }
+    inventory_slots: any[]
+    change: any
+}
+
 export class BaseChestWindow extends BaseInventoryWindow {
     [key: string]: any;
 
@@ -116,7 +124,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     // Обработчик открытия формы
-    onShow() {
+    onShow(args) {
         this.lastChange.type = INVENTORY_CHANGE_NONE
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
@@ -124,7 +132,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             Qubatch.sounds.play(this.options.sound.open.tag, this.options.sound.open.action)
         }
         this.world.blockModifierListeners.push(this.blockModifierListener)
-        super.onShow()
+        super.onShow(args)
         this.fixAndValidateSlots('onShow')
     }
 
@@ -224,7 +232,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             chest:           extractOneChest(true, this.info),
             inventory_slots: new Array(this.inventory.items.length),
             change:          { ...this.lastChange }
-        };
+        } as ChestConfirmData;
         if (this.secondInfo) {
             params.secondChest = extractOneChest(false, this.secondInfo);
         }

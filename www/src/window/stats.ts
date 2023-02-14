@@ -70,11 +70,11 @@ export class StatsWindow extends BlankWindow {
     }
 
     // Обработчик открытия формы
-    onShow() {
+    onShow(args) {
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
         this.player.world.server.Send({name: ServerClient.CMD_STATS})
-        super.onShow()
+        super.onShow(args)
     }
 
     // Обработчик закрытия формы

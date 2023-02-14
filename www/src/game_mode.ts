@@ -1,8 +1,9 @@
-export const GAME_MODE = {};
-    GAME_MODE.CREATIVE = 'creative';
-    GAME_MODE.SURVIVAL = 'survival';
-    GAME_MODE.ADVENTURE = 'adventure';
-    GAME_MODE.SPECTATOR = 'spectator';
+export enum GAME_MODE {
+    CREATIVE = 'creative',
+    SURVIVAL = 'survival',
+    ADVENTURE = 'adventure',
+    SPECTATOR = 'spectator',
+}
 
 export class GameMode {
     [key: string]: any;

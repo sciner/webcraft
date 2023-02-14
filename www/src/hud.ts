@@ -569,7 +569,7 @@ export class HUD {
     }
 
     // Просто функция печати текста
-    drawText(id, str, x, y, fillStyle, align = 'left') {
+    drawText(id : string, str : string, x : number, y : number, fillStyle ? : any, align : string = 'left') {
 
         let text_block = this.wm.hud_window[id]
         if(!text_block) {

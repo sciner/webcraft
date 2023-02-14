@@ -43,8 +43,9 @@ export class NotImplementedWindow extends BlankWindow {
 
     // Обработчик открытия формы
     onShow(args) {
-        this.args = args
+        // this.args = args
         Qubatch.releaseMousePointer()
+        super.onShow(args)
     }
 
     // Request slots

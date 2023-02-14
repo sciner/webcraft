@@ -3,12 +3,11 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
-import { BlockStyleRegInfo, default as default_style, TX_SIZE} from './default.js';
+import { BlockStyleRegInfo, default as default_style, QuadPlane, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { GRASS_PALETTE_OFFSET } from '../constant.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
-
 
 const {mat4} = glMatrix;
 
@@ -53,20 +52,7 @@ for(let i = 0; i < randoms.length; i++) {
 }
 
 //
-const _pl = {
-    size: null,
-    uv: null,
-    rot: null,
-    lm: null,
-    pos: null,
-    x: null,
-    y: null,
-    z: null,
-    matrix: null,
-    flag: null,
-    texture: null,
-};
-
+const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
 
 // Растения/Цепи

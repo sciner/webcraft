@@ -87,12 +87,12 @@ export class InventoryWindow extends BaseCraftWindow {
     }
 
     // Обработчик открытия формы
-    onShow() {
+    onShow(args) {
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
         this.previewSkin()
         this.setHelperSlots(null)
-        super.onShow()
+        super.onShow(args)
     }
 
     // Обработчик закрытия формы

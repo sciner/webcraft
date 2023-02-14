@@ -72,10 +72,10 @@ export class CraftTable extends BaseCraftWindow {
     }
 
     // onShow
-    onShow() {
+    onShow(args) {
         Qubatch.releaseMousePointer()
         this.setHelperSlots(null)
-        super.onShow()
+        super.onShow(args)
     }
 
     // Обработчик закрытия формы

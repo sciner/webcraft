@@ -11,6 +11,8 @@ import { AABB } from '../../core/AABB.js';
 import Demo_Map from "./demo_map.js";
 import BottomCavesGenerator from "../bottom_caves/index.js";
 import { ClusterManager } from "../cluster/manager.js";
+import type { WorkerWorld } from "../../worker/world.js";
+import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 
 // Randoms
 const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -23,13 +25,7 @@ for(let i = 0; i < randoms.length; i++) {
 export default class Terrain_Generator extends Demo_Map {
     [key: string]: any;
 
-    /**
-     * @param { import("../../worker/world.js").WorkerWorld } world
-     * @param { string } seed
-     * @param { string } world_id
-     * @param { object } options
-     */
-    constructor(world, seed, world_id, options) {
+    constructor(world : WorkerWorld, seed : string, world_id : string, options : object) {
         super(seed, world_id, options);
         this.world = world;
         this.clusterManager = new ClusterManager(world, seed, 1);
@@ -37,22 +33,23 @@ export default class Terrain_Generator extends Demo_Map {
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
-        this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
+        this.bottomCavesGenerator = new BottomCavesGenerator(world, seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
         this.flying_islands = new FlyIslands(world, seed, world_id, {});
     }
 
-    async init() {
+    async init() : Promise<boolean> {
         await super.init();
         this.options        = {...GENERATOR_OPTIONS, ...this.options};
         this.temp_vec       = new Vector(0, 0, 0);
         this.noisefn        = noise.perlin2;
         this.noisefn3d      = noise.perlin3;
         this.maps           = new TerrainMapManager(this.seed, this.world_id, this.noisefn, this.noisefn3d);
+        return true
     }
 
     // Draw fly islands in the sky
-    drawFlyIslands(chunk) {
+    drawFlyIslands(chunk : ChunkWorkerChunk) {
         if(!this.flying_islands) {
             return null;
         }
@@ -84,8 +81,7 @@ export default class Terrain_Generator extends Demo_Map {
             const addr = new Vector(0, 0, 0).copyFrom(chunk.addr);
             coord.y -= chunk.size.y * CHUNK_START_Y;
             addr.y -= CHUNK_START_Y;
-            const fake_chunk = {...chunk, coord, addr};
-            fake_chunk.setBlockIndirect = chunk.setBlockIndirect;
+            const fake_chunk = {...chunk, coord, addr, setBlockIndirect: chunk.setBlockIndirect};
             return this.flying_islands.generate(fake_chunk);
         };
         return null;

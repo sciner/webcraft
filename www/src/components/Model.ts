@@ -10,6 +10,7 @@ export class Model extends Component {
     static key = 'model';
 
     constructor() {
+        super()
         this._geometry = null;
         this._material = null;
     }

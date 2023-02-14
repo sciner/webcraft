@@ -57,10 +57,10 @@ export class ScreenshotWindow extends BlankWindow {
     }
 
     // Обработчик открытия формы
-    onShow() {
+    onShow(args) {
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
-        super.onShow()
+        super.onShow(args)
     }
 
     // Обработчик закрытия формы

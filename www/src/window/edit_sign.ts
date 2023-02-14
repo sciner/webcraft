@@ -67,7 +67,7 @@ export class EditSignWindow extends BlankWindow {
         this.args = args
         this.txtEdit1.text = ''
         Qubatch.releaseMousePointer()
-        super.onShow()
+        super.onShow(args)
     }
 
     // Обработчик открытия формы

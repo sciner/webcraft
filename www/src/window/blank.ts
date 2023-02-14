@@ -1,4 +1,5 @@
 import { Window } from "../../tools/gui/wm.js";
+import { KEY } from "../constant.js";
 
 //
 export class BlankWindow extends Window {
@@ -31,9 +32,9 @@ export class BlankWindow extends Window {
         return false
     }
 
-    onShow() {
+    onShow(args) {
         this.getRoot().centerChild()
-        super.onShow()
+        super.onShow(args)
     }
 
 }

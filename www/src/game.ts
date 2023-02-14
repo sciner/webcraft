@@ -38,7 +38,7 @@ export class GameClass {
         this.onStarted                  = () => {};
         this.f3_used                    = false;
         // Local server client
-        this.local_server_client = (globalThis.LocalServerClient !== undefined) ? new LocalServerClient() : null;
+        this.local_server_client = ((globalThis as any).LocalServerClient !== undefined) ? new LocalServerClient() : null;
         this.preLoop = this.preLoop.bind(this)
         this.preLoopEnable = true
     }
@@ -647,7 +647,7 @@ export class GameClass {
 
         // pointerlockchange
         const pointerlockchange = (event) => {
-            if (document.pointerLockElement === element || document.webkitPointerLockElement === element) {
+            if (document.pointerLockElement === element || (document as any).webkitPointerLockElement === element) {
                 this.setControlsEnabled(true);
             }  else {
                 this.setControlsEnabled(false);
@@ -776,7 +776,7 @@ export class GameClass {
     }
 
     exit() {
-        location = '/';
+        location.href = '/';
     }
 
 }

@@ -274,7 +274,7 @@ export class CreativeInventoryWindow extends BlankWindow {
     }
 
     // Обработчик открытия формы
-    onShow() {
+    onShow(args) {
         this.getRoot().center(this);
         Qubatch.releaseMousePointer()
         if(this.inventory_slots) {
@@ -284,7 +284,7 @@ export class CreativeInventoryWindow extends BlankWindow {
                 }
             }
         }
-        super.onShow()
+        super.onShow(args)
     }
 
     // Обработчик закрытия формы

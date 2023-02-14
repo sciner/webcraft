@@ -27,10 +27,10 @@ export class DieWindow extends BlankWindow {
     }
 
     // onShow
-    onShow() {
+    onShow(args) {
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
-        super.onShow()
+        super.onShow(args)
     }
 
     addCloseButton() {

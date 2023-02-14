@@ -35,10 +35,10 @@ export class MainMenu extends BlankWindow {
     }
 
     // onShow
-    onShow() {
+    onShow(args) {
         this.parent.center(this)
         Qubatch.releaseMousePointer()
-        super.onShow()
+        super.onShow(args)
     }
 
     //

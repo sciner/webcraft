@@ -14,7 +14,6 @@ import {
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
 import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
-import { TBlock } from "./typed_blocks3.js";
 
 const _createBlockAABB = new AABB();
 
@@ -55,6 +54,13 @@ function calcRotateByPosN(rot, pos_n) {
     }
     throw 'error_invalid_pos_n';
 
+}
+
+class IPaintingSize {
+    name : string
+    move: {x?: int, y?: int, z?: int}
+    list: {y? : int, f? : int}[]
+    size?: number[]
 }
 
 // Calc rotate
@@ -101,7 +107,7 @@ async function createPainting(e, world, pos) {
     if(!field) {
         return false;
     }
-    let painting_sizes = [
+    const painting_sizes = [
         // 4x4
         {
             name: '4x4',
@@ -112,7 +118,7 @@ async function createPainting(e, world, pos) {
                 {y: 0, f: -1}, {y: 0, f: 0}, {y: 0, f: 1}, {y: 0, f: 2},
                 {y: -1, f: -1}, {y: -1, f: 0}, {y: -1, f: 1}, {y: -1, f: 2}
             ]
-        },
+        } as IPaintingSize,
         // 4x3
         {
             name: '4x3',
@@ -122,7 +128,7 @@ async function createPainting(e, world, pos) {
                 {y: 0, f: -1}, {y: 0, f: 0}, {y: 0, f: 1}, {y: 0, f: 2},
                 {y: -1, f: -1}, {y: -1, f: 0}, {y: -1, f: 1}, {y: -1, f: 2}
             ]
-        },
+        } as IPaintingSize,
         // 4x2
         {
             name: '4x2',
@@ -131,7 +137,7 @@ async function createPainting(e, world, pos) {
                 {y: 1, f: -1}, {y: 1, f: 0}, {y: 1, f: 1}, {y: 1, f: 2},
                 {y: 0, f: -1}, {y: 0, f: 0}, {y: 0, f: 1}, {y: 0, f: 2}
             ]
-        },
+        } as IPaintingSize,
         // 2x2
         {
             name: '2x2',
@@ -140,7 +146,7 @@ async function createPainting(e, world, pos) {
                 {y: 0, f: 0}, {y: 1, f: 0},
                 {y: 0, f: 1}, {y: 1, f: 1}
             ]
-        },
+        } as IPaintingSize,
         // 2x1
         {
             name: '2x1',
@@ -148,7 +154,7 @@ async function createPainting(e, world, pos) {
             list: [
                 {y: 0, f: 0}, {y: 0, f: 1}
             ]
-        },
+        } as IPaintingSize,
         // 1x2
         {
             name: '1x2',
@@ -156,7 +162,7 @@ async function createPainting(e, world, pos) {
             list: [
                 {y: 0, f: 0}, {y: 1, f: 0}
             ]
-        },
+        } as IPaintingSize,
         // 1x1
         {
             name: '1x1',
@@ -164,7 +170,7 @@ async function createPainting(e, world, pos) {
             list: [
                 {y: 0, f: 0}
             ]
-        }
+        } as IPaintingSize
     ];
     let blocks = new VectorCollector();
     let blocks_back = new VectorCollector();
@@ -1879,7 +1885,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
                     // Сохраняем портал в БД
                     const portal = {
                         pos:                bottom_left.clone(),
-                        rotate:             portal_block.rotate.clone(),
+                        rotate:             new Vector(portal_block.rotate),
                         size:               {width: width + 2, height: height + 2},
                         player_pos:         bottom_left.clone(),
                         pair_pos:           null,

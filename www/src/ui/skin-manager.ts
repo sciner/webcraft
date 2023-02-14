@@ -5,9 +5,14 @@ import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 export class SkinManager {
     [key: string]: any;
 
-    #controller : object;
+    #controller : {
+        App: any,
+        current_window: any,
+        Qubatch: any,
+        $apply: any
+    };
 
-    constructor($scope : object, $timeout? : Function) {
+    constructor($scope : any, $timeout? : Function) {
         // https://ru.namemc.com/minecraft-skins/trending/top?page=5
         this.#controller    = $scope;
         this.$timeout       = $timeout;
@@ -146,7 +151,7 @@ export class SkinManager {
         });
     }
 
-    onShow() {
+    onShow(args) {
         // It's BAD: skins in the list may change after the player opened the list
         // TODO show loading screen
         this.reloadSkins();
@@ -220,9 +225,9 @@ export class SkinManager {
                 that.newSkinClear();
             });
             // a workaround: angularjs doesn't clear the image when that.newSkinDataURL is set null or ''
-            document.getElementById('new-skin-image').src = null;
+            (document.getElementById('new-skin-image') as HTMLImageElement).src = null;
             // it's not bound to ng-model, it's ok to set it directly:
-            document.getElementById('new-skin-input').value = null;
+            (document.getElementById('new-skin-input') as HTMLInputElement).value = null;
         }
 
         //
@@ -272,7 +277,7 @@ export class SkinManager {
             img.onerror = function () {
                 onSkinError('error_incorrect_image_format');
             };
-            img.src = reader.result;
+            (img as any).src = reader.result;
         };
         reader.readAsDataURL(file);
     }

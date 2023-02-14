@@ -193,7 +193,7 @@ export class Inventory {
     }
 
     //
-    decrement_instrument(mined_block) {
+    decrement_instrument() {
         if(!this.current_item || this.player.game_mode.isCreative()) {
             return;
         }
@@ -439,24 +439,24 @@ export class Inventory {
             delete(cloned_block.power);
         }
         // Search same material with count < max
-        for(let k in Object.keys(this.items)) {
-            k = parseInt(k);
-            if(this.items[k]) {
-                let item = this.items[k];
+        for(let slot_key in Object.keys(this.items)) {
+            const slot_index = parseInt(slot_key);
+            if(this.items[slot_index]) {
+                let item = this.items[slot_index];
                 if(item.id == cloned_block.id) {
-                    if(k >= this.hotbar_count) {
+                    if(slot_index >= this.hotbar_count) {
                         // swith with another from inventory
-                        this.items[k] = this.items[this.current.index];
+                        this.items[slot_index] = this.items[this.current.index];
                         this.items[this.current.index] = item;
                         this.select(this.current.index);
                         return this.refresh(false);
                     } else {
                         // select if on hotbar
-                        if(k == this.current.index) {
+                        if(slot_index == this.current.index) {
                             const maxStack = BLOCK.getItemMaxStack(cloned_block);
                             item.count = Math.min(item.count + 1, maxStack);
                         }
-                        this.select(k);
+                        this.select(slot_index);
                         return this.refresh(false);
                     }
                 }

@@ -156,8 +156,8 @@ export class BeaconWindow extends BaseChestWindow {
         }
     }
 
-    onShow() {
-        super.onShow()
+    onShow(args) {
+        super.onShow(args)
         this.tmp_state = this.state
         this.updateButtons()
     }

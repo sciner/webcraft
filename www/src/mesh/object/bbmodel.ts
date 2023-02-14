@@ -1,7 +1,7 @@
-import { getChunkAddr, IndexedColor, Vector } from '../../helpers.js';
+import { IndexedColor, Vector } from '../../helpers.js';
 import GeometryTerrain from '../../geometry_terrain.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
-import { Resources } from '../../resources.js';
+import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4}    = glMatrix;
 const lm        = IndexedColor.WHITE;

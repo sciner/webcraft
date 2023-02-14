@@ -244,7 +244,7 @@ export class Window extends PIXI.Container {
     onWheel(e) {}
     onHide() {}
 
-    onShow() {
+    onShow(args) {
         for(let window of this.list.values()) {
             if(window instanceof TextEdit) {
                 window.focused = true
