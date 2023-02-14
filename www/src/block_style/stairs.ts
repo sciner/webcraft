@@ -47,7 +47,7 @@ export default class style {
         let se = cardinal_direction == DIRECTION.NORTH || cardinal_direction == DIRECTION.WEST;
 
         //
-        const sides             = {};
+        const sides             = {} as {BASE?: any, DOWN?: any};
         sides.BASE              = null;
         sides[DIRECTION.SOUTH]  = sw;
         sides[DIRECTION.WEST]   = nw;

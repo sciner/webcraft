@@ -279,7 +279,7 @@ export class InHandOverlay {
 
             this.renderHandsWithItems(pPartialTicks, modelMatrix, pBuffer, player, pCombinedLight, delta);
 
-            this.postModelMatrix(modelMatrix, false);
+            this.postModelMatrix(modelMatrix);
 
             inHandItemMesh.drawDirectly(render);
 

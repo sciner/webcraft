@@ -105,7 +105,7 @@ export class VilageSchema {
         return r <= this.settings.road_damage_factor;
     }
 
-    push_branch(x, z, axis, depth) {
+    push_branch(x : int, z : int, axis : int, depth : int) {
         // One random per branch
         let branch_rnd = this.randoms.double();
         const settings = this.settings;
@@ -198,12 +198,12 @@ export class VilageSchema {
             let inc_amount = 0;
             if(post_part >= settings.quant) {
                 inc_amount = settings.quant * Math.floor(post_part / settings.quant);
-                let new_branch_rnd = this.randoms.double(); // ((x + (inc_amount * is_x_mod)) * (z + (settings.quant * is_z_mod)) / 1000) % 1;
-                this.push_branch(x + (inc_amount * is_x_mod), z + (settings.quant * is_z_mod), next_dir, depth - 1, new_branch_rnd);
+                // let new_branch_rnd = this.randoms.double(); // ((x + (inc_amount * is_x_mod)) * (z + (settings.quant * is_z_mod)) / 1000) % 1;
+                this.push_branch(x + (inc_amount * is_x_mod), z + (settings.quant * is_z_mod), next_dir, depth - 1) //, new_branch_rnd);
             }
             if(pre_part >= settings.quant) {
                 inc_amount = settings.quant * Math.floor(pre_part / settings.quant);
-                this.push_branch(x - (inc_amount * is_x_mod), z - (settings.quant * is_z_mod), next_dir, depth - 1, branch_rnd);
+                this.push_branch(x - (inc_amount * is_x_mod), z - (settings.quant * is_z_mod), next_dir, depth - 1) //, branch_rnd);
             }
         }
     }

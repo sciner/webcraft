@@ -56,7 +56,7 @@ export class BaseInventoryWindow extends BlankWindow {
         const item = this.inventory.items[INVENTORY_DRAG_SLOT_INDEX]
         const slotItem = this.drag.getItem()
         if (!InventoryComparator.itemsEqual(item, slotItem)) {
-            const str = `Drag slot differs from inventory: ${i}, ${item}, ${slotItem} ${context}`
+            const str = `Drag slot differs from inventory: ${item}, ${slotItem} ${context}`
             console.error(str)
             window.alert(str)
         }

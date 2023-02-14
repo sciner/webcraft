@@ -285,7 +285,7 @@ export class World {
                 if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
                     const destroy_data = {
                         pos: mod.pos,
-                        item: {id: tblock.id}
+                        item: {id: tblock.id} as IBlockItem
                     };
                     if(tblock.extra_data) {
                         destroy_data.item.extra_data = tblock.extra_data

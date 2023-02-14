@@ -1,14 +1,16 @@
 import { IndexedColor } from '../../helpers.js';
 import { DungeonGenerator } from '../dungeon.js';
-import { Default_Terrain_Generator } from '../default.js';
+import { Default_Terrain_Generator, Default_Terrain_Map } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { alea } from "../default.js";
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
+import type { WorkerWorld } from '../../worker/world.js';
 
 export default class MineGenerator2 extends Default_Terrain_Generator {
     [key: string]: any;
 
-    constructor(world, seed, world_id, options) {
+    constructor(world : WorkerWorld, seed : string, world_id : string, options) {
+        debugger
         super(seed, world_id, options);
         this.s = seed;
         this.aleaRandom = new alea(seed);
@@ -20,7 +22,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
         return super.init()
     }
 
-    generate(chunk : ChunkWorkerChunk) {
+    generate(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
         const aleaRandom = new alea(this.s + chunk.addr.toString());
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {
@@ -41,18 +43,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
         let addr = chunk.addr;
         let size = chunk.size;
 
-        return {
-            id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-            blocks: {},
-            seed:   chunk.seed,
-            addr:   addr,
-            size:   size,
-            coord:  addr.mul(size),
-            cells:  Array(chunk.size.x * chunk.size.z).fill(cell),
-            options: {
-                WATER_LINE: 63, // Ватер-линия
-            }
-        };
+        return new Default_Terrain_Map(addr, size, addr.mul(size), {WATER_LINE: 63}, Array(chunk.size.x * chunk.size.z).fill(cell))
 
     }
 }

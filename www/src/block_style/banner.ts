@@ -1,4 +1,4 @@
-import {DIRECTION, Vector, QUAD_FLAGS} from '../helpers.js';
+import {DIRECTION, Vector, QUAD_FLAGS, IndexedColor} from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import {CubeSym} from "../core/CubeSym.js";
@@ -28,6 +28,22 @@ const cubeSymAxis = [
     [0, 1],
     [-1, 0]
 ];
+
+interface IBannerPart {
+    visible: boolean
+    origin: IVector,
+    size: IVector,
+    lm: IndexedColor,
+    flag: int,
+    faces: {
+        up:     {x: number, y: number, w: number, h: number},
+        down:   {x: number, y: number, w: number, h: number},
+        south:  {x: number, y: number, w: number, h: number},
+        north:  {x: number, y: number, w: number, h: number},
+        west:   {x: number, y: number, w: number, h: number},
+        east:   {x: number, y: number, w: number, h: number}
+    }
+}
 
 // Баннер
 export default class style {
@@ -120,6 +136,7 @@ export default class style {
 
         const parts = {
             stem: {
+                visible: true,
                 origin: {x: 0, y: 0, z: 0},
                 size: {x: 3, y: 57, z: 3},
                 faces: {
@@ -130,8 +147,9 @@ export default class style {
                     west:   {x: 98, y: 46, w: 4, h: 84},
                     east:   {x: 90, y: 46, w: 4, h: 84}
                 }
-            },
+            } as IBannerPart,
             girder: {
+                visible: true,
                 origin: {x: 0, y: 57, z: 0},
                 size: {x: 28, y: 3, z: 3},
                 faces: {
@@ -142,8 +160,9 @@ export default class style {
                     west:   {x: 46, y: 90, w: 4, h: 4},
                     east:   {x: 2, y: 90, w: 4, h: 4}
                 }
-            },
+            } as IBannerPart,
             cloth: {
+                visible: true,
                 origin: {x: shift_clotch, y: 4, z: -2.25 + shift_clotch},
                 size: {x: 28, y: 56, z: 1.5},
                 lm: material.mask_color,
@@ -156,7 +175,7 @@ export default class style {
                     west:   {x: 43, y: 42, w: 2, h: 80},
                     east:   {x: 1, y: 42, w: 2, h: 80}
                 }
-            }
+            } as IBannerPart
         };
 
         const trans     = new Vector(0, 0, 0);

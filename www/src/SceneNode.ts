@@ -1,4 +1,4 @@
-import GeometryTerrain from "./geometry_terrain.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 
 const {mat4, vec3, quat} = glMatrix;
 

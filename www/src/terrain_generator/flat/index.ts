@@ -1,6 +1,7 @@
 import { IndexedColor } from '../../helpers.js';
 import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import { BLOCK } from '../../blocks.js';
+import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -17,9 +18,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         if(this.city2) {
             await this.city2.init();
         }
+        return true
     }
 
-    generate(chunk) {
+    generate(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
 
         const block_id = BLOCK.GRASS_BLOCK.id;
 

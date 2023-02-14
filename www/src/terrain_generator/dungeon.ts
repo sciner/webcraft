@@ -180,17 +180,6 @@ export class DungeonGenerator {
         return true;
     }
 
-    // Проверям, что при возведении стены будет не менее 1 пустоты, размером с игрока
-    checkwallVerical(x, y, z) {
-        const top = this.getBlock(chunk, x, y + 1, z);
-        if (top && top.id == 0 && top.fluid == 0) {
-            const bottom = this.getBlock(chunk, x, y, z);
-            if (bottom && bottom.id == 0 && bottom.fluid == 0) {
-                    return true;
-            }
-        }
-    }
-
     genDung(chunk, alea, x, y, z) {
 
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 5, 7, BLOCK.STONE_BRICKS);

@@ -59,7 +59,7 @@ export class Vox_Loader {
                 while(i < data.byteLength) {
                     let id = '';
                     for(let j = 0; j < 4; j ++) {
-                        id += String.fromCharCode(data.getUint8(i ++, true));
+                        id += String.fromCharCode(data.getUint8(i++));
                     }
                     const chunkSize = data.getUint32(i, true); i += 4;
                     data.getUint32(i, true); i += 4; // childChunks

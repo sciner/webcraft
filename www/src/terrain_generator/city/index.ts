@@ -1,6 +1,7 @@
 import {IndexedColor, Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell} from "../default.js";
+import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -21,20 +22,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
     }
 
-    async init() {}
-
-    /**
-     * setSeed
-     * @param { string } seed
-     */
-    setSeed(seed) {
+    async init() {
+        return true
     }
 
-    /**
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @returns
-     */
-    generate(chunk) {
+    async setSeed(seed : string) {
+        super.setSeed(seed)
+    }
+
+    generate(chunk : ChunkWorkerChunk) {
 
         if(chunk.addr.y < 10000) {
 
@@ -254,8 +250,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     // Строения на крыше
                     if(y - chunk.coord.y >= 0 && y - chunk.coord.y < chunk.size.y) {
                         for(let sz of [1, 2, 2]) {
-                            let ceil_x = 3 + parseInt(aleaRandom.double() * 8);
-                            let ceil_z = 4 + parseInt(aleaRandom.double() * 8);
+                            let ceil_x = 3 + Math.trunc(aleaRandom.double() * 8);
+                            let ceil_z = 4 + Math.trunc(aleaRandom.double() * 8);
                             for(let i = 0; i < sz; i++) {
                                 for(let j = 0; j < sz; j++) {
                                     this.setBlock(chunk, ceil_x + i, y - chunk.coord.y, ceil_z + j, mainColor, false);

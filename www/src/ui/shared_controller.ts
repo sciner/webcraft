@@ -108,7 +108,7 @@ export class Shared_Controller {
         ];
 
         // Game
-        this.Qubatch = globalThis.Qubatch = new GameClass();
+        this.Qubatch = (globalThis as any).Qubatch = new GameClass();
 
         // App
         this.App = Qubatch.App = new UIApp();

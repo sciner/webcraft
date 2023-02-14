@@ -92,7 +92,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
     };
 
     //
-    globalThis.Qubatch              = new GameClass();
+    (globalThis as any).Qubatch     = new GameClass();
     $scope.App                      = Qubatch.App = new UIApp();
     $scope.login_tab                = 'login';
 
@@ -820,7 +820,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
     };
 
     $scope.settings.load();
-    $scope.Qubatch      = globalThis.Qubatch;
+    $scope.Qubatch      = (globalThis as any).Qubatch;
     $scope.skin         = new SkinManager($scope, $timeout);
     $scope.texture_pack = new TexturePackManager($scope);
     $scope.onShow       = {

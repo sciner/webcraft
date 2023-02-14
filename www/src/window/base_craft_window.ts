@@ -495,14 +495,14 @@ export class CraftTableInventorySlot extends CraftTableSlot {
     }
 
     // Custom drawing
-    onMouseEnter() {
+    onMouseEnter(e) {
         if (this.options.disableIfLoading && this.ct.loading) {
             return
         }
         this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55'
     }
 
-    onMouseLeave() {
+    onMouseLeave(e) {
         // don't disable it if loading
         this.style.background.color = '#00000000'
     }
