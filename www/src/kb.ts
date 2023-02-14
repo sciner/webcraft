@@ -1,3 +1,5 @@
+import { KEY, MOUSE } from "./constant.js";
+
 export class Kb {
     [key: string]: any;
 
@@ -23,7 +25,8 @@ export class Kb {
         };
 
         document.onkeydown = function(e) {
-            if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+            const element = e.target as HTMLElement;
+            if (!['INPUT', 'TEXTAREA'].includes(element.tagName)) {
                 if (e.code !== undefined) {
                     if(e.code == 'KeyV' && e.ctrlKey)  {
                         return true;
@@ -45,7 +48,8 @@ export class Kb {
         }
 
         document.onkeyup = function(e) {
-            if (['INPUT', 'TEXTAREA'].indexOf(e.target.tagName) < 0) {
+            const element = e.target as HTMLElement;
+            if (['INPUT', 'TEXTAREA'].indexOf(element.tagName) < 0) {
                 if(that._onKeyEvent(makeEvent(e, false, false))) {
                     return false;
                 }
@@ -72,7 +76,8 @@ export class Kb {
 
         document.addEventListener('paste', function(e) {
             // onPaste
-            if (['INPUT', 'TEXTAREA'].indexOf(e.target.tagName) < 0) {
+            const element = e.target as HTMLElement;
+            if (['INPUT', 'TEXTAREA'].indexOf(element.tagName) < 0) {
                 return that.options.onPaste(e);
             }
             return true;

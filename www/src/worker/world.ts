@@ -1,6 +1,7 @@
 import { ChunkWorkerChunkManager, ChunkWorkerChunk } from "./chunk.js";
-import { VectorCollector, Vector, getChunkAddr } from "../helpers.js";
+import { VectorCollector, Vector, getChunkAddr, PerformanceTimer } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
+import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
 
 // WorkerWorldManager
 export class WorkerWorldManager {
@@ -16,7 +17,7 @@ export class WorkerWorldManager {
         this.curIndex = 0;
     }
 
-    async InitTerrainGenerators(generator_codes) {
+    async InitTerrainGenerators(generator_codes : string[]) {
         // generator_codes = ['biome2', 'city', 'city2', 'flat'];
         const that = this;
         that.terrainGenerators = new Map();
@@ -191,8 +192,8 @@ export class WorkerWorld {
 
         let loops = 0;
         let totalTimes = 0, totalPages = 0, minGenDist = 10000, minBuildDist = 10000;
-        while (performance.now() - start < maxMs && (buildQueue ? buildQueue.size() : 0) + genQueue.size() > 0)
-        {
+        while (performance.now() - start < maxMs && (buildQueue ? buildQueue.size() : 0) + genQueue.size() > 0) {
+
             loops++;
             let times = 0;
             while (times < genPerIter) {
@@ -295,7 +296,30 @@ const buildSettings = {
     enableCache : true,
 }
 
-function buildVertices(chunk, return_map) {
+class BuildVerticesResult {
+
+    key:            any
+    addr:           Vector
+    vertices:       any
+    gravity_blocks: any[]
+    fluid_blocks:   any[]
+    timers:         PerformanceTimer
+    tm:             float
+    map:            TerrainMap2
+    dirt_colors:    Float32Array
+
+    constructor(key: any, addr: Vector, vertices: any, gravity_blocks: any[], fluid_blocks: any[], timers: PerformanceTimer, tm: float) {
+        this.key            = key
+        this.addr           = addr
+        this.vertices       = vertices
+        this.gravity_blocks = gravity_blocks
+        this.fluid_blocks   = fluid_blocks
+        this.timers         = timers
+        this.tm             = tm
+    }
+}
+
+function buildVertices(chunk : ChunkWorkerChunk, return_map : boolean = false) : BuildVerticesResult {
     let prev_dirty = chunk.dirty;
     chunk.timers.start('build_vertices')
     chunk.dirty = true;
@@ -305,15 +329,15 @@ function buildVertices(chunk, return_map) {
         return null;
     }
     chunk.timers.stop()
-    let resp = {
-        key:                    chunk.key,
-        addr:                   chunk.addr,
-        vertices:               chunk.serializedVertices,
-        gravity_blocks:         chunk.gravity_blocks,
-        fluid_blocks:           chunk.fluid_blocks,
-        timers:                 chunk.timers,
-        tm:                     chunk.tm,
-    };
+    const resp = new BuildVerticesResult(
+        chunk.key,
+        chunk.addr,
+        chunk.serializedVertices,
+        chunk.gravity_blocks,
+        chunk.fluid_blocks,
+        chunk.timers,
+        chunk.tm,
+    )
     if(return_map) {
         resp.map = chunk.map;
     }

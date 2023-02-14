@@ -33,11 +33,12 @@ interface IVector {
 interface TSideSet {}
 
 interface TWorldInfo {
+    world_type_id: int,
+    rules: any,
     calendar: {
         day_time: any,
         age: any
     }
-    rules: any
 }
 
 interface TWorldSettings {}

@@ -1,6 +1,7 @@
 // @ts-check
 export class XMPlayer {
     [key: string]: any;
+
     constructor() {
         this.audioctx = null;
         this.gainNode = null;
@@ -61,7 +62,7 @@ export class XMPlayer {
 
     async init(context : any = null, destination : any = null) {
         if (!this.audioctx || (context && this.audioctx !== context)) {
-            var audioContext = window.AudioContext || window.webkitAudioContext;
+            var audioContext = window.AudioContext
             this.audioctx = context || new audioContext();
         }
 

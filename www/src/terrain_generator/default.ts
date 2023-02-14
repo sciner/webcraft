@@ -22,7 +22,7 @@ export class Default_Terrain_Map_Cell {
 export class Default_Terrain_Map {
     [key: string]: any;
 
-    constructor(addr, size, coord, options, cells) {
+    constructor(addr : Vector, size : Vector, coord : Vector, options : any, cells) {
         this.chunk = {addr, size, coord};
         this.options = options;
         this.cells = cells;
@@ -32,6 +32,7 @@ export class Default_Terrain_Map {
      * Return map cell
      */
     getCell(x : int, z : int) {
+        debugger
         return this.cells[z * CHUNK_SIZE_X + x]
     }
 

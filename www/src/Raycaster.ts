@@ -1,5 +1,6 @@
 import { Vector } from "./helpers.js";
 import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
+import type { AABB } from "./core/AABB.js";
 
 const INF = 100000.0;
 const eps = 1e-3;
@@ -11,19 +12,18 @@ const leftTop = new Vector(0, 0, 0);
 const check = new Vector(0, 0, 0);
 const startBlock = new Vector(0, 0, 0);
 
+const _tempVec3c = new Vector(0, 0, 0)
+
 export class RaycasterResult {
     [key: string]: any;
 
     /**
-     * @param {Vector} pos
-     * @param {Vector} leftTop
-     * @param {Vector} side
      */
-    constructor(pos, leftTop, side, aabb, block_id) {
+    constructor(pos : Vector | null = null, leftTop : Vector | null = null, side : Vector | null = null, aabb? : AABB, block_id : int = 0) {
         this.mob      = null;
         this.player   = null;
         this.aabb     = aabb || null;
-        this.n        = side || 0;
+        this.n        = side || 0; // TODO: Fix it
         this.block_id = block_id || 0;
         this.x        = 0;
         this.y        = 0;
@@ -92,8 +92,8 @@ export class Raycaster {
 
     // intersectSphere...
     intersectSphere(sphere, origin = this.origin, direction = this.direction) {
-        const ray = tempVec3c;
-        ray.sub(sphere.center, origin);
+        const ray : Vector = _tempVec3c;
+        ray.copyFrom(sphere.center).subSelf(origin)
         const tca = ray.dot(direction);
         const d2 = ray.dot(ray) - tca * tca;
         const radius2 = sphere.radius * sphere.radius;
@@ -198,17 +198,9 @@ export class Raycaster {
         return resp;
     }
 
+    get(origin : Vector, dir : Vector, pickat_distance : number, callback : Function, ignore_transparent : boolean = false, return_fluid : boolean = false) : RaycasterResult | null {
 
-    /**
-     * @param {Vector} pos
-     * @param {*} dir
-     * @param {number} pickat_distance
-     * @param {*} callback
-     * @returns {null | RaycasterResult}
-     */
-    get(origin, dir, pickat_distance, callback, ignore_transparent) {
-
-        const origin_block_pos = new Vector(origin).flooredSelf();
+        // const origin_block_pos = new Vector(origin).flooredSelf();
 
         const pos = this._pos.copyFrom(origin);
         startBlock.set(
