@@ -2,7 +2,7 @@ import {ObjectDrawer} from "../batch/ObjectDrawer.js";
 
 export class GPUMeshDrawer extends ObjectDrawer {
     [key: string]: any;
-    draw(geom, material, a_pos = null, modelMatrix = null, draw_type) {
+    draw(geom, material?, a_pos = null, modelMatrix = null, draw_type?) {
         const { context } = this;
         if (geom.size === 0) {
             return;

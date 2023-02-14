@@ -2133,7 +2133,7 @@ export class Helpers {
     }
 
     // createGLProgram...
-    static createGLProgram(gl, obj, callback) {
+    static createGLProgram(gl, obj, callback?) {
         let program = gl.createProgram();
         // Compile vertex shader
         let vertexShader = gl.createShader(gl.VERTEX_SHADER);

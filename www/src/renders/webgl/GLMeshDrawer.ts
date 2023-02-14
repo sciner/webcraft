@@ -2,15 +2,12 @@ import {ObjectDrawer} from "../batch/ObjectDrawer.js";
 
 export class GLMeshDrawer extends ObjectDrawer {
     [key: string]: any;
-    draw(geom, material, a_pos = null, modelMatrix = null, draw_type) {
+    draw(geom, material?, a_pos = null, modelMatrix = null, draw_type = 'triangles') {
         const { context } = this;
         if (geom.size === 0) {
             return;
         }
         let gl = context.gl;
-        if(!draw_type) {
-            draw_type = 'triangles';
-        }
         switch(draw_type) {
             case 'triangles': {
                 draw_type = gl.TRIANGLES;

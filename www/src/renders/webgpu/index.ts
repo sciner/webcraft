@@ -242,15 +242,10 @@ export default class WebGPURenderer extends BaseRenderer{
         super.setTarget(target);
     }
 
-}
+    static test(view: HTMLCanvasElement, options: WebGLContextAttributes = {}) {
+        const context = navigator.gpu && view.getContext('webgpu');
+        return !!context;
+    }
 
-/**
- *
- * @param {HTMLCanvasElement} view
- */
-WebGPURenderer.test = function(view, options = {}) {
-    const context = navigator.gpu && view.getContext('webgpu');
-    return !!context;
+    static kind = 'webgpu';
 }
-
-WebGPURenderer.kind = 'webgpu';

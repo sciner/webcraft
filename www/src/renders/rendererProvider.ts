@@ -1,7 +1,7 @@
 import WebGLRenderer from './webgl/index.js';
 import WebGPURenderer from './webgpu/index.js';
 
-const RENDERS =  [
+const RENDERS: any[] =  [
     WebGPURenderer,
     WebGLRenderer
 ];
@@ -9,9 +9,9 @@ const RENDERS =  [
 export default {
     /**
      * Query evailable renderer
-     * @param {HTMLCanvasElement} view 
+     * @param {HTMLCanvasElement} view
      * @param {'webgl' | 'webgpu' | 'auto'} type
-     * @param {*} options 
+     * @param {*} options
      */
     getRenderer(view, type = 'webgl', options = {}) {
 

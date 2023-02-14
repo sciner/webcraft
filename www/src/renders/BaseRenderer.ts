@@ -1,17 +1,16 @@
-import {Color, Vector} from '../helpers.js';
+import {Color, Mth, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
 
 const {mat4} = glMatrix;
 
-/**
- * @typedef { object } PassOptions
- * @property {[number, number, number, number]} [fogColor]
- * @property {boolean} [clearColor]
- * @property {boolean} [clearDepth]
- * @property {BaseRenderTarget} [target]
- * @property {[number, number, number, number]} [viewport]
- */
+export interface PassOptions {
+    fogColor?: [number, number, number, number]
+    clearColor?: boolean
+    clearDepth?: boolean
+    target?: BaseRenderTarget
+    viewport?: [number, number, number, number]
+}
 
 /**
  * BaseRenderTarget
@@ -64,7 +63,7 @@ export class BaseRenderTarget {
      * Read pixels from framebuffer
      * @returns {Uint8Array | Promise<Uint8Array>}
      */
-    toRawPixels() {
+    toRawPixels(): any {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
@@ -142,7 +141,7 @@ export class BaseRenderTarget {
 export class BaseBuffer {
     [key: string]: any;
 
-    constructor(context, options = {}) {
+    constructor(context, options: {data?: ArrayBufferLike, index?: boolean} = {}) {
         this.context = context;
         this.options = options;
         this._data = options.data;
@@ -485,11 +484,11 @@ export default class BaseRenderer {
     }
 
     get kind() {
-        return this.constructor.kind;
+        return (this.constructor as any).kind;
     }
 
-    async init({blocks} = {}) {
-        this.blocks = blocks || {};
+    async init(options: {blocks?: Dict<string>} = {}) {
+        this.blocks = options.blocks || {};
 
         if (Object.keys(this.blocks).length === 0) {
             console.warn('Shader blocks is empty');
@@ -622,20 +621,20 @@ export default class BaseRenderer {
             : size;
 
         const x = viewport
-            ? clamp(0, limit.width, viewport[0] || 0)
+            ? Mth.clamp(0, limit.width, viewport[0] || 0)
             : 0;
 
         const y = viewport
-            ? clamp(0, limit.height, viewport[1] || 0)
+            ? Mth.clamp(0, limit.height, viewport[1] || 0)
             : 0;
 
         const width = viewport
-            ? clamp(0, limit.width, viewport[2] || limit.width)
+            ? Mth.clamp(0, limit.width, viewport[2] || limit.width)
             : limit.width;
 
 
         const height = viewport
-            ? clamp(0, limit.height, viewport[3] || limit.height)
+            ? Mth.clamp(0, limit.height, viewport[3] || limit.height)
             : limit.height;
 
         this._viewport[0] = x;
@@ -748,7 +747,7 @@ export default class BaseRenderer {
      * @param {*} options
      * @returns {Promise<any>}
      */
-    async createResourcePackShader(options) {
+    async createResourcePackShader(options): Promise<any> {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
@@ -765,6 +764,6 @@ export default class BaseRenderer {
 
     resetAfter() {
     }
-}
 
-BaseRenderer.ID = 0;
+    static ID = 0;
+}

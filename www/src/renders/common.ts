@@ -5,6 +5,6 @@ export class TerrainTextureUniforms {
         this.pixelSize = 1.0 / 512.0;
         this.mipmap = 0;
     }
-}
 
-TerrainTextureUniforms.default = new TerrainTextureUniforms();
+    static default = new TerrainTextureUniforms()
+}
