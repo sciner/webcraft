@@ -1,7 +1,7 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import { AABB } from '../core/AABB.js';
-import { default as default_style } from './default.js';
+import { BlockStyleRegInfo, default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 import type { BlockManager } from '../blocks.js';
@@ -22,13 +22,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['armor_stand'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['armor_stand'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {

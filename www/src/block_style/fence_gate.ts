@@ -2,6 +2,8 @@ import {DIRECTION, IndexedColor} from '../helpers.js';
 import {AABB} from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import { BlockStyleRegInfo } from './default.js';
+
 
 const SIZE = 1 / 16;
 
@@ -11,13 +13,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['fence_gate'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['fence_gate'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     // computeAABB

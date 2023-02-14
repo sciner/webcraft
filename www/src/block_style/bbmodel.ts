@@ -4,7 +4,7 @@ import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
 import { CubeSym } from '../core/CubeSym.js';
 
-import { default as default_style, TX_SIZE } from '../block_style/default.js';
+import { BlockStyleRegInfo, default as default_style, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
@@ -16,6 +16,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 import {impl as alea} from "../../vendors/alea.js";
 import type { BBModel_Model } from '../bbmodel/model.js';
 import type { Biome } from '../terrain_generator/biome3/biomes.js';
+
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
@@ -57,13 +58,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['bbmodel'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['bbmodel'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     /**
@@ -468,7 +469,7 @@ export default class style {
             case 'cauldron': {
                 if(tblock.extra_data) {
                     const vert = []
-                    cauldron_style.func(tblock, vert, null, xyz.x, xyz.y, xyz.z, neighbours, biome, dirt_color, undefined, matrix, undefined, null, true)
+                    cauldron_style.func(tblock, vert, null, xyz.x, xyz.y, xyz.z, neighbours, biome, dirt_color, true, matrix, undefined, null)
                     emmited_blocks.push(new FakeVertices(bm.STONE.material_key, vert))
                 }
                 break

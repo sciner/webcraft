@@ -2,6 +2,7 @@ import { DIRECTION, IndexedColor } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import { BlockStyleRegInfo } from './default.js';
 
 // Наковальня
 export default class style {
@@ -9,13 +10,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['anvil'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['anvil'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {

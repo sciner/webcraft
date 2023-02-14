@@ -1,9 +1,10 @@
 import { DIRECTION, IndexedColor, Vector, QUAD_FLAGS} from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import { default as default_style } from './default.js';
+import { BlockStyleRegInfo, default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+
 
 const {mat4} = glMatrix;
 const pivot = {x: 0.5, y: 0.5, z: 0.5};
@@ -14,13 +15,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['chair'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['chair'],
+            this.func,
+            this.computeAABB
+        );
     }
     
     static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {

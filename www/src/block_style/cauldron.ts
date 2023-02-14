@@ -1,8 +1,9 @@
 import { DIRECTION, Vector, IndexedColor, QUAD_FLAGS } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import { default as default_style } from './default.js';
+import { BlockStyleRegInfo, default as default_style } from './default.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+
 
 // Cauldron
 export default class style {
@@ -10,13 +11,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['cauldron'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['cauldron'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     // computeAABB
@@ -30,6 +31,7 @@ export default class style {
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         const bm = style.block_manager
+        const only_fluid = !!unknown
 
         if(!block || typeof block == 'undefined' || block.id == bm.AIR.id) {
             return;

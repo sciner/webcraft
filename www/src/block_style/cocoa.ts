@@ -4,6 +4,7 @@ import { default as default_style } from './default.js';
 import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import { BlockStyleRegInfo } from './default.js';
 
 const WIDTH =  16 / 32;
 const HEIGHT = 20 / 32;
@@ -18,13 +19,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager;
-        return {
-            styles: ['cocoa'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['cocoa'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     // computeAABB

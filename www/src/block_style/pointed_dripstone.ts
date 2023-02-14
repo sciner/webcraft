@@ -1,8 +1,9 @@
 import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { TBlock } from '../typed_blocks3.js';
-import { default as default_style } from './default.js';
+import { BlockStyleRegInfo, default as default_style } from './default.js';
 import type { BlockManager } from '../blocks.js';
+
 
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
 
@@ -12,13 +13,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['pointed_dripstone'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['pointed_dripstone'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {

@@ -3,11 +3,12 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
-import { default as default_style, TX_SIZE} from './default.js';
+import { BlockStyleRegInfo, default as default_style, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { GRASS_PALETTE_OFFSET } from '../constant.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+
 
 const {mat4} = glMatrix;
 
@@ -75,13 +76,13 @@ export default class style {
     static block_manager : BlockManager
     static lm = new IndexedColor();
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['planting'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['planting'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     // computeAABB

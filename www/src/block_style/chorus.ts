@@ -1,8 +1,9 @@
 import { DIRECTION, Vector, IndexedColor } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import { default as default_style } from './default.js';
+import { BlockStyleRegInfo, default as default_style } from './default.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+
 
 // Chorus
 export default class style {
@@ -10,13 +11,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['chorus'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['chorus'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     // computeAABB

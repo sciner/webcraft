@@ -2,6 +2,7 @@ import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import { TBlock } from '../typed_blocks3.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
+import { BlockStyleRegInfo } from './default.js';
 
 const CENTER_WIDTH      = 8 / 16;
 const CONNECT_X         = 6 / 16;
@@ -16,13 +17,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['wall'],
-            aabb: style.computeAABB,
-            func: this.func
-        };
+        return new BlockStyleRegInfo(
+            ['wall'],
+            this.func,
+            style.computeAABB,
+        );
     }
 
     static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {

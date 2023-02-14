@@ -1,5 +1,8 @@
 import { QUAD_FLAGS, Vector} from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
+import type { BlockManager } from '../blocks.js';
+import { BlockStyleRegInfo } from './default.js';
+
 /**
  * @typedef {object} CharUV
  * @property {number} width - width
@@ -28,17 +31,19 @@ import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 export default class style {
     [key: string]: any;
 
+    static block_manager : BlockManager
+
     static _aabb = new AABB();
     static _aabbc = new AABB();
     static _center = new Vector(0, 0, 0);
     static _padding = new Vector(0, 0, 0);
 
-    // getRegInfo
-    static getRegInfo() {
-        return {
-            styles: ['text'],
-            func: this.func
-        };
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
+        style.block_manager = block_manager
+        return new BlockStyleRegInfo(
+            ['text'],
+            this.func
+        );
     }
 
     static fillRun ({

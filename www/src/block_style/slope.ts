@@ -1,8 +1,10 @@
 import { IndexedColor, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
-import { AABB, AABBSideParams, AABBSides, PLANES, pushAABB } from '../core/AABB.js';
+import { AABB, AABBSideParams, PLANES, pushAABB } from '../core/AABB.js';
 import { TBlock } from '../typed_blocks3.js';
 import { default as stairs_style } from './stairs.js';
 import type { BlockManager } from '../blocks.js';
+import { BlockStyleRegInfo } from './default.js';
+
 
 const _aabb = new AABB();
 const _center = new Vector(0, 0, 0);
@@ -22,13 +24,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['slope'],
-            func: style.func,
-            aabb: stairs_style.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['slope'],
+            style.func,
+            stairs_style.computeAABB
+        );
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

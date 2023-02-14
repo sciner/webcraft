@@ -1,6 +1,7 @@
 import type { BlockManager } from "../blocks.js";
 import { pushSym } from "../core/CubeSym.js";
 import {IndexedColor} from "../helpers.js";
+import { BlockStyleRegInfo } from './default.js';
 
 /**
  *
@@ -233,12 +234,12 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['plane'],
-            func: this.func
-        };
+        return new BlockStyleRegInfo(
+            ['plane'],
+            this.func
+        );
     }
 
     static func(vertices, x, y, z, c, lm, x_dir, rot, xp, yp, zp, flags, ignore_back_side) {

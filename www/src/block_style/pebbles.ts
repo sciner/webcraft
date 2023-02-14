@@ -6,6 +6,8 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import { BlockStyleRegInfo } from './default.js';
+
 
 const {mat4} = glMatrix;
 
@@ -26,13 +28,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['pebbles'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['pebbles'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     // computeAABB

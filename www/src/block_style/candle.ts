@@ -1,9 +1,10 @@
 import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
 import {AABB} from '../core/AABB.js';
-import { default as default_style, TX_SIZE } from './default.js';
+import { BlockStyleRegInfo, default as default_style, TX_SIZE } from './default.js';
 import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+
 
 const WIDTH =  4 / TX_SIZE;
 const HEIGHT = 6 / TX_SIZE;
@@ -18,13 +19,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['candle'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['candle'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     // computeAABB

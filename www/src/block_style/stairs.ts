@@ -3,6 +3,8 @@ import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { CubeSym } from "../core/CubeSym.js";
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import { BlockStyleRegInfo } from './default.js';
+
 
 const width = 1;
 const height = .5;
@@ -14,13 +16,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['stairs'],
-            func: style.func,
-            aabb: style.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['stairs'],
+            style.func,
+            style.computeAABB
+        );
     }
 
     static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {

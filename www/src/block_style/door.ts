@@ -3,6 +3,8 @@ import {CubeSym, pushSym} from '../core/CubeSym.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import { BlockStyleRegInfo } from './default.js';
+
 
 const Z_FIGHT_ERROR = 1/200;
 
@@ -12,13 +14,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['door'],
-            aabb: style.computeAABB,
-            func: this.func
-        };
+        return new BlockStyleRegInfo(
+            ['door'],
+            this.func,
+            style.computeAABB
+        );
     }
 
     static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {

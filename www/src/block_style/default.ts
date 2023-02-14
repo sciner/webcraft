@@ -2,19 +2,54 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 
-export const TX_CNT = DEFAULT_TX_CNT;
-export const TX_SIZE = 16;
-
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { Vector } from "../helpers.js";
+import { IndexedColor, Vector } from "../helpers.js";
 import { DEFAULT_TX_CNT } from "../constant.js";
+import type { WorkerWorld } from "../worker/world.js";
+import type { BlockManager, FakeTBlock } from "../blocks.js";
+import type { TBlock } from "../typed_blocks3.js";
+import type { ChunkWorkerChunk } from "../worker/chunk.js";
 
 const {mat4} = glMatrix;
+
+export const TX_CNT = DEFAULT_TX_CNT;
+export const TX_SIZE = 16;
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
+}
+
+export class BlockStyleRegInfo {
+
+    styles: string[]
+    func: Function
+    aabb: Function
+
+    constructor(styles : string[], func : Function, aabb? : Function) {
+        this.styles = styles
+        this.func = func
+        this.aabb = aabb
+    }
+
+}
+
+export class BlockStyle {
+
+    static block_manager : BlockManager
+    
+    static getRegInfo(block_manager : BlockManager) {
+        return this.block_manager
+    }
+
+    static computeAABB(tblock : TBlock, for_physic : boolean, world : WorkerWorld, neighbours : any, expanded: boolean) : AABB[] {
+        return []
+    }
+
+    static func(block : TBlock | FakeTBlock, vertices : Float32Array | float[], chunk : ChunkWorkerChunk, x : int, y : int, z : int, neighbours : any, biome, dirt_color? : IndexedColor, unknown? : any, matrix? : imat4, pivot ? : any, force_tex? : object) : any {
+    }
+
 }
 
 //

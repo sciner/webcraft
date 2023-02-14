@@ -1,8 +1,9 @@
 import { IndexedColor, Vector, DIRECTION } from '../helpers.js';
-import { default as default_style } from './default.js';
+import { BlockStyleRegInfo, default as default_style } from './default.js';
 import { AABB } from '../core/AABB.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+
 
 // Панель
 export default class style {
@@ -10,13 +11,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['pane'],
-            aabb: style.computeAABB,
-            func: this.func
-        };
+        return new BlockStyleRegInfo(
+            ['pane'],
+            this.func,
+            style.computeAABB,
+        );
     }
 
     /**

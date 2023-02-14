@@ -8,6 +8,8 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_ATLAS_SIZE } from '../constant.js';
 import type { BlockManager } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import { BlockStyleRegInfo } from './default.js';
+
 
 const {mat3} = glMatrix;
 
@@ -61,13 +63,13 @@ export default class style {
 
     static block_manager : BlockManager
 
-    static getRegInfo(block_manager : BlockManager) {
+    static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        return {
-            styles: ['redstone'],
-            func: this.func,
-            aabb: this.computeAABB
-        };
+        return new BlockStyleRegInfo(
+            ['redstone'],
+            this.func,
+            this.computeAABB
+        );
     }
 
     // computeAABB
