@@ -10,6 +10,27 @@ import {ChunkLight} from "./light/ChunkLight.js";
 
 let global_uniqId = 0;
 
+export interface IChunkVertexBuffer {
+    list: Array<any>
+    instanceCount?: number
+    resource_pack_id?: string
+    material_group?: string
+    texture_id?: string
+    key?: string
+    material_shader?: string,
+    inputId?: number
+    buffer?: any
+    customFlag?: boolean
+    rpl?: any
+}
+
+// v.resource_pack_id = temp[0];/*
+// v.material_group = temp[1];
+// v.material_shader = temp[2];
+// v.texture_id = temp[3];
+// v.key = key;
+// v.buffer = bufferPool.alloc({*/
+
 // Creates a new chunk
 export class Chunk {
     [key: string]: any;
@@ -205,7 +226,7 @@ export class Chunk {
         return true;
     }
 
-    applyVertices(inputId, bufferPool, argsVertices) {
+    applyVertices(inputId, bufferPool, argsVertices: Dict<IChunkVertexBuffer>) {
         let chunkManager = this.getChunkManager();
         chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length = 0;

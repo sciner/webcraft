@@ -24,8 +24,7 @@ export class TrivialGeometryPool extends GeometryPool {
         super(context);
     }
 
-    alloc({ lastBuffer, vertices,
-              chunkId } = {lastBuffer: null, vertices:null, chunkId:-1}) {
+    alloc({ lastBuffer = null, vertices = null, chunkId = -1 } = {}) {
         if (lastBuffer) {
             lastBuffer.destroy();
         }

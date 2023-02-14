@@ -31,7 +31,7 @@ export class Tracker_Player {
         this.vc.set(pos, jukebox);
 
         jukebox.panner = new PannerNode(sounds.context, {
-            ...Sounds.PANNER_ATTR,
+            //...Sounds.PANNER_ATTR,
 
             rolloffFactor: 0.25,
 

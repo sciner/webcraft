@@ -38,11 +38,7 @@ export class Basic05GeometryPool extends GeometryPool {
         }
     }
 
-    alloc({
-              lastBuffer,
-              vertices,
-              chunkId
-          } = {}) {
+    alloc({lastBuffer = null, vertices = null, chunkId = -1} = {}) {
         const {freePages, pageSize, baseGeometry} = this;
         const sizeQuads = vertices[0];
         const sizePages = Math.ceil(sizeQuads / pageSize);

@@ -16,11 +16,11 @@ import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
 
 // TrackerPlayer
-globalThis.TrackerPlayer = new Tracker_Player();
+(globalThis as any).TrackerPlayer = new Tracker_Player();
 
 // Reset zoom
 // TODO: pixi
-globalThis.UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
+(globalThis as any).UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
 console.debug('zoom', UI_ZOOM)
 console.log('zoom', UI_ZOOM)
 globalThis.UI_FONT = 'Ubuntu';
@@ -122,7 +122,7 @@ export class GameClass {
         let freezeF4Up = false;
         const kb = this.kb = new Kb(el, {
             onPaste: (e) => {
-                const clipboardData = e.clipboardData || window.clipboardData;
+                const clipboardData = e.clipboardData || (window as any).clipboardData;
                 if(clipboardData) {
                     const pastedData = clipboardData.getData('Text');
                     if(pastedData) {

@@ -2,6 +2,7 @@ import { ServerClient } from "./server_client.js";
 import { Lang } from "./lang.js";
 import { TextBox } from "./ui/textbox.js";
 import { Window } from "../tools/gui/wm.js";
+import { KEY } from "./constant.js";
 
 const MESSAGE_SHOW_TIME         = 7000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
