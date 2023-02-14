@@ -1,5 +1,6 @@
 class ChunkWorkerRoot {
     RAF_MS = 20
+    blockManager = null
     Helpers = null
     WorkerWorldManager = null
     BuildingTemplate = null
@@ -68,7 +69,7 @@ class ChunkWorkerRoot {
         });
         // load module
         await import('./blocks.js').then(module => {
-            globalThis.BLOCK = module.BLOCK;
+            (globalThis as any).BLOCK = this.blockManager = module.BLOCK;
             // return BLOCK.init(settings);
         });
 
@@ -81,20 +82,20 @@ class ChunkWorkerRoot {
         }
 
         // legacy
-        if (!globalThis.BLOCK) {
+        if (!this.blockManager) {
             await this.preLoad();
         }
 
-        await globalThis.BLOCK.init(settings);
+        await this.blockManager.init(settings);
         //
-        this.worlds = new this.WorkerWorldManager(globalThis.BLOCK);
+        this.worlds = new this.WorkerWorldManager(this.blockManager);
         await this.worlds.InitTerrainGenerators([generator.id]);
 
         // bulding_schemas
         if (this.bulding_schemas.length > 0) {
             while (this.bulding_schemas.length > 0) {
                 const schema = this.bulding_schemas.shift()
-                this.BuildingTemplate.addSchema(schema, globalThis.BLOCK)
+                this.BuildingTemplate.addSchema(schema, this.blockManager)
             }
         }
 

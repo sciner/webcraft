@@ -1,39 +1,39 @@
 /**
  * light worker sends messages periodically, separating light waves
  */
-let modulesReady = false;
-let Vector: any = null;
-let LightWorkerWorldManager = null;
-let worlds: any = null;
 
-const RAF_MS = 16; //ms per one world update
+class LightWorkerRoot {
+    modulesReady = false;
+    LightWorkerWorldManager = null;
+    worlds = null;
 
-function run() {
-    const now = performance.now();
-    try {
-        worlds.process({maxMs: RAF_MS});
-    } catch (e) {
-        console.error(e);
+    RAF_MS = 16; //ms per one world update
+
+    run = () => {
+        const now = performance.now();
+        try {
+            this.worlds.process({maxMs: this.RAF_MS});
+        } catch (e) {
+            console.error(e);
+        }
+        const passed = Math.ceil(performance.now() - now);
+        setTimeout(this.run, Math.max(0, this.RAF_MS - passed));
     }
-    const passed = Math.ceil(performance.now() - now);
-    setTimeout(run, Math.max(0, RAF_MS - passed));
-}
 
-const msgQueue = [];
+    msgQueue = [];
+    parentPort = null;
 
-const worker = {
-    init: function () {
+    init() {
         if (typeof process !== 'undefined') {
             import('worker_threads').then(module => {
-                this.parentPort = module.parentPort;
-                this.parentPort.on('message', onMessageFunc);
-            });
+            this.parentPort = module.parentPort;
+            this.parentPort.on('message', this.onMessageFunc);
+        });
         } else {
-            onmessage = onMessageFunc
+            onmessage = this.onMessageFunc
         }
-    },
-
-    postMessage: function (message) {
+    }
+    postMessage(message) {
         if (this.parentPort) {
             this.parentPort.postMessage(message);
         } else {
@@ -41,70 +41,68 @@ const worker = {
         }
     }
 
-}
+    async preLoad() {
+        const start = performance.now();
+        await import('./worker-light/LightWorkerWorldManager.js').then(module => {
+            this.LightWorkerWorldManager = module.LightWorkerWorldManager;
+        });
+        this.modulesReady = true;
 
-worker.init();
-
-preLoad().then();
-
-async function preLoad() {
-    const start = performance.now();
-
-    await import("./helpers.js").then(module => {
-        Vector = module.Vector;
-    });
-    await import('./worker-light/LightWorkerWorldManager.js').then(module => {
-        LightWorkerWorldManager = module.LightWorkerWorldManager;
-    });
-    modulesReady = true;
-
-    console.debug('[LightWorker] Preloaded, load time:', performance.now() - start);
-}
-
-async function initWorlds() {
-    if (!modulesReady) {
-        await preLoad();
+        console.debug('[LightWorker] Preloaded, load time:', performance.now() - start);
     }
 
-    worlds = new LightWorkerWorldManager(worker);
-    for (let item of msgQueue) {
-        await onmessage(item);
-    }
-    msgQueue.length = 0;
-    worker.postMessage([0, 'worker_inited', null]);
-
-    setInterval(run, 20);
-}
-
-async function onMessageFunc(e) {
-    let data = e;
-    if (typeof e == 'object' && 'data' in e) {
-        data = e.data;
-    }
-    const world_id = data[0];
-    const cmd = data[1];
-    const args = data[2];
-    if (cmd === 'init') {
-        await initWorlds();
-        return;
-    }
-    if (!worlds) {
-        return msgQueue.push(data);
-    }
-    //do stuff
-    const world = worlds.getOrCreate(world_id);
-
-    switch (cmd) {
-        case 'destructWorld': {
-            worlds.dispose(world_id);
-            break;
+    async initWorlds() {
+        if (!this.modulesReady) {
+            await this.preLoad();
         }
-        case 'initRender': {
-            worlds.setRenderOptions(args);
-            break;
+
+        this.worlds = new this.LightWorkerWorldManager(this);
+        for (let item of this.msgQueue) {
+            await this.onMessageFunc(item);
         }
-        default: {
-            world.onMessage([cmd, args]);
+        this.msgQueue.length = 0;
+        this.postMessage([0, 'worker_inited', null]);
+
+        setInterval(this.run, 20);
+    }
+
+    onMessageFunc = async (e) => {
+        let data = e;
+        if (typeof e == 'object' && 'data' in e) {
+            data = e.data;
+        }
+        const world_id = data[0];
+        const cmd = data[1];
+        const args = data[2];
+        if (cmd === 'init') {
+            await this.initWorlds();
+            return;
+        }
+        const {worlds} = this;
+        if (!worlds) {
+            return this.msgQueue.push(data);
+        }
+        //do stuff
+        const world = worlds.getOrCreate(world_id);
+
+        switch (cmd) {
+            case 'destructWorld': {
+                worlds.dispose(world_id);
+                break;
+            }
+            case 'initRender': {
+                worlds.setRenderOptions(args);
+                break;
+            }
+            default: {
+                world.onMessage([cmd, args]);
+            }
         }
     }
 }
+
+(globalThis as any).QubatchLightWorker = new LightWorkerRoot();
+QubatchLightWorker.init();
+QubatchLightWorker.preLoad().then();
+
+
