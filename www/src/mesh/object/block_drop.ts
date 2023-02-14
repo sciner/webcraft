@@ -2,7 +2,7 @@ import { FakeTBlock } from '../../blocks.js';
 import { Vector, unixTime, Helpers, QUAD_FLAGS } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
-
+import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();

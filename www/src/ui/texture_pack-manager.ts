@@ -8,7 +8,7 @@ export class TexturePackManager {
     }
 
     async init() {
-        const resource_packs = await Resources.loadResourcePacks();
+        const resource_packs = await Resources.loadResourcePacks({});
         this.list = [...resource_packs.variants];
         // Prepend default resource-pack option
         this.list.unshift({"id": "base", "name": "Base"});
@@ -19,7 +19,7 @@ export class TexturePackManager {
     next() {
         let current = this.getCurrent();
         let index = 0;
-        for(let i in this.list) {
+        for(let i = 0; i < this.list.length; i++) {
             let tp = this.list[i];
             if(tp.id == current.id) {
                 index = i;

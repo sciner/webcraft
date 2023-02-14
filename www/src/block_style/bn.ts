@@ -24,7 +24,7 @@ export default class style {
         return [aabb];
     }
     
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
         if(typeof block == 'undefined') {
             return;
         }

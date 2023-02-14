@@ -404,7 +404,7 @@ export class Inventory {
     }
 
     // Refresh
-    refresh() {
+    refresh(resend : boolean) {
         return true;
     }
 

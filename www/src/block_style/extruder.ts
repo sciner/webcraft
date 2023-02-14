@@ -1,5 +1,6 @@
 import type { BlockManager } from '../blocks.js';
 import {IndexedColor, DIRECTION, Vector, QUAD_FLAGS} from '../helpers.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 
 const {mat3, mat4} = glMatrix;
 

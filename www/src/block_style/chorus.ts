@@ -31,7 +31,7 @@ export default class style {
     }
 
     // Build function
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex, only_fluid = false) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
         
         const bm = style.block_manager
 

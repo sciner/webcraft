@@ -1468,12 +1468,6 @@ export class Vector implements IVector {
         return this;
     }
 
-    /**
-     * @param x
-     * @param y
-     * @param z
-     * @returns
-     */
     set(x: Vector | IVector | number[] | number, y: number, z: number) : Vector {
         if (x && typeof x == 'object') {
             return this.copy(x);

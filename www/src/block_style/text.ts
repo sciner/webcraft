@@ -138,7 +138,7 @@ export default class style {
     }
 
     // Build function
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         if(!block.extra_data || !block.extra_data.aabb) {
             return;
