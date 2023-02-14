@@ -198,7 +198,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         if(fill_count > CHUNK_SIZE * .7) {
             let chance = aleaRandom.double();
             if(chance < .25) {
-                const room_pos = new Vector(chunk.size).divScalar(2);
+                const room_pos = new Vector(chunk.size).divScalarSelf(2);
                 let temp_vec_amethyst = new Vector(0, 0, 0);
                 let temp_ar_vec = new Vector();
                 let rad = chance * 4;

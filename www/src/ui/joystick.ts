@@ -105,7 +105,7 @@ export class JoystickController {
         const sensitivity = Math.ceil(screen.width * 0.05);
         if(this.value) {
             const vec = new Vector(this.value.y * -sensitivity, 0, this.value.x * sensitivity);
-            this.player.addRotate(vec.divScalar(MAGIC_ROTATE_DIV));
+            this.player.addRotate(vec.divScalarSelf(MAGIC_ROTATE_DIV));
         }
     }
 

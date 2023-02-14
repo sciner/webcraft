@@ -175,7 +175,7 @@ export class GameClass {
                             add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
                             add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
                         }
-                        player.addRotate(add_mouse_rotate.divScalar(MAGIC_ROTATE_DIV));
+                        player.addRotate(add_mouse_rotate.divScalarSelf(MAGIC_ROTATE_DIV));
                     }
                     return true;
                 } else if (type == MOUSE.WHEEL) {

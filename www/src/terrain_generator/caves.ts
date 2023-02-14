@@ -187,8 +187,8 @@ export class Cave {
             _aabb.addPoint(p_end.x + rad, p_end.y + rad, p_end.z + rad);
 
             // Вычисляем начальный и конечный чанк для крайних блоков капсули отрезка
-            _vec_chunk_start.set(_aabb.x_min, _aabb.y_min, _aabb.z_min).divScalarVec(DIVIDER).flooredSelf();
-            _vec_chunk_end.set(_aabb.x_max, _aabb.y_max, _aabb.z_max).divScalarVec(DIVIDER).flooredSelf();
+            _vec_chunk_start.set(_aabb.x_min, _aabb.y_min, _aabb.z_min).divScalarVecSelf(DIVIDER).flooredSelf();
+            _vec_chunk_end.set(_aabb.x_max, _aabb.y_max, _aabb.z_max).divScalarVecSelf(DIVIDER).flooredSelf();
 
             // Отрезок
             const line = new CaveLine(p_start.clone(), p_end.clone(), rad, _aabb.clone());

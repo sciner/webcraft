@@ -107,7 +107,7 @@ export default class emitter {
             // Change to bone meal particle effect
             // p.life = Math.random() * 6;
             // p.ag = new Vector(0, 0, 0);
-            // p.velocity.divScalar(40);
+            // p.velocity.divScalarSelf(40);
             // p.size = scale;
 
             resp.push(p);

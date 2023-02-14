@@ -330,7 +330,7 @@ export class BBModel_Model {
                                 +keyframe.data_points[i].z,
                             );
                         if(keyframe.channel === 'position') {
-                            dp.divScalar(16);
+                            dp.divScalarSelf(16);
                         } else if (keyframe.channel === 'rotation') {
                             dp.y = -dp.y;
                             //dp.z = -dp.z;

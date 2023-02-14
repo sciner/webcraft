@@ -1501,14 +1501,14 @@ export class Vector implements IVector {
         return this;
     }
 
-    divScalar(scalar: number) : Vector {
+    divScalarSelf(scalar: number) : Vector {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
         return this;
     }
 
-    divScalarVec(vec : IVector) : Vector {
+    divScalarVecSelf(vec : IVector) : Vector {
         this.x /= vec.x;
         this.y /= vec.y;
         this.z /= vec.z;
@@ -1818,7 +1818,7 @@ export function mat4ToRotate(matrix) {
     const _quat = quat.create();
     mat4.getRotation(_quat, matrix);
     getEuler(out, _quat)
-    out.swapXZSelf().divScalar(180).multiplyScalarSelf(Math.PI)
+    out.swapXZSelf().divScalarSelf(180).multiplyScalarSelf(Math.PI)
     return out
 }
 

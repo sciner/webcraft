@@ -168,7 +168,7 @@ export default class style {
         const SCALE_FACTOR      = tex_w / MUL; // Сколько кубов умещается в 1-м
         const TEX_WIDTH_HALF    = tex_w / 2 * MUL;
         matrix                  = mat3.create();
-        let scale               = new Vector(1, 1, tex_w / 32).divScalar(SCALE_FACTOR);
+        let scale               = new Vector(1, 1, tex_w / 32).divScalarSelf(SCALE_FACTOR);
         mat4.scale(matrix, matrix, scale.toArray());
 
         // Size of one texture pixel

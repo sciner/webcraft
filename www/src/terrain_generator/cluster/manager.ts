@@ -33,7 +33,7 @@ export class ClusterManager {
      * Return existing cluster or create new and return
      */
     getForCoord(coord : Vector, map_manager : TerrainMapManager2) : ClusterBase {
-        const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(this.size).flooredSelf()
+        const addr = new Vector(coord.x, coord.y, coord.z).divScalarVecSelf(this.size).flooredSelf()
         let cluster = this.all.get(addr);
         if(cluster) {
             return cluster;

@@ -210,14 +210,14 @@ export default class style {
             mat4.rotateY(matrix, matrix, rot.y);
         }
         if(trans) {
-            trans.divScalar(32);
+            trans.divScalarSelf(32);
         }
 
         for(let k in parts) {
             const part = parts[k];
             const aabb = new AABB();
-            part.origin = new Vector(part.origin).divScalar(32);
-            part.size = new Vector(part.size).divScalar(32);
+            part.origin = new Vector(part.origin).divScalarSelf(32);
+            part.size = new Vector(part.size).divScalarSelf(32);
             aabb.set(
                 pos.x - part.size.x / 2,
                 pos.y,

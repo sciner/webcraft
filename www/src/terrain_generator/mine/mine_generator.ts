@@ -62,7 +62,7 @@ export class MineGenerator {
 
     // getForCoord
     static getForCoord(generator, coord : IVector) {
-        const addr = new Vector(coord.x, 0, coord.z).divScalarVec(MINE_SIZE).flooredSelf();
+        const addr = new Vector(coord.x, 0, coord.z).divScalarVecSelf(MINE_SIZE).flooredSelf();
         let mine = MineGenerator.all.get(addr);
         if(mine) {
             return mine;

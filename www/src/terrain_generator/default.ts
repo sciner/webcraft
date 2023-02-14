@@ -5,6 +5,7 @@ import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 import { WorldAction } from "../world_action.js";
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
+import type { TerrainMapCell } from "./terrain_map.js";
 
 export {alea, noise};
 
@@ -31,8 +32,7 @@ export class Default_Terrain_Map {
     /**
      * Return map cell
      */
-    getCell(x : int, z : int) {
-        debugger
+    getCell(x : int, z : int) : TerrainMapCell {
         return this.cells[z * CHUNK_SIZE_X + x]
     }
 

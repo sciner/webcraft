@@ -1,5 +1,3 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
@@ -11,15 +9,11 @@ import type { TBlock } from "../typed_blocks3.js";
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
 
 const {mat4} = glMatrix;
+const _aabb = new AABB()
+const _pivot = new Vector(0, 0, 0)
 
 export const TX_CNT = DEFAULT_TX_CNT;
 export const TX_SIZE = 16;
-
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
 
 export class BlockStyleRegInfo {
 
@@ -53,8 +47,7 @@ export class BlockStyle {
 }
 
 //
-export default class style {
-    [key: string]: any;
+export default class {
 
     //
     static pushPlane(vertices, plane) {
@@ -135,7 +128,7 @@ export default class style {
         // const aabb = new AABB();
         let aabb = part.aabb;
         if(!aabb) {
-            aabb = part.aabb = new AABB();
+            aabb = part.aabb = _aabb;
         }
         aabb.set(
             part.pos.x + .5,
@@ -205,7 +198,7 @@ export default class style {
         }
 
         if(pivot) {
-            pivot = new Vector(pivot).divScalar(TX_SIZE);
+            pivot = _pivot.copyFrom(pivot).divScalarSelf(TX_SIZE);
         }
 
         // Push vertices

@@ -21,7 +21,7 @@ export class ClusterPyramid extends ClusterBase {
                 this.mask[z * this.size.x + x] = point;
             };
             const rad = 32;
-            const center = this.size.clone().divScalar(2);
+            const center = this.size.clone().divScalarSelf(2);
             const p = new Vector(0, 0, 0);
             center.y = 0;
             for(let x = 0; x < this.size.x; x++) {
