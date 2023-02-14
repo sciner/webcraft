@@ -3823,9 +3823,14 @@ export class ShiftedMatrix {
             tmpArray[ind] = 1
         }
 
-        function spread(row0, col0, v0) {
-            let minRow = Math.max(row0 - ShiftedMatrix._MAX_SHIFT, 0)
-            let maxRow = Math.min(row0 + ShiftedMatrix._MAX_SHIFT, rowsM1)
+        function spread(row0, col0, ind, v0) {
+            // don't spread to the side that already has smaller values
+            const minRow = row0 > 0 && arr[ind - cols] >= v0
+                ? Math.max(row0 - ShiftedMatrix._MAX_SHIFT, 0)
+                : row0
+            const maxRow = row0 < rowsM1 && arr[ind + cols] >= v0
+                ? Math.min(row0 + ShiftedMatrix._MAX_SHIFT, rowsM1)
+                : row0
             for(let row = minRow; row <= maxRow; row++) {
                 const ind0 = row * cols
                 let byRow = ShiftedMatrix._SHIFTS_BY_DELTA_ROW[row - row0 + ShiftedMatrix._MAX_SHIFT]
@@ -3872,7 +3877,7 @@ export class ShiftedMatrix {
                     col          && arr[ind - 1] ||
                     col < colsM1 && arr[ind + 1]
                 if (hasNonZeroNeigbours) {
-                    spread(row, col, v)
+                    spread(row, col, ind, v)
                 }
             }
         }
@@ -3881,7 +3886,7 @@ export class ShiftedMatrix {
             const row = queue.shift()
             const col = queue.shift()
             const ind = row * cols + col
-            spread(row, col, arr[ind])
+            spread(row, col, ind, arr[ind])
             if (row > 0 && !tmpArray[ind - cols]) {
                 add(row - 1, col, ind - cols)
             }
