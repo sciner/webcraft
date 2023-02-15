@@ -245,10 +245,11 @@ export class Building {
 
                         // if it's solid, draw the biome cap on top of it
                         const bm = cluster.clusterManager.world.block_manager
-                        if (cy + 1 < aabbInChunk.y_max && bm.isSolidID(clusterBlockId)) {
+                        cy++
+                        if (cy < aabbInChunk.y_max && bm.isSolidID(clusterBlockId)) {
                             const capBlockId = cell.getCapBlockId && cell.getCapBlockId()
-                            if (capBlockId) {
-                                chunk.setBlockIndirect(cx, cy + 1, cz, capBlockId)
+                            if (capBlockId && !isFluidId(chunk.getBlockID(cx, cy, cz))) {
+                                chunk.setBlockIndirect(cx, cy, cz, capBlockId)
                             }
                         }
                         */

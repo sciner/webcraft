@@ -386,7 +386,8 @@ export class ChunkWorkerChunk {
             if (!block_id) {
                 return
             }
-            if(BLOCK.isSolidID(uint16View[index])) {
+            const exId = uint16View[index]
+            if(BLOCK.isSolidID(exId) || isFluidId(exId)) {
                 return
             }
         } else {
