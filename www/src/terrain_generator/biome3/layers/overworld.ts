@@ -164,16 +164,10 @@ export default class Biome3LayerOverworld {
     }
 
     /**
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param {*} seed
-     * @param {*} rnd
      */
-    generateChunkData(chunk, seed, rnd) {
+    generateChunkData(chunk : ChunkWorkerChunk, seed, rnd) {
 
-        /**
-         * @type {TerrainMap2}
-         */
-        const map                       = chunk.map;
+        const map                       = chunk.map as TerrainMap2;
         const xyz                       = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);

@@ -10,7 +10,6 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
     [key: string]: any;
 
     constructor(world : WorkerWorld, seed : string, world_id : string, options) {
-        debugger
         super(seed, world_id, options);
         this.s = seed;
         this.aleaRandom = new alea(seed);

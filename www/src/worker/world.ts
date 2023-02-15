@@ -303,7 +303,7 @@ class BuildVerticesResult {
     vertices:       any
     gravity_blocks: any[]
     fluid_blocks:   any[]
-    timers:         PerformanceTimer
+    timers:         object
     tm:             float
     map:            TerrainMap2
     dirt_colors:    Float32Array
@@ -314,7 +314,7 @@ class BuildVerticesResult {
         this.vertices       = vertices
         this.gravity_blocks = gravity_blocks
         this.fluid_blocks   = fluid_blocks
-        this.timers         = timers
+        this.timers         = Object.fromEntries(timers.result.entries())
         this.tm             = tm
     }
 }

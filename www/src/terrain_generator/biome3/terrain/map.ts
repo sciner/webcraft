@@ -4,39 +4,24 @@ import { Helpers, Vector } from "../../../helpers.js";
 import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_AIR_THRESHOLD } from "./manager.js";
 import { TerrainMap } from "../../terrain_map.js";
 import { BIOME3_CAVE_LAYERS, CaveGenerator } from "../cave_generator.js";
-import { TerrainMapCell } from "./map_cell.js";
+import type { TerrainMapCell } from "./map_cell.js";
 import { DensityParams } from "./manager_vars.js";
+import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
+import type { ClusterBase } from "../../cluster/base.js";
 
 export class TerrainMap2 extends TerrainMap {
     [key: string]: any;
 
-    /**
-     * @type { import("../aquifera.js").Aquifera }
-     */
-    // aquifera
+    // aquifera : Aquifera
+    caves : CaveGenerator
 
-    /**
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     */
-    constructor(chunk, options, noise2d) {
+    constructor(chunk : ChunkWorkerChunk, options, noise2d) {
         super(chunk, options);
         this._tree_neighbours = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
         this.caves = new CaveGenerator(chunk.coord, noise2d, BIOME3_CAVE_LAYERS);
     }
 
-    /**
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param { import("../../cluster/base.js").ClusterBase } cluster
-     * @param {*} aleaRandom 
-     * @param {float} rnd 
-     * @param {int} x 
-     * @param {int} y 
-     * @param {int} z 
-     * @param {*} biome 
-     * 
-     * @returns {boolean}
-     */
-    addTree(chunk, cluster, aleaRandom, rnd, x, y, z, biome) {
+    addTree(chunk : ChunkWorkerChunk, cluster : ClusterBase, aleaRandom, rnd : float, x : int, y : int, z : int, biome : any) : boolean{
 
         const index = z * CHUNK_SIZE_X + x;
 
@@ -152,12 +137,8 @@ export class TerrainMap2 extends TerrainMap {
 
     /**
      * Return map cell
-     * @param {int} x 
-     * @param {int} z
-     * 
-     * @returns {TerrainMapCell}
      */
-    getCell(x, z) {
+    getCell(x : int, z : int) : TerrainMapCell{
         return this.cells[z * CHUNK_SIZE_X + x]
     }
 

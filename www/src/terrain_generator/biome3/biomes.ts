@@ -527,7 +527,9 @@ export class Biomes {
         z = Math.max(Math.min(z, this.scale - 1), 0)
 
         const resp = this.biomes_palette[z * this.scale + x]
-        if(!resp) debugger
+        if(!resp) {
+            throw 'error_empty_biome'
+        }
         return resp;
     }
 

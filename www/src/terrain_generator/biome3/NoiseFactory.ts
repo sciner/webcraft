@@ -1,6 +1,7 @@
 import { alea } from "../default.js";
 import { createNoise3DOpt } from './optimizedNoise.js';
 import { Vector } from "../../helpers.js";
+import type { DensityParams } from "./terrain/manager_vars.js";
 
 const oneVector = new Vector(1, 1, 1);
 
@@ -76,11 +77,11 @@ export class Noise3d {
         return result[ind];
     }
 
-    fetchGlobal4(vec, out) {
+    fetchGlobal4(vec : Vector, out : DensityParams) {
         const {cx, cy, cz, shiftCoord, cgen, result} = this;
         const ind = cx * vec.x + cy * vec.y + cz * vec.z + shiftCoord;
         if(ind < 0 || ind >= cgen) {
-            debugger
+            throw 'error_invalid_noise_inde'
         }
         out.d1 = result[ind];
         out.d2 = result[ind + cgen];

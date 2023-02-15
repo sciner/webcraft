@@ -38,6 +38,9 @@ export class ChunkManager {
      */
     static instance;
 
+    chunks: VectorCollectorFlat = new VectorCollectorFlat()
+    chunks_prepare: VectorCollector = new VectorCollector()
+
     #world;
 
     /**
@@ -48,8 +51,6 @@ export class ChunkManager {
         ChunkManager.instance = this;
 
         this.#world                     = world;
-        this.chunks                     = new VectorCollectorFlat();
-        this.chunks_prepare             = new VectorCollector();
         this.block_sets                 = 0;
         this.draw_debug_grid            = world.settings.chunks_draw_debug_grid;
         this.cluster_draw_debug_grid    = world.settings.cluster_draw_debug_grid;
@@ -207,9 +208,9 @@ export class ChunkManager {
                 case 'vertices_generated': {
                     for(let i = 0; i < args.length; i++) {
                         const result = args[i];
-                        let chunk = that.chunks.get(result.addr);
+                        const chunk = that.chunks.get(result.addr) as Chunk
                         if(chunk) {
-                            chunk.onVerticesGenerated(result);
+                            chunk.onVerticesGenerated(result)
                         }
                     }
                     // console.log(`got chunks count=${args.length}`);

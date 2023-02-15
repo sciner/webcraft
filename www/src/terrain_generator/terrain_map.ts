@@ -243,7 +243,7 @@ export class TerrainMapManager {
         // Result map
         const map = new TerrainMap(chunk, GENERATOR_OPTIONS);
         if(!real_chunk.chunkManager) {
-            debugger
+            throw 'error_no_chunk_manager'
         }
         const cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
         for(let x = 0; x < chunk.size.x; x++) {

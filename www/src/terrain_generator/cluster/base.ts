@@ -151,7 +151,6 @@ export class ClusterBase {
                 const index = z * this.size.x + x;
                 const value = this.mask[index];
                 if(value && (Array.isArray(value.block_id) || value.block_id > 0)) {
-                    if(value == 69) debugger
                     const new_x = x + move_x;
                     const new_z = z + move_z;
                     const new_index = new_z * this.size.x + new_x;

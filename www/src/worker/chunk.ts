@@ -81,6 +81,8 @@ export class ChunkWorkerChunkManager {
 export class ChunkWorkerChunk {
     [key: string]: any;
 
+    timers : PerformanceTimer = new PerformanceTimer()
+
     constructor(chunkManager : ChunkWorkerChunkManager, args) {
         this.chunkManager   = chunkManager;
         Object.assign(this, args);
@@ -122,8 +124,6 @@ export class ChunkWorkerChunk {
         this.dirty              = true;
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
-        //
-        this.timers             = new PerformanceTimer()
         // 1. Initialise world array
         this.timers.start('init')
         this.tblocks = newTypedBlocks(this.coord, this.size);

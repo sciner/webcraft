@@ -317,15 +317,8 @@ export class TerrainMapManager2 {
 
     /**
      * Calculate totsl density in block and return all variables
-     * 
-     * @param {Vector} xyz
-     * @param {*} cell
-     * @param {?DensityParams} out_density_params
-     * @param {TerrainMap2} map
-     * 
-     * @returns {DensityParams}
      */
-    calcDensity(xyz, cell, out_density_params = null, map) {
+    calcDensity(xyz : Vector, cell, out_density_params : DensityParams | null, map : TerrainMap2) : DensityParams {
 
         const {relief, mid_level, dist_percent, op, density_coeff} = cell.preset;
 
@@ -539,7 +532,7 @@ export class TerrainMapManager2 {
         }
 
         if(!real_chunk.chunkManager) {
-            debugger
+            throw 'error_no_chunk_manager'
         }
 
         const value = 85;
