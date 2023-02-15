@@ -3,6 +3,7 @@ import { importAssertionsPlugin } from 'rollup-plugin-import-assert';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 import terser from "@rollup/plugin-terser"
+import typescript from "@rollup/plugin-typescript"
 
 export default [{
     input: './chunk_worker_bundle.js',
@@ -82,6 +83,10 @@ export default [{
         format: 'cjs',
     },
     plugins: [
+        // typescript({
+        //     "tsconfig": "../www/tsconfig.json",
+        //     "rootDir": "../www/src"
+        // }),
         importAssertionsPlugin(),
         dynamicImportVars({
             warnOnError: false

@@ -67,7 +67,7 @@ class FakeWorld {
         const { _pos, _localPos } = this;
         tblock = tblock || this.tblock
         _pos.copyFrom(pos).flooredSelf();
-        const chunk = this.world.chunkManager.getChunk(getChunkAddr(_pos, this.chunkAddr));
+        const chunk = this.world.chunkManager.getChunk(Vector.toChunkAddr(_pos, this.chunkAddr));
         if (!chunk) {
             return new FakeBlock(null, -1, 0, shapesEmpty);
         }

@@ -15,7 +15,7 @@ export class PrismarineServerFakeChunkManager {
     }
     getBlock(x, y, z) {
         let pos = new Vector(x, y, z).floored();
-        this.chunk_addr = getChunkAddr(pos, this.chunk_addr);
+        this.chunk_addr = Vector.toChunkAddr(pos, this.chunk_addr);
         let chunk = this.getChunk(this.chunk_addr);
         if (chunk) {
             return chunk.getBlock(pos);

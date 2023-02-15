@@ -136,7 +136,7 @@ export class Mob {
         this.dirtyFlags     = existsInDB ? 0 : Mob.DIRTY_FLAG_NEW;
         // Private properties
         this.#chunk_addr    = new Vector();
-        this.chunk_addr_o   = getChunkAddr(this.pos);
+        this.chunk_addr_o   = Vector.toChunkAddr(this.pos);
         this.#forward       = new Vector(0, 1, 0);
         this.#brain         = world.brains.get(this.type, this);
         this.width          = this.#brain.pc.physics.playerHalfWidth * 2;
@@ -170,7 +170,7 @@ export class Mob {
      * @returns {Vector}
      */
     get chunk_addr() {
-        return getChunkAddr(this.pos, this.#chunk_addr);
+        return Vector.toChunkAddr(this.pos, this.#chunk_addr);
     }
 
     /**

@@ -138,7 +138,7 @@ export class DBWorldChunk {
      */
     async bulkInsertWorldModify(rows, dt = unixTime(), user_id = null) {
         const jsonRows = rows.map(row => {
-            const chunk_addr = row.chunk_addr ?? getChunkAddr(row.pos, tmpAddr);
+            const chunk_addr = row.chunk_addr ?? Vector.toChunkAddr(row.pos, tmpAddr);
             const index = tmpVector.copyFrom(row.pos).getFlatIndexInChunk();
             return [
                 row.user_id ?? user_id,

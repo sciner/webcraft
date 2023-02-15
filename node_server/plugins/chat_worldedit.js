@@ -281,7 +281,7 @@ export default class WorldEdit {
                         quboid.pos1.y + y * quboid.signy,
                         quboid.pos1.z + z * quboid.signz
                     );
-                    chunk_addr = getChunkAddr(bpos, chunk_addr);
+                    chunk_addr = Vector.toChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
                         chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                         chunk = world.chunks.get(chunk_addr);
@@ -434,7 +434,7 @@ export default class WorldEdit {
         // blocks
         for(const [bpos, item] of data.blocks.entries()) {
             const pos = player_pos.add(bpos)
-            chunk_addr = getChunkAddr(pos, chunk_addr)
+            chunk_addr = Vector.toChunkAddr(pos, chunk_addr)
             actions = getChunkActions(chunk_addr)
             actions.addBlock({pos, item, action_id})
             affected_count++
@@ -504,7 +504,7 @@ export default class WorldEdit {
                         qi.pos1.y + y * qi.signy,
                         qi.pos1.z + z * qi.signz
                     );
-                    chunk_addr = getChunkAddr(bpos, chunk_addr);
+                    chunk_addr = Vector.toChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
                         chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                         chunk = chat.world.chunks.get(chunk_addr);

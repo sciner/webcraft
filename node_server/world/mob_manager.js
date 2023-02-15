@@ -115,7 +115,7 @@ export class WorldMobManager {
      */
     create(params) {
         const world = this.world;
-        const chunk_addr = getChunkAddr(params.pos);
+        const chunk_addr = Vector.toChunkAddr(params.pos);
         const chunk = world.chunks.get(chunk_addr);
         if(chunk) {
             try {
@@ -167,7 +167,7 @@ export class WorldMobManager {
     async activate(entity_id, spawn_pos, rotate) {
         const world = this.world;
         //
-        const chunk = world.chunkManager.get(getChunkAddr(spawn_pos));
+        const chunk = world.chunkManager.get(Vector.toChunkAddr(spawn_pos));
         if(!chunk) {
             console.error('error_chunk_not_loaded');
             return false;

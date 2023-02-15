@@ -166,7 +166,7 @@ function fillBiomes(chunk_addr, seed) {
     const DIST_NOISE_OCT1       = 1024 / scale
     const DIST_NOISE_OCT2       = 96 / scale
     //
-    const cluster_addr          = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z).divScalar(CLUSTER_SIZE).flooredSelf();
+    const cluster_addr          = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z).divScalarSelf(CLUSTER_SIZE).flooredSelf();
 
     // create points
     let points = [];

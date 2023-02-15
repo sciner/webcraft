@@ -178,7 +178,7 @@ export class ServerPlayerVision {
         const {player} = this;
         let list = [];
         const pos = posOptioanl || player.state.pos;
-        const chunk_addr = getChunkAddr(pos);
+        const chunk_addr = Vector.toChunkAddr(pos);
         chunk_render_dist = chunk_render_dist || player.safeTeleportMargin;
         const margin            = Math.max(chunk_render_dist + 1, 1);
         const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, player.safeTeleportMarginY, margin));
@@ -298,7 +298,7 @@ export class ServerPlayerVision {
 
     preTick(force) {
         const {player} = this;
-        player.chunk_addr = getChunkAddr(player.state.pos);
+        player.chunk_addr = Vector.toChunkAddr(player.state.pos);
         if (force || !player.chunk_addr.equal(this.spiralCenter)) {
             //TODO: do this even rarely!
             this.genSpiral();

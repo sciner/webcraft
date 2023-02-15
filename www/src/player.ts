@@ -1,0 +1,1173 @@
+import {Helpers, getChunkAddr, Vector} from "./helpers.js";
+import {ServerClient} from "./server_client.js";
+import {PickAt} from "./pickat.js";
+import {Instrument_Hand} from "./instrument/hand.js";
+import {BLOCK} from "./blocks.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE} from "./constant.js";
+import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
+import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
+import {PlayerInventory} from "./player_inventory.js";
+import { PlayerWindowManager } from "./player_window_manager.js";
+import {Chat} from "./chat.js";
+import {GameMode, GAME_MODE} from "./game_mode.js";
+import {doBlockAction, WorldAction} from "./world_action.js";
+import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
+import { compressPlayerStateC } from "./packet_compressor.js";
+import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
+import { Effect } from "./block_type/effect.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
+import { PlayerArm } from "./player_arm.js";
+
+const MAX_UNDAMAGED_HEIGHT              = 3;
+const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
+const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
+const SNEAK_HEIGHT                      = .78; // in percent
+const SNEAK_CHANGE_PERIOD               = 150; // in msec
+const MOVING_MIN_BLOCKS_PER_SECOND      = 0.1; // the minimum actual speed at which moving animation is played
+
+const ATTACK_PROCESS_NONE = 0;
+const ATTACK_PROCESS_ONGOING = 1;
+const ATTACK_PROCESS_FINISHED = 2;
+
+// Creates a new local player manager.
+export class Player {
+    [key: string]: any;
+
+    #forward = new Vector(0, 0, 0);
+
+    /**
+     * @param {*} options
+     * @param { import("./render.js").Renderer } render
+     */
+    constructor(options, render) {
+        this.render = render
+        this.inMiningProcess = false;
+        this.inItemUseProcess = false;
+        this.inAttackProcess = ATTACK_PROCESS_NONE;
+        this.options = options;
+        this.scale = PLAYER_ZOOM;
+        this.current_state = {
+            rotate:             new Vector(),
+            pos:                new Vector(),
+            sneak:              false,
+            ping:               0
+        };
+        this.effects = {effects:[]}
+        this.status = PLAYER_STATUS_WAITING_DATA;
+
+        this.headBlock = null;
+    }
+
+    // возвращает уровень эффекта
+    getEffectLevel(val) {
+        for (const effect of this.effects.effects) {
+            if (effect.id == val) {
+                return effect.level;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * @param { import("./world.js").World } world
+     * @param {*} cb
+     */
+    JoinToWorld(world, cb) {
+        this.world = world;
+        //
+        this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
+            cb(this.playerConnectedToWorld(cmd.data), cmd);
+        });
+        //
+        this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
+    }
+
+    // playerConnectedToWorld...
+    playerConnectedToWorld(data) {
+        //
+        this.session                = data.session;
+        this.state                  = data.state;
+        this.status                 = data.status;
+        this.indicators             = data.state.indicators;
+        // Game mode
+        this.game_mode              = new GameMode(this, data.state.game_mode);
+        this.game_mode.onSelect     = (mode) => {
+            if(!mode.can_fly) {
+                this.lastBlockPos = this.getBlockPos().clone();
+                this.setFlying(false);
+            } else if(mode.id == GAME_MODE.SPECTATOR) {
+                this.setFlying(true);
+            }
+        };
+        this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
+        // Position
+        this._height                = PLAYER_HEIGHT;
+        this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
+        this.prevPos                = new Vector(this.pos);
+        this.lerpPos                = new Vector(this.pos);
+        this.posO                   = new Vector(0, 0, 0);
+        this._block_pos             = new Vector(0, 0, 0);
+        this._eye_pos               = new Vector(0, 0, 0);
+        this.#forward               = new Vector(0, 0, 0);
+        this.blockPos               = this.getBlockPos().clone();
+        this.blockPosO              = this.blockPos.clone();
+        this.chunkAddr              = Vector.toChunkAddr(this.pos);
+        // Rotate
+        this.rotate                 = new Vector(0, 0, 0);
+        this.rotateDegree           = new Vector(0, 0, 0);
+        this.setRotate(data.state.rotate);
+        this.xBob                   = this.getXRot();
+        this.yBob                   = this.getYRot();
+        // State
+        this.falling                = false; // падает
+        this.running                = false; // бежит
+        this.moving                 = false; // двигается в стороны
+        this.walking                = false; // идёт по земле
+        this.in_water               = false; // ноги в воде
+        this.in_water_o             = false;
+        this.eyes_in_block          = null; // глаза в воде
+        this.eyes_in_block_o        = null; // глаза в воде (предыдущее значение)
+        this.onGround               = false;
+        this.onGroundO              = false;
+        this.walking_frame          = 0;
+        this.zoom                   = false;
+        this.walkDist               = 0;
+        this.swimingDist            = 0;
+        this.walkDistO              = 0;
+        this.bob                    = 0;
+        this.oBob                   = 0;
+        this.step_count             = 0;
+        this._prevActionTime        = performance.now();
+        this.body_rotate            = 0;
+        this.body_rotate_o          = 0;
+        this.body_rotate_speed      = BODY_ROTATE_SPEED;
+        this.mineTime               = 0;
+        //
+        this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
+        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
+        this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
+        this.chat                   = new Chat(this);
+        this.controls               = new PlayerControl(this.options);
+        this.windows                = new PlayerWindowManager(this);
+        if (this.status === PLAYER_STATUS_DEAD) {
+            this.setDie();
+        }
+        // Add listeners for server commands
+        this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
+        this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_WAITING_DATA], (cmd) => {
+            this.status = PLAYER_STATUS_WAITING_DATA;
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_ALIVE], (cmd) => {
+            this.status = PLAYER_STATUS_ALIVE;
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
+        this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
+        this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
+            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos,
+                false, false, cmd.data.maxDist || DEFAULT_SOUND_MAX_DIST);
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
+            this.state.lies = false;
+            this.state.sitting = false;
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
+            let pc_previous = this.getPlayerControl();
+            this.game_mode.applyMode(cmd.data.id, true);
+            let pc_current = this.getPlayerControl();
+            //
+            pc_current.player.entity.velocity   = new Vector(0, 0, 0);
+            pc_current.player_state.vel         = new Vector(0, 0, 0);
+            //
+            let pos                             = new Vector(pc_previous.player.entity.position);
+            pc_current.player.entity.position   = new Vector(pos);
+            pc_current.player_state.pos         = new Vector(pos);
+            this.lerpPos                        = new Vector(pos);
+            this.pos                            = new Vector(pos);
+            this.posO                           = new Vector(pos);
+            this.prevPos                        = new Vector(pos);
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
+            if (this.indicators.live.value > cmd.data.indicators.live.value) {
+                Qubatch.hotbar.last_damage_time = performance.now();
+            }
+            this.indicators = cmd.data.indicators;
+            this.inventory.hud.refresh();
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_EFFECTS_STATE], (cmd) => {
+            this.effects.effects = cmd.data.effects;
+            this.inventory.hud.refresh();
+        });
+        // pickAt
+        this.pickAt = new PickAt(this.world, this.render, async (arg1, arg2, arg3) => {
+            return await this.onPickAtTarget(arg1, arg2, arg3);
+        }, async (e) => {
+            if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
+                this.inAttackProcess = ATTACK_PROCESS_ONGOING;
+                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
+            }
+            if (e.interactPlayerID) {
+                const player = Qubatch.world.players.get(e.interactPlayerID);
+                if (player) {
+                    player.punch(e);
+                }
+            }
+            if (e.interactMobID) {
+                const mob = Qubatch.world.mobs.get(e.interactMobID);
+                if (mob) {
+                    mob.punch(e);
+                }
+            }
+            if (e.interactMobID || e.interactPlayerID) {
+                this.world.server.Send({
+                    name: ServerClient.CMD_PICKAT_ACTION,
+                    data: e
+                });
+            }
+        }, (bPos) => {
+            // onInteractFluid
+            const e = this.pickAt.damage_block.event;
+            const hand_current_item = this.inventory.current_item;
+            if(e && e.createBlock && hand_current_item) {
+                const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
+                if(hand_item_mat && hand_item_mat.tags.includes('set_on_water')) {
+                    if(e.number++ == 0) {
+                        e.pos = bPos;
+                        const e_orig = JSON.parse(JSON.stringify(e));
+                        e_orig.actions = new WorldAction(randomUUID());
+                        // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                        this.world.server.Send({
+                            name: ServerClient.CMD_PICKAT_ACTION,
+                            data: e_orig
+                        });
+                    }
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        //setInterval(() => {
+        //    const pos = Qubatch.player.lerpPos.clone();
+        //    pos.set(24.5, 4.5, 24.5);
+        //    this.render.destroyBlock({id: 202}, pos, false);
+        //}, 10);
+
+        this.arm = new PlayerArm(this, this.render)
+
+        return true;
+    }
+
+    getOverChunk() {
+        var overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
+
+        // legacy code, maybe not needed anymore:
+        if (!overChunk) {
+            // some kind of race F8+R
+            const blockPos = this.getBlockPos();
+            this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
+            overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
+        }
+
+        return overChunk;
+    }
+
+    get isAlive() {
+        return this.indicators.live.value > 0;
+    }
+
+    // Return player is sneak
+    get isSneak() {
+        // Get current player control
+        const pc = this.getPlayerControl();
+        if(pc instanceof PrismarinePlayerControl) {
+            if(pc.player_state.control.sneak && pc.player_state.onGround) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Return player height
+    get height() {
+        const sneak = this.isSneak;
+        const target_height = PLAYER_HEIGHT * (sneak ? SNEAK_HEIGHT : 1);
+        // If sneak changed
+        if(this.sneak !== sneak) {
+            this.sneak = sneak;
+            this.pn_start_change_sneak = performance.now();
+            this._sneak_period = Math.abs(target_height - this._height) / (PLAYER_HEIGHT - PLAYER_HEIGHT * SNEAK_HEIGHT);
+            if(this._sneak_period == 0) {
+                this._height = target_height
+            } else {
+                this._height_diff = target_height - this._height;
+                this._height_before_change = this._height;
+            }
+        }
+        //
+        if(this._height != target_height) {
+            const elapsed = performance.now() - this.pn_start_change_sneak;
+            if(elapsed < SNEAK_CHANGE_PERIOD * this._sneak_period) {
+                // Interpolate between current and target heights
+                const percent = elapsed / (SNEAK_CHANGE_PERIOD * this._sneak_period);
+                this._height = this._height_before_change + (this._height_diff * percent);
+            } else {
+                this._height = target_height;
+            }
+        }
+        return this._height;
+    }
+
+    //
+    addRotate(vec3) {
+        this.setRotate(
+            this.rotate.addSelf(vec3)
+        );
+    }
+
+    // setRotate
+    // @var vec3 (0 ... PI)
+    setRotate(vec3) {
+        this.rotate.set(vec3.x, vec3.y, vec3.z);
+        if(this.rotate.z < 0) {
+            this.rotate.z = (Math.PI * 2) + this.rotate.z;
+        }
+        this.rotate.x = Helpers.clamp(this.rotate.x, -Math.PI / 2, Math.PI / 2);
+        this.rotate.z = this.rotate.z % (Math.PI * 2);
+        // Rad to degree
+        this.rotateDegree.set(
+            (this.rotate.x / Math.PI) * 180,
+            (this.rotate.y - Math.PI) * 180 % 360,
+            (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360
+        );
+    }
+
+    // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
+    onStep(args) {
+        this.steps_count++;
+        if(this.isSneak) {
+            return;
+        }
+        const world = this.world;
+        const player = this;
+        if(!player || (!args.force && (player.in_water || !player.walking || !player.controls.enabled))) {
+            return;
+        }
+        const f = this.walkDist - this.walkDistO;
+        if(f > 0 || args.force) {
+            const pos = player.pos;
+            const world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
+            const can_play_sound = world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1);
+            if(can_play_sound) {
+                const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
+                if(!block_over || !(block_over.fluid > 0)) {
+                    const default_sound   = 'madcraft:block.stone';
+                    const action          = 'step';
+                    let sound             = world_block.getSound();
+                    const sound_list      = Qubatch.sounds.getList(sound, action) ?? Qubatch.sounds.getList(sound, 'hit');
+                    if(!sound_list) {
+                        sound = default_sound;
+                    }
+                    Qubatch.sounds.play(sound, action);
+                    if(player.running) {
+                        // play destroy particles
+                        this.render.destroyBlock(world_block.material, player.pos, true, this.scale, this.scale);
+                    }
+                }
+            }
+        }
+    }
+
+    //
+    onScroll(down) {
+        if(down) {
+            this.inventory.next();
+        } else {
+            this.inventory.prev();
+        }
+    }
+
+    // Stop all player activity
+    stopAllActivity() {
+        // clear all keyboard inputs
+        Qubatch.kb.clearStates();
+        // stop player movement states
+        this.controls.reset();
+        // reset mouse actions
+        this.resetMouseActivity();
+    }
+
+    // Stop all mouse actions, eating, mining, punching, etc...
+    resetMouseActivity() {
+        this.inMiningProcess = false;
+        this.inItemUseProcess = false;
+        this.inAttackProcess = ATTACK_PROCESS_NONE;
+        if(this.pickAt) {
+            this.pickAt.resetProgress();
+        }
+        this.stopItemUse();
+    }
+
+    // Hook for mouse input
+    onMouseEvent(e) {
+        const {type, button_id, shiftKey} = e;
+        if(button_id == MOUSE.BUTTON_RIGHT) {
+            if(type == MOUSE.DOWN) {
+                const cur_mat_id = this.inventory.current_item?.id;
+                if(cur_mat_id) {
+                    const cur_mat = BLOCK.fromId(cur_mat_id);
+                    const target_mat = this.pickAt.getTargetBlock(this)?.material;
+                    const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style_name == 'planting') ? true : false;
+                    const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
+                    const is_cauldron  = (target_mat && target_mat.id == BLOCK.CAULDRON.id);
+                    if(!is_cauldron && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
+                        return false;
+                    }
+                }
+            } else {
+                this.stopItemUse();
+            }
+        }
+        if(type == MOUSE.DOWN) {
+            this.pickAt.setEvent(this, {button_id, shiftKey});
+            if(e.button_id == MOUSE.BUTTON_LEFT) {
+                this.startArmSwingProgress();
+            }
+        } else if (type == MOUSE.UP) {
+            this.resetMouseActivity();
+        }
+    }
+
+    standUp() {
+        if(this.state.sitting || this.state.lies) {
+            this.world.server.Send({
+                name: ServerClient.CMD_STANDUP_STRAIGHT,
+                data: null
+            });
+        }
+    }
+
+    get forward() {
+        return this.#forward.set(
+            Math.cos(this.rotate.x) * Math.sin(this.rotate.z),
+            Math.sin(this.rotate.x),
+            Math.cos(this.rotate.x) * Math.cos(this.rotate.z),
+        );
+    }
+
+    // onPickAtTarget
+    async onPickAtTarget(e, times, number) {
+
+        this.inMiningProcess = true;
+        this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
+
+        let bPos = e.pos;
+        // create block
+        if(e.createBlock) {
+            if(e.number > 1 && times < .02) {
+                return false;
+            }
+        // clone block
+        } else if(e.cloneBlock) {
+            if(number > 1) {
+                return false;
+            }
+        // destroy block
+        } else if(e.destroyBlock) {
+            const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
+            const block         = BLOCK.fromId(world_block.id);
+            let mul             =  Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            mul *= this.eyes_in_block?.is_water ? 0.2 : 1;
+            mul += mul * 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
+            mul -= mul * 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
+            const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
+            // arm animation + sound effect + destroy particles
+            if(e.destroyBlock) {
+                const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
+                if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
+                    this.render.destroyBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
+                    Qubatch.sounds.play(block.sound, 'hit');
+                    this.startArmSwingProgress();
+                }
+                this.hitIndexO = hitIndex;
+            }
+            if(mining_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
+                return false;
+            }
+            if(times < mining_time) {
+                this.pickAt.setDamagePercent(bPos, times / mining_time);
+                return false;
+            }
+            if(number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
+                this.pickAt.setDamagePercent(bPos, times / CONTINOUS_BLOCK_DESTROY_MIN_TIME);
+                return false;
+            }
+        }
+        //
+        if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
+            if(this.state.sitting || this.state.lies) {
+                console.log('Stand up first');
+                return false;
+            }
+            this.mineTime = 0;
+            const e_orig = JSON.parse(JSON.stringify(e));
+            const player = {
+                radius: PLAYER_DIAMETER, // .radius is used as a diameter
+                height: this.height,
+                pos: this.lerpPos,
+                rotate: this.rotateDegree.clone(),
+                session: {
+                    user_id: this.session.user_id
+                }
+            };
+            const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            if(e.createBlock && actions.blocks.list.length > 0) {
+                this.startArmSwingProgress();
+            }
+            await this.world.applyActions(actions, this);
+            e_orig.actions = {blocks: actions.blocks};
+            e_orig.eye_pos = this.getEyePos();
+            // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+            this.world.server.Send({
+                name: ServerClient.CMD_PICKAT_ACTION,
+                data: e_orig
+            });
+        }
+        return true;
+    }
+
+    // Ограничение частоты выполнения данного действия
+    limitBlockActionFrequency(e) {
+        let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
+        if(!resp) {
+            this._prevActionTime = performance.now();
+        }
+        return resp;
+    }
+
+    //
+    get currentInventoryItem() {
+        return this.inventory.current_item;
+    }
+
+    // getCurrentInstrument
+    getCurrentInstrument() {
+        const currentInventoryItem = this.currentInventoryItem;
+        const instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
+        if(currentInventoryItem && currentInventoryItem.item?.instrument_id) {
+            // instrument = new Instrument_Hand();
+        }
+        return instrument;
+    }
+
+    // changeSpawnpoint
+    changeSpawnpoint() {
+        this.world.server.SetPosSpawn(this.lerpPos.clone());
+    }
+
+    // Teleport
+    teleport(place_id, pos, safe) {
+        this.world.server.Teleport(place_id, pos, safe);
+    }
+
+    // Returns the position of the eyes of the player for rendering.
+    getEyePos() {
+        let subY = 0;
+        if(this.state.sitting) {
+            subY = this.height * 1/3;
+        }
+        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height * MOB_EYE_HEIGHT_PERCENT - subY, this.lerpPos.z);
+    }
+
+    // Return player block position
+    getBlockPos() {
+        return this._block_pos.copyFrom(this.lerpPos).floored();
+    }
+
+    //
+    setPosition(vec) {
+        vec = new Vector(vec);
+        //
+        const pc = this.getPlayerControl();
+        pc.player.entity.position.copyFrom(vec);
+        pc.player_state.pos.copyFrom(vec);
+        pc.player_state.onGround = false;
+        //
+        this.stopAllActivity();
+        //
+        this.onGround = false;
+        this.lastBlockPos = null;
+        this.lastOnGroundTime = null;
+        //
+        this.pos = vec.clone();
+        this.lerpPos = vec.clone();
+        //
+        this.blockPos = this.getBlockPos();
+        this.chunkAddr = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+    }
+
+    getFlying() {
+        let pc = this.getPlayerControl();
+        return pc.player_state.flying;
+    }
+
+    /**
+     * @param {boolean} value
+     */
+    setFlying(value) {
+        let pc = this.getPlayerControl();
+        pc.mul = 1;
+        pc.player_state.flying = value;
+    }
+
+    /**
+     * @param {int} value
+     * @returns
+     */
+    changeSpectatorSpeed(value) {
+        if(!this.game_mode.isSpectator()) {
+            return false;
+        }
+        const pc = this.pr_spectator;
+        let mul = pc.mul ?? 1;
+        const multiplyer = 1.05;
+        if(value > 0) {
+            mul = Math.min(mul * multiplyer, 16);
+        } else {
+            mul = Math.max(mul / multiplyer, 0.05);
+        }
+        pc.mul = mul;
+        return true;
+    }
+
+    //
+    getPlayerControl() {
+        if(this.game_mode.isSpectator()) {
+            return this.pr_spectator;
+        }
+        return this.pr;
+    }
+
+    /**
+     * Updates this local player (gravity, movement)
+     * @param {float} delta
+     * @returns
+     */
+    update(delta) {
+
+        // View
+        if(this.lastUpdate && this.status !== PLAYER_STATUS_WAITING_DATA) {
+
+            // for compatibility with renderHandsWithItems
+            this.yBobO = this.yBob;
+            this.xBobO = this.xBob;
+            this.xBob += (this.getXRot() - this.xBob) * 0.5;
+            this.yBob += (this.getYRot() - this.yBob) * 0.5;
+
+            const overChunk = this.getOverChunk();
+            if(!overChunk?.inited) {
+                return;
+            }
+            let isSpectator = this.game_mode.isSpectator();
+            let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
+            //
+            const pc               = this.getPlayerControl();
+            this.posO.set(this.lerpPos.x, this.lerpPos.y, this.lerpPos.z);
+            const applyControl = !this.state.sitting && !this.state.lies && this.controls.enabled;
+            pc.controls.back       = applyControl && this.controls.back;
+            pc.controls.forward    = applyControl && this.controls.forward;
+            pc.controls.right      = applyControl && this.controls.right;
+            pc.controls.left       = applyControl && this.controls.left;
+            pc.controls.jump       = applyControl && this.controls.jump;
+            pc.controls.sneak      = applyControl && this.controls.sneak;
+            pc.controls.sprint     = applyControl && this.controls.sprint;
+            pc.player_state.yaw    = this.rotate.z;
+            //
+            this.checkBodyRot(delta);
+            // Physics tick
+            let ticks = pc.tick(delta, this.scale);
+            //
+            if(isSpectator) {
+                this.lerpPos = pc.player.entity.position;
+                this.pos = this.lerpPos;
+            } else {
+                // Prismarine player control
+                if (ticks > 0) {
+                    this.prevPos.copyFrom(this.pos);
+                }
+                this.pos.copyFrom(pc.player.entity.position);
+                if (this.pos.distance(this.prevPos) > 10.0) {
+                    this.lerpPos.copyFrom(this.pos);
+                } else {
+                    this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
+                }
+            }
+            this.lerpPos.roundSelf(8);
+            const minMovingDist = delta * MOVING_MIN_BLOCKS_PER_SECOND;
+            this.moving     = this.lerpPos.distanceSqr(this.posO) > minMovingDist * minMovingDist
+                && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);
+            this.running    = this.controls.sprint;
+            this.in_water_o = this.in_water;
+            this.isOnLadder = pc.player_state.isOnLadder;
+            this.onGroundO  = this.onGround;
+            this.onGround   = pc.player_state.onGround || this.isOnLadder;
+            this.in_water   = pc.player_state.isInWater;
+            // Trigger events
+            if(this.onGround && !this.onGroundO) {
+                this.triggerEvent('step', {force: true});
+            }
+            if(this.in_water && !this.in_water_o) {
+                this.triggerEvent('legs_enter_to_water');
+            }
+            if(!this.in_water && this.in_water_o) {
+                this.triggerEvent('legs_exit_from_water');
+            }
+            //
+            const velocity = pc.player_state.vel;
+            // Update player model
+            this.updateModelProps();
+            // Check falling
+            this.checkFalling();
+            // Walking
+            this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
+            this.prev_walking = this.walking;
+            // Walking distance
+            this.walkDistO = this.walkDist;
+            //
+            this.oBob = this.bob;
+            let f = 0;
+            //if (this.onGround && !this.isDeadOrDying()) {
+                // f = Math.min(0.1, this.getDeltaMovement().horizontalDistance());
+                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO)) / delta / 40;
+            //} else {
+                //   f = 0.0F;
+            //}
+            if(this.walking && this.onGround) {
+                // remove small arm movements when landing
+                if(this.onGroundO != this.onGround) {
+                    this.block_walking_ticks = 10;
+                }
+                if(!this.block_walking_ticks || --this.block_walking_ticks == 0) {
+                    this.walking_frame += (this.in_water ? .2 : 1) * delta;
+                    this.walkDist += this.lerpPos.horizontalDistance(this.posO) * 0.6;
+                    this.bob += (f - this.bob) * 0.04
+                }
+            }
+            //
+            this.blockPos = this.getBlockPos();
+            if(!this.blockPos.equal(this.blockPosO)) {
+                this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                this.blockPosO          = this.blockPos;
+            }
+            // Внутри какого блока находится глаза
+            const eye_y             = this.getEyePos().y;
+            this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, eye_y | 0, this.blockPos.z);
+            this.eyes_in_block_o    = this.eyes_in_block;
+            this.eyes_in_block      = this.headBlock.material.is_portal ? this.headBlock.material : null;
+            // если в воде, то проверим еще высоту воды
+            if (this.headBlock.fluid > 0) {
+                let fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z);
+                if (eye_y < fluidLevel) {
+                    this.eyes_in_block = this.headBlock.getFluidBlockMaterial();
+                }
+            }
+            //
+            if(this.eyes_in_block && !this.eyes_in_block_o) {
+                if(this.eyes_in_block.is_water) {
+                    this.triggerEvent('eyes_enter_to_water');
+                }
+            }
+            if(this.eyes_in_block_o && !this.eyes_in_block) {
+                if(this.eyes_in_block_o.is_water) {
+                    this.triggerEvent('eyes_exit_to_water');
+                }
+            }
+            if(this.in_water && this.in_water_o && !this.eyes_in_block) {
+                this.swimingDist += this.lerpPos.horizontalDistance(this.posO) * 0.6;
+                if(this.swimingDistIntPrev) {
+                    if(this.swimingDistIntPrevO != this.swimingDistIntPrev) {
+                        this.swimingDistIntPrevO = this.swimingDistIntPrev;
+                        this.triggerEvent('swim_under_water');
+                    }
+                }
+                this.swimingDistIntPrev = Math.round(this.swimingDist);
+                // console.log(this.swimingDist);
+            }
+            // Update FOV
+            this.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
+            this.render.updateNightVision(this.getEffectLevel(Effect.NIGHT_VISION));
+            // Update picking target
+            this.updatePickingTarget()
+        }
+        this.lastUpdate = performance.now();
+    }
+
+    // Picking target
+    updatePickingTarget() {
+        if (this.pickAt && this.game_mode.canBlockAction()) {
+            this.pickAt.update(this.getEyePos(), this.game_mode.getPickatDistance(), this.forward)
+        } else {
+            this.pickAt.targetDescription = null
+        }
+    }
+
+    getInterpolatedHeadLight() {
+        if(this.render.globalUniforms.lightOverride === 0xff) {
+            return 0xff
+        }
+        if (!this.headBlock || !this.headBlock.tb) {
+            return 0;
+        }
+        const {tb} = this.headBlock;
+        return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
+    }
+
+    /**
+     * @param {float} delta
+     */
+    checkBodyRot(delta) {
+        const pc = this.getPlayerControl();
+        const value = delta * this.body_rotate_speed;
+        if(pc.controls.right && !pc.controls.left) {
+            this.body_rotate = Math.min(this.body_rotate + value, 1);
+        } else if(pc.controls.left && !pc.controls.right) {
+            this.body_rotate = Math.max(this.body_rotate - value, -1);
+        } else if(pc.controls.forward || pc.controls.back) {
+            if(this.body_rotate < 0) this.body_rotate = Math.min(this.body_rotate + value, 0);
+            if(this.body_rotate > 0) this.body_rotate = Math.max(this.body_rotate - value, 0);
+        }
+        if(this.body_rotate_o != this.body_rotate) {
+            // body rot changes
+            this.body_rotate_o = this.body_rotate;
+            this.triggerEvent('body_rot_changed', {value: this.body_rotate});
+        }
+    }
+
+    triggerEvent(name : string, args : object = null) {
+        switch(name) {
+            case 'step': {
+                this.onStep(args);
+                break;
+            }
+            case 'legs_enter_to_water': {
+                Qubatch.sounds.play('madcraft:environment', 'water_splash');
+                this.render.addParticles({type: 'bubble', pos: this.pos});
+                break;
+            }
+            case 'swim_under_water': {
+                Qubatch.sounds.play('madcraft:environment', 'swim');
+                break;
+            }
+            case 'legs_exit_from_water': {
+                break;
+            }
+            case 'eyes_enter_to_water': {
+                // turn on 'Underwater_Ambience' sound
+                if(!this.underwater_track_id) {
+                    Qubatch.sounds.play('madcraft:environment', 'entering_water');
+                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience', null, true);
+                }
+                break;
+            }
+            case 'eyes_exit_to_water': {
+                // turn off 'Underwater_Ambience' sound
+                if(this.underwater_track_id) {
+                    Qubatch.sounds.stop(this.underwater_track_id);
+                    this.underwater_track_id = null;
+                }
+                Qubatch.sounds.play('madcraft:environment', 'exiting_water');
+                break;
+            }
+            case 'body_rot_changed': {
+                const itsme = this.getModel()
+                if(itsme) {
+                    itsme.setBodyRotate((args as any).value);
+                }
+                break;
+            }
+        }
+    }
+
+    /**
+     * @returns { import("./player_model.js").PlayerModel }
+     */
+    getModel() {
+        return this.world.players.get(this.session.user_id);
+    }
+
+    // Emulate user keyboard control
+    walk(direction, duration) {
+        this.controls.forward = direction == 'forward';
+        this.controls.back = direction == 'back';
+        this.controls.left = direction == 'left';
+        this.controls.right = direction == 'right';
+        setTimeout(() => {
+            this.controls.forward = false;
+            this.controls.back = false;
+            this.controls.left = false;
+            this.controls.right = false;
+        }, duration);
+    }
+
+    // Проверка падения (урон)
+    checkFalling() {
+        if(!this.game_mode.isSurvival()) {
+            return;
+        }
+        if(!this.onGround) {
+            let bpos = this.getBlockPos().add(Vector.YN);
+            let block = this.world.chunkManager.getBlock(bpos);
+            // ignore damage if dropped into water
+            if(block.fluid > 0) {
+                this.lastBlockPos = this.getBlockPos();
+            } else {
+                let pos = this.getBlockPos();
+                if(this.lastBlockPos && pos.y > this.lastBlockPos.y) {
+                    this.lastBlockPos = pos;
+                }
+            }
+        } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
+            let bp = this.getBlockPos();
+            let height = (bp.y - this.lastBlockPos.y) / this.scale;
+            if(height < 0) {
+                const damage = -height - MAX_UNDAMAGED_HEIGHT - this.getEffectLevel(Effect.JUMP_BOOST);
+                if(damage > 0) {
+                    Qubatch.hotbar.damage(damage, 'falling');
+                }
+            }
+            this.lastOnGroundTime = null;
+        } else {
+            this.lastOnGroundTime = performance.now();
+            this.lastBlockPos = this.getBlockPos();
+        }
+    }
+
+    setDie() {
+        this.status = PLAYER_STATUS_DEAD;
+        this.moving = false;
+        this.running = false;
+        this.controls.reset();
+        this.updateModelProps();
+        this.inventory.hud.wm.closeAll();
+        this.inventory.hud.wm.getWindow('frmDie').show();
+    }
+
+    // Start arm swing progress
+    startArmSwingProgress() {
+        const itsme = this.getModel()
+        if(itsme) {
+            itsme.startArmSwingProgress();
+        }
+    }
+
+    // Update player model
+    updateModelProps() {
+        const model = this.getModel();
+        if(model) {
+            model.hide_nametag = true;
+            model.setProps(
+                this.lerpPos,
+                this.rotate,
+                this.controls.sneak,
+                this.moving, // && !this.getFlying(),
+                this.running && !this.isSneak,
+                this.state.hands,
+                this.state.lies,
+                this.state.sitting
+            );
+        }
+    }
+
+    // Отправка информации о позиции и ориентации игрока на сервер
+    sendState() {
+        const cs = this.current_state;
+        const ps = this.previous_state;
+        cs.rotate.copyFrom(this.rotate).roundSelf(4);
+        cs.pos.copyFrom(this.lerpPos).roundSelf(4);
+        cs.sneak = this.isSneak;
+        this.ping = Math.round(this.world.server.ping_value);
+        const not_equal = !ps ||
+            (
+                ps.rotate.x != cs.rotate.x || ps.rotate.y != cs.rotate.y || ps.rotate.z != cs.rotate.z ||
+                ps.pos.x != cs.pos.x || ps.pos.y != cs.pos.y || ps.pos.z != cs.pos.z ||
+                ps.sneak != cs.sneak ||
+                ps.ping != cs.ping
+            );
+        if(not_equal) {
+            if(!ps) {
+                this.previous_state = JSON.parse(JSON.stringify(cs));
+                this.previous_state.rotate = new Vector(cs.rotate);
+                this.previous_state.pos = new Vector(cs.pos);
+            } else {
+                // copy current state to previous state
+                this.previous_state.rotate.copyFrom(cs.rotate);
+                this.previous_state.pos.copyFrom(cs.pos);
+                this.previous_state.sneak = cs.sneak;
+                this.previous_state.ping = cs.ping;
+            }
+            this.world.server.Send({
+                name: ServerClient.CMD_PLAYER_STATE,
+                data: compressPlayerStateC(cs)
+            });
+        }
+    }
+
+    // Start use of item
+    startItemUse(material) {
+        const item_name = material?.item?.name;
+        switch(item_name) {
+            case 'bottle':
+            case 'food': {
+                this.world.server.Send({name: ServerClient.CMD_USE_ITEM});
+                this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
+                this._eating_sound_tick = 0;
+                if(this._eating_sound) {
+                    clearInterval(this._eating_sound);
+                }
+                // timer
+                this._eating_sound = setInterval(() => {
+                    this._eating_sound_tick++
+                    const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
+                    Qubatch.sounds.play('madcraft:block.player', action, null, false);
+                    if(action != 'burp') {
+                        // сдвиг точки, откуда происходит вылет частиц
+                        const dist = new Vector(.25, -.25, .25).multiplyScalarSelf(this.scale);
+                        const pos = this.getEyePos().add(this.forward.mul(dist));
+                        pos.y -= .65 * this.scale;
+                        this.render.destroyBlock(material, pos, true, this.scale, this.scale);
+                    } else {
+                        this.stopItemUse();
+                    }
+                }, 200);
+                break;
+            }
+            case 'instrument': {
+                // sword, axe, pickaxe, etc...
+                return false;
+            }
+            case 'tool': {
+                // like flint_and_steel
+                return false;
+            }
+            default: {
+                // console.log(item_name);
+                return false;
+            }
+        }
+        this.mineTime = 0
+        return this.inItemUseProcess = true;
+    }
+
+    // Stop use of item
+    stopItemUse() {
+        this.inItemUseProcess = false;
+        if(this._eating_sound) {
+            clearInterval(this._eating_sound);
+            this._eating_sound = false;
+            this.world.server.Send({name: ServerClient.CMD_USE_ITEM, data: {cancel: true}});
+        }
+    }
+
+// compatibility methods
+
+    isUsingItem() {
+        return this.inItemUseProcess;
+    }
+
+    isScoping() {
+        // return this.isUsingItem() && this.getUseItem().is(Items.SPYGLASS);
+        return false;
+    }
+
+    isInvisible() {
+        return false;
+    }
+
+    getMainArm() {
+        return HumanoidArm.RIGHT; // InteractionHand.MAIN_HAND;
+    }
+
+    isAutoSpinAttack() {
+        // return (this.entityData.get(DATA_LIVING_ENTITY_FLAGS) & 4) != 0;
+        return false;
+    }
+
+    getXRot() {
+        return this.rotateDegree.z;
+    }
+
+    getYRot() {
+        return this.rotateDegree.x;
+    }
+
+    getViewXRot(pPartialTicks) {
+        return this.getXRot();
+    }
+
+    getViewYRot(pPartialTicks) {
+        return this.getYRot();
+    }
+
+    getAttackAnim(pPartialTicks, delta, changeMineTime = true) {
+
+        // this.mineTime = itsme.swingProgress;
+        if(!this.inMiningProcess && !this.inItemUseProcess &&
+            this.inAttackProcess !== ATTACK_PROCESS_ONGOING && this.mineTime == 0
+        ) {
+            return 0;
+        }
+
+        if(changeMineTime) {
+            this.mineTime += delta / this.inhand_animation_duration;
+        }
+
+        if (this.mineTime >= 1) {
+            this.mineTime = 0;
+            if (this.inAttackProcess === ATTACK_PROCESS_ONGOING) {
+                this.inAttackProcess = ATTACK_PROCESS_FINISHED;
+            }
+        }
+
+        return this.mineTime;
+
+    }
+
+    cancelAttackAnim() {
+        this.mineTime = 0;
+    }
+
+    // TODO: хз что именно возвращать, возвращаю оставшееся время до конца текущей анимации
+    getUseItemRemainingTicks() {
+        // this.mineTime = itsme.swingProgress;
+        if(!this.inMiningProcess && !this.inItemUseProcess &&
+            this.inAttackProcess !== ATTACK_PROCESS_ONGOING && this.mineTime == 0
+        ) {
+            return 0;
+        }
+        return this.inhand_animation_duration - (this.inhand_animation_duration * this.mineTime);
+    }
+
+    // TODO: должен возвращать руку, в которой сейчас идет анимация (у нас она пока только одна)
+    getUsedItemHand() {
+        return InteractionHand.MAIN_HAND;
+    }
+
+    //
+    getOverChunkBiomeId() {
+        const chunk = this.getOverChunk()
+        if(!chunk) return
+        const x = this.blockPos.x - this.chunkAddr.x * CHUNK_SIZE_X;
+        const z = this.blockPos.z - this.chunkAddr.z * CHUNK_SIZE_Z;
+        const cell_index = z * CHUNK_SIZE_X + x;
+        return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_BIOME_ID] : 0;
+    }
+
+    updateArmor() {
+        const model = this.getModel()
+        if(model) {
+            model.armor = this.inventory.exportArmorState()
+        }
+    }
+
+}

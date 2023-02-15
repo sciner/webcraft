@@ -1,0 +1,10 @@
+{
+    "scripts": {
+        "tsc:www": "tsc -w -p www/tsconfig.json",
+        "tsc:server": "tsc -w -p node_server/tsconfig.json"
+    },
+    "devDependencies": {
+        "@types/node": "^18.13.0",
+        "typescript": "^4.9.5"
+    }
+}

@@ -397,11 +397,11 @@ export class ServerChunkManager {
     }
 
     getByPos(pos) {
-        return this.get(getChunkAddr(pos, tmp_getByPos_addrVector));
+        return this.get(Vector.toChunkAddr(pos, tmp_getByPos_addrVector));
     }
 
     getReadyByPos(pos) {
-        return this.getReady(getChunkAddr(pos, tmp_getByPos_addrVector));
+        return this.getReady(Vector.toChunkAddr(pos, tmp_getByPos_addrVector));
     }
 
     remove(addr) {
@@ -432,8 +432,8 @@ export class ServerChunkManager {
 
     // Return chunks inside AABB
     getInAABB(aabb) {
-        const pos1 = getChunkAddr(new Vector(aabb.x_min, aabb.y_min, aabb.z_min));
-        const pos2 = getChunkAddr(new Vector(aabb.x_max, aabb.y_max, aabb.z_max));
+        const pos1 = getChunkAddr(aabb.x_min, aabb.y_min, aabb.z_min);
+        const pos2 = getChunkAddr(aabb.x_max, aabb.y_max, aabb.z_max);
         const aabb2 = new AABB().set(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z).expand(.1, .1, .1);
         const resp = [];
         for(let [chunk_addr, chunk] of this.all.entries(aabb2)) {
@@ -513,7 +513,7 @@ export class ServerChunkManager {
         const world             = this.world;
         const margin            = Math.max(chunk_render_dist + 1, 1);
         const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
-        const chunk_addr        = getChunkAddr(pos);
+        const chunk_addr        = Vector.toChunkAddr(pos);
         const _addr             = new Vector(0, 0, 0);
         // array like iterator
         return (function* () {
@@ -550,7 +550,7 @@ export class ServerChunkManager {
         var bestDistSqr = Infinity;
         const _this = this;
         const pos = initialPos.floored();
-        const initialChunk = this.getReady(getChunkAddr(pos));
+        const initialChunk = this.getReady(Vector.toChunkAddr(pos));
         if (initialChunk == null) {
             return initialPos;
         }
