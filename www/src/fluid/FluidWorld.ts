@@ -157,6 +157,7 @@ export class FluidWorld {
         const fluidChunk = new FluidChunk({
             parentChunk: fakeChunk,
             dataChunk,
+            dataId: -42,
         });
         if (buf) {
             fluidChunk.loadDbBuffer(buf);

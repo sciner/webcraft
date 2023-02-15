@@ -17,7 +17,7 @@ class FastCompiller extends BBModel_Compiler_Base {
 export class BBModel_DropPaste {
     [key: string]: any;
 
-    /** 
+    /**
      * @param { import("../game.js").GameClass } game
      */
     constructor(game) {
@@ -69,7 +69,7 @@ export class BBModel_DropPaste {
             e.preventDefault()
 
             const files = e.dataTransfer.files // array of all files
-            
+
             const pos = player.lerpPos.clone()
 
             for (let i = 0; i < files.length; i++) {
@@ -80,7 +80,7 @@ export class BBModel_DropPaste {
 
                         deletePrevious()
 
-                        const json = JSON.parse(this.result)
+                        const json = JSON.parse(this.result as string)
 
                         json._properties = {
                             shift: new Vector(0, 0, 0)
@@ -121,7 +121,7 @@ export class BBModel_DropPaste {
                             });
 
                             previous_textures.push(texture)
-                
+
                             const textureInfo = {
                                 texture: texture,
                                 width: cnv.width,

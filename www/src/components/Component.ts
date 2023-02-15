@@ -24,7 +24,7 @@ export class Component {
      * @type {string}
      */
     get key() {
-        return this.constructor.key;
+        return (this.constructor as any).key;
     }
 
     update (delta, ...args) {

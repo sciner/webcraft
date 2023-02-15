@@ -204,7 +204,7 @@ export class MobAnimator extends Animator {
         animable.parts = parts;
     }
 
-    update(delta, camPos, animable, speed) {
+    update(delta, camPos, animable, speed?) {
 
         if (!animable) {
             return;
@@ -674,7 +674,7 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
-    update(render : Renderer, camPos : Vector, delta : float, speed : float) {
+    update(render? : Renderer, camPos? : Vector, delta? : float, speed? : float) {
         super.update();
 
         this.computeLocalPosAndLight(render, delta);

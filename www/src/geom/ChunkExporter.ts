@@ -84,7 +84,8 @@ export class ChunkExporter {
                 byteOffset: 0,
                 byteLength: 0,
             },
-            index: this.outJson.bufferViews.length
+            index: this.outJson.bufferViews.length,
+            data: null
         }
         this.outJson.bufferViews.push(bvData.json)
         this.bufferViews.push(bvData);
@@ -136,8 +137,8 @@ export class ChunkExporter {
             canvas.toBlob((blob) => {
                 resolve(blob.arrayBuffer().then((res) => {
                     bvData.data = new Uint8Array(res);
-                }), {type: "image/png"});
-            });
+                }));
+            },  "image/png");
         }));
 
         this.outJson.textures.push(texData.json);
@@ -500,11 +501,11 @@ function calcMinMax(out, array, attribute, count) {
     }
 }
 
-function getCanvas() {
+function getCanvas(): HTMLCanvasElement {
 
     if (typeof document === 'undefined' && typeof OffscreenCanvas !== 'undefined') {
 
-        return new OffscreenCanvas(1, 1);
+        return new OffscreenCanvas(1, 1) as any;
 
     }
 

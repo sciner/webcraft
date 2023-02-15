@@ -98,7 +98,7 @@ export class UIApp {
     }
 
     // JoinWorld...
-    async JoinWorld(form, callback, callback_error, callback_progress, callback_final) {
+    async JoinWorld(form, callback?, callback_error?, callback_progress?, callback_final?) {
         let result = [];
         await this.api.call(this, '/api/Game/JoinWorld', form, (resp) => {
             result = resp;

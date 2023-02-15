@@ -135,7 +135,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
             return true;
         }
     }
-    hasImprovement = hasImprovement || !hasSupport || (hasEmpty & !hasSideFlow);
+    hasImprovement = hasImprovement || !hasSupport || (hasEmpty && !hasSideFlow);
     return hasImprovement;
 }
 
@@ -433,9 +433,10 @@ export class FluidChunkQueue {
             let fluidType = val & FLUID_TYPE_MASK;
             if ((qplace[index] & curFlag) === 0) {
                 //TODO: find out who violates this invariant
+                // possibly fixed below, !curFlag to ~curFlag
                 //console.log("WTF_FLUID_QUEUE");
             }
-            qplace[index] &= !curFlag;
+            qplace[index] &= ~curFlag;
             if (fluidType === 0) {
                 continue;
             }
@@ -562,7 +563,7 @@ export class FluidChunkQueue {
                     }
                 }
                 if (srcCount >= 2 && ((neib[1] & FLUID_SOLID16) > 0
-                    || (neib[1] & FLUID_TYPE_MASK === fluidType) && (neib[1] & 15) === 0)) {
+                    || ((neib[1] & FLUID_TYPE_MASK) === fluidType) && (neib[1] & 15) === 0)) {
                     supportLvl = 0;
                 }
                 if (lvl !== supportLvl) {
@@ -696,7 +697,7 @@ export class FluidChunkQueue {
                             }
                             improve = neibLvl > moreThan;
                             if (changed) {
-                                improve |= neibLvl === oldLvl + lower;
+                                improve ||= neibLvl === oldLvl + lower;
                             }
                         }
                     }

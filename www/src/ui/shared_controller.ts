@@ -46,30 +46,30 @@ export class Shared_Controller {
             console.error('Browser not supported:', 'Webgl2 context is required');
             return false;
         }
-        
+
         const canvas = document.createElement('canvas');
-    
+
         //
         try {
-            
+
             // context should be stable and without fails
             const gl = canvas.getContext('webgl2', {stencil: true, failIfMajorPerformanceCaveat: true});
-    
+
             if (!gl) {
                 return false;
             }
-    
+
             // free context
             gl.getExtension('WEBGL_lose_context').loseContext();
         } catch(e) {
-    
+
             console.error('Browser not supported:', e.message);
             return false;
         }
-    
+
         // GC issues on safari
         canvas.width = canvas.height = 0;
-    
+
         const isFF = navigator.userAgent.indexOf('Mozilla') > -1;
         // safari 15 is ok
         const isSafari = navigator.userAgent.indexOf('Safari') > -1;
@@ -227,7 +227,7 @@ export class Shared_Controller {
     login(username, password, ok, err) {
         this.App.Login({username, password}, ok, err);
     }
-    
+
     // Registration
     registration(username, password, ok, err) {
         this.App.Registration({username, password}, ok, err);
@@ -245,7 +245,7 @@ export class Shared_Controller {
 
     /**
      * Create world
-     * @param {NewWorldForm} form 
+     * @param {NewWorldForm} form
      */
     createWorld(form) {
         form.seed = this.App.GenerateSeed(form.seed || this.generateWorldSeed());

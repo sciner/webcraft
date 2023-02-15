@@ -164,7 +164,7 @@ export class Color {
      * @param {number | Color | Array<number> } anyData
      * @param {number} [alpha]
      */
-    constructor (anyData = 0, alpha = 1, pma = false) {
+    constructor (anyData: number | Color | number[] = 0, alpha = 1, pma = false) {
         this._raw = new Float32Array(4);
         this._pma = pma;
 
@@ -186,12 +186,7 @@ export class Color {
         return luminance(this._raw);
     }
 
-    /**
-     *
-     * @param {number | Color | Array<number> } anyData
-     * @param {number} [alpha]
-     */
-    set (anyData, alpha = 1) {
+    set (anyData: number | Color | number[], alpha = 1) {
 
         if (!Color.isColorLike(anyData)) {
             return this;
@@ -275,7 +270,7 @@ export class Color {
         return new Color().copy(this);
     }
 
-    static isColorLike(target) {
+    static isColorLike(target): target is Color {
         if (target instanceof Color) {
             return true;
         }
@@ -293,21 +288,19 @@ export class Color {
 
 }
 
-/**
- * @typedef {{[key: number]: number | Color | Array<number>} } IAnyColorRecordMap
- */
+interface IAnyColorRecordMap {
+    [key: number]: number | Color | Array<number>
+}
 
-/**
- * @typedef { object } IAnyColorRecord
- * @property {number} pos
- * @property {number | Color | Array<number>} color
- */
+interface IAnyColorRecord {
+    pos: number;
+    color: number | Color | number[];
+}
 
-/**
- * @typedef { object } IColorRecord
- * @property {number} pos
- * @property {Color} color
- */
+interface IColorRecord {
+    pos: number;
+    color: Color;
+}
 
 
 export class Gradient {
@@ -336,7 +329,7 @@ export class Gradient {
      *
      * @param {{[key: number]: number | Color | Array<number>} | Array<IAnyColorRecord> | Gradient | Color} gradData
      */
-    set(gradData) {
+    set(gradData: {[key: number]: number | Color | Array<number>} | Array<IAnyColorRecord> | Gradient | Color) {
         if (gradData instanceof Gradient) {
             return this.copy(gradData);
         }
@@ -579,7 +572,7 @@ export class Environment {
         this.brightness = 1.;
         this.nightshift = 1.; // it's 1 above the surface, and 0 deep beow
         this._skyColor = [0, 0, 0];
-        
+
         // similar to nightshift, but based on estimated depth
         this.horizonBrightness = 1;
         this.hbLastPos = new Vector() // used for temporal smoothing;
@@ -803,7 +796,7 @@ export class Environment {
         // calculate brightness based on depth
         const playerPos = player.pos;
         var elevation = playerPos.y - groundLevelEastimtion;
-        var newHorizonBrightness = Mth.lerpAny(elevation, 
+        var newHorizonBrightness = Mth.lerpAny(elevation,
             -HORIZON_BRIGHTNESS_MIN_DEPTH, 1,
             -HORIZON_BRIGHTNESS_MAX_DEPTH, 0);
         newHorizonBrightness = Math.min(newHorizonBrightness, this.nightshift);
@@ -829,7 +822,7 @@ export class Environment {
         const rainWeather = rain?.weather
         return rainWeather
             ? Mth.lerp(rain.strength_val, clearValue, getWeatherValue(rainWeather))
-            : clearValue 
+            : clearValue
     }
 
     updateFogState() {

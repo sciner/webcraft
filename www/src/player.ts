@@ -361,7 +361,7 @@ export class Player {
             const can_play_sound = world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1);
             if(can_play_sound) {
                 const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
-                if(!block_over || !block_over.fluid > 0) {
+                if(!block_over || !(block_over.fluid > 0)) {
                     const default_sound   = 'madcraft:block.stone';
                     const action          = 'step';
                     let sound             = world_block.getSound();

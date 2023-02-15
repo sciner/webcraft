@@ -194,7 +194,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
 
     // we have fluids in chunk!
     const neib = [0, 0, 0, 0, 0, 0];
-    const hasNeib = [0, 0, 0, 0, 0, 0];
+    const hasNeib = [false, false, false, false, false, false];
     const texAlter = [0, 0, 0, 0];
     const clrIndex = IndexedColor.WATER.clone();
     for (let y = bounds.y_min; y <= bounds.y_max; y++)

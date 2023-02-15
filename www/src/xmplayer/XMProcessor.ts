@@ -15,6 +15,7 @@ const context = globalThis;
 // and clicks); evaluated every 8 samples
 const popfilter_alpha = 0.9837;
 
+// @ts-ignore
 class XMProcessor extends AudioWorkletProcessor {
     [key: string]: any;
     static processorKey = 'xm-processor';

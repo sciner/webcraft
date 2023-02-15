@@ -406,6 +406,7 @@ export class ChunkWorkerChunk {
                         vertices[i] + 0,
                         vertices[i + 1] + 1.5,
                         vertices[i + 2] + 0,
+                        //@ts-ignore
                         ...vertices.slice(i + 3, i + GeometryTerrain.strideFloats));
                 }
             }
