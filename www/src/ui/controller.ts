@@ -1,12 +1,11 @@
 import { Helpers, isMobileBrowser, Vector } from '../helpers.js';
-import { DEFAULT_FOV_NORMAL } from '../render.js';
 import { UIApp } from './app.js';
 import { TexturePackManager } from './texture_pack-manager.js';
 import { SkinManager } from './skin-manager.js';
 import { GameClass, GameSettings } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
-import { KEY, MOUSE, DEFAULT_MUSIC_VOLUME } from "../constant.js";
+import { KEY, MOUSE } from "../constant.js";
 import  registerTextFilter from './angular/textfilter.js';
 import { Resources } from '../resources.js';
 import { ClipboardHelper } from './clipboard.js';

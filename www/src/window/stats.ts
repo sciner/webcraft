@@ -1,5 +1,5 @@
 import { Button, Label } from "../../tools/gui/wm.js";
-import { ServerClient } from "../../js/server_client.js";
+import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { BlankWindow } from "./blank.js";

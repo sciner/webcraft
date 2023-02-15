@@ -1,5 +1,5 @@
 import { Button, Label } from "../../tools/gui/wm.js";
-import { ServerClient } from "../../js/server_client.js";
+import { ServerClient } from "../server_client.js";
 import { QuestMenu } from "./quest/menu.js";
 import { QuestView } from "./quest/view.js";
 import { Lang } from "../lang.js";

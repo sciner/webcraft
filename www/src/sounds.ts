@@ -242,7 +242,7 @@ class VolumetricSound {
         })
 
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
-            this.worker = new Worker('./js-gen/sound_worker_bundle.js')
+            this.worker = new Worker('./js-bundles/sound_worker_bundle.js')
         } else {
             this.worker = new Worker('./js/sound_worker.js'/*, {type: 'module'}*/)
             this.worker.onerror = (e) => {

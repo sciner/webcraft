@@ -1,5 +1,5 @@
 import { Window } from "../../../tools/gui/wm.js";
-import {BLOCK} from "../../../js/blocks.js";
+import {BLOCK} from "../../blocks.js";
 import { Resources } from "../../resources.js";
 import { Helpers } from "../../helpers.js";
 

@@ -11,6 +11,9 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-dynamic-import-vars": "^1.4.3",
-    "@rollup/plugin-node-resolve": "^13.3.0"
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5"
   }
 }

@@ -86,8 +86,8 @@ export class ChunkManager {
         this.groundLevelEastimtion  = null;
 
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
-            this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
-            this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
+            this.worker = new Worker('./js-bundles/chunk_worker_bundle.js');
+            this.lightWorker = new Worker('./js-bundles/light_worker_bundle.js');
         } else {
             this.worker = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
             this.worker.onerror = (e) => {
