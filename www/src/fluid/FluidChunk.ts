@@ -209,21 +209,22 @@ export class FluidChunk {
             }
         }
 
+        let arrBuf: Uint8Array;
         if (arr.length > 128) {
             let arr2 = gzip(new Uint8Array(arr));
-            arr = new Uint8Array(arr2.length + 1);
-            arr[0] = 3;
+            arrBuf = new Uint8Array(arr2.length + 1);
+            arrBuf[0] = 3;
             // gzip
-            arr.set(arr2, 1);
+            arrBuf.set(arr2, 1);
         } else {
             // no gzip
             arr.unshift(2);
-            arr = new Uint8Array(arr);
+            arrBuf = new Uint8Array(arr);
         }
-        this.lastSavedSize = arr.length;
+        this.lastSavedSize = arrBuf.length;
 
         this.savedID = this.updateID;
-        return this.savedBuffer = arr;
+        return this.savedBuffer = arrBuf;
     }
 
     loadDbBuffer(stateArr, fromDb = false, diffFluidType = null) {
@@ -385,8 +386,8 @@ export class FluidChunk {
 
         // things to check
         // 1. mesh solid block status near fluids
-        const isSolid = props & FLUID_BLOCK_RESTRICT;
-        if (this.meshID >= 0 && isSolid !== (old & FLUID_BLOCK_RESTRICT) > 0) {
+        const isSolid = (props & FLUID_BLOCK_RESTRICT) > 0;
+        if (this.meshID >= 0 && isSolid !== ((old & FLUID_BLOCK_RESTRICT) > 0)) {
             const {uint16View} = this;
             const {cx, cy, cz, cw, size, outerSize} = this.dataChunk;
 
