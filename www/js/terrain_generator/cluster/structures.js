@@ -49,8 +49,8 @@ export class ClusterStructures extends ClusterBuildingBase {
 
             // const aabb = building.getRealAABB()
             // const am = getAheadMove(door_direction).multiplyScalarSelf(16)
-            // building.translateXZ(am)
-            // building.moveXZTo(this.coord)
+            // building.translatePos(am)
+            // building.movePosTo(this.coord)
 
             this.buildings.set(building.coord, building)
 
@@ -85,8 +85,8 @@ export class ClusterStructures extends ClusterBuildingBase {
 
                         // const aabb = building.getRealAABB()
                         // const am = getAheadMove(door_direction).multiplyScalarSelf(16)
-                        // building.translateXZ(am)
-                        // building.moveXZTo(this.coord)
+                        // building.translatePos(am)
+                        // building.movePosTo(this.coord)
 
                         addStructure(schema_name, coord, door_direction)
                         

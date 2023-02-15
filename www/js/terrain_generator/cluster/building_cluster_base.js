@@ -49,7 +49,7 @@ export class ClusterBuildingBase extends ClusterBase {
      * 
      * @returns 
      */
-    addBuilding(seed, door_x, door_z, size, entrance, door_direction, is_crossroad = false) {
+    appendBuilding(seed, door_x, door_z, size, entrance, door_direction, is_crossroad = false) {
 
         const coord = new Vector(door_x + this.coord.x, 0, door_z + this.coord.z)
         if(this.buildings.has(coord)) {
@@ -227,6 +227,35 @@ export class ClusterBuildingBase extends ClusterBase {
             }
         }
 
+    }
+
+    /**
+     * 
+     */
+    makeNearMask() {
+
+        this.near_mask = new Array(this.size.x * this.size.z).fill(255);
+
+        // Fill near_mask
+        if(this.buildings.size > 0) {
+            // If any structure added
+            const margin = 5
+            for(const building of this.buildings.values()) {
+                const pos = new Vector(building.aabb.x_min, 0, building.aabb.z_min)
+                for(let i = -margin; i < building.size.x + margin; i++) {
+                    for(let j = -margin; j < building.size.z + margin; j++) {
+                        const x = pos.x - this.coord.x + i
+                        const z = pos.z - this.coord.z + j
+                        if(x >= 0 && z >= 0 && x < this.size.x && z < this.size.z) {
+                            const nidx = z * this.size.x + x
+                            this.near_mask[nidx] = margin
+                        }
+                    }
+                }
+            }
+        } else {
+            this.mask.fill(null)
+        }
     }
 
 }

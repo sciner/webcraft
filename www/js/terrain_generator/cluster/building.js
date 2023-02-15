@@ -223,35 +223,36 @@ export class Building {
 
     /**
      * @param {Vector} vec 
+     * @param {boolean} store_y Сохранить Y неизменным
      */
-    translateXZ(vec) {
-
-        // aabb
-        const aabb_y_min = this.aabb.y_min
-        const aabb_y_max = this.aabb.y_max
-        this.aabb.translate(vec.x, vec.y, vec.z)
-        this.aabb.y_min = aabb_y_min
-        this.aabb.y_max = aabb_y_max
-
-        // coord
-        const orig_coord_y = this.coord.y
-        this.coord.translate(vec.x, vec.y, vec.z)
-        this.coord.y = orig_coord_y
-
-        // entrance
-        const orig_entrance_y = this.entrance.y
-        this.entrance.translate(vec.x, vec.y, vec.z)
-        this.entrance.y = orig_entrance_y
-
+    movePosTo(vec, store_y = true) {
+        const aabb = this.aabb // this.getRealAABB()
+        const diff = new Vector(aabb.x_min, aabb.y_min, aabb.z_min).subSelf(vec).multiplyScalarSelf(-1)
+        this.translatePos(diff, store_y)
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
+     * @param {boolean} store_y Сохранить Y неизменным
      */
-    moveXZTo(vec) {
-        const aabb = this.aabb // this.getRealAABB()
-        const diff = new Vector(aabb.x_min, aabb.y_min, aabb.z_min).subSelf(vec).multiplyScalarSelf(-1)
-        this.translateXZ(diff)
+    translatePos(vec, store_y = true) {
+        
+        const aabb_y_min = this.aabb.y_min
+        const aabb_y_max = this.aabb.y_max
+        const orig_coord_y = this.coord.y
+        const orig_entrance_y = this.entrance.y
+
+        this.aabb.translate(vec.x, vec.y, vec.z)
+        this.coord.translate(vec.x, vec.y, vec.z)
+        this.entrance.translate(vec.x, vec.y, vec.z)
+
+        if(store_y) {
+            this.aabb.y_min = aabb_y_min
+            this.aabb.y_max = aabb_y_max
+            this.coord.y = orig_coord_y
+            this.entrance.y = orig_entrance_y
+        }
+
     }
 
     /**

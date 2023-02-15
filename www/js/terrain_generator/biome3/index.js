@@ -52,7 +52,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         this.layers = new Biome3LayerManager(this, [
             {type: 'overworld', bottom: 0, up: 7},
-            {type: 'end', bottom: 7, up: 9}
+            {type: 'end', bottom: 17, up: 19}
         ])
 
     }
