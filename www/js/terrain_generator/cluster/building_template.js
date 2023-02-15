@@ -1,10 +1,9 @@
 import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { AABB } from '../../core/AABB.js';
-import { Vector, VectorCollector, ShiftedMatrix, VectorSet2D, SphericalBulge, ArrayHelpers, SimpleQueue } from "../../helpers.js";
-import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_MAX_PAD,
+import { Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, SphericalBulge, ArrayHelpers, SimpleQueue } from "../../helpers.js";
+import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_ADDITIONAL_WIDTH, BASEMENT_MAX_PAD,
     BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
-
-const BLOCKS_CAN_BE_FLOOR = [468]; // DIRT_PATH
+import { calcMinFloorYbyXZ } from './building_helpers.js';
 
 const DELETE_BLOCK_ID = 199; // this block is automatically removed from the templates
 
@@ -61,6 +60,9 @@ export class BuildingTemplate {
          * basement will be drawn, see ClusterBase.drawNaturalBasement
          */
         this.autoBasement = null
+
+        // ShiftedMatrix: for each column, the minimum Y of a solid block (or BLOCKS_CAN_BE_FLOOR), or null
+        this.minFloorYbyXZ = null
 
         if(this.blocks) {
             this.rot = [ [], [], [], [] ]
@@ -134,33 +136,14 @@ export class BuildingTemplate {
                 if(block.move.z < min.z) min.z = block.move.z
             }
 
+            // DELETE_BLOCK_ID might affect the results.
+            // Should we delete it in the beginning?
+
+            this.minFloorYbyXZ = calcMinFloorYbyXZ(bm, this.blocks)
+
             if(min.y != Infinity) {
 
-                if(this.getMeta('air_column_from_basement', true)) {
-
-                    const two2map = new VectorSet2D()
-
-                    // building a 2D floor map of the building
-                    for(let block of this.blocks) {
-                        if(block.move.y - min.y < 2) {
-                            const b = bm.fromId(block.block_id);
-                            // не учитываем неполные блоки у основания строения в качестве пола
-                            if(b.is_solid || BLOCKS_CAN_BE_FLOOR.includes(b.id)) {
-                                two2map.add(block.move.x, block.move.z);
-                            }
-                        }
-                    }
-
-                    // по 2D карте пола здания строим вертикальные столбы воздуха
-                    // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
-                    for(const [vecX, vecZ] of two2map) {
-                        for(let y = 0; y < this.size.y; y++) {
-                            const air_pos = new Vector(vecX, min.y + y, vecZ)
-                            all_blocks.set(air_pos, {block_id: 0, move: air_pos})
-                        }
-                    }
-
-                }
+                this.aabb = new AABB().setCornerSize(min, this.size)
 
                 /**
                  * this.door_pos is not in the same coordinate system as block.move.
@@ -169,6 +152,21 @@ export class BuildingTemplate {
                  * But calculate and remember the corrected value.
                  */
                 this.door_pos_corrected = this.door_pos && new Vector(this.door_pos).addSelf(min)
+
+                if(this.getMeta('air_column_from_basement', true)) {
+                    // по 2D карте пола здания строим вертикальные столбы воздуха
+                    // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
+                    for(let [x, z, y] of this.minFloorYbyXZ.entries()) {
+                        // This codition works linke in the old code. Maybe it's better to use compare to door Y.
+                        if (y - min.y < 2) {
+                            // starting from 1 block above the floor, and up to y_max
+                            for(y++; y < this.aabb.y_max; y++) {
+                                const air_pos = new Vector(x, y, z)
+                                all_blocks.set(air_pos, {block_id: 0, move: air_pos})
+                            }
+                        }
+                    }
+                }
             }
 
         }
@@ -176,7 +174,7 @@ export class BuildingTemplate {
         // prepare calculation of the basement shape
         const groudFloorBlocks2D = 
             this.getMeta('draw_natural_basement', true)
-                ? new VectorSet2D() // blocks around the ground level, used to determine the shape of the basement
+                ? new VectorCollector2D() // blocks around the ground level, used to determine the shape of the basement
                 : null
 
         // Y boundaries of the blocks that are used to detect basement shape
@@ -203,7 +201,7 @@ export class BuildingTemplate {
                 // add to the shape of the basement
                 const y = block.move.y
                 if (y >= groundFloorMinY && y <= groundFloorMaxY) {
-                    groudFloorBlocks2D?.add(block.move.x, block.move.z)
+                    groudFloorBlocks2D?.set(block.move.x, block.move.z, 1)
                 }
             }
         }
@@ -448,7 +446,7 @@ export class BuildingTemplate {
 
     /**
      * Calculates {@link autoBasement}, if it's posible.
-     * @param {VectorSet2D} groudFloorBlocks - a set of (x, z) of the blocks of the groud floor
+     * @param {VectorCollector2D} groudFloorBlocks - a set of (x, z) of the blocks of the groud floor
      */
     calcAutoBasement(groudFloorBlocks) {
         if (!groudFloorBlocks || groudFloorBlocks.isEmpty()) {
@@ -463,23 +461,20 @@ export class BuildingTemplate {
         aabb.y_max = 0
         const size = aabb.size
         const center = aabb.center
-        // matrix that has 1 in the basement's cells (not dilated yet)
-        const shapeMat = ShiftedMatrix.createHorizontalInAABB(aabb, Uint8Array)
-        for(const [row, col] of groudFloorBlocks) {
-            shapeMat.set(row, col, 1)
-        }
-        shapeMat.fillInsides(1)
-
+        
         // calc distances from the outside to the basement
-        const distances = shapeMat.map(it => it === 0 ? Infinity : 0)
+        const distances = ShiftedMatrix.createHorizontalInAABB(aabb)
+        distances.fill(Infinity)
+        for(const [row, col] of groudFloorBlocks.keys()) {
+            distances.set(row, col, 0)
+        }
+        distances.fillInsides(0, (it) => it === 0)
         tmpUint8Array = ArrayHelpers.ensureCapacity(tmpUint8Array, distances.size)
         distances.calcDistances(false, tmpUint8Array, tmpQueue)
 
         // pad sides
         for(const [x, z, ind] of distances.rowColIndices()) {
-            // Pad 1 block, so blocks just adjacent to the walls have distance 0.
-            // We *have* to always include them, becuase of buildings that darw air below the walls
-            let pad = 1
+            let pad = BASEMENT_ADDITIONAL_WIDTH
             // make the side a little convex
             pad += sideBulgeX.bulgeByDistance(x - center.x)
             pad += sideBulgeZ.bulgeByDistance(z - center.z)

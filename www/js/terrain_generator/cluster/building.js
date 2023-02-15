@@ -25,7 +25,8 @@ export const BASEMNET_DEPTHS_BY_DISTANCE = [
     {min: 5, max: 5}
 ]
 export const BASEMENT_BORDER_SCALE_XZ = 0.7  // How wide/narrow the rounded borders around the basement are
-export const BASEMENT_MAX_PAD = 6
+export const BASEMENT_MAX_PAD = 6            // The maximum additional basement width. Integer.
+export const BASEMENT_ADDITIONAL_WIDTH = 1   // How much additional blocks are added around the ground floor. Can be non-integer, from 0.
 export const BASEMENT_SIDE_BULGE = 0.5
 
 export const BASEMENT_BOTTOM_BULGE_BLOCKS = 2   // How many bllocks are added to the depth of the basement at its center
@@ -155,6 +156,11 @@ export class Building {
             const bm = cluster.clusterManager.world.block_manager
             cluster.drawNaturalBasement(chunk, coord, size, bm.STONE)
         }
+
+        const minFloorYbyXZ = this.minFloorYbyXZ ?? this.building_template?.minFloorYbyXZ
+        if (minFloorYbyXZ) {
+            this.fixBlocksBelowBuilding(chunk, minFloorYbyXZ)
+        }
     }
 
     /**
@@ -261,6 +267,26 @@ export class Building {
                     const belowBasementY = objToChunk.transformY(y_min_clamped - 1)
                     chunk.fixBelowSolidIndirect(cx, belowBasementY, cz)
                 }
+            }
+        }
+    }
+
+    /**
+     * Fixes blocks below the lowest floor blocks, in particulaer, turns grass_block into dirt.
+     */
+    fixBlocksBelowBuilding(chunk, minFloorYbyXZ) {
+        const objToChunk = new VectorCardinalTransformer().initBuildingToChunk(this, chunk)
+        const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
+        const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
+        const vec = new Vector()
+        for(const [x, z, y] of minFloorYbyXZ.entries(
+            chunkAabbInObj.x_min, chunkAabbInObj.z_min,
+            chunkAabbInObj.x_max, chunkAabbInObj.z_max)
+        ) {
+            if (y > chunkAabbInObj.y_min) {
+                vec.set(x, y - 1, z)
+                objToChunk.transform(vec, vec)
+                chunk.fixBelowSolidIndirect(vec.x, vec.y, vec.z)
             }
         }
     }

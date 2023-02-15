@@ -1,5 +1,6 @@
 import { Vector } from "../../../helpers.js";
 import { Building } from "../building.js";
+import { calcMinFloorYbyXZ } from '../building_helpers.js';
 
 // Farmland
 export class Farmland extends Building {
@@ -84,6 +85,8 @@ export class Farmland extends Building {
             }
         }
 
+        // it's used to fix grass_block below the structure
+        this.minFloorYbyXZ = calcMinFloorYbyXZ(bm, this.blocks.list)
     }
 
     // Draw

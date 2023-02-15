@@ -146,6 +146,16 @@ export class AABB {
             vec.z + radius);
     }
 
+    setCornerSize(corner, size) {
+        this.x_min = corner.x;
+        this.y_min = corner.y;
+        this.z_min = corner.z;
+        this.x_max = corner.x + size.x;
+        this.y_max = corner.y + size.y;
+        this.z_max = corner.z + size.z;
+        return this;
+    }
+
     setIntersect(aabb1, aabb2 = this) {
         this.x_min = Math.max(aabb1.x_min, aabb2.x_min);
         this.x_max = Math.min(aabb1.x_max, aabb2.x_max);

@@ -1128,8 +1128,8 @@ export class VectorCollector2 {
 
 }
 
-/** Contains a set of 2D coordinates. */
-export class VectorSet2D {
+/** Similar to {@link VectorCollector}, but for 2D coordinates. */
+export class VectorCollector2D {
 
     constructor() {
         this.byRow  = new Map()
@@ -1137,21 +1137,98 @@ export class VectorSet2D {
 
     isEmpty()  { return this.byRow.size === 0 }
 
-    add(row, col) {
-        let byCol = this.byRow.get(row)
-        if (!byCol) {
-            byCol = new Set()
-            this.byRow.set(row, byCol)
+    /** 
+     * It's relatively slow. Use {@link isEmpty} if possible.
+     * We don't maintain size filed, because it's rarely needed, but makes modifications slower.
+     */
+    getSize() {
+        let size = 0
+        for(const byCol of this.byRow.values()) {
+            size += byCol.size
         }
-        byCol.add(col)
+        return size
     }
 
-    *[Symbol.iterator]() {
+    set(row, col, value) {
+        let byCol = this.byRow.get(row)
+        if (!byCol) {
+            byCol = new Map()
+            this.byRow.set(row, byCol)
+        }
+        byCol.set(col, value)
+    }
+
+    get(row, col) {
+        return this.byRow.get(row)?.get(col)
+    }
+
+    delete(row, col) {
+        let byCol = this.byRow.get(row)
+        if (byCol) {
+            byCol.delete(col)
+            if (byCol.size === 0) {
+                this.byRow.delete(row)
+            }
+        }
+    }
+
+    /**
+     * Updates a value (existing or non-existng), possibly setting it or deleting it.
+     * It's faster than getting and then setting a value.
+     * @param {int} row
+     * @param {int} col
+     * @param {Function} mapFn is called for the existing value (or undefined, if there is no value).
+     *   If its result is not null, it's set as the new value.
+     *   If its result is null, the value is deleted.
+     * @return the new value.
+     */
+    update(row, col, mapFn) {
+        let byCol = this.byRow.get(row)
+        const oldV = byCol?.get(col)
+        const newV = mapFn(oldV)
+        if (newV != null) {
+            if (newV !== oldV) {
+                if (!byCol) {
+                    byCol = new Map()
+                    this.byRow.set(row, byCol)
+                }
+                byCol.set(col, newV)
+            }
+        } else {
+            if (byCol) {
+                byCol.delete(col)
+                if (byCol.size === 0) {
+                    this.byRow.delete(row)
+                }
+            }
+        }
+        return newV
+    }
+
+    *values() {
+        for (const byCol of this.byRow.values()) {
+            yield *byCol.values()
+        }
+    }
+
+    *keys() {
         const entry = [0, 0]
         for (const [row, byCol] of this.byRow) {
             entry[0] = row
-            for (const col of byCol) {
+            for (const col of byCol.keys()) {
                 entry[1] = col
+                yield entry
+            }
+        }
+    }
+
+    *entries() {
+        const entry = [0, 0, null]
+        for (const [row, byCol] of this.byRow) {
+            entry[0] = row
+            for (const [col, value] of byCol) {
+                entry[1] = col
+                entry[2] = value
                 yield entry
             }
         }
@@ -1169,7 +1246,7 @@ export class VectorSet2D {
         for (const [row, byCol] of this.byRow) {
             if (minRow > row) minRow = row
             if (maxRow < row) maxRow = row
-            for (const col of byCol) {
+            for (const col of byCol.keys()) {
                 if (minCol > col) minCol = col
                 if (maxCol < col) maxCol = col
             }
@@ -1179,6 +1256,22 @@ export class VectorSet2D {
         dst[prefixCol + '_min'] = minCol
         dst[prefixCol + '_max'] = maxCol + 1
         return dst
+    }
+
+    toMatrix(pad = 0, emptyValue = null, arrayClass = Array) {
+        if (this.isEmpty()) {
+            return null
+        }
+        const aabb = this.calcBounds()
+        const mat = ShiftedMatrix.createMinMaxPad(aabb.row_min, aabb.col_min,
+            aabb.row_max, aabb.col_max, pad, arrayClass)
+        if (emptyValue !== null) {
+            mat.fill(emptyValue)
+        }
+        for(const [row, col, value] of this.entries()) {
+            mat.set(row, col, value)
+        }
+        return mat
     }
 }
 
@@ -3607,6 +3700,11 @@ export class ShiftedMatrix {
         return new ShiftedMatrix(aabb.x_min, aabb.z_min, aabb.width, aabb.depth, arrayClass)
     }
 
+    static createMinMaxPad(minRow, minCol, maxRow, maxCol, pad = 0, arrayClass = Array) {
+        return new ShiftedMatrix(minRow - pad, minCol - pad, 
+            maxRow - minRow + 2 * pad, maxCol - minCol + 2 * pad, arrayClass)
+    }
+
     // Exclusive, like in AABB
     get maxRow() { return this.minRow + this.rows }
     get maxCol() { return this.minCol + this.cols }
@@ -3618,7 +3716,7 @@ export class ShiftedMatrix {
     }
 
     fill(v) {
-        this.arr.fill(v);
+        this.arr.fill(v, 0, this.size);
         return this;
     }
 
@@ -3752,10 +3850,10 @@ export class ShiftedMatrix {
     }
 
     /**
-     * Casts "rays" parallel to the sides that pass through empty (0, null, false) elements,
+     * Casts "rays" parallel to the sides that pass through rejected by {@link isNotEmpty},
      * and fills all the elements that are not "illuminated" by the rays with {@link value}.
      */
-    fillInsides(value = 1) {
+    fillInsides(value = 1, isNotEmpty = (it) => it) {
         const arr = this.arr
         const cols = this.cols
         for(let i = 0; i < this.rows; i++) {
@@ -3763,10 +3861,10 @@ export class ShiftedMatrix {
             // find the 1st non-empty element in the row
             for(let jb = 0; jb < cols; jb++) {
                 const indB = ind0 + jb
-                if (arr[indB]) {
+                if (isNotEmpty(arr[indB])) {
                     let ind = ind0 + (cols - 1)
                     // find the last non-empty element
-                    while(!arr[ind]) {
+                    while(!isNotEmpty(arr[ind])) {
                         ind--
                     }
                     while(ind >= indB) {
@@ -3781,10 +3879,10 @@ export class ShiftedMatrix {
             // find the 1st non-empty element in the column
             for(let ib = 0; ib < this.rows; ib++) {
                 const indB = j + cols * ib
-                if (arr[indB]) {
+                if (isNotEmpty(arr[indB])) {
                     let ind = j + cols * (this.rows - 1)
                     // find the last non-empty element
-                    while(!arr[ind]) {
+                    while(!isNotEmpty(arr[ind])) {
                         ind -= cols
                     }
                     while(ind >= indB) {
