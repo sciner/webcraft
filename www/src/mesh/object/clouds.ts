@@ -17,7 +17,6 @@ const WIND_SPEED_MUL = 1;
 
 // World
 const FakeCloudWorld = {
-    blocks_pushed: 0,
     clouds: {
         imgData: null,
         blocks: [],

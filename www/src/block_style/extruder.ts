@@ -69,7 +69,6 @@ class FakeCloudWorld {
 
     constructor() {
         let that = this;
-        this.blocks_pushed = 0;
         // clouds
         this.clouds = {
             size: new Vector(128, 128, 1),

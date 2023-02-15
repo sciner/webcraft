@@ -1,7 +1,10 @@
-import {Color, Helpers, AlphabetTexture} from './helpers.js';
+import {Color, Helpers, AlphabetTexture, IndexedColor} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
-import { DEFAULT_ATLAS_SIZE, DEFAULT_TX_SIZE, LIGHT_TYPE_RTX } from './constant.js';
+import { DEFAULT_TX_SIZE, LIGHT_TYPE_RTX } from './constant.js';
+import type { TBlock } from './typed_blocks3.js';
+import type { FakeTBlock } from './blocks.js';
+import type { ChunkWorkerChunk } from './worker/chunk.js';
 
 let tmpCanvas;
 
@@ -298,8 +301,8 @@ export class BaseResourcePack {
         return this.textures.get(id);
     }
 
-    // pushVertices
-    pushVertices(vertices, block, world, pos, neighbours, biome, dirt_color, draw_style, force_tex, _matrix, _pivot) {
+    // Push vertices
+    pushVertices(block : TBlock | FakeTBlock, vertices : Float32Array | float[], chunk : ChunkWorkerChunk, pos : IVector, neighbours : any, biome? : any, dirt_color? : IndexedColor, unknown? : any, _matrix? : imat4, _pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture, draw_style? : string) {
 
         const style = draw_style ? draw_style : block.material.style;
         const module = this.BLOCK.styles.get(style);
@@ -316,7 +319,7 @@ export class BaseResourcePack {
         }*/
 
         // let p = performance.now();
-        const resp = module.func(block, vertices, world, pos.x, pos.y, pos.z, neighbours, biome, dirt_color, true, _matrix, _pivot, force_tex);
+        const resp = module.func(block, vertices, chunk, pos.x, pos.y, pos.z, neighbours, biome, dirt_color, unknown, _matrix, _pivot, force_tex);
         // stat.count++;
         // stat.time += (performance.now() - p);
         if (vertices.length % 15 > 0) {

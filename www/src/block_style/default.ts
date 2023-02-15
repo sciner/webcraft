@@ -15,6 +15,12 @@ const _pivot = new Vector(0, 0, 0)
 export const TX_CNT = DEFAULT_TX_CNT;
 export const TX_SIZE = 16;
 
+export class TCalcSideParamsResult {
+    anim_frames : int
+    t : tupleFloat4 // uv
+    f : int // flags
+}
+
 export class BlockStyleRegInfo {
 
     styles: string[]

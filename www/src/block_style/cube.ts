@@ -5,13 +5,12 @@ import {impl as alea} from "../../vendors/alea.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
-import { BlockStyleRegInfo, default as default_style, QuadPlane } from './default.js';
+import { BlockStyleRegInfo, default as default_style, QuadPlane, TCalcSideParamsResult } from './default.js';
 import { GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-
 
 const {mat4} = glMatrix;
 
@@ -31,6 +30,7 @@ const _lm_grass = new IndexedColor(0, 0, 0);
 const _lm_leaves = new IndexedColor(0, 0, 0);
 const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
+const _sideParams = new TCalcSideParamsResult()
 
 export const LEAVES_COLOR_FLAGS = [
     new IndexedColor(28, 540, 0), // pink
@@ -491,21 +491,22 @@ export default class style {
         }
 
         //
-        const calcSideParams = (side : string, dir : int | string, width? : float, height? : float) => {
-            const anim_frames = no_anim ? 0 : bm.getAnimations(material, side);
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+        const calcSideParams = (side : string, dir : int | string, width? : float, height? : float) : TCalcSideParamsResult => {
+            // force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
+            _sideParams.anim_frames = no_anim ? 0 : bm.getAnimations(material, side);
+            const animFlag = _sideParams.anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             if(material.name == 'FURNACE' && dir == DIRECTION.NORTH) {
                 const fuel_time = block?.extra_data?.state?.fuel_time ?? 0;
                 if(fuel_time > 0) {
                     dir = 'north_on';
                 }
             }
-            const t = force_tex || bm.calcMaterialTexture(material, dir, width, height, block);
-            const f = flags | upFlags | sideFlags | animFlag;
-            if((f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
-                lm.b = t[3] * TX_CNT;
+            _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block);
+            _sideParams.f = flags | upFlags | sideFlags | animFlag;
+            if((_sideParams.f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
+                lm.b = _sideParams.t[3] * TX_CNT;
             }
-            return {anim_frames, t, f};
+            return _sideParams
         };
 
         // Push vertices

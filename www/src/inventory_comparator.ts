@@ -117,19 +117,19 @@ export class InventoryComparator {
         return null;
     }
 
-    static sanitizeAndValidatePropertyItems(obj, arrayOfKeys) {
-        if (!obj || typeof obj !== 'object') {
-            return null;
-        }
-        for(let key of arrayOfKeys) {
-            const new_item = BLOCK.sanitizeAndValidateInventoryItem(list[key]);
-            if (!new_item) {
-                return list[key];
-            }
-            list[key] = new_item;
-        }
-        return null;
-    }
+    // static sanitizeAndValidatePropertyItems(obj, arrayOfKeys) {
+    //     if (!obj || typeof obj !== 'object') {
+    //         return null;
+    //     }
+    //     for(let key of arrayOfKeys) {
+    //         const new_item = BLOCK.sanitizeAndValidateInventoryItem(list[key]);
+    //         if (!new_item) {
+    //             return list[key];
+    //         }
+    //         list[key] = new_item;
+    //     }
+    //     return null;
+    // }
 
     /**
      * Applies recipes, if they are passed. Then compares total quantities of each item,

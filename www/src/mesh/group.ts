@@ -1,11 +1,12 @@
-import {IndexedColor, QUAD_FLAGS, Vector, VectorCollector} from '../helpers.js';
+import {IndexedColor, Vector, VectorCollector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
+import type { BaseResourcePack } from '../base_resource_pack.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 // World
 export const FakeWorld = {
-    blocks_pushed: 0,
     chunkManager: {
         getBlock: function(x, y, z) {
             return new FakeTBlock(BLOCK.AIR.id);
@@ -102,7 +103,7 @@ export class MeshGroup {
         const pos = new Vector(0, 0, 0);
         for(let k of this.vc.keys()) {
             const item = this.vc.get(k);
-            const rp = item.block.material.resource_pack;
+            const rp = item.block.material.resource_pack as BaseResourcePack;
             let force_tex = null;
             // Draw style
             let ds = item.block.material.style;
@@ -135,17 +136,18 @@ export class MeshGroup {
             //
             pos.set(tx + k.x, ty + k.y, tz + k.z);
             rp.pushVertices(
-                mesh.vertices,
                 item.block,
-                FakeWorld,
+                mesh.vertices,
+                (FakeWorld as any) as ChunkWorkerChunk,
                 pos,
                 item.neighbours,
                 biome,
                 dirt_color,
-                ds,
-                force_tex,
+                undefined,
                 matrix,
-                pivot
+                pivot,
+                force_tex,
+                ds
             );
         }
 

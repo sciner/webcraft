@@ -1088,7 +1088,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float) {
+    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float) : tupleFloat4 {
 
         let mat_texture = material?.texture
         if(material?.texture_variants && (random_double != undefined)) {
@@ -1146,7 +1146,7 @@ export class BLOCK {
     }
 
     // getAnimations...
-    static getAnimations(material, side) {
+    static getAnimations(material, side) : int {
         if(!material.texture_animations) {
             return 0;
         }

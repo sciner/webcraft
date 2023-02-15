@@ -10,6 +10,7 @@ import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
 import {isFluidId, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID, PACKET_CELL_DIRT_COLOR_G, PACKET_CELL_DIRT_COLOR_R, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R} from "../fluid/FluidConst.js";
+import type { BaseResourcePack } from "../base_resource_pack.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -465,18 +466,19 @@ export class ChunkWorkerChunk {
             const {buf, matId} = matBuf
             const last = buf.vertices.filled
 
-            const resp = material.resource_pack.pushVertices(
-                buf.vertices,
+            const resp = (material.resource_pack as BaseResourcePack).pushVertices(
                 block, // UNSAFE! If you need unique block, use clone
+                buf.vertices,
                 this,
                 block.pos,
                 neighbours,
                 biome,
                 dirt_color,
                 undefined,
-                undefined,
                 matrix,
                 pivot,
+                undefined,
+                undefined
             )
 
             if (useCache) {
