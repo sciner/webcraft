@@ -45,6 +45,18 @@ export class ClusterBase {
         this.corner         = (clusterManager.version == 2) ? Math.floor(this.randoms.double() * 4) : undefined
     }
 
+    get generator() { return this.clusterManager.world.generator }
+
+    getMaskByWorldXZ(x, z) {
+        x -= this.coord.x
+        z -= this.coord.z
+        const sizeX = this.size.x
+        if ((x | z) < 0 || x >= sizeX || z >= this.size.x) {
+            return null
+        }
+        return this.mask[x + z * sizeX]
+    }
+
     /**
      * Set block
      */
@@ -354,12 +366,12 @@ export class ClusterBase {
     }
 
     /**
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param { Vector } pos
-     * @param { Vector } size
-     * @param { object } block
+     * @param chunk 
+     * @param pos 
+     * @param size - y may be negative. It means "draw below pos.y"
+     * @param block 
      */
-    drawNaturalBasement(chunk, pos, size, block) {
+    drawNaturalBasement(chunk : ChunkWorkerChunk, pos : Vector, size : Vector, block) {
 
         // console.log(pos.toHash())
         //const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y - size.y + 1, pos.z + size.z)

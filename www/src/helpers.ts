@@ -349,6 +349,82 @@ export class Mth {
         return Math.round(value * decimals) / decimals
     }
 
+    static roundUpToPowerOfTwo(v) {
+        v--
+        v |= v >> 1
+        v |= v >> 2
+        v |= v >> 4
+        v |= v >> 8
+        v |= v >> 16
+        return v + 1
+    }
+}
+
+/**
+ * Calculates a convex bulge over a pathch of a flat surface, based on the distance
+ * from a surface point to the surfase center.
+ */
+export class SphericalBulge {
+    distToCenterOnUnitSph: number
+    distScaleSqrInv: number
+    bulgeScale: number
+    x0: number
+    y0: number
+
+    /** 
+     * @param {float} radius - the radius of the pathc that has zon-zero bulge
+     * @param {float} maxBulge - that bulge height at the surface center
+     * @param {float} maxBulgeOnUnitSphere - affects the shape of the curvature, from 0 to 1 not inclusive
+     */
+    initRadius(radius, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+        if (maxBulgeOnUnitSphere <= 0 || maxBulgeOnUnitSphere >= 1) {
+            throw new Error()
+        }
+        this.distToCenterOnUnitSph = 1 - maxBulgeOnUnitSphere
+        const maxDistSqrOnUnitSph = 1 - this.distToCenterOnUnitSph * this.distToCenterOnUnitSph
+        this.distScaleSqrInv = maxDistSqrOnUnitSph / (radius * radius + 1e-10)
+        this.bulgeScale = maxBulge / maxBulgeOnUnitSphere
+        return this
+    }
+
+    init1DIntRange(x_min, x_max_excl, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+        this.x0 = (x_min + x_max_excl - 1) * 0.5
+        const radius = 0.5 * (x_max_excl - x_min - 1 + 1e-10)
+        return this.initRadius(radius, maxBulge, maxBulgeOnUnitSphere)
+    }
+
+    init2DIntRange(x_min, y_min, x_max_excl, y_max_excl, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+        this.x0 = (x_min + x_max_excl - 1) * 0.5
+        this.y0 = (y_min + y_max_excl - 1) * 0.5
+        const dx = x_max_excl - x_min - 1
+        const dy = y_max_excl - y_min - 1
+        const radius = 0.5 * (Math.sqrt(dx * dx + dy * dy) + 1e-10)
+        return this.initRadius(radius, maxBulge, maxBulgeOnUnitSphere)
+    }
+
+    /**
+     * @param {float} distSqr - the distance squared from a surface point to the center of the surface
+     */
+    bulgeByDistanceSqr(distSqr) {
+        const distSqrOnUnitSph = distSqr * this.distScaleSqrInv
+        const cathetusOnUnitSph = Math.sqrt(Math.max(1 - distSqrOnUnitSph, 0))
+        return this.bulgeScale * Math.max(0, cathetusOnUnitSph - this.distToCenterOnUnitSph)
+    }
+
+    bulgeByDistance(dist) {
+        return this.bulgeByDistanceSqr(dist * dist)
+    }
+
+    bulgeByXY(x, y) {
+        x -= this.x0
+        y -= this.y0
+        return this.bulgeByDistanceSqr(x * x + y * y)
+    }
+
+    bulgeByX(x) {
+        x -= this.x0
+        return this.bulgeByDistanceSqr(x * x)
+    }
 }
 
 export class IvanArray {
@@ -672,6 +748,19 @@ export class VectorCollectorFlat {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
     }
 
+    values() {
+        const that = this;
+        return (function* () {
+            for (let x of that.list.values()) {
+                for (let y of x.values()) {
+                    for (let value of y.values()) {
+                        yield value;
+                    }
+                }
+            }
+        })()
+    }
+
 }
 
 // VectorCollector...
@@ -891,6 +980,155 @@ export class VectorCollector {
         }
     }
 
+}
+
+/** Similar to {@link VectorCollector}, but for 2D coordinates. */
+export class VectorCollector2D {
+
+    byRow: Map<int, any>
+
+    constructor() {
+        this.byRow  = new Map()
+    }
+
+    isEmpty()  { return this.byRow.size === 0 }
+
+    /** 
+     * It's relatively slow. Use {@link isEmpty} if possible.
+     * We don't maintain size filed, because it's rarely needed, but makes modifications slower.
+     */
+    getSize() {
+        let size = 0
+        for(const byCol of this.byRow.values()) {
+            size += byCol.size
+        }
+        return size
+    }
+
+    set(row, col, value) {
+        let byCol = this.byRow.get(row)
+        if (!byCol) {
+            byCol = new Map()
+            this.byRow.set(row, byCol)
+        }
+        byCol.set(col, value)
+    }
+
+    get(row, col) {
+        return this.byRow.get(row)?.get(col)
+    }
+
+    delete(row, col) {
+        let byCol = this.byRow.get(row)
+        if (byCol) {
+            byCol.delete(col)
+            if (byCol.size === 0) {
+                this.byRow.delete(row)
+            }
+        }
+    }
+
+    /**
+     * Updates a value (existing or non-existng), possibly setting it or deleting it.
+     * It's faster than getting and then setting a value.
+     * @param {int} row
+     * @param {int} col
+     * @param {Function} mapFn is called for the existing value (or undefined, if there is no value).
+     *   If its result is not null, it's set as the new value.
+     *   If its result is null, the value is deleted.
+     * @return the new value.
+     */
+    update(row, col, mapFn) {
+        let byCol = this.byRow.get(row)
+        const oldV = byCol?.get(col)
+        const newV = mapFn(oldV)
+        if (newV != null) {
+            if (newV !== oldV) {
+                if (!byCol) {
+                    byCol = new Map()
+                    this.byRow.set(row, byCol)
+                }
+                byCol.set(col, newV)
+            }
+        } else {
+            if (byCol) {
+                byCol.delete(col)
+                if (byCol.size === 0) {
+                    this.byRow.delete(row)
+                }
+            }
+        }
+        return newV
+    }
+
+    *values() {
+        for (const byCol of this.byRow.values()) {
+            yield *byCol.values()
+        }
+    }
+
+    *keys() {
+        const entry = [0, 0]
+        for (const [row, byCol] of this.byRow) {
+            entry[0] = row
+            for (const col of byCol.keys()) {
+                entry[1] = col
+                yield entry
+            }
+        }
+    }
+
+    *entries() {
+        const entry = [0, 0, null]
+        for (const [row, byCol] of this.byRow) {
+            entry[0] = row
+            for (const [col, value] of byCol) {
+                entry[1] = col
+                entry[2] = value
+                yield entry
+            }
+        }
+    }
+
+    /**
+     * Sets min (inclusive) and max (exclusive) values of coordintes to fields of {@link dst}
+     * object. The field names are derived from {@link prefixRow}, {@link prefixRow} and suffixes '_min' and '_max'.
+     */
+    calcBounds(prefixRow = 'row', prefixCol = 'col', dst = {}) {
+        let minCol = Infinity
+        let maxCol = -Infinity
+        let minRow = Infinity
+        let maxRow = -Infinity
+        for (const [row, byCol] of this.byRow) {
+            if (minRow > row) minRow = row
+            if (maxRow < row) maxRow = row
+            for (const col of byCol.keys()) {
+                if (minCol > col) minCol = col
+                if (maxCol < col) maxCol = col
+            }
+        }
+        dst[prefixRow + '_min'] = minRow
+        dst[prefixRow + '_max'] = maxRow + 1
+        dst[prefixCol + '_min'] = minCol
+        dst[prefixCol + '_max'] = maxCol + 1
+        return dst
+    }
+
+    toMatrix(pad = 0, emptyValue = null, arrayClass = Array) {
+        if (this.isEmpty()) {
+            return null
+        }
+        const aabb = this.calcBounds() as any
+        const mat = ShiftedMatrix.createMinMaxPad(aabb.row_min, aabb.col_min,
+            aabb.row_max, aabb.col_max, pad, arrayClass)
+        if (emptyValue !== null) {
+            mat.fill(emptyValue)
+        }
+        for(const [row, col, value] of this.entries()) {
+            mat.set(row, col, value)
+        }
+        return mat
+    }
 }
 
 // Color
@@ -1200,12 +1438,12 @@ export class Vector implements IVector {
         return this;
     }
 
-    /**
-     * @param {Vector} vec
-     * @return {Vector}
-     */
     mul(vec: IVector) : Vector {
         return new Vector(this.x * vec.x, this.y * vec.y, this.z * vec.z);
+    }
+
+    mulScalar(k) {
+        return new Vector(this.x * k, this.y * k, this.z * k)
     }
 
     /**
@@ -1235,8 +1473,14 @@ export class Vector implements IVector {
         return this.set(this.z, this.y, this.x);
     }
 
-    /**
-     */
+    // length() {
+    //     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    // }
+
+    horizontalLength() {
+        return Math.sqrt(this.x * this.x + this.z * this.z);
+    }
+
     distance(vec: IVector): number {
         // return this.sub(vec).length();
         // Fast method
@@ -1665,6 +1909,10 @@ export class Vector implements IVector {
         return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
     }
 
+    static relativePosToChunkIndex(x, y, z) {
+        return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
+    }
+
     relativePosToChunkIndex() {
         return CHUNK_CX * this.x + CHUNK_CY * this.y + CHUNK_CZ * this.z + CHUNK_CW;
     }
@@ -1709,6 +1957,154 @@ export class Vector implements IVector {
         ];
     }
 
+}
+
+/** Applies rotation by cradinal direction, mirroring and shift to a Vector. */
+export class VectorCardinalTransformer {
+    x0 : number
+    y0 : number
+    z0 : number
+    kxx : number
+    kxz : number
+    kzx : number
+    kzz : number
+
+    static tmpVec = new Vector()
+    static tmpVec2 = new Vector()
+
+    /** The same arguments as in {@link init} */
+    constructor(vec0 = null, dir = 0, mirror_x = false, mirror_z = false) {
+        if (vec0) {
+            this.init(vec0, dir, mirror_x, mirror_z)
+        }
+    }
+
+    /**
+     * @param {Vector} vec0 - the vector to which (0, 0, 0) will be transformed
+     * @param {Int} dir - one of DIRECTION.WEST, DIRECTION.EAST, DIRECTION.NORTH, DIRECTION.SOUTH
+     * @param {Boolean} mirror_x
+     * @param {Boolean} mirror_z
+     */
+    init(vec0, dir, mirror_x = false, mirror_z = false) {
+        this.x0 = vec0.x
+        this.y0 = vec0.y
+        this.z0 = vec0.z
+        this.kxx = 0
+        this.kxz = 0
+        this.kzx = 0
+        this.kzz = 0
+        const x_sign = mirror_x ? -1 : 1
+        const z_sign = mirror_z ? -1 : 1
+        if (dir == null) {
+            throw new Error()
+        }
+        dir = dir & 0x3     // same as (dir + 4) % 4, but faster
+        switch(dir) {
+            case DIRECTION.SOUTH:
+                this.kxx = -x_sign
+                this.kzz = -z_sign
+                break
+            case DIRECTION.NORTH:
+                this.kxx = x_sign
+                this.kzz = z_sign
+                break
+            case DIRECTION.WEST:
+                this.kzx = x_sign
+                this.kxz = -z_sign
+                break
+            case DIRECTION.EAST:
+                this.kzx = -x_sign
+                this.kxz = z_sign
+                break
+            default:
+                throw new Error()
+        }
+        return this
+    }
+
+    /**
+     * Initializes this transformer to transofrm from the coordinate system of
+     * a building to the coordinate system of a chunk.
+     * @param {Building} building 
+     * @param {Chunk|ServerChunk|ChunkWorkerChunk} chunk
+     */
+    initBuildingToChunk(building, chunk) {
+        return this.init(building.pos.sub(chunk.coord), building.direction, building.mirror_x, building.mirror_z)
+    }
+
+    /**
+     * Initializes this transformer to transofrm from the coordinate system of
+     * a building to the coordinate system of the world.
+     * @param {Building} building 
+     */
+    initBuildingToWorld(building) {
+        return this.init(building.pos, building.direction, building.mirror_x, building.mirror_z)
+    }
+
+    /**
+     * Initializes this transformer as the inverse transformation of the given
+     * {@link srcTransformer}, ot itself.
+     */
+    initInverse(srcTransformer = this) {
+        let {kxx, kxz, kzx, kzz, x0, y0, z0} = srcTransformer
+        const detInv = 1 / (kxx * kzz - kxz * kzx)
+        this.kxx =  detInv * kzz
+        this.kxz = -detInv * kxz
+        this.kzx = -detInv * kzx
+        this.kzz =  detInv * kxx
+        this.y0 = -y0
+        this.x0 = -(x0 * this.kxx + z0 * this.kxz)
+        this.z0 = -(x0 * this.kzx + z0 * this.kzz)
+        return this
+    }
+
+    transform(src, dst = new Vector()) {
+        let {x, z} = src
+        dst.y = this.y0 + src.y
+        dst.x = this.x0 + x * this.kxx + z * this.kxz
+        dst.z = this.z0 + x * this.kzx + z * this.kzz
+        return dst
+    }
+
+    transformXZ(x, z, dst) {
+        dst.x = this.x0 + x * this.kxx + z * this.kxz
+        dst.z = this.z0 + x * this.kzx + z * this.kzz
+        return dst
+    }
+
+    transformY(y) {
+        return this.y0 + y
+    }
+
+    tranformAABB(src, dst) {
+        const tmpVec = VectorCardinalTransformer.tmpVec
+        tmpVec.set(src.x_min, src.y_min, src.z_min)
+        this.transform(tmpVec, tmpVec)
+
+        const tmpVec2 = VectorCardinalTransformer.tmpVec2
+        // (x_max, z_max) are not inclusive, but we need to transfrom the actual block coordinates (inclusive)
+        tmpVec2.set(src.x_max - 1, src.y_max, src.z_max - 1)
+        this.transform(tmpVec2, tmpVec2)
+
+        dst.y_min = tmpVec.y
+        dst.y_max = tmpVec2.y
+        if (tmpVec.x < tmpVec2.x) {
+            dst.x_min = tmpVec.x
+            dst.x_max = tmpVec2.x + 1
+        } else {
+            dst.x_min = tmpVec2.x
+            dst.x_max = tmpVec.x + 1
+        }
+        if (tmpVec.z < tmpVec2.z) {
+            dst.z_min = tmpVec.z
+            dst.z_max = tmpVec2.z + 1
+        } else {
+            dst.z_min = tmpVec2.z
+            dst.z_max = tmpVec.z + 1
+        }
+
+        return dst
+    }
 }
 
 export class Vec3 extends Vector {
@@ -2361,11 +2757,27 @@ export class ArrayHelpers {
         return sum;
     }
 
-    static growAndSet(arr : any[], index : int, value : any, filler : any = undefined) {
-        while (arr.length <= index) {
-            arr.push(filler);
+    /** 
+     * Creates an array of at least the required length, or increases the length of the existing array.
+     * @returns {array} the given array, or a new one.
+     */
+    static ensureCapacity(arr = null, length, arrayClass = null) {
+        if (arr) {
+            arrayClass ??= arr.constructor
+            if (arrayClass !== arr.constructor) {
+                throw new Error()
+            }
+            if (arrayClass === Array) {
+                arr[length - 1] = null  // cause the array to grow
+            } else { // a typed array
+                if (arr.length < length) {
+                    arr = new arrayClass(Mth.roundUpToPowerOfTwo(length))
+                }
+            }
+        } else {
+            arr = new arrayClass(length)
         }
-        arr[index] = value;
+        return arr
     }
 
     /**
@@ -3137,7 +3549,7 @@ export class SimpleQueue {
 }
 
 // A matrix that has indices in [minRow..(minRow + rows - 1), minCol..(minCol + cols - 1)]
-export class SimpleShiftedMatrix {
+export class ShiftedMatrix {
     [key: string]: any;
     minRow: any;
     minCol: any;
@@ -3145,24 +3557,73 @@ export class SimpleShiftedMatrix {
     cols: any;
     rowsM1: number;
     colsM1: number;
-    maxRow: number;
-    maxCol: number;
     arr: any[];
 
+    // For each shift, we compute the distance. Shifts that are multiple of each other are not used.
+    // It's used to compute approximate cartesian distances (to achieve more natural, rounded corners).
+    static _MAX_SHIFT = 3
+    static _SHIFTS_BY_DELTA_ROW = ArrayHelpers.create(2 * ShiftedMatrix._MAX_SHIFT + 1, i => [])
+    static { // init shifts
+        const shifts = [0,1, 0,-1, 1,0, -1,0, -1,-1, -1,1, 1,-1, 1,1]
+        function add(dRow, dCol) {
+            const len = Math.sqrt(dRow * dRow + dCol * dCol)
+            ShiftedMatrix._SHIFTS_BY_DELTA_ROW[dRow + ShiftedMatrix._MAX_SHIFT].push(dCol, len)
+        }
+        for(let i = 0; i < shifts.length; i++) {
+            add(shifts[i], shifts[++i])
+        }
+        for(let i = 2; i <= ShiftedMatrix._MAX_SHIFT; i++) {
+            for(let j = 1; j < i; j++) {
+                for(let si = -1; si <= 1; si += 2 ) {
+                    for(let sj = -1; sj <= 1; sj += 2 ) {
+                        add(i * si, j * sj)
+                        add(j * sj, i * si)
+                    }
+                }
+            }
+        }
+    }
+
     constructor(minRow, minCol, rows, cols, arrayClass = Array) {
-        this.minRow = minRow;
-        this.minCol = minCol;
-        this.rows = rows;
-        this.cols = cols;
-        this.rowsM1 = rows - 1;
-        this.colsM1 = cols - 1;
-        this.maxRow = minRow + rows - 1;
-        this.maxCol = minCol + cols - 1;
-        this.arr = new arrayClass(rows * cols);
+        this.init(minRow, minCol, rows, cols, new arrayClass(rows * cols))
+    }
+
+    init(minRow, minCol, rows, cols, arr = null) {
+        this.minRow = minRow
+        this.minCol = minCol
+        this.rows = rows
+        this.cols = cols
+        this.rowsM1 = rows - 1
+        this.colsM1 = cols - 1
+        this.arr = arr ?? ArrayHelpers.ensureCapacity(this.arr, rows * cols)
+        return this
+    }
+
+    initHorizontalInAABB(aabb) {
+        return this.init(aabb.x_min, aabb.z_min, aabb.width, aabb.depth)
+    }
+
+    static createHorizontalInAABB(aabb, arrayClass = Array) {
+        return new ShiftedMatrix(aabb.x_min, aabb.z_min, aabb.width, aabb.depth, arrayClass)
+    }
+
+    static createMinMaxPad(minRow, minCol, maxRow, maxCol, pad = 0, arrayClass = Array) {
+        return new ShiftedMatrix(minRow - pad, minCol - pad, 
+            maxRow - minRow + 2 * pad, maxCol - minCol + 2 * pad, arrayClass)
+    }
+
+    // Exclusive, like in AABB
+    get maxRow() { return this.minRow + this.rows }
+    get maxCol() { return this.minCol + this.cols }
+    get size()   { return this.rows * this.cols }
+
+    /** Creates a mtarix with the same size and coordinates as this. */
+    createAligned(arrayClass = Array) {
+        return new ShiftedMatrix(this.minRow, this.minCol, this.rows, this.cols, arrayClass)
     }
 
     fill(v) {
-        this.arr.fill(v);
+        this.arr.fill(v, 0, this.size);
         return this;
     }
 
@@ -3175,7 +3636,7 @@ export class SimpleShiftedMatrix {
         return this.arr[row * this.cols + col];
     }
 
-    getOrDefault(row, col, def) {
+    getOrDefault(row, col, def = null) {
         row -= this.minRow;
         col -= this.minCol;
         if ((row | col | (this.rowsM1 - row) | (this.colsM1 - col)) < 0) {
@@ -3195,21 +3656,83 @@ export class SimpleShiftedMatrix {
     }
 
     has(row, col) {
-        return ((row - this.minRow) | (col - this.minCol) | (this.maxRow - row) | (this.maxCol - col)) >= 0;
+        row -= this.minRow
+        col -= this.minCol
+        return (row | col | (this.rowsM1 - row) | (this.colsM1 - col)) >= 0
     }
 
     hasRow(row) {
-        return ((row - this.minRow) | (this.maxRow - row)) >= 0;
+        row -= this.minRow
+        return (row | (this.rowsM1 - row)) >= 0
     }
 
     hasCol(col) {
-        return ((col - this.minCol) | (this.maxCol - col)) >= 0;
+        col -= this.minCol
+        return (col | (this.colsM1 - col)) >= 0
     }
 
-    *entries() {
+    /**
+     * Iterates over all elements, or over an area intersectign with the given aabb.
+     * @param {?Int} minRow - inclusive
+     * @param {?Int} minCol - inclusive
+     * @param {?Int} maxRow - exclusive
+     * @param {?Int} maxCol - exclusive
+     * @yields {Array} [row, col, value]
+     */
+    *entries(minRow = null, minCol = null, maxRow = null, maxCol = null) {
+        if (minCol == null) {
+            minRow = this.minRow
+            maxRow = this.maxRow
+            minCol = this.minCol
+            maxCol = this.maxCol
+        } else {
+            minRow = Math.max(minRow, this.minRow)
+            maxRow = Math.min(maxRow, this.maxRow)
+            minCol = Math.max(minCol, this.minCol)
+            maxCol = Math.min(maxCol, this.maxCol)
+        }
+        const entry = [0, 0, 0]
+        for(let i = minRow; i < maxRow; i++) {
+            let ind = (i - this.minRow) * this.cols + (minCol - this.minCol)
+            entry[0] = i
+            for(let j = minCol; j < maxCol; j++) {
+                entry[1] = j
+                entry[2] = this.arr[ind]
+                yield entry
+                ind++
+            }
+        }
+    }
+
+    /**
+     * @yields {Array} [row, col, index], where row is from 0 to this.rows - 1, and col is from  0 to this.cols - 1
+     */
+    *relativeRowColIndices() {
+        const entry = [0, 0, 0]
+        const cols = this.cols
         for(let i = 0; i < this.rows; i++) {
-            for(let j = 0; j < this.cols; j++) {
-                yield [i + this.minRow, j + this.minCol, this.arr[i * this.cols + j]];
+            let ind = i * cols
+            entry[0] = i
+            for(let j = 0; j < cols; j++) {
+                entry[1] = j
+                entry[2] = ind
+                yield entry
+                ind++
+            }
+        }
+    }
+
+    *rowColIndices() {
+        const entry = [0, 0, 0]
+        const cols = this.cols
+        for(let i = 0; i < this.rows; i++) {
+            let ind = i * cols
+            entry[0] = i + this.minRow
+            for(let j = 0; j < cols; j++) {
+                entry[1] = j + this.minCol
+                entry[2] = ind
+                yield entry
+                ind++
             }
         }
     }
@@ -3226,6 +3749,164 @@ export class SimpleShiftedMatrix {
         return res;
     }
 
+    transformEach(fn) {
+        const arr = this.arr
+        for(let i = 0; i < arr.length; i++) {
+            arr[i] = fn(arr[i])
+        }
+    }
+
+    /**
+     * Casts "rays" parallel to the sides that pass through rejected by {@link isNotEmpty},
+     * and fills all the elements that are not "illuminated" by the rays with {@link value}.
+     */
+    fillInsides(value = 1, isNotEmpty = (it) => it) {
+        const arr = this.arr
+        const cols = this.cols
+        for(let i = 0; i < this.rows; i++) {
+            const ind0 = i * cols
+            // find the 1st non-empty element in the row
+            for(let jb = 0; jb < cols; jb++) {
+                const indB = ind0 + jb
+                if (isNotEmpty(arr[indB])) {
+                    let ind = ind0 + (cols - 1)
+                    // find the last non-empty element
+                    while(!isNotEmpty(arr[ind])) {
+                        ind--
+                    }
+                    while(ind >= indB) {
+                        arr[ind] = value
+                        ind--
+                    }
+                    break
+                }
+            }
+        }
+        for(let j = 0; j < this.cols; j++) {
+            // find the 1st non-empty element in the column
+            for(let ib = 0; ib < this.rows; ib++) {
+                const indB = j + cols * ib
+                if (isNotEmpty(arr[indB])) {
+                    let ind = j + cols * (this.rows - 1)
+                    // find the last non-empty element
+                    while(!isNotEmpty(arr[ind])) {
+                        ind -= cols
+                    }
+                    while(ind >= indB) {
+                        arr[ind] = value
+                        ind -= cols
+                    }
+                    break
+                }
+            }
+        }
+    }
+
+    /** Creates a new matrix, or fills {@link dst} with values of this matrix, transformed by {@link fn} */
+    map(fn = (it) => it, dst = null, arrayClass = Array) {
+        if (dst && (dst.rows !== this.rows || dst.cols !== this.cols)) {
+            throw new Error()
+        }
+        dst = dst ?? new ShiftedMatrix(this.minRow, this.minCol, this.rows, this.cols, arrayClass)
+        for(let ind = 0; ind < this.arr.length; ind++) {
+            dst.arr[ind] = fn(this.arr[ind])
+        }
+        return dst
+    }
+
+    /**
+     * Initially some area must be filled with 0, and the rest with Infinity.
+     * For each cell filled with Infinity, it computes approximate distance to the
+     * closest cell filled with 0. If {@link toOutside} == true, the cells outside the
+     * matrix are considered to be 0.
+     */
+    calcDistances(toOutside = false, tmpArray = null, tmpQueue = null) {
+
+        function add(row, col, ind) {
+            queue.push(row)
+            queue.push(col)
+            tmpArray[ind] = 1
+        }
+
+        function spread(row0, col0, ind, v0) {
+            // don't spread to the side that already has smaller values
+            const minRow = row0 > 0 && arr[ind - cols] >= v0
+                ? Math.max(row0 - ShiftedMatrix._MAX_SHIFT, 0)
+                : row0
+            const maxRow = row0 < rowsM1 && arr[ind + cols] >= v0
+                ? Math.min(row0 + ShiftedMatrix._MAX_SHIFT, rowsM1)
+                : row0
+            for(let row = minRow; row <= maxRow; row++) {
+                const ind0 = row * cols
+                let byRow = ShiftedMatrix._SHIFTS_BY_DELTA_ROW[row - row0 + ShiftedMatrix._MAX_SHIFT]
+                for(let i = 0; i < byRow.length; i += 2) {
+                    const col = col0 + byRow[i]
+                    if (col >= 0 && col < cols) {
+                        const ind = ind0 + col
+                        const v = v0 + byRow[i + 1]
+                        if (arr[ind] > v) {
+                            arr[ind] = v
+                        }
+                    }
+                }
+            }
+        }
+
+        if (tmpArray) {
+            tmpArray.fill(0, 0, this.size)
+        } else {
+            tmpArray = new Uint8Array(this.size)
+        }
+        const queue = tmpQueue ?? new SimpleQueue()
+
+        const cols = this.cols
+        const rowsM1 = this.rows - 1
+        const colsM1 = cols - 1
+        const arr = this.arr
+        // add border cells to the queue, spread from inner cells
+        for(const [row, col, ind] of this.relativeRowColIndices()) {
+            const v = arr[ind]
+            if (v) { // it's a cell with an unkown distance, a queue candidate 
+                const onBorder = 
+                    (row === 0      ? toOutside : arr[ind - cols] === 0) ||
+                    (row === rowsM1 ? toOutside : arr[ind + cols] === 0) ||
+                    (col === 0      ? toOutside : arr[ind - 1]    === 0) ||
+                    (col === colsM1 ? toOutside : arr[ind + 1]    === 0)
+                if (onBorder) {
+                    add(row, col, ind)
+                }
+            } else {    // it's a cell with known 0 distance; spread from some of them
+                const hasNonZeroNeigbours = 
+                    row          && arr[ind - cols] ||
+                    row < rowsM1 && arr[ind + cols] ||
+                    col          && arr[ind - 1] ||
+                    col < colsM1 && arr[ind + 1]
+                if (hasNonZeroNeigbours) {
+                    spread(row, col, ind, v)
+                }
+            }
+        }
+        // do wide search
+        while(queue.length) {
+            const row = queue.shift()
+            const col = queue.shift()
+            const ind = row * cols + col
+            spread(row, col, ind, arr[ind])
+            if (row > 0 && !tmpArray[ind - cols]) {
+                add(row - 1, col, ind - cols)
+            }
+            if (row < rowsM1 && !tmpArray[ind + cols]) {
+                add(row + 1, col, ind + cols)
+            }
+            if (col > 0 && !tmpArray[ind - 1]) {
+                add(row, col - 1, ind - 1)
+            }
+            if (col < colsM1 && !tmpArray[ind + 1]) {
+                add(row, col + 1, ind + 1)
+            }
+        }
+        return this
+    }
 }
 
 /** A 3D array (backed by an Array or a typed array) whose bottom-left corner may differ from (0,0,0). */

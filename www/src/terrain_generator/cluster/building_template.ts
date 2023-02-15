@@ -1,8 +1,10 @@
 import type { BLOCK } from "../../blocks.js";
 import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
-import { Vector, VectorCollector, SimpleShiftedMatrix } from "../../helpers.js";
-
-const BLOCKS_CAN_BE_FLOOR = [468]; // DIRT_PATH
+import { AABB } from '../../core/AABB.js';
+import { Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, SphericalBulge, ArrayHelpers, SimpleQueue } from "../../helpers.js";
+import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_ADDITIONAL_WIDTH, BASEMENT_MAX_PAD,
+    BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
+import { calcMinFloorYbyXZ } from './building_helpers.js';
 
 const DELETE_BLOCK_ID = 199; // this block is automatically removed from the templates
 
@@ -17,6 +19,9 @@ const PORCH_CRATER_RADIUS = 2;
 const PORCH_FLAT_CRATER_RADIUS = 1;
 const PORCH_MAX_HALF_WIDTH = 1;
 const PORCH_CRATER_HEIGHT = 8;
+
+let tmpUint8Array = new Uint8Array(1)
+const tmpQueue = new SimpleQueue()
 
 //
 export class BuildingTemplate {
@@ -53,6 +58,22 @@ export class BuildingTemplate {
                 }
             }
         }
+
+        /** 
+         * It describes the automaticaly generated basement, in the same coordinate system as the building blocks.
+         * See {@link calcAutoBasement}. Its fields: {
+         *   aabb: AABB
+         *   distances: ShiftedMatrix - 0 inside the basement, or a positive number - distance to the basement
+         *   bulge: SphericalBulge - describes the bulge of the basement's bottom
+         * }
+         * 
+         * If it's null, but this.getMeta('draw_natural_basement', true) == true, a rectangular
+         * basement will be drawn, see ClusterBase.drawNaturalBasement
+         */
+        this.autoBasement = null
+
+        // ShiftedMatrix: for each column, the minimum Y of a solid block (or BLOCKS_CAN_BE_FLOOR), or null
+        this.minFloorYbyXZ = null
 
         if(this.blocks) {
             this.rot = [ [], [], [], [] ]
@@ -126,36 +147,52 @@ export class BuildingTemplate {
                 if(block.move.z < min.z) min.z = block.move.z
             }
 
+            // DELETE_BLOCK_ID might affect the results.
+            // Should we delete it in the beginning?
+
+            this.minFloorYbyXZ = calcMinFloorYbyXZ(bm, this.blocks)
+
             if(min.y != Infinity) {
 
+                this.aabb = new AABB().setCornerSize(min, this.size)
+
+                /**
+                 * this.door_pos is not in the same coordinate system as block.move.
+                 * To be in the same coordinate system as the blocks, "min" must be subtracted from it.
+                 * Don't change this.door_pos here no not break the compatibility.
+                 * But calculate and remember the corrected value.
+                 */
+                this.door_pos_corrected = this.door_pos && new Vector(this.door_pos).addSelf(min)
+
                 if(this.getMeta('air_column_from_basement', true)) {
-
-                    const two2map = new VectorCollector()
-
-                    // building a 2D floor map of the building
-                    for(let block of this.blocks) {
-                        if(block.move.y - min.y < 2) {
-                            const b = bm.fromId(block.block_id);
-                            // не учитываем неполные блоки у основания строения в качестве пола
-                            if(b.is_solid || BLOCKS_CAN_BE_FLOOR.includes(b.id)) {
-                                two2map.set(new Vector(block.move.x, 0, block.move.z), true);
+                    // по 2D карте пола здания строим вертикальные столбы воздуха
+                    // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
+                    for(let [x, z, y] of this.minFloorYbyXZ.entries()) {
+                        // This codition works linke in the old code. Maybe it's better to use compare to door Y.
+                        if (y - min.y < 2) {
+                            // starting from 1 block above the floor, and up to y_max
+                            for(y++; y < this.aabb.y_max; y++) {
+                                const air_pos = new Vector(x, y, z)
+                                all_blocks.set(air_pos, {block_id: 0, move: air_pos})
                             }
                         }
                     }
-
-                    // по 2D карте пола здания строим вертикальные столбы воздуха
-                    // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
-                    for(const vec of two2map.keys()) {
-                        for(let y = 0; y < this.size.y; y++) {
-                            const air_pos = new Vector(vec.x, min.y + y, vec.z)
-                            all_blocks.set(air_pos, {block_id: 0, move: air_pos})
-                        }
-                    }
-
                 }
-
             }
 
+        }
+
+        // prepare calculation of the basement shape
+        const groudFloorBlocks2D = 
+            this.getMeta('draw_natural_basement', true)
+                ? new VectorCollector2D() // blocks around the ground level, used to determine the shape of the basement
+                : null
+
+        // Y boundaries of the blocks that are used to detect basement shape
+        let groundFloorMinY = -Infinity, groundFloorMaxY = Infinity // inclusive
+        if (this.door_pos_corrected) {
+            groundFloorMinY = this.door_pos_corrected.y - 1 // the floor
+            groundFloorMaxY = this.door_pos_corrected.y     // the lower block of the door (inclusive)
         }
 
         // add all blocks from the schema
@@ -171,6 +208,12 @@ export class BuildingTemplate {
                     }
                 }
                 all_blocks.set(block.move, block)
+
+                // add to the shape of the basement
+                const y = block.move.y
+                if (y >= groundFloorMinY && y <= groundFloorMaxY) {
+                    groudFloorBlocks2D?.set(block.move.x, block.move.z, 1)
+                }
             }
         }
 
@@ -197,6 +240,8 @@ export class BuildingTemplate {
 
         // Add cap dirt block
         this.createBiomeDirtCapBlocks(all_blocks, min, bm)
+
+        this.calcAutoBasement(groudFloorBlocks2D)
 
         // Call it only after DELETE_BLOCK_ID is deleted
         // TODO: Этот код предназначался для создания пустоты перед дверью,
@@ -410,6 +455,58 @@ export class BuildingTemplate {
 
     }
 
+    /**
+     * Calculates {@link autoBasement}, if it's posible.
+     * @param {VectorCollector2D} groudFloorBlocks - a set of (x, z) of the blocks of the groud floor
+     */
+    calcAutoBasement(groudFloorBlocks) {
+        if (!groudFloorBlocks || groudFloorBlocks.isEmpty()) {
+            return null
+        }
+        const aabb = groudFloorBlocks.calcBounds('x', 'z', new AABB())
+        // calc side bulge based on aabb befre padding
+        const sideBulgeX = new SphericalBulge().init1DIntRange(aabb.x_min, aabb.x_max, BASEMENT_SIDE_BULGE)
+        const sideBulgeZ = new SphericalBulge().init1DIntRange(aabb.z_min, aabb.z_max, BASEMENT_SIDE_BULGE)
+        aabb.pad(BASEMENT_MAX_PAD)
+        aabb.y_min = 0
+        aabb.y_max = 0
+        const size = aabb.size
+        const center = aabb.center
+        
+        // calc distances from the outside to the basement
+        const distances = ShiftedMatrix.createHorizontalInAABB(aabb)
+        distances.fill(Infinity)
+        for(const [row, col] of groudFloorBlocks.keys()) {
+            distances.set(row, col, 0)
+        }
+        distances.fillInsides(0, (it) => it === 0)
+        tmpUint8Array = ArrayHelpers.ensureCapacity(tmpUint8Array, distances.size)
+        distances.calcDistances(false, tmpUint8Array, tmpQueue)
+
+        // pad sides
+        for(const [x, z, ind] of distances.rowColIndices()) {
+            let pad = BASEMENT_ADDITIONAL_WIDTH
+            // make the side a little convex
+            pad += sideBulgeX.bulgeByDistance(x - center.x)
+            pad += sideBulgeZ.bulgeByDistance(z - center.z)
+            distances.arr[ind] = Math.max(distances.arr[ind] - pad, 0)
+        }
+
+        const maxBotomBulge = BASEMENT_BOTTOM_BULGE_BLOCKS + Math.min(size.x, size.z) * BASEMENT_BOTTOM_BULGE_PERCENT
+        const bulge = new SphericalBulge().init2DIntRange(aabb.x_min, aabb.z_min, aabb.x_max, aabb.z_max, maxBotomBulge)
+
+        aabb.y_max++ // for cap blocks
+        aabb.y_min = -BASEMNET_DEPTHS_BY_DISTANCE[0].max
+        aabb.y_min -= Math.round(maxBotomBulge)
+        aabb.y_min-- // to fix dirt below the basement
+
+        this.autoBasement = {
+            aabb,
+            distances,
+            bulge
+        }
+    }
+
     // Detects the porch around the door. Adds crater-like air margins around the porch.
     // Removes check_is_solid above the porch.
     // Increases the template size if necessary.
@@ -484,7 +581,7 @@ export class BuildingTemplate {
         const porchMin = door_pos.clone();
         const porchMax = door_pos.clone();
         const intCraterRadius = Math.floor(PORCH_CRATER_RADIUS + 0.001);
-        const porch = new SimpleShiftedMatrix(
+        const porch = new ShiftedMatrix(
             min.x - MAX_EXTEND_TEMPLATE_SIDE,
             min.z - MAX_EXTEND_TEMPLATE_FRONT,
             this.size.x + 2 * MAX_EXTEND_TEMPLATE_SIDE,
@@ -498,7 +595,7 @@ export class BuildingTemplate {
         // find the air craters floor around the porch
         const newMin = min.clone();
         const newMax = max.clone();
-        for(let [px, pz, p] of porch.entries()) {
+        for(let [px, pz, p] of porch.entries() as Generator<any, any, any>) {
             if (!p?.porch) {
                 continue;
             }
@@ -533,7 +630,7 @@ export class BuildingTemplate {
 
         // draw the craters
         let maxY = Math.min(door_pos.y + PORCH_CRATER_HEIGHT, max.y);
-        for(let [x, z, p] of porch.entries()) {
+        for(let [x, z, p] of porch.entries() as Generator<any, any, any>) {
             if (p?.craterY == null) {
                 continue;
             }

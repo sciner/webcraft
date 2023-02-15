@@ -343,6 +343,78 @@ export class ChunkWorkerChunk {
 
     }
 
+    /**
+     * It find the approprate block for the biome cell at the given depth.
+     * Then it sets the block in the same way as {@link setBlockIndirect}, but it's
+     * optimized specifically for basic ground blocks.
+     * @param {int} x
+     * @param {int} y
+     * @param {int} z
+     * @param {*} cell - Default_Terrain_Map_Cell or its descendent
+     * @param {int} depth 0 - the upper level of the ground, -1 - cap, positive - depth below the surface
+     */
+    setGroundLayerIndirect(x, y, z, cell, depth) {
+        const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk
+        const index = cx * x + cy * y + cz * z + cw
+        let block_id
+        let dl = cell.dirt_layer
+        if (dl == null) {
+            // TODO remove the code for old generator, leave only
+            // dl = cell.biome.dirt_layers[0]
+
+            const dirt_layers = cell.biome.dirt_layers
+            if (dirt_layers) {
+                dl = dirt_layers[0]
+            } else {
+                if (depth < 0) {
+                    return
+                }
+                const bm = this.chunkManager.block_manager
+                block_id = depth == 0 ? bm.GRASS_BLOCK.id : bm.DIRT.id
+            }
+        }
+        
+        this.genValue++
+
+        if (block_id) {
+            // this was set for old generator; TODO remove this condition
+        } else if (depth < 0) { // cap block, or nothing
+            if (depth !== -1) {
+                return
+            }
+            block_id = dl.cap_block_id
+            if (!block_id) {
+                return
+            }
+            const exId = uint16View[index]
+            if(BLOCK.isSolidID(exId) || isFluidId(exId)) {
+                return
+            }
+        } else {
+            block_id = dl.blocks[Math.min(depth, dl.blocks.length - 1)]
+            this.fluid.setFluidIndirect(x, y, z, 0)
+        }
+
+        if (uint16View[index] > 0) {
+            this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
+        }
+        uint16View[index] = block_id
+    }
+
+    /**
+     * It applies "necessary fixes" to the block after a solid block was placed over it.
+     * Currently there is one such fix is replacing GRASS_BLOCK with DIRT.
+     */
+    fixBelowSolidIndirect(x, y, z) {
+        const bm = this.chunkManager.block_manager
+        const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk
+        const index = cx * x + cy * y + cz * z + cw
+        if (uint16View[index] === bm.GRASS_BLOCK.id) {
+            this.genValue++
+            uint16View[index] = bm.DIRT.id
+        }
+    }
+
     isWater(id) {
         return id == 200 || id == 202;
     }

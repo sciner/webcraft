@@ -66,4 +66,9 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         return null
     }
 
+    getCapBlockId() {
+        const dl = this.dirt_layer ?? this.biome.dirt_layers[0]
+        return dl.cap_block_id
+    }
+
 }

@@ -25,7 +25,6 @@ import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import { ChunkManager } from "./chunk_manager.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
@@ -728,6 +727,35 @@ export class Renderer {
         }
         if(!this._base_texture_n) {
             this._base_texture_n = BLOCK.resource_pack_manager.get('base').textures.get('default').texture_n
+        }
+
+        this.fallTreeLeafes()
+
+    }
+
+    /**
+     * Trees leaf falling
+     */
+    fallTreeLeafes() {
+        const world = this.world
+        if(!world.settings.leaf_fall) {
+            return false
+        }
+        const player_pos = this.player.lerpPos
+        const xyz = new Vector()
+        for(let i = 0; i < 10; i++) {
+            xyz.set(
+                (Math.random() - Math.random()) * 16,
+                (Math.random() - Math.random()) * 16,
+                (Math.random() - Math.random()) * 16
+            ).addSelf(player_pos).flooredSelf()
+            const tblock = world.getBlock(xyz)
+            if(tblock.hasTag && tblock?.hasTag('leaves')) {
+                const tblock_under = world.getBlock(tblock.posworld.add(Vector.YN))
+                if(tblock_under?.id === 0) {
+                    this.destroyBlock(tblock, tblock.posworld.add(new Vector(.5, .5, .5)), false, 1, 0, 1)
+                }
+            }
         }
     }
 

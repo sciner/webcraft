@@ -169,6 +169,7 @@
         "screen_download": {"en": "Download screenshot", "ru": "Загрузить скриншот", "fr": "", "es": "", "man": ""},
         "screen_cover": {"en": "Set as world cover", "ru": "Сделать обложкой мира", "fr": "", "es": "", "man": ""},
         "screen_gallery": {"en": "Upload to gallery", "ru": "Добавить в галерею", "fr": "", "es": "", "man": ""},
-        "screen_taken": {"en": "You have taken a screenshot. Farther?", "ru": "Вы сделали снимок экрана. Что дальше?", "fr": "", "es": "", "man": ""}
+        "screen_taken": {"en": "You have taken a screenshot. Farther?", "ru": "Вы сделали снимок экрана. Что дальше?", "fr": "", "es": "", "man": ""},
+        "settings_leaf_fall": {"en": "Trees leaf fall", "ru": "Листопад", "fr": "", "es": "", "man": ""}
     }
 }

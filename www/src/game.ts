@@ -25,19 +25,26 @@ globalThis.UI_FONT = 'Ubuntu';
 
 export class GameSettings {
 
-    fov:                     float = DEFAULT_FOV_NORMAL
+    // control
     mouse_sensitivity:       float = 100
+    forced_joystick_control: boolean = false
+    // sound
     music_volume:            float = DEFAULT_MUSIC_VOLUME
+    // resources
     texture_pack:            string = 'base'
+    // camera
+    fov:                     float = DEFAULT_FOV_NORMAL
     render_distance:         int = 5
+    // quality
     use_light:               int = 1
     beautiful_leaves:        boolean = true
+    leaf_fall:               boolean = true
+    draw_improved_blocks:    boolean = true
     mipmap:                  boolean = false
+    // grids
     mobs_draw_debug_grid:    boolean = false
     chunks_draw_debug_grid:  boolean = false
     cluster_draw_debug_grid: boolean = false
-    forced_joystick_control: boolean = false
-    draw_improved_blocks:    boolean = true
 
     apply(state : {[key: string]: any}) {
 
