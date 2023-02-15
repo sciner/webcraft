@@ -25,6 +25,8 @@ For example you can download this texture pack from https://polyflore.net/projec
 Start server:
 ```
 // Run NodeJS v17.9.0 server!
+npm i
+npm run tsc:www // run this command in separate terminal window
 cd ./node_server
 npm run install
 npm run start
