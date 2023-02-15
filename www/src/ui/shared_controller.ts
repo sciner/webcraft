@@ -239,7 +239,7 @@ export class Shared_Controller {
     }
 
     // Join to world
-    joinWorld(ok, err) {
+    joinWorld(world_guid, ok, err) {
         this.App.JoinWorld({world_guid}, ok, err);
     }
 

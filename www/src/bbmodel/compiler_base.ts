@@ -57,7 +57,7 @@ export class BBModel_Compiler_Base {
                 return spritesheet
             }
         }
-        const spritesheet = this.createSpritesheet(this.options.tx_cnt, this.options.resolution, this.options, id)
+        const spritesheet = this.createSpritesheet(this.options.tx_cnt, this.options.resolution, this.options)
         this.spritesheets.unshift(this.spritesheets.pop())
         return spritesheet
     }

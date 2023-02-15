@@ -7,6 +7,16 @@ const SUFFIXES_ALL_ARMOR = ['_CAP', '_TUNIC', '_PANTS', '_BOOTS', '_HELMET', '_C
 
 const IN_CREATIVE_INVENTORY_DEFAULT = true;
 
+interface IEchantment {
+    name: string
+    suffixes: string[],
+    max_level: int,
+    weight: int,
+    in_creative_inventory: boolean
+    id : string
+    incompatible_ids: string[]
+}
+
 /**
  * Contains all enchentments, and some static methods to read them from an item.
  *
@@ -32,45 +42,45 @@ export class Enchantments {
             max_level: 4,
             weight: 10,
             in_creative_inventory: true
-        },
+        } as IEchantment,
         1: {
             name: 'Fire Protection',
             suffixes: SUFFIXES_ALL_ARMOR,
             max_level: 4,
             weight: 5,
             in_creative_inventory: true
-        },
+        } as IEchantment,
         2: {
             name: 'Feather Falling',
             suffixes: ['_BOOTS'],
             max_level: 4,
             weight: 5,
             in_creative_inventory: true
-        },
+        } as IEchantment,
         3: {
             name: 'Blast Protection',
             suffixes: SUFFIXES_ALL_ARMOR,
             max_level: 4,
             weight: 2
-        },
+        } as IEchantment,
         4: {
             name: 'Projectile Protection',
             suffixes: SUFFIXES_ALL_ARMOR,
             max_level: 4,
             weight: 5
-        },
+        } as IEchantment,
         5: {
             name: 'Thorns',
             suffixes: SUFFIXES_ALL_ARMOR,
             max_level: 3,
             weight: 1
-        },
+        } as IEchantment,
         6: {
             name: 'Respiration',
             suffixes: ['_HELMET'],
             max_level: 3,
             weight: 2
-        }
+        } as IEchantment
         // TODO add the rest
     };
 
