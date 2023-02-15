@@ -1,4 +1,5 @@
 import { BaseResourcePack } from "./base_resource_pack.js";
+import type { GameSettings } from "./game.js";
 import { Resources } from "./resources.js";
 
 export class ResourcePackManager {
@@ -11,13 +12,13 @@ export class ResourcePackManager {
     }
 
     // init
-    async init(settings) {
+    async init(settings : GameSettings) {
 
         this.settings = settings;
 
         const json              = await Resources.loadResourcePacks(settings);
         const def_resource_pack = json.base;
-        const resource_packs    = new Set();
+        const resource_packs    : Set<BaseResourcePack> = new Set();
 
         // 1. base
         const base = new BaseResourcePack(this.BLOCK, def_resource_pack.path, def_resource_pack.id);

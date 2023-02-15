@@ -90,7 +90,7 @@ export class Default_Terrain_Generator {
     }
 
     //
-    generate(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
+    generate(chunk : ChunkWorkerChunk) : Default_Terrain_Map | null {
 
         const b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.BEDROCK : BLOCK.SAND;
 

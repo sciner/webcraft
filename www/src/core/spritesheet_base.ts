@@ -51,25 +51,22 @@ export class Spritesheet_Base {
     }
 
     // indexToXY
-    indexToXY(x, y) {
-        return  {
-            x: this.index % this.tx_cnt,
-            y: Math.floor(this.index / this.tx_cnt)
+    indexToXY(index : int) : {x: int, y: int} {
+        return {
+            x: index % this.tx_cnt,
+            y: Math.floor(index / this.tx_cnt)
         };
     }
 
     // XYToIndex
-    XYToIndex(x, y) {
+    XYToIndex(x : int, y : int) : int {
         return y * this.tx_cnt + x;
     }
 
     /**
      * Load textures
-     * @param {string} value 
-     * @param {object[]} suffixes 
-     * @returns 
      */
-    async loadTex(value, suffixes = []) {
+    async loadTex(value: string, suffixes: {key: string, generator: Function}[] = []) {
         const resp = {
             texture: await this._loadImageCanvas(value)
         }

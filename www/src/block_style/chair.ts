@@ -2,8 +2,9 @@ import { DIRECTION, IndexedColor, Vector, QUAD_FLAGS} from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import type { BlockManager } from '../blocks.js';
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 
 const {mat4} = glMatrix;
@@ -24,7 +25,7 @@ export default class style {
         );
     }
     
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let aabb = new AABB().set(2/16, 0, 2/16, 14/16, 26/16, 14/16);
         if(for_physic) {
             aabb.y_max = 11/16;
@@ -35,7 +36,7 @@ export default class style {
         return [aabb]
     }
     
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
         if(!block || typeof block == 'undefined') {
             return;
         }
@@ -172,7 +173,7 @@ export default class style {
         if (extra_data?.upholstery) {
             const mat = bm[extra_data.upholstery.toUpperCase()];
             const upholstery = bm.calcTexture(mat.texture, DIRECTION.UP);
-            const color = new IndexedColor(mat.mask_color.r, mat.mask_color.g, 0, 0);
+            const color = new IndexedColor(mat.mask_color.r, mat.mask_color.g, 0);
             const flag = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             const wools = [];
             wools.push(...[

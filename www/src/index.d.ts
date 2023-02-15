@@ -73,3 +73,9 @@ interface IBlockSides {
     east? : any
     west? : any
 }
+
+interface IBlockTexture {
+    id?: string
+    side? : any
+    tx_cnt? : int
+}

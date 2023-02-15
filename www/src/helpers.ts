@@ -735,7 +735,7 @@ export class VectorCollector {
         })()
     }
 
-    clear(list) {
+    clear(list : any = null) {
         this.list = list ? list : new Map();
         this.size = 0;
     }

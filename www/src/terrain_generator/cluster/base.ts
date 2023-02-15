@@ -11,7 +11,7 @@ export const CLUSTER_PADDING    = 8
 export class ClusterPoint {
     [key: string]: any;
 
-    constructor(height : int, block_id : int, margin : int, info, building? : any, y_shift? : int) {
+    constructor(height : int, block_id : int, margin : int, info? : any, building? : any, y_shift? : int) {
         this.height         = height;
         this.block_id       = block_id;
         this.margin         = margin;

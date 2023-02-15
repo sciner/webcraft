@@ -1,6 +1,7 @@
 import {Vector} from "../helpers.js";
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import type { BBModel_Model } from "./model.js";
 const {mat4, vec3, quat} = glMatrix;
 
 const TX_SIZE = 16;
@@ -16,7 +17,7 @@ export class BBModel_Child {
      * @param { import("./model.js").BBModel_Model } model
      * @param {object} json
      */
-    constructor(model?, json?) {
+    constructor(model? : BBModel_Model, json?) {
         this.model = model
         this.json = json
         this.pivot = new Vector()

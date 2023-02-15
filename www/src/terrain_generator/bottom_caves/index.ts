@@ -5,6 +5,7 @@ import { CHUNK_SIZE } from "../../chunk_const.js";
 import { CubeSym } from '../../core/CubeSym.js';
 import { noise, alea } from "../default.js";
 import type { WorkerWorld } from '../../worker/world.js';
+import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -46,7 +47,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         return super.init()
     }
 
-    generate(chunk, aleaRandom, generate_map = true) {
+    generate(chunk : ChunkWorkerChunk, aleaRandom?: alea, generate_map : boolean = true) : Default_Terrain_Map | null {
 
         if(!aleaRandom) {
             aleaRandom = new alea(`${this.seed}/${chunk.id}`);
@@ -60,7 +61,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let fill_count              = 0;
 
         //
-        const getBlock = (x, y, z) => {
+        const getBlock = (x : int, y : int, z : int) => {
             return chunk.tblocks.getBlockId(x, y, z);
         };
 
@@ -280,6 +281,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             );
 
         }
+
+        return null
 
     }
 

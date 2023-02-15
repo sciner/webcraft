@@ -1,7 +1,9 @@
-import type { BlockManager } from '../blocks.js';
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import { AABB } from '../core/AABB.js';
+import { IndexedColor, Vector } from '../helpers.js';
 
 import type { TBlock } from '../typed_blocks3.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { BlockStyleRegInfo } from './default.js';
 
 export default class style {
@@ -18,14 +20,14 @@ export default class style {
         );
     }
 
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);
         return [aabb];
     }
 
     // Build function
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
         // Add animations
         if(typeof QubatchChunkWorker != 'undefined') {
             QubatchChunkWorker.postMessage(['add_animated_block', {

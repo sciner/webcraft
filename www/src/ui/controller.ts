@@ -3,7 +3,7 @@ import { DEFAULT_FOV_NORMAL } from '../render.js';
 import { UIApp } from './app.js';
 import { TexturePackManager } from './texture_pack-manager.js';
 import { SkinManager } from './skin-manager.js';
-import { GameClass } from '../game.js';
+import { GameClass, GameSettings } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE, DEFAULT_MUSIC_VOLUME } from "../constant.js";
@@ -316,18 +316,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
 
     // Settings
     $scope.settings = {
-        form: {
-            fov: DEFAULT_FOV_NORMAL,
-            music_volume: DEFAULT_MUSIC_VOLUME,
-            texture_pack: 'base',
-            render_distance: 5,
-            use_light: 1,
-            beautiful_leaves: true,
-            mipmap: false,
-            mobs_draw_debug_grid: false,
-            chunks_draw_debug_grid: false,
-            cluster_draw_debug_grid: false
-        },
+        form: new GameSettings(),
         lightMode: {
             list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
             get current() {
@@ -346,33 +335,8 @@ let gameCtrl = async function($scope : any, $timeout : any) {
             return false;
         },
         load: function() {
-            const form = localStorage.getItem('settings');
-            if(form) {
-                this.form = Object.assign(this.form, JSON.parse(form));
-            }
-            // add default render_distance
-            if(!('render_distance' in this.form)) {
-                this.form.render_distance = 4;
-            }
-            // use_light
-            if('use_light' in this.form) {
-                this.form.use_light = Math.trunc(this.form.use_light | 0);
-            }
-            // forced Joystick control
-            if(!('forced_joystick_control' in this.form)) {
-                this.form.forced_joystick_control = false;
-            }
-            // draw improved blocks
-            if(!('draw_improved_blocks' in this.form)) {
-                this.form.draw_improved_blocks = true;
-            }
-            // mouse sensitivity
-            if(!('mouse_sensitivity' in this.form)) {
-                this.form.mouse_sensitivity = 100;
-            }
-            this.form.texture_pack = 'base';
-            this.form.fov = this.form.fov || DEFAULT_FOV_NORMAL;
-            this.form.music_volume = this.form.music_volume ?? DEFAULT_MUSIC_VOLUME;
+            const load_state = localStorage.getItem('settings')
+            this.form.apply(load_state ? (JSON.parse(load_state) ?? {}) : {})
         },
         updateSlider: function (inputId) {
             const slider = (document.getElementById(inputId) as HTMLInputElement);

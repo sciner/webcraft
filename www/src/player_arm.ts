@@ -3,6 +3,7 @@ import { Resources } from "./resources.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
 import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
+import type { Renderer } from "./render.js";
 const { mat4, vec3, quat } = glMatrix;
 
 const lm        = IndexedColor.WHITE
@@ -37,8 +38,8 @@ export class PlayerArm {
         }
 
         // Bind draw
-        const draw = function(render, pos, matrix) {
-            const delta = getDelta()
+        const draw = function(render : Renderer, delta : float) {
+            delta = getDelta()
             arm.apos.set(0, .1, -.35)
             return orig_draw(render, delta)
         }

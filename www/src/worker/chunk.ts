@@ -81,11 +81,7 @@ export class ChunkWorkerChunkManager {
 export class ChunkWorkerChunk {
     [key: string]: any;
 
-    /**
-     * @param {ChunkWorkerChunkManager} chunkManager
-     * @param {*} args
-     */
-    constructor(chunkManager, args) {
+    constructor(chunkManager : ChunkWorkerChunkManager, args) {
         this.chunkManager   = chunkManager;
         Object.assign(this, args);
         this.addr           = new Vector(this.addr.x, this.addr.y, this.addr.z);
@@ -314,7 +310,7 @@ export class ChunkWorkerChunk {
      * @param {boolean} destroy_fluid
      * @returns
      */
-    setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false, destroy_fluid = false) {
+    setBlockIndirect(x : int, y : int, z : int, block_id : int, rotate : any = null, extra_data : any = null, entity_id : string = null, power? : int, check_is_solid : boolean = false, destroy_fluid : boolean = false) {
 
         this.genValue++
 

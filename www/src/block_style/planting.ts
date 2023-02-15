@@ -6,8 +6,9 @@ import {AABB} from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { GRASS_PALETTE_OFFSET } from '../constant.js';
-import type { BlockManager } from '../blocks.js';
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 const {mat4} = glMatrix;
 
@@ -72,7 +73,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE;
         aabb.set(0, 0, 0, 0, 0, 0)
@@ -98,7 +99,7 @@ export default class style {
     }
 
     //
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         const material = block.material;
         const is_tall_grass = block.hasTag('is_tall_grass')

@@ -5,6 +5,9 @@ import { NoiseFactory } from "./NoiseFactory.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { GENERATOR_OPTIONS } from "./terrain/manager.js";
 import { Biome3LayerManager } from "./layer_manager.js";
+import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+import type { TerrainMap2 } from "./terrain/map.js";
+import type { WorkerWorld } from "../../worker/world.js";
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -21,12 +24,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     [key: string]: any;
 
     /**
-     * @param { import("../../worker/world.js").WorkerWorld } world
-     * @param { string } seed
-     * @param { string } world_id
-     * @param { object } options
      */
-    constructor(world, seed, world_id, options) {
+    constructor(world : WorkerWorld, seed : string, world_id : string, options : object) {
 
         const al = new alea(seed)
         const noise2d = createNoise2D(al.double)
@@ -59,11 +58,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     /**
-     * Generate
-     * @param { ChunkWorkerChunk } chunk
-     * @returns
      */
-    generate(chunk) {
+    generate(chunk : ChunkWorkerChunk) : TerrainMap2 {
 
         this.noise3d.scoreCounter = 0
 
@@ -77,11 +73,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     }
 
-    /**
-     * @param { ChunkWorkerChunk } chunk
-     * @returns {Default_Terrain_Map}
-     */
-    generateDefaultMap(chunk) {
+    generateDefaultMap(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
         return new Default_Terrain_Map(
             chunk.addr,
             chunk.size,

@@ -6,6 +6,8 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_CX, CHUNK_CY, CHUNK_CZ, 
 import {BLOCK, POWER_NO} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
+import type { FluidChunk } from "./fluid/FluidChunk.js";
+import type { ChunkLight } from "./light/ChunkLight.js";
 
 export function newTypedBlocks(coord : Vector, chunkSize: Vector) {
     return new TypedBlocks3(coord, chunkSize);
@@ -113,7 +115,29 @@ export class VectorCollector1D {
 
 //
 export class TypedBlocks3 {
-    [key: string]: any;
+
+    addr            : Vector = null
+    coord           : Vector = null
+    chunkSize       : Vector = null
+    non_zero        : int = 0
+    vertExtraLen    : any[] = null
+    fluid           : FluidChunk = null
+    light           : ChunkLight = null
+    dataChunk       : any | DataChunk = null
+    vertices        : Uint8Array = null
+    lightData       : Uint8Array = null
+
+    tblocks?        : TypedBlocks3 = null
+    id              : Uint16Array = null
+    power           : VectorCollector1D = null
+    rotate          : VectorCollector1D = null
+    entity_id       : VectorCollector1D = null
+    texture         : VectorCollector1D = null
+    extra_data      : VectorCollector1D = null
+    falling         : VectorCollector1D = null
+    shapes          : VectorCollector1D = null
+    metadata        : VectorCollector1D = null
+    position        : VectorCollector1D = null
 
     constructor(coord : Vector, chunkSize: Vector) {
         this.addr       = Vector.toChunkAddr(coord);
@@ -129,18 +153,14 @@ export class TypedBlocks3 {
         this.shapes     = new VectorCollector1D(chunkSize);
         this.metadata   = new VectorCollector1D(chunkSize);
         this.position   = new VectorCollector1D(chunkSize);
-        this.non_zero   = 0;
-
+        //
         this.dataChunk = new DataChunk({ size: chunkSize, strideBytes: 2 }).setPos(coord);
         /**
          * store resourcepack_id and number of vertices here
          * @type {Uint8Array}
          */
         this.vertices  = null;
-        this.vertExtraLen = null;
         this.id = this.dataChunk.uint16View;
-        this.fluid = null;
-        this.light = null;
     }
 
     ensureVertices() {
@@ -320,8 +340,7 @@ export class TypedBlocks3 {
     }
 
     *[Symbol.iterator]() {
-        const { size } = this.dataChunk;
-        const { cx, cy, cz, cw } = this;
+        const { size, cx, cy, cz, cw } = this.dataChunk;
         for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)
                 for (let x = 0; x < size.x; x++) {
@@ -331,7 +350,7 @@ export class TypedBlocks3 {
                 }
     }
 
-    delete(vec) {
+    delete(vec : IVector) {
         const block         = this.get(vec);
         block.id            = 0;
         block.power         = 0;
@@ -822,9 +841,9 @@ export class TBlock {
         return this;
     }
 
-    get chunk() {
-        return this.tb.chunk;
-    }
+    // get chunk() {
+    //     return this.tb.chunk;
+    // }
 
     initFrom(block) {
         this.tb = block.tb;
@@ -1001,17 +1020,17 @@ export class TBlock {
         this.tb.falling.delete(this.vec);
     }
 
-    // vertices
-    get vertices() {
-        return this.tb.vertices.get(this.vec);
-    }
-    set vertices(value) {
-        if(value !== null) {
-            this.tb.vertices.set(this.vec, value)
-            return
-        }
-        this.tb.vertices.delete(this.vec);
-    }
+    // // vertices
+    // get vertices() {
+    //     return this.tb.vertices.get(this.vec);
+    // }
+    // set vertices(value) {
+    //     if(value !== null) {
+    //         this.tb.vertices.set(this.vec, value)
+    //         return
+    //     }
+    //     this.tb.vertices.delete(this.vec);
+    // }
 
     // shapes
     get shapes() {

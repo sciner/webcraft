@@ -1,6 +1,6 @@
 import { default as default_style } from '../block_style/default.js';
 import { BBModel_Child } from "./child.js";
-import { QUAD_FLAGS, Vector } from "../helpers.js";
+import { IndexedColor, QUAD_FLAGS, Vector } from "../helpers.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
@@ -50,14 +50,7 @@ export class BBModel_Cube extends BBModel_Child {
         }
     }
 
-    /**
-     * @param {Float32Array} vertices
-     * @param {Vector} pos
-     * @param {IndexedColor} lm
-     * @param {*} matrix
-     * @param {*} emmit_particles_func
-     */
-    pushVertices(vertices, pos, lm, parentMatrix, emmit_particles_func) {
+    pushVertices(vertices : Float32Array, pos : Vector, lm : IndexedColor, parentMatrix : imat4, emmit_particles_func? : Function) {
         const worldMatrix = mat4.multiply(tempMat, parentMatrix, this.matrix);
         const model = this.model
         const force_texture_name = this.selected_texture_name ?? model.selected_texture_name

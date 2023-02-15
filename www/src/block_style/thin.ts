@@ -2,9 +2,10 @@ import {DIRECTION, IndexedColor, NORMALS, QUAD_FLAGS, ROTATE, Vector} from '../h
 import { CubeSym } from '../core/CubeSym.js';
 import { WorldPortal } from '../portal.js';
 import { AABB } from '../core/AABB.js';
-import type { BlockManager } from '../blocks.js';
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 
 // Панель
@@ -22,7 +23,7 @@ export default class style {
         );
     }
 
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const shapes = [] // x1 y1 z1 x2 y2 z2
         const material = tblock.material
         // F R B L
@@ -38,7 +39,7 @@ export default class style {
         return shapes
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         if(typeof block == 'undefined') {
             return;

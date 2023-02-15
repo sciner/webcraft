@@ -393,10 +393,10 @@ export class Resources {
     }
 
     // Load supported block styles
-    static async loadBlockStyles(settings) {
+    static async loadBlockStyles(options) {
         const resp = new Set();
         const all = [];
-        const json_url = (settings && settings.json_url) ? settings.json_url : '../data/block_style.json';
+        const json_url = (options && options.json_url) ? options.json_url : '../data/block_style.json';
         await Helpers.fetchJSON(json_url, true, 'bs').then((json) => {
             for(let code of json) {
                 // Load module

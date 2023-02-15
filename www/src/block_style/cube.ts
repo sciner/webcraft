@@ -8,8 +8,9 @@ import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane } from './default.js';
 import { GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import type { BlockManager } from '../blocks.js';
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 
 const {mat4} = glMatrix;
@@ -27,7 +28,7 @@ mat4.scale(matrix_leaves_sqrt2, matrix_leaves_sqrt2, [1.4, 1.4, 1.4]);
 const leaves_matrices = [matrix_leaves_sqrt2, matrix_leaves_2, matrix_leaves_2];
 
 const _lm_grass = new IndexedColor(0, 0, 0);
-const _lm_leaves = new IndexedColor(0, 0, 0, 0);
+const _lm_leaves = new IndexedColor(0, 0, 0);
 const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
 
@@ -80,7 +81,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const material = tblock.material;
         let width = material.width ? material.width : 1;
         let height = material.height ? material.height : 1;
@@ -272,7 +273,7 @@ export default class style {
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         // Pot
         if(block.hasTag('into_pot')) {
@@ -288,8 +289,6 @@ export default class style {
         if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL && !sheared) {
             const leaves_tex = bm.calcTexture(material.texture, 'round');
             _lm_leaves.copyFrom(dirt_color);
-            // _lm_leaves.r += (Math.random() - Math.random()) * 24;
-            // _lm_leaves.g += (Math.random() - Math.random()) * 24;
             _lm_leaves.b = leaves_tex[3] * TX_CNT;
             const r1 = (randoms[(z * 13 + x * 3 + y * 23) % randoms.length] | 0) / 100;
             const r2 = (randoms[(z * 11 + x * 37 + y) % randoms.length] | 0) / 100;
@@ -492,7 +491,7 @@ export default class style {
         }
 
         //
-        const calcSideParams = (side, dir, width, height) => {
+        const calcSideParams = (side : string, dir : int | string, width? : float, height? : float) => {
             const anim_frames = no_anim ? 0 : bm.getAnimations(material, side);
             const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             if(material.name == 'FURNACE' && dir == DIRECTION.NORTH) {
@@ -568,15 +567,7 @@ export default class style {
 
     }
 
-    /**
-     * @param {*} chunk
-     * @param {*} tblock
-     * @param {int} x
-     * @param {int} y
-     * @param {int} z
-     * @returns {boolean}
-     */
-    static playJukeboxDisc(chunk, tblock, x, y, z) {
+    static playJukeboxDisc(chunk : ChunkWorkerChunk, tblock : TBlock | FakeTBlock, x : int, y : int, z : int) : boolean {
         if(typeof QubatchChunkWorker === 'undefined') {
             return false
         }

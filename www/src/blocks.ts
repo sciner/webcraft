@@ -102,7 +102,7 @@ export class FakeVertices {
 export class FakeTBlock {
     [key: string]: any;
 
-    constructor(id, extra_data?, pos?, rotate?, pivot?, matrix?, tags?, biome?, dirt_color?) {
+    constructor(id : int, extra_data?, pos?, rotate?, pivot?, matrix?, tags?, biome?, dirt_color?) {
         this.id = id;
         this.extra_data = extra_data;
         this.pos = pos;
@@ -1088,7 +1088,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir : int, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float) {
+    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float) {
 
         let mat_texture = material?.texture
         if(material?.texture_variants && (random_double != undefined)) {
@@ -1159,7 +1159,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры
-    static calcTexture(c, dir? : int, tx_cnt : int = TX_CNT): tupleFloat4 {
+    static calcTexture(c, dir? : int | string, tx_cnt : int = TX_CNT): tupleFloat4 {
         if (c instanceof Array) {
             // do nothing
         } else if(c instanceof Function) {

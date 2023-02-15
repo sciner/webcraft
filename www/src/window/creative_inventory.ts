@@ -54,7 +54,7 @@ class CreativeInventoryCollection extends Window {
                 id: b.id
             };
             if('power' in b && (b.power !== 0)) {
-                block.power = b.power
+                (block as any).power = b.power
             }
             if(!this.matchesFilter(b, filter_text)) {
                 continue
@@ -217,7 +217,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.createInventorySlots(this.cell_size)
 
         // Создание слотов для блоков коллекций
-        this.createCollectionSlots(this.cell_size)
+        this.createCollectionSlots()
 
         // Add close button
         this.loadCloseButtonImage((image) => {

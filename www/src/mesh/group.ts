@@ -94,7 +94,7 @@ export class MeshGroup {
      * @param {bool} force_inventory_style
      */
     buildVertices(tx, ty, tz, force_inventory_style, matrix, pivot) {
-        const dirt_color = new IndexedColor(82, 450, 0, 0);
+        const dirt_color = new IndexedColor(82, 450, 0);
         const biome = {
             code:       'GRASSLAND',
             color:      '#98a136'

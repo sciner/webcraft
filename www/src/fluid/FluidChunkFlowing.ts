@@ -123,7 +123,7 @@ export class FluidChunkFlowing {
      * Changes {@link diffByIndex} and {@link byIndex} as if all
      * flowing blocks filtered by {@link filterIndex} are deleted.
      */
-    _delete(filterIndex = () => ture) {
+    _delete(filterIndex = (index : int) => true) {
         const SHIFTED_MASK = FLUID_TYPE_MASK << FLOWING_DIFF_TYPE_MASK_SHL
         for (const [index, diff] of this.diffByIndex) {
             if (!filterIndex(index)) {

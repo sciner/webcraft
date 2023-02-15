@@ -1,8 +1,8 @@
 import { BLOCK } from "./blocks.js";
 import { ItemHelpers } from "./block_helpers.js";
 import { ObjectHelpers } from "./helpers.js";
-import { InventoryComparator } from "./inventory_comparator.js";
 import { Enchantments } from "./enchantments.js"
+import type { InventoryComparator } from "./inventory_comparator.js";
 
 const REPAIR_PER_INGREDIENT = 0.25;
 const REPAIR_PER_COMBINE_BONUS = 0.12;

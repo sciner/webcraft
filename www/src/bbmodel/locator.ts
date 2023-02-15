@@ -1,6 +1,7 @@
 import { BBModel_Child } from "./child.js";
-import { StringHelpers, Vector } from "../helpers.js";
+import { IndexedColor, StringHelpers, Vector } from "../helpers.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import type { BBModel_Model } from "./model.js";
 const {vec3} = glMatrix;
 
 const _emmiter_pos = new Vector(0, 0, 0)
@@ -10,11 +11,7 @@ const tempVec3 = vec3.create();
 export class BBModel_Locator extends BBModel_Child {
     [key: string]: any;
 
-    /**
-     * @param {Vector} size
-     * @param {Vector} translate
-     */
-    constructor(model, json, size, translate) {
+    constructor(model : BBModel_Model, json, size : Vector, translate : Vector) {
         super(model, json)
         this.size = size
         this.translate = translate
@@ -22,14 +19,7 @@ export class BBModel_Locator extends BBModel_Child {
         this.name = json.name
     }
 
-    /**
-     * @param {Float32Array} vertices
-     * @param {Vector} pos
-     * @param {IndexedColor} lm
-     * @param {*} parent_matrix
-     * @param {*} emmit_particles_func
-     */
-    pushVertices(vertices, pos, lm, parent_matrix, emmit_particles_func) {
+    pushVertices(vertices : Float32Array, pos : Vector, lm : IndexedColor, parent_matrix : imat4, emmit_particles_func? : Function) {
         tempVec3[0] = -this.json.position[0] / 16;
         tempVec3[1] = this.json.position[1] / 16;
         tempVec3[2] = this.json.position[2] / 16;

@@ -10,13 +10,14 @@ export class RegionChunk extends BaseChunk {
         this.dataPos = new Vector();
     }
 
-    setPos(pos) {
+    setPos(pos : Vector) : BaseChunk {
         this.pos.copyFrom(pos);
         const { outerAABB } = this.dataChunk;
         this.dataPos.copyFrom(pos);
         this.dataPos.x -= outerAABB.x_min;
         this.dataPos.y -= outerAABB.y_min;
         this.dataPos.z -= outerAABB.z_min;
+        return this
     }
 
     uint32ByCoord(localX, localY, localZ, offset = 0) {
@@ -27,4 +28,5 @@ export class RegionChunk extends BaseChunk {
         localZ += dataPos.z
         return uint32View[offset + stride32 * (localX  + outerSize.x * (localZ + localY * outerSize.z))];
     }
+
 }

@@ -93,14 +93,14 @@ export default class Mesh_Object_Clouds {
                     // if(clouds_3d && with_neightbours) {
                     //     neighbours.UP = neighbours.DOWN = block;
                     // }
-                    push_cube(block, this.vertices, FakeCloudWorld, x, y, z, neighbours, null, false);
+                    push_cube(block, this.vertices, null, x, y, z, neighbours);
                     if(clouds_3d && with_neightbours) {
                         neighbours2.UP = null;
                         neighbours2.DOWN = block;
-                        push_cube(block, this.vertices, FakeCloudWorld, x, y + 1, z, neighbours2, null, false);
+                        push_cube(block, this.vertices, null, x, y + 1, z, neighbours2);
                         neighbours2.UP = neighbours2.DOWN;
                         neighbours2.DOWN = null;
-                        push_cube(block, this.vertices, FakeCloudWorld, x, y - 1, z, neighbours2, null, false);
+                        push_cube(block, this.vertices, null, x, y - 1, z, neighbours2);
                     }
                 }
             }

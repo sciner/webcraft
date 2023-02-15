@@ -1,8 +1,9 @@
-import { DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
+import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
 import GeometryTerrain from '../../geometry_terrain.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
+import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 

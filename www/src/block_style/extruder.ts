@@ -1,7 +1,9 @@
-import type { BlockManager } from '../blocks.js';
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import {IndexedColor, DIRECTION, Vector, QUAD_FLAGS} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BlockStyleRegInfo } from './default.js';
+import type { TBlock } from '../typed_blocks3.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 
 const {mat3, mat4} = glMatrix;
@@ -121,7 +123,7 @@ export default class style {
         );
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
         x *= 2;
         y *= 2;
         z *= 2;
@@ -134,8 +136,8 @@ export default class style {
             texture_id = material.texture.id;
         }
 
-        if(force_tex && force_tex?.id) {
-            texture_id = force_tex.id;
+        if(force_tex && (force_tex as IBlockTexture)?.id) {
+            texture_id = (force_tex as IBlockTexture).id;
         }
 
         let tex = resource_pack.textures.get(texture_id);

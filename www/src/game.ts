@@ -1,6 +1,6 @@
 import { World } from "./world.js";
-import { Renderer, ZOOM_FACTOR } from "./render.js";
-import { AverageClockTimer, isMobileBrowser, Vector} from "./helpers.js";
+import { DEFAULT_FOV_NORMAL, Renderer, ZOOM_FACTOR } from "./render.js";
+import { AverageClockTimer, isMobileBrowser, Mth, Vector} from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
@@ -9,11 +9,10 @@ import { Sounds } from "./sounds.js";
 import { Kb} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
-import { SpriteAtlas } from "./core/sprite_atlas.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -23,6 +22,40 @@ import { SpriteAtlas } from "./core/sprite_atlas.js";
 (globalThis as any).UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
 console.debug('zoom', UI_ZOOM)
 globalThis.UI_FONT = 'Ubuntu';
+
+export class GameSettings {
+
+    fov:                     float = DEFAULT_FOV_NORMAL
+    mouse_sensitivity:       float = 100
+    music_volume:            float = DEFAULT_MUSIC_VOLUME
+    texture_pack:            string = 'base'
+    render_distance:         int = 5
+    use_light:               int = 1
+    beautiful_leaves:        boolean = true
+    mipmap:                  boolean = false
+    mobs_draw_debug_grid:    boolean = false
+    chunks_draw_debug_grid:  boolean = false
+    cluster_draw_debug_grid: boolean = false
+    forced_joystick_control: boolean = false
+    draw_improved_blocks:    boolean = true
+
+    apply(state : {[key: string]: any}) {
+
+        for(let k in state) {
+            if(k in this) {
+                this[k] = state[k]
+            }
+        }
+
+        this.texture_pack       = 'base'
+        this.fov                = Mth.clamp(this.fov, 50, 120)
+        this.mouse_sensitivity  = Mth.clamp(this.mouse_sensitivity, 25, 300)
+        this.music_volume       = Mth.clamp(this.music_volume, 0, 100)
+        this.use_light          = Mth.clamp(this.use_light, 0, 2)
+
+    }
+
+}
 
 // Main game class
 export class GameClass {

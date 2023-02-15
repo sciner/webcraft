@@ -1,9 +1,10 @@
-import {DIRECTION, ROTATE, TX_CNT, Vector} from '../helpers.js';
+import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { CubeSym } from "../core/CubeSym.js";
-import type { BlockManager } from '../blocks.js';
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 
 const width = 1;
@@ -25,7 +26,7 @@ export default class style {
         );
     }
 
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const f = !!expanded ? .001 : 0;
         return style
             .calculate(tblock, tblock.posworld, neighbours, world.chunkManager)
@@ -154,7 +155,7 @@ export default class style {
     }
 
     // Main func
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         const material              = block.material;
         const texture               = block.material.texture;

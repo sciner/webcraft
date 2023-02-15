@@ -6,6 +6,7 @@ import { MobAnimation, MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import type { Renderer } from "./render.js";
 
 const { quat } = glMatrix;
 const SWING_DURATION = 6;
@@ -263,8 +264,8 @@ export class PlayerModel extends MobModel {
         }
     }
 
-    postLoad(render, tree) {
-        super.postLoad(tree);
+    postLoad(render : Renderer, tree : SceneNode) {
+        super.postLoad(render, tree);
 
         for(let i = 0; i < tree.length; i++) {
             tree[i].scale.set([this.scale, this.scale, this.scale]);

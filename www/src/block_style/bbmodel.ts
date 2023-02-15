@@ -4,7 +4,7 @@ import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
 import { CubeSym } from '../core/CubeSym.js';
 
-import { BlockStyleRegInfo, default as default_style, TX_SIZE } from '../block_style/default.js';
+import { BlockStyleRegInfo, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
@@ -16,6 +16,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 import {impl as alea} from "../../vendors/alea.js";
 import type { BBModel_Model } from '../bbmodel/model.js';
 import type { Biome } from '../terrain_generator/biome3/biomes.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 
 const { mat4, vec3 } = glMatrix;
@@ -73,7 +74,7 @@ export default class style {
      * 
      * @returns {AABB[]}
      */
-    static computeAABB(tblock : TBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) {
 
         const bb = tblock.material.bb
         const behavior = bb.behavior || bb.model.name
@@ -120,7 +121,7 @@ export default class style {
 
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours : any, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4) {
 
         if(!block || typeof block == 'undefined') {
             return;
@@ -191,7 +192,7 @@ export default class style {
 
     }
 
-    static applyRotate(model, tblock, neighbours, matrix, x, y, z) {
+    static applyRotate(model : BBModel_Model, tblock: TBlock | FakeTBlock, neighbours : any, matrix : imat4, x : int, y : int, z : int) {
 
         const mat = tblock.material
         const bb = mat.bb
@@ -260,7 +261,7 @@ export default class style {
 
     }
 
-    static postBehavior(x : number, y : number, z : number, model : BBModel_Model, tblock : TBlock, neighbours, pivot, matrix : imat4, biome : Biome, dirt_color : IndexedColor, emmited_blocks: any[]) {
+    static postBehavior(x : number, y : number, z : number, model : BBModel_Model, tblock : TBlock | FakeTBlock, neighbours, pivot, matrix : imat4, biome : Biome, dirt_color : IndexedColor, emmited_blocks: any[]) {
 
         const mat = tblock.material
         const bb = mat.bb
@@ -283,7 +284,7 @@ export default class style {
 
     }
 
-    static applyBehavior(model : BBModel_Model, chunk, tblock : TBlock, neighbours, matrix : imat4, biome, dirt_color : IndexedColor, vertices : float[], xyz : Vector) {
+    static applyBehavior(model : BBModel_Model, chunk, tblock : TBlock | FakeTBlock, neighbours : any, matrix : imat4, biome : any, dirt_color : IndexedColor, vertices : float[], xyz : Vector) {
 
         const bm = style.block_manager
         const emmited_blocks = []
@@ -494,7 +495,7 @@ export default class style {
         }
     }
 
-    static addParticles(model : BBModel_Model, tblock : TBlock, matrix : imat4, particles) {
+    static addParticles(model : BBModel_Model, tblock : TBlock | FakeTBlock, matrix : imat4, particles) {
         if(typeof worker == 'undefined') {
             return
         }
@@ -518,7 +519,7 @@ export default class style {
         }
     }
 
-    static checkWhen(model : BBModel_Model, tblock : TBlock, when : object) : boolean {
+    static checkWhen(model : BBModel_Model, tblock : TBlock | FakeTBlock, when : object) : boolean {
         if(!when) {
             return true
         }
@@ -557,7 +558,7 @@ export default class style {
         return true
     }
 
-    static selectTextureFromPalette(model : BBModel_Model, texture : BBModel_TextureRule, tblock : TBlock) {
+    static selectTextureFromPalette(model : BBModel_Model, texture : BBModel_TextureRule, tblock : TBlock | FakeTBlock) {
         //
         const makeTextureName = (name : string) => {
             if(!name) {

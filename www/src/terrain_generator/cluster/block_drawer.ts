@@ -134,7 +134,7 @@ export class BlockDrawer {
                     const move = new Vector(pos.x + x, pos.y + y, pos.z + z);
                     const block = {move, block_id};
                     if(extra_data) {
-                        block.extra_data = extra_data;
+                        (block as any).extra_data = extra_data;
                     }
                     this.list.push(block);
                 }

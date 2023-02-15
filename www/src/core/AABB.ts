@@ -468,7 +468,7 @@ export function pushTransformed(
  * @param sides
  * @param center - center wicha AABB is placed, same as [x, y, z] in push transformed
  */
-export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: null | Vector | number[] = null, matrix: null | imat4 = null, sides: TSideSet, center: IVector) {
+export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: Vector | IVector | number[] | null = null, matrix: null | imat4 = null, sides: TSideSet, center: IVector) {
 
     matrix = matrix || defaultMatrix;
     center = center || defalutCenter;

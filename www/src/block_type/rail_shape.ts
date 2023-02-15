@@ -64,7 +64,7 @@ export class RailShape {
         const cd = BLOCK.getCardinalDirection(new_item.rotate);
         if(me_sides.length == 0) me_sides.push(RailShape.SIDES[cd]);
         if(me_sides.length == 1) me_sides.push(RailShape.OPPOSITES[me_sides[0]]);
-        new_item.extra_data.shape = RailShape.calcShape(me_sides[0], me_sides[[1]]);
+        new_item.extra_data.shape = RailShape.calcShape(me_sides[0], me_sides[1]);
         if(RailShape.ONLY_STRAIGHT.includes(new_item.id)) {
             if(!RailShape.isStraight(new_item.extra_data.shape)) {
                 const side1 = RailShape.SIDES[cd]
@@ -162,7 +162,7 @@ export class RailShape {
         return false;
     }
 
-    static calcShape(side1, side2, pos_diff) {
+    static calcShape(side1 : string, side2 : string, pos_diff? : Vector) {
         let shape = RailShape[`${side1}_${side2}`] ?? RailShape[`${side2}_${side1}`];
         if(pos_diff && pos_diff.y < 0 && RailShape.isStraight(shape)) {
             if(shape == RailShape.NORTH_SOUTH) {

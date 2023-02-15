@@ -2,8 +2,9 @@ import { IndexedColor, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
 import { AABB, AABBSideParams, PLANES, pushAABB } from '../core/AABB.js';
 import { TBlock } from '../typed_blocks3.js';
 import { default as stairs_style } from './stairs.js';
-import type { BlockManager } from '../blocks.js';
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import { BlockStyleRegInfo } from './default.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 
 const _aabb = new AABB();
@@ -33,7 +34,7 @@ export default class style {
         );
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         if(typeof block == 'undefined') {
             return;

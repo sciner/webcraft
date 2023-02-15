@@ -219,7 +219,7 @@ export class InventoryComparator {
                 return false;
             }
             if(!this.itemsEqual(old_item, item)) {
-                console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], 2, null));
+                console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], null, 2));
                 return false;
             }
         }

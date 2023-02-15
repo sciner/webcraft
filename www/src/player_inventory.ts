@@ -105,7 +105,7 @@ export class PlayerInventory extends Inventory {
     }
 
     // The same result as in chest_manager.js: applyClientChange()
-    clearDragItem(move_to_inventory) {
+    clearDragItem(move_to_inventory : boolean = false) {
         const drag = this.hud.wm.drag
         if(move_to_inventory) {
             const dragItem = drag.getItem()

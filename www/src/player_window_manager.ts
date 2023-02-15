@@ -13,12 +13,12 @@ export class PlayerWindowManager {
         this.addWindow(new DoubleChestWindow(inventory));
         this.addWindow(new FurnaceWindow(inventory));
         this.addWindow(new ChargingStationWindow(inventory));
-        this.addWindow(new EditSignWindow(inventory));
+        this.addWindow(new EditSignWindow());
         this.addWindow(new EnderChestWindow(inventory));
-        this.addWindow(new NotImplementedWindow(inventory));
+        this.addWindow(new NotImplementedWindow());
         this.addWindow(new QuestWindow(player));
         this.addWindow(new StatsWindow(player));
-        this.addWindow(new DieWindow(player));
+        this.addWindow(new DieWindow());
         this.addWindow(new AnvilWindow(inventory));
         this.addWindow(new BeaconWindow(inventory));
         this.addWindow(new ScreenshotWindow(player));

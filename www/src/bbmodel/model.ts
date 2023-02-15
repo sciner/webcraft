@@ -475,7 +475,7 @@ export class BBModel_Model {
     }
 
     //
-    parsePivotAndRot(el, isGroup) {
+    parsePivotAndRot(el, isGroup : boolean = false) {
         /*
             rotation: {
                 angle: 0

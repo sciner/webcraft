@@ -171,6 +171,7 @@ export class SkinManager {
 
     //
     initProfilePage() {
+        // TODO: read var from global scope
         if(typeof initProfilePage == 'undefined') {
             return false
         }

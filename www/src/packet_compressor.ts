@@ -97,12 +97,11 @@ export function decompressNearby(str) {
     const start_vec = new Vector(0, 0, 0);
     var end_vec = start_vec;
     if(use_start_vec) {
-        start_vec.set(star_vec_string.split(',').map(x => parseInt(x)));
+        start_vec.set(...star_vec_string.split(',').map((x : string) => parseInt(x)) as [number, number, number]);
         // end vec
         const end_vec_string = arr.shift();
         if(end_vec_string.length > 0) {
-            end_vec = new Vector(0, 0, 0);
-            end_vec.set(end_vec_string.split(',').map(x => parseInt(x)));
+            end_vec = new Vector(end_vec_string.split(',').map((x : string) => parseInt(x)) as [number, number, number]);
         }
     }
     // added
