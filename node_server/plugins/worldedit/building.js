@@ -351,9 +351,9 @@ export class WorldEditBuilding {
             Math.min(building.world.pos1.x, building.world.pos2.x),
             Math.min(building.world.pos1.y, building.world.pos2.y),
             Math.min(building.world.pos1.z, building.world.pos2.z),
-            Math.max(building.world.pos1.x, building.world.pos2.x),
-            Math.max(building.world.pos1.y, building.world.pos2.y),
-            Math.max(building.world.pos1.z, building.world.pos2.z)
+            Math.max(building.world.pos1.x, building.world.pos2.x) + 1,
+            Math.max(building.world.pos1.y, building.world.pos2.y) + 1,
+            Math.max(building.world.pos1.z, building.world.pos2.z) + 1
         )
 
         if(!aabb.containsVec(pos1)) {
