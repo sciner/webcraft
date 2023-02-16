@@ -23,7 +23,7 @@ export default class Biome3LayerStone {
         if(chunk.addr.y < 0)  {
             const BLOCK = this.generator.block_manager
             const { cx, cy, cz, cw, uint16View } = chunk.tblocks.dataChunk
-            const block_id = BLOCK.STONE.id
+            const block_id = 171 // BLOCK.STONE.id
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
                     for(let y = 0; y < chunk.size.y; y++) {
