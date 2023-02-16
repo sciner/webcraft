@@ -1053,47 +1053,185 @@
             }
         },
         {
-            "name": "floor_one",
+            "name": "endcity_base_floor",
             "pos1": {
-                "x": -262,
+                "x": -263,
                 "y": 1,
                 "z": 1
             },
             "pos2": {
-                "x": -269,
-                "y": 5,
-                "z": -7
+                "x": -272,
+                "y": 4,
+                "z": -8
             },
             "entrance": {
-                "x": -265,
+                "x": -267,
                 "y": 1,
                 "z": 1
             },
             "meta": {
-                "dt": "2023-02-14T12:06:21.011Z",
+                "dt": "2023-02-15T18:28:51.986Z",
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
         },
         {
-            "name": "floor_two",
+            "name": "endcity_second_floor",
             "pos1": {
-                "x": -272,
-                "y": 2,
+                "x": -274,
+                "y": 1,
                 "z": 1
             },
             "pos2": {
-                "x": -283,
-                "y": 9,
+                "x": -285,
+                "y": 8,
                 "z": -10
             },
             "entrance": {
-                "x": -277,
+                "x": -279,
                 "y": 1,
                 "z": 1
             },
             "meta": {
-                "dt": "2023-02-14T12:32:32.321Z",
+                "dt": "2023-02-15T18:38:03.078Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "endcity_third_floor",
+            "pos1": {
+                "x": -289,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -302,
+                "y": 8,
+                "z": -12
+            },
+            "entrance": {
+                "x": -295,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-15T18:58:27.461Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "endcity_third_roof",
+            "pos1": {
+                "x": -304,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -319,
+                "y": 2,
+                "z": -14
+            },
+            "entrance": {
+                "x": -311,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-15T19:08:22.651Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "endcity_tower_base",
+            "pos1": {
+                "x": -322,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -328,
+                "y": 7,
+                "z": -5
+            },
+            "entrance": {
+                "x": -325,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-15T19:25:26.066Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "endcity_tower_piece",
+            "pos1": {
+                "x": -331,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -337,
+                "y": 4,
+                "z": -5
+            },
+            "entrance": {
+                "x": -334,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-15T20:49:12.238Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "endcity_bridge_end",
+            "pos1": {
+                "x": -340,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -344,
+                "y": 7,
+                "z": 0
+            },
+            "entrance": {
+                "x": -342,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T07:34:21.128Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "endcity_bridge_piece",
+            "pos1": {
+                "x": -347,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -351,
+                "y": 6,
+                "z": -2
+            },
+            "entrance": {
+                "x": -349,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T08:37:54.627Z",
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
