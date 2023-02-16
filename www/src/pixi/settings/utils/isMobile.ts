@@ -1,3 +1,8 @@
+/**
+ * https://github.com/kaimallea/isMobile
+ * MIT License
+ */
+
 const appleIphone = /iPhone/i;
 const appleIpod = /iPod/i;
 const appleTablet = /iPad/i;
@@ -73,7 +78,7 @@ export type isMobileResult = {
 
 export type IsMobileParameter = UserAgent | Navigator;
 
-export default function isMobile(param?: IsMobileParameter): isMobileResult {
+export function isMobile(param?: IsMobileParameter): isMobileResult {
     let nav: Navigator = {
         userAgent: '',
         platform: '',

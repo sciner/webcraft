@@ -12,3 +12,5 @@ declare namespace GlobalMixins
 
     }
 }
+
+declare const MSStream: any;
