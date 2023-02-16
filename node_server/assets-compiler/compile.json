@@ -9554,15 +9554,16 @@
             "style": "petals",
             "sound": "madcraft:block.cloth",
             "transparent": true,
-            "rotate": true,
+            "can_rotate": true,
+            "passable": 1,
             "mining_time": 0,
             "material": {
                 "id": "plant"
             },
             "tags": [
-                "rotate_by_pos_n_6",
                 "no_set_on_top",
-                "no_drop_ao"
+                "no_drop_ao",
+                "doubleface"
             ],
             "texture": {
                 "side": "./textures/pink_petals.png",

@@ -12,6 +12,14 @@ const {mat4} = glMatrix;
 const _aabb = new AABB()
 const _pivot = new Vector(0, 0, 0)
 
+// plane temp variables
+const _plane_aabb = new AABB();
+const _plane_faces = {
+    // lm.b used for store count of blocks need to shift
+    // where begin texture mask (default 0, but in shader used max(mask_shift, 1.))
+    west: new AABBSideParams()
+};
+
 export const TX_CNT = DEFAULT_TX_CNT;
 export const TX_SIZE = 16;
 
@@ -77,8 +85,7 @@ export default class {
         const height = plane.size.y / TX_SIZE;
         const depth = plane.size.z / TX_SIZE;
 
-        const aabb = new AABB();
-        aabb.set(
+        _plane_aabb.set(
             plane.pos.x + .5,
             plane.pos.y + .5,
             plane.pos.z + .5,
@@ -88,13 +95,14 @@ export default class {
         ).expand(width/2, height/2, depth/2)
         .translate(width/2, 0, 0);
         if(plane.translate) {
-            aabb.translate(plane.translate.x/TX_SIZE, plane.translate.y/TX_SIZE, plane.translate.z/TX_SIZE);
+            _plane_aabb.translate(plane.translate.x/TX_SIZE, plane.translate.y/TX_SIZE, plane.translate.z/TX_SIZE);
         }
 
         // Matrix
         let matrix = mat4.create();
         if(plane.matrix) {
             matrix = mat4.multiply(matrix, matrix, plane.matrix);
+            // matrix = mat4.translate(matrix, matrix, [-.5, 0, -.5]);
         }
         if(plane.rot && !isNaN(plane.rot[0])) {
             if (plane.rot[2] != 0) {
@@ -125,14 +133,10 @@ export default class {
         tex[0] += (add_uv[0] / TX_CNT);
         tex[1] += (add_uv[1] / TX_CNT);
 
-        const faces = {
-            // lm.b used for store count of blocks need to shift
-            // where begin texture mask (default 0, but in shader used max(mask_shift, 1.))
-            west: new AABBSideParams(tex, plane.flag, plane?.lm?.b || 0, plane.lm, null, true)
-        };
+        _plane_faces.west.set(tex,  plane.flag, plane?.lm?.b || 0, plane.lm, null, true)
 
         // Push vertices
-        pushAABB(vertices, aabb, pivot, matrix, faces, plane.pos);
+        pushAABB(vertices, _plane_aabb, pivot, matrix, _plane_faces, plane.pos);
 
     }
 
