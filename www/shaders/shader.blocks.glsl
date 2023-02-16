@@ -235,7 +235,7 @@
 
 #ifdef vignetting_call_func
     // apply vignette to render result
-    drawVignetting();
+    // drawVignetting();
     //--
 #endif
 

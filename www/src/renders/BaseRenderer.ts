@@ -542,12 +542,15 @@ export default class BaseRenderer {
      * @param {string} shaderText
      * @param {{[key: string]: {skip?: boolean, [key: string]: string } }} args
      */
-    preprocess (shaderText, args = {}) {
+    preprocess (shaderText : string, args = {}) {
         if (!shaderText) {
             return shaderText;
         }
 
         const pattern = /#include<([^>]+)>/g;
+
+        // remove commented lines
+        shaderText = shaderText.replaceAll(/^\s*[\/\/].*$/gm, '')
 
         let out = shaderText
             .replaceAll(pattern, (_, r, offset, string) => {

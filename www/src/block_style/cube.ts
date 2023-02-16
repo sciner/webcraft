@@ -393,6 +393,11 @@ export default class style {
                 }
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
+                if(block.extra_data && block.extra_data.v != undefined) {
+                    const color = LEAVES_COLOR_FLAGS[block.extra_data.v % LEAVES_COLOR_FLAGS.length]
+                    lm.r = color.r
+                    lm.g = color.g
+                }
             }
             if(block.hasTag('mask_color')) {
                 lm = material.mask_color;
