@@ -29,18 +29,6 @@ const _petals_parts = [
     [{mx: 4.5, mz: 12.5, height: 3}]
 ];
 
-const matrices = [];
-
-function initMat() {
-    for (let i=0;i<4;i++) {
-        const matrix = mat4.create();
-        mat4.rotateY(matrix, matrix, i * -(2 * Math.PI));
-        matrices.push(matrix);
-    }
-}
-
-initMat();
-
 // Листья
 export default class style {
     [key: string]: any;
@@ -95,9 +83,10 @@ export default class style {
 
         // Rotate
         const rotate = block.rotate || DEFAULT_ROTATE;
-        let firstMat = 0;
+        let ang = 0, xx = 0;
         if(material.can_rotate && rotate && block.rotate.x > 0) {
-            firstMat = (block.rotate.x/54 + 4) %4;
+            xx = block.rotate.x;
+            ang = (block.rotate.x / 4) * -(2 * Math.PI)
         }
 
         // Geometries
@@ -106,33 +95,30 @@ export default class style {
 
         for(let i = 0; i < count; i++) {
             for(let petal of _petals_parts[i]) {
-
                 let {height, mx, mz} = petal;
-                const pos = new Vector(x, y - (1 - height / TX_SIZE) / 2, z);
+                const pos = new Vector(x + 0.5, y - (1 - height / TX_SIZE) / 2, z + 0.5);
+                const vt = new Vector(mx / TX_SIZE - 0.5, 0, mz / TX_SIZE - 0.5);
+                vt.rotateByCardinalDirectionSelf(xx);
 
                 mx = 16 - mx
                 // mz = 16 - mz
-
-                const mat = matrices[(firstMat + i) % 4];
                 // stems
                 planes.push(...[
                     {
-                        pos: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
+                        pos: pos.add(vt),
                         // pos: Vector.ZERO,
                         // translate: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
                         size: {x: 0, y: 3, z: 1},
                         uv: [0.5, 5.5],
-                        rot: [0, Math.PI / 4, 0],
-                        matrix: mat
+                        rot: [0, Math.PI / 4 + ang, 0]
                     },
                     {
-                        pos: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
+                        pos: pos.add(vt),
                         // pos: Vector.ZERO,
                         // translate: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
                         size: {x: 0, y: 3, z: 1},
                         uv: [0.5, 5.5],
-                        rot: [0, Math.PI / 4 + Math.PI / 2, 0],
-                        matrix: mat
+                        rot: [0, Math.PI / 4 + Math.PI / 2 + ang, 0]
                     }
                 ]);
 
