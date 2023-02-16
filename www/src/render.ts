@@ -248,7 +248,7 @@ export class Renderer {
 
         // Clouds
         // @todo Переделать в связи с появлением TBlock
-        this.clouds = this.meshes.add(new Mesh_Object_Clouds(this, DEFAULT_CLOUD_HEIGHT));
+        this.clouds = new Mesh_Object_Clouds(this, DEFAULT_CLOUD_HEIGHT);
 
         // Stars
         this.stars = this.meshes.add(new Mesh_Object_Stars());
@@ -819,6 +819,9 @@ export class Renderer {
         // layers??
         // maybe we will create a real layer group
         for(let transparent of [false, true]) {
+            if (transparent) {
+                this.clouds.draw(this, delta);
+            }
             for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 // 2. Draw chunks
                 this.world.chunkManager.draw(this, rp, transparent);
