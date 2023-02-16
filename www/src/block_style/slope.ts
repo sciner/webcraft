@@ -69,7 +69,7 @@ export default class style {
             z + .5 + depth/2
         );
 
-        let deleted = []
+        let deleted = [dirs_name_lower[cd]]
 
         const _sides = {
             up: new AABBSideParams(c_up, flag, anim_frames, lm, null, false, null, [0.5, 0.5, 0.5]),
@@ -142,9 +142,7 @@ export default class style {
         const cancelDelete = (side : string) => {
             const index = deleted.indexOf(side);
             if(index >= 0) {
-                delete(deleted[index]);
                 deleted.splice(index, 1);
-                deleted = Array.from(deleted);
             }
         }
 
@@ -162,7 +160,7 @@ export default class style {
                     const n_on_ceil = style.isOnCeil(n);
                     let index = (cd - 1 + 4) % 4;
                     if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
-                        deleted = [];
+                        deleted.length = 0
                         let side = _sides[dirs_name_lower[(index + 2) % 4]]
                             side.axes = PLANES[dirs_name_lower[(index + 2) % 4]].axes,
                             side.flag = flag
@@ -175,7 +173,7 @@ export default class style {
                     }
                     index = (cd + 1) % 4;
                     if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
-                        deleted = [];
+                        deleted.length = 0
                         let side = _sides[dirs_name_lower[(index + 2) % 4]]
                             side.axes    = PLANES[dirs_name_lower[(index + 2) % 4]].axes
                             side.flag    = flag
