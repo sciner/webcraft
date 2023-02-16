@@ -29,6 +29,18 @@ const _petals_parts = [
     [{mx: 4.5, mz: 12.5, height: 3}]
 ];
 
+const matrices = [];
+
+function initMat() {
+    for (let i=0;i<4;i++) {
+        const matrix = mat4.create();
+        mat4.rotateY(matrix, matrix, i * -(2 * Math.PI));
+        matrices.push(matrix);
+    }
+}
+
+initMat();
+
 // Листья
 export default class style {
     [key: string]: any;
@@ -71,7 +83,7 @@ export default class style {
         const count = Math.min(block.extra_data?.petals || 1, 4);
         const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
         const stem_flags = flag | QUAD_FLAGS.MASK_BIOME
-        
+
         const lm = dirt_color || IndexedColor.GRASS;
 
         x -= .5
@@ -83,10 +95,9 @@ export default class style {
 
         // Rotate
         const rotate = block.rotate || DEFAULT_ROTATE;
+        let firstMat = 0;
         if(material.can_rotate && rotate && block.rotate.x > 0) {
-            matrix = mat4.create()
-            // mat4.rotateY(matrix, matrix, ((block.rotate.x - 1) / 4) * -(2 * Math.PI));
-            mat4.rotateY(matrix, matrix, (block.rotate.x / 4) * -(2 * Math.PI));
+            firstMat = (block.rotate.x/54 + 4) %4;
         }
 
         // Geometries
@@ -102,6 +113,7 @@ export default class style {
                 mx = 16 - mx
                 // mz = 16 - mz
 
+                const mat = matrices[(firstMat + i) % 4];
                 // stems
                 planes.push(...[
                     {
@@ -110,7 +122,8 @@ export default class style {
                         // translate: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
                         size: {x: 0, y: 3, z: 1},
                         uv: [0.5, 5.5],
-                        rot: [0, Math.PI / 4, 0]
+                        rot: [0, Math.PI / 4, 0],
+                        matrix: mat
                     },
                     {
                         pos: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
@@ -118,7 +131,8 @@ export default class style {
                         // translate: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
                         size: {x: 0, y: 3, z: 1},
                         uv: [0.5, 5.5],
-                        rot: [0, Math.PI / 4 + Math.PI / 2, 0]
+                        rot: [0, Math.PI / 4 + Math.PI / 2, 0],
+                        matrix: mat
                     }
                 ]);
 
@@ -149,7 +163,6 @@ export default class style {
             default_style.pushPlane(vertices, {
                 ...plane,
                 lm:         lm,
-                matrix:     matrix,
                 pos:        plane.pos,
                 flag:       stem_flags,
                 texture:    c_stem
