@@ -85,7 +85,7 @@ export default class style {
         const rotate = block.rotate || DEFAULT_ROTATE;
         let ang = 0, xx = 0;
         if(material.can_rotate && rotate && block.rotate.x > 0) {
-            xx = block.rotate.x;
+            xx = (block.rotate.x % 4 + 4) % 4;
             ang = (block.rotate.x / 4) * -(2 * Math.PI)
         }
 
@@ -97,10 +97,9 @@ export default class style {
             for(let petal of _petals_parts[i]) {
                 let {height, mx, mz} = petal;
                 const pos = new Vector(x + 0.5, y - (1 - height / TX_SIZE) / 2, z + 0.5);
+                mx = 16 - mx
                 const vt = new Vector(mx / TX_SIZE - 0.5, 0, mz / TX_SIZE - 0.5);
                 vt.rotateByCardinalDirectionSelf(xx);
-
-                mx = 16 - mx
                 // mz = 16 - mz
                 // stems
                 planes.push(...[
