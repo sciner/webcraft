@@ -1,8 +1,8 @@
 import {ServerChunk} from "./server_chunk.js";
 import { WorldTickStat } from "./world/tick_stat.js";
-import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT} from "../www/js/chunk_const.js";
+import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import { PLAYER_STATUS_WAITING_DATA } from "../www/js/constant.js";
-import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, Mth} from "../www/js/helpers.js";
+import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, SimpleQueue} from "../www/js/helpers.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
 import {FluidWorldQueue} from "../www/js/fluid/FluidWorldQueue.js";
 import {ChunkDataTexture} from "../www/js/light/ChunkDataTexture.js";
@@ -12,8 +12,12 @@ import {DataWorld} from "../www/js/typed_blocks3.js";
 import { WorldPortal } from "../www/js/portal.js";
 import { BuildingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
-// Each tick (1 / UNLOADING_CHUNKS_SUBSETS) of unloading_chunks are checked.
-const UNLOADING_CHUNKS_SUBSETS = 100
+/**
+ * Each tick (unloaded_chunks_total * UNLOADED_CHUNKS_SUBSETS) is unloaded
+ * probably should depend on lerpLUT or on current tick rate
+ * @type {number}
+ */
+export const UNLOADED_QUEUE_COEFF = 0.002;
 
 async function waitABit() {
     return true;
@@ -33,6 +37,7 @@ export class ServerChunkManager {
         this.chunks_with_delayed_calls = new Set();
         this.invalid_chunks_queue   = [];
         this.disposed_chunk_addrs   = [];
+        this.unloaded_chunks_queue  = new SimpleQueue();
         this.unloading_chunks       = new VectorCollector(); // conatins both CHUNK_STATE.UNLOADING and CHUNK_STATE.UNLOADED
         this.unloading_subset_index = 0 // the index of the subset of unloading_chunks that is checked in this tick
         this.unloading_state_count  = 0 // the number of chunks with CHUNK_STATE.UNLOADING
@@ -236,14 +241,16 @@ export class ServerChunkManager {
         }
         this.ticks_stat.add('delayed_calls');
         // 4. Dispose unloaded chunks
-        let ttl = this._getUnloadedChunksTtl();
-        this.unloading_subset_index = (this.unloading_subset_index + 1) % UNLOADING_CHUNKS_SUBSETS
-        for(const chunk of this.unloading_chunks.subsetOfValues(this.unloading_subset_index, UNLOADING_CHUNKS_SUBSETS)) {
-            if (chunk.load_state === CHUNK_STATE.UNLOADED &&    // if it's not still unloading
-                performance.now() - chunk.unloadingStartedTime >= ttl
-            ) {
-                chunk.dispose();
-                ttl = this._getUnloadedChunksTtl(); // update ttl based on the queue size
+        const {unloaded_chunks_queue} = this;
+        if (unloaded_chunks_queue.length > 0) {
+            let cnt = Math.max(1, unloaded_chunks_queue.length * UNLOADED_QUEUE_COEFF);
+            const len = unloaded_chunks_queue.length;
+            for (let i = 0; i < len && cnt > 0; i++ ){
+                const chunk = unloaded_chunks_queue.shift();
+                if (chunk.load_state === CHUNK_STATE.UNLOADED) {
+                    chunk.dispose();
+                    cnt--;
+                }
             }
         }
         if(this.disposed_chunk_addrs.length > 0) {
@@ -319,6 +326,7 @@ export class ServerChunkManager {
             if (chunk.shouldUnload()) {
                 if (chunk.load_state <= CHUNK_STATE.LOADING_DATA) {
                     // we didnt even load from database yet
+                    this.remove(chunk.addr);
                     chunk.dispose();
                 } else if (chunk.load_state === CHUNK_STATE.READY) {
                     invChunks[cnt++] = chunk;
@@ -442,14 +450,8 @@ export class ServerChunkManager {
         return resp;
     }
 
-    _getUnloadedChunksTtl() {
-        return Mth.lerpLUT(this.unloading_chunks.size, UNLOADED_QUEUE_SIZE_TTL_SECONDS_LUT) * 1000;
-    }
-
     chunkUnloaded(chunk) {
-        if (performance.now() - chunk.unloadingStartedTime >= this._getUnloadedChunksTtl()) {
-            chunk.dispose();
-        } // else it remains in the queue for some time
+        this.unloaded_chunks_queue.push(chunk);
     }
 
     chunkDisposed(chunk) {
@@ -496,7 +498,8 @@ export class ServerChunkManager {
         all.sort((a, b) => {
             return a.dist - b.dist;
         })
-        for (let i = 0; i < all.length && i < maxQueue; i++) {
+        let total = 0;
+        for (let i = 0; i < all.length && total < maxQueue; i++) {
             const entry = all[i];
             const addr = entry.pos.clone();
             if (waitAddrs.has(addr)) {
@@ -505,6 +508,7 @@ export class ServerChunkManager {
             waitAddrs.add(addr, addr);
             this.getOrAdd(addr);
             this.genQueueSize ++;
+            total++;
         }
     }
 
