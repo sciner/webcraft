@@ -1,3 +1,5 @@
+/// <reference path="./global-webcraft.d.ts" />
+
 import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
@@ -371,7 +373,7 @@ export class SphericalBulge {
     x0: number
     y0: number
 
-    /** 
+    /**
      * @param {float} radius - the radius of the pathc that has zon-zero bulge
      * @param {float} maxBulge - that bulge height at the surface center
      * @param {float} maxBulgeOnUnitSphere - affects the shape of the curvature, from 0 to 1 not inclusive
@@ -993,7 +995,7 @@ export class VectorCollector2D {
 
     isEmpty()  { return this.byRow.size === 0 }
 
-    /** 
+    /**
      * It's relatively slow. Use {@link isEmpty} if possible.
      * We don't maintain size filed, because it's rarely needed, but makes modifications slower.
      */
@@ -2025,7 +2027,7 @@ export class VectorCardinalTransformer {
     /**
      * Initializes this transformer to transofrm from the coordinate system of
      * a building to the coordinate system of a chunk.
-     * @param {Building} building 
+     * @param {Building} building
      * @param {Chunk|ServerChunk|ChunkWorkerChunk} chunk
      */
     initBuildingToChunk(building, chunk) {
@@ -2035,7 +2037,7 @@ export class VectorCardinalTransformer {
     /**
      * Initializes this transformer to transofrm from the coordinate system of
      * a building to the coordinate system of the world.
-     * @param {Building} building 
+     * @param {Building} building
      */
     initBuildingToWorld(building) {
         return this.init(building.pos, building.direction, building.mirror_x, building.mirror_z)
@@ -2757,7 +2759,7 @@ export class ArrayHelpers {
         return sum;
     }
 
-    /** 
+    /**
      * Creates an array of at least the required length, or increases the length of the existing array.
      * @returns {array} the given array, or a new one.
      */
@@ -3608,7 +3610,7 @@ export class ShiftedMatrix {
     }
 
     static createMinMaxPad(minRow, minCol, maxRow, maxCol, pad = 0, arrayClass = Array) {
-        return new ShiftedMatrix(minRow - pad, minCol - pad, 
+        return new ShiftedMatrix(minRow - pad, minCol - pad,
             maxRow - minRow + 2 * pad, maxCol - minCol + 2 * pad, arrayClass)
     }
 
@@ -3866,8 +3868,8 @@ export class ShiftedMatrix {
         // add border cells to the queue, spread from inner cells
         for(const [row, col, ind] of this.relativeRowColIndices()) {
             const v = arr[ind]
-            if (v) { // it's a cell with an unkown distance, a queue candidate 
-                const onBorder = 
+            if (v) { // it's a cell with an unkown distance, a queue candidate
+                const onBorder =
                     (row === 0      ? toOutside : arr[ind - cols] === 0) ||
                     (row === rowsM1 ? toOutside : arr[ind + cols] === 0) ||
                     (col === 0      ? toOutside : arr[ind - 1]    === 0) ||
@@ -3876,7 +3878,7 @@ export class ShiftedMatrix {
                     add(row, col, ind)
                 }
             } else {    // it's a cell with known 0 distance; spread from some of them
-                const hasNonZeroNeigbours = 
+                const hasNonZeroNeigbours =
                     row          && arr[ind - cols] ||
                     row < rowsM1 && arr[ind + cols] ||
                     col          && arr[ind - 1] ||
