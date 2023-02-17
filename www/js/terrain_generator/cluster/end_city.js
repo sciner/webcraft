@@ -9,8 +9,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
     constructor(clusterManager, addr) {
 
         super(clusterManager, addr)
-
-        this.random = new alea('treee')
+        this.random = new alea('seed' + 'tes0') //tre ruzan
 
         this.max_height = 1
         this.is_empty = this.coord.y < 0
@@ -20,7 +19,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
         // используемые шаблоны структур
         this.templates = new Map()
-        for (const schema_name of ['endcity_bridge_piece','endcity_bridge_end','endcity_tower_piece', 'endcity_tower_base', 'endcity_base_floor', 'endcity_second_floor', 'endcity_third_floor', 'endcity_third_roof']) {
+        for (const schema_name of ['endcity_second_roof','endcity_third_floor_hard','endcity_second_floor_hard', 'endcity_base_roof','endcity_tower_top','endcity_bridge_gentle_stairs','endcity_bridge_steep_stairs','endcity_bridge_piece','endcity_bridge_end','endcity_tower_piece','endcity_tower_base','endcity_third_roof','endcity_third_floor','endcity_second_floor', 'endcity_base_floor1']) {
             const template = BuildingTemplate.fromSchema(schema_name, this.block_manager)
             template.meta.draw_natural_basement = false
             template.meta.air_column_from_basement = false
@@ -31,29 +30,11 @@ export class ClusterEndCity extends ClusterBuildingBase {
         this.start_coord = this.coord.clone().addScalarSelf(this.size.x / 2, 100, this.size.z / 2)
 
         this.pieces = []
-        this.addCity(new Vector(0,0,0), 2, this.random)
+        this.addCity(new Vector(0, 0, 0), 0, this.random)
 
-        // мой дикий код
-        /*this.pieces = []
-        let base = {
-            pos: new Vector(0, 0, 0),
-            name: 'endcity_base_floor',
-            rot: 0,
-            overwrite: true
-        }
-        this.pieces.push(base)
-        base = this.add(base, new Vector(0, 4, 0), "endcity_base_floor", 1, false)
-        base = this.add(base, new Vector(0, 4, 0), "endcity_base_floor", 2, false)
-        //base = this.add(base, new Vector(0, 0, 0), "endcity_second_floor", 0, false)
-        //base = this.add(base, new Vector(0, 4, 0), "endcity_third_floor", 0, false)
-        //base = this.add(base, new Vector(0, 8, 0), "endcity_third_roof", 0, false)
-
-        //this.genTower(1, base, null)
-*/
         for (const piece of this.pieces) {
             const template = this.templates.get(piece.name)
             const coord = piece.pos
-            console.log(piece)
             const building = new BuildingBlocks(
                 this,
                 this.randoms.double(),
@@ -120,34 +101,6 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
     }
 
-    genTower(depth, current, pos) {
-        if (depth > 8) {
-            return
-        }
-        const rotation = current.rot || 0
-        let base = this.add(current, new Vector(3 + this.random.nextInt(2), -3, 3 + this.random.nextInt(2)), "endcity_tower_base", rotation, true)
-        base = this.add(base, new Vector(0, 7, 0), "endcity_tower_piece", rotation, true)
-        let currentFloor = this.random.nextInt(3) == 0 ? base : null;
-        const size = this.random.nextInt(3) + 1;
-        for (let floor = 0; floor < size; floor++) {
-            base = this.add(base, new Vector(0, 4, 0), "endcity_tower_piece", rotation, true);
-            if ((floor < size - 1) && (this.random.double() > 0.5)) {
-                currentFloor = base;
-            }
-        }
-    }
-
-    add(previous, pos, name, rot, overwrite) {
-        const test = {
-            pos: pos.add(previous.pos),
-            name: name,
-            rot: rot,
-            overwrite: overwrite
-        }
-        this.pieces.push(test)
-        return test
-    }
-
     /**
      * @param {BuildingBlocks} building 
      */
@@ -165,29 +118,16 @@ export class ClusterEndCity extends ClusterBuildingBase {
     addCity(position, rotation, rand) {
         let base = {
             pos: position,
-            name: 'endcity_base_floor',
+            name: 'endcity_base_floor1',
             rot: rotation,
             size: new Vector(10, 4, 10),
             overwrite: true
         }
         this.pieces.push(base)
-        base = this.addChild(this.pieces, base, new Vector(0, 0, -1), "endcity_second_floor", rotation, false)
-        base = this.addChild(this.pieces, base, new Vector(0, 4, -1), "endcity_third_floor", rotation, false)
-        base = this.addChild(this.pieces, base, new Vector(0, 8, -1), "endcity_third_roof", rotation, false)
-       // this.addTower(1, base, null, rand)
-    }
-
-    addTest(position, rotation, rand) {
-        let base = {
-            pos: position,
-            name: 'endcity_base_floor',
-            rot: rotation,
-            size: new Vector(10, 4, 10),
-            overwrite: true
-        }
-        pieces.push(base)
-        base = this.addChild(this.pieces, base, new Vector(0, 4, 0), "endcity_base_floor", 1, false)
-        base = this.addChild(this.pieces, base, new Vector(0, 4, 0), "endcity_second_floor", 1, false)
+        base = this.addChild(this.pieces, base, new Vector(0, 1, 0), "endcity_second_floor", rotation, false)
+        base = this.addChild(this.pieces, base, new Vector(0, 4, 0), "endcity_third_floor", rotation, false)
+        base = this.addChild(this.pieces, base, new Vector(0, 7, 0), "endcity_third_roof", rotation, false)
+        this.addTower(1, base, null, rand)
     }
 
     /**
@@ -201,11 +141,23 @@ export class ClusterEndCity extends ClusterBuildingBase {
      * @returns 
      */
     addChild(pieces, previous, position, name, rotation, overwrite) {
+        const rot = rotation % 4
+        const pos = new Vector(position.x, position.y, position.z)
+        if (rot == 1) {
+            pos.x = -position.z
+            pos.z = position.x
+        } else if (rot == 2) {
+            pos.z = -position.z
+            pos.x = position.x
+        } else if (rot == 3) {
+            pos.x = position.z
+            pos.z = position.x
+        }
         const template = this.templates.get(name)
         const piece = {
-            pos: position.add(previous.pos),
+            pos: pos.add(previous.pos),
             name: name,
-            rot: rotation % 4,
+            rot: rot,
             size: template.size,
             overwrite: overwrite
         }
@@ -223,7 +175,6 @@ export class ClusterEndCity extends ClusterBuildingBase {
      */
 
     addTower(depth, current, position, rand) {
-        const tower_bridges =[new Vector(0, -5, 5), new Vector(0, -1, 0)]
         if (depth > 8) {
             return
         }
@@ -231,32 +182,76 @@ export class ClusterEndCity extends ClusterBuildingBase {
         let pieces = []
         let base = this.addChild(pieces, current, new Vector(3 + rand.nextInt(2), -3, 3 + rand.nextInt(2)), "endcity_tower_base", rotation, true)
         base = this.addChild(pieces, base, new Vector(0, 7, 0), "endcity_tower_piece", rotation, true)
-        let floor = rand.nextInt(3) == 0 ? base : null;
-        const size = rand.nextInt(3) + 1;
+        let floor = rand.nextInt(3) == 0 ? base : null
+        const size = rand.nextInt(3) + 1
         for (let floor = 0; floor < size; floor++) {
             base = this.addChild(pieces, base, new Vector(0, 4, 0), "endcity_tower_piece", rotation, true)
-            if ((floor < size - 1) && (rand.double() > 0.5)) {
+            if ((floor < size - 1) && rand.nextBool()) {
                 floor = base
             }
         }
         if (floor) {
-            for (let i in tower_bridges) {
-                const bridge = this.addChild(pieces, base, tower_bridges[i], "endcity_bridge_end", i, true)
-                this.addBridge(depth + 1, bridge, null, rand)
+            for (let rot = 0; rot < 4; rot++) {
+                if (rand.nextBool()) {
+                    const bridge = this.addChild(pieces, floor, new Vector(0, -1, 2), "endcity_bridge_end", rot + rotation, true)
+                    this.addBridge(depth + 1, bridge, null, rand)
+                }
             }
         } else {
             
         }
+        this.addChild(pieces, base, new Vector(0, 4, 0), "endcity_tower_top", rotation, true)
         this.pieces = this.pieces.concat(pieces)
+        return true
     }
 
     addBridge(depth, current, position, rand) {
         if (depth > 8) {
             return
         }
+        const size = rand.nextInt(4) + 1
         const rotation = current.rot
-        let pieces = []
-        let base = this.addChild(pieces, current, new Vector(0, 0, -4), "endcity_bridge_piece", rotation, true)
+        const pieces = []
+        let base = this.addChild(pieces, current, new Vector(0, 0, 5), "endcity_bridge_piece", rotation, true)
+        let y = 0
+        for (let floor = 0; floor < size; floor++) {
+            if (rand.nextBool()) {
+                base = this.addChild(pieces, base, new Vector(0, y, 4), "endcity_bridge_piece", rotation, true)
+                y = 0
+            } else {
+                if (rand.nextBool()) {
+                    base = this.addChild(pieces, base, new Vector(0, y, 4), "endcity_bridge_steep_stairs", rotation, true)
+                } else {
+                    base = this.addChild(pieces, base, new Vector(0, y, 8), "endcity_bridge_gentle_stairs", rotation, true)
+                }
+                y = 4
+            }
+        }
+        if (!this.addHouse(depth + 1, base, new Vector(0, y + 1, 5), rand)) {
+
+        }
+        this.pieces = this.pieces.concat(pieces)
+    }
+
+    addHouse(depth, current, position, rand) {
+        if (depth > 8) {
+            return
+        }
+        const pieces = []
+        const rotation = current.rot
+        const size = rand.nextInt(3)
+        let base = this.addChild(pieces, current, position, "endcity_base_floor1", rotation, true)
+        if(size == 0) {
+            this.addChild(this.pieces, base, new Vector(0, 4, 0), "endcity_base_roof", rotation, true)
+        } else if(size == 1) {
+            base = this.addChild(this.pieces, base, new Vector(0, 1, 0), "endcity_second_floor_hard", rotation, false)
+            base = this.addChild(this.pieces, base, new Vector(0, 7, 0), "endcity_second_roof", rotation, false)
+        } else {
+            base = this.addChild(this.pieces, base, new Vector(0, 1, 0), "endcity_second_floor_hard", rotation, false)
+            base = this.addChild(this.pieces, base, new Vector(0, 3, 0), "endcity_third_floor_hard", rotation, false)
+            base = this.addChild(this.pieces, base, new Vector(0, 8, 0), "endcity_third_roof", rotation, false)
+            this.addTower(depth + 1, base, null, rand)
+        }
         this.pieces = this.pieces.concat(pieces)
     }
 
