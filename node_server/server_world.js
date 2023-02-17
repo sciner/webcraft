@@ -927,7 +927,13 @@ export class ServerWorld {
         // Play sound
         if (actions.play_sound) {
             for(let params of actions.play_sound) {
-                const cps = getChunkPackets(params.pos);
+                let cps = null
+                try {
+                    cps = getChunkPackets(params.pos);
+                } catch(e) {
+                    console.error(e)
+                    console.error(actions)
+                }
                 if (cps) {
                     if (cps.chunk) {
                         if('except_players' in params) {
