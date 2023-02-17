@@ -1,6 +1,6 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
-import { Helpers, Vector, VectorCollector } from "../../../helpers.js";
+import { ArrayHelpers, Helpers, Vector, VectorCollector } from "../../../helpers.js";
 import { Biome, BiomeDirtLayer, Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
@@ -134,13 +134,8 @@ export class TerrainMapManager2 {
     static _climateParams = new ClimateParams();
 
     /**
-     * @param {*} seed 
-     * @param {*} world_id 
-     * @param {*} noise2d 
-     * @param {*} noise3d
-     * @param { import("../../../blocks.js").BLOCK } block_manager 
      */
-    constructor(seed, world_id, noise2d, noise3d, block_manager : BLOCK, generator_options) {
+    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options) {
 
         this.seed = seed;
         this.world_id = world_id;
@@ -150,7 +145,15 @@ export class TerrainMapManager2 {
         this.maps_cache = new VectorCollector();
         this.biomes = new Biomes(noise2d);
         this.generator_options = generator_options
-        // Presets by chances
+        this.makePresetsList(seed)
+        this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
+        this.initMats();
+    }
+
+    // Presets by chances
+    makePresetsList(seed: string) {
+        const rnd_presets = new alea(seed);
+        this.float_seed = rnd_presets.double()
         this.presets = [];
         for(const k in MAP_PRESETS) {
             const op = MAP_PRESETS[k];
@@ -158,11 +161,7 @@ export class TerrainMapManager2 {
                 this.presets.push(op);
             }
         }
-        this.rnd_presets = new alea(seed);
-        this.float_seed = this.rnd_presets.double()
-        this.presets.sort(() => .5 - this.float_seed);
-        this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
-        this.initMats();
+        ArrayHelpers.shuffle(this.presets, rnd_presets.double)
     }
 
     initMats() {

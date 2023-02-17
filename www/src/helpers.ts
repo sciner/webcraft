@@ -2881,6 +2881,13 @@ export class ArrayHelpers {
         return arr[(Math.random() * arr.length) | 0]
     }
 
+    static shuffle(array : any[], random_func: Function) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(random_func() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
 }
 
 // Helper methods to work with an array or a scalar in the same way.

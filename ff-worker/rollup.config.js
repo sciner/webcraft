@@ -20,14 +20,14 @@ export default [{
         }),
         nodeResolve(),
         commonjs(),
-        terser({
-            // remove all comments
-            format: {
-                comments: false
-            },
-            // prevent any compression
-            compress: false
-        })
+        // terser({
+        //     // remove all comments
+        //     format: {
+        //         comments: false
+        //     },
+        //     // prevent any compression
+        //     compress: false
+        // })
     ]
    
 }
