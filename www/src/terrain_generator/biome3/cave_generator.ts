@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
-import { Vector } from "../../helpers.js";
+import { Vector, Mth } from "../../helpers.js";
 import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager.js";
 import type { DensityParams } from "./terrain/manager_vars.js";
 import type { TerrainMapCell } from "../terrain_map.js";

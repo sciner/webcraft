@@ -1,5 +1,5 @@
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js"
-import type { Terrain_Generator } from "../index.js"
+import type Terrain_Generator from "../index.js"
 
 /**
  * Generate underworld infinity stones
