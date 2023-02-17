@@ -135,8 +135,8 @@ void main() {
         if (v_normal.z < 0.0) minecraftSun.z = 0.5;
         float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
 
-        /// LAVA
         if(fluidId == 1) {
+            /// LAVA
             vec3 cam_period5 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
             float scale = 4.;
             vec2 uv = vec2(v_world_pos.xy + cam_period5.xy) / scale;
@@ -147,10 +147,22 @@ void main() {
             vec3 col = vec3(.212, 0.08, 0.03) / max(fbm_value, 0.0001);
             col = pow(col, vec3(1.5));
             color.rgb = col;
-        }
-        ///// LAVA
+            ///// LAVA
+        } else {
 
-        #include<raindrops_onwater>
+            #include<caustic_pass_onwater>
+            #include<raindrops_onwater>
+
+            if(v_noCanTakeLight < 0.5) {
+                #include<local_light_pass>
+                #include<ao_light_pass>
+                #include<shoreline>
+                // Apply light
+                color.rgb *= (combinedLight * sunNormalLight);
+            } else {
+                color.rgb *= sunNormalLight;
+            }
+        }
 
         // _include<swamp_fog>
 
@@ -164,16 +176,6 @@ void main() {
         // color.b = color.r;
         // color.r = bb;
         // // vintage sepia
-
-        // if(v_noCanTakeLight < 0.5) {
-        //     #include<local_light_pass>
-        //     #include<ao_light_pass>
-        //     #include<shoreline>
-        //     // Apply light
-        //     color.rgb *= (combinedLight * sunNormalLight);
-        // } else {
-        //     color.rgb *= sunNormalLight;
-        // }
 
         outColor = color;
 
