@@ -34,7 +34,7 @@ export default class Biome3LayerOverworld {
         this.noise2d = generator.noise2d
         this.noise3d = generator.noise3d
 
-        this.maps = new TerrainMapManager2(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager);
+        this.maps = new TerrainMapManager2(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options);
 
         this.ore_generator = new WorldClientOreGenerator(world_id)
         this.clusterManager = generator.clusterManager
@@ -289,7 +289,16 @@ export default class Biome3LayerOverworld {
                                     if(plant_blocks) {
                                         for(let i = 0; i < plant_blocks.length; i++) {
                                             const p = plant_blocks[i];
-                                            chunk.setBlockIndirect(x, y + 1 + i, z, p.id, null, p.extra_data || null);
+                                            let rotate = null
+                                            let extra_data = p.extra_data || null
+                                            if(p.is_petals) {
+                                                let petals = Math.floor(rnd.double() * 4) + 1
+                                                if(petals > 1) {
+                                                    extra_data = {petals}
+                                                }
+                                                rotate = new Vector(Math.floor(rnd.double() * 4), 1, 0)
+                                            }
+                                            chunk.setBlockIndirect(x, y + 1 + i, z, p.id, rotate, extra_data);
                                         }
                                         // замена блока травы на землю, чтобы потом это не делал тикер (например арбуз)
                                         if(plant_blocks[0].not_transparent) {

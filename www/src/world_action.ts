@@ -970,7 +970,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, setOnWater, putKelp]) {
+        for(let func of [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -2608,25 +2608,40 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
     return true;
 }
 
-// Add candle
-function addCandle(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const add = !e.shiftKey &&
-                (world_material && (world_material.style_name == 'candle')) &&
-                (current_inventory_item && current_inventory_item.id == world_material.id);
-    if(!add) {
-        return false;
+// Add few count (candles | petals)
+function addFewCount(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+
+    const add = (style_name, property_name, max_count, sound_tag) => {
+        const can_add = !e.shiftKey &&
+                    (world_material && (world_material.style_name == style_name)) &&
+                    (current_inventory_item && current_inventory_item.id == world_material.id);
+        if(!can_add) {
+            return false;
+        }
+        if(!extra_data || typeof extra_data[property_name] == 'undefined') {
+            extra_data = {};
+            extra_data[property_name] = 1
+        }
+        if((property_name in extra_data) && extra_data[property_name] < max_count) {
+            extra_data[property_name]++;
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addPlaySound({tag: sound_tag, action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
+            actions.reset_mouse_actions = true;
+            actions.decrement = true;
+        }
+        return true;
     }
-    if(!extra_data || typeof extra_data.candles == 'undefined') {
-        extra_data = {candles: 1};
+
+    // candles
+    if(add('candle', 'candles', 4, 'madcraft:block.cloth')) {
+        return true
+    // petals
+    } else if(add('petals', 'petals', 4, 'madcraft:block.cloth')) {
+        return true
     }
-    if(('candles' in extra_data) && extra_data.candles < 4) {
-        extra_data.candles++;
-        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
-        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
-        actions.reset_mouse_actions = true;
-        actions.decrement = true;
-    }
-    return true;
+
+    return false
+
 }
 
 // Place rail

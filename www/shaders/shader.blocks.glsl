@@ -805,6 +805,8 @@
     if(u_rain_strength > 0.) {
         vec3 cam_period2 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
         vec3 pos = vec3(v_world_pos.xy + cam_period2.xy, 0.);
+        // pixelate
+        // pos = round(pos / (1./32.)) * (1./32.);
         color.rgb += rainDrops(pos * 2.).rgb * u_rain_strength;
     }
 #endif

@@ -9547,6 +9547,28 @@
             "material": {
                 "id": "stone"
             }
+        },
+        {
+            "id": 62,
+            "name": "PINK_PETALS",
+            "style": "petals",
+            "sound": "madcraft:block.cloth",
+            "transparent": true,
+            "can_rotate": true,
+            "passable": 1,
+            "mining_time": 0,
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "no_set_on_top",
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "texture": {
+                "side": "./textures/pink_petals.png",
+                "stem": "./textures/pink_petals_stem.png;mask_biome"
+            }
         }
     ]
 }

@@ -28,7 +28,7 @@ export class ModeWindow extends Window {
         lblHelp.style.font.align = 'center'
         this.lblHelp.style.font.color = '#ffffff'
 
-        const lblTitle = this.addComponent(w / 2, 10, w, 43, 'lblTitle', 'Test', 'toasts-0.png')
+        const lblTitle = this.addComponent(w / 2, 10, w, 43, 'lblTitle', 'Test'/*, 'toasts-0.png'*/)
         lblTitle.style.font.anchor.x = .5
         lblTitle.style.font.align = 'center'
         this.lblTitle.style.font.color = '#ffffff'
