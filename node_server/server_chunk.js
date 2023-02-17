@@ -115,7 +115,7 @@ export class ServerChunk {
 
     /**
      * @param { import("./server_world.js").ServerWorld } world
-     * @param {Vector} addr 
+     * @param {Vector} addr
      */
     constructor(world, addr) {
         this.world          = world;
@@ -148,6 +148,10 @@ export class ServerChunk {
         this.readyPromise   = Promise.resolve(); // It's used only to reach CHUNK_STATE.READY
         this.safeTeleportMarker = 0;
         this.spiralMarker       = 0;
+        /**
+         * When unloading process has started
+         * @type {number|null}
+         */
         this.unloadingStartedTime = null; // to determine when to dispose it
         this.unloadedStuff      = []; // everything unloaded that can be restored (drop items, mobs) in one list
         this.unloadedStuffDirty = false;
@@ -233,6 +237,9 @@ export class ServerChunk {
         const afterLoad = ([ml, fluid]) => {
             this.modify_list = ml;
             this.ticking = new Map();
+            if (this.load_state >= CHUNK_STATE.UNLOADING) {
+                return;
+            }
             this.setState(CHUNK_STATE.LOADING_BLOCKS);
             // Send requet to worker for create blocks structure
             this.world.chunks.postWorkerMessage(['createChunk',
