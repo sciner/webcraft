@@ -234,20 +234,48 @@ export class BLOCK {
     [key: string]: any;
     static [key: string]: any;
 
+    static MAX_SIZE                         = 2048
+
     static list                             = new Map();
     static styles                           = new Map();
     static list_arr                         = []; // see also getAll()
-    static spawn_eggs                       = [];
-    static ao_invisible_blocks              = [];
     static resource_pack_manager            = null;
     static max_id                           = 0;
-    static MASK_BIOME_BLOCKS                = [];
-    static MASK_COLOR_BLOCKS                = [];
-    static SOLID_BLOCK_ID                   = new Array(2048).fill(false)
-    static REMOVE_ONAIR_BLOCKS_IN_CLUSTER   = new Array(2048).fill(false) // this blocks must be removed over structures and buildings
     static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID                      = [];
     static bySuffix                         = {}; // map of arrays
+    /** 
+     * For each block id, it contains flags describing to which classes of blocks it belongs.
+     * See BLOCK.FLAG_*** constants.
+     */
+    static flags                            = new Int32Array(this.MAX_SIZE)
+
+    static FLAG_SOLID                           = 0x1 | 0
+    static FLAG_REMOVE_ONAIR_BLOCKS_IN_CLUSTER  = 0x2 | 0 // these blocks must be removed over structures and buildings
+    static FLAG_BIOME                           = 0x4 | 0
+    static FLAG_COLOR                           = 0x8 | 0
+    static FLAG_AO_INVISIBLE                    = 0x10 | 0
+    static FLAG_SPAWN_EGG                       = 0x20 | 0
+    static FLAG_STONE                           = 0x40 | 0
+    static FLAG_FLUID                           = 0x80 | 0
+
+    static addFlag(flag: number, ...blockIds: number[]): void {
+        for(const id of blockIds) {
+            if (id != null) {
+                if (id >= this.MAX_SIZE) {
+                    throw 'id >= this.MAX_SIZE'
+                }
+                this.flags[id] |= flag
+            }
+        }
+    }
+
+    static addHardcodedFlags(): void {
+        // See also isFluidId()
+        this.addFlag(this.FLAG_FLUID, 200, 202, 170, 171, 218, 219)
+        // Taken from overworld.ts
+        this.addFlag(this.FLAG_STONE, this.STONE?.id, this.ANDESITE?.id, this.DIORITE?.id, this.GRANITE?.id)
+    }
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -735,13 +763,12 @@ export class BLOCK {
     }
 
     static reset() {
-        BLOCK.spawn_eggs             = [];
-        BLOCK.ao_invisible_blocks    = [];
         BLOCK.list                   = new Map();
         BLOCK.BLOCK_BY_ID            = new Array(1024);
         BLOCK.BLOCK_BY_TAGS          = new Map();
         BLOCK.list_arr               = [];
         BLOCK.bySuffix               = {};
+        BLOCK.flags.fill(0);
     }
 
     // parseBlockTransparent...
@@ -768,11 +795,11 @@ export class BLOCK {
 
     /**
      * @param {int} block_id
-     * @returns {boolean}
+     * @returns {number} non-zero if it's solid, 0 otherwise
      */
-    static isSolidID(block_id) {
-        if(block_id == 0) return false
-        return this.SOLID_BLOCK_ID[block_id]
+    static isSolidID(block_id: number): number {
+        if(block_id <= 0) return 0 // I'm not sure if this check makes it fatser or slower
+        return this.flags[block_id] & this.FLAG_SOLID
     }
 
     static isSimpleQube(block) {
@@ -930,11 +957,15 @@ export class BLOCK {
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
         }
-        BLOCK.SOLID_BLOCK_ID[block.id] = block.is_solid
+        if (block.is_solid) {
+            BLOCK.addFlag(BLOCK.FLAG_SOLID, block.id)
+        }
         if(block.ticking) {
             BLOCK.TICKING_BLOCKS.set(block.id, block);
         }
-        BLOCK.REMOVE_ONAIR_BLOCKS_IN_CLUSTER[block.id] = block.style_name == 'planting' || (block.layering && !block.layering.slab)
+        if (block.style_name == 'planting' || (block.layering && !block.layering.slab)) {
+            BLOCK.addFlag(BLOCK.FLAG_REMOVE_ONAIR_BLOCKS_IN_CLUSTER, block.id)
+        }
         if(block.bb && isScalar(block.bb?.model)) {
             const bbmodels = await Resources.loadBBModels()
             const model_name = block.bb.model
@@ -971,9 +1002,7 @@ export class BLOCK {
                                   [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
         if(block.planting || block.light_power || block.height || ['fence', 'wall', 'pane', 'ladder'].includes(block.style_name) || block.tags.includes('no_drop_ao')) {
-            if(!this.ao_invisible_blocks.includes(block.id)) {
-                this.ao_invisible_blocks.push(block.id);
-            }
+            this.addFlag(this.FLAG_AO_INVISIBLE, block.id)
         }
         // Calculate in last time, after all init procedures
         block.visible_for_ao = BLOCK.visibleForAO(block);
@@ -1001,14 +1030,14 @@ export class BLOCK {
         }
         // After add works
         // Add spawn egg
-        if(block.spawn_egg && BLOCK.spawn_eggs.indexOf(block.id) < 0) {
-            BLOCK.spawn_eggs.push(block.id);
+        if(block.spawn_egg) {
+            BLOCK.addFlag(BLOCK.FLAG_SPAWN_EGG, block.id)
         }
-        if(block.tags.includes('mask_biome') && !BLOCK.MASK_BIOME_BLOCKS.includes(block.id)) {
-            BLOCK.MASK_BIOME_BLOCKS.push(block.id)
+        if(block.tags.includes('mask_biome')) {
+            BLOCK.addFlag(BLOCK.FLAG_BIOME, block.id)
         }
-        if(block.tags.includes('mask_color') && !BLOCK.MASK_COLOR_BLOCKS.includes(block.id)) {
-            BLOCK.MASK_COLOR_BLOCKS.push(block.id)
+        if(block.tags.includes('mask_color')) {
+            BLOCK.addFlag(BLOCK.FLAG_COLOR, block.id)
         }
         // Parse tags
         for(let tag of block.tags) {
@@ -1083,8 +1112,9 @@ export class BLOCK {
         return this.list_arr;
     }
 
-    static isSpawnEgg(block_id) {
-        return BLOCK.spawn_eggs.includes(block_id);
+    /** @returns {number} non-zero if it's a spwn egg, 0 otherwise */
+    static isSpawnEgg(block_id: number): number {
+        return this.flags[block_id] & this.FLAG_SPAWN_EGG
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
@@ -1205,8 +1235,7 @@ export class BLOCK {
             block_id = block.id;
         }
         if(block_id < 1) return false;
-        if(this.ao_invisible_blocks.includes(block_id)) return false;
-        return true;
+        return !(this.flags[block_id] & this.FLAG_AO_INVISIBLE);
     }
 
     // Return inventory icon pos
@@ -1356,7 +1385,7 @@ export class BLOCK {
     }
 
     //
-    static async sortBlocks() {
+    static sortBlocks() {
         //
         const sortByMaterial = (b, index) => {
             if(b.tags.includes('ore')) {
@@ -1487,7 +1516,8 @@ BLOCK.init = async function(settings) {
         BLOCK.resource_pack_manager.init(settings)
     ]).then(async ([block_styles, _]) => {
         //
-        await BLOCK.sortBlocks();
+        BLOCK.sortBlocks();
+        BLOCK.addHardcodedFlags();
         // Block styles
         for(let style of block_styles.values()) {
             BLOCK.registerStyle(style);

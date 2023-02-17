@@ -20,7 +20,7 @@ const PORCH_FLAT_CRATER_RADIUS = 1;
 const PORCH_MAX_HALF_WIDTH = 1;
 const PORCH_CRATER_HEIGHT = 8;
 
-let tmpUint8Array = new Uint8Array(1)
+let tmpUint8Array: Uint8Array = new Uint8Array(1)
 const tmpQueue = new SimpleQueue()
 
 //

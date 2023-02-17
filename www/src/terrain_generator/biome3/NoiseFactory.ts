@@ -7,12 +7,14 @@ const oneVector = new Vector(1, 1, 1);
 
 export class Noise3d {
     [key: string]: any;
+    
+    result: Float32Array
+    
     constructor(factory, seed, randomFunc) {
         this.factory = factory;
         this.seed = seed;
 
-        // For WebASM we can use Float32Array
-        this.result = new Float64Array(factory.outputSize);
+        this.result = new Float32Array(factory.outputSize);
         this.genPos = null;
         this.genSize = null;
         this.cx = 0;

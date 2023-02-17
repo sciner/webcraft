@@ -4,6 +4,8 @@ import {BaseChunk} from "./BaseChunk.js";
 export class DataChunk extends BaseChunk {
     [key: string]: any;
 
+    uint16View: Uint16Array
+
     constructor({size, strideBytes, nibble} : {size : Vector, strideBytes : int, nibble? : any}) {
         super({size, nibble});
         this.initData(strideBytes);
@@ -29,6 +31,27 @@ export class DataChunk extends BaseChunk {
         } else {
             this.nibbleBuf = null;
             this.nibbles = null;
+        }
+    }
+
+    fillInnerUint16(v: number) {
+        const {cx, cy, cz, cw, uint16View, size} = this
+        if (cx === 1) {
+            for(let y = 0; y < size.y; y++) {
+                for(let z = 0; z < size.z; z++) {
+                    const ind0 = cy * y + cz * z + cw
+                    uint16View.fill(v, ind0, ind0 + size.x)
+                }
+            }
+        } else if (cy === 1) {
+            for(let x = 0; x < size.x; x++) {
+                for(let z = 0; z < size.z; z++) {
+                    const ind0 = cx * x + cz * z + cw
+                    uint16View.fill(v, ind0, ind0 + size.y)
+                }
+            }
+        } else {
+            throw 'not_implemented'
         }
     }
 

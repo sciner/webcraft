@@ -2,16 +2,26 @@ import { alea } from "./default.js";
 import { BLOCK } from "../blocks.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { Vector } from "../helpers.js";
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 // Ores
-const ORE_RANDOMS           = [];
-const ORE_RANDOMS_SIMPLE    = [];
+const ORE_RANDOMS        : (OreRandom | null)[] = [];
+const ORE_RANDOMS_SIMPLE : OreRandom[] = [];
+
+type OreRandom = {
+    max_rad: number;
+    block_id: number;
+    max_y: number;
+}
 
 // OreSource
 class OreSource {
-    [key: string]: any;
+    pos: Vector;
+    rad: number;
+    block_id: number;
+    max_y: number;
 
-    constructor(pos, rad, block_id, max_y) {
+    constructor(pos: Vector, rad: number, block_id: number, max_y: number) {
         this.pos = pos;
         this.rad = rad;
         this.block_id = block_id;
@@ -33,12 +43,12 @@ export class OreGenerator {
     }
 
     // Generate
-    generate(chunk_addr, chunk_coord, layer) {
+    generate(chunk_addr, chunk_coord, layer): OreSource[] {
 
         //
         const seed              = this.seed;
         const aleaRandom        = new alea(seed + '_' + chunk_addr.toHash() + '_' + layer.id);
-        const ores              = [];
+        const ores              : OreSource[] = [];
         const map               = this.map;
         const CHUNK_SIZE_X_SM   = (CHUNK_SIZE_X - layer.max_ore_rad * 2);
         const CHUNK_SIZE_Z_SM   = (CHUNK_SIZE_Z - layer.max_ore_rad * 2);
@@ -46,13 +56,13 @@ export class OreGenerator {
         //
         if(ORE_RANDOMS.length == 0) {
             //
-            ORE_RANDOMS_SIMPLE.push(...[
+            ORE_RANDOMS_SIMPLE.push(
                 {max_rad: layer.max_ore_rad, block_id: BLOCK.GRANITE.id, max_y: Infinity},
                 {max_rad: layer.max_ore_rad, block_id: BLOCK.DIORITE.id, max_y: Infinity},
                 {max_rad: layer.max_ore_rad, block_id: BLOCK.ANDESITE.id, max_y: Infinity}
-            ]);
+            );
             //
-            ORE_RANDOMS.push(...[
+            ORE_RANDOMS.push(
                 {max_rad: 1.5, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
                 {max_rad: 2, block_id: BLOCK.GOLD_ORE.id, max_y: 48},
                 {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
@@ -67,7 +77,7 @@ export class OreGenerator {
                 {max_rad: layer.max_ore_rad, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
                 {max_rad: layer.max_ore_rad, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
                 {max_rad: layer.max_ore_rad, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
-            ]);
+            );
         }
 
         //
@@ -98,7 +108,7 @@ export class OreGenerator {
     }
 
     // Draw ores in chunk
-    draw(chunk) {
+    draw(chunk : ChunkWorkerChunk) {
 
         const xyz               = new Vector(0, 0, 0);
         const max_noise_dist    = 0.15;

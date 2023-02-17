@@ -86,10 +86,13 @@ class ChunkWorkerRoot {
             await this.preLoad();
         }
 
+        // load terrain generator while initializing blockManager
+        const terrainGeneratorsPromise = this.WorkerWorldManager.loadTerrainGenerators([generator.id])
+
         await this.blockManager.init(settings);
         //
-        this.worlds = new this.WorkerWorldManager(this.blockManager);
-        await this.worlds.InitTerrainGenerators([generator.id]);
+        const terrainGenerators = await terrainGeneratorsPromise;
+        this.worlds = new this.WorkerWorldManager(this.blockManager, terrainGenerators);
 
         // bulding_schemas
         if (this.bulding_schemas.length > 0) {

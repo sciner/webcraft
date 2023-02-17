@@ -2,12 +2,35 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { Vector } from "../../helpers.js";
 import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager.js";
 import type { DensityParams } from "./terrain/manager_vars.js";
+import type { TerrainMapCell } from "../terrain_map.js";
 
 export const BIOME3_CAVE_LAYERS = [
     {y: 76, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 16, shift: 64000},
     {y: 60, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 16, shift: 48000},
     {y: 44, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 16, shift: 16000},
 ];
+
+function easeInOut(percent: number, func: Function): number {
+    let value: number
+    if (percent < 0.5) {
+        value = func(percent * 2) / 2
+    } else {
+        value = 1 - func((1 - percent) * 2) / 2
+    }
+    return value
+}
+
+function sine(percent: number): number {
+    return 1 - Math.cos(percent * Math.PI / 2)
+}
+
+function exp(percent: number): number {
+    return Math.pow(2, 10 * (percent - 1))
+}
+
+const easeInOutExp = Mth.createBasicLUTFunction(-1, 1, 100,
+    (y_perc: number) => easeInOut(1 - Math.abs(y_perc), exp)
+)
 
 export class CaveGenerator {
 
@@ -31,7 +54,7 @@ export class CaveGenerator {
 export class CaveGeneratorRegular extends CaveGenerator {
     [key: string]: any;
 
-    constructor(chunk_coord : Vector, noisefn : any, cave_layers : any) {
+    constructor(chunk_coord : Vector, noisefn : Function, cave_layers : any) {
 
         super(chunk_coord, noisefn, cave_layers)
         this.layers = [];
@@ -63,31 +86,13 @@ export class CaveGeneratorRegular extends CaveGenerator {
 
     }
 
-    easeInOut(percent, func) {
-        let value
-        if (percent < 0.5) {
-            value = func(percent * 2) / 2
-        } else {
-            value = 1 - func((1 - percent) * 2) / 2
-        }
-        return value
-    }
-
-    sine(percent) {
-        return 1 - Math.cos(percent * Math.PI / 2)
-    }
-
-    exp(percent) {
-        return Math.pow(2, 10 * (percent - 1))
-    }
-
     // Return cave point
-    getPoint(xyz : Vector, map_cell, in_ocean : boolean, density_params : DensityParams) : float {
+    getPoint(xyz: Vector, map_cell: TerrainMapCell, in_ocean: boolean, density_params: DensityParams): number {
 
         // Sponge caves
         const y_perc = (xyz.y - 20) / 60
         if(y_perc > -1 && y_perc < 1) {
-            const mul = this.easeInOut(1 - Math.abs(y_perc), this.exp)
+            const mul = easeInOutExp(y_perc)
             if(density_params.d1 * mul < -.3) {
                 const sponge_cave_density = density_params.d3 * .8 + density_params.d4 * .2
                 if(sponge_cave_density < 0) {
@@ -111,7 +116,7 @@ export class CaveGeneratorRegular extends CaveGenerator {
             }
             const vert_dist = xyz.y - cell.y;
             const dens = cell.density
-            if(vert_dist < (-1 * (1 + density_params.d4 * 2)) * dens || vert_dist > (8 + density_params.d4 * 3) * dens) {
+            if(vert_dist < -(1 + density_params.d4 * 2) * dens || vert_dist > (8 + density_params.d4 * 3) * dens) {
                 continue;
             }
             return DENSITY_AIR_THRESHOLD
