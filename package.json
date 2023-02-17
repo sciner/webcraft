@@ -1,6 +1,7 @@
 {
     "scripts": {
         "tsc:www": "tsc -w -p www/tsconfig.json",
+        "tsc:www-convert": "tsc -p www/tsconfig.json",
         "tsc:server": "tsc -w -p node_server/tsconfig.json"
     },
     "devDependencies": {
