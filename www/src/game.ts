@@ -35,6 +35,7 @@ export class GameSettings {
     // camera
     fov:                     float = DEFAULT_FOV_NORMAL
     render_distance:         int = 5
+    base_ambient_light_level:float = 100
     // quality
     use_light:               int = 1
     beautiful_leaves:        boolean = true
@@ -54,11 +55,12 @@ export class GameSettings {
             }
         }
 
-        this.texture_pack       = 'base'
-        this.fov                = Mth.clamp(this.fov, 50, 120)
-        this.mouse_sensitivity  = Mth.clamp(this.mouse_sensitivity, 25, 300)
-        this.music_volume       = Mth.clamp(this.music_volume, 0, 100)
-        this.use_light          = Mth.clamp(this.use_light, 0, 2)
+        this.texture_pack               = 'base'
+        this.fov                        = Mth.clamp(this.fov, 50, 120)
+        this.mouse_sensitivity          = Mth.clamp(this.mouse_sensitivity, 25, 300)
+        this.music_volume               = Mth.clamp(this.music_volume, 0, 100)
+        this.base_ambient_light_level   = Mth.clamp(this.base_ambient_light_level, 0, 100)
+        this.use_light                  = Mth.clamp(this.use_light, 0, 2)
 
     }
 

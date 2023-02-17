@@ -372,6 +372,12 @@
                         </div>
                     </div>
                     <div class="input-group">
+                        <p>{{Lang.base_ambient_light_level}}: <span>{{settings.form.base_ambient_light_level}}</span>%</p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_BaseAmbientLightLevel" class="slider" type="range" min="0" max="100" step="5" ng-model="settings.form.base_ambient_light_level">
+                        </div>
+                    </div>
+                    <div class="input-group">
                         <p>{{Lang.render_options}}</p>
                         <div class="switcher-container">
                             <input type="checkbox" id="chk-generate_mipmap" value="" ng-model="settings.form.mipmap" />
