@@ -12,6 +12,7 @@ import { MapCellPreset_Mountains } from "./map_preset/mountains.js";
 import { MapCellPreset_SnowCoveredMountains } from "./map_preset/snow_covered_mountains.js";
 import { MapCellPreset_Swamp } from "./map_preset/swamp.js";
 import { MapCellPreset_Ices } from "./map_preset/ices.js";
+import type { BLOCK } from "../../../blocks.js";
 
 export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
 export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
@@ -139,7 +140,8 @@ export class TerrainMapManager2 {
      * @param {*} noise3d
      * @param { import("../../../blocks.js").BLOCK } block_manager 
      */
-    constructor(seed, world_id, noise2d, noise3d, block_manager) {
+    constructor(seed, world_id, noise2d, noise3d, block_manager : BLOCK, generator_options) {
+
         this.seed = seed;
         this.world_id = world_id;
         this.noise2d = noise2d;
@@ -147,6 +149,7 @@ export class TerrainMapManager2 {
         this.block_manager = block_manager;
         this.maps_cache = new VectorCollector();
         this.biomes = new Biomes(noise2d);
+        this.generator_options = generator_options
         // Presets by chances
         this.presets = [];
         for(const k in MAP_PRESETS) {
@@ -540,7 +543,7 @@ export class TerrainMapManager2 {
         const _density_params = new DensityParams(0, 0, 0, 0, 0, 0);
 
         // Result map
-        const map = new TerrainMap2(chunk, GENERATOR_OPTIONS, this.noise2d);
+        const map = new TerrainMap2(chunk, this.generator_options, this.noise2d);
 
         const doorSearchSize = new Vector(1, 2 * CHUNK_SIZE_Y, 1);
 

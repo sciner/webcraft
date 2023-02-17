@@ -219,7 +219,7 @@ export class Compiler {
                         }
                         let x_size = 1;
                         let y_size = 1;
-                        const has_mask = tags.includes('mask_biome') || tags.includes('mask_color');
+                        const has_mask = tags.includes('mask_biome') || tags.includes('mask_color') || value.includes(';mask_biome');
                         const compile = block.compile;
                         if(!tex) {
                             const img = await spritesheet.loadTex(value, DEFAULT_TEXTURE_SUFFIXES);

@@ -20,14 +20,19 @@ for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
 
-const _xyz = new Vector(0, 0, 0)
-
 const _petals_parts = [
-    [{mx: 12, mz: 14, height: 3}, {mx: 9.5, mz: 9.5, height: 3}, {mx: 14.5, mz: 10.5, height: 3}],
-    [{mx: 12.5, mz: 3.5, height: 3}],
-    [{mx: 4.5, mz: 1.5, height: 3}, {mx: 1.5, mz: 5.5, height: 3}, {mx: 6.5, mz: 6.5, height: 3}],
-    [{mx: 4.5, mz: 12.5, height: 3}]
+    {height: 1.5, stems: [{mx: 11.5, mz: 14.5}, {mx: 9.5, mz: 9.5}, {mx: 14.5, mz: 10.5}]},
+    {height: 0.5, stems: [{mx: 12.5, mz: 4.5}]},
+    {height: 1.0, stems: [{mx: 4.0, mz: 2.0}, {mx: 1.5, mz: 5.5}, {mx: 6.5, mz: 6.5}]},
+    {height: 1.0, stems: [{mx: 3.5, mz: 12.5}]}
 ];
+
+const flower_poses = [
+    {x: 12, z: 12, uv: [4, 4]},
+    {x: 4, z: 12,  uv: [12, 4]},
+    {x: 4, z: 4,   uv: [12, 12]},
+    {x: 12, z: 4,  uv: [4, 12]}
+]
 
 // Листья
 export default class style {
@@ -84,9 +89,9 @@ export default class style {
         // Rotate
         const rotate = block.rotate || DEFAULT_ROTATE;
         let ang = 0, xx = 0;
-        if(material.can_rotate && rotate && block.rotate.x > 0) {
-            xx = (block.rotate.x % 4 + 4) % 4;
-            ang = (block.rotate.x / 4) * -(2 * Math.PI)
+        if(material.can_rotate && rotate && rotate.x > 0) {
+            xx = (rotate.x % 4 + 4) % 4;
+            ang = (rotate.x / 4) * -(2 * Math.PI)
         }
 
         // Geometries
@@ -94,53 +99,51 @@ export default class style {
         const planes = [];
 
         for(let i = 0; i < count; i++) {
-            for(let petal of _petals_parts[i]) {
-                let {height, mx, mz} = petal;
+
+            const item = _petals_parts[i]
+            const height = item.height
+
+            for(let petal of item.stems) {
+
+                let {mx, mz} = petal;
                 const pos = new Vector(x + 0.5, y - (1 - height / TX_SIZE) / 2, z + 0.5);
                 mx = 16 - mx
                 const vt = new Vector(mx / TX_SIZE - 0.5, 0, mz / TX_SIZE - 0.5);
                 vt.rotateByCardinalDirectionSelf(xx);
-                // mz = 16 - mz
                 // stems
                 planes.push(...[
                     {
                         pos: pos.add(vt),
-                        // pos: Vector.ZERO,
-                        // translate: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
-                        size: {x: 0, y: 3, z: 1},
-                        uv: [0.5, 5.5],
+                        size: {x: 0, y: height, z: 1},
+                        uv: [0.5, 4 + height / 2],
                         rot: [0, Math.PI / 4 + ang, 0]
                     },
                     {
                         pos: pos.add(vt),
-                        // pos: Vector.ZERO,
-                        // translate: pos.add(new Vector(mx / TX_SIZE, 0, mz / TX_SIZE)),
-                        size: {x: 0, y: 3, z: 1},
-                        uv: [0.5, 5.5],
+                        size: {x: 0, y: height, z: 1},
+                        uv: [0.5, 4 + height / 2],
                         rot: [0, Math.PI / 4 + Math.PI / 2 + ang, 0]
                     }
                 ]);
 
             }
 
-            // // part
-            // const height = 3
-            // const mx = 0
-            // const mz = 0
-            // const pos = new Vector(x, y - (1 - height / TX_SIZE) / 2, z);
-            // parts.push({
-            //     pos,
-            //     "size": {"x": 2, "y": height, "z": 2},
-            //     "translate": {"x": mx, "y": 0, "z": mz},
-            //     "faces": {
-            //         // "down":  {"uv": [1, 7], "flag": flag, "texture": c_up},
-            //         "up": {"uv": [8, 8], "flag": flag, "texture": c_up},
-            //         // "north": {"uv": [1, 11], "flag": flag, "texture": c_up},
-            //         // "south": {"uv": [1, 11], "flag": flag, "texture": c_up},
-            //         // "west":  {"uv": [1, 11], "flag": flag, "texture": c_up},
-            //         // "east":  {"uv": [1, 11], "flag": flag, "texture": c_up}
-            //     }
-            // });
+            // flowers
+            const pose = flower_poses[i]
+            const xz = flower_poses[(i - rotate.x * 2 + 8) % 4]
+            const vt = new Vector(xz.z / TX_SIZE - 0.5, 0, xz.x / TX_SIZE - 0.5);
+            vt.rotateByCardinalDirectionSelf(xx);
+            const pos = new Vector(x, y - (1 - height / TX_SIZE) / 2, z)
+            pos.x -= vt.x - .5
+            pos.z += vt.z + .5
+            parts.push({
+                pos,
+                "size": {"x": 8, "y": height, "z": 8},
+                "faces": {
+                    "up": {"uv": pose.uv, "flag": flag, "texture": c_up},
+                }
+            });
+
         }
 
         // stems
@@ -154,28 +157,17 @@ export default class style {
             });
         }
 
-        // for(let part of parts) {
-        //     default_style.pushPART(vertices, {
-        //         ...part,
-        //         lm:         lm,
-        //         pos:        part.pos,
-        //         matrix:     matrix
-        //     });
-        // }
+        matrix = mat4.create()
+        mat4.rotateY(matrix, matrix, rotate.x/4 * -(Math.PI*2))
 
-        // const aabb = new AABB(0, 0, 0, 1, .1, 1).translate(x, y, z)
-        // _xyz.set(x, y, z)
-
-        // pushAABB(
-        //     vertices,
-        //     aabb,
-        //     pivot,
-        //     matrix,
-        //     {
-        //         up: new AABBSideParams(c_up, 0, 1, null, null, false)
-        //     },
-        //     _xyz
-        // )
+        for(let part of parts) {
+            default_style.pushPART(vertices, {
+                ...part,
+                lm:         lm,
+                pos:        part.pos,
+                matrix:     matrix
+            });
+        }
 
         return null
 

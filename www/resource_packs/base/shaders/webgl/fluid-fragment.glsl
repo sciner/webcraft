@@ -33,6 +33,58 @@ out vec4 outColor;
 #include<raindrops_define_func>
 #include<shoreline_func>
 
+
+
+
+////// LAVA
+
+    mat2 rot(float a){
+    return mat2(cos(a),sin(a),-sin(a),cos(a));
+    }
+
+    float hash21(vec2 n) {
+        return fract(cos(dot(n, vec2(5.9898, 4.1414))) * 65899.89956);
+    }
+
+    float noise( in vec2 n ) {   
+        const vec2 d = vec2(0.0, 1.0);
+        vec2 b = floor(n);
+        vec2 f = smoothstep(vec2(0.), vec2(1), fract(n));
+        return mix(mix(hash21(b), hash21(b + d.yx), f.x), mix(hash21(b + d.xy), hash21(b + d.yy), f.x), f.y);
+        }
+
+    vec2 mixNoise(vec2 p) {
+        float epsilon = .968785675;
+        float noiseX = noise(vec2(p.x+epsilon,p.y))-noise(vec2(p.x-epsilon,p.y));
+        float noiseY = noise(vec2(p.x,p.y+epsilon))-noise(vec2(p.x,p.y-epsilon));
+        return vec2(noiseX,noiseY);
+    }
+
+    float fbm(in vec2 p) {
+        float amplitude=3.;
+        float total = 0.;
+        vec2 pom = p;
+        float iTime = u_time / 1000.;
+        for (float i= 1.3232; i < 7.45; i++) {
+            p += iTime*.05;
+            //pom+=iTime*0.09;
+            vec2 n= mixNoise(i*p*.3244243+iTime*.131321);
+            n*=rot(iTime*.5-(0.03456*p.x+0.0342322*p.y)*50.);
+            p += n*.5;
+            total+= (sin(noise(p)*8.5)*0.55+0.4566)/amplitude;
+            
+            p = mix(pom,p,0.5);
+            
+            amplitude *= 1.3;
+            
+            p *= 2.007556;
+            pom *= 1.6895367;
+        }
+        return total;	
+    }
+
+//// LAVA
+
 vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     vec2 texc = texClamped;
 
@@ -83,6 +135,21 @@ void main() {
         if (v_normal.z < 0.0) minecraftSun.z = 0.5;
         float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
 
+        /// LAVA
+        if(fluidId == 1) {
+            vec3 cam_period5 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+            float scale = 4.;
+            vec2 uv = vec2(v_world_pos.xy + cam_period5.xy) / scale;
+            // pixelate
+            float div = (1. / 32.) / scale;
+            uv = round(uv / div) * div;
+            float fbm_value = fbm(uv);
+            vec3 col = vec3(.212, 0.08, 0.03) / max(fbm_value, 0.0001);
+            col = pow(col, vec3(1.5));
+            color.rgb = col;
+        }
+        ///// LAVA
+
         #include<raindrops_onwater>
 
         // _include<swamp_fog>
@@ -98,15 +165,15 @@ void main() {
         // color.r = bb;
         // // vintage sepia
 
-        if(v_noCanTakeLight < 0.5) {
-            #include<local_light_pass>
-            #include<ao_light_pass>
-            #include<shoreline>
-            // Apply light
-            color.rgb *= (combinedLight * sunNormalLight);
-        } else {
-            color.rgb *= sunNormalLight;
-        }
+        // if(v_noCanTakeLight < 0.5) {
+        //     #include<local_light_pass>
+        //     #include<ao_light_pass>
+        //     #include<shoreline>
+        //     // Apply light
+        //     color.rgb *= (combinedLight * sunNormalLight);
+        // } else {
+        //     color.rgb *= sunNormalLight;
+        // }
 
         outColor = color;
 

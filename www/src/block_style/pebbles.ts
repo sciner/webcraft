@@ -1,4 +1,4 @@
-import {calcRotateMatrix, DIRECTION, IndexedColor, Vector} from '../helpers.js';
+import {calcRotateMatrix, DIRECTION, IndexedColor, TX_CNT, Vector} from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
@@ -97,6 +97,10 @@ export default class style {
             const w =  (2 + Math.round(rnd * i * .65)) / 16;
             const h = ((1 + Math.round(rnd * i / 2)) / 16 + 1/16 * i) / 2;
             if(h == 0) continue
+            const cs = [...c_side]
+            if((h*32) % 2 == 1) {
+                cs[1] += (1/32/2/TX_CNT)
+            }
             const aabb = new AABB(
                 x + .5 - w/2,
                 y,
@@ -116,10 +120,10 @@ export default class style {
                 {
                     up:     new AABBSideParams(c_down, 0, 1, null, null, true), // flag: 0, anim: 1 implicit
                     // down:   new AABBSideParams(c_down, 0, 1, null, null, true),
-                    south:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                    north:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                    west:   new AABBSideParams(c_side, 0, 1, null, null, true),
-                    east:   new AABBSideParams(c_side, 0, 1, null, null, true),
+                    south:  new AABBSideParams(cs, 0, 1, null, null, true),
+                    north:  new AABBSideParams(cs, 0, 1, null, null, true),
+                    west:   new AABBSideParams(cs, 0, 1, null, null, true),
+                    east:   new AABBSideParams(cs, 0, 1, null, null, true),
                 },
                 _xyz
             )

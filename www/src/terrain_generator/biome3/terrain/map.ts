@@ -3,7 +3,7 @@ import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
 import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_AIR_THRESHOLD } from "./manager.js";
 import { TerrainMap } from "../../terrain_map.js";
-import { BIOME3_CAVE_LAYERS, CaveGenerator } from "../cave_generator.js";
+import { BIOME3_CAVE_LAYERS, CaveGenerator, CaveGeneratorBigCaves, CaveGeneratorRegular } from "../cave_generator.js";
 import type { TerrainMapCell } from "./map_cell.js";
 import { DensityParams } from "./manager_vars.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
@@ -18,7 +18,11 @@ export class TerrainMap2 extends TerrainMap {
     constructor(chunk : ChunkWorkerChunk, options, noise2d) {
         super(chunk, options);
         this._tree_neighbours = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-        this.caves = new CaveGenerator(chunk.coord, noise2d, BIOME3_CAVE_LAYERS);
+        if(options.generate_big_caves) {
+            this.caves = new CaveGeneratorBigCaves(chunk.coord, noise2d, BIOME3_CAVE_LAYERS);
+        } else {
+            this.caves = new CaveGeneratorRegular(chunk.coord, noise2d, BIOME3_CAVE_LAYERS);
+        }
     }
 
     addTree(chunk : ChunkWorkerChunk, cluster : ClusterBase, aleaRandom, rnd : float, x : int, y : int, z : int, biome : any) : boolean{

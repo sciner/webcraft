@@ -9567,7 +9567,7 @@
             ],
             "texture": {
                 "side": "./textures/pink_petals.png",
-                "stem": "./textures/pink_petals_stem.png"
+                "stem": "./textures/pink_petals_stem.png;mask_biome"
             }
         }
     ]
