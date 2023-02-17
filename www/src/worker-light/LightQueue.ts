@@ -47,6 +47,11 @@ export class LightQueue {
         for (let i = 0; i < 2 * this.dirCount; i++) {
             this.tmpLights.push(0);
         }
+        this.ambientLight = 0;
+    }
+
+    setAmbient(ambientLight) {
+        this.ambientLight = ambientLight;
     }
 
     setNormals(hasNormals) {
@@ -114,7 +119,7 @@ export class LightQueue {
     }
 
     doIter(times) {
-        const {qOffset, dirCount, deque, world, nibbleSource, tmpLights, offsetNormal} = this;
+        const {qOffset, dirCount, deque, world, nibbleSource, tmpLights, offsetNormal, ambientLight} = this;
         const {chunkById} = world.chunkManager;
         const apc = world.chunkManager.activePotentialCenter;
         const hasNormals = offsetNormal > 0;
@@ -209,6 +214,7 @@ export class LightQueue {
                 const nibColumn = nibbles[nibCoord + OFFSET_COLUMN_TOP] - (lim - localY);
                 val = (nibColumn >= 0 && nibbles[nibCoord + OFFSET_COLUMN_DAY] > nibColumn) ? world.defDayLight : 0;
             }
+            val = Math.max(val, ambientLight);
             const old = uint8View[coordBytes + OFFSET_LIGHT];
             let prevLight = uint8View[coordBytes + OFFSET_WAVE];
             uint8View[coordBytes + OFFSET_WAVE] = 0;
