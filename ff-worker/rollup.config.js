@@ -10,7 +10,7 @@ export default [{
     treeshake: false,
     output: {
         inlineDynamicImports: true,
-        file: '../www/js-gen/chunk_worker_bundle.js',
+        file: '../www/js-bundles/chunk_worker_bundle.js',
         format: 'es'//'es',//'cjs',
     },
     plugins: [
@@ -37,7 +37,7 @@ export default [{
     treeshake: false,
     output: {
         inlineDynamicImports: true,
-        file: '../www/js-gen/light_worker_bundle.js',
+        file: '../www/js-bundles/light_worker_bundle.js',
         format: 'cjs',
     },
     plugins: [
@@ -58,7 +58,7 @@ export default [{
     treeshake: false,
     output: {
         inlineDynamicImports: true,
-        file: '../www/js-gen/sound_worker_bundle.js',
+        file: '../www/js-bundles/sound_worker_bundle.js',
         format: 'cjs',
     },
     plugins: [
@@ -79,7 +79,7 @@ export default [{
     treeshake: false,
     output: {
         inlineDynamicImports: true,
-        file: '../www/js-gen/controller_bundle.js',
+        file: '../www/js-bundles/controller_bundle.js',
         format: 'cjs',
     },
     plugins: [
