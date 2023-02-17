@@ -1,6 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { Vector } from "../../helpers.js";
 import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager.js";
+import type { DensityParams } from "./terrain/manager_vars.js";
 
 export const BIOME3_CAVE_LAYERS = [
     {y: 76, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 16, shift: 64000},
@@ -18,6 +19,11 @@ export class CaveGenerator {
         this.chunk_coord = new Vector(chunk_coord.x, 0, chunk_coord.z);
         this.noisefn = noisefn
         this.cave_layers = cave_layers
+    }
+
+    // Return cave point
+    getPoint(xyz : Vector, map_cell, in_ocean : boolean, density_params : DensityParams) : float {
+        return 0
     }
 
 }
@@ -76,7 +82,7 @@ export class CaveGeneratorRegular extends CaveGenerator {
     }
 
     // Return cave point
-    getPoint(xyz, map_cell, in_ocean, density_params) {
+    getPoint(xyz : Vector, map_cell, in_ocean : boolean, density_params : DensityParams) : float {
 
         // Sponge caves
         const y_perc = (xyz.y - 20) / 60
@@ -170,7 +176,7 @@ export class CaveGeneratorBigCaves extends CaveGenerator {
     }
 
     // Return cave point
-    getPoint(xyz : Vector, map_cell, in_ocean, density_params) {
+    getPoint(xyz : Vector, map_cell, in_ocean : boolean, density_params : DensityParams) : float {
 
         // Sponge caves
         const y_perc = (xyz.y - 20) / 60
