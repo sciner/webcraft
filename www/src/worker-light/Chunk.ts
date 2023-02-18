@@ -77,20 +77,11 @@ export class Chunk {
                 let indTo = (((y + padding) * outerSize.z + (z + padding)) * outerSize.x + padding) * strideBytes;
                 for (let x = 0; x < size.x; x++) {
                     const srcAdj= uint8View[indTo + OFFSET_SOURCE] = adjustSrc(src[indFrom + x]);
-                    // if ((srcAdj[indFrom + x] & MASK_SRC_BLOCK) !== MASK_SRC_BLOCK) {
-                    //     uint8View[indTo + OFFSET_LIGHT] = ambientLight;
-                    //     uint8View[indTo + OFFSET_DAY] = ambientDayLight;
-                    // }
+                    if ((srcAdj & MASK_SRC_BLOCK) !== MASK_SRC_BLOCK) {
+                        uint8View[indTo + OFFSET_LIGHT] = ambientLight;
+                        uint8View[indTo + OFFSET_DAY] = ambientDayLight;
+                    }
                     indTo += strideBytes;
-                }
-            }
-        }
-        if (ambientLight > 0 || ambientDayLight > 0) {
-            for (let i = 0; i < outerLen; i++) {
-                const ind = i * strideBytes;
-                if ((uint8View[ind + OFFSET_SOURCE] & MASK_SRC_BLOCK) !== MASK_SRC_BLOCK) {
-                    uint8View[ind + OFFSET_LIGHT] = ambientLight;
-                    uint8View[ind + OFFSET_DAY] = ambientDayLight;
                 }
             }
         }
@@ -132,7 +123,7 @@ export class Chunk {
                         const f2 = inside2.contains(x, y, z);
                         // copy light
                         const light = bytes2[coord2 + OFFSET_LIGHT];
-                        if (light > ambientLight) {
+                        if (f2 && light > 0 || f1 && light > ambientLight) {
                             uint8View[coord1 + OFFSET_LIGHT] = light;
                             if (offsetNormal > 0) {
                                 // we ignore ending here because its set/get
@@ -147,6 +138,7 @@ export class Chunk {
                                 other.rev.lastID++;
                             }
                             bytes2[coord2 + OFFSET_SOURCE] = uint8View[coord1 + OFFSET_SOURCE]
+                            bytes2[coord2 + OFFSET_LIGHT] = uint8View[coord1 + OFFSET_LIGHT]
                         }
                         if (f2) {
                             if ((uint8View[coord1 + OFFSET_SOURCE] & MASK_SRC_AO) !== (bytes2[coord2 + OFFSET_SOURCE] & MASK_SRC_AO)) {
