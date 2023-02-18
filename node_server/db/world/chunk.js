@@ -213,7 +213,7 @@ export class DBWorldChunk {
                         FROM world_modify
                         WHERE chunk_x = ? AND chunk_y = ? AND chunk_z = ?
                         ORDER BY id DESC
-                    ) GROUP BY "index"
+                    ) GROUP BY i
                 ) WHERE cnt > 1
             ) DELETE
             FROM world_modify
@@ -240,7 +240,7 @@ export class DBWorldChunk {
         this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS | WorldChunkFlags.MODIFIED_BLOCKS);
     }
 
-    static toUpdateWorldModifyChunksWithBLOBs(rowId, data_patch, ml) {
+    static toUpdateWorldModifyChunksWithBLOBs(data_patch, rowId, ml) {
         return [
             rowId,
             JSON.stringify(data_patch),

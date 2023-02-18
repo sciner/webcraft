@@ -529,9 +529,9 @@
         "id": "1321738a-3828-44df-b6d6-507578c8abbc",
         "type": "madcraft:crafting_shaped",
         "pattern": [
-            "#",
-            "#",
-            "|"
+            " # ",
+            " # ",
+            " | "
         ],
         "key": {
             "|": {
@@ -634,9 +634,9 @@
         "id": "280ed192-94b5-4732-87aa-192458d0c7ab",
         "type": "madcraft:crafting_shaped",
         "pattern": [
-            "#",
-            "#",
-            "|"
+            " # ",
+            " # ",
+            " | "
         ],
         "key": {
             "|": {
@@ -739,9 +739,9 @@
         "id": "a4386f50-21dd-490d-8b5e-ac114db69160",
         "type": "madcraft:crafting_shaped",
         "pattern": [
-            "#",
-            "#",
-            "|"
+            " # ",
+            " # ",
+            " | "
         ],
         "key": {
             "|": {
@@ -1579,6 +1579,66 @@
         },
         "result": {
             "item": { "suffix": "_CANDLE" },
+            "count": 1
+        }
+    },
+    {
+        "id": "f9fb0063-d44c-4559-9a5f-0784be4622d1",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            " # ",
+            " # ",
+            " | "
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "special:planks"
+            }
+        },
+        "result": {
+            "item": "madcraft:wooden_sword",
+            "count": 1
+        }
+    },
+    {
+        "id": "d39ea8ab-1a96-4ae0-adba-6777dcc7524b",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            " # ",
+            " # ",
+            " | "
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:cobblestone"
+            }
+        },
+        "result": {
+            "item": "madcraft:stone_sword",
+            "count": 1
+        }
+    },
+    {
+        "id": "dc10c4b0-c2bd-4c34-960c-e68bda3897e1",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "## ",
+            "## "
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:string"
+            }
+        },
+        "result": {
+            "item": "madcraft:white_wool",
             "count": 1
         }
     }

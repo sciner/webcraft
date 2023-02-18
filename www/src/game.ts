@@ -13,6 +13,7 @@ import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PA
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
+import type { Player } from "./player.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -35,6 +36,7 @@ export class GameSettings {
     // camera
     fov:                     float = DEFAULT_FOV_NORMAL
     render_distance:         int = 5
+    base_ambient_light_level:float = 100
     // quality
     use_light:               int = 1
     beautiful_leaves:        boolean = true
@@ -54,11 +56,12 @@ export class GameSettings {
             }
         }
 
-        this.texture_pack       = 'base'
-        this.fov                = Mth.clamp(this.fov, 50, 120)
-        this.mouse_sensitivity  = Mth.clamp(this.mouse_sensitivity, 25, 300)
-        this.music_volume       = Mth.clamp(this.music_volume, 0, 100)
-        this.use_light          = Mth.clamp(this.use_light, 0, 2)
+        this.texture_pack               = 'base'
+        this.fov                        = Mth.clamp(this.fov, 50, 120)
+        this.mouse_sensitivity          = Mth.clamp(this.mouse_sensitivity, 25, 300)
+        this.music_volume               = Mth.clamp(this.music_volume, 0, 100)
+        this.base_ambient_light_level   = Mth.clamp(this.base_ambient_light_level, 0, 100)
+        this.use_light                  = Mth.clamp(this.use_light, 0, 2)
 
     }
 
@@ -67,6 +70,8 @@ export class GameSettings {
 // Main game class
 export class GameClass {
     [key: string]: any;
+
+    player : Player
 
     constructor() {
         this.is_server                  = false;
@@ -451,11 +456,11 @@ export class GameClass {
                                             pos.y += pos.n.y;
                                             if(pos.n.y < 0) pos.y--;
                                         }
-                                        player.teleport(null, pos);
+                                        player.teleport(null, pos, false);
                                     }
                                 }, 1000);
                             } else {
-                                player.teleport('random', null);
+                                player.teleport('random', null, false);
                             }
                         }
                         return true;

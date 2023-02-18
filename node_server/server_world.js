@@ -52,10 +52,10 @@ export class ServerWorld {
     }
 
     /**
-     * @param {string} world_guid 
-     * @param { import("./db/world.js").DBWorld } db_world 
-     * @param {string} new_title 
-     * @param {*} game 
+     * @param {string} world_guid
+     * @param { import("./db/world.js").DBWorld } db_world
+     * @param {string} new_title
+     * @param {*} game
      */
     async initServer(world_guid, db_world, new_title, game) {
         this.game = game;
@@ -126,7 +126,7 @@ export class ServerWorld {
         this.packets_queue  = new WorldPacketQueue(this);
         // statistics
         this.ticks_stat     = new WorldTickStat();
-        this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0, 
+        this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0,
             out_count_by_type: null, in_count_by_type: null,
             out_size_by_type: null, in_size_by_type: null };
         this.start_time     = performance.now();
@@ -288,6 +288,7 @@ export class ServerWorld {
         if(!auto_generate_mobs || !good_world_for_spawn || !this.rules.getValue('doMobSpawning')) {
             return;
         }
+        const ambientLight = (this.info.rules.ambientLight || 0) * 255/15;
         // находим игроков
         for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
@@ -306,9 +307,16 @@ export class ServerWorld {
                     if (under && (under.id != 0 || under.material.style_name == 'planting')) {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
+                        const lv = head.lightValue;
+                        // if ((lv & 0xFF) > 0) {
+                        //     continue;
+                        // }
+                        if ((lv & 0xff) > ambientLight) {
+                            continue;
+                        }
                         if (this.getLight() > 6) {
-                            if ((head.lightValue >> 8) != 0xFF) {
-                                return;
+                            if (0xFF - (lv >> 8) > ambientLight) {
+                                continue;
                             }
                         }
                         // проверям что область для спауна это воздух или вода
@@ -927,7 +935,13 @@ export class ServerWorld {
         // Play sound
         if (actions.play_sound) {
             for(let params of actions.play_sound) {
-                const cps = getChunkPackets(params.pos);
+                let cps = null
+                try {
+                    cps = getChunkPackets(params.pos);
+                } catch(e) {
+                    console.error(e)
+                    console.error(actions)
+                }
                 if (cps) {
                     if (cps.chunk) {
                         if('except_players' in params) {

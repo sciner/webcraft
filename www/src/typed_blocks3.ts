@@ -8,6 +8,7 @@ import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js"
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
 import type { FluidChunk } from "./fluid/FluidChunk.js";
 import type { ChunkLight } from "./light/ChunkLight.js";
+import type { AnyChunk } from "./helpers.js";
 
 export function newTypedBlocks(coord : Vector, chunkSize: Vector) {
     return new TypedBlocks3(coord, chunkSize);
@@ -145,6 +146,7 @@ export class TypedBlocks3 {
     shapes          : VectorCollector1D = null
     metadata        : VectorCollector1D = null
     position        : VectorCollector1D = null
+    chunk           : AnyChunk
 
     constructor(coord : Vector, chunkSize: Vector) {
         this.addr       = Vector.toChunkAddr(coord);
@@ -856,20 +858,20 @@ export class DataWorld {
 }
 
 export class TBlock {
-    [key: string]: any;
 
-    tb : TypedBlocks3
+    tb: TypedBlocks3
     vec: Vector
+    index: number
 
     constructor(tb? : TypedBlocks3, vec? : Vector, index? : number) {
         this.init(tb, vec, index);
     }
 
-    init(tb = this.tb, vec = this.vec, index? : number) {
+    init(tb: TypedBlocks3 = this.tb, vec: Vector = this.vec, index?: number) {
         //TODO try remove third param
         this.tb = tb;
         this.vec = vec;
-        this.index = index || NaN;
+        this.index = index ?? NaN;
 
         // Old code that used incorrect BLOCK.getIndex
         // this.index = index || (this.vec ? BLOCK.getIndex(this.vec) : NaN);
@@ -877,11 +879,11 @@ export class TBlock {
         return this;
     }
 
-    // get chunk() {
-    //     return this.tb.chunk;
-    // }
+    get chunk(): AnyChunk {
+        return this.tb.chunk;
+    }
 
-    initFrom(block) {
+    initFrom(block: TBlock) {
         this.tb = block.tb;
         this.vec = block.vec;
         this.index = block.index;
@@ -963,9 +965,9 @@ export class TBlock {
         return res;
     }
 
-    get lightData() {
-        return this.light?.lightData;
-    }
+    // get lightData() {
+    //     return this.light?.lightData;
+    // }
 
     /**
      * uin16, low bits are cave, high bits are day

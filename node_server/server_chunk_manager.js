@@ -154,6 +154,12 @@ export class ServerChunkManager {
     async initWorkers(worldId) {
         this.worldId = worldId;
         this.lightWorker = Qubatch.lightWorker;
+        this.postLightWorkerMessage([
+            'genLayerParams',
+            {
+                ambientLight: this.world.info.rules.ambientLight || 0,
+            }
+        ])
     }
 
     postLightWorkerMessage(msg) {

@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
-import { Vector, Mth } from "../../helpers.js";
+import { Mth, Vector } from "../../helpers.js";
 import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager.js";
 import type { DensityParams } from "./terrain/manager_vars.js";
 import type { TerrainMapCell } from "../terrain_map.js";
@@ -89,12 +89,14 @@ export class CaveGeneratorRegular extends CaveGenerator {
     // Return cave point
     getPoint(xyz: Vector, map_cell: TerrainMapCell, in_ocean: boolean, density_params: DensityParams): number {
 
+        const border_density = Mth.clamp(1 - xyz.y / (4 + (density_params.d3 + 1) * 3), 0, 1)
+
         // Sponge caves
         const y_perc = (xyz.y - 20) / 60
         if(y_perc > -1 && y_perc < 1) {
             const mul = easeInOutExp(y_perc)
             if(density_params.d1 * mul < -.3) {
-                const sponge_cave_density = density_params.d3 * .8 + density_params.d4 * .2
+                const sponge_cave_density = density_params.d3 * .8 + density_params.d4 * .2 + border_density
                 if(sponge_cave_density < 0) {
                     let densisiy = DENSITY_AIR_THRESHOLD // плотность воздуха
                     if(sponge_cave_density > -0.1) {
@@ -119,7 +121,7 @@ export class CaveGeneratorRegular extends CaveGenerator {
             if(vert_dist < -(1 + density_params.d4 * 2) * dens || vert_dist > (8 + density_params.d4 * 3) * dens) {
                 continue;
             }
-            return DENSITY_AIR_THRESHOLD
+            return DENSITY_AIR_THRESHOLD + border_density
         }
 
         return DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD // * .999

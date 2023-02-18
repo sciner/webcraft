@@ -441,7 +441,6 @@ export class Chat extends TextBox {
                     this.submit();
                 }
                 return true;
-                break;
             }
         }
     }

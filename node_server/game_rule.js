@@ -14,7 +14,8 @@ export class GameRule {
             randomTickSpeed:    {default: 3, type: 'int'},
             difficulty:         {default: 1, type: 'int'},
             fluidTickRate:      {default: 5, min: 1, max: 1000000, type: 'int'},
-            lavaSpeed:          {default: 6, min: 1, max: 6, type: 'int'}
+            lavaSpeed:          {default: 6, min: 1, max: 6, type: 'int'},
+            ambientLight:       {default: 0, min: 0, max: 8, type: 'int'},
         };
     }
 
@@ -85,6 +86,10 @@ export class GameRule {
                     world.updateWorldCalendar();
                     current_rules.doDaylightCycleTime = world.info.calendar.day_time;
                 }
+                break;
+            }
+            case 'ambientLight': {
+                world.chunkManager.fluidWorld.queue[rule_code] = value;
                 break;
             }
         }

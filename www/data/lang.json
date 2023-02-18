@@ -170,6 +170,7 @@
         "screen_cover": {"en": "Set as world cover", "ru": "Сделать обложкой мира", "fr": "", "es": "", "man": ""},
         "screen_gallery": {"en": "Upload to gallery", "ru": "Добавить в галерею", "fr": "", "es": "", "man": ""},
         "screen_taken": {"en": "You have taken a screenshot. Farther?", "ru": "Вы сделали снимок экрана. Что дальше?", "fr": "", "es": "", "man": ""},
-        "settings_leaf_fall": {"en": "Trees leaf fall", "ru": "Листопад", "fr": "", "es": "", "man": ""}
+        "settings_leaf_fall": {"en": "Trees leaf fall", "ru": "Листопад", "fr": "", "es": "", "man": ""},
+        "base_ambient_light_level": {"en": "Base ambient light level", "ru": "Базовый уровень освещенности", "fr": "", "es": "", "man": ""}
     }
 }
