@@ -4,19 +4,23 @@ import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Y, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
     CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW } from "./chunk_const.js";
 import { DEFAULT_TX_CNT } from "./constant.js";
 import type { Chunk } from './chunk.js'
 import type { ChunkWorkerChunk } from './worker/chunk.js'
 import type { ServerChunk } from "../../node_server/server_chunk.js"
 import type { AABB } from "./core/AABB.js";
+import type { Chunk } from './chunk.js'
+import type { ChunkWorkerChunk } from './worker/chunk.js'
+import type { ServerChunk } from "../../node_server/server_chunk.js"
+import type { Building } from "./terrain_generator/cluster/building.js";
+
+declare type AnyChunk = Chunk | ChunkWorkerChunk | ServerChunk
 
 export declare type AnyChunk = Chunk | ChunkWorkerChunk | ServerChunk
 
 const {mat4, quat} = glMatrix;
-
-// const DEFAULT_PROPERTIES_EQUAL_FN = (a, b) => ObjectHelpers.deepEqual(a, b);
 
 export const TX_CNT = DEFAULT_TX_CNT;
 
@@ -364,6 +368,74 @@ export class Mth {
         v |= v >> 8
         v |= v >> 16
         return v + 1
+    }
+
+    /**
+     * Creates a function based on a lookup table without interpolation. Very fast and imprecise.
+     * @param {number} min - the minimum value of the argument
+     * @param {number} max - the maximum value of the argument
+     * @param {number} size - the lookup table size. It's recommended to use at least 100.
+     * @param {boolean} rangeCheck - whether to add range checks (slower, it's usefule to enable them for debugging, then turn off)
+     */
+    static createBasicLUTFunction(min: number, max: number, size: number = 100, rangeCheck: boolean, fn: Function): Function {
+        const arr = new Float32Array(size)
+        const maxInd = size - 1
+        max -= min
+        const kx = maxInd / max
+        const kxInv = max / maxInd
+        for(let i = 0; i <= maxInd; i++) {
+            arr[i] = fn(min + i * kxInv)
+        }
+        return rangeCheck
+            ? function(x: number): number {
+                const ind = Math.round((x - min) * kx) | 0
+                if ((ind | maxInd - ind) < 0) {
+                    throw new Error()
+                }
+                return arr[ind]
+            }
+            : function(x: number): number {
+                return arr[Math.round((x - min) * kx) | 0]
+            }
+    }
+
+    /**
+     * Similar to {@link createBasicLUTFunction}, but uses linear interpolation - more accurate and slower.
+     * Chose smaller {@link size} than in {@link createBasicLUTFunction}.
+     */
+    static createLerpLUTFunction(min: number, max: number, size: number = 16, rangeCheck: boolean, fn: Function): Function {
+        size |= 0
+        // Pad with 1 element at each side, in case the argument is slightly out of bounds due to rounding errors.
+        const arr = new Float64Array(size + 2)
+        const maxInd = size - 1
+        max -= min
+        const kx = maxInd / max
+        const kxInv = max / maxInd
+        for(let i = 0; i <= maxInd; i++) {
+            arr[i + 1] = fn(min + i * kxInv)
+        }
+        arr[0] = arr[1]
+        arr[arr.length - 1] = arr[arr.length - 2]
+        return rangeCheck
+            ? function(x: number): number {
+                let fi = (x - min) * kx
+                const floor = Math.floor(fi)
+                fi -= floor // now its semantics is "fraction beyound floor"
+                const floorInd = (floor | 0) + 1
+                // This condition is imprecise: it doesn't detect slight out-of-bounds.
+                // But it's fast, and probably good enough to chatch bugs in practice.
+                if ((floorInd | size - floorInd) < 0) {
+                    throw new Error()
+                }
+                return arr[floorInd] * (1 - fi) + arr[floorInd + 1] * fi
+            }
+            : function(x: number): number {
+                let fi = (x - min) * kx
+                const floor = Math.floor(fi)
+                fi -= floor
+                const floorInd = (floor | 0) + 1
+                return arr[floorInd] * (1 - fi) + arr[floorInd + 1] * fi
+            }
     }
 }
 
@@ -1270,9 +1342,6 @@ export class Vector implements IVector {
 
     // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
     static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
-    x: any;
-    y: any;
-    z: any;
     static {
         for(var i = 1; i < 6; ++i) {
             this.SIX_DIRECTIONS_CUMULATIVE.push(
@@ -1287,6 +1356,12 @@ export class Vector implements IVector {
         out_vec = out_vec || new Vector()
         return getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
     }
+
+    static yFromChunkIndex: (index: number) => number
+
+    x: number;
+    y: number;
+    z: number;
 
     /**
      * @param {Vector | IVector | number[]} [x]
@@ -1725,9 +1800,9 @@ export class Vector implements IVector {
         }
 
         // maybe undef
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
+        this.x = <number>x || 0;
+        this.y = <number>y || 0;
+        this.z = <number>z || 0;
         return this;
     }
 
@@ -1924,18 +1999,6 @@ export class Vector implements IVector {
         return CHUNK_CX * this.x + CHUNK_CY * this.y + CHUNK_CZ * this.z + CHUNK_CW;
     }
 
-    fromChunkIndex(index) {
-        this.x = index % CHUNK_OUTER_SIZE_X - CHUNK_PADDING;
-        index  = index / CHUNK_OUTER_SIZE_X | 0;
-        this.z = index % CHUNK_OUTER_SIZE_Z - CHUNK_PADDING;
-        this.y = (index / CHUNK_OUTER_SIZE_Z | 0) - CHUNK_PADDING;
-        return this;
-    }
-
-    static yFromChunkIndex(index) {
-        return (index / (CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z) | 0) - CHUNK_PADDING
-    }
-
     //
     fromHash(hash) {
         let temp = hash.split(',');
@@ -1966,6 +2029,44 @@ export class Vector implements IVector {
 
 }
 
+if (CHUNK_CX === 1) {
+    /*
+    CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z
+    CHUNK_CZ = CHUNK_OUTER_SIZE_X
+    */
+    // @ts-expect-error
+    Vector.prototype.fromChunkIndex = function(index: number): Vector {
+        this.x = index % CHUNK_OUTER_SIZE_X - CHUNK_PADDING;
+        index  = index / CHUNK_OUTER_SIZE_X | 0;
+        this.z = index % CHUNK_OUTER_SIZE_Z - CHUNK_PADDING;
+        this.y = (index / CHUNK_OUTER_SIZE_Z | 0) - CHUNK_PADDING;
+        return this;
+    }
+
+    Vector.yFromChunkIndex = function(index: number): number {
+        return (index / (CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z) | 0) - CHUNK_PADDING
+    }
+} else if (CHUNK_CY === 1) {
+    /*
+    CHUNK_CZ = CHUNK_OUTER_SIZE_Y
+    CHUNK_CX = CHUNK_OUTER_SIZE_Y * CHUNK_OUTER_SIZE_Z
+    */
+    // @ts-expect-error
+    Vector.prototype.fromChunkIndex = function(index: number): Vector {
+        index = index | 0
+        const dividedByY = index / CHUNK_OUTER_SIZE_Y | 0
+        this.y = index - (dividedByY * CHUNK_OUTER_SIZE_Y) - CHUNK_PADDING
+        const dividedYZ = dividedByY / CHUNK_OUTER_SIZE_Z | 0
+        this.z = dividedByY - (dividedYZ * CHUNK_OUTER_SIZE_Z) - CHUNK_PADDING
+        this.x = dividedYZ - CHUNK_PADDING
+        return this
+    }
+
+    Vector.yFromChunkIndex = function(index: number): number {
+        return (index % CHUNK_OUTER_SIZE_Y) - CHUNK_PADDING
+    }
+}
+
 /** Applies rotation by cradinal direction, mirroring and shift to a Vector. */
 export class VectorCardinalTransformer {
     x0 : number
@@ -1980,7 +2081,7 @@ export class VectorCardinalTransformer {
     static tmpVec2 = new Vector()
 
     /** The same arguments as in {@link init} */
-    constructor(vec0 = null, dir = 0, mirror_x = false, mirror_z = false) {
+    constructor(vec0?: Vector, dir = 0, mirror_x = false, mirror_z = false) {
         if (vec0) {
             this.init(vec0, dir, mirror_x, mirror_z)
         }
@@ -1989,10 +2090,8 @@ export class VectorCardinalTransformer {
     /**
      * @param {Vector} vec0 - the vector to which (0, 0, 0) will be transformed
      * @param {Int} dir - one of DIRECTION.WEST, DIRECTION.EAST, DIRECTION.NORTH, DIRECTION.SOUTH
-     * @param {Boolean} mirror_x
-     * @param {Boolean} mirror_z
      */
-    init(vec0, dir, mirror_x = false, mirror_z = false) {
+    init(vec0: Vector, dir: number, mirror_x = false, mirror_z = false): VectorCardinalTransformer {
         this.x0 = vec0.x
         this.y0 = vec0.y
         this.z0 = vec0.z
@@ -2032,19 +2131,16 @@ export class VectorCardinalTransformer {
     /**
      * Initializes this transformer to transofrm from the coordinate system of
      * a building to the coordinate system of a chunk.
-     * @param {Building} building
-     * @param {Chunk|ServerChunk|ChunkWorkerChunk} chunk
      */
-    initBuildingToChunk(building, chunk) {
+    initBuildingToChunk(building: Building, chunk: AnyChunk): VectorCardinalTransformer {
         return this.init(building.pos.sub(chunk.coord), building.direction, building.mirror_x, building.mirror_z)
     }
 
     /**
      * Initializes this transformer to transofrm from the coordinate system of
      * a building to the coordinate system of the world.
-     * @param {Building} building
      */
-    initBuildingToWorld(building) {
+    initBuildingToWorld(building: Building): VectorCardinalTransformer {
         return this.init(building.pos, building.direction, building.mirror_x, building.mirror_z)
     }
 
@@ -2052,7 +2148,7 @@ export class VectorCardinalTransformer {
      * Initializes this transformer as the inverse transformation of the given
      * {@link srcTransformer}, ot itself.
      */
-    initInverse(srcTransformer = this) {
+    initInverse(srcTransformer: VectorCardinalTransformer = this): VectorCardinalTransformer {
         let {kxx, kxz, kzx, kzz, x0, y0, z0} = srcTransformer
         const detInv = 1 / (kxx * kzz - kxz * kzx)
         this.kxx =  detInv * kzz
@@ -2065,7 +2161,7 @@ export class VectorCardinalTransformer {
         return this
     }
 
-    transform(src, dst = new Vector()) {
+    transform(src: IVector, dst = new Vector()): Vector {
         let {x, z} = src
         dst.y = this.y0 + src.y
         dst.x = this.x0 + x * this.kxx + z * this.kxz
@@ -2073,17 +2169,17 @@ export class VectorCardinalTransformer {
         return dst
     }
 
-    transformXZ(x, z, dst) {
+    transformXZ(x: number, z: number, dst: Vector): Vector {
         dst.x = this.x0 + x * this.kxx + z * this.kxz
         dst.z = this.z0 + x * this.kzx + z * this.kzz
         return dst
     }
 
-    transformY(y) {
+    transformY(y: number): number {
         return this.y0 + y
     }
 
-    tranformAABB(src, dst) {
+    tranformAABB(src: AABB, dst: AABB): AABB {
         const tmpVec = VectorCardinalTransformer.tmpVec
         tmpVec.set(src.x_min, src.y_min, src.z_min)
         this.transform(tmpVec, tmpVec)
@@ -2713,16 +2809,15 @@ export class StringHelpers {
 }
 
 export class ArrayHelpers {
-    [key: string]: any;
 
     // elements order is not preserved
-    static fastDelete(arr, index) {
+    static fastDelete(arr: any[], index: number): void {
         arr[index] = arr[arr.length - 1];
         --arr.length;
     }
 
     // elements order is not preserved
-    static fastDeleteValue(arr, value) {
+    static fastDeleteValue(arr: any[], value: any): void {
         var i = 0;
         var len = arr.length;
         while (i < len) {
@@ -2735,7 +2830,7 @@ export class ArrayHelpers {
         arr.length = len;
     }
 
-    static filterSelf(arr : any[], predicate) {
+    static filterSelf(arr : any[], predicate: Function): void {
         // fast skip elements that don't change
         var src = 0;
         while (src < arr.length && predicate(arr[src])) {
@@ -2756,7 +2851,7 @@ export class ArrayHelpers {
         arr.length = dst;
     }
 
-    static sum(arr : any[], mapper = (it) => it) {
+    static sum(arr : any[], mapper = (it: any): number => it): number {
         var sum = 0;
         for (let i = 0; i < arr.length; i++) {
             sum += mapper(arr[i]);
@@ -2764,11 +2859,11 @@ export class ArrayHelpers {
         return sum;
     }
 
-    /**
+    /** 
      * Creates an array of at least the required length, or increases the length of the existing array.
-     * @returns {array} the given array, or a new one.
+     * @returns {AnyArray} the given array, or a new one.
      */
-    static ensureCapacity(arr = null, length, arrayClass = null) {
+    static ensureCapacity(arr: AnyArray | null, length: number, arrayClass?: any): any {
         if (arr) {
             arrayClass ??= arr.constructor
             if (arrayClass !== arr.constructor) {
@@ -2793,10 +2888,10 @@ export class ArrayHelpers {
      * It has O(length) time.
      * @param { int } sortedLength - the number of first array elements that will be sorted.
      */
-    static partialSort(arr, sortedLength = arr.length, compare,
+    static partialSort(arr: any[], sortedLength = arr.length, compare: Function,
         // do not pass the last 2 arguments - they are internal
         fromIncl = 0, toExcl = arr.length
-    ) {
+    ): void {
         while (true) {
             var d = toExcl - fromIncl;
             if (d <= 2) {
@@ -2836,7 +2931,7 @@ export class ArrayHelpers {
         }
     }
 
-    static toObject(arr, toKeyFn = (ind : number, _ : any) => ind, toValueFn = (_ : number, value : any) => value) {
+    static toObject(arr: any[], toKeyFn = (ind : number, _ : any) => ind, toValueFn = (_ : number, value : any) => value): object {
         const res = {};
         if (typeof toValueFn !== 'function') {
             const value = toValueFn;
@@ -2849,7 +2944,7 @@ export class ArrayHelpers {
         return res;
     }
 
-    static create(size : int, fill : Function | null = null) {
+    static create(size: number, fill?: Function): any[] {
         const arr = new Array(size);
         if (typeof fill === 'function') {
             for(let i = 0; i < arr.length; i++) {
@@ -2861,7 +2956,7 @@ export class ArrayHelpers {
         return arr;
     }
 
-    static copyToFrom(dst, src) {
+    static copyToFrom(dst: any[], src: any[]): void {
         // it might be not the fastest, needs profiling
         dst.length = 0
         dst.push(...src)
@@ -3388,9 +3483,8 @@ export class AlphabetTexture {
 
 // maybe move other related methods here
 export class ObjectHelpers {
-    [key: string]: any;
 
-    static isEmpty(obj) {
+    static isEmpty(obj: object): boolean {
         for (let _ in obj) {
             return false;
         }
@@ -3398,13 +3492,13 @@ export class ObjectHelpers {
     }
 
     // For now, it supports only plain objects, Array, primitives and Vector.
-    static deepClone(v, depth : int = Infinity) {
+    static deepClone(v: any, depth : number = Infinity): any {
         if (v == null) {
             return v;
         }
         // Splitting this function into 3 increases(!) performance
         // Probably because JIT can infer static types in deepCloneArray() and deepCloneObject()
-        if (Array.isArray(v)) {
+        if (v.length != null && Array.isArray(v)) {
             return this.deepCloneArray(v, depth);
         }
         if (typeof v === 'object') {
@@ -3413,7 +3507,7 @@ export class ObjectHelpers {
         return v;
     }
 
-    static deepCloneArray(v, depth = Infinity) {
+    static deepCloneArray(v: Array<any>, depth: number = Infinity): Array<any> {
         if (--depth < 0) {
             return v;
         }
@@ -3424,11 +3518,11 @@ export class ObjectHelpers {
         return res;
     }
 
-    static deepCloneObject(v, depth = Infinity) {
+    static deepCloneObject(v: object, depth: number = Infinity): object {
         if (--depth < 0) {
             return v;
         }
-        if (v instanceof Vector) {
+        if ((<any>v).x != null && v instanceof Vector) {
             return new Vector(v);
         }
         const res = {};
@@ -3447,7 +3541,7 @@ export class ObjectHelpers {
      *
      * Maybe add support for Map, Set, primitive arrays.
      */
-    static deepEqual(a, b) {
+    static deepEqual(a: any, b: any): boolean {
         if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') {
             return a === b;
         }
@@ -3456,7 +3550,7 @@ export class ObjectHelpers {
             : this.deepEqualObject(a, b);
     }
 
-    static deepEqualArray(a, b) {
+    static deepEqualArray(a: AnyArray, b: AnyArray): boolean {
         if (a.length !== b.length) {
             return false;
         }
@@ -3468,7 +3562,7 @@ export class ObjectHelpers {
         return true;
     }
 
-    static deepEqualObject(a, b) {
+    static deepEqualObject(a: object, b: object): boolean {
         for (let key in a) {
             // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
             // but for real game objects it seems unnecesssary.
@@ -3485,7 +3579,7 @@ export class ObjectHelpers {
     }
 
     // Returns a result similar to JSON.stringify, but the keys are sorted alphabetically.
-    static sortedStringify(obj) {
+    static sortedStringify(obj: any) {
         if (obj == null) {
             return 'null'; // for both null and undefined
         }
@@ -3504,6 +3598,15 @@ export class ObjectHelpers {
             keys[i] = JSON.stringify(key) + ':' + this.sortedStringify(obj[key]);
         }
         return '{' + keys.join(',') + '}';
+    }
+
+    static toMultiline(obj: object, pad = 0) : string {
+        const result: string[] = []
+        const prefix = ' '.repeat(pad)
+        for (const key in obj) {
+            result.push(prefix + key + ': ' + obj[key])
+        }
+        return result.join('\n')
     }
 }
 
@@ -3880,7 +3983,7 @@ export class ShiftedMatrix {
         // add border cells to the queue, spread from inner cells
         for(const [row, col, ind] of this.relativeRowColIndices()) {
             const v = arr[ind]
-            if (v) { // it's a cell with an unkown distance, a queue candidate
+            if (v) { // it's a cell with an unkown distance, a queue candidate 
                 const onBorder =
                     (row === 0      ? toOutside : arr[ind - cols] === 0) ||
                     (row === rowsM1 ? toOutside : arr[ind + cols] === 0) ||
@@ -4223,14 +4326,22 @@ export class SpatialDeterministicRandom {
 }
 
 export class PerformanceTimer {
-    [key: string]: any;
 
     #names : {name: string, p: number}[] = []
+    #keys : string[] = []   // a reusable temporary array
 
     result: Map<string, number> = new Map()
+    /** The total time measured by this timer */
+    sum: number = 0
+    /**
+     * The total number of uses. The exact semantics is up to the caller.
+     * It's delcared here for convenience, but not managed by this class, because
+     * it doesn't know which start() and stop() to cosider the same or different uses.
+     */
+    count: number = 0
+    #countByTopKey = {}
 
     constructor() {
-        this.#names = []
     }
 
     start(name: string) : void {
@@ -4238,19 +4349,37 @@ export class PerformanceTimer {
     }
 
     stop() : PerformanceTimer {
-        const keys : string[] = []
+        this.#keys.length = 0
         for(let item of this.#names) {
-            keys.push(item.name)
+            this.#keys.push(item.name)
         }
-        const key = keys.join(' -> ')
+        const key = this.#keys.join(' -> ')
         const item = this.#names.pop()
         if(item === undefined) {
             throw 'error_not_started'
         }
         const diff = performance.now() - item.p
-        const exist_value = this[key] ?? 0
-        // this[key] = exist_value + diff
+        const exist_value = this.result.get(key) ?? 0
         this.result.set(key, exist_value + diff)
+        if (this.#keys.length === 1) {
+            this.sum += diff
+        }
+        return this
+    }
+
+    /** Adds the sum as a field (which will be exported with other fields). */
+    addSum(key : string = 'sum') : PerformanceTimer {
+        this.result.set(key, this.sum)
+        return this
+    }
+
+    /** Add to this timer values from the other timer */
+    addFrom(other : PerformanceTimer) : PerformanceTimer {
+        this.sum += other.sum
+        this.count += other.count
+        for(const [key, value] of other.result) {
+            this.result.set(key, (this.result.get(key) ?? 0) + value)
+        }
         return this
     }
 
@@ -4270,16 +4399,12 @@ export class PerformanceTimer {
         return this
     }
 
-    sum() : number {
-        return ArrayHelpers.sum(Array.from(this.result.values()))
+    export() : object {
+        return Object.fromEntries(this.result.entries())
     }
 
-    export() : {key: string, value: number}[] {
-        const result : {key: string, value: number}[] = []
-        for(const [key, value] of this.result.entries()) {
-            result.push({key, value})
-        }
-        return result
+    exportMultiline(pad = 0) : string {
+        return ObjectHelpers.toMultiline(this.export(), pad)
     }
 
 }

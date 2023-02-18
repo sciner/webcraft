@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { getChunkAddr, chunkAddrToCoord, Vector, SimpleShifted3DArray, ArrayHelpers, Mth } from "./helpers.js";
+import { chunkAddrToCoord, Vector, SimpleShifted3DArray, ArrayHelpers, Mth } from "./helpers.js";
 import { VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_TYPE_WATER, VOLUMETRIC_SOUND_TYPE_LAVA,
     VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
     VOLUMETRIC_SOUND_REF_DISTANCE, VOLUMETRIC_SOUND_MAX_DISTANCE,
@@ -10,17 +10,17 @@ import { FLUID_WATER_ID, FLUID_LAVA_ID, FLUID_TYPE_MASK } from "./fluid/FluidCon
 // How often does it ask FluidWorld for the mising chunks
 const PERIODIC_QUERY_MILLIS = 2000
 
-let MAX_LEVEL
+let MAX_LEVEL: number
 // Cell sizes by Y (and only by Y) may start from size bigger than 1.
 // Cell size by Y in each next level must be same size size as in the previous, or 2 times bigger.
-let CELL_SIZE_Y
+let CELL_SIZE_Y: number[]
 /**
  * The size of sound map in chunks.
  *
  * It must be even. The player always is in one of the 2x2x2 central chunks.
  * It's to handle when a player walks between two neighbouring chunks often.
  */
-let SOUND_MAP_CHUNKS_RADIUS_XZ
+let SOUND_MAP_CHUNKS_RADIUS_XZ: number
 const SOUND_MAP_CHUNKS_RADIUS_Y = 1 // it's the minimum
 
 // Define fine-tuned constants for different chunk sizes
@@ -163,8 +163,8 @@ class StereoHeightCompensator {
      *
      * https://webaudio.github.io/web-audio-api/#Spatialization-equal-power-panning
      */
-    static UNIFORM_PART_BY_ELEVATION_SIN_SQR = ArrayHelpers.create(StereoHeightCompensator.SIZE, ind => {
-        const elevationSin = Math.sqrt(ind / (StereoHeightCompensator.SIZE - 1))
+    static UNIFORM_PART_BY_ELEVATION_SIN_SQR = Mth.createLerpLUTFunction(0, 1, 16, false, (elevatonSinSqr: number) => {
+        const elevationSin = Math.sqrt(elevatonSinSqr)
         const elevation = Math.asin(elevationSin) // 0..PI/2, 0 -> full separation
         // the azimuth for a source on (x, z) plane that gives the same stereo separation as this sound on (y, z) plane
         const fakeAzimuth = Mth.PI_DIV2 - elevation // 0..PI/2, PI/2 -> full separation
@@ -188,16 +188,9 @@ class StereoHeightCompensator {
         return Math.min(1, uniformPart * VOLUMETRIC_SOUND_HEIGHT_AFFECTS_STEREO)
     })
 
-    static getUniformPart(dySqr, distSqr) {
-        if (dySqr === distSqr) {
-            return 1
-        }
-        const lut = StereoHeightCompensator.UNIFORM_PART_BY_ELEVATION_SIN_SQR
+    static getUniformPart(dySqr: number, distSqr: number): number {
         const elevatonSinSqr = dySqr / distSqr
-        const sacled = elevatonSinSqr * (lut.length - 1)
-        const ind0 = Math.floor(sacled)
-        const ind1 = ind0 + 1
-        return Mth.lerp(sacled - ind0, lut[ind0], lut[ind1])
+        return this.UNIFORM_PART_BY_ELEVATION_SIN_SQR(elevatonSinSqr)
     }
 }
 
@@ -284,6 +277,7 @@ class SoundChunk {
     }
 
     setByInd(ind, type) {
+        // @ts-expect-error
         tmpVec.fromChunkIndex(ind)
         const exType = this.byIndex.get(ind) ?? null
         if (exType !== type) {

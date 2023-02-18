@@ -145,15 +145,17 @@ export default class emitter {
      * @returns
      */
     calcPPAndFlags(chunk, pos, block, extra_data) {
+        const bm = this.block_manager
         // Color masks
         let flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA; // QUAD_FLAGS.NO_AO;
         let lm = _lm_grass.copyFrom(IndexedColor.WHITE);
         if(block) {
-            if(this.block_manager.MASK_BIOME_BLOCKS.includes(block.id)) {
+            const blockFlags = bm.flags[block.id]
+            if(blockFlags & bm.FLAG_BIOME) {
                 _pos_floored.copyFrom(pos).flooredSelf();
                 const index = ((_pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (_pos_floored.x - chunk.coord.x)) * 2;
                 lm.set(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
-                if(block.id == this.block_manager.GRASS_BLOCK.id || block.is_grass) {
+                if(block.id == bm.GRASS_BLOCK.id || block.is_grass) {
                     lm.r += GRASS_PALETTE_OFFSET;
                 }
                 flags |= QUAD_FLAGS.MASK_BIOME;
@@ -163,7 +165,7 @@ export default class emitter {
                     lm.r = color.r
                     lm.g = color.g
                 }
-            } else if(this.block_manager.MASK_COLOR_BLOCKS.includes(block.id)) {
+            } else if(blockFlags & bm.FLAG_COLOR) {
                 lm.set(block.mask_color.r, block.mask_color.g, block.mask_color.b);
                 flags |= QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             } else if(block.tags.includes('multiply_color')) {

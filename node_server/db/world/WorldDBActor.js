@@ -457,11 +457,11 @@ export class WorldDBActor {
                 // We know rowIds of these chunks, so they exist. Update them.
                 const updateRowIdLength = blob[++ind];
                 if (updateRowIdLength) {
-                    console.log(`Crash recovery: update ${updateRowIdLength} unsaved chunks by rowId...`);
                     const rows = [];
                     for(let i = 0; i < updateRowIdLength; i++) {
                         rows.push(blob[++ind]);
                     }
+                    console.log(`Crash recovery: update ${updateRowIdLength} chunks by rowId: ${JSON.stringify(rows)}`)
                     const result = await this.db.chunks.updateRebuildModifiersByRowIds(rows);
                     logElapsed(result);
                 }
@@ -469,11 +469,11 @@ export class WorldDBActor {
                 // We don't know rowIds of these chunks, but we know they exist. Update them.
                 const updateXYZLength = blob[++ind];
                 if (updateXYZLength) {
-                    console.log(`Crash recovery: update ${updateXYZLength} unsaved chunks by addr...`);
                     const rows = [];
                     for(let i = 0; i < updateXYZLength; i++) {
                         rows.push([blob[++ind], blob[++ind], blob[++ind]]);
                     }
+                    console.log(`Crash recovery: update ${updateXYZLength} chunks by addr: ${JSON.stringify(rows)}`);
                     const result = await this.db.chunks.updateRebuildModifiersByXYZ(rows);
                     logElapsed(result);
                 }
@@ -481,11 +481,11 @@ export class WorldDBActor {
                 // We don't know rowIds of these chunks, so they don't exist. Insert them.
                 const insertXYZLength = blob[++ind];
                 if (insertXYZLength) {
-                    console.log(`Crash recovery: insert ${insertXYZLength} unsaved chunks...`);
                     const rows = [];
                     for(let i = 0; i < insertXYZLength; i++) {
                         rows.push([blob[++ind], blob[++ind], blob[++ind]]);
                     }
+                    console.log(`Crash recovery: insert ${insertXYZLength} chunks: ${JSON.stringify(rows)}`);
                     const result = await this.db.chunks.insertRebuildModifiersXYZ(rows);
                     logElapsed(result);
                 }

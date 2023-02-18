@@ -45,7 +45,12 @@ export const PACKET_CELL_WATER_COLOR_G  = 3;
 export const PACKET_CELL_BIOME_ID       = 4;
 export const PACKET_CELL_IS_SNOWY       = 5;
 
-export function isFluidId(blockId) {
+/**
+ * @returns fluid id or 0.
+ * If you only to check whether it's fluid or not, ckecking (BLOCK.flags[id] & BLOCK.FLAG_FLUID) is much faster.
+ * See also BLOCK.addHardcodedFlags
+ */
+export function isFluidId(blockId: number): number {
     if (blockId == 200 || blockId == 202) {
         return FLUID_WATER_ID;
     }

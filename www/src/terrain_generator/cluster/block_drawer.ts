@@ -23,6 +23,7 @@ export class BlockDrawer {
             return blocks_setted
         }
 
+        const bm = chunk.chunkManager.block_manager
         const pos = new Vector(0, 0, 0);
         const obj = this.object
         this.transformer.initBuildingToChunk(obj, chunk)
@@ -54,7 +55,7 @@ export class BlockDrawer {
                         break
                     }
                     const over_block_id = cluster.getBlock(chunk, pos.x, pos.y, pos.z)
-                    if(!chunk.chunkManager.block_manager.REMOVE_ONAIR_BLOCKS_IN_CLUSTER[over_block_id]) {
+                    if(!(bm.flags[over_block_id] & bm.FLAG_REMOVE_ONAIR_BLOCKS_IN_CLUSTER)) {
                         break
                     }
                     if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, BLOCK_AIR_ID)) {

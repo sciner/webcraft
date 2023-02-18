@@ -7,7 +7,7 @@ import {
     dlen,
     adjustSrc,
     OFFSET_LIGHT,
-    OFFSET_SOURCE, MASK_SRC_AO, MASK_SRC_REST, maxLight, DISPERSE_MIN
+    OFFSET_SOURCE, MASK_SRC_AO, MASK_SRC_REST, maxLight, DISPERSE_MIN, adjustLight
 } from "./LightConst.js";
 import {LightQueue} from "./LightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
@@ -270,6 +270,12 @@ export class LightWorld {
             case 'setChunkBlock': {
                 this.setChunkBlock(args);
                 break;
+            }
+            case 'genLayerParams': {
+                if (args.ambientLight) {
+                    this.light.setAmbient(adjustSrc(args.ambientLight));
+                    this.dayLight.setAmbient(adjustSrc(args.ambientLight));
+                }
             }
             case 'setPotentialCenter': {
                 this.chunk_render_dist = args.chunk_render_dist;

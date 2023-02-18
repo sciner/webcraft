@@ -299,6 +299,12 @@ export class ChunkManager {
             resource_cache
         }]);
         this.postLightWorkerMessage(['init', null]);
+        this.postLightWorkerMessage([
+            'genLayerParams',
+            {
+                ambientLight: world_info.rules.ambientLight || 0,
+            }
+        ])
 
     }
 

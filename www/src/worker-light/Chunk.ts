@@ -4,7 +4,7 @@ import {
     BITS_QUEUE_BLOCK_INDEX,
     DIR_COUNT,
     DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, LIGHT_STRIDE_BYTES_NORMAL, MASK_SRC_AMOUNT, MASK_SRC_AO,
-    MASK_SRC_BLOCK, OFFSET_LIGHT,
+    MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT,
     OFFSET_SOURCE
 } from "./LightConst.js";
 import {DataChunk} from "../core/DataChunk.js";
@@ -65,14 +65,22 @@ export class Chunk {
     }
 
     setLightFromBuffer(buf) {
-        const {uint8View, padding, size, outerSize, strideBytes} = this.lightChunk;
+        const {uint8View, padding, size, outerSize, outerLen, strideBytes} = this.lightChunk;
         const src = new Uint8Array(buf);
+
+
+        const ambientLight = this.world.light.ambientLight;
+        const ambientDayLight = this.world.light.ambientDayLight;
         for (let y = 0; y < size.y; y++) {
             for (let z = 0; z < size.z; z++) {
                 const indFrom = (y * size.z + z) * size.x;
                 let indTo = (((y + padding) * outerSize.z + (z + padding)) * outerSize.x + padding) * strideBytes;
                 for (let x = 0; x < size.x; x++) {
-                    uint8View[indTo + OFFSET_SOURCE] = adjustSrc(src[indFrom + x]);
+                    const srcAdj= uint8View[indTo + OFFSET_SOURCE] = adjustSrc(src[indFrom + x]);
+                    if ((srcAdj & MASK_SRC_BLOCK) !== MASK_SRC_BLOCK) {
+                        uint8View[indTo + OFFSET_LIGHT] = ambientLight;
+                        uint8View[indTo + OFFSET_DAY] = ambientDayLight;
+                    }
                     indTo += strideBytes;
                 }
             }
@@ -95,6 +103,7 @@ export class Chunk {
             world.dayLightSrc.fillOuter(this);
         }
 
+        const ambientLight = world.light.ambientLight;
         for (let i = 0; i < portals.length; i++) {
             const portal = portals[i];
             const other = portal.toRegion;
@@ -114,7 +123,7 @@ export class Chunk {
                         const f2 = inside2.contains(x, y, z);
                         // copy light
                         const light = bytes2[coord2 + OFFSET_LIGHT];
-                        if (light > 0) {
+                        if (f2 && light > 0 || f1 && light > ambientLight) {
                             uint8View[coord1 + OFFSET_LIGHT] = light;
                             if (offsetNormal > 0) {
                                 // we ignore ending here because its set/get
@@ -129,6 +138,7 @@ export class Chunk {
                                 other.rev.lastID++;
                             }
                             bytes2[coord2 + OFFSET_SOURCE] = uint8View[coord1 + OFFSET_SOURCE]
+                            bytes2[coord2 + OFFSET_LIGHT] = uint8View[coord1 + OFFSET_LIGHT]
                         }
                         if (f2) {
                             if ((uint8View[coord1 + OFFSET_SOURCE] & MASK_SRC_AO) !== (bytes2[coord2 + OFFSET_SOURCE] & MASK_SRC_AO)) {
@@ -144,7 +154,7 @@ export class Chunk {
                 for (let x = aabb.x_min; x < aabb.x_max; x++) {
                     const coord = x * cx + y * cy + z * cz + shiftCoord, coordBytes = coord * strideBytes;
                     // just in case chunk is reloaded, need to check past
-                    let m = 0;
+                    let m = ambientLight;
                     const past = uint8View[coordBytes + OFFSET_LIGHT];
                     const isBlock = (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK;
                     if (!isBlock) {
@@ -155,7 +165,7 @@ export class Chunk {
                         m = Math.max(m, past);
                         m = Math.max(m, uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT);
                     }
-                    if (m > 0 || past > 0) {
+                    if (m > ambientLight || past > ambientLight) {
                         world.light.add(this, coord, m, world.getPotential(x, y, z));
                     }
                     found = found || (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AO) > 0;

@@ -1,4 +1,4 @@
-import { Vector } from "../../../helpers.js";
+import { ArrayHelpers, Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { BLOCK } from '../../../blocks.js';
 import { DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager.js";
@@ -128,7 +128,7 @@ export default class Biome3LayerOverworld {
                     if(yu >= 0 && yu < chunk.size.y) {
                         const cell = m.getCell(tree.pos.x, tree.pos.z)
                         if(!cell.is_sand && !tree.type.transparent_trunk) {
-                            chunk.setBlockIndirect(x, yu, z, BLOCK.DIRT.id)
+                            chunk.setGroundIndirect(x, yu, z, BLOCK.DIRT.id)
                         }
                     }
                 }
@@ -166,14 +166,14 @@ export default class Biome3LayerOverworld {
     /**
      */
     generateChunkData(chunk : ChunkWorkerChunk, seed, rnd) {
-
+        const bm                        = BLOCK
         const map                       = chunk.map as TerrainMap2;
         const xyz                       = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = BLOCK.DIRT.id
-        const STONE_BLOCKS              = [BLOCK.STONE.id, BLOCK.ANDESITE.id, BLOCK.DIORITE.id, BLOCK.GRANITE.id]
+        const blockFlags                = bm.flags
         const block_result              = new MapsBlockResult()
 
         const rand_lava = new alea('random_lava_source_' + this.seed);
@@ -183,13 +183,14 @@ export default class Biome3LayerOverworld {
         const sz = this.calcColumnNoiseSize(chunk)
         // TODO: for air, ignore this all?
         this.generator.noise3d.generate4(chunk.coord, sz);
-        chunk.timers.stop()
+        chunk.timers.stop().start('blocks')
 
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
 
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
+                const columnIndex = chunk.getColumnIndex(x, z)
 
                 const cell = map.getCell(x, z)
                 const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
@@ -229,7 +230,7 @@ export default class Biome3LayerOverworld {
                         // get block
                         let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
-                        if(STONE_BLOCKS.includes(block_id)) {
+                        if(blockFlags[block_id] & bm.FLAG_STONE) {
                             if(density < DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
                                 // generating a small amount of ore on the surface of the walls
                                 block_id = this.ore_generator.generate(xyz, block_id);
@@ -261,13 +262,13 @@ export default class Biome3LayerOverworld {
                                     if(!cluster_drawed) {
                                         cluster_drawed = true;
                                         if(y < chunk.size.y - cluster_cell.height) {
-                                            if(Array.isArray(cluster_cell.block_id)) {
+                                            if(cluster_cell.block_id.length != null) { // fast check Array.isArray(cluster_cell.block_id)
                                                 for(let yy = 0; yy < cluster_cell.height; yy++) {
-                                                    chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
+                                                    chunk.setGroundInColumIndirect(columnIndex, x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
                                                 }
                                             } else {
                                                 for(let yy = 0; yy < cluster_cell.height; yy++) {
-                                                    chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
+                                                    chunk.setGroundInColumIndirect(columnIndex, x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
                                                 }
                                             }
                                         }
@@ -281,7 +282,7 @@ export default class Biome3LayerOverworld {
 
                                     // шапка слоя земли (если есть)
                                     if(xyz.y > WATER_LEVEL && y < chunk.size.y && dirt_layer.cap_block_id) {
-                                        chunk.setBlockIndirect(x, y + 1, z, dirt_layer.cap_block_id);
+                                        chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, dirt_layer.cap_block_id);
                                     }
 
                                     // Plants and grass (растения и трава)
@@ -303,7 +304,7 @@ export default class Biome3LayerOverworld {
                                         // замена блока травы на землю, чтобы потом это не делал тикер (например арбуз)
                                         if(plant_blocks[0].not_transparent) {
                                             block_id = null
-                                            chunk.setBlockIndirect(x, y, z, dirt_block_id, null, null);
+                                            chunk.setGroundInColumIndirect(columnIndex, x, y, z, dirt_block_id);
                                         }
                                     }
 
@@ -311,11 +312,11 @@ export default class Biome3LayerOverworld {
                                     if(y < chunk.size.y - 2 && big_stone_density > .5) {
                                         if(!cell.biome.is_sand) {
                                             block_id = null
-                                            chunk.setBlockIndirect(x, y, z, dirt_block_id, null, null)
+                                            chunk.setGroundInColumIndirect(columnIndex, x, y, z, dirt_block_id)
                                         }
-                                        chunk.setBlockIndirect(x, y + 1, z, BLOCK.MOSSY_COBBLESTONE.id);
+                                        chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, BLOCK.MOSSY_COBBLESTONE.id);
                                         if(big_stone_density > BIG_STONE_DESNSITY) {
-                                            chunk.setBlockIndirect(x, y + 2, z, BLOCK.MOSSY_COBBLESTONE.id);
+                                            chunk.setGroundInColumIndirect(columnIndex, x, y + 2, z, BLOCK.MOSSY_COBBLESTONE.id);
                                         }
                                     }
                                 }
@@ -336,7 +337,7 @@ export default class Biome3LayerOverworld {
                         }
 
                         if(block_id) {
-                            chunk.setBlockIndirect(x, y, z, block_id);
+                            chunk.setInitialGroundInColumnIndirect(columnIndex, y, block_id);
                         }
                         not_air_count++;
 
@@ -372,11 +373,11 @@ export default class Biome3LayerOverworld {
                                             }
                                         }
                                     }
+                                    chunk.setBlockIndirect(x, y, z, block_id);
+                                } else {
+                                    chunk.fluid.setFluidIndirect(x, y, z, block_id);
                                 }
-                                chunk.setBlockIndirect(x, y, z, block_id);
-                            }
-
-                            if(xyz.y == local_water_line + 1 && cell.biome.title == 'Болото') {
+                            } else if (xyz.y == local_water_line + 1 && cell.biome.title == 'Болото') {
                                 if(rnd.double() < .07) {
                                     chunk.setBlockIndirect(x, y, z, BLOCK.LILY_PAD.id);
                                 }
@@ -393,7 +394,7 @@ export default class Biome3LayerOverworld {
                                 if(!cell.biome.is_sand) {
                                     if(d1 > .25) {
                                         if(d3 > .25) {
-                                            chunk.setBlockIndirect(x, y, z, BLOCK.MOSS_BLOCK.id)
+                                            chunk.setInitialGroundInColumnIndirect(columnIndex, y, BLOCK.MOSS_BLOCK.id)
                                             continue
                                         }
                                     }
@@ -414,6 +415,7 @@ export default class Biome3LayerOverworld {
 
             }
         }
+        chunk.timers.stop()
 
     }
 

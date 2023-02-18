@@ -198,12 +198,13 @@ export class MeshManager {
                 //
                 let lm = null;
                 let flags = 0;
-                if(block_manager.MASK_BIOME_BLOCKS.indexOf(mat.id) >= 0) {
+                const blockFlags = block_manager.flags[mat.id]
+                if(blockFlags & block_manager.FLAG_BIOME) {
                     //const pos_floored = pos.clone().flooredSelf();
                     //const index = ((pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (pos_floored.x - chunk.coord.x)) * 2;
                     //lm          = new Color(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0, 0);
                     //flags       = flags | QUAD_FLAGS.MASK_BIOME;
-                } else if(block_manager.MASK_COLOR_BLOCKS.indexOf(mat.id) >= 0) {
+                } else if(blockFlags & block_manager.FLAG_COLOR) {
                     lm = mat.mask_color;
                     flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
                 }

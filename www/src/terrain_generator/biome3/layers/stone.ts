@@ -1,13 +1,13 @@
+import type { ChunkWorkerChunk } from "../../../worker/chunk.js"
+import type Terrain_Generator from "../index.js"
+
 /**
  * Generate underworld infinity stones
  */
 export default class Biome3LayerStone {
     [key: string]: any;
 
-    /**
-     * @param { import("../index.js").Terrain_Generator } generator
-     */
-    constructor(generator) {
+    constructor(generator: Terrain_Generator) {
 
         this.generator = generator
 
@@ -18,24 +18,17 @@ export default class Biome3LayerStone {
 
     }
 
-    generate(chunk, seed, rnd) {
-
+    generate(chunk: ChunkWorkerChunk, seed, rnd) {
+        chunk.timers.start('fill stone')
         if(chunk.addr.y < 0)  {
             const BLOCK = this.generator.block_manager
-            const { cx, cy, cz, cw, uint16View } = chunk.tblocks.dataChunk
             const block_id = BLOCK.STONE.id
-            for(let x = 0; x < chunk.size.x; x++) {
-                for(let z = 0; z < chunk.size.z; z++) {
-                    for(let y = 0; y < chunk.size.y; y++) {
-                        const index = cx * x + cy * y + cz * z + cw
-                        uint16View[index] = block_id
-                    }
-                }
-            }
+            chunk.tblocks.dataChunk.fillInnerUint16(block_id)
         }
-
-        return this.generator.generateDefaultMap(chunk)
-
+        chunk.timers.stop().start('generateDefaultMap')
+        const result = this.generator.generateDefaultMap(chunk)
+        chunk.timers.stop()
+        return result
     }
 
 }

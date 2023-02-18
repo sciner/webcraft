@@ -2,7 +2,7 @@ import { getChunkAddr, Vector, ObjectHelpers, chunkAddrToCoord } from "./helpers
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW} from "./chunk_const.js";
+import {CHUNK_SIZE_X_M1, CHUNK_SIZE_Y_M1, CHUNK_SIZE_Z_M1, CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
@@ -42,19 +42,26 @@ export class BlockNeighbours {
 
 }
 
+const tmp_BlockAccessor_Vector = new Vector();
+
 // VectorCollector...
 export class VectorCollector1D {
-    [key: string]: any;
 
-    constructor(dims, list?) {
+    dims: IVector
+    sy: number
+    sz: number
+    list: Map<number, any>
+    size: number
+
+    constructor(dims: IVector, list?: Map<number, any>) {
         this.dims = dims;
         this.sy = dims.x * dims.z;
         this.sz = dims.x;
         this.clear(list);
     }
 
-    clear(list) {
-        this.list = list ? list : new Map();
+    clear(list?: Map<number, any>) {
+        this.list = list ?? new Map();
         this.size = this.list.size;
     }
 
@@ -352,8 +359,8 @@ export class TypedBlocks3 {
                 }
     }
 
-    delete(vec : IVector) {
-        const block         = this.get(vec);
+    delete(vec : Vector) {
+        const block         = this.get(vec, tmpTBlock_delete);
         block.id            = 0;
         block.power         = 0;
         block.rotate        = null;
@@ -369,13 +376,25 @@ export class TypedBlocks3 {
         }
     }
 
+    /** 
+     * It deletes only the extra properties that are used by the generator.
+     * It doesn't change the block id.
+     * It's much faster than {@link delete}
+     */
+    deleteExtraInGenerator(vec : IVector) : void {
+        this.rotate.delete(vec)
+        this.extra_data.delete(vec)
+        this.entity_id.delete(vec)
+        this.power.delete(vec)
+    }
+
     /**
      * Get or fill block by it pos
      * @param {Vector} vec
      * @param {TBlock} block
      * @returns
      */
-    get(vec, block = null) {
+    get(vec : Vector, block?: TBlock | null) : TBlock {
         //TODO: are we sure that vec wont be modified?
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * vec.x + cy * vec.y + cz * vec.z + cw;
@@ -479,19 +498,35 @@ export class TypedBlocks3 {
         return this.id[index];
     }
 
-    setBlockRotateExtra(x, y, z, rotate, extra_data, entity_id, power) {
+    setBlockRotateExtra(x: number, y: number, z: number, rotate?: IVector | null, extra_data?: object | null, entity_id?: string | null, power?: number | null) {
         const vec = TypedBlocks3._tmp.set(x, y, z);
         if (rotate !== undefined) {
-            this.rotate.set(vec, rotate);
+            if (rotate != null) {
+                this.rotate.set(vec, rotate);
+            } else {
+                this.rotate.delete(vec);
+            }
         }
         if (extra_data !== undefined) {
-            this.extra_data.set(vec, extra_data);
+            if (extra_data != null) {
+                this.extra_data.set(vec, extra_data);
+            } else {
+                this.extra_data.delete(vec);
+            }
         }
         if (entity_id !== undefined) {
-            this.entity_id.set(vec, entity_id);
+            if (entity_id != null) {
+                this.entity_id.set(vec, entity_id);
+            } else {
+                this.entity_id.delete(vec);
+            }
         }
         if (power !== undefined) {
-            this.power.set(vec, power);
+            if (power != null) {
+                this.power.set(vec, power);
+            } else {
+                this.power.delete(vec);
+            }
         }
     }
 
@@ -1192,10 +1227,8 @@ export class TBlock {
 
 }
 
-const CHUNK_SIZE_X_M1 = CHUNK_SIZE_X - 1;
-const CHUNK_SIZE_Y_M1 = CHUNK_SIZE_Y - 1;
-const CHUNK_SIZE_Z_M1 = CHUNK_SIZE_Z - 1;
-const tmp_BlockAccessor_Vector = new Vector();
+// It's declared here because it ca'be be declared befpre TBlock
+const tmpTBlock_delete = new TBlock()
 
 /**
  * A class that provides access to the world blocks in the same area
