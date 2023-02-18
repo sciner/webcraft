@@ -163,7 +163,7 @@ class StereoHeightCompensator {
      *
      * https://webaudio.github.io/web-audio-api/#Spatialization-equal-power-panning
      */
-    static UNIFORM_PART_BY_ELEVATION_SIN_SQR = Mth.createLerpLUTFunction(0, 1, 16, (elevatonSinSqr: number) => {
+    static UNIFORM_PART_BY_ELEVATION_SIN_SQR = Mth.createLerpLUTFunction(0, 1, 16, false, (elevatonSinSqr: number) => {
         const elevationSin = Math.sqrt(elevatonSinSqr)
         const elevation = Math.asin(elevationSin) // 0..PI/2, 0 -> full separation
         // the azimuth for a source on (x, z) plane that gives the same stereo separation as this sound on (y, z) plane

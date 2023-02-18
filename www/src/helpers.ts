@@ -370,10 +370,9 @@ export class Mth {
      * @param {number} min - the minimum value of the argument
      * @param {number} max - the maximum value of the argument
      * @param {number} size - the lookup table size. It's recommended to use at least 100.
-     * @param {Fucntion} fn
-     * @return {Fucntion}
+     * @param {boolean} rangeCheck - whether to add range checks (slower, it's usefule to enable them for debugging, then turn off)
      */
-    static createBasicLUTFunction(min: number, max: number, size: number = 100, fn: Function): Function {
+    static createBasicLUTFunction(min: number, max: number, size: number = 100, rangeCheck: boolean, fn: Function): Function {
         const arr = new Float32Array(size)
         const maxInd = size - 1
         max -= min
@@ -382,20 +381,24 @@ export class Mth {
         for(let i = 0; i <= maxInd; i++) {
             arr[i] = fn(min + i * kxInv)
         }
-        return function(x: number): number {
-            const ind = Math.round((x - min) * kx) | 0
-            if ((ind | maxInd - ind) < 0) {
-                throw new Error()
+        return rangeCheck
+            ? function(x: number): number {
+                const ind = Math.round((x - min) * kx) | 0
+                if ((ind | maxInd - ind) < 0) {
+                    throw new Error()
+                }
+                return arr[ind]
             }
-            return arr[ind]
-        }
+            : function(x: number): number {
+                return arr[Math.round((x - min) * kx) | 0]
+            }
     }
 
     /**
      * Similar to {@link createBasicLUTFunction}, but uses linear interpolation - more accurate and slower.
      * Chose smaller {@link size} than in {@link createBasicLUTFunction}.
      */
-    static createLerpLUTFunction(min: number, max: number, size: number = 16, fn: Function): Function {
+    static createLerpLUTFunction(min: number, max: number, size: number = 16, rangeCheck: boolean, fn: Function): Function {
         size |= 0
         // Pad with 1 element at each side, in case the argument is slightly out of bounds due to rounding errors.
         const arr = new Float64Array(size + 2)
@@ -408,18 +411,26 @@ export class Mth {
         }
         arr[0] = arr[1]
         arr[arr.length - 1] = arr[arr.length - 2]
-        return function(x: number): number {
-            let fi = (x - min) * kx
-            const floor = Math.floor(fi)
-            fi -= floor // now its semantics is "fraction beyound floor"
-            const floorInd = (floor | 0) + 1
-            // This condition is imprecise: it doesn't detect slight out-of-bounds.
-            // But it's fast, and probably good enough to chatch bugs in practice.
-            if ((floorInd | size - floorInd) < 0) {
-                throw new Error()
+        return rangeCheck
+            ? function(x: number): number {
+                let fi = (x - min) * kx
+                const floor = Math.floor(fi)
+                fi -= floor // now its semantics is "fraction beyound floor"
+                const floorInd = (floor | 0) + 1
+                // This condition is imprecise: it doesn't detect slight out-of-bounds.
+                // But it's fast, and probably good enough to chatch bugs in practice.
+                if ((floorInd | size - floorInd) < 0) {
+                    throw new Error()
+                }
+                return arr[floorInd] * (1 - fi) + arr[floorInd + 1] * fi
             }
-            return arr[floorInd] * (1 - fi) + arr[floorInd + 1] * fi
-        }
+            : function(x: number): number {
+                let fi = (x - min) * kx
+                const floor = Math.floor(fi)
+                fi -= floor
+                const floorInd = (floor | 0) + 1
+                return arr[floorInd] * (1 - fi) + arr[floorInd + 1] * fi
+            }
     }
 }
 

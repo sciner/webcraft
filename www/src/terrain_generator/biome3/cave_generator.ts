@@ -28,7 +28,7 @@ function exp(percent: number): number {
     return Math.pow(2, 10 * (percent - 1))
 }
 
-const easeInOutExp = Mth.createBasicLUTFunction(-1, 1, 100,
+const easeInOutExp = Mth.createBasicLUTFunction(-1, 1, 100, false,
     (y_perc: number) => easeInOut(1 - Math.abs(y_perc), exp)
 )
 
