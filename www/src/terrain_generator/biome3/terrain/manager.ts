@@ -421,7 +421,7 @@ export class TerrainMapManager2 {
      * 
      * @returns {MapsBlockResult}
      */
-    getBlock(xyz, not_air_count, cell, density_params, block_result) {
+    getBlock(xyz: Vector, not_air_count: number, cell: TerrainMapCell, density_params: DensityParams, block_result?: MapsBlockResult): MapsBlockResult {
 
         const dirt_layers = cell.biome.dirt_layers;
         const dist_percent = cell.preset.dist_percent;
@@ -449,35 +449,49 @@ export class TerrainMapManager2 {
 
         } else {
             // 2. select block in dirt layer
-            block_id = dirt_layer.blocks[0];
-            const local_water_line = WATER_LEVEL // density_params.local_water_line
-            if(xyz.y < local_water_line && dirt_layer.blocks.length > 1) {
-                block_id = dirt_layer.blocks[dirt_layer.blocks.length - 1];
-            }
-            const dirt_layer_blocks_count = dirt_layer.blocks.length;
+            const dirt_layer_blocks = dirt_layer.blocks;
+            const dirt_layer_blocks_count = dirt_layer_blocks.length;
+            
             if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
                 switch(dirt_layer_blocks_count) {
                     case 2: {
-                        block_id = dirt_layer.blocks[1];
+                        block_id = dirt_layer_blocks[1];
                         break;
                     }
-                    case 3: {
-                        block_id = not_air_count <= cell.dirt_level ? dirt_layer.blocks[1] : dirt_layer.blocks[2];
+                    default: {
+                        /* Ранее здесь было "case 3:".
+                        Похоже, больше чем 3 блока не используется.
+                        Если мы сделаем тут "default", то это гарантирует что какой-то id будет присвоен,
+                        и тогда можно код, выполнявшийся пред этим, перенести в ветку else - оптимизация.
+                        В любом случае, для 4-х блоков нужно будет добавлять другой код. */
+                        block_id = not_air_count <= cell.dirt_level ? dirt_layer_blocks[1] : dirt_layer_blocks[2];
                         break;
                     }
+                }
+            } else {
+                const local_water_line = WATER_LEVEL // density_params.local_water_line
+                if(xyz.y < local_water_line && dirt_layer_blocks_count > 1) {
+                    block_id = dirt_layer_blocks[dirt_layer_blocks_count - 1];
+                } else {
+                    block_id = dirt_layer_blocks[0];
                 }
             }
 
         }
 
         if(block_id == bm.STONE.id) {
+            /* Old equivalent code
             if(d1 > .5) block_id = bm.ANDESITE.id
             if(d4 > .5) block_id = bm.DIORITE.id
             if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = bm.GRANITE.id
+            */
+            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = bm.GRANITE.id
+            else if(d4 > .5) block_id = bm.DIORITE.id
+            else if(d1 > .5) block_id = bm.ANDESITE.id
         }
         
         if(!block_result) {
-            return block_result = new MapsBlockResult(dirt_layer, block_id)
+            return new MapsBlockResult(dirt_layer, block_id)
         }
 
         return block_result.set(dirt_layer, block_id)

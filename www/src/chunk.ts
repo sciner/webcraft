@@ -1,5 +1,6 @@
 import { Vector } from "./helpers.js";
 import {newTypedBlocks} from "./typed_blocks3.js";
+import type { TypedBlocks3 } from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
@@ -34,6 +35,8 @@ export interface IChunkVertexBuffer {
 // Creates a new chunk
 export class Chunk {
     [key: string]: any;
+
+    tblocks: TypedBlocks3
 
     getChunkManager() {
         return this.chunkManager;

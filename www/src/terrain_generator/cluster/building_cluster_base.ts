@@ -146,7 +146,7 @@ export class ClusterBuildingBase extends ClusterBase {
 
         //
         this.timers.stop()
-        this.timers.fill_blocks_count++;
+        this.timers.count++;
 
     }
 

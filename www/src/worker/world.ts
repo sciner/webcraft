@@ -2,33 +2,42 @@ import { ChunkWorkerChunkManager, ChunkWorkerChunk } from "./chunk.js";
 import { VectorCollector, Vector, getChunkAddr, PerformanceTimer } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
+import type { BLOCK } from "../blocks.js";
+
+/** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
+const DEBUG_CHUNK_GEN_TIMERS = false
 
 // WorkerWorldManager
 export class WorkerWorldManager {
-    [key: string]: any;
+    block_manager: BLOCK
+    all: Map<string, WorkerWorld>
+    list: WorkerWorld[]
+    curIndex: number
+    terrainGenerators: Map<string, object>
 
     /**
-     * @param { import("../blocks.js").BLOCK } block_manager
+     * @param { BLOCK } block_manager
      */
-    constructor(block_manager) {
+    constructor(block_manager : BLOCK, terrainGenerators: Map<string, object>) {
         this.block_manager = block_manager
+        this.terrainGenerators = terrainGenerators
         this.all = new Map();
         this.list = [];
         this.curIndex = 0;
     }
 
-    async InitTerrainGenerators(generator_codes : string[]) {
+    static async loadTerrainGenerators(generator_codes: string[]): Promise<Map<string, object>> {
         // generator_codes = ['biome2', 'city', 'city2', 'flat'];
-        const that = this;
-        that.terrainGenerators = new Map();
-        const genPromises = [];
+        const terrainGenerators = new Map();
+        const genPromises: Promise<any>[] = [];
         // Load terrain generators
         for(let tg_code of generator_codes) {
             genPromises.push(import(`../terrain_generator/${tg_code}/index.js`).then(module => {
-                that.terrainGenerators.set(tg_code, module.default);
+                terrainGenerators.set(tg_code, module.default);
             }));
         }
         await Promise.all(genPromises);
+        return terrainGenerators;
     }
 
     async add(g, seed, world_id) {
@@ -75,10 +84,12 @@ export class WorkerWorldManager {
 export class WorkerWorld {
     [key: string]: any;
 
+    totalChunkTimers = DEBUG_CHUNK_GEN_TIMERS ? new PerformanceTimer() : null
+
     /**
-     * @param { import("../blocks.js").BLOCK } block_manager
+     * @param { BLOCK } block_manager
      */
-     constructor(block_manager) {
+     constructor(block_manager: BLOCK) {
         this.block_manager = block_manager
         this.chunks = new VectorCollector();
         this.genQueue = new ChunkWorkQueue(this);
@@ -203,6 +214,17 @@ export class WorkerWorld {
                 }
 
                 chunk.doGen();
+
+                const total = this.totalChunkTimers
+                if (total) {
+                    total.addFrom(chunk.timers).count++
+                    if (genQueue.size() == 0) {
+                        console.log(`[ChunkWorker] generated ${total.count} chunks. Times, ms:`)
+                        console.log(total.addSum().round().exportMultiline())
+                        this.totalChunkTimers = null
+                    }
+                }
+
                 times += chunk.genValue || genPerIter;
                 minGenDist = Math.min(minGenDist, chunk.queueDist);
                 // Ticking blocks

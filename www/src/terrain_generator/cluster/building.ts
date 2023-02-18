@@ -5,6 +5,8 @@ import { ShiftedMatrix, Vector, VectorCardinalTransformer } from "../../helpers.
 import { findLowestNonSolidYFromAboveInChunkAABBRelative } from "../../block_helpers.js";
 import { BlockDrawer } from './block_drawer.js';
 import { getAheadMove } from './building_cluster_base.js';
+import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+import type { ClusterBase } from "./base.js";
 
 export const BUILDING_AABB_MARGIN  = 3; // because building must calling to draw from neighbours chunks
 
@@ -46,6 +48,8 @@ const tmpYMatrix = new ShiftedMatrix(0, 0, 1, 1)
 export class Building {
     [key: string]: any;
 
+    _autoBasementAABB: AABB
+
     /**
      * @param {*} cluster
      * @param {*} seed
@@ -85,7 +89,7 @@ export class Building {
                                         coord.y + _size.y,
                                         coord.z + _size.z
                                     )
-        this._autoBasemntAABB       = this.building_template?.autoBasement && new AABB()
+        this._autoBasementAABB  = this.building_template?.autoBasement && new AABB()
 
         // blocks
         this.blocks = new BlockDrawer(this)
@@ -140,12 +144,7 @@ export class Building {
         this.entrance.addSelf(vec)
     }
 
-    /**
-     * @param { import("./base.js").ClusterBase } cluster
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param {boolean} draw_natural_basement
-     */
-    draw(cluster, chunk, draw_natural_basement = true) {
+    draw(cluster: ClusterBase, chunk: ChunkWorkerChunk, draw_natural_basement = true): void {
         // TODO: need to draw one block of air ahead door bottom
         // This code draws a rectangular basement if the new "autoBasement" is absent.
         // The new "autoBasement" is drawn in a separate place because it requires checking its own AABB, instead of the building's AABB
@@ -164,10 +163,7 @@ export class Building {
         }
     }
 
-    /**
-     * @param {import("../../worker/chunk.js").ChunkWorkerChunk} chunk
-     */
-    drawAutoBasement(chunk) {
+    drawAutoBasement(chunk: ChunkWorkerChunk): void {
         const cluster = this.cluster
         const basement = this.building_template.autoBasement
         const objToChunk = new VectorCardinalTransformer().initBuildingToChunk(this, chunk)
@@ -218,6 +214,7 @@ export class Building {
                 if (!depths) {
                     continue
                 }
+                const columnIndex = chunk.getColumnIndex(cx, cz)
                 const cell  = chunk.map.getCell(cx, cz)
                 // find the max Y
                 const y_max = -depths.min
@@ -260,7 +257,7 @@ export class Building {
                 // fill the column of blocks, including the cap
                 for(let y = y_min_clamped; y < y_max_clamped; y++) {
                     const cy = objToChunk.transformY(y)
-                    chunk.setGroundLayerIndirect(cx, cy, cz, cell, y_max_incl - y)
+                    chunk.setGroundLayerInColumnIndirect(columnIndex, cx, cy, cz, cell, y_max_incl - y)
                 }
                 // turn grass block into dirt below the column
                 if (y_min_clamped < y_max && // if the colum is actually drawn (in this chunk or not - doesn't matter)
@@ -276,7 +273,7 @@ export class Building {
     /**
      * Fixes blocks below the lowest floor blocks, in particulaer, turns grass_block into dirt.
      */
-    fixBlocksBelowBuilding(chunk, minFloorYbyXZ) {
+    fixBlocksBelowBuilding(chunk: ChunkWorkerChunk, minFloorYbyXZ: ShiftedMatrix): void {
         const objToChunk = new VectorCardinalTransformer().initBuildingToChunk(this, chunk)
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
         const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
@@ -397,11 +394,11 @@ export class Building {
      * @return {AABB} of basement in the worlds's coordinate system.
      */
     getautoBasementAABB() : AABB {
-        if (this._autoBasemntAABB) {
+        if (this._autoBasementAABB) {
             tmpTransformer.initBuildingToWorld(this)
-            tmpTransformer.tranformAABB(this.building_template.autoBasement.aabb, this._autoBasemntAABB)
+            tmpTransformer.tranformAABB(this.building_template.autoBasement.aabb, this._autoBasementAABB)
         }
-        return this._autoBasemntAABB
+        return this._autoBasementAABB
     }
 
     /**

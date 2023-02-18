@@ -1,7 +1,7 @@
 import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
 import { getChunkAddr, PerformanceTimer, Vector, VectorCollector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_X_M1, CHUNK_SIZE_Y_M1, CHUNK_SIZE_Z_M1 } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
@@ -11,6 +11,8 @@ import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
 import {isFluidId, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID, PACKET_CELL_DIRT_COLOR_G, PACKET_CELL_DIRT_COLOR_R, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R} from "../fluid/FluidConst.js";
 import type { BaseResourcePack } from "../base_resource_pack.js";
+import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
+import type { WorkerWorld } from "./world.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -29,7 +31,10 @@ class MaterialBuf {
 export class ChunkWorkerChunkManager {
     [key: string]: any;
 
-    constructor(world) {
+    block_manager: BLOCK
+    world: WorkerWorld
+
+    constructor(world: WorkerWorld) {
         this.world = world;
         this.destroyed = false;
         this.block_manager = BLOCK
@@ -83,6 +88,9 @@ export class ChunkWorkerChunk {
     [key: string]: any;
 
     timers : PerformanceTimer = new PerformanceTimer()
+    chunkManager: ChunkWorkerChunkManager
+    tblocks: TypedBlocks3
+    coord: Vector
 
     constructor(chunkManager : ChunkWorkerChunkManager, args) {
         this.chunkManager   = chunkManager;
@@ -219,6 +227,15 @@ export class ChunkWorkerChunk {
         this.modify_list = null;
     }
 
+    /** Returns the index of the bottom of a column of blocks */
+    getColumnIndex(localX: number, localZ: number): number {
+        const { cx, cz, cw } = this.tblocks.dataChunk
+        if ((localX | localZ | (CHUNK_SIZE_X_M1 - localX) | (CHUNK_SIZE_Z_M1 - localZ)) < 0) {
+            throw new Error()
+        }
+        return cx * localX + cz * localZ + cw
+    }
+
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
@@ -311,11 +328,11 @@ export class ChunkWorkerChunk {
      * @param {boolean} destroy_fluid
      * @returns
      */
-    setBlockIndirect(x : int, y : int, z : int, block_id : int, rotate : any = null, extra_data : any = null, entity_id : string = null, power? : int, check_is_solid : boolean = false, destroy_fluid : boolean = false) {
+    setBlockIndirect(x : number, y : number, z : number, block_id : number, rotate? : Vector | null, extra_data? : object | null, entity_id? : string | null, power? : number, check_is_solid : boolean = false, destroy_fluid : boolean = false) {
 
         this.genValue++
-
-        if(isFluidId(block_id)) {
+        
+        if(BLOCK.flags[block_id] & BLOCK.FLAG_FLUID) {
             this.fluid.setFluidIndirect(x, y, z, block_id);
             return
         }
@@ -328,15 +345,19 @@ export class ChunkWorkerChunk {
         const index = cx * x + cy * y + cz * z + cw;
 
         //
-        if(check_is_solid && BLOCK.isSolidID(uint16View[index])) {
-            return
-        }
-
-        if (uint16View[index] > 0) {
-            this.tblocks.delete(TypedBlocks3._tmp.set(x, y, z))
+        const existingId = uint16View[index]
+        if (existingId > 0) {
+            if(check_is_solid && BLOCK.isSolidID(existingId)) {
+                return
+            }
+            this.tblocks.deleteExtraInGenerator(TypedBlocks3._tmp.set(x, y, z))
         }
 
         uint16View[index] = block_id;
+
+        /* Here entity_id and power aren't checked.
+        It's a bug, because if we pass entity_id or power without rotate or extra_data, it won't set.
+        But practically it never happens. */
         if (rotate || extra_data) {
             this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data, entity_id, power);
         }
@@ -344,19 +365,55 @@ export class ChunkWorkerChunk {
     }
 
     /**
+     * Sets a ground block to a place where we expect there is no block, or a simple block
+     * that doesn't need clearing its extra properties.
+     * @param {number} columnIndex - the same semantics as in {@link setGroundInColumIndirect}
+     */
+    setInitialGroundInColumnIndirect(columnIndex: number, y: number, block_id : number): void {
+        this.genValue++
+        const { cy, uint16View } = this.tblocks.dataChunk
+        columnIndex += cy * y
+        uint16View[columnIndex] = block_id
+    }
+
+    /**
+     * If {@link block_id} is not fluid, it does exactly what {@link setBlockIndirect} with
+     * the frst 4 arguments does.
+     */
+    setGroundIndirect(x : number, y : number, z : number, block_id : number): void {
+        this.genValue++
+        const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk
+        const index = cx * x + cy * y + cz * z + cw
+        if (uint16View[index] > 0) {
+            this.tblocks.deleteExtraInGenerator(TypedBlocks3._tmp.set(x, y, z))
+        }
+        uint16View[index] = block_id
+    }
+
+    /**
+     * The same as {@link setGroundIndirect}, but it's fatser and takes {@link columnIndex}
+     * (see {@link getColumnIndex}).
+     */
+    setGroundInColumIndirect(columnIndex: number, x : number, y : number, z : number, block_id : number): void {
+        this.genValue++
+        const { cy, uint16View } = this.tblocks.dataChunk
+        const index = columnIndex + cy * y
+        if (uint16View[index] > 0) {
+            this.tblocks.deleteExtraInGenerator(TypedBlocks3._tmp.set(x, y, z))
+        }
+        uint16View[index] = block_id
+    }
+
+    /**
      * It find the approprate block for the biome cell at the given depth.
      * Then it sets the block in the same way as {@link setBlockIndirect}, but it's
      * optimized specifically for basic ground blocks.
-     * @param {int} x
-     * @param {int} y
-     * @param {int} z
-     * @param {*} cell - Default_Terrain_Map_Cell or its descendent
      * @param {int} depth 0 - the upper level of the ground, -1 - cap, positive - depth below the surface
      */
-    setGroundLayerIndirect(x, y, z, cell, depth) {
-        const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk
-        const index = cx * x + cy * y + cz * z + cw
-        let block_id
+    setGroundLayerInColumnIndirect(columnIndex: number, x: number, y: number, z: number, cell: Default_Terrain_Map_Cell, depth: number): void {
+        const { cy, uint16View } = this.tblocks.dataChunk
+        const index = columnIndex + cy * y
+        let block_id: number | null = null
         let dl = cell.dirt_layer
         if (dl == null) {
             // TODO remove the code for old generator, leave only
@@ -387,12 +444,13 @@ export class ChunkWorkerChunk {
                 return
             }
             const exId = uint16View[index]
-            if(BLOCK.isSolidID(exId) || isFluidId(exId)) {
+            const exBlockFlags = BLOCK.flags[exId]
+            if(exBlockFlags & (BLOCK.FLAG_SOLID | BLOCK.FLAG_FLUID)) {
                 return
             }
         } else {
             block_id = dl.blocks[Math.min(depth, dl.blocks.length - 1)]
-            this.fluid.setFluidIndirect(x, y, z, 0)
+            this.fluid.setFluidIndirect(x, y, z, 0) // because it's a solid block, it removes fluid
         }
 
         if (uint16View[index] > 0) {
@@ -405,7 +463,7 @@ export class ChunkWorkerChunk {
      * It applies "necessary fixes" to the block after a solid block was placed over it.
      * Currently there is one such fix is replacing GRASS_BLOCK with DIRT.
      */
-    fixBelowSolidIndirect(x, y, z) {
+    fixBelowSolidIndirect(x: number, y: number, z: number): void {
         const bm = this.chunkManager.block_manager
         const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk
         const index = cx * x + cy * y + cz * z + cw
@@ -443,7 +501,7 @@ export class ChunkWorkerChunk {
         const neibMat = ChunkWorkerChunk.neibMat;
         const cache = BLOCK_CACHE;
 
-        const block = this.tblocks.get(new Vector(0, 0, 0), null, cw);
+        const block = this.tblocks.get(new Vector(0, 0, 0), null);
 
         const matBuf = new MaterialBuf()
 
