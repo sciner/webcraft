@@ -7,16 +7,11 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Y, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
     CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW } from "./chunk_const.js";
 import { DEFAULT_TX_CNT } from "./constant.js";
-import type { Chunk } from './chunk.js'
 import type { ChunkWorkerChunk } from './worker/chunk.js'
-import type { ServerChunk } from "../../node_server/server_chunk.js"
 import type { AABB } from "./core/AABB.js";
 import type { Chunk } from './chunk.js'
-import type { ChunkWorkerChunk } from './worker/chunk.js'
 import type { ServerChunk } from "../../node_server/server_chunk.js"
 import type { Building } from "./terrain_generator/cluster/building.js";
-
-declare type AnyChunk = Chunk | ChunkWorkerChunk | ServerChunk
 
 export declare type AnyChunk = Chunk | ChunkWorkerChunk | ServerChunk
 
