@@ -22,6 +22,7 @@ in vec4 v_lightOffset;
 in float v_noCanTakeAO;
 in float v_noCanTakeLight;
 in float v_flagMultiplyColor;
+flat in int cubeSide;
 
 out vec4 outColor;
 
@@ -139,9 +140,19 @@ void main() {
             /// LAVA
             vec3 cam_period5 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
             float scale = 4.;
-            vec2 uv = vec2(v_world_pos.xy + cam_period5.xy) / scale;
+            float pixels = 1. / 32.;
+            float div = pixels / scale;
+            vec2 uv;
+            if(cubeSide == 2 || cubeSide == 3) {
+                vec2 tms = vec2(0., u_time / 5000.);
+                uv = vec2(v_world_pos.xz + cam_period5.xz + tms + pixels / 2.) / scale;
+            } else if(cubeSide == 4 || cubeSide == 5) {
+                vec2 tms = vec2(0., u_time / 5000.);
+                uv = vec2(v_world_pos.yz + cam_period5.yz + tms + pixels / 2.) / scale;
+            } else {
+                uv = vec2(v_world_pos.xy + cam_period5.xy + pixels / 2.) / scale;
+            }
             // pixelate
-            float div = (1. / 32.) / scale;
             uv = round(uv / div) * div;
             float fbm_value = fbm(uv);
             vec3 col = vec3(.212, 0.08, 0.03) / max(fbm_value, 0.0001);

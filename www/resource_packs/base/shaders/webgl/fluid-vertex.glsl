@@ -33,6 +33,8 @@ out float v_noCanTakeAO;
 out float v_noCanTakeLight;
 out float v_flagMultiplyColor;
 
+flat out int cubeSide;
+
 const vec3 cubeVert[24] = vec3[24] (
 // up
     vec3(0.0, 1.0, 1.0),
@@ -96,7 +98,7 @@ void main() {
     v_lightId = float(chunkData1.w);
 
     uint fluidId = a_fluidId & uint(3);
-    int cubeSide = int(a_fluidId >> 2) & 7;
+    cubeSide = int(a_fluidId >> 2) & 7;
     int epsShift = int(a_fluidId >> 5) & 63;
     int blockIndex = int(a_blockId) & 0xffff;
     int iSize = chunkData0.w;

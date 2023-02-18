@@ -35,6 +35,7 @@ export class Player {
     [key: string]: any;
 
     #forward = new Vector(0, 0, 0);
+    chat : Chat
 
     /**
      * @param {*} options

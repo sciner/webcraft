@@ -13,6 +13,7 @@ import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PA
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
+import type { Player } from "./player.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -69,6 +70,8 @@ export class GameSettings {
 // Main game class
 export class GameClass {
     [key: string]: any;
+
+    player : Player
 
     constructor() {
         this.is_server                  = false;
