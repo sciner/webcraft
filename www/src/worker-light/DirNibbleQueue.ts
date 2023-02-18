@@ -295,13 +295,13 @@ export class DirNibbleQueue {
     }
 
     fillOuter(chunk) {
-        const {disperse} = this;
+        const {disperse, world} = this;
         const {lightChunk} = chunk;
         const {aabb, uint8View, strideBytes} = lightChunk;
         const {shiftCoord, cx, cy, cz, dif26} = lightChunk;
         const {nibbles, nibbleDims, nibbleSize, nibbleStrideBytes} = lightChunk;
         const {portals, facetPortals} = lightChunk;
-        const {defDayLight} = this.world;
+        const {defDayLight} = world;
 
         let nibDim = nibbleDims.y;
         let nibHeight = nibbleSize.y;
@@ -402,6 +402,7 @@ export class DirNibbleQueue {
         if (foundShadow) {
             chunk.lastID++;
         }
+        const ambientLight = world.dayLight.ambientLight;
         // Handle portals, just copy
         // 3. pass through portals
         for (let i = 0; i < portals.length; i++) {
@@ -423,7 +424,7 @@ export class DirNibbleQueue {
                         if (f1) {
                             const light = uint8View[coord1 + OFFSET_DAY];
                             const oldCopy = bytes2[coord2 + OFFSET_DAY] ;
-                            if (oldCopy > 0 && oldCopy !== light) {
+                            if (oldCopy > ambientLight && oldCopy !== light) {
                                 invalidateOther = true;
                             }
                             bytes2[coord2 + OFFSET_DAY] = light;
@@ -442,7 +443,7 @@ export class DirNibbleQueue {
                                         if (srcBlock) {
                                             invalidateOther = true;
                                         } else {
-                                            this.world.dayLight.add(other.rev, coord2 / strideBytes,
+                                            world.dayLight.add(other.rev, coord2 / strideBytes,
                                                 defDayLight, this.world.getPotential(x, y, z));
                                         }
                                         break;
@@ -544,7 +545,7 @@ export class DirNibbleQueue {
                         continue;
                     }
                     // here, light should be 0
-                    let neibLight = 0;
+                    let neibLight = ambientLight;
                     for (let dir = 0; dir < 6; dir++) {
                         neibLight = Math.max(neibLight, uint8View[(coord + dif26[dir]) * strideBytes + OFFSET_DAY]);
                         if (neibLight >= defDayLight) {
