@@ -456,11 +456,11 @@ export class GameClass {
                                             pos.y += pos.n.y;
                                             if(pos.n.y < 0) pos.y--;
                                         }
-                                        player.teleport(null, pos);
+                                        player.teleport(null, pos, false);
                                     }
                                 }, 1000);
                             } else {
-                                player.teleport('random', null);
+                                player.teleport('random', null, false);
                             }
                         }
                         return true;
