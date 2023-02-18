@@ -460,7 +460,7 @@ export default class BaseRenderer {
         });
         this._emptyTexInt.isEmpty = true;
 
-        this._emptyTex3D = this.createTexture({
+        this._emptyTex3D = this.createTexture3D({
             data: new Uint8Array(4)
         })
         this._emptyTex3D.isEmpty = true;
