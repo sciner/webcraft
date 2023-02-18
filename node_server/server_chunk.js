@@ -444,6 +444,7 @@ export class ServerChunk {
             //TODO cover it with a test
             return;
         }
+        /* Some debug code, probably remove it
         if(this.addr.equal(new Vector(-10,0,-1))) {
             let ids = [];
             for(let i = 0; i < args.tblocks.id.length; i++) {
@@ -451,6 +452,7 @@ export class ServerChunk {
                 if(id > 0) ids.push(id);
             }
         }
+        */
         this.tblocks = newTypedBlocks(this.coord, this.size);
         this.tblocks.chunk = this;
         this.tblocks.light = this.light;
@@ -1316,7 +1318,7 @@ export class ServerChunk {
     }
 
     // Before unload chunk
-    async onUnload() {
+    onUnload() {
         const chunkManager = this.getChunkManager();
         if (!chunkManager || this.load_state !== CHUNK_STATE.READY) {
             throw new Error(`!chunkManager || this.load_state !== CHUNK_STATE.READY ${chunkManager} ${this.load_state}`);
