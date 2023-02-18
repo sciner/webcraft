@@ -240,7 +240,7 @@ export class DBWorldChunk {
         this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS | WorldChunkFlags.MODIFIED_BLOCKS);
     }
 
-    static toUpdateWorldModifyChunksWithBLOBs(rowId, data_patch, ml) {
+    static toUpdateWorldModifyChunksWithBLOBs(data_patch, rowId, ml) {
         return [
             rowId,
             JSON.stringify(data_patch),
