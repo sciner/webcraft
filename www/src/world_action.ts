@@ -14,6 +14,16 @@ import {
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
 import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
+import type { ServerWorld } from "../../node_server/server_world.js";
+import type { ServerPlayer } from "../../node_server/server_player.js";
+
+declare type PlaySoundParams = {
+    tag: string
+    action: string
+    pos: Vector
+    // It's not used when playng the sound. TODO use it
+    except_players?: number[]
+}
 
 const _createBlockAABB = new AABB();
 
@@ -364,12 +374,11 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
 class DestroyBlocks {
     [key: string]: any;
 
-    /**
-     * @param { import("../../node_server/server_world.js").ServerWorld } world
-     * @param { import("../../node_server/server_player.js").ServerPlayer } player
-     * @param { WorldAction } actions
-     */
-    constructor(world, player, actions, current_inventory_item) {
+    world: ServerWorld
+    player: ServerPlayer
+    actions: WorldAction
+
+    constructor(world: ServerWorld, player: ServerPlayer, actions: WorldAction, current_inventory_item) {
         this.cv      = new VectorCollector();
         this.world   = world;
         this.player  = player;
@@ -494,6 +503,7 @@ export class WorldAction {
     [key: string]: any;
 
     #world;
+    play_sound: PlaySoundParams[]
 
     constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
@@ -550,7 +560,7 @@ export class WorldAction {
     }
 
     // Add play sound
-    addPlaySound(item) {
+    addPlaySound(item: PlaySoundParams) {
         this.play_sound.push(item);
     }
 
@@ -2454,7 +2464,7 @@ function growHugeMushroom(world, pos, world_material, actions) {
 }
 
 // Use bone meal
-async function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions: WorldAction) {
     if(mat_block.item.name != 'bone_meal' || !world_material) {
         return false;
     }
@@ -2518,7 +2528,7 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
             actions.addBlocks([{pos: position, item: {id: world_block.id, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.decrement = true;
             actions.addParticles([{type: 'villager_happy', pos: position}]);
-            actions.addPlaySound({tag: mat_block.sound, action: 'place', position, except_players: [player.session.user_id]});
+            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: position, except_players: [player.session.user_id]});
             return true;
         }
     }
