@@ -213,7 +213,7 @@ export class DBWorldChunk {
                         FROM world_modify
                         WHERE chunk_x = ? AND chunk_y = ? AND chunk_z = ?
                         ORDER BY id DESC
-                    ) GROUP BY "index"
+                    ) GROUP BY i
                 ) WHERE cnt > 1
             ) DELETE
             FROM world_modify
