@@ -541,8 +541,8 @@ export function makeChunkEffectID(chunk_addr, material_key) {
  */
 export function getChunkAddr(x: number, y: number, z : number, out_vec : Vector | null = null) : Vector {
     out_vec = out_vec || new Vector();
-    out_vec.x = Math.floor(x as any / CHUNK_SIZE_X);
-    out_vec.y = Math.floor(y as any / CHUNK_SIZE_Y);
+    out_vec.x = Math.floor(x / CHUNK_SIZE_X);
+    out_vec.y = Math.floor(y / CHUNK_SIZE_Y);
     out_vec.z = Math.floor(z / CHUNK_SIZE_Z);
     // Fix negative zero
     if(out_vec.x == 0) {out_vec.x = 0;}
@@ -2854,7 +2854,7 @@ export class ArrayHelpers {
         return sum;
     }
 
-    /** 
+    /**
      * Creates an array of at least the required length, or increases the length of the existing array.
      * @returns {AnyArray} the given array, or a new one.
      */
@@ -3978,7 +3978,7 @@ export class ShiftedMatrix {
         // add border cells to the queue, spread from inner cells
         for(const [row, col, ind] of this.relativeRowColIndices()) {
             const v = arr[ind]
-            if (v) { // it's a cell with an unkown distance, a queue candidate 
+            if (v) { // it's a cell with an unkown distance, a queue candidate
                 const onBorder =
                     (row === 0      ? toOutside : arr[ind - cols] === 0) ||
                     (row === rowsM1 ? toOutside : arr[ind + cols] === 0) ||

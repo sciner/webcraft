@@ -1,6 +1,9 @@
 import { Vector } from "./helpers.js";
 import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
 import type { AABB } from "./core/AABB.js";
+import type { World } from "./world"
+import type { BLOCK } from "./blocks";
+import type { TBlock } from "./typed_blocks3";
 
 const INF = 100000.0;
 const eps = 1e-3;
@@ -14,26 +17,55 @@ const startBlock = new Vector(0, 0, 0);
 
 const _tempVec3c = new Vector(0, 0, 0)
 
-export class RaycasterResult {
-    [key: string]: any;
+type IntersectPlayerResult = {
+    player_distance: number
+    player
+}
+
+type IntersectMobResult = {
+    mob_distance: number,
+    mob
+}
+
+export class RaycasterResult implements IVector {
+
+    mob
+    player
+    aabb        : AABB | null
+    n?          : Vector | null
+    block_id    : number
+    x           : number
+    y           : number
+    z           : number
+    point?      : Vector | null    // a point inside a 1x1x1 block
+    fluidLeftTop: Vector | null
+    fluidVal    : number
+    block?      : IBlockItem
 
     /**
+     * @param {boolean} returnBlockData - if it's true, not only {@link block_id} will be remembered,
+     *   but also a copy of the block's data will be stored into {@link block}
      */
-    constructor(pos : Vector | null = null, leftTop : Vector | null = null, side : Vector | null = null, aabb? : AABB, block_id : int = 0) {
+    constructor(pos : Vector | null = null, leftTop : Vector | null = null, side : Vector | null = null,
+        aabb : AABB | null = null, block? : TBlock, returnBlockData?: boolean
+    ) {
         this.mob      = null;
         this.player   = null;
         this.aabb     = aabb || null;
-        this.n        = side || 0; // TODO: Fix it
-        this.block_id = block_id || 0;
+        this.n        = side || null;
+        this.block_id = block?.id || 0;
+        if (block && returnBlockData) {
+            this.block = block.clonePOJO();
+        }
         this.x        = 0;
         this.y        = 0;
         this.z        = 0;
-        this.point    = 0;
+        this.point    = null;
         if (pos) {
-            this.x = leftTop.x;
-            this.y = leftTop.y;
-            this.z = leftTop.z;
-            this.point = new Vector(pos.x, pos.y, pos.z).subSelf(leftTop);
+            this.x = leftTop!.x;
+            this.y = leftTop!.y;
+            this.z = leftTop!.z;
+            this.point = new Vector(pos.x, pos.y, pos.z).subSelf(leftTop!);
             if(point_precision != 1) {
                 this.point.x = Math.round(this.point.x * point_precision) / point_precision;
                 this.point.y = Math.round(this.point.y * point_precision) / point_precision;
@@ -44,7 +76,7 @@ export class RaycasterResult {
         this.fluidVal = 0;
     }
 
-    distance(vec) {
+    distance(vec: IVector): number {
         // Fast method
         let x = this.x - vec.x;
         let y = this.y - vec.y;
@@ -52,18 +84,26 @@ export class RaycasterResult {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
-    setFluid(fluidLeftTop, fluidVal, side) {
+    setFluid(fluidLeftTop: Vector, fluidVal: number, side: Vector): RaycasterResult {
         this.fluidLeftTop = fluidLeftTop;
-        this.fluidLeftTop.n = side;
+        this.n = side;
         this.fluidVal = fluidVal;
         return this;
     }
 }
 
 export class Raycaster {
-    [key: string]: any;
 
-    constructor(world) {
+    world       : World
+    BLOCK       : BLOCK
+    _dir        : Vector
+    _pos        : Vector
+    _blk        : Vector
+    origin?     : IVector
+    direction?  : IVector
+    _block_vec? : Vector
+
+    constructor(world: World) {
         this.world = world;
         this.BLOCK = world.block_manager;
         this._dir = new Vector(0, 0, 0);
@@ -71,14 +111,9 @@ export class Raycaster {
         this._blk = new Vector(0, 0, 0);
     }
 
-    /**
-     * @param {Vector} pos
-     * @param {number[]} invViewMatrix
-     * @param {number} distance
-     * @param {*} callback
-     * @returns {null | RaycasterResult}
-     */
-    getFromView(pos, invViewMatrix, distance, callback, ignore_transparent, return_fluid) {
+    getFromView(pos: Vector, invViewMatrix: number[], distance: number, callback?: Function | null,
+        ignore_transparent: boolean = false, return_fluid: boolean = false, returnBlockData?: boolean
+    ): RaycasterResult | null {
         this._dir.x = -invViewMatrix[8];
         this._dir.y = -invViewMatrix[10];
         this._dir.z = -invViewMatrix[9];
@@ -87,14 +122,14 @@ export class Raycaster {
             return null;
         }
         this._dir.normSelf();
-        return this.get(pos, this._dir, distance, callback, ignore_transparent, return_fluid);
+        return this.get(pos, this._dir, distance, callback, ignore_transparent, return_fluid, returnBlockData);
     }
 
     // intersectSphere...
     intersectSphere(sphere, origin = this.origin, direction = this.direction) {
         const ray : Vector = _tempVec3c;
-        ray.copyFrom(sphere.center).subSelf(origin)
-        const tca = ray.dot(direction);
+        ray.copyFrom(sphere.center).subSelf(origin!)
+        const tca = ray.dot(direction!);
         const d2 = ray.dot(ray) - tca * tca;
         const radius2 = sphere.radius * sphere.radius;
         if (d2 > radius2) return 0;
@@ -131,9 +166,9 @@ export class Raycaster {
     }
 
     // Mob raycaster
-    intersectMob(pos, dir, max_distance) {
+    intersectMob(pos: IVector, dir: IVector, max_distance: number): IntersectMobResult {
         const resp = {
-            mob_distance: null,
+            mob_distance: Infinity,
             mob: null
         };
         if(this.world?.mobs) {
@@ -149,12 +184,7 @@ export class Raycaster {
                 }
                 if(this.intersectBox(mob.aabb, pos, dir)) {
                     const dist = tPos.distance(pos);
-                    if(resp.mob) {
-                        if(dist < resp.mob_distance) {
-                            resp.mob = mob;
-                            resp.mob_distance = dist;
-                        }
-                    } else {
+                    if(dist < resp.mob_distance) {
                         resp.mob = mob;
                         resp.mob_distance = dist;
                     }
@@ -165,9 +195,9 @@ export class Raycaster {
     }
 
     // Player raycaster
-    intersectPlayer(pos : IVector, dir : IVector, max_distance : number) {
+    intersectPlayer(pos : IVector, dir : IVector, max_distance : number): IntersectPlayerResult {
         const resp = {
-            player_distance: null,
+            player_distance: Infinity,
             player: null
         };
         if(this.world?.players) {
@@ -183,12 +213,7 @@ export class Raycaster {
                 }
                 if(this.intersectBox(player.aabb, pos, dir)) {
                     const dist = tPos.distance(pos);
-                    if(resp.player) {
-                        if(dist < resp.player_distance) {
-                            resp.player = player;
-                            resp.player_distance = dist;
-                        }
-                    } else {
+                    if(dist < resp.player_distance) {
                         resp.player = player;
                         resp.player_distance = dist;
                     }
@@ -198,7 +223,9 @@ export class Raycaster {
         return resp;
     }
 
-    get(origin : Vector, dir : Vector, pickat_distance : number, callback : Function, ignore_transparent : boolean = false, return_fluid : boolean = false) : RaycasterResult | null {
+    get(origin : Vector, dir : Vector, pickat_distance : number, callback? : Function | null,
+        ignore_transparent : boolean = false, return_fluid : boolean = false, returnBlockData?: boolean
+    ) : RaycasterResult | null {
 
         // const origin_block_pos = new Vector(origin).flooredSelf();
 
@@ -215,8 +242,8 @@ export class Raycaster {
         side_fluid.zero();
 
         let fluidVal = 0;
-        let fluidLeftTop = null;
-        let res = null;
+        let fluidLeftTop: Vector | null = null;
+        let res: RaycasterResult | null = null;
         let len = 0;
         if(!this._block_vec) {
             this._block_vec = new Vector(0, 0, 0);
@@ -245,17 +272,20 @@ export class Raycaster {
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
             let hitShape = b.id > this.BLOCK.AIR.id; // && !origin_block_pos.equal(leftTop);
-            if(ignore_transparent && b.material.invisible_for_cam ||
-                b.material.material.id === 'water'
+            const material = b.material
+            if(ignore_transparent && material?.invisible_for_cam ||
+                material?.material.id === 'water'
             ) {
                 hitShape = false;
             }
 
-            let hitFluid = fluidVal === 0 && b.fluidSource > 0;
-            if (hitFluid) {
-                fluidLeftTop = block.floored();
-                fluidVal = b.fluidSource;
-                side_fluid.zero().y = 1;
+            if (fluidVal === 0) {
+                const fluidSource = b.fluidSource
+                if (fluidSource > 0) { // if hit fluid
+                    fluidLeftTop = block.floored();
+                    fluidVal = fluidSource;
+                    side_fluid.zero().y = 1;
+                }
             }
 
             if (hitShape) {
@@ -309,9 +339,9 @@ export class Raycaster {
                 side.x = -side.x;
                 side.y = -side.y;
                 side.z = -side.z;
-                res = new RaycasterResult(pos, leftTop, side, null, b?.id);
-                if(res.point.y == 1) {
-                    res.point.y = 0;
+                res = new RaycasterResult(pos, leftTop, side, null, b, returnBlockData);
+                if(res.point!.y == 1) {
+                    res.point!.y = 0;
                 }
                 break;
             }
@@ -358,7 +388,7 @@ export class Raycaster {
             if (!res) {
                 res = new RaycasterResult();
             }
-            res.setFluid(fluidLeftTop, fluidVal, side_fluid);
+            res.setFluid(fluidLeftTop!, fluidVal, side_fluid);
         }
 
         callback && callback(res);

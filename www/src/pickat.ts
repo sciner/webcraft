@@ -1,13 +1,17 @@
-import { Vector, unixTime } from "./helpers.js";
+import { Vector, unixTime, ObjectHelpers, AnyChunk } from "./helpers.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
-import {BLOCK} from "./blocks.js";
-import { Raycaster } from "./Raycaster.js";
+import {BLOCK, Block} from "./blocks.js";
+import { Raycaster, RaycasterResult } from "./Raycaster.js";
 import { MOUSE } from "./constant.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import {AABB} from "./core/AABB.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import type { World } from "./world"
+import type { Renderer } from "./render"
+import type { TBlock } from "./typed_blocks3";
+import type { ActionBlocks } from "./world_action"
 
 const {mat4} = glMatrix;
 
@@ -15,10 +19,89 @@ const TARGET_TEXTURES = [.5, .5, 1, 1];
 
 const half = new Vector(0.5, 0.5, 0.5);
 
-export class PickAt {
-    [key: string]: any;
+/** Fileds that are used both in {@link PickAtEvent} and {@link PickAtCmdData} */
+type AbstractPickAtEvent = {
+    button_id       : int
+    shiftKey        : boolean
+    start_time      : number
+    destroyBlock    : boolean
+    cloneBlock      : boolean
+    createBlock     : boolean
+    interactPlayerID? : int
+    interactMobID?  : int | null
+    number          : int
+    id?             : int // it's set to unixTime(). It's not a unique id!!! Just some random number that may repeat.
+}
 
-    constructor(world, render, onTarget, onInteractEntity, onInteractFluid) {
+export type PickAtEvent = AbstractPickAtEvent & {
+    pos?            : RaycasterResult
+}
+
+/** Data of CMD_PICKAT_ACTION */
+export type PickAtCmdData = AbstractPickAtEvent & {
+    /** It's {@link IVector} when {@link changeExtraData} == true. */
+    pos?            : RaycasterResult | IVector
+    actions?: {
+        blocks: ActionBlocks
+    }
+    eye_pos?        : IVector
+    changeExtraData?: boolean
+    extra_data?     : object
+}
+
+type PickAtTragetBlock = {
+    pos             : RaycasterResult | Vector | null
+    visible         : boolean
+    geom            : LineGeometry
+}
+
+type PickAtDamageBlock = {
+    pos             : RaycasterResult | Vector | null
+    mesh
+    event           : PickAtEvent | null
+    frame           : number
+    number          : int
+    times           : number          // количество миллисекунд, в течение которого на блок было воздействие
+    prev_time       : number | null   // точное время, когда в последний раз было воздействие на блок
+    start           : number | null
+}
+
+type PickAtTargetDescription = {
+    worldPos        : Vector
+    posInChunk      : Vector
+    chunkAddr       : Vector
+    block           : IBlockItem
+    material        : Block
+    fluid           : int
+};
+
+type PickAtOnTargetFunction = (event: PickAtEvent, times: number, number: int) => Promise<boolean>
+type PickAtOnInteractEntity = (event: PickAtEvent) => void
+type PickAtOnInteractFluid = (fluidLeftTop: IVector) => boolean
+
+export class PickAt {
+
+    world               : World
+    render              : Renderer
+    target_block        : PickAtTragetBlock
+    damage_block        : PickAtDamageBlock
+    onTarget            : PickAtOnTargetFunction
+    onInteractEntity    : PickAtOnInteractEntity
+    onInteractFluid     : PickAtOnInteractFluid
+    modelMatrix         : glMatrix
+    raycaster           : Raycaster
+    targetDescription   : PickAtTargetDescription | null = null
+    visibleBlockHUD     = null
+    empty_matrix        = mat4.create()
+    _temp_pos           = new Vector(0, 0, 0)
+    material_target
+    material_damage
+    chunk_addr          : Vector
+    chunk               : AnyChunk
+
+    constructor(world: World, render: Renderer, onTarget: PickAtOnTargetFunction,
+        onInteractEntity: PickAtOnInteractEntity, onInteractFluid: PickAtOnInteractFluid
+    ) {
         this.world              = world;
         this.render             = render;
         //
@@ -38,35 +121,33 @@ export class PickAt {
             prev_time:  null, // точное время, когда в последний раз было воздействие на блок
             start:      null
         }
-        this.targetDescription  = null;
-        this.visibleBlockHUD    = null;
-        this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
+        this.onTarget           = onTarget;
         this.onInteractEntity   = onInteractEntity;
         this.onInteractFluid    = onInteractFluid;
         //
         const modelMatrix = this.modelMatrix = mat4.create();
         mat4.scale(modelMatrix, modelMatrix, [1.002, 1.002, 1.002]);
         //
-        this.empty_matrix = mat4.create();
         this.raycaster = new Raycaster(this.world);
-        this._temp_pos = new Vector(0, 0, 0);
 
         this.target_block.geom.defColor = 0xFF000000;
     }
 
-    get(pos, callback, pickat_distance, view_vector, ignore_transparent, return_fluid : boolean = false) {
+    get(pos: Vector, callback: Function | null, pickat_distance: number, view_vector: Vector,
+        ignore_transparent: boolean, return_fluid : boolean = false
+    ): RaycasterResult | null {
         const render = this.render;
         pos = this._temp_pos.copyFrom(pos);
         // view_vector = null;
         if(view_vector) {
-            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent, return_fluid);
+            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent, return_fluid, true);
         }
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
-        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid);
+        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid, true);
     }
 
     // Used by other classes
-    getTargetBlock(player) {
+    getTargetBlock(player): TBlock | null {
         if (!player.game_mode.canBlockAction()) {
             return null;
         }
@@ -76,15 +157,16 @@ export class PickAt {
     }
 
     // setEvent...
-    setEvent(player, e) {
+    setEvent(player, eParams: {button_id: int, shiftKey: boolean}) {
+        const e = eParams as PickAtEvent;
         e.start_time        = performance.now();
         e.destroyBlock      = e.button_id == MOUSE.BUTTON_LEFT;
         e.cloneBlock        = e.button_id == MOUSE.BUTTON_WHEEL;
         e.createBlock       = e.button_id == MOUSE.BUTTON_RIGHT;
-        e.interractMobID    = null;
+        e.interactMobID     = null;
         e.number            = 0;
         const damage_block  = this.damage_block;
-        damage_block.event  = Object.assign(e, {number: 0});
+        damage_block.event  = e;
         damage_block.start  = performance.now();
         this.updateDamageBlock();
         // Picking target
@@ -124,7 +206,7 @@ export class PickAt {
     }
 
     // update...
-    update(pos, pickat_distance, view_vector) {
+    update(pos: Vector, pickat_distance: number, view_vector: Vector): void {
 
         // Get actual pick-at block
         let bPos = this.get(pos, null, pickat_distance, view_vector, false);
@@ -135,7 +217,7 @@ export class PickAt {
         if(bPos && bPos.fluidLeftTop) {
             if(this.onInteractFluid && this.onInteractFluid instanceof Function) {
                 if(this.onInteractFluid(bPos.fluidLeftTop)) {
-                    return false;
+                    return;
                 }
             }
         }
@@ -197,11 +279,11 @@ export class PickAt {
         damage_block.prev_time = pn;
         if(this.onTarget instanceof Function) {
             // полное копирование, во избежания модификации
-            let event = {...damage_block.event};
+            const event: PickAtEvent = {...damage_block.event};
             event.id = unixTime();
-            event.pos = {...damage_block.pos};
-            event.pos.n = event.pos.n.clone();
-            event.pos.point = event.pos.point.clone();
+            event.pos = <RaycasterResult>{...damage_block.pos};
+            event.pos.n = event.pos.n?.clone();
+            event.pos.point = event.pos.point?.clone();
             if(await this.onTarget(event, damage_block.times / 1000, damage_block.number)) {
                 this.updateDamageBlock();
                 if(damage_block.mesh) {
@@ -232,10 +314,10 @@ export class PickAt {
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
 
             const matrix = mat4.create();
-            let a_pos = half.add(this.damage_block.pos);
+            let a_pos = half.add(this.damage_block.pos!);
 
             // Light
-            this.chunk_addr = Vector.toChunkAddr(this.damage_block.pos);
+            this.chunk_addr = Vector.toChunkAddr(this.damage_block.pos!);
             this.chunk = this.world.chunkManager.getChunk(this.chunk_addr);
             if(this.chunk) {
                 mat4.translate(matrix, matrix,
@@ -275,7 +357,7 @@ export class PickAt {
 
     // createTargetBuffer...
     createTargetBuffer(pos, c) {
-        let vertices    = [];
+        let vertices:   number[] = [];
         let pp = 0;
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);

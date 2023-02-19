@@ -1,6 +1,6 @@
-import {Helpers, getChunkAddr, Vector} from "./helpers.js";
+import {Helpers, getChunkAddr, Vector, ObjectHelpers} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
-import {PickAt} from "./pickat.js";
+import {PickAt, PickAtEvent} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE} from "./constant.js";
@@ -18,6 +18,8 @@ import { Effect } from "./block_type/effect.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
+import type { World } from "./world";
+import type { PickAtCmdData } from "./pickat"
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -36,6 +38,7 @@ export class Player {
 
     #forward = new Vector(0, 0, 0);
     chat : Chat
+    world: World
 
     /**
      * @param {*} options
@@ -70,11 +73,7 @@ export class Player {
         return 0;
     }
 
-    /**
-     * @param { import("./world.js").World } world
-     * @param {*} cb
-     */
-    JoinToWorld(world, cb) {
+    JoinToWorld(world: World, cb: Function): void {
         this.world = world;
         //
         this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
@@ -85,7 +84,7 @@ export class Player {
     }
 
     // playerConnectedToWorld...
-    playerConnectedToWorld(data) {
+    playerConnectedToWorld(data) : boolean {
         //
         this.session                = data.session;
         this.state                  = data.state;
@@ -201,8 +200,8 @@ export class Player {
             this.inventory.hud.refresh();
         });
         // pickAt
-        this.pickAt = new PickAt(this.world, this.render, async (arg1, arg2, arg3) => {
-            return await this.onPickAtTarget(arg1, arg2, arg3);
+        this.pickAt = new PickAt(this.world, this.render, async (event, times, number) => {
+            return this.onPickAtTarget(event, times, number);
         }, async (e) => {
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
                 this.inAttackProcess = ATTACK_PROCESS_ONGOING;
@@ -221,10 +220,7 @@ export class Player {
                 }
             }
             if (e.interactMobID || e.interactPlayerID) {
-                this.world.server.Send({
-                    name: ServerClient.CMD_PICKAT_ACTION,
-                    data: e
-                });
+                this.world.server!.pickAt(e);
             }
         }, (bPos) => {
             // onInteractFluid
@@ -235,13 +231,10 @@ export class Player {
                 if(hand_item_mat && hand_item_mat.tags.includes('set_on_water')) {
                     if(e.number++ == 0) {
                         e.pos = bPos;
-                        const e_orig = JSON.parse(JSON.stringify(e));
+                        const e_orig = <PickAtCmdData>ObjectHelpers.deepClone(e);
                         e_orig.actions = new WorldAction(randomUUID());
                         // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-                        this.world.server.Send({
-                            name: ServerClient.CMD_PICKAT_ACTION,
-                            data: e_orig
-                        });
+                        this.world.server!.pickAt(e_orig);
                     }
                     return true;
                 }
@@ -458,7 +451,7 @@ export class Player {
     }
 
     // onPickAtTarget
-    async onPickAtTarget(e, times, number) {
+    async onPickAtTarget(e: PickAtEvent, times: number, number: number) {
 
         this.inMiningProcess = true;
         this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
@@ -512,7 +505,7 @@ export class Player {
                 return false;
             }
             this.mineTime = 0;
-            const e_orig = JSON.parse(JSON.stringify(e));
+            const e_orig = <PickAtCmdData>ObjectHelpers.deepClone(e);
             const player = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
@@ -530,10 +523,7 @@ export class Player {
             e_orig.actions = {blocks: actions.blocks};
             e_orig.eye_pos = this.getEyePos();
             // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-            this.world.server.Send({
-                name: ServerClient.CMD_PICKAT_ACTION,
-                data: e_orig
-            });
+            this.world.server!.pickAt(e_orig);
         }
         return true;
     }
@@ -573,7 +563,7 @@ export class Player {
     }
 
     // Returns the position of the eyes of the player for rendering.
-    getEyePos() {
+    getEyePos(): Vector {
         let subY = 0;
         if(this.state.sitting) {
             subY = this.height * 1/3;

@@ -867,13 +867,13 @@ export class ServerPlayer extends Player {
      * @returns bool
      */
     isMiningComplete(data) {
-        if (!data.destroyBlock || this.game_mode.isCreative()) {
+        if (!data.destroyBlock) {
             return true;
         }
         const world = this.world;
         const bm = world.block_manager
         const world_block = world.getBlock(new Vector(data.pos));
-        if (!world_block) {
+        if (!world_block || world_block.id <= 0) { // if DUMMY or AIR
             return false;
         }
         const block = bm.fromId(world_block.id);
@@ -883,6 +883,9 @@ export class ServerPlayer extends Player {
         const head = world.getBlock(this.getEyePos());
         if (!head) {
             return false;
+        }
+        if (this.game_mode.isCreative()) {
+            return true;
         }
         const instrument = bm.fromId(this.state.hands.right.id);
         let mul = world.getGeneratorOptions('tool_mining_speed', 1);

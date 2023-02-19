@@ -1,7 +1,7 @@
 import { getChunkAddr, Vector } from "./helpers.js";
+import type { PickAtCmdData } from "./pickat"
 
 export class ServerClient {
-    [key: string]: any;
 
     static cmd_titles               = null;
 
@@ -104,6 +104,15 @@ export class ServerClient {
     static BLOCK_ACTION_DESTROY         = 2;
     static BLOCK_ACTION_MODIFY          = 3;
     static BLOCK_ACTION_REPLACE         = 4;
+
+    ws
+    chunks_added    : int
+    ping_time       : number | null
+    ping_value
+    stat
+    cmdListeners    : Map<int, Set<Function>>
+    cmdListenersForPlayers : Map<string,  Map<int, Set<Function>>>
+    t               : Timer
 
     // Constructor
     constructor(ws) {
@@ -308,6 +317,10 @@ export class ServerClient {
             out_packets.size += json.length;
             this.ws.send(json);
         }, 0);
+    }
+
+    pickAt(data: PickAtCmdData): void {
+        this.Send({name: ServerClient.CMD_PICKAT_ACTION, data});
     }
 
     loadChunk(addr) {

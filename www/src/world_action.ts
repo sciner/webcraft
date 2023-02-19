@@ -15,7 +15,8 @@ import {
 } from "./fluid/FluidConst.js";
 import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
 import type { ServerWorld } from "../../node_server/server_world.js";
-import type { ServerPlayer } from "../../node_server/server_player.js";
+import type { PickAtEvent, PickAtCmdData } from "./pickat"
+import type { RaycasterResult } from "./Raycaster.js";
 
 declare type PlaySoundParams = {
     tag: string
@@ -23,6 +24,30 @@ declare type PlaySoundParams = {
     pos: Vector
     // It's not used when playng the sound. TODO use it
     except_players?: number[]
+}
+
+type BlockSetParams = {
+}
+
+/** A type that is as used as player in actions. */
+type ActionPlayerInfo = {
+    radius      : number,     // it's used as the player's diameter, not radius!
+    height      : number,
+    username?   : string,
+    pos         : IVector,
+    rotate      : IVector,
+    session: {
+        user_id: number
+    }
+}
+
+export type ActionBlocks = {
+    list : BlockSetParams[]
+    options: {
+        ignore_check_air : boolean
+        on_block_set : boolean
+        on_block_set_radius : number
+    }
 }
 
 const _createBlockAABB = new AABB();
@@ -372,13 +397,14 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
 
 // Destroy blocks
 class DestroyBlocks {
-    [key: string]: any;
 
+    cv: VectorCollector
     world: ServerWorld
-    player: ServerPlayer
+    player: ActionPlayerInfo
     actions: WorldAction
+    current_inventory_item
 
-    constructor(world: ServerWorld, player: ServerPlayer, actions: WorldAction, current_inventory_item) {
+    constructor(world: ServerWorld, player: ActionPlayerInfo, actions: WorldAction, current_inventory_item) {
         this.cv      = new VectorCollector();
         this.world   = world;
         this.player  = player;
@@ -504,6 +530,7 @@ export class WorldAction {
 
     #world;
     play_sound: PlaySoundParams[]
+    blocks: ActionBlocks
 
     constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
@@ -890,12 +917,12 @@ function simplifyPos(world, pos, mat, to_top, check_opposite : boolean = true) {
 }
 
 // Called to perform an action based on the player's block selection and input.
-export async function doBlockAction(e, world, player, current_inventory_item) {
+export async function doBlockAction(e: PickAtEvent | PickAtCmdData, world, player: ActionPlayerInfo, current_inventory_item): Promise<WorldAction> {
 
     const actions = new WorldAction(e.id);
     const destroyBlocks = new DestroyBlocks(world, player, actions, current_inventory_item);
 
-    if(e.pos == false) {
+    if(!e.pos) {
         console.error('empty e.pos');
         return actions;
     }
@@ -903,8 +930,8 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     // set radius for onBlockSet method
     actions.blocks.options.on_block_set_radius = 2;
 
-    let pos                 = e.pos;
-    let world_block         = world.getBlock(pos);
+    let ePos                = e.pos as IVector; // we don't know its type yet
+    let world_block         = world.getBlock(ePos);
     let world_material      = world_block && (world_block.id > 0 || world_block.fluid > 0) ? world_block.material : null;
     let extra_data          = world_block ? world_block.extra_data : null;
     let world_block_rotate  = world_block ? world_block.rotate : null;
@@ -914,18 +941,20 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
-        console.error('error_empty_world_material', world_block.id, pos);
+        console.error('error_empty_world_material', world_block.id, ePos);
         return actions;
     }
 
     // 1. Change extra data
-    if(e.changeExtraData) {
+    if((e as PickAtCmdData).changeExtraData) {
         for(let func of [editSign, editBeacon]) {
-            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, world_block_rotate, null, actions)) {
+            if(await func(e, world, ePos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
         }
     }
+    // because it's not changeExtraData, e.pos is RaycasterResult
+    const pos = ePos as RaycasterResult
 
     // 2. Destroy
     if(e.destroyBlock) {
@@ -1198,6 +1227,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         return actions;
     }
 
+    return actions;
 }
 
 //

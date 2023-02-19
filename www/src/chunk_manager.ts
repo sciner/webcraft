@@ -14,6 +14,7 @@ import { FluidMesher } from "./fluid/FluidMesher.js";
 import { LIGHT_TYPE_NO } from "./constant.js";
 import {ChunkExporter} from "./geom/ChunkExporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
+import type { TBlock } from "./typed_blocks3"
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -715,13 +716,13 @@ export class ChunkManager {
     }
 
     // Возвращает блок по абслютным координатам
-    getBlock(x : int | IVector, y? : int, z? : int, v? : any) {
-        if(x instanceof Vector || typeof x == 'object') {
-            y = x.y;
-            z = x.z;
-            x = x.x;
+    getBlock(x : int | IVector, y? : int, z? : int, v? : Vector): TBlock {
+        if((x as any).x != null) { // this check is much faster than typeof check or instanceof
+            y = (x as IVector).y;
+            z = (x as IVector).z;
+            x = (x as IVector).x;
         }
-        this.get_block_chunk_addr = getChunkAddr(x as any, y, z, this.get_block_chunk_addr);
+        this.get_block_chunk_addr = getChunkAddr(x as number, y as number, z as number, this.get_block_chunk_addr);
         let chunk = this.chunks.get(this.get_block_chunk_addr);
         if(chunk) {
             return chunk.getBlock(x, y, z, v);

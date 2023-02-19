@@ -25,10 +25,11 @@ export default class packet_reader {
         if(player.state.sitting || player.state.lies) {
             return true;
         }
-        if (packet.data.interactMobID || packet.data.interactPlayerID) {
-            player.onAttackEntity(packet.data.button_id, packet.data.interactMobID, packet.data.interactPlayerID);
+        const packetData = packet.data
+        if (packetData.interactMobID || packetData.interactPlayerID) {
+            player.onAttackEntity(packetData.button_id, packetData.interactMobID, packetData.interactPlayerID);
         } else {
-            const correct_destroy = player.isMiningComplete(packet.data);
+            const correct_destroy = player.isMiningComplete(packetData);
             const player_info = {
                 radius:     0.7,
                 height:     player.height,
@@ -39,7 +40,7 @@ export default class packet_reader {
                     user_id: player.session.user_id
                 }
             };
-            const actions = await doBlockAction(packet.data, world, player_info, currentInventoryItem);
+            const actions = await doBlockAction(packetData, world, player_info, currentInventoryItem);
             // проверям скорость, если ошибка, то ворачиваем как было
             if (!correct_destroy) {
                 for (const block of actions.blocks.list) {
@@ -49,15 +50,16 @@ export default class packet_reader {
                 }
             }
             // compare two actions
-            if (packet.data.actions?.blocks?.list) {
-                const player_json = JSON.stringify(packet.data.actions.blocks.list);
+            if (packetData.actions?.blocks?.list) {
+                const player_json = JSON.stringify(packetData.actions.blocks.list);
                 const server_json = JSON.stringify(actions.blocks.list);
                 const same_results = player_json == server_json;
                 if(!same_results || !correct_destroy) {
                     // собрать патч, для мира игрока:
                     const patch_blocks = new VectorCollector();
                     // 1. вложить в патч реальные блоки на указанных игроком позициях изменённых блоков
-                    for(const item of packet.data.actions.blocks.list) {
+                    // А если чанк не загружен - то присланные игроком блоки (не важно правильны ли они - они не попадают на сервер)
+                    for(const item of packetData.actions.blocks.list) {
                         if ('pos' in item) {
                             const pos = new Vector(item.pos);
                             if(pos.distance(player.state.pos) < 64) {
@@ -65,6 +67,9 @@ export default class packet_reader {
                                 if(tblock && tblock.id >= 0) {
                                     const patch = tblock.convertToDBItem();
                                     patch_blocks.set(pos, patch);
+                                } else if (pos.equal(packetData.pos) && packetData.pos.block) {
+                                    // a block from RaycasterResult - the one that was destroyed
+                                    patch_blocks.set(pos, packetData.pos.block);
                                 }
                             }
                         }

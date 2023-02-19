@@ -3,7 +3,7 @@ import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar } f
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { StringHelpers } from "./helpers.js";
+import { StringHelpers, ObjectHelpers } from "./helpers.js";
 import { Lang } from "./lang.js";
 import { LEAVES_TYPE } from "./constant.js";
 
@@ -54,8 +54,17 @@ export let NEIGHB_BY_SYM = {};
 // texture (array | function)   - ?
 // transparent (bool)           - Not cube
 
+/**
+ * Represents one block's data in DB.
+ * Do not confuse it with the config block properties {@link BlockProperties}.
+ */
 export class DBItemBlock {
-    [key: string]: any;
+
+    id: int
+    extra_data?: any
+    rotate?: IVector
+    entity_id?: string
+    power?: int
 
     constructor(id : int, extra_data? : any) {
         this.id = id
@@ -77,11 +86,118 @@ export class DBItemBlock {
 
 }
 
-class Block {
-    [key: string]: any;
+/**
+ * Properties of one block after it's been fully post-processed
+ */
+export type Block = {
 
-    constructor() {}
+    // major properties
 
+    id                      : int
+    name                    : string
+    title                   : string
+    style?                  : string
+    style_name?             : string
+    support_style?          : string
+    bb
+    material                : Block_Material
+    sound? : {
+    }
+    chest? : {
+        solts : int
+        private? : boolean
+        readonly_slots : int // default 0
+    }
+    tags                    : string[]
+    item? : {
+        instrument_id
+        name                : string
+    }
+    inventory? : {
+        style
+        scale? : number
+    }
+    inventory_style?        : string
+    layering : {
+        slab
+    }
+    group
+    resource_pack
+    light                               // default null
+    width?                  : number
+    height?                 : number
+    depth?                  : number
+    has_head : {
+        pos : IVector
+    }
+    extra_data?             : object
+
+    // other from JSON properties, in alphabetical order
+
+    can_replace_by_tree     : boolean
+    can_rotate              : boolean
+    gravity
+    is_dynamic_light?       : boolean
+    is_fluid?               : boolean
+    is_portal               : boolean
+    light_power?            : { r: int, g: int, b: int, a: int }
+    max_in_stack            : number    // default INVENTORY_STACK_DEFAULT_SIZE
+    mining_time?            : number
+    next_part
+    passable                : number    // from 0 to 1, default 0
+    piece_of?               : string
+    planting?               : boolean
+    power                   : number
+    previous_part
+    spawn_egg?              : boolean
+    spawnable               : boolean   // default true
+    texture_animations                  // default null
+    ticking?                : boolean
+    uvlock
+    window
+
+    // properties that are automaticaly calculated, in alphabetical order
+
+    can_auto_drop           : boolean
+    can_interact_with_hand  : boolean
+    can_take_shadow         : boolean
+    deprecated              : boolean
+    draw_only_down          : boolean
+    drop_if_unlinked        : boolean
+    has_oxygen              : boolean
+    has_window              : boolean
+    interact_water          : boolean
+    invisible_for_cam       : boolean
+    invisible_for_rain      : boolean
+    is_banner               : boolean
+    is_battery              : boolean
+    is_button               : boolean
+    is_dirt                 : boolean
+    is_glass                : boolean
+    is_grass                : boolean
+    is_jukebox              : boolean
+    is_layering             : boolean
+    is_leaves               : number    // it's not boolean
+    is_mushroom_block       : boolean
+    is_sapling              : boolean
+    is_sign                 : boolean
+    is_simple_qube          : boolean
+    is_solid_for_fluid      : boolean
+    is_solid                : boolean
+    is_water                : boolean
+    light_power_number      : int
+    material_key            : string
+    random_rotate_up        : boolean
+    selflit                 : boolean
+    sort_index              : int
+    transmits_light         : boolean
+    transparent             : boolean
+    tx_cnt                  : int
+    visible_for_ao          : boolean
+
+
+    // properties set in other places
+    inventory_icon_id?      : number
 }
 
 export class FakeVertices {
@@ -156,11 +272,16 @@ export class DropItemVertices extends FakeTBlock {
 
 //
 class Block_Material {
-    [key: string]: any;
+
+    id: string
+    mining: {
+        time: number
+        instruments: any[]
+    }
 
     static materials = {
         data: null,
-        checkBlock: async function(resource_pack, block) {
+        checkBlock: async function(resource_pack, block: Block) {
             if(block.material && block.material instanceof Block_Material) {
                 return;
             }
@@ -188,7 +309,7 @@ class Block_Material {
     };
 
     constructor(data) {
-        Object.assign(this, JSON.parse(JSON.stringify(data)));
+        Object.assign(this, ObjectHelpers.deepClone(data));
     }
 
     /**
@@ -236,15 +357,15 @@ export class BLOCK {
 
     static MAX_SIZE                         = 2048
 
-    static list                             = new Map();
+    static list                             = new Map<int, Block>();
     static styles                           = new Map();
-    static list_arr                         = []; // see also getAll()
+    static list_arr                         : Block[] = []; // see also getAll()
     static resource_pack_manager            = null;
     static max_id                           = 0;
-    static TICKING_BLOCKS                   = new Map();
-    static BLOCK_BY_ID                      = [];
-    static bySuffix                         = {}; // map of arrays
-    /** 
+    static TICKING_BLOCKS                   = new Map<int, Block>();
+    static BLOCK_BY_ID                      : Block[] = [];
+    static bySuffix                         : { [key: string]: Block[] } = {};
+    /**
      * For each block id, it contains flags describing to which classes of blocks it belongs.
      * See BLOCK.FLAG_*** constants.
      */
@@ -414,7 +535,7 @@ export class BLOCK {
      * Combined old {@link convertItemToDBItem} and checks from old DBWorld.blockSet.
      * Specifically for blocks: expects that {@link item} may be TBlock, doesn't return count, optimization for AIR.
      */
-    static convertBlockToDBItem(item) {
+    static convertBlockToDBItem(item): DBItemBlock | null {
         if(item && item instanceof DBItemBlock) {
             return item
         }
@@ -423,7 +544,7 @@ export class BLOCK {
         }
         const resp = new DBItemBlock(item.id)
         if (resp.id) {  // AIR blocks are very common, they don't have properties
-            let v;
+            let v: any
             // For non-existing items matrial is DUMMY. That's how it was done in DBWorld.blockSet().
             // First check the material, then access potentially slow tblock.rotate.
             if (this.fromId(resp.id).can_rotate) {
@@ -764,7 +885,7 @@ export class BLOCK {
 
     static reset() {
         BLOCK.list                   = new Map();
-        BLOCK.BLOCK_BY_ID            = new Array(1024);
+        BLOCK.BLOCK_BY_ID            = new Array(this.MAX_SIZE);
         BLOCK.BLOCK_BY_TAGS          = new Map();
         BLOCK.list_arr               = [];
         BLOCK.bySuffix               = {};
@@ -811,7 +932,7 @@ export class BLOCK {
     }
 
     // add
-    static async add(resource_pack, block) {
+    static async add(resource_pack, block: Block) {
 
         // Check duplicate ID
         if(!('name' in block) || !('id' in block)) {
@@ -915,11 +1036,6 @@ export class BLOCK {
             }
         }
         if (block.chest) {
-            /* Properties:
-                slots: Int
-                readonly_slots: Int (default 0)
-                private: Boolean (default false)
-            */
             block.chest.readonly_slots = block.chest.readonly_slots || 0;
         }
         block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent)) || ['BUBBLE_COLUMN'].includes(block.name);
@@ -932,13 +1048,13 @@ export class BLOCK {
                 block.tags.push('doubleface');
             }
         }
-        block.group             = block.group ?? this.getBlockStyleGroup(block);
+        block.group             ??= this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
-        block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
+        block.can_rotate        ??= block.tags.find(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].includes(x)) != null;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
-        block.uvlock            = !('uvlock' in block) ? true : false;
+        block.uvlock            = !('uvlock' in block);
         block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style_name == 'planting') || block.style_name == 'ladder' || block?.material?.id == 'glass';
         block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style_name == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
@@ -954,8 +1070,8 @@ export class BLOCK {
         const can_replace_by_tree = ['leaves', 'plant', 'dirt'].includes(block.material.id) || ['SNOW', 'SAND'].includes(block.name);
         block.can_replace_by_tree = can_replace_by_tree && !block.tags.includes('cant_replace_by_tree');
         //
-        if(block.planting && !('inventory_style' in block)) {
-            block.inventory_style = 'extruder';
+        if(block.planting) {
+            block.inventory_style ??= 'extruder';
         }
         if (block.is_solid) {
             BLOCK.addFlag(BLOCK.FLAG_SOLID, block.id)
@@ -1108,7 +1224,7 @@ export class BLOCK {
     }
 
     // getAll
-    static getAll() {
+    static getAll(): Block[] {
         return this.list_arr;
     }
 

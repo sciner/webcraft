@@ -9,6 +9,7 @@ import { ChestHelpers } from "./block_helpers.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { MOUSE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import type { BLOCK } from "./blocks";
+import type { PickAtCmdData } from "./pickat";
 
 /**
  * World generation unfo passed from server
@@ -206,8 +207,8 @@ export class World {
     }
 
     // Change block extra_data
-    changeBlockExtraData(pos, extra_data) {
-        const e = {
+    changeBlockExtraData(pos: IVector, extra_data: object) {
+        const e: PickAtCmdData = {
             id: +new Date(),
             pos: pos, // {x: pos.x, y: pos.y, z: pos.z, n: Vector.ZERO, point: Vector.ZERO},
             createBlock: false,
@@ -215,16 +216,13 @@ export class World {
             cloneBlock: false,
             changeExtraData: true,
             start_time: performance.now(),
-            shift_key: false,
+            shiftKey: false,
             button_id: MOUSE.BUTTON_RIGHT,
             number: 1,
             extra_data: extra_data
         };
         // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-        this.server.Send({
-            name: ServerClient.CMD_PICKAT_ACTION,
-            data: e
-        });
+        this.server!.pickAt(e)
     }
 
     // Apply world actions
