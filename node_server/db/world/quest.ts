@@ -1,10 +1,21 @@
+import type { ServerWorld } from "../../server_world.js";
 import { preprocessSQL, run } from "../db_helpers.js";
 
-const INSERT = {}
-const UPDATE = {}
+const INSERT = {
+    BULK_PLAYER_QUESTS: undefined
+}
+const UPDATE = {
+    BULK_PLAYER_QUESTS: undefined
+}
 
 export class DBWorldQuest {
-    constructor(conn, world) {
+    conn: any;
+    world: ServerWorld;
+    groups: Map<any, any>;
+    defaultGroups: Map<any, any>;
+    quests: Map<any, any>;
+
+    constructor(conn, world : ServerWorld) {
         this.conn = conn;
         this.world = world;
     }
