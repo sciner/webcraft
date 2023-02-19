@@ -6,6 +6,7 @@ import { ServerClient } from '../../www/src/server_client.js';
 import { FLUID_TYPE_MASK, FLUID_WATER_INTERACT, FLUID_WATER_REMOVE,
     FLUID_WATER_ABOVE_INTERACT, FLUID_WATER_ABOVE_REMOVE 
 } from '../../www/src/fluid/FluidConst.js';
+import type { ServerChunk } from '../server_chunk.js';
 
 export class TickerHelpers {
 
@@ -60,7 +61,7 @@ export class BlockListeners {
                 listener.onBeforeBlockChangeCalleeId = calleeId;
                 // "Before change" listners are called with newMaterial == current block.material
                 return function(chunk, pos) {
-                    const tblock = chunk.getBlock(pos, tmp_DelayedBlockListener_block);
+                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
                     const upd_blocks = listener.onBeforeBlockChange(chunk, tblock, tblock.material, false);
                     TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
                 }
@@ -74,7 +75,7 @@ export class BlockListeners {
             (listener, calleeId) => {
                 listener.onAfterBlockChangeCalleeId = calleeId;
                 return function(chunk, pos, oldBlockId) {
-                    const tblock = chunk.getBlock(pos, tmp_DelayedBlockListener_block);
+                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
                     const upd_blocks = listener.onAfterBlockChange(chunk, tblock, BLOCK.BLOCK_BY_ID[oldBlockId], false);
                     TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
                 }
@@ -87,7 +88,7 @@ export class BlockListeners {
             (listener, calleeId) => {
                 listener.onFluidChangeCalleeId = calleeId;
                 return function(chunk, pos) {
-                    const tblock = chunk.getBlock(pos, tmp_DelayedBlockListener_block);
+                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
                     const upd_blocks = listener.onFluidChange(chunk, tblock, tblock.fluid, false);
                     TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
                 }
@@ -100,7 +101,7 @@ export class BlockListeners {
             (listener, calleeId) => {
                 listener.onFluidRemoveCalleeId = calleeId;
                 return function(chunk, pos) {
-                    const tblock = chunk.getBlock(pos, tmp_DelayedBlockListener_block);
+                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
                     if ((tblock.fluid & FLUID_TYPE_MASK) === 0) {
                         const upd_blocks = listener.onFluidRemove(chunk, tblock, false);
                         TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
@@ -115,7 +116,7 @@ export class BlockListeners {
             (listener, calleeId) => {
                 listener.onFluidAboveChangeCalleeId = calleeId;
                 return function(chunk, pos) {
-                    const tblock = chunk.getBlock(pos, tmp_DelayedBlockListener_block);
+                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
                     const upd_blocks = listener.onFluidAboveChange(chunk, tblock, tblock.fluid, false);
                     TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
                 }
@@ -128,7 +129,7 @@ export class BlockListeners {
             (listener, calleeId) => {
                 listener.onFluidAboveRemoveCalleeId = calleeId;
                 return function(chunk, pos) {
-                    const tblock = chunk.getBlock(pos, tmp_DelayedBlockListener_block);
+                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
                     if ((tblock.fluid & FLUID_TYPE_MASK) === 0) {
                         const upd_blocks = listener.onFluidAboveRemove(chunk, tblock, false);
                         TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);

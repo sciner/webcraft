@@ -2,10 +2,14 @@
     "extends": "../tsconfig.json",
     "compilerOptions": {
         "module": "esnext",
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "outDir": "./js_server"
     },
     "include": [
         "./**/*"
+    ],
+    "exclude": [
+        "./data/building_schema/*.ts"
     ],
     // other settings...
     "ts-node": {

@@ -6,7 +6,7 @@ import { newTypedBlocks, TBlock } from "../www/src/typed_blocks3.js";
 import { dropBlock, WorldAction } from "../www/src/world_action.js";
 import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "../www/src/constant.js";
 import { compressWorldModifyChunk } from "../www/src/compress/world_modify_chunk.js";
-import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/src/fluid/FluidConst.js";
+import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID, FLUID_WATER_ID } from "../www/src/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
@@ -126,7 +126,7 @@ export class ServerChunk {
     uniqId: number;
     connections: Map<any, any>;
     preq: Map<any, any>;
-    modify_list: {};
+    modify_list: any;
     mobs: Map<any, any>;
     drop_items: Map<any, any>;
     tblocks: any;
@@ -397,7 +397,7 @@ export class ServerChunk {
 
         const fluidBuf = this.fluid ? this.fluid.saveDbBuffer() : this._preloadFluidBuf;
         const data = {addr: this.addr,
-            modify_list: {},
+            modify_list: {} as any,
             // TODO: proper compression for fluid
             fluid: fluidBuf ? Buffer.from(fluidBuf).toString('base64') : null
         };
@@ -667,7 +667,7 @@ export class ServerChunk {
     }
 
     // It's slightly faster than getBlock().
-    getMaterial(pos, y, z, fromOtherChunks = false) {
+    getMaterial(pos : Vector | number, y? : number, z? : number, fromOtherChunks = false) {
         if(this.load_state !== CHUNK_STATE.READY) {
             return this.getChunkManager().DUMMY.material;
         }
@@ -677,7 +677,6 @@ export class ServerChunk {
         } else {
             // We expect (typeof pos == 'object') here.
             pos = tmp_posVector.initFrom(pos);
-            fromOtherChunks = y;
         }
         pos.flooredSelf().subSelf(this.coord);
 
@@ -700,7 +699,7 @@ export class ServerChunk {
     // directly is easier and faster.
     // If the argument after the coordiantes (y or fromOtherChunks) is true,
     // it can return blocks from chunks outside its boundary.
-    getBlock(pos, y, z, resultBlock = null, fromOtherChunks = false) {
+    getBlock(pos : number | Vector, y? : number, z? : number, resultBlock = null, fromOtherChunks: boolean = false) {
         if(this.load_state !== CHUNK_STATE.READY) {
             return this.getChunkManager().DUMMY;
         }
@@ -710,18 +709,16 @@ export class ServerChunk {
         } else {
             // We expect (typeof pos == 'object') here.
             pos = tmp_posVector.initFrom(pos);
-            resultBlock = y;
-            fromOtherChunks = z;
         }
         pos.flooredSelf().subSelf(this.coord);
 
         if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
             if (fromOtherChunks) {
                 pos.addSelf(this.coord);
-                const otherChunk = this.world.chunks.getReadyByPos(pos);
+                const otherChunk = this.world.chunks.getReadyByPos(pos) as ServerChunk;
                 if (otherChunk) {
                     // this recursion it doesn't affect tmp_posVector
-                    return otherChunk.getBlock(pos, resultBlock);
+                    return otherChunk.getBlock(pos, null, null, resultBlock);
                 }
             }
             return this.getChunkManager().DUMMY;
@@ -730,12 +727,12 @@ export class ServerChunk {
     }
 
     // getBlockAsItem
-    getBlockAsItem(pos, y, z) {
+    getBlockAsItem(pos : Vector | number, y? : number, z? : number) {
         const block = this.getBlock(pos, y, z);
         return this.world.block_manager.convertBlockToDBItem(block);
     }
 
-    getFluidValue(pos, y, z) {
+    getFluidValue(pos : Vector | number, y? : number, z? : number) {
         if (typeof pos == 'object') {
             y = pos.y;
             z = pos.z;
@@ -744,15 +741,15 @@ export class ServerChunk {
         return this.fluid.uint8View[FLUID_STRIDE * this.dataChunk.indexByWorld(pos, y, z) + OFFSET_FLUID];
     }
 
-    isLava(pos, y, z) {
+    isLava(pos : Vector | number, y? : number, z? : number) {
         return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) === FLUID_LAVA_ID;
     }
 
-    isWater(pos, y, z) {
+    isWater(pos : Vector | number, y? : number, z? : number) {
         return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
     }
 
-    isFluid(pos, y, z) {
+    isFluid(pos : Vector | number, y? : number, z? : number) {
         return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) !== 0;
     }
 
@@ -892,7 +889,7 @@ export class ServerChunk {
         // метод работы со сталактитами и сталагмитами
         const changePointedDripstone = () => {
             const up = tblock?.extra_data?.up;
-            const block = this.getBlock(neighbour.posworld.offset(0, up ? 2 : -2, 0), null, true);
+            const block = this.getBlock(neighbour.posworld.offset(0, up ? 2 : -2, 0), null, null, null, true);
             if (block?.id == bm.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
                 const actions = new WorldAction();
                 actions.addBlocks([{
@@ -1146,7 +1143,7 @@ export class ServerChunk {
                         newNeighbourType = 'left';
                         // a fix for a chest inserted btween two - the one on the left doesn't attempt to transform
                         const farNeighbourPos = expectedNeighbourPos.clone().addSelf(dxz);
-                        var farNeighbour = this.getBlock(farNeighbourPos, null, true);
+                        var farNeighbour = this.getBlock(farNeighbourPos, null, null, null, true);
                         if (farNeighbour &&
                             farNeighbour.material.id === chestId &&
                             farNeighbour.extra_data?.type == null &&
@@ -1303,7 +1300,7 @@ export class ServerChunk {
             }
         }
 
-        const tblock = this.getBlock(pos, tmp_onFluidEvent_TBlock);
+        const tblock = this.getBlock(pos, null, null, tmp_onFluidEvent_TBlock);
         const fluidY = isFluidChangeAbove ? pos.y + 1 : pos.y;
         const fluidValue = this.getFluidValue(pos.x, fluidY, pos.z);
 

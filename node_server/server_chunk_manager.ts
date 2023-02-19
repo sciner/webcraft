@@ -49,7 +49,7 @@ export class ServerChunkManager {
     genQueueSize: number;
     lightProps: { texFormat: string; depthMul: number; };
     worker_inited: boolean;
-    worker: Worker;
+    worker: any;
     lightWorker: any;
     random_chunks: any;
     random_tickers: any;
@@ -155,7 +155,7 @@ export class ServerChunkManager {
         return promise;
     }
 
-    resolve_worker = (_) => {
+    resolve_worker = (value?: unknown) => {
         // Not implemented, and this is fine
     }
 
@@ -438,20 +438,20 @@ export class ServerChunkManager {
     }
 
     // Returns a chunk with load_state === CHUNK_STATE.READY, or null
-    getReady(addr) {
+    getReady(addr) : ServerChunk | null {
         const chunk = this.all.get(addr);
         return chunk && chunk.load_state === CHUNK_STATE.READY ? chunk : null;
     }
 
-    getByPos(pos) {
+    getByPos(pos) : ServerChunk {
         return this.get(Vector.toChunkAddr(pos, tmp_getByPos_addrVector));
     }
 
-    getReadyByPos(pos) {
+    getReadyByPos(pos : IVector) : ServerChunk | null {
         return this.getReady(Vector.toChunkAddr(pos, tmp_getByPos_addrVector));
     }
 
-    remove(addr) {
+    remove(addr : IVector) {
         this.chunk_queue_load.delete(addr);
         this.chunk_queue_gen_mobs.delete(addr);
         this.all.delete(addr);
@@ -472,13 +472,8 @@ export class ServerChunkManager {
         return this.DUMMY;
     }
 
-    // chunkSetMobsIsGenerated
-    async chunkSetMobsIsGenerated(chunk_addr_hash) {
-        return await this.world.db.mobs.chunkMobsSetGenerated(chunk_addr_hash, 1);
-    }
-
     // Return chunks inside AABB
-    getInAABB(aabb) {
+    getInAABB(aabb : AABB) {
         const pos1 = getChunkAddr(aabb.x_min, aabb.y_min, aabb.z_min);
         const pos2 = getChunkAddr(aabb.x_max, aabb.y_max, aabb.z_max);
         const aabb2 = new AABB().set(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z).expand(.1, .1, .1);

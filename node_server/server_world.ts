@@ -689,7 +689,7 @@ export class ServerWorld implements IWorld {
      */
     getBlock(pos, resultBlock = null) {
         const chunk = this.chunks.getByPos(pos);
-        return chunk ? chunk.getBlock(pos, resultBlock) : null;
+        return chunk ? chunk.getBlock(pos, null, null, resultBlock) : null;
     }
 
     getMaterial(pos) {

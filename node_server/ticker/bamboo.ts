@@ -47,8 +47,8 @@ export default class Ticker {
                     tblock.extra_data = null; // .stage = 3;
                     updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 } else {
-                    const over1 = world.getBlock(v.pos.add(new Vector(0, 1, 0)));
-                    const under1 = world.getBlock(v.pos.add(new Vector(0, -1, 0)));
+                    const over1 = world.getBlock(v.pos.add(Vector.YP));
+                    const under1 = world.getBlock(v.pos.add(Vector.YN));
                     if(extra_data.stage == 1) {
                         if(!over1 || over1.id == 0 || over1.material.material.id == 'leaves') {
                             if(under1.id == tblock.id && (!under1.extra_data || under1.extra_data.stage == 3)) {

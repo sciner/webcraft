@@ -26,7 +26,7 @@ export class WorldEditBuilding {
 
     }
 
-    _insert(name, pos1, pos2, entrance, meta) {
+    _insert(name : string, pos1 : Vector, pos2 : Vector, entrance : Vector, meta? : any) {
         const building = {
             name,
             world: {
@@ -230,7 +230,7 @@ export class WorldEditBuilding {
             const block = {
                 move,
                 block_id: item.id
-            };
+            } as IBuildingItem;
             if(item.extra_data) {
                 block.extra_data = item.extra_data
             }

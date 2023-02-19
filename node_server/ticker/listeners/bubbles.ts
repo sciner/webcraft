@@ -2,6 +2,7 @@ import { Vector } from "../../../www/src/helpers.js";
 import { BLOCK } from "../../../www/src/blocks.js";
 import { TBlock } from "../../../www/src/typed_blocks3.js";
 import { ServerClient } from "../../../www/src/server_client.js";
+import type { ServerChunk } from "../../server_chunk.js";
 
 export const CAN_SUPPORT_BUBBLES = [88, 415]; // soul_sand, bubble_column
 export const BUBBLES_PROPAGATION_DELAY = 800;
@@ -9,23 +10,23 @@ export const BUBBLES_PROPAGATION_DELAY = 800;
 // Adds or removes a block of bubbles above, checking the conditions for its existence.
 export class ManageBubblesAbove {
 
-    onFluidAboveChange(chunk, block, fluidValue, firstRun) {
+    onFluidAboveChange(chunk : ServerChunk, block, fluidValue, firstRun) {
         return this.onAfterBlockChange(chunk, block, null, firstRun);    
     }
 
     // called before this block is removed
-    onBeforeBlockChange(chunk, block, newMaterial, firstRun) {
+    onBeforeBlockChange(chunk : ServerChunk, block, newMaterial, firstRun) {
         const posAbove = tmp_pos.copyFrom(block.posworld);
         posAbove.y++;
-        const blockAbove = chunk.getBlock(posAbove, tmp_block, true);
+        const blockAbove = chunk.getBlock(posAbove, null, null, tmp_block, true);
         return manageBubbles(newMaterial, blockAbove, blockAbove.material, firstRun);
     }
     
     // called after this block is added
-    onAfterBlockChange(chunk, block, oldMaterial, firstRun) {
+    onAfterBlockChange(chunk : ServerChunk, block, oldMaterial, firstRun) {
         const posAbove = tmp_pos.copyFrom(block.posworld);
         posAbove.y++;
-        const blockAbove = chunk.getBlock(posAbove, tmp_block, true);
+        const blockAbove = chunk.getBlock(posAbove, null, null, tmp_block, true);
         return manageBubbles(block.material, blockAbove, blockAbove.material, firstRun);
     }
 }
@@ -34,14 +35,14 @@ export class ManageBubblesAbove {
 // Removes bubbles in this block if they shouldn't exist.
 export class ManageBubbles {
 
-    onFluidRemove(chunk, block, firstRun) {
+    onFluidRemove(chunk : ServerChunk, block, firstRun) {
         return this.onBeforeBlockChange(chunk, block, block.material, firstRun);    
     }
     
-    onBeforeBlockChange(chunk, block, newMaterial, firstRun) {
+    onBeforeBlockChange(chunk : ServerChunk, block, newMaterial, firstRun) {
         const posBelow = tmp_pos.copyFrom(block.posworld);
         posBelow.y--;
-        const materialBelow = chunk.getMaterial(posBelow, true);
+        const materialBelow = chunk.getMaterial(posBelow, null, null, true);
         return manageBubbles(materialBelow, block, newMaterial, firstRun);
     }
 }

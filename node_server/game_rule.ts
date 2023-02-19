@@ -25,7 +25,7 @@ export class GameRule {
 
     getTable() {
         const result = ObjectHelpers.deepClone(this.default_rules)
-        for(const [name, rule] of Object.entries(result)) {
+        for(const [name, rule] of Object.entries(result) as [string, object][]) {
             const obj = {
                 value:  this.getValue(name),
                 ...rule

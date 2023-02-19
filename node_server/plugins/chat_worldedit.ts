@@ -61,8 +61,8 @@ export default class WorldEdit {
             this.worker.onmessage = onmessage;
             this.worker.onerror = onerror;
         } else {
-            this.worker.on('message', onmessage);
-            this.worker.on('error', onerror);
+            (this.worker as any).on('message', onmessage);
+            (this.worker as any).on('error', onerror);
         }
     }
 
@@ -305,7 +305,7 @@ export default class WorldEdit {
                     }
                     const item = {
                         id: block.id
-                    };
+                    } as IBlockItem;
                     const extra_data = block.extra_data;
                     if(extra_data) {
                         item.extra_data = extra_data;
@@ -757,7 +757,7 @@ export default class WorldEdit {
                 const next = this.next();
                 const resp = {
                     id: next.block_id
-                };
+                } as IBlockItem;
                 if(next.extra_data) {
                     resp.extra_data = next.extra_data;
                 }

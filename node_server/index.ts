@@ -1,10 +1,13 @@
 /// <reference path="./global.d.ts" />
+/// <reference path="../www/src/global.d.ts" />
+/// <reference path="../www/src/global-client.d.ts" />
 
 import path from 'path'
 import express from "express";
 import expressLess from "express-less";
 import compression from "compression";
 import fs from 'fs';
+import mkdirp from 'mkdirp';
 import {Worker} from "worker_threads";
 import { v4 as uuid } from 'uuid';
 import sqlite3 from 'sqlite3'
@@ -15,7 +18,6 @@ import { renderFile } from "ejs";
 
 import { Buffer } from 'node:buffer';
 import skiaCanvas from 'skia-canvas';
-import mkdirp from 'mkdirp';
 
 // Check version of modules
 const required_versions = {

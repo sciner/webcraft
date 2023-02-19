@@ -261,8 +261,8 @@ export class PickAt {
         let vertices    = [];
         geom.clear();
         geom.pos.copyFrom(pos);
-        let pp = 0;
-        let flags       = 0, sideFlags = 0, upFlags = 0;
+        // let pp = 0;
+        // let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         let shapes      = BLOCK.getShapes(pos, block, this.world, false, true);
         let aabb = new AABB();

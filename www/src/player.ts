@@ -38,6 +38,7 @@ export class Player implements IPlayer {
     #forward = new Vector(0, 0, 0);
     chat : Chat
     session : any
+    world : any
 
     /**
      */

@@ -1778,7 +1778,7 @@ export class Vector implements IVector {
      * Identical semantics to the constructor, but more optimized for Vector argument.
      * Useful for safely replacing the constructor calls.
      */
-    initFrom(x, y, z) {
+    initFrom(x : Vector | number, y? : number, z? : number) {
         if (x instanceof Vector) { // this optimization helps a lot
             return this.copyFrom(x);
         }

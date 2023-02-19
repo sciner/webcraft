@@ -83,3 +83,10 @@ interface IWorld {
 interface IPlayer {
     session: any
 }
+
+interface IBuildingItem {
+    move: IVector
+    block_id: int
+    extra_data?: any
+    rotate?: any
+}

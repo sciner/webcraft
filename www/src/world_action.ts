@@ -586,7 +586,7 @@ export class WorldAction {
         }
     }
 
-    addFluids(fluids, offset) {
+    addFluids(fluids : number[], offset? : Vector) {
         offset = offset || Vector.ZERO;
         for (let i = 0; i < fluids.length; i += 4) {
             this.fluids.push(fluids[i + 0] + offset.x, fluids[i + 1] + offset.y, fluids[i + 2] + offset.z, fluids[i + 3]);
