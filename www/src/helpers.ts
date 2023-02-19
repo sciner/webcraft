@@ -1,4 +1,4 @@
-/// <reference path="./global-webcraft.d.ts" />
+/// <reference path="./global.d.ts" />
 
 import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
@@ -2135,8 +2135,8 @@ export class VectorCardinalTransformer {
      * Initializes this transformer to transofrm from the coordinate system of
      * a building to the coordinate system of a chunk.
      */
-    initBuildingToChunk(building: Building, chunk: AnyChunk): VectorCardinalTransformer {
-        return this.init(building.pos.sub(chunk.coord), building.direction, building.mirror_x, building.mirror_z)
+    initBuildingToChunk(building: Building, coord: Vector): VectorCardinalTransformer {
+        return this.init(building.pos.sub(coord), building.direction, building.mirror_x, building.mirror_z)
     }
 
     /**

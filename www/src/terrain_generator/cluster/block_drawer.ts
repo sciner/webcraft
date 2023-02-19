@@ -26,7 +26,7 @@ export class BlockDrawer {
         const bm = chunk.chunkManager.block_manager
         const pos = new Vector(0, 0, 0);
         const obj = this.object
-        this.transformer.initBuildingToChunk(obj, chunk)
+        this.transformer.initBuildingToChunk(obj, chunk.coord)
         const two2map = new VectorCollector()
         const _pos2d = new Vector();
 

@@ -274,7 +274,7 @@ export class Player {
         return overChunk;
     }
 
-    get isAlive() {
+    get isAlive() : boolean {
         return this.indicators.live.value > 0;
     }
 
