@@ -244,7 +244,7 @@ export class BLOCK {
     static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID                      = [];
     static bySuffix                         = {}; // map of arrays
-    /** 
+    /**
      * For each block id, it contains flags describing to which classes of blocks it belongs.
      * See BLOCK.FLAG_*** constants.
      */
@@ -832,6 +832,7 @@ export class BLOCK {
 
         if(existing_block) {
             if(replace_block) {
+                this.flags[existing_block.id] = 0 // clear the old block flags; the new block might not have them
                 for(let prop_name in existing_block) {
 
                     if(prop_name == 'tags') {
