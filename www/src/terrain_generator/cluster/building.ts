@@ -397,7 +397,7 @@ export class Building {
      */
     getautoBasementAABB() : AABB {
         if (this._autoBasementAABB) {
-            tmpTransformer.initBuildingToWorld(this)
+            this.initBuildingToWorld(tmpTransformer)
             tmpTransformer.tranformAABB(this.building_template.autoBasement.aabb, this._autoBasementAABB)
         }
         return this._autoBasementAABB
@@ -482,8 +482,16 @@ export class Building {
      * Initializes this transformer to transofrm from the coordinate system of
      * a building to the coordinate system of a chunk.
      */
-    initToChunk(transformer : VectorCardinalTransformer, chunk_coord : Vector) {
-        transformer.init(this.pos.sub(chunk_coord), this.direction, this.mirror_x, this.mirror_z)
+    initToChunk(transformer : VectorCardinalTransformer, chunk_coord : Vector) : VectorCardinalTransformer {
+        return transformer.init(this.pos.sub(chunk_coord), this.direction, this.mirror_x, this.mirror_z)
+    }
+
+    /**
+     * Initializes this transformer to transofrm from the coordinate system of
+     * a building to the coordinate system of the world.
+     */
+    initToWorld(transformer: VectorCardinalTransformer) : VectorCardinalTransformer {
+        return transformer.init(this.pos, this.direction, this.mirror_x, this.mirror_z)
     }
 
 }

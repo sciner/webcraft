@@ -8,7 +8,6 @@ import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js"
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
 import type { FluidChunk } from "./fluid/FluidChunk.js";
 import type { ChunkLight } from "./light/ChunkLight.js";
-import type { AnyChunk } from "./helpers.js";
 
 export function newTypedBlocks(coord : Vector, chunkSize: Vector) {
     return new TypedBlocks3(coord, chunkSize);
@@ -146,7 +145,8 @@ export class TypedBlocks3 {
     shapes          : VectorCollector1D = null
     metadata        : VectorCollector1D = null
     position        : VectorCollector1D = null
-    chunk           : AnyChunk
+    // TODO: type it. its ServerChunk
+    chunk           : any
 
     constructor(coord : Vector, chunkSize: Vector) {
         this.addr       = Vector.toChunkAddr(coord);
@@ -376,7 +376,7 @@ export class TypedBlocks3 {
         }
     }
 
-    /** 
+    /**
      * It deletes only the extra properties that are used by the generator.
      * It doesn't change the block id.
      * It's much faster than {@link delete}
@@ -879,7 +879,7 @@ export class TBlock {
         return this;
     }
 
-    get chunk(): AnyChunk {
+    get chunk() {
         return this.tb.chunk;
     }
 
