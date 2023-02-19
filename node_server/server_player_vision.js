@@ -296,11 +296,14 @@ export class ServerPlayerVision {
         return nearbyChunks.added.length + nearbyChunks.deleted.length > 0;
     }
 
+    tempVec = new Vector()
+
     preTick(force) {
-        const {player} = this;
+        const {player, tempVec} = this;
         player.chunk_addr = Vector.toChunkAddr(player.state.pos);
-        if (force || !player.chunk_addr.equal(this.spiralCenter)) {
-            //TODO: do this even rarely!
+        Vector.getChunkCenterByAddr(this.spiralCenter, tempVec).subSelf(player.state.pos);
+        if (force || !player.chunk_addr.equal(this.spiralCenter)
+            && (Math.abs(tempVec.x) >= 16 || Math.abs(tempVec.z) >= 16 || Math.abs(tempVec.y) >= 30)) {
             this.genSpiral();
         }
         this.populateWaitingAddrs();
