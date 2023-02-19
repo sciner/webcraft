@@ -155,8 +155,8 @@ export class ServerChunkManager {
         return promise;
     }
 
-    resolve_worker() {
-        throw new Error("Method not implemented.");
+    resolve_worker = (_) => {
+        // Not implemented, and this is fine
     }
 
     onLightWorkerMessage(data) {
@@ -179,7 +179,6 @@ export class ServerChunkManager {
                 break;
             }
             case 'ground_level_estimated': {
-                that.groundLevelEastimtion = args;
                 break;
             }
         }
