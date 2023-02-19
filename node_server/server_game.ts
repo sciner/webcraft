@@ -118,7 +118,7 @@ export class ServerGame {
     }
 
     //
-    getLoadedWorld(world_guid) {
+    getLoadedWorld(world_guid : string) {
         const world = this.worlds.get(world_guid);
         if(world) return world;
         if(this.worlds_loading.has(world_guid)) return null;
@@ -128,12 +128,11 @@ export class ServerGame {
 
     // Start websocket server
     async start(config) {
-
         //
         const conn = await SQLiteServerConnector.connect('./game.sqlite3');
         await DBGame.openDB(conn).then((db) => {
-            this.db = db
-            global.Log = new GameLog(this.db);
+            this.db = db;
+            (global as any).Log = new GameLog(this.db);
         });
         await this.initWorkers()
         await this.initBuildings(config)
@@ -158,7 +157,7 @@ export class ServerGame {
                     case 'worker_inited': {
                         --workerCounter;
                         if (workerCounter === 0) {
-                            resolve();
+                            resolve(workerCounter);
                         }
                         break;
                     }
@@ -218,7 +217,8 @@ export class ServerGame {
             }
             console.log('New player connection');
             const query         = url.parse(req.url, true).query;
-            const world_guid    = query.world_guid;
+            const world_guid    = Array.isArray(query.world_guid) ? query.world_guid[0] : query.world_guid;
+            const skin          = Array.isArray(query.skin) ? query.skin[0] : query.skin;
             // Get loaded world
             let world = this.getLoadedWorld(world_guid);
             const onWorld = async () => {
@@ -227,7 +227,7 @@ export class ServerGame {
                 }
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
-                player.onJoin(query.session_id, parseFloat(query.skin), conn, world);
+                player.onJoin(query.session_id, parseFloat(skin), conn, world);
                 const game_world = await this.db.getWorld(world_guid);
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
             };
@@ -239,7 +239,7 @@ export class ServerGame {
                         world = this.getLoadedWorld(world_guid);
                         if(world) {
                             clearInterval(hInterval);
-                            resolve();
+                            resolve(world);
                         }
                     }, 10);
                 }).then(onWorld);

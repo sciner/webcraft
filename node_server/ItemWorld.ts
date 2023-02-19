@@ -5,6 +5,7 @@ import {ServerClient} from "../www/src/server_client.js";
 import { unixTime } from "../www/src/helpers.js";
 import {DROP_LIFE_TIME_SECONDS} from "../www/src/constant.js";
 import {ITEM_MERGE_RADIUS, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB} from "./server_constant.js";
+import type { ServerChunk } from "./server_chunk.js";
 
 
 export class ItemWorld {
@@ -14,7 +15,7 @@ export class ItemWorld {
     #nonPendingItems = [];
     chunkManager: any;
     world: any;
-    chunksItemMergingQueue: Set<unknown>;
+    chunksItemMergingQueue: Set<ServerChunk>;
     all_drop_items: Map<any, any>;
     deletedEntityIds: any[];
 

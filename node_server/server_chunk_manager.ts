@@ -33,7 +33,7 @@ export class ServerChunkManager {
     chunk_queue_load: VectorCollector;
     chunk_queue_gen_mobs: VectorCollector;
     ticking_chunks: VectorCollector;
-    chunks_with_delayed_calls: Set<unknown>;
+    chunks_with_delayed_calls: Set<ServerChunk>;
     invalid_chunks_queue: any[];
     disposed_chunk_addrs: any[];
     unloaded_chunks_queue: SimpleQueue;

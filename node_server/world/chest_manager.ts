@@ -1,4 +1,3 @@
-import { Vector } from "../../www/src/helpers.js";
 import { isBlockRoughlyWithinPickatRange } from "../../www/src/block_helpers.js";
 import { ServerClient } from "../../www/src/server_client.js";
 import { BLOCK } from "../../www/src/blocks.js";

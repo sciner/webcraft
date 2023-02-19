@@ -4,10 +4,15 @@ import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js";
 import { FluidWorld } from "../../../www/src/fluid/FluidWorld.js";
 
 export class DBWorldFluid {
+    conn: any;
+    world: any;
+    dirtyChunks: SimpleQueue;
+    savingDirtyChunksPromise: any;
+    bulkGetQuery: BulkSelectQuery;
+
     constructor(conn, world) {
         this.conn = conn;
         this.world = world;
-
         this.dirtyChunks = new SimpleQueue();
         this.savingDirtyChunksPromise = null;
 
@@ -49,7 +54,7 @@ export class DBWorldFluid {
         }
         const row = await this.bulkGetQuery.get(chunk_addr.toArray());
         // the row is always returned, but its fields might be empty
-        return row.data;
+        return (row as any).data;
     }
 
     //
@@ -168,4 +173,5 @@ export class DBWorldFluid {
             await this.bulkSaveChunkFluid(saveRows);
         }
     }
+
 }

@@ -107,7 +107,7 @@ export class WorldTickStat {
             this.total += this.last;
             this.count++;
             for(const value of this.valuesArray) {
-                value.avg = value.sum / this.count
+                (value as any).avg = (value as any).sum / this.count
             }
             if (this.last < this.min) this.min = this.last;
             if (this.last > this.max) this.max = this.last;
@@ -147,7 +147,7 @@ export class WorldTickStat {
                 addValue('avg', count ? sum / count : 0)
             } else {
                 started = this.started
-                sum = rowStats.sum
+                sum = (rowStats as any).sum
                 for(let [colName, value] of Object.entries(rowStats)) {
                     addValue(colName, value)
                 }

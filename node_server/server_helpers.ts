@@ -92,8 +92,8 @@ export async function loadMappedImports(resultMap,
             const p = rollupImport(folder, moduleName).then(function (module) {                    
                 const imp = doImport(module, importStr, fullImportString);
                 if (imp == null) {
-                    moduleName = folder + moduleName + '.js'
-                    throw new Error(`Can't import ${importStr} from ${moduleName}`);
+                    const fullModuleName = folder + moduleName + '.js'
+                    throw new Error(`Can't import ${importStr} from ${fullModuleName}`);
                 }
                 return imp;
             });
@@ -148,7 +148,7 @@ export function simpleImport(module, str, fullStr) {
  * In cases 1 and 2, arguments can be described like this:
  *      moduleName:functionOrClassName(arg1, arg2, arg3)
  */
-export function importClassInstance(module, str, fullImportString) {
+export function importClassInstance(module, str, fullImportString?) {
     var [name, args] = StringHelpers.splitFirst(str, '(');
     if (args) {
         args = '[' + args.substr(0, args.length - 1) + ']';
@@ -232,7 +232,7 @@ export class DelayedCalls {
                     }
                 }
             }
-            entry.args = args;
+            (entry as any).args = args;
         }
         var index = this.list.length;
         while(index - 1 >= 0 && entry.time < this.list[index - 1].time) {

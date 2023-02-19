@@ -1,13 +1,15 @@
 import {Vector, VectorCollector} from "../../www/src/helpers.js";
 import {ServerClient} from "../../www/src/server_client.js";
+import type { TREES } from "../../www/src/terrain_generator/biomes.js";
 import {Default_Terrain_Generator} from '../../www/src/terrain_generator/default.js';
 
 // TreeGenerator
 export class TreeGenerator extends Default_Terrain_Generator {
 
     static _instance = null;
+    static TREES: any // TREES
 
-    static async getInstance() {
+    static async getInstance(seed: string) {
         if(TreeGenerator._instance) {
             return TreeGenerator._instance;
         }
@@ -17,7 +19,7 @@ export class TreeGenerator extends Default_Terrain_Generator {
             TreeGenerator.TREES.init();
         });
         // Return instance
-        return TreeGenerator._instance = new TreeGenerator();
+        return TreeGenerator._instance = new TreeGenerator(seed);
     }
 
     /**

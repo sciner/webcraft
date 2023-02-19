@@ -44,7 +44,7 @@ export class Default_Terrain_Generator {
 
     seed: string
 
-    constructor(seed : string, world_id, options, noise2d? : any, noise3d? : any) {
+    constructor(seed : string, world_id? : string, options?, noise2d? : any, noise3d? : any) {
         this.voxel_buildings = [];
         this.setSeed(seed);
         this.noise2d        = noise2d ?? noise.simplex2;

@@ -792,7 +792,7 @@ export class ServerWorld {
         if(actions.generate_tree.length > 0) {
             for(let i = 0; i < actions.generate_tree.length; i++) {
                 const params = actions.generate_tree[i];
-                const treeGenerator = await TreeGenerator.getInstance();
+                const treeGenerator = await TreeGenerator.getInstance(this.info.seed);
                 const chunk = this.chunks.get(getChunkAddr(params.pos.x, params.pos.y, params.pos.z));
                 if(chunk) {
                     const new_tree_blocks = await treeGenerator.generateTree(this, chunk, params.pos, params.block);

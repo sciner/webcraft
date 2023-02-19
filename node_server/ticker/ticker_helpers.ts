@@ -32,12 +32,12 @@ export class BlockListeners {
     uniqueImports: {};
     promises: any[];
     calleePrefixes: {};
-    beforeBlockChangeListeners: Map<any, any>;
-    afterBlockChangeListeners: Map<any, any>;
-    fluidChangeListeners: Map<any, any>;
-    fluidRemoveListeners: Map<any, any>;
-    fluidAboveChangeListeners: Map<any, any>;
-    fluidAboveRemoveListeners: Map<any, any>;
+    beforeBlockChangeListeners: any | Map<any, any>;
+    afterBlockChangeListeners: any | Map<any, any>;
+    fluidChangeListeners: any | Map<any, any>;
+    fluidRemoveListeners: any | Map<any, any>;
+    fluidAboveChangeListeners: any | Map<any, any>;
+    fluidAboveRemoveListeners: any | Map<any, any>;
 
     constructor() {
         this.calleesById = {}; // for DelayedCalls

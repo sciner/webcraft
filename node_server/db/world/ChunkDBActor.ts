@@ -6,6 +6,8 @@ import { STABLE_WORLD_MODIFY_CHUNKS_TTL, STABLE_WORLD_MODIFY_CHUNKLESS_TTL, CLEA
     } from "../../server_constant.js";
 import { DBWorldChunk } from "./chunk.js";
 import { decompressModifiresList } from "../../../www/src/compress/world_modify_chunk.js";
+import type { ServerWorld } from "../../server_world.js";
+import type { ServerChunk } from "../../server_chunk.js";
 
 export const BLOCK_DIRTY = {
     CLEAR:              0, // used to keep rowIDs of blocks that are frequently modified
@@ -16,8 +18,16 @@ export const BLOCK_DIRTY = {
 
 // It manages DB queries of one chunk.
 export class ChunkDBActor {
+    world: ServerWorld;
+    addr: Vector;
+    chunk: ServerChunk | null;
+    dirtyBlocks: Map<any, any>;
+    unsavedBlocks: Map<any, any>;
+    lastUnsavedChangeTime: number;
+    world_modify_chunk_hasRowId: any;
+    savingUnsavedBlocksPromise: any;
 
-    constructor(world, addr, chunk = null) {
+    constructor(world : ServerWorld, addr : Vector, chunk : ServerChunk = null) {
         this.world = world;
         this.addr = addr;
         this.chunk = chunk;
@@ -242,7 +252,7 @@ export class ChunkDBActor {
             patch[flatIndex] = item;
         }
 
-        const ml = this.chunk?.modify_list;
+        const ml = this.chunk?.modify_list as any;
         const rowId = this.world_modify_chunk_hasRowId;
         if (rowId === true) {
             // the chunk reacord exists, but we haven't loaded it. It must be a chunkless actor.

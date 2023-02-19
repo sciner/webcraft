@@ -62,7 +62,7 @@ export class Brain extends FSMBrain {
     doForward(delta) {
         const mob = this.mob;
         
-        const block = this.getFlightBlocks(true);
+        const block = this.getFlightBlocks();
 
         const spawn_distance = mob.pos.distance(mob.pos_spawn);
         if(spawn_distance > this.rth_max_distance) {

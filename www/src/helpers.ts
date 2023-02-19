@@ -1320,6 +1320,13 @@ export class Color {
 
 export class Vector implements IVector {
 
+    /**
+     * @param index 
+     */
+    fromChunkIndex(index: any) {
+        throw new Error("Method not implemented.");
+    }
+
     // static cnt = 0;
     // static traces = new Map();
 

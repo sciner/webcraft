@@ -1,6 +1,8 @@
 import { SimpleQueue } from "../www/src/helpers.js"
 
 export class GameLog {
+    db: any;
+    items: SimpleQueue;
 
     constructor(db) {
         this.db = db;
@@ -13,7 +15,7 @@ export class GameLog {
         this.append('ServerRestart');
     }
 
-    append(event_name, data) {
+    append(event_name, data : any = null) {
         this.items.push({event_name, data});
     }
 
