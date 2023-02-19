@@ -83,8 +83,6 @@ export class WorldChestManager {
      */
     async confirmPlayerAction(player, params) {
 
-        const change = params.change;
-
         function combineChests(chest, secondChest) {
             if (secondChest == null) {
                 return chest.slots;
@@ -130,7 +128,7 @@ export class WorldChestManager {
                 error = 'error_chest_not_found';
                 forceClose = true;
             }
-            forceClose |= tblock.posworld.distanceSqr(secondPos) !== 1;
+            forceClose = forceClose || tblock.posworld.distanceSqr(secondPos) !== 1;
         }
 
         // check the distance to the chests
@@ -239,11 +237,11 @@ export class WorldChestManager {
         // TODO remove these checks if/when the bug is found
         let zeroCountErr = Inventory.fixZeroCount(srvCombinedChestSlots);
         if (zeroCountErr) {
-            player.sendError(`!alert${zeroCountErr} in server chest after change type=${change.type}`);
+            player.sendError(`!alert${zeroCountErr} in server chest after change type=${params.change.type}`);
         }
         zeroCountErr = Inventory.fixZeroCount(player.inventory.items);
         if (zeroCountErr) {
-            player.sendError(`!alert${zeroCountErr} in server inventory after change type=${change.type}`);
+            player.sendError(`!alert${zeroCountErr} in server inventory after change type=${params.change.type}`);
         }
 
         if (changeApplied & CHANGE_RESULT_FLAG_INVENTORY) {
