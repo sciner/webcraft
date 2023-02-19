@@ -1319,14 +1319,6 @@ export class Color {
 }
 
 export class Vector implements IVector {
-
-    /**
-     * @param index 
-     */
-    fromChunkIndex(index: any) {
-        throw new Error("Method not implemented.");
-    }
-
     // static cnt = 0;
     // static traces = new Map();
 
@@ -1994,6 +1986,12 @@ export class Vector implements IVector {
         return this;
     }
 
+    fromChunkIndex(index) {
+        //Not implemented, and its fine, implementation is below
+        //TODO: move ALL such method to grid!
+        return this;
+    }
+
     worldPosToChunkIndex() {
         const x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
         const y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
@@ -2044,7 +2042,6 @@ if (CHUNK_CX === 1) {
     CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z
     CHUNK_CZ = CHUNK_OUTER_SIZE_X
     */
-    // @ts-expect-error
     Vector.prototype.fromChunkIndex = function(index: number): Vector {
         this.x = index % CHUNK_OUTER_SIZE_X - CHUNK_PADDING;
         index  = index / CHUNK_OUTER_SIZE_X | 0;
@@ -2061,7 +2058,6 @@ if (CHUNK_CX === 1) {
     CHUNK_CZ = CHUNK_OUTER_SIZE_Y
     CHUNK_CX = CHUNK_OUTER_SIZE_Y * CHUNK_OUTER_SIZE_Z
     */
-    // @ts-expect-error
     Vector.prototype.fromChunkIndex = function(index: number): Vector {
         index = index | 0
         const dividedByY = index / CHUNK_OUTER_SIZE_Y | 0
