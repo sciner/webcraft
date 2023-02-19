@@ -304,6 +304,9 @@ export class MobAnimation {
         }
 
         quat.fromEuler(part.quat, 0, 0, 180 * targetLook / Math.PI);
+        if (animable.sleep) {
+            quat.rotateX(part.quat, part.quat, -Math.PI / 2)
+        }
         part.updateMatrix();
 
         animable.targetLook = targetLook;
@@ -439,6 +442,8 @@ export class MobAnimation {
         quat.identity(part.quat);
         if(animable.sneak && !animable.lies && !animable.sitting) {
             quat.rotateX(part.quat, part.quat, animable.sneak * SNEAK_ANGLE);
+        } else if (animable.sleep) {
+            quat.rotateX(part.quat, part.quat, -Math.PI / 2)
         }
         part.updateMatrix();
     }
@@ -480,6 +485,8 @@ export class MobAnimation {
         );
 
         part.updateMatrix();
+
+
     }
 
 }
@@ -630,7 +637,7 @@ export class MobModel extends NetworkPhysicObject {
             chunkAddrToCoord(this.chunk_addr, this.drawPos);
         }
 
-        let yaw = this.yaw;
+        const yaw = this.yaw;
         if(!('draw_yaw' in this)) {
             this.draw_yaw = yaw;
         } else {
@@ -651,16 +658,18 @@ export class MobModel extends NetworkPhysicObject {
         // root rotation
         for(let st of this.sceneTree) {
 
-            let draw_yaw = this.draw_yaw;
+            const draw_yaw = this.draw_yaw;
             const add_angle = this.body_rotate * Math.PI * (HEAD_MAX_ROTATE_ANGLE / 180);
-            quat.fromEuler(st.quat, 0, 0, 180 * (Math.PI - (draw_yaw + add_angle)) / Math.PI);
-
+            quat.fromEuler(st.quat, 0, 0, (this.sleep) ? 360 * this.sleep.rotate.z : 180 * (Math.PI - (draw_yaw + add_angle)) / Math.PI);
+            
             //
             let subY = 0;
             if(this.sitting) {
                 subY = this.height * 1/3
+            } else if(this.sleep) {
+                subY = this.height * 0.5
             } else if(this.sneak) {
-                subY = SNEAK_MINUS_Y_MUL;
+                subY = SNEAK_MINUS_Y_MUL
             }
 
             // TODO

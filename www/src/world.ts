@@ -316,6 +316,13 @@ export class World {
             player.setRotate(actions.sitting.rotate);
             Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
         }
+        // Sleep
+        if(actions.sleep) {
+            player.state.sleep = actions.sleep
+            player.setPosition(actions.sleep.pos)
+            player.setRotate(actions.sleep.rotate)
+            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000)
+        }
     }
 
     onBlockDestroy(pos, item) {

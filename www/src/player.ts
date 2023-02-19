@@ -170,8 +170,9 @@ export class Player {
                 false, false, cmd.data.maxDist || DEFAULT_SOUND_MAX_DIST);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
-            this.state.lies = false;
-            this.state.sitting = false;
+            this.state.lies    = false
+            this.state.sitting = false
+            this.state.sleep   = false
         });
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             let pc_previous = this.getPlayerControl();
@@ -441,7 +442,7 @@ export class Player {
     }
 
     standUp() {
-        if(this.state.sitting || this.state.lies) {
+        if(this.state.sitting || this.state.lies || this.state.sleep) {
             this.world.server.Send({
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: null
@@ -507,7 +508,7 @@ export class Player {
         }
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
-            if(this.state.sitting || this.state.lies) {
+            if(this.state.sitting || this.state.lies || this.state.sleep) {
                 console.log('Stand up first');
                 return false;
             }
@@ -577,6 +578,8 @@ export class Player {
         let subY = 0;
         if(this.state.sitting) {
             subY = this.height * 1/3;
+        } else if(this.state.sleep) {
+            subY = this.height * 0.5
         }
         return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height * MOB_EYE_HEIGHT_PERCENT - subY, this.lerpPos.z);
     }
@@ -675,7 +678,7 @@ export class Player {
             //
             const pc               = this.getPlayerControl();
             this.posO.set(this.lerpPos.x, this.lerpPos.y, this.lerpPos.z);
-            const applyControl = !this.state.sitting && !this.state.lies && this.controls.enabled;
+            const applyControl =  !this.state.sleep && !this.state.sitting && !this.state.lies && this.controls.enabled;
             pc.controls.back       = applyControl && this.controls.back;
             pc.controls.forward    = applyControl && this.controls.forward;
             pc.controls.right      = applyControl && this.controls.right;
@@ -975,8 +978,9 @@ export class Player {
                 this.running && !this.isSneak,
                 this.state.hands,
                 this.state.lies,
-                this.state.sitting
-            );
+                this.state.sitting,
+                this.state.sleep
+            )
         }
     }
 

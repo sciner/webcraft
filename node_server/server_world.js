@@ -1038,6 +1038,14 @@ export class ServerWorld {
             server_player.state.pos = actions.sitting.pos;
             server_player.sendNearPlayers();
         }
+        // Sleep
+        if(actions.sleep) {
+            server_player.state.sleep = actions.sleep
+            server_player.state.sitting = false
+            server_player.state.lies = false
+            server_player.state.pos = actions.sleep.pos
+            server_player.sendNearPlayers()
+        }
         // Spawn mobs
         if(actions.mobs.spawn.length > 0) {
             for(let i = 0; i < actions.mobs.spawn.length; i++) {

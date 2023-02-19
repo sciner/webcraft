@@ -16,6 +16,7 @@ import {
 import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
 import type { ServerWorld } from "../../node_server/server_world.js";
 import type { ServerPlayer } from "../../node_server/server_player.js";
+import { Lang } from "./lang.js";
 
 declare type PlaySoundParams = {
     tag: string
@@ -530,6 +531,7 @@ export class WorldAction {
              */
             ignore_creative_game_mode:  false,
             sitting:                    false,
+            sleep:                      false,
             notify:                     notify,
             fluids:                     [],
             fluidFlush:                 false,
@@ -845,6 +847,16 @@ export class WorldAction {
      */
     setSitting(pos, rotate) {
         this.sitting = {pos, rotate};
+        this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
+    }
+
+    /**
+     * Set sleep
+     * @param {Vector} pos
+     * @param {Vector} rotate
+     */
+    setSleep(pos, rotate) {
+        this.sleep = {pos, rotate}
         this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
     }
 
@@ -1675,12 +1687,40 @@ async function editSign(e, world, pos, player, world_block, world_material, mat_
 
 // Go to bed
 async function goToBed(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const goToBed = !e.shiftKey && world_material && (world_material.tags.includes('bed'));
+    const goToBed = !e.shiftKey && world_material && (world_material.tags.includes('bed'))
     if(!goToBed) {
-        return false;
+        return false
     }
-    actions.error = 'error_no_time_to_sleep';
-    return true;
+    // растояние до кровати (java не более 2, br не более 3)
+    if(player.pos.distance(pos) > 3.0) {
+        if (!Qubatch.is_server) {
+            Qubatch.hotbar.strings.setText(1, Lang.bed_to_far_away, 4000);
+        }
+        return true
+    }
+    // @todo добавить время
+    // где находится подушка у кровати (голова игрока, когда лежит)
+    const position_head = new Vector(
+        world_block.posworld.x + .5,
+        world_block.posworld.y,
+        world_block.posworld.z + .5
+    )
+    if (extra_data?.is_head == false) {
+        if (rotate.x == 0) {
+            position_head.addSelf(new Vector(0, 0, -1))
+        } else if (rotate.x == 2) {
+            position_head.addSelf(new Vector(0, 0, 1))
+        } else if (rotate.x == 1) {
+            position_head.addSelf(new Vector(1, 0, 0))
+        } else if (rotate.x == 3) {
+            position_head.addSelf(new Vector(-1, 0, 0))
+        }
+    }
+    actions.reset_mouse_actions = true
+    // разворот игрока, что бы ноги всегда лежали на кровате
+    const player_rotation = new Vector(0, 0, ((rotate.x + 2) % 4) / 4)
+    actions.setSleep(position_head, player_rotation)
+    return true
 }
 
 // Eat cake

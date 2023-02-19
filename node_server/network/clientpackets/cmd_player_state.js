@@ -19,7 +19,7 @@ export default class packet_reader {
             return true;
         }
         const data = decompressPlayerStateC(packet.data);
-        if(player.state.sitting || player.state.lies) {
+        if(player.state.sitting || player.state.lies || player.state.sleep) {
             data.pos = player.state.pos.clone();
             // data.rotate = player.state.rotate.clone();
         }
