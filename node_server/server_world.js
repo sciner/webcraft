@@ -1196,6 +1196,25 @@ export class ServerWorld {
         return 15;
     }
 
+    getTime() {
+        const time = this.info.calendar.day_time
+        const age = this.info.calendar.age
+        const hours = time / 1000 | 0
+        const minutes = (time - hours * 1000) / 1000 * 60 | 0
+        const minutes_string = minutes.toFixed(0).padStart(2, '0')
+        const hours_string   = hours.toFixed(0).padStart(2, '0')
+        const time_visible = time
+
+        return {
+            time:           time, // max value is 24_000
+            time_visible:   time_visible,
+            day:            age,
+            hours:          hours,
+            minutes:        minutes,
+            string:         hours_string + ':' + minutes_string
+        }
+    }
+
     addUpdatedBlocksActions(updated_blocks) {
         ArrayHelpers.filterSelf(updated_blocks, v => v != null);
         if (updated_blocks.length) {

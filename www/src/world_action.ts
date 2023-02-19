@@ -1692,6 +1692,14 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
     if(!goToBed) {
         return false
     }
+    const time = world.getTime()
+    // время пользования кроватью
+    if(time.hours < 18 && time.hours > 6) {
+        if (!Qubatch.is_server) {
+            Qubatch.hotbar.strings.setText(1, Lang.bed_no_sleep, 4000);
+        }
+        return true
+    }
     // растояние до кровати (java не более 2, br не более 3)
     if(player.pos.distance(pos) > 3.0) {
         if (!Qubatch.is_server) {
@@ -1699,7 +1707,6 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
         }
         return true
     }
-    // @todo добавить время
     // где находится подушка у кровати (голова игрока, когда лежит)
     const position_head = new Vector(
         world_block.posworld.x + .5,
