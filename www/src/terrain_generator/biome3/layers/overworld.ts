@@ -249,7 +249,7 @@ export default class Biome3LayerOverworld {
                             xyz.y--
 
                             // если это над водой
-                            if(xyz.y > over_density_params.local_water_line) {
+                            if(xyz.y >= over_density_params.local_water_line) {
 
                                 // random joke sign
                                 if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
