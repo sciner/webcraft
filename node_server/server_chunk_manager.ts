@@ -154,6 +154,7 @@ export class ServerChunkManager {
         this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
         return promise;
     }
+
     resolve_worker() {
         throw new Error("Method not implemented.");
     }

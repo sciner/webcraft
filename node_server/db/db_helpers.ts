@@ -203,7 +203,7 @@ export class BulkSelectQuery {
         this.modeAll = null;
     }
 
-    async _add(srcRow) {
+    private async _add(srcRow) {
         this.data.push(srcRow);
         const promise = new Promise( (resolve, reject) => {
             this.handlers.push(resolve, reject);

@@ -1,7 +1,12 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/src/chunk_const.js";
+import type { ServerWorld } from "../../server_world.js";
 
 // Migrations
 export class DBWorldMigration {
+    db: any;
+    world: ServerWorld;
+    getDefaultPlayerStats: any;
+    getDefaultPlayerIndicators: any;
 
     constructor(db, world, getDefaultPlayerStats, getDefaultPlayerIndicators) {
         this.db = db;

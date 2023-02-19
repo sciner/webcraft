@@ -28,7 +28,7 @@ export class DropItem {
     motion: number;
     load_time: number;
 
-    constructor(world, params, velocity, isNew) {
+    constructor(world, params, velocity, isNew : boolean = false) {
         this.#world         = world;
         this.entity_id      = params.entity_id,
         this.dt             = params.dt,

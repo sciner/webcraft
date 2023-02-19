@@ -277,7 +277,6 @@ class SoundChunk {
     }
 
     setByInd(ind, type) {
-        // @ts-expect-error
         tmpVec.fromChunkIndex(ind)
         const exType = this.byIndex.get(ind) ?? null
         if (exType !== type) {

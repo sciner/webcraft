@@ -36,6 +36,7 @@ import { shallowCloneAndSanitizeIfPrivate } from "../www/src/compress/world_modi
 import { TBlock } from "../www/src/typed_blocks3.js";
 import { Effect } from "../www/src/block_type/effect.js";
 import { MobSpawnParams } from "./mob.js";
+import type { DBWorld } from "./db/world.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -87,13 +88,7 @@ export class ServerWorld {
         this.shuttingDown = null;
     }
 
-    /**
-     * @param {string} world_guid
-     * @param { import("./db/world.js").DBWorld } db_world
-     * @param {string} new_title
-     * @param {*} game
-     */
-    async initServer(world_guid : string, db_world, new_title, game) {
+    async initServer(world_guid : string, db_world : DBWorld, new_title : string, game) {
         this.game = game;
         if (SERVER_TIME_LAG) {
             console.log('[World] Server time lag ', SERVER_TIME_LAG);

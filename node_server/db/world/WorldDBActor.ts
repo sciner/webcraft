@@ -1,9 +1,11 @@
-import { getChunkAddr, unixTime, Vector, VectorCollector } from "../../../www/src/helpers.js";
+import { unixTime, Vector, VectorCollector } from "../../../www/src/helpers.js";
 import { Transaction } from "../db_helpers.js";
 import { ChunkDBActor, BLOCK_DIRTY } from "./ChunkDBActor.js";
 import { WORLD_TRANSACTION_PERIOD, CLEANUP_WORLD_MODIFY_PER_TRANSACTION, 
     WORLD_MODIFY_CHUNKS_PER_TRANSACTION } from "../../server_constant.js";
 import { WorldTickStat } from "../../world/tick_stat.js";
+import type { ServerWorld } from "../../server_world.js";
+import type { DBWorld } from "../world.js";
 
 const RECOVERY_BLOB_VERSION = 1001;
 
@@ -12,8 +14,8 @@ export class WorldDBActor {
 
     /** It fullfills when the next (scheduled) world-saving transaction finishes. */
     worldSavingPromise;
-    world: any;
-    db: any;
+    world: ServerWorld;
+    db: DBWorld;
     dirtyActors: Set<unknown>;
     chunklessActors: VectorCollector;
     _transactionPromise: Promise<void>;

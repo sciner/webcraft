@@ -13,14 +13,30 @@ import { DBWorldFluid } from "./world/fluid.js";
 import { DBWorldChunk } from "./world/chunk.js";
 import { compressWorldModifyChunk } from "../../www/src/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
+import type { ServerWorld } from "../server_world.js";
 
-const INSERT = {}
-const UPDATE = {}
+const INSERT = {
+    BULK_DROP_ITEMS: undefined
+}
+const UPDATE = {
+    BULK_DROP_ITEMS: undefined,
+    BULK_INVENTORY: undefined,
+    BULK_PLAYER_STATE: undefined
+}
 
 // World database provider
 export class DBWorld {
+    conn: any;
+    world: ServerWorld;
+    migrations: DBWorldMigration;
+    mobs: DBWorldMob;
+    quests: DBWorldQuest;
+    portal: DBWorldPortal;
+    fluid: DBWorldFluid;
+    chunks: DBWorldChunk;
+    bulkLoadDropItemsQuery: BulkSelectQuery;
 
-    constructor(conn, world) {
+    constructor(conn, world : ServerWorld) {
         this.conn = conn;
         this.world = world;
     }

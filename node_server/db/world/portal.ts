@@ -1,19 +1,21 @@
 import { Vector, unixTime } from "../../../www/src/helpers.js";
-import { WorldPortal } from "../../../www/src/portal.js";
+import type { WorldPortal } from "../../../www/src/portal.js";
+import type { ServerWorld } from "../../server_world.js";
 
 export class DBWorldPortal {
+    conn: any;
+    world: ServerWorld;
 
-    constructor(conn, world) {
+    constructor(conn, world : ServerWorld) {
         this.conn = conn;
         this.world = world;
     }
 
     /**
      * Add new portal
-     * @param {WorldPortal} portal 
      * @returns 
      */
-    async add(user_id, portal) {
+    async add(user_id : int, portal : WorldPortal) : Promise<int> {
         const result = await this.conn.run('INSERT INTO portal(user_id, dt, x, y, z, rotate, size, player_pos, portal_block_id, type, pair) VALUES(:user_id, :dt, :x, :y, :z, :rotate, :size, :player_pos, :portal_block_id, :type, :pair)', {
             ':dt':              unixTime(),
             ':user_id':         user_id,

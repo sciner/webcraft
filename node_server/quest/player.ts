@@ -3,10 +3,16 @@ import {Quest} from "./quest.js";
 import {QuestGroup} from "./quest_group.js";
 import {QuestActionType} from "./action_type.js";
 import {ServerClient} from "../../www/src/server_client.js";
-import {DBWorldQuest} from "../db/world/quest.js"
+import type { DBWorldQuest } from "../db/world/quest.js"
 
 // QuestPlayer
 export class QuestPlayer {
+    quest_manager: any;
+    player: any;
+    world: any;
+    handlers: Map<any, any>;
+    groups: any;
+    quests: any;
 
     constructor(quest_manager, player) {
         this.quest_manager = quest_manager;
