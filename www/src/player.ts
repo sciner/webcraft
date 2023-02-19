@@ -32,11 +32,12 @@ const ATTACK_PROCESS_ONGOING = 1;
 const ATTACK_PROCESS_FINISHED = 2;
 
 // Creates a new local player manager.
-export class Player {
+export class Player implements IPlayer {
     [key: string]: any;
 
     #forward = new Vector(0, 0, 0);
     chat : Chat
+    session : any
 
     /**
      */

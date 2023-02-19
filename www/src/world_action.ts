@@ -14,8 +14,6 @@ import {
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
 import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
-import type { ServerWorld } from "../../node_server/server_world.js";
-import type { ServerPlayer } from "../../node_server/server_player.js";
 
 declare type PlaySoundParams = {
     tag: string
@@ -374,11 +372,11 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
 class DestroyBlocks {
     [key: string]: any;
 
-    world: ServerWorld
-    player: ServerPlayer
+    world: IWorld
+    player: IPlayer
     actions: WorldAction
 
-    constructor(world: ServerWorld, player: ServerPlayer, actions: WorldAction, current_inventory_item) {
+    constructor(world: IWorld, player: IPlayer, actions: WorldAction, current_inventory_item) {
         this.cv      = new VectorCollector();
         this.world   = world;
         this.player  = player;

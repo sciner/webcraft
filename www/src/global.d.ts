@@ -75,3 +75,11 @@ interface IBlockTexture {
     side? : any
     tx_cnt? : int
 }
+
+interface IWorld {
+    getBlock(x : int | IVector, y? : int, z? : int) : any
+}
+
+interface IPlayer {
+    session: any
+}

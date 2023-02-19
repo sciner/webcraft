@@ -17,7 +17,7 @@ import type { BLOCK } from "./blocks";
  * @property {string} game_mode
  * @property {string} guid
  * @property {number} id
- * @property {{x: number, y: number, z: number}} pos_spawn
+ * @property {IVector} pos_spawn
  * @property {string} seed
  * @property { object } state
  * @property {string} title
@@ -25,7 +25,7 @@ import type { BLOCK } from "./blocks";
  */
 
 // World container
-export class World {
+export class World implements IWorld {
     [key: string]: any;
 
     static MIN_LATENCY = 60;

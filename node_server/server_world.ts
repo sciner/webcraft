@@ -40,7 +40,7 @@ import type { DBWorld } from "./db/world.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
-export class ServerWorld {
+export class ServerWorld implements IWorld {
     temp_vec: Vector;
     block_manager: any;
     updatedBlocksByListeners: any[];
