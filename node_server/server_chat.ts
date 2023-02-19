@@ -440,7 +440,7 @@ export class ServerChat {
                     net_in:         world.network_stat.in.toLocaleString() + ` bytes (packets: ${world.network_stat.in_count})`,
                     net_out:        world.network_stat.out.toLocaleString() + ` bytes (packets: ${world.network_stat.out_count})`,
                     working_time:   Math.round((performance.now() - world.start_time) / 1000) + ' sec',
-                    ticking_blocks: {total:0}
+                    ticking_blocks: {total: 0} as any
                 };
                 // ticking_blocks
                 const pos = new Vector();
@@ -632,7 +632,7 @@ export class ServerChat {
     netStatsTable(obj) {
         const PER_ROW = 5
         const res = []
-        const entries = Object.entries(obj)
+        const entries = Object.entries(obj) as [number, any]
         entries.sort((a, b) => a[0] - b[0])
         for(const [type, stat] of entries) {
             if (res.length % (PER_ROW + 1) === PER_ROW) {

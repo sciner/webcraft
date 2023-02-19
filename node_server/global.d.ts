@@ -7,3 +7,4 @@ declare const mkdirp: any
 declare const plugins: any
 
 declare const EMULATED_PING: number
+declare const SERVER_TIME_LAG: number

@@ -18,6 +18,7 @@ import { Effect } from "./block_type/effect.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
+import type { Renderer } from "./render.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -38,10 +39,8 @@ export class Player {
     chat : Chat
 
     /**
-     * @param {*} options
-     * @param { import("./render.js").Renderer } render
      */
-    constructor(options, render) {
+    constructor(options : any = {}, render? : Renderer) {
         this.render = render
         this.inMiningProcess = false;
         this.inItemUseProcess = false;

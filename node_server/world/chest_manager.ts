@@ -83,14 +83,16 @@ export class WorldChestManager {
      */
     async confirmPlayerAction(player, params) {
 
+        const change = params.change;
+
         function combineChests(chest, secondChest) {
             if (secondChest == null) {
                 return chest.slots;
             }
             var result = { ...chest.slots };
             for(var k in secondChest.slots) {
-                k = parseInt(k)
-                result[k + DEFAULT_CHEST_SLOT_COUNT] = secondChest.slots[k];
+                const ki = parseInt(k)
+                result[ki + DEFAULT_CHEST_SLOT_COUNT] = secondChest.slots[ki];
             }
             return result;
         }

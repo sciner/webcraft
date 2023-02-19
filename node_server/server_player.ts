@@ -2,8 +2,7 @@ import { Vector } from "../www/src/helpers.js";
 import { Player } from "../www/src/player.js";
 import { GameMode } from "../www/src/game_mode.js";
 import { ServerClient } from "../www/src/server_client.js";
-import { Raycaster, RaycasterResult } from "../www/src/Raycaster.js";
-import { ServerWorld } from "./server_world.js";
+import { Raycaster } from "../www/src/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
@@ -17,11 +16,13 @@ import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_
 import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "../www/src/fluid/FluidConst.js";
 import { DBWorld } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
-import {compressNearby, NEARBY_FLAGS} from "../www/src/packet_compressor.js";
-import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
+import {compressNearby} from "../www/src/packet_compressor.js";
 import { AABB } from "../www/src/core/AABB.js"
 
 export class NetworkMessage {
+    time: number;
+    name: string;
+    data: {};
     constructor({
         time = Date.now(),
         name = '',
@@ -42,6 +43,8 @@ async function waitPing() {
 
 // An adapter that allows using ServerPlayer and PlayerModel in the same way
 class ServerPlayerSharedProps {
+    p: any;
+
     constructor(player) {
         this.p = player;
     }

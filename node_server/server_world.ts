@@ -93,7 +93,7 @@ export class ServerWorld {
      * @param {string} new_title
      * @param {*} game
      */
-    async initServer(world_guid, db_world, new_title, game) {
+    async initServer(world_guid : string, db_world, new_title, game) {
         this.game = game;
         if (SERVER_TIME_LAG) {
             console.log('[World] Server time lag ', SERVER_TIME_LAG);
@@ -265,7 +265,7 @@ export class ServerWorld {
             }
             // fluids
             if('fluids' in schema && schema.fluids.length > 0) {
-                const fluids = Array.from(schema.fluids)
+                const fluids = Array.from(schema.fluids) as number[]
                 const y = schema.world.entrance.y - schema.door_pos.y - 1
                 for(let i = 0; i < fluids.length; i += 4) {
                     fluids[i + 0] = schema.world.entrance.x - fluids[i + 0]
@@ -283,8 +283,8 @@ export class ServerWorld {
                     schema.world.pos1.y + b.move.y - y,
                     schema.world.entrance.z - b.move.z
                 )
-                if(b.extra_data) item.extra_data = b.extra_data
-                if(b.rotate) item.rotate = b.rotate
+                if(b.extra_data) (item as any).extra_data = b.extra_data
+                if(b.rotate) (item as any).rotate = b.rotate
                 addBlock(pos, item)
             }
         }
@@ -725,7 +725,7 @@ export class ServerWorld {
         const chunks_packets = new VectorCollector();
         const bm = this.block_manager
         //
-        const getChunkPackets = (pos, chunk_addr) => {
+        const getChunkPackets = (pos, chunk_addr? : Vector) => {
             if(!chunk_addr) {
                 chunk_addr = Vector.toChunkAddr(pos)
             }
@@ -1101,7 +1101,7 @@ export class ServerWorld {
     }
 
     // Return players near pos by distance
-    getPlayersNear(pos, max_distance, not_in_creative, in_spectator) {
+    getPlayersNear(pos, max_distance, not_in_creative : boolean = false, in_spectator : boolean = false) {
         const world = this;
         const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z)
             .expand(max_distance, max_distance, max_distance);

@@ -1,5 +1,5 @@
 import { MOUSE, PLAYER_STATUS_ALIVE } from "../www/src/constant.js";
-import { getChunkAddr, Vector } from "../www/src/helpers.js";
+import { Vector } from "../www/src/helpers.js";
 import { ServerClient } from "../www/src/server_client.js";
 import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
 import { DBWorldMob } from "./db/world/mob.js"

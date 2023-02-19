@@ -209,7 +209,7 @@ export class ServerPlayerVision {
         return list;
     }
 
-    safeVisibleChunks(posOptioanl, chunk_render_dist) {
+    safeVisibleChunks(posOptioanl?, chunk_render_dist?) {
         this.waitSafeEntries = this.queryVisibleChunks(posOptioanl, chunk_render_dist);
         this.waitSafeEntries.forEach((x) => x.dist = 0);
         this.flushSafeWaiting();

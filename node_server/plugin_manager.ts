@@ -8,7 +8,7 @@ export class PluginManager {
         this.targets.set('world',  []);
         this.targets.set('chat',  []);
         for(const [file, plugin] of Object.entries(config.chat_plugins)) {
-            for(let target of plugin.targets) {
+            for(let target of (plugin as any).targets) {
                 if(!this.targets.has(target)) {
                     throw 'invalid_plugin_target|' + file + ':' + target;
                 }
