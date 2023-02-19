@@ -1352,6 +1352,14 @@ export class Vector implements IVector {
         return getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
     }
 
+    static getChunkCenterByAddr(in_vec: IVector, out_vec?: Vector) : Vector {
+        out_vec = out_vec || new Vector();
+        out_vec.x = (in_vec.x * CHUNK_SIZE_X) + (CHUNK_SIZE_X >> 1);
+        out_vec.y = (in_vec.y * CHUNK_SIZE_Y) + (CHUNK_SIZE_Y >> 1);
+        out_vec.z = (in_vec.z * CHUNK_SIZE_Z) + (CHUNK_SIZE_Z >> 1);
+        return out_vec;
+    }
+
     static yFromChunkIndex: (index: number) => number
 
     x: number;
@@ -2854,7 +2862,7 @@ export class ArrayHelpers {
         return sum;
     }
 
-    /** 
+    /**
      * Creates an array of at least the required length, or increases the length of the existing array.
      * @returns {AnyArray} the given array, or a new one.
      */
@@ -3978,7 +3986,7 @@ export class ShiftedMatrix {
         // add border cells to the queue, spread from inner cells
         for(const [row, col, ind] of this.relativeRowColIndices()) {
             const v = arr[ind]
-            if (v) { // it's a cell with an unkown distance, a queue candidate 
+            if (v) { // it's a cell with an unkown distance, a queue candidate
                 const onBorder =
                     (row === 0      ? toOutside : arr[ind - cols] === 0) ||
                     (row === rowsM1 ? toOutside : arr[ind + cols] === 0) ||
