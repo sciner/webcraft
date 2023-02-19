@@ -114,6 +114,7 @@ class PlayerModelSharedProps {
     get pos()       { return this.p.pos; }
     get user_id()   { return this.p.id; }
     get sitting()   { return this.p.sitting; }
+    get sleep()     { return this.p.sleep; }
 }
 
 export class PlayerModel extends MobModel {

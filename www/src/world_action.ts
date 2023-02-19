@@ -1626,6 +1626,7 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
     // check if someone else is sitting
     const above_sit_pos = sit_pos.clone();
     above_sit_pos.y += 0.5; // the actual sitting player pos may be slightly above sit_pos
+    console.log('player')
     for(const p of world.players.eachContainingVec(above_sit_pos)) {
         if (p.sharedProps.user_id !== player.session.user_id && p.sharedProps.sitting) {
             return false;
@@ -1714,6 +1715,14 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
             position_head.addSelf(new Vector(1, 0, 0))
         } else if (rotate.x == 3) {
             position_head.addSelf(new Vector(-1, 0, 0))
+        }
+    }
+    for(const player of world.players.eachContainingVec(position_head)) {
+        if (player.sharedProps.sleep) {
+            if (!Qubatch.is_server) {
+                Qubatch.hotbar.strings.setText(1, Lang.bed_occupied, 4000);
+            }
+            return true
         }
     }
     actions.reset_mouse_actions = true

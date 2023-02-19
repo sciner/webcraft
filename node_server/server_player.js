@@ -50,6 +50,7 @@ class ServerPlayerSharedProps {
     get user_id()   { return this.p.session.user_id; }
     get pos()       { return this.p.state.pos; }
     get sitting()   { return this.p.state.sitting; }
+    get sleep()     { return this.p.state.sleep; }
 }
 
 export class ServerPlayer extends Player {
