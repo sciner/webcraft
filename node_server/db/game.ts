@@ -2,6 +2,8 @@ import {Vector, unixTime} from '../../www/src/helpers.js';
 import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
 
 export class DBGame {
+    conn: any;
+    skins: DBGameSkins;
 
     constructor(conn) {
         this.conn = conn;

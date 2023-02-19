@@ -413,7 +413,7 @@ export class ServerChat {
                         }
                         if (isOut) {
                             ns.out_count_by_type &&= {}
-                            ns.out_size_by_typ   &&= {}
+                            ns.out_size_by_type   &&= {}
                             ns.out_count    = 0
                             ns.out          = 0
                         }

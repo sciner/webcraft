@@ -108,7 +108,7 @@ export class BulkSelectQuery {
         return this._add(srcRow);
     }
 
-    async all(srcRow) {
+    async all(srcRow) : Promise<any> {
         if (!this.rowKeyName) {
             throw Error("all() can't be called without rowKeyName parameter");
         }

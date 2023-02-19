@@ -6,5 +6,8 @@ declare const skiaCanvas: any
 declare const mkdirp: any
 declare const plugins: any
 
+// client side variables =(
+declare const vt: any
+
 declare const EMULATED_PING: number
 declare const SERVER_TIME_LAG: number

@@ -96,8 +96,8 @@ export class WorldDBActor {
         }
     }
 
-    pushPromises(args) {
-        for(const promise of arguments) {
+    pushPromises(...args : any[]) {
+        for(const promise of args) {
             if (promise != null) {
                 this.underConstruction.promises.push(promise);
             }
@@ -292,7 +292,7 @@ export class WorldDBActor {
             // some unloaded items have been already added from chunks
             this.world.chunkManager.itemWorld.writeToWorldTransaction(uc);
             this.pushPromises(
-                db.bulkInsertDropItems(uc.insertDropItemRows),
+                db.bulkInsertDropItems(uc.insertDropItemRows, dt),
                 db.bulkUpdateDropItems(uc.updateDropItemRows),
             );
 

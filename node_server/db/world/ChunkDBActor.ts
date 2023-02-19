@@ -84,7 +84,7 @@ export class ChunkDBActor {
         let ml;
         if (this.world_modify_chunk_hasRowId) {
             const addr = this.addr;
-            const row = await this.world.db.chunks.bulkGetWorldModifyChunkQuery.get(addr.toArray());
+            const row = await this.world.db.chunks.bulkGetWorldModifyChunkQuery.get(addr.toArray()) as any;
             if (!row) {
                 // If there is no row, restoreModifiedChunks() told us that is exists: it's posible
                 // if someone deleted the record while the game was running.
