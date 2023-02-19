@@ -28,7 +28,7 @@ export class WorldDBActor {
     asyncStats: WorldTickStat;
     _worldSavingResolve: any;
 
-    constructor(world) {
+    constructor(world : ServerWorld) {
         this.world = world;
         this.db = world.db;
 

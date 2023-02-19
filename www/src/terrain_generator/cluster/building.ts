@@ -166,7 +166,8 @@ export class Building {
     drawAutoBasement(chunk: ChunkWorkerChunk): void {
         const cluster = this.cluster
         const basement = this.building_template.autoBasement
-        const objToChunk = new VectorCardinalTransformer().initBuildingToChunk(this, chunk.coord)
+        const objToChunk = new VectorCardinalTransformer()
+        this.initToChunk(objToChunk, chunk.coord)
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
         const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
         // AABB of the part of the basement in this chunk, clamped to chunk
@@ -274,7 +275,8 @@ export class Building {
      * Fixes blocks below the lowest floor blocks, in particulaer, turns grass_block into dirt.
      */
     fixBlocksBelowBuilding(chunk: ChunkWorkerChunk, minFloorYbyXZ: ShiftedMatrix): void {
-        const objToChunk = new VectorCardinalTransformer().initBuildingToChunk(this, chunk.coord)
+        const objToChunk = new VectorCardinalTransformer()
+        this.initToChunk(objToChunk, chunk.coord)
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
         const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
         const vec = new Vector()
@@ -474,6 +476,14 @@ export class Building {
             return true
         }
         return false
+    }
+
+    /**
+     * Initializes this transformer to transofrm from the coordinate system of
+     * a building to the coordinate system of a chunk.
+     */
+    initToChunk(transformer : VectorCardinalTransformer, chunk_coord : Vector) {
+        transformer.init(this.pos.sub(chunk_coord), this.direction, this.mirror_x, this.mirror_z)
     }
 
 }

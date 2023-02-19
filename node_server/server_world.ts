@@ -18,7 +18,7 @@ import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, getChunkAddr, Vector, VectorCollector, PerformanceTimer } from "../www/src/helpers.js";
 import { AABB } from "../www/src/core/AABB.js";
-import { DBItemBlock } from "../www/src/blocks.js";
+import { BLOCK, DBItemBlock } from "../www/src/blocks.js";
 import { ServerClient } from "../www/src/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
@@ -51,7 +51,7 @@ export class ServerWorld {
     blockListeners: BlockListeners;
     blockCallees: any;
     brains: Brains;
-    db: any;
+    db: DBWorld;
     info: any;
     worldChunkFlags: WorldChunkFlags;
     dbActor: WorldDBActor;
@@ -78,7 +78,7 @@ export class ServerWorld {
     pause_ticks: any;
     givePriorityToSavingFluids: any;
 
-    constructor(block_manager) {
+    constructor(block_manager : BLOCK) {
         this.temp_vec = new Vector();
 
         this.block_manager = block_manager;
