@@ -841,7 +841,7 @@ export class BLOCK {
                         }
                     }
 
-                    if(!original_props.includes(prop_name)) {
+                    if(!(prop_name in block)) {
                         const prop_value = existing_block[prop_name]
                         block[prop_name] = prop_value
                     }
