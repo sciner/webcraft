@@ -832,6 +832,7 @@ export class BLOCK {
 
         if(existing_block) {
             if(replace_block) {
+                this.flags[existing_block.id] = 0 // clear the old block flags; the new block might not have them
                 for(let prop_name in existing_block) {
 
                     if(prop_name == 'tags') {
@@ -840,7 +841,7 @@ export class BLOCK {
                         }
                     }
 
-                    if(!original_props.includes(prop_name)) {
+                    if(!(prop_name in block)) {
                         const prop_value = existing_block[prop_name]
                         block[prop_name] = prop_value
                     }
