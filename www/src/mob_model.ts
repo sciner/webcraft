@@ -559,13 +559,13 @@ export class MobModel extends NetworkPhysicObject {
              !this.currentChunk);
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.extra_data?.is_alive;
     }
 
     // ударить кулаком
     punch(e) {
-        if(!this.isAlive()) {
+        if(!this.isAlive) {
             return false;
         }
         if(e.button_id == MOUSE.BUTTON_LEFT) {
@@ -713,7 +713,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         // If mob die
-        if(this.isAlive() === false) {
+        if(this.isAlive === false) {
             // first enter to this code
             if(!this.die_info) {
                 this.yaw_before_die = this.yaw;

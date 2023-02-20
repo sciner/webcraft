@@ -110,7 +110,7 @@ class PlayerModelSharedProps {
     }
 
     // We don't know if it's alive on the client, so we assume if the model exists, than it is
-    get isAlive()   { return true; }
+    get isAlive() : boolean  { return true; }
     get pos()       { return this.p.pos; }
     get user_id()   { return this.p.id; }
     get sitting()   { return this.p.sitting; }
@@ -447,7 +447,7 @@ export class PlayerModel extends MobModel {
     }
 
     draw(render, camPos, delta) {
-        if(this.isAlive() == false) {
+        if(this.isAlive == false) {
             return;
         }
         if(!this.prev_pos) {
@@ -459,7 +459,7 @@ export class PlayerModel extends MobModel {
         super.draw(render, camPos, delta, speed);
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.health > 0;
     }
 

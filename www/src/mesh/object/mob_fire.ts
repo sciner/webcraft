@@ -90,7 +90,7 @@ export class Mesh_Object_MobFire {
         }
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.life > 0;
     }
 

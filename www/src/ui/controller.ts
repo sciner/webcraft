@@ -1,3 +1,5 @@
+/// <reference path="../global-client.d.ts" />
+
 import { Helpers, isMobileBrowser, Vector } from '../helpers.js';
 import { UIApp } from './app.js';
 import { TexturePackManager } from './texture_pack-manager.js';

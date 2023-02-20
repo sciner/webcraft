@@ -84,7 +84,7 @@ export class Mesh_Default {
     destroy(render) {
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return true;
     }
 

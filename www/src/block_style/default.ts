@@ -60,11 +60,11 @@ export class BlockStyle {
 
 }
 
-export class QuadPlane {
+export class QuadPlane implements IPlane {
 
     size?: IVector
-    uv: [number, number]
-    texture: [number, number, number, number]
+    uv: tupleFloat2
+    texture: tupleFloat4
     rot: Vector
     lm?: IndexedColor
     pos: Vector

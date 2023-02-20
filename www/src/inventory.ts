@@ -16,7 +16,7 @@ export class Inventory {
 
     temp_vec = new Vector();
 
-    constructor(player, state) {
+    constructor(player : any, state : any) {
         this.count              = state.items.length;
         this.player             = player;
         this.block_manager      = player.world.block_manager;

@@ -6,6 +6,8 @@ import { CubeSym } from "./core/CubeSym.js";
 import { StringHelpers } from "./helpers.js";
 import { Lang } from "./lang.js";
 import { LEAVES_TYPE } from "./constant.js";
+import type { TBlock } from "./typed_blocks3.js";
+import type { World } from "./world.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202, 415];
@@ -155,8 +157,11 @@ export class DropItemVertices extends FakeTBlock {
 }
 
 //
-class Block_Material {
+class Block_Material implements IBlockMiningMaterial {
     [key: string]: any;
+
+    id: string
+    mining: any
 
     static materials = {
         data: null,
@@ -193,11 +198,11 @@ class Block_Material {
 
     /**
      * Возвращает время, необходимое для того, чтобы разбить блок
-     * @param { Object } instrument
-     * @param { Bool } force Фиксированное и ускоренное разбитие (например в режиме креатива)
+     * @param instrument
+     * @param force Фиксированное и ускоренное разбитие (например в режиме креатива)
      * @return float
      */
-    getMiningTime(instrument, force) {
+    getMiningTime(instrument : object | any, force : boolean) : float {
         let mining_time = this.mining.time;
         if(force) {
             mining_time = 0;
@@ -238,13 +243,13 @@ export class BLOCK {
 
     static list                             = new Map();
     static styles                           = new Map();
-    static list_arr                         = []; // see also getAll()
-    static resource_pack_manager            = null;
+    static list_arr                         : IBlockMaterial[] = []; // see also getAll()
+    static resource_pack_manager            : ResourcePackManager = null;
     static max_id                           = 0;
     static TICKING_BLOCKS                   = new Map();
-    static BLOCK_BY_ID                      = [];
+    static BLOCK_BY_ID: IBlockMaterial[]    = [];
     static bySuffix                         = {}; // map of arrays
-    /** 
+    /**
      * For each block id, it contains flags describing to which classes of blocks it belongs.
      * See BLOCK.FLAG_*** constants.
      */
@@ -288,7 +293,7 @@ export class BLOCK {
             : mat.title;
     }
 
-    static getLightPower(material) {
+    static getLightPower(material) : number {
         if (!material) {
             return 0;
         }
@@ -336,7 +341,7 @@ export class BLOCK {
         return resp;
     }
 
-    static getItemMaxStack(item) {
+    static getItemMaxStack(item) : int {
         if (item.entity_id != null) {
             return 1;
         }
@@ -451,7 +456,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item, b, no_copy_extra_data = false) {
+    static convertItemToInventoryItem(item, b, no_copy_extra_data : boolean = false) : IBlockItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
@@ -489,7 +494,7 @@ export class BLOCK {
     }
 
     //
-    static getBlockIndex(x, y, z, v = null) {
+    static getBlockIndex(x : int | Vector, y : int, z : int, v : Vector = null) : Vector {
         if (x instanceof Vector) {
           y = x.y;
           z = x.z;
@@ -511,7 +516,7 @@ export class BLOCK {
     }
 
     // Call before setBlock
-    static makeExtraData(block, pos, orientation, world) {
+    static makeExtraData(block, pos : IVectorPoint, orientation : IVector, world) {
         block = BLOCK.BLOCK_BY_ID[block.id];
         const is_trapdoor = block.tags.includes('trapdoor');
         const is_stairs = block.tags.includes('stairs');
@@ -599,7 +604,7 @@ export class BLOCK {
     }
 
     // Execute calculated extra_data fields
-    static calculateExtraData(extra_data, pos) {
+    static calculateExtraData(extra_data, pos : IVector) {
         if('calculated' in extra_data) {
             const calculated = extra_data.calculated;
             delete(extra_data.calculated);
@@ -641,12 +646,12 @@ export class BLOCK {
     }
 
     // The majority of block changes are setting air blocks. This method is optimized for this case.
-    static fastStringify(block) {
+    static fastStringify(block) : string {
         return block.id ? JSON.stringify(block) : AIR_BLOCK_STRINGIFIED;
     }
 
     // Returns a block structure for the given id.
-    static fromId(id) {
+    static fromId(id : int) : IBlockMaterial {
         const resp = this.BLOCK_BY_ID[id];
         if(resp) {
             return resp;
@@ -656,7 +661,7 @@ export class BLOCK {
     }
 
     //
-    static getFacing(orientation_x) {
+    static getFacing(orientation_x : int) : string {
         const facings4 = ['north', 'west', 'south', 'east'];
         if(orientation_x in facings4) {
             return facings4[orientation_x];
@@ -664,7 +669,7 @@ export class BLOCK {
         return facings4[0];
     }
 
-    static fromNameOrNull(name) {
+    static fromFullName(name : string) : IBlockMaterial | null {
         if(name.indexOf(':') >= 0) {
             name = name.split(':')[1].toUpperCase();
         }
@@ -672,7 +677,7 @@ export class BLOCK {
     }
 
     // Returns a block structure for the given id.
-    static fromName(name) {
+    static fromName(name : string) : IBlockMaterial {
         if(name.indexOf(':') >= 0) {
             name = name.split(':')[1].toUpperCase();
         }
@@ -683,7 +688,7 @@ export class BLOCK {
         return this.DUMMY;
     }
 
-    static getBySuffix(suffix) {
+    static getBySuffix(suffix : string) : IBlockMaterial[] {
         // if it's the standard suffix (the most common case), it's already mapped
         if (suffix.lastIndexOf('_') === 0) {
             return this.bySuffix[suffix] || [];
@@ -699,7 +704,7 @@ export class BLOCK {
     }
 
     // Возвращает True если блок является растением
-    static isPlants(id) {
+    static isPlants(id : int) : boolean {
         let b = this.fromId(id);
         return b && !!b.planting;
     }
@@ -724,18 +729,13 @@ export class BLOCK {
         return false;
     }
 
-    // Блок может быть уничтожен водой
-    static destroyableByWater(block) {
-        return block.planting || block.id == this.AIR.id;
-    }
-
     //
-    static isRandomTickingBlock(block_id) {
+    static isRandomTickingBlock(block_id : int) : boolean {
         return !!BLOCK.fromId(block_id).random_ticker;
     }
 
     //
-    static getBlockStyleGroup(block) {
+    static getBlockStyleGroup(block) : string {
         let group = 'regular';
         if('group' in block) return block.group;
         // make vertices array
@@ -771,8 +771,8 @@ export class BLOCK {
         BLOCK.flags.fill(0);
     }
 
-    // parseBlockTransparent...
-    static parseBlockTransparent(block) {
+    // parse block transparent
+    static parseBlockTransparent(block) : boolean {
         let transparent = block.hasOwnProperty('transparent') && !!block.transparent;
         if(block.style_name && block.style_name == 'stairs') {
             transparent = true;
@@ -780,7 +780,7 @@ export class BLOCK {
         return transparent;
     }
 
-    static isSolid(block) {
+    static isSolid(block) : boolean {
         if(block.id == 0) {
             return false
         }
@@ -802,7 +802,7 @@ export class BLOCK {
         return this.flags[block_id] & this.FLAG_SOLID
     }
 
-    static isSimpleQube(block) {
+    static isSimpleQube(block) : boolean {
         return block.is_solid &&
             !block.transparent &&
             block.tags.length == 0 &&
@@ -1005,7 +1005,7 @@ export class BLOCK {
             this.addFlag(this.FLAG_AO_INVISIBLE, block.id)
         }
         // Calculate in last time, after all init procedures
-        block.visible_for_ao = BLOCK.visibleForAO(block);
+        block.visible_for_ao = BLOCK.visibleForAO(block.id);
         block.light_power_number = BLOCK.getLightPower(block);
         block.interact_water = block.tags.includes('interact_water');
         if(!block.support_style && block.planting) {
@@ -1108,11 +1108,11 @@ export class BLOCK {
     }
 
     // getAll
-    static getAll() {
+    static getAll() : IBlockMaterial[] {
         return this.list_arr;
     }
 
-    /** @returns {number} non-zero if it's a spwn egg, 0 otherwise */
+    /** @returns {number} non-zero if it's a spawn egg, 0 otherwise */
     static isSpawnEgg(block_id: number): number {
         return this.flags[block_id] & this.FLAG_SPAWN_EGG
     }
@@ -1176,7 +1176,7 @@ export class BLOCK {
     }
 
     // getAnimations...
-    static getAnimations(material, side) : int {
+    static getAnimations(material : IBlockMaterial, side : string) : int {
         if(!material.texture_animations) {
             return 0;
         }
@@ -1227,23 +1227,19 @@ export class BLOCK {
     }
 
     // Функция определяет, отбрасывает ли указанный блок тень
-    static visibleForAO(block) {
-        if(!block) return false;
-        if(typeof block == 'undefined') return false;
-        let block_id = block;
-        if(typeof block !== 'number') {
-            block_id = block.id;
-        }
+    static visibleForAO(block_id : int) : boolean {
+        // if(!block) return false;
+        // if(typeof block == 'undefined') return false;
+        // let block_id = block;
+        // if(typeof block !== 'number') {
+        //     block_id = block.id;
+        // }
         if(block_id < 1) return false;
         return !(this.flags[block_id] & this.FLAG_AO_INVISIBLE);
     }
 
     // Return inventory icon pos
-    static getInventoryIconPos(
-        inventory_icon_id,
-        inventory_image_size = 2048,
-        frameSize = 128
-    ) {
+    static getInventoryIconPos(inventory_icon_id : int, inventory_image_size : int = 2048, frameSize : int = 128) : Vector4 {
         const w = frameSize;
         const h = frameSize;
         const icons_per_row = inventory_image_size / w;
@@ -1258,14 +1254,14 @@ export class BLOCK {
 
     //
     static registerStyle(style) {
-        let reg_info = style.getRegInfo(BLOCK);
+        const reg_info = style.getRegInfo(BLOCK);
         for(let style of reg_info.styles) {
             BLOCK.styles.set(style, reg_info);
         }
     }
 
     //
-    static getCardinalDirection(vec3) {
+    static getCardinalDirection(vec3 : IVector) : number {
         if (!vec3) {
             return 0;
         }
@@ -1288,15 +1284,15 @@ export class BLOCK {
         return CubeSym.ID; //was E
     }
 
-    static isOnCeil(block) {
+    static isOnCeil(block) : boolean {
         return block.extra_data && block.extra_data?.point?.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
     }
 
-    static isOpened(block) {
+    static isOpened(block) : boolean {
         return !!(block.extra_data && block.extra_data.opened);
     }
 
-    static canFenceConnect(block) {
+    static canFenceConnect(block) : boolean {
         const style = block.material.bb?.model?.name || block.material.style_name
         return block.id > 0 &&
             (
@@ -1309,7 +1305,7 @@ export class BLOCK {
             );
     }
 
-    static canWallConnect(block) {
+    static canWallConnect(block) : boolean {
         return block.id > 0 &&
             (
                 !block.material.transparent ||
@@ -1321,7 +1317,7 @@ export class BLOCK {
             );
     }
 
-    static canPaneConnect(block) {
+    static canPaneConnect(block) : boolean {
         return this.canWallConnect(block);
     };
 
@@ -1349,17 +1345,8 @@ export class BLOCK {
 
     /**
      * Return block shapes
-     *
-     * @param {Vector} pos
-     * @param { import("./typed_blocks3.js").TBlock } tblock
-     * @param { import("./world.js").World } world
-     * @param {boolean} for_physic
-     * @param {boolean} expanded
-     * @param {*} neighbours
-     *
-     * @returns {array[]}
      */
-    static getShapes(pos, tblock, world, for_physic, expanded, neighbours?): Array<tupleFloat6> {
+    static getShapes(pos : Vector, tblock : TBlock, world : World, for_physic : boolean, expanded : boolean, neighbours?): Array<tupleFloat6> {
 
         const shapes = [] // x1 y1 z1 x2 y2 z2
         const material = tblock.material
@@ -1511,10 +1498,10 @@ BLOCK.init = async function(settings) {
     // block styles is how blocks is generated
     // resource styles is textures for it
 
-    return Promise.all([
+    await Promise.all([
         Resources.loadBlockStyles(settings),
         BLOCK.resource_pack_manager.init(settings)
-    ]).then(async ([block_styles, _]) => {
+    ]).then(([block_styles, _]) => {
         //
         BLOCK.sortBlocks();
         BLOCK.addHardcodedFlags();

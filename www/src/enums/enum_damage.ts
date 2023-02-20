@@ -1,9 +1,9 @@
-export class EnumDamage {
-    [key: string]: any;
+export enum EnumDamage {
 
-    static WATER = 0;
-    static FIRE = 1;
-    static LAVA = 2;
-    static EXPLOSION = 3;
+    WATER = 0,
+    FIRE = 1,
+    LAVA = 2,
+    EXPLOSION = 3,
+    PUNCH = 4,
 
 }

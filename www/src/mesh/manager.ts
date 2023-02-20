@@ -82,7 +82,7 @@ export class MeshManager {
     draw(render, delta, player_pos) {
         this.effects.tick(delta, player_pos);
         for(let [key, mesh] of this.list.entries()) {
-            if(mesh.isAlive()) {
+            if(mesh.isAlive) {
                 mesh.draw(render, delta);
             } else {
                 this.remove(key, render)

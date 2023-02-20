@@ -1,4 +1,4 @@
-/// <reference path="./global-webcraft.d.ts" />
+/// <reference path="./global.d.ts" />
 
 import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
@@ -7,13 +7,7 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Y, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
     CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW } from "./chunk_const.js";
 import { DEFAULT_TX_CNT } from "./constant.js";
-import type { ChunkWorkerChunk } from './worker/chunk.js'
 import type { AABB } from "./core/AABB.js";
-import type { Chunk } from './chunk.js'
-import type { ServerChunk } from "../../node_server/server_chunk.js"
-import type { Building } from "./terrain_generator/cluster/building.js";
-
-export declare type AnyChunk = Chunk | ChunkWorkerChunk | ServerChunk
 
 const {mat4, quat} = glMatrix;
 
@@ -524,7 +518,7 @@ export class IvanArray {
 }
 
 //
-export function makeChunkEffectID(chunk_addr, material_key) {
+export function makeChunkEffectID(chunk_addr : Vector, material_key : string) : string {
     let resp = `particles_effects/${chunk_addr.toHash()}/`;
     if(material_key) {
         resp += material_key;
@@ -1319,7 +1313,6 @@ export class Color {
 }
 
 export class Vector implements IVector {
-
     // static cnt = 0;
     // static traces = new Map();
 
@@ -1785,7 +1778,7 @@ export class Vector implements IVector {
      * Identical semantics to the constructor, but more optimized for Vector argument.
      * Useful for safely replacing the constructor calls.
      */
-    initFrom(x, y, z) {
+    initFrom(x : Vector | number, y? : number, z? : number) {
         if (x instanceof Vector) { // this optimization helps a lot
             return this.copyFrom(x);
         }
@@ -1987,6 +1980,12 @@ export class Vector implements IVector {
         return this;
     }
 
+    fromChunkIndex(index) {
+        //Not implemented, and its fine, implementation is below
+        //TODO: move ALL such method to grid!
+        return this;
+    }
+
     worldPosToChunkIndex() {
         const x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
         const y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
@@ -2037,7 +2036,6 @@ if (CHUNK_CX === 1) {
     CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z
     CHUNK_CZ = CHUNK_OUTER_SIZE_X
     */
-    // @ts-expect-error
     Vector.prototype.fromChunkIndex = function(index: number): Vector {
         this.x = index % CHUNK_OUTER_SIZE_X - CHUNK_PADDING;
         index  = index / CHUNK_OUTER_SIZE_X | 0;
@@ -2054,7 +2052,6 @@ if (CHUNK_CX === 1) {
     CHUNK_CZ = CHUNK_OUTER_SIZE_Y
     CHUNK_CX = CHUNK_OUTER_SIZE_Y * CHUNK_OUTER_SIZE_Z
     */
-    // @ts-expect-error
     Vector.prototype.fromChunkIndex = function(index: number): Vector {
         index = index | 0
         const dividedByY = index / CHUNK_OUTER_SIZE_Y | 0
@@ -2129,22 +2126,6 @@ export class VectorCardinalTransformer {
                 throw new Error()
         }
         return this
-    }
-
-    /**
-     * Initializes this transformer to transofrm from the coordinate system of
-     * a building to the coordinate system of a chunk.
-     */
-    initBuildingToChunk(building: Building, chunk: AnyChunk): VectorCardinalTransformer {
-        return this.init(building.pos.sub(chunk.coord), building.direction, building.mirror_x, building.mirror_z)
-    }
-
-    /**
-     * Initializes this transformer to transofrm from the coordinate system of
-     * a building to the coordinate system of the world.
-     */
-    initBuildingToWorld(building: Building): VectorCardinalTransformer {
-        return this.init(building.pos, building.direction, building.mirror_x, building.mirror_z)
     }
 
     /**
@@ -2232,7 +2213,7 @@ export class Vec3 extends Vector {
 
 }
 
-export class IndexedColor {
+export class IndexedColor implements IColor {
     [key: string]: any;
 
     static WHITE = new IndexedColor(48, 528, 0);
@@ -2281,7 +2262,7 @@ export class IndexedColor {
      * only for terrain_map divide
      * @param color
      */
-    divide(color) {
+    divide(color : IColor) {
         this.r /= color.r;
         this.g /= color.g;
         return this;
@@ -2294,14 +2275,14 @@ export class IndexedColor {
     /**
      * @param {IndexedColor} ic
      */
-    copyFrom(ic) {
+    copyFrom(ic : IColor) {
         this.r = ic.r;
         this.g = ic.g;
         this.b = ic.b;
         return this;
     }
 
-    flooredSelf() {
+    flooredSelf() : IndexedColor {
         this.r = Math.floor(this.r);
         this.g = Math.floor(this.g);
         this.b = Math.floor(this.b);
@@ -2314,8 +2295,8 @@ export class IndexedColor {
 
 }
 
-export function mat4ToRotate(matrix) {
-    // calc rotate
+// calc rotate
+export function mat4ToRotate(matrix) : Vector {
     const out = new Vector(0, 0, 0)
     const _quat = quat.create();
     mat4.getRotation(_quat, matrix);
@@ -2699,8 +2680,8 @@ export class Helpers {
 // Make fetch functions
 if(typeof fetch === 'undefined') {
     // Hello eval ;)
-    const code = `Helpers.fetch = async (url) => import(url);
-    Helpers.fetchJSON = async (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);
+    const code = `Helpers.fetch = (url) => import(url);
+    Helpers.fetchJSON = (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);
     Helpers.fetchBinary = async (url) => {
         let binary = fs.readFileSync(url);
         return binary.buffer;

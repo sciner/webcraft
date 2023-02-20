@@ -1,9 +1,23 @@
 import { KEY, MOUSE } from "./constant.js";
 
-export class Kb {
-    [key: string]: any;
+export interface IKbOptions {
+    onKeyPress(e: KeyboardEvent): unknown;
+    onMouseEvent(e: any, clientX: number, clientY: number, DOWN: number, which: any, shiftKey: any): unknown;
+    onPaste(e: ClipboardEvent): any;
+    onDoubleKeyDown(e : any) : any
+    onKeyEvent(e : any) : any
+}
 
-    constructor(canvas, options) {
+export class Kb {
+
+    options : IKbOptions
+    canvas: HTMLElement;
+    keys_fired: { down: {}; up: {}; };
+    keys: {};
+    dbl_press: Map<number, any>;
+    skipUntilTime: number;
+
+    constructor(canvas : HTMLElement, options : IKbOptions) {
 
         let that            = this;
         this.canvas         = canvas;
@@ -62,12 +76,12 @@ export class Kb {
             }
         }
 
-        canvas.onmousedown  = function(e) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.DOWN, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
-        canvas.onmouseup    = function(e) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.UP, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
-        canvas.onmousemove  = function(e) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.MOVE, e.which, e.shiftKey); return false; }
-        canvas.onclick      = function(e) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.CLICK, e.which, e.shiftKey); return false; }
+        canvas.onmousedown  = function(e : any) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.DOWN, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
+        canvas.onmouseup    = function(e : any) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.UP, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
+        canvas.onmousemove  = function(e : any) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.MOVE, e.which, e.shiftKey); return false; }
+        canvas.onclick      = function(e : any) {e.button_id = e.which; that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.CLICK, e.which, e.shiftKey); return false; }
 
-        canvas.addEventListener('wheel', function(e) {
+        canvas.addEventListener('wheel', function(e : any) {
             e.button_id = e.which
             that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.WHEEL, e.which, e.shiftKey)
             e.preventDefault()

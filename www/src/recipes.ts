@@ -591,7 +591,7 @@ export class RecipeManager {
         }
         additional = additional ?? [];
         for(const name of additional) {
-            const block = BLOCK.fromNameOrNull(name);
+            const block = BLOCK.fromFullName(name);
             if (block == null) {
                 throw 'Unknwon block in the template result: ' + name;
             }
@@ -610,7 +610,7 @@ export class RecipeManager {
 
         const that = this;
         function addManual(name) {
-            const ingredient = BLOCK.fromNameOrNull(name);
+            const ingredient = BLOCK.fromFullName(name);
             if (!ingredient) {
                 throw 'Invalid block name in a template ' + name;
             }
@@ -674,7 +674,7 @@ export class RecipeManager {
                 item.suffix = this.preprocessTemplateList(item.suffix, '');
                 item.ignore = this.preprocessTemplateList(item.ignore, true);
                 for(const name of item.ignore) {
-                    if (!BLOCK.fromNameOrNull(name)) {
+                    if (!BLOCK.fromFullName(name)) {
                         throw 'Invalid block name in a template ' + name;
                     }
                 }
@@ -813,9 +813,9 @@ export class RecipeManager {
         return this.createResultItem(recipe, used_recipe.count);
     }
 
-    createResultItem(recipe, recipe_count = 1) {
-        let result_item = BLOCK.fromId(recipe.result.item_id);
-        result_item = BLOCK.convertItemToInventoryItem(result_item, result_item, true);
+    createResultItem(recipe, recipe_count = 1) : IBlockItem {
+        const b = BLOCK.fromId(recipe.result.item_id);
+        const result_item = BLOCK.convertItemToInventoryItem({...b}, b, true);
         result_item.count = recipe.result.count * recipe_count;
         return result_item;
     }

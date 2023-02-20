@@ -251,7 +251,7 @@ export class Mesh_Effect {
         this.particles = null;
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.life > 0;
     }
 

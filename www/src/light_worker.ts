@@ -43,10 +43,14 @@ class LightWorkerRoot {
 
     async preLoad() {
         const start = performance.now();
-        await import('./worker-light/LightWorkerWorldManager.js').then(module => {
-            this.LightWorkerWorldManager = module.LightWorkerWorldManager;
-        });
-        this.modulesReady = true;
+        try {
+            await import('./worker-light/LightWorkerWorldManager.js').then(module => {
+                this.LightWorkerWorldManager = module.LightWorkerWorldManager;
+            });
+            this.modulesReady = true;
+        } catch (e) {
+            console.error('LightWorker failed init', e);
+        }
 
         console.debug('[LightWorker] Preloaded, load time:', performance.now() - start);
     }

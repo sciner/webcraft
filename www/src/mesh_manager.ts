@@ -117,7 +117,7 @@ export class MeshManager {
 
     draw(render, delta) {
         for(let [key, mesh] of this.list.entries()) {
-            if(mesh.isAlive()) {
+            if(mesh.isAlive) {
                 mesh.draw(render, delta);
             } else {
                 this.remove(key, render)

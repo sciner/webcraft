@@ -45,33 +45,38 @@ class ChunkWorkerRoot {
     async _preLoad() {
         const start = performance.now();
 
-        await import('./helpers.js').then(module => {
-            this.Helpers = module.Helpers;
-        });
-
-        await import('./terrain_generator/cluster/building_template.js').then(module => {
-            this.BuildingTemplate = module.BuildingTemplate;
-        });
-
-        await import('./resources.js').then(async module => {
-            await module.Resources.loadBBModels()
-        });
-
-        // load font
-        if (typeof process == 'undefined') {
-            await import('../data/font.js').then(module => {
-                globalThis.alphabet = module;
+        try {
+            await import('./helpers.js').then(module => {
+                this.Helpers = module.Helpers;
             });
+
+            await import('./terrain_generator/cluster/building_template.js').then(module => {
+                this.BuildingTemplate = module.BuildingTemplate;
+            });
+
+            await import('./resources.js').then(async module => {
+                await module.Resources.loadBBModels()
+            });
+
+            // load font
+            if (typeof process == 'undefined') {
+                await import('../data/font.js').then(module => {
+                    globalThis.alphabet = module;
+                });
+            }
+            // load module
+            await import('./worker/world.js').then(module => {
+                this.WorkerWorldManager = module.WorkerWorldManager;
+            });
+            // load module
+            await import('./blocks.js').then(module => {
+                this.blockManager = module.BLOCK;
+                (globalThis as any).BLOCK = this.blockManager;
+                // return BLOCK.init(settings);
+            });
+        } catch (e) {
+            console.error('Error in chunkWorker init', e);
         }
-        // load module
-        await import('./worker/world.js').then(module => {
-            this.WorkerWorldManager = module.WorkerWorldManager;
-        });
-        // load module
-        await import('./blocks.js').then(module => {
-            (globalThis as any).BLOCK = this.blockManager = module.BLOCK;
-            // return BLOCK.init(settings);
-        });
 
         console.debug('[ChunkWorker] Preloaded, load time:', performance.now() - start);
     }
@@ -89,24 +94,28 @@ class ChunkWorkerRoot {
         // load terrain generator while initializing blockManager
         const terrainGeneratorsPromise = this.WorkerWorldManager.loadTerrainGenerators([generator.id])
 
-        await this.blockManager.init(settings);
-        //
-        const terrainGenerators = await terrainGeneratorsPromise;
-        this.worlds = new this.WorkerWorldManager(this.blockManager, terrainGenerators);
+        try {
+            await this.blockManager.init(settings);
+            //
+            const terrainGenerators = await terrainGeneratorsPromise;
+            this.worlds = new this.WorkerWorldManager(this.blockManager, terrainGenerators);
 
-        // bulding_schemas
-        if (this.bulding_schemas.length > 0) {
-            while (this.bulding_schemas.length > 0) {
-                const schema = this.bulding_schemas.shift()
-                this.BuildingTemplate.addSchema(schema, this.blockManager)
+            // bulding_schemas
+            if (this.bulding_schemas.length > 0) {
+                while (this.bulding_schemas.length > 0) {
+                    const schema = this.bulding_schemas.shift()
+                    this.BuildingTemplate.addSchema(schema, this.blockManager)
+                }
             }
+
+            this.world = await this.worlds.add(generator, world_seed, world_guid);
+            // Worker inited
+            this.postMessage(['world_inited', null]);
+
+            setTimeout(this.run, 0);
+        } catch (e) {
+            console.error('Error in chunkWorker initWorld', e);
         }
-
-        this.world = await this.worlds.add(generator, world_seed, world_guid);
-        // Worker inited
-        this.postMessage(['world_inited', null]);
-
-        setTimeout(this.run, 0);
     }
 
     run = () => {

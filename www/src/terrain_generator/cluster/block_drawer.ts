@@ -1,21 +1,22 @@
 import { Vector, VectorCollector, VectorCardinalTransformer } from "../../helpers.js";
+import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+import type { ClusterBase } from "./base.js";
+import type { Building } from "./building.js";
 
 //
 export class BlockDrawer {
     [key: string]: any;
 
-    constructor(object) {
+    transformer : VectorCardinalTransformer
+    object : Building
+
+    constructor(object : Building) {
         this.object = object;
         this.list = [];
         this.transformer = new VectorCardinalTransformer()
     }
 
-    /**
-     * @param { import("./base.js").ClusterBase } cluster
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {*} map
-     */
-    draw(cluster, chunk, map) {
+    draw(cluster : ClusterBase, chunk : ChunkWorkerChunk, map) {
 
         let blocks_setted = 0
 
@@ -26,7 +27,7 @@ export class BlockDrawer {
         const bm = chunk.chunkManager.block_manager
         const pos = new Vector(0, 0, 0);
         const obj = this.object
-        this.transformer.initBuildingToChunk(obj, chunk)
+        obj.initToChunk(this.transformer, chunk.coord)
         const two2map = new VectorCollector()
         const _pos2d = new Vector();
 

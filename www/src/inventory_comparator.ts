@@ -87,7 +87,7 @@ export class InventoryComparator {
      *   The values are boolean, indicating whether the key is non-optional.
      * @return null if success, or the first invlid item or error message
      */
-    static sanitizeAndValidateItems(list, keysObject = null, mustCheckEqual, player = null) {
+    static sanitizeAndValidateItems(list, keysObject = null, mustCheckEqual? : any, player = null) {
         if (!list || typeof list !== 'object') {
             return 'not a list';
         }

@@ -148,7 +148,7 @@ export default class Mesh_Object_Clouds {
         this.buffer.destroy();
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.life > 0;
     }
 

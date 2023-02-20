@@ -8,7 +8,7 @@ export enum GAME_MODE {
 export class GameMode {
     [key: string]: any;
 
-    constructor(player, game_mode_id) {
+    constructor(player? : any, game_mode_id? : any) {
         this.player = player;
         this.onSelect = (mode) => {};
         this.modes = [];

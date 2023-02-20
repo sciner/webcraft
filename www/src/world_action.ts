@@ -14,15 +14,14 @@ import {
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
 import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
-import type { ServerWorld } from "../../node_server/server_world.js";
-import type { ServerPlayer } from "../../node_server/server_player.js";
 
 declare type PlaySoundParams = {
     tag: string
     action: string
     pos: Vector
     // It's not used when playng the sound. TODO use it
-    except_players?: number[]
+    except_players?: number[],
+    maxDist?: number
 }
 
 const _createBlockAABB = new AABB();
@@ -374,11 +373,11 @@ export function dropBlock(player, tblock, actions, force, current_inventory_item
 class DestroyBlocks {
     [key: string]: any;
 
-    world: ServerWorld
-    player: ServerPlayer
+    world: IWorld
+    player: IPlayer
     actions: WorldAction
 
-    constructor(world: ServerWorld, player: ServerPlayer, actions: WorldAction, current_inventory_item) {
+    constructor(world: IWorld, player: IPlayer, actions: WorldAction, current_inventory_item) {
         this.cv      = new VectorCollector();
         this.world   = world;
         this.player  = player;
@@ -588,7 +587,7 @@ export class WorldAction {
         }
     }
 
-    addFluids(fluids, offset) {
+    addFluids(fluids : number[], offset? : Vector) {
         offset = offset || Vector.ZERO;
         for (let i = 0; i < fluids.length; i += 4) {
             this.fluids.push(fluids[i + 0] + offset.x, fluids[i + 1] + offset.y, fluids[i + 2] + offset.z, fluids[i + 3]);
@@ -817,7 +816,7 @@ export class WorldAction {
         for(let vec of extruded_blocks.keys()) {
             // 1. check under
             const check_under_poses = [
-                vec.clone().addSelf(new Vector(0, 1, 0)),
+                vec.clone().addSelf(Vector.YP),
                 vec.clone().addSelf(new Vector(0, 2, 0))
             ];
             for(let i = 0; i < check_under_poses.length; i++) {
@@ -1491,8 +1490,6 @@ async function putInBucket(e, world, pos, player, world_block, world_material, m
             added_to_bucket = true;
         }
     } else if (pos.fluidLeftTop) {
-        // const fluidPos = new Vector().copyFrom(pos).add(pos.n);
-        // const fluidVal = world.getBlock(fluidPos).fluidSource;
         const fluidType = pos.fluidVal & FLUID_TYPE_MASK;
         if(fluidType > 0) {
             if(fluidType === FLUID_WATER_ID) {
@@ -2236,19 +2233,19 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
             // F R B L
             switch(cd) {
                 case ROTATE.S: {
-                    pos2 = pos2.add(new Vector(0, 0, 1));
+                    pos2 = pos2.add(Vector.ZP);
                     break;
                 }
                 case ROTATE.W: {
-                    pos2 = pos2.add(new Vector(1, 0, 0));
+                    pos2 = pos2.add(Vector.XP);
                     break;
                 }
                 case ROTATE.N: {
-                    pos2 = pos2.add(new Vector(0, 0, -1));
+                    pos2 = pos2.add(Vector.ZN);
                     break;
                 }
                 case ROTATE.E: {
-                    pos2 = pos2.add(new Vector(-1, 0, 0));
+                    pos2 = pos2.add(Vector.XN);
                     break;
                 }
             }

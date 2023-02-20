@@ -48,7 +48,11 @@ export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
 
-export const LEAVES_TYPE                    = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
+export enum LEAVES_TYPE {
+    NO = 0,
+    NORMAL = 1,
+    BEAUTIFUL = 2,
+};
 
 // ========================= Sound options =========================
 
@@ -208,8 +212,10 @@ export const PLAYER_SKIN_TYPES = {
     1: 'player:alex'
 };
 
-export const PLAYER_STATUS_DEAD         = 0;
-/* A player with this status is alive, but doesn't move or interat with the world
-until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point). */
-export const PLAYER_STATUS_WAITING_DATA = 1;
-export const PLAYER_STATUS_ALIVE        = 2;
+export enum PLAYER_STATUS {
+    DEAD         = 0,
+    /* A player with this status is alive, but doesn't move or interat with the world
+    until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point). */
+    WAITING_DATA = 1,
+    ALIVE        = 2,
+}
