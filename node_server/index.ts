@@ -1,8 +1,8 @@
 /// <reference path="./global.d.ts" />
-/// <reference path="../www/src/global.d.ts" />
 /// <reference path="../www/src/global-client.d.ts" />
 
 import path from 'path'
+
 import express from "express";
 import expressLess from "express-less";
 import compression from "compression";
@@ -56,7 +56,8 @@ import {ServerGame} from "./server_game.js";
 import {ServerAPI} from "./server_api.js";
 import {PluginManager} from "./plugin_manager.js";
 
-import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
+import features from "../www/vendors/prismarine-physics/lib/features.json" // assert { type: "json" };
+// const features = {}
 
 Config.init().then(async (config) => {
 
@@ -202,7 +203,7 @@ Config.init().then(async (config) => {
         res.render(pathToIndex, {page: {...page, title: `${config.ProjectName} - ${world.title}`}, world});
     });
     
-    Qubatch.start(config);
+    await Qubatch.start(config);
     
     // Start express
     const server = app.listen(config.Port)

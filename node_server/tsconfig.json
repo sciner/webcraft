@@ -1,7 +1,11 @@
 {
+    "type": "module",
     "extends": "../tsconfig.json",
     "compilerOptions": {
+        "target": "es2022",
         "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "outDir": "./js_server"
     },

@@ -143,7 +143,7 @@ export class ServerGame {
         return new Promise((resolve, reject) => {
             let workerCounter = 1;
 
-            this.lightWorker = new Worker(globalThis.__dirname + '/../www/src/light_worker.js');
+            this.lightWorker = new Worker(globalThis.__dirname + '/../www/src/light_worker.ts');
             this.lightWorker.postMessage(['SERVER', 'init', null]);
 
             this.lightWorker.on('message', (data) => {

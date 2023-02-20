@@ -11,13 +11,15 @@ import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "../www/src/light/ChunkLight.js";
+import type { ServerWorld } from "./server_world.js";
+import type { ServerPlayer } from "./server_player.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
 // Ticking block
 class TickingBlock {
 
-    #chunk;
+    #chunk : ServerChunk;
     pos: Vector;
     ticking: any;
     ticker: any;
@@ -80,7 +82,7 @@ class TickingBlockManager {
     }
 
     // deleteTickingBlock
-    delete(pos_world) {
+    delete(pos_world : Vector) {
         const vec = new Vector(pos_world)
         const pos_index = vec.getFlatIndexInChunk();
         this.blocks.delete(pos_index);
@@ -118,7 +120,7 @@ let global_uniqId = 0;
 export class ServerChunk {
 
     static SCAN_ID = 0;
-    world: any;
+    world: ServerWorld;
     chunkManager: any;
     size: Vector;
     addr: Vector;
@@ -333,9 +335,8 @@ export class ServerChunk {
 
     /**
      * Remove player from chunk
-     * @param { import("./server_player.js").ServerPlayer } player
      */
-    removePlayer(player) {
+    removePlayer(player : ServerPlayer) {
         if(this.connections.has(player.session.user_id)) {
             this.connections.delete(player.session.user_id);
             // Unload mobs for player
@@ -552,11 +553,11 @@ export class ServerChunk {
         // load various data in parallel
         const chunkRecordMobsPromise = this.world.db.chunks.getChunkOfChunk(this).then( async chunkRecord => {
             this.chunkRecord = chunkRecord;
-            chunkRecord.chunk = this; // some fields are taken directly from the chunk when inserting/updateing chunkRecord
+            this.chunkRecord.chunk = this; // some fields are taken directly from the chunk when inserting/updateing chunkRecord
             // now we can load things that required chunkRecord
-            if (chunkRecord.delayed_calls) {
-                this.delayedCalls.deserialize(chunkRecord.delayed_calls);
-                delete chunkRecord.delayed_calls;
+            if (this.chunkRecord.delayed_calls) {
+                this.delayedCalls.deserialize(this.chunkRecord.delayed_calls);
+                delete this.chunkRecord.delayed_calls;
             }
             this.mobs = await this.world.db.mobs.loadInChunk(this);
         });
