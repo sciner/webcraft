@@ -50,7 +50,7 @@ class ServerPlayerSharedProps {
         this.p = player;
     }
 
-    get isAlive()   { return this.p.live_level > 0; }
+    get isAlive() : boolean  { return this.p.live_level > 0; }
     get user_id()   { return this.p.session.user_id; }
     get pos()       { return this.p.state.pos; }
     get sitting()   { return this.p.state.sitting; }
