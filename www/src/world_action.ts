@@ -20,7 +20,8 @@ declare type PlaySoundParams = {
     action: string
     pos: Vector
     // It's not used when playng the sound. TODO use it
-    except_players?: number[]
+    except_players?: number[],
+    maxDist?: number
 }
 
 const _createBlockAABB = new AABB();

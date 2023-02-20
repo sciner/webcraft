@@ -56,7 +56,7 @@ import {ServerGame} from "./server_game.js";
 import {ServerAPI} from "./server_api.js";
 import {PluginManager} from "./plugin_manager.js";
 
-import features from "../www/vendors/prismarine-physics/lib/features.json" // assert { type: "json" };
+import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
 // const features = {}
 
 Config.init().then(async (config) => {
@@ -83,27 +83,27 @@ Config.init().then(async (config) => {
     globalAny.randomUUID       = () => {
         return uuid();
     };
-    
+
     // console.log('Server config', config);
-    
+
     // Init environment
     await BLOCK.init({
         _json_url: __dirname + '/../data/block_style.json',
         _resource_packs_url: __dirname + '/../data/resource_packs.json'
     });
-    
+
     // Hack ;)
     Resources.physics = {features}; // (await import("../../vendors/prismarine-physics/lib/features.json")).default
-    
+
     // http://expressjs.com/en/api.html#req.originalUrl
     const app = express();
-    
+
     const page = {
         useGenWorkers: false,
         domain: config.DomainURL,
         title: config.ProjectName
     };
-    
+
     process.argv.slice(2).forEach(function (val, index, array) {
         switch(val) {
             case 'page.useGenWorkers=true': {
@@ -112,7 +112,7 @@ Config.init().then(async (config) => {
             }
         }
     })
-    
+
     app.use(bodyParser.json({ limit: '50mb' }));
     app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
     // express.static.mime.define({'application/json': ['bbmodel']})
@@ -120,9 +120,9 @@ Config.init().then(async (config) => {
     app.use(express.json());
     app.engine('html', renderFile);
     app.set('view engine', 'html');
-    
+
     const pathToIndex = path.resolve(__dirname, '..', 'www', 'index.html')
-    
+
     // Prehook
     app.use(async function(req, _res, next) {
         // Log referrer
@@ -138,7 +138,7 @@ Config.init().then(async (config) => {
             next();
         }
     });
-    
+
     // Compress all HTTP responses
     app.use(compression({
         // filter: Decide if the answer should be compressed or not,
@@ -155,24 +155,24 @@ Config.init().then(async (config) => {
             // Resort to standard compression
             return compression.filter(req, res);
         },
-        // threshold: It is the byte threshold for the response 
+        // threshold: It is the byte threshold for the response
         // body size before considering compression, the default is 1 kB
         threshold: 0
     }));
-    
+
     // Serves resources from public folder
     app.use('/style', expressLess(__dirname + '/../www/style', { compress: true, debug: true }));
     app.use(express.static('../www/'));
-    
+
     // API
-    
+
     app.use('/api/Game/Screenshot', fileUpload({
         debug: true,
         limits: { fileSize: 50 * 1024 * 1024 },
         useTempFiles : true,
         abortOnLimit: true
     }));
-    
+
     app.use('/api', async(req, res) => {
         try {
             const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'), req);
@@ -189,32 +189,32 @@ Config.init().then(async (config) => {
             );
         }
     });
-    
+
     //
     app.use('/worldcover/', async(req, res) => {
         const filename = path.resolve(__dirname, '..', 'world', req.url.substring(1));
         res.sendFile(filename);
     });
-    
+
     // "SPA" yet for just one type of ulrs only
     app.use('/worlds', async(req, res) => {
         const world_guid = req.url.split('/')[1]
         const world = await Qubatch.db.getWorld(world_guid);
         res.render(pathToIndex, {page: {...page, title: `${config.ProjectName} - ${world.title}`}, world});
     });
-    
+
     await Qubatch.start(config);
-    
+
     // Start express
     const server = app.listen(config.Port)
-    
+
     // Pair with websocket server
     server.on('upgrade', (request, socket, head) => {
         Qubatch.wsServer.handleUpgrade(request, socket, head, socket => {
             Qubatch.wsServer.emit('connection', socket, request)
         });
     });
-    
+
     console.log(`Game listening at http://${config.ServerIP}:${config.Port}`)
 
 })

@@ -3,13 +3,14 @@ import { Vector } from "../../www/src/helpers.js";
 import { ServerClient } from "../../www/src/server_client.js";
 import type { ServerWorld } from "../server_world.js";
 import type { ServerChunk } from "../server_chunk.js";
+import type { TickingBlockManager } from "../server_chunk.js";
 
 export default class Ticker {
 
     static type = 'bee_nest'
 
     //
-    static func(tick_number : int, world : ServerWorld, chunk : ServerChunk, v) {
+    static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk : ServerChunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];

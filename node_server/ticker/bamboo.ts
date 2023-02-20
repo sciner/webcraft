@@ -2,13 +2,14 @@ import {Vector} from "../../www/src/helpers.js";
 import {ServerClient} from "../../www/src/server_client.js";
 import type { ServerChunk } from "../server_chunk.js";
 import type { ServerWorld } from "../server_world.js";
+import type { TickingBlockManager } from "../server_chunk.js";
 
 export default class Ticker {
 
     static type = 'bamboo'
 
     //
-    static func(tick_number : int, world : ServerWorld, chunk : ServerChunk, v, check_pos : Vector, ignore_coords) {
+    static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk : ServerChunk, v, check_pos : Vector, ignore_coords) {
         const tblock = v.tblock;
         const ticking = v.ticking;
         const extra_data = tblock.extra_data;

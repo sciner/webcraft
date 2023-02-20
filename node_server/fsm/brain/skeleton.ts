@@ -28,11 +28,11 @@ export class Brain extends FSMBrain {
         this.interval_attack = 16;
         this.resistance_light = false; // загорается при свете
     }
-    
+
     onLive() {
         super.onLive();
     }
-    
+
     // поиск игрока для атаки
     onFind() {
         if (this.target || this.distance_view < 1) {
@@ -40,7 +40,7 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.rules.getValue('difficulty'); 
+        const difficulty = world.rules.getValue('difficulty');
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
             const rnd = (Math.random() * players.length) | 0;
@@ -48,7 +48,7 @@ export class Brain extends FSMBrain {
             this.target = player;
         }
     }
-    
+
     // просто стоит на месте
     doStand(delta) {
         // нашел цель
@@ -70,7 +70,7 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     // просто ходит
     doForward(delta) {
         // нашел цель
@@ -99,7 +99,7 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     // преследование игрока
     doCatch(delta) {
         const mob = this.mob;
@@ -129,7 +129,7 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     doAttack(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
@@ -161,7 +161,7 @@ export class Brain extends FSMBrain {
             }
         }
     }
-    
+
     // Если убили моба
     onKill(actor, type_damage) {
         const mob = this.mob;
@@ -173,26 +173,27 @@ export class Brain extends FSMBrain {
         if (rnd_count_bone > 0) {
             items.push({ id: bm.BONE.id, count: rnd_count_bone });
         }
- 
+
         if (items.length > 0) {
             actions.addDropItem({ pos: mob.pos, items: items, force: true });
         }
         actions.addPlaySound({ tag: 'madcraft:block.skeleton', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
     }
-    
+
     onPanic() {
-        
+
     }
-    
+
     onUse() {
         this.mob.extra_data.skin = 'wither';
         this.mob.extra_data.armor = {
-            head: 273, 
+            head: 273,
             body: null,
             leg: null,
             boot: null,
         };
+        return false;
     }
 
 }

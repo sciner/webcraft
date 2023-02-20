@@ -1,12 +1,13 @@
 import {BLOCK} from "../../www/src/blocks.js";
 import {ServerClient} from "../../www/src/server_client.js";
+import type { TickingBlockManager } from "../server_chunk.js";
 
 export default class Ticker {
 
     static type = 'furnace'
 
     //
-    static func(tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
         const max_ticks = 50;
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
@@ -65,7 +66,7 @@ export default class Ticker {
                 // check if ore
                 if(product_mat.coocked_item) {
                     const add_count = product_mat.coocked_item.count;
-                    const coocked_mat = BLOCK.fromName(product_mat.coocked_item.name); 
+                    const coocked_mat = BLOCK.fromName(product_mat.coocked_item.name);
                     // compare ore result id and result slot mat id
                     if(!result_slot || result_slot.id == coocked_mat.id) {
                         state.result_ticks++;

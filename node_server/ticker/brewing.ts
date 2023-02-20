@@ -1,4 +1,5 @@
 import {ServerClient} from "../../www/src/server_client.js";
+import type { TickingBlockManager } from "../server_chunk.js";
 
 const recipes_src = [
     {
@@ -6,7 +7,7 @@ const recipes_src = [
         'bottle': 'WATER_BOTTLE',
         'result': 'AWKWARD'
     },
-    
+
     {
         'product': 'GLOWSTONE_DUST',
         'bottle': 'SPEED',
@@ -181,7 +182,7 @@ export default class Ticker {
     static type = 'brewing'
 
     //
-    static func(tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
 
         const bm = world.block_manager;
         if(recipes.length == 0) {
@@ -256,7 +257,7 @@ export default class Ticker {
                 is_update = ((state.fuel_time - 1) % 2) == 0;
             }
         }
-        
+
         if(fuel_used) {
             state.fuel_time--;
         } else {
@@ -273,7 +274,7 @@ export default class Ticker {
             }
             is_update = true;
         }
-        
+
         state.result_percent = (state.result_ticks % max_ticks) / max_ticks;
         // если что-то обновилось, то шлём это игрокам
         const updated_blocks = [];

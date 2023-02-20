@@ -1,12 +1,13 @@
 import {BLOCK} from "../../www/src/blocks.js";
 import {ServerClient} from "../../www/src/server_client.js";
+import type { TickingBlockManager } from "../server_chunk.js";
 
 export default class Ticker {
 
     static type = 'charging_station'
 
     //
-    static func(tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
         if(tick_number % 80 != 0) {
             return;
         }
@@ -17,7 +18,7 @@ export default class Ticker {
             return;
         }
         let charged = 0;
-        for(let [slot_index, battery] of Object.entries(extra_data.slots)) {
+        for(let [slot_index, battery] of Object.entries<any>(extra_data.slots)) {
             const mat = BLOCK.fromId(battery.id);
             if(mat.is_battery) {
                 battery.power += 1;
