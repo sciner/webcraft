@@ -54,7 +54,7 @@ export class ServerGame {
         });
     }
 
-    /** 
+    /**
      * @param msg - broadcasted to all players in all worlds
      * @param gentle - if it's true, each world will start its shutdown only after its
      *   actions_queue is empty
@@ -79,7 +79,7 @@ export class ServerGame {
         for(const world of this.worlds.values()) {
             world.chat.broadcastSystemChatMessage(msg)
             const promise = new Promise(resolve => {
-                world.shuttingDown = { 
+                world.shuttingDown = {
                     resolve,
                     gentle
                 }
@@ -142,7 +142,7 @@ export class ServerGame {
         return new Promise((resolve, reject) => {
             let workerCounter = 1;
 
-            this.lightWorker = new Worker(globalThis.__dirname + '/../www/src/light_worker.ts');
+            this.lightWorker = new Worker(globalThis.__dirname + '/../www/js/light_worker.js');
             this.lightWorker.postMessage(['SERVER', 'init', null]);
 
             this.lightWorker.on('message', (data) => {
