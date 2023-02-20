@@ -128,7 +128,7 @@ export class Mesh_Object_Asteroid extends NetworkPhysicObject {
         this.mesh_group.destroy();
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.life > 0;
     }
 

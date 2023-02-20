@@ -139,7 +139,7 @@ export class Raycaster {
         if(this.world?.mobs) {
             for(const mob of this.world.mobs.list.values()) {
                 mob.raycasted = false;
-                if(!mob.aabb || !mob.isAlive()) {
+                if(!mob.aabb || !mob.isAlive) {
                     continue
                 }
                 // @todo костыль, на сервере нет tPos
@@ -173,7 +173,7 @@ export class Raycaster {
         if(this.world?.players) {
             for (const player of this.world.players.list.values()) {
                 player.raycasted = false;
-                if(!player.aabb || !player.isAlive()) {
+                if(!player.aabb || !player.isAlive) {
                     continue;
                 }
                 // @todo костыль, на сервере нет tPos

@@ -362,7 +362,7 @@ export default class Mesh_Object_Rain {
      * @return {boolean}
      * @memberOf Mesh_Object_Raindrop
      */
-    isAlive() {
+    get isAlive() : boolean {
         return this.enabled;
     }
 

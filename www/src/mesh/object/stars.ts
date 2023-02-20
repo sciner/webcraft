@@ -152,7 +152,7 @@ export class Mesh_Object_Stars {
         this.buffer = null;
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.life > 0;
     }
 

@@ -94,7 +94,7 @@ export class Mesh_Object_BBModel {
         this.buffer = null;
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.life > 0;
     }
 

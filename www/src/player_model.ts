@@ -447,7 +447,7 @@ export class PlayerModel extends MobModel {
     }
 
     draw(render, camPos, delta) {
-        if(this.isAlive() == false) {
+        if(this.isAlive == false) {
             return;
         }
         if(!this.prev_pos) {
@@ -459,7 +459,7 @@ export class PlayerModel extends MobModel {
         super.draw(render, camPos, delta, speed);
     }
 
-    isAlive() {
+    get isAlive() : boolean {
         return this.health > 0;
     }
 

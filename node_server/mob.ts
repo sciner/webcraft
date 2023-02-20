@@ -312,7 +312,7 @@ export class Mob {
     /**
      * @returns {boolean}
      */
-    isAlive() {
+    get isAlive() : boolean {
         return this.indicators.live.value > 0;
     }
 
