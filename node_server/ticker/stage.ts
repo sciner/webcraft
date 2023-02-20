@@ -3,6 +3,7 @@ import { Vector } from '../../www/src/helpers.js';
 import { ServerClient } from '../../www/src/server_client.js';
 import { WorldAction } from '../../www/src/world_action.js';
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fluid/FluidConst.js";
+import type { TickingBlockManager } from "../server_chunk.js";
 
 // Проверка позиции для установки арбуза
 function getFreePosition(world, pos) {
@@ -32,9 +33,9 @@ function getFreePosition(world, pos) {
 export default class Ticker {
 
     static type = 'stage';
-    
+
     //
-    static func(tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         if (!extra_data?.bone) {
@@ -79,7 +80,7 @@ export default class Ticker {
             if (block.id == BLOCK.AIR.id) {
                 return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id, extra_data: {notick: true} }, action_id: ServerClient.BLOCK_ACTION_CREATE}];
             }
-        } else if (tblock.id == BLOCK.MELON_SEEDS.id || tblock.id == BLOCK.PUMPKIN_SEEDS.id) { // Эти блоки растут как семена в области одного блока, но по истечению роста дают плоды 
+        } else if (tblock.id == BLOCK.MELON_SEEDS.id || tblock.id == BLOCK.PUMPKIN_SEEDS.id) { // Эти блоки растут как семена в области одного блока, но по истечению роста дают плоды
             if (extra_data.stage == ticking.max_stage) {
                 const side = getFreePosition(world, pos);
                 if (side && is_tick) {
@@ -89,7 +90,7 @@ export default class Ticker {
             } else {
                 return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
             }
-        } else if (tblock.material.tags.includes('sapling')) { // Это саженцы, по окончанию роста они превращются в деревья 
+        } else if (tblock.material.tags.includes('sapling')) { // Это саженцы, по окончанию роста они превращются в деревья
             if (extra_data.stage == ticking.max_stage) {
                 const params = {
                     pos: pos,

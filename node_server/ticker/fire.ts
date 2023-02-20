@@ -2,15 +2,16 @@ import { BLOCK } from '../../www/src/blocks.js';
 import { Vector } from '../../www/src/helpers.js';
 import { ServerClient } from '../../www/src/server_client.js';
 import { BlockUpdates } from './ticker_helpers.js'
+import type { TickingBlockManager } from "../server_chunk.js";
 
 const FACES = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YN, Vector.YP];
 
 export default class Ticker {
 
     static type = 'fire';
-    
+
     //
-    static func(tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
         const random_tick_speed = world.rules.getValue('randomTickSpeed') / 410;
         if (Math.random() >= random_tick_speed) {
             return false;
@@ -30,7 +31,7 @@ export default class Ticker {
         if (!infiniburn && world.isRaining() && Math.random() < 0.2 + age * 0.03) {
             return [{pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
         } else {
-            if (age < 15) { 
+            if (age < 15) {
                 extra_data.west = getFlame(world.getBlock(pos.add(Vector.XN))) ? true : false;
                 extra_data.east = getFlame(world.getBlock(pos.add(Vector.XP))) ? true : false;
                 extra_data.north = getFlame(world.getBlock(pos.add(Vector.ZP))) ? true : false;
@@ -79,7 +80,7 @@ export default class Ticker {
         }
         return updated;
     }
-    
+
 }
 
 // Возможность воспламенения соседних блоков (зависит от материала)
@@ -150,7 +151,7 @@ function setFireBlock(world, pos, age, updated) {
         west: false,
         east: false,
         up: true,
-        age: Math.min((age + rndInt(5) / 4), 15) 
+        age: Math.min((age + rndInt(5) / 4), 15)
     };
     updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
 }

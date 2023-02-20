@@ -1,13 +1,14 @@
 import { BLOCK } from '../../www/src/blocks.js';
 import { ServerClient } from '../../www/src/server_client.js';
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fluid/FluidConst.js";
+import type { TickingBlockManager } from "../server_chunk.js";
 
 export default class Ticker {
 
     static type = 'dripstone';
-    
+
     //
-    static func(tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
         const random_tick_speed = world.rules.getValue('randomTickSpeed') / 4096;
         const pos = v.pos.clone();
         const above = world.getBlock(pos.offset(0, 1, 0));
@@ -73,30 +74,30 @@ export default class Ticker {
                     if (ground.id == BLOCK.CAULDRON.id) {
                         if ((Math.random() < (random_tick_speed / 20)) && ground.extra_data.level < 3) {
                             updated_blocks.push({
-                                pos: ground.posworld, 
-                                item: { 
-                                    id: BLOCK.CAULDRON.id, 
-                                    extra_data: { 
+                                pos: ground.posworld,
+                                item: {
+                                    id: BLOCK.CAULDRON.id,
+                                    extra_data: {
                                         level: ground.extra_data.level + 1,
                                         water: water,
                                         lava: lava,
                                         snow: false
                                     }
-                                }, 
-                                action_id: ServerClient.BLOCK_ACTION_MODIFY 
+                                },
+                                action_id: ServerClient.BLOCK_ACTION_MODIFY
                             });
-                        } 
-                    } 
+                        }
+                    }
                     if (stalactite != stalagmite && (ground?.material?.is_solid || (ground.id == BLOCK.POINTED_DRIPSTONE.id && ground?.extra_data?.up == false)) && (Math.random() < (random_tick_speed / 20)) && water) {
                         updated_blocks.push({
-                            pos: pos.offset(0, -stalagmite, 0), 
-                            item: { 
-                                id: BLOCK.POINTED_DRIPSTONE.id, 
-                                extra_data: { 
-                                    up: false 
-                                } 
-                            }, 
-                            action_id: ServerClient.BLOCK_ACTION_CREATE 
+                            pos: pos.offset(0, -stalagmite, 0),
+                            item: {
+                                id: BLOCK.POINTED_DRIPSTONE.id,
+                                extra_data: {
+                                    up: false
+                                }
+                            },
+                            action_id: ServerClient.BLOCK_ACTION_CREATE
                         });
                     }
                 }

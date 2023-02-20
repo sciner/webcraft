@@ -2,6 +2,7 @@ import {Vector} from "../../www/src/helpers.js";
 import {BLOCK} from "../../www/src/blocks.js";
 import {ServerClient} from "../../www/src/server_client.js";
 import { WorldAction } from "../../www/src/world_action.js";
+import type { TickingBlockManager } from "../server_chunk.js";
 
 const SPAWN_PLAYER_DISTANCE     = 16;
 const SPAWN_RAD_HOR             = 4;
@@ -13,7 +14,7 @@ export default class Ticker {
     static type = 'spawnmob'
 
     //
-    static func(tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
 
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
@@ -50,7 +51,7 @@ export default class Ticker {
             if (players.length == 0) {
                 return;
             }
-            
+
             // Спаунер перестает создавать мобов, если в зоне размером 17x9x17 находятся шесть или более мобов одного типа.
             // Проверяем количество мобов в радиусе(в радиусе 4 блоков не должно быть больше 5 мобов)
             const mobs = world.getMobsNear(pos, SPAWN_PLAYER_DISTANCE, [extra_data.type]);
@@ -67,7 +68,7 @@ export default class Ticker {
                 const spawn_pos = pos.add(new Vector(x, y, z)).floored();
                 let spawn_disabled = false;
                 //
-                for(let player of players) { 
+                for(let player of players) {
                     const check_pos = player.state.pos.floored();
                     if (check_pos.x == spawn_pos.x && check_pos.z == spawn_pos.z) {
                         spawn_disabled = true;

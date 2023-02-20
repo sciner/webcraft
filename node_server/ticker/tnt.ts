@@ -1,12 +1,13 @@
 import { Vector } from "../../www/src/helpers.js";
 import { WorldAction } from "../../www/src/world_action.js";
 import { BlockUpdates } from './ticker_helpers.js'
+import type { TickingBlockManager } from "../server_chunk.js";
 
 export default class Ticker {
 
     static type = 'tnt';
-    
-    static func(tick_number, world, chunk, v) {
+
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const pos = v.pos.clone(); // don't use a shared variable, it gets passed out of function
@@ -33,5 +34,5 @@ export default class Ticker {
             }
         }
     }
-    
+
 }

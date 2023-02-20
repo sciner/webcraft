@@ -57,7 +57,7 @@ class TickingBlock {
 }
 
 // TickingBlockManager
-class TickingBlockManager {
+export class TickingBlockManager {
 
     #chunk;
     #pos = new Vector(0, 0, 0);

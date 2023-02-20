@@ -1,5 +1,6 @@
 import { Vector } from '../../www/src/helpers.js'
 import { ServerClient } from '../../www/src/server_client.js'
+import type { TickingBlockManager } from "../server_chunk.js";
 
 const FACES = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP]
 
@@ -8,7 +9,7 @@ export default class Ticker {
     static type = 'chorus'
 
     //
-    static func(tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
         const tisk_speed = world.rules.getValue('randomTickSpeed') / 4096
         if (Math.random() > tisk_speed) {
             return
