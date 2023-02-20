@@ -1,14 +1,14 @@
 {
   "type": "module",
   "scripts": {
+    "compile-assets": "cd ./assets-compiler && ts-node ./index.ts",
+    "start": "ts-node ./index.ts",
+    "rollup": "(cd ../ff-worker && npm run start)",
+    "start-rollup": "npm run rollup && npm run start page.useGenWorkers=true",
     "install-ff": "(cd ../ff-worker && npm install)",
     "install-local": "(cd ../local_server && npm install)",
     "install-all": "npm run install-ff && npm run install-local && npm install",
-    "start": "ts-node ./index.ts",
     "inspect": "node --loader ts-node/esm --experimental-json-modules --max-old-space-size=8192 --no-warnings ./index.ts",
-    "compile-assets": "cd ./assets-compiler && ts-node ./index.ts",
-    "rollup": "(cd ../ff-worker && npm run start)",
-    "start-rollup": "npm run rollup && npm run start page.useGenWorkers=true",
     "test": "mocha"
   },
   "dependencies": {
