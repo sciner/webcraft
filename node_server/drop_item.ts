@@ -1,7 +1,8 @@
-import { getChunkAddr, Vector, unixTime, ObjectHelpers } from "../www/src/helpers.js";
+import { Vector, unixTime, ObjectHelpers } from "../www/src/helpers.js";
 import { PrismarinePlayerControl } from "../www/vendors/prismarine-physics/using.js";
 import {ServerClient} from "../www/src/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
+import type { ServerWorld } from "./server_world.js";
 
 export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
@@ -9,8 +10,8 @@ export const MOTION_STAYED = 2;
 
 export class DropItem {
 
-    #world;
-    #chunk_addr;
+    #world : ServerWorld;
+    #chunk_addr : Vector;
     #pc;
 
     static DIRTY_CLEAR      = 0;
@@ -28,7 +29,7 @@ export class DropItem {
     motion: number;
     load_time: number;
 
-    constructor(world, params, velocity, isNew : boolean = false) {
+    constructor(world : ServerWorld, params, velocity? : Vector, isNew : boolean = false) {
         this.#world         = world;
         this.entity_id      = params.entity_id,
         this.dt             = params.dt,
@@ -44,7 +45,7 @@ export class DropItem {
          */
         this.inChunk        = null;
         // Private properties
-        this.#chunk_addr    = new Vector();
+        this.#chunk_addr    = new Vector(0, 0, 0);
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
         world.all_drop_items.set(this.entity_id, this);
         //
@@ -118,7 +119,7 @@ export class DropItem {
         return Vector.toChunkAddr(this.pos, this.#chunk_addr);
     }
 
-    addVelocity(vec) {
+    addVelocity(vec : Vector) {
         this.#pc.player_state.vel.addSelf(vec);
         this.#pc.tick(0);
     }

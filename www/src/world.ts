@@ -10,20 +10,6 @@ import { BuildingTemplate } from "./terrain_generator/cluster/building_template.
 import { MOUSE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import type { BLOCK } from "./blocks";
 
-/**
- * World generation unfo passed from server
- * @typedef { object } TWorldInfo
- * @property {{id: string}} generator
- * @property {string} game_mode
- * @property {string} guid
- * @property {number} id
- * @property {IVector} pos_spawn
- * @property {string} seed
- * @property { object } state
- * @property {string} title
- * @property {number} user_id
- */
-
 // World container
 export class World implements IWorld {
     [key: string]: any;

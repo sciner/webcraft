@@ -230,7 +230,7 @@ export class FSMBrain {
         if (this.in_lava) {
             if (this.timer_lava_damage <= 0) {
                 this.timer_lava_damage = MUL_1_SEC;
-                this.onDamage(null, 2, EnumDamage.LAVA);
+                this.onDamage(2, EnumDamage.LAVA, null);
             } else {
                 this.timer_lava_damage--;
             }
@@ -249,7 +249,7 @@ export class FSMBrain {
             this.time_fire = 0;
             if (this.timer_water_damage >= MUL_1_SEC) {
                 this.timer_water_damage = 0;
-                this.onDamage(null, 1, EnumDamage.WATER);
+                this.onDamage(1, EnumDamage.WATER, null);
             } else {
                 this.timer_water_damage++;
             }
@@ -260,7 +260,7 @@ export class FSMBrain {
         if (this.time_fire > 0) {
             if (this.timer_fire_damage >= MUL_1_SEC) {
                 this.timer_fire_damage = 0;
-                this.onDamage(null, 1, EnumDamage.FIRE);
+                this.onDamage(1, EnumDamage.FIRE, null);
             } else {
                 this.timer_fire_damage++;
             }
@@ -442,11 +442,11 @@ export class FSMBrain {
 
     /**
     * Нанесен урон по мобу
-    * actor - игрок или пероснаж
     * val - количество урона
     * type_damage - от чего умер[упал, сгорел, утонул]
+    * actor - игрок или пероснаж
     */
-    onDamage(actor, val, type_damage) {
+    onDamage(val : number, type_damage : EnumDamage, actor) {
         const mob = this.mob;
         const world = mob.getWorld();
         const live = mob.indicators.live;

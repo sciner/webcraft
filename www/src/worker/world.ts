@@ -182,7 +182,7 @@ export class WorkerWorld {
 
     workerSetPotential(pos: IVector) {
         this.ensureBuildQueue();
-        this.checkPotential(new Vector().copyFrom(pos).round());
+        this.checkPotential(new Vector(pos).round());
     }
 
     checkPotential(npc) {
@@ -326,7 +326,7 @@ class BuildVerticesResult {
     gravity_blocks: any[]
     fluid_blocks:   any[]
     timers:         object
-    tm:             float
+    tm:             number
     map:            TerrainMap2
     dirt_colors:    Float32Array
 

@@ -9,7 +9,7 @@ import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from
 import type { FluidChunk } from "./fluid/FluidChunk.js";
 import type { ChunkLight } from "./light/ChunkLight.js";
 
-export function newTypedBlocks(coord : Vector, chunkSize: Vector) {
+export function newTypedBlocks(coord : Vector, chunkSize: Vector) : TypedBlocks3 {
     return new TypedBlocks3(coord, chunkSize);
 }
 
@@ -148,6 +148,8 @@ export class TypedBlocks3 {
     // TODO: type it. its ServerChunk
     chunk           : any
 
+    static _prt = [];
+
     constructor(coord : Vector, chunkSize: Vector) {
         this.addr       = Vector.toChunkAddr(coord);
         this.coord      = coord;
@@ -163,13 +165,13 @@ export class TypedBlocks3 {
         this.metadata   = new VectorCollector1D(chunkSize);
         this.position   = new VectorCollector1D(chunkSize);
         //
-        this.dataChunk = new DataChunk({ size: chunkSize, strideBytes: 2 }).setPos(coord);
+        this.dataChunk  = new DataChunk({ size: chunkSize, strideBytes: 2 }).setPos(coord);
         /**
          * store resourcepack_id and number of vertices here
          * @type {Uint8Array}
          */
-        this.vertices  = null;
-        this.id = this.dataChunk.uint16View;
+        this.vertices   = null;
+        this.id         = this.dataChunk.uint16View;
     }
 
     ensureVertices() {
@@ -403,19 +405,17 @@ export class TypedBlocks3 {
             : new TBlock(this, vec, index);
     }
 
-    getMaterial(vec) {
+    getMaterial(vec : IVector) {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * vec.x + cy * vec.y + cz * vec.z + cw;
         return BLOCK.BLOCK_BY_ID[this.id[index]] || null;
     }
 
-    has(vec) {
+    has(vec : IVector) {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * vec.x + cy * vec.y + cz * vec.z + cw;
         return this.id[index] > 0;
     }
-
-    static _prt = [];
 
     getNeighbours(tblock, world, cache) {
         const { portals, safeAABB, pos, outerSize } = this.dataChunk;
@@ -730,7 +730,7 @@ export class DataWorld {
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
 
-    addChunk(chunk, isRestore) {
+    addChunk(chunk, isRestore : boolean = false) {
         if (!chunk) {
             return;
         }

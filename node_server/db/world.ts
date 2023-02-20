@@ -78,10 +78,8 @@ export class DBWorld {
 
     /**
      * Возвращает мир по его GUID либо создает и возвращает его
-     * @param {string} world_guid 
-     * @returns 
      */
-    async getWorld(world_guid) {
+    async getWorld(world_guid : string) : Promise<TWorldInfo> {
         const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(row) {
             const resp = {
@@ -100,7 +98,7 @@ export class DBWorld {
                 add_time:       row.add_time,
                 world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
                 recovery:       row.recovery
-            }
+            } as TWorldInfo
             resp.generator = WorldGenerators.validateAndFixOptions(resp.generator);
             return resp;
         }
@@ -120,7 +118,7 @@ export class DBWorld {
         return this.getWorld(world_guid);
     }
 
-    async updateAddTime(world_guid, add_time) {
+    async updateAddTime(world_guid : string, add_time : int) {
         await this.conn.run('UPDATE world SET add_time = :add_time WHERE guid = :world_guid', {
             ':world_guid':  world_guid,
             ':add_time':    add_time
@@ -362,7 +360,7 @@ export class DBWorld {
     }
 
     // findPlayer...
-    async findPlayer(world_id, username) {
+    async findPlayer(world_id, username : string) {
         const row = await this.conn.get("SELECT id, username FROM user WHERE username = ?", [username]);
         if(!row) {
             return null;
@@ -415,11 +413,11 @@ export class DBWorld {
 
     /**
      * Loads drop items in a given volume.
-     * @param {Vector} coord the lower corner
-     * @param {Vector} size
-     * @returns {Map} items by entity_id
+     * @param coord the lower corner
+     * @param size
+     * @returns items by entity_id
      */
-    async loadDropItems(coord, size) {
+    async loadDropItems(coord : Vector, size : Vector) : Promise<Map<string, DropItem>> {
         const rows = await this.bulkLoadDropItemsQuery.all([
             coord.x,
             coord.x + size.x,
@@ -436,14 +434,14 @@ export class DBWorld {
                 pos:        new Vector(row.x, row.y, row.z),
                 entity_id:  row.entity_id,
                 items:      JSON.parse(row.items)
-            }, false);
+            }, null, false);
             resp.set(item.entity_id, item);
         }
         return resp;
     }
 
     // Change player game mode
-    async changeGameMode(player, game_mode) {
+    async changeGameMode(player, game_mode : string) {
         return await this.conn.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
             ':id':              player.session.user_id,
             ':game_mode':       game_mode
@@ -455,9 +453,9 @@ export class DBWorld {
      * @param {number} id id игрока
      * @return { object } список доступных точек для телепортации
      */
-    async getListTeleportPoints(id) {
+    async getListTeleportPoints(id : number) {
         const rows = await this.conn.all("SELECT title, x, y, z FROM teleport_points WHERE user_id = :id ", {
-            ":id" : parseInt(id)
+            ":id" : id
         });
         if(!rows) {
             return null;
@@ -467,13 +465,13 @@ export class DBWorld {
 
     /**
      * TO DO EN получает коодинаты точки игрока с именем title
-     * @param {number} id id тгрока
-     * @param {string} title имя точки
+     * @param id id игрока
+     * @param title имя точки
      */
-    async getTeleportPoint(id, title) {
-        const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
-        const row = await this.conn.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title=:title ", {
-            ":id" : parseInt(id),
+    async getTeleportPoint(id : number, title : string) {
+        const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substring(0, 50);
+        const row = await this.conn.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title = :title", {
+            ":id" : id,
             ":title": clear_title
         });
         if(!row) {
@@ -484,16 +482,16 @@ export class DBWorld {
 
     /**
      * TO DO EN добавляет положение игрока в список с именем title
-     * @param {number} user_id id игрока
-     * @param {string} title имя точки
-     * @param {number} x x точки
-     * @param {number} y y точки
-     * @param {number} z z точки
+     * @param user_id id игрока
+     * @param title имя точки
+     * @param x x точки
+     * @param y y точки
+     * @param z z точки
      */
-    async addTeleportPoint(user_id, title, x, y, z) {
-        const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
+    async addTeleportPoint(user_id : number, title : string, x : number, y : number, z : number) {
+        const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substring(0, 50);
         await this.conn.run("INSERT INTO teleport_points(user_id, title, x, y, z) VALUES (:user_id, :title, :x, :y, :z)", {
-            ":user_id": parseInt(user_id),
+            ":user_id": user_id,
             ":title":   clear_title,
             ":x":       x,
             ":y":       y + 0.5,
@@ -502,7 +500,7 @@ export class DBWorld {
     }
 
     //
-    async saveGameRules(world_guid, rules) {
+    async saveGameRules(world_guid : string, rules) {
         await this.conn.run('UPDATE world SET rules = :rules WHERE guid = :world_guid', {
             ':world_guid':  world_guid,
             ':rules':    JSON.stringify(rules)
@@ -510,7 +508,7 @@ export class DBWorld {
     }
 
     //
-    async setWorldSpawn(world_guid, pos_spawn) {
+    async setWorldSpawn(world_guid : string, pos_spawn : Vector) {
         await this.conn.run('UPDATE world SET pos_spawn = :pos_spawn WHERE guid = :world_guid', {
             ':world_guid':  world_guid,
             ':pos_spawn':   JSON.stringify(pos_spawn)
@@ -536,7 +534,7 @@ export class DBWorld {
         return null;
     }
 
-    async setTitle(title)  {
+    async setTitle(title : string)  {
         await this.conn.run('UPDATE world SET title = ?', [title]);
     }
 
@@ -563,4 +561,5 @@ export class DBWorld {
         this.fluid.bulkGetQuery.flush();
         this.mobs.bulkLoadActiveInVolumeQuery.flush();
     }
+
 }

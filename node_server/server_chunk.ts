@@ -2,7 +2,7 @@ import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_STATE } fro
 import { ServerClient } from "../www/src/server_client.js";
 import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "../www/src/helpers.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/src/block_helpers.js";
-import { newTypedBlocks, TBlock } from "../www/src/typed_blocks3.js";
+import { newTypedBlocks, TBlock, TypedBlocks3 } from "../www/src/typed_blocks3.js";
 import { dropBlock, WorldAction } from "../www/src/world_action.js";
 import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "../www/src/constant.js";
 import { compressWorldModifyChunk } from "../www/src/compress/world_modify_chunk.js";
@@ -13,6 +13,9 @@ import { TickerHelpers } from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "../www/src/light/ChunkLight.js";
 import type { ServerWorld } from "./server_world.js";
 import type { ServerPlayer } from "./server_player.js";
+import type { Mob } from "./mob.js";
+import { DropItem } from "./drop_item.js";
+import type { ServerChunkManager } from "./server_chunk_manager.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -119,125 +122,94 @@ let global_uniqId = 0;
 // Server chunk
 export class ServerChunk {
 
-    static SCAN_ID = 0;
-    world: ServerWorld;
-    chunkManager: any;
-    size: Vector;
-    addr: Vector;
-    coord: any;
-    uniqId: number;
-    connections: Map<any, any>;
-    preq: Map<any, any>;
-    modify_list: any;
-    mobs: Map<any, any>;
-    drop_items: Map<any, any>;
-    tblocks: any;
-    ticking_blocks: TickingBlockManager;
-    randomTickingBlockCount: number;
-    block_random_tickers: any;
-    options: {};
-    mobGenerator: MobGenerator;
-    dataChunk: any;
-    fluid: any;
-    delayedCalls: DelayedCalls;
-    blocksUpdatedByListeners: any[];
-    dbActor: any;
-    readyPromise: Promise<void>;
-    safeTeleportMarker: number;
-    spiralMarker: number;
-    unloadingStartedTime: any;
-    unloadedStuff: any[];
-    unloadedStuffDirty: boolean;
-    pendingWorldActions: any;
-    chunkRecord: any;
-    scanId: number;
-    light: ChunkLight;
-    load_state: number;
-    ticking: Map<any, any>;
-    _preloadFluidBuf: any;
-    _random_tick_actions: any;
-    waitingToUnloadWater: boolean;
-    waitingToUnloadWorldTransaction: boolean;
-
+    world:                              ServerWorld;
+    chunkManager:                       ServerChunkManager;
+    size:                               Vector;
+    addr:                               Vector;
+    coord:                              Vector;
+    uniqId:                             number;
+    modify_list:                        any                         = {};
+    connections:                        Map<int, ServerPlayer>      = new Map(); // players by user_id
+    preq:                               Map<any, any>               = new Map();
+    mobs:                               Map<int, Mob>               = new Map();
+    drop_items:                         Map<string, DropItem>       = new Map();
+    randomTickingBlockCount:            number                      = 0;
+    dataChunk:                          any                         = null;
+    fluid:                              any                         = null;
+    blocksUpdatedByListeners:           any[]                       = [];
+    safeTeleportMarker:                 number                      = 0;
+    spiralMarker:                       number                      = 0;
+    options:                            {}                          = {};
+    tblocks:                            TypedBlocks3;
+    ticking_blocks:                     TickingBlockManager;
+    block_random_tickers:               any;
+    mobGenerator:                       MobGenerator;
+    delayedCalls:                       DelayedCalls;
+    dbActor:                            any;
+    readyPromise:                       Promise<void>;
     /**
-     * @param { import("./server_world.js").ServerWorld } world
-     * @param {Vector} addr
+     * When unloading process has started
      */
-    constructor(world, addr) {
-        this.world          = world;
-        this.chunkManager   = world.chunks;
-        this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-        this.addr           = new Vector(addr);
-        this.coord          = this.addr.mul(this.size);
-        this.uniqId         = ++global_uniqId;
-        this.connections    = new Map(); // players by user_id
-        this.preq           = new Map();
-        this.modify_list    = {};
-        this.mobs           = new Map();
-        this.drop_items     = new Map();
-        this.tblocks        = null;
-        this.ticking_blocks = new TickingBlockManager(this);
-        this.randomTickingBlockCount = 0;
-        this.block_random_tickers = this.getChunkManager().block_random_tickers;
-        this.options        = {};
+    unloadingStartedTime:               any                         = null; // to determine when to dispose it
+    unloadedStuff:                      any[]                       = []; // everything unloaded that can be restored (drop items, mobs) in one lis
+    unloadedStuffDirty:                 boolean                     = false;
+    //  
+    pendingWorldActions:                any                         = null; // An array of world actions targeting this chunk while it was loading. Execute them as soon as it's ready.
+    chunkRecord:                        any                         = null; // one row of "chunks" table, with additional fields { exists, chunk, dirty }
+    scanId:                             number                      = -1;
+    light:                              ChunkLight;
+    load_state:                         CHUNK_STATE;
+    ticking:                            Map<any, any>;
+    _preloadFluidBuf:                   any;
+    _random_tick_actions:               any;
+    waitingToUnloadWater:               boolean;
+    waitingToUnloadWorldTransaction:    boolean;
+
+    static SCAN_ID = 0;
+
+    constructor(world : ServerWorld, addr : Vector) {
+        this.world                      = world;
+        this.chunkManager               = world.chunks;
+        this.size                       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        this.addr                       = new Vector(addr);
+        this.coord                      = this.addr.mul(this.size);
+        this.uniqId                     = ++global_uniqId;
+        this.ticking_blocks             = new TickingBlockManager(this);
+        this.block_random_tickers       = this.getChunkManager().block_random_tickers;
         // World mobs generator
         if(world.getGeneratorOptions('auto_generate_mobs', false)) {
             this.mobGenerator = new MobGenerator(this);
         }
         //
         this.setState(CHUNK_STATE.NEW);
-        this.dataChunk      = null;
-        this.fluid          = null;
-        this.delayedCalls   = new DelayedCalls(world.blockCallees);
-        this.blocksUpdatedByListeners = [];
-        this.dbActor        = world.dbActor.getOrCreateChunkActor(this);
-        this.readyPromise   = Promise.resolve(); // It's used only to reach CHUNK_STATE.READY
-        this.safeTeleportMarker = 0;
-        this.spiralMarker       = 0;
-        /**
-         * When unloading process has started
-         * @type {number|null}
-         */
-        this.unloadingStartedTime = null; // to determine when to dispose it
-        this.unloadedStuff      = []; // everything unloaded that can be restored (drop items, mobs) in one list
-        this.unloadedStuffDirty = false;
-        // An array of world actions targeting this chunk while it was loading. Execute them as soon as it's ready.
-        this.pendingWorldActions = null;
-        // one row of "chunks" table, with additional fields { exists, chunk, dirty }
-        this.chunkRecord    = null;
-        this.scanId = -1;
-
-        this.light = new ChunkLight(this);
+        this.delayedCalls               = new DelayedCalls(world.blockCallees);
+        this.dbActor                    = world.dbActor.getOrCreateChunkActor(this);
+        this.readyPromise               = Promise.resolve(); // It's used only to reach CHUNK_STATE.READY
+        this.light                      = new ChunkLight(this);
     }
 
-    isReady() {
+    isReady() : boolean {
         return this.load_state === CHUNK_STATE.READY;
     }
 
-    /**
-     * @returns { string }
-     */
-    get addrHash() { // maybe replace it with a computed string, if it's used often
+    get addrHash() : string { // maybe replace it with a computed string, if it's used often
         return this.addr.toHash();
     }
 
-    /**
-     * @returns { int }
-     */
-    get maxBlockX() {
+    get maxBlockX() : int {
         return this.coord.x + (CHUNK_SIZE_X - 1);
     }
 
-    get maxBlockY() {
+    get maxBlockY() : int {
         return this.coord.y + (CHUNK_SIZE_Y - 1);
     }
 
-    get maxBlockZ() {
+    get maxBlockZ() : int {
         return this.coord.z + (CHUNK_SIZE_Z - 1);
     }
 
     // Set chunk init state
-    setState(state_id) {
+    setState(state_id : CHUNK_STATE) {
         const old_state = this.load_state
         this.load_state = state_id;
         const chunkManager = this.getChunkManager();
@@ -317,12 +289,12 @@ export class ServerChunk {
     }
 
     // Add player connection
-    addPlayer(player) {
+    addPlayer(player : ServerPlayer) {
         this.connections.set(player.session.user_id, player);
     }
 
     // Добавление игрока, которому после прогрузки чанка нужно будет его отправить
-    addPlayerLoadRequest(player) {
+    addPlayerLoadRequest(player : ServerPlayer) {
         if(this.load_state < CHUNK_STATE.LOADING_BLOCKS) {
             return this.preq.set(player.session.user_id, player);
         }
@@ -364,7 +336,7 @@ export class ServerChunk {
     }
 
     // Add mob
-    addMob(mob) {
+    addMob(mob : Mob) {
         this.mobs.set(mob.id, mob);
         const packets = [{
             name: ServerClient.CMD_MOB_ADD,
@@ -374,7 +346,7 @@ export class ServerChunk {
     }
 
     // Add drop item
-    addDropItem(drop_item) {
+    addDropItem(drop_item : DropItem) {
         if (drop_item.inChunk) {
             throw new Error('drop_item.inChunk');
         }
@@ -392,7 +364,7 @@ export class ServerChunk {
     }
 
     // Send chunk for players
-    sendToPlayers(player_ids) {
+    sendToPlayers(player_ids : int[]) {
         // @CmdChunkState
         const name = ServerClient.CMD_CHUNK_LOADED;
 
@@ -427,7 +399,7 @@ export class ServerChunk {
         }
     }
 
-    sendMobs(player_user_ids) {
+    sendMobs(player_user_ids : int[]) {
         // Send all mobs in this chunk
         if (this.mobs.size < 1) {
             return;
@@ -464,7 +436,7 @@ export class ServerChunk {
         this.sendAll(packets, []);
     }
 
-    sendDropItems(player_user_ids) {
+    sendDropItems(player_user_ids : int[]) {
         // Send all drop items in this chunk
         if (this.drop_items.size < 1) {
             return;
@@ -602,7 +574,7 @@ export class ServerChunk {
         }
     }
 
-    shouldUnload() {
+    shouldUnload() : boolean {
         if (this.connections.size + this.safeTeleportMarker + this.spiralMarker > 0) {
             return false
         }
@@ -658,12 +630,12 @@ export class ServerChunk {
     }
 
     //
-    sendAll(packets, except_players = null) {
+    sendAll(packets : any[], except_players? : number[]) {
         const connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, except_players);
     }
 
-    getChunkManager() {
+    getChunkManager() : ServerChunkManager {
         return this.chunkManager;
     }
 
@@ -1051,7 +1023,7 @@ export class ServerChunk {
                 case 'cover': {
                     let drop = false;
                     if(tblock.extra_data) {
-                        const removeCoverSide = (side_name) => {
+                        const removeCoverSide = (side_name : string) => {
                             if(tblock.extra_data[side_name]) {
                                 const new_extra_data = {...tblock.extra_data}
                                 delete(new_extra_data[side_name])

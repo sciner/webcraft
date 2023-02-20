@@ -1,5 +1,3 @@
-import { FSMBrain } from "./brain.js";
-
 export class Brains {
     list: Map<any, any>;
 

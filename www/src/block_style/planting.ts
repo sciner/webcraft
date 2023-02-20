@@ -34,10 +34,10 @@ const AGRICULTURE_PLANES = [
 ];
 
 const SUNFLOWER_PLANES = [
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}, "material": DIRECTION.UP},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}, "material": DIRECTION.UP},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 8], "move": {"x": 0.1, "y": 0, "z": 0}, "material": DIRECTION.NORTH},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 8], "move": {"x": 0.098, "y": 0, "z": 0}, "material": DIRECTION.SOUTH}
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}, "dir": DIRECTION.UP},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}, "dir": DIRECTION.UP},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 8], "move": {"x": 0.1, "y": 0, "z": 0}, "dir": DIRECTION.NORTH},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 8], "move": {"x": 0.098, "y": 0, "z": 0}, "dir": DIRECTION.SOUTH}
 ];
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
@@ -225,12 +225,12 @@ export default class style {
         for(let i = 0; i < planes.length; i++) {
             const plane = planes[i];
             // fill object
-            if (!isNaN(plane.material)) {
-                texture = bm.calcMaterialTexture(material, plane.material);
+            if (!isNaN((plane as any).dir)) {
+                texture = bm.calcMaterialTexture(material, (plane as any).dir);
             }
             _pl.size     = plane.size;
-            _pl.uv       = plane.uv;
-            _pl.rot      = plane.rot;
+            _pl.uv       = plane.uv as tupleFloat2;
+            _pl.rot      = plane.rot as Vector;
             _pl.lm       = style.lm;
             _pl.pos      = _vec.set(
                 x + dx + (plane.move?.x || 0),

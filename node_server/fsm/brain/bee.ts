@@ -4,6 +4,7 @@ import { WorldAction } from "../../../www/src/world_action.js";
 import { BeeNest } from "../../../www/src/block_type/bee_nest.js";
 import { EnumDifficulty } from "../../../www/src/enums/enum_difficulty.js";
 import { Effect } from "../../../www/src/block_type/effect.js";
+import type { EnumDamage } from "../../../www/src/enums/enum_damage.js";
 
 const MAX_POLLEN = 4;
 const POLLEN_PER_TICK = 0.02;
@@ -263,7 +264,7 @@ export class Brain extends FSMBrain {
         mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
     }
     
-    onDamage(actor, val, type_damage) {
+    onDamage(val : number, type_damage : EnumDamage, actor) {
         const mob = this.mob;
         const world = mob.getWorld();
         const live = mob.indicators.live;

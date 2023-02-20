@@ -18,6 +18,7 @@ import { DBWorld } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
 import {compressNearby} from "../www/src/packet_compressor.js";
 import { AABB } from "../www/src/core/AABB.js"
+import { EnumDamage } from "../www/src/enums/enum_damage.js";
 
 export class NetworkMessage {
     time: number;
@@ -65,8 +66,8 @@ export class ServerPlayer extends Player {
     // These flags show what must be sent to the client
     static NET_DIRTY_FLAG_RENDER_DISTANCE    = 0x1;
 
-    #forward;
-    #_rotateDegree;
+    #forward : Vector;
+    #_rotateDegree : Vector;
 
     constructor() {
         super();
@@ -249,7 +250,7 @@ export class ServerPlayer extends Player {
     }
 
     // Нанесение урона игроку
-    setDamage(val, src) {
+    setDamage(val : number, src) {
         this.damage.addDamage(val, src);
     }
 
@@ -941,7 +942,7 @@ export class ServerPlayer extends Player {
                 if (mob_id) {
                     // наносим урон по мобу
                     const mob = world.mobs.get(mob_id);
-                    mob.setDamage(damage, null, this);
+                    mob.setDamage(damage, EnumDamage.PUNCH, this);
                     // уменьшаем прочнось
                     if (item?.power) {
                         this.inventory.decrement_instrument();

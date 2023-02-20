@@ -2213,7 +2213,7 @@ export class Vec3 extends Vector {
 
 }
 
-export class IndexedColor {
+export class IndexedColor implements IColor {
     [key: string]: any;
 
     static WHITE = new IndexedColor(48, 528, 0);
@@ -2262,7 +2262,7 @@ export class IndexedColor {
      * only for terrain_map divide
      * @param color
      */
-    divide(color) {
+    divide(color : IColor) {
         this.r /= color.r;
         this.g /= color.g;
         return this;
@@ -2275,14 +2275,14 @@ export class IndexedColor {
     /**
      * @param {IndexedColor} ic
      */
-    copyFrom(ic) {
+    copyFrom(ic : IColor) {
         this.r = ic.r;
         this.g = ic.g;
         this.b = ic.b;
         return this;
     }
 
-    flooredSelf() {
+    flooredSelf() : IndexedColor {
         this.r = Math.floor(this.r);
         this.g = Math.floor(this.g);
         this.b = Math.floor(this.b);
@@ -2295,8 +2295,8 @@ export class IndexedColor {
 
 }
 
-export function mat4ToRotate(matrix) {
-    // calc rotate
+// calc rotate
+export function mat4ToRotate(matrix) : Vector {
     const out = new Vector(0, 0, 0)
     const _quat = quat.create();
     mat4.getRotation(_quat, matrix);

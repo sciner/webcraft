@@ -24,7 +24,7 @@ const required_versions = {
     nodejs: '17.2.0 - 17.9.0',
     sqlite3: '>= 3.38.4' // 5.0.8
 };
-function checkVersion(module_name, current) {
+function checkVersion(module_name : string, current) {
     const need_version = required_versions[module_name];
     if(!semver.satisfies(current, need_version) ) {
         console.error(`${module_name} required version ${need_version}, but present is ${current}`);

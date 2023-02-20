@@ -4,6 +4,9 @@ import { ServerClient } from "../www/src/server_client.js";
 import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
 import { DBWorldMob } from "./db/world/mob.js"
 import { AABB } from "../www/src/core/AABB.js";
+import type { ServerWorld } from "./server_world.js";
+import type { FSMBrain } from "./fsm/brain.js";
+import { EnumDamage } from "../www/src/enums/enum_damage.js";
 
 export class MobSpawnParams {
 
@@ -44,14 +47,8 @@ export class MobState {
     pos: Vector;
     rotate: Vector;
     extra_data: any;
-    
-    /**
-     * @param {int} id 
-     * @param {Vector} pos 
-     * @param {Vector} rotate 
-     * @param {?object} extra_data 
-     */
-    constructor(id, pos, rotate, extra_data) {
+
+    constructor(id : int, pos : Vector, rotate : Vector, extra_data) {
         this.id = id;
         this.pos = new Vector(pos).round(3);
         this.rotate = new Vector(rotate).round(3);
@@ -91,25 +88,10 @@ export class Mob {
     static DIRTY_FLAG_UPDATE        = 0x4; // It indicates that something important has changed. Saving in the next transaction won't be skipped.
     static DIRTY_FLAG_SAVED_DEAD    = 0x8; // If the mob is dead and was already saved as dead, it won't be saved again.
 
-    /**
-     * @type { import("./server_world.js").ServerWorld }
-     */
-    #world;
-
-    /**
-     * @type { import("./fsm/brain.js").FSMBrain }
-     */
-    #brain;
-
-    /**
-     * @type {Vector}
-     */
-    #chunk_addr;
-
-    /**
-     * @type {Vector}
-     */
-    #forward;
+    #world : ServerWorld;
+    #brain : FSMBrain;
+    #chunk_addr : Vector;
+    #forward : Vector;
 
     /**
      * @type { MobState }
@@ -134,13 +116,7 @@ export class Mob {
     _aabb: AABB;
     already_killed: any;
 
-    /**
-     * 
-     * @param { import("./server_world.js").ServerWorld } world 
-     * @param {*} params 
-     * @param {*} existsInDB 
-     */
-    constructor(world, params, existsInDB) {
+    constructor(world : ServerWorld, params, existsInDB) {
 
         this.#world         = world;
 
@@ -178,10 +154,7 @@ export class Mob {
         this._aabb = new AABB
     }
 
-    /**
-     * @returns {AABB}
-     */
-    get aabb() {
+    get aabb() : AABB {
         this._aabb.set(
             this.pos.x - this.width / 2,
             this.pos.y,
@@ -193,17 +166,11 @@ export class Mob {
         return this._aabb
     }
 
-    /**
-     * @returns {Vector}
-     */
-    get chunk_addr() {
+    get chunk_addr() : Vector {
         return Vector.toChunkAddr(this.pos, this.#chunk_addr);
     }
 
-    /**
-     * @returns {Vector}
-     */
-    get forward() {
+    get forward() : Vector {
         return this.#forward.set(
             Math.sin(this.rotate.z),
             0,
@@ -211,27 +178,18 @@ export class Mob {
         );
     }
 
-    /**
-     * @returns { import("./server_world.js").ServerWorld }
-     */
-    getWorld() {
+    getWorld() : ServerWorld {
         return this.#world;
     }
 
-    /**
-     * @returns { import("./fsm/brain.js").FSMBrain }
-     */
-    getBrain() {
+    getBrain() : FSMBrain {
         return this.#brain;
     }
 
     /**
      * Create new mob
-     * @param { import("./server_world.js").ServerWorld } world 
-     * @param { MobSpawnParams } params 
-     * @returns { ?Mob }
      */
-    static create(world, params) {
+    static create(world : ServerWorld, params) : Mob {
         const model = world.models.list.get(params.type);
         if(!model) {
             throw `Can't locate model for create: ${params.type}`;
@@ -314,8 +272,8 @@ export class Mob {
         chunk.mobs.set(this.id, this); // or should we call chunk.addMob(this) ?
     }
     
-    setDamage(val, type_damage, actor) {
-        this.#brain.onDamage(actor, val);
+    setDamage(val : number, type_damage? : EnumDamage, actor?) {
+        this.#brain.onDamage(val, type_damage, actor);
     }
     
     setUseItem(item_id, actor) {
@@ -327,7 +285,7 @@ export class Mob {
             this.#brain.onUse(server_player, server_player.state.hands.right.id);
         } else if(params.button_id == MOUSE.BUTTON_LEFT) {
             if(this.indicators.live.value > 0) {
-                this.#brain.onDamage(server_player, 5);
+                this.#brain.onDamage(5, EnumDamage.PUNCH, server_player);
             }
         }
     }

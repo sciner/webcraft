@@ -400,12 +400,12 @@ export default class style {
                 }
             }
             if(block.hasTag('mask_color')) {
-                lm = material.mask_color;
+                lm = material.mask_color as IndexedColor;
                 sideFlags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
                 upFlags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             }
             if(block.hasTag('multiply_color')) {
-                lm = material.multiply_color;
+                lm = material.multiply_color as IndexedColor;
                 flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
             }
 

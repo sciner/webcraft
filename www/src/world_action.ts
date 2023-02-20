@@ -815,7 +815,7 @@ export class WorldAction {
         for(let vec of extruded_blocks.keys()) {
             // 1. check under
             const check_under_poses = [
-                vec.clone().addSelf(new Vector(0, 1, 0)),
+                vec.clone().addSelf(Vector.YP),
                 vec.clone().addSelf(new Vector(0, 2, 0))
             ];
             for(let i = 0; i < check_under_poses.length; i++) {
@@ -1489,8 +1489,6 @@ async function putInBucket(e, world, pos, player, world_block, world_material, m
             added_to_bucket = true;
         }
     } else if (pos.fluidLeftTop) {
-        // const fluidPos = new Vector().copyFrom(pos).add(pos.n);
-        // const fluidVal = world.getBlock(fluidPos).fluidSource;
         const fluidType = pos.fluidVal & FLUID_TYPE_MASK;
         if(fluidType > 0) {
             if(fluidType === FLUID_WATER_ID) {
@@ -2234,19 +2232,19 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
             // F R B L
             switch(cd) {
                 case ROTATE.S: {
-                    pos2 = pos2.add(new Vector(0, 0, 1));
+                    pos2 = pos2.add(Vector.ZP);
                     break;
                 }
                 case ROTATE.W: {
-                    pos2 = pos2.add(new Vector(1, 0, 0));
+                    pos2 = pos2.add(Vector.XP);
                     break;
                 }
                 case ROTATE.N: {
-                    pos2 = pos2.add(new Vector(0, 0, -1));
+                    pos2 = pos2.add(Vector.ZN);
                     break;
                 }
                 case ROTATE.E: {
-                    pos2 = pos2.add(new Vector(-1, 0, 0));
+                    pos2 = pos2.add(Vector.XN);
                     break;
                 }
             }

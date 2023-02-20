@@ -48,7 +48,11 @@ export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
 
-export const LEAVES_TYPE                    = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
+export enum LEAVES_TYPE {
+    NO = 0,
+    NORMAL = 1,
+    BEAUTIFUL = 2,
+};
 
 // ========================= Sound options =========================
 

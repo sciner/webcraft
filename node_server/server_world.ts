@@ -33,7 +33,6 @@ import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "../www/src/compress/world_modify_chunk.js";
-import { TBlock } from "../www/src/typed_blocks3.js";
 import { Effect } from "../www/src/block_type/effect.js";
 import { MobSpawnParams } from "./mob.js";
 import type { DBWorld } from "./db/world.js";
@@ -42,12 +41,12 @@ export const NEW_CHUNKS_PER_TICK = 50;
 
 export class ServerWorld implements IWorld {
     temp_vec: Vector;
-    block_manager: any;
+    block_manager: BLOCK;
     updatedBlocksByListeners: any[];
     shuttingDown: any;
     game: any;
-    tickers: Map<any, any>;
-    random_tickers: Map<any, any>;
+    tickers: Map<string, any>;
+    random_tickers: Map<string, any>;
     blockListeners: BlockListeners;
     blockCallees: any;
     brains: Brains;
@@ -205,14 +204,11 @@ export class ServerWorld implements IWorld {
         return this.db.getDefaultPlayerIndicators();
     }
 
-    isBuildingWorld() {
+    isBuildingWorld() : boolean {
         return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
     }
 
-    /**
-     * @returns {boolean}
-     */
-    async makeBuildingsWorld() {
+    async makeBuildingsWorld() : Promise<boolean> {
 
         if(!this.isBuildingWorld()) {
             return false
@@ -301,7 +297,7 @@ export class ServerWorld implements IWorld {
 
     }
 
-    get serverTime() {
+    get serverTime() : number {
         return Date.now() + SERVER_TIME_LAG;
     }
 

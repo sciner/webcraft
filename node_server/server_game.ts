@@ -22,16 +22,16 @@ class FakeHotbar {
 export class ServerGame {
     dt_started: Date;
     is_server: boolean;
-    worlds: Map<any, any>;
-    worlds_loading: Map<any, any>;
-    shutdownPromise: any;
+    worlds: Map<string, ServerWorld>;
+    worlds_loading: Map<string, boolean>;
+    shutdownPromise: Promise<any>;
     shutdownGentle: boolean;
     hud: FakeHUD;
     hotbar: FakeHotbar;
     timerLoadWorld: NodeJS.Timeout;
     lightWorker: any;
-    db: any;
-    wsServer: any;
+    db: DBGame;
+    wsServer: WebSocketServer;
 
     constructor() {
         this.dt_started = new Date();
@@ -55,12 +55,12 @@ export class ServerGame {
     }
 
     /** 
-     * @param {String} msg - broadcasted to all players in all worlds
-     * @param { boolean } gentle - if it's true, each world will start its shutdown only after its
+     * @param msg - broadcasted to all players in all worlds
+     * @param gentle - if it's true, each world will start its shutdown only after its
      *   actions_queue is empty
-     * @return { boolean } true if success
+     * @return true if success
      */
-    shutdown(msg, gentle) {
+    shutdown(msg : string, gentle : boolean) : boolean {
         if (this.shutdownPromise) {
             // speed up shutdown, if posible
             if (this.shutdownGentle && !gentle) {
@@ -118,7 +118,7 @@ export class ServerGame {
     }
 
     //
-    getLoadedWorld(world_guid : string) {
+    getLoadedWorld(world_guid : string) : ServerWorld | null {
         const world = this.worlds.get(world_guid);
         if(world) return world;
         if(this.worlds_loading.has(world_guid)) return null;
@@ -128,7 +128,6 @@ export class ServerGame {
 
     // Start websocket server
     async start(config) {
-        //
         const conn = await SQLiteServerConnector.connect('./game.sqlite3');
         await DBGame.openDB(conn).then((db) => {
             this.db = db;
@@ -139,7 +138,7 @@ export class ServerGame {
         await this.initWs()
     }
 
-    initWorkers() {
+    initWorkers() : Promise<number> {
         return new Promise((resolve, reject) => {
             let workerCounter = 1;
 
