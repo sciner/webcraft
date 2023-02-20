@@ -294,7 +294,7 @@ export class Resources {
                 .then(r => r.blob())
                 .then(blob => self.createImageBitmap(blob, {premultiplyAlpha: 'none'}))
                 .catch((e) => {
-                    vt.error(`Error loadImage in resources ${url}`);
+                    console.error(`Error loadImage in resources ${url}`)
                     setTimeout(() => {
                         Qubatch.exit();
                     }, 1000);

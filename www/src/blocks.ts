@@ -249,7 +249,7 @@ export class BLOCK {
     static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID: IBlockMaterial[]    = [];
     static bySuffix                         = {}; // map of arrays
-    /** 
+    /**
      * For each block id, it contains flags describing to which classes of blocks it belongs.
      * See BLOCK.FLAG_*** constants.
      */
@@ -1498,7 +1498,7 @@ BLOCK.init = async function(settings) {
     // block styles is how blocks is generated
     // resource styles is textures for it
 
-    return Promise.all([
+    await Promise.all([
         Resources.loadBlockStyles(settings),
         BLOCK.resource_pack_manager.init(settings)
     ]).then(async ([block_styles, _]) => {

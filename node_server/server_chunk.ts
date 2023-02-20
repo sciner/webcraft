@@ -14,7 +14,7 @@ import { ChunkLight } from "../www/src/light/ChunkLight.js";
 import type { ServerWorld } from "./server_world.js";
 import type { ServerPlayer } from "./server_player.js";
 import type { Mob } from "./mob.js";
-import { DropItem } from "./drop_item.js";
+import type { DropItem } from "./drop_item.js";
 import type { ServerChunkManager } from "./server_chunk_manager.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
@@ -153,7 +153,7 @@ export class ServerChunk {
     unloadingStartedTime:               any                         = null; // to determine when to dispose it
     unloadedStuff:                      any[]                       = []; // everything unloaded that can be restored (drop items, mobs) in one lis
     unloadedStuffDirty:                 boolean                     = false;
-    //  
+    //
     pendingWorldActions:                any                         = null; // An array of world actions targeting this chunk while it was loading. Execute them as soon as it's ready.
     chunkRecord:                        any                         = null; // one row of "chunks" table, with additional fields { exists, chunk, dirty }
     scanId:                             number                      = -1;

@@ -234,6 +234,9 @@ interface IBlockMaterial {
     is_portal: boolean
     is_glass: boolean
     is_grass: boolean
+    is_battery: boolean
+    coocked_item: { count: number, name: string }
+    fuel_time: number
     //
     tags: string[]
     rotate: IVector

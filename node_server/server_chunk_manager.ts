@@ -101,7 +101,7 @@ export class ServerChunkManager {
     // Init worker
     async initWorker() {
         this.worker_inited = false;
-        this.worker = new Worker(globalThis.__dirname + '/../www/src/chunk_worker.js');
+        this.worker = new Worker(globalThis.__dirname + '/../www/src/chunk_worker.ts');
         const onmessage = (data) => {
             if(data instanceof MessageEvent) {
                 data = data.data;
