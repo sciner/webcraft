@@ -54,7 +54,7 @@ export class PickAt {
         this.target_block.geom.defColor = 0xFF000000;
     }
 
-    get(pos, callback, pickat_distance, view_vector, ignore_transparent, return_fluid : boolean = false) {
+    get(pos : IVector, callback : Function, pickat_distance : number, view_vector?, ignore_transparent? : boolean, return_fluid? : boolean) {
         const render = this.render;
         pos = this._temp_pos.copyFrom(pos);
         // view_vector = null;

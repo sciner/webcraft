@@ -7,7 +7,7 @@ import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/src/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE, PLAYER_WIDTH, PLAYER_HEIGHT } from "../www/src/constant.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS } from "../www/src/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/src/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { ServerPlayerEffects } from "./player/effects.js";
@@ -57,6 +57,38 @@ class ServerPlayerSharedProps {
 }
 
 export class ServerPlayer extends Player {
+    raycaster: Raycaster;
+    quests: QuestPlayer;
+    damage: ServerPlayerDamage;
+    sharedProps: ServerPlayerSharedProps;
+    wait_portal: WorldPortalWait;
+
+    #forward : Vector;
+    #_rotateDegree : Vector;
+    vision: any;
+    indicators_changed: boolean;
+    position_changed: boolean;
+    chunk_addr: Vector;
+    session_id: string;
+    skin: string;
+    checkDropItemIndex: number;
+    checkDropItemTempVec: Vector;
+    dt_connect: Date;
+    in_portal: boolean;
+    prev_use_portal: any;
+    prev_near_players: Map<any, any>;
+    ender_chest: any;
+    dbDirtyFlags: number;
+    netDirtyFlags: number;
+    cast: { id: number; time: number; };
+    mining_time_old: number;
+    currentChests: any;
+    timer_reload: number;
+    _aabb: AABB;
+    live_level: any;
+    food_level: any;
+    oxygen_level: any;
+    conn: any;
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -65,9 +97,6 @@ export class ServerPlayer extends Player {
 
     // These flags show what must be sent to the client
     static NET_DIRTY_FLAG_RENDER_DISTANCE    = 0x1;
-
-    #forward : Vector;
-    #_rotateDegree : Vector;
 
     constructor() {
         super();
@@ -354,7 +383,7 @@ export class ServerPlayer extends Player {
         this.state.hands.right = makeHand(right_hand_material);
     }
 
-    get rotateDegree() {
+    get rotateDegree() : Vector {
         // Rad to degree
         return this.#_rotateDegree.set(
             (this.state.rotate.x / Math.PI) * 180,
@@ -408,11 +437,11 @@ export class ServerPlayer extends Player {
         if(tick_number % 2 == 1) this.checkInPortal();
         // 5.
         await this.checkWaitPortal();
-        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+        if (this.status !== PLAYER_STATUS.WAITING_DATA) {
             this.vision.preTick(false);
         } else {
             this.checkWaitingData();
-            if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+            if (this.status !== PLAYER_STATUS.WAITING_DATA) {
                 this.claimChunks();
             }
         }
@@ -425,7 +454,7 @@ export class ServerPlayer extends Player {
     }
 
     postTick(delta, tick_number) {
-        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+        if (this.status !== PLAYER_STATUS.WAITING_DATA) {
             this.vision.postTick();
         }
         this.checkVisibleChunks();
@@ -537,7 +566,7 @@ export class ServerPlayer extends Player {
     }
 
     initWaitingDataForSpawn() {
-        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+        if (this.status !== PLAYER_STATUS.WAITING_DATA) {
             return;
         }
         this.vision.initSpawn();
@@ -554,7 +583,7 @@ export class ServerPlayer extends Player {
         this.state.pos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin);
 
         // change status
-        this.status = PLAYER_STATUS_ALIVE;
+        this.status = PLAYER_STATUS.ALIVE;
         // send changes
         const packets = [{
             name: ServerClient.CMD_TELEPORT,
@@ -632,7 +661,7 @@ export class ServerPlayer extends Player {
     // check indicators
     checkIndicators(tick) {
 
-        if(this.status !== PLAYER_STATUS_ALIVE || !this.game_mode.mayGetDamaged()) {
+        if(this.status !== PLAYER_STATUS.ALIVE || !this.game_mode.mayGetDamaged()) {
             return false;
         }
 
@@ -648,7 +677,7 @@ export class ServerPlayer extends Player {
                 });
             }
             if(this.live_level == 0) {
-                this.status = PLAYER_STATUS_DEAD;
+                this.status = PLAYER_STATUS.DEAD;
                 this.state.stats.death++;
                 // @todo check and drop inventory items if need
                 // const keep_inventory_on_dead = this.world.info.generator?.options?.keep_inventory_on_dead ?? true;
@@ -792,7 +821,7 @@ export class ServerPlayer extends Player {
                 throw 'error_too_far';
             }
             if (params.safe) {
-                this.status = PLAYER_STATUS_WAITING_DATA;
+                this.status = PLAYER_STATUS.WAITING_DATA;
                 this.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
                 this.vision.teleportSafePos(new_pos);
             } else {

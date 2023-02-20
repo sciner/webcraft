@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE} from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS } from "./constant.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -33,22 +33,102 @@ const ATTACK_PROCESS_FINISHED = 2;
 
 // Creates a new local player manager.
 export class Player implements IPlayer {
-    [key: string]: any;
 
-    #forward = new Vector(0, 0, 0);
-    chat : Chat
-    session : any
-    world : any
+    chat :                      Chat
+    render:                     Renderer;
+    world :                     any
+    options:                    any;
+    game_mode:                  GameMode;
+    inventory:                  any // PlayerInventory | ServerPlayerInventory;
+    pr_spectator:               SpectatorPlayerControl;
+    controls:                   PlayerControl;
+    windows:                    PlayerWindowManager;
+    pickAt:                     PickAt;
+    arm:                        PlayerArm;
+    session:                    any
+        
+    #forward:                   Vector = new Vector(0, 0, 0);
+    inAttackProcess:            number;
+    scale:                      number = PLAYER_ZOOM;
+    current_state:              { rotate: Vector; pos: Vector; sneak: boolean; ping: number; };
+    effects:                    any;
+    status:                     number;
 
-    /**
-     */
+    pos:                        Vector;
+    prevPos:                    Vector;
+    lerpPos:                    Vector;
+    posO:                       Vector = new Vector(0, 0, 0);
+    _block_pos:                 Vector = new Vector(0, 0, 0);
+    _eye_pos:                   Vector = new Vector(0, 0, 0);
+    blockPos:                   any;
+    blockPosO:                  any;
+    chunkAddr:                  Vector;
+    rotate:                     Vector = new Vector(0, 0, 0)
+    #_rotateDegree:             Vector = new Vector(0, 0, 0)
+
+    //      
+    inMiningProcess:            boolean = false;
+    inItemUseProcess:           boolean = false;
+    falling:                    boolean = false; // падает
+    running:                    boolean = false; // бежит
+    moving:                     boolean = false; // двигается в стороны
+    walking:                    boolean = false; // идёт по земле
+    in_water:                   boolean = false; // ноги в воде
+    in_water_o:                 boolean = false;
+    onGround:                   boolean = false;
+    onGroundO:                  boolean = false;
+    sneak:                      boolean;
+
+    //
+    headBlock:                  any = null;
+    state:                      any;
+    indicators:                 any;
+    lastBlockPos:               any;
+    xBob:                       any;
+    yBob:                       any
+    _height:                    number;
+    eyes_in_block:              any = null; // глаза в воде
+    eyes_in_block_o:            any = null; // глаза в воде (предыдущее значение)
+    walking_frame:              number = 0;
+    zoom:                       boolean = false;
+    walkDist:                   number;
+    swimingDist:                number;
+    walkDistO:                  number;
+    bob:                        number;
+    oBob:                       number;
+    step_count:                 number;
+    _prevActionTime:            number;
+    body_rotate:                number;
+    body_rotate_o:              number;
+    body_rotate_speed:          number;
+    mineTime:                   number;
+    pr:                         any;
+    inhand_animation_duration:  number;
+    pn_start_change_sneak:      number;
+    _sneak_period:              number;
+    _height_diff:               number;
+    _height_before_change:      any;
+    steps_count:                any;
+    hitIndexO:                  any;
+    lastOnGroundTime:           any;
+    lastUpdate:                 number;
+    yBobO:                      any;
+    xBobO:                      any;
+    isOnLadder:                 any;
+    prev_walking:               any;
+    block_walking_ticks:        number;
+    swimingDistIntPrev:         any;
+    swimingDistIntPrevO:        any;
+    underwater_track_id:        any;
+    previous_state:             any;
+    ping:                       number;
+    _eating_sound_tick:         number;
+    _eating_sound:              any;
+
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
-        this.inMiningProcess = false;
-        this.inItemUseProcess = false;
         this.inAttackProcess = ATTACK_PROCESS_NONE;
         this.options = options;
-        this.scale = PLAYER_ZOOM;
         this.current_state = {
             rotate:             new Vector(),
             pos:                new Vector(),
@@ -56,9 +136,7 @@ export class Player implements IPlayer {
             ping:               0
         };
         this.effects = {effects:[]}
-        this.status = PLAYER_STATUS_WAITING_DATA;
-
-        this.headBlock = null;
+        this.status = PLAYER_STATUS.WAITING_DATA;
     }
 
     // возвращает уровень эффекта
@@ -117,7 +195,7 @@ export class Player implements IPlayer {
         this.chunkAddr              = Vector.toChunkAddr(this.pos);
         // Rotate
         this.rotate                 = new Vector(0, 0, 0);
-        this.rotateDegree           = new Vector(0, 0, 0);
+        this.#_rotateDegree         = new Vector(0, 0, 0);
         this.setRotate(data.state.rotate);
         this.xBob                   = this.getXRot();
         this.yBob                   = this.getYRot();
@@ -152,16 +230,16 @@ export class Player implements IPlayer {
         this.chat                   = new Chat(this);
         this.controls               = new PlayerControl(this.options);
         this.windows                = new PlayerWindowManager(this);
-        if (this.status === PLAYER_STATUS_DEAD) {
+        if (this.status === PLAYER_STATUS.DEAD) {
             this.setDie();
         }
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
         this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_WAITING_DATA], (cmd) => {
-            this.status = PLAYER_STATUS_WAITING_DATA;
+            this.status = PLAYER_STATUS.WAITING_DATA;
         });
         this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_ALIVE], (cmd) => {
-            this.status = PLAYER_STATUS_ALIVE;
+            this.status = PLAYER_STATUS.ALIVE;
         });
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
@@ -337,8 +415,12 @@ export class Player implements IPlayer {
         }
         this.rotate.x = Helpers.clamp(this.rotate.x, -Math.PI / 2, Math.PI / 2);
         this.rotate.z = this.rotate.z % (Math.PI * 2);
+    }
+
+    // Rad to degree
+    get rotateDegree() : Vector {
         // Rad to degree
-        this.rotateDegree.set(
+        return this.#_rotateDegree.set(
             (this.rotate.x / Math.PI) * 180,
             (this.rotate.y - Math.PI) * 180 % 360,
             (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360
@@ -659,7 +741,7 @@ export class Player implements IPlayer {
     update(delta) {
 
         // View
-        if(this.lastUpdate && this.status !== PLAYER_STATUS_WAITING_DATA) {
+        if(this.lastUpdate && this.status !== PLAYER_STATUS.WAITING_DATA) {
 
             // for compatibility with renderHandsWithItems
             this.yBobO = this.yBob;
@@ -946,7 +1028,7 @@ export class Player implements IPlayer {
     }
 
     setDie() {
-        this.status = PLAYER_STATUS_DEAD;
+        this.status = PLAYER_STATUS.DEAD;
         this.moving = false;
         this.running = false;
         this.controls.reset();

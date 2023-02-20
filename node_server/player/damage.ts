@@ -2,8 +2,8 @@ import { Effect } from "../../www/src/block_type/effect.js";
 import { BLOCK } from "../../www/src/blocks.js";
 import { Vector } from "../../www/src/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fluid/FluidConst.js";
-import { PLAYER_STATUS_ALIVE } from "../../www/src/constant.js";
 import type { ServerPlayer } from "../server_player.js";
+import { PLAYER_STATUS } from "../../www/src/constant.js";
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;
@@ -228,7 +228,7 @@ export class ServerPlayerDamage {
     */
     addDamage(val, src) {
         const player = this.player;
-        if(player.status !== PLAYER_STATUS_ALIVE || !player.game_mode.mayGetDamaged()) {
+        if(player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.mayGetDamaged()) {
             return false;
         }
         this.damage = val;

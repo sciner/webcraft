@@ -64,8 +64,8 @@ export class ServerClient {
     static CMD_STATS                    = 96;
     static CMD_DIE                      = 97;
     static CMD_RESURRECTION             = 98;
-    static CMD_SET_STATUS_WAITING_DATA  = 103; // s->p: changes player.status to PLAYER_STATUS_WAITING_DATA
-    static CMD_SET_STATUS_ALIVE         = 104; // s->p: changes player.status to PLAYER_STATUS_ALIVE
+    static CMD_SET_STATUS_WAITING_DATA  = 103; // s->p: changes player.status to PLAYER_STATUS.WAITING_DATA
+    static CMD_SET_STATUS_ALIVE         = 104; // s->p: changes player.status to PLAYER_STATUS.ALIVE
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66; // server -> player (when player inventory changed)

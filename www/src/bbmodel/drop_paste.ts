@@ -1,4 +1,5 @@
 import { DEFAULT_TX_SIZE } from "../constant.js";
+import type { GameClass } from "../game.js";
 import { Vector } from "../helpers.js";
 import { Resources } from "../resources.js";
 import { BBModel_Compiler_Base } from "./compiler_base.js";
@@ -15,12 +16,9 @@ class FastCompiller extends BBModel_Compiler_Base {
 }
 
 export class BBModel_DropPaste {
-    [key: string]: any;
+    game: GameClass;
 
-    /**
-     * @param { import("../game.js").GameClass } game
-     */
-    constructor(game) {
+    constructor(game : GameClass) {
 
         this.game = game;
 
@@ -145,7 +143,7 @@ export class BBModel_DropPaste {
                                 Math.cos(player.rotate.z) * 2,
                             )
                             const key = randomUUID()
-                            const mesh = game.render.addBBModel(pos, model.name, player.rotate.add(new Vector(0, 0, Math.PI)), animation_name, key)
+                            const mesh = game.render.addBBModel(pos, model.name, player.rotate.add(new Vector(0, 0, Math.PI)), animation_name as string, key)
                             previous_meshes.set(key, mesh)
                         }
 

@@ -1,5 +1,5 @@
+import { PLAYER_STATUS } from "../../www/src/constant.js";
 import { ServerClient } from "../../www/src/server_client.js";
-import { PLAYER_STATUS_DEAD } from "../../www/src/constant.js";
 
 class PacketRequerQueue {
     packet_reader: any;
@@ -57,7 +57,7 @@ export class PacketReader {
     // Read packet
     async read(player, packet) {
 
-        if (player.status === PLAYER_STATUS_DEAD && ![ServerClient.CMD_RESURRECTION, ServerClient.CMD_CHUNK_LOAD].includes(packet.name)) {
+        if (player.status === PLAYER_STATUS.DEAD && ![ServerClient.CMD_RESURRECTION, ServerClient.CMD_CHUNK_LOAD].includes(packet.name)) {
             return;
         }
 

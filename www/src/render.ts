@@ -950,7 +950,7 @@ export class Renderer {
     }
 
     // Destroy block particles
-    destroyBlock(block, pos, small, scale = 1, force = 1, count) {
+    destroyBlock(block, pos, small, scale = 1, force = 1, count? : number) {
         const block_manager = Qubatch.world.block_manager;
         this.meshes.effects.createEmitter('destroy_block', pos, {block, small, scale, force, block_manager, count});
     }
@@ -966,16 +966,7 @@ export class Renderer {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
     }
 
-    /**
-     *
-     * @param {Vector} pos
-     * @param {string} bbname
-     * @param {Vector} rotate
-     * @param {string} animation_name
-     * @param {string} key
-     * @returns
-     */
-    addBBModel(pos, bbname, rotate, animation_name, key) {
+    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string) {
         const model = Resources._bbmodels.get(bbname)
         if(!model) {
             return false

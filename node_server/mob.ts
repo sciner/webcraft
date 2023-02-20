@@ -1,4 +1,4 @@
-import { MOUSE, PLAYER_STATUS_ALIVE } from "../www/src/constant.js";
+import { MOUSE, PLAYER_STATUS } from "../www/src/constant.js";
 import { Vector } from "../www/src/helpers.js";
 import { ServerClient } from "../www/src/server_client.js";
 import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
@@ -318,7 +318,7 @@ export class Mob {
 
     // если игрока нет, он умер или сменил игровой режим на безопасный, то его нельзя атаковать
     playerCanBeAtacked(player) {
-        return !player || player.status !== PLAYER_STATUS_ALIVE || !player.game_mode.getCurrent().can_take_damage;
+        return !player || player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.getCurrent().can_take_damage;
     }
 
     /**

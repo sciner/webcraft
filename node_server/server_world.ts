@@ -22,7 +22,7 @@ import { BLOCK, DBItemBlock } from "../www/src/blocks.js";
 import { ServerClient } from "../www/src/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND, WORLD_TYPE_BUILDING_SCHEMAS, PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/src/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "../www/src/constant.js";
 import { Weather } from "../www/src/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -318,7 +318,7 @@ export class ServerWorld implements IWorld {
         const ambientLight = (this.info.rules.ambientLight || 0) * 255/15;
         // находим игроков
         for (const player of this.players.values()) {
-            if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
+            if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS.DEAD) {
                 // количество мобов одного типа в радиусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie', 'skeleton']);
                 if (mobs.length <= 4) {
@@ -1108,7 +1108,7 @@ export class ServerWorld implements IWorld {
                 if(!player) {
                     continue
                 }
-                if(player.status !== PLAYER_STATUS_ALIVE) {
+                if(player.status !== PLAYER_STATUS.ALIVE) {
                     continue;
                 }
                 if(!in_spectator && player.game_mode.isSpectator()) {

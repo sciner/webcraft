@@ -1,7 +1,7 @@
 import { Vector, unixTime } from "../../www/src/helpers.js";
 import { DropItem } from '../drop_item.js';
 import { BulkSelectQuery, preprocessSQL, run } from './db_helpers.js';
-import { INVENTORY_SLOT_COUNT, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL, PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA } from '../../www/src/constant.js';
+import { INVENTORY_SLOT_COUNT, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '../../www/src/constant.js';
 
 // Database packages
 import { DBWorldMob } from './world/mob.js';
@@ -263,7 +263,7 @@ export class DBWorld {
             return {
                 state: state,
                 inventory: inventory,
-                status: state.indicators.live.value ? PLAYER_STATUS_ALIVE : PLAYER_STATUS_DEAD
+                status: state.indicators.live.value ? PLAYER_STATUS.ALIVE : PLAYER_STATUS.DEAD
             };
         }
         const default_pos_spawn = world.info.pos_spawn;
@@ -282,7 +282,7 @@ export class DBWorld {
             ':stats':       JSON.stringify(this.getDefaultPlayerStats())
         });
         player = await this.registerPlayer(world, player);
-        player.status = PLAYER_STATUS_WAITING_DATA;
+        player.status = PLAYER_STATUS.WAITING_DATA;
         return player;
     }
 

@@ -1,7 +1,6 @@
 import {ServerChunk} from "./server_chunk.js";
 import { WorldTickStat } from "./world/tick_stat.js";
 import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/src/chunk_const.js";
-import { PLAYER_STATUS_WAITING_DATA } from "../www/src/constant.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, SimpleQueue} from "../www/src/helpers.js";
 import {FluidWorld} from "../www/src/fluid/FluidWorld.js";
 import {FluidWorldQueue} from "../www/src/fluid/FluidWorldQueue.js";
@@ -12,6 +11,7 @@ import {DataWorld} from "../www/src/typed_blocks3.js";
 import { WorldPortal } from "../www/src/portal.js";
 import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_template.js";
 import type { ServerWorld } from "./server_world.js";
+import { PLAYER_STATUS } from "../www/src/constant.js";
 
 /**
  * Each tick (unloaded_chunks_total * UNLOADED_CHUNKS_SUBSETS) is unloaded
@@ -519,7 +519,7 @@ export class ServerChunkManager {
         let waitAddrs = new VectorCollector();
         for(const p of world.players.values()) {
             let waits = p.vision.waitEntries;
-            if (p.status === PLAYER_STATUS_WAITING_DATA) {
+            if (p.status === PLAYER_STATUS.WAITING_DATA) {
                 waits = p.vision.waitSafeEntries;
             }
             for (let entry of waits) {

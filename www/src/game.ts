@@ -6,7 +6,7 @@ import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
 import { HUD } from "./hud.js";
 import { Sounds } from "./sounds.js";
-import { Kb} from "./kb.js";
+import { IKbOptions, Kb} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
 import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME } from "./constant.js";
@@ -69,26 +69,43 @@ export class GameSettings {
 
 // Main game class
 export class GameClass {
-    [key: string]: any;
 
-    player : Player
+    player                      : Player
+    world                       : World
+    render                      : Renderer
+    hud                         : HUD
+    sounds                      : Sounds
+    averageClockTimer           : AverageClockTimer
+    bbmodelDropPaste            : BBModel_DropPaste
+    kb                          : Kb;
+    Joystick                    : JoystickController
+    hotbar                      : Hotbar
+    block_manager?              : BLOCK
+
+    is_server                   : boolean = false
+    f3_used                     : boolean = false
+    onStarted                   : Function = () => {}
+    onControlsEnabledChanged    : Function = (value : boolean) => {}
+    preLoopEnable               : boolean = true
+    sendStateInterval?          : NodeJS.Timer
+
+    App                         : any;
+    skin                        : any;
+    settings                    : any
+    local_server_client?        : any
+    prev_player_state?          : any
+    free_cam?                   : any
 
     constructor() {
-        this.is_server                  = false;
-        this.render                     = new Renderer('qubatchRenderSurface');
-        this.hud                        = new HUD(this.render.canvas);
-        // this.hotbar                     = new Hotbar(this.hud);
-        this.onControlsEnabledChanged   = (value) => {};
-        this.onStarted                  = () => {};
-        this.f3_used                    = false;
+        this.render     = new Renderer('qubatchRenderSurface');
+        this.hud        = new HUD(this.render.canvas);
         // Local server client
         this.local_server_client = ((globalThis as any).LocalServerClient !== undefined) ? new LocalServerClient() : null;
         this.preLoop = this.preLoop.bind(this)
-        this.preLoopEnable = true
     }
 
     // Start
-    async Start(server_url, world_guid, settings, resource_loading_progress) {
+    async Start(server_url : string, world_guid : string, settings, resource_loading_progress) {
         Qubatch.game = this;
         this.settings = settings;
 
@@ -123,9 +140,8 @@ export class GameClass {
 
     /**
      * Started...
-     * @param { import("./player.js").Player } player
      */
-    Started(player) {
+    Started(player : Player) {
         this.player             = player;
         this.sounds             = new Sounds(player);
         this.averageClockTimer  = new AverageClockTimer();
@@ -563,7 +579,7 @@ export class GameClass {
                     }
                 }
             }
-        });
+        } as IKbOptions);
 
         // Joystick
         this.Joystick = new JoystickController('stick', 64, 8, player, kb);
@@ -571,7 +587,7 @@ export class GameClass {
     }
 
     // setControlsEnabled
-    setControlsEnabled(value) {
+    setControlsEnabled(value : boolean) {
         this.player.controls.enabled = value;
         if(value) {
             delete(Qubatch.kb.keys[KEY.WIN]);
@@ -582,7 +598,7 @@ export class GameClass {
     preLoop() {
         if(this.preLoopEnable) {
             this.render.renderBackend.resetAfter();
-            this.hud.draw()
+            this.hud.draw(false)
             this.render.renderBackend.resetBefore();
             this.render.requestAnimationFrame(this.preLoop)
         }
@@ -590,10 +606,10 @@ export class GameClass {
 
     /**
      * Main loop
-     * @param {number} time
-     * @param  {...any} args - args from raf, because it necessary for XR
+     * @param time
+     * @param args - args from raf, because it necessary for XR
      */
-    loop(time = 0, ...args) {
+    loop(time : number = 0, ...args) {
         const player  = this.player;
         const tm      = performance.now();
         const delta   = this.hud.FPS.delta;
@@ -651,7 +667,7 @@ export class GameClass {
     }
 
     // setupMousePointer...
-    setupMousePointer(check_opened_windows) {
+    setupMousePointer(check_opened_windows : boolean) {
 
         if(check_opened_windows && this.hud.wm.hasVisibleWindow()) {
             return;
@@ -722,7 +738,7 @@ export class GameClass {
     }
 
     drawInstruments() {
-        let instruments = [];
+        const instruments = [];
         for(let block of this.block_manager.getAll()) {
             if(block.item?.instrument_id) {
                 instruments.push({
