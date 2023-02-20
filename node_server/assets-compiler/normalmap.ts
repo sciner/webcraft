@@ -32,7 +32,7 @@ export function  generateNormalMap(scanva, sprite_width, sprite_height) {
     }
 
     // Result
-    const result = new skiaCanvas.Canvas(width, height)
+    const result = new skiaCanvas.Canvas(width, height) as any
     result.ctx = result.getContext('2d')
     result.ctx.imageSmoothingEnabled = false
     result.ctx.putImageData(imageData, 0, 0)
@@ -44,13 +44,11 @@ export function  generateNormalMap(scanva, sprite_width, sprite_height) {
  * Pixel
  */
 class Pixel {
+    red: int;
+    green: int;
+    blue: int;
 
-    /**
-     * @param {int} r 
-     * @param {int} g 
-     * @param {int} b 
-     */
-    constructor(r, g, b) {
+    constructor(r: int, g: int, b: int) {
         this.red = r
         this.green = g
         this.blue = b

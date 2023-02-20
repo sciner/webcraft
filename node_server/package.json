@@ -6,10 +6,7 @@
     "install-all": "npm run install-ff && npm run install-local && npm install",
     "start": "ts-node ./index.ts",
     "inspect": "ts-node --esm -r ts-node/register ./index.ts",
-    "__start": "node --experimental-json-modules --no-warnings --max-old-space-size=8192 ./index.js",
-    "__inspect": "node --experimental-json-modules --no-warnings --inspect --max-old-space-size=8192 ./index.js",
-    "__debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
-    "compile-assets": "cd ./assets-compiler && node --experimental-json-modules --no-warnings ./index.js",
+    "compile-assets": "cd ./assets-compiler && ts-node ./index.ts",
     "rollup": "(cd ../ff-worker && npm run start)",
     "start-rollup": "npm run rollup && npm run start page.useGenWorkers=true",
     "test": "mocha"

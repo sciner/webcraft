@@ -46,17 +46,18 @@ export class Music_Compiler {
             return false
         }
 
-        async function readdirExt(dir) {
+        async function readdirExt(dir : string) : Promise<{name: string, fullName : string, stat : any}[]> {
             const files = await fs.promises.readdir(dir) // get filenames
+            const resp = []
             for(let i = 0; i < files.length; i++) {
                 const fullName = path.join(dir, files[i])
-                files[i] = {
+                resp[i] = {
                     name: files[i],
                     fullName,
                     stat: await fs.promises.stat(fullName)
                 }
             }
-            return files
+            return resp
         }
 
         let changed = false
@@ -77,7 +78,7 @@ export class Music_Compiler {
             if (srcFile.stat.isDirectory()) {
                 // sync subfolder recursively
                 const dstFullName = path.join(dstDir, srcFile.name)
-                if (await syncDirectory(srcFile.fullName, dstFullName)) {
+                if (await this.syncDirectory(srcFile.fullName, dstFullName)) {
                     changed = true
                 }
             } else {

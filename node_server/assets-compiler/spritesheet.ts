@@ -33,11 +33,11 @@ export const DEFAULT_TEXTURE_SUFFIXES = [
 // Spritesheet
 export class Spritesheet extends Spritesheet_Base {
 
-    createCanvas(width, height) {
+    createCanvas(width : int, height : int) : any {
         return new skiaCanvas.Canvas(width, height)
     }
 
-    async loadImage(source) {
+    async loadImage(source) : Promise<any> {
         return skiaCanvas.loadImage(source)
     }
 

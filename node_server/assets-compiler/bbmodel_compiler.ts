@@ -2,7 +2,6 @@ import { Spritesheet } from "./spritesheet.js";
 
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
-import { Compiler } from "./compiler.js";
 import { BBModel_Compiler_Base } from "../../www/src/bbmodel/compiler_base.js";
 
 export class BBModel_Compiler extends BBModel_Compiler_Base {
@@ -12,7 +11,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
         this.models = new Map();
     }
 
-    createSpritesheet(tx_cnt, resolution, options, id) {
+    createSpritesheet(tx_cnt : int, resolution : int, options : any, id? : any) : any {
         id = id ?? ('bbmodel_texture_' + new String(this.spritesheets.length + 1))
         const spritesheet = new Spritesheet(id, tx_cnt, resolution, options)
         this.spritesheets.push(spritesheet)
@@ -32,7 +31,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                 console.error(`BBModel file not found ${path}`);
                 continue;
             }
-            const model_json = JSON.parse(fs.readFileSync(path));
+            const model_json = JSON.parse(fs.readFileSync(path, 'utf-8'));
             model_json._properties = {
                 shift: bb.shift
             }
@@ -43,7 +42,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
         // this.conf.bbmodels = list;
     }
 
-    async loadImage(source) {
+    async loadImage(source : any) : Promise<any> {
         return skiaCanvas.loadImage(source)
     }
 

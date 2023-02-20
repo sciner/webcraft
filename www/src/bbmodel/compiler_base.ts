@@ -19,7 +19,7 @@ export class BBModel_Compiler_Base {
         return id;
     }
 
-    async loadImage(url) : Promise<ImageBitmap> {
+    async loadImage(url : string) : Promise<ImageBitmap> {
         return new Promise(async resolve => {
             const blob = await fetch(url).then(res => res.blob())
             resolve(createImageBitmap(blob))
@@ -30,8 +30,8 @@ export class BBModel_Compiler_Base {
         return 'bbmodel_texture_' + new String(this.spritesheets.length + 1)
     }
 
-    createSpritesheet(tx_cnt, resolution, options) {
-        const id = this.createTextureID()
+    createSpritesheet(tx_cnt : int, resolution : int, options : any, id? : any) {
+        id = this.createTextureID()
         const spritesheet = new Spritesheet_Base(id, tx_cnt, resolution, options)
         this.spritesheets.push(spritesheet)
         return spritesheet

@@ -397,7 +397,7 @@ export class Building {
      */
     getautoBasementAABB() : AABB {
         if (this._autoBasementAABB) {
-            this.initBuildingToWorld(tmpTransformer)
+            this.initToWorld(tmpTransformer)
             tmpTransformer.tranformAABB(this.building_template.autoBasement.aabb, this._autoBasementAABB)
         }
         return this._autoBasementAABB

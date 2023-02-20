@@ -13,6 +13,13 @@ const BLOCK_NAMES = {
 
 // Compiler
 export class Compiler {
+    spritesheets: Map<any, any>;
+    options: any;
+    default_n: skiaCanvas.Canvas;
+    base_conf: any;
+    compile_data: CompileData;
+    tempCanvases: any;
+    flammable_blocks: Map<string, {catch_chance_modifier: float, destroy_chance_modifier: float}>;
 
     constructor(options) {
         options.n_color = '#8080ff';
@@ -144,7 +151,7 @@ export class Compiler {
     }
 
     //
-    async compileBlocks(blocks, spritesheet_storage) {
+    async compileBlocks(blocks, spritesheet_storage? : any) {
 
         if(!spritesheet_storage) {
             spritesheet_storage = this
@@ -463,7 +470,7 @@ export class Compiler {
         return resp
     }
 
-    setFlammable(block_name, catch_chance_modifier, destroy_chance_modifier) {
+    setFlammable(block_name : string, catch_chance_modifier, destroy_chance_modifier) {
         this.flammable_blocks.set(block_name, {catch_chance_modifier, destroy_chance_modifier});
     }
 
