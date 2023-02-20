@@ -18,7 +18,8 @@
     ],
     // other settings...
     "ts-node": {
-      "esm": true,
-      "experimentalSpecifierResolution": "node"
+        "esm": true,
+        "experimentalSpecifierResolution": "node",
+        "transpileOnly": true
     }
 }
