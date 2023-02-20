@@ -14,7 +14,7 @@ import { ChunkLight } from "../www/src/light/ChunkLight.js";
 import type { ServerWorld } from "./server_world.js";
 import type { ServerPlayer } from "./server_player.js";
 import type { Mob } from "./mob.js";
-import { DropItem } from "./drop_item.js";
+import type { DropItem } from "./drop_item.js";
 import type { ServerChunkManager } from "./server_chunk_manager.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
