@@ -2,12 +2,12 @@
 * https://github.com/PrismarineJS/prismarine-physics
 **/
 
-import {Vec3, Vector, getChunkAddr} from "../../js/helpers.js";
-import {BLOCK} from "../../js/blocks.js";
+import {Vec3, Vector} from "../../helpers.js";
+import {BLOCK} from "../../blocks.js";
 import {Physics, PlayerState} from "./index.js";
-import {Resources} from "../../js/resources.js";
-import {FLUID_TYPE_MASK, FLUID_LEVEL_MASK, FLUID_WATER_ID, FLUID_LAVA_ID} from "../../js/fluid/FluidConst.js";
-import {TBlock} from "../../js/typed_blocks3.js";
+import {Resources} from "../../resources.js";
+import {FLUID_TYPE_MASK, FLUID_LEVEL_MASK, FLUID_WATER_ID, FLUID_LAVA_ID} from "../../fluid/FluidConst.js";
+import {TBlock} from "../../typed_blocks3.js";
 
 const PHYSICS_INTERVAL_MS   = 50;
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
@@ -15,6 +15,13 @@ export const DEFAULT_SLIPPERINESS = 0.6;
 
 // FakeWorld
 class FakeWorld {
+    static mcData: any;
+    world: any;
+    block_pos: Vector;
+    _pos: Vector;
+    _localPos: Vector;
+    tblock: TBlock;
+    chunkAddr: Vector;
 
     static getMCData(world) {
         if(this.mcData) {
@@ -95,8 +102,15 @@ const fakeProps = {};
 const shapesEmpty = [];
 
 export class FakeBlock {
+    position: any;
+    id: any;
+    type: any;
+    material: { is_water: boolean; };
+    metadata: number;
+    shapes: any;
+    tblock: any;
 
-    constructor(pos, id, fluid, shapes, tblock) {
+    constructor(pos, id, fluid, shapes, tblock?) {
         this.position = pos;
         this.id = this.type = id;
         this.material = fakeMat;
@@ -141,6 +155,13 @@ function FakePlayer(pos, effects) {
 }
 
 export class PrismarinePlayerControl {
+    player_state: any;
+    world: FakeWorld;
+    physics: any; // { scale: any; gravity: number; flyinGravity: number; flyingYSpeed: number; flyingInertiaMultiplyer: number; airdrag: number; yawSpeed: number; pitchSpeed: number; sprintSpeed: number; sneakSpeed: number; swimDownDrag: { down: number; maxDown: number; }; stepHeight: any; negligeableVelocity: number; soulsandSpeed: number; honeyblockSpeed: number; honeyblockJumpSpeed: number; ladderMaxSpeed: number; ladderClimbSpeed: number; playerHalfWidth: any; playerHeight: any; waterInertia: number; lavaInertia: number; liquidAcceleration: number; airborneInertia: number; airborneAcceleration: number; defaultSlipperiness: any; outOfLiquidImpulse: number; autojumpCooldown: number; bubbleColumnSurfaceDrag: { down: number; maxDown: number; up: number; maxUp: number; }; bubbleColumnDrag: { down: number; maxDown: number; up: number; maxUp: number; }; slowFalling: number; speedEffect: number; slowEffect: number; };
+    player: { entity: { position: any; velocity: Vec3; onGround: boolean; isInWater: boolean; isInLava: boolean; isInWeb: boolean; isCollidedHorizontally: boolean; isCollidedVertically: boolean; yaw: number; effects: any; }; jumpTicks: number; jumpQueued: boolean; };
+    timeAccumulator: number;
+    physicsEnabled: boolean;
+    controls: { forward: boolean; back: boolean; left: boolean; right: boolean; jump: boolean; sprint: boolean; sneak: boolean; };
 
     constructor(world, pos, options) {
         const mcData            = FakeWorld.getMCData(world);

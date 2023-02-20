@@ -1,6 +1,6 @@
 import { FSMStack } from "./stack.js";
-import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
-import { getChunkAddr, Vector } from "../../www/src/helpers.js";
+import { PrismarinePlayerControl } from "../../www/src/vendors/prismarine-physics/using.js";
+import { Vector } from "../../www/src/helpers.js";
 import { ServerClient } from "../../www/src/server_client.js";
 import { Raycaster } from "../../www/src/Raycaster.js";
 import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";

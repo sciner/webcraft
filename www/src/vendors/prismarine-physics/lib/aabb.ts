@@ -2,6 +2,12 @@
 const EPS = 1e-3
 
 export class AABB {
+  minX: any
+  minY: any
+  minZ: any
+  maxX: any
+  maxY: any
+  maxZ: any
   constructor (x0, y0, z0, x1, y1, z1) {
     this.minX = x0
     this.minY = y0

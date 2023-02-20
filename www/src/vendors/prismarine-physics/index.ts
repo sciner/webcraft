@@ -1,10 +1,10 @@
-import { Vec3, Vector } from "../../js/helpers.js";
-import { Effect } from "../../js/block_type/effect.js";
+import { Vec3, Vector } from "../../helpers.js";
+import { Effect } from "../../block_type/effect.js";
 import { AABB } from "./lib/aabb.js";
-import {Resources} from "../../js/resources.js";
+import {Resources} from "../../resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
-import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../../js/constant.js";
-import { TBlock } from "../../js/typed_blocks3.js";
+import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../../constant.js";
+import { TBlock } from "../../typed_blocks3.js";
 
 const BLOCK_NOT_EXISTS = -2;
 const _ladder_check_tblock = new TBlock()
@@ -107,7 +107,9 @@ export function Physics(mcData, fake_world, options) {
         },
         slowFalling: 0.125,
         speedEffect: 1.2,
-        slowEffect: 0.85
+        slowEffect: 0.85,
+        waterGravity: 0,
+        lavaGravity: 0
     }
 
     if (supportFeature('independentLiquidGravity')) {
@@ -150,17 +152,17 @@ export function Physics(mcData, fake_world, options) {
         return surroundingBBs
     }
 
-    physics.adjustPositionHeight = (pos) => {
-        const playerBB = getPlayerBB(pos)
-        const queryBB = playerBB.clone().extend(0, -1, 0)
-        const surroundingBBs = getSurroundingBBs(world, queryBB)
+    // (physics as any).adjustPositionHeight = (pos) => {
+    //     const playerBB = getPlayerBB(pos)
+    //     const queryBB = playerBB.clone().extend(0, -1, 0)
+    //     const surroundingBBs = getSurroundingBBs(world, queryBB)
 
-        let dy = -1
-        for (const blockBB of surroundingBBs) {
-            dy = blockBB.computeOffsetY(playerBB, dy)
-        }
-        pos.y += dy
-    }
+    //     let dy = -1
+    //     for (const blockBB of surroundingBBs) {
+    //         dy = blockBB.computeOffsetY(playerBB, dy)
+    //     }
+    //     pos.y += dy
+    // }
 
     function moveEntity(entity, world, dx, dy, dz) {
         const vel = entity.vel
@@ -625,7 +627,7 @@ export function Physics(mcData, fake_world, options) {
         return isInWater
     }
 
-    physics.simulatePlayer = (entity, world) => {
+    (physics as any).simulatePlayer = (entity, world) => {
         const vel = entity.vel
         const pos = entity.pos
 
@@ -763,6 +765,25 @@ function getEffectLevel(val, effects) {
 }
 
 export class PlayerState {
+    pos: any;
+    vel: any;
+    flying: boolean;
+    onGround: any;
+    isInWater: any;
+    isInLava: any;
+    isInWeb: any;
+    isOnLadder: any;
+    isCollidedHorizontally: any;
+    isCollidedVertically: any;
+    jumpTicks: any;
+    jumpQueued: any;
+    yaw: any;
+    control: any;
+    effects: any;
+    base_speed: number;
+    dolphinsGrace: number;
+    slowFalling: number;
+    depthStrider: number;
 
     constructor(bot, control, mcData, features, base_speed) {
         // const mcData = require('minecraft-data')(bot.version)
