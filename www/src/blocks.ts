@@ -1501,7 +1501,7 @@ BLOCK.init = async function(settings) {
     await Promise.all([
         Resources.loadBlockStyles(settings),
         BLOCK.resource_pack_manager.init(settings)
-    ]).then(async ([block_styles, _]) => {
+    ]).then(([block_styles, _]) => {
         //
         BLOCK.sortBlocks();
         BLOCK.addHardcodedFlags();
