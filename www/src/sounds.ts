@@ -4,16 +4,26 @@ import { CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MUSIC_PAUSE_SECONDS,
     VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_MAX_VOLUME_CHANGE_PER_SECOND, VOLUMETRIC_SOUND_MAX_STEREO_CHANGE_PER_SECOND,
     DEFAULT_SOUND_MAX_DIST }  from "./constant.js";
 import { Mth, Vector, ArrayHelpers } from "./helpers.js";
+import type { Player } from "./player.js";
+import type { World } from "./world.js";
+
+interface IMusicPlaylist /*extends Dict<{name: string, props: {}}>*/ {
+    [key: string]: {name: string, props: {}}[]
+}
 
 class Music {
-    [key: string]: any;
 
-    #tracklistName
-    #volume
-    #playing
-    #timeoutId
+    #tracklistName : string = 'default'
+    #volume : number = 1
+    #playing : boolean = false
+    #timeoutId?: NodeJS.Timeout;
+    config: IMusicPlaylist;
+    track: any;
+    howl: any;
+    nextTracklistName: any;
 
-    constructor(config) {
+    constructor(config : IMusicPlaylist) {
+
         this.config     = config
         this.#tracklistName = 'default'
         this.#volume    = 1
@@ -374,7 +384,19 @@ class VolumetricSound {
 }
 
 export class Sounds {
-    [key: string]: any;
+
+    #player? : Player;
+    world: World;
+    music: Music;
+    volumetric: VolumetricSound;
+
+    prev_index: Map<any, any>;
+    looped: any[];
+    tags: {};
+    sound_sprite_main: any;
+
+    static instance? : Sounds;
+
     static VOLUME_MAP = {
         // It's multiplied by the user-contolled music volume setting.
         // It allows us to change the music volume relative to other sounds without changing the user-controlled setting.
@@ -408,17 +430,7 @@ export class Sounds {
     };
     */
 
-    /**
-     * @type {Sounds}
-     */
-    static instance;
-
-    /**
-     * @type {import('./player').Player}
-     */
-    #player;
-
-    constructor(player) {
+    constructor(player : Player) {
         this.#player = player;
         this.world = player.world;
 
