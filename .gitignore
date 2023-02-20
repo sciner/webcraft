@@ -7,9 +7,7 @@ www/js-bundles
 *.bak
 .idea/
 .vs/
-!.vscode/
 .vscode/*
-!.vscode/launch.json
 *.sqlite3
 *.BASE.*
 *.LOCAL.*
