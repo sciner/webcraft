@@ -492,7 +492,7 @@ export class ServerChunk {
             }
         }
         */
-        this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks = newTypedBlocks(this.coord, chunkManager.dataWorld.grid);
         this.tblocks.chunk = this;
         this.tblocks.light = this.light;
         chunkManager.dataWorld.addChunk(this);

@@ -1,31 +1,47 @@
 import {AABB} from './AABB.js'
 import {Vector} from "../helpers.js";
 import {CHUNK_CX, CHUNK_CY} from "../chunk_const.js"
+import type {ChunkGrid} from "./ChunkGrid.js";
 
 const tempAABB = new AABB();
 
 export class BaseChunk {
-    [key: string]: any;
-
     cx: number
     cy: number
     cz: number
     cw: number
     size: Vector
     aabb: AABB
+    grid: ChunkGrid | null
 
-    constructor({size, nibble = null}) {
-        this.outerAABB = new AABB();
-        this.safeAABB = new AABB();
-        this.pos = new Vector();
-        this.subRegions = [];
-        this.subMaxWidth = 0;
-        this.portals = [];
-        this.facetPortals = [];
-        this.initSize(size);
+    outerAABB = new AABB();
+    safeAABB = new AABB();
+    pos = new Vector();
+    portals: Array<Portal> = [];
+    facetPortals: Array<Portal> = [];
+    padding: number;
+    outerLen: number;
+    insideLen: number;
+    shiftCoord: number;
+
+    subRegions: Array<BaseChunk> = null;
+    subMaxWidth = 0;
+    dif26: number[];
+    outerSize: Vector;
+    markDeleteId = 0;
+    lastOpID = -1;
+
+    /**
+     * actual chunk here
+     * //TODO: type it
+     */
+    rev: any = null;
+
+    constructor({grid = null as ChunkGrid, size = null, nibble = null}) {
+        this.grid = grid;
+        this.initSize(size || grid.chunkSize);
         this.setPos(Vector.ZERO);
         this.dif26 = [];
-        this.rev = null;
 
         if (nibble) {
             this.initNibble(nibble);
@@ -34,7 +50,7 @@ export class BaseChunk {
         }
     }
 
-    initSize(size : Vector) {
+    initSize(size: Vector) {
         const padding = this.padding = 1;
         this.size = size;
         const outerSize = this.outerSize = new Vector(size.x + padding * 2, size.y + padding * 2, size.z + padding * 2);
@@ -60,6 +76,13 @@ export class BaseChunk {
         this.cw = padding * (this.cx + this.cy + this.cz);
     }
 
+
+    nibbleDims: Vector;
+    nibbleStrideBytes: number;
+    nibbleSize: Vector;
+    nibbleOuterSize: Vector;
+    nibbleOuterLen: number;
+
     clearNibble() {
         this.nibbleDims = null;
         this.nibbleStrideBytes = 0;
@@ -81,7 +104,7 @@ export class BaseChunk {
         this.nibbleOuterLen = outerSize.x * outerSize.y * outerSize.z;
     }
 
-    setPos(pos : Vector) : BaseChunk {
+    setPos(pos: Vector): BaseChunk {
         const {size, padding, outerSize} = this;
         this.pos.copyFrom(pos);
         this.aabb.set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z);
@@ -92,6 +115,13 @@ export class BaseChunk {
     }
 
     addSub(sub : BaseChunk) {
+        if (this.grid) {
+            this.grid.addSub(sub as any);
+            return;
+        }
+        if (!this.subRegions) {
+            this.subRegions = [];
+        }
         const {subRegions} = this;
         const x = sub.aabb.x_min;
         let i = 0, len = subRegions.length;
@@ -110,6 +140,10 @@ export class BaseChunk {
     }
 
     removeSub(sub) {
+        if (this.grid) {
+            this.grid.removeSub(sub as any);
+            return;
+        }
         let ind = this.subRegions.indexOf(sub);
         if (ind >= 0) {
             sub._removeAllPortals();
@@ -180,11 +214,9 @@ export class BaseChunk {
         }
         if (aabb.x_max - aabb.x_min === 2) {
             portal.nibbleCompatible = nibbleCompatibleY && nibbleCompatibleZ;
-        } else
-        if (aabb.y_max - aabb.y_min === 2) {
+        } else if (aabb.y_max - aabb.y_min === 2) {
             portal.nibbleCompatible = nibbleCompatibleX && nibbleCompatibleZ;
-        } else
-        if (aabb.z_max - aabb.z_min === 2) {
+        } else if (aabb.z_max - aabb.z_min === 2) {
             portal.nibbleCompatible = nibbleCompatibleX && nibbleCompatibleY;
         }
 
@@ -272,6 +304,38 @@ export class BaseChunk {
         }
     }
 
+    /**
+     * kill all portals to regions that have markDeleteId
+     * calls portalHandler for every deleted portal
+     * @param portalHandler
+     */
+    cleanPortals(portalHandler?: (Portal) => void) {
+        const {portals, facetPortals} = this;
+        let j = 0;
+        for (let i = 0; i < portals.length; i++) {
+            const portal = portals[i];
+            if (portal.toRegion.markDeleteId) {
+                if (portalHandler) {
+                    portalHandler(portal);
+                }
+            } else {
+                portals[j++] = portal;
+            }
+        }
+        if (portals.length === j) {
+            return;
+        }
+        portals.length = j;
+        j = 0;
+        for (let i = 0; i < facetPortals.length; i++) {
+            if (facetPortals[i].toRegion.markDeleteId) {
+            } else {
+                facetPortals[j++] = facetPortals[i];
+            }
+        }
+        facetPortals.length = j;
+    }
+
     _removeAllPortals() {
         for (let i = 0; i < this.portals.length; i++) {
             const portal = this.portals[i];
@@ -296,6 +360,7 @@ export class BaseChunk {
 
 export class Portal {
     [key: string]: any;
+
     constructor({aabb, fromRegion, toRegion}) {
         this.aabb = aabb;
         this.volume = (aabb.x_max - aabb.x_min) * (aabb.y_max - aabb.y_min) * (aabb.z_max - aabb.z_min);

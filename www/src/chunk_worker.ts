@@ -182,9 +182,7 @@ class ChunkWorkerRoot {
             }
             case 'destructChunk': {
                 console.debug('Worker destructChunk:', args.length);
-                for (let props of args) {
-                    world.destructChunk(props);
-                }
+                world.destructMultiple(args);
                 break;
             }
             case 'destroyMap': {
