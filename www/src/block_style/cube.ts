@@ -583,7 +583,8 @@ export default class style {
                     const t = bm.calcMaterialTexture(bm.GRASS_BLOCK, DIRECTION.UP, w, w, undefined, undefined, undefined, decale_name);
                     side_decals.up.set(t, flags, 0, lm, decal_axes_up, false);
                     pushAABB(vert, _aabb, pivot, matrix, side_decals, _center.set(x, y, z));
-                    emmited_blocks.push(new FakeVertices(bm.RED_STAINED_GLASS_PANE.material_key, vert))
+                    //TODO: take material from grass and change to decal1
+                    emmited_blocks.push(new FakeVertices(bm.DECAL1.material_key, vert))
                     // emmited_blocks.push(new FakeVertices(bm.STONE_SHOVEL.material_key, vert))
                 }
             }

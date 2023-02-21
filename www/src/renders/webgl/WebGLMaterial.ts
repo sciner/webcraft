@@ -107,6 +107,10 @@ export class WebGLMaterial extends BaseMaterial {
                     gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
             }
         }
+        if (this.decalOffset) {
+            gl.enable(gl.POLYGON_OFFSET_FILL);
+            gl.polygonOffset(0, -2 * this.decalOffset);
+        }
 
         this._dirty = false;
     }
@@ -125,18 +129,21 @@ export class WebGLMaterial extends BaseMaterial {
         if (this.blendMode !== BLEND_MODES.NORMAL) {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         }
+        if (this.decalOffset) {
+            gl.disable(gl.POLYGON_OFFSET_FILL);
+        }
     }
 
     getSubMat(texture = null) {
         // nothing
         return this.context.createMaterial({texture: texture || this.texture, shader: this.shader,
-            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
+            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth, decalOffset: this.decalOffset });
     }
 
     getLightMat(lightTex = null) {
         // nothing
         return this.context.createMaterial({texture: this.texture, lightTex, shader: this.shader,
-            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
+            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth, decalOffset: this.decalOffset });
     }
 
     /**
