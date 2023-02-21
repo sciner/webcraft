@@ -142,7 +142,7 @@ export default class style {
         }
 
         //
-        if(!for_physic) {
+        if(expanded) {
             aabb.pad(1/500);
         }
 

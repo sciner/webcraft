@@ -31,6 +31,10 @@ export class BBModel_Cube extends BBModel_Child {
             // if(this.json.name.includes('#grass')) {
             //     flag |= QUAD_FLAGS.FLAG_LEAVES
             // }
+            if(this.json.name.includes('#flag_torch_flame')) {
+                flag |= QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.LOOK_AT_CAMERA_HOR | QUAD_FLAGS.NORMAL_UP
+                flag |= QUAD_FLAGS.FLAG_TORCH_FLAME
+            }
             for(let f in faces) {
                 // remove empty faces
                 const face = faces[f]

@@ -62,7 +62,7 @@ export default class style {
         }
         aabb.applyMatrix(matrix, pivotObj);
         //
-        if(!for_physic) {
+        if(expanded) {
             aabb.pad(1/500);
         }
         // aabb.pad(1/32)

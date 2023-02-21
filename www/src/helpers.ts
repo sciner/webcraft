@@ -50,7 +50,8 @@ export enum QUAD_FLAGS {
     FLAG_RAIN_OPACITY           = 1 << 17,
     FLAG_MASK_COLOR_ADD         = 1 << 18,
     FLAG_WAVES_VERTEX           = 1 << 19,
-    NEXT_UNUSED_FLAG            = 1 << 20,
+    FLAG_TORCH_FLAME                   = 1 << 20,
+    NEXT_UNUSED_FLAG            = 1 << 21,
 }
 
 // Direction enumeration

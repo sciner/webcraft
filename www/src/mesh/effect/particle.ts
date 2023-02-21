@@ -49,6 +49,7 @@ export class Mesh_Effect_Particle {
 
         // render
         this.pp             = args.pp ?? 0;
+        this.force_flags    = args.force_flags ?? 0;
         // flags may contain QUAD_FLAGS or PARTICLE_FLAG_*** constants
         this.flags          = (args.flags ?? 0) | QUAD_FLAGS.NO_AO;
         this.material_key   = args.material_key;
