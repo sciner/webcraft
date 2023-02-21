@@ -19,6 +19,15 @@
                 "netherite_layer_1": "textures/armor/netherite_layer_1.png"
             }
         },
+        
+        "boat": {
+            "type": "json",
+            "geom": "json/boat.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/boat/boat_oak.png"
+            }
+        },
 
         "goat": {
             "type": "json",
