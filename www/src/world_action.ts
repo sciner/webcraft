@@ -14,6 +14,7 @@ import {
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
 import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
+import type { TBlock } from "./typed_blocks3.js";
 
 declare type PlaySoundParams = {
     tag: string
@@ -619,11 +620,7 @@ export class WorldAction {
         this.put_in_bottle = item;
     }
 
-    /**
-     * @param {TBlock} tblock
-     * @returns
-     */
-    dropChest(tblock) {
+    dropChest(tblock : TBlock) {
         if(!tblock.extra_data?.slots || tblock.hasTag('store_items_in_chest')) {
             return false;
         }
@@ -644,18 +641,14 @@ export class WorldAction {
 
     /**
      * Make explosion
-     * @param {Vector} vec_center
-     * @param {float} rad
-     * @param {boolean} add_particles
-     * @param {float} drop_blocks_chance
-     * @param {float} power
      */
-    makeExplosion(vec_center, rad = 3, add_particles, drop_blocks_chance, power = .5) {
+    makeExplosion(vec_center : Vector, rad : float = 3, add_particles : boolean, drop_blocks_chance : any, power : float = .5) {
 
         const world = this.#world;
         const air = { id: 0 };
         const block_pos = new Vector();
         const extruded_blocks = new VectorCollector();
+
         drop_blocks_chance = parseFloat(drop_blocks_chance);
 
         //
@@ -701,7 +694,7 @@ export class WorldAction {
         let repeat = false;
         let rays = 0;
 
-        const p = performance.now();
+        // const p = performance.now();
 
         for(let x = -maxDistance; x <= maxDistance; ++x) {
             for(let y = -maxDistance; y <= maxDistance; ++y) {
@@ -863,14 +856,7 @@ export class WorldAction {
 
 }
 
-/**
- * @param {*} pos
- * @param {object} mat
- * @param {boolean} to_top
- * @param {boolean} check_opposite
- * @returns
- */
-function simplifyPos(world, pos, mat, to_top, check_opposite : boolean = true) {
+function simplifyPos(world : any, pos : IVectorPoint, mat : IBlockMaterial, to_top : boolean, check_opposite : boolean = true) {
     if(pos.n.y === 0 && !mat.layering && !mat.tags.includes('rotate_by_pos_n') && !mat.tags.includes('rotate_by_pos_n_5') && !mat.tags.includes('rotate_by_pos_n_6') && !mat.tags.includes('rotate_by_pos_n_xyz') && !mat.tags.includes('trapdoor') && !mat.tags.includes('stairs')) {
         const side_y = to_top ? -1 : 1
         const tblock = world.getBlock(new Vector(pos).addScalarSelf(pos.n.x, side_y, pos.n.z))

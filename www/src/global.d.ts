@@ -146,6 +146,7 @@ interface IBlockMaterial {
     title: string
     style: string
     style_name: string
+    support_style: string
     inventory_style: any
     group: string
     passable: number

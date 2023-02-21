@@ -95,7 +95,7 @@ export class TickingBlockManager {
     }
 
     // tick
-    tick(tick_number) {
+    tick(tick_number : int) {
 
         const world             = this.#chunk.world;
         const updated_blocks    = [];
@@ -109,7 +109,7 @@ export class TickingBlockManager {
                 this.delete(v.pos);
                 continue;
             }
-            const upd_blocks = v.ticker.call(this, tick_number + pos_index, world, this.#chunk, v, check_pos, ignore_coords);
+            const upd_blocks = v.ticker.call(this, tick_number + (pos_index as int), world, this.#chunk, v, check_pos, ignore_coords);
             TickerHelpers.pushBlockUpdates(updated_blocks, upd_blocks);
         }
         world.addUpdatedBlocksActions(updated_blocks);
@@ -726,27 +726,21 @@ export class ServerChunk {
         return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) !== 0;
     }
 
-    /**
-     * @param {Vector} item_pos
-     * @param {*} item
-     * @param {*} previous_item
-     * @param {int} radius
-     */
-    checkDestroyNearUncertainStones(item_pos, item, previous_item, radius) {
+    checkDestroyNearUncertainStones(item_pos : Vector, item : IBlockItem, previous_item : IBlockItem, radius : int) {
 
-        let actions;
+        let actions : WorldAction;
         const world = this.world;
         const bm = world.block_manager
 
         //
-        const addBlock = (pos, item) => {
+        const addBlock = (pos : Vector, item : IBlockItem) => {
             if(!actions) actions = new WorldAction(null, null, false, false);
             const action_id = ServerClient.BLOCK_ACTION_REPLACE
             actions.addBlocks([{pos, item, action_id}])
         }
 
         //
-        const check = (tblock, neighbour, previous_neighbour, min_solid_count = 5) => {
+        const check = (tblock : TBlock, neighbour, previous_neighbour, min_solid_count : int = 5) => {
             const require_support = tblock.material.support_style || tblock.material.style_name;
             if(require_support == 'uncertain_stone') {
                 // определяем неопределенный камень
@@ -769,10 +763,10 @@ export class ServerChunk {
 
         //
         const checked_poses = new VectorCollector()
-        function process(pos, iters, previous_item, min_solid_count) {
+        function process(pos : Vector, iters : int, previous_item : IBlockItem, min_solid_count : int) {
             const tblock = world.getBlock(pos);
             if(tblock?.getNeighbours) {
-                const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
+                const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
                 const neighbours = tblock.getNeighbours(world, cache);
                 for(let side in neighbours) {
                     if(side == 'pcnt') continue;
@@ -800,13 +794,13 @@ export class ServerChunk {
     }
 
     // On block set
-    async onBlockSet(item_pos, item, previous_item) {
+    async onBlockSet(item_pos : Vector, item, previous_item : IBlockItem) {
 
         const bm = this.world.block_manager
         const tblock = this.world.getBlock(item_pos);
 
         if(tblock) {
-            const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
+            const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
             const neighbours = tblock.getNeighbours(this.world, cache);
             for(let side in neighbours) {
                 const nb = neighbours[side];
@@ -848,13 +842,7 @@ export class ServerChunk {
 
     }
 
-    /**
-     * @param {*} tblock
-     * @param {*} neighbour
-     * @param {*} previous_neighbour
-     * @returns
-     */
-    onNeighbourChanged(tblock, neighbour, previous_neighbour) {
+    onNeighbourChanged(tblock : TBlock, neighbour : TBlock, previous_neighbour) {
 
         const world = this.world;
         const bm = world.block_manager
@@ -880,7 +868,7 @@ export class ServerChunk {
         };
 
         //
-        function createDrop(tblock, generate_destroy = false) {
+        function createDrop(tblock : TBlock, generate_destroy : boolean = false) {
             const pos = tblock.posworld;
             const actions = new WorldAction(null, world, false, true);
             //
@@ -1182,7 +1170,7 @@ export class ServerChunk {
     }
 
     // Store in modify list
-    addModifiedBlock(pos, item, previousId) {
+    addModifiedBlock(pos : Vector, item : IBlockItem, previousId : int) {
         const ml = this.modify_list;
         const bm = this.world.block_manager
         if(!ml.obj) ml.obj = {};
@@ -1209,13 +1197,13 @@ export class ServerChunk {
     }
 
     // On world tick
-    tick(tick_number) {
+    tick(tick_number : int) {
         if (this.load_state === CHUNK_STATE.READY) {
             this.ticking_blocks.tick(tick_number);
         }
     }
 
-    getActions() {
+    getActions() : WorldAction {
         if(!this._random_tick_actions) {
             this._random_tick_actions = new WorldAction(null, this.world, false, false);
         }
@@ -1223,13 +1211,13 @@ export class ServerChunk {
     }
 
     // Random tick
-    randomTick(tick_number, world_light, check_count) {
+    randomTick(tick_number : int, world_light, check_count : int) {
 
         if(this.load_state !== CHUNK_STATE.READY || !this.tblocks || this.randomTickingBlockCount <= 0) {
             return false;
         }
 
-        let tblock;
+        let tblock : TBlock;
 
         for (let i = 0; i < check_count; i++) {
             _rnd_check_pos.fromFlatChunkIndex(Math.floor(Math.random() * CHUNK_SIZE));

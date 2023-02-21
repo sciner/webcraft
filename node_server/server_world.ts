@@ -36,6 +36,8 @@ import { shallowCloneAndSanitizeIfPrivate } from "../www/src/compress/world_modi
 import { Effect } from "../www/src/block_type/effect.js";
 import { MobSpawnParams } from "./mob.js";
 import type { DBWorld } from "./db/world.js";
+import type { TBlock } from "../www/src/typed_blocks3.js";
+import type { ServerPlayer } from "./server_player.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -683,12 +685,12 @@ export class ServerWorld implements IWorld {
      * @param {Vector} pos
      * @returns {TBlock}
      */
-    getBlock(pos, resultBlock = null) {
+    getBlock(pos : Vector, resultBlock = null) : TBlock {
         const chunk = this.chunks.getByPos(pos);
         return chunk ? chunk.getBlock(pos, null, null, resultBlock) : null;
     }
 
-    getMaterial(pos) {
+    getMaterial(pos : Vector) {
         const chunk = this.chunks.getByPos(pos);
         return chunk ? chunk.getMaterial(pos) : null;
     }
@@ -697,26 +699,23 @@ export class ServerWorld implements IWorld {
      * It does everything that needs to be done when a block extra_data is modified:
      * marks the block as dirty, updates the chunk modifiers.
      */
-    onBlockExtraDataModified(tblock, pos = tblock.posworld.clone()) {
+    onBlockExtraDataModified(tblock : TBlock, pos : Vector = tblock.posworld.clone()) {
         const item = tblock.convertToDBItem();
         const data = { pos, item };
         tblock.chunk.dbActor.markBlockDirty(data, tblock.index, BLOCK_DIRTY.UPDATE_EXTRA_DATA);
         tblock.chunk.addModifiedBlock(pos, item, item.id);
     }
 
-    /**
-     * @return {ServerChunkManager}
-     */
-    get chunkManager() {
+    get chunkManager() : ServerChunkManager {
         return this.chunks;
     }
 
     //
-    async applyActions(server_player, actions) {
+    async applyActions(server_player : ServerPlayer, actions : WorldAction) {
         const chunks_packets = new VectorCollector();
         const bm = this.block_manager
         //
-        const getChunkPackets = (pos, chunk_addr? : Vector) => {
+        const getChunkPackets = (pos : Vector, chunk_addr? : Vector) => {
             if(!chunk_addr) {
                 chunk_addr = Vector.toChunkAddr(pos)
             }

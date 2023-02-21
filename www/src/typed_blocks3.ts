@@ -294,7 +294,7 @@ export class TypedBlocks3 {
     }
 
     /**
-     * Return saolid neighbours count
+     * Return solid neighbours count
      *
      * @param {int} x
      * @param {int} y
