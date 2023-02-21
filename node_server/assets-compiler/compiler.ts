@@ -198,7 +198,7 @@ export class Compiler {
 
                 const spritesheet = spritesheet_storage.getSpritesheet(spritesheet_id);
 
-                const opTextures = async (obj, texture_key) => {
+                const opTextures = async (obj, texture_key, property_name? : string) => {
                     
                     if(typeof obj[texture_key] === 'string' || obj[texture_key] instanceof String) {
                         obj[texture_key] = {side: obj[texture_key]};
@@ -270,7 +270,7 @@ export class Compiler {
                                 tex[suffix.key] = img[suffix.key]
                             }
                             spritesheet.textures.set(value, tex);
-                            if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side') {
+                            if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side' && (property_name != 'texture_decals')) {
                                 spritesheet.drawTexture(dirt_image, tex.pos.x, tex.pos.y);
                                 spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y);
                                 spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, false, 'difference');
@@ -366,14 +366,16 @@ export class Compiler {
 
                 await opTextures(block, 'texture');
 
-                if('texture_variants' in block) {
-                    try {
-                        for(let k in block.texture_variants) {
-                            await opTextures(block.texture_variants, k);
+                for(let tv of ['texture_variants', 'texture_decals']) {
+                    if(tv in block) {
+                        try {
+                            for(let k in block[tv]) {
+                                await opTextures(block[tv], k, tv);
+                            }
+                        } catch(e) {
+                            // TODO: это временно, пока мы полностью не создадим свой текстур пак
+                            delete(block[tv])
                         }
-                    } catch(e) {
-                        // TODO: это временно, пока мы полностью не создадим свой текстур пак
-                        delete(block.texture_variants)
                     }
                 }
 

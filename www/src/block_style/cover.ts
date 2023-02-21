@@ -75,6 +75,7 @@ export default class style {
         if(block.id == bm.VINE.id) {
             lm = dirt_color;
             flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
+            flags = QUAD_FLAGS.FLAG_RAIN_OPACITY;
         }
         // Рисуем грани блока
         if(block.extra_data) {

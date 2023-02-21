@@ -381,7 +381,7 @@ export class DBWorld {
         `);
         return rows.length ? run(this.conn, INSERT.BULK_DROP_ITEMS, {
             ':jsonRows': JSON.stringify(rows),
-            ':dt': dt
+            // ':dt': dt
         }) : null;
     }
 

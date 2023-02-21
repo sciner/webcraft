@@ -500,7 +500,7 @@ export class ChunkManager {
         if (!rpList) {
             return true;
         }
-        let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;;
+        let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;
         for(let group of groups) {
             const groupList = rpList.get(group);
             if (!groupList) {

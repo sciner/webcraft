@@ -1119,11 +1119,14 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float) : tupleFloat4 {
+    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float, decal_name?: string) : tupleFloat4 {
 
         let mat_texture = material?.texture
         if(material?.texture_variants && (random_double != undefined)) {
             mat_texture = material.texture_variants[Math.floor(material.texture_variants.length * random_double)]
+        }
+        if(decal_name && material?.texture_decals) {
+            mat_texture = material.texture_decals[decal_name]
         }
 
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;

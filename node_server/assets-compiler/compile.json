@@ -463,6 +463,13 @@
                 "up": "block/grass_block_top.png",
                 "down": "block/dirt.png",
                 "side": "block/grass_block_side_overlay.png"
+            },
+            "texture_decals": {
+                "1": "block/decals/grass_block/1.png",
+                "corner": "block/decals/grass_block/corner.png",
+                "3": "block/decals/grass_block/3.png",
+                "all": "block/decals/grass_block/all.png",
+                "opposite": "block/decals/grass_block/opposite.png"
             }
         },
         {

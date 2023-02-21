@@ -8,7 +8,7 @@ import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TCalcSideParamsResult } from './default.js';
 import { GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import type { BlockManager, FakeTBlock } from '../blocks.js';
+import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
@@ -49,6 +49,9 @@ const _sides = {
     north: new AABBSideParams(),
     west: new AABBSideParams(),
     east: new AABBSideParams()
+}
+const side_decals = {
+    up: new AABBSideParams()
 }
 
 // @IMPORTANT!: No change order, because it very important for uvlock blocks
@@ -283,6 +286,7 @@ export default class style {
         const bm                    = style.block_manager
         const material              = block.material;
         const no_anim               = material.is_simple_qube || !material.texture_animations;
+        let emmited_blocks
 
         // Beautiful leaves
         const sheared = (block?.extra_data?.sheared) ? block?.extra_data?.sheared : false;
@@ -514,10 +518,76 @@ export default class style {
             return _sideParams
         };
 
+        // AABB
+        _aabb.set(
+            x + .5 - width/2,
+            y,
+            z + .5 - depth/2,
+            x + .5 + width/2,
+            y + height,
+            z + .5 + depth/2
+        );
+
         // Push vertices
         if(canDrawUP) {
             const {anim_frames, t, f} = calcSideParams('up', DIRECTION_UP, null, null);
             sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV);
+            sides.up.shift_down = false
+
+            // decals block
+            if(block.id != 2 && material.is_solid) {
+                emmited_blocks = []
+                const decals = [
+                    neighbours.WEST?.material.texture_decals ? neighbours.WEST?.material : null,
+                    neighbours.SOUTH?.material.texture_decals ? neighbours.SOUTH?.material : null,
+                    neighbours.EAST?.material.texture_decals ? neighbours.EAST?.material : null,
+                    neighbours.NORTH?.material.texture_decals ? neighbours.NORTH?.material : null,
+                ]
+                const filtered = decals.filter(x => x !== null)
+                if(filtered.length > 0) {
+                    // sides.up.shift_down = true
+                    const lm = IndexedColor.WHITE;
+                    let decale_name = null
+                    let decal_axes_up = null
+                    if(filtered.length == 1) {
+                        decale_name = '1'
+                        if(decals[0]) decal_axes_up = UP_AXES[2]
+                        if(decals[1]) decal_axes_up = UP_AXES[3]
+                        if(decals[2]) decal_axes_up = UP_AXES[0]
+                        if(decals[3]) decal_axes_up = UP_AXES[1]
+                    } else if (filtered.length == 2) {
+                        decale_name = ((decals[0] && decals[2]) || (decals[1] && decals[3])) ? 'opposite' : 'corner'
+                        if(decale_name == 'corner') {
+                            if(decals[1] && decals[2]) decal_axes_up = UP_AXES[0]
+                            if(decals[2] && decals[3]) decal_axes_up = UP_AXES[1]
+                            if(decals[3] && decals[0]) decal_axes_up = UP_AXES[2]
+                            if(decals[0] && decals[1]) decal_axes_up = UP_AXES[3]
+                        } else {
+                            decal_axes_up = decals[0] ? UP_AXES[0] : UP_AXES[1]
+                        }
+                    } else if (filtered.length == 3) {
+                        decale_name = '3'
+                        if(!decals[0]) decal_axes_up = UP_AXES[0]
+                        if(!decals[1]) decal_axes_up = UP_AXES[1]
+                        if(!decals[2]) decal_axes_up = UP_AXES[2]
+                        if(!decals[3]) decal_axes_up = UP_AXES[3]
+                    } else {
+                        decale_name = 'all'
+                        decal_axes_up = UP_AXES[0]
+                    }
+                    lm.copyFrom(dirt_color)
+                    lm.r += GRASS_PALETTE_OFFSET;
+                    const vert = []
+                    const w = 1
+                    const flags = QUAD_FLAGS.MASK_BIOME;
+                    const t = bm.calcMaterialTexture(bm.GRASS_BLOCK, DIRECTION.UP, w, w, undefined, undefined, undefined, decale_name);
+                    side_decals.up.set(t, flags, 0, lm, decal_axes_up, false);
+                    pushAABB(vert, _aabb, pivot, matrix, side_decals, _center.set(x, y, z));
+                    emmited_blocks.push(new FakeVertices(bm.RED_STAINED_GLASS_PANE.material_key, vert))
+                    // emmited_blocks.push(new FakeVertices(bm.STONE_SHOVEL.material_key, vert))
+                }
+            }
+
         }
         if(canDrawDOWN) {
             const {anim_frames, t, f} = calcSideParams('down', DIRECTION_DOWN, null, null);
@@ -540,16 +610,6 @@ export default class style {
             sides.east = _sides.east.set(t, f, anim_frames, lm, null, false);
         }
 
-        // AABB
-        _aabb.set(
-            x + .5 - width/2,
-            y,
-            z + .5 - depth/2,
-            x + .5 + width/2,
-            y + height,
-            z + .5 + depth/2
-        );
-
         pushAABB(vertices, _aabb, pivot, matrix, sides, _center.set(x, y, z));
 
         // Add animations
@@ -570,6 +630,8 @@ export default class style {
         if(block.id == bm.JUKEBOX.id) {
             style.playJukeboxDisc(chunk, block, x, y, z)
         }
+
+        return emmited_blocks
 
     }
 
