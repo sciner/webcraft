@@ -8,7 +8,7 @@ node_server/js_server
 *.bak
 .idea/
 .vs/
-.vscode/*
+.vscode
 *.sqlite3
 *.BASE.*
 *.LOCAL.*

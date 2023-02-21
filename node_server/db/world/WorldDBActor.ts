@@ -1,7 +1,7 @@
 import { unixTime, Vector, VectorCollector } from "../../../www/src/helpers.js";
 import { Transaction } from "../db_helpers.js";
 import { ChunkDBActor, BLOCK_DIRTY } from "./ChunkDBActor.js";
-import { WORLD_TRANSACTION_PERIOD, CLEANUP_WORLD_MODIFY_PER_TRANSACTION, 
+import { WORLD_TRANSACTION_PERIOD, CLEANUP_WORLD_MODIFY_PER_TRANSACTION,
     WORLD_MODIFY_CHUNKS_PER_TRANSACTION } from "../../server_constant.js";
 import { WorldTickStat } from "../../world/tick_stat.js";
 import type { ServerWorld } from "../../server_world.js";
@@ -139,7 +139,7 @@ export class WorldDBActor {
         const db = world.db;
         // It may be different from shutdown. Its main effect is to cause chunkless changes to be saved ASAP.
         const speedup = shutdown || world.shuttingDown;
-        
+
         // await for the previous ongoing transaction, then start a new one
         const transaction = await this.beginTransaction();
 
@@ -292,7 +292,7 @@ export class WorldDBActor {
             // some unloaded items have been already added from chunks
             this.world.chunkManager.itemWorld.writeToWorldTransaction(uc);
             this.pushPromises(
-                db.bulkInsertDropItems(uc.insertDropItemRows, dt),
+                db.bulkInsertDropItems(uc.insertDropItemRows),
                 db.bulkUpdateDropItems(uc.updateDropItemRows),
             );
 
@@ -351,7 +351,7 @@ export class WorldDBActor {
     }
 
     /**
-     * Selects up to {@link CLEANUP_WORLD_MODIFY_PER_TRANSACTION} chunk addresses from the queue and 
+     * Selects up to {@link CLEANUP_WORLD_MODIFY_PER_TRANSACTION} chunk addresses from the queue and
      * some and deletes old records from world_modify in those chunks.
      */
     async cleanupWorldModify() {
@@ -411,7 +411,7 @@ export class WorldDBActor {
 
         const { recoveryUpdateUnsavedChunkRowIds, recoveryUpdateUnsavedChunkXYZs,
             recoveryInsertUnsavedChunkXYZs } = this.underConstruction;
-        const blob = new Int32Array(4 + recoveryUpdateUnsavedChunkRowIds.length 
+        const blob = new Int32Array(4 + recoveryUpdateUnsavedChunkRowIds.length
             + recoveryUpdateUnsavedChunkXYZs.length + recoveryInsertUnsavedChunkXYZs.length);
         let ind = 0;
         blob[0] = RECOVERY_BLOB_VERSION;
@@ -466,7 +466,7 @@ export class WorldDBActor {
                 const blob = new Int32Array(recovery.buffer);
                 if (blob[0] !== RECOVERY_BLOB_VERSION) {
                     throw new Error('blob[0] !== RECOVERY_BLOB_VERSION');
-                }    
+                }
                 let ind = 0;
 
                 // We know rowIds of these chunks, so they exist. Update them.
