@@ -22,6 +22,6 @@
     "ts-node": {
         "esm": true,
         "experimentalSpecifierResolution": "node",
-        "transpileOnly": true
+        "swc": true
     }
 }
