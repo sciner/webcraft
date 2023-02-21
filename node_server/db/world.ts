@@ -55,9 +55,9 @@ export class DBWorld {
         this.fluid = new DBWorldFluid(this.conn, this.world);
         this.chunks = new DBWorldChunk(this.conn, this.world);
 
-        this.bulkLoadDropItemsQuery = new BulkSelectQuery(this.conn, 
+        this.bulkLoadDropItemsQuery = new BulkSelectQuery(this.conn,
             `WITH cte AS (SELECT key, value FROM json_each(:jsonRows))
-            SELECT cte.key, drop_item.* 
+            SELECT cte.key, drop_item.*
             FROM cte, drop_item
             WHERE x >= %0 AND x < %1 AND y >= %2 AND y < %3 AND z >= %4 AND z < %5 AND dt >= :death_date`,
             'key'
@@ -68,8 +68,8 @@ export class DBWorld {
 
     /**
      * Open database and return provider
-     * @param {*} conn 
-     * @param {*} world 
+     * @param {*} conn
+     * @param {*} world
      * @returns {DBWorld}
      */
     static async openDB(conn, world) {
@@ -164,10 +164,10 @@ export class DBWorld {
                 })
                 const p1 = Math.round(compress_time * 1000) / 1000
                 const p2 = Math.round((performance.now() - p) * 1000) / 1000
-                console.log(`compressModifiers: upd times: compress: ${p1}, store: ${p2} ms`)    
+                console.log(`compressModifiers: upd times: compress: ${p1}, store: ${p2} ms`)
                 resolve(result)
             })
-            
+
         }
         for(let row of rows) {
             chunks_count++;
@@ -373,15 +373,14 @@ export class DBWorld {
         await this.conn.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
-    async bulkInsertDropItems(rows, dt) {
+    async bulkInsertDropItems(rows) {
         INSERT.BULK_DROP_ITEMS = INSERT.BULK_DROP_ITEMS ?? preprocessSQL(`
             INSERT INTO drop_item (entity_id, dt, items, x, y, z)
             SELECT %0, %1, %2, %3, %4, %5
             FROM json_each(:jsonRows)
         `);
         return rows.length ? run(this.conn, INSERT.BULK_DROP_ITEMS, {
-            ':jsonRows': JSON.stringify(rows),
-            ':dt': dt
+            ':jsonRows': JSON.stringify(rows)
         }) : null;
     }
 
@@ -398,7 +397,7 @@ export class DBWorld {
     }
 
     async bulkDeleteDropItems(entityIds) {
-        return entityIds.length ? run(this.conn, 
+        return entityIds.length ? run(this.conn,
             'DELETE FROM drop_item WHERE entity_id IN (SELECT value FROM json_each(?))',
             [JSON.stringify(entityIds)]
         ) : null;
