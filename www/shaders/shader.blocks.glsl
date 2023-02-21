@@ -364,11 +364,11 @@
         float numRings = 3.0;
         const float numIterations = 1.;
         float strength = 0.3;
-        
+
         // other numbers:
         const float pi = 3.141592;
         float newTime = iTime * rainSpeed;
-        
+
         vec2 uv;
         vec2 uvStep;
         vec4 resp = vec4(0.);
@@ -520,9 +520,7 @@
         chunkData0 = texelFetch(u_chunkDataSampler, ivec2(dataX, dataY), 0);
         chunkData1 = texelFetch(u_chunkDataSampler, ivec2(dataX + 1, dataY), 0);
 
-        v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
-        v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
-        gl_Position = uProjMatrix * vec4(v_position, 1.0);
+        add_pos = vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos;
     }
     ivec3 lightRegionSize = chunkData1.xyz >> 16;
     ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;
@@ -769,11 +767,11 @@
          b = a * m * .4,
          c1 = b * m * .3;
     vec4 k = vec4(pow(
-          min(min(   length(.5 - fract(a)), 
+          min(min(   length(.5 - fract(a)),
                      length(.5 - fract(b))
                   ), length(.5 - fract(c1)
              )), 7.) * 25.);
-             
+
     k.rgb *= vec3(182./255., 235./255., 255./255.);
     color.rgb += k.rgb / 2.;
 #endif
@@ -790,11 +788,11 @@
          b = a * m * .4,
          c1 = b * m * .3;
     vec4 k = vec4(pow(
-          min(min(   length(.5 - fract(a)), 
+          min(min(   length(.5 - fract(a)),
                      length(.5 - fract(b))
                   ), length(.5 - fract(c1)
              )), 7.) * 25.);
-             
+
     color.rgb += k.rgb * vec3(1.5, 0., 6.);
 
 #endif
@@ -811,11 +809,11 @@
          b = a * m * .4,
          c1 = b * m * .3;
     vec4 k = vec4(pow(
-          min(min(   length(.5 - fract(a)), 
+          min(min(   length(.5 - fract(a)),
                      length(.5 - fract(b))
                   ), length(.5 - fract(c1)
              )), 7.) * 25.);
-             
+
     color.rgb += k.rgb;
 
 #endif
@@ -881,7 +879,7 @@
         float waves_amp = 30.;
         float waves_freq = 10.;
         return sin(u_time / 500. + x * waves_freq) / waves_amp +
-               cos(u_time / 500. + y * waves_freq) / waves_amp;     
+               cos(u_time / 500. + y * waves_freq) / waves_amp;
     }
 
 #endif
