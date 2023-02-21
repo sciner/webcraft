@@ -32,7 +32,7 @@ export default class Ticker {
                     };
                     new_item.extra_data.stage = stage;
                     const b = world.getBlock(next_pos);
-                    if(!b || b.id == 0 || b.material.material.is_leaves) {
+                    if(!b || b.id == 0 || b.material.is_leaves) {
                         updated_blocks.push({pos: next_pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         // игнорировать в этот раз все другие бамбуки на этой позиции без учета вертикальной позиции
                         check_pos.copyFrom(next_pos);

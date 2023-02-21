@@ -325,13 +325,13 @@ export class BLOCK {
      * Returns a new simplified item (for inventory, drop item).
      * For blocks, use {@link convertBlockToDBItem} instead.
      */
-    static convertItemToDBItem(item) {
+    static convertItemToDBItem(item) : IBlockItem {
         if(!item || !('id' in item)) {
             return null;
         }
         const resp = {
             id: item.id
-        };
+        } as IBlockItem;
         for(let k of ITEM_INVENTORY_PROPS) {
             let v = item[k];
             if(v !== undefined && v !== null) {

@@ -83,6 +83,7 @@ interface IBlockItem {
     entity_id?: string,
     rotate? : IVector,
     count?: number,
+    tag?: any,
 }
 
 interface Dict<ValueType=any> {

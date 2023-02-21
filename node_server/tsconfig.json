@@ -8,13 +8,15 @@
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "outDir": "./js_server",
-        "emitDeclarationOnly": true
+        // "emitDeclarationOnly": true
     },
     "include": [
         "./**/*"
     ],
     "exclude": [
-        "./data/building_schema/*.ts"
+        "./data/building_schema/*.ts",
+        "./test.ts",
+        "./test/test_ArrayHelpers.ts",
     ],
     // other settings...
     "ts-node": {

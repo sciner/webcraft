@@ -294,7 +294,7 @@ export class SchematicReader {
                             id: 'WRITTEN_BOOK',
                             count: 1,
                             pages: []
-                        };
+                        } as any;
                         const tag = ent.Book.tag;
                         if(tag) {
                             if('author' in tag) book.author = tag.author;
@@ -547,7 +547,7 @@ export class SchematicReader {
     }
 
     parseChestPropsExtraData(props) {
-        const res = { can_destroy: true, slots: {} };
+        const res = { can_destroy: true, slots: {} } as any;
         if (props.type) {
             if(['left', 'right'].includes(res.type)) {
                 res.type = props.type
