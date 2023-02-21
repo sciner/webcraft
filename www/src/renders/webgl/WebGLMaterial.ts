@@ -109,7 +109,7 @@ export class WebGLMaterial extends BaseMaterial {
         }
         if (this.decalOffset) {
             gl.enable(gl.POLYGON_OFFSET_FILL);
-            gl.polygonOffset(0, -2 * this.decalOffset);
+            gl.polygonOffset(-this.decalOffset, -2 * this.decalOffset);
         }
 
         this._dirty = false;

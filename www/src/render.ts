@@ -185,11 +185,12 @@ export class Renderer {
             }
             if (rp.fluidShader) {
                 rp.fluidShader.materials = {
-                    doubleface: renderBackend.createMaterial({cullFace: false, opaque: true, shader: rp.fluidShader}),
+                    doubleface: renderBackend.createMaterial({cullFace: false, opaque: true, decalOffset: -2, shader: rp.fluidShader}),
                     doubleface_transparent: renderBackend.createMaterial({
                         cullFace: false,
                         opaque: false,
-                        shader: rp.fluidShader
+                        decalOffset: -4,
+                        shader: rp.fluidShader,
                     }),
                 }
             }
