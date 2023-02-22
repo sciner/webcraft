@@ -19,6 +19,8 @@ export class Brain extends FSMBrain {
         });
         this.stack.pushState(this.doBoat);
         this.health = 1; // максимальное здоровье
+
+        this.target = null
     }
     
     // Если убили моба
@@ -50,9 +52,9 @@ export class Brain extends FSMBrain {
         });
         this.applyControl(delta);
         this.sendState();
-        if (Math.random() > 0.01) {
+        //if (Math.random() < 0.01) {
         this.stack.replaceState(this.doBoat2);
-        }
+        //}
     }
 
     doBoat2(delta) {
@@ -65,7 +67,9 @@ export class Brain extends FSMBrain {
         });
         this.applyControl(delta);
         this.sendState();
-        
+        if (Math.random() < 0.001) {
+            this.stack.replaceState(this.doBoat);
+            }
     }
 
     /**
@@ -75,7 +79,9 @@ export class Brain extends FSMBrain {
     * actor - игрок или пероснаж
     */
     onDamage(val : number, type_damage : EnumDamage, actor) {
+        const mob = this.mob;
         this.onKill(actor, type_damage);
+        mob.kill();
     }
 
     // паника моба от урона
@@ -88,7 +94,8 @@ export class Brain extends FSMBrain {
      * @param item item
      */
     onUse(actor : any, item : any) : boolean{
-        console.log(actor)
+        actor.state.pos = this.mob.pos
+        this.target = actor
         return false;
     }
     
