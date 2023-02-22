@@ -2898,6 +2898,13 @@
                 "up": "block/snow.png",
                 "down": "block/dirt.png",
                 "side": "block/grass_block_snow.png"
+            },
+            "texture_decals": {
+                "1": "block/decals/snow_block/1.png",
+                "corner": "block/decals/snow_block/corner.png",
+                "3": "block/decals/snow_block/3.png",
+                "all": "block/decals/snow_block/all.png",
+                "opposite": "block/decals/snow_block/opposite.png"
             }
         },
         {
@@ -6530,7 +6537,14 @@
             "material": {
                 "id": "snow"
             },
-            "texture": "block/snow.png"
+            "texture": "block/snow.png",
+            "texture_decals": {
+                "1": "block/decals/snow_block/1.png",
+                "corner": "block/decals/snow_block/corner.png",
+                "3": "block/decals/snow_block/3.png",
+                "all": "block/decals/snow_block/all.png",
+                "opposite": "block/decals/snow_block/opposite.png"
+            }
         },
         {
             "id": 182,

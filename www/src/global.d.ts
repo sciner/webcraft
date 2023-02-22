@@ -207,6 +207,7 @@ interface IBlockMaterial {
     material: IBlockMiningMaterial
     material_key: string
     texture: any
+    texture_decals: any
     texture_animations: any
     multiply_color: IColor
     mask_color: IColor

@@ -535,10 +535,8 @@ export default class style {
             sides.up.shift_down = false
 
             // decals
-            if(block.id != 2 && material.is_solid) {
-                emmited_blocks = []
-                style.pushDecals(emmited_blocks, bm, chunk, x, y, z, neighbours, dirt_color, matrix, pivot)
-            }
+            emmited_blocks = []
+            style.pushDecals(material, emmited_blocks, bm, chunk, x, y, z, neighbours, dirt_color, matrix, pivot)
 
         }
         if(canDrawDOWN) {
@@ -607,56 +605,76 @@ export default class style {
         return true
     }
 
-    static pushDecals(emmited_blocks: any[], bm : BLOCK, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
-        const decals = [
-            neighbours.WEST?.material.texture_decals ? neighbours.WEST?.material : null,
-            neighbours.SOUTH?.material.texture_decals ? neighbours.SOUTH?.material : null,
-            neighbours.EAST?.material.texture_decals ? neighbours.EAST?.material : null,
-            neighbours.NORTH?.material.texture_decals ? neighbours.NORTH?.material : null,
-        ]
-        const filtered = decals.filter(x => x !== null)
-        if(filtered.length > 0) {
+    static pushDecals(center_material : IBlockMaterial, emmited_blocks: any[], bm : BLOCK, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
+
+        // const decal_neighbours = []
+        const decal_materials = new Map()
+        const nbrs = [neighbours.WEST, neighbours.SOUTH, neighbours.EAST, neighbours.NORTH]
+        const center_material_have_decals = !!center_material.texture_decals
+
+        for(let i = 0; i < nbrs.length; i++) {
+            const n = nbrs[i]
+            if(n && n.material.texture_decals) {
+                if(center_material_have_decals && n.id < center_material.id) {
+                    continue;
+                }
+                let item = decal_materials.get(n.id)
+                if(!item) {
+                    item = {list: [false, false, false, false], count: 0, material: n.material}
+                    decal_materials.set(n.id, item)
+                }
+                item.list[i] = true
+                item.count++;
+            }
+        }
+
+        for(let item of decal_materials.values()) {
+            const list = item.list
+            const mat = item.material
             const lm = IndexedColor.WHITE;
             let decale_name = null
             let decal_axes_up = null
-            if(filtered.length == 1) {
+            if(item.count == 1) {
                 decale_name = '1'
-                if(decals[0]) decal_axes_up = UP_AXES[2]
-                if(decals[1]) decal_axes_up = UP_AXES[3]
-                if(decals[2]) decal_axes_up = UP_AXES[0]
-                if(decals[3]) decal_axes_up = UP_AXES[1]
-            } else if (filtered.length == 2) {
-                decale_name = ((decals[0] && decals[2]) || (decals[1] && decals[3])) ? 'opposite' : 'corner'
+                if(list[0]) decal_axes_up = UP_AXES[2]
+                if(list[1]) decal_axes_up = UP_AXES[3]
+                if(list[2]) decal_axes_up = UP_AXES[0]
+                if(list[3]) decal_axes_up = UP_AXES[1]
+            } else if (item.count == 2) {
+                decale_name = ((list[0] && list[2]) || (list[1] && list[3])) ? 'opposite' : 'corner'
                 if(decale_name == 'corner') {
-                    if(decals[1] && decals[2]) decal_axes_up = UP_AXES[0]
-                    if(decals[2] && decals[3]) decal_axes_up = UP_AXES[1]
-                    if(decals[3] && decals[0]) decal_axes_up = UP_AXES[2]
-                    if(decals[0] && decals[1]) decal_axes_up = UP_AXES[3]
+                    if(list[1] && list[2]) decal_axes_up = UP_AXES[0]
+                    if(list[2] && list[3]) decal_axes_up = UP_AXES[1]
+                    if(list[3] && list[0]) decal_axes_up = UP_AXES[2]
+                    if(list[0] && list[1]) decal_axes_up = UP_AXES[3]
                 } else {
-                    decal_axes_up = decals[0] ? UP_AXES[0] : UP_AXES[1]
+                    decal_axes_up = list[0] ? UP_AXES[0] : UP_AXES[1]
                 }
-            } else if (filtered.length == 3) {
+            } else if (item.count == 3) {
                 decale_name = '3'
-                if(!decals[0]) decal_axes_up = UP_AXES[0]
-                if(!decals[1]) decal_axes_up = UP_AXES[1]
-                if(!decals[2]) decal_axes_up = UP_AXES[2]
-                if(!decals[3]) decal_axes_up = UP_AXES[3]
+                if(!list[0]) decal_axes_up = UP_AXES[0]
+                if(!list[1]) decal_axes_up = UP_AXES[1]
+                if(!list[2]) decal_axes_up = UP_AXES[2]
+                if(!list[3]) decal_axes_up = UP_AXES[3]
             } else {
                 decale_name = 'all'
                 decal_axes_up = UP_AXES[0]
             }
             lm.copyFrom(dirt_color)
-            lm.r += GRASS_PALETTE_OFFSET;
             const vert = []
             const w = 1
-            const flags = QUAD_FLAGS.MASK_BIOME;
-            const t = bm.calcMaterialTexture(bm.GRASS_BLOCK, DIRECTION.UP, w, w, undefined, undefined, undefined, decale_name);
+            let flags = 0
+            if(mat.tags.includes('mask_biome')) {
+                lm.r += GRASS_PALETTE_OFFSET;
+                flags |= QUAD_FLAGS.MASK_BIOME;
+            }
+            const t = bm.calcMaterialTexture(mat, DIRECTION.UP, w, w, undefined, undefined, undefined, decale_name);
             side_decals.up.set(t, flags, 0, lm, decal_axes_up, false);
             pushAABB(vert, _aabb, pivot, matrix, side_decals, _center.set(x, y, z));
-            //TODO: take material from grass and change to decal1
+            // TODO: take material from grass and change to decal1
             emmited_blocks.push(new FakeVertices(bm.DECAL1.material_key, vert))
-            // emmited_blocks.push(new FakeVertices(bm.STONE_SHOVEL.material_key, vert))
         }
+    
     }
 
 }
