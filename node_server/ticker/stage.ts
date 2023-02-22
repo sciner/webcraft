@@ -5,8 +5,9 @@ import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fl
 import type { TickingBlockManager } from "../server_chunk.js";
 
 // Проверка позиции для установки арбуза
-function getFreePosition(world, pos, BLOCK) {
+function getFreePosition(world, pos) {
     const sides = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP];
+    const BLOCK = world.block_manager
     const facing = [];
     for(const side of sides) {
         const position = pos.add(side);
@@ -82,7 +83,7 @@ export default class Ticker {
             }
         } else if (tblock.id == BLOCK.MELON_SEEDS.id || tblock.id == BLOCK.PUMPKIN_SEEDS.id) { // Эти блоки растут как семена в области одного блока, но по истечению роста дают плоды
             if (extra_data.stage == ticking.max_stage) {
-                const side = getFreePosition(world, pos, BLOCK);
+                const side = getFreePosition(world, pos);
                 if (side && is_tick) {
                     const item = (tblock.id == BLOCK.MELON_SEEDS.id ) ? BLOCK.MELON.id : BLOCK.PUMPKIN.id;
                     return [{pos: pos.add(side), item: {id: item}, action_id: ServerClient.BLOCK_ACTION_CREATE}];
