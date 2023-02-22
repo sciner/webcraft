@@ -398,6 +398,17 @@
             "spawnable": true
         },
         {
+            "id": -2,
+            "name": "DECAL1",
+            "spawnable": false,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "bedrock"
+            },
+            "group": "decal1",
+            "texture": "block/anvil.png"
+        },
+        {
             "id": -1,
             "name": "DUMMY",
             "spawnable": false,
@@ -463,6 +474,13 @@
                 "up": "block/grass_block_top.png",
                 "down": "block/dirt.png",
                 "side": "block/grass_block_side_overlay.png"
+            },
+            "texture_decals": {
+                "1": "block/decals/grass_block/1.png",
+                "corner": "block/decals/grass_block/corner.png",
+                "3": "block/decals/grass_block/3.png",
+                "all": "block/decals/grass_block/all.png",
+                "opposite": "block/decals/grass_block/opposite.png"
             }
         },
         {
@@ -1410,7 +1428,7 @@
             "drop_item": [
                 {
                     "name":"GOLD_ORE",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"] 
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ],
             "texture": "block/gold_ore.png",
@@ -1578,11 +1596,11 @@
             "drop_item": [
                 {
                     "name":"STRING",
-                    "instrument":["_SWORD"] 
+                    "instrument":["_SWORD"]
                 },
                 {
                     "name":"COBWEB",
-                    "instrument":["SHEARS"] 
+                    "instrument":["SHEARS"]
                 }
             ]
         },
@@ -1943,7 +1961,7 @@
             "drop_item": [
                 {
                     "name":"DIAMOND",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"] 
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ],
             "texture": "block/diamond_ore.png",
@@ -4936,7 +4954,7 @@
             },
             "mining_time": 0,
             "extra_data": {
-               "item": null 
+               "item": null
             },
             "tags": [
                 "pot",
@@ -9506,7 +9524,7 @@
             },
             "texture": "item/chorus_fruit.png",
             "coocked_item": {
-                "name": "POPPED_CHORUS_FRUIT", 
+                "name": "POPPED_CHORUS_FRUIT",
                 "count": 1
             }
         },

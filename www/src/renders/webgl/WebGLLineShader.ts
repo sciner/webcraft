@@ -56,6 +56,8 @@ export class WebGLLineShader extends BaseLineShader {
         }
         this.context._shader = this;
         gl.useProgram(this.program);
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.polygonOffset(-2, -4);
         this.update();
     }
 
@@ -66,6 +68,8 @@ export class WebGLLineShader extends BaseLineShader {
             this._material = null;
         }
         this.context._shader = null;
+        const {gl} = this.context;
+        gl.enable(gl.POLYGON_OFFSET_FILL);
     }
 
     updateGlobalUniforms() {

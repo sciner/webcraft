@@ -178,17 +178,19 @@ export class Renderer {
             rp.shader.materials = {
                 regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
                 doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
+                decal1: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 1}),
                 transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader}),
                 doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader: rp.shader}),
                 label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader: rp.shader}),
             }
             if (rp.fluidShader) {
                 rp.fluidShader.materials = {
-                    doubleface: renderBackend.createMaterial({cullFace: false, opaque: true, shader: rp.fluidShader}),
+                    doubleface: renderBackend.createMaterial({cullFace: false, opaque: true, decalOffset: -2, shader: rp.fluidShader}),
                     doubleface_transparent: renderBackend.createMaterial({
                         cullFace: false,
                         opaque: false,
-                        shader: rp.fluidShader
+                        decalOffset: -4,
+                        shader: rp.fluidShader,
                     }),
                 }
             }

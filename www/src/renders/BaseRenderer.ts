@@ -270,6 +270,7 @@ export const BLEND_MODES = {
 
 export class BaseMaterial {
     [key: string]: any;
+    decalOffset: number;
     constructor(context, options) {
         this.context = context;
         this.options = options;
@@ -283,6 +284,7 @@ export class BaseMaterial {
         this.mipmap = options.mipmap || false;
         this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
         this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
+        this.decalOffset = options.decalOffset || 0;
     }
 
     changeLighTex(light) {

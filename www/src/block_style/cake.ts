@@ -56,7 +56,7 @@ export default class style {
             z + .5 + WIDTH/2,
         );
 
-        if(!expanded) {
+        if(expanded) {
             aabb.pad(1/500);
         }
 

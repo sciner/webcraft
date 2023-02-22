@@ -99,7 +99,6 @@ void main() {
 
     uint fluidId = a_fluidId & uint(3);
     cubeSide = int(a_fluidId >> 2) & 7;
-    int epsShift = int(a_fluidId >> 5) & 63;
     int blockIndex = int(a_blockId) & 0xffff;
     int iSize = chunkData0.w;
     ivec3 chunkSize = ivec3(iSize & 0xff, (iSize >> 8) & 0xff, (iSize >> 16) & 0xff);
@@ -142,15 +141,6 @@ void main() {
 
     vec3 subPos = cubeVert[cubeSide * 4 + gl_VertexID % 4];
     subPos.z = a_height;
-
-    if (epsShift > 0) {
-        for (int i = 0; i < 6; i++) {
-            // EPS correction
-            if ((epsShift & (1 << i)) > 0 && dot(subPos - vec3(0.1), cubeNorm[i]) > 0.0) {
-                subPos += cubeNorm[i] * 0.01;
-            }
-        }
-    }
 
     v_normal = cubeNorm[cubeSide];
     if (cubeSide == 2 || cubeSide == 3) {

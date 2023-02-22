@@ -36,6 +36,7 @@
     #define FLAG_RAIN_OPACITY 17
     #define FLAG_MASK_COLOR_ADD 18
     #define FLAG_WAVES_VERTEX 19
+    #define FLAG_TORCH_FLAME 20
 
 #endif
 
@@ -138,6 +139,7 @@
     out float v_flagScroll;
     out float v_flagRainOpacity;
     out float v_flagMaskColorAdd;
+    out float v_flagTorchFlame;
 
     //--
 #endif
@@ -172,6 +174,7 @@
     in float v_flagRainOpacity;
     in float v_flagLeaves;
     in float v_flagMaskColorAdd;
+    in float v_flagTorchFlame;
 
     out vec4 outColor;
 #endif
@@ -237,6 +240,48 @@
     // apply vignette to render result
     // drawVignetting();
     //--
+#endif
+
+#ifdef torch_flame_func
+
+    // Fire Flame shader
+
+    // procedural noise from IQ
+    vec2 tf_hash(vec2 p) {
+        p = vec2( dot(p,vec2(127.1,311.7)),
+                dot(p,vec2(269.5,183.3)) );
+        return -1.0 + 2.0*fract(sin(p)*43758.5453123);
+    }
+
+    float tf_noise( in vec2 p ) {
+        const float K1 = 0.366025404; // (sqrt(3)-1)/2;
+        const float K2 = 0.211324865; // (3-sqrt(3))/6;
+        
+        vec2 i = floor( p + (p.x+p.y)*K1 );
+        
+        vec2 a = p - i + (i.x+i.y)*K2;
+        vec2 o = (a.x>a.y) ? vec2(1.0,0.0) : vec2(0.0,1.0);
+        vec2 b = a - o + K2;
+        vec2 c = a - 1.0 + 2.0*K2;
+        
+        vec3 h = max( 0.5-vec3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
+        
+        vec3 n = h*h*h*h*vec3( dot(a, tf_hash(i+0.0)), dot(b, tf_hash(i+o)), dot(c, tf_hash(i+1.0)));
+        
+        return dot( n, vec3(70.0) );
+    }
+
+    float tf_fbm(vec2 uv) {
+        float f;
+        mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
+        f  = 0.5000 * tf_noise(uv); uv = m * uv;
+        f += 0.2500 * tf_noise(uv); uv = m * uv;
+        f += 0.1250 * tf_noise(uv); uv = m * uv;
+        f += 0.0625 * tf_noise(uv); uv = m * uv;
+        f = 0.5 + 0.5*f;
+        return f;
+    }
+
 #endif
 
 #ifdef manual_mip_define_func
@@ -319,11 +364,11 @@
         float numRings = 3.0;
         const float numIterations = 1.;
         float strength = 0.3;
-        
+
         // other numbers:
         const float pi = 3.141592;
         float newTime = iTime * rainSpeed;
-        
+
         vec2 uv;
         vec2 uvStep;
         vec4 resp = vec4(0.);
@@ -410,6 +455,7 @@
     int flagRainOpacity = (flags >> FLAG_RAIN_OPACITY) & 1;
     int flagMaskColorAdd = (flags >> FLAG_MASK_COLOR_ADD) & 1;
     int flagWavesVertex = (flags >> FLAG_WAVES_VERTEX) & 1;
+    int flagTorchFlame = (flags >> FLAG_TORCH_FLAME) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -424,6 +470,7 @@
     v_flagEnchantedAnimation = float(flagEnchantedAnimation);
     v_flagRainOpacity = float(flagRainOpacity);
     v_flagMaskColorAdd = float(flagMaskColorAdd);
+    v_flagTorchFlame = float(flagTorchFlame);
 
     //--
 #endif
@@ -473,9 +520,7 @@
         chunkData0 = texelFetch(u_chunkDataSampler, ivec2(dataX, dataY), 0);
         chunkData1 = texelFetch(u_chunkDataSampler, ivec2(dataX + 1, dataY), 0);
 
-        v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
-        v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
-        gl_Position = uProjMatrix * vec4(v_position, 1.0);
+        add_pos = vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos;
     }
     ivec3 lightRegionSize = chunkData1.xyz >> 16;
     ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;
@@ -722,11 +767,11 @@
          b = a * m * .4,
          c1 = b * m * .3;
     vec4 k = vec4(pow(
-          min(min(   length(.5 - fract(a)), 
+          min(min(   length(.5 - fract(a)),
                      length(.5 - fract(b))
                   ), length(.5 - fract(c1)
              )), 7.) * 25.);
-             
+
     k.rgb *= vec3(182./255., 235./255., 255./255.);
     color.rgb += k.rgb / 2.;
 #endif
@@ -743,11 +788,11 @@
          b = a * m * .4,
          c1 = b * m * .3;
     vec4 k = vec4(pow(
-          min(min(   length(.5 - fract(a)), 
+          min(min(   length(.5 - fract(a)),
                      length(.5 - fract(b))
                   ), length(.5 - fract(c1)
              )), 7.) * 25.);
-             
+
     color.rgb += k.rgb * vec3(1.5, 0., 6.);
 
 #endif
@@ -764,11 +809,11 @@
          b = a * m * .4,
          c1 = b * m * .3;
     vec4 k = vec4(pow(
-          min(min(   length(.5 - fract(a)), 
+          min(min(   length(.5 - fract(a)),
                      length(.5 - fract(b))
                   ), length(.5 - fract(c1)
              )), 7.) * 25.);
-             
+
     color.rgb += k.rgb;
 
 #endif
@@ -834,7 +879,7 @@
         float waves_amp = 30.;
         float waves_freq = 10.;
         return sin(u_time / 500. + x * waves_freq) / waves_amp +
-               cos(u_time / 500. + y * waves_freq) / waves_amp;     
+               cos(u_time / 500. + y * waves_freq) / waves_amp;
     }
 
 #endif
@@ -855,4 +900,39 @@
         a *= clamp(dist, 0., 1.);
         color.rgb = mix(color.rgb, vec3(.2, .4, .0), a);
     }
+#endif
+
+#ifdef torch_flame
+
+    // vec3 cam_period6 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    // vec2 bpos6 = round(v_world_pos.xy + cam_period6.xy);
+    // float add_time6 = (bpos6.x * 10. + bpos6.y * 10.);
+    float iTime = ((u_time /*+ add_time */) / 1000.);
+
+    float flame_frame = .6;
+    float tex_scale = 128.;
+    vec2 uv = v_texcoord0;
+    vec2 flame_pixelate = vec2(5., 1.) * 96.;
+    uv = vec2(mod(uv.x * tex_scale, 1.) / 5. + flame_frame, mod(uv.y * -tex_scale, 1.));
+    uv = round(uv * flame_pixelate) / flame_pixelate;
+
+    vec2 q = uv;
+    q.x *= 5.;
+    q.y *= 2.;
+    float strength = floor(q.x + 1.);
+    float T3 = max(3., 1.25 * strength) * (iTime / 1.5);
+    q.x = mod(q.x, 1.) - 0.5;
+    q.y -= 0.25;
+    float n = tf_fbm(strength * q - vec2(0, T3));
+    float c = 1. - 16. * pow(max(0., length(q * vec2(1.8 + q.y * 1.5, .75)) - n * max(0., q.y + .25)), 1.2);
+    // float c1 = n * c * (1.5 - pow(1.25 * uv.y, 4.));
+    float c1 = n * c * (1.5 - pow(1.250 * uv.y, 4.));
+    c1 = clamp(c1, 0., 1.);
+    vec3 col = vec3(1.5*c1, 1.5*c1*c1*c1, c1*c1*c1*c1*c1*c1);
+    // col = col.zyx; // blue flame
+    // col = 0.85*col.yxz; // green flame
+
+    float a = c * (1. - pow(uv.y, 3.));
+    color.rgba = vec4(mix(vec3(0.), col, a), a);
+
 #endif

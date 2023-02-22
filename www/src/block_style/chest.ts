@@ -36,7 +36,7 @@ export default class style {
             tmp_vec.rotateByCardinalDirectionSelf(dir);
             aabb.addSelfTranslatedByVec(tmp_vec);
         }
-        if(!for_physic) {
+        if(expanded) {
             aabb.pad(1/500);
         }
         return [aabb]

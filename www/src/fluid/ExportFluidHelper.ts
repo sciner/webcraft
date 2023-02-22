@@ -92,7 +92,6 @@ export class ExportFluidHelper {
 
             let fluidId = srcUint[srcOffset + 1];
             let cubeSide = (fluidId >> 2) & 0x7;
-            let epsShift = (fluidId >> 5);
             fluidId &= 0x3;
 
             const fluidMat = fluidMaterials[fluidId];
@@ -111,19 +110,7 @@ export class ExportFluidHelper {
                 subPos.copyFrom(cubeVert[cubeSide * 4 + vert]);
                 subPos.z = srcBuf[srcOffset + 3];
 
-                if (epsShift > 0) {
-                    for (let i = 0; i < 6; i++) {
-                        // EPS correction
-                        if ((epsShift & (1 << i)) > 0
-                            && (subPos.x - 0.1) * cubeNorm[i].x + (subPos.y - 0.1) * cubeNorm[i].y + (subPos.z - 0.1) * cubeNorm[i].z > 0.0) {
-                            subPos.addSelf(epsMul.copyFrom(cubeNorm[i]).multiplyScalarSelf(0.01));
-                        }
-                    }
-                }
-
                 let u = 0, v = 0;
-
-
                 let nx = cubeNorm[cubeSide].x;
                 let ny = cubeNorm[cubeSide].y;
                 let nz = cubeNorm[cubeSide].z;

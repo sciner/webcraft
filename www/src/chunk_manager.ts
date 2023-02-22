@@ -18,7 +18,7 @@ import { Biomes } from "./terrain_generator/biome3/biomes.js";
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
-export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
+export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1'];
 
 const CC = [
     {x:  0, y:  1, z:  0},
@@ -500,7 +500,7 @@ export class ChunkManager {
         if (!rpList) {
             return true;
         }
-        let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;;
+        let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;
         for(let group of groups) {
             const groupList = rpList.get(group);
             if (!groupList) {

@@ -542,22 +542,26 @@ export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: Ve
             uvSize1 = uv[3] * flip[1];
         }
 
+        let sz0 = _size[0]
+        let sz1 = _size[1]
+        let sz2 = _size[2]
+
         pushTransformed(
             vertices, sides[key].matrix || matrix, pivot,
             // center
             x, z, y,
             // offset
-            _size[0] * offset[0] + _dist[0],
-            _size[1] * offset[1] + _dist[1],
-            _size[2] * offset[2] + _dist[2],
+            sz0 * offset[0] + _dist[0],
+            sz1 * offset[1] + _dist[1],
+            sz2 * offset[2] + _dist[2],
             // axisx
-            _size[0] * axes[0][0],
-            _size[1] * axes[0][1],
-            _size[2] * axes[0][2],
+            sz0 * axes[0][0],
+            sz1 * axes[0][1],
+            sz2 * axes[0][2],
             // axisY
-            _size[0] * axes[1][0],
-            _size[1] * axes[1][1],
-            _size[2] * axes[1][2],
+            sz0 * axes[1][0],
+            sz1 * axes[1][1],
+            sz2 * axes[1][2],
             // UV center
             uv[0], uv[1],
             // UV size
@@ -566,6 +570,7 @@ export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: Ve
             // flags
             globalFlags | flag
         );
+        
     }
 
 }
