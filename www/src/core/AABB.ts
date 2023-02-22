@@ -546,12 +546,6 @@ export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: Ve
         let sz1 = _size[1]
         let sz2 = _size[2]
 
-        //
-        const shift_down = sides[key].shift_down
-        if(shift_down) {
-            sz2 -= 1/250
-        }
-
         pushTransformed(
             vertices, sides[key].matrix || matrix, pivot,
             // center

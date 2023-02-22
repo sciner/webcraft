@@ -616,7 +616,6 @@ export default class style {
         ]
         const filtered = decals.filter(x => x !== null)
         if(filtered.length > 0) {
-            // sides.up.shift_down = true
             const lm = IndexedColor.WHITE;
             let decale_name = null
             let decal_axes_up = null
