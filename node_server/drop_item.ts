@@ -39,7 +39,7 @@ export class DropItem {
         this.rowId          = params.rowId;
         // Don't set this.dirty directly, call markDirty() instead.
         this.dirty          = isNew ? DropItem.DIRTY_NEW : DropItem.DIRTY_CLEAR;
-        /** 
+        /**
          * The chunk in which this item is currently listed.
          * It may be different from {@link chunk_addr} and {@link getChunk}
          */
@@ -137,7 +137,7 @@ export class DropItem {
     }
 
     // Create new drop item. It's dirty and not in the DB yet.
-    static async create(world, pos, items, velocity) {
+    static create(world, pos, items, velocity) {
         const params = {
             pos,
             items:      ObjectHelpers.deepClone(items),
