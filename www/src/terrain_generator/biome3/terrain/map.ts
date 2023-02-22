@@ -10,7 +10,6 @@ import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { ClusterBase } from "../../cluster/base.js";
 
 export class TerrainMap2 extends TerrainMap {
-    [key: string]: any;
 
     // aquifera : Aquifera
     caves : CaveGenerator

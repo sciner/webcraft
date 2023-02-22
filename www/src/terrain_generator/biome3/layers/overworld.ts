@@ -12,6 +12,7 @@ import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
 import type { TerrainMap2 } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
+import type { Biome } from "../biomes.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
@@ -43,29 +44,7 @@ export default class Biome3LayerOverworld {
 
     }
 
-    /**
-     * @param {Vector} xyz
-     * @param {boolean} has_cluster
-     * @returns {float}
-     */
-    calcBigStoneDensity(xyz, has_cluster) {
-        if(has_cluster) {
-            return 0.;
-        }
-        const n2 = this.noise2d(xyz.x/1000, xyz.z/1000);
-        if(n2 > .6825) {
-            return this.noise2d(xyz.x/16, xyz.z/16);
-        }
-        return 0.;
-    }
-
-    /**
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param {string} seed
-     * @param {*} rnd
-     * @returns {TerrainMap2}
-     */
-    generate(chunk, seed, rnd) {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : TerrainMap2 {
 
         const cluster = chunk.cluster
 
@@ -108,6 +87,17 @@ export default class Biome3LayerOverworld {
 
     }
 
+    calcBigStoneDensity(xyz : Vector, has_cluster : boolean) : float {
+        if(has_cluster) {
+            return 0.;
+        }
+        const n2 = this.noise2d(xyz.x/1000, xyz.z/1000);
+        if(n2 > .6825) {
+            return this.noise2d(xyz.x/16, xyz.z/16);
+        }
+        return 0.;
+    }
+
     /**
      * Plant chunk trees
      */
@@ -140,11 +130,7 @@ export default class Biome3LayerOverworld {
         }
     }
 
-    /**
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @returns
-     */
-     calcColumnNoiseSize(chunk) {
+    calcColumnNoiseSize(chunk : ChunkWorkerChunk) : Vector {
         let maxY = WATER_LEVEL
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -165,7 +151,7 @@ export default class Biome3LayerOverworld {
 
     /**
      */
-    generateChunkData(chunk : ChunkWorkerChunk, seed, rnd) {
+    generateChunkData(chunk : ChunkWorkerChunk, seed : string, rnd : any) {
         const bm                        = BLOCK
         const map                       = chunk.map as TerrainMap2;
         const xyz                       = new Vector(0, 0, 0);
@@ -421,10 +407,8 @@ export default class Biome3LayerOverworld {
 
     /**
      * Dump biome
-     * @param {Vector} xyz
-     * @param {Biome} biome
      */
-     dumpBiome(xyz, biome) {
+     dumpBiome(xyz : Vector, biome : Biome) {
         if(!globalThis.used_biomes) {
             globalThis.used_biomes = new Map();
         }

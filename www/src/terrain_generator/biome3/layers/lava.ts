@@ -1,13 +1,18 @@
+import type Terrain_Generator from "..";
+import type { ChunkWorkerChunk } from "../../../worker/chunk";
+import type { Default_Terrain_Map } from "../../default";
+
 /**
  * Generate underworld infinity lava
  */
 export default class Biome3LayerLava {
-    [key: string]: any;
+    generator: Terrain_Generator;
+    noise2d: any;
+    noise3d: any;
+    block_manager: any;
+    maps: Map<any, any>;
 
-    /**
-     * @param { import("../index.js").Terrain_Generator } generator
-     */
-    constructor(generator) {
+    constructor(generator : Terrain_Generator) {
 
         this.generator = generator
 
@@ -18,11 +23,11 @@ export default class Biome3LayerLava {
 
     }
 
-    generate(chunk, seed, rnd) {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {
 
         if(chunk.addr.y < 0)  {
             const BLOCK = this.generator.block_manager
-            const { cx, cy, cz, cw, uint16View } = chunk.tblocks.dataChunk
+            // const { cx, cy, cz, cw, uint16View } = chunk.tblocks.dataChunk
             const block_id = BLOCK.STILL_LAVA.id
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {

@@ -1,4 +1,5 @@
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js"
+import type { Default_Terrain_Map } from "../../default.js";
 import type Terrain_Generator from "../index.js"
 
 /**
@@ -18,14 +19,13 @@ export default class Biome3LayerStone {
 
     }
 
-    generate(chunk: ChunkWorkerChunk, seed, rnd) {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {
         chunk.timers.start('fill stone')
         if(chunk.addr.y < 0)  {
             const BLOCK = this.generator.block_manager
             const block_id = BLOCK.STONE.id
             chunk.tblocks.dataChunk.fillInnerUint16(block_id)
         }
-        chunk.timers.stop().start('generateDefaultMap')
         const result = this.generator.generateDefaultMap(chunk)
         chunk.timers.stop()
         return result

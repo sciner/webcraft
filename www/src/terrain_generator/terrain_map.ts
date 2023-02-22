@@ -2,6 +2,7 @@ import { impl as alea } from '../../vendors/alea.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { DIRT_COLOR_NOISE_RANGE } from '../constant.js';
 import { IndexedColor, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
+import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { BIOMES } from "./biomes.js";
 import { CaveGenerator } from './cave_generator.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
@@ -55,17 +56,20 @@ const temp_chunk = {
 
 // Map manager
 export class TerrainMapManager {
-    [key: string]: any;
 
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
-
+    seed: string;
+    world_id: string;
+    noisefn: Function;
+    noisefn3d: Function;
+    maps_cache: VectorCollector;
     //static maps_in_memory = 0;
     //static registry = new FinalizationRegistry(heldValue => {
     //    TerrainMapManager.maps_in_memory--;
     //});;
 
-    constructor(seed, world_id, noisefn, noisefn3d) {
+    constructor(seed : string, world_id : string, noisefn? : Function, noisefn3d? : Function) {
         this.seed = seed;
         this.world_id = world_id;
         this.noisefn = noisefn;
@@ -75,7 +79,7 @@ export class TerrainMapManager {
     }
 
     // Delete map for unused chunk
-    delete(addr) {
+    delete(addr : Vector) {
         TerrainMapManager._temp_vec3_delete.copyFrom(addr);
         TerrainMapManager._temp_vec3_delete.y = 0;
         this.maps_cache.delete(TerrainMapManager._temp_vec3_delete);
@@ -87,7 +91,7 @@ export class TerrainMapManager {
     }
 
     // Generate maps
-    generateAround(chunk, chunk_addr, smooth, vegetation) {
+    generateAround(chunk : ChunkWorkerChunk, chunk_addr : Vector, smooth : boolean, vegetation : boolean) {
         const rad                   = vegetation ? 2 : 1;
         const noisefn               = this.noisefn;
         const maps                  = [];
@@ -128,7 +132,7 @@ export class TerrainMapManager {
     }
 
     //
-    makePoint(px, pz, cluster_is_empty, cluster_max_height) {
+    makePoint(px : int, pz : int, cluster_is_empty : boolean, cluster_max_height : int) {
         const noisefn = this.noisefn;
         const H = 68;
         const HW = 64;
@@ -197,7 +201,7 @@ export class TerrainMapManager {
     }
 
     // rivers
-    makeRiverPoint(x, z) {
+    makeRiverPoint(x : int, z : int) : float {
 
         let m = this.noisefn(x / 64, z / 64) * 2;
         if(m < 0) m*= -1;
@@ -220,7 +224,10 @@ export class TerrainMapManager {
         return value;
     }
 
-    makeRiverPoint2(x, z) {
+    /**
+     * @deprecated
+     */
+    makeRiverPoint2(x : int, z : int) : any | null {
         const value1 = this.noisefn(x / RIVER_OCTAVE_1, z / RIVER_OCTAVE_1) * 0.7;
         const value2 = this.noisefn(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2;
         const value3 = this.noisefn(x / RIVER_OCTAVE_3, z / RIVER_OCTAVE_3) * 0.1;
@@ -235,7 +242,7 @@ export class TerrainMapManager {
     }
 
     // generateMap
-    generateMap(real_chunk, chunk, noisefn) {
+    generateMap(real_chunk, chunk, noisefn) : TerrainMap {
         const cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
@@ -296,7 +303,6 @@ export class TerrainMapManager {
 
 // Map
 export class TerrainMap extends Default_Terrain_Map {
-    [key: string]: any;
 
     static _cells: any[];
     static _vals: any[];
@@ -442,7 +448,7 @@ export class TerrainMap extends Default_Terrain_Map {
     }
 
     // Генерация растительности
-    generateVegetation(real_chunk, seed) {
+    generateVegetation(real_chunk, seed : string) {
         let chunk                   = this.chunk;
         this.vegetable_generated    = true;
         this.trees                  = [];
@@ -572,9 +578,8 @@ export class TerrainMap extends Default_Terrain_Map {
 
 // Map cell
 export class TerrainMapCell extends Default_Terrain_Map_Cell {
-    [key: string]: any;
 
-    constructor(value, humidity, equator, biome, dirt_block_id) {
+    constructor(value : float, humidity : float, equator : float, biome : any, dirt_block_id : int) {
         super(biome);
         this.value          = value;
         this.value2         = value;

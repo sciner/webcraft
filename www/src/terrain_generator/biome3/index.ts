@@ -19,9 +19,12 @@ export const DEFAULT_CELL = {
     code: 'flat'
 })};
 
+const DEFAUL_MAP_OPTIONS = {WATER_LINE: 80}
+
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
-    [key: string]: any;
+
+    defaylt_cells : {} = {}
 
     /**
      */
@@ -39,7 +42,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     }
 
-    async init() {
+    async init() : Promise<boolean> {
 
         const noiseFactory = new NoiseFactory();
         await super.init();
@@ -73,14 +76,24 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     }
 
-    generateDefaultMap(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
-        return new Default_Terrain_Map(
+    generateDefaultMap(chunk : ChunkWorkerChunk) : Default_Terrain_Map {        
+        // chunk.timers.stop().start('generateDefaultMap')
+        const resp = new Default_Terrain_Map(
             chunk.addr,
             chunk.size,
             chunk.addr.mul(chunk.size),
-            {WATER_LINE: 63},
-            Array(chunk.size.x * chunk.size.z).fill(DEFAULT_CELL)
+            DEFAUL_MAP_OPTIONS,
+            this.getOrCreateDefaultCells(chunk.size.x * chunk.size.z)
         )
+        // chunk.timers.stop()
+        return resp
+    }
+
+    getOrCreateDefaultCells(cells_count : int) : any[] {
+        if(this.defaylt_cells[cells_count]) {
+            return this.defaylt_cells[cells_count]
+        }
+        return this.defaylt_cells[cells_count] = Array(cells_count).fill(DEFAULT_CELL)
     }
 
 }

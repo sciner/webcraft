@@ -105,7 +105,7 @@ const DEFAULT_DENSITY_COEFF = {
 }
 
 const MAP_PRESETS = {
-    norm:                       new MapCellPreset('norm',               { chance: 7, relief: 4, mid_level: 6}),
+    norm:                       new MapCellPreset('norm',               { chance: 7, relief: 4, mid_level: 3}),
     small_mountains:            new MapCellPreset('small_mountains',    { chance: 4, relief: 48, mid_level: 8 }),
     high_noise:                 new MapCellPreset('high_noise',         { chance: 4, relief: 128, mid_level: 24 }),
     high_coarse_noise:          new MapCellPreset('high_coarse_noise',  { chance: 4, relief: 128, mid_level: 24 }),
@@ -248,10 +248,8 @@ export class TerrainMapManager2 {
 
     /**
      * Return cell preset
-     * @param { Vector } xz 
-     * @returns { MapCellPresetResult }
      */
-    getPreset(xz) {
+    getPreset(xz : Vector) : MapCellPresetResult {
 
         const RAD = 1000; // радиус области
         const TRANSITION_WIDTH = 256; // ширина перехода межу областью и равниной
@@ -308,7 +306,7 @@ export class TerrainMapManager2 {
 
     }
 
-    getMaxY(cell) {
+    getMaxY(cell) : int {
         const {relief, mid_level, op} = cell.preset;
         let val = (1 - DENSITY_AIR_THRESHOLD) * relief + mid_level * 2;
         if (op.max_height !== undefined) {
@@ -412,15 +410,6 @@ export class TerrainMapManager2 {
 
     }
 
-    /**
-     * @param {Vector} xyz
-     * @param {int} not_air_count
-     * @param {TerrainMapCell} cell
-     * @param {DensityParams} density_params
-     * @param {MapsBlockResult} block_result
-     * 
-     * @returns {MapsBlockResult}
-     */
     getBlock(xyz: Vector, not_air_count: number, cell: TerrainMapCell, density_params: DensityParams, block_result?: MapsBlockResult): MapsBlockResult {
 
         const dirt_layers = cell.biome.dirt_layers;
@@ -640,7 +629,7 @@ export class TerrainMapManager2 {
     }
 
     //
-    destroyAroundPlayers(players) {
+    destroyAroundPlayers(players) : int {
         let cnt_destroyed = 0;
         for(let map_addr of this.maps_cache.keys()) {
             let can_destroy = true;
@@ -656,6 +645,7 @@ export class TerrainMapManager2 {
             }
         }
         // console.log('destroyAroundPlayers', this.maps_cache.size, TerrainMapManager2.maps_in_memory)
+        return cnt_destroyed
     }
 
 }

@@ -1,8 +1,15 @@
+import type { ChunkWorkerChunk } from "../../../worker/chunk";
+import type { Default_Terrain_Map } from "../../default";
+
 /**
  * Generate underworld infinity air
  */
 export default class Biome3LayerAir {
-    [key: string]: any;
+    generator: any;
+    noise2d: any;
+    noise3d: any;
+    block_manager: any;
+    maps: Map<any, any>;
 
     /**
      * @param { import("../index.js").default } generator
@@ -18,7 +25,7 @@ export default class Biome3LayerAir {
 
     }
 
-    generate(chunk, seed, rnd) {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {
 
         return this.generator.generateDefaultMap(chunk)
 

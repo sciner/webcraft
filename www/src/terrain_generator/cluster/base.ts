@@ -366,6 +366,7 @@ export class ClusterBase {
     }
 
     /**
+     * @deprecated see drawAutoBasement
      * @param chunk 
      * @param pos 
      * @param size - y may be negative. It means "draw below pos.y"
