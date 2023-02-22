@@ -659,9 +659,9 @@ export class ServerWorld implements IWorld {
     }
 
     // Create drop items
-    async createDropItems(player, pos, items, velocity) {
+    createDropItems(player : ServerPlayer | undefined, pos : Vector, items, velocity : Vector) {
         try {
-            const drop_item = await DropItem.create(this, pos, items, velocity);
+            const drop_item = DropItem.create(this, pos, items, velocity);
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
@@ -711,7 +711,7 @@ export class ServerWorld implements IWorld {
     }
 
     //
-    async applyActions(server_player : ServerPlayer, actions : WorldAction) {
+    async applyActions(server_player : ServerPlayer | undefined, actions : WorldAction) {
         const chunks_packets = new VectorCollector();
         const bm = this.block_manager
         //
@@ -767,7 +767,7 @@ export class ServerWorld implements IWorld {
         // Create drop items
         if (actions.drop_items && actions.drop_items.length > 0) {
             for (let di of actions.drop_items) {
-                if (di.force || server_player.game_mode.isSurvival()) {
+                if (di.force || server_player && server_player.game_mode.isSurvival()) {
                     // Add velocity for drop item
                     this.temp_vec = this.temp_vec.set(
                         Math.random() - Math.random(),
