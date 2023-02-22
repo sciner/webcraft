@@ -904,27 +904,17 @@
 
 #ifdef torch_flame
 
+    // vec3 cam_period6 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    // vec2 bpos6 = round(v_world_pos.xy + cam_period6.xy);
+    // float add_time6 = (bpos6.x * 10. + bpos6.y * 10.);
+    float iTime = ((u_time /*+ add_time */) / 1000.);
+
     float flame_frame = .6;
     float tex_scale = 128.;
-    float iTime = (u_time / 1000.);
     vec2 uv = v_texcoord0;
     vec2 flame_pixelate = vec2(5., 1.) * 96.;
     uv = vec2(mod(uv.x * tex_scale, 1.) / 5. + flame_frame, mod(uv.y * -tex_scale, 1.));
     uv = round(uv * flame_pixelate) / flame_pixelate;
-
-    // vec2 q = uv;
-    // q.x *= 5.;
-    // q.y *= 3.;
-    // float strength = floor(q.x+1.);
-    // float T3 = max(3.,1.25*strength)*(iTime / 1.5);
-    // q.x = mod(q.x,1.)-0.5;
-    // q.y -= 0.25;
-    // float n = tf_fbm(strength*q - vec2(0,T3));
-    // float c = 1. - 256. * pow( max( 0., length(q*vec2(1.2+q.y*1.5,.75) ) - n * max( 0., q.y+.2 ) ),1.2 );
-    // //  float c1 = n * c * (1.5-pow(1.25*uv.y,4.));
-    // float c1 = n * c * (1.5-pow(1.250*uv.y,4.));
-    // c1=clamp(c1,0.,1.);
-    // vec3 col = vec3(1.5*c1, 1.5*c1*c1*c1, c1*c1*c1*c1*c1*c1);
 
     vec2 q = uv;
     q.x *= 5.;
@@ -943,8 +933,6 @@
     // col = 0.85*col.yxz; // green flame
 
     float a = c * (1. - pow(uv.y, 3.));
-    // color.rgb = vec3( mix(vec3(0.),col, a)); // without alpha
-    // color.rgb = vec3( mix(vec3(0.),col, 1.)); // with alpha
     color.rgba = vec4(mix(vec3(0.), col, a), a);
 
 #endif
