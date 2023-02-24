@@ -18,7 +18,7 @@ import { Biomes } from "./terrain_generator/biome3/biomes.js";
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
-export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1'];
+export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2', 'decal3', 'decal4'];
 
 const CC = [
     {x:  0, y:  1, z:  0},
