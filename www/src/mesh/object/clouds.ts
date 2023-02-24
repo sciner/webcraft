@@ -78,7 +78,7 @@ export default class Mesh_Object_Clouds {
             WEST: null,
             EAST: null
         };
-        const clouds_3d = false;
+        const clouds_3d = true;
         const y = 0;
         for(let x = 0; x < aabb.x_max; x++) {
             for(let z = 0; z < aabb.z_max; z++) {
