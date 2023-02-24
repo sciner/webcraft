@@ -69,6 +69,8 @@ for(let i = 0; i < randoms.length; i++) {
     randoms[i] = Math.round(a.double() * 100);
 }
 
+const DECAL_MATERIAL_KEYS = []
+
 export default class style {
     [key: string]: any;
 
@@ -76,6 +78,12 @@ export default class style {
 
     static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
+        DECAL_MATERIAL_KEYS.push(
+            block_manager.DECAL1.material_key,
+            block_manager.DECAL2.material_key,
+            block_manager.DECAL3.material_key,
+            block_manager.DECAL4.material_key,
+        )
         return new BlockStyleRegInfo(
             ['cube', 'default'],
             this.func,
@@ -614,7 +622,10 @@ export default class style {
 
         for(let i = 0; i < nbrs.length; i++) {
             const n = nbrs[i]
-            if(n && n.material.texture_decals) {
+            if(!n || n.id == center_material.id) {
+                continue
+            }
+            if(n.material.texture_decals) {
                 if(center_material_have_decals && n.id < center_material.id) {
                     continue;
                 }
@@ -628,6 +639,7 @@ export default class style {
             }
         }
 
+        let dmki = 0
         for(let item of decal_materials.values()) {
             const list = item.list
             const mat = item.material
@@ -672,7 +684,8 @@ export default class style {
             side_decals.up.set(t, flags, 0, lm, decal_axes_up, false);
             pushAABB(vert, _aabb, pivot, matrix, side_decals, _center.set(x, y, z));
             // TODO: take material from grass and change to decal1
-            emmited_blocks.push(new FakeVertices(bm.DECAL1.material_key, vert))
+            const material_key = DECAL_MATERIAL_KEYS[dmki++]
+            emmited_blocks.push(new FakeVertices(material_key, vert))
         }
     
     }

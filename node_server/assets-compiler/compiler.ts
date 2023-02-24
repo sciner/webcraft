@@ -244,7 +244,7 @@ export class Compiler {
                                 img.texture = temp;
                             }
                             //
-                            if(block.name == BLOCK_NAMES.DIRT) {
+                            if(block.name == BLOCK_NAMES.DIRT && property_name == 'texture') {
                                 dirt_image = img.texture;
                             }
                             //
@@ -364,7 +364,7 @@ export class Compiler {
                     }
                 };
 
-                await opTextures(block, 'texture');
+                await opTextures(block, 'texture', 'texture');
 
                 for(let tv of ['texture_variants', 'texture_decals']) {
                     if(tv in block) {

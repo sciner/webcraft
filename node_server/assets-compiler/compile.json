@@ -398,6 +398,39 @@
             "spawnable": true
         },
         {
+            "id": -5,
+            "name": "DECAL4",
+            "spawnable": false,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "bedrock"
+            },
+            "group": "decal4",
+            "texture": "block/anvil.png"
+        },
+        {
+            "id": -4,
+            "name": "DECAL3",
+            "spawnable": false,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "bedrock"
+            },
+            "group": "decal3",
+            "texture": "block/anvil.png"
+        },
+        {
+            "id": -3,
+            "name": "DECAL2",
+            "spawnable": false,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "bedrock"
+            },
+            "group": "decal2",
+            "texture": "block/anvil.png"
+        },
+        {
             "id": -2,
             "name": "DECAL1",
             "spawnable": false,
@@ -454,6 +487,13 @@
             ]},
             "texture": {
                 "side": "block/dirt.png"
+            },
+            "texture_decals": {
+                "1": "block/decals/dirt/1.png",
+                "corner": "block/decals/dirt/corner.png",
+                "3": "block/decals/dirt/3.png",
+                "all": "block/decals/dirt/all.png",
+                "opposite": "block/decals/dirt/opposite.png"
             }
         },
         {
