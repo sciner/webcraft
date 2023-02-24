@@ -1307,7 +1307,14 @@
                     "name":"GRAVEL"
                 }
             ],
-            "texture": "block/gravel.png"
+            "texture": "block/gravel.png",
+            "texture_decals": {
+                "1": "block/decals/gravel/1.png",
+                "corner": "block/decals/gravel/corner.png",
+                "3": "block/decals/gravel/3.png",
+                "all": "block/decals/gravel/all.png",
+                "opposite": "block/decals/gravel/opposite.png"
+            }
         },
         {
             "id": 6,
