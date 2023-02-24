@@ -1,22 +1,17 @@
 import { PLAYER_RADIUS } from "./constant.js";
 import { AABB } from "./core/AABB.js";
-import { Vector } from "./helpers.js";
 
-export class AbstractPlayerManager {
-    [key: string]: any;
+export class AbstractPlayerManager<WorldT extends IWorld, PlayerT extends IPlayerOrModel> {
 
-    #world;
+    #world: WorldT
+    list: Map<int, PlayerT>
 
-    constructor(world) {
+    constructor(world: WorldT) {
         this.#world = world
         this.list = new Map()
     }
 
-    /**
-     * @param {Vector} vec
-     * @returns { object[] }
-     */
-    *eachContainingVec(vec) {
+    *eachContainingVec(vec: IVector): IterableIterator<PlayerT> {
         const aabb = new AABB();
         for(const player of this.list.values()) {
             // on the client, isAlive doesn't work for player model
@@ -32,59 +27,51 @@ export class AbstractPlayerManager {
     /**
      * @yields all entries [user_id, player]
      */
-    *all() {
+    *all(): IterableIterator<[int, PlayerT]> {
         yield *this.list.entries();
     }
 
     /** @yields all players */
-    *values() {
+    *values(): IterableIterator<PlayerT> {
         yield *this.list.values();
     }
 
-    get world() {
+    get world(): WorldT {
         return this.#world
     }
 
     /**
      * Return total player count
-     * @returns {int}
      */
-    get count() {
+    get count(): int {
         return this.list.size
     }
 
     /**
      * Return player by following user_id
-     * @param {int} user_id
-     * @returns
      */
-    get(user_id) {
+    get(user_id: int): PlayerT {
         return this.list.get(user_id) ?? null
     }
 
     /**
      * Return true if player exists by following user_id
-     * @param {int} user_id
-     * @returns {boolean}
      */
-    exists(user_id) {
+    exists(user_id: int): boolean {
         return this.list.has(user_id)
     }
 
     /**
      * Delete player from list by following user_id
-     * @param {int} user_id
-     * @returns {boolean}
      */
-    delete(user_id) {
+    delete(user_id: int): boolean {
         return this.list.delete(user_id)
     }
 
     /**
      * Return all players user_id array
-     * @returns {int[]}
      */
-    keys() {
+    keys(): int[] {
         return Array.from(this.list.keys())
     }
 

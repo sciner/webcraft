@@ -2,36 +2,38 @@ import { MOUSE, PLAYER_STATUS } from "../www/src/constant.js";
 import { Vector } from "../www/src/helpers.js";
 import { ServerClient } from "../www/src/server_client.js";
 import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
-import { DBWorldMob } from "./db/world/mob.js"
+import { DBWorldMob, MobRow } from "./db/world/mob.js"
 import { AABB } from "../www/src/core/AABB.js";
 import type { ServerWorld } from "./server_world.js";
 import type { FSMBrain } from "./fsm/brain.js";
 import { EnumDamage } from "../www/src/enums/enum_damage.js";
+import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
+import type { Indicators } from "../www/src/player.js";
+import type { ServerPlayer } from "./server_player.js";
+import { upgradeToNewIndicators } from "./db/world.js";
 
 export class MobSpawnParams {
 
-    /**
-     * @type { int }
-     */
-    id
-
-    /**
-     * @type { string }
-     */
-    entity_id
-    pos: any;
+    pos: Vector;
     pos_spawn: Vector;
     rotate: Vector;
-    type: any;
-    skin: any;
+    type: string;
+    skin: string;
+
+    // These values are added by WorldMobManager.create
+    id?: int
+    entity_id?: string
+
+    // These values are added to params by the mob itself
+    extra_data?: any;
+    indicators?: Indicators;
+    is_active?: boolean | int; // 0 or 1
 
     /**
-     * @param {Vector} pos 
-     * @param {Vector} rotate 
      * @param {string} type Model of mob
      * @param {string} skin Model skin id
      */
-    constructor(pos, rotate, type, skin) {
+    constructor(pos: Vector, rotate: Vector, type: string, skin: string) {
         this.pos = new Vector(pos)
         this.pos_spawn = new Vector(pos)
         this.rotate = new Vector(rotate)
@@ -61,9 +63,8 @@ export class MobState {
 
     /**
      * Compare
-     * @param {MobState} state 
      */
-    equal(state) {
+    equal(state: MobState): boolean {
         if (this.pos.equal(state.pos)) {
             if (this.rotate.equal(state.rotate)) {
                 if(JSON.stringify(this.extra_data) == JSON.stringify(state.extra_data)) {
@@ -97,12 +98,12 @@ export class Mob {
      * @type { MobState }
      */
     #prev_state;
-    id: any;
-    entity_id: any;
-    type: any;
-    skin: any;
-    indicators: any;
-    is_active: any;
+    id: int;
+    entity_id: string;
+    type: string;
+    skin: string;
+    indicators: Indicators;
+    is_active?: boolean | int;
     pos: Vector;
     pos_spawn: Vector;
     rotate: Vector;
@@ -110,13 +111,14 @@ export class Mob {
     dirtyFlags: number;
     chunk_addr_o: Vector;
     width: number;
-    height: any;
+    height: number;
     lastSavedTime: number;
     lastSavedPos: Vector;
     _aabb: AABB;
-    already_killed: any;
+    already_killed?: boolean | int;
+    death_time?: number;
 
-    constructor(world : ServerWorld, params, existsInDB) {
+    constructor(world : ServerWorld, params: MobSpawnParams, existsInDB: boolean) {
 
         this.#world         = world;
 
@@ -129,7 +131,7 @@ export class Mob {
         this.is_active      = params.is_active;
         this.pos            = new Vector(params.pos);
 
-        // In the old DBWorldMob.create, there was 
+        // In the old DBWorldMob.create, there was
         //   ':pos_spawn':       JSON.stringify(params.pos),
         // Preserve this semantics if (params.pos_spawn == null)
         this.pos_spawn      = new Vector(params.pos_spawn ?? params.pos);
@@ -189,7 +191,7 @@ export class Mob {
     /**
      * Create new mob
      */
-    static create(world : ServerWorld, params) : Mob {
+    static create(world : ServerWorld, params: MobSpawnParams) : Mob {
         const model = world.models.list.get(params.type);
         if(!model) {
             throw `Can't locate model for create: ${params.type}`;
@@ -216,22 +218,15 @@ export class Mob {
         return new Mob(world, params, false);
     }
 
-    /**
-     * @param {float} delta 
-     * @returns 
-     */
-    tick(delta) {
-        if(this.indicators.live.value == 0) {
-            return false;
+    tick(delta: float): void {
+        if(this.indicators.live == 0) {
+            return;
         }
         //
         this.#brain.tick(delta);
     }
 
-    /**
-     * @param {Vector} vec 
-     */
-    addVelocity(vec) {
+    addVelocity(vec: Vector) {
         this.#brain.pc.player_state.vel.addSelf(vec);
         this.#brain.pc.tick(0);
     }
@@ -271,32 +266,32 @@ export class Mob {
         this.#world.mobs.add(this);
         chunk.mobs.set(this.id, this); // or should we call chunk.addMob(this) ?
     }
-    
+
     setDamage(val : number, type_damage? : EnumDamage, actor?) {
         this.#brain.onDamage(val, type_damage, actor);
     }
-    
+
     setUseItem(item_id, actor) {
         return this.#brain.onUse(actor, item_id);
     }
 
-    punch(server_player, params) {
+    punch(server_player: ServerPlayer, params) {
         if(params.button_id == MOUSE.BUTTON_RIGHT) {
             this.#brain.onUse(server_player, server_player.state.hands.right.id);
         } else if(params.button_id == MOUSE.BUTTON_LEFT) {
-            if(this.indicators.live.value > 0) {
+            if(this.indicators.live > 0) {
                 this.#brain.onDamage(5, EnumDamage.PUNCH, server_player);
             }
         }
     }
 
     // Kill
-    kill() {
+    kill(): void {
         if(this.already_killed) {
-            return false;
+            return;
         }
         this.already_killed = true;
-        this.indicators.live.value = 0;
+        this.indicators.live = 0;
         this.extra_data.is_alive = false;
         this.#brain.sendState();
     }
@@ -309,24 +304,16 @@ export class Mob {
         this.onUnload();
     }
 
-    /**
-     * @returns {boolean}
-     */
     get isAlive() : boolean {
-        return this.indicators.live.value > 0;
+        return this.indicators.live > 0;
     }
 
     // если игрока нет, он умер или сменил игровой режим на безопасный, то его нельзя атаковать
-    playerCanBeAtacked(player) {
+    playerCanBeAtacked(player?: ServerPlayer) {
         return !player || player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.getCurrent().can_take_damage;
     }
 
-    /**
-     * @param { import("./server_world.js").ServerWorld } world 
-     * @param {*} row 
-     * @returns {Mob}
-     */
-    static fromRow(world, row) {
+    static fromRow(world: ServerWorld, row: MobRow): Mob {
         return new Mob(world, {
             id:         row.id,
             rotate:     JSON.parse(row.rotate),
@@ -337,15 +324,11 @@ export class Mob {
             skin:       row.skin,
             is_active:  row.is_active != 0,
             extra_data: JSON.parse(row.extra_data),
-            indicators: JSON.parse(row.indicators)
+            indicators: upgradeToNewIndicators(JSON.parse(row.indicators))
         }, true);
     }
 
-    /**
-     * @param {boolean} return_diff 
-     * @returns {MobState}
-     */
-    exportState(return_diff = false) {
+    exportState(return_diff = false): MobState {
         const new_state = new MobState(this.id, this.pos, this.rotate, this.extra_data)
         if(return_diff && this.#prev_state) {
             if(new_state.equal(this.#prev_state)) {
@@ -358,12 +341,7 @@ export class Mob {
         return this.#prev_state = new_state
     }
 
-    /**
-     * @param {*} underConstruction 
-     * @param {boolean} force 
-     * @returns 
-     */
-    writeToWorldTransaction(underConstruction, force = false) {
+    writeToWorldTransaction(underConstruction: WorldTransactionUnderConstruction, force = false): void {
         const dirtyFlags = this.dirtyFlags;
         if (dirtyFlags & Mob.DIRTY_FLAG_SAVED_DEAD) {
             return;
@@ -388,22 +366,22 @@ export class Mob {
         this.lastSavedPos.copyFrom(this.pos);
 
         // common fields for all updates
-        const row = DBWorldMob.toUpdateRow(this);
+        const updateRow = DBWorldMob.toUpdateRow(this);
         if (!(dirtyFlags & (Mob.DIRTY_FLAG_NEW | Mob.DIRTY_FLAG_FULL_UPDATE))) {
-            underConstruction.updateMobRows.push(row);
+            underConstruction.updateMobRows.push(updateRow);
             return;
         }
 
         // common fields for full update and insert
-        DBWorldMob.upgradeRowToFullUpdate(row, this);
+        const fullUpdateRow = DBWorldMob.upgradeRowToFullUpdate(updateRow, this);
         if (!(dirtyFlags & Mob.DIRTY_FLAG_NEW)) {
-            underConstruction.fullUpdateMobRows.push(row);
+            underConstruction.fullUpdateMobRows.push(fullUpdateRow);
             return;
         }
 
         // insert
-        DBWorldMob.upgradeRowToInsert(row, this);
-        underConstruction.insertMobRows.push(row);
+        const insertRow = DBWorldMob.upgradeRowToInsert(fullUpdateRow, this);
+        underConstruction.insertMobRows.push(insertRow);
     }
 
 }

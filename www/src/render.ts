@@ -60,6 +60,8 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 export class Renderer {
     [key: string]: any;
 
+    world: World;
+
     constructor(qubatchRenderSurfaceId) {
         this.xrMode             = false;
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);

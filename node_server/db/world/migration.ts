@@ -1,14 +1,16 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/src/chunk_const.js";
+import type { Indicators } from "../../../www/src/player.js";
 import type { ServerWorld } from "../../server_world.js";
+import type { DBWorld } from "../world.js";
 
 // Migrations
 export class DBWorldMigration {
-    db: any;
+    db: DBConnection;
     world: ServerWorld;
     getDefaultPlayerStats: any;
-    getDefaultPlayerIndicators: any;
+    getDefaultPlayerIndicators: () => Indicators;
 
-    constructor(db, world, getDefaultPlayerStats, getDefaultPlayerIndicators) {
+    constructor(db: DBConnection, world: ServerWorld, getDefaultPlayerStats, getDefaultPlayerIndicators: () => Indicators) {
         this.db = db;
         this.world = world;
         this.getDefaultPlayerStats = getDefaultPlayerStats;
@@ -36,7 +38,7 @@ export class DBWorldMigration {
             chunk_x = cast(floor(cast(x as float) / ${CHUNK_SIZE_X}.) as integer),
             chunk_y = cast(floor(cast(y as float) / ${CHUNK_SIZE_Y}.) as integer),
             chunk_z = cast(floor(cast(z as float) / ${CHUNK_SIZE_Z}.) as integer),
-                "index" = 
+                "index" =
                     (${CHUNK_SIZE_X}. * ${CHUNK_SIZE_Z}.) *
                         ((y - floor(cast(y as float) / ${CHUNK_SIZE_Y}.) * ${CHUNK_SIZE_Y}.) % ${CHUNK_SIZE_Y}.) +
                         (((z - floor(cast(z as float) / ${CHUNK_SIZE_Z}.) * ${CHUNK_SIZE_Z}.) % ${CHUNK_SIZE_Z}.) * ${CHUNK_SIZE_X}.) +
@@ -46,7 +48,7 @@ export class DBWorldMigration {
 
             `WITH chunks AS (select distinct chunk_x, chunk_y, chunk_z from world_modify)
             INSERT INTO world_modify_chunks(x, y, z, data)
-            select chunk_x, chunk_y, chunk_z, (SELECT  
+            select chunk_x, chunk_y, chunk_z, (SELECT
                 json_group_object(cast(m."index" as TEXT),
                 json_patch(
                     'null',
@@ -886,6 +888,11 @@ export class DBWorldMigration {
             'CREATE INDEX world_modify_chunk_xyz_index ON world_modify (chunk_x, chunk_z, chunk_y, "index")',
             // there was int32 overflow in delayed_calls times
             'UPDATE chunk SET delayed_calls = NULL'
+        ]});
+
+        migrations.push({version: 93, queries: [
+            // TODO after some time, remove other colums that are included in the state
+            'ALTER TABLE user ADD COLUMN state TEXT DEFAULT NULL'
         ]});
 
         for(let m of migrations) {

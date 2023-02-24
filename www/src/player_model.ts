@@ -7,6 +7,8 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
+import type { ArmorState, PlayerHands, PlayerStateUpdate } from "./player.js";
+import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 
 const { quat } = glMatrix;
 const SWING_DURATION = 6;
@@ -103,21 +105,26 @@ export class PlayerAnimation extends MobAnimation {
 }
 
 // An adapter that allows using ServerPlayer and PlayerModel in the same way
-class PlayerModelSharedProps {
-    [key: string]: any;
-    constructor(playerModel) {
+class PlayerModelSharedProps implements IPlayerSharedProps {
+    p: PlayerModel;
+
+    constructor(playerModel: PlayerModel) {
         this.p = playerModel;
     }
 
     // We don't know if it's alive on the client, so we assume if the model exists, than it is
-    get isAlive() : boolean  { return true; }
-    get pos()       { return this.p.pos; }
-    get user_id()   { return this.p.id; }
-    get sitting()   { return this.p.sitting; }
+    get isAlive()   : boolean   { return true; }
+    get pos()       : Vector    { return this.p.pos; }
+    get user_id()   : int       { return this.p.id; }
+    get sitting()   : boolean   { return this.p.sitting; }
 }
 
-export class PlayerModel extends MobModel {
+export class PlayerModel extends MobModel implements IPlayerOrModel {
     [key: string]: any;
+
+    sharedProps: PlayerModelSharedProps
+    armor: ArmorState
+    height: number
 
     constructor(props) {
         super({type: 'player', skin: '1', ...props});
@@ -135,7 +142,7 @@ export class PlayerModel extends MobModel {
         this.username = props.username;
 
         this.head = null;
-        this.health = 1;
+        this.health = props.health;
 
         this.animationScript = new PlayerAnimation();
 
@@ -155,13 +162,13 @@ export class PlayerModel extends MobModel {
         this.sharedProps = new PlayerModelSharedProps(this);
     }
 
-    applyNetState(state) {
+    applyNetState(state: NetworkPhysicObjectState & { hands: PlayerHands }) {
         super.applyNetState(state);
 
         this.changeSlots(state.hands);
     }
 
-    changeSlots(data) {
+    changeSlots(data: PlayerHands) {
         this.activeSlotsData = data;
 
         if (this.sceneTree && this.activeSlotsData) {
@@ -418,17 +425,8 @@ export class PlayerModel extends MobModel {
         this.animationScript.swingProgress = this.swingProgress;
     }
 
-    /**
-     * @param {Vector} pos
-     * @param {Vector} rotate
-     * @param {boolean} sneak
-     * @param {boolean} moving
-     * @param {boolean} running
-     * @param {*} hands
-     * @param {boolean} lies
-     * @param {boolean} sitting
-     */
-    setProps(pos, rotate, sneak, moving, running, hands, lies, sitting, health) {
+    setProps(pos: Vector, rotate: Vector, sneak: boolean, moving: boolean, running: boolean,
+        hands: PlayerHands, lies: boolean, sitting: boolean, health?: number): void {
         this.pos.copyFrom(pos);
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate

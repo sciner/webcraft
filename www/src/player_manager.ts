@@ -1,11 +1,12 @@
 import {PlayerModel} from "./player_model.js";
 import {ServerClient} from "./server_client.js";
 import {AbstractPlayerManager} from "./abstract_player_manager.js";
+import type { PlayerStateUpdate } from "./player.js";
+import type { World } from "./world.js";
 
-export class PlayerManager extends AbstractPlayerManager {
-    [key: string]: any;
+export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
 
-    constructor(world) {
+    constructor(world: World) {
         super(world)
     }
 
@@ -30,7 +31,7 @@ export class PlayerManager extends AbstractPlayerManager {
     }
 
     // addPlayer
-    add(cmd) {
+    add(cmd: {data: PlayerStateUpdate, time: number}) {
         const data = cmd.data;
         const player = new PlayerModel({
             id:             data.id,
@@ -40,6 +41,7 @@ export class PlayerManager extends AbstractPlayerManager {
             skin:           data.skin,
             username:       data.username,
             type:           data.type || 'player',
+            health:         data.health
         });
 
         player.world = this.world;
@@ -49,8 +51,11 @@ export class PlayerManager extends AbstractPlayerManager {
         player.netBuffer.length = 0;
     }
 
-    // setPlayerState
-    setState(cmd) {
+    /**
+     * Sets the state of {@link PlayerModel} of another player
+     * (or possibly also of this player?)
+     */
+    setState(cmd: {data: PlayerStateUpdate, time: number}) {
 
         const {
             data, time,

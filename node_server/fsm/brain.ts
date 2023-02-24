@@ -4,7 +4,7 @@ import { Vector } from "../../www/src/helpers.js";
 import { ServerClient } from "../../www/src/server_client.js";
 import { Raycaster } from "../../www/src/Raycaster.js";
 import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";
-import { Mob } from "../mob.js";
+import type { Mob } from "../mob.js";
 import { EnumDamage } from "../../www/src/enums/enum_damage.js";
 // import { EnumDifficulty } from "../../www/src/enums/enum_difficulty.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fluid/FluidConst.js";
@@ -48,10 +48,7 @@ export class FSMBrain {
     is_gate: boolean;
     targets: any;
 
-    /**
-     * @param {Mob} mob
-     */
-    constructor(mob) {
+    constructor(mob: Mob) {
         this.mob = mob;
         this.stack = new FSMStack();
         this.raycaster = new Raycaster(mob.getWorld());
@@ -83,7 +80,7 @@ export class FSMBrain {
         this.#chunk_addr = Vector.toChunkAddr(this.mob.pos, this.#chunk_addr);
         const chunk = world.chunks.get(this.#chunk_addr);
         if (chunk && chunk.isReady()) {
-            this.onLive();            
+            this.onLive();
             const stateFunctionUsed = this.stack.tick(delta, this);
             if (stateFunctionUsed) {
                 this.addStat(stateFunctionUsed.name, true);
@@ -158,10 +155,8 @@ export class FSMBrain {
 
     /**
      * На этом месте можно стоять?
-     * @param {Vector} position 
-     * @returns {boolean}
      */
-    isStandAt(position) {
+    isStandAt(position: Vector): boolean {
         const pos = position.floored();
         const world = this.mob.getWorld()
         let block = world.getBlock(pos);
@@ -271,8 +266,7 @@ export class FSMBrain {
         this.mob.extra_data.time_fire = this.time_fire;
         // регенерация жизни
         if (this.timer_health >= 10 * MUL_1_SEC) {
-            const live = mob.indicators.live;
-            live.value = Math.min(live.value + 1, this.health);
+            mob.indicators.live = Math.min(mob.indicators.live + 1, this.health);
             this.timer_health = 0;
         } else {
             this.timer_health++;
@@ -449,14 +443,13 @@ export class FSMBrain {
     onDamage(val : number, type_damage : EnumDamage, actor) {
         const mob = this.mob;
         const world = mob.getWorld();
-        const live = mob.indicators.live;
         if (actor) {
             const velocity = mob.pos.sub(actor.state.pos).normSelf();
             velocity.y = 0.4;
             mob.addVelocity(velocity);
         }
-        live.value -= val;
-        if (live.value <= 0) {
+        mob.indicators.live -= val;
+        if (mob.indicators.live <= 0) {
             mob.kill();
             this.onKill(actor, type_damage);
         } else {

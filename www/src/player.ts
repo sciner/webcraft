@@ -19,6 +19,8 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
+import type { World } from "./world.js";
+import type { PLAYER_SKIN_TYPES } from "./constant.js"
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -31,28 +33,120 @@ const ATTACK_PROCESS_NONE = 0;
 const ATTACK_PROCESS_ONGOING = 1;
 const ATTACK_PROCESS_FINISHED = 2;
 
+export type Indicators = {
+    live: number
+    food: number
+    oxygen: number
+}
+
+export type PlayerStats = {
+    death: int
+    time: number
+    pickat: number
+    distance: number
+}
+
+export type PlayerSkin = {
+    /** Skin id in the DB */
+    id: int
+    /** One of {@link PLAYER_SKIN_TYPES} */
+    type: int
+    file: string
+}
+
+type PlayerHand = {
+    id: int | null
+}
+
+export type PlayerHands = {
+    left    : PlayerHand
+    right   : PlayerHand
+}
+
+export type ArmorState = {
+    head ? : int
+    body ? : int
+    leg  ? : int
+    boot ? : int
+}
+
+/** A part of {@link PlayerState} that is also sent in {@link PlayerStateUpdate} */
+type PlayerStateDynamicPart = {
+    pos         : Vector
+    rotate      : Vector
+    lies ?      : boolean
+    sitting ?   : boolean
+    sneak ?     : boolean
+    hands       : PlayerHands
+}
+
+/** Fields that are saved together into DB in user.state field. */
+export type PlayerState = PlayerStateDynamicPart & {
+    pos_spawn   : Vector
+    indicators  : Indicators
+    chunk_render_dist : int
+    game_mode ? : string
+    stats       : PlayerStats
+}
+
+export type PlayerStateUpdate = PlayerStateDynamicPart & {
+    id          : number
+    username    : string
+    armor       : ArmorState
+    health      : number
+    skin        : PlayerSkin
+    /** it's never set. It's just checked, and if it's not defined, 'player' type is used. */
+    type ?
+    dist ?      : number
+}
+
+export type PlayerConnectData = {
+    session     : PlayerSession
+    state       : PlayerState
+    skin        : PlayerSkin
+    status      : PLAYER_STATUS
+    inventory : {
+        current
+        items
+    }
+}
+
+export class PlayerSharedProps implements IPlayerSharedProps {
+    p: Player
+
+    constructor(player: Player) {
+        this.p = player;
+    }
+
+    get isAlive() : boolean { return this.p.state.indicators.live != 0; }
+    get user_id() : int     { return this.p.session.user_id; }
+    get pos()     : Vector  { return this.p.state.pos; }
+    get sitting() : boolean { return this.p.state.sitting; }
+}
+
 // Creates a new local player manager.
 export class Player implements IPlayer {
 
+    sharedProps :               IPlayerSharedProps;
     chat :                      Chat
     render:                     Renderer;
-    world :                     any
+    world :                     World
     options:                    any;
     game_mode:                  GameMode;
-    inventory:                  any // PlayerInventory | ServerPlayerInventory;
+    inventory:                  PlayerInventory;
     pr_spectator:               SpectatorPlayerControl;
     controls:                   PlayerControl;
     windows:                    PlayerWindowManager;
     pickAt:                     PickAt;
     arm:                        PlayerArm;
-    session:                    any
-        
+    session:                    PlayerSession;
+    skin:                       PlayerSkin;
     #forward:                   Vector = new Vector(0, 0, 0);
     inAttackProcess:            number;
     scale:                      number = PLAYER_ZOOM;
     current_state:              { rotate: Vector; pos: Vector; sneak: boolean; ping: number; };
     effects:                    any;
-    status:                     number;
+    status:                     PLAYER_STATUS;
 
     pos:                        Vector;
     prevPos:                    Vector;
@@ -66,7 +160,7 @@ export class Player implements IPlayer {
     rotate:                     Vector = new Vector(0, 0, 0)
     #_rotateDegree:             Vector = new Vector(0, 0, 0)
 
-    //      
+    //
     inMiningProcess:            boolean = false;
     inItemUseProcess:           boolean = false;
     falling:                    boolean = false; // падает
@@ -81,8 +175,8 @@ export class Player implements IPlayer {
 
     //
     headBlock:                  any = null;
-    state:                      any;
-    indicators:                 any;
+    state:                      PlayerState;
+    indicators:                 Indicators;
     lastBlockPos:               any;
     xBob:                       any;
     yBob:                       any
@@ -137,7 +231,11 @@ export class Player implements IPlayer {
         };
         this.effects = {effects:[]}
         this.status = PLAYER_STATUS.WAITING_DATA;
+        this.sharedProps = this._createSharedProps();
     }
+
+    /** A protected factory method that creates {@link IPlayerSharedProps} of the appropriate type */
+    _createSharedProps(): IPlayerSharedProps { return new PlayerSharedProps(this); }
 
     // возвращает уровень эффекта
     getEffectLevel(val) {
@@ -164,12 +262,13 @@ export class Player implements IPlayer {
     }
 
     // playerConnectedToWorld...
-    playerConnectedToWorld(data) {
+    playerConnectedToWorld(data: PlayerConnectData) {
         //
         this.session                = data.session;
         this.state                  = data.state;
         this.status                 = data.status;
         this.indicators             = data.state.indicators;
+        this.skin                   = data.skin;
         // Game mode
         this.game_mode              = new GameMode(this, data.state.game_mode);
         this.game_mode.onSelect     = (mode) => {
@@ -268,8 +367,8 @@ export class Player implements IPlayer {
             this.posO                           = new Vector(pos);
             this.prevPos                        = new Vector(pos);
         });
-        this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
-            if (this.indicators.live.value > cmd.data.indicators.live.value) {
+        this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd : {data: {indicators: Indicators}}) => {
+            if (this.indicators.live > cmd.data.indicators.live) {
                 Qubatch.hotbar.last_damage_time = performance.now();
             }
             this.indicators = cmd.data.indicators;
@@ -354,7 +453,7 @@ export class Player implements IPlayer {
     }
 
     get isAlive() : boolean {
-        return this.indicators.live.value > 0;
+        return this.indicators.live > 0;
     }
 
     // Return player is sneak
