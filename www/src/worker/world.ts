@@ -3,6 +3,7 @@ import { VectorCollector, Vector, getChunkAddr, PerformanceTimer } from "../help
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
+import type { GameSettings } from "../game.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
 const DEBUG_CHUNK_GEN_TIMERS = false
@@ -40,14 +41,14 @@ export class WorkerWorldManager {
         return terrainGenerators;
     }
 
-    async add(g, seed, world_id) {
+    async add(g, seed, world_id, settings : GameSettings) {
         const generator_options = g?.options || {};
         const generator_id = g.id;
         const key = generator_id + '/' + seed;
         if(this.all.has(key)) {
             return this.all.get(key);
         }
-        const world = new WorkerWorld(this.block_manager);
+        const world = new WorkerWorld(this.block_manager, settings);
         const generator_class = this.terrainGenerators.get(generator_id);
         await world.init(seed, world_id, generator_class, generator_options)
         this.all.set(key, world);
@@ -84,13 +85,16 @@ export class WorkerWorldManager {
 export class WorkerWorld {
     [key: string]: any;
 
+    settings : GameSettings = null
+
     totalChunkTimers = DEBUG_CHUNK_GEN_TIMERS ? new PerformanceTimer() : null
 
     /**
      * @param { BLOCK } block_manager
      */
-     constructor(block_manager: BLOCK) {
+     constructor(block_manager: BLOCK, settings : GameSettings) {
         this.block_manager = block_manager
+        this.settings = settings
         this.chunks = new VectorCollector();
         this.genQueue = new ChunkWorkQueue(this);
         this.buildQueue = null;

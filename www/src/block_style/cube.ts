@@ -32,6 +32,32 @@ const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
 const _sideParams = new TCalcSideParamsResult()
 
+// overlay texture temp objects
+class OverlayTextureItem{
+    list: boolean[] = [false, false, false, false]
+    count: int
+    material: IBlockMaterial
+    constructor() {
+        this.reset()
+    }
+    reset() {
+        this.list[0] = false
+        this.list[1] = false
+        this.list[2] = false
+        this.list[3] = false
+        this.count = 0
+        this.material = null
+    }
+}
+const _overlay = {
+    materials: new Map(),
+    neightbours: [null, null, null, null] as TBlock[],
+    items: [new OverlayTextureItem(), new OverlayTextureItem(), new OverlayTextureItem(), new OverlayTextureItem()] as OverlayTextureItem[],
+    sides: {
+        up: new AABBSideParams()
+    }
+}
+
 export const LEAVES_COLOR_FLAGS = [
     new IndexedColor(28, 540, 0), // pink
     new IndexedColor(20, 524, 0), // orange
@@ -50,9 +76,6 @@ const _sides = {
     west: new AABBSideParams(),
     east: new AABBSideParams()
 }
-const side_decals = {
-    up: new AABBSideParams()
-}
 
 // @IMPORTANT!: No change order, because it very important for uvlock blocks
 const UP_AXES = [
@@ -69,7 +92,7 @@ for(let i = 0; i < randoms.length; i++) {
     randoms[i] = Math.round(a.double() * 100);
 }
 
-const DECAL_MATERIAL_KEYS = []
+const OVERLAY_TEXTURE_MATERIAL_KEYS = []
 
 export default class style {
     [key: string]: any;
@@ -78,11 +101,9 @@ export default class style {
 
     static getRegInfo(block_manager : BlockManager) : BlockStyleRegInfo {
         style.block_manager = block_manager
-        DECAL_MATERIAL_KEYS.push(
+        OVERLAY_TEXTURE_MATERIAL_KEYS.push(
             block_manager.DECAL1.material_key,
             block_manager.DECAL2.material_key,
-            block_manager.DECAL3.material_key,
-            block_manager.DECAL4.material_key,
         )
         return new BlockStyleRegInfo(
             ['cube', 'default'],
@@ -539,12 +560,12 @@ export default class style {
         // Push vertices
         if(canDrawUP) {
             const {anim_frames, t, f} = calcSideParams('up', DIRECTION_UP, null, null);
-            sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV);
-            sides.up.shift_down = false
-
-            // decals
-            emmited_blocks = []
-            style.pushDecals(material, emmited_blocks, bm, chunk, x, y, z, neighbours, dirt_color, matrix, pivot)
+            sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
+            // overlay textures
+            if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
+                emmited_blocks = []
+                style.pushOverlayTextures(material, emmited_blocks, bm, chunk, x, y, z, neighbours, dirt_color, matrix, pivot)
+            }
 
         }
         if(canDrawDOWN) {
@@ -613,79 +634,96 @@ export default class style {
         return true
     }
 
-    static pushDecals(center_material : IBlockMaterial, emmited_blocks: any[], bm : BLOCK, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
+    static pushOverlayTextures(center_material : IBlockMaterial, emmited_blocks: any[], bm : BLOCK, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
 
-        // const decal_neighbours = []
-        const decal_materials = new Map()
-        const nbrs = [neighbours.WEST, neighbours.SOUTH, neighbours.EAST, neighbours.NORTH]
-        const center_material_have_decals = !!center_material.texture_decals
+        _overlay.neightbours[0] = neighbours.WEST
+        _overlay.neightbours[1] = neighbours.SOUTH
+        _overlay.neightbours[2] = neighbours.EAST
+        _overlay.neightbours[3] = neighbours.NORTH
 
-        for(let i = 0; i < nbrs.length; i++) {
-            const n = nbrs[i]
+        const center_material_have_overlay = !!center_material.texture_overlays
+
+        for(let i = 0; i < _overlay.neightbours.length; i++) {
+            const n = _overlay.neightbours[i]
             if(!n || n.id == center_material.id) {
                 continue
             }
-            if(n.material.texture_decals) {
-                if(center_material_have_decals && n.id < center_material.id) {
-                    continue;
+            if(n.material.texture_overlays) {
+                if(center_material_have_overlay) {
+                    if(center_material.id == this.block_manager.GRASS_BLOCK.id && n.id == this.block_manager.DIRT.id) {
+
+                    } else {
+                        if((n.material.overlay_textures_weight ?? n.id) < (center_material.overlay_textures_weight ?? center_material.id)) {
+                            continue
+                        }
+                    }
                 }
-                let item = decal_materials.get(n.id)
+                let item = _overlay.materials.get(n.id)
                 if(!item) {
-                    item = {list: [false, false, false, false], count: 0, material: n.material}
-                    decal_materials.set(n.id, item)
+                    item = _overlay.items[i]
+                    item.material = n.material
+                    _overlay.materials.set(n.id, item)
                 }
                 item.list[i] = true
                 item.count++;
             }
         }
 
-        let dmki = 0
-        for(let item of decal_materials.values()) {
-            const list = item.list
-            const mat = item.material
+        if(_overlay.materials.size > 0) {
+
+            let dmki = 0
             const lm = IndexedColor.WHITE;
-            let decale_name = null
-            let decal_axes_up = null
-            if(item.count == 1) {
-                decale_name = '1'
-                if(list[0]) decal_axes_up = UP_AXES[2]
-                if(list[1]) decal_axes_up = UP_AXES[3]
-                if(list[2]) decal_axes_up = UP_AXES[0]
-                if(list[3]) decal_axes_up = UP_AXES[1]
-            } else if (item.count == 2) {
-                decale_name = ((list[0] && list[2]) || (list[1] && list[3])) ? 'opposite' : 'corner'
-                if(decale_name == 'corner') {
-                    if(list[1] && list[2]) decal_axes_up = UP_AXES[0]
-                    if(list[2] && list[3]) decal_axes_up = UP_AXES[1]
-                    if(list[3] && list[0]) decal_axes_up = UP_AXES[2]
-                    if(list[0] && list[1]) decal_axes_up = UP_AXES[3]
+
+            for(let item of _overlay.materials.values()) {
+                const list = item.list
+                const mat = item.material
+                let overlay_name = null
+                let overlay_axes_up = null
+                if(item.count == 1) {
+                    overlay_name = '1'
+                    if(list[0]) overlay_axes_up = UP_AXES[2]
+                    if(list[1]) overlay_axes_up = UP_AXES[3]
+                    if(list[2]) overlay_axes_up = UP_AXES[0]
+                    if(list[3]) overlay_axes_up = UP_AXES[1]
+                } else if (item.count == 2) {
+                    overlay_name = ((list[0] && list[2]) || (list[1] && list[3])) ? 'opposite' : 'corner'
+                    if(overlay_name == 'corner') {
+                        if(list[1] && list[2]) overlay_axes_up = UP_AXES[0]
+                        if(list[2] && list[3]) overlay_axes_up = UP_AXES[1]
+                        if(list[3] && list[0]) overlay_axes_up = UP_AXES[2]
+                        if(list[0] && list[1]) overlay_axes_up = UP_AXES[3]
+                    } else {
+                        overlay_axes_up = list[0] ? UP_AXES[0] : UP_AXES[1]
+                    }
+                } else if (item.count == 3) {
+                    overlay_name = '3'
+                    if(!list[0]) overlay_axes_up = UP_AXES[0]
+                    if(!list[1]) overlay_axes_up = UP_AXES[1]
+                    if(!list[2]) overlay_axes_up = UP_AXES[2]
+                    if(!list[3]) overlay_axes_up = UP_AXES[3]
                 } else {
-                    decal_axes_up = list[0] ? UP_AXES[0] : UP_AXES[1]
+                    overlay_name = 'all'
+                    overlay_axes_up = UP_AXES[0]
                 }
-            } else if (item.count == 3) {
-                decale_name = '3'
-                if(!list[0]) decal_axes_up = UP_AXES[0]
-                if(!list[1]) decal_axes_up = UP_AXES[1]
-                if(!list[2]) decal_axes_up = UP_AXES[2]
-                if(!list[3]) decal_axes_up = UP_AXES[3]
-            } else {
-                decale_name = 'all'
-                decal_axes_up = UP_AXES[0]
+                lm.copyFrom(dirt_color)
+                const overlay_vertices = []
+                let flags = 0
+                if(mat.tags.includes('mask_biome')) {
+                    lm.r += GRASS_PALETTE_OFFSET;
+                    flags |= QUAD_FLAGS.MASK_BIOME;
+                }
+                const t = bm.calcMaterialTexture(mat, DIRECTION.UP, 1, 1, undefined, undefined, undefined, overlay_name);
+                _overlay.sides.up.set(t, flags, 0, lm, overlay_axes_up, false);
+                pushAABB(overlay_vertices, _aabb, pivot, matrix, _overlay.sides, _center.set(x, y, z));
+                // TODO: take material from grass and change to decal1
+                const material_key = OVERLAY_TEXTURE_MATERIAL_KEYS[dmki++ % 2]
+                emmited_blocks.push(new FakeVertices(material_key, overlay_vertices))
+                // clear item
+                item.reset()
             }
-            lm.copyFrom(dirt_color)
-            const vert = []
-            const w = 1
-            let flags = 0
-            if(mat.tags.includes('mask_biome')) {
-                lm.r += GRASS_PALETTE_OFFSET;
-                flags |= QUAD_FLAGS.MASK_BIOME;
-            }
-            const t = bm.calcMaterialTexture(mat, DIRECTION.UP, w, w, undefined, undefined, undefined, decale_name);
-            side_decals.up.set(t, flags, 0, lm, decal_axes_up, false);
-            pushAABB(vert, _aabb, pivot, matrix, side_decals, _center.set(x, y, z));
-            // TODO: take material from grass and change to decal1
-            const material_key = DECAL_MATERIAL_KEYS[dmki++]
-            emmited_blocks.push(new FakeVertices(material_key, vert))
+
+            _overlay.materials.clear()
+
         }
     
     }

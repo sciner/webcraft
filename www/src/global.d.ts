@@ -204,10 +204,11 @@ interface IBlockMaterial {
     bb: any
     planes: IPlane[]
     tx_cnt: number
+    overlay_textures_weight: number
     material: IBlockMiningMaterial
     material_key: string
     texture: any
-    texture_decals: any
+    texture_overlays: any
     texture_animations: any
     multiply_color: IColor
     mask_color: IColor
