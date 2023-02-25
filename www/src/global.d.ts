@@ -1,4 +1,5 @@
 //
+//@ts-ignore
 declare const Qubatch: any // GameClass // | ServerGame
 declare const QubatchChunkWorker: any;
 declare const QubatchLightWorker: any;

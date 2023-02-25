@@ -1,7 +1,7 @@
 import {ExportGeometry16} from "./ExportGeometry.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
-import {chunkAddrToCoord, getChunkAddr, Helpers, Vector} from "../helpers.js";
+import {chunkAddrToCoord, Helpers, Vector} from "../helpers.js";
 import {ExportFluidHelper} from "../fluid/ExportFluidHelper.js";
 
 export class ChunkExporter {
@@ -503,8 +503,9 @@ function calcMinMax(out, array, attribute, count) {
 
 function getCanvas(): HTMLCanvasElement {
 
+    //@ts-ignore
     if (typeof document === 'undefined' && typeof OffscreenCanvas !== 'undefined') {
-
+        //@ts-ignore
         return new OffscreenCanvas(1, 1) as any;
 
     }
