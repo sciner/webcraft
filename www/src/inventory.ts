@@ -1,8 +1,10 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
-import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, 
+import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
     INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import { InventoryComparator } from "./inventory_comparator.js";
+import type { Player } from "./player.js";
+import type { CraftTableSlot } from "./window/base_craft_window.js";
 
 export const INVENTORY_CHANGE_NONE = 0;
 // it may be adding or subtracting drag item from a slot, if slotIndex >= 0
@@ -15,6 +17,7 @@ export class Inventory {
     [key: string]: any;
 
     temp_vec = new Vector();
+    player: Player
 
     constructor(player : any, state : any) {
         this.count              = state.items.length;
@@ -45,10 +48,7 @@ export class Inventory {
         }
     }
 
-    /** 
-     * @param { import("./window/base_craft_window.js").CraftTableSlot } slot
-     */
-    addInventorySlot(slot) {
+    addInventorySlot(slot: CraftTableSlot) {
         if(slot.slot_index === undefined || slot.slot_index === null) return
         this.inventory_ui_slots.push(slot)
     }
@@ -322,7 +322,7 @@ export class Inventory {
         }
         return count;
     }
-    
+
     /**
      * Возвращает список того, чего и в каком количестве не хватает
      * в (текущем инвентаре + дополнительном списке предметов) по указанному списку.
@@ -499,13 +499,13 @@ export class Inventory {
 
     exportArmorState() {
         return {
-            head: this.items[PLAYER_ARMOR_SLOT_HELMET]?.id, 
+            head: this.items[PLAYER_ARMOR_SLOT_HELMET]?.id,
             body: this.items[PLAYER_ARMOR_SLOT_CHESTPLATE]?.id,
             leg: this.items[PLAYER_ARMOR_SLOT_LEGGINGS]?.id,
             boot: this.items[PLAYER_ARMOR_SLOT_BOOTS]?.id,
         }
     }
-    
+
     /**
      * Возвращает армор от надетых предметов
      * @returns {int}

@@ -1,13 +1,23 @@
 import {ServerClient} from "./server_client.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { DROP_LIFE_TIME_SECONDS } from "./constant.js";
+import type { World } from "./world.js";
+
+/** Data of one drop item sent to the client. */
+export type DropItemPacket = {
+    entity_id   : string
+    items
+    pos         : IVector
+    dt          : int       // unixTime()
+    delayUserId ? : int     // id of a user that has pickup delay for this item
+}
 
 export class DropItemManager {
-    [key: string]: any;
 
-    #world;
+    #world: World;
+    list: Map<string, Mesh_Object_Block_Drop> // by entity_id
 
-    constructor(world) {
+    constructor(world: World) {
         this.#world = world;
         this.list = new Map();
     }
@@ -52,11 +62,13 @@ export class DropItemManager {
     }
 
     // add
-    add(data, time) {
+    add(data: DropItemPacket, time: number) {
         if(data.items[0].id < 1) return;
         const drop_item = new Mesh_Object_Block_Drop(null, data.entity_id, data.items, data.pos);
         drop_item.world = this.#world;
-        drop_item.dt = data.dt;
+        drop_item.dt = data.delayUserId === Qubatch.player.session.user_id
+            ? data.dt
+            : -Infinity
         drop_item.deathTime = data.dt + DROP_LIFE_TIME_SECONDS;
         drop_item.applyNetState({
             pos: data.pos,
@@ -67,16 +79,13 @@ export class DropItemManager {
     }
 
     // get
-    get(id) {
-        if(!this.list.has(id)) {
-            return null;
-        }
-        return this.list.get(id);
+    get(entity_id: string): Mesh_Object_Block_Drop | null {
+        return this.list.get(entity_id) ?? null;
     }
 
     // delete
-    delete(id) {
-        this.list.delete(id);
+    delete(entity_id: string) {
+        this.list.delete(entity_id);
     }
 
 }

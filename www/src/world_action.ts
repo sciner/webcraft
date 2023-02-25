@@ -26,6 +26,12 @@ declare type PlaySoundParams = {
     maxDist?: number
 }
 
+type DropItemParams = {
+    pos     : Vector
+    items   : IBlockItem[]
+    force ? : boolean
+}
+
 const _createBlockAABB = new AABB();
 
 const MAX_SIZE_PORTAL = 21;
@@ -500,6 +506,7 @@ export class WorldAction {
 
     #world;
     play_sound: PlaySoundParams[]
+    drop_items: DropItemParams[]
 
     constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
@@ -593,7 +600,7 @@ export class WorldAction {
     }
 
     // Add drop item
-    addDropItem(item) {
+    addDropItem(item: DropItemParams) {
         this.drop_items.push(item);
     }
 
@@ -660,7 +667,7 @@ export class WorldAction {
             const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
             extruded_blocks.set(pos, 'drop');
             // drop
-            const drop_item = {
+            const drop_item: DropItemParams = {
                 force: true,
                 pos: pos,
                 items: [

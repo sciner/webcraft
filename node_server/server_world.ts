@@ -659,9 +659,10 @@ export class ServerWorld implements IWorld {
     }
 
     // Create drop items
-    createDropItems(player : ServerPlayer | undefined, pos : Vector, items, velocity : Vector) {
+    createDropItems(player : ServerPlayer | undefined, pos : Vector, items, velocity : Vector, hasPickupDelay?: boolean) {
         try {
-            const drop_item = DropItem.create(this, pos, items, velocity);
+            const user_id = hasPickupDelay ? player?.session.user_id : null;
+            const drop_item = DropItem.create(this, pos, items, velocity, user_id);
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
