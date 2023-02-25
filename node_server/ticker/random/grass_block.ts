@@ -30,11 +30,15 @@ export default function randomTicker(world, actions, world_light, tblock) {
                 Helpers.getRandomInt(-1, 1)
             );
         const rnd_block = world.getBlock(_rnd_pos);
-        if(rnd_block && rnd_block.id == BLOCK.DIRT.id) {
+        if(rnd_block && (rnd_block.id == BLOCK.DIRT.id || rnd_block.id == BLOCK.DIRT_SLAB.id)) {
             const over_block = world.getBlock(_rnd_pos_up.copyFrom(rnd_block.posworld).addScalarSelf(0, 1, 0));
             if(over_block && isLightOpacity(over_block)) {
+                let new_block_id = tblock.id
+                if(rnd_block.id == BLOCK.DIRT_SLAB.id) {
+                    new_block_id = BLOCK.GRASS_BLOCK_SLAB.id
+                }
                 actions.addBlocks([
-                    {pos: rnd_block.posworld.clone(), item: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}
+                    {pos: rnd_block.posworld.clone(), item: {id: new_block_id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}
                 ]);
             }
         }

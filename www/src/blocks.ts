@@ -727,7 +727,7 @@ export class BLOCK {
         }
         if(mat.is_layering) {
             const height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
-            return !isNaN(height) && height == mat.height && block_id != replace_with_block_id;
+            return !isNaN(height) && (height == mat.height && block_id != replace_with_block_id && height < .5);
         }
         return false;
     }
@@ -908,7 +908,7 @@ export class BLOCK {
         block.is_layering       = !!block.layering;
         block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
-        block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
+        block.is_dirt           = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style_name == 'banner';

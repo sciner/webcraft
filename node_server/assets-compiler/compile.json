@@ -476,6 +476,27 @@
             }
         },
         {
+            "id": 155,
+            "name": "DIRT_SLAB",
+            "sound": "madcraft:block.gravel",
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "dirt"
+            ],
+            "material": {
+                "id": "dirt"
+            },
+            "texture": {
+                "side": "block/dirt.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DIRT"
+            }
+        },
+        {
             "id": 2,
             "name": "GRASS_BLOCK",
             "sound": "madcraft:block.grass",
@@ -501,6 +522,32 @@
                 "3": "block/decals/grass_block/3.png",
                 "all": "block/decals/grass_block/all.png",
                 "opposite": "block/decals/grass_block/opposite.png"
+            }
+        },
+        {
+            "id": 114,
+            "name": "GRASS_BLOCK_SLAB",
+            "sound": "madcraft:block.grass",
+            "drop_item": {"name": "DIRT_SLAB", "count": 1, "chance": 1},
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "mask_biome",
+                "random_rotate_up",
+                "dirt"
+            ],
+            "material": {
+                "id": "dirt"
+            },
+            "texture": {
+                "up": "block/grass_block_top.png",
+                "down": "block/dirt.png",
+                "side": "block/grass_block_side_overlay.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "GRASS_BLOCK"
             }
         },
         {

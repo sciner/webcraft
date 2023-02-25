@@ -1,4 +1,4 @@
-import { ArrayHelpers, Vector } from "../../../helpers.js";
+import { Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { BLOCK } from '../../../blocks.js';
 import { DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager.js";
@@ -9,7 +9,6 @@ import { DungeonGenerator } from "../../dungeon.js";
 
 import { alea } from "../../default.js";
 import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
-import type { TerrainMapCell } from "../terrain/map_cell.js";
 import type { TerrainMap2 } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { Biome } from "../biomes.js";
@@ -57,7 +56,12 @@ export default class Biome3LayerOverworld {
 
         // Generate chunk data
         chunk.timers.start('generate_chunk_data')
+        this.slab_candidates = []
         this.generateChunkData(chunk, seed, rnd)
+        chunk.timers.stop()
+
+        chunk.timers.start('process_slab_candidates')
+        this.processSlabCandidates(chunk)
         chunk.timers.stop()
 
         // Mines
@@ -84,6 +88,61 @@ export default class Biome3LayerOverworld {
         chunk.timers.stop()
 
         return map
+
+    }
+
+    addSlabCandidate(xyz : Vector) {
+        if(this.generator.options.generate_natural_slabs) {
+            this.slab_candidates.push(xyz.clone())
+        }
+    }
+
+    /**
+     * Replace few blocks with his slab variant
+     */
+    processSlabCandidates(chunk : ChunkWorkerChunk) {
+        const bm = BLOCK
+        const blockFlags = bm.flags
+        const { cx, cy, cz, cw } = chunk.dataChunk
+        const ids = chunk.tblocks.id
+        
+        for(let i = 0; i < this.slab_candidates.length; i++) {
+            const xyz = this.slab_candidates[i]
+            this.slab_candidates[i] = null
+            const x = xyz.x - chunk.coord.x
+            const y = xyz.y - chunk.coord.y
+            const z = xyz.z - chunk.coord.z
+            if(x > 0 && y > 0 && z > 0 && x < chunk.size.x - 1 && y < chunk.size.y - 1 && z < chunk.size.z - 1) {
+                let index_left = cx * (x - 1) + cy * y + cz * z + cw
+                let index_right = cx * (x + 1) + cy * y + cz * z + cw
+                let index_front = cx * x + cy * y + cz * (z - 1) + cw
+                let index_back = cx * x + cy * y + cz * (z + 1) + cw
+                let air_count = 4
+                if(blockFlags[ids[index_left]] & bm.FLAG_SOLID) air_count--
+                if(blockFlags[ids[index_right]] & bm.FLAG_SOLID) air_count--
+                if(blockFlags[ids[index_front]] & bm.FLAG_SOLID) air_count--
+                if(blockFlags[ids[index_back]] & bm.FLAG_SOLID) air_count--
+                if(air_count > 0) {
+                    let index_up = cx * x + cy * (y + 1) + cz * z + cw
+                    if((blockFlags[ids[index_up]] & bm.FLAG_SOLID) != bm.FLAG_SOLID) {
+                        let index_bottom = cx * x + cy * (y - 1) + cz * z + cw
+                        if(blockFlags[ids[index_bottom]] & bm.FLAG_SOLID) {
+                            this.slab_candidates[i] = xyz
+                        }
+                    }
+                }
+            }
+        }
+        
+        for(let i = 0; i < this.slab_candidates.length; i++) {
+            const xyz = this.slab_candidates[i]
+            if(xyz) {
+                const x = xyz.x - chunk.coord.x
+                const y = xyz.y - chunk.coord.y
+                const z = xyz.z - chunk.coord.z
+                chunk.tblocks.setBlockId(x, y, z, BLOCK.GRASS_BLOCK_SLAB.id)
+            }
+        }
 
     }
 
@@ -292,6 +351,10 @@ export default class Biome3LayerOverworld {
                                             block_id = null
                                             chunk.setGroundInColumIndirect(columnIndex, x, y, z, dirt_block_id);
                                         }
+                                    }
+
+                                    if(block_id == BLOCK.GRASS_BLOCK.id) {
+                                        this.addSlabCandidate(xyz)
                                     }
 
                                     // draw big stones

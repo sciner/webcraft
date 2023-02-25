@@ -83,10 +83,15 @@ export class WorkerWorldManager {
 
 // World
 export class WorkerWorld {
-    [key: string]: any;
+    block_manager: BLOCK;
+    chunks: VectorCollector;
+    genQueue: ChunkWorkQueue;
+    buildQueue: any;
+    chunkManager: ChunkWorkerChunkManager;
+    generator: any;
+    activePotentialCenter: any;
 
     settings : GameSettings = null
-
     totalChunkTimers = DEBUG_CHUNK_GEN_TIMERS ? new PerformanceTimer() : null
 
     /**
