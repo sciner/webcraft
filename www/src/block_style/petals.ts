@@ -73,6 +73,7 @@ export default class style {
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         const material = block.material;
+        const rotate = block.rotate || DEFAULT_ROTATE;
         const count = Math.min(block.extra_data?.petals || 1, 4);
         const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
         const stem_flags = flag | QUAD_FLAGS.MASK_BIOME
@@ -82,12 +83,21 @@ export default class style {
         x -= .5
         z -= .5
 
+        // layering
+        if(neighbours && neighbours.DOWN) {
+            const under_height = neighbours.DOWN.material.height;
+            if(under_height && under_height < 1) {
+                if(rotate.y != 0) {
+                    y -= 1 - under_height;
+                }
+            }
+        }
+
         // Textures
         const c_up = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const c_stem = style.block_manager.calcMaterialTexture(block.material, 'stem', null, null, block);
 
         // Rotate
-        const rotate = block.rotate || DEFAULT_ROTATE;
         let ang = 0, xx = 0;
         if(material.can_rotate && rotate && rotate.x > 0) {
             xx = (rotate.x % 4 + 4) % 4;

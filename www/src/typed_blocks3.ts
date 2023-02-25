@@ -626,7 +626,7 @@ export class TypedBlocks3 {
         return cnt;
     }
 
-    setDirtyAABB(aabb) {
+    setDirtyAABB(aabb : AABB) {
         const { cx, cy, cz, shiftCoord} = this.dataChunk;
         const {vertices} = this;
         for (let x = aabb.x_min; x < aabb.x_max; x++)

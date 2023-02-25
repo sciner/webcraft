@@ -813,8 +813,8 @@ export class ServerWorld implements IWorld {
                     params.pos = block_pos;
                     //
                     if(!(params.item instanceof DBItemBlock)) {
-                        if(!globalThis.asdfasdf) globalThis.asdfasdf = 0
-                        if(globalThis.asdfasdf++ % 1000 == 0) console.log(globalThis.asdfasdf)
+                        // if(!globalThis.asdfasdf) globalThis.asdfasdf = 0
+                        // if(globalThis.asdfasdf++ % 1000 == 0) console.log(globalThis.asdfasdf)
                         params.item = this.block_manager.convertBlockToDBItem(params.item)
                     }
                     //
