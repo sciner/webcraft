@@ -5,6 +5,7 @@ declare const Howler: any
 declare const Howl: any
 declare const BLOCK: any;
 declare const UI_ZOOM: number
+//@ts-ignore
 declare const vt: any
 declare const TrackerPlayer: any
 

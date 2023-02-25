@@ -7,8 +7,11 @@ declare const mkdirp: any
 declare const plugins: any
 
 // client side variables =(
+//@ts-ignore
 declare const Qubatch: any
+//@ts-ignore
 declare const vt: any
+//@ts-ignore
 declare const worker: any
 // declare const UI_ZOOM: any
 // declare const LocalServerClient: any
