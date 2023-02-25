@@ -530,6 +530,7 @@ export class Player implements IPlayer {
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: null
             })
+            // @todo костыль от провал в кровать
             if (this.state.sleep) {
                 this.controls.jump = true
             }

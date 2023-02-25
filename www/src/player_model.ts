@@ -242,9 +242,7 @@ export class PlayerModel extends MobModel {
 
         if (block.diagonal) {
             scale *= 1.2;
-
             quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
-
         } else {
             quat.fromEuler(slot.holder.quat, 20, 0, -20);
         }
