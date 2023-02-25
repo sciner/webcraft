@@ -26,8 +26,8 @@ export class MobSpawnParams {
     skin: any;
 
     /**
-     * @param {Vector} pos 
-     * @param {Vector} rotate 
+     * @param {Vector} pos
+     * @param {Vector} rotate
      * @param {string} type Model of mob
      * @param {string} skin Model skin id
      */
@@ -61,7 +61,7 @@ export class MobState {
 
     /**
      * Compare
-     * @param {MobState} state 
+     * @param {MobState} state
      */
     equal(state) {
         if (this.pos.equal(state.pos)) {
@@ -97,10 +97,10 @@ export class Mob {
      * @type { MobState }
      */
     #prev_state;
-    id: any;
-    entity_id: any;
-    type: any;
-    skin: any;
+    id: number;
+    entity_id: string;
+    type: string;
+    skin: string;
     indicators: any;
     is_active: any;
     pos: Vector;
@@ -110,11 +110,13 @@ export class Mob {
     dirtyFlags: number;
     chunk_addr_o: Vector;
     width: number;
-    height: any;
+    height: number;
     lastSavedTime: number;
     lastSavedPos: Vector;
     _aabb: AABB;
-    already_killed: any;
+    already_killed?: boolean;
+    death_time?: number;
+    spawn_pos?: Vector;
 
     constructor(world : ServerWorld, params, existsInDB) {
 
@@ -129,7 +131,7 @@ export class Mob {
         this.is_active      = params.is_active;
         this.pos            = new Vector(params.pos);
 
-        // In the old DBWorldMob.create, there was 
+        // In the old DBWorldMob.create, there was
         //   ':pos_spawn':       JSON.stringify(params.pos),
         // Preserve this semantics if (params.pos_spawn == null)
         this.pos_spawn      = new Vector(params.pos_spawn ?? params.pos);
@@ -216,11 +218,7 @@ export class Mob {
         return new Mob(world, params, false);
     }
 
-    /**
-     * @param {float} delta 
-     * @returns 
-     */
-    tick(delta) {
+    tick(delta: float) {
         if(this.indicators.live.value == 0) {
             return false;
         }
@@ -228,10 +226,7 @@ export class Mob {
         this.#brain.tick(delta);
     }
 
-    /**
-     * @param {Vector} vec 
-     */
-    addVelocity(vec) {
+    addVelocity(vec: Vector) {
         this.#brain.pc.player_state.vel.addSelf(vec);
         this.#brain.pc.tick(0);
     }
@@ -271,11 +266,11 @@ export class Mob {
         this.#world.mobs.add(this);
         chunk.mobs.set(this.id, this); // or should we call chunk.addMob(this) ?
     }
-    
+
     setDamage(val : number, type_damage? : EnumDamage, actor?) {
         this.#brain.onDamage(val, type_damage, actor);
     }
-    
+
     setUseItem(item_id, actor) {
         return this.#brain.onUse(actor, item_id);
     }
@@ -321,12 +316,7 @@ export class Mob {
         return !player || player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.getCurrent().can_take_damage;
     }
 
-    /**
-     * @param { import("./server_world.js").ServerWorld } world 
-     * @param {*} row 
-     * @returns {Mob}
-     */
-    static fromRow(world, row) {
+    static fromRow(world: ServerWorld, row): Mob {
         return new Mob(world, {
             id:         row.id,
             rotate:     JSON.parse(row.rotate),
@@ -341,11 +331,7 @@ export class Mob {
         }, true);
     }
 
-    /**
-     * @param {boolean} return_diff 
-     * @returns {MobState}
-     */
-    exportState(return_diff = false) {
+    exportState(return_diff = false): MobState {
         const new_state = new MobState(this.id, this.pos, this.rotate, this.extra_data)
         if(return_diff && this.#prev_state) {
             if(new_state.equal(this.#prev_state)) {
@@ -358,12 +344,7 @@ export class Mob {
         return this.#prev_state = new_state
     }
 
-    /**
-     * @param {*} underConstruction 
-     * @param {boolean} force 
-     * @returns 
-     */
-    writeToWorldTransaction(underConstruction, force = false) {
+    writeToWorldTransaction(underConstruction, force = false): void {
         const dirtyFlags = this.dirtyFlags;
         if (dirtyFlags & Mob.DIRTY_FLAG_SAVED_DEAD) {
             return;

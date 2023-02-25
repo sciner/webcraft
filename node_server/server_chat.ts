@@ -4,6 +4,7 @@ import {WorldAction} from "../www/src/world_action.js";
 import { Weather } from "../www/src/block_type/weather.js";
 import { MobSpawnParams } from "./mob.js";
 import type { ServerWorld } from "./server_world.js";
+import type { WorldTickStat } from "./world/tick_stat.js";
 
 export class ServerChat {
     world: ServerWorld;
@@ -182,8 +183,8 @@ export class ServerChat {
                         '/time (add <int> | set (<int>|day|midnight|night|noon))',
                         '/gamerule [<name> [<value>]]',
                         'Server stats:',
-                        '  /tps [chunk|mob]',
-                        '  /tps2 [chunk|mob] [recent]',
+                        '  /tps [chunk|mob|<mob_name>]',
+                        '  /tps2 [chunk|mob|mobtype|<mob_name>] [recent]',
                         '  /sysstat',
                         '  /netstat (in|out|all) [off|count|full|reset]',
                         '  /astat [recent]',
@@ -262,7 +263,7 @@ export class ServerChat {
                 }
                 break
             }
-            case '/tp': 
+            case '/tp':
             case '/stp': {
                 const safe = (args[0] == '/stp');
                 if(args.length == 4) {
@@ -295,26 +296,48 @@ export class ServerChat {
                 break;
             }
             case '/tps': {
-                const table = this.getTickStats(args)
+                const stats = this.getTickStats(args[1] ?? 'world')
+                if (stats === null) {
+                    this.sendSystemChatMessageToSelectedPlayers('Usage: /tps [chunk|mob|<mob_name>]', player)
+                    return
+                }
                 let temp = [];
                 const keys = ['tps', 'last', 'total', 'count', 'max']
                 for(let k of keys) {
-                    const v = table[k]
+                    const v = stats[k]
                     temp.push(k + ': ' + Math.round(v * 1000) / 1000);
                 }
                 this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), player);
                 break;
             }
             case '/tps2': {
-                for(const arg of args) {
-                    if (!['/tps2', 'chunk', 'chunks', 'mob', 'mobs', 'recent'].includes(arg)) {
-                        const USAGE = '!lang/tps2 [chunk|mob] [recent]'
+                let statsName = null
+                let stats = this.getTickStats('world')
+                for(let i = 1; i < args.length; i++) {
+                    const arg = args[i]
+                    // chesk if it's a stat name
+                    const statsFromArg = this.getTickStats(arg)
+                    if (statsFromArg) {
+                        stats = statsFromArg
+                        statsName = arg
+                    } else if (!['/tps2', 'recent'].includes(arg)) {
+                        const USAGE = '!lang/tps2 [chunk|mob|mobtype|<mob_name>] [recent]'
                         this.sendSystemChatMessageToSelectedPlayers(USAGE, player)
                         return
                     }
                 }
                 const recent = args.includes('recent')
-                const table = this.getTickStats(args).toTable(recent)
+                let table: object
+                if (statsName === 'mobtype' || statsName === 'mobtypes') {
+                    table = {}
+                    for(const [name, stats] of this.world.mobs.ticks_stat_by_mob_type.entries()) {
+                        table[name] = stats.sum(recent).toFixed(3).padStart(11)
+                    }
+                } else {
+                    table = stats.toTable(recent)
+                }
+                const msgRecent = recent ? '!langRecent stats:' : '!langAll-time stats:'
+                this.sendSystemChatMessageToSelectedPlayers(msgRecent, player);
                 this.sendSystemChatMessageToSelectedPlayers(table, player, true);
                 break;
             }
@@ -617,14 +640,20 @@ export class ServerChat {
         return resp;
     }
 
-    getTickStats(args) {
-        if (args.includes('chunk') || args.includes('chunks')) {
-            return this.world.chunkManager.ticks_stat
+    getTickStats(type: string): WorldTickStat | null {
+        switch(type) {
+            case 'world':
+                return this.world.ticks_stat
+            case 'chunk':
+            case 'chunks':
+                return this.world.chunkManager.ticks_stat
+            case 'mob':
+            case 'mobs':
+            case 'mobtype':
+            case 'mobtypes':
+                return this.world.mobs.ticks_stat
         }
-        if (args.includes('mob') || args.includes('mobs')) {
-            return this.world.mobs.ticks_stat
-        }
-        return this.world.ticks_stat
+        return this.world.mobs.ticks_stat_by_mob_type.get(type)
     }
 
     netStatsTable(obj) {

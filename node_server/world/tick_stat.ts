@@ -61,6 +61,9 @@ export class WorldTickStat {
         let value = this.values[field];
         if (!value) {
             if (allowAdding) {
+                if (this.pn_values == null) {
+                    console.error('calling add() withot start()')
+                }
                 this.stat_names.push(field)
                 value  = this._createValue()
                 this.values[field] = value
@@ -116,7 +119,7 @@ export class WorldTickStat {
         }
     }
 
-    toTable(recent = false) {
+    toTable(recent = false): object {
         const displayNames = {}
         const tableValues = {}
         const valueLens = {}
@@ -170,6 +173,20 @@ export class WorldTickStat {
         return table
     }
 
+    sum(recent: boolean): number {
+        let sum = 0
+        if (recent) {
+            for(const key in this.values) {
+                sum += this.slidingOld.values[key].sum + this.slidingCurrent.values[key].sum
+            }
+        } else {
+            for(const key in this.values) {
+                sum += this.values[key].sum
+            }
+        }
+        return sum
+    }
+
     _createValue() {
         return { min: Infinity, max: -Infinity, avg: 0, sum: 0 }
     }
@@ -181,7 +198,7 @@ export class WorldTickStat {
     _moveSlidingWindow() {
         this.slidingOld     = this.slidingCurrent
         this.slidingCurrent = {
-            values: ArrayHelpers.toObject(this.stat_names, 
+            values: ArrayHelpers.toObject(this.stat_names,
                 (i, name) => name,
                 this._createSlidingValue
             ),
