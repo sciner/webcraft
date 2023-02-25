@@ -234,12 +234,19 @@ export class WorldGenerators {
                 "generate_bottom_caves_lava": {
                     "title": "Generate lava in bottom caves",
                     "default_value": false,
+                    "deprecated": true,
                     "type": "checkbox",
                     "strict_type": "boolean"
                 },
                 "generate_big_caves": {
                     "title": "Generate big caves",
                     "default_value": false,
+                    "type": "checkbox",
+                    "strict_type": "boolean"
+                },
+                "generate_natural_slabs": {
+                    "title": "Generate natural slabs",
+                    "default_value": true,
                     "type": "checkbox",
                     "strict_type": "boolean"
                 },

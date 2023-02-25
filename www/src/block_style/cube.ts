@@ -421,7 +421,7 @@ export default class style {
             // Texture color multiplier
             if(block.hasTag('mask_biome')) {
                 lm.copyFrom(dirt_color)
-                if(block.id == bm.GRASS_BLOCK.id) {
+                if(block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id) {
                     lm.r += GRASS_PALETTE_OFFSET;
                 }
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
@@ -540,6 +540,9 @@ export default class style {
                 }
             }
             _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block);
+            if(block.id == BLOCK.GRASS_BLOCK_SLAB.id && side != 'up' && side != 'down') {
+                _sideParams.t[1] -= .5 / material.tx_cnt;
+            }
             _sideParams.f = flags | upFlags | sideFlags | animFlag;
             if((_sideParams.f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
                 lm.b = _sideParams.t[3] * TX_CNT;
@@ -652,6 +655,8 @@ export default class style {
                 if(center_material_have_overlay) {
                     if(center_material.id == this.block_manager.GRASS_BLOCK.id && n.id == this.block_manager.DIRT.id) {
 
+                    } else if(center_material.id == this.block_manager.DIRT.id && n.id == this.block_manager.GRASS_BLOCK.id) {
+                        continue
                     } else {
                         if((n.material.overlay_textures_weight ?? n.id) < (center_material.overlay_textures_weight ?? center_material.id)) {
                             continue
