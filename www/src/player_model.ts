@@ -323,7 +323,7 @@ export class PlayerModel extends MobModel {
         const dz = camPos.z - this.pos.z;
         const d2 = Math.hypot(dz, dx)
         const pitch = Math.PI / 2 - Math.atan2(d2, dy);
-        const yaw = this.yaw + Math.PI/2 + Math.atan2(dz, dx);
+        const yaw = Math.PI/2 + Math.atan2(dz, dx);
 
         const zoom = 0.005 * (d / 6);
 

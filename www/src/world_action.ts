@@ -1677,12 +1677,12 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
     }
     const time = world.getTime()
     // время пользования кроватью
-    if(time.hours < 18 && time.hours > 6) {
-        if (!Qubatch.is_server) {
-            Qubatch.hotbar.strings.setText(1, Lang.bed_no_sleep, 4000);
-        }
-        return true
-    }
+   // if(time.hours < 18 && time.hours > 6) {
+   //     if (!Qubatch.is_server) {
+    //        Qubatch.hotbar.strings.setText(1, Lang.bed_no_sleep, 4000);
+      //  }
+    //    return true
+   // }
     // растояние до кровати (java не более 2, br не более 3)
     if(player.pos.distance(pos) > 3.0) {
         if (!Qubatch.is_server) {
@@ -1698,13 +1698,13 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
     )
     if (extra_data?.is_head == false) {
         if (rotate.x == 0) {
-            position_head.addSelf(new Vector(0, 0, -1))
+            position_head.addSelf(new Vector(0, 0, -.92))
         } else if (rotate.x == 2) {
-            position_head.addSelf(new Vector(0, 0, 1))
+            position_head.addSelf(new Vector(0, 0, .92))
         } else if (rotate.x == 1) {
-            position_head.addSelf(new Vector(1, 0, 0))
+            position_head.addSelf(new Vector(.92, 0, 0))
         } else if (rotate.x == 3) {
-            position_head.addSelf(new Vector(-1, 0, 0))
+            position_head.addSelf(new Vector(-.92, 0, 0))
         }
     }
     for(const player of world.players.eachContainingVec(position_head)) {
@@ -1718,6 +1718,7 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
     actions.reset_mouse_actions = true
     // разворот игрока, что бы ноги всегда лежали на кровате
     const player_rotation = new Vector(0, 0, ((rotate.x + 2) % 4) / 4)
+    console.log('positon: ' + position_head)
     actions.setSleep(position_head, player_rotation)
     return true
 }
