@@ -16,6 +16,7 @@ export default class packet_reader {
     static async read(player, packet) {
         player.state.lies = false;
         player.state.sitting = false;
+        player.state.sleep = false
         player.sendNearPlayers();
         // 
         const packets_for_player = [

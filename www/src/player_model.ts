@@ -84,20 +84,20 @@ export class PlayerAnimation extends MobAnimation {
         part, animable
     }) {
         let pitch = animable.pitch;
-
-        if(pitch < -0.5) {
+        if (pitch < -0.5) {
             pitch = -0.5;
         }
-
-        if(pitch > 0.5) {
+        if (pitch > 0.5) {
             pitch = 0.5;
         }
-
         const yaw = animable.body_rotate * HEAD_MAX_ROTATE_ANGLE;
-
-        quat.fromEuler(part.quat, -pitch * 90, 0, yaw);
-
-        part.updateMatrix();
+        if (animable.sleep) {
+            quat.fromEuler(part.quat, 0, 0, 0)
+            quat.rotateX(part.quat, part.quat, -Math.PI / 2)
+        } else {
+            quat.fromEuler(part.quat, -pitch * 90, 0, yaw)
+        }
+        part.updateMatrix()
     }
 
 }
@@ -114,6 +114,7 @@ class PlayerModelSharedProps {
     get pos()       { return this.p.pos; }
     get user_id()   { return this.p.id; }
     get sitting()   { return this.p.sitting; }
+    get sleep()     { return this.p.sleep; }
 }
 
 export class PlayerModel extends MobModel {
@@ -427,8 +428,9 @@ export class PlayerModel extends MobModel {
      * @param {*} hands
      * @param {boolean} lies
      * @param {boolean} sitting
+     * @param {boolean} sleep
      */
-    setProps(pos, rotate, sneak, moving, running, hands, lies, sitting, health) {
+    setProps(pos, rotate, sneak, moving, running, hands, lies, sitting, sleep, health) {
         this.pos.copyFrom(pos);
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate
@@ -437,6 +439,7 @@ export class PlayerModel extends MobModel {
         this.running = running;
         this.lies = lies;
         this.sitting = sitting;
+        this.sleep = sleep
         //
         const current_right_hand_id = hands.right?.id;
         if(this.prev_current_id != current_right_hand_id) {

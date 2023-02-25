@@ -15,6 +15,7 @@ import {
 } from "./fluid/FluidConst.js";
 import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
+import { Lang } from "./lang.js";
 
 declare type PlaySoundParams = {
     tag: string
@@ -530,6 +531,7 @@ export class WorldAction {
              */
             ignore_creative_game_mode:  false,
             sitting:                    false,
+            sleep:                      false,
             notify:                     notify,
             fluids:                     [],
             fluidFlush:                 false,
@@ -837,6 +839,16 @@ export class WorldAction {
      */
     setSitting(pos, rotate) {
         this.sitting = {pos, rotate};
+        this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
+    }
+
+    /**
+     * Set sleep
+     * @param {Vector} pos
+     * @param {Vector} rotate
+     */
+    setSleep(pos, rotate) {
+        this.sleep = {pos, rotate}
         this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
     }
 
@@ -1597,6 +1609,7 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
     // check if someone else is sitting
     const above_sit_pos = sit_pos.clone();
     above_sit_pos.y += 0.5; // the actual sitting player pos may be slightly above sit_pos
+    console.log('player')
     for(const p of world.players.eachContainingVec(above_sit_pos)) {
         if (p.sharedProps.user_id !== player.session.user_id && p.sharedProps.sitting) {
             return false;
@@ -1658,12 +1671,55 @@ async function editSign(e, world, pos, player, world_block, world_material, mat_
 
 // Go to bed
 async function goToBed(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const goToBed = !e.shiftKey && world_material && (world_material.tags.includes('bed'));
+    const goToBed = !e.shiftKey && world_material && (world_material.tags.includes('bed'))
     if(!goToBed) {
-        return false;
+        return false
     }
-    actions.error = 'error_no_time_to_sleep';
-    return true;
+    const time = world.getTime()
+    // время пользования кроватью
+    if(time.hours < 18 && time.hours > 6) {
+        if (!Qubatch.is_server) {
+            Qubatch.hotbar.strings.setText(1, Lang.bed_no_sleep, 4000);
+        }
+        return true
+    }
+    // растояние до кровати (java не более 2, br не более 3)
+    if(player.pos.distance(pos) > 3.0) {
+        if (!Qubatch.is_server) {
+            Qubatch.hotbar.strings.setText(1, Lang.bed_to_far_away, 4000);
+        }
+        return true
+    }
+    // где находится подушка у кровати (голова игрока, когда лежит)
+    const position_head = new Vector(
+        world_block.posworld.x + .5,
+        world_block.posworld.y,
+        world_block.posworld.z + .5
+    )
+    if (extra_data?.is_head == false) {
+        if (rotate.x == 0) {
+            position_head.addSelf(new Vector(0, 0, -1))
+        } else if (rotate.x == 2) {
+            position_head.addSelf(new Vector(0, 0, 1))
+        } else if (rotate.x == 1) {
+            position_head.addSelf(new Vector(1, 0, 0))
+        } else if (rotate.x == 3) {
+            position_head.addSelf(new Vector(-1, 0, 0))
+        }
+    }
+    for(const player of world.players.eachContainingVec(position_head)) {
+        if (player.sharedProps.sleep) {
+            if (!Qubatch.is_server) {
+                Qubatch.hotbar.strings.setText(1, Lang.bed_occupied, 4000);
+            }
+            return true
+        }
+    }
+    actions.reset_mouse_actions = true
+    // разворот игрока, что бы ноги всегда лежали на кровате
+    const player_rotation = new Vector(0, 0, ((rotate.x + 2) % 4) / 4)
+    actions.setSleep(position_head, player_rotation)
+    return true
 }
 
 // Eat cake

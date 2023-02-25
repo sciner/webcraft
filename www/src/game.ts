@@ -451,7 +451,8 @@ export class GameClass {
                                         "hands":    player.state.hands,
                                         "sitting":  player.state.sitting,
                                         "lies":     player.state.lies,
-                                        "scale":    player.state.scale
+                                        "scale":    player.state.scale,
+                                        "sleep":    player.state.sleep
                                     },
                                     "time": ~~(new Date())
                                 };
