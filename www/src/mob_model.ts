@@ -317,6 +317,11 @@ export class MobAnimation {
     }) {
         // если лег поспать, то не двигаемся
         if (animable.sleep) {
+            quat.identity(part.quat);
+            quat.rotateX(part.quat, part.quat, 0)
+            quat.rotateY(part.quat, part.quat, 0)
+            quat.rotateZ(part.quat, part.quat, 0)
+            part.updateMatrix();
             return
         }
         const x             = index % 2;
