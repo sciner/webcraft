@@ -1,8 +1,9 @@
 {
     "scripts": {
-        "tsc:www": "tsc -w -p www/tsconfig.json",
-        "tsc:server": "tsc -w -p node_server/tsconfig.json",
-        "tsc:www-convert": "tsc -p www/tsconfig.json"
+        "watch:www": "tsc -w -p www/tsconfig.json",
+        "watch:server": "tsc -w -p node_server/tsconfig.json",
+        "build:www": "tsc -p www/tsconfig.json",
+        "types:server": "tsc -p node_server/tsconfig.json"
     },
     "devDependencies": {
         "@types/node": "^18.13.0",

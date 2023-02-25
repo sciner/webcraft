@@ -1,4 +1,4 @@
-import { Vector, VectorCollector } from "../helpers.js";
+import type { ChunkWorkerChunk } from "./chunk.js";
 
 const revChunkSort = (a, b) => {
     return b.queueDist - a.queueDist;
@@ -112,7 +112,7 @@ export class ChunkWorkQueue {
         entries.sort(revChunkSort);
     }
 
-    pop() {
+    pop() : ChunkWorkerChunk {
         const {added, entries} = this;
         while (entries.length > 0) {
             const e = entries.pop();

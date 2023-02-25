@@ -1269,7 +1269,7 @@ export class Renderer {
     // Moves the camera to the specified orientation.
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
-    setCamera(player, pos, rotate, force = false) {
+    setCamera(player, pos : Vector, rotate : Vector, force : boolean = false) {
 
         const tmp = mat4.create();
         const hotbar = Qubatch.hotbar;
@@ -1317,7 +1317,8 @@ export class Renderer {
                 if(!player.game_mode.isSpectator()) {
                     // raycast from eyes to cam
                     const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
-                    if(bPos) {
+                    if(bPos && player._block_pos.distance(bPos) >= 1) {
+                        // const b = player.world.getBlock(bPos)
                         this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
                         this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
                         let dist1 = pos.distance(cam_pos_new);
@@ -1327,7 +1328,7 @@ export class Renderer {
                         }
                     }
                     const safe_margin = -.1;
-                    cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
+                    cam_pos_new.addScalarSelf(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin);
                 }
                 cam_pos.copyFrom(cam_pos_new);
             }

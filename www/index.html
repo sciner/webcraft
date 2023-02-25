@@ -623,7 +623,7 @@
                         <div id="world-generator-options" class="switchers" ng-if="newgame.generators.current.has_options">
                             <h2>{{Lang.world_options}}</h2>
                             <!-- Options -->
-                            <div ng-repeat="(key, option) in newgame.generators.current.options">
+                            <div ng-repeat="(key, option) in newgame.generators.current.options" ng-show="!option.deprecated">
                                 <div class="switcher-container" ng-if="option.type == 'checkbox'">
                                     <input type="checkbox" id="chk-generator-option-{{key}}" value="" ng-model="newgame.form.generator.options[key]" />
                                     <div class="switcher">
