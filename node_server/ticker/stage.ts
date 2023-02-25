@@ -1,4 +1,3 @@
-import { BLOCK } from '../../www/src/blocks.js';
 import { Vector } from '../../www/src/helpers.js';
 import { ServerClient } from '../../www/src/server_client.js';
 import { WorldAction } from '../../www/src/world_action.js';
@@ -8,6 +7,7 @@ import type { TickingBlockManager } from "../server_chunk.js";
 // Проверка позиции для установки арбуза
 function getFreePosition(world, pos) {
     const sides = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP];
+    const BLOCK = world.block_manager
     const facing = [];
     for(const side of sides) {
         const position = pos.add(side);
@@ -55,13 +55,14 @@ export default class Ticker {
             extra_data.stage = Math.min(extra_data.stage + extra_data.bone, ticking.max_stage);
             extra_data.bone = 0;
         }
+        const BLOCK = world.block_manager
         const pos = v.pos.clone();
         if (tblock.id == BLOCK.KELP.id) { // Эти блоки растут вверх, копируя основание. При срубании, рост продолжен, но в воде
             // проверяем срубили ли кусок
             let stage = 0, block = null;
             for (stage = 1; stage < extra_data.height - 1; stage++) {
                 block = world.getBlock(pos.offset(0, stage, 0));
-                if (block.id != tblock.id) {
+                if (block?.id != tblock.id) {
                     break;
                 }
             }
@@ -77,7 +78,7 @@ export default class Ticker {
                 }
             }
             const block = world.getBlock(pos.offset(0, stage, 0));
-            if (block.id == BLOCK.AIR.id) {
+            if (block?.id == BLOCK.AIR.id) {
                 return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id, extra_data: {notick: true} }, action_id: ServerClient.BLOCK_ACTION_CREATE}];
             }
         } else if (tblock.id == BLOCK.MELON_SEEDS.id || tblock.id == BLOCK.PUMPKIN_SEEDS.id) { // Эти блоки растут как семена в области одного блока, но по истечению роста дают плоды

@@ -398,28 +398,6 @@
             "spawnable": true
         },
         {
-            "id": -5,
-            "name": "DECAL4",
-            "spawnable": false,
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "bedrock"
-            },
-            "group": "decal4",
-            "texture": "block/anvil.png"
-        },
-        {
-            "id": -4,
-            "name": "DECAL3",
-            "spawnable": false,
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "bedrock"
-            },
-            "group": "decal3",
-            "texture": "block/anvil.png"
-        },
-        {
             "id": -3,
             "name": "DECAL2",
             "spawnable": false,
@@ -488,12 +466,34 @@
             "texture": {
                 "side": "block/dirt.png"
             },
-            "texture_decals": {
+            "overlay_textures_weight": 96,
+            "texture_overlays": {
                 "1": "block/decals/dirt/1.png",
                 "corner": "block/decals/dirt/corner.png",
                 "3": "block/decals/dirt/3.png",
                 "all": "block/decals/dirt/all.png",
                 "opposite": "block/decals/dirt/opposite.png"
+            }
+        },
+        {
+            "id": 155,
+            "name": "DIRT_SLAB",
+            "sound": "madcraft:block.gravel",
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "dirt"
+            ],
+            "material": {
+                "id": "dirt"
+            },
+            "texture": {
+                "side": "block/dirt.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DIRT"
             }
         },
         {
@@ -515,12 +515,39 @@
                 "down": "block/dirt.png",
                 "side": "block/grass_block_side_overlay.png"
             },
-            "texture_decals": {
+            "overlay_textures_weight": 99,
+            "texture_overlays": {
                 "1": "block/decals/grass_block/1.png",
                 "corner": "block/decals/grass_block/corner.png",
                 "3": "block/decals/grass_block/3.png",
                 "all": "block/decals/grass_block/all.png",
                 "opposite": "block/decals/grass_block/opposite.png"
+            }
+        },
+        {
+            "id": 114,
+            "name": "GRASS_BLOCK_SLAB",
+            "sound": "madcraft:block.grass",
+            "drop_item": {"name": "DIRT_SLAB", "count": 1, "chance": 1},
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "mask_biome",
+                "random_rotate_up",
+                "dirt"
+            ],
+            "material": {
+                "id": "dirt"
+            },
+            "texture": {
+                "up": "block/grass_block_top.png",
+                "down": "block/dirt.png",
+                "side": "block/grass_block_side_overlay.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "GRASS_BLOCK"
             }
         },
         {
@@ -1288,7 +1315,15 @@
             "tags": [
                 "random_rotate_up"
             ],
-            "texture": "block/sand.png"
+            "texture": "block/sand.png",
+            "overlay_textures_weight": 95,
+            "texture_overlays": {
+                "1": "block/decals/sand/1.png",
+                "corner": "block/decals/sand/corner.png",
+                "3": "block/decals/sand/3.png",
+                "all": "block/decals/sand/all.png",
+                "opposite": "block/decals/sand/opposite.png"
+            }
         },
         {
             "id": 12,
@@ -1308,7 +1343,8 @@
                 }
             ],
             "texture": "block/gravel.png",
-            "texture_decals": {
+            "overlay_textures_weight": 97,
+            "texture_overlays": {
                 "1": "block/decals/gravel/1.png",
                 "corner": "block/decals/gravel/corner.png",
                 "3": "block/decals/gravel/3.png",
@@ -2946,7 +2982,8 @@
                 "down": "block/dirt.png",
                 "side": "block/grass_block_snow.png"
             },
-            "texture_decals": {
+            "overlay_textures_weight": 100,
+            "texture_overlays": {
                 "1": "block/decals/snow_block/1.png",
                 "corner": "block/decals/snow_block/corner.png",
                 "3": "block/decals/snow_block/3.png",
@@ -6585,7 +6622,8 @@
                 "id": "snow"
             },
             "texture": "block/snow.png",
-            "texture_decals": {
+            "overlay_textures_weight": 100,
+            "texture_overlays": {
                 "1": "block/decals/snow_block/1.png",
                 "corner": "block/decals/snow_block/corner.png",
                 "3": "block/decals/snow_block/3.png",

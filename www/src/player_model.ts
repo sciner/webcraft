@@ -86,20 +86,20 @@ export class PlayerAnimation extends MobAnimation {
         part, animable
     }) {
         let pitch = animable.pitch;
-
-        if(pitch < -0.5) {
+        if (pitch < -0.5) {
             pitch = -0.5;
         }
-
-        if(pitch > 0.5) {
+        if (pitch > 0.5) {
             pitch = 0.5;
         }
-
         const yaw = animable.body_rotate * HEAD_MAX_ROTATE_ANGLE;
-
-        quat.fromEuler(part.quat, -pitch * 90, 0, yaw);
-
-        part.updateMatrix();
+        if (animable.sleep) {
+            quat.fromEuler(part.quat, 0, 0, 0)
+            quat.rotateX(part.quat, part.quat, -Math.PI / 2)
+        } else {
+            quat.fromEuler(part.quat, -pitch * 90, 0, yaw)
+        }
+        part.updateMatrix()
     }
 
 }
@@ -117,6 +117,7 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
     get pos()       : Vector    { return this.p.pos; }
     get user_id()   : int       { return this.p.id; }
     get sitting()   : boolean   { return this.p.sitting; }
+    get sleep()     : boolean   { return this.p.sleep; }
 }
 
 export class PlayerModel extends MobModel implements IPlayerOrModel {
@@ -426,7 +427,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     setProps(pos: Vector, rotate: Vector, sneak: boolean, moving: boolean, running: boolean,
-        hands: PlayerHands, lies: boolean, sitting: boolean, health?: number): void {
+        hands: PlayerHands, lies: boolean, sitting: boolean, sleep: boolean, health?: number): void {
         this.pos.copyFrom(pos);
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate
@@ -435,6 +436,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.running = running;
         this.lies = lies;
         this.sitting = sitting;
+        this.sleep = sleep
         //
         const current_right_hand_id = hands.right?.id;
         if(this.prev_current_id != current_right_hand_id) {

@@ -22,7 +22,7 @@ export default class packet_reader {
         //
         const world = player.world;
         const currentInventoryItem = player.inventory.current_item;
-        if(player.state.sitting || player.state.lies) {
+        if(player.state.sitting || player.state.lies || player.state.sleep) {
             return true;
         }
         if (packet.data.interactMobID || packet.data.interactPlayerID) {

@@ -88,7 +88,7 @@ export default class Terrain_Generator extends Demo_Map {
     }
 
     // Generate
-    generate(chunk) {
+    generate(chunk : ChunkWorkerChunk) {
 
         // Draw fly islands in the sky
         const resp = this.drawFlyIslands(chunk);

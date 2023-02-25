@@ -8,6 +8,20 @@ export interface IKbOptions {
     onKeyEvent(e : any) : any
 }
 
+export type KbEvent = {
+    e_orig:     KeyboardEvent
+    keyCode:    number
+    down:       boolean
+    /**
+     * Possible values (by the time the event is processed):
+     * - undefined: the event is fired for the 1st time
+     * - true: the event is repeated
+     */
+    first?:     boolean
+    shiftKey:   boolean
+    ctrlKey:    boolean
+}
+
 export class Kb {
 
     options : IKbOptions
@@ -27,7 +41,7 @@ export class Kb {
         this.dbl_press      = new Map();
         this.skipUntilTime  = -1;
 
-        let makeEvent = function(e, down, first) {
+        let makeEvent = function(e: KeyboardEvent, down: boolean, first: boolean): KbEvent {
             return {
                 e_orig:     e,
                 keyCode:    e.keyCode,
@@ -119,7 +133,7 @@ export class Kb {
     }
 
     // Hook for keyboard input
-    _onKeyEvent(e) {
+    _onKeyEvent(e: KbEvent) {
         if (this.skipUntilTime > -1 && performance.now() < this.skipUntilTime) {
             return false;
         }

@@ -6,7 +6,7 @@ import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
 import { HUD } from "./hud.js";
 import { Sounds } from "./sounds.js";
-import { IKbOptions, Kb} from "./kb.js";
+import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
 import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME } from "./constant.js";
@@ -42,6 +42,7 @@ export class GameSettings {
     beautiful_leaves:        boolean = true
     leaf_fall:               boolean = true
     draw_improved_blocks:    boolean = true
+    overlay_textures:        boolean = true
     mipmap:                  boolean = false
     // grids
     mobs_draw_debug_grid:    boolean = false
@@ -271,7 +272,7 @@ export class GameClass {
                 }
             },
             // Hook for keyboard input
-            onKeyEvent: (e) => {
+            onKeyEvent: (e: KbEvent) => {
                 // Chat
                 if(player.chat.active && (e.keyCode < 112 || e.keyCode > 123)) {
                     player.chat.onKeyEvent(e);
@@ -454,7 +455,8 @@ export class GameClass {
                                         "lies":     player.state.lies,
                                         health:     player.state.indicators.live,
                                         armor:      player.inventory.exportArmorState(),
-                                        sneak:      player.sneak
+                                        sneak:      player.sneak,
+                                        "sleep":    player.state.sleep
                                         /* It's unused, and it doesn't exist on player.state
                                         "scale":    player.state.scale
                                         */
@@ -531,6 +533,14 @@ export class GameClass {
                     // T (Open chat)
                     case KEY.T: {
                         if(!e.down) {
+                            if(!player.chat.active) {
+                                player.chat.open([]);
+                            }
+                        }
+                        return true;
+                    }
+                    case KEY.ENTER: {
+                        if(e.down && !e.first) { // !e.first is needed if we keep pressing ENTER after the chat is closed
                             if(!player.chat.active) {
                                 player.chat.open([]);
                             }

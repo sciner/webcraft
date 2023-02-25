@@ -1,3 +1,5 @@
+// import type { WorkerWorldManager } from './worker/world.js'
+
 class ChunkWorkerRoot {
     RAF_MS = 20
     blockManager = null
@@ -108,7 +110,7 @@ class ChunkWorkerRoot {
                 }
             }
 
-            this.world = await this.worlds.add(generator, world_seed, world_guid);
+            this.world = await this.worlds.add(generator, world_seed, world_guid, settings);
             // Worker inited
             this.postMessage(['world_inited', null]);
 

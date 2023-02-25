@@ -1,4 +1,5 @@
 //
+//@ts-ignore
 declare const Qubatch: any // GameClass // | ServerGame
 declare const QubatchChunkWorker: any;
 declare const QubatchLightWorker: any;
@@ -203,13 +204,20 @@ interface IBlockMaterial {
     extra_data: any
     item: {
         name: string
-        emit_on_set: string
+        emit_on_set: string,
+        instrument_id? : string
     }
     armor: {
         slot: int
         durability: number
         damage: number
     }
+    seeds: {
+        result: {
+            incomplete: object[]
+            complete: object[]
+        }
+    },
     inventory: {
         style: string
         scale: number
@@ -230,14 +238,16 @@ interface IBlockMaterial {
         name : string
         count? : number
         chance?: float
+        min_max_count?: any
     }
     bb: any
     planes: IPlane[]
     tx_cnt: number
+    overlay_textures_weight: number
     material: IBlockMiningMaterial
     material_key: string
     texture: any
-    texture_decals: any
+    texture_overlays: any
     texture_animations: any
     multiply_color: IColor
     mask_color: IColor

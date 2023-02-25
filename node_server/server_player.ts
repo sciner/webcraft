@@ -144,8 +144,9 @@ export class ServerPlayer extends Player {
 
     init(init_info: PlyaerInitInfo): void {
         this.state = init_info.state;
-        this.state.lies = this.state?.lies || false;
-        this.state.sitting = this.state?.sitting || false;
+        this.state.lies ||= false;
+        this.state.sitting ||= false;
+        this.state.sleep ||= false;
         this.live_level = this.state.indicators.live;
         this.food_level = this.state.indicators.food;
         this.oxygen_level = this.state.indicators.oxygen;
@@ -429,6 +430,7 @@ export class ServerPlayer extends Player {
             hands:    this.state.hands,
             sneak:    this.state.sneak,
             sitting:  this.state.sitting,
+            sleep:    this.state.sleep,
             lies:     this.state.lies,
             armor:    this.inventory.exportArmorState(),
             health:   this.state.indicators.live

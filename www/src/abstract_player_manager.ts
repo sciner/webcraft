@@ -16,7 +16,7 @@ export class AbstractPlayerManager<WorldT extends IWorld, PlayerT extends IPlaye
         for(const player of this.list.values()) {
             // on the client, isAlive doesn't work for player model
             if (player.sharedProps.isAlive) {
-                aabb.setBottomHeightRadius(player.sharedProps.pos, player.height, PLAYER_RADIUS)
+                aabb.setBottomHeightRadius(player.sharedProps.pos.offset(0, -0.1, 0), player.height, PLAYER_RADIUS)
                 if (aabb.containsVec(vec)) {
                     yield player
                 }

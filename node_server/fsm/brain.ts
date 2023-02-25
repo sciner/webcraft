@@ -18,7 +18,7 @@ export class FSMBrain {
     prevPos: Vector;
     lerpPos: Vector;
     #chunk_addr = new Vector();
-    mob: any;
+    mob: Mob;
     stack: FSMStack;
     raycaster: Raycaster;
     _eye_pos: Vector;
@@ -71,8 +71,10 @@ export class FSMBrain {
         this.resistance_light = true;
     }
 
-    addStat(name, allowAdding : boolean = false) {
-        this.mob.getWorld().mobs.ticks_stat.add(name, allowAdding)
+    addStat(name : string, allowAdding : boolean = false) {
+        const mobs = this.mob.getWorld().mobs
+        mobs.getTickStatForMob(this.mob).add(name, allowAdding)
+        mobs.ticks_stat.add(name, allowAdding)
     }
 
     tick(delta) {

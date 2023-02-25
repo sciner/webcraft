@@ -8,6 +8,7 @@ import { Lang } from "./lang.js";
 import { LEAVES_TYPE } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
+import type { GameSettings } from "./game.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202, 415];
@@ -238,6 +239,8 @@ export function getBlockNeighbours(world, pos) {
 export class BLOCK {
     [key: string]: any;
     static [key: string]: any;
+
+    static settings : GameSettings          = null
 
     static MAX_SIZE                         = 2048
 
@@ -724,7 +727,7 @@ export class BLOCK {
         }
         if(mat.is_layering) {
             const height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
-            return !isNaN(height) && height == mat.height && block_id != replace_with_block_id;
+            return !isNaN(height) && (height == mat.height && block_id != replace_with_block_id && height < .5);
         }
         return false;
     }
@@ -905,7 +908,7 @@ export class BLOCK {
         block.is_layering       = !!block.layering;
         block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
-        block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
+        block.is_dirt           = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style_name == 'banner';
@@ -1119,14 +1122,14 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float, decal_name?: string) : tupleFloat4 {
+    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float, overlay_name?: string) : tupleFloat4 {
 
         let mat_texture = material?.texture
         if(material?.texture_variants && (random_double != undefined)) {
             mat_texture = material.texture_variants[Math.floor(material.texture_variants.length * random_double)]
         }
-        if(decal_name && material?.texture_decals) {
-            mat_texture = material.texture_decals[decal_name]
+        if(overlay_name && material?.texture_overlays) {
+            mat_texture = material.texture_overlays[overlay_name]
         }
 
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;
@@ -1487,13 +1490,14 @@ export class BLOCK {
 };
 
 // Init
-BLOCK.init = async function(settings) {
+BLOCK.init = async function(settings : GameSettings) {
 
     if(BLOCK.list.size > 0) {
         throw 'error_blocks_already_inited';
     }
 
     BLOCK.reset();
+    BLOCK.settings = settings
 
     // Resource packs
     BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK);
