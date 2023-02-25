@@ -532,7 +532,7 @@ export class Player implements IPlayer {
             })
             // @todo костыль от провал в кровать
             if (this.state.sleep) {
-                this.controls.jump = true
+                this.controls.forward = true
             }
             return true
         }
