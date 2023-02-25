@@ -714,7 +714,7 @@ export default class style {
                 }
                 const t = bm.calcMaterialTexture(mat, DIRECTION.UP, 1, 1, undefined, undefined, undefined, overlay_name);
                 _overlay.sides.up.set(t, flags, 0, lm, overlay_axes_up, false);
-                pushAABB(overlay_vertices, _aabb, pivot, matrix, _overlay.sides, _center.set(x, y, z));
+                pushAABB(overlay_vertices, _aabb, null, null, _overlay.sides, _center.set(x, y, z));
                 // TODO: take material from grass and change to decal1
                 const material_key = OVERLAY_TEXTURE_MATERIAL_KEYS[dmki++ % 2]
                 emmited_blocks.push(new FakeVertices(material_key, overlay_vertices))
