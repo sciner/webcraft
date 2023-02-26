@@ -57,7 +57,11 @@
         {"name": "chair",               "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "stool",               "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "cactus",              "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "sweet_berry_bush",    "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "sweet_berry_bush",    "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "cake",                "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "ender_chest",         "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mob_spawn",           "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "hay_block",           "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -1958,10 +1962,50 @@
             }
         },
         {
-            "_id": 1004,
+            "id": 1004,
             "name": "SWEET_BERRY_BUSH",
+            "_inventory": {
+                "style": "extruder",
+                "texture": "item/sweet_berries.png"
+            },
             "bb": {
                 "model": "sweet_berry_bush"
+            }
+        },
+        {
+            "id": 658,
+            "name": "CAKE",
+            "bb": {
+                "model": "cake",
+                "set_state": [
+                    {"name": "%extra_data.pieces%", "when": {"extra_data.pieces": [1, 2, 3, 4, 5, 6, 7]}}
+                ]
+            }
+        },
+        {
+            "id": 488,
+            "name": "ENDER_CHEST",
+            "bb": {
+                "model": "ender_chest",
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 649,
+            "name": "MOB_SPAWN",
+            "group": "doubleface_transparent",
+            "bb": {
+                "model": "mob_spawn",
+                "rotate": {"type": "cardinal_direction"}
+            }
+        },
+        {
+            "id": 631,
+            "name": "HAY_BLOCK",
+            "transparent": true,
+            "bb": {
+                "model": "hay_block",
+                "rotate": {"type": "three"}
             }
         }
     ]

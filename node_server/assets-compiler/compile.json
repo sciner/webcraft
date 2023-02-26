@@ -5036,6 +5036,7 @@
             "name": "MOB_SPAWN",
             "transparent": true,
             "can_rotate": true,
+            "sound": "madcraft:block.stone",
             "material": {
                 "id": "iron"
             },

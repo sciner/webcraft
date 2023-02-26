@@ -113,19 +113,23 @@ export default class Biome3LayerOverworld {
             const y = xyz.y - chunk.coord.y
             const z = xyz.z - chunk.coord.z
             if(x > 0 && y > 0 && z > 0 && x < chunk.size.x - 1 && y < chunk.size.y - 1 && z < chunk.size.z - 1) {
-                let index_left = cx * (x - 1) + cy * y + cz * z + cw
-                let index_right = cx * (x + 1) + cy * y + cz * z + cw
-                let index_front = cx * x + cy * y + cz * (z - 1) + cw
-                let index_back = cx * x + cy * y + cz * (z + 1) + cw
+                const index_left = cx * (x - 1) + cy * y + cz * z + cw
+                const index_right = cx * (x + 1) + cy * y + cz * z + cw
+                const index_front = cx * x + cy * y + cz * (z - 1) + cw
+                const index_back = cx * x + cy * y + cz * (z + 1) + cw
+                const id_left = ids[index_left]
+                const id_right = ids[index_right]
+                const id_front = ids[index_front]
+                const id_back = ids[index_back]
                 let air_count = 4
-                if(blockFlags[ids[index_left]] & bm.FLAG_SOLID) air_count--
-                if(blockFlags[ids[index_right]] & bm.FLAG_SOLID) air_count--
-                if(blockFlags[ids[index_front]] & bm.FLAG_SOLID) air_count--
-                if(blockFlags[ids[index_back]] & bm.FLAG_SOLID) air_count--
+                if((blockFlags[id_left] & bm.FLAG_SOLID) || (blockFlags[id_left] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) air_count--
+                if((blockFlags[id_right] & bm.FLAG_SOLID) || (blockFlags[id_right] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) air_count--
+                if((blockFlags[id_front] & bm.FLAG_SOLID) || (blockFlags[id_front] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) air_count--
+                if((blockFlags[id_back] & bm.FLAG_SOLID) || (blockFlags[id_back] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) air_count--
                 if(air_count > 0) {
-                    let index_up = cx * x + cy * (y + 1) + cz * z + cw
+                    const index_up = cx * x + cy * (y + 1) + cz * z + cw
                     if((blockFlags[ids[index_up]] & bm.FLAG_SOLID) != bm.FLAG_SOLID) {
-                        let index_bottom = cx * x + cy * (y - 1) + cz * z + cw
+                        const index_bottom = cx * x + cy * (y - 1) + cz * z + cw
                         if(blockFlags[ids[index_bottom]] & bm.FLAG_SOLID) {
                             this.slab_candidates[i] = xyz
                         }

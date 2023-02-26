@@ -69,17 +69,16 @@ export default class style {
     }
 
     /**
-     * @param {TBlock} tblock 
-     * @param {boolean} for_physic
-     * 
-     * @returns {AABB[]}
      */
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
 
         const bb = tblock.material.bb
         const behavior = bb.behavior || bb.model.name
 
         switch(behavior) {
+            case 'cake': {
+                return [new AABB(0, 0, 0, 1, .5, 1)]
+            }
             case 'chain': {
                 const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE
                 const aabb = new AABB()
@@ -284,7 +283,7 @@ export default class style {
 
     }
 
-    static applyBehavior(model : BBModel_Model, chunk, tblock : TBlock | FakeTBlock, neighbours : any, matrix : imat4, biome : any, dirt_color : IndexedColor, vertices : float[], xyz : Vector) {
+    static applyBehavior(model : BBModel_Model, chunk : ChunkWorkerChunk, tblock : TBlock | FakeTBlock, neighbours : any, matrix : imat4, biome : any, dirt_color : IndexedColor, vertices : float[], xyz : Vector) {
 
         const bm = style.block_manager
         const emmited_blocks = []
@@ -296,7 +295,7 @@ export default class style {
         if(bb.set_state /* && !(tblock instanceof FakeTBlock) */) {
             for(let state of bb.set_state) {
                 if(style.checkWhen(model, tblock, state.when)) {
-                    model.state = state.name
+                    model.state = style.processName(state.name, tblock)
                     model.hideAllExcept([model.state])
                     break
                 }
@@ -558,6 +557,18 @@ export default class style {
         return true
     }
 
+    static processName(name : string, tblock : TBlock | FakeTBlock) : string {
+        name = name.replace('%block_name%', tblock.material.name)
+        if(name.startsWith('%extra_data.')) {
+            const field_name = StringHelpers.trim(name.substring(12), '%')
+            name = undefined
+            if(tblock.extra_data) {
+                name = tblock.extra_data[field_name]
+            }
+        }
+        return name === undefined ? null : name + ''
+    }
+
     static selectTextureFromPalette(model : BBModel_Model, texture : BBModel_TextureRule, tblock : TBlock | FakeTBlock) {
         //
         const makeTextureName = (name : string) => {
@@ -565,15 +576,18 @@ export default class style {
                 return 
             }
             if(tblock && tblock.material) {
-                name = name.replace('%block_name%', tblock.material.name)
-                if(name.startsWith('%extra_data.')) {
-                    const field_name = StringHelpers.trim(name.substring(12), '%')
-                    name = null
-                    if(tblock.extra_data) {
-                        name = tblock.extra_data[field_name]
-                    }
-                }
+                name = style.processName(name, tblock)
             }
+            // if(tblock && tblock.material) {
+            //     name = name.replace('%block_name%', tblock.material.name)
+            //     if(name.startsWith('%extra_data.')) {
+            //         const field_name = StringHelpers.trim(name.substring(12), '%')
+            //         name = null
+            //         if(tblock.extra_data) {
+            //             name = tblock.extra_data[field_name]
+            //         }
+            //     }
+            // }
             return name
         }
         //
