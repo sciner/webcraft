@@ -13,10 +13,13 @@ declare type imat3 = float[];
 declare type imat4 = float[] | Float32Array;
 declare type binary = any
 
+declare type scalar = number | string | boolean
+
 declare type tupleFloat6 = [number, number, number, number, number, number]
 declare type tupleFloat4 = [number, number, number, number]
 declare type tupleFloat3 = [number, number, number, number]
 declare type tupleFloat2 = [number, number]
+type ConcatTuple<T1 extends unknown[], T2 extends unknown[]> = [...T1, ...T2]
 
 declare type TypedArray = Uint8Array | Uint16Array | Uint32Array | Int8Array
     | Int16Array | Int32Array | Uint8ClampedArray | Float32Array | Float64Array
@@ -55,6 +58,7 @@ declare interface TWorldInfo {
     game_mode:      string
     generator:      {
         id: string
+        cluster_size: IVector
     }
     pos_spawn:      IVector
     rules:          Dict<any>
@@ -69,7 +73,9 @@ declare interface TWorldInfo {
 
 }
 
-interface TWorldSettings {}
+interface TWorldSettings {
+    leaf_fall: boolean
+}
 
 interface IChatCommand {
     name: int
@@ -110,8 +116,32 @@ interface IWorld {
     getBlock(x : int | IVector, y? : int, z? : int) : any
 }
 
+/**
+ * An adapter with common properties of ServerPlayer and PlayerModel
+ * that are declared differently and can't be accessed in the same from
+ * ServerPlayer, Player and PlayerModel themselves.
+ */
+interface IPlayerSharedProps {
+    isAlive     : boolean
+    user_id     : int
+    pos         : IVector
+    sitting     : boolean
+}
+
+declare type PlayerSession = {
+    username    : string
+    user_id     : int
+    user_guid   : string
+}
+
 interface IPlayer {
-    session: any
+    session: PlayerSession
+}
+
+/** Common properties of ServerPlayer, Player and PlayerModel */
+interface IPlayerOrModel {
+    height: number
+    sharedProps: IPlayerSharedProps
 }
 
 interface IBuildingItem {

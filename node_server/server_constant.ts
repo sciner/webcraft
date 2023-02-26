@@ -1,3 +1,14 @@
+// database
+
+/**
+ * If it's true, indicators are saved in DB in the old format, preserving backwards compatibility,
+ * so the older code can open it.
+ * If it's false, indicators are saved in the new, more effecient format.
+ *
+ * TODO change it to false after a few mobths.
+ */
+export const SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS = true;
+
 // world transaction
 
 export let WORLD_TRANSACTION_PERIOD = 2000;  // the time (in ms) between world-saving transactions
@@ -24,7 +35,7 @@ export const STABLE_WORLD_MODIFY_CHUNKLESS_TTL = 20 * 1000;
 /**
  * How many times on average {@link DBWorldChunk.cleanupWorldModify} is called
  * per world transaction. It can be fractional.
- * 
+ *
  * It's not const, so qubatch-single can increase it.
  */
 export let CLEANUP_WORLD_MODIFY_PER_TRANSACTION = 0.5;
