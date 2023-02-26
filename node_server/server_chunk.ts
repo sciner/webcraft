@@ -13,7 +13,7 @@ import { TickerHelpers } from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "../www/src/light/ChunkLight.js";
 import type { ServerWorld } from "./server_world.js";
 import type { ServerPlayer } from "./server_player.js";
-import type { Mob } from "./mob.js";
+import type { Mob, MobSpawnParams } from "./mob.js";
 import type { DropItem } from "./drop_item.js";
 import type { ServerChunkManager } from "./server_chunk_manager.js";
 import type { DBItemBlock } from "../www/src/blocks";
@@ -842,7 +842,7 @@ export class ServerChunk {
                 let under2 = this.world.getBlock(pos.clone());
                 if(under1?.id == bm.POWDER_SNOW.id && under2?.id == bm.POWDER_SNOW.id) {
                     pos.addSelf(new Vector(.5, 0, .5));
-                    const params = {
+                    const params: MobSpawnParams = {
                         type           : 'snow_golem',
                         skin           : 'base',
                         pos            : pos.clone(),

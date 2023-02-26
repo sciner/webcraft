@@ -213,9 +213,6 @@ export class Inventory {
      * @param {null} decrement_item - not processed, must be null
      */
     decrement(decrement_item = null, ignore_creative_game_mode? : boolean): void {
-        if (decrement_item != null) {
-            throw new Error('not_implemented')
-        }
         if(!this.current_item) {
             return;
         }

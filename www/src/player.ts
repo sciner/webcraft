@@ -77,6 +77,7 @@ type PlayerStateDynamicPart = {
     lies ?      : boolean
     sitting ?   : boolean
     sneak ?     : boolean
+    sleep ?     : boolean
     hands       : PlayerHands
 }
 
@@ -122,6 +123,7 @@ export class PlayerSharedProps implements IPlayerSharedProps {
     get user_id() : int     { return this.p.session.user_id; }
     get pos()     : Vector  { return this.p.state.pos; }
     get sitting() : boolean { return this.p.state.sitting; }
+    get sleep()   : boolean { return this.p.state.sleep; }
 }
 
 // Creates a new local player manager.
