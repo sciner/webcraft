@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar } from './helpers.js';
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -88,13 +88,10 @@ class Block {
 }
 
 export class FakeVertices {
-    [key: string]: any;
+    material_key: string;
+    vertices: float[];
 
-    /**
-     * @param {string} material_key
-     * @param {float[]} vertices
-     */
-    constructor(material_key, vertices) {
+    constructor(material_key : string, vertices : float[]) {
         this.material_key = material_key
         this.vertices = vertices
     }
@@ -105,7 +102,7 @@ export class FakeVertices {
 export class FakeTBlock {
     [key: string]: any;
 
-    constructor(id : int, extra_data?, pos?, rotate?, pivot?, matrix?, tags?, biome?, dirt_color?) {
+    constructor(id : int, extra_data? : any, pos?, rotate?, pivot?, matrix?, tags?, biome?, dirt_color? : IndexedColor) {
         this.id = id;
         this.extra_data = extra_data;
         this.pos = pos;
@@ -117,15 +114,15 @@ export class FakeTBlock {
         this.dirt_color = dirt_color;
     }
 
-    getCardinalDirection() {
+    getCardinalDirection() : int {
         return BLOCK.getCardinalDirection(this.rotate);
     }
 
-    get posworld() {
+    get posworld() : Vector {
         return this.pos;
     }
 
-    hasTag(tag) {
+    hasTag(tag : string) : boolean {
         const mat = this.material;
         if(!mat) {
             return false;
@@ -140,7 +137,7 @@ export class FakeTBlock {
         return resp;
     }
 
-    get material() {
+    get material() : IBlockMaterial {
         return BLOCK.fromId(this.id);
     }
 
@@ -159,7 +156,6 @@ export class DropItemVertices extends FakeTBlock {
 
 //
 class Block_Material implements IBlockMiningMaterial {
-    [key: string]: any;
 
     id: string
     mining: any
@@ -252,6 +248,7 @@ export class BLOCK {
     static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID: IBlockMaterial[]    = [];
     static bySuffix                         = {}; // map of arrays
+    static REPLACE_TO_SLAB                  = {};
     /**
      * For each block id, it contains flags describing to which classes of blocks it belongs.
      * See BLOCK.FLAG_*** constants.
@@ -283,6 +280,18 @@ export class BLOCK {
         this.addFlag(this.FLAG_FLUID, 200, 202, 170, 171, 218, 219)
         // Taken from overworld.ts
         this.addFlag(this.FLAG_STONE, this.STONE?.id, this.ANDESITE?.id, this.DIORITE?.id, this.GRANITE?.id)
+    }
+
+    static checkGeneratorOptions() {
+        for(let block of BLOCK.getAll()) {
+            if(block.generator) {
+                const g = block.generator
+                if(g.can_replace_to_slab) {
+                    const slab = BLOCK.fromName(g.can_replace_to_slab)
+                    BLOCK.REPLACE_TO_SLAB[block.id] = slab.id
+                }
+            }
+        }
     }
 
     static getBlockTitle(block) {
@@ -1513,6 +1522,7 @@ BLOCK.init = async function(settings : GameSettings) {
         //
         BLOCK.sortBlocks();
         BLOCK.addHardcodedFlags();
+        BLOCK.checkGeneratorOptions()
         // Block styles
         for(let style of block_styles.values()) {
             BLOCK.registerStyle(style);

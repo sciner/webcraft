@@ -187,7 +187,7 @@ interface IBlockMaterial {
             incomplete: object[]
             complete: object[]
         }
-    },
+    }
     inventory: {
         style: string
         scale: number
@@ -203,12 +203,15 @@ interface IBlockMaterial {
         type: string
         max_stage?: number
         times_per_stage?: number
-    },
+    }
     drop_item: {
         name : string
         count? : number
         chance?: float
         min_max_count?: any
+    }
+    generator? : {
+        can_replace_to_slab: string
     }
     bb: any
     planes: IPlane[]
