@@ -91,9 +91,9 @@ export default class Biome3LayerOverworld {
 
     }
 
-    addSlabCandidate(xyz : Vector) {
+    addSlabCandidate(xyz : Vector, block_id : int, slab_block_id : int) {
         if(this.generator.options.generate_natural_slabs) {
-            this.slab_candidates.push(xyz.clone())
+            this.slab_candidates.push(xyz.clone(), block_id, slab_block_id)
         }
     }
 
@@ -106,7 +106,7 @@ export default class Biome3LayerOverworld {
         const { cx, cy, cz, cw } = chunk.dataChunk
         const ids = chunk.tblocks.id
         
-        for(let i = 0; i < this.slab_candidates.length; i++) {
+        for(let i = 0; i < this.slab_candidates.length; i += 3) {
             const xyz = this.slab_candidates[i]
             this.slab_candidates[i] = null
             const x = xyz.x - chunk.coord.x
@@ -134,13 +134,14 @@ export default class Biome3LayerOverworld {
             }
         }
         
-        for(let i = 0; i < this.slab_candidates.length; i++) {
+        for(let i = 0; i < this.slab_candidates.length; i += 3) {
             const xyz = this.slab_candidates[i]
             if(xyz) {
                 const x = xyz.x - chunk.coord.x
                 const y = xyz.y - chunk.coord.y
                 const z = xyz.z - chunk.coord.z
-                chunk.tblocks.setBlockId(x, y, z, BLOCK.GRASS_BLOCK_SLAB.id)
+                const new_block_id = this.slab_candidates[i + 2]
+                chunk.tblocks.setBlockId(x, y, z, new_block_id)
             }
         }
 
@@ -353,8 +354,9 @@ export default class Biome3LayerOverworld {
                                         }
                                     }
 
-                                    if(block_id == BLOCK.GRASS_BLOCK.id) {
-                                        this.addSlabCandidate(xyz)
+                                    const slab_block_id = BLOCK.REPLACE_TO_SLAB[block_id]
+                                    if(slab_block_id) {
+                                        this.addSlabCandidate(xyz, block_id, slab_block_id)
                                     }
 
                                     // draw big stones

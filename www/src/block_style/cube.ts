@@ -540,7 +540,7 @@ export default class style {
                 }
             }
             _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block);
-            if(block.id == BLOCK.GRASS_BLOCK_SLAB.id && side != 'up' && side != 'down') {
+            if((block.id == BLOCK.GRASS_BLOCK_SLAB.id || block.id == BLOCK.SNOW_DIRT_SLAB.id) && side != 'up' && side != 'down') {
                 _sideParams.t[1] -= .5 / material.tx_cnt;
             }
             _sideParams.f = flags | upFlags | sideFlags | animFlag;
