@@ -1,6 +1,7 @@
 import { ServerClient } from "../../../www/src/server_client.js";
 import { doBlockAction } from "../../../www/src/world_action.js";
 import { Vector, VectorCollector } from "../../../www/src/helpers.js";
+import { MOUSE } from "../../../www/src/constant.js";
 
 export default class packet_reader {
 
@@ -26,7 +27,12 @@ export default class packet_reader {
             return true;
         }
         if (packet.data.interactMobID || packet.data.interactPlayerID) {
-            player.onAttackEntity(packet.data.button_id, packet.data.interactMobID, packet.data.interactPlayerID);
+            if (packet.data.button_id == MOUSE.BUTTON_LEFT) {
+                player.onAttackEntity(packet.data.interactMobID, packet.data.interactPlayerID)
+            }
+            if (packet.data.button_id == MOUSE.BUTTON_RIGHT) {
+                player.onUseItem(packet.data.interactMobID, packet.data.interactPlayerID)
+            }
         } else {
             const correct_destroy = player.isMiningComplete(packet.data);
             const player_info = {

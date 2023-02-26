@@ -102,6 +102,7 @@ export class Player implements IPlayer {
     body_rotate_o:              number;
     body_rotate_speed:          number;
     mineTime:                   number;
+    timer_attack:               number;
     pr:                         any;
     inhand_animation_duration:  number;
     pn_start_change_sneak:      number;
@@ -223,6 +224,7 @@ export class Player implements IPlayer {
         this.body_rotate_o          = 0;
         this.body_rotate_speed      = BODY_ROTATE_SPEED;
         this.mineTime               = 0;
+        this.timer_attack           = 0
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
@@ -284,10 +286,18 @@ export class Player implements IPlayer {
         this.pickAt = new PickAt(this.world, this.render, async (arg1, arg2, arg3) => {
             return await this.onPickAtTarget(arg1, arg2, arg3);
         }, async (e) => {
+            const instrument = this.getCurrentInstrument()
+            const speed = instrument?.speed ? instrument.speed : 1
+            const time = e.start_time - this.timer_attack
+            if (time < 500) {
+                return
+            } 
+            this.mineTime = 0
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
                 this.inAttackProcess = ATTACK_PROCESS_ONGOING;
-                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
+                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
             }
+            this.timer_attack = e.start_time
             if (e.interactPlayerID) {
                 const player = Qubatch.world.players.get(e.interactPlayerID);
                 if (player) {
@@ -562,7 +572,7 @@ export class Player implements IPlayer {
         } else if(e.destroyBlock) {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
-            let mul             =  Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            let mul             = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
             mul *= this.eyes_in_block?.is_water ? 0.2 : 1;
             mul += mul * 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
             mul -= mul * 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
