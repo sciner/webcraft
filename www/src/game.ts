@@ -159,6 +159,7 @@ export class GameClass {
         this.loop = this.loop.bind(this);
         // Interval functions
         this.sendStateInterval = setInterval(() => {
+            this.world.history.deletOld();
             player.sendState();
         }, 50);
         // Run render loop

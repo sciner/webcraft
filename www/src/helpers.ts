@@ -833,10 +833,9 @@ export class VectorCollectorFlat {
 }
 
 // VectorCollector...
-export class VectorCollector {
-    [key: string]: any;
-    size: any;
-    list: any;
+export class VectorCollector<T = any> {
+    size: int;
+    list: Map<int, Map<int, Map<int, T>>>;
 
     /**
      */
@@ -847,7 +846,7 @@ export class VectorCollector {
         }
     }
 
-    *[Symbol.iterator]() {
+    *[Symbol.iterator](): IterableIterator<T> {
         for (let x of this.list.values()) {
             for (let y of x.values()) {
                 for (let value of y.values()) {
@@ -862,7 +861,7 @@ export class VectorCollector {
      * Goupd are numbered from 0 to {@link groupsCount} - 1.
      * It method iterates over values from group {@link groupIndex}
      */
-    *subsetOfValues(groupIndex, groupsCount) {
+    *subsetOfValues(groupIndex: int, groupsCount: int): IterableIterator<T> {
         for (let [x, byX] of this.list) {
             if (((x % groupsCount) + groupsCount) % groupsCount === groupIndex) {
                 for (let byY of byX.values()) {
@@ -872,7 +871,7 @@ export class VectorCollector {
         }
     }
 
-    entries(aabb?: AABB) {
+    entries(aabb?: AABB): IterableIterator<[Vector, T]> {
         const that = this;
         return (function* () {
             if(that.size == 0) {
@@ -898,7 +897,7 @@ export class VectorCollector {
         this.size = 0;
     }
 
-    set(vec: IVector, value: any) : boolean {
+    set(vec: IVector, value: T) : boolean {
         let size = this.size;
         if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
         if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
@@ -912,7 +911,7 @@ export class VectorCollector {
         return this.size > size;
     }
 
-    add(vec : IVector, value: any) {
+    add(vec : IVector, value: T): T {
         if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
         if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
         if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
@@ -926,7 +925,7 @@ export class VectorCollector {
     }
 
     // If the element exists, returns it. Otherwise sets it to the result of createFn().
-    getOrSet(vec : IVector, createFn : Function) {
+    getOrSet(vec : IVector, createFn : (vec: IVector) => T): T {
         let byY = this.list.get(vec.x);
         if (byY == null) {
             byY = new Map();
@@ -955,7 +954,7 @@ export class VectorCollector {
      *   If its result is null, the value is deleted.
      * @return the new value.
      */
-    update(vec : IVector, mapFn : Function) {
+    update(vec : IVector, mapFn : (old?: T) => T | null): T | null {
         let byY = this.list.get(vec.x);
         if (byY == null) {
             byY = new Map();
@@ -1010,11 +1009,11 @@ export class VectorCollector {
         return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
     }
 
-    get(vec) {
+    get(vec: IVector): T | null {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
     }
 
-    keys() {
+    keys(): IterableIterator<Vector> {
         const that = this;
         return (function* () {
             if(that.size == 0) {
@@ -1030,7 +1029,7 @@ export class VectorCollector {
         })()
     }
 
-    values() {
+    values(): IterableIterator<T> {
         const that = this;
         return (function* () {
             for (let x of that.list.values()) {

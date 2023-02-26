@@ -16,6 +16,7 @@ import type { ServerPlayer } from "./server_player.js";
 import type { Mob } from "./mob.js";
 import type { DropItem } from "./drop_item.js";
 import type { ServerChunkManager } from "./server_chunk_manager.js";
+import { FluidChunkQueue } from "../www/src/fluid/FluidChunkQueue.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -425,7 +426,19 @@ export class ServerChunk {
         this.sendAll(packets, []);
     }
 
-    sendFluidDelta(buf) {
+    /** Creates a packet describing fluid at world position {@link worldPos} */
+    createFluidDeltaPacketAt(worldPos: Vector): INetworkMessage {
+        const buf = FluidChunkQueue.packAsDelta(worldPos, this.fluid)
+        return {
+            name: ServerClient.CMD_FLUID_DELTA,
+            data: {
+                addr: this.addr,
+                buf: Buffer.from(buf).toString('base64')
+            }
+        }
+    }
+
+    sendFluidDelta(buf: Uint8Array): void {
         const packets = [{
             name: ServerClient.CMD_FLUID_DELTA,
             data: {
@@ -630,7 +643,7 @@ export class ServerChunk {
     }
 
     //
-    sendAll(packets : any[], except_players? : number[]) {
+    sendAll(packets : INetworkMessage[], except_players? : number[]) {
         const connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, except_players);
     }

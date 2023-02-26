@@ -19,19 +19,20 @@ import {ServerPlayerVision} from "./server_player_vision.js";
 import {compressNearby} from "../www/src/packet_compressor.js";
 import { AABB } from "../www/src/core/AABB.js"
 import { EnumDamage } from "../www/src/enums/enum_damage.js";
+import type { ServerWorld } from "./server_world.js";
 
-export class NetworkMessage {
-    time: number;
-    name: string;
-    data: {};
+export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
+    time?: number;
+    name: int;      // a value of ServerClient.CMD_*** numeric constants
+    data: DataT;
     constructor({
         time = Date.now(),
-        name = '',
+        name = -1,
         data = {}
     }) {
         this.time = time;
         this.name = name;
-        this.data = data;
+        this.data = data as DataT;
     }
 }
 
@@ -63,6 +64,8 @@ export class ServerPlayer extends Player {
     damage: ServerPlayerDamage;
     sharedProps: ServerPlayerSharedProps;
     wait_portal: WorldPortalWait;
+    // @ts-expect-error
+    world: ServerWorld
 
     #forward : Vector;
     #_rotateDegree : Vector;
@@ -287,9 +290,8 @@ export class ServerPlayer extends Player {
 
     /**
      * sendPackets
-     * @param {NetworkMessage[]} packets
      */
-    sendPackets(packets) {
+    sendPackets(packets: INetworkMessage[]) {
         const ns = this.world.network_stat;
 
         // time is the same for all commands, so it's saved once in the 1st of them
@@ -469,8 +471,8 @@ export class ServerPlayer extends Player {
         //this.updateAABB()
     }
 
-    get isAlive() : boolean { 
-        return this.live_level > 0 
+    get isAlive() : boolean {
+        return this.live_level > 0
     }
 
     /**
@@ -604,7 +606,7 @@ export class ServerPlayer extends Player {
     // Check player visible chunks
     checkVisibleChunks() {
         const {vision, world} = this;
-        if (!vision.updateNearby() && 
+        if (!vision.updateNearby() &&
             !(this.netDirtyFlags & ServerPlayer.NET_DIRTY_FLAG_RENDER_DISTANCE)
         ) {
             return;

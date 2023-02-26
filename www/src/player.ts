@@ -10,7 +10,7 @@ import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
-import {doBlockAction, WorldAction} from "./world_action.js";
+import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
@@ -19,6 +19,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
+import type { World } from "./world.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -36,7 +37,7 @@ export class Player implements IPlayer {
 
     chat :                      Chat
     render:                     Renderer;
-    world :                     any
+    world :                     World;
     options:                    any;
     game_mode:                  GameMode;
     inventory:                  any // PlayerInventory | ServerPlayerInventory;
@@ -46,7 +47,7 @@ export class Player implements IPlayer {
     pickAt:                     PickAt;
     arm:                        PlayerArm;
     session:                    any
-        
+
     #forward:                   Vector = new Vector(0, 0, 0);
     inAttackProcess:            number;
     scale:                      number = PLAYER_ZOOM;
@@ -66,7 +67,7 @@ export class Player implements IPlayer {
     rotate:                     Vector = new Vector(0, 0, 0)
     #_rotateDegree:             Vector = new Vector(0, 0, 0)
 
-    //      
+    //
     inMiningProcess:            boolean = false;
     inItemUseProcess:           boolean = false;
     falling:                    boolean = false; // падает
@@ -597,7 +598,7 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig = JSON.parse(JSON.stringify(e));
-            const player = {
+            const player: ActionPlayerInfo = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
                 pos: this.lerpPos,
@@ -606,18 +607,21 @@ export class Player implements IPlayer {
                     user_id: this.session.user_id
                 }
             };
-            const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
-            if(e.createBlock && actions.blocks.list.length > 0) {
-                this.startArmSwingProgress();
+            const [actions, pos] = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            if (actions) {
+                e_orig.snapshotId = this.world.history.makeSnapshot(pos);
+                if(e.createBlock && actions.blocks.list.length > 0) {
+                    this.startArmSwingProgress();
+                }
+                await this.world.applyActions(actions, this);
+                e_orig.actions = {blocks: actions.blocks};
+                e_orig.eye_pos = this.getEyePos();
+                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                this.world.server.Send({
+                    name: ServerClient.CMD_PICKAT_ACTION,
+                    data: e_orig
+                });
             }
-            await this.world.applyActions(actions, this);
-            e_orig.actions = {blocks: actions.blocks};
-            e_orig.eye_pos = this.getEyePos();
-            // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-            this.world.server.Send({
-                name: ServerClient.CMD_PICKAT_ACTION,
-                data: e_orig
-            });
         }
         return true;
     }

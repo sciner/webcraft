@@ -11,9 +11,13 @@ import {BLOCK} from "../blocks.js";
 import {AABB} from "../core/AABB.js";
 import { gzip, ungzip } from '../../vendors/pako.esm.min.mjs';
 import { FluidChunkFlowing } from "./FluidChunkFlowing.js";
+import type { DataChunk } from "../core/DataChunk.js";
 
 export class FluidChunk {
     [key: string]: any;
+
+    dataChunk: DataChunk
+
     constructor({dataChunk, dataId, parentChunk = null, world = null}) {
         this.dataChunk = dataChunk;
         this.dataId = dataId;

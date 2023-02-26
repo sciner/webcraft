@@ -69,7 +69,11 @@ declare interface TWorldInfo {
 
 }
 
-interface TWorldSettings {}
+interface TWorldSettings {
+    chunks_draw_debug_grid
+    cluster_draw_debug_grid
+    use_light: number
+}
 
 interface IChatCommand {
     name: int
@@ -262,4 +266,10 @@ interface IBlockMaterial {
     sound: string
     inventory_icon_id?: number
     max_in_stack: number
+}
+
+interface INetworkMessage<DataT = any> {
+    time?: number
+    name: int
+    data: DataT
 }
