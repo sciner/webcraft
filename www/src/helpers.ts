@@ -2795,6 +2795,8 @@ export class StringHelpers {
 
 export class ArrayHelpers {
 
+    static EMPTY = []
+
     // elements order is not preserved
     static fastDelete(arr: any[], index: number): void {
         arr[index] = arr[arr.length - 1];
@@ -2842,6 +2844,17 @@ export class ArrayHelpers {
             sum += mapper(arr[i]);
         }
         return sum;
+    }
+
+    static max(arr : any[], initial: number = -Infinity, mapper = (it: any): number => it): number {
+        let max = initial
+        for (let i = 0; i < arr.length; i++) {
+            const v = mapper(arr[i])
+            if (max < v) {
+                max = v
+            }
+        }
+        return max
     }
 
     /**
@@ -2929,11 +2942,11 @@ export class ArrayHelpers {
         return res;
     }
 
-    static create(size: number, fill?: Function): any[] {
+    static create<T = any>(size: int, fill?: ((index: int) => T) | T): T[] {
         const arr = new Array(size);
         if (typeof fill === 'function') {
             for(let i = 0; i < arr.length; i++) {
-                arr[i] = fill(i);
+                arr[i] = (fill as Function)(i);
             }
         } else if (fill !== null) {
             arr.fill(fill);
@@ -2977,42 +2990,50 @@ export class ArrayHelpers {
 
 // Helper methods to work with an array or a scalar in the same way.
 export class ArrayOrScalar {
-    [key: string]: any;
 
     // Returns Array or null as is. Non-null scalars are wraped into an array.
-    static toArray(v) {
-        return (v == null || Array.isArray(v)) ? v : [v];
+    static toArray<T = any>(v: T | T[]): T[] {
+        return (v == null || Array.isArray(v)) ? v as T[] : [v];
     }
 
-    static get(v: any[], index: number) {
+    static *values<T = any>(v: T | T[]): IterableIterator<T> {
+        if (Array.isArray(v)) {
+            yield* v
+        } else {
+            yield v
+        }
+    }
+
+    static get<T = any>(v: T | T[], index: int): T {
         return Array.isArray(v) ? v[index] : v;
     }
 
-    // TODO: where is first arg v?
-    // static find(fn) {
-    //     return Array.isArray(v)
-    //         ? v.find(fn)
-    //         : (fn(v) ? v : null);
-    // }
+    static find<T = any>(v: T | T[], fn: (v: T) => boolean): T {
+        return Array.isArray(v)
+            ? v.find(fn)
+            : (fn(v) ? v : null)
+    }
 
-    static map(v: any[], fn: any) {
+    /** For aray, the same as {@link Array.map}. For scalar, returns {@link fn} applied to it. */
+    static map<T = any, OutT = any>(v: T | T[], fn: (v: T) => OutT): OutT | OutT[] {
         return Array.isArray(v) ? v.map(fn) : fn(v);
     }
 
     // Sets the length of an Array, but doesn't change a scalar
-    static setArrayLength(v, length) {
+    static setArrayLength<T = any>(v: T | T[], length: int): T | T[] {
         if (Array.isArray(v)) {
             v.length = length;
         }
         return v;
     }
 
-    static mapSelf(v, fn) {
+    /** Similar to {@link map}, but changes the array itself instead of creating a copy. */
+    static mapSelf<T = any, OutT = any>(v: T | T[], fn: (v: T) => OutT): OutT | OutT[] {
         if (Array.isArray(v)) {
             for(let i = 0; i < v.length; i++) {
-                v[i] = fn(v[i]);
+                (v as any[])[i] = fn(v[i]);
             }
-            return v;
+            return v as any[];
         } else {
             return fn(v);
         }

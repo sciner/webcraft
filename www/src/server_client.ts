@@ -3,7 +3,7 @@ import { getChunkAddr, Vector } from "./helpers.js";
 export class ServerClient {
     [key: string]: any;
 
-    static cmd_titles               = null;
+    static cmd_titles : Map<int, string> = null;
 
     // System
     static CMD_HELLO                    = 1; // server -> player
@@ -279,21 +279,18 @@ export class ServerClient {
     }
 
     //
-    static getCommandTitle(cmd_id) {
+    static getCommandTitle(cmd_id: int): string | int {
         //
         if(!this.cmd_titles) {
             this.cmd_titles = new Map();
             for(let title in ServerClient) {
-                if(title.indexOf('CMD_') == 0) {
+                if(title.startsWith('CMD_')) {
                     this.cmd_titles.set(ServerClient[title], title);
                 }
             }
         }
         //
-        if(this.cmd_titles.has(cmd_id)) {
-            return this.cmd_titles.get(cmd_id)
-        }
-        return cmd_id;
+        return this.cmd_titles.get(cmd_id) ?? cmd_id;
     }
 
     Send(packet) {
