@@ -14,6 +14,62 @@ import { DBWorldChunk } from "./world/chunk.js";
 import { compressWorldModifyChunk } from "../../www/src/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
 import type { ServerWorld } from "../server_world.js";
+import type { ServerPlayer } from "../server_player.js";
+import type { Indicators, PlayerState } from "../../www/src/player.js";
+import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
+
+export type BulkDropItemsRow = [
+    string,     // entity_id
+    number,     // dt
+    string,     // JSON.stringify(items)
+    number, number, number  // x, y, z
+]
+
+export type PlyaerInitInfo = {
+    state: PlayerState,
+    inventory,
+    status: PLAYER_STATUS
+}
+
+/** Old format of indictors, used in DB for backwards compatibility (for some time). */
+export type DeprecatedIndicators = {
+    [key: string]: {
+        name: string
+        value: number
+    }
+}
+
+/** @returns a new object containing indicators in the old format */
+export function toDeprecatedIndicators(indicators: Indicators): DeprecatedIndicators {
+    const res = {}
+    for(const key in indicators) {
+        res[key] = { name: key, value: indicators[key] }
+    }
+    return res
+}
+
+/**
+ * If the indicatrs are in the old format, changes them into the new format.
+ * @param indicators - in/out paramter. If it's in the old format, it's changed by this metod.
+ */
+export function upgradeToNewIndicators(indicators: DeprecatedIndicators | Indicators): Indicators {
+    if (typeof indicators.live === 'number') {
+        return // it's already in the new format
+    }
+    for(const key in indicators) {
+        indicators[key] = (indicators as DeprecatedIndicators)[key].value
+    }
+    return indicators as Indicators
+}
+
+export type PlayerUpdateRow = [
+    user_id     : int,
+    pos         : string,   // JSON.stringify(state.pos),
+    rotate      : string,   // JSON.stringify(state.rotate),
+    indicators  : string,   // JSON.stringify(state.indicators | toDeprecatedIndicators(state.indicators)),
+    stats       : string,   // JSON.stringify(state.stats)
+    state       : string    // JSON.stringify(state)
+];
 
 const INSERT = {
     BULK_DROP_ITEMS: undefined
@@ -26,7 +82,7 @@ const UPDATE = {
 
 // World database provider
 export class DBWorld {
-    conn: any;
+    conn: DBConnection;
     world: ServerWorld;
     migrations: DBWorldMigration;
     mobs: DBWorldMob;
@@ -35,8 +91,9 @@ export class DBWorld {
     fluid: DBWorldFluid;
     chunks: DBWorldChunk;
     bulkLoadDropItemsQuery: BulkSelectQuery;
+    _defaultPlayerIndicators?: Indicators;
 
-    constructor(conn, world : ServerWorld) {
+    constructor(conn: DBConnection, world : ServerWorld) {
         this.conn = conn;
         this.world = world;
     }
@@ -47,7 +104,7 @@ export class DBWorld {
     async init() {
         this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
-        this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
+        this.mobs = new DBWorldMob(this.conn, this.world);
         await this.mobs.init();
         this.quests = new DBWorldQuest(this.conn, this.world);
         await this.quests.init();
@@ -72,7 +129,7 @@ export class DBWorld {
      * @param {*} world
      * @returns {DBWorld}
      */
-    static async openDB(conn, world) {
+    static async openDB(conn: DBConnection, world: ServerWorld): Promise<DBWorld> {
         return await new DBWorld(conn, world).init();
     }
 
@@ -181,22 +238,13 @@ export class DBWorld {
         return true
     }
 
-    // getDefaultPlayerIndicators...
-    getDefaultPlayerIndicators() {
+    /** @returns a new instance of {@link Indicators} filled with default values. */
+    getDefaultPlayerIndicators(): Indicators {
         return {
-            live: {
-                name:  'live',
-                value: 20,
-            },
-            food: {
-                name:  'food',
-                value: 20,
-            },
-            oxygen: {
-                name:  'oxygen',
-                value: 20,
-            },
-        };
+            live: 20,
+            food: 20,
+            oxygen: 20
+        }
     }
 
     // Return default inventory for user
@@ -217,10 +265,10 @@ export class DBWorld {
         return {death: 0, time: 0, pickat: 0, distance: 0}
     }
 
-    // Register new player or return existed
-    async registerPlayer(world, player) {
+    // Register new player or returns existed
+    async registerPlayer(world: ServerWorld, player: ServerPlayer): Promise<PlyaerInitInfo> {
         // Find existing user record
-        const row = await this.conn.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode, stats FROM user WHERE guid = ?", [player.session.user_guid]);
+        const row = await this.conn.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode, stats, state FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
 
             const fixInventory = (inventory) => {
@@ -250,40 +298,59 @@ export class DBWorld {
             }
 
             const inventory = fixInventory(JSON.parse(row.inventory))
+            const state = row.state ? JSON.parse(row.state) : { }
 
-            const state = {
-                pos:                new Vector(JSON.parse(row.pos)),
-                pos_spawn:          new Vector(JSON.parse(row.pos_spawn)),
-                rotate:             new Vector(JSON.parse(row.rotate)),
-                indicators:         JSON.parse(row.indicators),
+            // TODO remove backwards compatibility with seprate fields
+            Object.assign(state, {
+                pos:                JSON.parse(row.pos),
+                pos_spawn:          JSON.parse(row.pos_spawn),
+                rotate:             JSON.parse(row.rotate),
+                indicators:         upgradeToNewIndicators(JSON.parse(row.indicators)),
                 chunk_render_dist:  row.chunk_render_dist,
                 game_mode:          row.game_mode || world.info.game_mode,
                 stats:              JSON.parse(row.stats)
-            };
+            });
+
+            // postprocess state
+            state.pos       = new Vector(state.pos)
+            state.pos_spawn = new Vector(state.pos_spawn)
+            state.rotate    = new Vector(state.rotate)
+
             return {
                 state: state,
                 inventory: inventory,
-                status: state.indicators.live.value ? PLAYER_STATUS.ALIVE : PLAYER_STATUS.DEAD
+                status: state.indicators.live ? PLAYER_STATUS.ALIVE : PLAYER_STATUS.DEAD
             };
         }
         const default_pos_spawn = world.info.pos_spawn;
+        const defaultState = {
+            pos         : default_pos_spawn,
+            pos_spawn   : default_pos_spawn,
+            rotate      : new Vector(0, 0, Math.PI),
+            indicators  : this.getDefaultPlayerIndicators(),
+            stats       : this.getDefaultPlayerStats()
+        }
+        const defaultIndicators: any = SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS
+            ? toDeprecatedIndicators(defaultState.indicators)
+            : defaultState.indicators
         // Insert to DB
-        await this.conn.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
+        await this.conn.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats, state) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats, :state)', {
             ':id':          player.session.user_id,
             ':dt':          unixTime(),
             ':guid':        player.session.user_guid,
             ':username':    player.session.username,
             ':pos':         JSON.stringify(default_pos_spawn),
             ':pos_spawn':   JSON.stringify(default_pos_spawn),
-            ':rotate':      JSON.stringify(new Vector(0, 0, Math.PI)),
+            ':rotate':      JSON.stringify(defaultState.rotate),
             ':inventory':   JSON.stringify(this.getDefaultInventory()),
-            ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
+            ':indicators':  JSON.stringify(defaultIndicators),
             ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0,
-            ':stats':       JSON.stringify(this.getDefaultPlayerStats())
+            ':stats':       JSON.stringify(defaultState.stats),
+            ':state':       JSON.stringify(defaultState)
         });
-        player = await this.registerPlayer(world, player);
-        player.status = PLAYER_STATUS.WAITING_DATA;
-        return player;
+        const result = await this.registerPlayer(world, player);
+        result.status = PLAYER_STATUS.WAITING_DATA;
+        return result;
     }
 
     // Добавление сообщения в чат
@@ -297,7 +364,7 @@ export class DBWorld {
         });
     }
 
-    async bulkUpdateInventory(rows) {
+    async bulkUpdateInventory(rows: [userId: int, inventory: string][]) {
         UPDATE.BULK_INVENTORY = UPDATE.BULK_INVENTORY ?? preprocessSQL(`
             UPDATE user
             SET inventory = %1
@@ -309,21 +376,25 @@ export class DBWorld {
             : null;
     }
 
-    static toPlayerUpdateRow(player) {
+    static toPlayerUpdateRow(player: ServerPlayer): PlayerUpdateRow {
         const state = player.state;
+        const indicators = SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS
+            ? toDeprecatedIndicators(state.indicators)
+            : state.indicators
         return [
             player.session.user_id,
             JSON.stringify(state.pos),
             JSON.stringify(state.rotate),
-            JSON.stringify(state.indicators),
-            JSON.stringify(state.stats)
+            JSON.stringify(indicators),
+            JSON.stringify(state.stats),
+            JSON.stringify(state)
         ];
     }
 
-    async bulkUpdatePlayerState(rows, dt) {
+    async bulkUpdatePlayerState(rows: PlayerUpdateRow[], dt: int) {
         UPDATE.BULK_PLAYER_STATE = UPDATE.BULK_PLAYER_STATE ?? preprocessSQL(`
             UPDATE user
-            SET pos = %1, rotate = %2, indicators = %3, stats = %4, dt_moved = :dt
+            SET pos = %1, rotate = %2, indicators = %3, stats = %4, state = %5, dt_moved = :dt
             FROM json_each(:jsonRows)
             WHERE user.id = %0
         `);
@@ -373,7 +444,7 @@ export class DBWorld {
         await this.conn.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
-    async bulkInsertDropItems(rows) {
+    async bulkInsertDropItems(rows: BulkDropItemsRow[]) {
         INSERT.BULK_DROP_ITEMS = INSERT.BULK_DROP_ITEMS ?? preprocessSQL(`
             INSERT INTO drop_item (entity_id, dt, items, x, y, z)
             SELECT %0, %1, %2, %3, %4, %5
@@ -384,7 +455,7 @@ export class DBWorld {
         }) : null;
     }
 
-    async bulkUpdateDropItems(rows) {
+    async bulkUpdateDropItems(rows: BulkDropItemsRow[]) {
         UPDATE.BULK_DROP_ITEMS = UPDATE.BULK_DROP_ITEMS ?? preprocessSQL(`
             UPDATE drop_item
             SET dt = %1, items = %2, x = %3, y = %4, z = %5

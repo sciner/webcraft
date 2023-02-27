@@ -6,6 +6,7 @@ import { Effect } from "./block_type/effect.js";
 import { Window } from "../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./window/base_craft_window.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
+import type { Inventory } from "./inventory.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -79,6 +80,7 @@ class Strings {
 export class Hotbar {
     [key: string]: any;
     sprites: Dict<MySprite> = {};
+    inventory: Inventory
 
     constructor(hud) {
 
@@ -294,7 +296,7 @@ export class Hotbar {
             hotbar_height = bottom_two_line
             const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
             // жизни
-            const live = player.indicators.live.value;
+            const live = player.indicators.live;
             // моргание от урона
             const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
             const low_live = live < 3
@@ -304,14 +306,14 @@ export class Hotbar {
                 this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
             }
             // еда
-            const food = player.indicators.food.value;
+            const food = player.indicators.food;
             if (player.getEffectLevel(Effect.HUNGER) > 0) {
                 this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food_poison, this.sprites.food_poison_half, this.sprites.food_bg_black, null, false, false, true);
             } else {
                 this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
             }
             // кислород
-            const oxygen = player.indicators.oxygen.value;
+            const oxygen = player.indicators.oxygen;
             if (oxygen < 20) {
                 this.drawStrip(hud.width / 2 + right,  hud.height - bottom_two_line, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
             }

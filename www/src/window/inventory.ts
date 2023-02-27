@@ -153,7 +153,7 @@ export class InventoryWindow extends BaseCraftWindow {
         s.leftLeg.rotation.x = 0.3;
         s.rightLeg.rotation.x = -0.3;
 
-        const skin = Qubatch.render.player.state.skin
+        const skin = Qubatch.render.player.skin
 
         if(skin) {
             const skinKey = skin.file + '_' + skin.type;

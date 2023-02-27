@@ -60,6 +60,8 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 export class Renderer {
     [key: string]: any;
 
+    world: World;
+
     constructor(qubatchRenderSurfaceId) {
         this.xrMode             = false;
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -941,7 +943,7 @@ export class Renderer {
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {
-            this.inHandOverlay = new InHandOverlay(this.player.state.skin, this);
+            this.inHandOverlay = new InHandOverlay(this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {

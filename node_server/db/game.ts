@@ -2,16 +2,16 @@ import {Vector, unixTime} from '../../www/src/helpers.js';
 import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
 
 export class DBGame {
-    conn: any;
+    conn: DBConnection;
     skins: DBGameSkins;
 
-    constructor(conn) {
+    constructor(conn: DBConnection) {
         this.conn = conn;
         this.skins = new DBGameSkins(this);
     }
 
     // Open database and return provider
-    static async openDB(conn) {
+    static async openDB(conn: DBConnection) {
         return await new DBGame(conn).applyMigrations();
     }
 
@@ -19,7 +19,7 @@ export class DBGame {
     async applyMigrations() {
 
         let version = 0;
-        
+
         try {
             // Read options
             let row = await this.conn.get('SELECT version FROM options');
@@ -101,7 +101,7 @@ export class DBGame {
                 "headers" TEXT
             );`
         ]});
-        
+
         migrations.push({version: 7, queries: [
             `CREATE TABLE "screenshot" (
                 "dt" integer,
@@ -109,7 +109,7 @@ export class DBGame {
                 "guid_file" TEXT
             );`
         ]});
-        
+
         migrations.push({version: 8, queries: [
             `ALTER TABLE "world" ADD "cover" TEXT;`
         ]});
@@ -122,7 +122,7 @@ export class DBGame {
         migrations.push({version: 10, queries: [
             `ALTER TABLE world_player ADD COLUMN dt_last_visit INTEGER NOT NULL DEFAULT 0`
         ]});
-        
+
         migrations.push({version: 11, queries: [
             // change user.username COLLATE NOCASE
             `CREATE TABLE "user_copy" (
@@ -416,16 +416,13 @@ export class DBGame {
             });
             lastID = row.lastID;
         }
-        lastID = parseInt(lastID);
         return lastID;
     }
 
     /**
      * Возвращает ID мира по его GUID
-     * @param {string} world_guid 
-     * @returns { int }
      */
-    async getWorldID(world_guid) {
+    async getWorldID(world_guid: string): Promise<int> {
         const row = await this.conn.get("SELECT id FROM world WHERE guid = ?", [world_guid]);
         if(!row) {
             throw 'error_world_not_found';
@@ -497,7 +494,7 @@ export class DBGame {
         });
         return !!result;
     }
-    
+
     async InsertScreenshot(guid, cover) {
         const filename = 'scr' + randomUUID() + '.webp';
         // Проверям существование мира
