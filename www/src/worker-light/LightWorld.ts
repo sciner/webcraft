@@ -228,7 +228,7 @@ export class LightWorld {
         this.checkPotential();
 
         let {curChunkIndex} = this;
-        const chunkList = this.chunkManager.list;
+        const chunkList = this.chunkManager.getList();
 
         const {hasTexture, hasNormals} = this.renderOptions;
         let dayChanged = false;
@@ -296,7 +296,6 @@ export class LightWorld {
                     let chunk = this.chunkManager.getChunk(props.addr);
                     if (chunk && chunk.uniqId === props.uniqId) {
                         list.push(chunk.lightChunk);
-                        chunk.removed = true;
                     }
                 }
                 if (list.length > 0) {
