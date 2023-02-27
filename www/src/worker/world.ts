@@ -87,7 +87,7 @@ export class WorkerWorld {
     block_manager: BLOCK;
     chunks: VectorCollector;
     genQueue: ChunkWorkQueue;
-    buildQueue: any;
+    buildQueue: ChunkWorkQueue;
     chunkManager: ChunkWorkerChunkManager;
     generator: any;
     activePotentialCenter: any;

@@ -913,7 +913,7 @@ export class TBlock {
 
     // Clones essential data as POJO.
     // The result can be used in WorldAction.addBlocks() to create/modify the same block
-    clonePOJO() {
+    clonePOJO(): IBlockItem {
         let res : IBlockItem = { id: this.id };
         if (res.id) {  // AIR blocks are very common, they don't have properties
             if (BLOCK.BLOCK_BY_ID[res.id]?.can_rotate && this.rotate) {
@@ -1216,7 +1216,7 @@ export class TBlock {
         return this.id == 0 && this.fluid > 0;
     }
 
-    copyPropsFromPOJO(obj) {
+    copyPropsFromPOJO(obj: IBlockItem): void {
         this.id = obj.id;
         this.extra_data = obj?.extra_data || null;
         this.entity_id = obj?.entity_id || null;

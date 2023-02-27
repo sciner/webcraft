@@ -154,7 +154,9 @@ export class Biomes {
             grass = {
                 frequency: .5,
                 list: [
-                    {percent: .85, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .75, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .05, blocks: [{id: BLOCK.WINDFLOWERS.id}]},
+                    {percent: .05, blocks: [{id: BLOCK.BURDOCK.id}]},
                     {percent: .005, blocks: [{id: BLOCK.PEBBLES.id}]},
                     {percent: .005, blocks: [{id: BLOCK.PINK_PETALS.id, is_petals: true}]},
                     {percent: .14, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]}

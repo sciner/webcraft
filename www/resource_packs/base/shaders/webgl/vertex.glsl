@@ -108,6 +108,7 @@ void main() {
     // Waves
     if(flagWavesVertex > 0) {
         v_chunk_pos.z += getWaveValue();
+        v_world_pos = v_chunk_pos + add_pos;
     }
 
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
