@@ -13,6 +13,7 @@ import {isFluidId, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID, PACKET_CELL_DIRT_CO
 import type { BaseResourcePack } from "../base_resource_pack.js";
 import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
 import type { WorkerWorld } from "./world.js";
+import type { FluidChunk } from "../fluid/FluidChunk.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -87,6 +88,7 @@ export class ChunkWorkerChunkManager {
 export class ChunkWorkerChunk {
     [key: string]: any;
 
+    fluid : FluidChunk
     timers : PerformanceTimer = new PerformanceTimer()
     chunkManager: ChunkWorkerChunkManager
     tblocks: TypedBlocks3

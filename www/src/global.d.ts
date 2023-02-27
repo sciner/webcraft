@@ -58,7 +58,7 @@ declare interface TWorldInfo {
     game_mode:      string
     generator:      {
         id: string
-        cluster_size: IVector
+        cluster_size?: IVector
     }
     pos_spawn:      IVector
     rules:          Dict<any>
