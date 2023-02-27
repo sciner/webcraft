@@ -12,18 +12,25 @@ import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
 import type { TerrainMap2 } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { Biome } from "../biomes.js";
+import type Terrain_Generator from "../index.js";
+import { FLUID_STRIDE } from "../../../fluid/FluidConst.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
 const BIG_STONE_DESNSITY = 0.6;
 
 export default class Biome3LayerOverworld {
-    [key: string]: any;
+    generator: Terrain_Generator;
+    noise2d: any;
+    noise3d: any;
+    maps: TerrainMapManager2;
+    ore_generator: WorldClientOreGenerator;
+    clusterManager: any;
+    dungeon: DungeonGenerator;
+    slab_candidates: any[];
+    seed: string;
 
-    /**
-     * @param { import("../index.js").Terrain_Generator } generator
-     */
-    constructor(generator) {
+    constructor(generator : Terrain_Generator) {
 
         this.generator = generator
 
@@ -105,34 +112,41 @@ export default class Biome3LayerOverworld {
         const blockFlags = bm.flags
         const { cx, cy, cz, cw } = chunk.dataChunk
         const ids = chunk.tblocks.id
-        
+        const fids = chunk.fluid.uint8View
+
+        const neighbourIsTransparent = (x : int, y : int, z : int) : boolean => {
+            if(x < 0 || z < 0 || x >= chunk.size.x || z >= chunk.size.z) {
+                return false
+            }
+            const index = cx * x + cy * y + cz * z + cw
+            const id = ids[index]
+            const fluid = fids[index * FLUID_STRIDE]
+            if(fluid != 0) {
+                return false
+            }
+            if((blockFlags[id] & bm.FLAG_SOLID) || (blockFlags[id] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) {
+                return false
+            }
+            return true
+        }
+
         for(let i = 0; i < this.slab_candidates.length; i += 3) {
             const xyz = this.slab_candidates[i]
             this.slab_candidates[i] = null
             const x = xyz.x - chunk.coord.x
             const y = xyz.y - chunk.coord.y
             const z = xyz.z - chunk.coord.z
-            if(x > 0 && y > 0 && z > 0 && x < chunk.size.x - 1 && y < chunk.size.y - 1 && z < chunk.size.z - 1) {
-                const index_left = cx * (x - 1) + cy * y + cz * z + cw
-                const index_right = cx * (x + 1) + cy * y + cz * z + cw
-                const index_front = cx * x + cy * y + cz * (z - 1) + cw
-                const index_back = cx * x + cy * y + cz * (z + 1) + cw
-                const id_left = ids[index_left]
-                const id_right = ids[index_right]
-                const id_front = ids[index_front]
-                const id_back = ids[index_back]
-                let air_count = 4
-                if((blockFlags[id_left] & bm.FLAG_SOLID) || (blockFlags[id_left] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) air_count--
-                if((blockFlags[id_right] & bm.FLAG_SOLID) || (blockFlags[id_right] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) air_count--
-                if((blockFlags[id_front] & bm.FLAG_SOLID) || (blockFlags[id_front] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) air_count--
-                if((blockFlags[id_back] & bm.FLAG_SOLID) || (blockFlags[id_back] & bm.FLAG_OPAQUE_FOR_NATURAL_SLAB)) air_count--
-                if(air_count > 0) {
-                    const index_up = cx * x + cy * (y + 1) + cz * z + cw
-                    if((blockFlags[ids[index_up]] & bm.FLAG_SOLID) != bm.FLAG_SOLID) {
-                        const index_bottom = cx * x + cy * (y - 1) + cz * z + cw
-                        if(blockFlags[ids[index_bottom]] & bm.FLAG_SOLID) {
-                            this.slab_candidates[i] = xyz
-                        }
+            let transparent_count = 0
+            if(neighbourIsTransparent(x - 1, y, z)) transparent_count++
+            if(neighbourIsTransparent(x + 1, y, z)) transparent_count++
+            if(neighbourIsTransparent(x, y, z - 1)) transparent_count++
+            if(neighbourIsTransparent(x, y, z + 1)) transparent_count++
+            if(transparent_count > 0) {
+                const index_up = cx * x + cy * (y + 1) + cz * z + cw
+                if((blockFlags[ids[index_up]] & bm.FLAG_SOLID) != bm.FLAG_SOLID) {
+                    const index_bottom = cx * x + cy * (y - 1) + cz * z + cw
+                    if(blockFlags[ids[index_bottom]] & bm.FLAG_SOLID) {
+                        this.slab_candidates[i] = xyz
                     }
                 }
             }
@@ -192,6 +206,9 @@ export default class Biome3LayerOverworld {
 
             }
         }
+    }
+    world(world: any, tree: any, chunk: ChunkWorkerChunk, x: number, y: number, z: number, arg6: boolean) {
+        throw new Error("Method not implemented.");
     }
 
     calcColumnNoiseSize(chunk : ChunkWorkerChunk) : Vector {

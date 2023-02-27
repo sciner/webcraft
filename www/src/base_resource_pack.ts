@@ -8,6 +8,8 @@ import type { ChunkWorkerChunk } from './worker/chunk.js';
 
 let tmpCanvas;
 
+const LAYERING_MOVE_TO_DOWN_STYLES = ['red_mushroom', 'brown_mushroom', 'sweet_berry_bush', 'petals', 'pebbles']
+
 export class BaseResourcePack {
     [key: string]: any;
 
@@ -302,12 +304,25 @@ export class BaseResourcePack {
     }
 
     // Push vertices
-    pushVertices(block : TBlock | FakeTBlock, vertices : Float32Array | float[], chunk : ChunkWorkerChunk, pos : IVector, neighbours : any, biome? : any, dirt_color? : IndexedColor, unknown? : any, _matrix? : imat4, _pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture, draw_style? : string) {
+    pushVertices(tblock : TBlock | FakeTBlock, vertices : Float32Array | float[], chunk : ChunkWorkerChunk, pos : IVector, neighbours : any, biome? : any, dirt_color? : IndexedColor, unknown? : any, _matrix? : imat4, _pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture, draw_style? : string) {
 
-        const style = draw_style ? draw_style : block.material.style;
+        const style = draw_style ? draw_style : tblock.material.style;
         const module = this.BLOCK.styles.get(style);
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
+        }
+
+        //
+        let y = pos.y
+        const style_name = tblock?.material.style_name
+        if(LAYERING_MOVE_TO_DOWN_STYLES.includes(style_name)) {
+            // layering
+            if(neighbours && neighbours.DOWN) {
+                const under_height = neighbours.DOWN.material.height;
+                if(under_height && under_height < 1) {
+                    y -= 1 - under_height;
+                }
+            }
         }
 
         /*
@@ -319,7 +334,7 @@ export class BaseResourcePack {
         }*/
 
         // let p = performance.now();
-        const resp = module.func(block, vertices, chunk, pos.x, pos.y, pos.z, neighbours, biome, dirt_color, unknown, _matrix, _pivot, force_tex);
+        const resp = module.func(tblock, vertices, chunk, pos.x, y, pos.z, neighbours, biome, dirt_color, unknown, _matrix, _pivot, force_tex);
         // stat.count++;
         // stat.time += (performance.now() - p);
         if (vertices.length % 15 > 0) {

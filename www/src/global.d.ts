@@ -55,6 +55,7 @@ declare interface TWorldInfo {
     game_mode:      string
     generator:      {
         id: string
+        cluster_size?: IVector
     }
     pos_spawn:      IVector
     rules:          Dict<any>
@@ -69,7 +70,9 @@ declare interface TWorldInfo {
 
 }
 
-interface TWorldSettings {}
+interface TWorldSettings {
+    leaf_fall : boolean
+}
 
 interface IChatCommand {
     name: int
