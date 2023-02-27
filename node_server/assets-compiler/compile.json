@@ -9716,6 +9716,39 @@
                 "side": "./textures/pink_petals.png",
                 "stem": "./textures/pink_petals_stem.png;mask_biome"
             }
+        },
+        {
+            "id": 498,
+            "name": "BURDOCK",
+            "transparent": true,
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "mask_biome",
+                "can_put_into_pot"
+            ],
+            "texture": "block/grass.png"
+        },
+        {
+            "id": 499,
+            "name": "WINDFLOWERS",
+            "transparent": true,
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "mask_biome"
+            ],
+            "texture": "block/grass.png"
         }
     ]
 }

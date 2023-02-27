@@ -61,7 +61,10 @@
         {"name": "cake",                "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "ender_chest",         "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "mob_spawn",           "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "hay_block",           "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "hay_block",           "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "fern",                "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "burdock",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "wildflowers",         "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -2006,6 +2009,36 @@
             "bb": {
                 "model": "hay_block",
                 "rotate": {"type": "three"}
+            }
+        },
+        {
+            "_id": 992,
+            "name": "FERN",
+            "bb": {
+                "model": "fern",
+                "set_state": [
+                    {"name": "variant2", "_when": {"extra_data._": true}}
+                ]
+            }
+        },
+        {
+            "_id": 498,
+            "name": "BURDOCK",
+            "bb": {
+                "model": "burdock",
+                "set_state": [
+                    {"name": "variant2", "_when": {"extra_data._": true}}
+                ]
+            }
+        },
+        {
+            "_id": 499,
+            "name": "WINDFLOWERS",
+            "bb": {
+                "model": "wildflowers",
+                "_set_state": [
+                    {"name": "variant2", "_when": {"extra_data._": true}}
+                ]
             }
         }
     ]

@@ -3,18 +3,20 @@ import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
 import { DEFAULT_TX_SIZE, LIGHT_TYPE_RTX } from './constant.js';
 import type { TBlock } from './typed_blocks3.js';
-import type { FakeTBlock } from './blocks.js';
+import type { BLOCK, FakeTBlock } from './blocks.js';
 import type { ChunkWorkerChunk } from './worker/chunk.js';
 
 let tmpCanvas;
 
-const LAYERING_MOVE_TO_DOWN_STYLES = ['red_mushroom', 'brown_mushroom', 'sweet_berry_bush', 'petals', 'pebbles']
+const LAYERING_MOVE_TO_DOWN_STYLES = ['red_mushroom', 'brown_mushroom', 'sweet_berry_bush', 'petals', 'pebbles', 'burdock', 'fern']
 
 export class BaseResourcePack {
     [key: string]: any;
 
-    constructor(BLOCK, location, id) {
-        this.BLOCK = BLOCK;
+    BLOCK : BLOCK
+
+    constructor(block_manager : BLOCK, location, id) {
+        this.BLOCK = block_manager;
         this.id = id;
         this.dir = location;
         this.textures = new Map();
