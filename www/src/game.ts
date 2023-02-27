@@ -13,7 +13,7 @@ import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PA
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
-import type { Player } from "./player.js";
+import type { Player, PlayerStateUpdate } from "./player.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -441,24 +441,30 @@ export class GameClass {
                             if(player.world.players.exists(-1)) {
                                 player.world.players.delete(-1);
                             } else {
-                                const ghost = {
+                                const ghost: {data: PlayerStateUpdate, time: number} = {
+                                    /* It's unused
                                     "name": ServerClient.CMD_PLAYER_JOIN,
+                                    */
                                     "data": {
                                         "id":       -1,
                                         "username": Lang.im,
                                         "pos":      player.lerpPos.clone(),
                                         "rotate":   player.rotate.clone(),
-                                        "skin":     player.state.skin,
+                                        "skin":     player.skin,
                                         "hands":    player.state.hands,
                                         "sitting":  player.state.sitting,
                                         "lies":     player.state.lies,
-                                        "scale":    player.state.scale,
+                                        health:     player.state.indicators.live,
+                                        armor:      player.inventory.exportArmorState(),
+                                        sneak:      player.sneak,
                                         "sleep":    player.state.sleep
+                                        /* It's unused, and it doesn't exist on player.state
+                                        "scale":    player.state.scale
+                                        */
                                     },
                                     "time": ~~(new Date())
                                 };
                                 player.world.players.add(ghost);
-                                player.world.players.get(-1).sneak = player.sneak;
                             }
                         }
                         return true;

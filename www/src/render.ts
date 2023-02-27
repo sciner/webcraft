@@ -60,6 +60,8 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 export class Renderer {
     [key: string]: any;
 
+    world: World;
+
     constructor(qubatchRenderSurfaceId) {
         this.xrMode             = false;
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -178,8 +180,8 @@ export class Renderer {
             rp.shader.materials = {
                 regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
                 doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
-                decal1: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader, decalOffset: 1}),
-                decal2: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader, decalOffset: 2}),
+                decal1: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 1}),
+                decal2: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 2}),
                 transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader}),
                 doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader: rp.shader}),
                 label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader: rp.shader}),
@@ -941,7 +943,7 @@ export class Renderer {
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {
-            this.inHandOverlay = new InHandOverlay(this.player.state.skin, this);
+            this.inHandOverlay = new InHandOverlay(this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {

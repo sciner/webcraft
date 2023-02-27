@@ -38,6 +38,7 @@ import { MobSpawnParams } from "./mob.js";
 import type { DBWorld } from "./db/world.js";
 import type { TBlock } from "../www/src/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
+import type { Indicators, PlayerConnectData, PlayerSkin } from "../www/src/player.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -78,6 +79,8 @@ export class ServerWorld implements IWorld {
     pn: any;
     pause_ticks: any;
     givePriorityToSavingFluids: any;
+    /** An immutable shared instance of {@link getDefaultPlayerIndicators} */
+    defaultPlayerIndicators: Indicators
 
     constructor(block_manager : BLOCK) {
         this.temp_vec = new Vector();
@@ -170,6 +173,7 @@ export class ServerWorld implements IWorld {
         //
         this.players        = new ServerPlayerManager(this);
         this.all_drop_items = this.chunks.itemWorld.all_drop_items; // Store refs to all loaded drop items in the world
+        this.defaultPlayerIndicators = this.getDefaultPlayerIndicators()
         //
         await this.models.init();
         this.quests.init();
@@ -202,7 +206,7 @@ export class ServerWorld implements IWorld {
         }
     }
 
-    getDefaultPlayerIndicators() {
+    getDefaultPlayerIndicators(): Indicators {
         return this.db.getDefaultPlayerIndicators();
     }
 
@@ -513,7 +517,7 @@ export class ServerWorld implements IWorld {
     }
 
     // onPlayer
-    async onPlayer(player, skin) {
+    async onPlayer(player: ServerPlayer, skin: PlayerSkin) {
         const timer = new PerformanceTimer();
         const rndToken = Math.random() * 1000000 | 0;
         const user_id = player.session.user_id;
@@ -541,7 +545,7 @@ export class ServerWorld implements IWorld {
         console.log(`awaiting registerPlayer, token=${rndToken}`);
         player.init(await this.db.registerPlayer(this, player));
         console.log(`finished registerPlayer, token=${rndToken}`);
-        player.state.skin = skin;
+        player.skin = skin;
         player.updateHands();
         timer.stop().start('initQuests');
         console.log(`awaiting initQuests, token=${rndToken}`);
@@ -559,7 +563,7 @@ export class ServerWorld implements IWorld {
             if (p.session.user_id != user_id) {
                 all_players_packets.push({
                     name: ServerClient.CMD_PLAYER_JOIN,
-                    data: p.exportState()
+                    data: p.exportStateUpdate()
                 });
             }
         }
@@ -567,7 +571,7 @@ export class ServerWorld implements IWorld {
         // 6. Send to all about new player
         this.sendAll([{
             name: ServerClient.CMD_PLAYER_JOIN,
-            data: player.exportState()
+            data: player.exportStateUpdate()
         }]);
         // 7. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, Array.from(this.players.keys()));
@@ -576,17 +580,17 @@ export class ServerWorld implements IWorld {
             player.inventory.markDirty();
         }
         // 9. Send CMD_CONNECTED
-        player.sendPackets([{
-            name: ServerClient.CMD_CONNECTED, data: {
-                session: player.session,
-                state: player.state,
-                status: player.status,
-                inventory: {
-                    current: player.inventory.current,
-                    items: player.inventory.items
-                }
+        const data: PlayerConnectData = {
+            session: player.session,
+            state: player.state,
+            skin: player.skin,
+            status: player.status,
+            inventory: {
+                current: player.inventory.current,
+                items: player.inventory.items
             }
-        }]);
+        }
+        player.sendPackets([{name: ServerClient.CMD_CONNECTED, data}]);
         // 10. Add night vision for building world
         if(this.isBuildingWorld()) {
             player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
@@ -743,7 +747,10 @@ export class ServerWorld implements IWorld {
         }
         // Decrement instrument
         if (actions.decrement_instrument) {
+            /* Old code: the argumnt actions.decrement_instrument is unused.
             server_player.inventory.decrement_instrument(actions.decrement_instrument);
+            */
+            server_player.inventory.decrement_instrument();
         }
         // increment item
         if (actions.increment) {

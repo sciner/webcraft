@@ -2,7 +2,9 @@ import { Vector, unixTime, ObjectHelpers } from "../www/src/helpers.js";
 import { PrismarinePlayerControl } from "../www/src/vendors/prismarine-physics/using.js";
 import {ServerClient} from "../www/src/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
-import type { ServerWorld } from "./server_world.js";
+import type { ServerWorld } from "./server_world";
+import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor"
+import type { BulkDropItemsRow } from "./db/world"
 
 export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
@@ -223,13 +225,13 @@ export class DropItem {
         this.getWorld().all_drop_items.set(this.entity_id, this);
     }
 
-    writeToWorldTransaction(underConstruction) {
+    writeToWorldTransaction(underConstruction: WorldTransactionUnderConstruction) {
         if (this.dirty !== DropItem.DIRTY_CLEAR) {
             if (this.dirty === DropItem.DIRTY_DELETE) {
                 throw new Error('this.dirty === DropItem.DIRTY_DELETE');
             }
             const pos = this.pos;
-            const row = [
+            const row: BulkDropItemsRow = [
                 this.entity_id,
                 this.dt,
                 JSON.stringify(this.items),

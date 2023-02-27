@@ -6,23 +6,61 @@ import { STABLE_WORLD_MODIFY_CHUNKS_TTL, STABLE_WORLD_MODIFY_CHUNKLESS_TTL, CLEA
     } from "../../server_constant.js";
 import { DBWorldChunk } from "./chunk.js";
 import { decompressModifiresList } from "../../../www/src/compress/world_modify_chunk.js";
-import type { ServerWorld } from "../../server_world.js";
-import type { ServerChunk } from "../../server_chunk.js";
+import type { ServerWorld } from "../../server_world";
+import type { ServerChunk } from "../../server_chunk";
+import type { DBItemBlock } from "../../../www/src/blocks";
+import type { WorldTransactionUnderConstruction } from "./WorldDBActor.js";
 
-export const BLOCK_DIRTY = {
-    CLEAR:              0, // used to keep rowIDs of blocks that are frequently modified
-    INSERT:             1,
-    UPDATE:             2,
-    UPDATE_EXTRA_DATA:  3
-};
+
+export enum BLOCK_DIRTY {
+    CLEAR   = 0, // used to keep rowIDs of blocks that are frequently modified
+    INSERT  = 1,
+    UPDATE  = 2,
+    UPDATE_EXTRA_DATA = 3
+}
+
+type DirtyBlockEntry = {
+    state       : BLOCK_DIRTY
+    rowId ?     : int       // if it's not null, it's the known rowID of the last record of this block.
+}
+
+export type DirtyBlock = DirtyBlockEntry & {
+
+    // fields saved to DB:
+
+    /**
+     * It's saved to world_modify.params.
+     * In addition, some of its fields are saved separatley:
+     *  - item.id            Int     => world_modify.block_id
+     *  - item.entity_id     ?String => world_modify.entity_id
+     *  - item.extra_data    ?Object => world_modify.extra_data
+     *  - item.rotate, ... - other fields may be present, but they are not processed in any special way
+     */
+    item        : DBItemBlock
+    pos         : IVector   // saved to world_modify.(x, y, z)
+    action_id   : int
+    user_id ?   : int       // saved to world_modify.user_id
+
+    // Additional fields are used for entries that need to select rowId, and then be inserted or updated:
+    newEntry ?  : DirtyBlockEntry
+    chunk_addr? : Vector    // the entry to which the found rowId will be set
+}
+
+export type BlocksPatch = {
+    [key: int]: DBItemBlock;
+}
 
 // It manages DB queries of one chunk.
 export class ChunkDBActor {
     world: ServerWorld;
     addr: Vector;
     chunk: ServerChunk | null;
-    dirtyBlocks: Map<any, any>;
-    unsavedBlocks: Map<any, any>;
+    /**
+     * Which blocks must be commited in the next transaction to world_modify
+     * The keys are block indexes (not flat).
+     */
+    dirtyBlocks: Map<int, DirtyBlock>;
+    unsavedBlocks: Map<int, DBItemBlock>;
     lastUnsavedChangeTime: number;
     world_modify_chunk_hasRowId: any;
     savingUnsavedBlocksPromise: any;
@@ -31,26 +69,6 @@ export class ChunkDBActor {
         this.world = world;
         this.addr = addr;
         this.chunk = chunk;
-
-        /**
-         * Which blocks must be commited in the next transaction to world_modify
-         * The keys are block indexes (not flat).
-         * The values are objects. They contain fields of world_modify:
-         *  - user_id   ?Int    => world_modify.user_id
-         *  - pos       Vector  => world_modify.(x, y, z)
-         *  - item      Object  => world_modify.params
-         *     In addition, some of its fields are saved separatley:
-         *     - item.id            Int     => world_modify.block_id
-         *     - item.entity_id     ?String => world_modify.entity_id
-         *     - item.extra_data    ?Object => world_modify.extra_data
-         *     - item.rotate, ... - other fields may be present, but they are not processed in any special way
-         * Additonal fields:
-         *  - state     Int  - one of {@link BLOCK_DIRTY}
-         *  - rowId     ?Int - if it's not null, it's the known rowID of the last record of this block.
-         * Additional fields are used for entries that need to select rowId, and then be inserted or updated:
-         *  - newEntry      Object - the entry to which the found rowId will be set
-         *  - chunk_addr    Vector
-         */
         this.dirtyBlocks    = new Map();
 
         // The keys are block indexes (not flat).
@@ -67,7 +85,7 @@ export class ChunkDBActor {
         /**
          * If it's not null, it resolves when unsavedBlocks finish saving, so reading them
          * have a predictable result.
-         * 
+         *
          * If we try to load the chunk while the chunkless actor is saving its modifiers,
          * it ensures the chunk won't start loading befre the actor finishes writing.
          */
@@ -125,14 +143,13 @@ export class ChunkDBActor {
     }
 
     /**
-     * @param {object} data - a value stored in {@link dirtyBlocks}. The method may 
+     * @param {DirtyBlock} data - a value stored in {@link dirtyBlocks}. The method may
      *  remember the object and/or modify it. It shouldn't be used after passing to this method.
-     * @param {?int} index - the block index, the same in TBlock.
-     *  If it's not provided, it's deduced from params.pos
-     * @param {?int} state - one of BLOCK_DIRTY.*** constants, except BLOCK_DIRTY.CLEAR.
+     * @param {int} index - the block index, the same in TBlock.
+     * @param {BLOCK_DIRTY} state - one of BLOCK_DIRTY.*** constants, except BLOCK_DIRTY.CLEAR.
      *  If it's not provided, it's deduced from params.action_id
      */
-    markBlockDirty(data, index = null, state = null) {
+    markBlockDirty(data: DirtyBlock, index?: int, state?: BLOCK_DIRTY) {
         // validate data
         const item = data.item;
         if (data.pos == null) {
@@ -206,7 +223,7 @@ export class ChunkDBActor {
                     };
                     newDirtyBlocks.set(index, newEntry);
 
-                    let list; // to which bulk query the row is queued
+                    let list: DirtyBlock[]; // to which bulk query the row is queued
                     if (e.rowId) {
                         list = (e.state === BLOCK_DIRTY.UPDATE_EXTRA_DATA)
                             ? uc.updateBlocksExtraData
@@ -232,7 +249,7 @@ export class ChunkDBActor {
         }
 
         const rowId = this.world_modify_chunk_hasRowId;
-        if (inserted && 
+        if (inserted &&
             CLEANUP_WORLD_MODIFY_PER_TRANSACTION > 0 &&
             typeof rowId === 'number'
         ) {
@@ -242,7 +259,7 @@ export class ChunkDBActor {
         this.dirtyBlocks = newDirtyBlocks;
     }
 
-    writeToWorldTransaction_world_modify_chunks(underConstruction) {
+    writeToWorldTransaction_world_modify_chunks(underConstruction: WorldTransactionUnderConstruction) {
         const world = this.world;
 
         // build a JSON patch
@@ -266,7 +283,7 @@ export class ChunkDBActor {
                 // set the flag only after the records are written
                 this.world.worldChunkFlags.add(this.addr, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS);
             });
-            world.dbActor.pushPromises(promise);
+            underConstruction.pushPromises(promise);
         } else {
             // we know the rowId, so the chunk was loaded and ml exist
             if (ml.compressed) {

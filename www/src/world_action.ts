@@ -397,10 +397,10 @@ class DestroyBlocks {
     [key: string]: any;
 
     world: IWorld
-    player: IPlayer
+    player: ActionPlayerInfo
     actions: WorldAction
 
-    constructor(world: IWorld, player: IPlayer, actions: WorldAction, current_inventory_item) {
+    constructor(world: IWorld, player: ActionPlayerInfo, actions: WorldAction, current_inventory_item) {
         this.cv      = new VectorCollector();
         this.world   = world;
         this.player  = player;
@@ -527,6 +527,10 @@ export class WorldAction {
     #world;
     play_sound: PlaySoundParams[]
     blocks: ActionBlocks
+    mobs: {
+        activate: any[]
+        spawn: any[]    // it should be MobSpawnParams, but it's server class
+    }
 
     constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;

@@ -1,14 +1,20 @@
 import { AbstractPlayerManager } from "../www/src/abstract_player_manager.js";
+import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
+import type { ServerPlayer } from "./server_player.js";
+import type { ServerWorld } from "./server_world.js";
 
-export class ServerPlayerManager extends AbstractPlayerManager {
+export class ServerPlayerManager extends AbstractPlayerManager<ServerWorld, ServerPlayer> {
 
-    constructor(world) {
+    deletedPlyersByUserId: Map<int, ServerPlayer>
+    deletedPlyersByUserIdBeingWritten: Map<int, ServerPlayer>
+
+    constructor(world: ServerWorld) {
         super(world)
         this.deletedPlyersByUserId = new Map(); // holds deleted players until they can save their state
         this.deletedPlyersByUserIdBeingWritten = null; // to avoid errors in race conditions
     }
 
-    delete(user_id) {
+    delete(user_id: number): boolean {
         const player = this.list.get(user_id);
         if (player) {
             player.savingPromise = this.world.dbActor.worldSavingPromise;
@@ -17,12 +23,12 @@ export class ServerPlayerManager extends AbstractPlayerManager {
         return super.delete(user_id);
     }
 
-    getDeleted(user_id) {
-        return this.deletedPlyersByUserId.get(user_id) 
+    getDeleted(user_id: number): ServerPlayer {
+        return this.deletedPlyersByUserId.get(user_id)
             ?? this.deletedPlyersByUserIdBeingWritten?.get(user_id);
     }
 
-    writeToWorldTransaction(underConstruction) {
+    writeToWorldTransaction(underConstruction: WorldTransactionUnderConstruction) {
         for(const player of this.list.values()) {
             player.writeToWorldTransaction(underConstruction);
         }

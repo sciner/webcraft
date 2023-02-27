@@ -33,7 +33,7 @@ export class ServerClient {
     // Players
     static CMD_PLAYER_JOIN              = 41;
     static CMD_PLAYER_LEAVE             = 42;
-    static CMD_PLAYER_STATE             = 43;
+    static CMD_PLAYER_STATE             = 43; // server -> player, player -> server
     static CMD_STANDUP_STRAIGHT         = 48; // встать с дивана/кресла
 
     // Entities

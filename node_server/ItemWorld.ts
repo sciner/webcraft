@@ -6,6 +6,7 @@ import { unixTime } from "../www/src/helpers.js";
 import {DROP_LIFE_TIME_SECONDS} from "../www/src/constant.js";
 import {ITEM_MERGE_RADIUS, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB} from "./server_constant.js";
 import type { ServerChunk } from "./server_chunk.js";
+import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 
 
 export class ItemWorld {
@@ -184,11 +185,11 @@ export class ItemWorld {
         }
     }
 
-    writeToWorldTransaction(underConstruction) {
+    writeToWorldTransaction(underConstruction: WorldTransactionUnderConstruction) {
         for(const item of this.all_drop_items.values()) {
             item.writeToWorldTransaction(underConstruction);
         }
-        this.world.dbActor.pushPromises(
+        underConstruction.pushPromises(
             this.world.db.bulkDeleteDropItems(this.deletedEntityIds, underConstruction.dt)
         );
         this.deletedEntityIds = [];
