@@ -5,6 +5,7 @@ import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BLOCK } from "../blocks.js";
+import { Lang } from "../lang.js";
 
 //
 class AnvilSlot extends CraftTableSlot {
@@ -70,11 +71,12 @@ export class AnvilWindow extends BaseCraftWindow {
     constructor(inventory) {
 
         super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
-
-        this.w *= this.zoom;
-        this.h *= this.zoom;
+        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         this.style.background.image_size_mode = 'stretch';
-
         this.recipes = new AnvilRecipeManager();
         this.used_recipes = [];
         this.current_recipe = null;
@@ -87,7 +89,9 @@ export class AnvilWindow extends BaseCraftWindow {
             this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
 
             // Add labels to window
-            this.add(new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Repair & Name'))
+            const lblTitle = new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.repair)
+            lblTitle.style.font.size = 10 * this.zoom
+            this.add(lblTitle)
 
             // Ширина / высота слота
             this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
@@ -150,6 +154,7 @@ export class AnvilWindow extends BaseCraftWindow {
         this.lbl_edit.max_length        = ITEM_LABEL_MAX_LENGTH
         this.lbl_edit.max_lines         = 1
         this.lbl_edit.style.font.color  = '#ffffff'
+        this.lbl_edit.style.font.size = 10 * this.zoom
         this.lbl_edit.setBackground(await this.atlas.getSprite(0, 333 * 2, 220*2, 31*2))
         this.lbl_edit.style.border.hidden = true
         this.lbl_edit.style.background.color = '#00000000'

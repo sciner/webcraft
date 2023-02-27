@@ -1290,7 +1290,6 @@ export class SimpleBlockSlot extends Window {
 
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)
-
         this.style.font.color = '#ffffff'
         this.style.font.size = 14
         this.style.font.shadow.enable = true

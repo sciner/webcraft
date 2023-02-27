@@ -118,6 +118,8 @@ export class CraftTableSlot extends SimpleBlockSlot {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
         super(x, y, w, h, id, null, '')
+        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        this.style.font.size = 10 * this.zoom
         this.ct = ct
         this.setSlotIndex(slot_index)
         ct.inventory.addInventorySlot(this)
@@ -395,8 +397,6 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         super(x, y, w, h, id, title, text, ct, slot_index)
 
         this.options = options || {}
-        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
-
         // if slot is readonly
         if(!this.readonly) {
 
