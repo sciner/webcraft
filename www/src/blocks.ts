@@ -263,6 +263,7 @@ export class BLOCK {
     static FLAG_SPAWN_EGG                       = 0x20 | 0
     static FLAG_STONE                           = 0x40 | 0
     static FLAG_FLUID                           = 0x80 | 0
+    static FLAG_OPAQUE_FOR_NATURAL_SLAB         = 0x100 | 0
 
     static addFlag(flag: number, ...blockIds: number[]): void {
         for(const id of blockIds) {
@@ -277,9 +278,11 @@ export class BLOCK {
 
     static addHardcodedFlags(): void {
         // See also isFluidId()
-        this.addFlag(this.FLAG_FLUID, 200, 202, 170, 171, 218, 219)
+        this.addFlag(this.FLAG_FLUID, this.FLOWING_WATER.id, this.STILL_WATER.id, this.FLOWING_LAVA.id, this.STILL_LAVA.id, this.FLOOD_WATER.id, this.FLOOD_LAVA.id)
         // Taken from overworld.ts
         this.addFlag(this.FLAG_STONE, this.STONE?.id, this.ANDESITE?.id, this.DIORITE?.id, this.GRANITE?.id)
+        //
+        this.addFlag(this.FLAG_OPAQUE_FOR_NATURAL_SLAB, this.DIRT_PATH.id)
     }
 
     static checkGeneratorOptions() {

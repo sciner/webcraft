@@ -17,6 +17,18 @@ import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 
+/** A type that is as used as player in actions. */
+export type ActionPlayerInfo = {
+    radius      : float,    // it's used as the player's diameter, not radius!
+    height      : float,
+    username?   : string,
+    pos         : IVector,
+    rotate      : IVector,
+    session: {
+        user_id: number
+    }
+}
+
 declare type PlaySoundParams = {
     tag: string
     action: string
@@ -24,6 +36,20 @@ declare type PlaySoundParams = {
     // It's not used when playng the sound. TODO use it
     except_players?: number[],
     maxDist?: number
+}
+
+type ActionBlocks = {
+    list: {
+        pos             : IVector
+        action_id       : int
+        item            : IBlockItem
+        destroy_block   : { id: int }
+    }[]
+    options: {
+        ignore_check_air    : boolean
+        on_block_set        : boolean
+        on_block_set_radius : number
+    }
 }
 
 const _createBlockAABB = new AABB();
@@ -371,10 +397,10 @@ class DestroyBlocks {
     [key: string]: any;
 
     world: IWorld
-    player: IPlayer
+    player: ActionPlayerInfo
     actions: WorldAction
 
-    constructor(world: IWorld, player: IPlayer, actions: WorldAction, current_inventory_item) {
+    constructor(world: IWorld, player: ActionPlayerInfo, actions: WorldAction, current_inventory_item) {
         this.cv      = new VectorCollector();
         this.world   = world;
         this.player  = player;
@@ -500,6 +526,7 @@ export class WorldAction {
 
     #world;
     play_sound: PlaySoundParams[]
+    blocks: ActionBlocks
     mobs: {
         activate: any[]
         spawn: any[]    // it should be MobSpawnParams, but it's server class
@@ -881,15 +908,21 @@ function simplifyPos(world : any, pos : IVectorPoint, mat : IBlockMaterial, to_t
     return false
 }
 
-// Called to perform an action based on the player's block selection and input.
-export async function doBlockAction(e, world, player, current_inventory_item) {
+/**
+ * It creates an action based on the player's PickAt result.
+ * @returns a tuple:
+ * - the actions that needs to be performed
+ * - the position of an existing block that should have been affected by these actions, if they were successful.
+ * This position may be used to create a history snapsoht, or get the correct block state for a failed action.
+ */
+export async function doBlockAction(e, world, player: ActionPlayerInfo, current_inventory_item): Promise<[WorldAction | null, Vector | null]> {
 
     const actions = new WorldAction(e.id);
     const destroyBlocks = new DestroyBlocks(world, player, actions, current_inventory_item);
 
-    if(e.pos == false) {
+    if(!e.pos) {
         console.error('empty e.pos');
-        return actions;
+        return [null, null];
     }
 
     // set radius for onBlockSet method
@@ -897,6 +930,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     let pos                 = e.pos;
     let world_block         = world.getBlock(pos);
+    if (world_block.id < 0) { // if it's a DUMMY, the chunk is not loaded
+        return [null, null];
+    }
     let world_material      = world_block && (world_block.id > 0 || world_block.fluid > 0) ? world_block.material : null;
     let extra_data          = world_block ? world_block.extra_data : null;
     let world_block_rotate  = world_block ? world_block.rotate : null;
@@ -907,14 +943,14 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
         console.error('error_empty_world_material', world_block.id, pos);
-        return actions;
+        return [null, null];
     }
 
     // 1. Change extra data
     if(e.changeExtraData) {
         for(let func of [editSign, editBeacon]) {
             if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, world_block_rotate, null, actions)) {
-                return actions;
+                return [actions, pos];
             }
         }
     }
@@ -924,7 +960,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         // 1. Проверка выполняемых действий с блоками в мире
         for(let func of [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
             if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                return actions;
+                return [actions, pos];
             }
         }
         // 2.
@@ -945,7 +981,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 */
             }
         }
-        return actions;
+        return [actions, pos];
     }
 
     // 3. Clone
@@ -953,7 +989,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         if(world_material && e.number == 1) {
             actions.clone_block = e.pos;
         }
-        return actions;
+        return [actions, pos];
     }
 
     // 4. Create
@@ -968,26 +1004,26 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
         if(mat_block && (mat_block.deprecated || NO_CREATABLE_BLOCKS.includes(mat_block.name))) {
             console.warn('warning_mat_block.deprecated');
-            return actions;
+            return [null, pos];
         }
 
         // Проверка выполняемых действий с блоками в мире
         for(let func of [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                return actions;
+                return [actions, pos];
             }
         }
 
         // Дальше идут действия, которые обязательно требуют, чтобы в инвентаре что-то было выбрано
         if(!current_inventory_item || current_inventory_item.count < 1) {
             console.warn('warning_no_current_inventory_item');
-            return actions;
+            return [null, pos];
         }
 
         // Проверка выполняемых действий с блоками в мире
         for(let func of [useCauldron, useShears, putDiscIntoJukebox, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                return actions;
+                return [actions, pos];
             }
         }
 
@@ -996,7 +1032,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // Use intruments
             for(let func of [useFlintAndSteel, useShovel, useHoe, useAxe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                    return actions;
+                    return [actions, pos];
                 }
             }
         } else if (mat_block.is_fluid) {
@@ -1005,11 +1041,14 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 pos.y += pos.n.y;
                 pos.z += pos.n.z;
                 world_block = world.getBlock(pos);
+                if (!(world_block.id >= 0)) { // if it's outside the loaded chunk
+                    return [null, null];
+                }
             }
             const origFluidType = (world_block.fluid & FLUID_TYPE_MASK);
             const myFluidType = (isFluidId(mat_block.id) & FLUID_TYPE_MASK);
             if (origFluidType > 0 && origFluidType !== myFluidType) {
-                return actions;
+                return [actions, pos];
             }
             actions.addFluids([0, 0, 0, myFluidType], pos);
             actions.decrement = true;
@@ -1032,7 +1071,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // Check if replace
             if(replaceBlock) {
                 if(world_material.previous_part || world_material.next_part || current_inventory_item.style_name == 'ladder') {
-                    return actions;
+                    return [actions, pos];
                 }
                 pos.n.x = 0;
                 pos.n.y = 1;
@@ -1040,16 +1079,19 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
             } else {
                 if(await increaseLayering(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                    return actions;
+                    return [actions, pos];
                 }
                 pos.x += pos.n.x;
                 pos.y += pos.n.y;
                 pos.z += pos.n.z;
                 const block_on_posn = world.getBlock(pos);
+                if (!(block_on_posn.id >= 0)) { // if it's outside the loaded chunk
+                    return [null, null];
+                }
                 // Запрет установки блока, если на позиции уже есть другой блок
                 if(!block_on_posn.canReplace()) {
                     console.error('!canReplace', block_on_posn.material.name);
-                    return actions;
+                    return [null, pos];
                 }
             }
 
@@ -1068,26 +1110,26 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     z_max: player.pos.z - player.radius / 2 + player.radius
                 })) {
                     console.error('intersect with player');
-                    return actions;
+                    return [null, pos];
                 }
             }
 
             // Некоторые блоки можно ставить только на что-то сверху
             if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
                 console.error('mat_block.is_layering');
-                return actions;
+                return [null, pos];
             }
 
             // Некоторые блоки можно только подвешивать на потолок
             if(mat_block.tags.includes('place_only_to_ceil') && pos.n.y != -1) {
                 console.error('place_only_to_ceil');
-                return actions;
+                return [null, pos];
             }
 
             // некоторые блоки нельзя ставить на стены (например LANTERN)
             if(pos.n.y === 0 && mat_block.tags.includes('cant_place_on_wall')) {
                 console.error('cant_place_on_wall');
-                return actions;
+                return [null, pos];
             }
 
             // Create block
@@ -1143,13 +1185,13 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 new_item.extra_data = await createPainting(e, world, pos);
                 if(!new_item.extra_data) {
                     console.error('error_painting_data_is_empty');
-                    return actions;
+                    return [null, pos];
                 }
             }
             // Material restrictions
             for(let func of [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions, orientation)) {
-                    return actions;
+                    return [actions, pos];
                 }
             }
             // Rotate block one of 8 poses
@@ -1174,7 +1216,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // Pre place
             for(let func of [prePlaceRail]) {
                 if(func(world, pos, new_item, actions)) {
-                    return actions;
+                    return [actions, pos];
                 }
             }
             //
@@ -1187,7 +1229,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
         }
 
-        return actions;
+        return [actions, pos];
     }
 
 }

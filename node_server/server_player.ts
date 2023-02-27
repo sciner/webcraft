@@ -21,19 +21,20 @@ import { AABB } from "../www/src/core/AABB.js"
 import { EnumDamage } from "../www/src/enums/enum_damage.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
+import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
 
-export class NetworkMessage {
-    time: number;
-    name: string;
-    data: {};
+export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
+    time?: number;
+    name: int;      // a value of ServerClient.CMD_*** numeric constants
+    data: DataT;
     constructor({
         time = Date.now(),
-        name = '',
+        name = -1,
         data = {}
     }) {
         this.time = time;
         this.name = name;
-        this.data = data;
+        this.data = data as DataT;
     }
 }
 
@@ -95,6 +96,7 @@ export class ServerPlayer extends Player {
     oxygen_level: number;
     conn: any;
     savingPromise?: Promise<void>
+    lastSentPacketTime = Infinity   // performance.now()
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -103,6 +105,7 @@ export class ServerPlayer extends Player {
 
     // These flags show what must be sent to the client
     static NET_DIRTY_FLAG_RENDER_DISTANCE    = 0x1;
+    skin: any;
 
     constructor() {
         super();
@@ -287,10 +290,10 @@ export class ServerPlayer extends Player {
 
     /**
      * sendPackets
-     * @param {NetworkMessage[]} packets
      */
-    sendPackets(packets) {
+    sendPackets(packets: INetworkMessage[]) {
         const ns = this.world.network_stat;
+        this.lastSentPacketTime = performance.now()
 
         // time is the same for all commands, so it's saved once in the 1st of them
         if (packets.length) {
@@ -468,6 +471,9 @@ export class ServerPlayer extends Player {
         this.checkCastTime();
         this.effects.checkEffects();
         //this.updateAABB()
+        if (this.lastSentPacketTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
+            this.sendPackets([{name: ServerClient.CMD_NOTHING}])
+        }
     }
 
     get isAlive() : boolean {

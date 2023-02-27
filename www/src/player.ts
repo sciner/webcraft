@@ -10,7 +10,7 @@ import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
-import {doBlockAction, WorldAction} from "./world_action.js";
+import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
@@ -132,7 +132,7 @@ export class Player implements IPlayer {
     sharedProps :               IPlayerSharedProps;
     chat :                      Chat
     render:                     Renderer;
-    world :                     World
+    world:                      World
     options:                    any;
     game_mode:                  GameMode;
     inventory:                  PlayerInventory;
@@ -698,7 +698,7 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig = JSON.parse(JSON.stringify(e));
-            const player = {
+            const player: ActionPlayerInfo = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
                 pos: this.lerpPos,
@@ -707,18 +707,21 @@ export class Player implements IPlayer {
                     user_id: this.session.user_id
                 }
             };
-            const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
-            if(e.createBlock && actions.blocks.list.length > 0) {
-                this.startArmSwingProgress();
+            const [actions, pos] = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            if (actions) {
+                e_orig.snapshotId = this.world.history.makeSnapshot(pos);
+                if(e.createBlock && actions.blocks.list.length > 0) {
+                    this.startArmSwingProgress();
+                }
+                await this.world.applyActions(actions, this);
+                e_orig.actions = {blocks: actions.blocks};
+                e_orig.eye_pos = this.getEyePos();
+                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                this.world.server.Send({
+                    name: ServerClient.CMD_PICKAT_ACTION,
+                    data: e_orig
+                });
             }
-            await this.world.applyActions(actions, this);
-            e_orig.actions = {blocks: actions.blocks};
-            e_orig.eye_pos = this.getEyePos();
-            // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-            this.world.server.Send({
-                name: ServerClient.CMD_PICKAT_ACTION,
-                data: e_orig
-            });
         }
         return true;
     }
