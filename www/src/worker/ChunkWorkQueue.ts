@@ -70,7 +70,7 @@ export class ChunkWorkQueue {
         }
     }
 
-    push(chunk) {
+    push(chunk : ChunkWorkerChunk) {
         const {entries} = this;
         chunk.inQueue = true;
         this.calcDist(chunk);

@@ -4,6 +4,7 @@ import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
 import type { GameSettings } from "../game.js";
+import type { DataChunk } from "../core/DataChunk";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
 const DEBUG_CHUNK_GEN_TIMERS = false
@@ -86,7 +87,7 @@ export class WorkerWorld {
     block_manager: BLOCK;
     chunks: VectorCollector;
     genQueue: ChunkWorkQueue;
-    buildQueue: any;
+    buildQueue: ChunkWorkQueue;
     chunkManager: ChunkWorkerChunkManager;
     generator: any;
     activePotentialCenter: any;
@@ -172,6 +173,27 @@ export class WorkerWorld {
             return true;
         }
         return false;
+    }
+
+    destructMultiple(propsArr) {
+         const list: Array<DataChunk> = [];
+         for (let i = 0; i < propsArr.len; i++) {
+             const {addr, uniqId} = propsArr[i];
+             const chunk = this.chunks.get(addr);
+             if (chunk && chunk.uniqId === uniqId) {
+                 list.push(chunk);
+             }
+         }
+         this.chunkManager.dataWorld.removeChunks(list,(chunk: ChunkWorkerChunk) => {
+             const {addr} = chunk;
+             this.chunks.delete(addr);
+             if (chunk.layer) {
+                 chunk.layer.maps.delete(addr);
+             } else {
+                 this.generator.maps?.delete(addr);
+             }
+             chunk.destroy();
+         })
     }
 
     getChunk(addr) {
