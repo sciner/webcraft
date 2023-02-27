@@ -177,11 +177,13 @@ export class WorkerWorld {
 
     destructMultiple(propsArr) {
          const list: Array<DataChunk> = [];
-         for (let i = 0; i < propsArr.len; i++) {
+         for (let i = 0; i < propsArr.length; i++) {
              const {addr, uniqId} = propsArr[i];
              const chunk = this.chunks.get(addr);
              if (chunk && chunk.uniqId === uniqId) {
                  list.push(chunk);
+
+
              }
          }
          this.chunkManager.dataWorld.removeChunks(list,(chunk: ChunkWorkerChunk) => {

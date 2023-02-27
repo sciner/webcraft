@@ -774,7 +774,8 @@ export class DataWorld {
         for (let i = 0; i < chunkArray.length; i++) {
             const chunk = chunkArray[i];
             if (!chunk || !chunk.dataChunk || !chunk.dataChunk.portals) {
-                console.log("double-removing chunk!")
+                chunkHandler?.(chunk);
+                continue;
             }
             list.push(chunk.dataChunk);
         }
