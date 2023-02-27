@@ -205,7 +205,7 @@ export class Hotbar {
     }
 
     get zoom() {
-        return UI_ZOOM
+        return UI_ZOOM * Qubatch.settings.interface_size / 100
     }
 
     /**

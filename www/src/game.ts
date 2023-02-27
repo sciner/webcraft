@@ -48,6 +48,8 @@ export class GameSettings {
     mobs_draw_debug_grid:    boolean = false
     chunks_draw_debug_grid:  boolean = false
     cluster_draw_debug_grid: boolean = false
+    // interface
+    interface_size:          float = 100
 
     apply(state : {[key: string]: any}) {
 
@@ -63,6 +65,7 @@ export class GameSettings {
         this.music_volume               = Mth.clamp(this.music_volume, 0, 100)
         this.base_ambient_light_level   = Mth.clamp(this.base_ambient_light_level, 0, 100)
         this.use_light                  = Mth.clamp(this.use_light, 0, 2)
+        this.interface_size             = Mth.clamp(this.interface_size, 10, 300)
 
     }
 

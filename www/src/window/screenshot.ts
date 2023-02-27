@@ -8,17 +8,14 @@ export class ScreenshotWindow extends BlankWindow {
     [key: string]: any;
 
     constructor(player) {
+        super(10, 10, 400 , 420, "frmScreenshot", null, null);
 
-        const w = 400
-        const h = 420
-
-        super(10, 10, w, h, "frmScreenshot", null, null);
-
-        this.w *= this.zoom;
-        this.h *= this.zoom;
-
+        this.zoom = UI_ZOOM  // @todo * Qubatch.settings.interface_size / 100
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         this.player = player
-
         this.setBackground('./media/gui/form-empty.png', 'stretchcenter', 1)
 
         // Append JSON layout

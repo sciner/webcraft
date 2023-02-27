@@ -7,28 +7,34 @@ export class MainMenu extends BlankWindow {
 
     constructor(x, y, w, h, id, title, text) {
 
-        super(x, y, w * UI_ZOOM, h * UI_ZOOM, id, title, text)
+        const zoom = UI_ZOOM // @todo * (Qubatch) ? Qubatch.settings.interface_size / 100 : 1
 
-        //
-        const lbl2 = new Label(0, 0, this.w, 30 * this.zoom, 'lbl2', Lang.menu);
-        lbl2.style.textAlign.horizontal = 'center';
-        lbl2.style.textAlign.vertical = 'middle';
-        this.add(lbl2);
+        super(x * zoom, y * zoom, w * zoom, h * zoom, id, title, text)
+
+        this.zoom = zoom
+        const lblTitle = new Label(0, 0, this.w, 30 * this.zoom, 'lblTitle', null, Lang.menu);
+        lblTitle.style.textAlign.horizontal = 'center'
+        lblTitle.style.font.size = 10 * this.zoom
+        lblTitle.style.textAlign.vertical = 'middle'
+        lblTitle.style.font.color = '#ffffff'
+        this.add(lblTitle)
 
         // Add buttons
-        this.addButton(Lang.btn_return, 80, () => {Qubatch.hud.wm.closeAll()});
+        this.addButton(Lang.btn_return, 40, () => {
+            Qubatch.hud.wm.closeAll()
+        });
 
-        this.addButton(Lang.quests, 130, () => {
+        this.addButton(Lang.quests, 90, () => {
             Qubatch.hud.wm.closeAll();
             Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
         });
 
-        this.addButton(Lang.btn_statistics, 180, () => {
+        this.addButton(Lang.btn_statistics, 140, () => {
             Qubatch.hud.wm.closeAll();
             Qubatch.hud.wm.getWindow('frmStats').show();
         });
         // [TODO] use callback instead of row readressing
-        this.addButton(Lang.btn_exit, 230, () => {
+        this.addButton(Lang.btn_exit, 190, () => {
             Qubatch.exit();
         });
 
@@ -47,7 +53,7 @@ export class MainMenu extends BlankWindow {
         const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
         btn.style.background.color = '#d4d0c8'
         btn.style.font.color = '#000000bb'
-        btn.style.font.size = 20
+        btn.style.font.size = 10 * this.zoom
         btn.onMouseDown = onclick
         this.add(btn);
     }

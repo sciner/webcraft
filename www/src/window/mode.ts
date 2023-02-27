@@ -12,10 +12,13 @@ export class ModeWindow extends Window {
 
     constructor(player) {
 
-        const w = 217
-        const h = 130
+        super(0, 0, 217, 130, 'frmMode')
 
-        super(0, 0, w * UI_ZOOM, h * UI_ZOOM, 'frmMode')
+        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
 
         this.style.background.color = '#00000055'
         this.player = player
@@ -23,12 +26,12 @@ export class ModeWindow extends Window {
 
         this.atlas = Resources.atlas.get('icons')
 
-        const lblHelp = this.addComponent(w / 2, 100, w, 43, 'lblHelp', '[ F4 ] - Дальше')
+        const lblHelp = this.addComponent(this.w / 2, 100, this.w, 43, 'lblHelp', '[ F4 ] - Дальше')
         lblHelp.style.font.anchor.x = .5
         lblHelp.style.font.align = 'center'
         this.lblHelp.style.font.color = '#ffffff'
 
-        const lblTitle = this.addComponent(w / 2, 10, w, 43, 'lblTitle', 'Test'/*, 'toasts-0.png'*/)
+        const lblTitle = this.addComponent(this.w / 2, 10, this.w, 43, 'lblTitle', 'Test'/*, 'toasts-0.png'*/)
         lblTitle.style.font.anchor.x = .5
         lblTitle.style.font.align = 'center'
         this.lblTitle.style.font.color = '#ffffff'
@@ -45,7 +48,7 @@ export class ModeWindow extends Window {
         if(icon) {
             label.setIcon(this.atlas.getSpriteFromMap(icon), 'centerstretch', ICON_SCALE)
         }
-        label.style.font.size = 16
+        label.style.font.size = 10 * this.zoom
         this.add(label)
         return label
     }

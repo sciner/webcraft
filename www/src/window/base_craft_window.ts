@@ -395,6 +395,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         super(x, y, w, h, id, title, text, ct, slot_index)
 
         this.options = options || {}
+        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
 
         // if slot is readonly
         if(!this.readonly) {
@@ -807,6 +808,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         }
         ct.inventory_slots  = [];
         const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
+        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
         sx *= this.zoom
         sy *= this.zoom
         let index = 0
