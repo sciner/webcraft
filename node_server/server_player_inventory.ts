@@ -119,7 +119,7 @@ export class ServerPlayerInventory extends Inventory {
             .5,
             Math.cos(this.player.state.rotate.z),
         ).normSelf();
-        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec);
+        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec, true);
         if(this.current_item.count == 1) {
             this.setItem(this.current.index, null);
         } else {
@@ -164,7 +164,7 @@ export class ServerPlayerInventory extends Inventory {
             .5,
             Math.cos(this.player.state.rotate.z) * .5,
         );
-        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec);
+        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec, true);
         this.items[slot_index] = null;
         return true;
     }

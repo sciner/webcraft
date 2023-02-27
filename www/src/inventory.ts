@@ -19,6 +19,7 @@ export class Inventory {
     player: Player
 
     temp_vec = new Vector();
+    player: Player
 
     constructor(player : Player, state : any) {
         this.count              = state.items.length;

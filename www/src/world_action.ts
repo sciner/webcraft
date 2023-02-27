@@ -38,6 +38,12 @@ declare type PlaySoundParams = {
     maxDist?: number
 }
 
+type DropItemParams = {
+    pos     : Vector
+    items   : IBlockItem[]
+    force ? : boolean
+}
+
 type ActionBlocks = {
     list: {
         pos             : IVector
@@ -526,6 +532,7 @@ export class WorldAction {
 
     #world;
     play_sound: PlaySoundParams[]
+    drop_items: DropItemParams[]
     blocks: ActionBlocks
     mobs: {
         activate: any[]
@@ -624,7 +631,7 @@ export class WorldAction {
     }
 
     // Add drop item
-    addDropItem(item) {
+    addDropItem(item: DropItemParams) {
         this.drop_items.push(item);
     }
 
@@ -691,7 +698,7 @@ export class WorldAction {
             const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
             extruded_blocks.set(pos, 'drop');
             // drop
-            const drop_item = {
+            const drop_item: DropItemParams = {
                 force: true,
                 pos: pos,
                 items: [
