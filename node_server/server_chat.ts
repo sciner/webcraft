@@ -364,9 +364,8 @@ export class ServerChat {
                 } else {
                     table = stats.toTable(recent)
                 }
-                const msgRecent = recent ? 'Recent stats:' : 'All-time stats:'
-                this.sendSystemChatMessageToSelectedPlayers(msgRecent, player);
-                this.sendSystemChatMessageToSelectedPlayers(table, player, msgRecent);
+                const title = recent ? 'Recent stats:' : 'All-time stats:'
+                this.sendSystemChatMessageToSelectedPlayers(table, player, title)
                 break;
             }
             case '/astat': { // async stats. They show what's happeing with DB queries and other async stuff
