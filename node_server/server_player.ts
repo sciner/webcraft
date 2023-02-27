@@ -1,5 +1,5 @@
 import { Vector } from "../www/src/helpers.js";
-import { Player } from "../www/src/player.js";
+import { Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps } from "../www/src/player.js";
 import { GameMode } from "../www/src/game_mode.js";
 import { ServerClient } from "../www/src/server_client.js";
 import { Raycaster } from "../www/src/Raycaster.js";
@@ -14,24 +14,27 @@ import { ServerPlayerEffects } from "./player/effects.js";
 import { Effect } from "../www/src/block_type/effect.js";
 import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_template.js";
 import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "../www/src/fluid/FluidConst.js";
-import { DBWorld } from "./db/world.js"
+import { DBWorld, PlyaerInitInfo } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
 import {compressNearby} from "../www/src/packet_compressor.js";
 import { AABB } from "../www/src/core/AABB.js"
 import { EnumDamage } from "../www/src/enums/enum_damage.js";
+import type { ServerWorld } from "./server_world.js";
+import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
+import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
 
-export class NetworkMessage {
-    time: number;
-    name: string;
-    data: {};
+export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
+    time?: number;
+    name: int;      // a value of ServerClient.CMD_*** numeric constants
+    data: DataT;
     constructor({
         time = Date.now(),
-        name = '',
+        name = -1,
         data = {}
     }) {
         this.time = time;
         this.name = name;
-        this.data = data;
+        this.data = data as DataT;
     }
 }
 
@@ -43,53 +46,57 @@ async function waitPing() {
 }
 
 // An adapter that allows using ServerPlayer and PlayerModel in the same way
-class ServerPlayerSharedProps {
-    p: any;
+class ServerPlayerSharedProps extends PlayerSharedProps {
+    //@ts-expect-error
+    declare p: ServerPlayer
 
-    constructor(player) {
-        this.p = player;
+    constructor(player: ServerPlayer) {
+        //@ts-expect-error
+        super(player)
     }
 
-    get isAlive() : boolean  { return this.p.live_level > 0; }
-    get user_id()   { return this.p.session.user_id; }
-    get pos()       { return this.p.state.pos; }
-    get sitting()   { return this.p.state.sitting; }
-    get sleep()     { return this.p.state.sleep; }
+    get isAlive() : boolean { return this.p.live_level > 0; }
 }
 
 export class ServerPlayer extends Player {
     raycaster: Raycaster;
     quests: QuestPlayer;
     damage: ServerPlayerDamage;
-    sharedProps: ServerPlayerSharedProps;
     wait_portal: WorldPortalWait;
+    //@ts-expect-error
+    world: ServerWorld
+    //@ts-expect-error
+    effects: ServerPlayerEffects
+    //@ts-expect-error
+    inventory: ServerPlayerInventory;
 
     #forward : Vector;
     #_rotateDegree : Vector;
-    vision: any;
-    indicators_changed: boolean;
-    position_changed: boolean;
+    vision: ServerPlayerVision;
+    indicators_changed: boolean; // Unused. TODO: auto detect changes, delta compression
+    position_changed: boolean;   // Unused. TODO: auto detect changes, delta compression
     chunk_addr: Vector;
     session_id: string;
-    skin: string;
     checkDropItemIndex: number;
     checkDropItemTempVec: Vector;
     dt_connect: Date;
     in_portal: boolean;
-    prev_use_portal: any;
-    prev_near_players: Map<any, any>;
+    prev_use_portal: number;        // time, performance.now()
+    prev_near_players: Set<int>;    // set of user_ids
     ender_chest: any;
-    dbDirtyFlags: number;
-    netDirtyFlags: number;
+    dbDirtyFlags: int;
+    netDirtyFlags: int;
     cast: { id: number; time: number; };
     mining_time_old: number;
-    currentChests: any;
+    currentChests: Vector[] | null; // positins of chests opened by this player at this moment
     timer_reload: number;
     _aabb: AABB;
-    live_level: any;
-    food_level: any;
-    oxygen_level: any;
+    live_level: number;
+    food_level: number;
+    oxygen_level: number;
     conn: any;
+    savingPromise?: Promise<void>
+    lastSentPacketTime = Infinity   // performance.now()
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -98,6 +105,7 @@ export class ServerPlayer extends Player {
 
     // These flags show what must be sent to the client
     static NET_DIRTY_FLAG_RENDER_DISTANCE    = 0x1;
+    skin: any;
 
     constructor() {
         super();
@@ -108,19 +116,14 @@ export class ServerPlayer extends Player {
         this.#_rotateDegree         = new Vector(0, 0, 0);
         this.#forward               = new Vector(0, 1, 0);
 
-        /**
-         * @type {ServerWorld}
-         */
-        this.world;
         this.session_id             = '';
-        this.skin                   = '';
         this.checkDropItemIndex     = 0;
         this.checkDropItemTempVec   = new Vector();
         this.dt_connect             = new Date();
         this.in_portal              = false;
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
-        this.prev_near_players      = new Map();
+        this.prev_near_players      = new Set();
         this.ender_chest            = null; // if it's not null, it's cached from DB
         this.dbDirtyFlags           = 0;    // what must be saved to DB
         this.netDirtyFlags          = 0;    // what must be sent to the client
@@ -137,21 +140,19 @@ export class ServerPlayer extends Player {
         // null, or an array of POJO postitions of 1 or 2 chests that this player is currently working with
         this.currentChests          = null;
 
-        this.sharedProps = new ServerPlayerSharedProps(this);
-
         this.timer_reload = performance.now();
 
         this._aabb = new AABB()
     }
 
-    init(init_info) {
+    init(init_info: PlyaerInitInfo): void {
         this.state = init_info.state;
-        this.state.lies = this.state?.lies || false;
-        this.state.sitting = this.state?.sitting || false;
-        this.state.sleep = this.state?.sleep|| false
-        this.live_level = this.state.indicators.live.value;
-        this.food_level = this.state.indicators.food.value;
-        this.oxygen_level = this.state.indicators.oxygen.value;
+        this.state.lies ||= false;
+        this.state.sitting ||= false;
+        this.state.sleep ||= false;
+        this.live_level = this.state.indicators.live;
+        this.food_level = this.state.indicators.food;
+        this.oxygen_level = this.state.indicators.oxygen;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
         this.status = init_info.status;
         // GameMode
@@ -165,6 +166,8 @@ export class ServerPlayer extends Player {
             this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
         };
     }
+
+    _createSharedProps(): IPlayerSharedProps { return new ServerPlayerSharedProps(this); }
 
     // On crafted listener
     onCrafted(recipe, item) {
@@ -287,10 +290,10 @@ export class ServerPlayer extends Player {
 
     /**
      * sendPackets
-     * @param {NetworkMessage[]} packets
      */
-    sendPackets(packets) {
+    sendPackets(packets: INetworkMessage[]) {
         const ns = this.world.network_stat;
+        this.lastSentPacketTime = performance.now()
 
         // time is the same for all commands, so it's saved once in the 1st of them
         if (packets.length) {
@@ -370,7 +373,8 @@ export class ServerPlayer extends Player {
     updateHands() {
         let inventory = this.inventory;
         if(!this.state.hands) {
-            this.state.hands = {};
+            // it's ok to typecast here, because we set left and right below
+            this.state.hands = {} as PlayerHands;
         }
         //
         let makeHand = (material) => {
@@ -419,20 +423,20 @@ export class ServerPlayer extends Player {
     }
 
     //
-    exportState()  {
+    exportStateUpdate(): PlayerStateUpdate {
         return {
             id:       this.session.user_id,
             username: this.session.username,
             pos:      this.state.pos,
             rotate:   this.state.rotate,
-            skin:     this.state.skin,
+            skin:     this.skin,
             hands:    this.state.hands,
             sneak:    this.state.sneak,
             sitting:  this.state.sitting,
             sleep:    this.state.sleep,
             lies:     this.state.lies,
             armor:    this.inventory.exportArmorState(),
-            health:   this.state.indicators.live.value
+            health:   this.state.indicators.live
         };
     }
 
@@ -467,10 +471,13 @@ export class ServerPlayer extends Player {
         this.checkCastTime();
         this.effects.checkEffects();
         //this.updateAABB()
+        if (this.lastSentPacketTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
+            this.sendPackets([{name: ServerClient.CMD_NOTHING}])
+        }
     }
 
-    get isAlive() : boolean { 
-        return this.live_level > 0 
+    get isAlive() : boolean {
+        return this.live_level > 0
     }
 
     /**
@@ -546,7 +553,7 @@ export class ServerPlayer extends Player {
                 //    // const force_teleport = ++wait_info.attempt == max_attempts;
                 for(let chunk of this.world.chunks.getAround(wait_info.pos, this.state.chunk_render_dist)) {
                     if(chunk.isReady()) {
-                        const new_portal = this.world.portals.foundPortalFloorAndBuild(this.session.user_id, chunk, from_portal_type);
+                        const new_portal = await WorldPortal.foundPortalFloorAndBuild(this.session.user_id, this.world, chunk, from_portal_type);
                         if(new_portal) {
                             wait_info.pos = new_portal.player_pos;
                             this.prev_use_portal = performance.now();
@@ -604,7 +611,7 @@ export class ServerPlayer extends Player {
     // Check player visible chunks
     checkVisibleChunks() {
         const {vision, world} = this;
-        if (!vision.updateNearby() && 
+        if (!vision.updateNearby() &&
             !(this.netDirtyFlags & ServerPlayer.NET_DIRTY_FLAG_RENDER_DISTANCE)
         ) {
             return;
@@ -635,7 +642,7 @@ export class ServerPlayer extends Player {
         }
         //
         const packets = [];
-        const current_visible_players = new Map();
+        const current_visible_players = new Set<int>();
         for(const player of this.world.players.values()) {
             const user_id = player.session.user_id;
             if(this.session.user_id == user_id) {
@@ -643,7 +650,7 @@ export class ServerPlayer extends Player {
             }
             let dist = Math.floor(player.state.pos.distance(this.state.pos));
             if(dist < PLAYER_MAX_DRAW_DISTANCE) {
-                current_visible_players.set(user_id, null);
+                current_visible_players.add(user_id);
             } else {
                 if(!this.prev_near_players.has(user_id)) {
                     continue;
@@ -652,7 +659,7 @@ export class ServerPlayer extends Player {
             }
             packets.push({
                 name: ServerClient.CMD_PLAYER_STATE,
-                data: {dist, ...player.exportState()}
+                data: {dist, ...player.exportStateUpdate()}
             })
         }
         this.prev_near_players = current_visible_players;
@@ -670,9 +677,9 @@ export class ServerPlayer extends Player {
 
         this.damage.getDamage(tick);
 
-        if (this.live_level == 0 || this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
+        if (this.live_level == 0 || this.state.indicators.live != this.live_level || this.state.indicators.food != this.food_level || this.state.indicators.oxygen != this.oxygen_level ) {
             const packets = [];
-            if (this.state.indicators.live.value > this.live_level) {
+            if (this.state.indicators.live > this.live_level) {
                 // @todo добавить дергание
                 packets.push({
                     name: ServerClient.CMD_PLAY_SOUND,
@@ -689,9 +696,9 @@ export class ServerPlayer extends Player {
                     data: {}
                 });
             }
-            this.state.indicators.live.value = this.live_level;
-            this.state.indicators.food.value = this.food_level;
-            this.state.indicators.oxygen.value = this.oxygen_level;
+            this.state.indicators.live = this.live_level;
+            this.state.indicators.food = this.food_level;
+            this.state.indicators.oxygen = this.oxygen_level;
             packets.push({
                 name: ServerClient.CMD_ENTITY_INDICATORS,
                 data: {
@@ -988,7 +995,7 @@ export class ServerPlayer extends Player {
         }
     }
 
-    writeToWorldTransaction(underConstruction) {
+    writeToWorldTransaction(underConstruction: WorldTransactionUnderConstruction) {
         // always save the player state, as it was in the old code
         const row = DBWorld.toPlayerUpdateRow(this);
         underConstruction.updatePlayerState.push(row);

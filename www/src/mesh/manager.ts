@@ -1,10 +1,13 @@
 import { AABB } from "../core/AABB.js";
 import { Helpers, makeChunkEffectID, Vector } from "../helpers.js";
+import type { Renderer } from "../render.js";
 import { Mesh_Effect_Manager } from "./effect/manager.js";
 
 // MeshManager
 export class MeshManager {
-    [key: string]: any;
+    chunks: Map<any, any>;
+    list: Map<any, any>;
+    effects: Mesh_Effect_Manager;
 
     constructor() {
         this.chunks = new Map();
@@ -16,7 +19,7 @@ export class MeshManager {
         return this.list.get(id);
     }
 
-    add(mesh, key) {
+    add(mesh : object, key? : string) {
         if(!key) {
             key = Helpers.generateID();
         }
@@ -25,7 +28,7 @@ export class MeshManager {
         return mesh;
     }
 
-    remove(key, render) {
+    remove(key : string, render : Renderer) {
         for(const [k, item] of this.list.entries()) {
             if(k.indexOf(key) == 0) {
                 item.destroy(render);

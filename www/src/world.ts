@@ -9,6 +9,8 @@ import { ChestHelpers } from "./block_helpers.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { MOUSE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import type { BLOCK } from "./blocks";
+import type { TBlock } from "./typed_blocks3.js";
+import { WorldHistory } from "./history.js";
 
 // World container
 export class World implements IWorld {
@@ -28,6 +30,7 @@ export class World implements IWorld {
     block_manager: any;
     server?: ServerClient;
     hello?: IChatCommand;
+    history = new WorldHistory(this);
 
     constructor(settings : TWorldSettings, block_manager : BLOCK) {
 
@@ -187,7 +190,7 @@ export class World implements IWorld {
         };
     }
 
-    getBlock(x : int | IVector, y? : int, z? : int) {
+    getBlock(x : int | IVector, y? : int, z? : int): TBlock {
         return this.chunkManager.getBlock(x, y, z);
     }
 
@@ -266,30 +269,7 @@ export class World implements IWorld {
         //
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
-                //
-                const tblock = this.getBlock(mod.pos);
-                if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
-                    const destroy_data = {
-                        pos: mod.pos,
-                        item: {id: tblock.id} as IBlockItem
-                    };
-                    if(tblock.extra_data) {
-                        destroy_data.item.extra_data = tblock.extra_data
-                    }
-                    Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos.add(new Vector(.5, .5, .5)), false);
-                    this.onBlockDestroy(destroy_data.pos, destroy_data.item);
-                }
-                //
-                switch(mod.action_id) {
-                    case ServerClient.BLOCK_ACTION_CREATE:
-                    case ServerClient.BLOCK_ACTION_REPLACE:
-                    case ServerClient.BLOCK_ACTION_MODIFY:
-                    case ServerClient.BLOCK_ACTION_DESTROY: {
-                        Qubatch.render.meshes.effects.deleteBlockEmitter(mod.pos);
-                        this.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
-                        break;
-                    }
-                }
+                this.setBlockDirect(mod.pos, mod.item, mod.action_id)
             }
         }
         if (actions.fluids.length > 0) {
@@ -309,6 +289,38 @@ export class World implements IWorld {
             player.setRotate(actions.sleep.rotate)
             Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000)
         }
+    }
+
+    /** Sets the block, and performs necessary additional actions, e.g. removing old emitters. */
+    setBlockDirect(pos: Vector, item: IBlockItem, action_id: int): TBlock | null {
+        //
+        const tblock = this.getBlock(pos);
+        if (tblock.id < 0) {
+            return null // it's outside the chunk
+        }
+        if(action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
+            const destroy_data = {
+                pos,
+                item: {id: tblock.id} as IBlockItem
+            };
+            if(tblock.extra_data) {
+                destroy_data.item.extra_data = tblock.extra_data
+            }
+            Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos.add(new Vector(.5, .5, .5)), false);
+            this.onBlockDestroy(destroy_data.pos, destroy_data.item);
+        }
+        //
+        switch(action_id) {
+            case ServerClient.BLOCK_ACTION_CREATE:
+            case ServerClient.BLOCK_ACTION_REPLACE:
+            case ServerClient.BLOCK_ACTION_MODIFY:
+            case ServerClient.BLOCK_ACTION_DESTROY: {
+                Qubatch.render.meshes.effects.deleteBlockEmitter(pos);
+                this.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, item.rotate, null, item.extra_data, action_id);
+                break;
+            }
+        }
+        return tblock
     }
 
     onBlockDestroy(pos, item) {

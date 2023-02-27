@@ -1,14 +1,20 @@
 import {ServerClient} from "../www/src/server_client.js";
-import {DIRECTION, Vector} from "../www/src/helpers.js";
+import {ArrayHelpers, ArrayOrScalar, DIRECTION, Vector} from "../www/src/helpers.js";
 import {WorldAction} from "../www/src/world_action.js";
 import { Weather } from "../www/src/block_type/weather.js";
 import { MobSpawnParams } from "./mob.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";
+import type { ServerPlayer } from "./server_player.js";
+
+const MAX_LINE_LENGTH = 100 // TODO based on the cleint's screen size
+
+type CmdCallback = (player: ServerPlayer, cmd: string, args: string[]) => Promise<boolean>
 
 export class ServerChat {
     world: ServerWorld;
-    onCmdCallbacks: any[];
+    onCmdCallbacks: CmdCallback[];
+    onCmdCallbacksByName = new Map<string, CmdCallback[]>();
 
     constructor(world : ServerWorld) {
         this.world = world;
@@ -16,7 +22,27 @@ export class ServerChat {
         plugins.initPlugins('chat', this);
     }
 
-    onCmd(callback) {
+    /**
+     * Registers a callback for one or more commands.
+     * Unlike {@link onCmd}, if any of the callbacks registered by this method returns true,
+     * no other callbacks are executed.
+     * It's preferable over {@link onCmd}:
+     *  - it's called only for the registered commnd(s) - slightly faster, less async calls
+     *  - {@link callback} doesn't have to check the commnd name - slightly simpler code
+     */
+    registerCmd(cmdNames : string | string[], callback: CmdCallback) {
+        for(const cmdName of ArrayOrScalar.values(cmdNames)) {
+            let list = this.onCmdCallbacksByName.get(cmdName)
+            if (list == null) {
+                list = []
+                this.onCmdCallbacksByName.set(cmdName, list)
+            }
+            list.push(callback)
+        }
+    }
+
+    /** An old method for registering commnds. Consider using {@link registerCmd} instead. */
+    onCmd(callback: CmdCallback) {
         this.onCmdCallbacks.push(callback)
     }
 
@@ -40,25 +66,27 @@ export class ServerChat {
         }
     }
 
-    broadcastSystemChatMessage(text, as_table = false) {
+    broadcastSystemChatMessage(text: string | { [key: string]: any }, as_table: boolean | string = false) {
         this.sendSystemChatMessageToSelectedPlayers(text, null, as_table)
     }
 
-    // sendSystemChatMessageToSelectedPlayers...
-    sendSystemChatMessageToSelectedPlayers(text, selected_players = null, as_table = false) {
-        // send as table
-        if(as_table) {
-            let max_length = 0;
+    /**
+     * @param {boolean | string} as_table - if it's not false, {@link text} is treated as a table.
+     *   If {@link as_table} is string, it's used as the table title.
+     */
+    sendSystemChatMessageToSelectedPlayers(text: string | { [key: string]: any },
+        selected_players: number[] | ServerPlayer | null = null,
+        as_table: boolean | string = false
+    ) {
+        // convert to a table
+        if (as_table) {
+            const lines = typeof as_table === 'string' ? ['!lang' + as_table] : ['!lang']
+            const max_length = ArrayHelpers.max(Object.keys(text), 0, key => key.length)
             for(let [k, v] of Object.entries(text)) {
-                if(k.length > max_length) {
-                    max_length = k.length;
-                }
+                k = k.padEnd(max_length + 5, '.')
+                lines.push(`${k}: ${v}`)
             }
-            for(let [k, v] of Object.entries(text)) {
-                k = k.padEnd(max_length + 5, '.');
-                this.sendSystemChatMessageToSelectedPlayers(k + ': ' + v, selected_players);
-            }
-            return;
+            text = lines.join('\n')
         }
         //
         if(typeof text == 'object' && 'message' in text) {
@@ -82,7 +110,7 @@ export class ServerChat {
     }
 
     // runCmd
-    async runCmd(player, original_text) {
+    async runCmd(player: ServerPlayer, original_text: string) {
 
         const that = this
         function checkIsAdmin() {
@@ -93,7 +121,7 @@ export class ServerChat {
 
         const world = this.world
         let text = original_text.replace(/  +/g, ' ').trim();
-        let args = text.split(' ');
+        let args = text.split(' ') as any[]; // any[] - because after they are parsed, args also contain int and null
         let cmd = args[0].toLowerCase();
         switch (cmd) {
             case "/kill": {
@@ -156,7 +184,7 @@ export class ServerChat {
                     cnt = 1;
                 } else {
                     name = args[1];
-                    cnt = args[2];
+                    cnt = args[2] as any;
                 }
                 const bm = this.world.block_manager
                 cnt = Math.max(cnt | 0, 1);
@@ -186,7 +214,7 @@ export class ServerChat {
                         '  /tps [chunk|mob|<mob_name>]',
                         '  /tps2 [chunk|mob|mobtype|<mob_name>] [recent]',
                         '  /sysstat',
-                        '  /netstat (in|out|all) [off|count|full|reset]',
+                        '  /netstat (in|out|all) [off|count|size|reset]',
                         '  /astat [recent]',
                         '/shutdown [gentle|force]'
                     ]
@@ -336,28 +364,30 @@ export class ServerChat {
                 } else {
                     table = stats.toTable(recent)
                 }
-                const msgRecent = recent ? '!langRecent stats:' : '!langAll-time stats:'
-                this.sendSystemChatMessageToSelectedPlayers(msgRecent, player);
-                this.sendSystemChatMessageToSelectedPlayers(table, player, true);
+                const title = recent ? 'Recent stats:' : 'All-time stats:'
+                this.sendSystemChatMessageToSelectedPlayers(table, player, title)
                 break;
             }
             case '/astat': { // async stats. They show what's happeing with DB queries and other async stuff
                 const recent = args.includes('recent')
                 const dbActor = this.world.dbActor
                 const table = dbActor.asyncStats.toTable(recent)
+                Object.assign(table, this.world.db.fluid.asyncStats.toTable(recent))
                 table['World transaction now'] = dbActor.savingWorldNow
                     ? `running for ${(performance.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
                     : 'not running';
-                this.sendSystemChatMessageToSelectedPlayers(table, player, true);
+                const title = (recent ? 'Recent' : 'All-time') + ' stats for asynchronous operations:'
+                this.sendSystemChatMessageToSelectedPlayers(table, player, title);
                 break;
             }
             case '/netstat': {
                 checkIsAdmin()
-                const USAGE = '!langUsage: /netstat (in|out|all) [off|count|full|reset]' +
+                const USAGE = '!langUsage: /netstat (in|out|all) [off|count|size|reset]' +
                     '\n  Network stats by packet type.' +
                     '\n  - with 2 arguments: the command prints the stats' +
                     '\n  - with 3 arguments: the command changes how the stats are collected' +
-                    '\n  Warning: enabling "full" net stats for "out" or "all" directions causes slowdown!'
+                    '\n  Enabling "size" also enables "count".' +
+                    '\n  Warning: enabling "size" net stats for "out" or "all" directions causes slowdown!'
                 let isOut = false, isIn = false
                 switch(args[1]) {
                     case 'in':  isIn = true;    break
@@ -372,28 +402,26 @@ export class ServerChat {
                 }
                 const ns = world.network_stat
                 if (args.length === 2) {
-                    let res = '!lang\n'
-                    const oldResLength = res.length
-                    if (isIn) {
-                        if (ns.in_count_by_type) {
-                            res += 'Incoming count by messagse type:\n' + this.netStatsTable(ns.in_count_by_type)
-                        }
-                        if (ns.in_size_by_type) {
-                            res += 'Incoming size by messagse type:\n' + this.netStatsTable(ns.in_size_by_type)
-                        }
+                    let sentAny = false
+                    if (isIn && ns.in_count_by_type) {
+                        sentAny = true
+                        let res = ns.in_size_by_type
+                            ? '!langIncoming message type: size *count\n'
+                            : '!langIncoming message type: count\n'
+                        res += this.netStatsTable(ns.in_count_by_type, ns.in_size_by_type)
+                        this.sendSystemChatMessageToSelectedPlayers(res, player)
                     }
-                    if (isOut) {
-                        if (ns.out_count_by_type) {
-                            res += 'Outgoing count by messagse type:\n' + this.netStatsTable(ns.out_count_by_type)
-                        }
-                        if (ns.out_size_by_type) {
-                            res += 'Outgoing size by messagse type:\n' + this.netStatsTable(ns.out_size_by_type)
-                        }
+                    if (isOut && ns.out_count_by_type) {
+                        sentAny = true
+                        let res = ns.out_size_by_type
+                            ? '!langOutgoing message type: size *count\n'
+                            : '!langOutgoing message type: count\n'
+                        res += this.netStatsTable(ns.out_count_by_type, ns.out_size_by_type)
+                        this.sendSystemChatMessageToSelectedPlayers(res, player)
                     }
-                    if (oldResLength === res.length) {
-                        res = "!langTo view stats, first enable collecting them. Call /netstat without arguments for more information."
+                    if (!sentAny) {
+                        this.sendSystemChatMessageToSelectedPlayers("!langTo view stats, first enable collecting them. Call /netstat without arguments for more information.", player)
                     }
-                    this.sendSystemChatMessageToSelectedPlayers(res, player)
                     return
                 }
                 switch(args[2]) {
@@ -409,40 +437,40 @@ export class ServerChat {
                         break
                     case 'count':
                         if (isIn) {
-                            ns.in_count_by_type     ??= {}
+                            ns.in_count_by_type     ??= []
                             ns.in_size_by_type      = null
                         }
                         if (isOut) {
-                            ns.out_count_by_type    ??= {}
+                            ns.out_count_by_type    ??= []
                             ns.out_size_by_type     = null
                         }
                         break
-                    case 'full':
+                    case 'size':
                         if (isIn) {
-                            ns.in_count_by_type     ??= {}
-                            ns.in_size_by_type      ??= {}
+                            ns.in_count_by_type     ??= []
+                            ns.in_size_by_type      ??= []
                         }
                         if (isOut) {
-                            ns.out_count_by_type    ??= {}
-                            ns.out_size_by_type     ??= {}
+                            ns.out_count_by_type    ??= []
+                            ns.out_size_by_type     ??= []
                         }
                         break
                     case 'reset':
                         if (isIn) {
-                            ns.in_count_by_type &&= {}
-                            ns.in_size_by_type  &&= {}
+                            ns.in_count_by_type &&= []
+                            ns.in_size_by_type  &&= []
                             ns.in_count = 0
                             ns.in       = 0
                         }
                         if (isOut) {
-                            ns.out_count_by_type &&= {}
-                            ns.out_size_by_type   &&= {}
+                            ns.out_count_by_type &&= []
+                            ns.out_size_by_type  &&= []
                             ns.out_count    = 0
                             ns.out          = 0
                         }
                         break
                     default:
-                        this.sendSystemChatMessageToSelectedPlayers(USAGE, player, true)
+                        this.sendSystemChatMessageToSelectedPlayers(USAGE, player)
                         return
                 }
                 break
@@ -561,6 +589,14 @@ export class ServerChat {
             }
             case '/clear':
             default: {
+                const registeredCallbacks = this.onCmdCallbacksByName.get(cmd)
+                if (registeredCallbacks) {
+                    for(const plugin_callback of registeredCallbacks) {
+                        if (await plugin_callback(player, cmd, args)) {
+                            break
+                        }
+                    }
+                }
                 let ok = false;
                 for(let plugin_callback of this.onCmdCallbacks) {
                     if(await plugin_callback(player, cmd, args)) {
@@ -576,8 +612,11 @@ export class ServerChat {
         return true;
     }
 
-    // parseCMD...
-    parseCMD(args, format) {
+    /**
+     * @returns {(number | string | null)[]} - parsed arguments. To avoid re-writing a lot of code,
+     *  we declare the result as any[]
+     */
+    parseCMD(args: string[], format: string[]): any[] {
         let resp = [];
         //if (args.length != format.length) {
         //    throw 'error_invalid_arguments_count';
@@ -628,7 +667,7 @@ export class ServerChat {
                     break;
                 }
                 case 'string': {
-                    if (isNaN(ch)) {
+                    if (isNaN(ch as any)) {
                         resp.push(ch);
                     } else {
                         resp.push(parseFloat(ch));
@@ -656,18 +695,86 @@ export class ServerChat {
         return this.world.mobs.ticks_stat_by_mob_type.get(type)
     }
 
-    netStatsTable(obj) {
-        const PER_ROW = 5
-        const res = []
-        const entries = Object.entries(obj) as [number, any]
-        entries.sort((a, b) => a[0] - b[0])
-        for(const [type, stat] of entries) {
-            if (res.length % (PER_ROW + 1) === PER_ROW) {
-                res.push('\n')
+    /**
+     * Converts an array of [name, value] tupes to a multi-line text table.
+     * The elements are split into columns, so that their total width doesn't exceed {@link maxLength}.
+     * The minimum with for name and value in each column is selected.
+     * The 1st column is filled, then the 2nd column, etc. (not by rows)
+     */
+    static toTableColumns(text: [name: any, value: any, ...unused: any][], maxLength = MAX_LINE_LENGTH, columnSeparator = '   '): string {
+
+        function calcColsWidth(): int {
+            rows = Math.ceil(entries.length / cols)
+            maxNameLength.fill(0)
+            maxValueLength.fill(0)
+            let entryInd = 0
+            for(let col = 0; col < cols; col++) {
+                const rowsInCol = Math.min(rows, entries.length - entryInd)
+                for(let row = 0; row < rowsInCol; row++) {
+                    const [name, value] = entries[entryInd++]
+                    maxNameLength[col] = Math.max(maxNameLength[col] ?? 0, name.length)
+                    maxValueLength[col] = Math.max(maxValueLength[col] ?? 0, value.length)
+                }
             }
-            res.push(` ${type.toString().padStart(3)}: ${stat.toString().padEnd(13)} `)
+            return ArrayHelpers.sum(maxNameLength) + ArrayHelpers.sum(maxValueLength)
+                + 2 * cols
+                + columnSeparator.length * (cols - 1)
         }
-        res.push('\n')
-        return res.join('')
+
+        if (!text.length) {
+            return ''
+        }
+        const entries: [string, string][] = text.map(v => [v[0].toString(), v[1].toString()])
+        let cols = 1
+        let rows: int
+        const maxNameLength: int[] = []
+        const maxValueLength: int[] = []
+
+        // determine the number of columns
+        while (cols <= entries.length && calcColsWidth() <= maxLength) {
+            cols++
+        }
+        cols = Math.max(cols - 1, 1) // revert the last wrong increase
+        calcColsWidth()
+
+        // Iterate by columns, collect by rows
+        const byRow = ArrayHelpers.create(rows, () => [] as string[])
+        let entryInd = 0
+        for(let col = 0; col < cols; col++) {
+            const rowsInCol = Math.min(rows, entries.length - entryInd)
+            for(let row = 0; row < rowsInCol; row++) {
+                if (col) {
+                    byRow[row].push(columnSeparator)
+                }
+                const [name, value] = entries[entryInd++]
+                byRow[row].push(`${name.padEnd(maxNameLength[col], '.')}: ${value.padEnd(maxValueLength[col])}`)
+            }
+        }
+        for(let row = 0; row < rows - 1; row++) {
+            byRow[row].push('\n')
+        }
+        return byRow.flat().join('')
+    }
+
+    netStatsTable(countByType: int[], sizeByType?: int[]): string {
+        const entries: [string, string, int][] = []
+        for(let type = 0; type < countByType.length; type++) {
+            const count = countByType[type]
+            if (count) {
+                const name = ServerClient.getCommandTitle(type).toString()
+                let valueStr: string
+                let valueInt: int
+                if (sizeByType) {
+                    valueInt = sizeByType[type]
+                    valueStr = `${sizeByType[type]} *${count}`
+                } else {
+                    valueInt = count
+                    valueStr = count.toString()
+                }
+                entries.push([name, valueStr, valueInt])
+            }
+        }
+        entries.sort((a, b) => b[2] - a[2])
+        return ServerChat.toTableColumns(entries)
     }
 }

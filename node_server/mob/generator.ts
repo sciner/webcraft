@@ -3,15 +3,17 @@ import {Vector, VectorCollector} from "../../www/src/helpers.js";
 import {BLOCK} from "../../www/src/blocks.js";
 import { TBlock } from "../../www/src/typed_blocks3.js";
 import {impl as alea} from '../../www/vendors/alea.js';
+import type { MobSpawnParams } from "../mob.js";
+import type { ServerChunk } from "../server_chunk.js";
 
 // Mob generator
 export class MobGenerator {
-    chunk: any;
+    chunk: ServerChunk;
     random: any;
     can_generate: boolean;
     types: any[] = []
 
-    constructor(chunk) {
+    constructor(chunk: ServerChunk) {
         this.chunk = chunk;
         this.types.push({type: 'chicken', skin: 'base', count: 4});
         this.types.push({type: 'chicken', skin: 'base', count: 4});
@@ -82,7 +84,7 @@ export class MobGenerator {
                         const t = this.types[index];
                         if(poses.length >= t.count) {
                             for(let i = 0; i < t.count; i++) {
-                                const params = {
+                                const params: MobSpawnParams = {
                                     pos: poses[i],
                                     rotate: new Vector(0, 0, this.random.double() * Math.PI * 2),
                                     ...t

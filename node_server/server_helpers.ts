@@ -7,7 +7,7 @@ export function epochMillis() {
 /**
  * Parses a config containing many-to-many relations between keys and values,
  * and stores the result in a map, which it returns.
- * 
+ *
  * @param {Array} conf - its elements can be:
  * - scalars (which represend both a key and a value);
  * - [keys, values], where both keys and values can be scalars or arrays of scalars.
@@ -36,7 +36,7 @@ export function parseManyToMany(conf, transformKey = v => v, result: any[] | Map
             continue;
         }
         if (!Array.isArray(entry) || entry.length !== 2) {
-            throw new Error('Elemetns of must be scalars or 2-element arrays. Wrong entry: ' + 
+            throw new Error('Elemetns of must be scalars or 2-element arrays. Wrong entry: ' +
                 JSON.stringify(entry));
         }
         var [keys, values] = entry;
@@ -60,7 +60,7 @@ async function rollupImport(dir, file) {
 
 /**
  * Parses many-to-many conf and impots objects from .js modules.
- * 
+ *
  * @param {Array} conf - the reult of {@link parseManyToMany}.
  *   The values can be "moduleName", or "moduleName:importDescription".
  *   importDescription can contain ":"; only the 1st ":" is treated as a separator.
@@ -88,8 +88,8 @@ export async function loadMappedImports(resultMap,
             }
             // declare them const, otherwise functions use the same value from the closure
             const [moduleName, importStr_] = StringHelpers.splitFirst(fullImportString, ':');
-            const importStr = importStr_ || 'default';            
-            const p = rollupImport(folder, moduleName).then(function (module) {                    
+            const importStr = importStr_ || 'default';
+            const p = rollupImport(folder, moduleName).then(function (module) {
                 const imp = doImport(module, importStr, fullImportString);
                 if (imp == null) {
                     const fullModuleName = folder + moduleName + '.js'
@@ -126,7 +126,7 @@ function isClass(obj) {
     if (obj.prototype === undefined) {
         return isCtorClass
     }
-    const isPrototypeCtorClass = obj.prototype.constructor 
+    const isPrototypeCtorClass = obj.prototype.constructor
         && obj.prototype.constructor.toString
         && obj.prototype.constructor.toString().substring(0, 5) === 'class'
     return isCtorClass || isPrototypeCtorClass
@@ -180,7 +180,7 @@ export class DelayedCalls {
     debugSometimesSerialize: boolean;
     dirty: boolean;
     /**
-     * @param { object } calleesById - keys are ids, 
+     * @param { object } calleesById - keys are ids,
      *  values are objects:
      *  {
      *      delayedCall(args...)
@@ -189,7 +189,7 @@ export class DelayedCalls {
      *      afterDelayedLoading(args: Any): Object  // optional
      *  }
      * beforeDelayedSaving and afterDelayedLoading can be used to convert (object references <-> ids)
-     * 
+     *
      * @param { boolean } sometimesSerialize - if it's true, half the time arguments are
      *  serialized and deserialized before a normal call. It helps debugging: ensures
      * that callees work with both direct and deserialized arguments.
@@ -206,7 +206,7 @@ export class DelayedCalls {
     }
 
     /**
-     * @param {Array} args - arguments pased to the function. 
+     * @param {Array} args - arguments pased to the function.
      *    The 0th element is "this".
      */
     add(calleeId, delay, args) {

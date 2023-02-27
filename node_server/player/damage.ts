@@ -35,11 +35,11 @@ export class ServerPlayerDamage {
     damage: number = 0
     type_damage : EnumDamage
     actor: any
-    
+
     constructor(player : ServerPlayer) {
         this.player = player;
     }
-    
+
     /*
     * Метод подсчитывает колличество урона
     *
@@ -54,12 +54,12 @@ export class ServerPlayerDamage {
             return;
         }
         const effects = player.effects;
-        const ind_def = world.getDefaultPlayerIndicators();
-        let max_live = ind_def.live.value;
+        const ind_def = world.defaultPlayerIndicators;
+        let max_live = ind_def.live;
         // эффект прилив здоровья
         const health_boost_lvl = effects.getEffectLevel(Effect.HEALTH_BOOST);
         max_live += 2 * health_boost_lvl;
-        
+
         let damage = this.damage;
         // Урон от голода
         if (this.food_exhaustion_level > 4) {
@@ -112,7 +112,7 @@ export class ServerPlayerDamage {
             this.oxygen_got_timer++;
             if (this.oxygen_got_timer >= OXYGEN_GOT_TICKS) {
                 this.oxygen_got_timer = 0;
-                player.oxygen_level =  Math.min(player.oxygen_level + 1, ind_def.oxygen.value);
+                player.oxygen_level =  Math.min(player.oxygen_level + 1, ind_def.oxygen);
             }
         }
         // огонь/лава с эффектом защиты от огня
@@ -225,8 +225,9 @@ export class ServerPlayerDamage {
         }
         this.damage = 0;
     }
-    
-    /* Нанесение урона игроку
+
+    /*
+    * Нанесение урона игроку
     */
     addDamage(val : number, type_damage? : EnumDamage, actor?) {
         const player = this.player
@@ -246,24 +247,24 @@ export class ServerPlayerDamage {
     addExhaustion(exhaustion) {
         this.food_exhaustion_level = Math.min(this.food_exhaustion_level + exhaustion, 40);
     }
-    
+
     /*
     * установка сытости и насыщения
     * food - уровень еды
     * saturation - уровень насыщения
     */
-    setFoodLevel(food, saturation) {
+    setFoodLevel(food: number, saturation: number) {
         const player = this.player;
-        const ind_def = player.world.getDefaultPlayerIndicators();
-        player.food_level = Math.min(food + player.food_level, ind_def.food.value);
-        this.food_saturation_level = Math.min(this.food_saturation_level + food * saturation * 2, ind_def.food.value);
+        const ind_def = player.world.defaultPlayerIndicators;
+        player.food_level = Math.min(food + player.food_level, ind_def.food);
+        this.food_saturation_level = Math.min(this.food_saturation_level + food * saturation * 2, ind_def.food);
     }
-    
+
     restoreAll() {
         const player = this.player;
-        const ind_def = player.world.getDefaultPlayerIndicators();
-        player.live_level   = ind_def.live.value;
-        player.food_level   = ind_def.food.value;
-        player.oxygen_level = ind_def.oxygen.value;
+        const ind_def = player.world.defaultPlayerIndicators;
+        player.live_level   = ind_def.live;
+        player.food_level   = ind_def.food;
+        player.oxygen_level = ind_def.oxygen;
     }
 }

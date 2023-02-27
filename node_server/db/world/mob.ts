@@ -1,7 +1,11 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../../www/src/chunk_const.js';
 import { getChunkAddr, Vector, VectorCollector } from '../../../www/src/helpers.js';
 import { Mob } from "../../mob.js";
+import type { ServerChunk } from '../../server_chunk.js';
+import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from '../../server_constant.js';
+import type { ServerWorld } from '../../server_world.js';
 import { BulkSelectQuery, preprocessSQL, run } from "../db_helpers.js";
+import { toDeprecatedIndicators } from '../world.js';
 
 const BULK_UPDATE_FIELDS = 'x = %1, y = %2, z = %3, indicators = %4, extra_data = %5, rotate = %6'
 
@@ -16,22 +20,55 @@ const UPDATE = {
 
 const tmpAddr = new Vector()
 
-export class DBWorldMob {
-    conn: any;
-    world: any;
-    getDefaultPlayerStats: any;
-    getDefaultPlayerIndicators: any;
-    bulkLoadActiveInVolumeQuery: BulkSelectQuery;
-    maxId: any;
-    _addrByMobId: any;
-    _previouslyOccupiedAddrs: any;
-    _activeMobsInChunkCount: any;
+/** Mob data that is saved regularly */
+export type MobUpdateRow = [
+    id: int,
+    x: int, y: int, z: int,
+    indicators: string, // JSON.stringify(mob.indicators | toDeprecatedIndicators(mob.indicators)),
+    extra_data: string, //JSON.stringify(mob.extra_data),
+    rotate: string      //JSON.stringify(mob.rotate)
+]
 
-    constructor(conn, world, getDefaultPlayerStats, getDefaultPlayerIndicators) {
+/** These updates have more data than regular updates, and they are saved only when needed. */
+export type MobFullUpdateRow = ConcatTuple<MobUpdateRow, [
+    is_active: int,     // 1, 0
+    pos_spawn: string   // JSON.stringify(mob.pos_spawn)
+]>
+
+export type MobInsertRow = ConcatTuple<MobFullUpdateRow, [
+    entity_id: string,
+    type: string,
+    skin: string
+]>
+
+/** A mob record returned from DB */
+export type MobRow = {
+    id          : int
+    rotate      : string    // stringified IVector
+    pos_spawn   : string    // stringified IVector
+    x           : float
+    y           : float
+    z           : float
+    entity_id   : string
+    type        : string
+    skin        : string
+    is_active   : int
+    extra_data  : string    // stringified object
+    indicators  : string    // stringified Indicators
+}
+
+export class DBWorldMob {
+    conn: DBConnection;
+    world: ServerWorld;
+    bulkLoadActiveInVolumeQuery: BulkSelectQuery<MobRow>;
+    maxId: int;
+    _addrByMobId: Map<int, Vector>;
+    _previouslyOccupiedAddrs: Vector[];
+    _activeMobsInChunkCount: VectorCollector; // of int
+
+    constructor(conn: DBConnection, world: ServerWorld) {
         this.conn = conn;
         this.world = world;
-        this.getDefaultPlayerStats = getDefaultPlayerStats;
-        this.getDefaultPlayerIndicators = getDefaultPlayerIndicators;
 
         this.bulkLoadActiveInVolumeQuery = new BulkSelectQuery(this.conn,
             `WITH cte AS (SELECT key, value FROM json_each(:jsonRows))
@@ -46,7 +83,7 @@ export class DBWorldMob {
         this.maxId = (await this.conn.get('SELECT id FROM entity ORDER BY id DESC LIMIT 1'))?.id ?? 0;
     }
 
-    getNextId() {
+    getNextId(): int {
         return ++this.maxId;
     }
 
@@ -56,7 +93,7 @@ export class DBWorldMob {
      *  - if the mob was in a chunk, queues decrement of mobs count in that old chunk
      * To actually decrement the mobs count, call {@link onWorldTransactionCommit}
      */
-    _cacheMob(id, is_active, x = null, y = null, z = null) {
+    _cacheMob(id: int, is_active: int | boolean, x: float = null, y: float = null, z: float = null): void {
 
         const old_chunk_addr = this._addrByMobId.get(id);
         const new_chunk_addr = is_active && getChunkAddr(x, y, z, tmpAddr);
@@ -86,11 +123,11 @@ export class DBWorldMob {
 
     // Removes cached mobs from chunks that they previously occupied. Only the world transaction should call it.
     onWorldTransactionCommit() {
-        const decrement = (n) => (--n > 0) ? n : null;
+        const decrement = (n: int) => (--n > 0) ? n : null;
         for(const addr of this._previouslyOccupiedAddrs) {
             this._activeMobsInChunkCount.update(addr, decrement);
         }
-        this._previouslyOccupiedAddrs.length = [];
+        this._previouslyOccupiedAddrs.length = 0;
     }
 
     // initChunksAddrWithMobs
@@ -120,7 +157,7 @@ export class DBWorldMob {
 
     // Load mobs
     // TODO optimize: merge volumes for adjacent chunks, then separate mobs into chunks on host
-    async loadInChunk(chunk) {
+    async loadInChunk(chunk: ServerChunk): Promise<Map<int, Mob>> {
         const resp = new Map();
         if(!this._activeMobsInChunkCount.has(chunk.addr)) {
             return resp;
@@ -143,7 +180,7 @@ export class DBWorldMob {
     }
 
     // Load mob
-    async load(entity_id) {
+    async load(entity_id: string): Promise<Mob | null> {
         const rows = await this.conn.all('SELECT * FROM entity WHERE entity_id = :entity_id', {
             ':entity_id': entity_id
         });
@@ -154,17 +191,20 @@ export class DBWorldMob {
     }
 
     /** Returns a row that can be passed to {@link bulkUpdate} */
-    static toUpdateRow(mob) {
+    static toUpdateRow(mob: Mob): MobUpdateRow {
+        const indicators = SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS
+            ? toDeprecatedIndicators(mob.indicators)
+            : mob.indicators
         return [
             mob.id,
             mob.pos.x, mob.pos.y, mob.pos.z,
-            JSON.stringify(mob.indicators),
+            JSON.stringify(indicators),
             JSON.stringify(mob.extra_data),
             JSON.stringify(mob.rotate)
         ];
     }
 
-    async bulkUpdate(rows) {
+    async bulkUpdate(rows: MobUpdateRow[]) {
         UPDATE.BULK = UPDATE.BULK ?? preprocessSQL(`
             UPDATE entity
             SET ${BULK_UPDATE_FIELDS}
@@ -181,15 +221,16 @@ export class DBWorldMob {
         }) : null;
     }
 
-    /** Upgrdaes a result of {@link toUpdateRow} to a row that can be passed to {@link bulkFullUpdate} */
-    static upgradeRowToFullUpdate(row, mob) {
+    /** Upgrdaes {@link row} from {@link MobUpdateRow} to {@link MobFullUpdateRow} by adding more data from a mob. */
+    static upgradeRowToFullUpdate(row: MobUpdateRow, mob: Mob): MobFullUpdateRow {
         row.push(
             mob.is_active ? 1 : 0,
             JSON.stringify(mob.pos_spawn)
         );
+        return row as unknown as MobFullUpdateRow
     }
 
-    async bulkFullUpdate(rows) {
+    async bulkFullUpdate(rows: MobFullUpdateRow[]) {
         UPDATE.BULK_FULL = UPDATE.BULK_FULL ?? preprocessSQL(`
             UPDATE entity
             SET ${BULK_UPDATE_FIELDS}, is_active = %7, pos_spawn = %8
@@ -205,12 +246,13 @@ export class DBWorldMob {
         }) : null;
     }
 
-    /** Upgrdaes a result of {@link upgradeRowToFullUpdate} to a row that can be passed to {@link bulkInsert} */
-    static upgradeRowToInsert(row, mob) {
+    /** Upgrdaes {@link MobFullUpdateRow} to {@link MobInsertRow} by adding more data from a mob. */
+    static upgradeRowToInsert(row: MobFullUpdateRow, mob: Mob): MobInsertRow {
         row.push(mob.entity_id, mob.type, mob.skin);
+        return row as unknown as MobInsertRow
     }
 
-    async bulkInsert(rows, dt) {
+    async bulkInsert(rows: MobInsertRow[], dt: int) {
         INSERT.BULK = INSERT.BULK ?? preprocessSQL(`
             INSERT INTO entity (
                 id,
@@ -236,7 +278,7 @@ export class DBWorldMob {
         }) : null;
     }
 
-    async bulkDelete(ids) {
+    async bulkDelete(ids: int[]) {
         return ids.length ? run(this.conn,
             'DELETE FROM entity WHERE id IN (SELECT value FROM json_each(?))',
             [JSON.stringify(ids)]

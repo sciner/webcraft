@@ -1,5 +1,6 @@
 import { PLAYER_STATUS } from "../../../www/src/constant.js";
 import { ServerClient } from "../../../www/src/server_client.js";
+import type { ServerPlayer } from "../../server_player.js";
 
 export default class packet_reader {
 
@@ -13,11 +14,11 @@ export default class packet_reader {
         return ServerClient.CMD_RESURRECTION;
     }
 
-    static async read(player, packet) {
-        const ind_def = player.world.getDefaultPlayerIndicators();
-        player.live_level = ind_def.live.value;
-        player.oxygen_level = ind_def.oxygen.value;
-        player.food_level = ind_def.food.value;
+    static async read(player: ServerPlayer, packet) {
+        const ind_def = player.world.defaultPlayerIndicators;
+        player.live_level = ind_def.live;
+        player.oxygen_level = ind_def.oxygen;
+        player.food_level = ind_def.food;
         player.status = PLAYER_STATUS.WAITING_DATA;
         player.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
         player.teleport({

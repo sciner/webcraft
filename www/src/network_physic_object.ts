@@ -14,9 +14,20 @@ export class AABBDrawable extends AABB {
 
 }
 
+export type NetworkPhysicObjectState = {
+    pos         : IVector
+    time        : number
+    rotate ?    : Vector
+    tracked ?   : boolean
+    sneak ?     : int | boolean // It can be true, false, 0. It probably should be boolean.
+    extra_data? : object
+}
+
 // NetworkPhysicObject
 export class NetworkPhysicObject {
     [key: string]: any;
+
+    netBuffer: NetworkPhysicObjectState[]
 
     constructor(pos, rotate) {
 
@@ -73,7 +84,7 @@ export class NetworkPhysicObject {
         return this.world ? this.world.serverTimeWithLatency : Date.now();
     }
 
-    applyNetState(data: {pos: IVector, time: number, rotate?: Vector, tracked?: boolean} = {pos: null, time: 0, rotate: null}) {
+    applyNetState(data: NetworkPhysicObjectState = {pos: null, time: 0, rotate: null}) {
         if (data.tracked) {
             this.tracked = true;
         }

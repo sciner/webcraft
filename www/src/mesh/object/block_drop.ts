@@ -3,6 +3,8 @@ import { Vector, unixTime, Helpers, QUAD_FLAGS } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import { MAX_DIST_FOR_PICKUP, PICKUP_OWN_DELAY_SECONDS } from '../../constant.js';
+import type { Player } from '../../player.js';
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
@@ -130,13 +132,12 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     // Update player
-    updatePlayer(player, delta) {
+    updatePlayer(player: Player, delta: number) {
 
         if(this.now_draw || !player.game_mode.canPickupItems()) {
             return false;
         }
 
-        const MAX_DIST_FOR_PICKUP       = 2.5;
         const MAX_FLY_TIME              = 200; // ms
         const MAX_FLY_SPEED             = 12; // m/s
         const MIN_DIST_FOR_PICKUP_NOW   = .3; // m
@@ -153,7 +154,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             this.pos.addSelf(this.pos.sub(target_pos).normalize().multiplyScalarSelf(-MAX_FLY_SPEED * delta / 1000));
         } else if(dist < MAX_DIST_FOR_PICKUP && (performance.now() - this.create_time > MAX_FLY_TIME && !this.isDead())
         ) {
-            if(this.age > 2) {
+            if(this.age > PICKUP_OWN_DELAY_SECONDS) {
                 // if dist less need, drop item start to fly to center of player body
                 this.no_update = true;
                 // start timeout for pickup

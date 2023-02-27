@@ -1,13 +1,14 @@
 import type { Vector } from "../helpers.js";
 import {BaseChunk} from "./BaseChunk.js";
+import type {ChunkGrid} from "./ChunkGrid.js";
 
 export class DataChunk extends BaseChunk {
     [key: string]: any;
 
     uint16View: Uint16Array
 
-    constructor({size, strideBytes, nibble} : {size : Vector, strideBytes : int, nibble? : any}) {
-        super({size, nibble});
+    constructor({grid, size, strideBytes, nibble} : {grid?: ChunkGrid, size? : Vector, strideBytes : int, nibble? : any}) {
+        super({grid, size, nibble});
         this.initData(strideBytes);
     }
 
