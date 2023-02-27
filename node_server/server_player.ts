@@ -21,6 +21,7 @@ import { AABB } from "../www/src/core/AABB.js"
 import { EnumDamage } from "../www/src/enums/enum_damage.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
+import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -95,6 +96,7 @@ export class ServerPlayer extends Player {
     oxygen_level: number;
     conn: any;
     savingPromise?: Promise<void>
+    lastSentPacketTime = Infinity   // performance.now()
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -291,6 +293,7 @@ export class ServerPlayer extends Player {
      */
     sendPackets(packets: INetworkMessage[]) {
         const ns = this.world.network_stat;
+        this.lastSentPacketTime = performance.now()
 
         // time is the same for all commands, so it's saved once in the 1st of them
         if (packets.length) {
@@ -468,6 +471,9 @@ export class ServerPlayer extends Player {
         this.checkCastTime();
         this.effects.checkEffects();
         //this.updateAABB()
+        if (this.lastSentPacketTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
+            this.sendPackets([{name: ServerClient.CMD_NOTHING}])
+        }
     }
 
     get isAlive() : boolean {
