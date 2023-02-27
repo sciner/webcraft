@@ -1,5 +1,5 @@
 import type {DataChunk} from "./DataChunk.js";
-import {getChunkAddr, VectorCollector, Vector} from "../helpers.js";
+import { VectorCollector, Vector } from "../helpers.js";
 import {
     CHUNK_SIZE_X,
     CHUNK_SIZE_Y,
@@ -43,7 +43,7 @@ export class ChunkGrid {
     }
 
     toChunkAddr(in_vec: IVector, out_vec?: Vector): Vector {
-        return getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
+        return this.getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
     }
 
     getChunkAddr(x: number, y: number, z: number, out_vec = new Vector()) {

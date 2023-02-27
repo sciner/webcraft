@@ -46,7 +46,7 @@ type DropItemParams = {
 
 type ActionBlocks = {
     list: {
-        pos             : IVector
+        pos             : Vector
         action_id       : int
         item            : IBlockItem
         destroy_block   : { id: int }

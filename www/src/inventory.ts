@@ -15,11 +15,9 @@ export const INVENTORY_CHANGE_SHIFT_SPREAD = 4;
 
 export class Inventory {
     [key: string]: any;
-
     player: Player
 
     temp_vec = new Vector();
-    player: Player
 
     constructor(player : Player, state : any) {
         this.count              = state.items.length;

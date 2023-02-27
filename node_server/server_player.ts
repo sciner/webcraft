@@ -105,7 +105,6 @@ export class ServerPlayer extends Player {
 
     // These flags show what must be sent to the client
     static NET_DIRTY_FLAG_RENDER_DISTANCE    = 0x1;
-    skin: any;
 
     constructor() {
         super();
@@ -472,7 +471,7 @@ export class ServerPlayer extends Player {
         this.effects.checkEffects();
         //this.updateAABB()
         if (this.lastSentPacketTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
-            this.sendPackets([{name: ServerClient.CMD_NOTHING}])
+            this.sendPackets([{name: ServerClient.CMD_NOTHING, data: null}])
         }
     }
 

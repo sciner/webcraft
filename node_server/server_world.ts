@@ -639,10 +639,9 @@ export class ServerWorld implements IWorld {
 
     /**
      * Отправить только указанным
-     * @param {number[] | ServerPlayer} selected_players IDs of players or a single ServerPlayer
-     * @param {?number[]} except_players  ID of players.
+     * @param selected_players IDs of players or a single ServerPlayer
+     * @param except_players  ID of players.
      *   It's ignored if {@link selected_players} is ServerPlayer.
-     * @return {void}
      */
     sendSelected(packets: INetworkMessage[], selected_players: number[] | ServerPlayer, except_players?: number[]) {
         if ((selected_players as ServerPlayer).sendPackets) { // fast check if it's a ServerPlayer
