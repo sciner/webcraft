@@ -4,6 +4,7 @@ import { Vector } from "../../www/src/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fluid/FluidConst.js";
 import type { ServerPlayer } from "../server_player.js";
 import { PLAYER_STATUS } from "../../www/src/constant.js";
+import type { EnumDamage } from "../../www/src/enums/enum_damage.js";
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;
@@ -31,7 +32,9 @@ export class ServerPlayerDamage {
     planting_lost_timer: number = 0;
     instant_health_timer: number = 0;
     instant_damage_timer: number = 0;
-    damage: number = 0;
+    damage: number = 0
+    type_damage : EnumDamage
+    actor: any
 
     constructor(player : ServerPlayer) {
         this.player = player;
@@ -220,18 +223,21 @@ export class ServerPlayerDamage {
         if (damage > 0) {
             player.live_level = Math.max(player.live_level - damage, 0);
         }
-
         this.damage = 0;
     }
 
-    /* Нанесение урона игроку
+    /*
+    * Нанесение урона игроку
     */
-    addDamage(val, src) {
-        const player = this.player;
+    addDamage(val : number, type_damage? : EnumDamage, actor?) {
+        const player = this.player
         if(player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.mayGetDamaged()) {
-            return false;
+            return false
         }
-        this.damage = val;
+        this.type_damage = type_damage
+        this.actor = actor
+        this.damage = val
+        return true
     }
 
     /*

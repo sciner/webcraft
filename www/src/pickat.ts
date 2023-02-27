@@ -79,7 +79,8 @@ export class PickAt {
         e.destroyBlock      = e.button_id == MOUSE.BUTTON_LEFT;
         e.cloneBlock        = e.button_id == MOUSE.BUTTON_WHEEL;
         e.createBlock       = e.button_id == MOUSE.BUTTON_RIGHT;
-        e.interractMobID    = null;
+        e.interactMobID     = null;
+        e.interactPlayerID  = null;
         e.number            = 0;
         const damage_block  = this.damage_block;
         damage_block.event  = Object.assign(e, {number: 0});
