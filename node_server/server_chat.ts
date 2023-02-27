@@ -121,7 +121,7 @@ export class ServerChat {
 
         const world = this.world
         let text = original_text.replace(/  +/g, ' ').trim();
-        let args = text.split(' ');
+        let args = text.split(' ') as any[]; // any[] - because after they are parsed, args also contain int and null
         let cmd = args[0].toLowerCase();
         switch (cmd) {
             case "/kill": {
