@@ -69,7 +69,11 @@ export class ServerWorld implements IWorld {
     mobs: WorldMobManager;
     packets_queue: WorldPacketQueue;
     ticks_stat: WorldTickStat;
-    network_stat: { in: number; out: number; in_count: number; out_count: number; out_count_by_type: any; in_count_by_type: any; out_size_by_type: any; in_size_by_type: any; };
+    network_stat: {
+        in: number; out: number; in_count: number; out_count: number;
+        out_count_by_type?: int[]; in_count_by_type?: int[];
+        out_size_by_type?: int[]; in_size_by_type?: int[];
+    };
     start_time: number;
     weather_update_time: number;
     rules: GameRule;
