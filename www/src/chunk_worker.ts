@@ -181,7 +181,7 @@ class ChunkWorkerRoot {
                 break;
             }
             case 'destructChunk': {
-                console.debug('Worker destructChunk:', args.length);
+                // console.debug('Worker destructChunk:', args.length);
                 world.destructMultiple(args);
                 break;
             }
