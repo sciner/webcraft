@@ -2,15 +2,18 @@ import {SimpleQueue} from "../../../www/src/helpers.js";
 import {WorldChunkFlags} from "./WorldChunkFlags.js";
 import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js";
 import { FluidWorld } from "../../../www/src/fluid/FluidWorld.js";
+import type { ServerWorld } from "../../server_world.js";
+import { WorldTickStat } from "../../world/tick_stat.js";
 
 export class DBWorldFluid {
-    conn: any;
-    world: any;
+    conn: DBConnection;
+    world: ServerWorld;
     dirtyChunks: SimpleQueue;
-    savingDirtyChunksPromise: any;
-    bulkGetQuery: BulkSelectQuery;
+    savingDirtyChunksPromise: Promise<any>;
+    bulkGetQuery: BulkSelectQuery<BLOB>;
+    asyncStats = new WorldTickStat(['fluid']);
 
-    constructor(conn, world) {
+    constructor(conn: DBConnection, world: ServerWorld) {
         this.conn = conn;
         this.world = world;
         this.dirtyChunks = new SimpleQueue();
@@ -69,11 +72,7 @@ export class DBWorldFluid {
         // console.log(`saving fluid ${chunk_addr}`)
     }
 
-    /**
-     * @param {object[]} rows {addr, data}
-     * @returns 
-     */
-    async bulkSaveChunkFluid(rows) {
+    async bulkSaveChunkFluid(rows: {addr: IVector, data: BLOB}[]) {
         const worldChunkFlags = this.world.worldChunkFlags
         const insertRows = []
         const updateRows = []
@@ -127,7 +126,9 @@ export class DBWorldFluid {
             maxSaveChunks--;
         }
         if (saveRows.length) {
+            this.asyncStats.start()
             this.savingDirtyChunksPromise = this.bulkSaveChunkFluid(saveRows).finally(() => {
+                this.asyncStats.add('fluid').end()
                 this.savingDirtyChunksPromise = null;
             });
         }

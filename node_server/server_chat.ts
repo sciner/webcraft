@@ -373,10 +373,12 @@ export class ServerChat {
                 const recent = args.includes('recent')
                 const dbActor = this.world.dbActor
                 const table = dbActor.asyncStats.toTable(recent)
+                Object.assign(table, this.world.db.fluid.asyncStats.toTable(recent))
                 table['World transaction now'] = dbActor.savingWorldNow
                     ? `running for ${(performance.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
                     : 'not running';
-                this.sendSystemChatMessageToSelectedPlayers(table, player, true);
+                const title = (recent ? 'Recent' : 'All-time') + ' stats for asynchronous operations:'
+                this.sendSystemChatMessageToSelectedPlayers(table, player, title);
                 break;
             }
             case '/netstat': {
