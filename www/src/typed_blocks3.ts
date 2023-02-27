@@ -788,9 +788,8 @@ export class DataWorld {
             }
             chunkHandler?.(chunk);
         }, (portal) => {
-            const existingChunk = portal.fromRegion.rev;
-            tempRect.setIntersect(existingChunk.dataChunk.aabb, portal.aabb);
-            existingChunk.tblocks.makeBedrockFacet(tempRect);
+            tempRect.setIntersect(portal.toRegion.aabb, portal.aabb);
+            portal.fromRegion.rev.tblocks.makeBedrockFacet(tempRect);
         });
     }
 
