@@ -26,6 +26,7 @@ export class Chunk {
         this.dataId = args.dataId;
         this.dataIdShift = args.dataId << BITS_QUEUE_BLOCK_INDEX;
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
+        //TODO: this is from grid!
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
         this.uniqId = args.uniqId;
         this.lastID = 0;
@@ -36,14 +37,15 @@ export class Chunk {
 
         this.disperse = this.addr.y >= 0 ? DISPERSE_MIN + 1 : 0;
 
+        const grid = this.world.chunkManager.lightBase.grid;
         this.lightChunk = new DataChunk({
-            size: args.size,
+            grid,
             strideBytes: this.world.light.offsetNormal > 0 ? LIGHT_STRIDE_BYTES_NORMAL: LIGHT_STRIDE_BYTES,
             nibble: this.disperse > 0 ? {
                 dims: new Vector(1, this.disperse, 1),
                 strideBytes: 3,
             }: null
-        }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
+        }).setPos(grid.chunkAddrToCoord(args.addr));
         this.pos = this.lightChunk.pos;
 
         calcDif26(this.lightChunk.outerSize, this.lightChunk.dif26);

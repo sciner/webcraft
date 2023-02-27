@@ -839,7 +839,7 @@ export class VectorCollector<T = any> {
 
     /**
      */
-    constructor(list?: Map<any, any>, blocks_size: int | null = null) {
+    constructor(list?: any, blocks_size: int | null = null) {
         this.clear(list);
         if(list && (blocks_size !== null)) {
             this.size = blocks_size
@@ -1455,7 +1455,7 @@ export class Vector implements IVector {
 
     /**
      */
-    lerpFrom(vec1: IVector, vec2: IVector, delta: float) : Vector {
+    lerpFrom(vec1: IVector, vec2: IVector, delta: float) : this {
         this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
         this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
         this.z = vec1.z * (1.0 - delta) + vec2.z * delta;
@@ -1464,7 +1464,7 @@ export class Vector implements IVector {
 
     /**
      */
-    lerpFromAngle(vec1 :IVector, vec2: IVector, delta: float, rad : boolean = false) : Vector {
+    lerpFromAngle(vec1 :IVector, vec2: IVector, delta: float, rad : boolean = false) : this {
         const coef = rad
             ? 180 / Math.PI
             : 1;
@@ -1483,7 +1483,7 @@ export class Vector implements IVector {
         return new Vector(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }
 
-    addScalarSelf(x: number, y: number, z: number) : Vector {
+    addScalarSelf(x: number, y: number, z: number) : this {
         this.x += x;
         this.y += y;
         this.z += z;
@@ -1492,7 +1492,7 @@ export class Vector implements IVector {
 
     /**
      */
-    addSelf(vec: IVector) : Vector {
+    addSelf(vec: IVector) : this {
         this.x += vec.x;
         this.y += vec.y;
         this.z += vec.z;
@@ -1509,7 +1509,7 @@ export class Vector implements IVector {
      * @param {Vector} vec
      * @return {Vector}
      */
-    subSelf(vec: IVector) : Vector {
+    subSelf(vec: IVector) : this {
         this.x -= vec.x;
         this.y -= vec.y;
         this.z -= vec.z;
@@ -1532,7 +1532,7 @@ export class Vector implements IVector {
         return new Vector(this.x / vec.x, this.y / vec.y, this.z / vec.z);
     }
 
-    zero() : Vector {
+    zero() : this {
         this.x = 0;
         this.y = 0;
         this.z = 0;
@@ -1547,7 +1547,7 @@ export class Vector implements IVector {
 
     /**
      */
-    swapXZSelf(): Vector {
+    swapXZSelf(): this {
         return this.set(this.z, this.y, this.x);
     }
 
@@ -1616,7 +1616,7 @@ export class Vector implements IVector {
         return new Vector(this.x / l, this.y / l, this.z / l);
     }
 
-    normSelf() : Vector {
+    normSelf() : this {
         const l = this.length();
         this.x /= l;
         this.y /= l;
@@ -1641,7 +1641,7 @@ export class Vector implements IVector {
     /**
      * @returns {Vector}
      */
-    roundSelf(decimals?: number) : Vector {
+    roundSelf(decimals?: number) : this {
         if(decimals) {
             decimals = Math.pow(10, decimals);
             this.x = Math.round(this.x * decimals) / decimals;
@@ -1655,14 +1655,14 @@ export class Vector implements IVector {
         return this;
     }
 
-    minSelf(vec: IVector) : Vector {
+    minSelf(vec: IVector) : this {
         this.x = Math.min(this.x, vec.x);
         this.y = Math.min(this.y, vec.y);
         this.z = Math.min(this.z, vec.z);
         return this
     }
 
-    maxSelf(vec: IVector) : Vector {
+    maxSelf(vec: IVector) : this {
         this.x = Math.max(this.x, vec.x);
         this.y = Math.max(this.y, vec.y);
         this.z = Math.max(this.z, vec.z);
@@ -1760,14 +1760,14 @@ export class Vector implements IVector {
     /**
      * @return {Vector}
      */
-    flooredSelf() : Vector {
+    flooredSelf() : this {
         this.x = Math.floor(this.x);
         this.y = Math.floor(this.y);
         this.z = Math.floor(this.z);
         return this;
     }
 
-    translate(x: number, y: number, z: number) : Vector {
+    translate(x: number, y: number, z: number) : this {
         this.x += x;
         this.y += y;
         this.z += z;
@@ -1790,7 +1790,7 @@ export class Vector implements IVector {
         return this;
     }
 
-    set(x: Vector | IVector | number[] | number, y: number, z: number) : Vector {
+    set(x: Vector | IVector | number[] | number, y: number, z: number) : this {
         if (x && typeof x == 'object') {
             return this.copy(x);
         }
@@ -1802,42 +1802,42 @@ export class Vector implements IVector {
         return this;
     }
 
-    setScalar(x: number, y: number, z: number) : Vector {
+    setScalar(x: number, y: number, z: number) : this {
         this.x = x;
         this.y = y;
         this.z = z;
         return this;
     }
 
-    multiplyScalarSelf(scalar: number) : Vector {
+    multiplyScalarSelf(scalar: number) : this {
         this.x *= scalar;
         this.y *= scalar;
         this.z *= scalar;
         return this;
     }
 
-    multiplyVecSelf(vec: IVector) : Vector {
+    multiplyVecSelf(vec: IVector) : this {
         this.x *= vec.x;
         this.y *= vec.y;
         this.z *= vec.z;
         return this;
     }
 
-    divScalarSelf(scalar: number) : Vector {
+    divScalarSelf(scalar: number) : this {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
         return this;
     }
 
-    divScalarVecSelf(vec : IVector) : Vector {
+    divScalarVecSelf(vec : IVector) : this {
         this.x /= vec.x;
         this.y /= vec.y;
         this.z /= vec.z;
         return this;
     }
 
-    toAngles() : Vector {
+    toAngles() : this {
         // N = 0
         // W = 1
         // S = 2
@@ -1887,7 +1887,7 @@ export class Vector implements IVector {
      * @param {DIRECTION_BIT} dir
      * @return {Vector}
      */
-    rotY(dir : number) : Vector {
+    rotY(dir : number) : this {
         let tmp_x = this.x, tmp_z = this.z;
         if (dir == DIRECTION.EAST) {
             this.x = tmp_z;

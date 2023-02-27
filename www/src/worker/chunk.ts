@@ -137,7 +137,7 @@ export class ChunkWorkerChunk {
         this.gravity_blocks     = [];
         // 1. Initialise world array
         this.timers.start('init')
-        this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks = newTypedBlocks(this.coord, this.chunkManager.dataWorld.grid);
         this.timers.stop()
     }
 
@@ -333,7 +333,7 @@ export class ChunkWorkerChunk {
     setBlockIndirect(x : number, y : number, z : number, block_id : number, rotate? : Vector | null, extra_data? : object | null, entity_id? : string | null, power? : number, check_is_solid : boolean = false, destroy_fluid : boolean = false) {
 
         this.genValue++
-        
+
         if(BLOCK.flags[block_id] & BLOCK.FLAG_FLUID) {
             this.fluid.setFluidIndirect(x, y, z, block_id);
             return
@@ -432,7 +432,7 @@ export class ChunkWorkerChunk {
                 block_id = depth == 0 ? bm.GRASS_BLOCK.id : bm.DIRT.id
             }
         }
-        
+
         this.genValue++
 
         if (block_id) {

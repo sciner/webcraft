@@ -118,7 +118,7 @@ export class Chunk {
         if (args.uniqId !== this.uniqId) {
             return;
         }
-        this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks = newTypedBlocks(this.coord, chunkManager.dataWorld.grid);
         this.tblocks.light = this.light;
         this.packedCells = args.packedCells || null;
         chunkManager.dataWorld.addChunk(this);

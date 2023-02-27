@@ -71,7 +71,7 @@ export class DBWorldFluid {
 
     /**
      * @param {object[]} rows {addr, data}
-     * @returns 
+     * @returns
      */
     async bulkSaveChunkFluid(rows) {
         const worldChunkFlags = this.world.worldChunkFlags
@@ -161,7 +161,7 @@ export class DBWorldFluid {
                 fluidChunk.databaseID = fluidChunk.updateID;
             } else {
                 //TODO: bulk read
-                fluidChunk = FluidWorld.getOfflineFluidChunk(chunk_addr,
+                fluidChunk = FluidWorld.getOfflineFluidChunk(chunkManager.dataWorld.grid, chunk_addr,
                     await this.loadChunkFluid(chunk_addr), fluids);
             }
             saveRows.push({
