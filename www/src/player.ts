@@ -604,10 +604,11 @@ export class Player implements IPlayer {
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
                     const target_mat = this.pickAt.getTargetBlock(this)?.material;
+                    const is_plant_berry = (target_mat &&  [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(target_mat.id) && cur_mat_id == BLOCK.SWEET_BERRY_BUSH.id) ? true : false
                     const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style_name == 'planting') ? true : false;
                     const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
                     const is_cauldron  = (target_mat && target_mat.id == BLOCK.CAULDRON.id);
-                    if(!is_cauldron && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
+                    if(!is_cauldron && !is_plant_berry && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
