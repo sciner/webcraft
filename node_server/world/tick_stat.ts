@@ -57,7 +57,7 @@ export class WorldTickStat {
         this._moveSlidingWindow()
     }
 
-    add(field, allowAdding = false) {
+    add(field: string, allowAdding = false): WorldTickStat {
         let value = this.values[field];
         if (!value) {
             if (allowAdding) {
@@ -73,7 +73,7 @@ export class WorldTickStat {
             } else {
                 console.error('invalid tick stat value: ' + field);
                 this.pn_values = performance.now();
-                return
+                return this
             }
         }
 
@@ -88,6 +88,7 @@ export class WorldTickStat {
         if (elapsed > slidingValue.max) slidingValue.max = elapsed
 
         this.pn_values = performance.now();
+        return this
     }
 
     start() {

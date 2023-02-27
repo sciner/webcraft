@@ -5,7 +5,7 @@ import {BLOCK} from "./blocks.js";
 import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
-import {DataWorld} from "./typed_blocks3.js";
+import {DataWorld, TBlock} from "./typed_blocks3.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby, NEARBY_FLAGS } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
@@ -14,6 +14,7 @@ import { FluidMesher } from "./fluid/FluidMesher.js";
 import { LIGHT_TYPE_NO } from "./constant.js";
 import {ChunkExporter} from "./geom/ChunkExporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
+import type { World } from "./world.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -33,20 +34,14 @@ const CC = [
 export class ChunkManager {
     [key: string]: any;
 
-    /**
-     * @type {ChunkManager}
-     */
-    static instance;
+    static instance: ChunkManager;
 
     chunks: VectorCollectorFlat = new VectorCollectorFlat()
     chunks_prepare: VectorCollector = new VectorCollector()
 
-    #world;
+    #world: World;
 
-    /**
-     * @param { import("./world.js").World } world
-     */
-    constructor(world) {
+    constructor(world: World) {
 
         ChunkManager.instance = this;
 
@@ -161,6 +156,9 @@ export class ChunkManager {
             let block = BLOCK.fromId(item.id);
             let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
             this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+        });
+        world.server.AddCmdListener([ServerClient.CMD_BLOCK_ROLLBACK], (cmd: INetworkMessage<int>) => {
+            world.history.rollback(cmd.data)
         });
         world.server.AddCmdListener([ServerClient.CMD_FLUID_UPDATE], (cmd) => {
             this.setChunkFluid(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
@@ -715,7 +713,7 @@ export class ChunkManager {
     }
 
     // Возвращает блок по абслютным координатам
-    getBlock(x : int | IVector, y? : int, z? : int, v? : any) {
+    getBlock(x : int | IVector, y? : int, z? : int, v? : any): TBlock {
         if(x instanceof Vector || typeof x == 'object') {
             y = x.y;
             z = x.z;

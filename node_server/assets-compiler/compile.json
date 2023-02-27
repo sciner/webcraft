@@ -497,6 +497,29 @@
             }
         },
         {
+            "id": 420,
+            "name": "SNOW_DIRT_SLAB",
+            "sound": "madcraft:block.snow",
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "dirt"
+            ],
+            "material": {
+                "id": "dirt"
+            },
+            "texture": {
+                "up": "block/snow.png",
+                "down": "block/dirt.png",
+                "side": "block/grass_block_snow.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "SNOW_DIRT"
+            }
+        },
+        {
             "id": 2,
             "name": "GRASS_BLOCK",
             "sound": "madcraft:block.grass",
@@ -522,6 +545,9 @@
                 "3": "block/decals/grass_block/3.png",
                 "all": "block/decals/grass_block/all.png",
                 "opposite": "block/decals/grass_block/opposite.png"
+            },
+            "generator": {
+                "can_replace_to_slab": "GRASS_BLOCK_SLAB"
             }
         },
         {
@@ -2989,6 +3015,9 @@
                 "3": "block/decals/snow_block/3.png",
                 "all": "block/decals/snow_block/all.png",
                 "opposite": "block/decals/snow_block/opposite.png"
+            },
+            "generator": {
+                "can_replace_to_slab": "SNOW_DIRT_SLAB"
             }
         },
         {
@@ -5007,6 +5036,7 @@
             "name": "MOB_SPAWN",
             "transparent": true,
             "can_rotate": true,
+            "sound": "madcraft:block.stone",
             "material": {
                 "id": "iron"
             },
@@ -9686,6 +9716,39 @@
                 "side": "./textures/pink_petals.png",
                 "stem": "./textures/pink_petals_stem.png;mask_biome"
             }
+        },
+        {
+            "id": 498,
+            "name": "BURDOCK",
+            "transparent": true,
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "mask_biome",
+                "can_put_into_pot"
+            ],
+            "texture": "block/grass.png"
+        },
+        {
+            "id": 499,
+            "name": "WINDFLOWERS",
+            "transparent": true,
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "mask_biome"
+            ],
+            "texture": "block/grass.png"
         }
     ]
 }

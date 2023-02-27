@@ -13,6 +13,7 @@ import {LightQueue} from "./LightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
 import {WorldGroundLevel} from "./GroundLevel.js"
 import {Chunk} from "./Chunk.js";
+import {ChunkGrid} from "../core/ChunkGrid.js";
 
 export class LightWorkerChunkManager {
     [key: string]: any;
@@ -23,7 +24,8 @@ export class LightWorkerChunkManager {
 
         this.world = world;
         const INF = 1000000000;
-        this.lightBase = new BaseChunk({size: new Vector(INF, INF, INF)}).setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
+        this.lightBase = new BaseChunk({grid: new ChunkGrid({}), size: new Vector(INF, INF, INF)})
+            .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
         this.chunkById = [null];
         this.activePotentialCenter = null;
         this.nextPotentialCenter = null;
@@ -36,6 +38,7 @@ export class LightWorkerChunkManager {
 
     add(chunk) {
         this.list.push(chunk);
+        //TODO: use chunks in grid instead
         this.chunks.add(chunk.addr, chunk);
         this.lightBase.addSub(chunk.lightChunk);
 
@@ -46,12 +49,41 @@ export class LightWorkerChunkManager {
 
     delete(chunk) {
         if (this.chunks.delete(chunk.addr)) {
+            this.wasDelete = true;
             this.chunkById[chunk.dataId] = null;
-            this.list.splice(this.list.indexOf(chunk), 1);
             this.lightBase.removeSub(chunk.lightChunk);
-
             this.world.groundLevel.onDeleteChunk(chunk);
         }
+    }
+
+    wasDelete = false;
+    deleteMultiple(dataChunks) {
+        this.lightBase.grid.removeMultiple(dataChunks, (dataChunk) => {
+            const chunk = dataChunk.rev;
+            chunk.removed = true;
+            this.world.groundLevel.onDeleteChunk(chunk);
+            if (!this.chunks.delete(chunk.addr)) {
+                console.log("Light worker double-delete same chunk");
+            }
+        })
+        this.wasDelete = true;
+    }
+
+    getList() {
+        const {list} = this;
+        if (!this.wasDelete) {
+            return list;
+        }
+        this.wasDelete = false;
+        let j = 0;
+        for (let i=0;i<list.length;i++) {
+            if (list[i].removed) {
+            } else {
+                list[j++] = list[i];
+            }
+        }
+        list.length = j;
+        return list;
     }
 }
 
@@ -197,6 +229,7 @@ export class LightWorld {
 
         let {curChunkIndex} = this;
         const chunkList = this.chunkManager.list;
+
         const {hasTexture, hasNormals} = this.renderOptions;
         let dayChanged = false;
         for (let loop = chunkList.length - 1; loop >= 0; loop--) {
@@ -258,12 +291,16 @@ export class LightWorld {
                 break;
             }
             case 'destructChunk': {
+                const list = [];
                 for (let props of args) {
                     let chunk = this.chunkManager.getChunk(props.addr);
                     if (chunk && chunk.uniqId === props.uniqId) {
+                        list.push(chunk.lightChunk);
                         chunk.removed = true;
-                        this.chunkManager.delete(chunk);
                     }
+                }
+                if (list.length > 0) {
+                    this.chunkManager.deleteMultiple(list);
                 }
                 break;
             }

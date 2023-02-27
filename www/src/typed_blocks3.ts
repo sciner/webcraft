@@ -1,6 +1,7 @@
 import { getChunkAddr, Vector, ObjectHelpers, chunkAddrToCoord } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
+import { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from './core/AABB.js';
 import {CHUNK_SIZE_X_M1, CHUNK_SIZE_Y_M1, CHUNK_SIZE_Z_M1, CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
@@ -9,8 +10,8 @@ import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from
 import type { FluidChunk } from "./fluid/FluidChunk.js";
 import type { ChunkLight } from "./light/ChunkLight.js";
 
-export function newTypedBlocks(coord : Vector, chunkSize: Vector) : TypedBlocks3 {
-    return new TypedBlocks3(coord, chunkSize);
+export function newTypedBlocks(coord : Vector, grid: ChunkGrid) : TypedBlocks3 {
+    return new TypedBlocks3(coord, grid);
 }
 
 export const MASK_VERTEX_MOD = 128;
@@ -150,22 +151,22 @@ export class TypedBlocks3 {
 
     static _prt = [];
 
-    constructor(coord : Vector, chunkSize: Vector) {
-        this.addr       = Vector.toChunkAddr(coord);
+    constructor(coord : Vector, grid: ChunkGrid) {
+        this.addr       = grid.toChunkAddr(coord);
         this.coord      = coord;
-        this.chunkSize  = chunkSize;
-        this.power      = new VectorCollector1D(chunkSize);
-        this.rotate     = new VectorCollector1D(chunkSize);
-        this.entity_id  = new VectorCollector1D(chunkSize);
-        this.texture    = new VectorCollector1D(chunkSize);
-        this.extra_data = new VectorCollector1D(chunkSize);
-        this.falling    = new VectorCollector1D(chunkSize);
+        const cs = this.chunkSize  = grid.chunkSize;
+        this.power      = new VectorCollector1D(cs);
+        this.rotate     = new VectorCollector1D(cs);
+        this.entity_id  = new VectorCollector1D(cs);
+        this.texture    = new VectorCollector1D(cs);
+        this.extra_data = new VectorCollector1D(cs);
+        this.falling    = new VectorCollector1D(cs);
         //
-        this.shapes     = new VectorCollector1D(chunkSize);
-        this.metadata   = new VectorCollector1D(chunkSize);
-        this.position   = new VectorCollector1D(chunkSize);
+        this.shapes     = new VectorCollector1D(cs);
+        this.metadata   = new VectorCollector1D(cs);
+        this.position   = new VectorCollector1D(cs);
         //
-        this.dataChunk  = new DataChunk({ size: chunkSize, strideBytes: 2 }).setPos(coord);
+        this.dataChunk  = new DataChunk({ grid, strideBytes: 2 }).setPos(coord);
         /**
          * store resourcepack_id and number of vertices here
          * @type {Uint8Array}
@@ -723,10 +724,12 @@ export class TypedBlocks3 {
 
 export class DataWorld {
     [key: string]: any;
+    grid: ChunkGrid;
     constructor(chunkManager) {
         const INF = 1000000000;
         this.chunkManager = chunkManager;
-        this.base = new BaseChunk({size: new Vector(INF, INF, INF)})
+        this.grid = new ChunkGrid({});
+        this.base = new BaseChunk({grid: this.grid, size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
 
@@ -766,10 +769,28 @@ export class DataWorld {
     }
 
     //TODO: optimize this method!
-    removeChunks(chunkArray) {
+    removeChunks(chunkArray, chunkHandler?: (any) => void) {
+        const list = [];
         for (let i = 0; i < chunkArray.length; i++) {
-            this.removeChunk(chunkArray[i]);
+            const chunk = chunkArray[i];
+            if (!chunk || !chunk.dataChunk || !chunk.dataChunk.portals) {
+                console.log("double-removing chunk!")
+            }
+            list.push(chunk.dataChunk);
         }
+        const tempRect = new AABB();
+        this.grid.removeMultiple(list, (dataChunk) => {
+            const chunk = dataChunk.rev;
+            chunk.dataChunk = null;
+            if (this.chunkManager.fluidWorld) {
+                this.chunkManager.fluidWorld.removeChunk(chunk);
+            }
+            chunkHandler?.(chunk);
+        }, (portal) => {
+            const existingChunk = portal.fromRegion.rev;
+            tempRect.setIntersect(existingChunk.dataChunk.aabb, portal.aabb);
+            existingChunk.tblocks.makeBedrockFacet(tempRect);
+        });
     }
 
     /**
@@ -892,7 +913,7 @@ export class TBlock {
 
     // Clones essential data as POJO.
     // The result can be used in WorldAction.addBlocks() to create/modify the same block
-    clonePOJO() {
+    clonePOJO(): IBlockItem {
         let res : IBlockItem = { id: this.id };
         if (res.id) {  // AIR blocks are very common, they don't have properties
             if (BLOCK.BLOCK_BY_ID[res.id]?.can_rotate && this.rotate) {
@@ -1195,7 +1216,7 @@ export class TBlock {
         return this.id == 0 && this.fluid > 0;
     }
 
-    copyPropsFromPOJO(obj) {
+    copyPropsFromPOJO(obj: IBlockItem): void {
         this.id = obj.id;
         this.extra_data = obj?.extra_data || null;
         this.entity_id = obj?.entity_id || null;

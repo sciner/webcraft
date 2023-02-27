@@ -2,6 +2,9 @@ import { Vector, unixTime, getChunkAddr } from "../../../www/src/helpers.js";
 import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { decompressModifiresList } from "../../../www/src/compress/world_modify_chunk.js";
 import { BulkSelectQuery, preprocessSQL, runBulkQuery, all, get, run } from "../db_helpers.js";
+import type { BlocksPatch } from "./ChunkDBActor"
+import type { ChunkRecord, ServerChunk } from "../../server_chunk"
+import type { ServerWorld } from "../../server_world.js";
 
 const REBUILD_MODIFIERS_SUBQUERY =
     `json_group_object(
@@ -83,16 +86,21 @@ const tmpAddr = new Vector()
 
 // It contains queries dealing with chunks. It doesn't contain logic.
 export class DBWorldChunk {
-    conn: any;
-    world: any;
+    conn: DBConnection;
+    world: ServerWorld;
     bulkGetWorldModifyChunkQuery: BulkSelectQuery;
     bulkGetChunkQuery: BulkSelectQuery;
 
-    constructor(conn, world) {
+    constructor(conn: DBConnection, world: ServerWorld) {
         this.conn = conn;
         this.world = world;
 
-        this.bulkGetWorldModifyChunkQuery = new BulkSelectQuery(this.conn,
+        this.bulkGetWorldModifyChunkQuery = new BulkSelectQuery<{
+            obj                 : BlocksPatch | null
+            compressed          : BLOB | null
+            private_compressed  : BLOB | null
+            rowId               : int
+        }>(this.conn,
             `WITH cte AS (SELECT value FROM json_each(:jsonRows))
             SELECT
                 CASE WHEN data_blob IS NULL THEN data ELSE NULL END obj,
@@ -101,10 +109,10 @@ export class DBWorldChunk {
                 world_modify_chunks._rowid_ rowId
             FROM cte LEFT JOIN world_modify_chunks ON x = %0 AND y = %1 AND z = %2`,
             null,
-            row => row.rowId
+            row => !!row.rowId
         );
 
-        this.bulkGetChunkQuery = new BulkSelectQuery(this.conn,
+        this.bulkGetChunkQuery = new BulkSelectQuery<ChunkRecord>(this.conn,
             `WITH cte AS (SELECT value FROM json_each(:jsonRows))
             SELECT (addr IS NOT NULL) "exists", mobs_is_generated, delayed_calls
             FROM cte LEFT JOIN chunk ON addr = value`,
@@ -115,19 +123,19 @@ export class DBWorldChunk {
 
     // ================================ world_modify ==================================
 
-    async getWorldModifyCount() {
+    async getWorldModifyCount(): Promise<int> {
         return (await this.conn.get('SELECT COUNT(*) c FROM world_modify')).c;
     }
 
     /**
-     * For each world block, it return the maximum rowId of this block in world_modify,
+     * For each world block, it returns the maximum rowId of this block in world_modify,
      * i.e. the latest record for this block.
-     * @param {Array of Array} data [chunk_x, chunk_y, chunk_z, "index"]
-     * @return {object[]} { rowId: ?Int } - the same size as {@link data}
+     * @param data [chunk_x, chunk_y, chunk_z, "index"]
+     * @return { {rowId: int | null}[] } - the same size as {@link data}
      */
-    async bulkSelectWorldModifyRowId(data) {
+    async bulkSelectWorldModifyRowId(data: [int, int, int, int][]): Promise<{rowId: int | null}[]> {
         SELECT.WM_ROW_ID = SELECT.WM_ROW_ID ?? preprocessSQL(`
-            SELECT 
+            SELECT
                 (SELECT MAX(world_modify._rowId_)
                 FROM world_modify
                 WHERE chunk_x = %0 AND chunk_y = %1 AND chunk_z = %2 AND "index" = %3
@@ -168,7 +176,7 @@ export class DBWorldChunk {
         INSERT.BULK_WM = INSERT.BULK_WM ?? preprocessSQL(`
             INSERT INTO world_modify (
                 user_id, world_id, dt,
-                x, y, z, 
+                x, y, z,
                 params, entity_id, extra_data, block_id,
                 chunk_x, chunk_y, chunk_z, "index"
             ) SELECT
@@ -226,7 +234,7 @@ export class DBWorldChunk {
             `WITH cte AS (
                 SELECT max_id, cx, cy, cz, i FROM (
                     SELECT MAX(id) max_id, COUNT(id) cnt, cx, cy, cz, i
-                    FROM ( 
+                    FROM (
                         SELECT id, chunk_x cx, chunk_y cy, chunk_z cz, "index" i
                         FROM world_modify
                         WHERE chunk_x = ? AND chunk_y = ? AND chunk_z = ?
@@ -258,7 +266,7 @@ export class DBWorldChunk {
         this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS | WorldChunkFlags.MODIFIED_BLOCKS);
     }
 
-    static toUpdateWorldModifyChunksWithBLOBs(data_patch, rowId, ml) {
+    static toUpdateWorldModifyChunksWithBLOBs(data_patch: BlocksPatch, rowId: int, ml): [int, string, BLOB, BLOB] {
         return [
             rowId,
             JSON.stringify(data_patch),
@@ -267,7 +275,7 @@ export class DBWorldChunk {
         ];
     }
 
-    async bulkUpdateChunkModifiersWithBLOBs(rows) {
+    async bulkUpdateChunkModifiersWithBLOBs(rows: [int, string, any, any][]) {
         return runBulkQuery(this.conn,
             'WITH cte (_rowid, data_patch, compr, priv_compr) AS (VALUES',
             '(?,?,?,?)',
@@ -282,7 +290,7 @@ export class DBWorldChunk {
         );
     }
 
-    static toUpdateWorldModifyChunksRowById(data_patch, rowId) {
+    static toUpdateWorldModifyChunksRowById(data_patch: BlocksPatch, rowId: int): [string, int] {
         return [JSON.stringify(data_patch), rowId];
     }
 
@@ -290,7 +298,7 @@ export class DBWorldChunk {
      * We can't extract BLOB from JSON, so it's only suitable for chunks without
      * compressed modifiers.
      */
-    async bulkUpdateWorldModifyChunksById(rows) {
+    async bulkUpdateWorldModifyChunksById(rows: [string, int][]) {
         UPDATE.BULK_WMC_BY_ID = UPDATE.BULK_WMC_BY_ID ?? preprocessSQL(`
             ${UPDATE.BULK_WORLD_MODIFY_CHUNKS}
             WHERE world_modify_chunks._rowid_ = %1
@@ -300,11 +308,11 @@ export class DBWorldChunk {
             : null;
     }
 
-    static toUpdateWorldModifyChunksRowByAddr(data_patch, addr) {
+    static toUpdateWorldModifyChunksRowByAddr(data_patch: BlocksPatch, addr: IVector): [string, int, int, int] {
         return [JSON.stringify(data_patch), addr.x, addr.y, addr.z];
     }
 
-    async bulkUpdateWorldModifyChunksByAddr(rows) {
+    async bulkUpdateWorldModifyChunksByAddr(rows: [string, int, int, int][]) {
         UPDATE.BULK_WMC_BY_ADDR = UPDATE.BULK_WMC_BY_ADDR ?? preprocessSQL(`
             ${UPDATE.BULK_WORLD_MODIFY_CHUNKS}
             WHERE x = %1 AND y = %2 AND z = %3
@@ -315,13 +323,10 @@ export class DBWorldChunk {
     }
 
     /**
-     * @param addr
      * @param  data_patch - object with keys = flat indexes, and values = items
-     * @param {binary} compressed
-     * @param {binary} private_compressed
      * @return rowId of the new record
      */
-    async insertChunkModifiers(addr : Vector, data_patch : binary, compressed : binary = null, private_compressed = null) : Promise<int> {
+    async insertChunkModifiers(addr : Vector, data_patch : BlocksPatch, compressed : BLOB | null = null, private_compressed : BLOB | null = null) : Promise<int> {
         const result = await run(this.conn, `INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob, private_data_blob, has_data_blob)
             VALUES (:x, :y, :z, :data_patch, :data_blob, :private_data_blob, :has_data_blob)`, {
             ':x':                   addr.x,
@@ -373,7 +378,7 @@ export class DBWorldChunk {
                 const addr = new Vector(row);
                 for(const key in modifiers) {
                     const index = parseFloat(key);
-                    blocks.push({ 
+                    blocks.push({
                         pos: new Vector().fromFlatChunkIndex(index),
                         addr,
                         index,
@@ -455,13 +460,13 @@ export class DBWorldChunk {
         }
     }
 
-    async getChunkOfChunk(chunk) {
+    async getChunkOfChunk(chunk: ServerChunk): Promise<ChunkRecord> {
         const row = this.world.worldChunkFlags.has(chunk.addr, WorldChunkFlags.DB_CHUNK)
             && await this.bulkGetChunkQuery.get(chunk.addrHash);
-        return row || { exists: false, mobs_is_generated: 0, delayed_calls: null };
+        return row as ChunkRecord || { exists: false, mobs_is_generated: 0, delayed_calls: null };
     }
 
-    async bulkInsertOrUpdateChunk(rows, dt) {
+    async bulkInsertOrUpdateChunk(rows: ChunkRecord[], dt: number) {
         if (!rows.length) {
             return;
         }

@@ -3,8 +3,16 @@ import { InventoryComparator } from "../www/src/inventory_comparator.js";
 import { Inventory } from "../www/src/inventory.js";
 import { ServerClient } from "../www/src/server_client.js";
 import { ServerPlayer } from "./server_player.js";
+import type { Player } from "../www/src/player.js";
 
 export class ServerPlayerInventory extends Inventory {
+
+    //@ts-expect-error
+    player: ServerPlayer
+
+    constructor(player : ServerPlayer, state : any) {
+        super(player as unknown as Player, state)
+    }
 
     // Marks that the inventory needs to be saved in the next transaction
     markDirty() {
