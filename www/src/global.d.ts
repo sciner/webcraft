@@ -74,6 +74,9 @@ declare interface TWorldInfo {
 }
 
 interface TWorldSettings {
+    chunks_draw_debug_grid: boolean
+    cluster_draw_debug_grid: boolean
+    use_light: number
     leaf_fall: boolean
 }
 
@@ -179,6 +182,7 @@ interface IBlockMaterial {
     style: string
     style_name: string
     support_style: string
+    sham_block_name: string
     inventory_style: any
     group: string
     passable: number
@@ -295,4 +299,10 @@ interface IBlockMaterial {
     sound: string
     inventory_icon_id?: number
     max_in_stack: number
+}
+
+interface INetworkMessage<DataT = any> {
+    time?: number
+    name: int
+    data: DataT
 }

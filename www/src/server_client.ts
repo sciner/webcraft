@@ -19,6 +19,7 @@ export class ServerClient {
     static CMD_BLOCK_DESTROY            = 35;
     static CMD_BLOCK_SET                = 36;
     static CMD_BLOCK_CLONE              = 84;
+    static CMD_BLOCK_ROLLBACK           = 110; // server -> player: a client must rollback a block state using its own history
     static CMD_CHUNK_LOAD               = 37; // player -> server
     static CMD_CHUNK_LOADED             = 39;
 
@@ -97,7 +98,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 110
+    // NEXT UNUSED COMMAND INDEX        = 111
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

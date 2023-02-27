@@ -12,6 +12,8 @@ import {AABB} from "../core/AABB.js";
 import {WorldAction} from "../world_action.js";
 import {Vector} from "../helpers.js";
 import {ServerClient} from "../server_client.js";
+import type { FluidChunk } from "./FluidChunk.js";
+import type { FluidWorld } from "./FluidWorld.js";
 
 let neib = [0, 0, 0, 0, 0, 0], neibDown = [0, 0, 0, 0, 0, 0], neibChunk = [null, null, null, null, null, null];
 const dx = [0, 0, 0, 0, 1, -1], dy = [1, -1, 0, 0, 0, 0], dz = [0, 0, -1, 1, 0, 0];
@@ -141,7 +143,11 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
 
 export class FluidChunkQueue {
     [key: string]: any;
-    constructor(fluidWorld, fluidChunk) {
+
+    fluidWorld: FluidWorld
+    fluidChunk: FluidChunk
+
+    constructor(fluidWorld: FluidWorld, fluidChunk: FluidChunk) {
         this.fluidWorld = fluidWorld;
         this.fluidChunk = fluidChunk;
         this.lists = [];
@@ -340,11 +346,23 @@ export class FluidChunkQueue {
         }
     }
 
-    packDelta() {
+    /** Packs fluid at the specified position in the same format as {@link packDelta}. */
+    static packAsDelta(worldPos: Vector, fluidChunk: FluidChunk): Uint8Array {
+        const buf = new Uint8Array(1 * 3);
+        const ind = fluidChunk.dataChunk.indexByWorld(worldPos.x, worldPos.y, worldPos.z)
+        const i = 0
+        buf[i * 3] = ind & 0xff;
+        buf[i * 3 + 1] = (ind >> 8) & 0xff;
+        buf[i * 3 + 2] = (fluidChunk.uint16View[ind] & 0xff);
+        return buf
+    }
+
+    packDelta(): Uint8Array {
         const {deltaIndices, fluidChunk} = this;
         const buf = new Uint8Array(deltaIndices.length * 3);
         for (let i = 0; i < deltaIndices.length; i++) {
             const ind = deltaIndices[i];
+            // this code must be the same as in packAsDelta()
             buf[i * 3] = ind & 0xff;
             buf[i * 3 + 1] = (ind >> 8) & 0xff;
             buf[i * 3 + 2] = (fluidChunk.uint16View[ind] & 0xff);
