@@ -58,7 +58,6 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
-
     debugGeom : LineGeometry
     xrMode: boolean;
     canvas: any;
@@ -985,7 +984,7 @@ export class Renderer {
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {
-            this.inHandOverlay = new InHandOverlay(this.player.state.skin, this);
+            this.inHandOverlay = new InHandOverlay(this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {

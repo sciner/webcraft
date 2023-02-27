@@ -500,6 +500,10 @@ export class WorldAction {
 
     #world;
     play_sound: PlaySoundParams[]
+    mobs: {
+        activate: any[]
+        spawn: any[]    // it should be MobSpawnParams, but it's server class
+    }
 
     constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;

@@ -20,7 +20,7 @@ export class WorldMobManager {
     constructor(world: ServerWorld) {
 
         this.world = world;
-        this.list = new Map(); // by id
+        this.list = new Map();
 
         this.ticks_stat = new WorldTickStat(WorldMobManager.STAT_NAMES)
 
@@ -62,7 +62,7 @@ export class WorldMobManager {
         this.list.set(mob.id, mob);
     }
 
-    get(id: int): Mob {
+    get(id: int): Mob | undefined {
         return this.list.get(id);
     }
 
@@ -159,10 +159,10 @@ export class WorldMobManager {
         return false
     }
 
-    async activate(entity_id: string, spawn_pos: Vector, rotate: Vector): Promise<Mob | null> {
+    async activate(entity_id: string, pos_spawn: Vector, rotate: Vector): Promise<Mob | null> {
         const world = this.world;
         //
-        const chunk = world.chunkManager.get(Vector.toChunkAddr(spawn_pos));
+        const chunk = world.chunkManager.get(Vector.toChunkAddr(pos_spawn));
         if(!chunk) {
             console.error('error_chunk_not_loaded');
             return null;
@@ -183,7 +183,7 @@ export class WorldMobManager {
             }
             mob.is_active = true;
             mob.entity_id = entity_id;
-            mob.spawn_pos = new Vector(spawn_pos);
+            mob.pos_spawn = new Vector(pos_spawn);
             mob.rotate = new Vector(rotate);
             mob.dirtyFlags |= Mob.DIRTY_FLAG_FULL_UPDATE;
             chunk.addMob(mob);
