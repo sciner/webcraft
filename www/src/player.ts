@@ -641,7 +641,10 @@ export class Player implements IPlayer {
             this.world.server.Send({
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: null
-            });
+            })
+            if (this.state.sleep) {
+                this.controls.jump = true
+            }
         }
     }
 

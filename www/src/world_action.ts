@@ -1653,7 +1653,6 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
     // check if someone else is sitting
     const above_sit_pos = sit_pos.clone();
     above_sit_pos.y += 0.5; // the actual sitting player pos may be slightly above sit_pos
-    console.log('player')
     for(const p of world.players.eachContainingVec(above_sit_pos)) {
         if (p.sharedProps.user_id !== player.session.user_id && p.sharedProps.sitting) {
             return false;
@@ -1735,26 +1734,28 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
         return true
     }
     // где находится подушка у кровати (голова игрока, когда лежит)
-    const position_head = new Vector(
-        world_block.posworld.x + .5,
-        world_block.posworld.y,
-        world_block.posworld.z + .5
-    )
-    if (extra_data?.is_head == false) {
-        if (rotate.x == 0) {
-            position_head.addSelf(new Vector(0, 0, -1))
-        } else if (rotate.x == 2) {
-            position_head.addSelf(new Vector(0, 0, 1))
-        } else if (rotate.x == 1) {
-            position_head.addSelf(new Vector(1, 0, 0))
-        } else if (rotate.x == 3) {
-            position_head.addSelf(new Vector(-1, 0, 0))
+    let position_head = world_block.posworld.offset(.5, 0, !extra_data?.is_head ? -.42 : .58)
+    if (rotate.x == 2) {
+        position_head = world_block.posworld.offset(.5, 0, !extra_data?.is_head ? 1.42 : .42)
+    }
+    if (rotate.x == 1) {
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0, .5)
+    }
+    if (rotate.x == 3) {
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0, .5)
+    }
+    //Проверяем, что кровать не заблочена
+    const block = world.getBlock(position_head.offset(0, 1, 0).floored())
+    if (block.id != 0 || block.fluid != 0) {
+        if (!Qubatch.is_server) {
+            Qubatch.hotbar.strings.setText(1, Lang.bed_not_valid, 4000)
         }
+        return true
     }
     for(const player of world.players.eachContainingVec(position_head)) {
         if (player.sharedProps.sleep) {
             if (!Qubatch.is_server) {
-                Qubatch.hotbar.strings.setText(1, Lang.bed_occupied, 4000);
+                Qubatch.hotbar.strings.setText(1, Lang.bed_occupied, 4000)
             }
             return true
         }

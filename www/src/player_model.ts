@@ -249,9 +249,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         if (block.diagonal) {
             scale *= 1.2;
-
             quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
-
         } else {
             quat.fromEuler(slot.holder.quat, 20, 0, -20);
         }
@@ -301,11 +299,25 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.nametag.updateMatrix();
 
         this.changeSlots(this.activeSlotsData);
-        // console.log(this.armor.head)
     }
 
     update(render, camPos, delta, speed) {
         super.update(render, camPos, delta, speed);
+
+        const angleToYaw = (angle) => {
+            if (angle == 0) {
+                return Math.PI
+            }
+            if (angle == 0.25) {
+                return Math.PI / 2
+            }
+            if (angle == 0.5) {
+                return 0
+            }
+            if (angle == 0.75) {
+                return 3 * Math.PI / 2
+            }
+        }
 
         this.updateArmSwingProgress(delta);
         if (!this.isRenderable) {
@@ -316,21 +328,29 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return;
         }
 
-        this.nametag.visible = !this.sneak && !this.hide_nametag;
-        const head_y =  (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head')).pivot[2];
-        this.nametag.position[2] =  head_y + ((!this.armor.head) ? 0.6 : 0.8);
+        this.nametag.visible = !this.sneak && !this.hide_nametag
 
         if (!this.nametag.visible) {
             return;
         }
 
+        const head_y =  (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head')).pivot[2];
+        if (this.sleep) {
+            // Еесли игрок лежит подвинем ник игрока
+            this.nametag.position[1] = 0.2
+            this.nametag.position[2] = head_y + 0.4 
+        } else {
+            this.nametag.position[2] = head_y + ((!this.armor.head) ? 0.6 : 0.8);
+            this.nametag.position[1] = 0  
+        }
+
         const d = camPos.distance(this.pos);
-        const dx = camPos.x - this.pos.x;
+        const dx = camPos.x - this.pos.x - this.nametag.position[1];
         const dy = camPos.y - this.pos.y - this.nametag.position[2];
-        const dz = camPos.z - this.pos.z;
+        const dz = camPos.z - this.pos.z - this.nametag.position[0];
         const d2 = Math.hypot(dz, dx)
         const pitch = Math.PI / 2 - Math.atan2(d2, dy);
-        const yaw = this.yaw + Math.PI/2 + Math.atan2(dz, dx);
+        const yaw = ((this.sleep) ? angleToYaw(this.sleep.rotate.z) : this.yaw) + Math.PI/2 + Math.atan2(dz, dx);
 
         const zoom = 0.005 * (d / 6);
 
