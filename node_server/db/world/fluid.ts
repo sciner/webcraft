@@ -162,7 +162,7 @@ export class DBWorldFluid {
                 fluidChunk.databaseID = fluidChunk.updateID;
             } else {
                 //TODO: bulk read
-                fluidChunk = FluidWorld.getOfflineFluidChunk(chunkManager.dataWorld.grid, chunk_addr,
+                fluidChunk = FluidWorld.getOfflineFluidChunk(chunkManager?.dataWorld?.grid, chunk_addr,
                     await this.loadChunkFluid(chunk_addr), fluids);
             }
             saveRows.push({
