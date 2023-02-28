@@ -10,7 +10,7 @@ import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
-import {doBlockAction, WorldAction} from "./world_action.js";
+import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
@@ -19,6 +19,8 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
+import type { World } from "./world.js";
+import type { PLAYER_SKIN_TYPES } from "./constant.js"
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -31,28 +33,122 @@ const ATTACK_PROCESS_NONE = 0;
 const ATTACK_PROCESS_ONGOING = 1;
 const ATTACK_PROCESS_FINISHED = 2;
 
+export type Indicators = {
+    live: number
+    food: number
+    oxygen: number
+}
+
+export type PlayerStats = {
+    death: int
+    time: number
+    pickat: number
+    distance: number
+}
+
+export type PlayerSkin = {
+    /** Skin id in the DB */
+    id: int
+    /** One of {@link PLAYER_SKIN_TYPES} */
+    type: int
+    file: string
+}
+
+type PlayerHand = {
+    id: int | null
+}
+
+export type PlayerHands = {
+    left    : PlayerHand
+    right   : PlayerHand
+}
+
+export type ArmorState = {
+    head ? : int
+    body ? : int
+    leg  ? : int
+    boot ? : int
+}
+
+/** A part of {@link PlayerState} that is also sent in {@link PlayerStateUpdate} */
+type PlayerStateDynamicPart = {
+    pos         : Vector
+    rotate      : Vector
+    lies ?      : boolean
+    sitting ?   : boolean
+    sneak ?     : boolean
+    sleep ?     : boolean
+    hands       : PlayerHands
+}
+
+/** Fields that are saved together into DB in user.state field. */
+export type PlayerState = PlayerStateDynamicPart & {
+    pos_spawn   : Vector
+    indicators  : Indicators
+    chunk_render_dist : int
+    game_mode ? : string
+    stats       : PlayerStats
+}
+
+export type PlayerStateUpdate = PlayerStateDynamicPart & {
+    id          : number
+    username    : string
+    armor       : ArmorState
+    health      : number
+    skin        : PlayerSkin
+    /** it's never set. It's just checked, and if it's not defined, 'player' type is used. */
+    type ?
+    dist ?      : number
+}
+
+export type PlayerConnectData = {
+    session     : PlayerSession
+    state       : PlayerState
+    skin        : PlayerSkin
+    status      : PLAYER_STATUS
+    inventory : {
+        current
+        items
+    }
+}
+
+export class PlayerSharedProps implements IPlayerSharedProps {
+    p: Player
+
+    constructor(player: Player) {
+        this.p = player;
+    }
+
+    get isAlive() : boolean { return this.p.state.indicators.live != 0; }
+    get user_id() : int     { return this.p.session.user_id; }
+    get pos()     : Vector  { return this.p.state.pos; }
+    get sitting() : boolean { return this.p.state.sitting; }
+    get sleep()   : boolean { return this.p.state.sleep; }
+}
+
 // Creates a new local player manager.
 export class Player implements IPlayer {
 
+    sharedProps :               IPlayerSharedProps;
     chat :                      Chat
     render:                     Renderer;
-    world :                     any
+    world:                      World
     options:                    any;
     game_mode:                  GameMode;
-    inventory:                  any // PlayerInventory | ServerPlayerInventory;
+    inventory:                  PlayerInventory;
     pr_spectator:               SpectatorPlayerControl;
     controls:                   PlayerControl;
     windows:                    PlayerWindowManager;
     pickAt:                     PickAt;
     arm:                        PlayerArm;
-    session:                    any
-        
+    session:                    PlayerSession;
+    skin:                       PlayerSkin;
     #forward:                   Vector = new Vector(0, 0, 0);
     inAttackProcess:            number;
     scale:                      number = PLAYER_ZOOM;
     current_state:              { rotate: Vector; pos: Vector; sneak: boolean; ping: number; };
     effects:                    any;
-    status:                     number;
+    status:                     PLAYER_STATUS;
 
     pos:                        Vector;
     prevPos:                    Vector;
@@ -66,7 +162,7 @@ export class Player implements IPlayer {
     rotate:                     Vector = new Vector(0, 0, 0)
     #_rotateDegree:             Vector = new Vector(0, 0, 0)
 
-    //      
+    //
     inMiningProcess:            boolean = false;
     inItemUseProcess:           boolean = false;
     falling:                    boolean = false; // падает
@@ -81,8 +177,8 @@ export class Player implements IPlayer {
 
     //
     headBlock:                  any = null;
-    state:                      any;
-    indicators:                 any;
+    state:                      PlayerState;
+    indicators:                 Indicators;
     lastBlockPos:               any;
     xBob:                       any;
     yBob:                       any
@@ -102,6 +198,7 @@ export class Player implements IPlayer {
     body_rotate_o:              number;
     body_rotate_speed:          number;
     mineTime:                   number;
+    timer_attack:               number;
     pr:                         any;
     inhand_animation_duration:  number;
     pn_start_change_sneak:      number;
@@ -137,7 +234,11 @@ export class Player implements IPlayer {
         };
         this.effects = {effects:[]}
         this.status = PLAYER_STATUS.WAITING_DATA;
+        this.sharedProps = this._createSharedProps();
     }
+
+    /** A protected factory method that creates {@link IPlayerSharedProps} of the appropriate type */
+    _createSharedProps(): IPlayerSharedProps { return new PlayerSharedProps(this); }
 
     // возвращает уровень эффекта
     getEffectLevel(val) {
@@ -164,12 +265,13 @@ export class Player implements IPlayer {
     }
 
     // playerConnectedToWorld...
-    playerConnectedToWorld(data) {
+    playerConnectedToWorld(data: PlayerConnectData) {
         //
         this.session                = data.session;
         this.state                  = data.state;
         this.status                 = data.status;
         this.indicators             = data.state.indicators;
+        this.skin                   = data.skin;
         // Game mode
         this.game_mode              = new GameMode(this, data.state.game_mode);
         this.game_mode.onSelect     = (mode) => {
@@ -223,6 +325,7 @@ export class Player implements IPlayer {
         this.body_rotate_o          = 0;
         this.body_rotate_speed      = BODY_ROTATE_SPEED;
         this.mineTime               = 0;
+        this.timer_attack           = 0
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
@@ -269,8 +372,8 @@ export class Player implements IPlayer {
             this.posO                           = new Vector(pos);
             this.prevPos                        = new Vector(pos);
         });
-        this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
-            if (this.indicators.live.value > cmd.data.indicators.live.value) {
+        this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd : {data: {indicators: Indicators}}) => {
+            if (this.indicators.live > cmd.data.indicators.live) {
                 Qubatch.hotbar.last_damage_time = performance.now();
             }
             this.indicators = cmd.data.indicators;
@@ -284,10 +387,18 @@ export class Player implements IPlayer {
         this.pickAt = new PickAt(this.world, this.render, async (arg1, arg2, arg3) => {
             return await this.onPickAtTarget(arg1, arg2, arg3);
         }, async (e) => {
+            const instrument = this.getCurrentInstrument()
+            const speed = instrument?.speed ? instrument.speed : 1
+            const time = e.start_time - this.timer_attack
+            if (time < 500) {
+                return
+            } 
+            this.mineTime = 0
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
                 this.inAttackProcess = ATTACK_PROCESS_ONGOING;
-                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
+                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
             }
+            this.timer_attack = e.start_time
             if (e.interactPlayerID) {
                 const player = Qubatch.world.players.get(e.interactPlayerID);
                 if (player) {
@@ -355,7 +466,7 @@ export class Player implements IPlayer {
     }
 
     get isAlive() : boolean {
-        return this.indicators.live.value > 0;
+        return this.indicators.live > 0;
     }
 
     // Return player is sneak
@@ -503,10 +614,11 @@ export class Player implements IPlayer {
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
                     const target_mat = this.pickAt.getTargetBlock(this)?.material;
+                    const is_plant_berry = (target_mat &&  [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(target_mat.id) && cur_mat_id == BLOCK.SWEET_BERRY_BUSH.id) ? true : false
                     const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style_name == 'planting') ? true : false;
                     const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
                     const is_cauldron  = (target_mat && target_mat.id == BLOCK.CAULDRON.id);
-                    if(!is_cauldron && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
+                    if(!is_cauldron && !is_plant_berry && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
@@ -565,7 +677,7 @@ export class Player implements IPlayer {
         } else if(e.destroyBlock) {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
-            let mul             =  Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            let mul             = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
             mul *= this.eyes_in_block?.is_water ? 0.2 : 1;
             mul += mul * 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
             mul -= mul * 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
@@ -600,7 +712,7 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig = JSON.parse(JSON.stringify(e));
-            const player = {
+            const player: ActionPlayerInfo = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
                 pos: this.lerpPos,
@@ -609,18 +721,21 @@ export class Player implements IPlayer {
                     user_id: this.session.user_id
                 }
             };
-            const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
-            if(e.createBlock && actions.blocks.list.length > 0) {
-                this.startArmSwingProgress();
+            const [actions, pos] = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            if (actions) {
+                e_orig.snapshotId = this.world.history.makeSnapshot(pos);
+                if(e.createBlock && actions.blocks.list.length > 0) {
+                    this.startArmSwingProgress();
+                }
+                await this.world.applyActions(actions, this);
+                e_orig.actions = {blocks: actions.blocks};
+                e_orig.eye_pos = this.getEyePos();
+                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                this.world.server.Send({
+                    name: ServerClient.CMD_PICKAT_ACTION,
+                    data: e_orig
+                });
             }
-            await this.world.applyActions(actions, this);
-            e_orig.actions = {blocks: actions.blocks};
-            e_orig.eye_pos = this.getEyePos();
-            // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-            this.world.server.Send({
-                name: ServerClient.CMD_PICKAT_ACTION,
-                data: e_orig
-            });
         }
         return true;
     }

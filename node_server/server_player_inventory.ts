@@ -3,8 +3,16 @@ import { InventoryComparator } from "../www/src/inventory_comparator.js";
 import { Inventory } from "../www/src/inventory.js";
 import { ServerClient } from "../www/src/server_client.js";
 import { ServerPlayer } from "./server_player.js";
+import type { Player } from "../www/src/player.js";
 
 export class ServerPlayerInventory extends Inventory {
+
+    //@ts-expect-error
+    player: ServerPlayer
+
+    constructor(player : ServerPlayer, state : any) {
+        super(player as unknown as Player, state)
+    }
 
     // Marks that the inventory needs to be saved in the next transaction
     markDirty() {
@@ -42,7 +50,7 @@ export class ServerPlayerInventory extends Inventory {
      * @param {Array of objects} used_recipes - optional, see {@link InventoryComparator.checkEqual}
      * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
      * @return { boolean } true if success
-     * 
+     *
      * @todo make some validation even when {@link mustCheckEqual} === true, e.g. that there are no extra entities.
      */
     sanitizeAndValidateClinetItemsChange(new_items, mustCheckEqual, used_recipes, recipeManager) {
@@ -69,7 +77,7 @@ export class ServerPlayerInventory extends Inventory {
             // New state
             if('items' in state) {
                 const new_items = state.items;
-                const recipeMan = used_recipes.length && 
+                const recipeMan = used_recipes.length &&
                     await InventoryComparator.getRecipeManager(params.recipe_manager_type);
                 // The only situation when we don't check equality (which includes applying recipes) is
                 // in the creative inventory, where there are no recipes, and the client explicitly asks for it.
@@ -111,7 +119,7 @@ export class ServerPlayerInventory extends Inventory {
             .5,
             Math.cos(this.player.state.rotate.z),
         ).normSelf();
-        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec);
+        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec, true);
         if(this.current_item.count == 1) {
             this.setItem(this.current.index, null);
         } else {
@@ -156,7 +164,7 @@ export class ServerPlayerInventory extends Inventory {
             .5,
             Math.cos(this.player.state.rotate.z) * .5,
         );
-        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec);
+        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec, true);
         this.items[slot_index] = null;
         return true;
     }

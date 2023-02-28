@@ -91,15 +91,15 @@ export default class style {
         matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix)
         mat4.rotate(matrix, matrix, rnd * Math.PI * 2, [0, 1, 0])
 
-        // layering
-        if(neighbours && neighbours.DOWN) {
-            const under_height = neighbours.DOWN.material.height;
-            if(under_height && under_height < 1) {
-                if(rotate.y != 0) {
-                    y -= 1 - under_height;
-                }
-            }
-        }
+        // // layering
+        // if(neighbours && neighbours.DOWN) {
+        //     const under_height = neighbours.DOWN.material.height;
+        //     if(under_height && under_height < 1) {
+        //         if(rotate.y != 0) {
+        //             y -= 1 - under_height;
+        //         }
+        //     }
+        // }
 
         _xyz.set(x, y, z)
 

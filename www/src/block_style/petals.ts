@@ -1,7 +1,7 @@
-import {calcRotateMatrix, DIRECTION, IndexedColor, QUAD_FLAGS, Vector} from '../helpers.js';
+import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector} from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
-import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
+import { AABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
@@ -83,15 +83,15 @@ export default class style {
         x -= .5
         z -= .5
 
-        // layering
-        if(neighbours && neighbours.DOWN) {
-            const under_height = neighbours.DOWN.material.height;
-            if(under_height && under_height < 1) {
-                if(rotate.y != 0) {
-                    y -= 1 - under_height;
-                }
-            }
-        }
+        // // layering
+        // if(neighbours && neighbours.DOWN) {
+        //     const under_height = neighbours.DOWN.material.height;
+        //     if(under_height && under_height < 1) {
+        //         if(rotate.y != 0) {
+        //             y -= 1 - under_height;
+        //         }
+        //     }
+        // }
 
         // Textures
         const c_up = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);

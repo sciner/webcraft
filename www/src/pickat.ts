@@ -11,8 +11,6 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
-const TARGET_TEXTURES = [.5, .5, 1, 1];
-
 const half = new Vector(0.5, 0.5, 0.5);
 
 export class PickAt {
@@ -81,7 +79,8 @@ export class PickAt {
         e.destroyBlock      = e.button_id == MOUSE.BUTTON_LEFT;
         e.cloneBlock        = e.button_id == MOUSE.BUTTON_WHEEL;
         e.createBlock       = e.button_id == MOUSE.BUTTON_RIGHT;
-        e.interractMobID    = null;
+        e.interactMobID     = null;
+        e.interactPlayerID  = null;
         e.number            = 0;
         const damage_block  = this.damage_block;
         damage_block.event  = Object.assign(e, {number: 0});
@@ -228,7 +227,7 @@ export class PickAt {
         if(target_block.geom && target_block.visible) {
             target_block.geom.draw(render.renderBackend);
         }
-        // 2. Damage bl ock
+        // 2. Damage block
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
 
             const matrix = mat4.create();

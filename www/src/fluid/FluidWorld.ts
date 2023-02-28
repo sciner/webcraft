@@ -12,8 +12,8 @@ import {
     fluidBlockProps
 } from "./FluidConst.js";
 import {AABB} from "../core/AABB.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BaseChunk} from "../core/BaseChunk.js";
+import {ChunkGrid} from "../core/ChunkGrid.js";
 
 export class FluidWorld {
     [key: string]: any;
@@ -144,16 +144,15 @@ export class FluidWorld {
         return fluidByChunk;
     }
 
-    static getOfflineFluidChunk(chunk_addr, buf, fluids) {
+    static getOfflineFluidChunk(grid = new ChunkGrid({}), chunk_addr: Vector, buf: Uint8Array, fluids: int[]) {
         //TODO: GRID!
-        const sz = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-        const coord = chunk_addr.mul(sz);
+        const coord = grid.chunkAddrToCoord(chunk_addr);
 
         const fakeChunk = {
             tblocks: {
             }
         }
-        const dataChunk = new BaseChunk({size: sz});
+        const dataChunk = new BaseChunk({grid});
         const fluidChunk = new FluidChunk({
             parentChunk: fakeChunk,
             dataChunk,

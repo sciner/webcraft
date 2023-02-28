@@ -58,9 +58,52 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
-    [key: string]: any;
+    debugGeom : LineGeometry
+    xrMode: boolean;
+    canvas: any;
+    testLightOn: boolean;
+    crosshairOn: boolean;
+    sunDir: number[];
+    frustum: FrustumProxy;
+    step_side: number;
+    clouds: any;
+    rainTim: any;
+    prevCamPos: Vector;
+    prevCamRotate: Vector;
+    frame: number;
+    env: Environment;
+    camera_mode: CAMERA_MODE;
+    rain: any;
+    renderBackend: any;
+    meshes: MeshManager;
+    camera: Camera;
+    inHandOverlay: any;
+    drop_item_meshes: any[];
+    settings: any;
+    videoCardInfoCache: any;
+    options: any;
+    globalUniforms: any;
+    defaultShader: any;
+    viewportWidth: any;
+    viewportHeight: any;
+    projMatrix: any;
+    viewMatrix: any;
+    camPos: any;
+    HUD: any;
+    maskColorTex: any;
+    stars: any;
+    blockDayLightTex: any;
+    world: World;
+    player: any;
+    _base_texture: any;
+    _base_texture_n: any;
+    make_screenshot: any;
+    timeKillRain: any;
+    weather_name: string;
+    material_shadow: any;
+    obstacle_pos: any;
 
-    constructor(qubatchRenderSurfaceId) {
+    constructor(qubatchRenderSurfaceId : string) {
         this.xrMode             = false;
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
         this.canvas.renderer    = this;
@@ -178,8 +221,8 @@ export class Renderer {
             rp.shader.materials = {
                 regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
                 doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
-                decal1: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader, decalOffset: 1}),
-                decal2: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader, decalOffset: 2}),
+                decal1: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 1}),
+                decal2: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 2}),
                 transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader}),
                 doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader: rp.shader}),
                 label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader: rp.shader}),
@@ -941,7 +984,7 @@ export class Renderer {
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {
-            this.inHandOverlay = new InHandOverlay(this.player.state.skin, this);
+            this.inHandOverlay = new InHandOverlay(this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {

@@ -31,11 +31,11 @@ export class WorldChunkFlags {
 
     get size() : int { return this.vc.size }
 
-    has(addr : Vector, flags : int) {
+    has(addr : IVector, flags : int) {
         return (this.vc.get(addr) & flags) != 0;
     }
 
-    add(addr : Vector, flags : int) {
+    add(addr : IVector, flags : int) {
         this.vc.update(addr, it => (it ?? 0) | flags );
     }
 

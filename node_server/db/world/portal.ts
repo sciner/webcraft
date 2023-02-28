@@ -3,17 +3,16 @@ import type { WorldPortal } from "../../../www/src/portal.js";
 import type { ServerWorld } from "../../server_world.js";
 
 export class DBWorldPortal {
-    conn: any;
+    conn: DBConnection;
     world: ServerWorld;
 
-    constructor(conn, world : ServerWorld) {
+    constructor(conn: DBConnection, world : ServerWorld) {
         this.conn = conn;
         this.world = world;
     }
 
     /**
      * Add new portal
-     * @returns 
      */
     async add(user_id : int, portal : WorldPortal) : Promise<int> {
         const result = await this.conn.run('INSERT INTO portal(user_id, dt, x, y, z, rotate, size, player_pos, portal_block_id, type, pair) VALUES(:user_id, :dt, :x, :y, :z, :rotate, :size, :player_pos, :portal_block_id, :type, :pair)', {
@@ -39,7 +38,6 @@ export class DBWorldPortal {
             });
             lastID = row.lastID;
         }
-        lastID = parseInt(lastID);
         return lastID;
     }
 
@@ -53,12 +51,8 @@ export class DBWorldPortal {
 
     /**
      * Return nearest portal for position
-     * @param { object } pos 
-     * @param {number} max_dist 
-     * @param {string} type 
-     * @returns 
      */
-    async search(pos, max_dist, type) {
+    async search(pos: IVector, max_dist: number, type?: string) {
         const row = await this.conn.get(`WITH portals AS (SELECT _rowid_ as id, *, ((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) as dist
         FROM portal
         WHERE (x > :x - :max_dist) AND (x < :x + :max_dist) AND (z > :z - :max_dist) AND (z < :z + :max_dist)
@@ -78,10 +72,9 @@ export class DBWorldPortal {
 
     /**
      * Save portal pair
-     * @param {number} portal_id 
-     * @param {*} pair 
+     * @param {*} pair
      */
-    async setPortalPair(portal_id, pair) {
+    async setPortalPair(portal_id: int, pair) {
         await this.conn.run('UPDATE portal SET pair = :pair WHERE _rowid_ = :portal_id', {
             ':portal_id': portal_id,
             ':pair':      JSON.stringify(pair)
@@ -90,10 +83,8 @@ export class DBWorldPortal {
 
     /**
      * Return portal by ID
-     * @param {number} portal_id 
-     * @returns 
      */
-    async getByID(portal_id) {
+    async getByID(portal_id: int) {
         const row = await this.conn.get(`SELECT _rowid_ as id, * FROM portal
         WHERE _rowid_ = :portal_id`, {
             ':portal_id': portal_id
@@ -105,8 +96,8 @@ export class DBWorldPortal {
     }
 
     /**
-     * @param {*} row 
-     * @returns 
+     * @param {*} row
+     * @returns
      */
     formatPortalRow(row) {
         const pair = row.pair ? JSON.parse(row.pair) : null;

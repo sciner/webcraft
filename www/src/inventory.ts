@@ -1,8 +1,10 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
-import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, 
+import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
     INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import { InventoryComparator } from "./inventory_comparator.js";
+import type { ArmorState, Player } from "./player.js";
+import type { CraftTableSlot } from "./window/base_craft_window.js";
 
 export const INVENTORY_CHANGE_NONE = 0;
 // it may be adding or subtracting drag item from a slot, if slotIndex >= 0
@@ -13,10 +15,11 @@ export const INVENTORY_CHANGE_SHIFT_SPREAD = 4;
 
 export class Inventory {
     [key: string]: any;
+    player: Player
 
     temp_vec = new Vector();
 
-    constructor(player : any, state : any) {
+    constructor(player : Player, state : any) {
         this.count              = state.items.length;
         this.player             = player;
         this.block_manager      = player.world.block_manager;
@@ -45,10 +48,7 @@ export class Inventory {
         }
     }
 
-    /** 
-     * @param { import("./window/base_craft_window.js").CraftTableSlot } slot
-     */
-    addInventorySlot(slot) {
+    addInventorySlot(slot: CraftTableSlot): void {
         if(slot.slot_index === undefined || slot.slot_index === null) return
         this.inventory_ui_slots.push(slot)
     }
@@ -105,7 +105,7 @@ export class Inventory {
     }
 
     // Increment
-    increment(mat, no_update_if_remains) {
+    increment(mat, no_update_if_remains?: boolean): boolean {
         if(!mat.id) {
             throw 'error_empty_block_id';
         }
@@ -192,7 +192,7 @@ export class Inventory {
         return false;
     }
 
-    //
+    /** Decrements the power of {@link current_item}. */
     decrement_instrument() {
         if(!this.current_item || this.player.game_mode.isCreative()) {
             return;
@@ -207,8 +207,11 @@ export class Inventory {
         }
     }
 
-    // Decrement
-    decrement(decrement_item, ignore_creative_game_mode) {
+    /**
+     * Decrements the current item.
+     * @param {null} decrement_item - not processed, must be null
+     */
+    decrement(decrement_item = null, ignore_creative_game_mode? : boolean): void {
         if(!this.current_item) {
             return;
         }
@@ -322,7 +325,7 @@ export class Inventory {
         }
         return count;
     }
-    
+
     /**
      * Возвращает список того, чего и в каком количестве не хватает
      * в (текущем инвентаре + дополнительном списке предметов) по указанному списку.
@@ -431,7 +434,7 @@ export class Inventory {
         }
         while(mat.previous_part && mat.previous_part.id != mat.id) {
             let b = block_manager.fromId(mat.previous_part.id);
-            mat = {id: b.id, previous_part: b.previous_part};
+            mat = {id: b.id, previous_part: b.previous_part} as IBlockMaterial;
         }
         const cloned_block = block_manager.convertItemToInventoryItem(mat);
         delete(cloned_block.extra_data);
@@ -497,15 +500,15 @@ export class Inventory {
         }
     }
 
-    exportArmorState() {
+    exportArmorState(): ArmorState {
         return {
-            head: this.items[PLAYER_ARMOR_SLOT_HELMET]?.id, 
+            head: this.items[PLAYER_ARMOR_SLOT_HELMET]?.id,
             body: this.items[PLAYER_ARMOR_SLOT_CHESTPLATE]?.id,
             leg: this.items[PLAYER_ARMOR_SLOT_LEGGINGS]?.id,
             boot: this.items[PLAYER_ARMOR_SLOT_BOOTS]?.id,
         }
     }
-    
+
     /**
      * Возвращает армор от надетых предметов
      * @returns {int}

@@ -1,6 +1,12 @@
 import { ServerClient } from "../../../www/src/server_client.js";
-import { doBlockAction } from "../../../www/src/world_action.js";
+import { ActionPlayerInfo, doBlockAction } from "../../../www/src/world_action.js";
 import { Vector, VectorCollector } from "../../../www/src/helpers.js";
+import { MOUSE } from "../../../www/src/constant.js";
+import { TBlock } from "../../../www/src/typed_blocks3.js";
+import type { ServerPlayer } from "../../server_player.js";
+import type { ServerChunk } from "../../server_chunk.js";
+
+const tmpBlock = new TBlock()
 
 export default class packet_reader {
 
@@ -15,7 +21,7 @@ export default class packet_reader {
     }
 
     // Pickat action
-    static async read(player, packet) {
+    static async read(player: ServerPlayer, packet: INetworkMessage) {
         if(!player.game_mode.canBlockAction()) {
             return true;
         }
@@ -26,10 +32,15 @@ export default class packet_reader {
             return true;
         }
         if (packet.data.interactMobID || packet.data.interactPlayerID) {
-            player.onAttackEntity(packet.data.button_id, packet.data.interactMobID, packet.data.interactPlayerID);
+            if (packet.data.button_id == MOUSE.BUTTON_LEFT) {
+                player.onAttackEntity(packet.data.interactMobID, packet.data.interactPlayerID)
+            }
+            if (packet.data.button_id == MOUSE.BUTTON_RIGHT) {
+                player.onUseItem(packet.data.interactMobID, packet.data.interactPlayerID)
+            }
         } else {
             const correct_destroy = player.isMiningComplete(packet.data);
-            const player_info = {
+            const player_info: ActionPlayerInfo = {
                 radius:     0.7,
                 height:     player.height,
                 username:   player.session.username,
@@ -39,7 +50,34 @@ export default class packet_reader {
                     user_id: player.session.user_id
                 }
             };
-            const actions = await doBlockAction(packet.data, world, player_info, currentInventoryItem);
+            const [actions, pos] = await doBlockAction(packet.data, world, player_info, currentInventoryItem)
+            const canDo = correct_destroy && actions != null
+            if (!canDo) { // if can't do the actions - tell the client to rollback its actions
+                if (pos) {
+                    // We have this block. Send it.
+                    const block = world.getBlock(pos, tmpBlock)
+                    const chunk = block.chunk as ServerChunk
+                    const packets: INetworkMessage[] = [
+                        {
+                            name: ServerClient.CMD_BLOCK_SET,
+                            data: {
+                                action_id: ServerClient.BLOCK_ACTION_CREATE,
+                                pos,
+                                item: block.clonePOJO()
+                            }
+                        },
+                        chunk.createFluidDeltaPacketAt(pos)
+                    ]
+                    world.sendSelected(packets, player)
+                } else if (packet.data.snapshotId != null) {
+                    // we don't have this block. Tell the client to rollback from its history
+                    world.sendSelected([{
+                        name: ServerClient.CMD_BLOCK_ROLLBACK,
+                        data: packet.data.snapshotId
+                    }], player)
+                }
+                return true
+            }
             // проверям скорость, если ошибка, то ворачиваем как было
             if (!correct_destroy) {
                 for (const block of actions.blocks.list) {

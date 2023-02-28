@@ -2,7 +2,7 @@ import { Vector } from "./helpers.js";
 import {newTypedBlocks} from "./typed_blocks3.js";
 import type { TypedBlocks3 } from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
-import {BLOCK, POWER_NO} from "./blocks.js";
+import {BLOCK, DBItemBlock, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
@@ -10,6 +10,14 @@ import {fluidLightPower, FLUID_TYPE_MASK} from "./fluid/FluidConst.js";
 import {ChunkLight} from "./light/ChunkLight.js";
 
 let global_uniqId = 0;
+
+export interface ClientModifyList {
+    compressed          : string    // base-64 encoded
+    private_compressed  : undefined
+    obj? : {
+        [key: string]: DBItemBlock
+    }
+}
 
 export interface IChunkVertexBuffer {
     list: Array<any>
@@ -110,7 +118,7 @@ export class Chunk {
         if (args.uniqId !== this.uniqId) {
             return;
         }
-        this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks = newTypedBlocks(this.coord, chunkManager.dataWorld.grid);
         this.tblocks.light = this.light;
         this.packedCells = args.packedCells || null;
         chunkManager.dataWorld.addChunk(this);

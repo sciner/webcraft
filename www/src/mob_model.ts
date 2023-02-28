@@ -594,7 +594,7 @@ export class MobModel extends NetworkPhysicObject {
             this.tintColor.set(1, 0, 0, .3);
             setTimeout(() => {
                 this.tintColor.set(0, 0, 0, 0);
-            }, 700);
+            }, 200);
             // add velocity
             // let velocity = new Vector(0, 0.5, 0);
             // mob.addVelocity(velocity);

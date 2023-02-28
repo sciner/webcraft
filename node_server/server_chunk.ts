@@ -13,11 +13,34 @@ import { TickerHelpers } from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "../www/src/light/ChunkLight.js";
 import type { ServerWorld } from "./server_world.js";
 import type { ServerPlayer } from "./server_player.js";
-import type { Mob } from "./mob.js";
+import type { Mob, MobSpawnParams } from "./mob.js";
 import type { DropItem } from "./drop_item.js";
 import type { ServerChunkManager } from "./server_chunk_manager.js";
+import { FluidChunkQueue } from "../www/src/fluid/FluidChunkQueue.js";
+import type { DBItemBlock } from "../www/src/blocks";
+import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
+
+export interface ServerModifyList {
+    compressed?         : BLOB
+    private_compressed? : BLOB
+    obj? : {
+        [key: string]: DBItemBlock
+    }
+}
+
+/** One row of "chunks" table, with additional in-memory fields */
+export interface ChunkRecord {
+    // DB fields:
+    mobs_is_generated   : int // 0 or 1
+    delayed_calls       : string | null
+
+    // additional fields
+    exists  : boolean   // whether the record exists in db
+    chunk?  : ServerChunk
+    dirty?  : boolean
+}
 
 // Ticking block
 class TickingBlock {
@@ -28,7 +51,7 @@ class TickingBlock {
     ticker: any;
     _preloadFluidBuf: any;
 
-    constructor(chunk) {
+    constructor(chunk: ServerChunk) {
         this.#chunk     = chunk;
         this.pos        = new Vector(0, 0, 0);
         // this.tblock     = null;
@@ -128,7 +151,7 @@ export class ServerChunk {
     addr:                               Vector;
     coord:                              Vector;
     uniqId:                             number;
-    modify_list:                        any                         = {};
+    modify_list:                        ServerModifyList            = {};
     connections:                        Map<int, ServerPlayer>      = new Map(); // players by user_id
     preq:                               Map<any, any>               = new Map();
     mobs:                               Map<int, Mob>               = new Map();
@@ -145,17 +168,17 @@ export class ServerChunk {
     block_random_tickers:               any;
     mobGenerator:                       MobGenerator;
     delayedCalls:                       DelayedCalls;
-    dbActor:                            any;
+    dbActor:                            ChunkDBActor;
     readyPromise:                       Promise<void>;
     /**
      * When unloading process has started
      */
-    unloadingStartedTime:               any                         = null; // to determine when to dispose it
+    unloadingStartedTime:               number                      = null; // to determine when to dispose it
     unloadedStuff:                      any[]                       = []; // everything unloaded that can be restored (drop items, mobs) in one lis
     unloadedStuffDirty:                 boolean                     = false;
     //
-    pendingWorldActions:                any                         = null; // An array of world actions targeting this chunk while it was loading. Execute them as soon as it's ready.
-    chunkRecord:                        any                         = null; // one row of "chunks" table, with additional fields { exists, chunk, dirty }
+    pendingWorldActions:                WorldAction[] | null        = null; // World actions targeting this chunk while it was loading. Execute them as soon as it's ready.
+    chunkRecord:                        ChunkRecord | null          = null;
     scanId:                             number                      = -1;
     light:                              ChunkLight;
     load_state:                         CHUNK_STATE;
@@ -252,7 +275,7 @@ export class ServerChunk {
         }
         this.setState(CHUNK_STATE.LOADING_DATA);
         //
-        const afterLoad = ([ml, fluid]) => {
+        const afterLoad = ([ml, fluid]: [ServerModifyList, any]) => {
             this.modify_list = ml;
             this.ticking = new Map();
             if (this.load_state >= CHUNK_STATE.UNLOADING) {
@@ -425,7 +448,19 @@ export class ServerChunk {
         this.sendAll(packets, []);
     }
 
-    sendFluidDelta(buf) {
+    /** Creates a packet describing fluid at world position {@link worldPos} */
+    createFluidDeltaPacketAt(worldPos: Vector): INetworkMessage {
+        const buf = FluidChunkQueue.packAsDelta(worldPos, this.fluid)
+        return {
+            name: ServerClient.CMD_FLUID_DELTA,
+            data: {
+                addr: this.addr,
+                buf: Buffer.from(buf).toString('base64')
+            }
+        }
+    }
+
+    sendFluidDelta(buf: Uint8Array): void {
         const packets = [{
             name: ServerClient.CMD_FLUID_DELTA,
             data: {
@@ -470,7 +505,7 @@ export class ServerChunk {
             }
         }
         */
-        this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks = newTypedBlocks(this.coord, chunkManager.dataWorld.grid);
         this.tblocks.chunk = this;
         this.tblocks.light = this.light;
         chunkManager.dataWorld.addChunk(this);
@@ -630,7 +665,7 @@ export class ServerChunk {
     }
 
     //
-    sendAll(packets : any[], except_players? : number[]) {
+    sendAll(packets : INetworkMessage[], except_players? : number[]) {
         const connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, except_players);
     }
@@ -820,7 +855,7 @@ export class ServerChunk {
                 let under2 = this.world.getBlock(pos.clone());
                 if(under1?.id == bm.POWDER_SNOW.id && under2?.id == bm.POWDER_SNOW.id) {
                     pos.addSelf(new Vector(.5, 0, .5));
-                    const params = {
+                    const params: MobSpawnParams = {
                         type           : 'snow_golem',
                         skin           : 'base',
                         pos            : pos.clone(),
