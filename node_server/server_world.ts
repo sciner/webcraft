@@ -141,18 +141,6 @@ export class ServerWorld implements IWorld {
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);
 
-        const madeBuildings = await this.makeBuildingsWorld();
-
-        if (!madeBuildings) {
-            await this.dbActor.crashRecovery();
-            await this.db.compressModifiers(); // Do we really need it?
-        }
-
-        // Server ore generator
-        this.ore_generator  = new WorldOreGenerator(this.info.ore_seed, false)
-        delete(this.info.ore_seed)
-
-        //
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
@@ -178,6 +166,18 @@ export class ServerWorld implements IWorld {
         this.players        = new ServerPlayerManager(this);
         this.all_drop_items = this.chunks.itemWorld.all_drop_items; // Store refs to all loaded drop items in the world
         this.defaultPlayerIndicators = this.getDefaultPlayerIndicators()
+
+        const madeBuildings = await this.makeBuildingsWorld();
+
+        if (!madeBuildings) {
+            await this.dbActor.crashRecovery();
+            await this.db.compressModifiers(); // Do we really need it?
+        }
+
+        // Server ore generator
+        this.ore_generator  = new WorldOreGenerator(this.info.ore_seed, false)
+        delete(this.info.ore_seed)
+
         //
         await this.models.init();
         this.quests.init();
