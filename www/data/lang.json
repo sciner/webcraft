@@ -180,6 +180,14 @@
 		"interface": {"en": "Interface", "ru": "Интерфейс", "fr": "", "es": "", "man": ""},
 		"interface_size": {"en": "Interface size", "ru": "Размер интерфейс", "fr": "", "es": "", "man": ""},
         "repair": {"en": "Repair & Name", "ru": "Название или ремонт", "fr": "", "es": "", "man": ""},
-        "furnace": {"en": "Furnace", "ru": "Печь", "fr": "", "es": "", "man": ""}
+        "furnace": {"en": "Furnace", "ru": "Печь", "fr": "", "es": "", "man": ""},
+        "barrel": {"en": "Barrel", "ru": "Бочка", "fr": "", "es": "", "man": ""},
+        "brewing": {"en": "Brewing Stand", "ru": "Варочная стойка", "fr": "", "es": "", "man": ""},
+        "chest": {"en": "Chest", "ru": "Сундук", "fr": "", "es": "", "man": ""},
+        "not_implemented": {"en": "Not implemented", "ru": "В разработке", "fr": "", "es": "", "man": ""},
+        "ender_chest": {"en": "Ender chest", "ru": "Эндер-сундук", "fr": "", "es": "", "man": ""},
+        "sign_edit": {"en": "Edit sign text", "ru": "Введите текст", "fr": "", "es": "", "man": ""},
+        "crafting": {"en": "Crafting", "ru": "Создание", "fr": "", "es": "", "man": ""},
+        "charging_station": {"en": "Charging station", "ru": "Зарядная станция", "fr": "", "es": "", "man": ""}
     }
 }

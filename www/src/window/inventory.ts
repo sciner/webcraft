@@ -20,6 +20,9 @@ export class InventoryWindow extends BaseCraftWindow {
 
         super(10, 10, 352, 332, 'frmInventory', null, null, inventory)
 
+        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        this.x *= this.zoom 
+        this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
         this.recipes = recipes
@@ -66,8 +69,9 @@ export class InventoryWindow extends BaseCraftWindow {
         this.createResultSlot(306 * this.zoom, 54 * this.zoom)
 
         // Add labels to window
-        const lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create)
-        this.add(lbl1)
+        const lblTitle = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.create)
+        lblTitle.style.font.size = 16 * this.zoom
+        this.add(lblTitle)
 
         // Add close button
         this.loadCloseButtonImage((image) => {

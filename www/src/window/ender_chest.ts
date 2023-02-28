@@ -1,5 +1,5 @@
-import {BLOCK} from "../blocks.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class EnderChestWindow extends BaseChestWindow {
@@ -7,8 +7,9 @@ export class EnderChestWindow extends BaseChestWindow {
 
     constructor(inventory) {
 
+        const BLOCK = inventory.player.world.block_manager
         super(10, 10, 352, 332, 'frmEnderChest', null, null, inventory, {
-            title: 'Ender chest',
+            title: Lang.ender_chest,
             sound: {
                 open: {tag: BLOCK.ENDER_CHEST.sound, action: 'open'},
                 close: {tag: BLOCK.ENDER_CHEST.sound, action: 'close'}

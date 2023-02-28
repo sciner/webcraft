@@ -1,5 +1,6 @@
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Vector } from "../helpers.js";
+import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class ChargingStationWindow extends BaseChestWindow {
@@ -10,7 +11,7 @@ export class ChargingStationWindow extends BaseChestWindow {
         const bm = inventory.player.world.block_manager
 
         super(10, 10, 352, 332, 'frmChargingStation', null, null, inventory, {
-            title: 'Charging station',
+            title: Lang.charging_station,
             sound: {
                 open: {tag: bm.CHARGING_STATION.sound, action: 'open'},
                 close: {tag: bm.CHARGING_STATION.sound, action: 'close'}

@@ -1,5 +1,6 @@
-import {Button, Label, Window} from "../../tools/gui/wm.js";
+import { Button, Label } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 
 export class NotImplementedWindow extends BlankWindow {
@@ -9,13 +10,15 @@ export class NotImplementedWindow extends BlankWindow {
 
         super(10, 10, 236, 192, 'frmNotImplemented', null, null);
 
-        this.w *= this.zoom;
-        this.h *= this.zoom;
-
+        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         this.setBackground('./media/gui/form-empty.png')
 
         // Add labels to window
-        const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 170 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Not implemented');
+        const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 170 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.not_implemented);
         this.add(lbl1)
 
         // Ширина / высота слота

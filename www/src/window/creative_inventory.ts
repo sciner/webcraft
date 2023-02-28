@@ -216,7 +216,7 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         // Window title
         const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
-        lblTitle.style.font.size = 10 * this.zoom
+        lblTitle.style.font.size = 16 * this.zoom
         this.add(lblTitle)
 
         // Создание слотов для инвентаря
@@ -269,7 +269,9 @@ export class CreativeInventoryWindow extends BlankWindow {
         txtSearch.style.border.style     = 'inset'
         txtSearch.style.font.color       = '#ffffff'
         txtSearch.style.background.color = '#706f6c'
-        txtSearch.style.font.size        = 10 * this.zoom
+        txtSearch.style.font.size    = 16 * this.zoom
+        txtSearch.style.padding.left = 5 * this.zoom
+        txtSearch.style.textAlign.vertical = 'middle'
         this.add(txtSearch)
 
         txtSearch.onChange = (text) => {

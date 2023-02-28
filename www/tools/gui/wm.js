@@ -68,7 +68,7 @@ export class Window extends PIXI.Container {
     #_bgicon = null
     #_wmclip = null
 
-    zoom = UI_ZOOM
+    zoom = 1
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
     constructor(x, y, w, h, id, title, text) {

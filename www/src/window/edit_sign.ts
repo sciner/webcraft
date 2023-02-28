@@ -19,8 +19,8 @@ export class EditSignWindow extends BlankWindow {
         ct.setBackground('./media/gui/form-empty.png', 'stretch')
 
         // Add labels to window
-        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Edit sign text')
-        lblTitle.style.font.size = 10 * this.zoom
+        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.sign_edit)
+        lblTitle.style.font.size = 16 * this.zoom
         this.add(lblTitle)
 
         // Text editors

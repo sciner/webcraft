@@ -4,8 +4,6 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
 import { getBlockImage } from "./tools/blocks.js";
 
-const COLOR_RED = '#A15151';
-
 export class RecipeSlot extends Window {
     [key: string]: any;
 
@@ -30,11 +28,11 @@ export class RecipeSlot extends Window {
 
     // Custom drawing
     onMouseEnter(e) {
-        this.style.background.color = this.can_make ? '#ffffffcc' : COLOR_RED + '77'
+        this.style.background.color = this.can_make ? '#ffffffcc' : '#A1515177'
     }
 
     onMouseLeave(e) {
-        this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55'
+        this.style.background.color = this.can_make ? '#ffffff55' : '#A1515155'
     }
 
     onMouseDown(e) {
@@ -73,7 +71,7 @@ export class RecipeSlot extends Window {
             this.can_make = this.recipe.size.width <= craft_area_size.width &&
                             this.recipe.size.height <= craft_area_size.height;
         }
-        this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
+        this.style.background.color = this.can_make ? '#ffffff55' : '#A1515155';
     }
 
 }
@@ -84,10 +82,14 @@ export class RecipeWindow extends BlankWindow {
 
     constructor(recipe_manager) {
 
-        super(10, 10, 592/2 * UI_ZOOM, 668/2 * UI_ZOOM, 'frmRecipe', null, null)
+        super(10, 10, 592/2, 668/2, 'frmRecipe', null, null)
         this.canBeOpenedWith = ['frmInventory', 'frmCraft']
-        // this.w *= this.zoom
-        // this.h *= this.zoom
+
+        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
 
         this.items_per_page     = 20
         this.index              = -1
@@ -104,7 +106,7 @@ export class RecipeWindow extends BlankWindow {
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
         this.atlas.fromFile('./media/gui/recipe_book.png').then(async atlas => {
-            ct.setBackground(await atlas.getSprite(0, 0, 592, 668), 'none', this.zoom / 2.0)
+            ct.setBackground(await atlas.getSprite(0, 0, 592, 668), 'none', this.zoom)
             // кнопка доступные или все рецепты
             this.addToggleButton()
         })
@@ -167,12 +169,12 @@ export class RecipeWindow extends BlankWindow {
 
         this.atlas.getSprite(608, 162, 106, 67).then(image => {
 
-            btnFilter.setBackground(image, 'none', this.zoom / 2.0)
+            btnFilter.setBackground(image, 'none', self.zoom / 2)
             btnFilter.style.border.hidden = true
 
             btnFilter.onMouseDown = async function(e) {
                 self.only_can = !self.only_can
-                btnFilter.setBackground(await self.atlas.getSprite(self.only_can ? 719 : 608, 162, 106, 67), 'none', this.zoom / 2.0)
+                btnFilter.setBackground(await self.atlas.getSprite(self.only_can ? 719 : 608, 162, 106, 67), 'none', self.zoom / 2)
                 self.createRecipes();
                 self.paginator.update()
             }
@@ -189,12 +191,13 @@ export class RecipeWindow extends BlankWindow {
         const ct = this
 
         // Label
-        const lblPages = new Label(110 * this.zoom, 268 * this.zoom, 70 * this.zoom, 40 * this.zoom, 'lblPages', '1 / 2')
+        const lblPages = new Label(110 * this.zoom, 268 * this.zoom, 70 * this.zoom, 45 * this.zoom, 'lblPages', '1 / 2')
+        lblPages.style.font.size = 12 * this.zoom
         lblPages.style.font.color = '#ffffff'
         lblPages.style.font.shadow.enable = true
         lblPages.text_container.anchor.set(.5, .5)
-        // lblPages.style.textAlign.horizontal = 'center'
-        // lblPages.style.textAlign.vertical = 'middle'
+        lblPages.style.textAlign.horizontal = 'center'
+        lblPages.style.textAlign.vertical = 'middle'
         // lblPages.style.font.shadow.x = 1
         // lblPages.style.font.shadow.y = 1
         ct.add(lblPages)
@@ -232,17 +235,17 @@ export class RecipeWindow extends BlankWindow {
             null,
             'Type for search'
         );
-        txtSearch.word_wrap              = false
-        txtSearch.focused                = true
-        txtSearch.max_length             = 100
-        txtSearch.max_lines              = 1
-        txtSearch.max_chars_per_line     = 20
+        txtSearch.word_wrap                = false
+        txtSearch.focused                  = true
+        txtSearch.max_length               = 100
+        txtSearch.max_lines                = 1
+        txtSearch.max_chars_per_line       = 20
         // style
-        txtSearch.style.color            = '#ffffff';
-        txtSearch.style.background.color = '#ffffff88';
-        txtSearch.style.border.hidden    = false
-        txtSearch.style.border.style     = 'inset'
-       // txtSearch.style.background.color = '#706f6cff';
+        txtSearch.style.color              = '#ffffff';
+        txtSearch.style.background.color   = '#ffffff88';
+        txtSearch.style.border.hidden      = false
+        txtSearch.style.font.size          = 14 * this.zoom
+        txtSearch.style.textAlign.vertical = 'middle'
         this.add(txtSearch);
         
         txtSearch.onChange = (text) => {
