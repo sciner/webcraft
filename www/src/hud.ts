@@ -210,7 +210,7 @@ export class HUD {
     }
 
     get zoom() {
-        return UI_ZOOM;
+        return UI_ZOOM
     }
 
     add(item, zIndex) {

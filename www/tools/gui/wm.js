@@ -394,7 +394,21 @@ export class Window extends PIXI.Container {
             if(throw_exception) throw `error_window_not_found_by_id|${id}`
             return null
         }
-        return this.list.get(id)
+        const zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        const rezult = this.list.get(id)
+        if (rezult?.style?.font?.size) {
+            rezult.style.font.size *= zoom
+        }
+        if (rezult?.style?.padding) {
+            rezult.style.padding *= zoom
+        }
+        if (rezult?.height) {
+            rezult.height *= zoom
+        }
+        if (rezult?.width) {
+            rezult.width *= zoom
+        }
+        return rezult
     }
 
     getVisibleWindowOrNull(id) {

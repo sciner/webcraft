@@ -55,11 +55,10 @@ export class QuestView extends Window {
         const lDesc = ql.getWindow('lDesc');
         const lblActions = ql.getWindow('lblActions');
         const lblRewards = ql.getWindow('lblRewards');
-
         //
         lblTitle.text = quest.title
         lDesc.text = quest.description
-
+        
         if(quest.is_completed) {
             lblTitle.text = `✅ ${lblTitle.text}`
         }

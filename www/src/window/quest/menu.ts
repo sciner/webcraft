@@ -88,7 +88,7 @@ export class QuestMenu extends Window {
                 const title = quest.title;
                 const status = quest.is_completed ? '✅' : (quest.in_progress ? '🕒' : '🆕');
                 const tb = new ToggleButton(x, y, this.w, BUTTON_HEIGHT, 'btnQuest' + quest.id, `${status} ${title}`);
-                tb.style.font.size = 10 * this.zoom
+                tb.style.font.size = 16 * this.zoom
                 ct.add(tb);
                 y += tb.h + GROUP_MARGIN;
                 tb.onMouseDown = (e) => {

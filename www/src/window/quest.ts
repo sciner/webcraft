@@ -28,7 +28,7 @@ export class QuestWindow extends BlankWindow {
 
         // Add labels to window
         const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
-        lblTitle.style.font.size = 10 * this.zoom
+        lblTitle.style.font.size = 16 * this.zoom
         this.add(lblTitle)
 
         // Add close button
