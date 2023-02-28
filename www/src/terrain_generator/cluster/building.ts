@@ -468,7 +468,7 @@ export class Building {
                 }
             }
         }
-        if(value2_changed && value2 > this.cluster.clusterManager.chunkManager.world.generator.options.WATER_LINE) {
+        if(value2_changed && value2 > this.cluster.clusterManager.chunkManager.world.generator.options.WATER_LEVEL) {
             this.setY(value2 - 1)
             if(!this.biome) {
                 this.setBiome({}, 0, 0)

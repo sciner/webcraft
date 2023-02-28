@@ -246,7 +246,7 @@ export class ClusterBase {
                     const cell = map.getCell(i, j)
                     if(cell.biome.code == 'OCEAN') {
                         /*if(this.use_road_as_gangway && point.block_id == this.road_block) {
-                            let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;
+                            let y = WATER_LEVEL - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
                                 this.setBlock(chunk, i, y, j, bm.OAK_PLANKS.id, null);
                             }

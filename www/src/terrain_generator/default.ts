@@ -115,7 +115,7 @@ export class Default_Terrain_Generator {
             chunk.addr,
             chunk.size,
             chunk.addr.mul(chunk.size),
-            {WATER_LINE: 63},
+            {WATER_LEVEL: 63},
             cells
         );
 

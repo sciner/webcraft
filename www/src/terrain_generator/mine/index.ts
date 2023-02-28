@@ -42,7 +42,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
         let addr = chunk.addr;
         let size = chunk.size;
 
-        return new Default_Terrain_Map(addr, size, addr.mul(size), {WATER_LINE: 63}, Array(chunk.size.x * chunk.size.z).fill(cell))
+        return new Default_Terrain_Map(addr, size, addr.mul(size), {WATER_LEVEL: 63}, Array(chunk.size.x * chunk.size.z).fill(cell))
 
     }
 }

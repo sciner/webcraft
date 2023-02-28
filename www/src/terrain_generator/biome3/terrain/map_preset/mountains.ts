@@ -1,6 +1,7 @@
 import { Mth, Vector } from "../../../../helpers.js";
 import { DENSITY_AIR_THRESHOLD } from "../manager.js";
 import { ClimateParams, DensityParams, MapCellPreset } from "../manager_vars.js";
+import type { TerrainMapCell } from "../map_cell.js";
 
 export class MapCellPreset_Mountains extends MapCellPreset {
     [key: string]: any;
@@ -23,21 +24,11 @@ export class MapCellPreset_Mountains extends MapCellPreset {
         return true
     }
 
-    /**
-     * @param {Vector} xyz
-     * @param {TerrainMapCell} cell
-     * @param {float} dist_percent
-     * @param {*} generator_options
-     * @param {*} noise2d
-     * @param {DensityParams} result
-     *
-     * @returns {DensityParams}
-     */
-    calcDensity(xyz, cell, dist_percent, noise2d, generator_options, result) {
+    calcDensity(xyz : Vector, cell : TerrainMapCell, dist_percent : float, noise2d : any, generator_options : any, result : DensityParams) : DensityParams {
 
         if(cell.mountains_max_height === undefined) {
             const HEIGHT_SCALE = this.max_height * dist_percent;
-            cell.mountains_height =  generator_options.WATER_LINE +
+            cell.mountains_height =  generator_options.WATER_LEVEL +
                 this.mountainFractalNoise(
                     noise2d,
                     xyz.x/3, xyz.z/3,

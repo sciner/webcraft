@@ -90,7 +90,7 @@ class MapCellPresetResult {
 }
 
 export const GENERATOR_OPTIONS = {
-    WATER_LINE:             WATER_LEVEL, // Ватер-линия
+    WATER_LEVEL:            WATER_LEVEL, // Ватер-линия
     SCALE_EQUATOR:          1280 * .5 * 3, // Масштаб для карты экватора
     SCALE_BIOM:             640  * .5, // Масштаб для карты шума биомов
     SCALE_HUMIDITY:         320  * .5, // Масштаб для карты шума влажности

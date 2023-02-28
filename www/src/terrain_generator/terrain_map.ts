@@ -31,7 +31,7 @@ export const MAP_CLUSTER_MARGIN = 5;
 const MAP_SCALE = .5;
 
 export const GENERATOR_OPTIONS = {
-    WATER_LINE:             63, // Ватер-линия
+    WATER_LEVEL:             63, // Ватер-линия
     SCALE_EQUATOR:          1280 * MAP_SCALE * 3, // Масштаб для карты экватора
     SCALE_BIOM:             640  * MAP_SCALE, // Масштаб для карты шума биомов
     SCALE_HUMIDITY:         320  * MAP_SCALE, // Масштаб для карты шума влажности
@@ -190,11 +190,11 @@ export class TerrainMapManager {
         // value = Helpers.clamp(value, 4, 2500);
         biome = BIOMES.getBiome(value / 255, humidity, equator);
         // Pow
-        let diff = value - GENERATOR_OPTIONS.WATER_LINE;
+        let diff = value - GENERATOR_OPTIONS.WATER_LEVEL;
         if(diff < 0) {
-            value -= (GENERATOR_OPTIONS.WATER_LINE - value) * .65 - 1.5;
+            value -= (GENERATOR_OPTIONS.WATER_LEVEL - value) * .65 - 1.5;
         } else {
-            value = GENERATOR_OPTIONS.WATER_LINE + Math.pow(diff, 1 + diff / HW);
+            value = GENERATOR_OPTIONS.WATER_LEVEL + Math.pow(diff, 1 + diff / HW);
         }
         value = Math.trunc(value);
         return {value, biome, humidity, equator};
@@ -408,7 +408,7 @@ export class TerrainMap extends Default_Terrain_Map {
                 const ind3 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT - SMOOTH_RAD;
                 const ind4 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT + (SMOOTH_RAD + 1);
                 // Не сглаживаем блоки пляжа и океана
-                const smooth_heightmap = !(cell.biome.no_smooth_heightmap && cell.value > this.options.WATER_LINE - 2);
+                const smooth_heightmap = !(cell.biome.no_smooth_heightmap && cell.value > this.options.WATER_LEVEL - 2);
                 const height_sum = smooth_heightmap ? (sums[ind1 * VAL_COUNT] + sums[ind4 * VAL_COUNT] - sums[ind2 * VAL_COUNT] - sums[ind3 * VAL_COUNT]) : 0;
                 const dirt_color = new IndexedColor(
                     sums[ind1 * VAL_COUNT + 1] + sums[ind4 * VAL_COUNT + 1] - sums[ind2 * VAL_COUNT + 1] - sums[ind3 * VAL_COUNT + 1],
@@ -422,7 +422,7 @@ export class TerrainMap extends Default_Terrain_Map {
                 );
                 if(smooth_heightmap) {
                     cell.value2 = Math.floor(height_sum / SMOOTH_RAD_CNT);
-                    if(cell.value2 <= this.options.WATER_LINE) {
+                    if(cell.value2 <= this.options.WATER_LEVEL) {
                         cell.biome = BIOMES.OCEAN;
                     }
                 }
@@ -566,7 +566,7 @@ export class TerrainMap extends Default_Terrain_Map {
                     // Трава
                     let max_y = Infinity;
                     if(biome.code == 'OCEAN') {
-                        max_y = this.options.WATER_LINE
+                        max_y = this.options.WATER_LEVEL
                     }
                     addPlant(rnd, x, y, z, max_y);
                 }
