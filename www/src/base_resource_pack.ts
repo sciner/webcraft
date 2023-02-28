@@ -8,7 +8,7 @@ import type { ChunkWorkerChunk } from './worker/chunk.js';
 
 let tmpCanvas;
 
-const LAYERING_MOVE_TO_DOWN_STYLES = ['red_mushroom', 'brown_mushroom', 'sweet_berry_bush', 'petals', 'pebbles', 'burdock', 'fern']
+const LAYERING_MOVE_TO_DOWN_STYLES = ['red_mushroom', 'brown_mushroom', 'sweet_berry_bush', 'petals', 'pebbles', 'burdock', 'fern', 'dead_bush']
 
 export class BaseResourcePack {
     [key: string]: any;
