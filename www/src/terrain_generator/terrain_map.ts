@@ -258,7 +258,7 @@ export class TerrainMapManager {
                 const px = chunk.coord.x + x;
                 const pz = chunk.coord.z + z;
                 let cluster_max_height = null;
-                if(!cluster.is_empty && cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
+                if(!cluster.is_empty && cluster.cellIsOccupied(px, pz, MAP_CLUSTER_MARGIN)) {
                     cluster_max_height = cluster.max_height;
                 }
                 const {value, biome, humidity, equator} = this.makePoint(px, pz, cluster.is_empty, cluster_max_height);
@@ -506,7 +506,7 @@ export class TerrainMap extends Default_Terrain_Map {
             for(let type of biome.trees.list) {
                 s += type.percent;
                 if(r < s) {
-                    if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, TREE_MARGIN)) {
+                    if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, TREE_MARGIN)) {
                         break;
                     }
                     let r = aleaRandom.double();
@@ -548,7 +548,7 @@ export class TerrainMap extends Default_Terrain_Map {
                 //
                 initAleaAndCluster();
                 const y = cell.value2;
-                if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, PLANT_MARGIN)) {
+                if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, /*y + chunk.coord.y - 1,*/ z + chunk.coord.z, PLANT_MARGIN)) {
                     continue;
                 }
                 //

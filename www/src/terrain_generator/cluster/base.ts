@@ -282,7 +282,7 @@ export class ClusterBase {
     }
 
     // Return true if cell is occupied by any object (road or building)
-    cellIsOccupied(x, y, z, margin) {
+    cellIsOccupied(x : int, z : int, margin : int) : boolean {
         if(this.is_empty) {
             return false;
         }
@@ -294,7 +294,7 @@ export class ClusterBase {
     }
 
     //
-    getCell(x, y, z) {
+    getCell(x : int, z : int) :any {
         if(this.is_empty) {
             return false;
         }
@@ -306,11 +306,8 @@ export class ClusterBase {
 
     /**
      * Add NPC
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param { Vector } pos
-     * @returns { boolean }
      */
-    addNPC(chunk, pos) {
+    addNPC(chunk : ChunkWorkerChunk, pos : Vector) : boolean {
         const bm = this.block_manager
         // Auto generate mobs
         const auto_generate_mobs = this.clusterManager.chunkManager.world.getGeneratorOptions('auto_generate_mobs', true);
@@ -341,15 +338,7 @@ export class ClusterBase {
         }
     }
 
-    /**
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param { Vector } pos
-     * @param { Vector } size
-     * @param { object } block
-     * @param { Vector } rotate
-     * @param {*} extra_data
-     */
-    drawQuboid(chunk, pos, size, block, rotate, extra_data) {
+    drawQuboid(chunk : ChunkWorkerChunk, pos : Vector, size : Vector, block : any, rotate : Vector, extra_data : any) {
         const bx = pos.x - chunk.coord.x;
         const by = pos.y - chunk.coord.y;
         const bz = pos.z - chunk.coord.z;
@@ -372,7 +361,7 @@ export class ClusterBase {
      * @param size - y may be negative. It means "draw below pos.y"
      * @param block 
      */
-    drawNaturalBasement(chunk : ChunkWorkerChunk, pos : Vector, size : Vector, block) {
+    drawNaturalBasement(chunk : ChunkWorkerChunk, pos : Vector, size : Vector, block : any) {
 
         // console.log(pos.toHash())
         //const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y - size.y + 1, pos.z + size.z)

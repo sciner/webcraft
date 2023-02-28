@@ -59,7 +59,7 @@ export class TerrainMap2 extends TerrainMap {
         for(let type of biome.trees.list) {
             s += type.percent;
             if(r < s) {
-                if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, TREE_MARGIN)) {
+                if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, TREE_MARGIN)) {
                     break;
                 }
                 const rand_height = aleaRandom.double();
@@ -141,7 +141,7 @@ export class TerrainMap2 extends TerrainMap {
     /**
      * Return map cell
      */
-    getCell(x : int, z : int) : TerrainMapCell{
+    getCell(x : int, z : int) : TerrainMapCell {
         return this.cells[z * CHUNK_SIZE_X + x]
     }
 

@@ -146,7 +146,7 @@ export default class Terrain_Generator extends Demo_Map {
                 const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
                 const dirt_block        = cell.dirt_block_id;
                 const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
-                const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
+                const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, 2);
                 const has_modificator   = true; // has_voxel_buildings || has_islands || has_extruders;
 
                 if(!dirt_block_mat || dirt_block_mat.id != dirt_block) {
