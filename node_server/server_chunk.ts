@@ -921,7 +921,7 @@ export class ServerChunk {
         }
 
         const pos = tblock.posworld;
-        const rot = tblock.rotate;
+        const rot = tblock.rotate || Vector.YP;
         const rotx = tblock.rotate?.x;
         const roty = tblock.rotate?.y;
         const neighbourPos = neighbour.posworld;
