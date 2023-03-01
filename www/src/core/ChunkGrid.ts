@@ -143,6 +143,7 @@ export class ChunkGrid {
         for (let i = 0; i < arr.length; i++) {
             arr[i].portals.length = 0;
             arr[i].facetPortals.length = 0;
+            arr[i].markDeleteId = 0;
             this.innerMap.delete(this.toChunkAddr(arr[i].pos, addr));
         }
     }
