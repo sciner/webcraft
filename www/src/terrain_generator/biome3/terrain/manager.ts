@@ -105,7 +105,7 @@ const DEFAULT_DENSITY_COEFF = {
 }
 
 const MAP_PRESETS = {
-    norm:                       new MapCellPreset('norm',               { chance: 7, relief: 4, mid_level: 3}),
+    norm:                       new MapCellPreset('norm',               { chance: 7, relief: 4, mid_level: 4}),
     small_mountains:            new MapCellPreset('small_mountains',    { chance: 4, relief: 48, mid_level: 8 }),
     high_noise:                 new MapCellPreset('high_noise',         { chance: 4, relief: 128, mid_level: 24 }),
     high_coarse_noise:          new MapCellPreset('high_coarse_noise',  { chance: 4, relief: 128, mid_level: 24 }),
@@ -320,7 +320,14 @@ export class TerrainMapManager2 {
      */
     calcDensity(xyz : Vector, cell, out_density_params : DensityParams | null, map : TerrainMap2) : DensityParams {
 
-        const {relief, mid_level, dist_percent, op, density_coeff} = cell.preset;
+        let {relief, mid_level, dist_percent, op, density_coeff} = cell.preset;
+
+        if(xyz.y <= WATER_LEVEL) {
+            relief *= 20
+            mid_level *= 20
+            // relief /= 20
+            // mid_level /= 20
+        }
 
         // Aquifera
         map.aquifera.calcInside(xyz, _aquifera_params)
