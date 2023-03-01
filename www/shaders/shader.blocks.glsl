@@ -43,7 +43,7 @@
 #ifdef global_uniforms
     // global uniform block base
     uniform vec3 u_camera_pos;
-    uniform ivec3 u_camera_posi;
+    uniform ivec3 u_camera_posi; // absolute camera position
     // Fog
     uniform vec4 u_fogColor;
     uniform vec4 u_tintColor;
@@ -63,6 +63,11 @@
     uniform vec4 u_SunDir;
     uniform float u_localLightRadius;
     uniform float u_aoDisaturateFactor;
+
+    vec3 getCamPeriod() {
+        return vec3(u_camera_posi % ivec3(1000)) + u_camera_pos;
+    }
+
     //--
 #endif
 
@@ -759,8 +764,7 @@
 #endif
 
 #ifdef caustic_pass_onwater
-    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
-    vec2 pc = (v_world_pos.xy + cam_period.xy) * 64.;
+    vec2 pc = (v_world_pos.xy + getCamPeriod().xy) * 64.;
 
     mat3 m = mat3(-2,-1,2, 3,-2,1, 1,2,2);
     vec3 a = vec3( pc / 4e2, (u_time / 2000.) / 4. ) * m,
@@ -779,7 +783,7 @@
 // Enchanted animation
 #ifdef enchanted_animation
 
-    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    vec3 cam_period = getCamPeriod();
     vec2 vert = vec2(cam_period.z / 2., cam_period.z / 2.) + vec2(v_world_pos.z / 2., v_world_pos.z / 2. + u_time / 2000.);
     vec2 pc = (v_texcoord0.xy + v_world_pos.xy + cam_period.xy + vert.xy) * 256.;
 
@@ -800,7 +804,7 @@
 // VERSION1
 #ifdef caustic1_pass
 
-    vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    vec3 cam_period = getCamPeriod();
     vec2 vert = vec2(cam_period.z / 2., cam_period.z / 2.) + vec2(v_world_pos.z / 2., v_world_pos.z / 2.);
     vec2 pc = (v_texcoord0.xy + v_world_pos.xy + cam_period.xy + vert.xy) * 64.;
 
@@ -848,7 +852,7 @@
 
 #ifdef raindrops_onwater
     if(u_rain_strength > 0.) {
-        vec3 cam_period2 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+        vec3 cam_period2 = getCamPeriod();
         vec3 pos = vec3(v_world_pos.xy + cam_period2.xy, 0.);
         // pixelate
         // pos = round(pos / (1./32.)) * (1./32.);
@@ -862,7 +866,7 @@
     if(centerSample.z > water_lighter_limit) {
         float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
         // float water_lighter = min(centerSample.z / water_lighter_limit, .1);
-        vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+        vec3 cam_period = getCamPeriod();
         float x = v_world_pos.x + cam_period.x;
         float y = v_world_pos.y + cam_period.y;
         // color.rgb += water_lighter * 1.25;
@@ -873,7 +877,7 @@
 #ifdef waves_vertex_func
 
     float getWaveValue() {
-        vec3 cam_period = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+        vec3 cam_period = getCamPeriod();
         float x = v_world_pos.x + cam_period.x;
         float y = v_world_pos.y + cam_period.y;
         float waves_amp = 30.;
@@ -886,7 +890,7 @@
 
 #ifdef swamp_fog
     // swamp fog
-    vec3 cam_period4 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    vec3 cam_period4 = getCamPeriod();
     float z = v_world_pos.z + cam_period4.z;
     float start_fog = 81.;
     float fog_height = 3.;
@@ -904,7 +908,7 @@
 
 #ifdef torch_flame
 
-    // vec3 cam_period6 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+    // vec3 cam_period6 = getCamPeriod();
     // vec2 bpos6 = round(v_world_pos.xy + cam_period6.xy);
     // float add_time6 = (bpos6.x * 10. + bpos6.y * 10.);
     float iTime = ((u_time /*+ add_time */) / 1000.);

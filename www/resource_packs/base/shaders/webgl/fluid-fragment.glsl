@@ -138,7 +138,7 @@ void main() {
 
         if(fluidId == 1) {
             /// LAVA
-            vec3 cam_period5 = vec3(u_camera_posi % ivec3(400)) + u_camera_pos;
+            vec3 cam_period5 = getCamPeriod();
             float scale = 4.;
             float pixels = 1. / 32.;
             float div = pixels / scale;
