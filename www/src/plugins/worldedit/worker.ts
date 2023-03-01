@@ -1,5 +1,5 @@
-import { BLOCK } from "../../../www/src/blocks.js";
-import { Vector } from "../../../www/src/helpers.js";
+import { BLOCK } from "../../blocks.js";
+import { Vector } from "../../helpers.js";
 import { SchematicReader } from "./schematic_reader.js";
 
 let parentPort
@@ -9,8 +9,8 @@ import('worker_threads').then(module => {
 })
 
 await BLOCK.init({
-    _json_url: '../../../www/data/block_style.json',
-    _resource_packs_url: '../../../www/data/resource_packs.json'
+    _json_url: '../../../data/block_style.json',
+    _resource_packs_url: '../../../data/resource_packs.json'
 })
 
 function postMessage(message) {

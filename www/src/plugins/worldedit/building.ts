@@ -1,6 +1,6 @@
-import { Vector } from "../../../www/src/helpers.js";
-import { BuildingTemplate } from "../../../www/src/terrain_generator/cluster/building_template.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { Vector } from "../../helpers.js";
+import { BuildingTemplate } from "../../terrain_generator/cluster/building_template.js";
+import { ServerClient } from "../../server_client.js";
 
 //
 export class WorldEditBuilding {
@@ -123,7 +123,7 @@ export class WorldEditBuilding {
 
         // append building_schemas        
         const file_name = `./conf_world.json`
-        let conf_world = fs.readFileSync(file_name)
+        let conf_world = globalThis.fs.readFileSync(file_name)
         
         if(conf_world) {
             conf_world = JSON.parse(conf_world)
@@ -131,7 +131,7 @@ export class WorldEditBuilding {
                 throw 'error_conf_world_corrupted'
             }
             conf_world.building_schemas.push(building)
-            fs.writeFileSync(file_name, JSON.stringify(conf_world, null, 4))
+            globalThis.fs.writeFileSync(file_name, JSON.stringify(conf_world, null, 4))
         } else {
             throw 'error_conf_world_not_found'
         }
@@ -245,7 +245,7 @@ export class WorldEditBuilding {
 
         // Write building to file
         const json = 'export default ' + JSON.stringify(building)
-        fs.writeFileSync(file_name, json)
+        globalThis.fs.writeFileSync(file_name, json)
 
         // Update in memory
         BuildingTemplate.addSchema(building)
