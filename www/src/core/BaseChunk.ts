@@ -2,6 +2,7 @@ import {AABB} from './AABB.js'
 import {Vector} from "../helpers.js";
 import {CHUNK_CX, CHUNK_CY} from "../chunk_const.js"
 import type {ChunkGrid} from "./ChunkGrid.js";
+import type {DataChunk} from "./DataChunk";
 
 const tempAABB = new AABB();
 
@@ -359,14 +360,19 @@ export class BaseChunk {
 }
 
 export class Portal {
-    [key: string]: any;
+    fromRegion: DataChunk;
+    toRegion: DataChunk;
+    rev: Portal;
+    aabb: AABB;
+    volume: number;
+    nibbleCompatible = false;
+    isFacet: boolean;
 
     constructor({aabb, fromRegion, toRegion}) {
         this.aabb = aabb;
         this.volume = (aabb.x_max - aabb.x_min) * (aabb.y_max - aabb.y_min) * (aabb.z_max - aabb.z_min);
         this.fromRegion = fromRegion;
         this.toRegion = toRegion;
-        this.nibbleCompatible = false;
 
         let facet = 0;
         if (aabb.x_max - aabb.x_min > 2) {
