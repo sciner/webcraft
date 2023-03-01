@@ -96,23 +96,25 @@ export class GameClass {
 
     App                         : any;
     skin                        : any;
-    settings                    : any
+    settings                    : GameSettings
     local_server_client?        : any
     prev_player_state?          : any
     free_cam?                   : any
 
     constructor() {
         this.render     = new Renderer('qubatchRenderSurface');
-        this.hud        = new HUD(this.render.canvas);
+        this.settings   = new GameSettings()
+        this.hud        = new HUD(this.render.canvas, this.settings);
         // Local server client
         this.local_server_client = ((globalThis as any).LocalServerClient !== undefined) ? new LocalServerClient() : null;
         this.preLoop = this.preLoop.bind(this)
     }
 
     // Start
-    async Start(server_url : string, world_guid : string, settings, resource_loading_progress) {
+    async Start(server_url : string, world_guid : string, resource_loading_progress? : (state : any) => {}) {
         Qubatch.game = this;
-        this.settings = settings;
+        
+        const settings = this.settings
 
         // Load resources
         Resources.onLoading = resource_loading_progress;

@@ -317,7 +317,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
 
     // Settings
     $scope.settings = {
-        form: new GameSettings(),
+        form: Qubatch.settings,
         lightMode: {
             list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
             get current() {
@@ -467,7 +467,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
-            const world = await $scope.Qubatch.Start(server_url, world_guid, options, (resource_loading_state) => {
+            const world = await $scope.Qubatch.Start(server_url, world_guid, (resource_loading_state) => {
                 Qubatch.hud.draw(true);
             });
             if(!world.info) {

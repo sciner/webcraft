@@ -7,6 +7,7 @@ import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
+import type { GameSettings } from "./game.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -121,7 +122,7 @@ class HUDWindow extends Window {
 export class HUD {
     [key: string]: any;
 
-    constructor(canvas) {
+    constructor(canvas, settings: GameSettings) {
 
         this.canvas = canvas
 
