@@ -85,7 +85,7 @@ export class RecipeWindow extends BlankWindow {
         super(10, 10, 592/2, 668/2, 'frmRecipe', null, null)
         this.canBeOpenedWith = ['frmInventory', 'frmCraft']
 
-        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom

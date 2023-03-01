@@ -10,7 +10,7 @@ export class NotImplementedWindow extends BlankWindow {
 
         super(10, 10, 236, 192, 'frmNotImplemented', null, null);
 
-        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom

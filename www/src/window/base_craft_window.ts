@@ -118,7 +118,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
         super(x, y, w, h, id, null, '')
-        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
         this.style.font.size = 10 * this.zoom
         this.ct = ct
         this.setSlotIndex(slot_index)
@@ -808,7 +808,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         }
         ct.inventory_slots  = [];
         const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
-        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
         sx *= this.zoom
         sy *= this.zoom
         let index = 0

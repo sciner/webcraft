@@ -14,7 +14,7 @@ class CreativeInventoryCollection extends Window {
         
         super(x, y, w, h, id, title, text)
 
-        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
@@ -203,7 +203,7 @@ export class CreativeInventoryWindow extends BlankWindow {
     constructor(inventory) {
         super(10, 10, 390, 450, 'frmCreativeInventory')
 
-        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom

@@ -1,5 +1,5 @@
 import { Window } from "../../../tools/gui/wm.js";
-import {BLOCK} from "../../blocks.js";
+import { BLOCK } from "../../blocks.js";
 import { Resources } from "../../resources.js";
 import { Helpers } from "../../helpers.js";
 
@@ -24,7 +24,7 @@ export class QuestView extends Window {
 
         super(x, y, w, h, id, title, text);
 
-        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         
         // Ширина / высота слота
         this.cell_size = 36 * this.zoom;
@@ -95,7 +95,7 @@ export class QuestView extends Window {
 
         // rewards
         const rewards = []
-        for(let item of quest.rewards) {
+        for(const item of quest.rewards) {
             const block = BLOCK.fromId(item.block_id);
             if(block) {
                 rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt);

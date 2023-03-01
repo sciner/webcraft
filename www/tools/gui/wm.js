@@ -394,21 +394,7 @@ export class Window extends PIXI.Container {
             if(throw_exception) throw `error_window_not_found_by_id|${id}`
             return null
         }
-        const zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
-        const rezult = this.list.get(id)
-        if (rezult?.style?.font?.size) {
-            rezult.style.font.size *= zoom
-        }
-        if (rezult?.style?.padding) {
-            rezult.style.padding *= zoom
-        }
-        if (rezult?.height) {
-            rezult.height *= zoom
-        }
-        if (rezult?.width) {
-            rezult.width *= zoom
-        }
-        return rezult
+        return this.list.get(id)
     }
 
     getVisibleWindowOrNull(id) {
@@ -888,11 +874,12 @@ export class Window extends PIXI.Container {
         const ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
         ]
+        const zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         const calcLayoutSize = (value, def_value) => {
             if(value === undefined) {
                 return def_value
             }
-            return (value | 0) * this.zoom
+            return (value | 0) * zoom
         }
         for(let id in layout) {
             const cl = layout[id]
@@ -904,6 +891,15 @@ export class Window extends PIXI.Container {
                 const y = calcLayoutSize(cl.y, 0)
                 const w = calcLayoutSize(cl.width, this.w)
                 const h = calcLayoutSize(cl.height, 0)
+                if (cl?.style?.font?.size) {
+                    cl.style.font.size *= zoom
+                }
+                if (cl?.style?.padding) {
+                    cl.style.padding *= zoom
+                }
+                if (cl?.gap) {
+                    cl.gap *= zoom
+                }
                 switch(cl.type) {
                     case 'VerticalLayout': {
                         control = new VerticalLayout(x, y, w, id);
@@ -1676,7 +1672,7 @@ export class VerticalLayout extends Window {
 
     refresh() {
         let y = 0
-        for(let w of this.list.values()) {
+        for(const w of this.list.values()) {
             if(!w.visible) continue
             w.x = 0
             w.y = y

@@ -10,7 +10,7 @@ export class StatsWindow extends BlankWindow {
     constructor(player) {
 
         super(10, 10, 352, 332, "frmStats", null, null)
-        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom

@@ -9,7 +9,7 @@ export class QuestMenu extends Window {
     //
     constructor(x, y, w, h, id, title?, text?) {
         super(x, y, w, h, id, title, text);
-        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
         this.max_height = 0;

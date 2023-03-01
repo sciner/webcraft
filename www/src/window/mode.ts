@@ -14,7 +14,7 @@ export class ModeWindow extends Window {
 
         super(0, 0, 217, 130, 'frmMode')
 
-        this.zoom = UI_ZOOM  * Qubatch.settings.interface_size / 100
+        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom

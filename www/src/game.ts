@@ -50,6 +50,7 @@ export class GameSettings {
     cluster_draw_debug_grid: boolean = false
     // interface
     interface_size:          float = 100
+    window_size:             float = 100
 
     apply(state : {[key: string]: any}) {
 
@@ -66,6 +67,7 @@ export class GameSettings {
         this.base_ambient_light_level   = Mth.clamp(this.base_ambient_light_level, 0, 100)
         this.use_light                  = Mth.clamp(this.use_light, 0, 2)
         this.interface_size             = Mth.clamp(this.interface_size, 10, 300)
+        this.window_size                = Mth.clamp(this.window_size, 10, 300)
 
     }
 
