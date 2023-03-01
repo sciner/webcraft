@@ -38,7 +38,9 @@ export class MainMenu extends BlankWindow {
 
     // onShow
     onShow(args) {
+        this.parent.zoom = 10
         this.parent.center(this)
+        console.log(this.parent)
         Qubatch.releaseMousePointer()
         super.onShow(args)
     }

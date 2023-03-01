@@ -346,12 +346,14 @@ export class Hotbar {
         // Draw strings
         this.lblHotbarText.w = hud.width
         this.lblHotbarText.h = hud.height
+        this.lblHotbarText.style.font.size = 18 * this.zoom
         this.lblHotbarTextShadow.w = hud.width + 3
         this.lblHotbarTextShadow.h = hud.height + 3
 
         this.lblHotbarText.style.padding.bottom = hotbar_height + 10 * this.zoom
         // this.lblHotbarTextShadow.style.padding.left = 2 * this.zoom
         this.lblHotbarTextShadow.style.padding.bottom = hotbar_height + 10 * this.zoom
+        this.lblHotbarTextShadow.style.font.size = 18 * this.zoom
 
         this.strings.draw(this.lblHotbarText, this.lblHotbarTextShadow)
 

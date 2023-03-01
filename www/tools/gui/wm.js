@@ -1298,12 +1298,16 @@ class Tooltip extends Label {
 
 export class SimpleBlockSlot extends Window {
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x, y, w, h, id, title, text, zoom = 1) {
         super(x, y, w, h, id, title, text)
+        this.zoom = zoom
         this.style.font.color = '#ffffff'
-        this.style.font.size = 14
         this.style.font.shadow.enable = true
         this.style.font.shadow.alpha = .5
+        const scale = this.zoom
+        console.log(scale)
+        this.style.font.size = 6 * this.zoom
+
         this.text_container.anchor.set(1, 1)
         this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)
 
@@ -1317,9 +1321,7 @@ export class SimpleBlockSlot extends Window {
         this.bar_value.style.background.color = '#00ff00'
         this.addChild(this.bar)
         this.bar.addChild(this.bar_value)
-
         this.item = null
-
     }
 
     getItem() {

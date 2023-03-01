@@ -96,7 +96,7 @@ export class HelpSlot extends Label {
     //     ctx.imageSmoothingEnabled = true;
 
     //     // 1. Draw icon
-    //     const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
+    //     const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);style.font.size
     //     const dest_icon_size = 40 * zoom;
     //     ctx.drawImage(
     //         image,
@@ -117,9 +117,8 @@ export class CraftTableSlot extends SimpleBlockSlot {
     [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
-        super(x, y, w, h, id, null, '')
-        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
-        this.style.font.size = 10 * this.zoom
+        const zoom = UI_ZOOM * ((ct?.hud != undefined) ? Qubatch.settings.interface_size : Qubatch.settings.window_size) / 100
+        super(x, y, w, h, id, null, '', zoom)
         this.ct = ct
         this.setSlotIndex(slot_index)
         ct.inventory.addInventorySlot(this)
@@ -397,6 +396,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         super(x, y, w, h, id, title, text, ct, slot_index)
 
         this.options = options || {}
+
         // if slot is readonly
         if(!this.readonly) {
 
@@ -770,7 +770,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     /**
     * Итоговый слот (то, что мы получим)
     */
-     createResultSlot(x, y) {
+    createResultSlot(x, y) {
         const ct = this;
         // x, y, w, h, id, title, text, ct, slot_index
         let lblResultSlot = this.lblResultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
@@ -808,7 +808,6 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         }
         ct.inventory_slots  = [];
         const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
-        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
         sx *= this.zoom
         sy *= this.zoom
         let index = 0
