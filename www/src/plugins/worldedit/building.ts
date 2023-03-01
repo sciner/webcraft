@@ -121,9 +121,11 @@ export class WorldEditBuilding {
 
         this._insert(building.name, building.pos1, building.pos2, building.entrance)
 
+        const fs = (globalThis as any).fs
+
         // append building_schemas        
         const file_name = `./conf_world.json`
-        let conf_world = globalThis.fs.readFileSync(file_name)
+        let conf_world = fs.readFileSync(file_name)
         
         if(conf_world) {
             conf_world = JSON.parse(conf_world)
@@ -131,7 +133,7 @@ export class WorldEditBuilding {
                 throw 'error_conf_world_corrupted'
             }
             conf_world.building_schemas.push(building)
-            globalThis.fs.writeFileSync(file_name, JSON.stringify(conf_world, null, 4))
+            fs.writeFileSync(file_name, JSON.stringify(conf_world, null, 4))
         } else {
             throw 'error_conf_world_not_found'
         }
@@ -242,10 +244,11 @@ export class WorldEditBuilding {
 
         // export
         const file_name = `./data/building_schema/${building.name}.js`;
+        const fs = (globalThis as any).fs
 
         // Write building to file
         const json = 'export default ' + JSON.stringify(building)
-        globalThis.fs.writeFileSync(file_name, json)
+        fs.writeFileSync(file_name, json)
 
         // Update in memory
         BuildingTemplate.addSchema(building)
