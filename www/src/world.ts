@@ -11,6 +11,8 @@ import { MOUSE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import type { BLOCK } from "./blocks";
 import type { TBlock } from "./typed_blocks3.js";
 import { WorldHistory } from "./history.js";
+import type { WorldAction } from "./world_action.js";
+import type { Player } from "./player.js";
 
 // World container
 export class World implements IWorld {
@@ -216,8 +218,11 @@ export class World implements IWorld {
         });
     }
 
-    // Apply world actions
-    async applyActions(actions, player) {
+    /**
+     * Apply world actions
+     * It's async because the server version has to be async.
+     */
+    async applyActions(actions: WorldAction, player: Player) {
         if(actions.open_window) {
             player.stopAllActivity();
             let args = null;

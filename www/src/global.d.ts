@@ -59,6 +59,7 @@ declare interface TWorldInfo {
     generator:      {
         id: string
         cluster_size?: IVector
+        options: any
     }
     pos_spawn:      IVector
     rules:          Dict<any>
@@ -232,6 +233,7 @@ interface IBlockMaterial {
     chest: {
         slots: int
         private: boolean
+        readonly_slots: int
     }
     ticking: {
         type: string

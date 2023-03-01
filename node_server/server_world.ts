@@ -54,7 +54,7 @@ export class ServerWorld implements IWorld {
     blockCallees: any;
     brains: Brains;
     db: DBWorld;
-    info: any;
+    info: TWorldInfo;
     worldChunkFlags: WorldChunkFlags;
     dbActor: WorldDBActor;
     ore_generator: WorldOreGenerator;
@@ -706,7 +706,7 @@ export class ServerWorld implements IWorld {
      * It does everything that needs to be done when a block extra_data is modified:
      * marks the block as dirty, updates the chunk modifiers.
      */
-    onBlockExtraDataModified(tblock : TBlock, pos : Vector = tblock.posworld.clone()) {
+    onBlockExtraDataModified(tblock : TBlock, pos : IVector = tblock.posworld.clone()): void {
         const item = tblock.convertToDBItem();
         const data = { pos, item };
         tblock.chunk.dbActor.markBlockDirty(data, tblock.index, BLOCK_DIRTY.UPDATE_EXTRA_DATA);

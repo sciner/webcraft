@@ -1205,12 +1205,12 @@ export class ServerChunk {
     }
 
     // Store in modify list
-    addModifiedBlock(pos : Vector, item : IBlockItem, previousId : int) {
+    addModifiedBlock(pos : IVector, item : IBlockItem, previousId : int) {
         const ml = this.modify_list;
         const bm = this.world.block_manager
         if(!ml.obj) ml.obj = {};
         pos = Vector.vectorify(pos);
-        ml.obj[pos.getFlatIndexInChunk()] = item;
+        ml.obj[(pos as Vector).getFlatIndexInChunk()] = item;
         ml.compressed = null;
         ml.private_compressed = null;
         if(item) {

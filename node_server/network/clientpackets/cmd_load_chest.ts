@@ -2,8 +2,10 @@ import { Vector } from "../../../www/src/helpers.js";
 import { isBlockRoughlyWithinPickatRange } from "../../../www/src/block_helpers.js";
 import { ServerClient } from "../../../www/src/server_client.js";
 import { PacketHelpers } from "../../server_helpers.js";
-import { CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD 
+import { CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD
     } from "../../../www/src/constant.js";
+import type { ServerPlayer } from "../../server_player.js";
+import type { TBlock } from "../../../www/src/typed_blocks3.js";
 
 const TTL = 3000;
 const MAX_ATTEMPTS = 1000;
@@ -22,17 +24,14 @@ export default class packet_reader {
 
     /**
      * Request chest content
-     * @param { import("../server_player.js").ServerPlayer } player
-     * @param {*} packet 
-     * @returns 
      */
-    static async read(player, packet) {
+    static async read(player: ServerPlayer, packet) {
 
         function forceClose(removeCurrentChests) {
             if (removeCurrentChests) {
                 player.currentChests = null;
             }
-            player.sendPackets([{ 
+            player.sendPackets([{
                 name: ServerClient.CMD_CHEST_FORCE_CLOSE,
                 data: { chestSessionId: packet.data.chestSessionId }
             }]);
@@ -47,9 +46,9 @@ export default class packet_reader {
         }
         //
         const pos = new Vector(packet.data.pos);
-        let chest;
+        let chest: TBlock | null;
         try {
-            chest = await player.world.chests.get(pos, true);
+            chest = player.world.chests.get(pos, true);
         } catch(e) { // chest is invalid, it's unrecoverable
             forceClose(true);
             throw e;
