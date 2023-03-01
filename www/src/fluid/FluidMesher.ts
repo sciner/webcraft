@@ -76,7 +76,8 @@ export class FluidMesher {
             fluidChunk.meshID = fluidChunk.updateID;
             this.clearInstanceBuffers(fluidChunk);
             let serialized = {};
-            if (buildFluidVertices(this, fluidChunk) > 0) {
+            const quads = buildFluidVertices(this, fluidChunk)
+            if (quads > 0) {
                 limit--;
                 serialized = this.serializeInstanceBuffers(fluidChunk);
             }

@@ -2,7 +2,7 @@ import { getChunkAddr, Vector, VectorCollector } from "../../www/src/helpers.js"
 import {WorldAction} from "../../www/src/world_action.js";
 import { ServerClient } from "../../www/src/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "../../www/src/fluid/FluidConst.js";
-import { WorldEditBuilding } from "./worldedit/building.js";
+import { WorldEditBuilding } from "../../www/src/plugins/worldedit/building.js";
 import { BuildingTemplate } from "../../www/src/terrain_generator/cluster/building_template.js";
 
 const MAX_SET_BLOCK         = 250000 * 4;
@@ -23,7 +23,7 @@ export default class WorldEdit {
     }
 
     initWorker() {
-        this.worker = new Worker(globalThis.__dirname + '/plugins/worldedit/worker.js');
+        this.worker = new Worker(globalThis.__dirname + '../../www/js/plugins/worldedit/worker.js');
         const onmessage = (data) => {
             if(data instanceof MessageEvent) {
                 data = data.data

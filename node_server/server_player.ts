@@ -21,19 +21,20 @@ import { AABB } from "../www/src/core/AABB.js"
 import { EnumDamage } from "../www/src/enums/enum_damage.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
+import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
 
-export class NetworkMessage {
-    time: number;
-    name: string;
-    data: {};
+export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
+    time?: number;
+    name: int;      // a value of ServerClient.CMD_*** numeric constants
+    data: DataT;
     constructor({
         time = Date.now(),
-        name = '',
+        name = -1,
         data = {}
     }) {
         this.time = time;
         this.name = name;
-        this.data = data;
+        this.data = data as DataT;
     }
 }
 
@@ -95,6 +96,7 @@ export class ServerPlayer extends Player {
     oxygen_level: number;
     conn: any;
     savingPromise?: Promise<void>
+    lastSentPacketTime = Infinity   // performance.now()
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -281,16 +283,16 @@ export class ServerPlayer extends Player {
     }
 
     // Нанесение урона игроку
-    setDamage(val : number, src?) {
-        this.damage.addDamage(val, src);
+    setDamage(val : number, type_damage? : EnumDamage, actor?) {
+        this.damage.addDamage(val, type_damage, actor);
     }
 
     /**
      * sendPackets
-     * @param {NetworkMessage[]} packets
      */
-    sendPackets(packets) {
+    sendPackets(packets: INetworkMessage[]) {
         const ns = this.world.network_stat;
+        this.lastSentPacketTime = performance.now()
 
         // time is the same for all commands, so it's saved once in the 1st of them
         if (packets.length) {
@@ -468,6 +470,9 @@ export class ServerPlayer extends Player {
         this.checkCastTime();
         this.effects.checkEffects();
         //this.updateAABB()
+        if (this.lastSentPacketTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
+            this.sendPackets([{name: ServerClient.CMD_NOTHING, data: null}])
+        }
     }
 
     get isAlive() : boolean {
@@ -938,49 +943,53 @@ export class ServerPlayer extends Player {
     }
 
     // использование предметов и оружия
-    onAttackEntity(button_id, mob_id, player_id) {
-        const item = this.world.block_manager.fromId(this.state.hands.right.id);
-        const damage = item?.damage ? item.damage : 1;
-        const delay = item?.speed ? 200 / item.speed : 200;
-        const time = performance.now() - this.timer_reload;
-        this.timer_reload = performance.now();
-        // проверяем время последнего клика
-        if (time > delay) {
-            const world = this.world;
-            // использование предметов
-            if (button_id == MOUSE.BUTTON_RIGHT) {
-                if (mob_id) {
-                    const mob = world.mobs.get(mob_id);
-                    // если этот инструмент можно использовать на мобе, то уменьшаем прочнось
-                    if (mob.setUseItem(this.state.hands.right.id, this)) {
-                        if (item?.power) {
-                            this.inventory.decrement_instrument();
-                        } else {
-                            this.inventory.decrement();
-                        }
-                    }
+    onUseItem(mob_id, player_id) {
+        const world = this.world
+        const item = world.block_manager.fromId(this.state.hands.right.id)
+        // использование предметов
+        if (mob_id) {
+            const mob = world.mobs.get(mob_id)
+            // если этот инструмент можно использовать на мобе, то уменьшаем прочнось
+            if (mob.setUseItem(this.state.hands.right.id, this)) {
+                if (item?.power) {
+                    this.inventory.decrement_instrument()
+                } else {
+                    this.inventory.decrement()
                 }
             }
-            // удары
-            if (button_id == MOUSE.BUTTON_LEFT) {
-                if (player_id && world.rules.getValue('pvp')) {
-                    // наносим урон по игроку
-                    const player = world.players.get(player_id);
-                    player.setDamage(damage);
-                    // уменьшаем прочнось
-                    if (item?.power) {
-                        this.inventory.decrement_instrument();
-                    }
-                }
-                if (mob_id) {
-                    // наносим урон по мобу
-                    const mob = world.mobs.get(mob_id);
-                    mob.setDamage(damage, EnumDamage.PUNCH, this);
-                    // уменьшаем прочнось
-                    if (item?.power) {
-                        this.inventory.decrement_instrument();
-                    }
-                }
+        }
+    }
+
+    // урон от оружия
+    onAttackEntity(mob_id, player_id) {
+        const world = this.world
+        const item = world.block_manager.fromId(this.state.hands.right.id)
+        const time = performance.now() - this.timer_reload
+        if (time < 200) {
+            return
+        } 
+        this.timer_reload = performance.now()
+        let damage = item?.damage ? item.damage : 1
+        const speed = item?.speed ? item.speed : 1
+        const strength = Math.min(Math.max(time * speed, 0), 1000) / 1000
+        damage = damage * (.2 + strength * strength * .8)
+        const crit = strength > .9 // @todo crit нельзя посчитать, так как нет информации о игроке (находится в воде, летит, бежит)
+        if (player_id && world.rules.getValue('pvp')) {
+            // наносим урон по игроку
+            const player = world.players.get(player_id)
+            player.setDamage(damage, EnumDamage.PUNCH, this)
+            // уменьшаем прочнось предмета
+            if (item?.power) {
+                this.inventory.decrement_instrument()
+            }
+        }
+        if (mob_id) {
+            // наносим урон по мобу
+            const mob = world.mobs.get(mob_id)
+            mob.setDamage(damage, EnumDamage.PUNCH, this)
+            // уменьшаем прочнось предмета
+            if (item?.power) {
+                this.inventory.decrement_instrument()
             }
         }
     }

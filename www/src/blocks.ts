@@ -263,6 +263,7 @@ export class BLOCK {
     static FLAG_SPAWN_EGG                       = 0x20 | 0
     static FLAG_STONE                           = 0x40 | 0
     static FLAG_FLUID                           = 0x80 | 0
+    static FLAG_OPAQUE_FOR_NATURAL_SLAB         = 0x100 | 0
 
     static addFlag(flag: number, ...blockIds: number[]): void {
         for(const id of blockIds) {
@@ -277,9 +278,11 @@ export class BLOCK {
 
     static addHardcodedFlags(): void {
         // See also isFluidId()
-        this.addFlag(this.FLAG_FLUID, 200, 202, 170, 171, 218, 219)
+        this.addFlag(this.FLAG_FLUID, this.FLOWING_WATER.id, this.STILL_WATER.id, this.FLOWING_LAVA.id, this.STILL_LAVA.id, this.FLOOD_WATER.id, this.FLOOD_LAVA.id)
         // Taken from overworld.ts
         this.addFlag(this.FLAG_STONE, this.STONE?.id, this.ANDESITE?.id, this.DIORITE?.id, this.GRANITE?.id)
+        //
+        this.addFlag(this.FLAG_OPAQUE_FOR_NATURAL_SLAB, this.DIRT_PATH.id)
     }
 
     static checkGeneratorOptions() {
@@ -1496,38 +1499,41 @@ export class BLOCK {
         console.table(ranges);
     }
 
-};
+    // Init
+    static async init(settings : GameSettings) {
 
-// Init
-BLOCK.init = async function(settings : GameSettings) {
+        if(BLOCK.list.size > 0) {
+            return BLOCK
+            // throw 'error_blocks_already_inited'
+        }
 
-    if(BLOCK.list.size > 0) {
-        throw 'error_blocks_already_inited';
+        BLOCK.reset();
+        BLOCK.settings = settings
+
+        // Resource packs
+        BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
+
+        // block styles and resorce styles is independent (should)
+        // block styles is how blocks is generated
+        // resource styles is textures for it
+
+        await Promise.all([
+            Resources.loadBlockStyles(settings),
+            BLOCK.resource_pack_manager.init(settings)
+        ]).then(([block_styles, _]) => {
+            BLOCK.sortBlocks();
+            BLOCK.addHardcodedFlags();
+            BLOCK.checkGeneratorOptions()
+            // Block styles
+            for(let style of block_styles.values()) {
+                BLOCK.registerStyle(style);
+            }
+        })
+
+        return BLOCK
+
     }
 
-    BLOCK.reset();
-    BLOCK.settings = settings
+}
 
-    // Resource packs
-    BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK);
-
-    // block styles and resorce styles is independent (should)
-    // block styles is how blocks is generated
-    // resource styles is textures for it
-
-    await Promise.all([
-        Resources.loadBlockStyles(settings),
-        BLOCK.resource_pack_manager.init(settings)
-    ]).then(([block_styles, _]) => {
-        //
-        BLOCK.sortBlocks();
-        BLOCK.addHardcodedFlags();
-        BLOCK.checkGeneratorOptions()
-        // Block styles
-        for(let style of block_styles.values()) {
-            BLOCK.registerStyle(style);
-        }
-    });
-};
-
-export type BlockManager = typeof BLOCK;
+export type BlockManager = typeof BLOCK

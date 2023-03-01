@@ -83,7 +83,7 @@ export class Noise3d {
         const {cx, cy, cz, shiftCoord, cgen, result} = this;
         const ind = cx * vec.x + cy * vec.y + cz * vec.z + shiftCoord;
         if(ind < 0 || ind >= cgen) {
-            throw 'error_invalid_noise_inde'
+            throw 'error_invalid_noise_index'
         }
         out.d1 = result[ind];
         out.d2 = result[ind + cgen];

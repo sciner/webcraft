@@ -69,7 +69,11 @@ export class ServerWorld implements IWorld {
     mobs: WorldMobManager;
     packets_queue: WorldPacketQueue;
     ticks_stat: WorldTickStat;
-    network_stat: { in: number; out: number; in_count: number; out_count: number; out_count_by_type: any; in_count_by_type: any; out_size_by_type: any; in_size_by_type: any; };
+    network_stat: {
+        in: number; out: number; in_count: number; out_count: number;
+        out_count_by_type?: int[]; in_count_by_type?: int[];
+        out_size_by_type?: int[]; in_size_by_type?: int[];
+    };
     start_time: number;
     weather_update_time: number;
     rules: GameRule;
@@ -635,18 +639,16 @@ export class ServerWorld implements IWorld {
 
     /**
      * Отправить только указанным
-     * @param {Object[]} packets
-     * @param {number[] | ServerPlayer} selected_players IDs of players or a single ServerPlayer
-     * @param {?number[]} except_players  ID of players.
+     * @param selected_players IDs of players or a single ServerPlayer
+     * @param except_players  ID of players.
      *   It's ignored if {@link selected_players} is ServerPlayer.
-     * @return {void}
      */
-    sendSelected(packets, selected_players, except_players = null) {
-        if (selected_players.sendPackets) { // fast check if it's a ServerPlayer
-            selected_players.sendPackets(packets)
+    sendSelected(packets: INetworkMessage[], selected_players: number[] | ServerPlayer, except_players?: number[]) {
+        if ((selected_players as ServerPlayer).sendPackets) { // fast check if it's a ServerPlayer
+            (selected_players as ServerPlayer).sendPackets(packets)
             return
         }
-        for (const user_id of selected_players) {
+        for (const user_id of selected_players as number[]) {
             if (except_players?.includes(user_id)) {
                 continue;
             }
@@ -663,9 +665,10 @@ export class ServerWorld implements IWorld {
     }
 
     // Create drop items
-    createDropItems(player : ServerPlayer | undefined, pos : Vector, items, velocity : Vector) {
+    createDropItems(player : ServerPlayer | undefined, pos : Vector, items, velocity : Vector, hasPickupDelay?: boolean) {
         try {
-            const drop_item = DropItem.create(this, pos, items, velocity);
+            const user_id = hasPickupDelay ? player?.session.user_id : null;
+            const drop_item = DropItem.create(this, pos, items, velocity, user_id);
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {

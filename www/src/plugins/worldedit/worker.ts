@@ -1,20 +1,24 @@
-import { BLOCK } from "../../../www/src/blocks.js";
-import { Vector } from "../../../www/src/helpers.js";
+import { BLOCK } from "../../blocks.js";
+import type { GameSettings } from "../../game.js";
+import { Vector } from "../../helpers.js";
 import { SchematicReader } from "./schematic_reader.js";
 
-let parentPort
+let parentPort : any
+let bm : BLOCK
 import('worker_threads').then(module => {
     parentPort = module.parentPort;
     parentPort.on('message', onMessageFunc);
 })
 
-await BLOCK.init({
-    _json_url: '../../../www/data/block_style.json',
-    _resource_packs_url: '../../../www/data/resource_packs.json'
-})
-
 function postMessage(message) {
     parentPort.postMessage(message)
+}
+
+async function initBlockManager() : Promise<any> {
+    return bm || (bm = BLOCK.init({
+        _json_url: '../../../data/block_style.json',
+        _resource_packs_url: '../../../data/resource_packs.json'
+    } as GameSettings))
 }
 
 // On message callback function
@@ -23,6 +27,7 @@ async function onMessageFunc(e) {
     if(typeof e == 'object' && 'data' in e) {
         data = e.data;
     }
+    const bm = await initBlockManager()
     // console.log('chat_worldedit -> worker', data)
     const cmd = data[0]
     const args = data[1]

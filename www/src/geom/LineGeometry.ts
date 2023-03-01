@@ -1,4 +1,5 @@
 import {Vector} from "../helpers.js";
+import type BaseRenderer from "../renders/BaseRenderer.js";
 
 export class LineGeometry {
     [key: string]: any;
@@ -274,7 +275,7 @@ export class LineGeometry {
         }
     }
 
-    draw(render) {
+    draw(render : BaseRenderer) {
         render.batch.setObjectDrawer(render.line);
         render.line.draw(this);
     }

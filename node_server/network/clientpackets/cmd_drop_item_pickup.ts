@@ -1,8 +1,7 @@
 import { WorldAction } from "../../../www/src/world_action.js";
 import { ServerClient } from "../../../www/src/server_client.js";
 import { PlayerEvent } from "../../player_event.js";
-
-const MAX_DIST_FOR_PICKUP = 2.5;
+import { MAX_DIST_FOR_PICKUP } from "../../../www/src/constant.js";
 
 export default class packet_reader {
 
@@ -65,7 +64,7 @@ export default class packet_reader {
             }
 
             world.chunks.itemWorld.delete(drop_item, true);
-            
+
             // @todo players must receive this packet after 200ms after player send request
             // because animation not ended
             setTimeout(async () => {
@@ -74,7 +73,7 @@ export default class packet_reader {
                 if(restored_items.length > 0) {
                     const actions = new WorldAction();
                     actions.addDropItem({pos: drop_item.pos, items: restored_items, force: true});
-                    world.actions_queue.add(null, actions); 
+                    world.actions_queue.add(null, actions);
                 }
 
                 // play sound on client

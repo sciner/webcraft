@@ -8,6 +8,7 @@ import { Biome3LayerManager } from "./layer_manager.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { TerrainMap2 } from "./terrain/map.js";
 import type { WorkerWorld } from "../../worker/world.js";
+import { WATER_LEVEL } from "./terrain/manager_vars.js";
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -19,7 +20,7 @@ export const DEFAULT_CELL = {
     code: 'flat'
 })};
 
-const DEFAUL_MAP_OPTIONS = {WATER_LINE: 80}
+const DEFAUL_MAP_OPTIONS = {WATER_LEVEL}
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {

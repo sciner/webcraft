@@ -3,13 +3,14 @@ import { getChunkAddr, Vector } from "./helpers.js";
 export class ServerClient {
     [key: string]: any;
 
-    static cmd_titles               = null;
+    static cmd_titles : Map<int, string> = null;
 
     // System
     static CMD_HELLO                    = 1; // server -> player
     static CMD_PING                     = 3; // player -> server
     static CMD_PONG                     = 4; // server -> player
     static CMD_SYNC_TIME                = 5; // two side
+    static CMD_NOTHING                  = 111; // server -> player. It does nothing. It's sent periodically if no other commnas have been sent for a fwe seconds.
 	static CMD_ERROR                    = 7; // server -> player (some error)
     static CMD_CHANGE_RENDER_DIST       = 10; // player -> server
     static CMD_CONNECT                  = 34; // player -> server
@@ -19,6 +20,7 @@ export class ServerClient {
     static CMD_BLOCK_DESTROY            = 35;
     static CMD_BLOCK_SET                = 36;
     static CMD_BLOCK_CLONE              = 84;
+    static CMD_BLOCK_ROLLBACK           = 110; // server -> player: a client must rollback a block state using its own history
     static CMD_CHUNK_LOAD               = 37; // player -> server
     static CMD_CHUNK_LOADED             = 39;
 
@@ -97,13 +99,15 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 110
+    // NEXT UNUSED COMMAND INDEX        = 112
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
     static BLOCK_ACTION_DESTROY         = 2;
     static BLOCK_ACTION_MODIFY          = 3;
     static BLOCK_ACTION_REPLACE         = 4;
+
+    lastPacketReceivedTime              = Infinity; // set to performance.now() when a packet is received
 
     // Constructor
     constructor(ws) {
@@ -126,6 +130,7 @@ export class ServerClient {
         this.cmdListenersForPlayers     = new Map();
         // Add listeners for server commands
         this.AddCmdListener([ServerClient.CMD_PONG], (cmd) => {this.ping_value = performance.now() - this.ping_time;});
+        this.AddCmdListener([ServerClient.CMD_NOTHING], () => {})
     }
 
     //
@@ -209,6 +214,7 @@ export class ServerClient {
         const set_block_list    = [];
         let arr                 = [];
         let chunk_addr          = new Vector(Infinity, Infinity, Infinity);
+        this.lastPacketReceivedTime = performance.now();
         if(!chunkManager) debugger
         for(let i = cmds.length - 1; i >= 0; i--) {
             const cmd = cmds[i];
@@ -279,21 +285,18 @@ export class ServerClient {
     }
 
     //
-    static getCommandTitle(cmd_id) {
+    static getCommandTitle(cmd_id: int): string | int {
         //
         if(!this.cmd_titles) {
             this.cmd_titles = new Map();
             for(let title in ServerClient) {
-                if(title.indexOf('CMD_') == 0) {
+                if(title.startsWith('CMD_')) {
                     this.cmd_titles.set(ServerClient[title], title);
                 }
             }
         }
         //
-        if(this.cmd_titles.has(cmd_id)) {
-            return this.cmd_titles.get(cmd_id)
-        }
-        return cmd_id;
+        return this.cmd_titles.get(cmd_id) ?? cmd_id;
     }
 
     Send(packet) {

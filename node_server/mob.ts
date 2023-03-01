@@ -11,6 +11,7 @@ import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.
 import type { Indicators } from "../www/src/player.js";
 import type { ServerPlayer } from "./server_player.js";
 import { upgradeToNewIndicators } from "./db/world.js";
+import type { ServerChunk } from "./server_chunk.js";
 
 export class MobSpawnParams {
 
@@ -242,7 +243,7 @@ export class Mob {
      * @param chunk - optional, increases performance a bit.
      * @retrun true if there is anything to save in a world transaction
      */
-    onUnload(chunk = null) {
+    onUnload(chunk : ServerChunk = null) {
         console.debug(`Mob unloaded ${this.entity_id}, ${this.id}`);
         const world = this.#world;
         world.mobs.delete(this.id);

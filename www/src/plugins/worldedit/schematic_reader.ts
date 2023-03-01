@@ -1,15 +1,17 @@
-import { BLOCK, DBItemBlock } from "../../../www/src/blocks.js";
-import { Schematic } from "prismarine-schematic";
+import { BLOCK, DBItemBlock } from "../../blocks.js";
+import { Schematic } from "../../../../node_server/node_modules/prismarine-schematic/index.js";
 import { promises as fs } from 'fs';
-import { SIX_VECS, Vector, VectorCollector } from "../../../www/src/helpers.js";
-import { RailShape } from "../../../www/src/block_type/rail_shape.js";
-import * as FLUID from '../../../www/src/fluid/FluidConst.js';
+import { SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
+import { RailShape } from "../../block_type/rail_shape.js";
+import * as FLUID from '../../fluid/FluidConst.js';
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
 const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
 
 const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
+
+// const {Schematic} = await import("prismarine-schematic" as any)
 
 // SchematicReader...
 export class SchematicReader {
@@ -37,7 +39,8 @@ export class SchematicReader {
 
         orig_file_name += ''
 
-        let file_name = `./plugins/worldedit/schematics/${orig_file_name}`;
+        let file_name = `./data/schematics/${orig_file_name}`;
+        console.log(file_name)
 
         // Check schem file exists and try extension append
         const fileExists = path => fs.stat(path).then(() => true, () => false);

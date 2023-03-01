@@ -10,7 +10,7 @@ import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
-import {doBlockAction, WorldAction} from "./world_action.js";
+import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
@@ -132,7 +132,7 @@ export class Player implements IPlayer {
     sharedProps :               IPlayerSharedProps;
     chat :                      Chat
     render:                     Renderer;
-    world :                     World
+    world:                      World
     options:                    any;
     game_mode:                  GameMode;
     inventory:                  PlayerInventory;
@@ -198,6 +198,7 @@ export class Player implements IPlayer {
     body_rotate_o:              number;
     body_rotate_speed:          number;
     mineTime:                   number;
+    timer_attack:               number;
     pr:                         any;
     inhand_animation_duration:  number;
     pn_start_change_sneak:      number;
@@ -324,6 +325,7 @@ export class Player implements IPlayer {
         this.body_rotate_o          = 0;
         this.body_rotate_speed      = BODY_ROTATE_SPEED;
         this.mineTime               = 0;
+        this.timer_attack           = 0
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
@@ -385,10 +387,18 @@ export class Player implements IPlayer {
         this.pickAt = new PickAt(this.world, this.render, async (arg1, arg2, arg3) => {
             return await this.onPickAtTarget(arg1, arg2, arg3);
         }, async (e) => {
+            const instrument = this.getCurrentInstrument()
+            const speed = instrument?.speed ? instrument.speed : 1
+            const time = e.start_time - this.timer_attack
+            if (time < 500) {
+                return
+            } 
+            this.mineTime = 0
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
                 this.inAttackProcess = ATTACK_PROCESS_ONGOING;
-                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
+                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
             }
+            this.timer_attack = e.start_time
             if (e.interactPlayerID) {
                 const player = Qubatch.world.players.get(e.interactPlayerID);
                 if (player) {
@@ -604,10 +614,11 @@ export class Player implements IPlayer {
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
                     const target_mat = this.pickAt.getTargetBlock(this)?.material;
+                    const is_plant_berry = (target_mat &&  [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(target_mat.id) && cur_mat_id == BLOCK.SWEET_BERRY_BUSH.id) ? true : false
                     const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style_name == 'planting') ? true : false;
                     const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
                     const is_cauldron  = (target_mat && target_mat.id == BLOCK.CAULDRON.id);
-                    if(!is_cauldron && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
+                    if(!is_cauldron && !is_plant_berry && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
@@ -630,7 +641,10 @@ export class Player implements IPlayer {
             this.world.server.Send({
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: null
-            });
+            })
+            if (this.state.sleep) {
+                this.controls.jump = true
+            }
         }
     }
 
@@ -663,7 +677,7 @@ export class Player implements IPlayer {
         } else if(e.destroyBlock) {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
-            let mul             =  Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            let mul             = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
             mul *= this.eyes_in_block?.is_water ? 0.2 : 1;
             mul += mul * 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
             mul -= mul * 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
@@ -698,7 +712,7 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig = JSON.parse(JSON.stringify(e));
-            const player = {
+            const player: ActionPlayerInfo = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
                 pos: this.lerpPos,
@@ -707,18 +721,21 @@ export class Player implements IPlayer {
                     user_id: this.session.user_id
                 }
             };
-            const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
-            if(e.createBlock && actions.blocks.list.length > 0) {
-                this.startArmSwingProgress();
+            const [actions, pos] = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            if (actions) {
+                e_orig.snapshotId = this.world.history.makeSnapshot(pos);
+                if(e.createBlock && actions.blocks.list.length > 0) {
+                    this.startArmSwingProgress();
+                }
+                await this.world.applyActions(actions, this);
+                e_orig.actions = {blocks: actions.blocks};
+                e_orig.eye_pos = this.getEyePos();
+                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                this.world.server.Send({
+                    name: ServerClient.CMD_PICKAT_ACTION,
+                    data: e_orig
+                });
             }
-            await this.world.applyActions(actions, this);
-            e_orig.actions = {blocks: actions.blocks};
-            e_orig.eye_pos = this.getEyePos();
-            // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-            this.world.server.Send({
-                name: ServerClient.CMD_PICKAT_ACTION,
-                data: e_orig
-            });
         }
         return true;
     }

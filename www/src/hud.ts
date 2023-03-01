@@ -4,9 +4,10 @@ import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
 import { isMobileBrowser, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
-import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
+import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
+import type { GameSettings } from "./game.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -35,6 +36,8 @@ class HUDLabel extends Label {
 class HUDWindow extends Window {
     [key: string]: any;
 
+    noConnectionWarning: Window
+
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
         this.addChild(this.splash = GradientGraphics.createVertical('#1c1149', '#66408d', 512))
@@ -46,6 +49,12 @@ class HUDWindow extends Window {
         this.lbl_loading.style.textAlign.horizontal = 'center'
         this.lbl_loading.style.textAlign.vertical = 'middle'
         this.lbl_loading.style.font.color = '#ffffff'
+
+        this.add(this.noConnectionWarning = new Window(x, 100, w, 0, 'hud_connection_info', undefined, ''))
+        this.noConnectionWarning.style.textAlign.horizontal = 'center'
+        this.noConnectionWarning.style.font.color = '#ff0000'
+        this.noConnectionWarning.style.font.size = 24
+        this.noConnectionWarning.visible = false
 
         // Kb tips
         const kb_tips = [
@@ -73,10 +82,19 @@ class HUDWindow extends Window {
     }
 
     update(width, height, loading, loading_parts) {
+        this.noConnectionWarning.visible = false
         if(!loading) {
             this.progressbar.visible = false
             this.kb_tips.visible = false
-            // 
+            //
+            const sinceLastPacket = performance.now() - Qubatch.world.server.lastPacketReceivedTime
+            if (sinceLastPacket > HUD_CONNECTION_WARNING_INTERVAL) {
+                this.noConnectionWarning.visible = true
+                this.noConnectionWarning.w = width
+                this.noConnectionWarning.style.padding._changed()
+                this.noConnectionWarning.text = Lang[`no_connection|${sinceLastPacket * 0.001 | 0}`]
+            }
+        } else {
         }
         this.lbl_loading.visible = loading
         this.lbl_loading.w = width
@@ -104,7 +122,7 @@ class HUDWindow extends Window {
 export class HUD {
     [key: string]: any;
 
-    constructor(canvas) {
+    constructor(canvas, settings: GameSettings) {
 
         this.canvas = canvas
 

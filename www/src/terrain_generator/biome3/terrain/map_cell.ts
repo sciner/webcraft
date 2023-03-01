@@ -1,8 +1,12 @@
+import type { Vector } from "../../../helpers.js";
 import { Default_Terrain_Map_Cell } from "../../default.js";
+import type { DensityParams } from "./manager_vars.js";
 
 // Map cell
 export class TerrainMapCell extends Default_Terrain_Map_Cell {
     [key: string]: any;
+
+    blocks_good_for_plants : int[]
 
     constructor(value, humidity, temperature, biome, dirt_block_id) {
         super(biome);
@@ -15,11 +19,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         this.blocks_good_for_plants = [BLOCK.GRASS_BLOCK.id, BLOCK.SNOW_DIRT.id, BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.MOSS_BLOCK.id]
     }
 
-    /**
-     * @param {Vector} xyz
-     * @param {int} block_id
-     */
-    genPlantOrGrass(x, y, z, size, block_id, rnd, density_params) {
+    genPlantOrGrass(x : int, y : int, z : int, size : Vector, block_id : int, rnd, density_params : DensityParams) {
 
         const biome = this.biome
         const FLOWERS_THRESHOLD = .3

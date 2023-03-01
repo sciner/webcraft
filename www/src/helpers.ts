@@ -833,21 +833,20 @@ export class VectorCollectorFlat {
 }
 
 // VectorCollector...
-export class VectorCollector {
-    [key: string]: any;
-    size: any;
-    list: any;
+export class VectorCollector<T = any> {
+    size: int;
+    list: Map<int, Map<int, Map<int, T>>>;
 
     /**
      */
-    constructor(list?: Map<any, any>, blocks_size: int | null = null) {
+    constructor(list?: any, blocks_size: int | null = null) {
         this.clear(list);
         if(list && (blocks_size !== null)) {
             this.size = blocks_size
         }
     }
 
-    *[Symbol.iterator]() {
+    *[Symbol.iterator](): IterableIterator<T> {
         for (let x of this.list.values()) {
             for (let y of x.values()) {
                 for (let value of y.values()) {
@@ -862,7 +861,7 @@ export class VectorCollector {
      * Goupd are numbered from 0 to {@link groupsCount} - 1.
      * It method iterates over values from group {@link groupIndex}
      */
-    *subsetOfValues(groupIndex, groupsCount) {
+    *subsetOfValues(groupIndex: int, groupsCount: int): IterableIterator<T> {
         for (let [x, byX] of this.list) {
             if (((x % groupsCount) + groupsCount) % groupsCount === groupIndex) {
                 for (let byY of byX.values()) {
@@ -872,7 +871,7 @@ export class VectorCollector {
         }
     }
 
-    entries(aabb?: AABB) {
+    entries(aabb?: AABB): IterableIterator<[Vector, T]> {
         const that = this;
         return (function* () {
             if(that.size == 0) {
@@ -898,7 +897,7 @@ export class VectorCollector {
         this.size = 0;
     }
 
-    set(vec: IVector, value: any) : boolean {
+    set(vec: IVector, value: T) : boolean {
         let size = this.size;
         if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
         if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
@@ -912,7 +911,7 @@ export class VectorCollector {
         return this.size > size;
     }
 
-    add(vec : IVector, value: any) {
+    add(vec : IVector, value: T): T {
         if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
         if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
         if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
@@ -926,7 +925,7 @@ export class VectorCollector {
     }
 
     // If the element exists, returns it. Otherwise sets it to the result of createFn().
-    getOrSet(vec : IVector, createFn : Function) {
+    getOrSet(vec : IVector, createFn : (vec: IVector) => T): T {
         let byY = this.list.get(vec.x);
         if (byY == null) {
             byY = new Map();
@@ -955,7 +954,7 @@ export class VectorCollector {
      *   If its result is null, the value is deleted.
      * @return the new value.
      */
-    update(vec : IVector, mapFn : Function) {
+    update(vec : IVector, mapFn : (old?: T) => T | null): T | null {
         let byY = this.list.get(vec.x);
         if (byY == null) {
             byY = new Map();
@@ -1010,11 +1009,11 @@ export class VectorCollector {
         return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
     }
 
-    get(vec) {
+    get(vec: IVector): T | null {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
     }
 
-    keys() {
+    keys(): IterableIterator<Vector> {
         const that = this;
         return (function* () {
             if(that.size == 0) {
@@ -1030,7 +1029,7 @@ export class VectorCollector {
         })()
     }
 
-    values() {
+    values(): IterableIterator<T> {
         const that = this;
         return (function* () {
             for (let x of that.list.values()) {
@@ -1456,7 +1455,7 @@ export class Vector implements IVector {
 
     /**
      */
-    lerpFrom(vec1: IVector, vec2: IVector, delta: float) : Vector {
+    lerpFrom(vec1: IVector, vec2: IVector, delta: float) : this {
         this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
         this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
         this.z = vec1.z * (1.0 - delta) + vec2.z * delta;
@@ -1465,7 +1464,7 @@ export class Vector implements IVector {
 
     /**
      */
-    lerpFromAngle(vec1 :IVector, vec2: IVector, delta: float, rad : boolean = false) : Vector {
+    lerpFromAngle(vec1 :IVector, vec2: IVector, delta: float, rad : boolean = false) : this {
         const coef = rad
             ? 180 / Math.PI
             : 1;
@@ -1484,7 +1483,7 @@ export class Vector implements IVector {
         return new Vector(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }
 
-    addScalarSelf(x: number, y: number, z: number) : Vector {
+    addScalarSelf(x: number, y: number, z: number) : this {
         this.x += x;
         this.y += y;
         this.z += z;
@@ -1493,7 +1492,7 @@ export class Vector implements IVector {
 
     /**
      */
-    addSelf(vec: IVector) : Vector {
+    addSelf(vec: IVector) : this {
         this.x += vec.x;
         this.y += vec.y;
         this.z += vec.z;
@@ -1510,7 +1509,7 @@ export class Vector implements IVector {
      * @param {Vector} vec
      * @return {Vector}
      */
-    subSelf(vec: IVector) : Vector {
+    subSelf(vec: IVector) : this {
         this.x -= vec.x;
         this.y -= vec.y;
         this.z -= vec.z;
@@ -1533,7 +1532,7 @@ export class Vector implements IVector {
         return new Vector(this.x / vec.x, this.y / vec.y, this.z / vec.z);
     }
 
-    zero() : Vector {
+    zero() : this {
         this.x = 0;
         this.y = 0;
         this.z = 0;
@@ -1548,7 +1547,7 @@ export class Vector implements IVector {
 
     /**
      */
-    swapXZSelf(): Vector {
+    swapXZSelf(): this {
         return this.set(this.z, this.y, this.x);
     }
 
@@ -1617,7 +1616,7 @@ export class Vector implements IVector {
         return new Vector(this.x / l, this.y / l, this.z / l);
     }
 
-    normSelf() : Vector {
+    normSelf() : this {
         const l = this.length();
         this.x /= l;
         this.y /= l;
@@ -1642,7 +1641,7 @@ export class Vector implements IVector {
     /**
      * @returns {Vector}
      */
-    roundSelf(decimals?: number) : Vector {
+    roundSelf(decimals?: number) : this {
         if(decimals) {
             decimals = Math.pow(10, decimals);
             this.x = Math.round(this.x * decimals) / decimals;
@@ -1656,14 +1655,14 @@ export class Vector implements IVector {
         return this;
     }
 
-    minSelf(vec: IVector) : Vector {
+    minSelf(vec: IVector) : this {
         this.x = Math.min(this.x, vec.x);
         this.y = Math.min(this.y, vec.y);
         this.z = Math.min(this.z, vec.z);
         return this
     }
 
-    maxSelf(vec: IVector) : Vector {
+    maxSelf(vec: IVector) : this {
         this.x = Math.max(this.x, vec.x);
         this.y = Math.max(this.y, vec.y);
         this.z = Math.max(this.z, vec.z);
@@ -1761,14 +1760,14 @@ export class Vector implements IVector {
     /**
      * @return {Vector}
      */
-    flooredSelf() : Vector {
+    flooredSelf() : this {
         this.x = Math.floor(this.x);
         this.y = Math.floor(this.y);
         this.z = Math.floor(this.z);
         return this;
     }
 
-    translate(x: number, y: number, z: number) : Vector {
+    translate(x: number, y: number, z: number) : this {
         this.x += x;
         this.y += y;
         this.z += z;
@@ -1791,7 +1790,7 @@ export class Vector implements IVector {
         return this;
     }
 
-    set(x: Vector | IVector | number[] | number, y: number, z: number) : Vector {
+    set(x: Vector | IVector | number[] | number, y: number, z: number) : this {
         if (x && typeof x == 'object') {
             return this.copy(x);
         }
@@ -1803,42 +1802,42 @@ export class Vector implements IVector {
         return this;
     }
 
-    setScalar(x: number, y: number, z: number) : Vector {
+    setScalar(x: number, y: number, z: number) : this {
         this.x = x;
         this.y = y;
         this.z = z;
         return this;
     }
 
-    multiplyScalarSelf(scalar: number) : Vector {
+    multiplyScalarSelf(scalar: number) : this {
         this.x *= scalar;
         this.y *= scalar;
         this.z *= scalar;
         return this;
     }
 
-    multiplyVecSelf(vec: IVector) : Vector {
+    multiplyVecSelf(vec: IVector) : this {
         this.x *= vec.x;
         this.y *= vec.y;
         this.z *= vec.z;
         return this;
     }
 
-    divScalarSelf(scalar: number) : Vector {
+    divScalarSelf(scalar: number) : this {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
         return this;
     }
 
-    divScalarVecSelf(vec : IVector) : Vector {
+    divScalarVecSelf(vec : IVector) : this {
         this.x /= vec.x;
         this.y /= vec.y;
         this.z /= vec.z;
         return this;
     }
 
-    toAngles() : Vector {
+    toAngles() : this {
         // N = 0
         // W = 1
         // S = 2
@@ -1888,7 +1887,7 @@ export class Vector implements IVector {
      * @param {DIRECTION_BIT} dir
      * @return {Vector}
      */
-    rotY(dir : number) : Vector {
+    rotY(dir : number) : this {
         let tmp_x = this.x, tmp_z = this.z;
         if (dir == DIRECTION.EAST) {
             this.x = tmp_z;
@@ -2795,6 +2794,8 @@ export class StringHelpers {
 
 export class ArrayHelpers {
 
+    static EMPTY = []
+
     // elements order is not preserved
     static fastDelete(arr: any[], index: number): void {
         arr[index] = arr[arr.length - 1];
@@ -2842,6 +2843,17 @@ export class ArrayHelpers {
             sum += mapper(arr[i]);
         }
         return sum;
+    }
+
+    static max(arr : any[], initial: number = -Infinity, mapper = (it: any): number => it): number {
+        let max = initial
+        for (let i = 0; i < arr.length; i++) {
+            const v = mapper(arr[i])
+            if (max < v) {
+                max = v
+            }
+        }
+        return max
     }
 
     /**
@@ -2929,11 +2941,11 @@ export class ArrayHelpers {
         return res;
     }
 
-    static create(size: number, fill?: Function): any[] {
+    static create<T = any>(size: int, fill?: ((index: int) => T) | T): T[] {
         const arr = new Array(size);
         if (typeof fill === 'function') {
             for(let i = 0; i < arr.length; i++) {
-                arr[i] = fill(i);
+                arr[i] = (fill as Function)(i);
             }
         } else if (fill !== null) {
             arr.fill(fill);
@@ -2977,42 +2989,50 @@ export class ArrayHelpers {
 
 // Helper methods to work with an array or a scalar in the same way.
 export class ArrayOrScalar {
-    [key: string]: any;
 
     // Returns Array or null as is. Non-null scalars are wraped into an array.
-    static toArray(v) {
-        return (v == null || Array.isArray(v)) ? v : [v];
+    static toArray<T = any>(v: T | T[]): T[] {
+        return (v == null || Array.isArray(v)) ? v as T[] : [v];
     }
 
-    static get(v: any[], index: number) {
+    static *values<T = any>(v: T | T[]): IterableIterator<T> {
+        if (Array.isArray(v)) {
+            yield* v
+        } else {
+            yield v
+        }
+    }
+
+    static get<T = any>(v: T | T[], index: int): T {
         return Array.isArray(v) ? v[index] : v;
     }
 
-    // TODO: where is first arg v?
-    // static find(fn) {
-    //     return Array.isArray(v)
-    //         ? v.find(fn)
-    //         : (fn(v) ? v : null);
-    // }
+    static find<T = any>(v: T | T[], fn: (v: T) => boolean): T {
+        return Array.isArray(v)
+            ? v.find(fn)
+            : (fn(v) ? v : null)
+    }
 
-    static map(v: any[], fn: any) {
+    /** For aray, the same as {@link Array.map}. For scalar, returns {@link fn} applied to it. */
+    static map<T = any, OutT = any>(v: T | T[], fn: (v: T) => OutT): OutT | OutT[] {
         return Array.isArray(v) ? v.map(fn) : fn(v);
     }
 
     // Sets the length of an Array, but doesn't change a scalar
-    static setArrayLength(v, length) {
+    static setArrayLength<T = any>(v: T | T[], length: int): T | T[] {
         if (Array.isArray(v)) {
             v.length = length;
         }
         return v;
     }
 
-    static mapSelf(v, fn) {
+    /** Similar to {@link map}, but changes the array itself instead of creating a copy. */
+    static mapSelf<T = any, OutT = any>(v: T | T[], fn: (v: T) => OutT): OutT | OutT[] {
         if (Array.isArray(v)) {
             for(let i = 0; i < v.length; i++) {
-                v[i] = fn(v[i]);
+                (v as any[])[i] = fn(v[i]);
             }
-            return v;
+            return v as any[];
         } else {
             return fn(v);
         }
@@ -3598,55 +3618,57 @@ export class ObjectHelpers {
 // A queue backed by an array that wraps around.
 // shift() and length are compatible with that of Array.
 // push() is not fully compatible with Array: it doesn't support multiple arguments.
-export class SimpleQueue {
-    [key: string]: any;
-    arr: any[];
-    left: number;
-    length: number;
+export class SimpleQueue<T = any> {
+    arr: T[];
+    left = 0;
+    length = 0; // the number of actually used elements
 
     constructor() {
         this.arr = [null]; // a single element to prevent division by 0
-        this.left = 0;
-        this.length = 0; // the number of actually used elements
     }
 
-    push(v) {
-        this._grow();
+    push(v: T): void {
+        if (this.length === this.arr.length) {
+            this._grow();
+        }
         this.arr[(this.left + this.length) % this.arr.length] = v;
         this.length++;
     }
 
-    unshift(v) {
-        this._grow();
+    unshift(v: T): void {
+        if (this.length === this.arr.length) {
+            this._grow();
+        }
         this.left = (this.left + this.arr.length - 1) % this.arr.length;
         this.arr[this.left] = v;
         this.length++;
     }
 
-    shift() {
+    shift(): T | undefined {
         if (this.length === 0) {
             return;
         }
         const v = this.arr[this.left];
+        this.arr[this.left] = null; // free memory
         this.left = (this.left + 1) % this.arr.length;
         this.length--;
         return v;
     }
 
-    get(index) {
+    get(index: int): T | undefined {
         if (index >= 0 && index < this.length) {
             return this.arr[(this.left + index) % this.arr.length];
         }
     }
 
-    _grow() {
-        if (this.length === this.arr.length) {
-            // grow: copy the beginning into the end; the beginning becomes empty.
-            // At least one element is pushed.
-            for(var i = 0; i <= this.left; i++) {
-                this.arr.push(this.arr[i]);
-            }
+    _grow(): void {
+        // grow: copy the beginning into the end; the beginning becomes empty.
+        for(let i = 0; i < this.left; i++) {
+            this.arr.push(this.arr[i]);
+            this.arr[i] = null; // free memory
         }
+        // ensure that at least one element is added
+        this.arr.push(null);
     }
 }
 

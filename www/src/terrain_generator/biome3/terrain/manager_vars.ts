@@ -1,6 +1,6 @@
-import type { Vector } from "../../../helpers";
+import type { Vector } from "../../../helpers.js";
 
-export const WATER_LEVEL = 80;
+export const WATER_LEVEL = 79;
 
 export class ClimateParams {
 
@@ -23,14 +23,23 @@ export class ClimateParams {
 }
 
 export class MapCellPreset {
-    [key: string]: any;
+    id: string
+    chance: float
+    relief: float
+    mid_level: float
+    density_coeff: {
+        d1: float
+        d2: float
+        d3: float
+        d4: float
+    }
 
     /**
-     * @param {string} id
-     * @param {object} options options
-     * @param {float} options.chance
-     * @param {float} options.relief кривизна рельефа
-     * @param {float} options.mid_level базовая высота поверхности относительно уровня моря
+     * @param id
+     * @param options options
+     * @param options.chance
+     * @param options.relief кривизна рельефа
+     * @param options.mid_level базовая высота поверхности относительно уровня моря
      */
     constructor(id: string, {chance, relief, mid_level}) {
         this.id = id;
@@ -49,33 +58,21 @@ export class MapCellPreset {
 
 //
 export class DensityParams {
-    [key: string]: any;
+    d1: float;
+    d2: float;
+    d3: float;
+    d4: float;
+    density: float;
+    fixed_density?: float;
+    dcaves: float;
+    in_aquifera: boolean;
+    local_water_line: int;
 
-    /**
-     * @param {float} d1
-     * @param {float} d2
-     * @param {float} d3
-     * @param {float} d4
-     * @param {float} density
-     * @param {float} dcaves
-     * @param {boolean} in_aquifera
-     * @param {int} local_water_line
-     */
-    constructor(d1, d2, d3, d4, density, dcaves = 0, in_aquifera = false, local_water_line = WATER_LEVEL) {
+    constructor(d1 : float, d2 : float, d3 : float, d4 : float, density : float, dcaves : float = 0, in_aquifera : boolean = false, local_water_line : int = WATER_LEVEL) {
         return this.set(d1, d2, d3, d4, density, dcaves, in_aquifera, local_water_line)
     }
 
-    /**
-     * @param {float} d1
-     * @param {float} d2
-     * @param {float} d3
-     * @param {float} d4
-     * @param {float} density
-     * @param {float} dcaves
-     * @param {boolean} in_aquifera
-     * @param {int} local_water_line
-     */
-    set(d1, d2, d3, d4, density, dcaves = 0, in_aquifera = false, local_water_line = WATER_LEVEL) {
+    set(d1 : float, d2 : float, d3 : float, d4 : float, density : float, dcaves : float = 0, in_aquifera : boolean = false, local_water_line : int = WATER_LEVEL) {
         this.d1 = d1;
         this.d2 = d2;
         this.d3 = d3;

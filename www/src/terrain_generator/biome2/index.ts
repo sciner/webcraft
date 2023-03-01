@@ -117,7 +117,7 @@ export default class Terrain_Generator extends Demo_Map {
         const size_y                    = chunk.size.y;
         const size_z                    = chunk.size.z;
         const BLOCK_WATER_ID            = BLOCK.STILL_WATER.id;
-        const ywl                       = map.options.WATER_LINE - chunk.coord.y;
+        const ywl                       = map.options.WATER_LEVEL - chunk.coord.y;
         const stone_block               = BLOCK.STONE.id;
         const grass_block_id            = BLOCK.GRASS_BLOCK.id;
         const dirt_block_id             = BLOCK.DIRT.id;
@@ -146,7 +146,7 @@ export default class Terrain_Generator extends Demo_Map {
                 const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
                 const dirt_block        = cell.dirt_block_id;
                 const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
-                const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
+                const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, 2);
                 const has_modificator   = true; // has_voxel_buildings || has_islands || has_extruders;
 
                 if(!dirt_block_mat || dirt_block_mat.id != dirt_block) {
@@ -216,7 +216,7 @@ export default class Terrain_Generator extends Demo_Map {
                 if(has_ocean_blocks) {
                     temp_vec.set(x, 0, z);
                     // water
-                    for(let y = value; y <= map.options.WATER_LINE; y++) {
+                    for(let y = value; y <= map.options.WATER_LEVEL; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
                             temp_vec.y = y - chunk.coord.y;
                             chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK_WATER_ID);
@@ -225,7 +225,7 @@ export default class Terrain_Generator extends Demo_Map {
                     // ice
                     let iced = false;
                     if(cell.equator < .6 && cell.humidity > .4) {
-                        const vl = map.options.WATER_LINE;
+                        const vl = map.options.WATER_LEVEL;
                         if(vl >= chunk.coord.y && vl < chunk.coord.y + chunk.size.y) {
                             temp_vec.y = vl - chunk.coord.y;
                             chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.ICE.id);
@@ -234,7 +234,7 @@ export default class Terrain_Generator extends Demo_Map {
                     }
                     // LILI_PAD
                     if(!iced) {
-                        const water_depth = map.options.WATER_LINE - value;
+                        const water_depth = map.options.WATER_LEVEL - value;
                         if(water_depth < 2 && rnd < .025) {
                             chunk.setBlockIndirect(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.LILY_PAD.id);
                         }

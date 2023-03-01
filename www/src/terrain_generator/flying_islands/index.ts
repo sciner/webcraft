@@ -40,7 +40,7 @@ export default class Terrain_Generator extends Demo_Map {
                 chunk.addr,
                 chunk.size,
                 chunk.addr.mul(chunk.size),
-                {WATER_LINE: 63},
+                {WATER_LEVEL: 63},
                 Array(chunk.size.x * chunk.size.z).fill(cell)
             );
         };

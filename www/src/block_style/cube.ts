@@ -521,7 +521,7 @@ export default class style {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
             if(block.id == bm.LILY_PAD.id) {
                 axes_down = UP_AXES[rv % 4];
-                flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX;
+                flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;
             } else {
                 axes_up = UP_AXES[rv % 4];
             }
@@ -543,7 +543,12 @@ export default class style {
             if((block.id == BLOCK.GRASS_BLOCK_SLAB.id || block.id == BLOCK.SNOW_DIRT_SLAB.id) && side != 'up' && side != 'down') {
                 _sideParams.t[1] -= .5 / material.tx_cnt;
             }
-            _sideParams.f = flags | upFlags | sideFlags | animFlag;
+            _sideParams.f = flags | animFlag;
+            if(side == 'up') {
+                _sideParams.f |= upFlags
+            } else if (side != 'down') {
+                _sideParams.f |= sideFlags
+            }
             if((_sideParams.f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
                 lm.b = _sideParams.t[3] * TX_CNT;
             }

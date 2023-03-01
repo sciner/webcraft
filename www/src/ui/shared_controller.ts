@@ -210,7 +210,7 @@ export class Shared_Controller {
         // Show Loading...
         Qubatch.hud.draw();
         const server_url = this.getServerURL();
-        const world = await this.Qubatch.Start(server_url, world_guid, options, (resource_loading_state) => {
+        const world = await this.Qubatch.Start(server_url, world_guid, (resource_loading_state) => {
             Qubatch.hud.draw(true);
         });
         if(!world.info) {

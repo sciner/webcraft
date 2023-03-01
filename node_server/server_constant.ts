@@ -1,3 +1,8 @@
+// network
+
+/** The server sends a command to each player at least once per this interval of time. */
+export const SERVER_SEND_CMD_MAX_INTERVAL = 1000
+
 // database
 
 /**

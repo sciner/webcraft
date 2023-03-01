@@ -15,7 +15,6 @@ export const INVENTORY_CHANGE_SHIFT_SPREAD = 4;
 
 export class Inventory {
     [key: string]: any;
-
     player: Player
 
     temp_vec = new Vector();
@@ -435,7 +434,7 @@ export class Inventory {
         }
         while(mat.previous_part && mat.previous_part.id != mat.id) {
             let b = block_manager.fromId(mat.previous_part.id);
-            mat = {id: b.id, previous_part: b.previous_part};
+            mat = {id: b.id, previous_part: b.previous_part} as IBlockMaterial;
         }
         const cloned_block = block_manager.convertItemToInventoryItem(mat);
         delete(cloned_block.extra_data);

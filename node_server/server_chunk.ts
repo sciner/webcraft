@@ -16,6 +16,7 @@ import type { ServerPlayer } from "./server_player.js";
 import type { Mob, MobSpawnParams } from "./mob.js";
 import type { DropItem } from "./drop_item.js";
 import type { ServerChunkManager } from "./server_chunk_manager.js";
+import { FluidChunkQueue } from "../www/src/fluid/FluidChunkQueue.js";
 import type { DBItemBlock } from "../www/src/blocks";
 import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
 
@@ -447,7 +448,19 @@ export class ServerChunk {
         this.sendAll(packets, []);
     }
 
-    sendFluidDelta(buf) {
+    /** Creates a packet describing fluid at world position {@link worldPos} */
+    createFluidDeltaPacketAt(worldPos: Vector): INetworkMessage {
+        const buf = FluidChunkQueue.packAsDelta(worldPos, this.fluid)
+        return {
+            name: ServerClient.CMD_FLUID_DELTA,
+            data: {
+                addr: this.addr,
+                buf: Buffer.from(buf).toString('base64')
+            }
+        }
+    }
+
+    sendFluidDelta(buf: Uint8Array): void {
         const packets = [{
             name: ServerClient.CMD_FLUID_DELTA,
             data: {
@@ -492,7 +505,7 @@ export class ServerChunk {
             }
         }
         */
-        this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.tblocks = newTypedBlocks(this.coord, chunkManager.dataWorld.grid);
         this.tblocks.chunk = this;
         this.tblocks.light = this.light;
         chunkManager.dataWorld.addChunk(this);
@@ -652,7 +665,7 @@ export class ServerChunk {
     }
 
     //
-    sendAll(packets : any[], except_players? : number[]) {
+    sendAll(packets : INetworkMessage[], except_players? : number[]) {
         const connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, except_players);
     }
@@ -908,7 +921,7 @@ export class ServerChunk {
         }
 
         const pos = tblock.posworld;
-        const rot = tblock.rotate;
+        const rot = tblock.rotate || Vector.YP;
         const rotx = tblock.rotate?.x;
         const roty = tblock.rotate?.y;
         const neighbourPos = neighbour.posworld;

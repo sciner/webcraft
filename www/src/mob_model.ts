@@ -315,15 +315,22 @@ export class MobAnimation {
     leg({
         part, index, aniangle, animable, isArm = 0
     }) {
+        // если лег поспать, то не двигаемся
+        if (animable.sleep) {
+            quat.identity(part.quat);
+            quat.rotateX(part.quat, part.quat, 0)
+            quat.rotateY(part.quat, part.quat, 0)
+            quat.rotateZ(part.quat, part.quat, 0)
+            part.updateMatrix();
+            return
+        }
         const x             = index % 2;
         const y             = index / 2 | 0;
         let sign          = isArm ? (index == 0 || index == 2) ? -1 : 1 : x ^ y ? 1 : -1;
         const ageInTicks    = performance.now() / 50;
         const isLeftArm     = isArm && index % 2 != 0;
         const isLeftLeg     = !isArm && index % 2 == 0;
-        const itemInArm     = isArm;
         const isZombie      = animable.type == 'zombie';
-        const isHumanoid    = animable.type.indexOf('player:') >= 0;
         const rotate        = new Vector(0, 0, 0);
         const isSitting     = animable.sitting; // isHumanoid;
 
@@ -587,7 +594,7 @@ export class MobModel extends NetworkPhysicObject {
             this.tintColor.set(1, 0, 0, .3);
             setTimeout(() => {
                 this.tintColor.set(0, 0, 0, 0);
-            }, 700);
+            }, 200);
             // add velocity
             // let velocity = new Vector(0, 0.5, 0);
             // mob.addVelocity(velocity);

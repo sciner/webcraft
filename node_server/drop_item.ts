@@ -2,13 +2,25 @@ import { Vector, unixTime, ObjectHelpers } from "../www/src/helpers.js";
 import { PrismarinePlayerControl } from "../www/src/vendors/prismarine-physics/using.js";
 import {ServerClient} from "../www/src/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
-import type { ServerWorld } from "./server_world";
-import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor"
-import type { BulkDropItemsRow } from "./db/world"
+import type { ServerWorld } from "./server_world.js";
+import type { DropItemPacket } from "../www/src/drop_item_manager.js";
+import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js"
+import type { BulkDropItemsRow } from "./db/world.js"
 
 export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
 export const MOTION_STAYED = 2;
+
+/** Parameters used in the constructor of {@link DropItem} */
+export type DropItemParams = {
+    rowId ?     : int
+    id ?        : int
+    pos         : Vector
+    items
+    entity_id   : string
+    dt          : int       // unixTime()
+    delayUserId ? : int     // id of a user that has pickup delay for this item
+}
 
 export class DropItem {
 
@@ -30,8 +42,10 @@ export class DropItem {
     inChunk: any;
     motion: number;
     load_time: number;
+    /** If it's defined, it's a plyer who has delay picking up this item. */
+    delayUserId?: int;
 
-    constructor(world : ServerWorld, params, velocity? : Vector, isNew : boolean = false) {
+    constructor(world : ServerWorld, params: DropItemParams, velocity? : Vector, isNew : boolean = false) {
         this.#world         = world;
         this.entity_id      = params.entity_id,
         this.dt             = params.dt,
@@ -41,6 +55,7 @@ export class DropItem {
         this.rowId          = params.rowId;
         // Don't set this.dirty directly, call markDirty() instead.
         this.dirty          = isNew ? DropItem.DIRTY_NEW : DropItem.DIRTY_CLEAR;
+        this.delayUserId    = params.delayUserId;
         /**
          * The chunk in which this item is currently listed.
          * It may be different from {@link chunk_addr} and {@link getChunk}
@@ -67,14 +82,18 @@ export class DropItem {
         }
     }
 
-    /** @return { object } data to send in CMD_DROP_ITEM_ADDED and CMD_DROP_ITEM_FULL_UPDATE */
-    getItemFullPacket() {
-        return {
+    /** @return data to send in CMD_DROP_ITEM_ADDED and CMD_DROP_ITEM_FULL_UPDATE */
+    getItemFullPacket(): DropItemPacket {
+        const res: DropItemPacket = {
             entity_id:  this.entity_id,
             items:      this.items,
             pos:        this.pos,
             dt:         this.dt
-        };
+        }
+        if (this.delayUserId) {
+            res.delayUserId = this.delayUserId
+        }
+        return res
     }
 
     /**
@@ -139,12 +158,13 @@ export class DropItem {
     }
 
     // Create new drop item. It's dirty and not in the DB yet.
-    static create(world, pos, items, velocity) {
-        const params = {
+    static create(world: ServerWorld, pos: Vector, items, velocity?: Vector, delayUserId?: number) {
+        const params: DropItemParams = {
             pos,
             items:      ObjectHelpers.deepClone(items),
             entity_id:  randomUUID(),
-            dt:         unixTime()
+            dt:         unixTime(),
+            delayUserId
         };
         return new DropItem(world, params, velocity, true);
     }
