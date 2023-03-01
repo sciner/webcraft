@@ -1499,38 +1499,41 @@ export class BLOCK {
         console.table(ranges);
     }
 
-};
+    // Init
+    static async init(settings : GameSettings) {
 
-// Init
-BLOCK.init = async function(settings : GameSettings) {
+        if(BLOCK.list.size > 0) {
+            return BLOCK
+            // throw 'error_blocks_already_inited'
+        }
 
-    if(BLOCK.list.size > 0) {
-        throw 'error_blocks_already_inited';
+        BLOCK.reset();
+        BLOCK.settings = settings
+
+        // Resource packs
+        BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
+
+        // block styles and resorce styles is independent (should)
+        // block styles is how blocks is generated
+        // resource styles is textures for it
+
+        await Promise.all([
+            Resources.loadBlockStyles(settings),
+            BLOCK.resource_pack_manager.init(settings)
+        ]).then(([block_styles, _]) => {
+            BLOCK.sortBlocks();
+            BLOCK.addHardcodedFlags();
+            BLOCK.checkGeneratorOptions()
+            // Block styles
+            for(let style of block_styles.values()) {
+                BLOCK.registerStyle(style);
+            }
+        })
+
+        return BLOCK
+
     }
 
-    BLOCK.reset();
-    BLOCK.settings = settings
+}
 
-    // Resource packs
-    BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK);
-
-    // block styles and resorce styles is independent (should)
-    // block styles is how blocks is generated
-    // resource styles is textures for it
-
-    await Promise.all([
-        Resources.loadBlockStyles(settings),
-        BLOCK.resource_pack_manager.init(settings)
-    ]).then(([block_styles, _]) => {
-        //
-        BLOCK.sortBlocks();
-        BLOCK.addHardcodedFlags();
-        BLOCK.checkGeneratorOptions()
-        // Block styles
-        for(let style of block_styles.values()) {
-            BLOCK.registerStyle(style);
-        }
-    });
-};
-
-export type BlockManager = typeof BLOCK;
+export type BlockManager = typeof BLOCK

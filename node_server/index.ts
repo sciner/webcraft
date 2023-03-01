@@ -57,6 +57,7 @@ import {ServerAPI} from "./server_api.js";
 import {PluginManager} from "./plugin_manager.js";
 
 import features from "../www/src/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
+import type { GameSettings } from '../www/src/game.js';
 // const features = {}
 
 Config.init().then(async (config) => {
@@ -90,7 +91,7 @@ Config.init().then(async (config) => {
     await BLOCK.init({
         _json_url: __dirname + '/../data/block_style.json',
         _resource_packs_url: __dirname + '/../data/resource_packs.json'
-    });
+    } as GameSettings);
 
     // Hack ;)
     Resources.physics = {features}; // (await import("../../www/src/vendors/prismarine-physics/lib/features.json")).default

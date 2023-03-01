@@ -49,6 +49,10 @@ export class GameSettings {
     chunks_draw_debug_grid:  boolean = false
     cluster_draw_debug_grid: boolean = false
 
+    //
+    _json_url?: string
+    _resource_packs_url?: string
+
     apply(state : {[key: string]: any}) {
 
         for(let k in state) {
