@@ -1304,8 +1304,6 @@ export class SimpleBlockSlot extends Window {
         this.style.font.color = '#ffffff'
         this.style.font.shadow.enable = true
         this.style.font.shadow.alpha = .5
-        const scale = this.zoom
-        console.log(scale)
         this.style.font.size = 6 * this.zoom
 
         this.text_container.anchor.set(1, 1)
