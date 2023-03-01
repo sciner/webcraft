@@ -521,7 +521,7 @@ export default class style {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
             if(block.id == bm.LILY_PAD.id) {
                 axes_down = UP_AXES[rv % 4];
-                flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX;
+                flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;
             } else {
                 axes_up = UP_AXES[rv % 4];
             }
