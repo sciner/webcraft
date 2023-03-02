@@ -1,14 +1,36 @@
 import { ClusterBuildingBase } from "./building_cluster_base.js";
-import { BuildingBlocks } from "./building/building_blocks.js";
 import { BuildingTemplate } from "./building_template.js";
 import { impl as alea } from "../../../vendors/alea.js";
 import { Vector } from "../../helpers.js";
 import type { Biome } from "../biome3/biomes.js";
+import { BuildingBlocks } from "./building/building_blocks.js";
+import type { ClusterManager } from "./manager.js";
+
+const CITY_BUILDING_SCHEMAS = [
+    'endcity_fat_tower_top',
+    'endcity_fat_tower_middle',
+    'endcity_fat_tower_base',
+    'endcity_second_roof',
+    'endcity_third_floor_hard',
+    'endcity_second_floor_hard',
+    'endcity_base_roof',
+    'endcity_tower_top',
+    'endcity_bridge_gentle_stairs',
+    'endcity_bridge_steep_stairs',
+    'endcity_bridge_piece',
+    'endcity_bridge_end',
+    'endcity_tower_piece',
+    'endcity_tower_base',
+    'endcity_third_roof',
+    'endcity_third_floor',
+    'endcity_second_floor',
+    'endcity_base_floor'
+]
 
 //
 export class ClusterEndCity extends ClusterBuildingBase {
 
-    constructor(clusterManager, addr : Vector, biome? : Biome) {
+    constructor(clusterManager : ClusterManager, addr : Vector, biome? : Biome) {
 
         super(clusterManager, addr)
         this.random = new alea('seed' + 'tes4') //tre ruzan tes0
@@ -21,10 +43,8 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
         // используемые шаблоны структур
         this.templates = new Map()
-        for (const schema_name of ['endcity_fat_tower_top','endcity_fat_tower_middle','endcity_fat_tower_base','endcity_second_roof','endcity_third_floor_hard','endcity_second_floor_hard', 'endcity_base_roof','endcity_tower_top','endcity_bridge_gentle_stairs','endcity_bridge_steep_stairs','endcity_bridge_piece','endcity_bridge_end','endcity_tower_piece','endcity_tower_base','endcity_third_roof','endcity_third_floor','endcity_second_floor', 'endcity_base_floor']) {
+        for (const schema_name of CITY_BUILDING_SCHEMAS) {
             const template = BuildingTemplate.fromSchema(schema_name, this.block_manager)
-            template.meta.draw_natural_basement = false
-            template.meta.air_column_from_basement = false
             this.templates.set(schema_name, template)
         }
 
@@ -48,8 +68,8 @@ export class ClusterEndCity extends ClusterBuildingBase {
             )
             this.appendBuilding(building)
         }
+
         /*
-        
 
         for(let i = 0; i < 10; i ++) {
 
@@ -103,20 +123,14 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
     }
 
-    /**
-     * @param {BuildingBlocks} building 
-     */
-    appendBuilding(building) {
+    appendBuilding(building : BuildingBlocks) {
         const tp = new Vector(this.start_coord.x, 0, this.start_coord.z)
-        building.translatePos(tp, false)
+        building.translate(tp)
         building.setY(this.start_coord.y)
         building.addBlocks()
         this.buildings.set(building.coord, building)
     }
 
-    /**
-     * @param position 
-     */
     addCity(position, rotation, rand) {
         let base = {
             pos: position,
@@ -132,17 +146,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         this.addTower(1, base, null, rand)
     }
 
-    /**
-     * 
-     * @param {*} pieces 
-     * @param {*} previous 
-     * @param {Vector} position 
-     * @param {string} name 
-     * @param {*} rotation 
-     * @param {boolean} overwrite 
-     * @returns 
-     */
-    addChild(pieces, previous, position, name, rotation, overwrite) {
+    addChild(pieces : any, previous : any, position : Vector, name : string, rotation : int, overwrite : boolean) : any {
         const rot = rotation % 4
         const pos = new Vector(position.x, position.y, position.z)
         if (rot == 1) {

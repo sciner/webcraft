@@ -137,13 +137,6 @@ export class Building {
         this.addBlocks()
     }
 
-    // Translate position
-    translate(vec) {
-        this.aabb.translate(vec.x, vec.y, vec.z)
-        this.coord.addSelf(vec)
-        this.entrance.addSelf(vec)
-    }
-
     draw(cluster: ClusterBase, chunk: ChunkWorkerChunk, draw_natural_basement = true): void {
         // TODO: need to draw one block of air ahead door bottom
         // This code draws a rectangular basement if the new "autoBasement" is absent.
@@ -292,10 +285,7 @@ export class Building {
         }
     }
 
-    /**
-     * @param {int} y
-     */
-    setY(y) {
+    setY(y : int) {
 
         if(this.building_template) {
             y += 1 // this.building_template.door_pos.y
@@ -316,10 +306,7 @@ export class Building {
 
     }
 
-    /**
-     * @param {int[]} sizes
-     */
-    static makeRandomSizeList(sizes) {
+    static makeRandomSizeList(sizes : int[]) {
         const resp = [];
         for(let i = 0; i < sizes.length; i++) {
             const x = sizes[i]
@@ -333,14 +320,8 @@ export class Building {
 
     /**
      * Limit building size
-     *
-     * @param {*} building_template
-     * @param {Vector} coord
-     * @param {Vector} size
-     * @param {Vector} entrance
-     * @param {int} door_direction
      */
-    static selectSize(building_template, coord, size, entrance, door_direction) {
+    static selectSize(building_template: { size: number | Vector | number[] | IVector; door_pos: any; }, coord: Vector, size: Vector, entrance: Vector, door_direction: any) {
 
         const MOVE_TO_BACK = 0 // door_pos.z // 1
 
@@ -377,10 +358,7 @@ export class Building {
         size.z = Math.abs(signed_size.z);
     }
 
-    /**
-     * @returns {AABB}
-     */
-    getRealAABB() {
+    getRealAABB() : AABB {
         const coord = new Vector(0, 0, 0);
         const size = new Vector(1, 0, 1)
         const entrance = new Vector(0, 0, 0)
@@ -403,10 +381,14 @@ export class Building {
         return this._autoBasementAABB
     }
 
-    /**
-     * @param {Vector} vec 
-     */
-    translateXZ(vec) {
+    // Translate position
+    translate(vec : Vector) {
+        this.aabb.translate(vec.x, vec.y, vec.z)
+        this.coord.addSelf(vec)
+        this.entrance.addSelf(vec)
+    }
+
+    translateXZ(vec : Vector) {
 
         // aabb
         const aabb_y_min = this.aabb.y_min
@@ -427,10 +409,7 @@ export class Building {
 
     }
 
-    /**
-     * @param {Vector} vec
-     */
-    moveXZTo(vec) {
+    moveXZTo(vec : Vector) {
         const aabb = this.aabb // this.getRealAABB()
         const diff = new Vector(aabb.x_min, aabb.y_min, aabb.z_min).subSelf(vec).multiplyScalarSelf(-1)
         this.translateXZ(diff)

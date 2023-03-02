@@ -2,13 +2,14 @@ import { Vector } from "../../helpers.js";
 import { BuildingTemplate } from "../../terrain_generator/cluster/building_template.js";
 import { ServerClient } from "../../server_client.js";
 
-import type WorldEdit from "../../../../node_server/plugins/chat_worldedit.js"
+// import type WorldEdit from "../../../../node_server/plugins/chat_worldedit.js"
 import { AABB } from "../../core/AABB.js";
+
 export class WorldEditBuilding {
-    worldedit_instance: WorldEdit
+    worldedit_instance: any // WorldEdit
     list: Map<any, any>;
 
-    constructor(worldedit_instance : WorldEdit) {
+    constructor(worldedit_instance : any /* WorldEdit */) {
         this.worldedit_instance = worldedit_instance;
         this.load();
     }

@@ -1,21 +1,13 @@
 import { AABB } from "../../../core/AABB.js";
-import { getChunkAddr, Vector, VectorCollector } from "../../../helpers.js";
+import { Vector, VectorCollector } from "../../../helpers.js";
+import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
+import type { ClusterBase } from "../base.js";
 import { Building } from "../building.js";
 
 //
 export class BuildingBlocks extends Building {
-    [key: string]: any;
 
-    /**
-     * @param {*} cluster
-     * @param {float} seed
-     * @param {Vector} coord
-     * @param {Vector} entrance
-     * @param {int} door_direction
-     * @param {Vector} size
-     * @param {*} building_template
-     */
-    constructor(cluster, seed, coord, entrance, door_direction, size, building_template) {
+    constructor(cluster: any, seed: float, coord: Vector, entrance: Vector, door_direction: int, size: Vector, building_template: any) {
         super(cluster, seed, coord, entrance, door_direction, size, building_template)
         this.chunks = new VectorCollector()
     }
@@ -32,7 +24,7 @@ export class BuildingBlocks extends Building {
 
         const blocks = this.building_template.rot[(dir + 2) % 4]
 
-        let chunk
+        let chunk_blocks: any[]
 
         // split all blocks by chunks
         for(let i = 0; i < blocks.length; i++) {
@@ -43,16 +35,16 @@ export class BuildingBlocks extends Building {
             Vector.toChunkAddr(pos, chunk_addr)
             if(!chunk_addr.equal(prev_chunk_addr)) {
                 prev_chunk_addr.copyFrom(chunk_addr)
-                chunk = this.chunks.get(chunk_addr)
-                if(!chunk) {
-                    chunk = []
-                    this.chunks.set(chunk_addr, chunk)
+                chunk_blocks = this.chunks.get(chunk_addr)
+                if(!chunk_blocks) {
+                    chunk_blocks = []
+                    this.chunks.set(chunk_addr, chunk_blocks)
                 }
             }
 
             // if(item.move.x== -6 && item.move.y == -18 && item.move.z == 24) debugger
 
-            chunk.push(item)
+            chunk_blocks.push(item)
         }
 
         this.aabb.copyFrom(actual_aabb)
@@ -60,12 +52,7 @@ export class BuildingBlocks extends Building {
 
     }
 
-    /**
-     * @param { import("../base.js").ClusterBase } cluster
-     * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param {*} map
-     */
-    draw(cluster, chunk, map) {
+    draw(cluster : ClusterBase, chunk : ChunkWorkerChunk, map : any) {
         super.draw(cluster, chunk, this.building_template.getMeta('draw_natural_basement', true))
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []
