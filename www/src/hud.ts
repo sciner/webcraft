@@ -10,14 +10,13 @@ import { Mesh_Effect } from "./mesh/effect.js";
 import type { GameSettings } from "./game.js";
 
 // QuestActionType
-export class QuestActionType {
-    [key: string]: any;
+export enum QuestActionType {
 
-    static PICKUP       = 1; // Добыть
-    static CRAFT        = 2; // Скрафтить
-    static SET_BLOCK    = 3; // Установить блок
-    static USE_ITEM     = 4; // Использовать инструмент
-    static GOTO_COORD   = 5; // Достигнуть координат
+    PICKUP       = 1, // Добыть
+    CRAFT        = 2, // Скрафтить
+    SET_BLOCK    = 3, // Установить блок
+    USE_ITEM     = 4, // Использовать инструмент
+    GOTO_COORD   = 5, // Достигнуть координат
 
 }
 
