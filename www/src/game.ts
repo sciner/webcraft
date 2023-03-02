@@ -53,6 +53,19 @@ export class GameSettings {
     _json_url?: string
     _resource_packs_url?: string
 
+    constructor() {
+        this.load()
+    }
+
+    load() {
+        const load_state = localStorage.getItem('settings')
+        this.apply(load_state ? (JSON.parse(load_state) ?? {}) : {})
+    }
+
+    save() {
+        localStorage.setItem('settings', JSON.stringify(this));
+    }
+
     apply(state : {[key: string]: any}) {
 
         for(let k in state) {

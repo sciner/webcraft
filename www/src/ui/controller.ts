@@ -328,16 +328,12 @@ let gameCtrl = async function($scope : any, $timeout : any) {
             }
         },
         save: function() {
-            localStorage.setItem('settings', JSON.stringify(this.form));
+            this.form.save()
             $scope.current_window.show('main');
         },
         toggle: function() {
             $scope.current_window.toggle('settings');
             return false;
-        },
-        load: function() {
-            const load_state = localStorage.getItem('settings')
-            this.form.apply(load_state ? (JSON.parse(load_state) ?? {}) : {})
         },
         updateSlider: function (inputId) {
             const slider = (document.getElementById(inputId) as HTMLInputElement);
@@ -784,7 +780,6 @@ let gameCtrl = async function($scope : any, $timeout : any) {
         },
     };
 
-    $scope.settings.load();
     $scope.Qubatch      = (globalThis as any).Qubatch;
     $scope.skin         = new SkinManager($scope, $timeout);
     $scope.texture_pack = new TexturePackManager($scope);
