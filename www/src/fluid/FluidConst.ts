@@ -94,7 +94,7 @@ export function fluidBlockProps(block) {
         res |= FLUID_WATER_INTERACT;
     }
     if (block.is_solid || block.is_solid_for_fluid) {
-        if (block.transparent) {
+        if (block.transparent && !block.is_opaque_for_fluid) {
             res |= FLUID_BLOCK_RESTRICT;
         } else {
             res |= FLUID_BLOCK_OPAQUE;

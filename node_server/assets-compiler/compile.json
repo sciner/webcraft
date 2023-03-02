@@ -2980,6 +2980,7 @@
             "id": 468,
             "name": "DIRT_PATH",
             "transparent": true,
+            "is_opaque_for_fluid": true,
             "height": 0.9375,
             "sound": "madcraft:block.grass",
             "material": {
