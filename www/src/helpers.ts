@@ -1,13 +1,35 @@
 /// <reference path="./global.d.ts" />
 
+export * from "./helpers/helper_const.js";
+export * from './helpers/color.js';
+export * from "./helpers/mth.js";
+export * from './helpers/vector.js';
+export * from './helpers/vector_collector.js';
+export * from './helpers/performance_timer.js';
+export * from './helpers/string_helpers.js';
+export * from './helpers/object_helpers.js';
+export * from './helpers/alphabet_texture.js';
+export * from './helpers/spiral_generator.js';
+export * from './helpers/indexed_color.js';
+export * from './helpers/fast_random.js';
+
+export * from "./helpers/vector_collector_2d.js";
+export * from "./helpers/vector_cardinal_transformer.js";
+export * from "./helpers/simple_queue.js";
+export * from "./helpers/shifted_matrix.js";
+export * from "./helpers/array_helpers.js";
+export * from "./helpers/array_or_map.js";
+export * from "./helpers/array_or_scalar.js";
+export * from "./helpers/spatial_determenistic_random.js";
+export * from "./helpers/average_clock_timer.js";
+export * from "./helpers/simple_shifted_3d_array.js";
+
 import { CubeSym } from "./core/CubeSym.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
-export * from "./helpers/index.js"
 
 const {mat4, quat} = glMatrix;
-
 
 /**
  * @param {string} url
