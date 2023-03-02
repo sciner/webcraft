@@ -11,7 +11,7 @@ import { KEY, MOUSE } from "../constant.js";
 import  registerTextFilter from './angular/textfilter.js';
 import { Resources } from '../resources.js';
 import { ClipboardHelper } from './clipboard.js';
-// import { PlayerWindowManager } from '../player_window_manager.js';
+import { HUD } from '../hud.js';
 
 function isSupported() {
     // we should support webgl2 strictly
@@ -480,13 +480,12 @@ let gameCtrl = async function($scope : any, $timeout : any) {
 
     $scope.showSplash = async () => {
 
-        /**
-         * @type {GameClass}
-         */
-        const Q = Qubatch
+        const Q: GameClass = Qubatch
         const render = Q.render
         const renderBackend = render.renderBackend
 
+        Q.hud = new HUD(render.canvas, Q.settings)
+  
         // we can use it both
         await Resources.preload({
             imageBitmap:    true,

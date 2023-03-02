@@ -1,9 +1,10 @@
+import type { Player } from "./player.js";
 import { ChargingStationWindow, ChestWindow, DoubleChestWindow, CraftTable, CreativeInventoryWindow, DieWindow, EditSignWindow, FurnaceWindow, InventoryWindow, NotImplementedWindow, QuestWindow, StatsWindow, AnvilWindow, BeaconWindow, ScreenshotWindow, BookWindow, InGameMain, BarrelWindow, EnderChestWindow, ModeWindow, BrewingWindow} from "./window/index.js";
 
 export class PlayerWindowManager {
-    [key: string]: any;
+    player: Player;
 
-    constructor(player) {
+    constructor(player : Player) {
         this.player = player;
         const inventory = player.inventory;
         this.addWindow(new CraftTable(inventory, inventory.recipes));
