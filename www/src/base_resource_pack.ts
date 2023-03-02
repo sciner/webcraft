@@ -1,7 +1,7 @@
 import {Color, Helpers, AlphabetTexture, IndexedColor} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
-import { DEFAULT_TX_SIZE, LIGHT_TYPE_RTX } from './constant.js';
+import { DEFAULT_TX_SIZE, LIGHT_TYPE } from './constant.js';
 import type { TBlock } from './typed_blocks3.js';
 import type { BLOCK, FakeTBlock } from './blocks.js';
 import type { ChunkWorkerChunk } from './worker/chunk.js';
@@ -207,7 +207,7 @@ export class BaseResourcePack {
 
         canvas.width = canvas.height = 0;
 
-        if ('image_n' in textureInfo && settings.use_light == LIGHT_TYPE_RTX) {
+        if ('image_n' in textureInfo && settings.use_light == LIGHT_TYPE.RTX) {
             const { texture } = await this._loadTexture(
                 this.dir + textureInfo.image_n,
                 settings,

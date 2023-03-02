@@ -2,8 +2,7 @@ import { QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
-import { Mesh_Effect_Particle } from './effect/particle.js';
-import { LIGHT_TYPE_NO } from '../constant.js';
+import { LIGHT_TYPE } from '../constant.js';
 
 const STRIDE_FLOATS                         = GeometryTerrain.strideFloats;
 const chunk_size                            = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
@@ -222,7 +221,7 @@ export class Mesh_Effect {
         }
 
         if(this.chunk) {
-            if(render.settings.use_light != LIGHT_TYPE_NO) {
+            if(render.settings.use_light != LIGHT_TYPE.NO) {
                 const light = this.chunk.getLightTexture(render.renderBackend);
                 if(light) {
                     this.material.changeLighTex(light);

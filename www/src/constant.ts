@@ -146,9 +146,11 @@ export const WORLD_TYPE_NORMAL              = 1;
 export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
 
 // Global light type
-export const LIGHT_TYPE_NO                  = 0;
-export const LIGHT_TYPE_SMOOTH              = 1;
-export const LIGHT_TYPE_RTX                 = 2;
+export enum LIGHT_TYPE {
+    NO      = 0,
+    SMOOTH  = 1,
+    RTX     = 2,
+}
 
 export const MOUSE = {
     DOWN: 1,

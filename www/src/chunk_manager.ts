@@ -11,7 +11,7 @@ import { decompressNearby, NEARBY_FLAGS } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
-import { LIGHT_TYPE_NO } from "./constant.js";
+import { LIGHT_TYPE } from "./constant.js";
 import {ChunkExporter} from "./geom/ChunkExporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import type { World } from "./world.js";
@@ -285,7 +285,7 @@ export class ChunkManager {
         const settings = world.settings;
         const resource_cache = Helpers.getCache();
 
-        this.use_light                = settings.use_light != LIGHT_TYPE_NO;
+        this.use_light                = settings.use_light != LIGHT_TYPE.NO;
         this.worker_counter           = this.use_light ? 2 : 1;
 
         this.postWorkerMessage(['init', {

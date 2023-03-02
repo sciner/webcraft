@@ -7,7 +7,7 @@ import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
@@ -38,7 +38,7 @@ export class GameSettings {
     render_distance:         int = 5
     base_ambient_light_level:float = 100
     // quality
-    use_light:               int = 1
+    use_light:               int = LIGHT_TYPE.RTX
     beautiful_leaves:        boolean = true
     leaf_fall:               boolean = true
     draw_improved_blocks:    boolean = true
