@@ -29,6 +29,9 @@ for(let k in conf_world.building_schemas) {
         const json = module.default
         json.name = item.name
         json.meta = json.meta ?? {}
+        if(item.meta) {
+            json.meta = Object.assign(json.meta, item.meta)
+        }
         item.entrance = new Vector(json.world.entrance)
         json.world = {...json.world, ...item}
         conf_world.building_schemas[k] = json
