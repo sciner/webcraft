@@ -150,7 +150,7 @@ export class HUD {
         }
 
         // Main menu
-        this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null)
+        this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, settings)
         wm.add(this.frmMainMenu)
 
         // HUD window

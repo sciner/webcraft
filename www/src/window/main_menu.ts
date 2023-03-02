@@ -5,9 +5,15 @@ import { BlankWindow } from "./blank.js";
 export class MainMenu extends BlankWindow {
     [key: string]: any;
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x, y, w, h, id, title, text, settings) {
         super(x, y, w, h, id, title, text)
-        this.zoom = UI_ZOOM
+        this.zoom = UI_ZOOM  * settings.window_size / 100
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
+        console.log(settings)
+        console.log(settings.window_size)
         const lblTitle = new Label(0, 0, this.w, 30 * this.zoom, 'lblTitle', null, Lang.menu);
         lblTitle.style.textAlign.horizontal = 'center'
         lblTitle.style.font.size = 16 * this.zoom
@@ -38,9 +44,7 @@ export class MainMenu extends BlankWindow {
 
     // onShow
     onShow(args) {
-        this.parent.zoom = 10
         this.parent.center(this)
-        console.log(this.parent)
         Qubatch.releaseMousePointer()
         super.onShow(args)
     }
