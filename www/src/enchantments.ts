@@ -25,7 +25,6 @@ interface IEchantment {
  *   Enchantments.byName['Feather Falling'].id
  */
 export class Enchantments {
-    [key: string]: any;
 
     /* Fields are automaticaly added:
         id: String
@@ -169,7 +168,7 @@ export class Enchantments {
     }
 
     // preprocess
-    static {
+    static init() {
         for(const [id, value] of Object.entries(this.byId)) {
             value.id = id;
             value.incompatible_ids = [];
@@ -198,3 +197,5 @@ export class Enchantments {
         }
     }
 }
+
+Enchantments.init()

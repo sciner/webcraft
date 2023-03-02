@@ -1263,7 +1263,7 @@ export class Vector implements IVector {
 
     // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
     static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
-    static {
+    static initStatics() {
         for(var i = 1; i < 6; ++i) {
             this.SIX_DIRECTIONS_CUMULATIVE.push(
                 this.SIX_DIRECTIONS[i].sub(this.SIX_DIRECTIONS[i - 1]));
@@ -3607,20 +3607,19 @@ export class SimpleQueue<T = any> {
 
 // A matrix that has indices in [minRow..(minRow + rows - 1), minCol..(minCol + cols - 1)]
 export class ShiftedMatrix {
-    [key: string]: any;
-    minRow: any;
-    minCol: any;
-    rows: any;
-    cols: any;
-    rowsM1: number;
-    colsM1: number;
+    minRow: int;
+    minCol: int;
+    rows: int;
+    cols: int;
+    rowsM1: int;
+    colsM1: int;
     arr: any[];
 
     // For each shift, we compute the distance. Shifts that are multiple of each other are not used.
     // It's used to compute approximate cartesian distances (to achieve more natural, rounded corners).
     static _MAX_SHIFT = 3
     static _SHIFTS_BY_DELTA_ROW = ArrayHelpers.create(2 * ShiftedMatrix._MAX_SHIFT + 1, i => [])
-    static { // init shifts
+    static initStatics() { // init shifts
         const shifts = [0,1, 0,-1, 1,0, -1,0, -1,-1, -1,1, 1,-1, 1,1]
         function add(dRow, dCol) {
             const len = Math.sqrt(dRow * dRow + dCol * dCol)
@@ -4366,3 +4365,6 @@ export let NORMALS = {
     UP: new Vector(0, 1, 0),
     DOWN: new Vector(0, -1, 0),
 };
+
+Vector.initStatics()
+ShiftedMatrix.initStatics()
