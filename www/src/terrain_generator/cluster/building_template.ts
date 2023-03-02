@@ -216,7 +216,7 @@ export class BuildingTemplate {
             // DELETE_BLOCK_ID might affect the results.
             // Should we delete it in the beginning?
 
-            this.minFloorYbyXZ = calcMinFloorYbyXZ(bm, this.blocks)
+            this.minFloorYbyXZ = calcMinFloorYbyXZ(bm, [null, this.blocks])
 
             if(min.y != Infinity) {
 
