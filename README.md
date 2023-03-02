@@ -48,6 +48,16 @@ npm run build:www
 npm run types:server
 ```
 
+## Debug from IDE
+
+current `npm run start` commands runs node with our own esm-loader
+
+```
+node --loader ./ts-loader.js index.ts
+```
+
+to run/debug from IDE you have to specify the same `--loader` param in the IDE run conguration
+
 ## Commands
 ```JS
 // Teleport current user to random location 
