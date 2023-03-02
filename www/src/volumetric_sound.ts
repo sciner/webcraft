@@ -355,7 +355,7 @@ class SoundSummary {
      */
     static SECTOR_DIFF_TO_COS = new Array(2 * VOLUMETRIC_SOUND_SECTORS)
     static SECTOR_DIFF_TO_SIN = new Array(2 * VOLUMETRIC_SOUND_SECTORS)
-    static {
+    static initStatics() {
         for(let srctorDiff = -(VOLUMETRIC_SOUND_SECTORS - 1); srctorDiff < VOLUMETRIC_SOUND_SECTORS; srctorDiff++) {
             let azimuth = srctorDiff * SECTOR_TO_ANGLE
             if (azimuth > Math.PI) { // to -PI..PI
@@ -896,3 +896,5 @@ export class SoundMap {
     }
 
 }
+
+SoundSummary.initStatics()
