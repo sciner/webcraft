@@ -3,8 +3,10 @@ import { DIRECTION, getChunkAddr, PerformanceTimer, Vector, VectorCollector} fro
 import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
-import { BuildingPalettes } from "./building/palette.js";
+import type { BuildingPalettes } from "./building/palette.js";
 import type { ClusterManager } from "./manager.js";
+import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 
 //
 const entranceAhead = new Vector(0, 0, 0);
@@ -20,12 +22,8 @@ export const getAheadMove = (dir) => {
 
 // Building base cluster
 export class ClusterBuildingBase extends ClusterBase {
-    [key: string]: any;
 
-    /**
-     * @type {BuildingPalettes}
-     */
-    building_palettes
+    building_palettes: BuildingPalettes
 
     //
     constructor(clusterManager : ClusterManager, addr : Vector, biome? : any) {
@@ -107,14 +105,8 @@ export class ClusterBuildingBase extends ClusterBase {
 
     /**
      * Fill chunk blocks
-     * @param {*} maps 
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk  
-     * @param {*} map 
-     * @param {boolean} fill_blocks 
-     * @param {boolean} calc_building_y 
-     * @returns 
      */
-    fillBlocks(maps, chunk, map, fill_blocks = true, calc_building_y = true) {
+    fillBlocks(maps : TerrainMapManager, chunk : ChunkWorkerChunk, map : TerrainMap, fill_blocks : boolean = true, calc_building_y : boolean = true) {
 
         if(this.is_empty) {
             return false;
@@ -151,16 +143,9 @@ export class ClusterBuildingBase extends ClusterBase {
     }
 
     /**
-     * Draw part of building on map
-     * 
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {object[]} maps 
-     * @param {*} building 
-     * @param {*} map 
-     * 
-     * @returns 
+     * Draw part of building into chunk
      */
-    drawBulding(chunk, maps, building, map) {
+    drawBulding(chunk : ChunkWorkerChunk, maps : TerrainMapManager, building : any, map : any) {
         
         if(building.hidden) {
             return
@@ -184,14 +169,7 @@ export class ClusterBuildingBase extends ClusterBase {
         }
     }
 
-    /**
-     * 
-     * @param {*} maps 
-         * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {*} building 
-     * @returns 
-     */
-    fixBuildingHeight(maps, chunk, building) {
+    fixBuildingHeight(maps : TerrainMapManager, chunk : ChunkWorkerChunk, building : any) {
 
         if(this.clusterManager.chunkManager.world.generator.layers) {
             return false
@@ -240,9 +218,6 @@ export class ClusterBuildingBase extends ClusterBase {
 
     }
 
-    /**
-     * 
-     */
     makeNearMask() {
 
         this.near_mask = new Array(this.size.x * this.size.z).fill(255);

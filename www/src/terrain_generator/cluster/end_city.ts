@@ -1,10 +1,14 @@
 import { ClusterBuildingBase } from "./building_cluster_base.js";
 import { BuildingTemplate } from "./building_template.js";
 import { impl as alea } from "../../../vendors/alea.js";
-import { Vector } from "../../helpers.js";
+import { Vector, VectorCardinalTransformer, VectorCollector } from "../../helpers.js";
 import type { Biome } from "../biome3/biomes.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import type { ClusterManager } from "./manager.js";
+import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
+import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+import { BUILDING_AABB_MARGIN } from "./building.js";
+import { BlockDrawer } from "./block_drawer.js";
 
 const CITY_BUILDING_SCHEMAS = [
     'endcity_fat_tower_top',
@@ -27,6 +31,14 @@ const CITY_BUILDING_SCHEMAS = [
     'endcity_base_floor'
 ]
 
+interface BuildingPiece {
+    pos: Vector
+    name: string
+    rot: int
+    size: any
+    overwrite: boolean
+}
+
 //
 export class ClusterEndCity extends ClusterBuildingBase {
 
@@ -35,6 +47,9 @@ export class ClusterEndCity extends ClusterBuildingBase {
         super(clusterManager, addr)
         this.random = new alea('seed' + 'tes4') //tre ruzan tes0
 
+        this.chunks = new VectorCollector()
+        this.blocks = new BlockDrawer()
+    
         this.max_height = 1
         this.is_empty = this.coord.y < 0
         if (this.is_empty) {
@@ -123,15 +138,52 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
     }
 
+    /**
+     * Fill chunk blocks
+     */
+    fillBlocks(maps : TerrainMapManager, chunk : ChunkWorkerChunk, map : TerrainMap, fill_blocks : boolean = true, calc_building_y : boolean = true) {
+
+        if(this.is_empty) {
+            return false;
+        }
+
+        this.timers.start('fill_blocks')
+
+        // each all buildings
+        for(let b of this.buildings.values()) {
+            if(b.entrance.y != Infinity) {
+                // this.drawBulding(chunk, maps, b, map)
+                // draw basement before the building
+                if (b.getautoBasementAABB()?.intersect(chunk.aabb)) {
+                    b.drawAutoBasement(chunk)
+                }
+            }
+        }
+
+        // set blocks list for chunk
+        this.blocks.list = this.chunks.get(chunk.addr) ?? []
+        // draw chunk blocks
+        this.blocks.draw(this, chunk, map)
+
+        // if(fill_blocks) {
+        //     super.fillBlocks(maps, chunk, map);
+        // }
+
+        //
+        this.timers.stop()
+        this.timers.count++;
+
+    }
+
     appendBuilding(building : BuildingBlocks) {
         const tp = new Vector(this.start_coord.x, 0, this.start_coord.z)
         building.translate(tp)
         building.setY(this.start_coord.y)
-        building.addBlocks()
+        building.addBlocks(this)
         this.buildings.set(building.coord, building)
     }
 
-    addCity(position, rotation, rand) {
+    addCity(position : Vector, rotation : int, rand : alea) {
         let base = {
             pos: position,
             name: 'endcity_base_floor',
@@ -166,21 +218,12 @@ export class ClusterEndCity extends ClusterBuildingBase {
             rot: rot,
             size: template.size,
             overwrite: overwrite
-        }
+        } as BuildingPiece
         pieces.push(piece)
         return piece
     }
 
-    /**
-     * 
-     * @param {*} depth 
-     * @param {*} current 
-     * @param {*} position 
-     * @param {*} pieces 
-     * @param {*} rand 
-     */
-
-    addTower(depth, current, position, rand) {
+    addTower(depth : int, current : BuildingPiece, position, rand : alea) {
         if (depth > 8) {
             return false
         }
@@ -190,9 +233,9 @@ export class ClusterEndCity extends ClusterBuildingBase {
         base = this.addChild(pieces, base, new Vector(0, 7, 0), "endcity_tower_piece", rotation, true)
         let floor = rand.nextInt(3) == 0 ? base : null
         const size = rand.nextInt(3) + 1
-        for (let f = 0; f < size; f++) {
+        for (let i = 0; i < size; i++) {
             base = this.addChild(pieces, base, new Vector(0, 4, 0), "endcity_tower_piece", rotation, true)
-            if ((f < size - 1) && rand.nextBool()) {
+            if ((i < size - 1) && rand.nextBool()) {
                 floor = base
             }
         }
@@ -214,7 +257,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         return true
     }
 
-    addFatTower(depth, current, position, rand) {
+    addFatTower(depth : int, current : BuildingPiece, position? : Vector, rand? : alea) {
         if (depth > 8) {
             return false
         }
@@ -236,7 +279,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         return true
     }
 
-    addBridge(depth, current, position, rand) {
+    addBridge(depth : int, current : BuildingPiece, position? : Vector, rand? : alea) {
         if (depth > 8) {
             return
         }
@@ -264,7 +307,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         this.pieces = this.pieces.concat(pieces)
     }
 
-    addHouse(depth, current, position, rand) : boolean {
+    addHouse(depth : int, current : BuildingPiece, position : Vector, rand : alea) : boolean {
         if (depth > 8) {
             return false
         }

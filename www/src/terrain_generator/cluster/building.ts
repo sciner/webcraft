@@ -48,18 +48,10 @@ const tmpYMatrix = new ShiftedMatrix(0, 0, 1, 1)
 export class Building {
     [key: string]: any;
 
+    blocks : BlockDrawer
     _autoBasementAABB: AABB
 
-    /**
-     * @param {*} cluster
-     * @param {*} seed
-     * @param {Vector} coord
-     * @param {Vector} _entrance
-     * @param {int} door_direction
-     * @param {Vector} _size
-     * @param {*} building_template
-     */
-    constructor(cluster, seed, coord, _entrance, door_direction, _size, building_template? : any) {
+    constructor(cluster: any, seed: any, coord: Vector, _entrance: Vector, door_direction: int, _size: Vector, building_template? : any) {
 
         _entrance = new Vector(_entrance)
         _entrance.y = Infinity

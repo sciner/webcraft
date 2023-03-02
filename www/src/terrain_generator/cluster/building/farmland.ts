@@ -34,6 +34,8 @@ export class Farmland extends Building {
 
         const inner_size = right_size.sub(new Vector(2, 0, 2))
 
+        this.blocks.list.push(this, [])
+
         // add air above
         this.blocks.appendQuboidBlocks(new Vector(0, -1, 0), right_size.add(new Vector(0, 5, 0)), bm.AIR.id)
 
