@@ -2,7 +2,7 @@ import {PlayerEvent} from "../player_event.js";
 import {Quest} from "./quest.js";
 import {QuestGroup} from "./quest_group.js";
 import {QuestActionType} from "./action_type.js";
-import {ServerClient} from "../../www/src/server_client.js";
+import {ServerClient} from "@client/server_client.js";
 import type { DBWorldQuest } from "../db/world/quest.js"
 
 // QuestPlayer

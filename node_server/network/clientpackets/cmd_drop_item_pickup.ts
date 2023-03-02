@@ -1,7 +1,7 @@
-import { WorldAction } from "../../../www/src/world_action.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { WorldAction } from "@client/world_action.js";
+import { ServerClient } from "@client/server_client.js";
 import { PlayerEvent } from "../../player_event.js";
-import { MAX_DIST_FOR_PICKUP } from "../../../www/src/constant.js";
+import { MAX_DIST_FOR_PICKUP } from "@client/constant.js";
 
 export default class packet_reader {
 

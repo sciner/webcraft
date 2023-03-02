@@ -1,7 +1,7 @@
-import {Vector, VectorCollector} from "../../www/src/helpers.js";
-import {ServerClient} from "../../www/src/server_client.js";
-import type { TREES } from "../../www/src/terrain_generator/biomes.js";
-import {Default_Terrain_Generator} from '../../www/src/terrain_generator/default.js';
+import {Vector, VectorCollector} from "@client/helpers.js";
+import {ServerClient} from "@client/server_client.js";
+import type { TREES } from "@client/terrain_generator/biomes.js";
+import {Default_Terrain_Generator} from '@client/terrain_generator/default.js';
 
 // TreeGenerator
 export class TreeGenerator extends Default_Terrain_Generator {
@@ -14,7 +14,7 @@ export class TreeGenerator extends Default_Terrain_Generator {
             return TreeGenerator._instance;
         }
         // Import trees
-        await import('../../www/src/terrain_generator/biomes.js').then(module => {
+        await import('@client/terrain_generator/biomes.js').then(module => {
             TreeGenerator.TREES = module.TREES;
             TreeGenerator.TREES.init();
         });

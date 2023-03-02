@@ -1,7 +1,7 @@
-import { Vector } from "../../../www/src/helpers.js";
-import { BLOCK } from "../../../www/src/blocks.js";
-import { TBlock } from "../../../www/src/typed_blocks3.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { Vector } from "@client/helpers.js";
+import { BLOCK } from "@client/blocks.js";
+import { TBlock } from "@client/typed_blocks3.js";
+import { ServerClient } from "@client/server_client.js";
 import type { ServerChunk } from "../../server_chunk.js";
 
 export const CAN_SUPPORT_BUBBLES = [88, 415]; // soul_sand, bubble_column

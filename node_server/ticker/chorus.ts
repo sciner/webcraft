@@ -1,5 +1,5 @@
-import { Vector } from '../../www/src/helpers.js'
-import { ServerClient } from '../../www/src/server_client.js'
+import { Vector } from '@client/helpers.js'
+import { ServerClient } from '@client/server_client.js'
 import type { TickingBlockManager } from "../server_chunk.js";
 
 const FACES = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP]

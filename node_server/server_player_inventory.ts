@@ -1,9 +1,9 @@
-import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "../www/src/constant.js";
-import { InventoryComparator } from "../www/src/inventory_comparator.js";
-import { Inventory } from "../www/src/inventory.js";
-import { ServerClient } from "../www/src/server_client.js";
+import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "@client/constant.js";
+import { InventoryComparator } from "@client/inventory_comparator.js";
+import { Inventory } from "@client/inventory.js";
+import { ServerClient } from "@client/server_client.js";
 import { ServerPlayer } from "./server_player.js";
-import type { Player } from "../www/src/player.js";
+import type { Player } from "@client/player.js";
 
 export class ServerPlayerInventory extends Inventory {
 

@@ -1,5 +1,5 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../../www/src/chunk_const.js';
-import { getChunkAddr, Vector, VectorCollector } from '../../../www/src/helpers.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '@client/chunk_const.js';
+import { getChunkAddr, Vector, VectorCollector } from '@client/helpers.js';
 import { Mob } from "../../mob.js";
 import type { ServerChunk } from '../../server_chunk.js';
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from '../../server_constant.js';

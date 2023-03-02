@@ -1,7 +1,7 @@
-import { Vector } from '../../www/src/helpers.js';
-import { ServerClient } from '../../www/src/server_client.js';
-import { WorldAction } from '../../www/src/world_action.js';
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fluid/FluidConst.js";
+import { Vector } from '@client/helpers.js';
+import { ServerClient } from '@client/server_client.js';
+import { WorldAction } from '@client/world_action.js';
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 
 // Проверка позиции для установки арбуза

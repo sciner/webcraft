@@ -1,4 +1,4 @@
-import {Resources} from "../www/src/resources.js";
+import {Resources} from "@client/resources.js";
 
 export class ModelManager {
     list: Map<any, any>;

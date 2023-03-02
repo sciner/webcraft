@@ -1,6 +1,6 @@
-import { BLOCK } from '../../www/src/blocks.js'
-import { ServerClient } from '../../www/src/server_client.js'
-import { Effect } from '../../www/src/block_type/effect.js'
+import { BLOCK } from '@client/blocks.js'
+import { ServerClient } from '@client/server_client.js'
+import { Effect } from '@client/block_type/effect.js'
 import type { ServerWorld } from '../server_world.js';
 import type { ServerChunk } from '../server_chunk.js';
 import type { TickingBlockManager } from "../server_chunk.js";

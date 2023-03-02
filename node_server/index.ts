@@ -49,15 +49,15 @@ try {
 import { Config } from './config.js';
 
 //
-import {Lang} from "../www/src/lang.js";
-import {BLOCK} from "../www/src/blocks.js";
-import {Resources} from "../www/src/resources.js";
+import {Lang} from "@client/lang.js";
+import {BLOCK} from "@client/blocks.js";
+import {Resources} from "@client/resources.js";
 import {ServerGame} from "./server_game.js";
 import {ServerAPI} from "./server_api.js";
 import {PluginManager} from "./plugin_manager.js";
 
-import features from "../www/src/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
-import type { GameSettings } from '../www/src/game.js';
+import features from "@client/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
+import type { GameSettings } from '@client/game.js';
 // const features = {}
 
 Config.init().then(async (config) => {
@@ -94,7 +94,7 @@ Config.init().then(async (config) => {
     } as GameSettings);
 
     // Hack ;)
-    Resources.physics = {features}; // (await import("../../www/src/vendors/prismarine-physics/lib/features.json")).default
+    Resources.physics = {features}; // (await import("@client/vendors/prismarine-physics/lib/features.json")).default
 
     // http://expressjs.com/en/api.html#req.originalUrl
     const app = express();

@@ -1,5 +1,5 @@
 import { FSMBrain } from "../brain.js";
-import { Vector } from "../../../www/src/helpers.js";
+import { Vector } from "@client/helpers.js";
 
 export class Brain extends FSMBrain {
     rth_max_distance: number;

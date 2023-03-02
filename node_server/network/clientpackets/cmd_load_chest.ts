@@ -1,11 +1,11 @@
-import { Vector } from "../../../www/src/helpers.js";
-import { isBlockRoughlyWithinPickatRange } from "../../../www/src/block_helpers.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { Vector } from "@client/helpers.js";
+import { isBlockRoughlyWithinPickatRange } from "@client/block_helpers.js";
+import { ServerClient } from "@client/server_client.js";
 import { PacketHelpers } from "../../server_helpers.js";
 import { CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD
-    } from "../../../www/src/constant.js";
+    } from "@client/constant.js";
 import type { ServerPlayer } from "../../server_player.js";
-import type { TBlock } from "../../../www/src/typed_blocks3.js";
+import type { TBlock } from "@client/typed_blocks3.js";
 
 const TTL = 3000;
 const MAX_ATTEMPTS = 1000;

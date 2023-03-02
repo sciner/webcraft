@@ -1,7 +1,7 @@
-import {ServerClient} from "../www/src/server_client.js";
-import {ArrayHelpers, ArrayOrScalar, DIRECTION, Vector} from "../www/src/helpers.js";
-import {WorldAction} from "../www/src/world_action.js";
-import { Weather } from "../www/src/block_type/weather.js";
+import {ServerClient} from "@client/server_client.js";
+import {ArrayHelpers, ArrayOrScalar, DIRECTION, Vector} from "@client/helpers.js";
+import {WorldAction} from "@client/world_action.js";
+import { Weather } from "@client/block_type/weather.js";
 import { MobSpawnParams } from "./mob.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";

@@ -1,14 +1,14 @@
 import { FSMStack } from "./stack.js";
-import { PrismarinePlayerControl } from "../../www/src/vendors/prismarine-physics/using.js";
-import { Vector } from "../../www/src/helpers.js";
-import { ServerClient } from "../../www/src/server_client.js";
-import { Raycaster } from "../../www/src/Raycaster.js";
+import { PrismarinePlayerControl } from "@client/vendors/prismarine-physics/using.js";
+import { Vector } from "@client/helpers.js";
+import { ServerClient } from "@client/server_client.js";
+import { Raycaster } from "@client/Raycaster.js";
 import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";
 import type { Mob } from "../mob.js";
-import { EnumDamage } from "../../www/src/enums/enum_damage.js";
-// import { EnumDifficulty } from "../../www/src/enums/enum_difficulty.js";
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fluid/FluidConst.js";
-import { WorldAction } from "../../www/src/world_action.js";
+import { EnumDamage } from "@client/enums/enum_damage.js";
+// import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
+import { WorldAction } from "@client/world_action.js";
 
 const MUL_1_SEC = 20;
 

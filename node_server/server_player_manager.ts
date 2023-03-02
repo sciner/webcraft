@@ -1,4 +1,4 @@
-import { AbstractPlayerManager } from "../www/src/abstract_player_manager.js";
+import { AbstractPlayerManager } from "@client/abstract_player_manager.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import type { ServerPlayer } from "./server_player.js";
 import type { ServerWorld } from "./server_world.js";

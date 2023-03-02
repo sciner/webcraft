@@ -1,15 +1,15 @@
-import { isBlockRoughlyWithinPickatRange } from "../../www/src/block_helpers.js";
-import { ServerClient } from "../../www/src/server_client.js";
-import { BLOCK } from "../../www/src/blocks.js";
-import { InventoryComparator } from "../../www/src/inventory_comparator.js";
+import { isBlockRoughlyWithinPickatRange } from "@client/block_helpers.js";
+import { ServerClient } from "@client/server_client.js";
+import { BLOCK } from "@client/blocks.js";
+import { InventoryComparator } from "@client/inventory_comparator.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT,
     CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD
-} from "../../www/src/constant.js";
+} from "@client/constant.js";
 import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS,
-    INVENTORY_CHANGE_CLOSE_WINDOW, INVENTORY_CHANGE_SHIFT_SPREAD, Inventory } from "../../www/src/inventory.js";
+    INVENTORY_CHANGE_CLOSE_WINDOW, INVENTORY_CHANGE_SHIFT_SPREAD, Inventory } from "@client/inventory.js";
 import { Treasure_Sets } from "./treasure_sets.js";
-import type { TBlock } from "../../www/src/typed_blocks3.js";
-import type { Vector } from "../../www/src/helpers.js";
+import type { TBlock } from "@client/typed_blocks3.js";
+import type { Vector } from "@client/helpers.js";
 import type { ServerWorld } from "../server_world.js";
 import type { ServerPlayer } from "../server_player.js";
 
@@ -629,7 +629,7 @@ export class WorldChestManager {
     }
 
     /**
-     * @param { import("../../www/src/typed_blocks3.js").TBlock } tblock of the chest
+     * @param { import("@client/typed_blocks3.js").TBlock } tblock of the chest
      * @param {int[]} except_player_ids - ids of excluded players, optional
      */
     sendChestToPlayers(tblock, except_player_ids = null) {

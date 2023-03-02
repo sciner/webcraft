@@ -2,7 +2,7 @@ import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
 import { DEFAULT_TEXTURE_SUFFIXES, Spritesheet } from "./spritesheet.js";
 import { CompileData } from "./compile_data.js";
-import { DEFAULT_TX_CNT } from '../../www/src/constant.js';
+import { DEFAULT_TX_CNT } from '@client/constant.js';
 
 const BLOCK_NAMES = {
     DIRT: 'DIRT',

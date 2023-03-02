@@ -1,4 +1,4 @@
-import { GAME_DAY_SECONDS } from "../../www/src/constant.js";
+import { GAME_DAY_SECONDS } from "@client/constant.js";
 
 const DAY_TIMES = {
     day: 7000,

@@ -1,4 +1,4 @@
-import { Vector, VectorCollector } from "../../../www/src/helpers.js";
+import { Vector, VectorCollector } from "@client/helpers.js";
 import type { ServerWorld } from "../../server_world.js";
 import type { DBWorld } from "../world.js";
 

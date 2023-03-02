@@ -1,7 +1,7 @@
-import {Vector} from "../../www/src/helpers.js";
-import {BLOCK} from "../../www/src/blocks.js";
-import {ServerClient} from "../../www/src/server_client.js";
-import { WorldAction } from "../../www/src/world_action.js";
+import {Vector} from "@client/helpers.js";
+import {BLOCK} from "@client/blocks.js";
+import {ServerClient} from "@client/server_client.js";
+import { WorldAction } from "@client/world_action.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 
 const SPAWN_PLAYER_DISTANCE     = 16;

@@ -16,29 +16,29 @@ import { WorldDBActor } from "./db/world/WorldDBActor.js";
 import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
 import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
-import { ArrayHelpers, getChunkAddr, Vector, VectorCollector, PerformanceTimer } from "../www/src/helpers.js";
-import { AABB } from "../www/src/core/AABB.js";
-import { BLOCK, DBItemBlock } from "../www/src/blocks.js";
-import { ServerClient } from "../www/src/server_client.js";
+import { ArrayHelpers, getChunkAddr, Vector, VectorCollector, PerformanceTimer } from "@client/helpers.js";
+import { AABB } from "@client/core/AABB.js";
+import { BLOCK, DBItemBlock } from "@client/blocks.js";
+import { ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "../www/src/constant.js";
-import { Weather } from "../www/src/block_type/weather.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
+import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
 import { SHUTDOWN_ADDITIONAL_TIMEOUT } from "./server_constant.js"
 
-import { WorldAction } from "../www/src/world_action.js";
-import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_template.js";
+import { WorldAction } from "@client/world_action.js";
+import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
-import { shallowCloneAndSanitizeIfPrivate } from "../www/src/compress/world_modify_chunk.js";
-import { Effect } from "../www/src/block_type/effect.js";
+import { shallowCloneAndSanitizeIfPrivate } from "@client/compress/world_modify_chunk.js";
+import { Effect } from "@client/block_type/effect.js";
 import { MobSpawnParams } from "./mob.js";
 import type { DBWorld } from "./db/world.js";
-import type { TBlock } from "../www/src/typed_blocks3.js";
+import type { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
-import type { Indicators, PlayerConnectData, PlayerSkin } from "../www/src/player.js";
+import type { Indicators, PlayerConnectData, PlayerSkin } from "@client/player.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 

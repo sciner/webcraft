@@ -1,7 +1,7 @@
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
 import { generateNormalMap } from './normalmap.js';
-import { Spritesheet_Base } from '../../www/src/core/spritesheet_base.js';
+import { Spritesheet_Base } from '@client/core/spritesheet_base.js';
 
 //
 export const DEFAULT_TEXTURE_SUFFIXES = [

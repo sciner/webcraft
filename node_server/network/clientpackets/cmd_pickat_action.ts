@@ -1,8 +1,8 @@
-import { ServerClient } from "../../../www/src/server_client.js";
-import { ActionPlayerInfo, doBlockAction } from "../../../www/src/world_action.js";
-import { Vector, VectorCollector } from "../../../www/src/helpers.js";
-import { MOUSE } from "../../../www/src/constant.js";
-import { TBlock } from "../../../www/src/typed_blocks3.js";
+import { ServerClient } from "@client/server_client.js";
+import { ActionPlayerInfo, doBlockAction } from "@client/world_action.js";
+import { Vector, VectorCollector } from "@client/helpers.js";
+import { MOUSE } from "@client/constant.js";
+import { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "../../server_player.js";
 import type { ServerChunk } from "../../server_chunk.js";
 

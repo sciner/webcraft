@@ -1,10 +1,10 @@
 import { FSMBrain } from "../brain.js";
-import { Vector } from "../../../www/src/helpers.js";
-import { WorldAction } from "../../../www/src/world_action.js";
-import { BeeNest } from "../../../www/src/block_type/bee_nest.js";
-import { EnumDifficulty } from "../../../www/src/enums/enum_difficulty.js";
-import { Effect } from "../../../www/src/block_type/effect.js";
-import type { EnumDamage } from "../../../www/src/enums/enum_damage.js";
+import { Vector } from "@client/helpers.js";
+import { WorldAction } from "@client/world_action.js";
+import { BeeNest } from "@client/block_type/bee_nest.js";
+import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
+import { Effect } from "@client/block_type/effect.js";
+import type { EnumDamage } from "@client/enums/enum_damage.js";
 
 const MAX_POLLEN = 4;
 const POLLEN_PER_TICK = 0.02;
