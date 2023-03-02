@@ -1725,3 +1725,52 @@ export class ToggleButton extends Button {
     }
 
 }
+
+export class Slider extends Window {
+
+    constructor(x, y, w, h, id) {
+        super(x, y, w, h, id, 'title', 'title')
+        this.style.background.color = '#8892c9'
+        this.setIcon('./media/gui/scroll.png')
+        this._wmicon.width = 30
+        this.min = 0
+        this.max = 100
+        this.value = 50
+
+        this.grab = false
+    }
+
+    onMouseEnter() {
+        console.log('onMouseEnter')
+    }
+
+    onMouseLeave() {
+        this.grab = false
+    }
+
+    toggle() {
+        console.log('toggle')
+    }
+
+    onMouseDown(e) {
+        this.grab = true
+    }
+    onMouseUp(e) {
+        this.grab = false
+    }
+    onMouseMove(e) {
+        if (this.grab) {
+            const test = this._wmicon;
+            test.x = e.x - this.x - 15
+        }
+    }
+    onDrop(e) {
+        console.log('onDrop')
+    }
+    onWheel(e) {
+        console.log('onWheel')
+    }
+    onHide() {
+        console.log('onHide')
+    }
+}

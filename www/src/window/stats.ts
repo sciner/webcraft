@@ -1,4 +1,4 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label, Slider } from "../../tools/gui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
@@ -23,18 +23,22 @@ export class StatsWindow extends BlankWindow {
         const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 300 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.btn_statistics);
         lbl1.style.font.size = 16 * this.zoom
         this.add(lbl1)
-        const label_death = new Label(17 * this.zoom, 50 * this.zoom, 300 * this.zoom, 68 * this.zoom, 'label_death', null, '0');
+        const label_death = new Label(17 * this.zoom, 50 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_death', null, '0');
         label_death.style.font.size = 16 * this.zoom
         this.add(label_death)
-        const label_time = new Label(17 * this.zoom, 80 * this.zoom, 300 * this.zoom, 98 * this.zoom, 'label_time', null, '0');
+        const label_time = new Label(17 * this.zoom, 80 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_time', null, '0');
         label_time.style.font.size = 16 * this.zoom
         this.add(label_time)
-        const label_pickat = new Label(17 * this.zoom, 110 * this.zoom, 300 * this.zoom, 128 * this.zoom, 'label_pickat', null, '0');
+        const label_pickat = new Label(17 * this.zoom, 110 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_pickat', null, '0');
         label_pickat.style.font.size = 16 * this.zoom
         this.add(label_pickat)
-        const label_distance = new Label(17 * this.zoom, 140 * this.zoom, 300 * this.zoom, 158 * this.zoom, 'label_distance', null, '0');
+        const label_distance = new Label(17 * this.zoom, 140 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_distance', null, '0');
         label_distance.style.font.size = 16 * this.zoom
         this.add(label_distance)
+
+        const test = new Slider(17 * this.zoom, 160 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_distancghje');
+        //label_distance.style.font.size = 16 * this.zoom
+        this.add(test)
 
         // Add close button
         this.loadCloseButtonImage((image) => {
