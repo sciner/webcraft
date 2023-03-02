@@ -42,7 +42,7 @@ export class GameSettings {
     beautiful_leaves:        boolean = true
     leaf_fall:               boolean = true
     draw_improved_blocks:    boolean = true
-    overlay_textures:        boolean = true
+    overlay_textures:        boolean = false
     mipmap:                  boolean = false
     // grids
     mobs_draw_debug_grid:    boolean = false
