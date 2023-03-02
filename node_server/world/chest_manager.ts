@@ -5,22 +5,23 @@ import { InventoryComparator } from "../../www/src/inventory_comparator.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT,
     CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD
 } from "../../www/src/constant.js";
-import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS, 
+import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS,
     INVENTORY_CHANGE_CLOSE_WINDOW, INVENTORY_CHANGE_SHIFT_SPREAD, Inventory } from "../../www/src/inventory.js";
 import { Treasure_Sets } from "./treasure_sets.js";
+import type { TBlock } from "../../www/src/typed_blocks3.js";
+import type { Vector } from "../../www/src/helpers.js";
+import type { ServerWorld } from "../server_world.js";
+import type { ServerPlayer } from "../server_player.js";
 
 const CHANGE_RESULT_FLAG_CHEST = 1;
 const CHANGE_RESULT_FLAG_SECOND_CHEST = 2;
 const CHANGE_RESULT_FLAG_INVENTORY = 4;
 
 export class WorldChestManager {
-    world: any;
+    world: ServerWorld;
     treasure_sets: Treasure_Sets;
 
-    /**
-     * @param { import("../server_world.js").ServerWorld } world 
-     */
-    constructor(world) {
+    constructor(world: ServerWorld) {
         this.world = world;
         this.treasure_sets = new Treasure_Sets(world, config.treasure_chests)
     }
@@ -28,12 +29,11 @@ export class WorldChestManager {
     /**
      * Returns a vaild chest by pos, or throws an exception.
      * Optionally, it can return null if the chunk is mising.
-     * @param {Vector} pos
-     * @param {boolean} nullIfNotLoaded - if it's true and the chunk is missing,
+     * @param nullIfNotLoaded - if it's true and the chunk is missing,
      *      then instead of throwing an exception, it return null. The default is false.
-     * @returns {TBlock} chest
+     * @returns chest
      */
-    async get(pos, nullIfNotLoaded = false) {
+    get(pos: Vector, nullIfNotLoaded = false): TBlock | null {
         const tblock = this.world.getBlock(pos);
         if(!tblock || tblock.id < 0) {
             if(nullIfNotLoaded) {
@@ -46,30 +46,23 @@ export class WorldChestManager {
             throw 'error_block_is_not_chest';
         }
         if(tblock.extra_data.generate) {
-            await this.generateChest(tblock, pos);
+            this.generateChest(tblock, pos);
         }
         return tblock;
     }
 
-    /**
-     * @param {Vector} pos
-     * @returns { object } {
-     *   chest: ?TBlock   // if the chest is loaded and valid
-     *   error: ?String   // otherwise
-     * }
-     */
-    async getChestOrError(pos) {
+    getChestOrError(pos: Vector): [chest: TBlock | null, error: string | null] {
         const tblock = this.world.getBlock(pos);
         if (!tblock || tblock.id < 0) {
-            return { error: `error_chest_not_found|${pos.x},${pos.y},${pos.z}` };
+            return [null, `error_chest_not_found|${pos.x},${pos.y},${pos.z}`];
         }
         if (!tblock.material?.chest || !tblock.extra_data) {
-            return { error: 'error_block_is_not_chest' };
+            return [null, 'error_block_is_not_chest'];
         }
         if (tblock.extra_data.generate) {
-            await this.generateChest(tblock, pos);
+            this.generateChest(tblock, pos);
         }
-        return { chest: tblock };
+        return [tblock, null];
     }
 
     /**
@@ -100,22 +93,19 @@ export class WorldChestManager {
 
         // load both chests at the same time
         const pos = params.chest.pos;
-        const promise = this.getChestOrError(pos);
         var secondPos = null;
         var secondTblock = null;
         if (params.secondChest) {
             secondPos = params.secondChest.pos;
-            const secondResult = await this.getChestOrError(secondPos);
-            secondTblock = secondResult?.chest;
+            [secondTblock, error] = this.getChestOrError(secondPos);
             if (secondTblock == null || secondTblock.material.name !== 'CHEST') {
-                error = secondResult.error || 'error_block_is_not_chest';
+                error ??= 'error_block_is_not_chest';
                 forceClose = true;
             }
         }
-        const tblockResult = await promise;
-        const tblock = tblockResult?.chest;
+        const [tblock, err] = this.getChestOrError(pos);
         if (tblock == null) {
-            error = tblockResult.error;
+            error = err;
             forceClose = true;
         }
         // if there are 2 chests, they must be of type CHEST, and touch each other
@@ -184,7 +174,7 @@ export class WorldChestManager {
             player.inventory.refresh(true);
             if (forceClose) {
                 player.currentChests = null;
-                player.sendPackets([{ 
+                player.sendPackets([{
                     name: ServerClient.CMD_CHEST_FORCE_CLOSE,
                     data: { chestSessionId: params.chestSessionId }
                 }]);
@@ -202,7 +192,7 @@ export class WorldChestManager {
 
         // update the current chests for this player
         player.currentChests = [pos, secondPos].filter(it => it != null);
-        
+
         const is_ender_chest = tblock.material.name == 'ENDER_CHEST';
         let chest = null;
         if(is_ender_chest) {
@@ -227,7 +217,7 @@ export class WorldChestManager {
         var cliCombinedChestSlots = combineChests(params.chest, params.secondChest);
 
         const oldSimpleInventory = InventoryComparator.groupToSimpleItems(player.inventory.items);
-        changeApplied |= this.applyClientChange(srvCombinedChestSlots, cliCombinedChestSlots, 
+        changeApplied |= this.applyClientChange(srvCombinedChestSlots, cliCombinedChestSlots,
                 player.inventory.items, params.inventory_slots, params.change, player,
                 inputChestSlotsCount, secondPos != null);
         const inventoryEqual = InventoryComparator.listsExactEqual(
@@ -504,14 +494,14 @@ export class WorldChestManager {
             return 0;
         }
         if (cliDrag && cliSlot && !InventoryComparator.itemsEqualExceptCount(cliDrag, cliSlot)) { // swapped items
-            if (!InventoryComparator.itemsEqual(prevCliSlot, cliDrag) || 
+            if (!InventoryComparator.itemsEqual(prevCliSlot, cliDrag) ||
                 !InventoryComparator.itemsEqual(prevCliDrag, cliSlot) ||
                 change.slotInChest && change.slotIndex >= inputChestSlotsCount
             ) {
                 return 0; // incorrect change
             }
             // we can swap if the ids on the server are the same, regardless of the quantity
-            if (!srvSlot || !InventoryComparator.itemsEqualExceptCount(srvSlot, prevCliSlot) || 
+            if (!srvSlot || !InventoryComparator.itemsEqualExceptCount(srvSlot, prevCliSlot) ||
                 !srvDrag || !InventoryComparator.itemsEqualExceptCount(srvDrag, prevCliDrag)
             ) {
                 return 0; // it can't be applied on server
@@ -590,7 +580,7 @@ export class WorldChestManager {
     }
 
     //
-    async sendContentToPlayers(players, tblock) {
+    async sendContentToPlayers(players: ServerPlayer[], tblock: TBlock) {
         if(!tblock || tblock.id < 0) {
             return false;
         }
@@ -661,7 +651,7 @@ export class WorldChestManager {
                     if (ind < 0) {
                         continue;
                     }
-                    if (!isBlockRoughlyWithinPickatRange(p, 
+                    if (!isBlockRoughlyWithinPickatRange(p,
                         CHEST_INTERACTION_MARGIN_BLOCKS + CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD,
                         pos)
                     ) {
@@ -676,10 +666,10 @@ export class WorldChestManager {
     }
 
     // Generate chest
-    async generateChest(tblock, pos) {
+    generateChest(tblock: TBlock, pos: IVector): void {
         const extra_data = tblock.extra_data;
         extra_data.can_destroy = false;
-        extra_data.slots = this.treasure_sets.generateSlots(this.world, pos,
+        extra_data.slots = this.treasure_sets.generateSlots(pos,
             extra_data.params.source, DEFAULT_CHEST_SLOT_COUNT);
         delete extra_data.generate;
         this.world.onBlockExtraDataModified(tblock, pos);

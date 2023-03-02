@@ -1,12 +1,13 @@
 import { Vector } from "../../www/src/helpers.js";
 import { alea } from "../../www/src/terrain_generator/default.js";
+import type { ServerWorld } from "../server_world.js";
 
 export class Treasure_Sets {
 
-    #world
+    #world: ServerWorld
     treasure_sets: Map<any, any>;
 
-    constructor(world, sets) {
+    constructor(world: ServerWorld, sets) {
         this.#world = world
         this.clear()
         this.init(sets)
@@ -57,17 +58,13 @@ export class Treasure_Sets {
             this.init(extended);
         }
     }
-    
+
     /**
      * Generate chest slots
-     * @param {*} world 
-     * @param {Vector} xyz 
-     * @param {string} set_name 
-     * @param {int} count 
      */
-    generateSlots(world, xyz, set_name, count) {
+    generateSlots(xyz: IVector, set_name: string, count: int) {
 
-        const rnd = new alea(world.seed + new Vector(xyz).toHash());
+        const rnd = new alea(this.#world.info.seed + new Vector(xyz).toHash());
 
         const kit = this.treasure_sets.get(set_name)
         if(!kit) throw `error_invalid_treasure_set_name|${set_name}`

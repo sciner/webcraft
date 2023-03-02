@@ -106,6 +106,9 @@ class IPaintingSize {
     size?: number[]
 }
 
+// Cached arrays of functions that are iterated. It's to avoid allocating new arrays.
+const FUNCS: { [key: string]: Function[] } = {}
+
 // Calc rotate
 function calcRotate(rotate, n, rotate_by_pos_n_5) {
     rotate = new Vector(rotate);
@@ -945,7 +948,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
     let world_block_rotate  = world_block ? world_block.rotate : null;
 
     // protect from indirect changes
-    if(extra_data) extra_data = JSON.parse(JSON.stringify(extra_data));
+    if(extra_data) extra_data = ObjectHelpers.deepClone(extra_data);
 
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
@@ -955,8 +958,8 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
 
     // 1. Change extra data
     if(e.changeExtraData) {
-        for(let func of [editSign, editBeacon]) {
-            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, world_block_rotate, null, actions)) {
+        for(let func of FUNCS.changeExtraData ??= [editSign, editBeacon]) {
+            if(func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
         }
@@ -965,8 +968,8 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
     // 2. Destroy
     if(e.destroyBlock) {
         // 1. Проверка выполняемых действий с блоками в мире
-        for(let func of [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
-            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+        for(let func of FUNCS.destroyBlock ??= [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
+            if(func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
         }
@@ -1015,8 +1018,8 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp]) {
-            if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+        for(let func of FUNCS.createBlock ??= [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp]) {
+            if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
         }
@@ -1028,7 +1031,12 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useCauldron, useShears, putDiscIntoJukebox, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
+        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
+            if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                return [actions, pos];
+            }
+        }
+        for(let func of FUNCS.useItem1async ??= [putDiscIntoJukebox]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1037,7 +1045,12 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
         // Другие действия с инструментами/предметами в руке
         if(mat_block.item && mat_block.style_name != 'planting') {
             // Use intruments
-            for(let func of [useFlintAndSteel, useShovel, useHoe, useAxe, useBoneMeal]) {
+            for(let func of FUNCS.useItem2 ??= [useShovel, useHoe, useAxe, useBoneMeal]) {
+                if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                    return [actions, pos];
+                }
+            }
+            for(let func of FUNCS.useItem2async ??= [useFlintAndSteel]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return [actions, pos];
                 }
@@ -1085,7 +1098,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
                 pos.n.z = 0;
                 orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
             } else {
-                if(await increaseLayering(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                if(increaseLayering(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return [actions, pos];
                 }
                 pos.x += pos.n.x;
@@ -1196,8 +1209,8 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
                 }
             }
             // Material restrictions
-            for(let func of [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {
-                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions, orientation)) {
+            for(let func of FUNCS.restrict ??= [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {
+                if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions, orientation)) {
                     return [actions, pos];
                 }
             }
@@ -1221,7 +1234,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
                 };
             }
             // Pre place
-            for(let func of [prePlaceRail]) {
+            for(let func of FUNCS.prePlace ??= [prePlaceRail]) {
                 if(func(world, pos, new_item, actions)) {
                     return [actions, pos];
                 }
@@ -1351,7 +1364,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
 }
 
 // Если ткнули на предмет с собственным окном
-async function needOpenWindow(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function needOpenWindow(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!world_material.has_window || e.shiftKey) {
         return false;
     }
@@ -1403,7 +1416,7 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
 }
 
 // Получение яиц из гнезда
-async function getEggs(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function getEggs(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!world_block || world_block.id != BLOCK.CHICKEN_NEST.id || extra_data.eggs == 0) {
         return false;
     }
@@ -1413,7 +1426,7 @@ async function getEggs(e, world, pos, player, world_block, world_material, mat_b
 }
 
 // Put into pot
-async function putIntoPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function putIntoPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     const item_frame = world_material && world_material.tags.includes('item_frame');
     extra_data = extra_data ? extra_data : {};
     // rotate item in frame
@@ -1488,7 +1501,7 @@ async function putDiscIntoJukebox(e, world, pos, player, world_block, world_mate
 }
 
 // Drop egg
-async function chSpawnmob(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function chSpawnmob(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!BLOCK.isSpawnEgg(mat_block.id)) {
         return false;
     }
@@ -1509,7 +1522,7 @@ async function chSpawnmob(e, world, pos, player, world_block, world_material, ma
 }
 
 // Put in bucket
-async function putInBucket(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function putInBucket(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!mat_block || mat_block.id != BLOCK.BUCKET.id) {
         return false;
     }
@@ -1564,7 +1577,7 @@ async function putInBucket(e, world, pos, player, world_block, world_material, m
 }
 
 // Eject disc from Jukebox
-async function ejectJukeboxDisc(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function ejectJukeboxDisc(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(e.shiftKey || !world_material.is_jukebox) {
         return false;
     }
@@ -1581,7 +1594,7 @@ async function ejectJukeboxDisc(e, world, pos, player, world_block, world_materi
 }
 
 // Press to button
-async function pressToButton(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function pressToButton(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     // Buttons
     if(e.shiftKey || !world_material.is_button) {
         return false;
@@ -1614,7 +1627,7 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
  * @param {WorldAction} actions
  * @returns
  */
-async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(e.shiftKey) {
         return false;
     }
@@ -1668,13 +1681,13 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
 }
 
 // Нельзя ничего ставить поверх этого блока
-async function noSetOnTop(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function noSetOnTop(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     const noSetOnTop = world_material.tags.includes('no_set_on_top');
     return noSetOnTop && pos.n.y == 1;
 }
 
 // Edit beacon
-async function editBeacon(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function editBeacon(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if (world_material.id != BLOCK.BEACON.id) {
         return false
     }
@@ -1688,7 +1701,7 @@ async function editBeacon(e, world, pos, player, world_block, world_material, ma
 }
 
 // Edit sign
-async function editSign(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function editSign(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const isEditSign = e.changeExtraData && world_material && world_material.tags.includes('sign');
     if(!isEditSign) {
         return false;
@@ -1713,7 +1726,7 @@ async function editSign(e, world, pos, player, world_block, world_material, mat_
 }
 
 // Go to bed
-async function goToBed(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function goToBed(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     const goToBed = !e.shiftKey && world_material && (world_material.tags.includes('bed'))
     if(!goToBed) {
         return false
@@ -1768,7 +1781,7 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
 }
 
 // Eat cake
-function eatCake(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function eatCake(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     const eatCake = !e.shiftKey && world_material && (world_material.tags.includes('cake'));
     if(!eatCake) {
         return false;
@@ -1794,8 +1807,12 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
     return true;
 }
 
-// удаление портала
-async function deletePortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+/**
+ * удаление портала
+ *
+ * TODO it never returns true, probably unfinished
+ */
+function deletePortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
 
     // get frame material
     let portal_frame_block_name = null;
@@ -1807,7 +1824,7 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
     }
 
     if (!world_material || (world_material.id != BLOCK.NETHER_PORTAL.id && world_material.name != portal_frame_block_name)) {
-        return;
+        return false;
     }
 
     const poses = [];
@@ -2066,7 +2083,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 }
 
 // добавление ламинарии вручную
-async function putKelp(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function putKelp(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if (!world_material || !mat_block || mat_block.id != BLOCK.KELP.id)  {
         return false;
     }
@@ -2088,7 +2105,7 @@ async function putKelp(e, world, pos, player, world_block, world_material, mat_b
 }
 
 //
-async function putPlate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function putPlate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if (!world_material || !mat_block || mat_block.style_name != 'cover') {
         return false;
     }
@@ -2163,7 +2180,7 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
 }
 
 // Open fence gate
-async function openFenceGate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function openFenceGate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if (!world_material || world_material.style_name != 'fence_gate') {
         return false;
     }
@@ -2184,7 +2201,7 @@ async function openFenceGate(e, world, pos, player, world_block, world_material,
 }
 
 // Open door
-async function openDoor(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function openDoor(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     const isEditDoor = !e.shiftKey && world_material &&
         (world_material.tags.includes('trapdoor') || world_material.tags.includes('door'));
     if(!isEditDoor) {
@@ -2220,7 +2237,7 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
 }
 
 // Remove plant from pot
-async function removeFromPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function removeFromPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(world_material && world_material.tags.includes('pot')) {
         if(extra_data?.item) {
             extra_data = extra_data ? extra_data : {};
@@ -2238,7 +2255,7 @@ async function removeFromPot(e, world, pos, player, world_block, world_material,
 }
 
 // Посадить растения можно только на блок земли
-async function restrictPlanting(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
+function restrictPlanting(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions, orientation): boolean {
     if(!mat_block.planting) {
         return false;
     }
@@ -2272,7 +2289,7 @@ async function restrictPlanting(e, world, pos, player, world_block, world_materi
 }
 
 //
-async function setOnWater(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function setOnWater(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!mat_block || !mat_block.tags.includes('set_on_water')) {
         return false;
     }
@@ -2294,7 +2311,7 @@ async function setOnWater(e, world, pos, player, world_block, world_material, ma
 }
 
 // Можно поставить только на полный (непрозрачный блок, снизу)
-async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
+function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions, orientation): boolean {
     if(mat_block.tags.includes('set_only_fullface')) {
         const underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
         if(!underBlock || underBlock.material.transparent) {
@@ -2305,7 +2322,7 @@ async function restrictOnlyFullFace(e, world, pos, player, world_block, world_ma
 }
 
 // Проверка места под лестницу/лианы
-async function restrictLadder(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
+function restrictLadder(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions, orientation): boolean {
     if(['ladder'].indexOf(mat_block.style_name) < 0) {
         return false;
     }
@@ -2355,7 +2372,7 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
 }
 
 // Факелы можно ставить только на определенные виды блоков!
-async function restrictTorch(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
+function restrictTorch(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions, orientation): boolean {
     if(mat_block.style_name != 'torch') {
         return false
     }
@@ -2372,7 +2389,7 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
 }
 
 // use cauldron
-async function useCauldron(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function useCauldron(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if (world_block.id != BLOCK.CAULDRON.id) {
         return false;
     }
@@ -2442,7 +2459,7 @@ async function useCauldron(e, world, pos, player, world_block, world_material, m
 }
 
 // use shears
-async function useShears(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function useShears(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(current_inventory_item.id != BLOCK.SHEARS.id || extra_data?.sheared) {
         return false;
     }
@@ -2455,7 +2472,7 @@ async function useShears(e, world, pos, player, world_block, world_material, mat
 }
 
 //
-async function useTorch(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function useTorch(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!mat_block || mat_block.style_name != 'torch') {
         return false;
     }
@@ -2469,7 +2486,7 @@ async function useTorch(e, world, pos, player, world_block, world_material, mat_
 }
 
 //
-async function useShovel(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function useShovel(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(mat_block.item.name != 'instrument' || mat_block.item.instrument_id != 'shovel') {
         return false;
     }
@@ -2491,7 +2508,7 @@ async function useShovel(e, world, pos, player, world_block, world_material, mat
 }
 
 //
-async function useHoe(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function useHoe(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(mat_block.item.name != 'instrument' || mat_block.item.instrument_id != 'hoe') {
         return false;
     }
@@ -2508,7 +2525,7 @@ async function useHoe(e, world, pos, player, world_block, world_material, mat_bl
 }
 
 // Use axe for make stripped logs
-async function useAxe(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function useAxe(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!world_material || mat_block.item.name != 'instrument' || mat_block.item.instrument_id != 'axe') {
         return false;
     }
@@ -2552,7 +2569,7 @@ function growHugeMushroom(world, pos, world_material, actions) {
 }
 
 // Use bone meal
-async function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions: WorldAction) {
+function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions: WorldAction): boolean {
     if(mat_block.item.name != 'bone_meal' || !world_material) {
         return false;
     }
@@ -2624,7 +2641,7 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
 }
 
 // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
-async function increaseLayering(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function increaseLayering(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     //
     const pos_n = pos.n;
     if(pos_n.y == 0) {
@@ -2707,7 +2724,7 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
 }
 
 // Add few count (candles | petals)
-function addFewCount(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function addFewCount(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
 
     const add = (style_name, property_name, max_count, sound_tag) => {
         const can_add = !e.shiftKey &&
@@ -2748,7 +2765,7 @@ function prePlaceRail(world, pos, new_item, actions) {
 }
 
 // Set furniture upholstery
-async function setFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function setFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(mat_block.tags.includes('wool')) {
         if(['chair', 'stool'].includes(world_material.style_name)) {
             if(extra_data.is_head) {
@@ -2771,7 +2788,7 @@ async function setFurnitureUpholstery(e, world, pos, player, world_block, world_
 }
 
 // Remove furniture upholstery
-async function removeFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function removeFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(world_material && ['chair', 'stool'].includes(world_material.style_name)) {
         if(extra_data.is_head) {
             pos = new Vector(0, -1, 0).add(pos);
@@ -2800,7 +2817,7 @@ async function removeFurnitureUpholstery(e, world, pos, player, world_block, wor
     return false;
 }
 
-async function setPointedDripstone(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function setPointedDripstone(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if (!world_material || !mat_block || (mat_block.id != BLOCK.POINTED_DRIPSTONE.id)) {
         return false;
     }
