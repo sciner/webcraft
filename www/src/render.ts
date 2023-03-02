@@ -652,7 +652,7 @@ export class Renderer {
                 Resources.inventory.image = data
 
                 data.toBlob(async (blob) => {
-                    Resources.inventory.atlas = await SpriteAtlas.fromJSON(await blobToImage(blob), atlas_map)
+                    Resources.inventory.atlas = await SpriteAtlas.fromJSON(await blobToImage(blob) as HTMLImageElement, atlas_map)
                     if(callback instanceof Function) {
                         callback(blob)
                     }

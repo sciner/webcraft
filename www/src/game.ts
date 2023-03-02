@@ -3,8 +3,6 @@ import { DEFAULT_FOV_NORMAL, Renderer, ZOOM_FACTOR } from "./render.js";
 import { AverageClockTimer, isMobileBrowser, Mth, Vector} from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
-import { ServerClient } from "./server_client.js";
-import { HUD } from "./hud.js";
 import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
@@ -13,7 +11,9 @@ import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PA
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
+
 import type { Player, PlayerStateUpdate } from "./player.js";
+import type { HUD } from "./hud.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -122,7 +122,6 @@ export class GameClass {
     constructor() {
         this.render     = new Renderer('qubatchRenderSurface');
         this.settings   = new GameSettings()
-        this.hud        = new HUD(this.render.canvas, this.settings);
         // Local server client
         this.local_server_client = ((globalThis as any).LocalServerClient !== undefined) ? new LocalServerClient() : null;
         this.preLoop = this.preLoop.bind(this)

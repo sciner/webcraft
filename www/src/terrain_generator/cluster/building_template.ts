@@ -1,7 +1,7 @@
 import type { BLOCK } from "../../blocks.js";
 import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { AABB } from '../../core/AABB.js';
-import { Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, SphericalBulge, ArrayHelpers, SimpleQueue } from "../../helpers.js";
+import { Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, ArrayHelpers, SimpleQueue } from "../../helpers.js";
 import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_ADDITIONAL_WIDTH, BASEMENT_MAX_PAD,
     BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
 import { calcMinFloorYbyXZ } from './building_helpers.js';
@@ -22,6 +22,72 @@ const PORCH_CRATER_HEIGHT = 8;
 
 let tmpUint8Array: Uint8Array = new Uint8Array(1)
 const tmpQueue = new SimpleQueue()
+/**
+ * Calculates a convex bulge over a pathch of a flat surface, based on the distance
+ * from a surface point to the surfase center.
+ */
+export class SphericalBulge {
+    distToCenterOnUnitSph: number
+    distScaleSqrInv: number
+    bulgeScale: number
+    x0: number
+    y0: number
+
+    /**
+     * @param {float} radius - the radius of the pathc that has zon-zero bulge
+     * @param {float} maxBulge - that bulge height at the surface center
+     * @param {float} maxBulgeOnUnitSphere - affects the shape of the curvature, from 0 to 1 not inclusive
+     */
+    initRadius(radius, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+        if (maxBulgeOnUnitSphere <= 0 || maxBulgeOnUnitSphere >= 1) {
+            throw new Error()
+        }
+        this.distToCenterOnUnitSph = 1 - maxBulgeOnUnitSphere
+        const maxDistSqrOnUnitSph = 1 - this.distToCenterOnUnitSph * this.distToCenterOnUnitSph
+        this.distScaleSqrInv = maxDistSqrOnUnitSph / (radius * radius + 1e-10)
+        this.bulgeScale = maxBulge / maxBulgeOnUnitSphere
+        return this
+    }
+
+    init1DIntRange(x_min, x_max_excl, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+        this.x0 = (x_min + x_max_excl - 1) * 0.5
+        const radius = 0.5 * (x_max_excl - x_min - 1 + 1e-10)
+        return this.initRadius(radius, maxBulge, maxBulgeOnUnitSphere)
+    }
+
+    init2DIntRange(x_min, y_min, x_max_excl, y_max_excl, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
+        this.x0 = (x_min + x_max_excl - 1) * 0.5
+        this.y0 = (y_min + y_max_excl - 1) * 0.5
+        const dx = x_max_excl - x_min - 1
+        const dy = y_max_excl - y_min - 1
+        const radius = 0.5 * (Math.sqrt(dx * dx + dy * dy) + 1e-10)
+        return this.initRadius(radius, maxBulge, maxBulgeOnUnitSphere)
+    }
+
+    /**
+     * @param {float} distSqr - the distance squared from a surface point to the center of the surface
+     */
+    bulgeByDistanceSqr(distSqr : number) : number {
+        const distSqrOnUnitSph = distSqr * this.distScaleSqrInv
+        const cathetusOnUnitSph = Math.sqrt(Math.max(1 - distSqrOnUnitSph, 0))
+        return this.bulgeScale * Math.max(0, cathetusOnUnitSph - this.distToCenterOnUnitSph)
+    }
+
+    bulgeByDistance(dist : number) {
+        return this.bulgeByDistanceSqr(dist * dist)
+    }
+
+    bulgeByXY(x : number, y : number) : number {
+        x -= this.x0
+        y -= this.y0
+        return this.bulgeByDistanceSqr(x * x + y * y)
+    }
+
+    bulgeByX(x : number) : number {
+        x -= this.x0
+        return this.bulgeByDistanceSqr(x * x)
+    }
+}
 
 //
 export class BuildingTemplate {

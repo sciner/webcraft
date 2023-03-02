@@ -4,7 +4,10 @@ import { isScalar } from "../helpers.js";
 const atlases = new Map()
 
 export class SpriteAtlas {
-    [key: string]: any;
+    sheet: PIXI.Spritesheet;
+    cache: Map<any, any>;
+    baseTex: PIXI.BaseTexture;
+    image: HTMLImageElement;
 
     constructor() {
         this.sheet = null;
@@ -12,11 +15,7 @@ export class SpriteAtlas {
         this.baseTex = null;
     }
 
-    /**
-     * @param {string} url
-     * @returns {SpriteAtlas}
-     */
-    async fromFile(url) {
+    async fromFile(url : string) : Promise<SpriteAtlas> {
         return new Promise((resolve, reject) => {
             const image = new Image()
             image.onload = () => {
@@ -31,12 +30,7 @@ export class SpriteAtlas {
         })
     }
 
-    /**
-     * @param {Image|string} image_or_url
-     * @param {object} map_json
-     * @returns {SpriteAtlas}
-     */
-    static async fromJSON(image_or_url, map_json) {
+    static async fromJSON(image_or_url : HTMLImageElement | ImageBitmap | string, map_json : object) : Promise<SpriteAtlas> {
         let atlas = atlases.get(image_or_url)
         if(atlas) {
             return atlas
@@ -56,7 +50,7 @@ export class SpriteAtlas {
 
     }
 
-    async getSprite(x, y, width, height, dest_width, dest_height) {
+    async getSprite(x : int, y : int, width : int, height : int, dest_width : int, dest_height : int) : PIXI.Texture {
         const key = `${x}, ${y}, ${width}, ${height}, ${dest_width}, ${dest_height}`
         let tex = null
         if(this.cache.has(key)) {
@@ -67,7 +61,7 @@ export class SpriteAtlas {
         return tex
     }
 
-    getSpriteFromMap(name) {
+    getSpriteFromMap(name : string) {
         if(!this.sheet) throw 'error_atlas_map_empty'
         const tex = this.sheet.textures[name]
         if(!tex) throw `error_atlas_sprite_not_found|${name}`
