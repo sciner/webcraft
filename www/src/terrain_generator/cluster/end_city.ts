@@ -1,14 +1,14 @@
 import { ClusterBuildingBase } from "./building_cluster_base.js";
 import { BuildingTemplate } from "./building_template.js";
 import { impl as alea } from "../../../vendors/alea.js";
-import { Vector, VectorCardinalTransformer, VectorCollector } from "../../helpers.js";
-import type { Biome } from "../biome3/biomes.js";
+import { ArrayHelpers, Vector, VectorCollector } from "../../helpers.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
+import { BlockDrawer } from "./block_drawer.js";
+
+import type { Biome } from "../biome3/biomes.js";
 import type { ClusterManager } from "./manager.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
-import { BUILDING_AABB_MARGIN } from "./building.js";
-import { BlockDrawer } from "./block_drawer.js";
 
 const CITY_BUILDING_SCHEMAS = [
     'endcity_fat_tower_top',
@@ -42,22 +42,23 @@ interface BuildingPiece {
 //
 export class ClusterEndCity extends ClusterBuildingBase {
 
+    chunks = new VectorCollector()
+    blocks = new BlockDrawer()
+    max_height = 1
+    templates = new Map()
+    pieces = []
+
     constructor(clusterManager : ClusterManager, addr : Vector, biome? : Biome) {
 
         super(clusterManager, addr)
         this.random = new alea('seed' + 'tes4') //tre ruzan tes0
 
-        this.chunks = new VectorCollector()
-        this.blocks = new BlockDrawer()
-    
-        this.max_height = 1
         this.is_empty = this.coord.y < 0
         if (this.is_empty) {
             return
         }
 
         // используемые шаблоны структур
-        this.templates = new Map()
         for (const schema_name of CITY_BUILDING_SCHEMAS) {
             const template = BuildingTemplate.fromSchema(schema_name, this.block_manager)
             this.templates.set(schema_name, template)
@@ -66,8 +67,9 @@ export class ClusterEndCity extends ClusterBuildingBase {
         // абсолютная позиция внутри layer-а (в центре кластера, на высоте 87 блоков)
         this.start_coord = this.coord.clone().addScalarSelf(this.size.x / 2, 100, this.size.z / 2)
 
-        this.pieces = []
         this.addCity(new Vector(0, 0, 0), 0, this.random)
+
+        // ArrayHelpers.shuffle(this.pieces, this.random.double)
 
         for (const piece of this.pieces) {
             const template = this.templates.get(piece.name)
@@ -190,7 +192,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
             rot: rotation,
             size: new Vector(10, 4, 10),
             overwrite: true
-        }
+        } as BuildingPiece
         this.pieces.push(base)
         base = this.addChild(this.pieces, base, new Vector(0, 1, 0), "endcity_second_floor", rotation, false)
         base = this.addChild(this.pieces, base, new Vector(0, 4, 0), "endcity_third_floor", rotation, false)

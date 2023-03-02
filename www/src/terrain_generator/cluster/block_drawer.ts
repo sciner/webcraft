@@ -1,7 +1,17 @@
+import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
+import { AABB } from "../../core/AABB.js";
 import { Vector, VectorCollector, VectorCardinalTransformer } from "../../helpers.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { ClusterBase } from "./base.js";
 import type { Building } from "./building.js";
+
+const _blocks_by_weight = new Array(CHUNK_SIZE)
+const _chunkAABB = new AABB(0, 0, 0, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
+const draw_indexes = new Array(CHUNK_SIZE)
+
+for(let i = 0; i < CHUNK_SIZE; i++) {
+    _blocks_by_weight[i] = {pos: new Vector(), item: null}
+}
 
 //
 export class BlockDrawer {
@@ -28,24 +38,55 @@ export class BlockDrawer {
         const _pos2d = new Vector();
         const transformer = this.transformer;
 
-        for(let j = 0; j < this.list.length; j+=2) {
+        // let p = performance.now()
+        let cnt = 0
+
+        for(let j = 0; j < this.list.length; j += 2) {
             const building = this.list[j];
             const blocks = this.list[j + 1];
             building.initToChunk(transformer, chunk.coord);
+            // check weight for replace
             for (let i = 0; i < blocks.length; i++) {
-                const item = blocks[i];
+                const item = blocks[i]
                 transformer.transform(item.move, pos)
-                if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map)) {
-                    blocks_setted++
-                }
-                //
-                if(pos.x >= 0 && pos.y >= 0 && pos.z >= 0 && pos.x < chunk.size.x && pos.y < chunk.size.y && pos.z < chunk.size.z) {
-                    _pos2d.copyFrom(pos)
-                    _pos2d.y = 0
-                    two2map.set(_pos2d, Math.max(two2map.get(_pos2d), pos.y))
+                if(_chunkAABB.contains(pos.x, pos.y, pos.z)) {
+                    const index = pos.getFlatIndexInChunk()
+                    if(_blocks_by_weight[index].item) {
+                        if(_blocks_by_weight[index].item.block_id < item.block_id) {
+                            continue
+                        }
+                    } else {
+                        draw_indexes[cnt++] = index
+                    }
+                    _blocks_by_weight[index].item = item
+                    _blocks_by_weight[index].pos.copyFrom(pos)
                 }
             }
+
         }
+
+        for (let i = 0; i < cnt; i++) {
+            const index = draw_indexes[i]
+            const byw = _blocks_by_weight[index]
+            const item = byw.item
+            if(!item) {
+                continue
+            }
+            const pos = byw.pos
+            _blocks_by_weight[index].item = null
+            //
+            if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map)) {
+                blocks_setted++
+            }
+            //
+            if(pos.x >= 0 && pos.y >= 0 && pos.z >= 0 && pos.x < chunk.size.x && pos.y < chunk.size.y && pos.z < chunk.size.z) {
+                _pos2d.copyFrom(pos)
+                _pos2d.y = 0
+                two2map.set(_pos2d, Math.max(two2map.get(_pos2d), pos.y))
+            }
+        }
+
+        // console.log(performance.now() - p)
 
         // IMPORTANT: Remove grass in air over setted blocks
         const BLOCK_AIR_ID = 0

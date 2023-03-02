@@ -24,32 +24,19 @@ export const getAheadMove = (dir) => {
 export class ClusterBuildingBase extends ClusterBase {
 
     building_palettes: BuildingPalettes
+    buildings = new VectorCollector()
+    timers = new PerformanceTimer()
 
     //
     constructor(clusterManager : ClusterManager, addr : Vector, biome? : any) {
-
         super(clusterManager, addr)
-
-        this.buildings              = new VectorCollector()
-        this.randoms                = new alea(this.id)
-        this.timers                 = new PerformanceTimer()
-
+        this.randoms = new alea(this.id)
     }
 
     /**
      * Add building
-     * 
-     * @param {*} seed 
-     * @param {int} door_x 
-     * @param {int} door_z 
-     * @param {Vector} size 
-     * @param {Vector} entrance 
-     * @param {int} door_direction 
-     * @param {boolean} is_crossroad
-     * 
-     * @returns 
      */
-    appendBuilding(seed, door_x, door_z, size, entrance, door_direction, is_crossroad = false) {
+    appendBuilding(seed : any, door_x : int, door_z : int, size : Vector, entrance : Vector, door_direction : int, is_crossroad : boolean = false) {
 
         const coord = new Vector(door_x + this.coord.x, 0, door_z + this.coord.z)
         if(this.buildings.has(coord)) {

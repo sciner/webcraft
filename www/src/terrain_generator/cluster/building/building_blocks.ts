@@ -18,7 +18,6 @@ export class BuildingBlocks extends Building {
 
         const dir               = this.direction
         const pos               = new Vector(0, 0, 0)
-        const block_coord       = this.pos
         const chunk_addr        = new Vector(0, 0, 0)
         const prev_chunk_addr   = new Vector(Infinity, Infinity, Infinity)
         const actual_aabb       = new AABB().reset()
