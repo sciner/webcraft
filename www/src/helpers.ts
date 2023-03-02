@@ -429,73 +429,6 @@ export class Mth {
     }
 }
 
-/**
- * Calculates a convex bulge over a pathch of a flat surface, based on the distance
- * from a surface point to the surfase center.
- */
-export class SphericalBulge {
-    distToCenterOnUnitSph: number
-    distScaleSqrInv: number
-    bulgeScale: number
-    x0: number
-    y0: number
-
-    /**
-     * @param {float} radius - the radius of the pathc that has zon-zero bulge
-     * @param {float} maxBulge - that bulge height at the surface center
-     * @param {float} maxBulgeOnUnitSphere - affects the shape of the curvature, from 0 to 1 not inclusive
-     */
-    initRadius(radius, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
-        if (maxBulgeOnUnitSphere <= 0 || maxBulgeOnUnitSphere >= 1) {
-            throw new Error()
-        }
-        this.distToCenterOnUnitSph = 1 - maxBulgeOnUnitSphere
-        const maxDistSqrOnUnitSph = 1 - this.distToCenterOnUnitSph * this.distToCenterOnUnitSph
-        this.distScaleSqrInv = maxDistSqrOnUnitSph / (radius * radius + 1e-10)
-        this.bulgeScale = maxBulge / maxBulgeOnUnitSphere
-        return this
-    }
-
-    init1DIntRange(x_min, x_max_excl, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
-        this.x0 = (x_min + x_max_excl - 1) * 0.5
-        const radius = 0.5 * (x_max_excl - x_min - 1 + 1e-10)
-        return this.initRadius(radius, maxBulge, maxBulgeOnUnitSphere)
-    }
-
-    init2DIntRange(x_min, y_min, x_max_excl, y_max_excl, maxBulge = 1, maxBulgeOnUnitSphere = 0.25) {
-        this.x0 = (x_min + x_max_excl - 1) * 0.5
-        this.y0 = (y_min + y_max_excl - 1) * 0.5
-        const dx = x_max_excl - x_min - 1
-        const dy = y_max_excl - y_min - 1
-        const radius = 0.5 * (Math.sqrt(dx * dx + dy * dy) + 1e-10)
-        return this.initRadius(radius, maxBulge, maxBulgeOnUnitSphere)
-    }
-
-    /**
-     * @param {float} distSqr - the distance squared from a surface point to the center of the surface
-     */
-    bulgeByDistanceSqr(distSqr) {
-        const distSqrOnUnitSph = distSqr * this.distScaleSqrInv
-        const cathetusOnUnitSph = Math.sqrt(Math.max(1 - distSqrOnUnitSph, 0))
-        return this.bulgeScale * Math.max(0, cathetusOnUnitSph - this.distToCenterOnUnitSph)
-    }
-
-    bulgeByDistance(dist) {
-        return this.bulgeByDistanceSqr(dist * dist)
-    }
-
-    bulgeByXY(x, y) {
-        x -= this.x0
-        y -= this.y0
-        return this.bulgeByDistanceSqr(x * x + y * y)
-    }
-
-    bulgeByX(x) {
-        x -= this.x0
-        return this.bulgeByDistanceSqr(x * x)
-    }
-}
-
 export class IvanArray {
     [key: string]: any;
     arr: any[];
@@ -2305,7 +2238,7 @@ export function mat4ToRotate(matrix) : Vector {
     return out
 }
 
-export async function blobToImage(blob) {
+export async function blobToImage(blob : Blob) : Promise<HTMLImageElement> {
 
     if (blob == null) {
         throw 'error_empty_blob'
@@ -2444,7 +2377,7 @@ export async function digestMessage(message) {
 }
 
 //
-export function isMobileBrowser() {
+export function isMobileBrowser() : boolean {
     return 'ontouchstart' in document.documentElement;
 }
 
@@ -2690,7 +2623,7 @@ if(typeof fetch === 'undefined') {
     var func = new Function("Helpers", "window", "'use strict';" + code);
     func.call(obj, obj, obj);
 } else {
-    Helpers.fetch = async (url) => fetch(url);
+    Helpers.fetch = async (url : string) => fetch(url);
     Helpers.fetchJSON = async (url, useCache = false, namespace = '') => {
         const cacheKey = namespace + '|' + url;
 
