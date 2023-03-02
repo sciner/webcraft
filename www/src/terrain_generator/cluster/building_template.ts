@@ -249,7 +249,7 @@ export class BuildingTemplate {
         }
 
         // prepare calculation of the basement shape
-        const groudFloorBlocks2D = 
+        const groundFloorBlocks2D = 
             this.getMeta('draw_natural_basement', true)
                 ? new VectorCollector2D() // blocks around the ground level, used to determine the shape of the basement
                 : null
@@ -278,7 +278,7 @@ export class BuildingTemplate {
                 // add to the shape of the basement
                 const y = block.move.y
                 if (y >= groundFloorMinY && y <= groundFloorMaxY) {
-                    groudFloorBlocks2D?.set(block.move.x, block.move.z, 1)
+                    groundFloorBlocks2D?.set(block.move.x, block.move.z, 1)
                 }
             }
         }
@@ -307,7 +307,7 @@ export class BuildingTemplate {
         // Add cap dirt block
         this.createBiomeDirtCapBlocks(all_blocks, min, bm)
 
-        this.calcAutoBasement(groudFloorBlocks2D)
+        this.calcAutoBasement(groundFloorBlocks2D)
 
         // Call it only after DELETE_BLOCK_ID is deleted
         // TODO: Этот код предназначался для создания пустоты перед дверью,
