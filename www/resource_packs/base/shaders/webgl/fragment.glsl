@@ -12,6 +12,8 @@
 
 #include<manual_mip_define_func>
 
+#include<torch_flame_func>
+
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -213,22 +215,30 @@ void main() {
                 );
             }
 
-            // text not allow to discard in this place
-            if(v_flagOpacity != 0.) {
-                color.a *= v_color.b / 255.0;
+            if(v_flagTorchFlame > .5) {
+                #include<torch_flame>
+                if(color.a < 0.7) discard;
+
             } else {
-                if(color.a < 0.1) discard;
-                if (u_opaqueThreshold > 0.1) {
-                    if (color.a < u_opaqueThreshold) {
-                        discard;
-                    } else {
-                        color.a = 1.0;
+
+                // text not allow to discard in this place
+                if(v_flagOpacity != 0.) {
+                    color.a *= v_color.b / 255.0;
+                } else {
+                    if(color.a < 0.1) discard;
+                    if (u_opaqueThreshold > 0.1) {
+                        if (color.a < u_opaqueThreshold) {
+                            discard;
+                        } else {
+                            color.a = 1.0;
+                        }
                     }
                 }
-            }
 
-            if(v_flagEnchantedAnimation > 0.0) {
-                #include<enchanted_animation>
+                if(v_flagEnchantedAnimation > 0.0) {
+                    #include<enchanted_animation>
+                }
+
             }
 
         }
@@ -253,7 +263,7 @@ void main() {
         }
 
         if(v_flagRainOpacity > .5) {
-             color.a *= u_rain_strength;
+            color.a *= u_rain_strength;
         }
 
         // _include<swamp_fog>

@@ -25,6 +25,8 @@ For example you can download this texture pack from https://polyflore.net/projec
 Start server:
 ```
 // Run NodeJS v17.9.0 server!
+npm i
+npm run watch:www // run this command in separate terminal window
 cd ./node_server
 npm run install
 npm run start
@@ -37,6 +39,13 @@ cd ./ff-worker
 npm i
 cd ../node_server
 npm run start-rollup
+```
+
+Only check types for client and server
+
+```
+npm run build:www
+npm run types:server
 ```
 
 ## Commands

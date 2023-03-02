@@ -1,12 +1,14 @@
 /world
 www/js-gen
+www/js-bundles
+node_server/js_server
 *.obj
 *.mtl
 *.exe
 *.bak
 .idea/
 .vs/
-.vscode/
+.vscode
 *.sqlite3
 *.BASE.*
 *.LOCAL.*
@@ -16,6 +18,7 @@ package-lock.json
 .DS_Store
 *.schematic
 *.schem
+www/js/**/*
 www/resource_packs/base/blocks.json
 www/resource_packs/base/textures/*.*
 node_server/assets-compiler/resource-packs/

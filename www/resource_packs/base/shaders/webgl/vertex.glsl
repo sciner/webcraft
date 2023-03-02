@@ -13,6 +13,9 @@ float wing_amplitude = 0.3;
 void main() {
     #include<terrain_read_flags_vert>
 
+    vec3 add_pos = u_add_pos;
+    #include<ao_light_pass_vertex>
+
     v_color = vec4(float(a_color & uint(0x3ff)),
         float((a_color >> 10) & uint(0x3ff)),
         a_color >> 20, 1.0);
@@ -28,8 +31,9 @@ void main() {
         axisX = lookAtMat * axisX.xzy;
         axisY = lookAtMat * axisY.xzy;
     } else if (flagLookAtCameraHor > 0) {
-        mat3 lookAtMat = inverse(mat3(u_worldView));
-        axisX = lookAtMat * axisX.xzy;
+        // mat3 lookAtMat = inverse(mat3(u_worldView));
+        axisX = vec3(normalize((a_position + add_pos).yx) * length(a_axisX), 0.0);
+        axisX.y = -axisX.y;
     }
 
     // Animated textures
@@ -99,17 +103,16 @@ void main() {
         // v_chunk_pos.z += sin((u_time / 1000. + v_chunk_pos.z) * wing_speed) * wing_amplitude;
     }
 
-    v_world_pos = v_chunk_pos + u_add_pos;
+    v_world_pos = v_chunk_pos + add_pos;
 
     // Waves
     if(flagWavesVertex > 0) {
         v_chunk_pos.z += getWaveValue();
+        v_world_pos = v_chunk_pos + add_pos;
     }
 
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
-
-    #include<ao_light_pass_vertex>
 
     if(v_Triangle >= .5 && gl_VertexID > 2) {
         gl_Position = vec4(0.0, 0.0, -2.0, 1.0);

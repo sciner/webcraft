@@ -169,6 +169,14 @@
         "screen_download": {"en": "Download screenshot", "ru": "Загрузить скриншот", "fr": "", "es": "", "man": ""},
         "screen_cover": {"en": "Set as world cover", "ru": "Сделать обложкой мира", "fr": "", "es": "", "man": ""},
         "screen_gallery": {"en": "Upload to gallery", "ru": "Добавить в галерею", "fr": "", "es": "", "man": ""},
-        "screen_taken": {"en": "You have taken a screenshot. Farther?", "ru": "Вы сделали снимок экрана. Что дальше?", "fr": "", "es": "", "man": ""}
+        "screen_taken": {"en": "You have taken a screenshot. Farther?", "ru": "Вы сделали снимок экрана. Что дальше?", "fr": "", "es": "", "man": ""},
+        "settings_leaf_fall": {"en": "Trees leaf fall", "ru": "Листопад", "fr": "", "es": "", "man": ""},
+        "settings_overlay_textures": {"en": "Overlay textures", "ru": "Плавные переходы между текстурами", "fr": "", "es": "", "man": ""},
+        "base_ambient_light_level": {"en": "Base ambient light level", "ru": "Базовый уровень освещенности", "fr": "", "es": "", "man": ""},
+        "bed_no_sleep": {"en": "You can only sleep at night", "ru": "Спать можно только ночью", "fr": "", "es": "", "man": ""},
+        "bed_to_far_away": {"en": "Get closer, the bed does not bite", "ru": "Вы не можете уснуть, кровать слишком далеко", "fr": "", "es": "", "man": ""},
+        "bed_occupied": {"en": "This bed is occupied", "ru": "Эта кровать занята", "fr": "", "es": "", "man": ""},
+        "bed_not_valid": {"en": "Your home bed was missing or obstructed", "ru": "Ваша кровать пропала или доступ к ней затруднён", "fr": "", "es": "", "man": ""},
+        "no_connection": {"en": "No connection. %0 seconds since last packet recieved", "ru": "Нет соединения. %0секунд с последнего полученного пакета", "fr": "", "es": "", "man": ""}
     }
 }

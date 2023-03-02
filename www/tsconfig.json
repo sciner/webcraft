@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": false,
+        "noEmitOnError": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "importsNotUsedAsValues": "error",
+        "removeComments": false,
+        "sourceMap": false,
+        "strict": false,
+        "target": "es2022",
+        "module": "es2022",
+        "inlineSourceMap": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "outDir": "js"
+    },
+    "files": [
+        "src/package.json"
+    ],
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "src/renders/webgpu/**/*",
+        "src/worker-light/test.ts"
+    ]
+}

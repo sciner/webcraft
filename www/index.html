@@ -41,7 +41,7 @@
     <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="vendors/angular.min.js"></script>
     <% if(page.useGenWorkers) {%>
-    <script src="js-gen/controller_bundle.js" type="module"></script>
+    <script src="js-bundles/controller_bundle.js" type="module"></script>
     <% } else { %>
     <script src="js/ui/controller.js" type="module"></script>
     <% } %>
@@ -311,7 +311,7 @@
                     <div class="input-group">
                         <p>Mouse Sensitivity: <span>{{settings.form.mouse_sensitivity}}</span>%</p>
                         <div class="rangeContainer" style="margin-bottom: 20px;">
-                            <input id="inputRange_Mouse" class="slider" type="range" min="25" max="300" step="25" value="settings.form.mouse_sensitivity"
+                            <input id="inputRange_Mouse" class="slider" type="range" min="25" max="300" step="1" value="settings.form.mouse_sensitivity"
                                 ng-model="settings.form.mouse_sensitivity" ng-change="settings.updateSlider('inputRange_Mouse')">
                         </div>
                         <div id="inputRange_Mouse_ticks"></div>
@@ -372,6 +372,12 @@
                         </div>
                     </div>
                     <div class="input-group">
+                        <p>{{Lang.base_ambient_light_level}}: <span>{{settings.form.base_ambient_light_level}}</span>%</p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_BaseAmbientLightLevel" class="slider" type="range" min="0" max="100" step="5" ng-model="settings.form.base_ambient_light_level">
+                        </div>
+                    </div>
+                    <div class="input-group">
                         <p>{{Lang.render_options}}</p>
                         <div class="switcher-container">
                             <input type="checkbox" id="chk-generate_mipmap" value="" ng-model="settings.form.mipmap" />
@@ -394,6 +400,22 @@
                                 <small></small>
                             </div>
                             <label for="chk-draw_improved_blocks">{{Lang.draw_improved_blocks}}</label>
+                        </div>
+                        <!-- Leaf fall -->
+                        <div class="switcher-container" style="margin-top: 1em;">
+                            <input type="checkbox" id="chk-leaf_fall" value="" ng-model="settings.form.leaf_fall" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-leaf_fall">{{Lang.settings_leaf_fall}}</label>
+                        </div>
+                        <!-- Overlay textures -->
+                        <div class="switcher-container" style="margin-top: 1em;">
+                            <input type="checkbox" id="chk-overlay_textures" value="" ng-model="settings.form.overlay_textures" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-overlay_textures">{{Lang.settings_overlay_textures}}</label>
                         </div>
                     </div>
                     <div class="input-group">
@@ -601,7 +623,7 @@
                         <div id="world-generator-options" class="switchers" ng-if="newgame.generators.current.has_options">
                             <h2>{{Lang.world_options}}</h2>
                             <!-- Options -->
-                            <div ng-repeat="(key, option) in newgame.generators.current.options">
+                            <div ng-repeat="(key, option) in newgame.generators.current.options" ng-show="!option.deprecated">
                                 <div class="switcher-container" ng-if="option.type == 'checkbox'">
                                     <input type="checkbox" id="chk-generator-option-{{key}}" value="" ng-model="newgame.form.generator.options[key]" />
                                     <div class="switcher">

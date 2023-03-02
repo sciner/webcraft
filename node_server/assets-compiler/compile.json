@@ -398,6 +398,28 @@
             "spawnable": true
         },
         {
+            "id": -3,
+            "name": "DECAL2",
+            "spawnable": false,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "bedrock"
+            },
+            "group": "decal2",
+            "texture": "block/anvil.png"
+        },
+        {
+            "id": -2,
+            "name": "DECAL1",
+            "spawnable": false,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "bedrock"
+            },
+            "group": "decal1",
+            "texture": "block/anvil.png"
+        },
+        {
             "id": -1,
             "name": "DUMMY",
             "spawnable": false,
@@ -443,6 +465,58 @@
             ]},
             "texture": {
                 "side": "block/dirt.png"
+            },
+            "overlay_textures_weight": 96,
+            "texture_overlays": {
+                "1": "block/decals/dirt/1.png",
+                "corner": "block/decals/dirt/corner.png",
+                "3": "block/decals/dirt/3.png",
+                "all": "block/decals/dirt/all.png",
+                "opposite": "block/decals/dirt/opposite.png"
+            }
+        },
+        {
+            "id": 155,
+            "name": "DIRT_SLAB",
+            "sound": "madcraft:block.gravel",
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "dirt"
+            ],
+            "material": {
+                "id": "dirt"
+            },
+            "texture": {
+                "side": "block/dirt.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DIRT"
+            }
+        },
+        {
+            "id": 420,
+            "name": "SNOW_DIRT_SLAB",
+            "sound": "madcraft:block.snow",
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "dirt"
+            ],
+            "material": {
+                "id": "dirt"
+            },
+            "texture": {
+                "up": "block/snow.png",
+                "down": "block/dirt.png",
+                "side": "block/grass_block_snow.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "SNOW_DIRT"
             }
         },
         {
@@ -463,6 +537,43 @@
                 "up": "block/grass_block_top.png",
                 "down": "block/dirt.png",
                 "side": "block/grass_block_side_overlay.png"
+            },
+            "overlay_textures_weight": 99,
+            "texture_overlays": {
+                "1": "block/decals/grass_block/1.png",
+                "corner": "block/decals/grass_block/corner.png",
+                "3": "block/decals/grass_block/3.png",
+                "all": "block/decals/grass_block/all.png",
+                "opposite": "block/decals/grass_block/opposite.png"
+            },
+            "generator": {
+                "can_replace_to_slab": "GRASS_BLOCK_SLAB"
+            }
+        },
+        {
+            "id": 114,
+            "name": "GRASS_BLOCK_SLAB",
+            "sound": "madcraft:block.grass",
+            "drop_item": {"name": "DIRT_SLAB", "count": 1, "chance": 1},
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "mask_biome",
+                "random_rotate_up",
+                "dirt"
+            ],
+            "material": {
+                "id": "dirt"
+            },
+            "texture": {
+                "up": "block/grass_block_top.png",
+                "down": "block/dirt.png",
+                "side": "block/grass_block_side_overlay.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "GRASS_BLOCK"
             }
         },
         {
@@ -1230,7 +1341,15 @@
             "tags": [
                 "random_rotate_up"
             ],
-            "texture": "block/sand.png"
+            "texture": "block/sand.png",
+            "overlay_textures_weight": 95,
+            "texture_overlays": {
+                "1": "block/decals/sand/1.png",
+                "corner": "block/decals/sand/corner.png",
+                "3": "block/decals/sand/3.png",
+                "all": "block/decals/sand/all.png",
+                "opposite": "block/decals/sand/opposite.png"
+            }
         },
         {
             "id": 12,
@@ -1249,7 +1368,15 @@
                     "name":"GRAVEL"
                 }
             ],
-            "texture": "block/gravel.png"
+            "texture": "block/gravel.png",
+            "overlay_textures_weight": 97,
+            "texture_overlays": {
+                "1": "block/decals/gravel/1.png",
+                "corner": "block/decals/gravel/corner.png",
+                "3": "block/decals/gravel/3.png",
+                "all": "block/decals/gravel/all.png",
+                "opposite": "block/decals/gravel/opposite.png"
+            }
         },
         {
             "id": 6,
@@ -1410,7 +1537,7 @@
             "drop_item": [
                 {
                     "name":"GOLD_ORE",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"] 
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ],
             "texture": "block/gold_ore.png",
@@ -1578,11 +1705,11 @@
             "drop_item": [
                 {
                     "name":"STRING",
-                    "instrument":["_SWORD"] 
+                    "instrument":["_SWORD"]
                 },
                 {
                     "name":"COBWEB",
-                    "instrument":["SHEARS"] 
+                    "instrument":["SHEARS"]
                 }
             ]
         },
@@ -1943,7 +2070,7 @@
             "drop_item": [
                 {
                     "name":"DIAMOND",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"] 
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ],
             "texture": "block/diamond_ore.png",
@@ -2853,6 +2980,7 @@
             "id": 468,
             "name": "DIRT_PATH",
             "transparent": true,
+            "is_opaque_for_fluid": true,
             "height": 0.9375,
             "sound": "madcraft:block.grass",
             "material": {
@@ -2880,6 +3008,17 @@
                 "up": "block/snow.png",
                 "down": "block/dirt.png",
                 "side": "block/grass_block_snow.png"
+            },
+            "overlay_textures_weight": 100,
+            "texture_overlays": {
+                "1": "block/decals/snow_block/1.png",
+                "corner": "block/decals/snow_block/corner.png",
+                "3": "block/decals/snow_block/3.png",
+                "all": "block/decals/snow_block/all.png",
+                "opposite": "block/decals/snow_block/opposite.png"
+            },
+            "generator": {
+                "can_replace_to_slab": "SNOW_DIRT_SLAB"
             }
         },
         {
@@ -4898,6 +5037,7 @@
             "name": "MOB_SPAWN",
             "transparent": true,
             "can_rotate": true,
+            "sound": "madcraft:block.stone",
             "material": {
                 "id": "iron"
             },
@@ -4936,7 +5076,7 @@
             },
             "mining_time": 0,
             "extra_data": {
-               "item": null 
+               "item": null
             },
             "tags": [
                 "pot",
@@ -6512,7 +6652,15 @@
             "material": {
                 "id": "snow"
             },
-            "texture": "block/snow.png"
+            "texture": "block/snow.png",
+            "overlay_textures_weight": 100,
+            "texture_overlays": {
+                "1": "block/decals/snow_block/1.png",
+                "corner": "block/decals/snow_block/corner.png",
+                "3": "block/decals/snow_block/3.png",
+                "all": "block/decals/snow_block/all.png",
+                "opposite": "block/decals/snow_block/opposite.png"
+            }
         },
         {
             "id": 182,
@@ -9497,7 +9645,7 @@
             },
             "texture": "item/chorus_fruit.png",
             "coocked_item": {
-                "name": "POPPED_CHORUS_FRUIT", 
+                "name": "POPPED_CHORUS_FRUIT",
                 "count": 1
             }
         },
@@ -9538,6 +9686,61 @@
             "material": {
                 "id": "stone"
             }
+        },
+        {
+            "id": 62,
+            "name": "PINK_PETALS",
+            "style": "petals",
+            "sound": "madcraft:block.cloth",
+            "transparent": true,
+            "can_rotate": true,
+            "passable": 1,
+            "mining_time": 0,
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "no_set_on_top",
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "texture": {
+                "side": "./textures/pink_petals.png",
+                "stem": "./textures/pink_petals_stem.png;mask_biome"
+            }
+        },
+        {
+            "id": 498,
+            "name": "BURDOCK",
+            "transparent": true,
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "mask_biome",
+                "can_put_into_pot"
+            ],
+            "texture": "block/grass.png"
+        },
+        {
+            "id": 499,
+            "name": "WINDFLOWERS",
+            "transparent": true,
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "mask_biome"
+            ],
+            "texture": "block/grass.png"
         }
     ]
 }
