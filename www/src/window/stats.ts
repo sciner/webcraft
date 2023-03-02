@@ -36,7 +36,7 @@ export class StatsWindow extends BlankWindow {
         label_distance.style.font.size = 16 * this.zoom
         this.add(label_distance)
 
-        const test = new Slider(17 * this.zoom, 160 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_distancghje');
+        const test = new Slider(40 * this.zoom, 160 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_distancghje');
         //label_distance.style.font.size = 16 * this.zoom
         this.add(test)
 

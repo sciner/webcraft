@@ -1734,10 +1734,26 @@ export class Slider extends Window {
         this.setIcon('./media/gui/scroll.png')
         this._wmicon.width = 30
         this.min = 0
-        this.max = 100
+        this.max = 300
         this.value = 50
-
+        this.step = 1
         this.grab = false
+    }
+
+    updete(e) {
+        const cursor = this._wmicon
+        const half = cursor.w / 2
+        let pos = e.x - this.x - half
+        if (pos < half) {
+            pos = 0
+        }
+        if ((pos + half) > this.w) {
+            pos = this.w - half
+        }
+        cursor.x = pos
+        this.value = pos * this.max / this.w
+        console.log(this.value)
+        Qubatch.settings.window_size = this.value
     }
 
     onMouseEnter() {
@@ -1745,7 +1761,7 @@ export class Slider extends Window {
     }
 
     onMouseLeave() {
-        this.grab = false
+       // this.grab = false
     }
 
     toggle() {
@@ -1760,8 +1776,7 @@ export class Slider extends Window {
     }
     onMouseMove(e) {
         if (this.grab) {
-            const test = this._wmicon;
-            test.x = e.x - this.x - 15
+            this.updete(e)
         }
     }
     onDrop(e) {
