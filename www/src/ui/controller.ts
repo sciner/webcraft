@@ -484,7 +484,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
         const render = Q.render
         const renderBackend = render.renderBackend
 
-        Q.hud = new HUD(render.canvas, Q.settings)
+        Q.hud = new HUD(render.canvas)
   
         // we can use it both
         await Resources.preload({

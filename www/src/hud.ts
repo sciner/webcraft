@@ -121,7 +121,7 @@ class HUDWindow extends Window {
 export class HUD {
     [key: string]: any;
 
-    constructor(canvas, settings: GameSettings) {
+    constructor(canvas) {
 
         this.canvas = canvas
 
@@ -149,7 +149,7 @@ export class HUD {
         }
 
         // Main menu
-        this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, settings)
+        this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null)
         wm.add(this.frmMainMenu)
 
         // HUD window
