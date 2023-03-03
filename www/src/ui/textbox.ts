@@ -39,7 +39,7 @@ export class TextBox {
 
         // create chat text input
         this.chat_input.style.font.family = CHAT_INPUT_FONT
-        this.chat_input.style.font.size = 18 * this.zoom
+        this.chat_input.style.font.size = 18
         this.chat_input.style.font.color = '#ffffff'
         this.chat_input.style.background.color = '#000000aa'
 
@@ -52,7 +52,7 @@ export class TextBox {
         // create cariage
         this.lbl_cariage = new Label(0, 0, 0, 0, 'lbl_cariage')
         this.lbl_cariage.style.font.family = CHAT_INPUT_FONT
-        this.lbl_cariage.style.font.size = 18 * this.zoom
+        this.lbl_cariage.style.font.size = 18
         this.lbl_cariage.style.font.color = '#ffffff'
         this.lbl_cariage.text = '_'
         const ctm = this.lbl_cariage.getTextMetrics()

@@ -29,7 +29,6 @@ export class BaseChestWindow extends BaseInventoryWindow {
         super(x, y, w, h, id, title, text, inventory)
 
         this.options = options
-        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
@@ -87,10 +86,8 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
         // Add labels to window
         this.lbl1 = new Label(15 * this.zoom, 12 * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl1', null, options.title)
-        this.lbl1.style.font.size = 16 * this.zoom
         this.add(this.lbl1);
         this.lbl2 = new Label(15 * this.zoom, (h + (147 - 332)) * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl2', null, Lang.inventory)
-        this.lbl2.style.font.size = 16 * this.zoom
         this.add(this.lbl2);
 
         // Add listeners for server commands

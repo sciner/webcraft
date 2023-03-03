@@ -7,14 +7,12 @@ export class MainMenu extends BlankWindow {
 
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)
-        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
         const lblTitle = new Label(0, 0, this.w, 30 * this.zoom, 'lblTitle', null, Lang.menu);
         lblTitle.style.textAlign.horizontal = 'center'
-        lblTitle.style.font.size = 16 * this.zoom
         lblTitle.style.textAlign.vertical = 'middle'
         lblTitle.style.font.color = '#ffffff'
         this.add(lblTitle)
@@ -53,7 +51,6 @@ export class MainMenu extends BlankWindow {
         const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
         btn.style.background.color = '#d4d0c8'
         btn.style.font.color = '#000000bb'
-        btn.style.font.size = 16 * this.zoom
         btn.onMouseDown = onclick
         this.add(btn);
     }

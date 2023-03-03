@@ -13,9 +13,6 @@ class CreativeInventoryCollection extends Window {
     constructor(x : int, y : int, w : int, h : int, id : string, title? : string, text? : string) {
         
         super(x, y, w, h, id, title, text)
-
-        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
-
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
         this.max_height = 0
@@ -202,8 +199,6 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     constructor(inventory) {
         super(10, 10, 390, 450, 'frmCreativeInventory')
-
-        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
@@ -216,7 +211,6 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         // Window title
         const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
-        lblTitle.style.font.size = 16 * this.zoom
         this.add(lblTitle)
 
         // Создание слотов для инвентаря
@@ -269,8 +263,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         txtSearch.style.border.style     = 'inset'
         txtSearch.style.font.color       = '#ffffff'
         txtSearch.style.background.color = '#706f6c'
-        txtSearch.style.font.size    = 16 * this.zoom
-        txtSearch.style.padding.left = 5 * this.zoom
+        txtSearch.style.padding.left     = 5 * this.zoom
         txtSearch.style.textAlign.vertical = 'middle'
         this.add(txtSearch)
 

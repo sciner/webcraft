@@ -180,7 +180,6 @@
         "no_connection": {"en": "No connection. %0 seconds since last packet recieved", "ru": "Нет соединения. %0секунд с последнего полученного пакета", "fr": "", "es": "", "man": ""},
         "mouse_sensitivity": {"en": "Mouse Sensitivity", "ru": "Чувствительность мыши", "fr": "", "es": "", "man": ""},
 		"interface": {"en": "Interface", "ru": "Интерфейс", "fr": "", "es": "", "man": ""},
-		"interface_size": {"en": "Interface size", "ru": "Размер интерфейса", "fr": "", "es": "", "man": ""},
         "window_size": {"en": "Windows size", "ru": "Размер окон", "fr": "", "es": "", "man": ""},
         "repair": {"en": "Repair & Name", "ru": "Название или ремонт", "fr": "", "es": "", "man": ""},
         "furnace": {"en": "Furnace", "ru": "Печь", "fr": "", "es": "", "man": ""},

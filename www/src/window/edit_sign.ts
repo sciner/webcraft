@@ -9,7 +9,6 @@ export class EditSignWindow extends BlankWindow {
     constructor() {
 
         super(10, 10, 236, 192, 'frmEditSign', null, null);
-        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
@@ -20,7 +19,6 @@ export class EditSignWindow extends BlankWindow {
 
         // Add labels to window
         const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.sign_edit)
-        lblTitle.style.font.size = 16 * this.zoom
         this.add(lblTitle)
 
         // Text editors

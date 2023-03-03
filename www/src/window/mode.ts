@@ -13,13 +13,10 @@ export class ModeWindow extends Window {
     constructor(player) {
 
         super(0, 0, 217, 130, 'frmMode')
-
-        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
-
         this.style.background.color = '#00000055'
         this.player = player
         this.mode == 'survival'
@@ -42,7 +39,6 @@ export class ModeWindow extends Window {
         }
         label.style.textAlign.horizontal = 'center'
         label.style.font.color = '#ffffff'
-        label.style.font.size = 16 * this.zoom
         this.add(label)
         return label
     }

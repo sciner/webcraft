@@ -68,12 +68,13 @@ export class Window extends PIXI.Container {
     #_bgicon = null
     #_wmclip = null
 
-    zoom = 1//UI_ZOOM
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
     constructor(x, y, w, h, id, title, text) {
 
         super()
+
+        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
 
         const that = this
 
@@ -891,9 +892,6 @@ export class Window extends PIXI.Container {
                 const y = calcLayoutSize(cl.y, 0)
                 const w = calcLayoutSize(cl.width, this.w)
                 const h = calcLayoutSize(cl.height, 0)
-                if (cl?.style?.font?.size) {
-                    cl.style.font.size *= zoom
-                }
                 if (cl?.style?.padding) {
                     cl.style.padding *= zoom
                 }
@@ -1077,8 +1075,6 @@ export class Button extends Window {
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, title)
-
-        this.style.font.size = 10
         this.style.border.hidden = false
         this.style.padding.set(10)
 
@@ -1298,13 +1294,12 @@ class Tooltip extends Label {
 
 export class SimpleBlockSlot extends Window {
 
-    constructor(x, y, w, h, id, title, text, zoom = 1) {
+    constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)
-        this.zoom = zoom
         this.style.font.color = '#ffffff'
         this.style.font.shadow.enable = true
         this.style.font.shadow.alpha = .5
-        this.style.font.size = 6 * this.zoom
+        this.style.font.size = 14
 
         this.text_container.anchor.set(1, 1)
         this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)

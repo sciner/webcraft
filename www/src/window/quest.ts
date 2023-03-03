@@ -12,13 +12,10 @@ export class QuestWindow extends BlankWindow {
     constructor(player) {
 
         super(10, 10, 1700/2, 1200/2, 'frmQuests', null, null);
-
-        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
-
         this.player = player
 
         this.setBackground('./media/gui/form-quest.png')
@@ -28,7 +25,6 @@ export class QuestWindow extends BlankWindow {
 
         // Add labels to window
         const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
-        lblTitle.style.font.size = 16 * this.zoom
         this.add(lblTitle)
 
         // Add close button

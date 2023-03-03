@@ -71,7 +71,6 @@ export class AnvilWindow extends BaseCraftWindow {
     constructor(inventory) {
 
         super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
-        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
@@ -90,7 +89,6 @@ export class AnvilWindow extends BaseCraftWindow {
 
             // Add labels to window
             const lblTitle = new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.repair)
-            lblTitle.style.font.size = 16 * this.zoom
             this.add(lblTitle)
 
             // Ширина / высота слота
@@ -148,7 +146,6 @@ export class AnvilWindow extends BaseCraftWindow {
         this.lbl_edit.max_length         = ITEM_LABEL_MAX_LENGTH
         this.lbl_edit.max_lines          = 1
         this.lbl_edit.style.font.color   = '#ffffff'
-        this.lbl_edit.style.font.size    = 16 * this.zoom
         this.lbl_edit.style.padding.left = 5 * this.zoom
         this.lbl_edit.style.textAlign.vertical = 'middle'
         this.lbl_edit.setBackground(await this.atlas.getSprite(0, 665, 440, 62))

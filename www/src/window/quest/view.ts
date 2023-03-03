@@ -24,8 +24,6 @@ export class QuestView extends Window {
 
         super(x, y, w, h, id, title, text);
 
-        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
-        
         // Ширина / высота слота
         this.cell_size = 36 * this.zoom;
         this.wheel_scroll = 36 * this.zoom;

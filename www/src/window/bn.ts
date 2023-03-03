@@ -173,7 +173,6 @@ export class BeaconWindow extends BaseChestWindow {
         this.add(this.lblSecondary = new Label(235 * this.zoom, 15 * this.zoom, 175 * this.zoom, 30 * this.zoom, 'lblSecondary', null, Lang.beacon_secondary))
         for(let lbl of [this.lblPrimary, this.lblSecondary]) {
             lbl.style.font.color = '#ffffff'
-            lbl.style.font.size = 16 * this.zoom
             lbl.style.textAlign.horizontal = 'center'
         }
         let lbl = new Label(80 * this.zoom, 213 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblEmerald')

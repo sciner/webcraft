@@ -117,8 +117,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
     [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
-        const zoom = UI_ZOOM * ((ct?.hud != undefined) ? Qubatch.settings.interface_size : Qubatch.settings.window_size) / 100
-        super(x, y, w, h, id, null, '', zoom)
+        super(x, y, w, h, id, null, '')
         this.ct = ct
         this.setSlotIndex(slot_index)
         ct.inventory.addInventorySlot(this)

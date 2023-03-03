@@ -9,8 +9,6 @@ export class ScreenshotWindow extends BlankWindow {
 
     constructor(player) {
         super(10, 10, 400 , 460, "frmScreenshot", null, null);
-
-        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom

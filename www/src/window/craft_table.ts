@@ -11,8 +11,6 @@ export class CraftTable extends BaseCraftWindow {
     constructor(inventory, recipes) {
 
         super(0, 0, 352, 332, 'frmCraft', null, null, inventory);
-
-        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
@@ -54,8 +52,6 @@ export class CraftTable extends BaseCraftWindow {
         // Add labels to window
         const lbl1 = new Label(59 * this.zoom, 10 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.crafting);
         const lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl2', null, Lang.inventory);
-        lbl1.style.font.size = 16 * this.zoom
-        lbl2.style.font.size = 16 * this.zoom
         this.add(lbl1)
         this.add(lbl2)
 

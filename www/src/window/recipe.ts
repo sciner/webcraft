@@ -84,13 +84,10 @@ export class RecipeWindow extends BlankWindow {
 
         super(10, 10, 592/2, 668/2, 'frmRecipe', null, null)
         this.canBeOpenedWith = ['frmInventory', 'frmCraft']
-
-        this.zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
-
         this.items_per_page     = 20
         this.index              = -1
         this.recipe_manager     = recipe_manager
@@ -192,7 +189,6 @@ export class RecipeWindow extends BlankWindow {
 
         // Label
         const lblPages = new Label(110 * this.zoom, 268 * this.zoom, 70 * this.zoom, 45 * this.zoom, 'lblPages', '1 / 2')
-        lblPages.style.font.size = 12 * this.zoom
         lblPages.style.font.color = '#ffffff'
         lblPages.style.font.shadow.enable = true
         lblPages.text_container.anchor.set(.5, .5)
@@ -244,7 +240,6 @@ export class RecipeWindow extends BlankWindow {
         txtSearch.style.color              = '#ffffff';
         txtSearch.style.background.color   = '#ffffff88';
         txtSearch.style.border.hidden      = false
-        txtSearch.style.font.size          = 14 * this.zoom
         txtSearch.style.textAlign.vertical = 'middle'
         this.add(txtSearch);
         
