@@ -1,6 +1,6 @@
-import { Vector, unixTime, getChunkAddr } from "../../../www/src/helpers.js";
+import { Vector, unixTime, getChunkAddr } from "@client/helpers.js";
 import { WorldChunkFlags } from "./WorldChunkFlags.js";
-import { decompressModifiresList } from "../../../www/src/compress/world_modify_chunk.js";
+import { decompressModifiresList } from "@client/compress/world_modify_chunk.js";
 import { BulkSelectQuery, preprocessSQL, runBulkQuery, all, get, run } from "../db_helpers.js";
 import type { BlocksPatch } from "./ChunkDBActor"
 import type { ChunkRecord, ServerChunk } from "../../server_chunk"

@@ -2,7 +2,7 @@ import { Spritesheet } from "./spritesheet.js";
 
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
-import { BBModel_Compiler_Base } from "../../www/src/bbmodel/compiler_base.js";
+import { BBModel_Compiler_Base } from "@client/bbmodel/compiler_base.js";
 
 export class BBModel_Compiler extends BBModel_Compiler_Base {
 

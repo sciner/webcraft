@@ -1,4 +1,4 @@
-import { SimpleQueue } from "../../www/src/helpers.js";
+import { SimpleQueue } from "@client/helpers.js";
 
 // Queue for actions
 export class WorldActionQueue {

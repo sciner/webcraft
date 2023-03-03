@@ -68,12 +68,13 @@ export class Window extends PIXI.Container {
     #_bgicon = null
     #_wmclip = null
 
-    zoom = UI_ZOOM
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
     constructor(x, y, w, h, id, title, text) {
 
         super()
+
+        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
 
         const that = this
 
@@ -874,11 +875,12 @@ export class Window extends PIXI.Container {
         const ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
         ]
+        const zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
         const calcLayoutSize = (value, def_value) => {
             if(value === undefined) {
                 return def_value
             }
-            return (value | 0) * this.zoom
+            return (value | 0) * zoom
         }
         for(let id in layout) {
             const cl = layout[id]
@@ -890,6 +892,12 @@ export class Window extends PIXI.Container {
                 const y = calcLayoutSize(cl.y, 0)
                 const w = calcLayoutSize(cl.width, this.w)
                 const h = calcLayoutSize(cl.height, 0)
+                if (cl?.style?.padding) {
+                    cl.style.padding *= zoom
+                }
+                if (cl?.gap) {
+                    cl.gap *= zoom
+                }
                 switch(cl.type) {
                     case 'VerticalLayout': {
                         control = new VerticalLayout(x, y, w, id);
@@ -1067,8 +1075,6 @@ export class Button extends Window {
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, title)
-
-        this.style.font.size = 10
         this.style.border.hidden = false
         this.style.padding.set(10)
 
@@ -1290,11 +1296,11 @@ export class SimpleBlockSlot extends Window {
 
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)
-
         this.style.font.color = '#ffffff'
-        this.style.font.size = 14
         this.style.font.shadow.enable = true
         this.style.font.shadow.alpha = .5
+        this.style.font.size = 14
+
         this.text_container.anchor.set(1, 1)
         this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)
 
@@ -1308,9 +1314,7 @@ export class SimpleBlockSlot extends Window {
         this.bar_value.style.background.color = '#00ff00'
         this.addChild(this.bar)
         this.bar.addChild(this.bar_value)
-
         this.item = null
-
     }
 
     getItem() {
@@ -1663,7 +1667,7 @@ export class VerticalLayout extends Window {
 
     refresh() {
         let y = 0
-        for(let w of this.list.values()) {
+        for(const w of this.list.values()) {
             if(!w.visible) continue
             w.x = 0
             w.y = y
@@ -1715,4 +1719,75 @@ export class ToggleButton extends Button {
         this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
     }
 
+}
+
+export class Slider extends Window {
+
+    constructor(x, y, w, h, id, value) {
+        super(x, y, w, h, id, null, null)
+        this.style.background.color = '#8892c9'
+        this.min = -300
+        this.max = 300
+        this.value = value
+        this.step = 1
+        this.grab = false
+        this.setIcon('./media/gui/scroll.png')
+        if (w > h) {
+            this.horizontal = true
+            this._wmicon.width = 30 * this._wmicon.h / 24
+        } else {
+            this.horizontal = false
+            this._wmicon.height = 24 * this._wmicon.w / 30
+        }
+
+        this.updete(this.value)
+    }
+
+    updete(val) {
+        const cursor = this._wmicon
+        const half = ((this.horizontal) ? cursor.w : cursor.h) / 2
+        let pos = val - ((this.horizontal) ? this.x : this.y) - half
+        if (pos < 0.1) {
+            pos = 0
+        }
+        if (this.horizontal) {
+            cursor.x = Math.round(pos / this.step) * this.step
+        } else {
+            cursor.y = Math.round(pos / this.step) * this.step
+        }
+        this.value = Math.floor(pos * (this.max - this.min) / (this.horizontal ? this.w : this.h) + this.min)
+    }
+
+    onMouseEnter() {
+        console.log('onMouseEnter')
+    }
+
+    onMouseLeave() {
+       // this.grab = false
+    }
+
+    toggle() {
+        console.log('toggle')
+    }
+
+    onMouseDown(e) {
+        this.grab = true
+    }
+    onMouseUp(e) {
+        this.grab = false
+    }
+    onMouseMove(e) {
+        if (this.grab) {
+            this.updete(this.horizontal ? e.x : e.y)
+        }
+    }
+    onDrop(e) {
+        console.log('onDrop')
+    }
+    onWheel(e) {
+        console.log('onWheel')
+    }
+    onHide() {
+        console.log('onHide')
+    }
 }

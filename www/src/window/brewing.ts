@@ -1,5 +1,6 @@
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Vector } from "../helpers.js";
+import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class BrewingWindow extends BaseChestWindow {
@@ -8,7 +9,7 @@ export class BrewingWindow extends BaseChestWindow {
     constructor(inventory) {
 
         super(10, 10, 352, 332, 'frmBrewing', null, null, inventory, {
-            title: 'Brewing Stand',
+            title: Lang.brewing,
             sound: {
                 open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
                 close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}

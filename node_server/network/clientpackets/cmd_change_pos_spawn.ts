@@ -1,4 +1,4 @@
-import { ServerClient } from "../../../www/src/server_client.js";
+import { ServerClient } from "@client/server_client.js";
 
 // Change spawn position
 export default class packet_reader {

@@ -1,5 +1,6 @@
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Vector } from "../helpers.js";
+import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class FurnaceWindow extends BaseChestWindow {
@@ -8,7 +9,7 @@ export class FurnaceWindow extends BaseChestWindow {
     constructor(inventory) {
 
         super(0, 0, 352, 332, 'frmFurnace', null, null, inventory, {
-            title: 'Furnace',
+            title: Lang.furnace,
             sound: {
                 open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
                 close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}

@@ -1,9 +1,9 @@
-import { Vector, unixTime, ObjectHelpers } from "../www/src/helpers.js";
-import { PrismarinePlayerControl } from "../www/src/vendors/prismarine-physics/using.js";
-import {ServerClient} from "../www/src/server_client.js";
+import { Vector, unixTime, ObjectHelpers } from "@client/helpers.js";
+import { PrismarinePlayerControl } from "@client/vendors/prismarine-physics/using.js";
+import {ServerClient} from "@client/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
 import type { ServerWorld } from "./server_world.js";
-import type { DropItemPacket } from "../www/src/drop_item_manager.js";
+import type { DropItemPacket } from "@client/drop_item_manager.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js"
 import type { BulkDropItemsRow } from "./db/world.js"
 

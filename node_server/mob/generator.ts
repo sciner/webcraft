@@ -1,7 +1,7 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../www/src/chunk_const.js";
-import {Vector, VectorCollector} from "../../www/src/helpers.js";
-import {BLOCK} from "../../www/src/blocks.js";
-import { TBlock } from "../../www/src/typed_blocks3.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "@client/chunk_const.js";
+import {Vector, VectorCollector} from "@client/helpers.js";
+import {BLOCK} from "@client/blocks.js";
+import { TBlock } from "@client/typed_blocks3.js";
 import {impl as alea} from '../../www/vendors/alea.js';
 import type { MobSpawnParams } from "../mob.js";
 import type { ServerChunk } from "../server_chunk.js";

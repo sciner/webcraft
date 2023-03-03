@@ -1,4 +1,4 @@
-import { Vector } from "../www/src/helpers.js";
+import { Vector } from "@client/helpers.js";
 import conf from "./conf.json" assert { type: "json" };
 import conf_world from "./conf_world.json" assert { type: "json" };
 

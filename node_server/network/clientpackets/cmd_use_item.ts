@@ -1,4 +1,4 @@
-import { ServerClient } from "../../../www/src/server_client.js";
+import { ServerClient } from "@client/server_client.js";
 
 const TIME_CAST = 28;
 

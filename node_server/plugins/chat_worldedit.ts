@@ -1,9 +1,9 @@
-import { getChunkAddr, Vector, VectorCollector } from "../../www/src/helpers.js";
-import {WorldAction} from "../../www/src/world_action.js";
-import { ServerClient } from "../../www/src/server_client.js";
-import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "../../www/src/fluid/FluidConst.js";
-import { WorldEditBuilding } from "../../www/src/plugins/worldedit/building.js";
-import { BuildingTemplate } from "../../www/src/terrain_generator/cluster/building_template.js";
+import { getChunkAddr, Vector, VectorCollector } from "@client/helpers.js";
+import {WorldAction} from "@client/world_action.js";
+import { ServerClient } from "@client/server_client.js";
+import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "@client/fluid/FluidConst.js";
+import { WorldEditBuilding } from "@client/plugins/worldedit/building.js";
+import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 
 const MAX_SET_BLOCK         = 250000 * 4;
 const MAX_BLOCKS_PER_PASTE  = 10000;

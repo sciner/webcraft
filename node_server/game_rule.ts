@@ -1,4 +1,4 @@
-import { ObjectHelpers } from "../www/src/helpers.js";
+import { ObjectHelpers } from "@client/helpers.js";
 
 export class GameRule {
 

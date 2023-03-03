@@ -1,5 +1,5 @@
-import { decompressPlayerStateC } from "../../../www/src/packet_compressor.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { decompressPlayerStateC } from "@client/packet_compressor.js";
+import { ServerClient } from "@client/server_client.js";
 
 export default class packet_reader {
 

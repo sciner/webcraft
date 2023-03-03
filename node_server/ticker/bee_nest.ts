@@ -1,6 +1,6 @@
-import { WorldAction } from "../../www/src/world_action.js";
-import { Vector } from "../../www/src/helpers.js";
-import { ServerClient } from "../../www/src/server_client.js";
+import { WorldAction } from "@client/world_action.js";
+import { Vector } from "@client/helpers.js";
+import { ServerClient } from "@client/server_client.js";
 import type { ServerWorld } from "../server_world.js";
 import type { ServerChunk } from "../server_chunk.js";
 import type { TickingBlockManager } from "../server_chunk.js";

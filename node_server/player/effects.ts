@@ -1,4 +1,4 @@
-import { ServerClient } from "../../www/src/server_client.js";
+import { ServerClient } from "@client/server_client.js";
 import type { ServerPlayer } from "../server_player.js";
 
 const MUL_TICK_SECONDS = 20;

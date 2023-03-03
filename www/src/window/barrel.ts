@@ -1,5 +1,5 @@
-import {BLOCK} from "../blocks.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class BarrelWindow extends BaseChestWindow {
@@ -7,8 +7,10 @@ export class BarrelWindow extends BaseChestWindow {
 
     constructor(inventory) {
 
+        const BLOCK = inventory.player.world.block_manager
+
         super(10, 10, 352, 332, 'frmBarrel', null, null, inventory, {
-            title: 'Barrel',
+            title: Lang.barrel,
             sound: {
                 open: {tag: BLOCK.BARREL.sound, action: 'open'},
                 close: {tag: BLOCK.BARREL.sound, action: 'close'}

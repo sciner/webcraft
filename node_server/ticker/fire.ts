@@ -1,6 +1,6 @@
-import { BLOCK } from '../../www/src/blocks.js';
-import { Vector } from '../../www/src/helpers.js';
-import { ServerClient } from '../../www/src/server_client.js';
+import { BLOCK } from '@client/blocks.js';
+import { Vector } from '@client/helpers.js';
+import { ServerClient } from '@client/server_client.js';
 import { BlockUpdates } from './ticker_helpers.js'
 import type { TickingBlockManager } from "../server_chunk.js";
 

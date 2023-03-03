@@ -1,7 +1,8 @@
-import {Button, Label} from "../../tools/gui/wm.js";
-import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
+import { Button, Label } from "../../tools/gui/wm.js";
+import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { Lang } from "../lang.js";
 
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
@@ -10,10 +11,10 @@ export class CraftTable extends BaseCraftWindow {
     constructor(inventory, recipes) {
 
         super(0, 0, 352, 332, 'frmCraft', null, null, inventory);
-
+        this.x *= this.zoom 
+        this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
-
         this.recipes = recipes
 
         // Craft area
@@ -49,8 +50,8 @@ export class CraftTable extends BaseCraftWindow {
         this.addHelpSlots()
 
         // Add labels to window
-        const lbl1 = new Label(59 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Crafting');
-        const lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory');
+        const lbl1 = new Label(59 * this.zoom, 10 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.crafting);
+        const lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl2', null, Lang.inventory);
         this.add(lbl1)
         this.add(lbl2)
 

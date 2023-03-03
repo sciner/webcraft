@@ -1,21 +1,21 @@
-import { Vector, unixTime } from "../../www/src/helpers.js";
+import { Vector, unixTime } from "@client/helpers.js";
 import { DropItem } from '../drop_item.js';
 import { BulkSelectQuery, preprocessSQL, run } from './db_helpers.js';
-import { INVENTORY_SLOT_COUNT, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '../../www/src/constant.js';
+import { INVENTORY_SLOT_COUNT, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '@client/constant.js';
 
 // Database packages
 import { DBWorldMob } from './world/mob.js';
 import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
-import { DROP_LIFE_TIME_SECONDS } from "../../www/src/constant.js";
+import { DROP_LIFE_TIME_SECONDS } from "@client/constant.js";
 import { DBWorldPortal } from "./world/portal.js";
 import { DBWorldFluid } from "./world/fluid.js";
 import { DBWorldChunk } from "./world/chunk.js";
-import { compressWorldModifyChunk } from "../../www/src/compress/world_modify_chunk.js";
+import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
 import type { ServerWorld } from "../server_world.js";
 import type { ServerPlayer } from "../server_player.js";
-import type { Indicators, PlayerState } from "../../www/src/player.js";
+import type { Indicators, PlayerState } from "@client/player.js";
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
 
 export type BulkDropItemsRow = [

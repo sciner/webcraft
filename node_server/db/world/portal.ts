@@ -1,5 +1,5 @@
-import { Vector, unixTime } from "../../../www/src/helpers.js";
-import type { WorldPortal } from "../../../www/src/portal.js";
+import { Vector, unixTime } from "@client/helpers.js";
+import type { WorldPortal } from "@client/portal.js";
 import type { ServerWorld } from "../../server_world.js";
 
 export class DBWorldPortal {

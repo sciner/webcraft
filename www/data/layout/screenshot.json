@@ -7,6 +7,7 @@
         "gap": 20,
         "width": 360,
         "_enabled": false,
+        "autosize": false,
         "childs": {
             "lblDesc": {
                 "type": "Label",
@@ -30,7 +31,6 @@
                 "autosize": false,
                 "title": "Lang.loading",
                 "style": {
-                    "padding": 0,
                     "font": {
                         "size": 17
                     },
@@ -48,8 +48,9 @@
             "btnDownload": {
                 "type": "Button",
                 "title": "Lang.screen_download",
+                "height": 40,
+                "autosize": false,
                 "style": {
-                    "padding": 5,
                     "font": {
                         "size": 17
                     },
@@ -62,8 +63,9 @@
             "btnSetCover": {
                 "type": "Button",
                 "title": "Lang.screen_cover",
+                "height": 40,
+                "autosize": false,
                 "style": {
-                    "padding": 5,
                     "font": {
                         "size": 17
                     },
@@ -76,8 +78,9 @@
             "btnSaveToGallery": {
                 "type": "Button",
                 "title": "Lang.screen_gallery",
+                "height": 40,
+                "autosize": false,
                 "style": {
-                    "padding": 5,
                     "font": {
                         "size": 17
                     },

@@ -1,14 +1,14 @@
-import { Vector } from "../../../www/src/helpers.js";
-import { CHUNK_STATE } from "../../../www/src/chunk_const.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { Vector } from "@client/helpers.js";
+import { CHUNK_STATE } from "@client/chunk_const.js";
+import { ServerClient } from "@client/server_client.js";
 import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { STABLE_WORLD_MODIFY_CHUNKS_TTL, STABLE_WORLD_MODIFY_CHUNKLESS_TTL, CLEANUP_WORLD_MODIFY_PER_TRANSACTION
     } from "../../server_constant.js";
 import { DBWorldChunk } from "./chunk.js";
-import { decompressModifiresList } from "../../../www/src/compress/world_modify_chunk.js";
+import { decompressModifiresList } from "@client/compress/world_modify_chunk.js";
 import type { ServerWorld } from "../../server_world";
 import type { ServerChunk } from "../../server_chunk";
-import type { DBItemBlock } from "../../../www/src/blocks";
+import type { DBItemBlock } from "@client/blocks";
 import type { WorldTransactionUnderConstruction } from "./WorldDBActor.js";
 
 

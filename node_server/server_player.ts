@@ -1,24 +1,24 @@
-import { Vector } from "../www/src/helpers.js";
-import { Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps } from "../www/src/player.js";
-import { GameMode } from "../www/src/game_mode.js";
-import { ServerClient } from "../www/src/server_client.js";
-import { Raycaster } from "../www/src/Raycaster.js";
+import { Vector } from "@client/helpers.js";
+import { Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps } from "@client/player.js";
+import { GameMode } from "@client/game_mode.js";
+import { ServerClient } from "@client/server_client.js";
+import { Raycaster } from "@client/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
-import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/src/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS } from "../www/src/constant.js";
-import { WorldPortal, WorldPortalWait } from "../www/src/portal.js";
+import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "@client/chunk_const.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS } from "@client/constant.js";
+import { WorldPortal, WorldPortalWait } from "@client/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { ServerPlayerEffects } from "./player/effects.js";
-import { Effect } from "../www/src/block_type/effect.js";
-import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_template.js";
-import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "../www/src/fluid/FluidConst.js";
+import { Effect } from "@client/block_type/effect.js";
+import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
+import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import { DBWorld, PlyaerInitInfo } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
-import {compressNearby} from "../www/src/packet_compressor.js";
-import { AABB } from "../www/src/core/AABB.js"
-import { EnumDamage } from "../www/src/enums/enum_damage.js";
+import {compressNearby} from "@client/packet_compressor.js";
+import { AABB } from "@client/core/AABB.js"
+import { EnumDamage } from "@client/enums/enum_damage.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";

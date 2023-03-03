@@ -1,5 +1,5 @@
-import { Vector } from "../../www/src/helpers.js";
-import { ServerClient } from "../../www/src/server_client.js";
+import { Vector } from "@client/helpers.js";
+import { ServerClient } from "@client/server_client.js";
 import { gzip, ungzip, inflate, deflate } from '../../www/vendors/pako.esm.min.mjs';
 import type { ServerWorld } from "../server_world.js";
 

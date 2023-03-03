@@ -16,7 +16,6 @@ export class QuestMenu extends Window {
         //
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
-        this.style.font.size = 20 / 2
         //
         this._wheel = function(e) {
             this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll;
@@ -88,7 +87,6 @@ export class QuestMenu extends Window {
                 const title = quest.title;
                 const status = quest.is_completed ? '✅' : (quest.in_progress ? '🕒' : '🆕');
                 const tb = new ToggleButton(x, y, this.w, BUTTON_HEIGHT, 'btnQuest' + quest.id, `${status} ${title}`);
-                tb.style.font.size = 12
                 ct.add(tb);
                 y += tb.h + GROUP_MARGIN;
                 tb.onMouseDown = (e) => {

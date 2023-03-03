@@ -8,15 +8,11 @@ export class ScreenshotWindow extends BlankWindow {
     [key: string]: any;
 
     constructor(player) {
-
-        const w = 400
-        const h = 420
-
-        super(10, 10, w, h, "frmScreenshot", null, null);
-
-        this.w *= this.zoom;
-        this.h *= this.zoom;
-
+        super(10, 10, 400 , 460, "frmScreenshot", null, null);
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         this.player = player
 
         this.setBackground('./media/gui/form-empty.png', 'stretchcenter', 1)
@@ -79,6 +75,7 @@ export class ScreenshotWindow extends BlankWindow {
             ql.delete('btnSetCover');
             ql.delete('btnSaveToGallery');
         }
+        ql.refresh()
 
         // Make screenshot
         Qubatch.render.screenshot((blob) => {
@@ -96,7 +93,7 @@ export class ScreenshotWindow extends BlankWindow {
                 lblPreview.text = '';
                 lblPreview.clip()
                 lblPreview.setBackground(img, 'cover')
-                // ql.refresh()
+                //ql.refresh()
 
                 // generate preview
                 const MAX_PREVIEW_SIZE = 512

@@ -1,7 +1,7 @@
-import {SimpleQueue} from "../../../www/src/helpers.js";
+import {SimpleQueue} from "@client/helpers.js";
 import {WorldChunkFlags} from "./WorldChunkFlags.js";
 import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js";
-import { FluidWorld } from "../../../www/src/fluid/FluidWorld.js";
+import { FluidWorld } from "@client/fluid/FluidWorld.js";
 import type { ServerWorld } from "../../server_world.js";
 import { WorldTickStat } from "../../world/tick_stat.js";
 

@@ -1,4 +1,4 @@
-import { Vector } from "../../www/src/helpers.js";
+import { Vector } from "@client/helpers.js";
 
 export default class Chat_SetWorldSpawn {
 

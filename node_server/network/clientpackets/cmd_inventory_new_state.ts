@@ -1,4 +1,4 @@
-import { ServerClient } from "../../../www/src/server_client.js";
+import { ServerClient } from "@client/server_client.js";
 
 export default class packet_reader {
 

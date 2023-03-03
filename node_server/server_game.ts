@@ -6,9 +6,9 @@ import {DBWorld} from "./db/world.js";
 import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
-import { BLOCK } from '../www/src/blocks.js';
+import { BLOCK } from '@client/blocks.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
-import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_template.js";
+import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 
 class FakeHUD {
     add() {}

@@ -1,5 +1,5 @@
-import { PLAYER_STATUS } from "../../../www/src/constant.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { PLAYER_STATUS } from "@client/constant.js";
+import { ServerClient } from "@client/server_client.js";
 import type { ServerPlayer } from "../../server_player.js";
 
 export default class packet_reader {

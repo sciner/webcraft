@@ -12,10 +12,10 @@ export class QuestWindow extends BlankWindow {
     constructor(player) {
 
         super(10, 10, 1700/2, 1200/2, 'frmQuests', null, null);
-
+        this.x *= this.zoom 
+        this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
-
         this.player = player
 
         this.setBackground('./media/gui/form-quest.png')
@@ -24,8 +24,8 @@ export class QuestWindow extends BlankWindow {
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Add labels to window
-        const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
-        this.add(lbl1)
+        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
+        this.add(lblTitle)
 
         // Add close button
         this.loadCloseButtonImage((image) => {

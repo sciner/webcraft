@@ -1,5 +1,5 @@
 import assert from "assert";
-import { ArrayHelpers } from "../../www/src/helpers.js";
+import { ArrayHelpers } from "@client/helpers.js";
 
 function compareNumbers(a, b) {
     return a - b;

@@ -13,7 +13,6 @@ class CreativeInventoryCollection extends Window {
     constructor(x : int, y : int, w : int, h : int, id : string, title? : string, text? : string) {
         
         super(x, y, w, h, id, title, text)
-
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
         this.max_height = 0
@@ -199,19 +198,20 @@ export class CreativeInventoryWindow extends BlankWindow {
     [key: string]: any;
 
     constructor(inventory) {
-
-        super(10 * UI_ZOOM, 10 * UI_ZOOM, 390 * UI_ZOOM, 450 * UI_ZOOM, 'frmCreativeInventory')
-
+        super(10, 10, 390, 450, 'frmCreativeInventory')
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         this.inventory = inventory
-
         this.setBackground('./media/gui/creative_inventory/tab_items.png')
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Window title
-        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
-        this.add(lbl1)
+        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
+        this.add(lblTitle)
 
         // Создание слотов для инвентаря
         this.createInventorySlots(this.cell_size)
@@ -241,7 +241,6 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     // Search input
     createSearchInput() {
-
         // Text editor
         const txtSearch = new TextEdit(
             16 * this.zoom,
@@ -264,7 +263,8 @@ export class CreativeInventoryWindow extends BlankWindow {
         txtSearch.style.border.style     = 'inset'
         txtSearch.style.font.color       = '#ffffff'
         txtSearch.style.background.color = '#706f6c'
-
+        txtSearch.style.padding.left     = 5 * this.zoom
+        txtSearch.style.textAlign.vertical = 'middle'
         this.add(txtSearch)
 
         txtSearch.onChange = (text) => {
@@ -305,11 +305,11 @@ export class CreativeInventoryWindow extends BlankWindow {
         }
         this.inventory_slots = []
         // нижний ряд (видимые на хотбаре)
-        let sx          = 16 * this.zoom
-        let sy          = this.h - this.cell_size - 14 * this.zoom
-        let xcnt        = 9
-        for(let i = 0; i < 9; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
+        const sx          = 16 * this.zoom
+        const sy          = this.h - this.cell_size - 14 * this.zoom
+        const xcnt        = 9
+        for(let i = 0; i < xcnt; i++) {
+            const lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
             this.add(lblSlot)
             this.inventory_slots.push(lblSlot)
         }
