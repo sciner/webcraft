@@ -13,7 +13,7 @@ export class Chat extends TextBox {
     [key: string]: any;
 
     constructor(player) {
-        super(UI_ZOOM * Qubatch.settings.interface_size / 100);
+        super(UI_ZOOM * Qubatch.settings.window_size / 100);
         const that                    = this;
         this.player                 = player;
         this.history_max_messages   = 64;
