@@ -1728,32 +1728,39 @@ export class ToggleButton extends Button {
 
 export class Slider extends Window {
 
-    constructor(x, y, w, h, id) {
-        super(x, y, w, h, id, 'title', 'title')
+    constructor(x, y, w, h, id, value) {
+        super(x, y, w, h, id, null, null)
         this.style.background.color = '#8892c9'
-        this.setIcon('./media/gui/scroll.png')
-        this._wmicon.width = 30
-        this.min = 0
+        this.min = -300
         this.max = 300
-        this.value = 50
+        this.value = value
         this.step = 1
         this.grab = false
+        this.setIcon('./media/gui/scroll.png')
+        if (w > h) {
+            this.horizontal = true
+            this._wmicon.width = 30 * this._wmicon.h / 24
+        } else {
+            this.horizontal = false
+            this._wmicon.height = 24 * this._wmicon.w / 30
+        }
+
+        this.updete(this.value)
     }
 
-    updete(e) {
+    updete(val) {
         const cursor = this._wmicon
-        const half = cursor.w / 2
-        let pos = e.x - this.x - half
-        if (pos < half) {
+        const half = ((this.horizontal) ? cursor.w : cursor.h) / 2
+        let pos = val - ((this.horizontal) ? this.x : this.y) - half
+        if (pos < 0.1) {
             pos = 0
         }
-        if ((pos + half) > this.w) {
-            pos = this.w - half
+        if (this.horizontal) {
+            cursor.x = Math.round(pos / this.step) * this.step
+        } else {
+            cursor.y = Math.round(pos / this.step) * this.step
         }
-        cursor.x = pos
-        this.value = pos * this.max / this.w
-        console.log(this.value)
-        Qubatch.settings.window_size = this.value
+        this.value = Math.floor(pos * (this.max - this.min) / (this.horizontal ? this.w : this.h) + this.min)
     }
 
     onMouseEnter() {
@@ -1776,7 +1783,7 @@ export class Slider extends Window {
     }
     onMouseMove(e) {
         if (this.grab) {
-            this.updete(e)
+            this.updete(this.horizontal ? e.x : e.y)
         }
     }
     onDrop(e) {

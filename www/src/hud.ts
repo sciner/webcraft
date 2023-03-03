@@ -39,6 +39,11 @@ class HUDWindow extends Window {
 
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
+        this.zoom = UI_ZOOM * Qubatch.settings.interface_size / 100
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         this.addChild(this.splash = GradientGraphics.createVertical('#1c1149', '#66408d', 512))
         this.add(this.progressbar = new Window(0, 0, 0, 4 * this.zoom, 'hud_progressbar'))
         this.progressbar.style.background.color = '#ffffff55'
@@ -47,12 +52,13 @@ class HUDWindow extends Window {
         this.add(this.lbl_loading = new Window(x, y, w, h, 'lbl_loading', undefined, Lang.loading))
         this.lbl_loading.style.textAlign.horizontal = 'center'
         this.lbl_loading.style.textAlign.vertical = 'middle'
+        this.lbl_loading.style.font.size = 16 * this.zoom
         this.lbl_loading.style.font.color = '#ffffff'
 
         this.add(this.noConnectionWarning = new Window(x, 100, w, 0, 'hud_connection_info', undefined, ''))
         this.noConnectionWarning.style.textAlign.horizontal = 'center'
         this.noConnectionWarning.style.font.color = '#ff0000'
-        this.noConnectionWarning.style.font.size = 24
+        this.noConnectionWarning.style.font.size = 16 * this.zoom
         this.noConnectionWarning.visible = false
 
         // Kb tips
@@ -71,9 +77,10 @@ class HUDWindow extends Window {
         this.add(this.kb_tips = new Window(x, y, w, h, 'hud_splash_kb_tips', undefined, ''))
         this.kb_tips.style.textAlign.vertical = 'bottom'
         this.kb_tips.style.font.color = '#ffffff'
+        this.kb_tips.style.font.size = 16 * this.zoom
         this.kb_tips.style.padding.set(10 * this.zoom, 5 * this.zoom)
-        let kb_tips_text = []
-        for(let tip of kb_tips) {
+        const kb_tips_text = []
+        for(const tip of kb_tips) {
             kb_tips_text.push(`${tip.key}: ${tip.tip}`)
         }
         this.kb_tips.text = kb_tips_text.join('\n')
@@ -587,7 +594,7 @@ export class HUD {
 
     // Просто функция печати текста
     drawText(id : string, str : string, x : number, y : number, fillStyle ? : any, align : string = 'left') {
-
+        const scale = UI_ZOOM * Qubatch.settings.interface_size / 100
         let text_block = this.wm.hud_window[id]
         if(!text_block) {
             text_block = this.wm.hud_window[id] = new HUDLabel(x, y, this.wm.w - x, this.wm.h - y, `hud_${id}`)
@@ -595,7 +602,7 @@ export class HUD {
             const fs = text_block.style.font._font_style
             fs.stroke = '#00000099'
             fs.strokeThickness = 4
-            fs.lineHeight = UI_ZOOM * 20
+            fs.lineHeight = 20 * scale
             // fs.dropShadow = true
             // fs.dropShadowAlpha = 1
             // fs.dropShadowBlur = 20
@@ -610,7 +617,7 @@ export class HUD {
                     break
                 }
             }
-
+            text_block.style.size = 16 * scale
             text_block.style.font.color = '#ffffff'
             this.wm.hud_window.addChild(text_block)
         }

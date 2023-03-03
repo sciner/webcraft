@@ -13,8 +13,8 @@ export class Chat extends TextBox {
     [key: string]: any;
 
     constructor(player) {
-        super(UI_ZOOM);
-        let that                    = this;
+        super(UI_ZOOM * Qubatch.settings.interface_size / 100);
+        const that                    = this;
         this.player                 = player;
         this.history_max_messages   = 64;
         this.messages = {
@@ -306,6 +306,7 @@ export class Chat extends TextBox {
             this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
             this.history_messages_window.style.font.color = '#ffffff'
             this.history_messages_window.style.background.color = '#00000000'
+            this.history_messages_window.style.font.size = 16 * this.zoom
         }
 
         const x = margin
@@ -318,10 +319,10 @@ export class Chat extends TextBox {
             this.draw(x, hud.height - top, input_width, input_height, margin)
         }
 
-        let strings = []
+        const strings = []
 
         // Draw message history
-        for(let m of this.messages.list) {
+        for(const m of this.messages.list) {
             const time_diff = now - m.time;
             if(this.active || time_diff < MESSAGE_SHOW_TIME) {
                 let alpha = 1
