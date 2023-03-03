@@ -612,7 +612,6 @@ export class HUD {
                     break
                 }
             }
-            text_block.style.size = 16
             text_block.style.font.color = '#ffffff'
             this.wm.hud_window.addChild(text_block)
         }
