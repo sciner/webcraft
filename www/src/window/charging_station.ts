@@ -4,7 +4,6 @@ import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class ChargingStationWindow extends BaseChestWindow {
-    [key: string]: any;
 
     constructor(inventory) {
 
@@ -42,7 +41,7 @@ export class ChargingStationWindow extends BaseChestWindow {
         resp.push({pos: new Vector(x + sx * 2, y + sy, 0)});
         // fuel
         const fuel_slot_pos = new Vector(52 * this.zoom, 108 * this.zoom, 0);
-        resp.push({pos: new Vector(fuel_slot_pos.x, fuel_slot_pos.y, 0)});
+        resp.push({pos: new Vector(fuel_slot_pos.x, fuel_slot_pos.y, 0), size: 32 * this.zoom});
         return resp;
     }
 

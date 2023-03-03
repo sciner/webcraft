@@ -417,7 +417,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
                 disableIfLoading: true,
                 onMouseEnterBackroundColor: '#ffffff33'
             };
-            const lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, sz, sz,
+            const lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, info.size ?? sz, info.size ?? sz,
                 `lblCraftChestSlot${i}`, null, null, this, null, options)
             lblSlot.index = i
             lblSlot.is_chest_slot = true
