@@ -48,7 +48,7 @@ export class BlockDrawer {
                     const index = pos.relativePosToFlatIndexInChunk()
                     if(_depth_blocks[index]) {
                         // check weight for replace
-                        if(_depth_blocks[index].block_id < item.block_id) {
+                        if(_depth_blocks[index].block_id > item.block_id) {
                             continue
                         }
                     } else {
