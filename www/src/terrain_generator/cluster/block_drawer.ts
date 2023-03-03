@@ -29,10 +29,10 @@ export class BlockDrawer {
         }
 
         const bm            = chunk.chunkManager.block_manager
-        const pos           = new Vector(0, 0, 0);
+        const pos           = new Vector(0, 0, 0)
         const two2map       = new VectorCollector()
-        const _pos2d        = new Vector();
-        const transformer   = this.transformer;
+        const _pos2d        = new Vector()
+        const transformer   = this.transformer
 
         // let p = performance.now()
         let cnt = 0
@@ -43,7 +43,6 @@ export class BlockDrawer {
             building.initTransformerToChunk(transformer, chunk.coord);
             for (let i = 0; i < blocks.length; i++) {
                 const item = blocks[i]
-                if(item.block_id < 0) console.log(item.block_id)
                 transformer.transform(item.move, pos)
                 if(_chunk_default_aabb.containsVec(pos)) {
                     const index = pos.relativePosToFlatIndexInChunk()
@@ -63,20 +62,14 @@ export class BlockDrawer {
         for(let i = 0; i < cnt; i++) {
             const index = draw_indexes[i]
             const item = _depth_blocks[index]
-            if(!item) {
-                continue
-            }
             _depth_blocks[index] = null
             pos.fromFlatChunkIndex(index)
-            //
             if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map)) {
                 blocks_setted++
             }
-            // if(pos.x >= 0 && pos.y >= 0 && pos.z >= 0 && pos.x < chunk.size.x && pos.y < chunk.size.y && pos.z < chunk.size.z) {
             _pos2d.copyFrom(pos)
             _pos2d.y = 0
             two2map.set(_pos2d, Math.max(two2map.get(_pos2d), pos.y))
-            // }
         }
 
         // console.log(cnt, performance.now() - p)

@@ -170,9 +170,10 @@ export class ServerChat {
                 this.sendSystemChatMessageToSelectedPlayers(`generator_seed|${this.world.info.seed}`, player);
                 break;
             }
-            case '/give':
+            case '/give': {
+                const is_admin = this.world.admins.checkIsAdmin(player)
                 if(!player.game_mode.isCreative()) {
-                    if(!this.world.admins.checkIsAdmin(player)) {
+                    if(!is_admin) {
                         throw 'error_command_not_working_in_this_game_mode'
                     }
                 }
@@ -190,6 +191,14 @@ export class ServerChat {
                 cnt = Math.max(cnt | 0, 1);
                 const b = bm.fromName(name.toUpperCase());
                 if(b && b.id > 0) {
+                    // TODO: check admin rights
+                    if(!is_admin) {
+                        const blockFlags = bm.flags
+                        if(!this.world.isBuildingWorld() && (blockFlags[b.id] & bm.FLAG_NOT_CREATABLE)) {
+                            this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, player)
+                            return true
+                        }
+                    }
                     const block = bm.convertItemToInventoryItem(b, b, true);
                     block.count = cnt;
                     const ok = player.inventory.increment(block, true);
@@ -202,6 +211,7 @@ export class ServerChat {
                     this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, player);
                 }
                 break;
+            }
             case '/help': {
                 let commands
                 if (args[1] === 'admin') {

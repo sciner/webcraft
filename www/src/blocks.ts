@@ -18,6 +18,7 @@ export const POWER_NO                       = 0;
 // Свойства, которые могут сохраняться в БД
 export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data', 'rotate']; // for reference only, unused. See BLOCK.convertBlockToDBItem.
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
+export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER'];
 
 const AIR_BLOCK_STRINGIFIED = '{"id":0}';
 
@@ -264,6 +265,7 @@ export class BLOCK {
     static FLAG_STONE                           = 0x40 | 0
     static FLAG_FLUID                           = 0x80 | 0
     static FLAG_OPAQUE_FOR_NATURAL_SLAB         = 0x100 | 0
+    static FLAG_NOT_CREATABLE                   = 0x200 | 0
 
     static addFlag(flag: number, ...blockIds: number[]): void {
         for(const id of blockIds) {
@@ -283,6 +285,13 @@ export class BLOCK {
         this.addFlag(this.FLAG_STONE, this.STONE?.id, this.ANDESITE?.id, this.DIORITE?.id, this.GRANITE?.id)
         //
         this.addFlag(this.FLAG_OPAQUE_FOR_NATURAL_SLAB, this.DIRT_PATH.id)
+        //
+        for(let block of BLOCK.getAll()) {
+            this.addFlag(this.FLAG_NOT_CREATABLE, this.BEDROCK.id, this.UNCERTAIN_STONE.id)
+            if(block.name.startsWith('BLD_')) {
+                this.addFlag(this.FLAG_NOT_CREATABLE, block.id)
+            }
+        }
     }
 
     static checkGeneratorOptions() {
@@ -1504,7 +1513,6 @@ export class BLOCK {
 
         if(BLOCK.list.size > 0) {
             return BLOCK
-            // throw 'error_blocks_already_inited'
         }
 
         BLOCK.reset();
@@ -1532,6 +1540,17 @@ export class BLOCK {
 
         return BLOCK
 
+    }
+
+    static applyRulesForWorld(world : World) {
+        if(!world.isBuildingWorld()) {
+            for(let block of this.getAll()) {
+                if(block.name.startsWith('BLD_')) {
+                    block.spawnable = false
+                    block.deprecated = true
+                }
+            }
+        }
     }
 
 }

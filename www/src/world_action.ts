@@ -2,7 +2,7 @@ import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
     SpatialDeterministicRandom, ObjectHelpers } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
-import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT } from "./blocks.js";
+import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
@@ -13,7 +13,7 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
-import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
+import { COVER_STYLE_SIDES } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 
@@ -929,6 +929,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
 
     const actions = new WorldAction(e.id);
     const destroyBlocks = new DestroyBlocks(world, player, actions, current_inventory_item);
+    const blockFlags = BLOCK.flags
 
     if(!e.pos) {
         console.error('empty e.pos');
@@ -1012,7 +1013,8 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
-        if(mat_block && (mat_block.deprecated || NO_CREATABLE_BLOCKS.includes(mat_block.name))) {
+
+        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK.FLAG_NOT_CREATABLE)))) {
             console.warn('warning_mat_block.deprecated');
             return [null, pos];
         }

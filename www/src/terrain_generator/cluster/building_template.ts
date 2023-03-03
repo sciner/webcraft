@@ -360,7 +360,7 @@ export class BuildingTemplate {
 
     createBiomeDirtCapBlocks(all_blocks, min, bm) {
         const move = new Vector(0, 0, 0)
-        const block_id = 69
+        const block_id = 1
         const mat = bm.fromId(block_id)
         for(let x = 0; x < this.size.x; x++) {
             for(let z = 0; z < this.size.z; z++) {

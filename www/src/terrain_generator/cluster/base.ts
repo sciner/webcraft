@@ -1,5 +1,6 @@
 import { Vector} from "../../helpers.js";
 import {impl as alea} from '../../../vendors/alea.js';
+
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { TerrainMap2 } from "../biome3/terrain/map.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
@@ -67,6 +68,12 @@ export class ClusterBase {
             return false
         }
         const bm = this.block_manager
+        switch(block_id) {
+            case bm.BLD_AIR.id: {
+                block_id = 0
+                break
+            }
+        }
         if(map) {
             // IMPORTANT: replace structure dirt blocks
             if(block_id == bm.GRASS_BLOCK.id || block_id == bm.DIRT.id) {
