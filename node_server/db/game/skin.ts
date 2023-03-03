@@ -1,8 +1,8 @@
-import { unixTime, md5 } from "../../../www/src/helpers.js";
-import { PLAYER_SKIN_TYPES, SKIN_RIGHTS_FREE, SKIN_RIGHTS_UPLOADED, CLIENT_SKIN_ROOT } from "../../../www/src/constant.js";
+import { unixTime, md5 } from "@client/helpers.js";
+import { PLAYER_SKIN_TYPES, SKIN_RIGHTS_FREE, SKIN_RIGHTS_UPLOADED, CLIENT_SKIN_ROOT } from "@client/constant.js";
 import skins_json from "../../../www/media/models/database.json" assert { type: "json" };
 import type { DBWorld } from "../world.js";
-import type { PlayerSkin } from "../../../www/src/player.js";
+import type { PlayerSkin } from "@client/player.js";
 import type { DBGame } from "../game.js";
 
 const SKIN_ROOT = '../www/media/models/player_skins/'

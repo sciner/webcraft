@@ -1,5 +1,5 @@
-import { Vector } from "../../www/src/helpers.js";
-import { alea } from "../../www/src/terrain_generator/default.js";
+import { Vector } from "@client/helpers.js";
+import { alea } from "@client/terrain_generator/default.js";
 import type { ServerWorld } from "../server_world.js";
 
 export class Treasure_Sets {

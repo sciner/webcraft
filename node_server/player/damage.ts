@@ -1,10 +1,10 @@
-import { Effect } from "../../www/src/block_type/effect.js";
-import { BLOCK } from "../../www/src/blocks.js";
-import { Vector } from "../../www/src/helpers.js";
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/src/fluid/FluidConst.js";
+import { Effect } from "@client/block_type/effect.js";
+import { BLOCK } from "@client/blocks.js";
+import { Vector } from "@client/helpers.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { ServerPlayer } from "../server_player.js";
-import { PLAYER_STATUS } from "../../www/src/constant.js";
-import type { EnumDamage } from "../../www/src/enums/enum_damage.js";
+import { PLAYER_STATUS } from "@client/constant.js";
+import type { EnumDamage } from "@client/enums/enum_damage.js";
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;

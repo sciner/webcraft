@@ -1,5 +1,5 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/src/chunk_const.js";
-import type { Indicators } from "../../../www/src/player.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "@client/chunk_const.js";
+import type { Indicators } from "@client/player.js";
 import type { ServerWorld } from "../../server_world.js";
 import type { DBWorld } from "../world.js";
 

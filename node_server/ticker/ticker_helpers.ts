@@ -1,11 +1,11 @@
 import { parseManyToMany, loadMappedImports, importClassInstanceWithId } from '../server_helpers.js'
-import { BLOCK } from '../../www/src/blocks.js';
-import { TBlock } from "../../www/src/typed_blocks3.js";
-import { ArrayHelpers, ArrayOrMap } from '../../www/src/helpers.js';
-import { ServerClient } from '../../www/src/server_client.js';
+import { BLOCK } from '@client/blocks.js';
+import { TBlock } from "@client/typed_blocks3.js";
+import { ArrayHelpers, ArrayOrMap } from '@client/helpers.js';
+import { ServerClient } from '@client/server_client.js';
 import { FLUID_TYPE_MASK, FLUID_WATER_INTERACT, FLUID_WATER_REMOVE,
     FLUID_WATER_ABOVE_INTERACT, FLUID_WATER_ABOVE_REMOVE 
-} from '../../www/src/fluid/FluidConst.js';
+} from '@client/fluid/FluidConst.js';
 import type { ServerChunk } from '../server_chunk.js';
 
 export class TickerHelpers {

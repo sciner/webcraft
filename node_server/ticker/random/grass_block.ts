@@ -1,6 +1,6 @@
-import { BLOCK } from "../../../www/src/blocks.js";
-import { Helpers, Vector } from "../../../www/src/helpers.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { BLOCK } from "@client/blocks.js";
+import { Helpers, Vector } from "@client/helpers.js";
+import { ServerClient } from "@client/server_client.js";
 
 const _rnd_pos = new Vector(0, 0, 0);
 const _rnd_pos_up = new Vector(0, 0, 0);

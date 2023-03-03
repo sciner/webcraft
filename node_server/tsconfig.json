@@ -9,6 +9,12 @@
         "allowSyntheticDefaultImports": true,
         "outDir": "./js_server",
         // "emitDeclarationOnly": true
+
+        "baseUrl": "./" ,
+        "paths": {
+            "@client/*": ["../www/src/*"],
+            "@server/*": ["node_server/*"]
+        }
     },
     "include": [
         "./**/*"

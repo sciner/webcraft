@@ -1,4 +1,4 @@
-import { Weather } from "../../www/src/block_type/weather.js";
+import { Weather } from "@client/block_type/weather.js";
 
 export default class Chat_Weather {
 

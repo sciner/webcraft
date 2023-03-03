@@ -1,5 +1,5 @@
-import {Color} from "../../www/src/helpers.js";
-import { COLOR_PALETTE, Resources } from "../../www/src/resources.js";
+import {Color} from "@client/helpers.js";
+import { COLOR_PALETTE, Resources } from "@client/resources.js";
 
 const START_WOOL_ID             = 350; // ... 365
 const START_CARPET_ID           = 800; // ... 815

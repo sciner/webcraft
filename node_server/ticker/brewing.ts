@@ -1,4 +1,4 @@
-import {ServerClient} from "../../www/src/server_client.js";
+import {ServerClient} from "@client/server_client.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 
 const recipes_src = [

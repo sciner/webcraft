@@ -1,4 +1,4 @@
-import {Vector, unixTime} from '../../www/src/helpers.js';
+import {Vector, unixTime} from '@client/helpers.js';
 import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
 
 export class DBGame {

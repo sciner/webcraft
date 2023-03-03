@@ -1,4 +1,4 @@
-import { ArrayHelpers, StringHelpers } from "../../www/src/helpers.js";
+import { ArrayHelpers, StringHelpers } from "@client/helpers.js";
 import type { DBWorld } from "./world.js";
 
 const SQLITE_MAX_VARIABLE_NUMBER = 999; // used for bulk queries with (?,?,?), see https://www.sqlite.org/limits.html

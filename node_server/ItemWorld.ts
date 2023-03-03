@@ -1,9 +1,9 @@
 import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED, DropItem} from "./drop_item.js";
-import {CHUNK_STATE} from "../www/src/chunk_const.js"
+import {CHUNK_STATE} from "@client/chunk_const.js"
 
-import {ServerClient} from "../www/src/server_client.js";
-import { unixTime } from "../www/src/helpers.js";
-import {DROP_LIFE_TIME_SECONDS} from "../www/src/constant.js";
+import {ServerClient} from "@client/server_client.js";
+import { unixTime } from "@client/helpers.js";
+import {DROP_LIFE_TIME_SECONDS} from "@client/constant.js";
 import {ITEM_MERGE_RADIUS, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB} from "./server_constant.js";
 import type { ServerChunk } from "./server_chunk.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";

@@ -1,14 +1,14 @@
-import { MOUSE, PLAYER_STATUS } from "../www/src/constant.js";
-import { Vector } from "../www/src/helpers.js";
-import { ServerClient } from "../www/src/server_client.js";
+import { MOUSE, PLAYER_STATUS } from "@client/constant.js";
+import { Vector } from "@client/helpers.js";
+import { ServerClient } from "@client/server_client.js";
 import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
 import { DBWorldMob, MobRow } from "./db/world/mob.js"
-import { AABB } from "../www/src/core/AABB.js";
+import { AABB } from "@client/core/AABB.js";
 import type { ServerWorld } from "./server_world.js";
 import type { FSMBrain } from "./fsm/brain.js";
-import { EnumDamage } from "../www/src/enums/enum_damage.js";
+import { EnumDamage } from "@client/enums/enum_damage.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
-import type { Indicators } from "../www/src/player.js";
+import type { Indicators } from "@client/player.js";
 import type { ServerPlayer } from "./server_player.js";
 import { upgradeToNewIndicators } from "./db/world.js";
 import type { ServerChunk } from "./server_chunk.js";

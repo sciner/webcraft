@@ -1,5 +1,5 @@
-import { Vector } from "../../www/src/helpers.js";
-import { WorldAction } from "../../www/src/world_action.js";
+import { Vector } from "@client/helpers.js";
+import { WorldAction } from "@client/world_action.js";
 import { BlockUpdates } from './ticker_helpers.js'
 import type { TickingBlockManager } from "../server_chunk.js";
 

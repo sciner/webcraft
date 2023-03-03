@@ -1,4 +1,4 @@
-import { ArrayHelpers } from "../../www/src/helpers.js";
+import { ArrayHelpers } from "@client/helpers.js";
 
 import mkdirp from 'mkdirp';
 import path from 'path';

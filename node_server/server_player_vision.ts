@@ -1,7 +1,7 @@
-import {getChunkAddr, SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "../www/src/helpers.js";
-import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "../www/src/chunk_const.js";
+import {getChunkAddr, SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "@client/helpers.js";
+import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "@client/chunk_const.js";
 import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
-import { NEARBY_FLAGS } from "../www/src/packet_compressor.js";
+import { NEARBY_FLAGS } from "@client/packet_compressor.js";
 import {ServerChunk} from "./server_chunk.js";
 
 const PLAYER_CHUNK_QUEUE_SIZE = 20;

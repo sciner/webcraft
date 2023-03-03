@@ -1,24 +1,24 @@
 import {ServerChunk} from "./server_chunk.js";
 import { WorldTickStat } from "./world/tick_stat.js";
-import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/src/chunk_const.js";
-import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, SimpleQueue} from "../www/src/helpers.js";
-import {FluidWorld} from "../www/src/fluid/FluidWorld.js";
-import {FluidWorldQueue} from "../www/src/fluid/FluidWorldQueue.js";
-import {ChunkDataTexture} from "../www/src/light/ChunkDataTexture.js";
+import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "@client/chunk_const.js";
+import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, SimpleQueue} from "@client/helpers.js";
+import {FluidWorld} from "@client/fluid/FluidWorld.js";
+import {FluidWorldQueue} from "@client/fluid/FluidWorldQueue.js";
+import {ChunkDataTexture} from "@client/light/ChunkDataTexture.js";
 import {ItemWorld} from "./ItemWorld.js";
-import { AABB } from "../www/src/core/AABB.js";
-import {DataWorld} from "../www/src/typed_blocks3.js";
-import { WorldPortal } from "../www/src/portal.js";
-import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_template.js";
+import { AABB } from "@client/core/AABB.js";
+import {DataWorld} from "@client/typed_blocks3.js";
+import { WorldPortal } from "@client/portal.js";
+import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import type { ServerWorld } from "./server_world.js";
-import { PLAYER_STATUS } from "../www/src/constant.js";
+import { PLAYER_STATUS } from "@client/constant.js";
 
 /**
  * Each tick (unloaded_chunks_total * UNLOADED_CHUNKS_SUBSETS) is unloaded
  * probably should depend on lerpLUT or on current tick rate
  * @type {number}
  */
-export const UNLOADED_QUEUE_COEFF = 0.002;
+export const UNLOADED_QUEUE_COEFF = 0.02;
 
 async function waitABit() {
     return true;

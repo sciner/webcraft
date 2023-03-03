@@ -2,7 +2,7 @@ import {QuestActionType} from "./action_type.js";
 import {QuestActionPickup} from "./action_pickup.js";
 import {QuestActionSetBlock} from "./action_setblock.js";
 import {QuestActionCraft} from "./action_craft.js";
-import { BLOCK } from "../../www/src/blocks.js";
+import { BLOCK } from "@client/blocks.js";
 import {DBWorldQuest} from "../db/world/quest.js"
 import {ServerPlayer} from "../server_player.js"
 

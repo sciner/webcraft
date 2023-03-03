@@ -1,4 +1,4 @@
-import { Effect } from "../../www/src/block_type/effect.js";
+import { Effect } from "@client/block_type/effect.js";
 
 export default class EffectsPlugin {
     

@@ -1,4 +1,4 @@
-import { ArrayOrMap, ObjectHelpers, StringHelpers, unixTime } from "../www/src/helpers.js";
+import { ArrayOrMap, ObjectHelpers, StringHelpers, unixTime } from "@client/helpers.js";
 
 export function epochMillis() {
     return Date.now();

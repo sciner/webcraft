@@ -1,5 +1,5 @@
 import skiaCanvas from 'skia-canvas';
-import { Vector } from '../../www/src/helpers.js';
+import { Vector } from '@client/helpers.js';
 
 /**
  * 

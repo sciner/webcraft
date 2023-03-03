@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
-import { Vector } from "../../../www/src/helpers.js";
-import { WorldAction } from "../../../www/src/world_action.js";
-import { EnumDifficulty } from "../../../www/src/enums/enum_difficulty.js";
+import { Vector } from "@client/helpers.js";
+import { WorldAction } from "@client/world_action.js";
+import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 
 // @todo Недоработанный мозг скелета, надо будет всё поправить (убираем фикс размера, пока нет лука)
 export class Brain extends FSMBrain {

@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector } from "../www/src/helpers.js";
+import { getChunkAddr, Vector } from "@client/helpers.js";
 
 export class PrismarineServerFakeChunkManager {
     world: any;

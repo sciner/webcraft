@@ -1,4 +1,4 @@
-import { SimpleQueue } from "../www/src/helpers.js"
+import { SimpleQueue } from "@client/helpers.js"
 
 export class GameLog {
     db: any;

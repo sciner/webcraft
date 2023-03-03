@@ -1,5 +1,5 @@
-import { GameMode } from "../www/src/game_mode.js";
-import { BuildingTemplate } from "../www/src/terrain_generator/cluster/building_template.js";
+import { GameMode } from "@client/game_mode.js";
+import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { WorldGenerators } from "./world/generators.js";
 
 const FLAG_SYSTEM_ADMIN = 256;

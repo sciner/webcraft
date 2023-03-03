@@ -1,5 +1,5 @@
-import { Vector } from "../../../www/src/helpers.js";
-import { ServerClient } from "../../../www/src/server_client.js";
+import { Vector } from "@client/helpers.js";
+import { ServerClient } from "@client/server_client.js";
 
 export default class packet_reader {
 
