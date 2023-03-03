@@ -212,7 +212,8 @@ export class ChunkWorkerChunk {
         //
         const pos = new Vector(0, 0, 0);
         const block_vec_index = new Vector(0, 0, 0);
-        for(let index in ml) {
+        for(let k in ml) {
+            const index = parseInt(k)
             const m = ml[index];
             if(!m) continue;
             pos.fromFlatChunkIndex(index);

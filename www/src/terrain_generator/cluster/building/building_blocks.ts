@@ -30,7 +30,7 @@ export class BuildingBlocks extends Building {
         const chunks = cluster ? cluster.chunks : this.chunks
 
         const obj = this
-        obj.initToChunk(this.transformer, Vector.ZERO)
+        obj.initTransformerToChunk(this.transformer, Vector.ZERO)
 
         // split all blocks by chunks
         for(let i = 0; i < blocks.length; i++) {
