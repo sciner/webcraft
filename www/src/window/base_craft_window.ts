@@ -96,7 +96,7 @@ export class HelpSlot extends Label {
     //     ctx.imageSmoothingEnabled = true;
 
     //     // 1. Draw icon
-    //     const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
+    //     const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);style.font.size
     //     const dest_icon_size = 40 * zoom;
     //     ctx.drawImage(
     //         image,
@@ -769,7 +769,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     /**
     * Итоговый слот (то, что мы получим)
     */
-     createResultSlot(x, y) {
+    createResultSlot(x, y) {
         const ct = this;
         // x, y, w, h, id, title, text, ct, slot_index
         let lblResultSlot = this.lblResultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);

@@ -1,5 +1,6 @@
 import {Button, Label, TextEdit, Window} from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 
 export class EditSignWindow extends BlankWindow {
@@ -8,19 +9,17 @@ export class EditSignWindow extends BlankWindow {
     constructor() {
 
         super(10, 10, 236, 192, 'frmEditSign', null, null);
-
-        this.zoom *= 1.5;
-
-        this.w *= this.zoom;
-        this.h *= this.zoom;
-
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         // Get window by ID
         const ct = this
         ct.setBackground('./media/gui/form-empty.png', 'stretch')
 
         // Add labels to window
-        const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Edit sign text')
-        this.add(lbl1)
+        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.sign_edit)
+        this.add(lblTitle)
 
         // Text editors
         const margin            = 14 // (this.w / this.zoom) / 48 * 2;
@@ -54,7 +53,7 @@ export class EditSignWindow extends BlankWindow {
 
         // Save button
         const btn_height = margin * 1.5;
-        const btnSave = new Button(ct.w * .5 - 50 * this.zoom, this.h - (btn_height + margin) * this.zoom, 100 * this.zoom, btn_height * this.zoom, 'btnSave', 'Save');
+        const btnSave = new Button(ct.w * .5 - 50 * this.zoom, this.h - (btn_height + margin) * this.zoom, 100 * this.zoom, btn_height * this.zoom, 'btnSave', Lang.save);
         btnSave.onMouseDown = function(e) {
             ct.hide()
         }

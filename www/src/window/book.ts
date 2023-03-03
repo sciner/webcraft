@@ -9,7 +9,10 @@ class ActiveButton extends Window {
     constructor(x, y, sx, sy, id, icon, ct) {
 
         super(x, y, sx, sy, id, null, null);
-
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         this.ct = ct;
         this.style.border.hidden = true;
         this.style.background.image = './media/gui/book.png';
@@ -147,10 +150,8 @@ export class BookWindow extends BlankWindow {
 
     createLabels(){
         this.lbl_pages = new Label(150 * this.zoom, 30 * this.zoom, 110 * this.zoom, 12 * this.zoom, 'lblPages', null, '');
-        this.lbl_pages.style.font.size = 11
         this.add(this.lbl_pages);
         this.lbl_text = new Label(25 * this.zoom, 50 * this.zoom, 240 * this.zoom, 270 * this.zoom, 'lblText', null, '');
-        this.lbl_text.style.font.size = 12
         this.lbl_text.word_wrap = true;
         this.add(this.lbl_text);
     }

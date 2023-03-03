@@ -5,6 +5,7 @@ import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BLOCK } from "../blocks.js";
+import { Lang } from "../lang.js";
 
 //
 class AnvilSlot extends CraftTableSlot {
@@ -70,11 +71,11 @@ export class AnvilWindow extends BaseCraftWindow {
     constructor(inventory) {
 
         super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
-
-        this.w *= this.zoom;
-        this.h *= this.zoom;
+        this.x *= this.zoom 
+        this.y *= this.zoom
+        this.w *= this.zoom
+        this.h *= this.zoom
         this.style.background.image_size_mode = 'stretch';
-
         this.recipes = new AnvilRecipeManager();
         this.used_recipes = [];
         this.current_recipe = null;
@@ -84,10 +85,11 @@ export class AnvilWindow extends BaseCraftWindow {
         this.atlas = new SpriteAtlas()
         this.atlas.fromFile('./media/gui/anvil.png').then(async atlas => {
 
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+            this.setBackground(await atlas.getSprite(0, 0, 703, 664), 'none', this.zoom / 2.0)
 
             // Add labels to window
-            this.add(new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Repair & Name'))
+            const lblTitle = new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.repair)
+            this.add(lblTitle)
 
             // Ширина / высота слота
             this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
@@ -139,23 +141,18 @@ export class AnvilWindow extends BaseCraftWindow {
     }
 
     async createEdit() {
-
         this.lbl_edit = new TextEdit(118 * this.zoom, 40 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'lbl_edit', null, 'Hello, World!')
-        // this.lbl_edit = new TextBox(this.zoom)
-
-        this.lbl_edit.text_container.transform.position.y = this.lbl_edit.h / 2
-        this.lbl_edit.text_container.anchor.y = .5
-
-        this.lbl_edit.word_wrap         = false
-        this.lbl_edit.max_length        = ITEM_LABEL_MAX_LENGTH
-        this.lbl_edit.max_lines         = 1
-        this.lbl_edit.style.font.color  = '#ffffff'
-        this.lbl_edit.setBackground(await this.atlas.getSprite(0, 333 * 2, 220*2, 31*2))
+        this.lbl_edit.word_wrap          = false
+        this.lbl_edit.max_length         = ITEM_LABEL_MAX_LENGTH
+        this.lbl_edit.max_lines          = 1
+        this.lbl_edit.style.font.color   = '#ffffff'
+        this.lbl_edit.style.padding.left = 5 * this.zoom
+        this.lbl_edit.style.textAlign.vertical = 'middle'
+        this.lbl_edit.setBackground(await this.atlas.getSprite(0, 665, 440, 62))
         this.lbl_edit.style.border.hidden = true
         this.lbl_edit.style.background.color = '#00000000'
         this.lbl_edit.onChange = this.updateResult.bind(this)
         this.add(this.lbl_edit)
-
     }
 
     createCraft(cell_size) {

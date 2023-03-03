@@ -205,7 +205,7 @@ export class Hotbar {
     }
 
     get zoom() {
-        return UI_ZOOM
+        return UI_ZOOM * Qubatch.settings.window_size / 100
     }
 
     /**
@@ -346,12 +346,14 @@ export class Hotbar {
         // Draw strings
         this.lblHotbarText.w = hud.width
         this.lblHotbarText.h = hud.height
+        this.lblHotbarText.style.font.size = 18
         this.lblHotbarTextShadow.w = hud.width + 3
         this.lblHotbarTextShadow.h = hud.height + 3
 
         this.lblHotbarText.style.padding.bottom = hotbar_height + 10 * this.zoom
         // this.lblHotbarTextShadow.style.padding.left = 2 * this.zoom
         this.lblHotbarTextShadow.style.padding.bottom = hotbar_height + 10 * this.zoom
+        this.lblHotbarTextShadow.style.font.size = 18
 
         this.strings.draw(this.lblHotbarText, this.lblHotbarTextShadow)
 

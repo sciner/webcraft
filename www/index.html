@@ -309,7 +309,7 @@
                 <div class="main">
                     <h1>{{Lang.main}}</h1>
                     <div class="input-group">
-                        <p>Mouse Sensitivity: <span>{{settings.form.mouse_sensitivity}}</span>%</p>
+                        <p>{{Lang.mouse_sensitivity}}: <span>{{settings.form.mouse_sensitivity}}</span>%</p>
                         <div class="rangeContainer" style="margin-bottom: 20px;">
                             <input id="inputRange_Mouse" class="slider" type="range" min="25" max="300" step="1" value="settings.form.mouse_sensitivity"
                                 ng-model="settings.form.mouse_sensitivity" ng-change="settings.updateSlider('inputRange_Mouse')">
@@ -421,6 +421,15 @@
                     <div class="input-group">
                         <p>{{Lang.use_light}}</p>
                         <select class="slim-select" id="settings-select-light" ng-options="item as item.name for item in settings.lightMode.list" ng-model="settings.lightMode.current"></select>
+                    </div>
+                </div>
+                <div class="interface">
+                    <h1>{{Lang.interface}}</h1>
+                    <div class="input-group">
+                        <p>{{Lang.window_size}}: <span>{{settings.form.window_size}}</span>%</p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="input_window_size" class="slider" type="range" min="10" max="300" step="1" value="settings.form.window_size" ng-model="settings.form.window_size">
+                        </div>
                     </div>
                 </div>
                 <!-- <div class="audio">

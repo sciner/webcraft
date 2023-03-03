@@ -1,5 +1,5 @@
 import { Window } from "../../../tools/gui/wm.js";
-import {BLOCK} from "../../blocks.js";
+import { BLOCK } from "../../blocks.js";
 import { Resources } from "../../resources.js";
 import { Helpers } from "../../helpers.js";
 
@@ -53,11 +53,10 @@ export class QuestView extends Window {
         const lDesc = ql.getWindow('lDesc');
         const lblActions = ql.getWindow('lblActions');
         const lblRewards = ql.getWindow('lblRewards');
-
         //
         lblTitle.text = quest.title
         lDesc.text = quest.description
-
+        
         if(quest.is_completed) {
             lblTitle.text = `✅ ${lblTitle.text}`
         }
@@ -94,7 +93,7 @@ export class QuestView extends Window {
 
         // rewards
         const rewards = []
-        for(let item of quest.rewards) {
+        for(const item of quest.rewards) {
             const block = BLOCK.fromId(item.block_id);
             if(block) {
                 rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt);

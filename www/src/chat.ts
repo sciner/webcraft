@@ -13,8 +13,8 @@ export class Chat extends TextBox {
     [key: string]: any;
 
     constructor(player) {
-        super(UI_ZOOM);
-        let that                    = this;
+        super(UI_ZOOM * Qubatch.settings.window_size / 100);
+        const that                    = this;
         this.player                 = player;
         this.history_max_messages   = 64;
         this.messages = {
@@ -318,10 +318,10 @@ export class Chat extends TextBox {
             this.draw(x, hud.height - top, input_width, input_height, margin)
         }
 
-        let strings = []
+        const strings = []
 
         // Draw message history
-        for(let m of this.messages.list) {
+        for(const m of this.messages.list) {
             const time_diff = now - m.time;
             if(this.active || time_diff < MESSAGE_SHOW_TIME) {
                 let alpha = 1
