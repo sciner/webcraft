@@ -279,8 +279,10 @@ export class Recipe {
 
 export class RecipeManager {
     [key: string]: any;
+    bm: BLOCK
 
     constructor(force_load: boolean | null = false) {
+        this.bm = BLOCK
         this.all = [];
         this.crafting_shaped = {
             list: [],
@@ -498,6 +500,7 @@ export class RecipeManager {
         }
         //
         this.addOrePieces(recipes);
+        this.addSlabs(recipes);
         this.generateTemplates(recipes);
         this.replaceSpecialItems(recipes);
         //
@@ -519,13 +522,13 @@ export class RecipeManager {
     }
 
     addOrePieces(recipes) {
-        for (let piece of BLOCK.list.values()) {
+        for (let piece of this.bm.list_arr) {
             if (!piece.piece_of) {
                 continue;
             }
             const pieceName = piece.name;
             const ingotName = piece.piece_of;
-            const ingot = BLOCK[ingotName];
+            const ingot = this.bm[ingotName];
             if (!ingot) {
                 continue;
             }
@@ -558,6 +561,52 @@ export class RecipeManager {
                     "count": 1
                 }
             });
+        }
+    }
+
+    addSlabs(recipes) {
+        for (let slab of this.bm.list_arr) {
+            const fullBlockName = slab.layering?.full_block_name
+            if (!fullBlockName) {
+                continue
+            }
+            const fullBlock = this.bm[fullBlockName]
+            if (!fullBlock) {
+                continue
+            }
+            const slabName = slab.name
+            recipes.push({
+                // slabs were formerly templates, so we keep the same ids
+                "id": this.templateRecipeId('slab', slab),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "   ",
+                    "   ",
+                    "PPP"
+                ],
+                "key": {
+                    "P": { "item": "madcraft:" + fullBlockName.toLowerCase() }
+                },
+                "result": {
+                    "item": "madcraft:" + slabName.toLowerCase(),
+                    "count": 6
+                }
+            }, {
+                // we use template id scheming, in case it ever becomes a template
+                "id": this.templateRecipeId('slab_to_full', fullBlock),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    " P",
+                    " P"
+                ],
+                "key": {
+                    "P": { "item": "madcraft:" + slabName.toLowerCase() }
+                },
+                "result": {
+                    "item": "madcraft:" + fullBlockName.toLowerCase(),
+                    "count": 1
+                }
+            })
         }
     }
 
@@ -728,12 +777,10 @@ export class RecipeManager {
                     throw 'Template has no template ingredients: ' + srcRecipe.name;
                 }
                 if (!empty) {
-                    const lowerName = resultEntry.block.name.toLowerCase();
-                    // add themplate andme to the item name because there may be multiple templated for the item
-                    recipe.id = this.md5s(recipe.template + ' ' + lowerName);
+                    recipe.id = this.templateRecipeId(recipe.template, resultEntry.block)
                     recipe.result = {
                         ...recipe.result,
-                        item: "madcraft:" + lowerName
+                        item: "madcraft:" + resultEntry.block.name.toLowerCase()
                     };
                     newRecipes.push(recipe);
                 }
@@ -742,6 +789,16 @@ export class RecipeManager {
             recipes.splice(i, 1, ...newRecipes);
             i += newRecipes.length;
         }
+    }
+
+    /**
+     * @return id of a recipe from a template.
+     * It's made a separate method because if recipes were from a template, and then
+     * were refactored to be not a template, it can be used to keep the same ids.
+     */
+    templateRecipeId(templateName: string, resultBlock: IBlockMaterial): string {
+        // add the template name to the item name because there may be multiple templated for the item
+        return this.md5s(templateName + ' ' + resultBlock.name.toLowerCase())
     }
 
     replaceSpecialItems(recipes) {

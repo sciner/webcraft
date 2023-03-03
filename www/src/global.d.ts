@@ -202,7 +202,11 @@ interface IBlockMaterial {
         id: int
         offset_pos: IVector
     }
-    layering: any
+    layering: {
+        height: float
+        slab?: boolean
+        full_block_name: string
+    }
     redstone: any
     random_ticker: string
     resource_pack: any
