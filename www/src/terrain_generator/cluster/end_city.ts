@@ -69,7 +69,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
         this.addCity(new Vector(0, 0, 0), 0, this.random)
 
-        // ArrayHelpers.shuffle(this.pieces, this.random.double)
+        ArrayHelpers.shuffle(this.pieces, this.random.double)
 
         for (const piece of this.pieces) {
             const template = this.templates.get(piece.name)

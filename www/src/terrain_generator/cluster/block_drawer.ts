@@ -43,12 +43,13 @@ export class BlockDrawer {
             building.initTransformerToChunk(transformer, chunk.coord);
             for (let i = 0; i < blocks.length; i++) {
                 const item = blocks[i]
+                if(item.block_id < 0) console.log(item.block_id)
                 transformer.transform(item.move, pos)
-                if(_chunk_default_aabb.contains(pos.x, pos.y, pos.z)) {
+                if(_chunk_default_aabb.containsVec(pos)) {
                     const index = pos.relativePosToFlatIndexInChunk()
                     if(_depth_blocks[index]) {
                         // check weight for replace
-                        if(_depth_blocks[index].block_id > item.block_id) {
+                        if(item.block_id <= _depth_blocks[index].block_id) {
                             continue
                         }
                     } else {
@@ -57,7 +58,6 @@ export class BlockDrawer {
                     _depth_blocks[index] = item
                 }
             }
-
         }
 
         for(let i = 0; i < cnt; i++) {
