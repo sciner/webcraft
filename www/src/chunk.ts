@@ -204,7 +204,7 @@ export class Chunk {
         return this.light.lightTex;
     }
 
-    prepareRender(render : Renderer) {
+    prepareRender(render : BaseRenderer) {
         if (!render) {
             return;
         }
