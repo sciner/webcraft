@@ -64,30 +64,6 @@
             "count": 4
         }
     },
-    {
-        "template": "slab",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "   ",
-            "   ",
-            "PPP"
-        ],
-        "key": {
-            "P": {
-                "item": {
-                    "prefix": ["", "CHISELED_"],
-                    "suffix": ["", "S", "_PLANKS", "_BLOCK", "_PILLAR"],
-                    "ignore": "CHISELED_STONE_BRICKS",
-                    "ignore_items": true,
-                    "_comment": "ignore_items to distinguish between 'BRICK' and 'BRICKS', 'NETHER_BRICK' and 'NETHER_BRICKS'"
-                }
-            }
-        },
-        "result": {
-            "item": { "suffix": "_SLAB" },
-            "count": 6
-        }
-    },
 
     {
         "id": "11183f08-2d57-45b6-bba5-6335db8a1c6b",
