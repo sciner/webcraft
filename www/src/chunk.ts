@@ -6,8 +6,11 @@ import {BLOCK, DBItemBlock, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
-import {fluidLightPower, FLUID_TYPE_MASK} from "./fluid/FluidConst.js";
 import {ChunkLight} from "./light/ChunkLight.js";
+import type { BaseResourcePack } from "./base_resource_pack.js";
+import type { Renderer } from "./render.js";
+import type BaseRenderer from "./renders/BaseRenderer.js";
+import type WebGLRenderer from "./renders/webgl/index.js";
 
 let global_uniqId = 0;
 
@@ -44,6 +47,7 @@ export interface IChunkVertexBuffer {
 export class Chunk {
     [key: string]: any;
 
+    light : ChunkLight
     tblocks: TypedBlocks3
 
     getChunkManager() {
@@ -143,6 +147,7 @@ export class Chunk {
         }
         chunkManager.dataWorld.syncOuter(this);
         this.inited = true;
+        chunkManager.state.generated.count++
         this.light.init();
     }
 
@@ -167,7 +172,7 @@ export class Chunk {
         return this.light.getDataTextureOffset();
     }
 
-    getLightTexture(render) {
+    getLightTexture(render : BaseRenderer) {
         const cm = this.getChunkManager();
         if (!this.light.hasTexture || !cm) {
             return null;
@@ -199,17 +204,16 @@ export class Chunk {
         return this.light.lightTex;
     }
 
-    prepareRender(render) {
+    prepareRender(render : Renderer) {
         if (!render) {
             return;
         }
         //TODO: if dist < 100?
         this.getLightTexture(render);
-
-        this.light.prepareRender(render);
+        this.light.prepareRender();
     }
 
-    drawBufferVertices(render, resource_pack, group, mat, vertices) {
+    drawBufferVertices(render : any, resource_pack : BaseResourcePack, group, mat, vertices) {
         const v = vertices, key = v.key;
         let texMat = resource_pack.materials.get(key);
         if (!texMat) {
@@ -301,7 +305,8 @@ export class Chunk {
         delete (this['vertices_args']);
         this.need_apply_vertices = false;
         this.buildVerticesInProgress = false;
-        this.timers = args.timers;
+        this.timers = args.timers
+        chunkManager.state.generated.time += this.timers.generate_terrain
         this.gravity_blocks = args.gravity_blocks;
         this.applyVertices('worker', chunkManager.bufferPool, args.vertices);
         this.dirty = false;
@@ -313,6 +318,12 @@ export class Chunk {
         if (!chunkManager) {
             return;
         }
+        // remove from stat
+        if(this.timers) {
+            chunkManager.state.generated.time -= this.timers.generate_terrain
+        }
+        chunkManager.state.generated.count--
+        //
         this.chunkManager = null;
         this.light.dispose();
         chunkManager.dataWorld.removeChunk(this);
@@ -447,7 +458,7 @@ export class Chunk {
     }
 
     //
-    updateInFrustum(render) {
+    updateInFrustum(render : Renderer) : boolean {
         if (!this.frustum_geometry) {
             this.frustum_geometry = Chunk.createFrustumGeometry(this.coord, this.size);
         }
