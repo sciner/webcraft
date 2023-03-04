@@ -411,6 +411,9 @@ export class BaseCubeGeometry {
 
 export default class BaseRenderer {
     [key: string]: any;
+
+    batch : BatchSystem
+
     /**
      *
      * @param {HTMLCanvasElement} view
@@ -726,7 +729,7 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
-    drawMesh(geom, material, a_pos = null, modelMatrix = null, draw_type) {
+    drawMesh(geom, material, a_pos = null, modelMatrix = null, draw_type? : string) {
         if (geom.size === 0) {
             return;
         }

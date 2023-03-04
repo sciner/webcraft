@@ -99,6 +99,23 @@ export class WebGLTerrainShader extends BaseTerrainShader {
                 this._material = null;
             }
             this.update();
+            // let path = new Error().stack
+            // path = path.replaceAll('http://localhost:5700/', '').replaceAll(' at ', '\r\n')
+            // if(!globalThis.asddfads)globalThis.asddfads=new Map()
+            // const m = globalThis.asddfads
+            // if(!m.has(path)) {
+            //     m.set(path, 0)
+            // }
+            // m.set(path, m.get(path) + 1)
+            // if(!globalThis.asdfg)globalThis.asdfg=0
+            // if(globalThis.asdfg++%5000==0) {
+            //     console.log(globalThis.asdfg)
+            //     let mm = []
+            //     for(let [k, v] of m.entries()) {
+            //         mm.push(`${v} ... ${k}`)
+            //     }
+            //     console.log(mm)
+            // }
             return;
         }
         if (prevShader) {
