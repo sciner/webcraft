@@ -1617,5 +1617,45 @@
             "item": "madcraft:white_wool",
             "count": 1
         }
+    },
+    {
+        "id": "3a3212c4-8039-41b4-8cc1-c8ad1bc5a128",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "G",
+            "D"
+        ],
+        "key": {
+            "G": {
+                "item": "madcraft:grass_block_slab"
+            },
+            "D": {
+                "item": "madcraft:dirt_slab"
+            }
+        },
+        "result": {
+            "item": "madcraft:grass_block",
+            "count": 1
+        }
+    },
+    {
+        "id": "527542b1-c0df-4d2a-adaa-0ced7d3a7d7b",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "S",
+            "D"
+        ],
+        "key": {
+            "S": {
+                "item": "madcraft:snow_dirt_slab"
+            },
+            "D": {
+                "item": "madcraft:dirt_slab"
+            }
+        },
+        "result": {
+            "item": "madcraft:snow_dirt",
+            "count": 1
+        }
     }
 ]
