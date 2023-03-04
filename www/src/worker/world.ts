@@ -165,7 +165,7 @@ export class WorkerWorld {
         if(chunk && chunk.uniqId === uniqId) {
             this.chunks.delete(addr);
             if(chunk.layer) {
-                chunk.layer.maps.delete(addr);
+                chunk.layer.maps?.delete(addr);
             } else {
                 this.generator.maps?.delete(addr);
             }
@@ -182,15 +182,13 @@ export class WorkerWorld {
              const chunk = this.chunks.get(addr);
              if (chunk && chunk.uniqId === uniqId) {
                  list.push(chunk);
-
-
              }
          }
          this.chunkManager.dataWorld.removeChunks(list,(chunk: ChunkWorkerChunk) => {
              const {addr} = chunk;
              this.chunks.delete(addr);
              if (chunk.layer) {
-                 chunk.layer.maps.delete(addr);
+                 chunk.layer.maps?.delete(addr);
              } else {
                  this.generator.maps?.delete(addr);
              }
