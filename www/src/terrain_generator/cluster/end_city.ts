@@ -65,7 +65,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         }
 
         // абсолютная позиция внутри layer-а (в центре кластера, на высоте 87 блоков)
-        this.start_coord = this.coord.clone().addScalarSelf(this.size.x / 2, 100, this.size.z / 2)
+        this.start_coord = this.coord.clone().addScalarSelf(this.size.x / 2, 720, this.size.z / 2)
 
         this.addCity(new Vector(0, 0, 0), 0, this.random)
 

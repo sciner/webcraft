@@ -13,8 +13,6 @@ export default class Biome3LayerEnd {
     noise3d: any;
     block_manager: any;
     clusterManager: any;
-    min: float;
-    max: float;
 
     constructor(generator : Terrain_Generator) {
         this.generator = generator
@@ -22,8 +20,6 @@ export default class Biome3LayerEnd {
         this.noise3d = generator.noise3d
         this.block_manager = generator.block_manager
         this.clusterManager = generator.clusterManager
-        this.min = 100000
-        this.max = -10000
     }
 
     generate(chunk, seed, rnd) {
@@ -33,22 +29,15 @@ export default class Biome3LayerEnd {
         for (let x = 0; x < chunk.size.x; x++) {
             for (let z = 0; z < chunk.size.z; z++) {
                 for (let y = 0; y < chunk.size.y; y++) {
-                    const n2 = this.noise2d((chunk.coord.x + x) / 100, (chunk.coord.z + z) / 100) * (y - 12)
-                    const n1 = this.noise2d((chunk.coord.x + x) / 100, (chunk.coord.z + z) / 100) * 14
+                    const n2 = -this.noise2d((chunk.coord.x + x) / 100, (chunk.coord.z + z) / 100) * y
+                    const n1 = this.noise2d((chunk.coord.x + x) / 100, (chunk.coord.z + z) / 100) * 36
                     const index = cx * x + cy * y + cz * z + cw
-                    if (n2 > this.max) {
-                        this.max = n2
-                    }
-                    if (n2 < this.min) {
-                        this.min = n2
-                    }
-                    if ((n2 < 12) && chunk.addr.y == 0 ) {
+                    if (((n2 > 5 && y < 31) || (-n1 > (y - 26) && y > 30)) && chunk.addr.y == 0 ) {
                         uint16View[index] = block_id
                     }
                 }
             }
         }
-        console.log('min' + this.min + ' max' + this.max)
         return this.generator.generateDefaultMap(chunk)
     }
 
