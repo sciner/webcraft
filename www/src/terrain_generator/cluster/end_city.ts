@@ -151,16 +151,16 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
         this.timers.start('fill_blocks')
 
-        // each all buildings
-        for(let b of this.buildings.values()) {
-            if(b.entrance.y != Infinity) {
-                // this.drawBulding(chunk, maps, b, map)
-                // draw basement before the building
-                if (b.getautoBasementAABB()?.intersect(chunk.aabb)) {
-                    b.drawAutoBasement(chunk)
-                }
-            }
-        }
+        // // each all buildings
+        // for(let b of this.buildings.values()) {
+        //     if(b.entrance.y != Infinity) {
+        //         // this.drawBulding(chunk, maps, b, map)
+        //         // draw basement before the building
+        //         if (b.getautoBasementAABB()?.intersect(chunk.aabb)) {
+        //             b.drawAutoBasement(chunk)
+        //         }
+        //     }
+        // }
 
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []

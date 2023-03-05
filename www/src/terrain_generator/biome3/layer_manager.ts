@@ -70,11 +70,13 @@ export class Biome3LayerManager {
         chunk.layer = layer.obj
 
         chunk.addr.y -= layer.bottom
+        chunk.aabb.translate(0, -layer.bottom * CHUNK_SIZE_Y, 0)
         chunk.coord.y -= layer.bottom * CHUNK_SIZE_Y
 
         const map = layer.obj.generate(chunk, chunk_seed, rnd)
 
         chunk.addr.y += layer.bottom
+        chunk.aabb.translate(0, layer.bottom * CHUNK_SIZE_Y, 0)
         chunk.coord.y += layer.bottom * CHUNK_SIZE_Y
 
         return map

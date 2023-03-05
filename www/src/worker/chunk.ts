@@ -104,8 +104,6 @@ export class ChunkWorkerChunk {
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new Map();
         this.temp_vec       = new Vector(0, 0, 0);
-        // 3D clusters
-        this.cluster        = chunkManager.world.generator.clusterManager?.getForCoord(this.coord, chunkManager.world.generator.maps) ?? null;
         this.aabb           = new AABB();
         this.aabb.set(
             this.coord.x,
@@ -126,6 +124,14 @@ export class ChunkWorkerChunk {
         this.inQueue = false;
         this.queueDist = -1; // 0 and more means its in queue (build or gen
         this.genValue = 0;
+    }
+
+    // 3D clusters
+    get cluster() {
+        if(this._cluster === undefined) {
+            this._cluster = this.chunkManager.world.generator.clusterManager?.getForCoord(this.coord, this.chunkManager.world.generator.maps) ?? null
+        }
+        return this._cluster
     }
 
     init() {
