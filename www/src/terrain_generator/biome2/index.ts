@@ -100,6 +100,9 @@ export default class Terrain_Generator extends Demo_Map {
         const aleaRandom                = new alea(seed);
         const maps                      = this.maps.generateAround(chunk, chunk.addr, true, true);
         const map                       = maps[4];
+
+        // cluster
+        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, this.maps) ?? null
         const cluster                   = chunk.cluster;
 
         chunk.map = map;

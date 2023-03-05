@@ -52,14 +52,17 @@ export default class Biome3LayerOverworld {
 
     generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : TerrainMap2 {
 
-        const cluster = chunk.cluster
-
         // Generate maps around chunk
         chunk.timers.start('generate_maps')
         const maps = this.maps.generateAround(chunk, chunk.addr, true, true)
         chunk.timers.stop()
 
         const map = chunk.map = maps[4]
+
+        // Cluster
+        chunk.timers.start('generate_cluster')
+        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, this.generator.maps) ?? null
+        chunk.timers.stop()
 
         // Generate chunk data
         chunk.timers.start('generate_chunk_data')
@@ -85,8 +88,8 @@ export default class Biome3LayerOverworld {
         chunk.timers.stop()
 
         // Cluster
-        chunk.timers.start('generate_cluster')
-        cluster.fillBlocks(this.maps, chunk, map, false, false)
+        chunk.timers.start('fill_cluster')
+        chunk.cluster.fillBlocks(this.maps, chunk, map, false, false)
         chunk.timers.stop()
 
         // Plant trees

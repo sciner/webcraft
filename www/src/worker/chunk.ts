@@ -126,14 +126,6 @@ export class ChunkWorkerChunk {
         this.genValue = 0;
     }
 
-    // 3D clusters
-    get cluster() {
-        if(this._cluster === undefined) {
-            this._cluster = this.chunkManager.world.generator.clusterManager?.getForCoord(this.coord, this.chunkManager.world.generator.maps) ?? null
-        }
-        return this._cluster
-    }
-
     init() {
         // Variables
         this.vertices_length    = 0;

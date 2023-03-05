@@ -1,5 +1,6 @@
 import { impl as alea } from "../../../../vendors/alea.js";
 import { Vector } from "../../../helpers.js";
+import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { ClusterEndCity } from "../../cluster/end_city.js";
 import type Terrain_Generator from "../index.js";
 
@@ -23,13 +24,12 @@ export default class Biome3LayerEnd {
         this.clusterManager = generator.clusterManager
     }
 
-    generate(chunk, seed, rnd) {
-
-        const cluster = chunk.cluster as ClusterEndCity
+    generate(chunk : ChunkWorkerChunk, seed, rnd) {
 
         // Cluster
         chunk.timers.start('generate_cluster')
-        cluster.fillBlocks(null, chunk, null, false, false)
+        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, this.generator.maps) ?? null
+        chunk.cluster.fillBlocks(null, chunk, null, false, false)
         chunk.timers.stop()
 
         const BLOCK = this.generator.block_manager
