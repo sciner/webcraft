@@ -113,14 +113,14 @@ export default class style {
         if(ss) {
             let h = checkDiag('SOUTH', 'UP') ? 1 : CONNECT_HEIGHT;
             const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
-            push_part(vertices, c2, x + .5, y + CONNECT_BOTTOM, z + .25, CONNECT_X, .5, h);
+            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .25, CONNECT_X, .5, h);
             zconnects++;
         }
         // North
         if(sn) {
             let h = checkDiag('NORTH', 'UP') ? 1 : CONNECT_HEIGHT;
             const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
-            push_part(vertices, c2, x + .5, y + CONNECT_BOTTOM, z + .75, CONNECT_X, .5, h);
+            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .75, CONNECT_X, .5, h);
             zconnects++;
         }
 
@@ -131,14 +131,14 @@ export default class style {
         if(sw) {
             let h = checkDiag('WEST', 'UP') ? 1 : CONNECT_HEIGHT;
             const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
-            push_part(vertices, c2, x + .25, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
+            push_part(vertices, c, x + .25, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
             xconnects++;
         }
         // East
         if(se) {
             let h = checkDiag('EAST', 'UP') ? 1 : CONNECT_HEIGHT;
             const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
-            push_part(vertices, c2, x + .75, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
+            push_part(vertices, c, x + .75, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
             xconnects++;
         }
 
@@ -156,7 +156,7 @@ export default class style {
 }
 
 function push_part(vertices, c, x, y, z, xs, zs, h) {
-    let pp          = IndexedColor.WHITE.packed;
+    const pp          = IndexedColor.WHITE.packed;
     let flags       = 0;
     let sideFlags   = 0;
     let upFlags     = 0;
