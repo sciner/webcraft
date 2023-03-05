@@ -40,8 +40,7 @@ export default class style {
         let zconnects = 0
         let xconnects = 0
         //
-        let n = bm.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours)
-        // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        const n = bm.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours)
         // South z--
         if(bm.canWallConnect(n.SOUTH)) {
             shapes.push(new AABB(.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z/2))
@@ -85,68 +84,53 @@ export default class style {
     }
 
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
-
-        const bm = style.block_manager
-
-        // Texture
-        const c = bm.calcMaterialTexture(block.material, DIRECTION.UP);
-
-        let zconnects = 0;
-        let xconnects = 0;
-
         //
         const checkDiag = (n1, n2) => {
-            if(neighbours.UP?.material?.style_name != 'wall') {
+            if(neighbours.UP.id == 0) {
                 return false;
             }
             if(neighbours[n1].tb) {
                 const east_neighbours = neighbours[n1].tb.getNeighbours(neighbours[n1], null, BLOCK_CACHE);
-                return east_neighbours[n2] && east_neighbours[n2].material.style_name == 'wall';
+                return east_neighbours[n2] && east_neighbours[n2].id != 0;
             }
             return false;
         };
-
-        // South and North
+        const bm = style.block_manager
+        // Texture
+        const c = bm.calcMaterialTexture(block.material, DIRECTION.UP); 
+        // South and North 
         const ss = bm.canWallConnect(neighbours.SOUTH);
         const sn = bm.canWallConnect(neighbours.NORTH);
+        let zconnects = 0;
+        let xconnects = 0;
         // South
         if(ss) {
-            let h = checkDiag('SOUTH', 'UP') ? 1 : CONNECT_HEIGHT;
-            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            const h = checkDiag('SOUTH', 'UP') ? 1 : CONNECT_HEIGHT;
             push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .25, CONNECT_X, .5, h);
             zconnects++;
         }
         // North
         if(sn) {
-            let h = checkDiag('NORTH', 'UP') ? 1 : CONNECT_HEIGHT;
-            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            const h = checkDiag('NORTH', 'UP') ? 1 : CONNECT_HEIGHT;
             push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .75, CONNECT_X, .5, h);
             zconnects++;
         }
-
         // West and East
         const sw = bm.canWallConnect(neighbours.WEST);
         const se = bm.canWallConnect(neighbours.EAST);
         // West
         if(sw) {
-            let h = checkDiag('WEST', 'UP') ? 1 : CONNECT_HEIGHT;
-            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            const h = checkDiag('WEST', 'UP') ? 1 : CONNECT_HEIGHT;
             push_part(vertices, c, x + .25, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
             xconnects++;
         }
         // East
         if(se) {
-            let h = checkDiag('EAST', 'UP') ? 1 : CONNECT_HEIGHT;
-            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            const h = checkDiag('EAST', 'UP') ? 1 : CONNECT_HEIGHT;
             push_part(vertices, c, x + .75, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
             xconnects++;
         }
-
-        let draw_center = !(zconnects == 2 && xconnects == 0 || zconnects == 0 && xconnects == 2);
-        if(!draw_center) {
-            draw_center = neighbours.UP && neighbours.UP.id > 0;
-        }
-
+        const draw_center = !(zconnects == 2 && xconnects == 0 || zconnects == 0 && xconnects == 2);
         if(draw_center) {
             push_part(vertices, c, x + .5, y, z + .5, CENTER_WIDTH, CENTER_WIDTH, 1);
         }
@@ -157,9 +141,9 @@ export default class style {
 
 function push_part(vertices, c, x, y, z, xs, zs, h) {
     const pp          = IndexedColor.WHITE.packed;
-    let flags       = 0;
-    let sideFlags   = 0;
-    let upFlags     = 0;
+    const flags       = 0;
+    const sideFlags   = 0;
+    const upFlags     = 0;
     // TOP
     vertices.push(x, z, y + h,
         xs, 0, 0,
