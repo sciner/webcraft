@@ -66,7 +66,7 @@ export class Renderer {
     sunDir: number[];
     frustum: FrustumProxy;
     step_side: number;
-    clouds: any;
+    clouds: Mesh_Object_Clouds;
     rainTim: any;
     prevCamPos: Vector;
     prevCamRotate: Vector;
@@ -1061,8 +1061,7 @@ export class Renderer {
         if(this.world.players.count < 1) {
             return;
         }
-        const defaultShader = this.defaultShader;
-        defaultShader.bind();
+        let shader_binded = false
         for(const player of this.world.players.values()) {
             if(player.itsMe()) {
                 if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
@@ -1071,6 +1070,10 @@ export class Renderer {
             }
             // this.camPos.distance
             if(player.itsMe() || player.distance !== null) {
+                if(!shader_binded) {
+                    shader_binded = true
+                    this.defaultShader.bind()
+                }
                 player.draw(this, this.camPos, delta);
             }
         }

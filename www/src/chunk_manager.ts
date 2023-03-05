@@ -6,7 +6,7 @@ import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld, TBlock} from "./typed_blocks3.js";
-import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
+import { CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby, NEARBY_FLAGS } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
@@ -15,6 +15,8 @@ import { LIGHT_TYPE } from "./constant.js";
 import {ChunkExporter} from "./geom/ChunkExporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import type { World } from "./world.js";
+import type { Renderer } from "./render.js";
+import type { BaseResourcePack } from "./base_resource_pack.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -33,6 +35,7 @@ const CC = [
 //
 export class ChunkManager {
     [key: string]: any;
+    poses: any[]
 
     static instance: ChunkManager;
 
@@ -40,6 +43,13 @@ export class ChunkManager {
     chunks_prepare: VectorCollector = new VectorCollector()
 
     #world: World;
+
+    state = {
+        generated: {
+            count: 0,
+            time: 0
+        }
+    }
 
     constructor(world: World) {
 
@@ -63,7 +73,7 @@ export class ChunkManager {
         // rendering
         this.poses                  = [];
         this.poses_need_update      = false;
-        this.poses_chunkPos         = new Vector();
+        this.poses_chunkPos         = new Vector(0, 0, 0);
         this.rendered_chunks        = {fact: 0, total: 0};
         this.renderList             = new Map();
 
@@ -425,17 +435,18 @@ export class ChunkManager {
          * please dont re-assign renderList entries
          */
         const {renderList} = this;
-        for (let [key, v] of renderList) {
-            for (let [key2, v2] of v) {
-                for (let [key2, v3] of v2) {
+        for (let v of renderList.values()) {
+            for (let v2 of v.values()) {
+                for (let v3 of v2.values()) {
                     v3.clear();
                 }
             }
         }
         //
         let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
+
         for(let i = 0; i < this.poses.length; i++) {
-            const chunk = this.poses[i];
+            const chunk = this.poses[i] as Chunk
             if (!chunk.chunkManager) {
                 // destroyed!
                 continue;
@@ -485,12 +496,8 @@ export class ChunkManager {
 
     /**
      * Draw level chunks
-     * @param { import("./render.js").Renderer } render
-     * @param { import("./base_resource_pack.js").BaseResourcePack } resource_pack
-     * @param {boolean} transparent
-     * @returns
      */
-    draw(render, resource_pack, transparent) {
+    draw(render : Renderer, resource_pack : BaseResourcePack, transparent : boolean) {
         if(!this.worker_inited || !this.nearby) {
             return;
         }
@@ -512,7 +519,7 @@ export class ChunkManager {
                 if (!mat.opaque && mat.shader.fluidFlags) {
                     // REVERSED!!!
                     for (let i = count - 2; i >= 0; i -= 2) {
-                        const chunk = arr[i];
+                        const chunk = arr[i] as Chunk;
                         const vertices = arr[i + 1];
                         chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
                         if (!chunk.rendered) {
@@ -680,36 +687,39 @@ export class ChunkManager {
 
     }
 
-    // Build dirty chunks
+    /**
+     * Build dirty chunks
+     * @deprecated
+     */
     buildDirtyChunks() {
-        if(!this.chunk_added) {
-            return;
-        }
-        this.chunk_added = false;
-        for(let chunk of this.chunks) {
-            if(chunk.dirty && !chunk.buildVerticesInProgress) {
-                let ok = true;
-                if(!chunk.addr_neighbors) {
-                    chunk.addr_neighbors = [];
-                    for(let i = 0; i < CC.length; i++) {
-                        const c = CC[i];
-                        chunk.addr_neighbors.push(chunk.addr.add(c));
-                    }
-                }
-                for(let i = 0; i < chunk.addr_neighbors.length; i++) {
-                    const neighbour_addr = chunk.addr_neighbors[i];
-                    if(ALLOW_NEGATIVE_Y || neighbour_addr.y >= 0) {
-                        if(!this.getChunk(neighbour_addr)) {
-                            ok = false;
-                            break;
-                        }
-                    }
-                }
-                if(ok) {
-                    chunk.buildVertices();
-                }
-            }
-        }
+        // if(!this.chunk_added) {
+        //     return;
+        // }
+        // this.chunk_added = false;
+        // for(let chunk of this.chunks) {
+        //     if(chunk.dirty && !chunk.buildVerticesInProgress) {
+        //         let ok = true;
+        //         if(!chunk.addr_neighbors) {
+        //             chunk.addr_neighbors = [];
+        //             for(let i = 0; i < CC.length; i++) {
+        //                 const c = CC[i];
+        //                 chunk.addr_neighbors.push(chunk.addr.add(c));
+        //             }
+        //         }
+        //         for(let i = 0; i < chunk.addr_neighbors.length; i++) {
+        //             const neighbour_addr = chunk.addr_neighbors[i];
+        //             if(ALLOW_NEGATIVE_Y || neighbour_addr.y >= 0) {
+        //                 if(!this.getChunk(neighbour_addr)) {
+        //                     ok = false;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         if(ok) {
+        //             chunk.buildVertices();
+        //         }
+        //     }
+        // }
     }
 
     // Возвращает блок по абслютным координатам

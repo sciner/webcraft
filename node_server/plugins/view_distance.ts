@@ -1,3 +1,5 @@
+import type { ServerPlayer } from "server_player";
+
 export default class Chat_ViewDistance {
 
     static targets = ['chat'];
@@ -7,7 +9,7 @@ export default class Chat_ViewDistance {
     onWorld(world) {}
 
     onChat(chat) {
-        chat.onCmd(async (player, cmd, args) => {
+        chat.onCmd(async (player : ServerPlayer, cmd, args) => {
             console.log(cmd);
             switch(cmd) {
                 case '/vdist':

@@ -1,4 +1,4 @@
-import { Vector } from "@client/helpers.js";
+import { Mth, Vector } from "@client/helpers.js";
 import { Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps } from "@client/player.js";
 import { GameMode } from "@client/game_mode.js";
 import { ServerClient } from "@client/server_client.js";
@@ -358,8 +358,7 @@ export class ServerPlayer extends Player {
         if(Number.isNaN(value)) {
             value = 4;
         }
-        value = Math.max(value, 2);
-        value = Math.min(value, 16);
+        value = Mth.clamp(value, 2, this.isAdmin() ? 32 : 16)
         if (this.state.chunk_render_dist != value) {
             this.state.chunk_render_dist = value;
             this.netDirtyFlags |= ServerPlayer.NET_DIRTY_FLAG_RENDER_DISTANCE;
@@ -1011,6 +1010,10 @@ export class ServerPlayer extends Player {
             this.quests.writeToWorldTransaction(underConstruction);
         }
         this.dbDirtyFlags = 0;
+    }
+
+    isAdmin() : boolean {
+        return this.world.admins.checkIsAdmin(this)
     }
 
 }

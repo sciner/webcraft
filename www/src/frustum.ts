@@ -1,9 +1,11 @@
 import {Vector} from "./helpers.js";
 
 export class Sphere {
-    [key: string]: any;
+    center: Vector;
+    radius: number;
+    _temp: Sphere
 
-    constructor(center, radius) {
+    constructor(center : Vector, radius : number) {
         this.center = center;
         this.radius = radius;
     }
@@ -11,7 +13,9 @@ export class Sphere {
 }
 
 export class Plane {
-    [key: string]: any;
+    normal: Vector;
+    constant: number;
+    isPlane: boolean;
 
 	constructor( normal = new Vector( 1, 0, 0 ), constant = 0 ) {
 		// normal is assumed to be normalized
@@ -58,11 +62,11 @@ export class Plane {
 		return this;
 	}
 
-	negate() {
-		this.constant *= - 1;
-		this.normal.negate();
-		return this;
-	}
+	// negate() {
+	// 	this.constant *= - 1;
+	// 	this.normal.negate();
+	// 	return this;
+	// }
 
 	distanceToPoint( point ) {
 		return this.normal.dot( point ) + this.constant;
@@ -252,12 +256,12 @@ export class FrustumProxy extends Frustum {
 		return super.setFromProjectionMatrix(matrix);
 	}
 
-	containsPoint(point) {
-		return super.containsPoint(point.sub(this.camPos).swapYZ());
+	containsPoint(point : Vector) {
+		return super.containsPoint(point.sub(this.camPos).swapYZSelf());
 	}
 
 	//
-	intersectsSphere(sphere) {
+	intersectsSphere(sphere : Sphere) {
 		if(!sphere._temp) {
 			sphere._temp = new Sphere(new Vector(0, 0, 0), sphere.radius);
 		}
@@ -269,22 +273,18 @@ export class FrustumProxy extends Frustum {
 	}
 
 	//
-	intersectsGeometryArray(geometry_array) {
+	intersectsGeometryArray(geometry_array) : boolean {
 		let in_frustum = false;
 		for (let i = 0; i < geometry_array.length; i++) {
 			let geom = geometry_array[i];
 			if(geom instanceof Sphere) {
 				if(this.intersectsSphere(geom)) {
 					return true;
-					break;
 				}
 			} else if(geom instanceof Vector) {
 				if(this.containsPoint(geom)) {
 					return true;
-					break;
 				}
-			} else {
-				throw 'Not supported geometry type';
 			}
 		}
 		return in_frustum;

@@ -172,13 +172,25 @@ export class HUD {
                 let cl = 0;
                 let nc = 45;
                 let player_chunk_loaded = false;
-                const player_chunk_addr = Qubatch.player?.chunkAddr;
+                
                 this.generate_terrain_time = 0;
                 this.generate_terrain_count = 0;
+
+                // if(Qubatch.world && Qubatch.world.chunkManager) {
+                //     const chunkManager = Qubatch.world.chunkManager
+                //     this.generate_terrain_time = chunkManager.state.generated.time;
+                //     this.generate_terrain_count = cl = chunkManager.state.generated.count;
+                //     player_chunk_loaded = Qubatch.player?.getOverChunk()?.inited
+                // }
+
                 // const chunk_render_dist = Qubatch.player?.player?.state?.chunk_render_dist || 0;
+                const player_chunk_addr = Qubatch.player?.chunkAddr;
                 if(Qubatch.world && Qubatch.world.chunkManager) {
-                    for(let chunk of Qubatch.world.chunkManager.chunks) {
-                        if(chunk.inited) {
+                    const chunks_flat = Qubatch.world.chunkManager.chunks.flat
+                    const chunks_flat_size = chunks_flat.length
+                    for(let i = 0; i < chunks_flat_size; i++) {
+                        const chunk = chunks_flat[i]
+                        if(chunk && chunk.inited) {
                             if(chunk.timers) {
                                 this.generate_terrain_time += chunk.timers.generate_terrain;
                                 this.generate_terrain_count++;
@@ -192,6 +204,7 @@ export class HUD {
                         }
                     }
                 }
+
                 if(this.generate_terrain_count > 0) {
                     this.generate_terrain_time = Math.round(this.generate_terrain_time / this.generate_terrain_count * 100) / 100;
                 }

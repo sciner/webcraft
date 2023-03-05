@@ -182,8 +182,6 @@ export class WorkerWorld {
              const chunk = this.chunks.get(addr);
              if (chunk && chunk.uniqId === uniqId) {
                  list.push(chunk);
-
-
              }
          }
          this.chunkManager.dataWorld.removeChunks(list,(chunk: ChunkWorkerChunk) => {

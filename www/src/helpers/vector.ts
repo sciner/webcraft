@@ -272,6 +272,12 @@ export class Vector implements IVector {
 
     /**
      */
+    swapYZSelf() : Vector {
+        return this.set(this.x, this.z, this.y)
+    }
+
+    /**
+     */
     swapXZSelf(): this {
         return this.set(this.z, this.y, this.x);
     }

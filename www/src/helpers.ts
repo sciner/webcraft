@@ -272,7 +272,7 @@ export class Helpers {
 }
 
 // Make fetch functions
-if(typeof fetch === 'undefined') {
+if((typeof fetch === 'undefined') || (typeof process != 'undefined') ) {
     // Hello eval ;)
     const code = `Helpers.fetch = (url) => import(url);
     Helpers.fetchJSON = (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);

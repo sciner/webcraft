@@ -130,18 +130,36 @@ export default class Mesh_Object_Clouds {
         const z = Math.floor(cam_pos.z / size) * size;
         const material = render.defaultShader.materials.transparent;
 
-        const {globalUniforms} = render;
-        let globOverride = globalUniforms.lightOverride;
-        globalUniforms.lightOverride = 0;
-        globalUniforms.update();
+        /*
+            const {globalUniforms} = render;
+            let globOverride = globalUniforms.lightOverride;
+            globalUniforms.lightOverride = 0;
+            globalUniforms.update();
+            for(let mx = -2; mx <= 2; mx++) {
+                for(let mz = -2; mz <= 2; mz++) {
+                    this.pos.set(x + mx * size + 1/2, cam_pos.y, z + mz * size + 1/2);
+                    render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);
+                }
+            }
+            globalUniforms.lightOverride = globOverride;
+            globalUniforms.update();
+        */
+
+        const context = render.renderBackend
+        const gl = context.gl
+        const geom = this.buffer
+        material.bind()
+        geom.bind(material.shader)
         for(let mx = -2; mx <= 2; mx++) {
             for(let mz = -2; mz <= 2; mz++) {
-                this.pos.set(x + mx * size + 1/2, cam_pos.y, z + mz * size + 1/2);
-                render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);
+                this.pos.set(x + mx * size + 1/2, cam_pos.y, z + mz * size + 1/2)
+                material.shader.updatePos(this.pos, this.modelMatrix)
+                gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size)
+                context.stat.drawquads += geom.size
+                context.stat.drawcalls++
             }
         }
-        globalUniforms.lightOverride = globOverride;
-        globalUniforms.update();
+
     }
 
     destroy(render) {
