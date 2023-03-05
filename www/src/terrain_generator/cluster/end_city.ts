@@ -54,10 +54,10 @@ export class ClusterEndCity extends ClusterBuildingBase {
     
         this.is_empty = !((this.coord.z % 1024) == 0 && (this.coord.x % 1024) == 0)
         if (this.is_empty) {
-            console.log('er ' + this.coord.z + ' ' + this.coord.x )
+            
             return
         }
-        
+        console.log('ok ' + this.coord.z + ' ' + this.coord.x )
         this.random = new alea(this.coord.z + 'seed' + this.coord.x)
 
         // используемые шаблоны структур
