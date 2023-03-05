@@ -44,6 +44,9 @@ export default class Biome3LayerEnd {
                     if (((n2 > 5 && y < 31) || (-n1 > (y - 26) && y > 30)) && chunk.addr.y == 0 ) {
                         uint16View[index] = block_id
                     }
+                    if ((chunk.coord.x + x) % 1170 > 1100 && (chunk.coord.z + z) % 1170 > 1100 && y < 40 && chunk.addr.y == 0) {
+                        uint16View[index] = block_id
+                    }
                 }
             }
         }
