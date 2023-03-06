@@ -1089,6 +1089,9 @@
             "material": {
                 "id": "leaves"
             },
+            "compile": {
+                "grass_light": true
+            },
             "tags": [
                 "mask_biome",
                 "can_put_into_pot",
@@ -1735,8 +1738,9 @@
             "material": {
                 "id": "plant"
             },
-            "_compile": {
-                "filter": "brightness(110%)"
+            "compile": {
+                "grass_light": true,
+                "_filter": "brightness(110%)"
             },
             "tags": [
                 "mask_biome"
@@ -3807,8 +3811,9 @@
                 {"side": "block/tall_grass/tall_grass4.png"},
                 {"side": "block/tall_grass/tall_grass5.png"}
             ],
-            "_compile": {
-                "filter": "brightness(115%)"
+            "compile": {
+                "grass_light": true,
+                "_filter": "brightness(115%)"
             },
             "tags": [
                 "is_tall_grass",

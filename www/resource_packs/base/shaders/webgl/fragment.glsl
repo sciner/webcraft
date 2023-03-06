@@ -89,6 +89,16 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         } else {
             color.rgb += color_mask.rgb * color_mult.rgb;
 
+            // // float y = mod(v_chunk_pos.z, 1.);
+            // if(v_flagVerticalGrass > .5) {
+            //     float h = v_flagTallGrass > .5 ? 2. : 1.;
+            //     if(h < 1.5) {
+            //         float y = (h - mod(texc.y * 32., h)) * 1.;
+            //         // color.rgb += pow(color.rgb, vec3(1.0 / y));
+            //         color.rgb += clamp(y * color.rgb, 0., 1.) ;
+            //     }
+            // }
+
             // color_mask.rgb = pow(color_mask.rgb, vec3(0.850));
             // color.rgb += pow(color_mask.rgb * color_mult.rgb, vec3(1.0 / 0.85));
             // color.rgb += 

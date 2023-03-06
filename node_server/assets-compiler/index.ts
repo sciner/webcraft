@@ -19,7 +19,7 @@ const compiler = new Compiler({
     ]
 });
 await compiler.init();
-compiler.run();
+await compiler.run();
 
 // BBmodels
 const bbcompiler = new BBModel_Compiler({

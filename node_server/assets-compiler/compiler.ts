@@ -3,6 +3,7 @@ import fs from 'fs';
 import { DEFAULT_TEXTURE_SUFFIXES, Spritesheet } from "./spritesheet.js";
 import { CompileData } from "./compile_data.js";
 import { DEFAULT_TX_CNT } from '@client/constant.js';
+import { Mth } from '@client/helpers.js';
 
 const BLOCK_NAMES = {
     DIRT: 'DIRT',
@@ -91,12 +92,8 @@ export class Compiler {
                 await spritesheet.drawTexture(tex[key], texture.x, texture.y, false, null, null, `_${key}`);
             }
         }
-        try {
-            this.compile_data.blocks = await this.compileBlocks(this.compile_data.blocks);
-            await this.export();
-        } catch(e) {
-            console.error(e);
-        }
+        this.compile_data.blocks = await this.compileBlocks(this.compile_data.blocks);
+        await this.export();
     }
 
     // Export
@@ -332,6 +329,28 @@ export class Compiler {
                             // overlay color
                             if(compile.overlay_color) {
                                 ctx.drawImage(this.imageOverlay(tex.img, compile.overlay_color, w, h), x, y, w, h);
+                            }
+                            // grass light
+                            if(compile?.grass_light) {
+                                const grassCanvas = new skiaCanvas.Canvas(tex.img.width, tex.img.height)
+                                const grassCtx = grassCanvas.getContext('2d')
+                                grassCtx.drawImage(tex.img, 0, 0, tex.img.width, tex.img.height);
+                                const pix = grassCtx.getImageData(0, 0, tex.img.width, tex.img.height)
+                                const pix_data = pix.data
+                                for(let i = 0; i < tex.img.width; i++) {
+                                    for(let j = 0; j < tex.img.height; j++) {
+                                        const index = (j * tex.img.width + i) * 4
+                                        if(pix_data[index + 3] == 0) {
+                                            continue;
+                                        }
+                                        const y = (1 - (j / tex.img.height)) / 2.;
+                                        for(let c = 0; c < 3; c++) {
+                                            pix_data[index + c] = Mth.clamp(pix_data[index + c] + y * pix_data[index + c], 0, 255)
+                                        }
+                                    }
+                                }
+                                grassCtx.putImageData(pix, 0, 0)
+                                ctx.drawImage(grassCanvas, x + tex.img.width, y)
                             }
                             //
                             if(compile.layers) {
