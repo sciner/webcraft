@@ -1352,6 +1352,9 @@
                 "3": "block/decals/sand/3.png",
                 "all": "block/decals/sand/all.png",
                 "opposite": "block/decals/sand/opposite.png"
+            },
+            "generator": {
+                "can_replace_to_slab": "SAND_SLAB"
             }
         },
         {
@@ -9725,6 +9728,7 @@
             },
             "tags": [
                 "no_set_on_top",
+                "is_petals",
                 "no_drop_ao",
                 "doubleface"
             ],
@@ -9778,11 +9782,32 @@
                 "id": "plant"
             },
             "texture": "./textures/cattail.png",
-            "has_head": {"pos": {"x": 0, "y": 2, "z": 0}},
+            "_has_head": {"pos": {"x": 0, "y": 2, "z": 0}},
             "tags": [
                 "is_tall_grass",
                 "is_tall_grass_3"
             ]
+        },
+        {
+            "id": 502,
+            "name": "SAND_SLAB",
+            "sound": "madcraft:block.sand",
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "sand"
+            ],
+            "material": {
+                "id": "sand"
+            },
+            "texture": {
+                "side": "block/sand.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "SAND"
+            }
         }
     ]
 }

@@ -2045,6 +2045,10 @@
         {
             "id": 35,
             "name": "CATTAIL",
+            "inventory": {
+                "scale": 0.55,
+                "move": {"x": 0, "y": 0, "z": -1}
+            },
             "bb": {
                 "model": "cattail",
                 "rotate": [

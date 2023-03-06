@@ -927,7 +927,7 @@ export class BLOCK {
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering;
-        block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS'].includes(block.name);
+        block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS', 'BURDOCK', 'WINDFLOWERS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
         block.is_dirt           = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');

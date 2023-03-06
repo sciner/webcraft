@@ -158,10 +158,28 @@ export class Biomes {
                     {percent: .05, blocks: [{id: BLOCK.WINDFLOWERS.id}]},
                     {percent: .05, blocks: [{id: BLOCK.BURDOCK.id}]},
                     {percent: .005, blocks: [{id: BLOCK.PEBBLES.id}]},
-                    {percent: .005, blocks: [{id: BLOCK.PINK_PETALS.id, is_petals: true}]},
+                    {percent: .005, blocks: [{id: BLOCK.PINK_PETALS.id}]},
                     {percent: .14, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]}
                 ]
             };
+        }
+        //
+        if(grass) {
+            for(let g of grass.list) {
+                for(let b of g.blocks) {
+                    const block = BLOCK.fromId(b.id)
+                    b.is_petals = block.tags.includes('is_petals')
+                    b.is_grass = block.is_grass
+                }
+            }
+        }
+        //
+        if(plants) {
+            for(let g of plants.list) {
+                for(let b of g.blocks) {
+                    b.is_flower = true
+                }
+            }
         }
         //
         if(trees?.list) {

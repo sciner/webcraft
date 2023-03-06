@@ -247,6 +247,9 @@ export default class Biome3LayerOverworld {
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = bm.DIRT.id
+        const grass_block_id            = bm.GRASS_BLOCK.id
+        const sand_block_id             = bm.SAND.id
+        const gravel_id                 = bm.GRAVEL.id
         const blockFlags                = bm.flags
         const block_result              = new MapsBlockResult()
         const rand_lava                 = new alea('random_lava_source_' + this.seed);
@@ -334,6 +337,14 @@ export default class Biome3LayerOverworld {
                         // get block
                         let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
+                        if(block_id == grass_block_id && !cell.biome.is_snowy) {
+                            if(xyz.y - WATER_LEVEL < 2) {
+                                if(d4 < 0) {
+                                    block_id = sand_block_id
+                                }
+                            }
+                        }
+
                         if(blockFlags[block_id] & bm.FLAG_STONE) {
                             if(density < DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
                                 // generating a small amount of ore on the surface of the walls
@@ -418,8 +429,6 @@ export default class Biome3LayerOverworld {
                                         }
                                     }
 
-                                    // chunk.setBlockIndirect(x, y + 1, z, 69, null, null);
-
                                 }
 
                             } else {
@@ -431,9 +440,9 @@ export default class Biome3LayerOverworld {
                                     if(d4 < 0) {
                                         block_id = dirt_block_id
                                     } else if(d4 < .3) {
-                                        block_id = bm.GRAVEL.id
+                                        block_id = gravel_id
                                     } else {
-                                        block_id = bm.SAND.id
+                                        block_id = sand_block_id
                                     }
                                 }
 

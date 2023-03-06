@@ -17,6 +17,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         this.equator                = Math.round(temperature * 100000) / 100000;
         this.dirt_block_id          = dirt_block_id;
         this.blocks_good_for_plants = [BLOCK.GRASS_BLOCK.id, BLOCK.SNOW_DIRT.id, BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.MOSS_BLOCK.id]
+        this.blocks_good_for_grass  = [BLOCK.GRASS_BLOCK.id, BLOCK.MOSS_BLOCK.id]
     }
 
     genPlantOrGrass(x : int, y : int, z : int, size : Vector, block_id : int, rnd, density_params : DensityParams) {
@@ -42,6 +43,14 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
                 plant_blocks = this.calcSet(r, y, size, biome.grass)
             }
 
+        }
+
+        if(plant_blocks) {
+            if(plant_blocks[0].is_grass || plant_blocks[0].is_flower || plant_blocks[0].is_petals) {
+                if(!this.blocks_good_for_grass.includes(block_id)) {
+                    return null
+                }
+            }
         }
 
         return plant_blocks
