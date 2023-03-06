@@ -11,6 +11,7 @@ import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 const {mat4} = glMatrix;
+const GRASS_COLOR_SHIFT_FACTOR = 24
 
 const MELON_ATTACHED_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0, "y": 0, "z": 0}},
@@ -178,9 +179,11 @@ export default class style {
 
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
-            style.lm.copyFrom(dirt_color);
-            style.lm.r = Mth.clamp(style.lm.r - Math.random() * 32, 0, 255)
-            style.lm.g = Mth.clamp(style.lm.g + Math.random() * 32, 256, 511)
+            style.lm.copyFrom(dirt_color);            
+            if(GRASS_COLOR_SHIFT_FACTOR > 0) {
+                style.lm.r = Mth.clamp(style.lm.r - Math.random() * GRASS_COLOR_SHIFT_FACTOR, 0, 255)
+                style.lm.g = Mth.clamp(style.lm.g + Math.random() * GRASS_COLOR_SHIFT_FACTOR, 256, 511)
+            }
             style.lm.r += GRASS_PALETTE_OFFSET;
             flag |= QUAD_FLAGS.MASK_BIOME;
         }
