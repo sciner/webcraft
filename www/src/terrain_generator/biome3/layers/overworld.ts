@@ -500,7 +500,7 @@ export default class Biome3LayerOverworld {
                                     }
 
                                     if((d4 > .4 && d4 < .8) && air_count > 5 && air_count < CHUNK_SIZE_Y / 2) {
-                                        if(xyz.y == local_water_line) {
+                                        if(xyz.y == local_water_line && !cell.biome.is_snowy) {
                                             if(rnd.double() < .1) {
                                                 for(let i = 0; i < 8 * d4 + 2; i++) {
                                                     chunk.setBlockIndirect(x, y + air_count - i, z, bm.OAK_LEAVES.id)
