@@ -1,4 +1,4 @@
-import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
+import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix, Mth} from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
@@ -179,6 +179,8 @@ export default class style {
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
             style.lm.copyFrom(dirt_color);
+            style.lm.r = Mth.clamp(style.lm.r - Math.random() * 32, 0, 255)
+            style.lm.g = Mth.clamp(style.lm.g + Math.random() * 32, 256, 511)
             style.lm.r += GRASS_PALETTE_OFFSET;
             flag |= QUAD_FLAGS.MASK_BIOME;
         }
