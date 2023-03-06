@@ -1,6 +1,6 @@
 import type { Vector } from "../../../helpers.js";
 
-export const WATER_LEVEL = 79;
+export const WATER_LEVEL = 80;
 
 export class ClimateParams {
 
