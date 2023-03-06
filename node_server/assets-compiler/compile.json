@@ -2946,6 +2946,25 @@
             "can_rotate": true
         },
         {
+            "id": 2047,
+            "name": "BLD_AIR",
+            "sound": "madcraft:block.glass",
+            "transparent": true,
+            "passable": 1,
+            "mining_time": 0,
+            "group": "transparent",
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "texture": "./textures/air.png",
+            "texture_animations": {
+                "side": null
+            }
+        },
+        {
             "id": 58,
             "name": "CRAFTING_TABLE",
             "sound": "madcraft:block.wood",
@@ -7240,15 +7259,6 @@
                 "up": "block/quartz_pillar_top.png",
                 "down": "block/quartz_pillar_top.png"
             }
-        },
-        {
-            "id": 35,
-            "name": "PURPUR_BLOCK",
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "stone"
-            },
-            "texture": "block/purpur_block.png"
         },
         {
             "id": 42,

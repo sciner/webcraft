@@ -1,5 +1,5 @@
 import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from "../default.js";
-import { IndexedColor } from "../../helpers.js";
+// import { IndexedColor } from "../../helpers.js";
 import { createNoise2D } from '../../../vendors/simplex-noise.js';
 import { NoiseFactory } from "./NoiseFactory.js";
 import { ClusterManager } from "../cluster/manager.js";
@@ -9,6 +9,7 @@ import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { TerrainMap2 } from "./terrain/map.js";
 import type { WorkerWorld } from "../../worker/world.js";
 import { WATER_LEVEL } from "./terrain/manager_vars.js";
+import { IndexedColor } from "../../helpers.js";
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -54,7 +55,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // this.n3d = createNoise3D(new alea(seed))
 
         this.layers = new Biome3LayerManager(this, [
-            {type: 'overworld', bottom: 0, up: 7}
+            {type: 'overworld', bottom: 0, up: 7},
+            //{type: 'end', bottom: 17, up: 22}
         ])
 
         return true

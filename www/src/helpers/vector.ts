@@ -698,13 +698,12 @@ export class Vector implements IVector {
         return (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
     }
 
-    relativePosToFlatIndexInChunk() {
+    relativePosToFlatIndexInChunk() : int {
         return CHUNK_SIZE_X * (CHUNK_SIZE_Z * this.y + this.z) + this.x;
     }
 
     //
-    fromFlatChunkIndex(index) {
-        index = parseInt(index);
+    fromFlatChunkIndex(index : int) : Vector {
         this.x = index % CHUNK_SIZE_X;
         this.y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
         this.z = (index % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - this.x) / CHUNK_SIZE_X;

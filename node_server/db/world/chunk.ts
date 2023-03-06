@@ -377,7 +377,7 @@ export class DBWorldChunk {
                 const modifiers = JSON.parse(row.data);
                 const addr = new Vector(row);
                 for(const key in modifiers) {
-                    const index = parseFloat(key);
+                    const index = parseInt(key);
                     blocks.push({
                         pos: new Vector().fromFlatChunkIndex(index),
                         addr,

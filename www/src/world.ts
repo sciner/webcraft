@@ -141,6 +141,8 @@ export class World implements IWorld {
         this.dt_connected   = time; // Серверное время, когда произошло подключение к серверу!
         this.dt_update_time = time;
 
+        this.block_manager.applyRulesForWorld(this)
+
         // Init
         this.players.init();
         this.chunkManager.init();

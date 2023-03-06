@@ -1,12 +1,13 @@
 import {Vector, VectorCollector} from "../../helpers.js";
 import {ClusterVilage} from "./vilage.js";
 import {ClusterPyramid} from "./pyramid.js";
-import { ClusterStructures } from "./structures.js";
 import {ClusterEmpty} from "./empty.js";
 import {impl as alea} from '../../../vendors/alea.js';
-import type { TerrainMapManager2 } from "../biome3/terrain/manager.js";
+import { ClusterEndCity } from "./end_city.js";
+
 import type { ClusterBase } from "./base.js";
 import type { WorkerWorld } from "../../worker/world.js";
+import type { TerrainMapManager2 } from "../biome3/terrain/manager.js";
 
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
@@ -46,7 +47,8 @@ export class ClusterManager {
             if(r < 0.2) {
                 cluster = new ClusterVilage(this, addr.clone(), biome)
             } else {
-                cluster = new ClusterStructures(this, addr.clone(), biome)
+                // cluster = new ClusterStructures(this, addr.clone(), biome)
+                //cluster = new ClusterEndCity(this, addr.clone(), biome)
             }
         } else {
             if(r <= .1) {

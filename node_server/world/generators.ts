@@ -63,7 +63,8 @@ export class WorldGenerators {
         if('options' in params) {
             for(let name in params.options) {
                 if(!(name in generator.options)) {
-                    throw 'error_unknown_generator_option';
+                    console.error('error_unknown_generator_option');
+                    continue;
                 }
                 const option = generator.options[name];
                 const value = WorldGenerators.strictType(params.options[name], option.strict_type);

@@ -19,8 +19,6 @@ export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
 export const DIRT_COLOR_NOISE_RANGE         = 20; // mix dirt colors on every block with random value
 export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', 'west', 'east'];
-export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER'];
-export const NO_CREATABLE_BLOCKS            = ['BEDROCK', 'UNCERTAIN_STONE'];
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= ['BEDROCK'];
 export const ITEM_LABEL_MAX_LENGTH          = 19;
 

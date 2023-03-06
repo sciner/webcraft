@@ -104,8 +104,6 @@ export class ChunkWorkerChunk {
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new Map();
         this.temp_vec       = new Vector(0, 0, 0);
-        // 3D clusters
-        this.cluster        = chunkManager.world.generator.clusterManager?.getForCoord(this.coord, chunkManager.world.generator.maps) ?? null;
         this.aabb           = new AABB();
         this.aabb.set(
             this.coord.x,
@@ -212,7 +210,8 @@ export class ChunkWorkerChunk {
         //
         const pos = new Vector(0, 0, 0);
         const block_vec_index = new Vector(0, 0, 0);
-        for(let index in ml) {
+        for(let k in ml) {
+            const index = parseInt(k)
             const m = ml[index];
             if(!m) continue;
             pos.fromFlatChunkIndex(index);

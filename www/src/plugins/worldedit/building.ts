@@ -2,15 +2,14 @@ import { Vector } from "../../helpers.js";
 import { BuildingTemplate } from "../../terrain_generator/cluster/building_template.js";
 import { ServerClient } from "../../server_client.js";
 
-//
+// import type WorldEdit from "../../../../node_server/plugins/chat_worldedit.js"
+import { AABB } from "../../core/AABB.js";
+
 export class WorldEditBuilding {
-    worldedit_instance: any;
+    worldedit_instance: any // WorldEdit
     list: Map<any, any>;
 
-    /**
-     * @param { import("../chat_worldedit.js").WorldEdit } worldedit_instance
-     */
-    constructor(worldedit_instance) {
+    constructor(worldedit_instance : any /* WorldEdit */) {
         this.worldedit_instance = worldedit_instance;
         this.load();
     }
@@ -60,6 +59,10 @@ export class WorldEditBuilding {
             }
             case 'select': {
                 await this.select(chat, player, cmd, args)
+                break;
+            }
+            case 'setentrance': {
+                await this.setEntrance(chat, player, cmd, args)
                 break;
             }
             case 'go': {
@@ -152,7 +155,7 @@ export class WorldEditBuilding {
 
         const name = args[2]
 
-        // getbuilding by name
+        // get building by name
         const building = this.list.get(name)
         if(!building) throw 'building_not_found'
 
@@ -325,5 +328,44 @@ export class WorldEditBuilding {
 
     }
 
+    // Change building entrance position
+    async setEntrance(chat, player, cmd, args) {
+
+        //
+        if(!chat.world.isBuildingWorld()) {
+            throw 'error_invalid_world';
+        }
+
+        const name = args[2]
+
+        // get building by name
+        const building = this.list.get(name)
+        if(!building) throw 'building_not_found'
+
+        const pos1 = player.pos1;
+        if(!pos1) throw 'error_pos1_not_defined'
+
+        const aabb = new AABB(
+            Math.min(building.world.pos1.x, building.world.pos2.x),
+            Math.min(building.world.pos1.y, building.world.pos2.y),
+            Math.min(building.world.pos1.z, building.world.pos2.z),
+            Math.max(building.world.pos1.x, building.world.pos2.x) + 1,
+            Math.max(building.world.pos1.y, building.world.pos2.y) + 1,
+            Math.max(building.world.pos1.z, building.world.pos2.z) + 1
+        )
+
+        if(!aabb.containsVec(pos1)) {
+            throw 'error_pos1_must_be_placed_inside_building'
+        }
+
+        building.world.entrance.copyFrom(pos1)
+
+        await this.save(chat, player, cmd, args)
+
+        // message to player chat
+        const msg = `${name} building entrance changed`
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id])
+
+    }
 
 }

@@ -1,6 +1,7 @@
 import Biome3LayerStone from "./layers/stone.js";
 import Biome3LayerLava from "./layers/lava.js";
 import Biome3LayerAir from "./layers/air.js";
+import Biome3LayerEnd from "./layers/end.js";
 import Biome3LayerOverworld from "./layers/overworld.js";
 import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
@@ -18,6 +19,7 @@ export class Biome3LayerManager {
         this.layer_types.set('overworld', Biome3LayerOverworld)
         this.layer_types.set('stone', Biome3LayerStone)
         this.layer_types.set('lava', Biome3LayerLava)
+        this.layer_types.set('end', Biome3LayerEnd)
 
         // Make layers
         this.makeLayers(list)
@@ -68,11 +70,13 @@ export class Biome3LayerManager {
         chunk.layer = layer.obj
 
         chunk.addr.y -= layer.bottom
+        chunk.aabb.translate(0, -layer.bottom * CHUNK_SIZE_Y, 0)
         chunk.coord.y -= layer.bottom * CHUNK_SIZE_Y
 
         const map = layer.obj.generate(chunk, chunk_seed, rnd)
 
         chunk.addr.y += layer.bottom
+        chunk.aabb.translate(0, layer.bottom * CHUNK_SIZE_Y, 0)
         chunk.coord.y += layer.bottom * CHUNK_SIZE_Y
 
         return map

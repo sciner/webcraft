@@ -3,8 +3,10 @@ import { DIRECTION, getChunkAddr, PerformanceTimer, Vector, VectorCollector} fro
 import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
-import { BuildingPalettes } from "./building/palette.js";
+import type { BuildingPalettes } from "./building/palette.js";
 import type { ClusterManager } from "./manager.js";
+import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 
 //
 const entranceAhead = new Vector(0, 0, 0);
@@ -20,38 +22,21 @@ export const getAheadMove = (dir) => {
 
 // Building base cluster
 export class ClusterBuildingBase extends ClusterBase {
-    [key: string]: any;
 
-    /**
-     * @type {BuildingPalettes}
-     */
-    building_palettes
+    building_palettes: BuildingPalettes
+    buildings = new VectorCollector()
+    timers = new PerformanceTimer()
 
     //
     constructor(clusterManager : ClusterManager, addr : Vector, biome? : any) {
-
         super(clusterManager, addr)
-
-        this.buildings              = new VectorCollector()
-        this.randoms                = new alea(this.id)
-        this.timers                 = new PerformanceTimer()
-
+        this.randoms = new alea(this.id)
     }
 
     /**
      * Add building
-     * 
-     * @param {*} seed 
-     * @param {int} door_x 
-     * @param {int} door_z 
-     * @param {Vector} size 
-     * @param {Vector} entrance 
-     * @param {int} door_direction 
-     * @param {boolean} is_crossroad
-     * 
-     * @returns 
      */
-    addBuilding(seed, door_x, door_z, size, entrance, door_direction, is_crossroad = false) {
+    appendBuilding(seed : any, door_x : int, door_z : int, size : Vector, entrance : Vector, door_direction : int, is_crossroad : boolean = false) {
 
         const coord = new Vector(door_x + this.coord.x, 0, door_z + this.coord.z)
         if(this.buildings.has(coord)) {
@@ -107,14 +92,8 @@ export class ClusterBuildingBase extends ClusterBase {
 
     /**
      * Fill chunk blocks
-     * @param {*} maps 
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk  
-     * @param {*} map 
-     * @param {boolean} fill_blocks 
-     * @param {boolean} calc_building_y 
-     * @returns 
      */
-    fillBlocks(maps, chunk, map, fill_blocks = true, calc_building_y = true) {
+    fillBlocks(maps : TerrainMapManager, chunk : ChunkWorkerChunk, map : TerrainMap, fill_blocks : boolean = true, calc_building_y : boolean = true) {
 
         if(this.is_empty) {
             return false;
@@ -151,16 +130,9 @@ export class ClusterBuildingBase extends ClusterBase {
     }
 
     /**
-     * Draw part of building on map
-     * 
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {object[]} maps 
-     * @param {*} building 
-     * @param {*} map 
-     * 
-     * @returns 
+     * Draw part of building into chunk
      */
-    drawBulding(chunk, maps, building, map) {
+    drawBulding(chunk : ChunkWorkerChunk, maps : TerrainMapManager, building : any, map : any) {
         
         if(building.hidden) {
             return
@@ -184,14 +156,7 @@ export class ClusterBuildingBase extends ClusterBase {
         }
     }
 
-    /**
-     * 
-     * @param {*} maps 
-         * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk 
-     * @param {*} building 
-     * @returns 
-     */
-    fixBuildingHeight(maps, chunk, building) {
+    fixBuildingHeight(maps : TerrainMapManager, chunk : ChunkWorkerChunk, building : any) {
 
         if(this.clusterManager.chunkManager.world.generator.layers) {
             return false
@@ -238,6 +203,32 @@ export class ClusterBuildingBase extends ClusterBase {
             }
         }
 
+    }
+
+    makeNearMask() {
+
+        this.near_mask = new Array(this.size.x * this.size.z).fill(255);
+
+        // Fill near_mask
+        if(this.buildings.size > 0) {
+            // If any structure added
+            const margin = 5
+            for(const building of this.buildings.values()) {
+                const pos = new Vector(building.aabb.x_min, 0, building.aabb.z_min)
+                for(let i = -margin; i < building.size.x + margin; i++) {
+                    for(let j = -margin; j < building.size.z + margin; j++) {
+                        const x = pos.x - this.coord.x + i
+                        const z = pos.z - this.coord.z + j
+                        if(x >= 0 && z >= 0 && x < this.size.x && z < this.size.z) {
+                            const nidx = z * this.size.x + x
+                            this.near_mask[nidx] = margin
+                        }
+                    }
+                }
+            }
+        } else {
+            this.mask.fill(null)
+        }
     }
 
 }

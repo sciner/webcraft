@@ -28,14 +28,10 @@ export class ClusterStructures extends ClusterBuildingBase {
             'structure3', 'structure4', 'structure5', 'structure6', 'small_lake'
         ]
 
-        /**
-         * @param {string} schema_name
-         * @param {Vector} coord
-         */
-        const addStructure = (schema_name, coord, door_direction) => {
+        const addStructure = (schema_name : string, coord : Vector, door_direction : int) => {
 
             // randoms
-            const template       = BuildingTemplate.fromSchema(schema_name, bm)
+            const template = BuildingTemplate.fromSchema(schema_name, bm)
             const xz = coord.clone()
 
             const building = new BuildingBlocks(
@@ -50,8 +46,8 @@ export class ClusterStructures extends ClusterBuildingBase {
 
             // const aabb = building.getRealAABB()
             // const am = getAheadMove(door_direction).multiplyScalarSelf(16)
-            // building.translateXZ(am)
-            // building.moveXZTo(this.coord)
+            // building.translate(am)
+            // building.movePosTo(this.coord)
 
             this.buildings.set(building.coord, building)
 
@@ -86,8 +82,8 @@ export class ClusterStructures extends ClusterBuildingBase {
 
                         // const aabb = building.getRealAABB()
                         // const am = getAheadMove(door_direction).multiplyScalarSelf(16)
-                        // building.translateXZ(am)
-                        // building.moveXZTo(this.coord)
+                        // building.translate(am)
+                        // building.movePosTo(this.coord)
 
                         addStructure(schema_name, coord, door_direction)
 
