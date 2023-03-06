@@ -39,7 +39,7 @@ export class ClusterManager {
             return cluster;
         }
         const center_coord = addr.mul(this.size).addScalarSelf(this.size.x / 2, this.size.y / 2, this.size.z / 2)
-        const biome = map_manager.calcBiome(center_coord, null)
+        const biome = map_manager?.calcBiome(center_coord, null) ?? null
         const rand = new alea(this.seed + '_' + addr.toHash());
         const r = rand.double();
         if(this.version == 2) {
