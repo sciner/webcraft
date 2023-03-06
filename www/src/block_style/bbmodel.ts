@@ -133,6 +133,12 @@ export default class style {
             return;
         }
 
+        if(block.material.style_name == 'tall_grass') {
+            if(block.extra_data?.is_head) {
+                return null
+            }
+        }
+
         matrix = mat4.create()
         mat4.rotateY(matrix, matrix, Math.PI)
 
