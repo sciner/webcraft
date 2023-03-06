@@ -9765,6 +9765,24 @@
                 "mask_biome"
             ],
             "texture": "block/grass.png"
+        },
+        {
+            "id": 35,
+            "name": "CATTAIL",
+            "transparent": true,
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "texture": "./textures/cattail.png",
+            "has_head": {"pos": {"x": 0, "y": 2, "z": 0}},
+            "tags": [
+                "is_tall_grass",
+                "is_tall_grass_3"
+            ]
         }
     ]
 }

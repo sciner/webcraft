@@ -27,6 +27,11 @@ const TALL_GRASS_PLANES = [
     {"size": {"x": 0, "y": 32, "z": 16}, "uv": [8, 16], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}}
 ];
 
+const TALL_GRASS_3_PLANES = [
+    {"size": {"x": 0, "y": 48, "z": 16}, "uv": [8, 24], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 48, "z": 16}, "uv": [8, 24], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}}
+];
+
 const AGRICULTURE_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 4/12, "y": 0, "z": 0}},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": -4/12, "y": 0, "z": 0}},
@@ -104,6 +109,7 @@ export default class style {
 
         const material = block.material;
         const is_tall_grass = block.hasTag('is_tall_grass')
+        const is_tall_grass_3 = block.hasTag('is_tall_grass_3')
 
         // Get texture
         let texture_dir = DIRECTION.DOWN;
@@ -189,7 +195,7 @@ export default class style {
         }
 
         // Planes
-        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? TALL_GRASS_PLANES : DEFAULT_PLANES));
+        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? (is_tall_grass_3 ? TALL_GRASS_3_PLANES : TALL_GRASS_PLANES) : DEFAULT_PLANES));
 
         // Sunflower
         if (material.name == 'SUNFLOWER') {

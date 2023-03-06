@@ -64,7 +64,8 @@
         {"name": "hay_block",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "fern",                "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "burdock",             "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "wildflowers",         "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "wildflowers",         "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "cattail",             "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -2040,6 +2041,17 @@
                     {"name": "variant2", "_when": {"extra_data._": true}}
                 ]
             }
+        },
+        {
+            "id": 35,
+            "name": "CATTAIL",
+            "bb": {
+                "model": "cattail",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
+            }
+
         }
     ]
 }

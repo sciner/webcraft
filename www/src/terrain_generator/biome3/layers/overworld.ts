@@ -302,6 +302,7 @@ export default class Biome3LayerOverworld {
                 let cluster_drawed = false;
                 let not_air_count = 0;
                 let air_count = 0
+                let has_lily_pad = false
 
                 // Debug biomes
                 // this.dumpBiome(xyz, cell.biome)
@@ -505,19 +506,32 @@ export default class Biome3LayerOverworld {
                                 }
                             } else if (xyz.y == local_water_line + 1 && cell.biome.title == 'Болото') {
                                 if(rnd.double() < .07) {
-                                    chunk.setBlockIndirect(x, y, z, bm.LILY_PAD.id);
+                                    chunk.setBlockIndirect(x, y, z, bm.LILY_PAD.id)
+                                    has_lily_pad = true
                                 }
                             }
 
                             // чтобы на самом нижнем уровне блоков чанка тоже росла трава
-                            if(y == 0 && chunk.addr.y > 2) {
+                            if(y == 0) {
                                 xyz.y--
                                 this.maps.calcDensity(xyz, cell, over_density_params, map)
                                 xyz.y++
                                 if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
-                                    let {block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
-                                    // Plants and grass (растения и трава)
-                                    plantGrass(x, y, z, block_id, cell, density_params)
+                                    // CATTAIL | РОГОЗ
+                                    if(!has_lily_pad && chunk.addr.y == 2) {
+                                        if(d4 > .4 && d4 < .8) {
+                                            if(cell.biome.title == 'Болото' || (d1 < .1 && d2 < .1 && !cell.biome.is_snowy && !cell.biome.is_sand && !cell.biome.is_desert)) {
+                                                if(rnd.double() < .25) {
+                                                    chunk.setBlockIndirect(x, y, z, bm.CATTAIL.id)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if(chunk.addr.y > 2) {
+                                        let {block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
+                                        // Plants and grass (растения и трава)
+                                        plantGrass(x, y, z, block_id, cell, density_params)
+                                    }
                                 }
                             }
 
