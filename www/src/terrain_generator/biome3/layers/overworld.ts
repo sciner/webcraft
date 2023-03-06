@@ -486,7 +486,7 @@ export default class Biome3LayerOverworld {
                             }
 
                             // чтобы на самом нижнем уровне блоков чанка тоже росла трава
-                            if(y == 0 && chunk.addr.y > 1) {
+                            if(y == 0 && chunk.addr.y > 2) {
                                 xyz.y--
                                 this.maps.calcDensity(xyz, cell, over_density_params, map)
                                 xyz.y++
