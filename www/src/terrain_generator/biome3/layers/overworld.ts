@@ -301,6 +301,7 @@ export default class Biome3LayerOverworld {
 
                 let cluster_drawed = false;
                 let not_air_count = 0;
+                let air_count = 0
 
                 // Debug biomes
                 // this.dumpBiome(xyz, cell.biome)
@@ -316,6 +317,8 @@ export default class Biome3LayerOverworld {
 
                     // Блоки камня
                     if(density > DENSITY_AIR_THRESHOLD) {
+
+                        air_count = 0
 
                         // убираем баг с полосой земли на границах чанков по высоте
                         if(y == chunk.size.y - 1) {
@@ -420,8 +423,17 @@ export default class Biome3LayerOverworld {
 
                             } else {
 
+                                // первый слой поверхности под водой
+
                                 if(dcaves == 0) {
-                                    block_id = dirt_block_id
+                                    // поверхность дна водоемов
+                                    if(d4 < 0) {
+                                        block_id = dirt_block_id
+                                    } else if(d4 < .3) {
+                                        block_id = bm.GRAVEL.id
+                                    } else {
+                                        block_id = bm.SAND.id
+                                    }
                                 }
 
                                 // рандомный блок лавы
@@ -449,7 +461,8 @@ export default class Biome3LayerOverworld {
 
                         const is_ceil = not_air_count > 0
 
-                        not_air_count = 0;
+                        not_air_count = 0
+                        air_count++
 
                         // чтобы в пещерах не было воды
                         if(dcaves == 0 || in_aquifera) {
@@ -475,6 +488,17 @@ export default class Biome3LayerOverworld {
                                             }
                                         }
                                     }
+
+                                    if((d4 > .4 && d4 < .8) && air_count > 5 && air_count < CHUNK_SIZE_Y / 2) {
+                                        if(xyz.y == local_water_line) {
+                                            if(rnd.double() < .1) {
+                                                for(let i = 0; i < 8 * d4 + 2; i++) {
+                                                    chunk.setBlockIndirect(x, y + air_count - i, z, bm.OAK_LEAVES.id)
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     chunk.setBlockIndirect(x, y, z, block_id);
                                 } else {
                                     chunk.fluid.setFluidIndirect(x, y, z, block_id);
