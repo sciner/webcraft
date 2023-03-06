@@ -26,7 +26,12 @@ const DEFAUL_MAP_OPTIONS = {WATER_LEVEL}
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    defaylt_cells : {} = {}
+    defaylt_cells:      {} = {}
+    world:              WorkerWorld
+    clusterManager:     ClusterManager
+    layers:             Biome3LayerManager
+    tempAlea:           any
+    block_manager:      any
 
     /**
      */
@@ -65,7 +70,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     /**
      */
-    generate(chunk : ChunkWorkerChunk) : TerrainMap2 {
+    generate(chunk : ChunkWorkerChunk) : TerrainMap2 | Default_Terrain_Map {
 
         this.noise3d.scoreCounter = 0
 
@@ -97,6 +102,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             return this.defaylt_cells[cells_count]
         }
         return this.defaylt_cells[cells_count] = Array(cells_count).fill(DEFAULT_CELL)
+    }
+
+    destroyMapsAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {
+        const layers = this.layers.layers
+        let cnt_destroyed = 0
+        for(let i = 0; i < layers.length; i++) {
+            cnt_destroyed += layers[0].obj.maps.destroyAroundPlayers(players)
+        }
+        return cnt_destroyed
     }
 
 }

@@ -13,6 +13,7 @@ import { MapCellPreset_SnowCoveredMountains } from "./map_preset/snow_covered_mo
 import { MapCellPreset_Swamp } from "./map_preset/swamp.js";
 import { MapCellPreset_Ices } from "./map_preset/ices.js";
 import type { BLOCK } from "../../../blocks.js";
+import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 
 export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
 export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
@@ -38,7 +39,11 @@ const RIVER_OCTAVE_3                    = 48 / RIVER_SCALE;
 
 //
 class RiverPoint {
-    [key: string]: any;
+    value:                  any
+    percent:                number
+    percent_sqrt:           number
+    river_percent:          number
+    waterfront_percent:     number
 
     constructor(value) {
         this.value = value;
@@ -51,7 +56,8 @@ class RiverPoint {
 }
 
 export class MapsBlockResult {
-    [key: string]: any;
+    block_id:       int
+    dirt_layer:     BiomeDirtLayer
 
     constructor(dirt_layer : BiomeDirtLayer = null, block_id : int = 0) {
         this.set(dirt_layer, block_id)
@@ -66,18 +72,15 @@ export class MapsBlockResult {
 }
 
 class MapCellPresetResult {
-    [key: string]: any;
+    relief: float;
+    mid_level: float;
+    radius: float;
+    dist: float;
+    dist_percent: float;
+    op: any;
+    density_coeff: any;
 
-    /**
-     * @param {float} relief 
-     * @param {float} mid_level 
-     * @param {float} radius 
-     * @param {float} dist 
-     * @param {float} dist_percent 
-     * @param {*} op 
-     * @param {*} density_coeff 
-     */
-    constructor(relief, mid_level, radius, dist, dist_percent, op, density_coeff) {
+    constructor(relief: float, mid_level: float, radius: float, dist: float, dist_percent: float, op: any, density_coeff: any) {
         this.relief = relief;
         this.mid_level = mid_level;
         this.radius = radius;
@@ -127,16 +130,24 @@ const _aquifera_params = new AquiferaParams()
 
 // Map manager
 export class TerrainMapManager2 {
-    [key: string]: any;
+
+    block_manager:          BLOCK
+    maps_cache:             VectorCollector<any>
+    biomes:                 Biomes
+    seed:                   string
+    world_id:               string
+    noise2d:                any
+    noise3d:                any
+    generator_options:      any
+    float_seed:             any
+    presets:                any[]
+    mountain_desert_mats:   any[]
 
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
     static _climateParams = new ClimateParams();
 
-    /**
-     */
     constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options) {
-
         this.seed = seed;
         this.world_id = world_id;
         this.noise2d = noise2d;
@@ -179,19 +190,19 @@ export class TerrainMapManager2 {
     }
 
     // Delete map for unused chunk
-    delete(addr) {
+    delete(addr : Vector) {
         TerrainMapManager2._temp_vec3_delete.copyFrom(addr);
         TerrainMapManager2._temp_vec3_delete.y = 0;
         this.maps_cache.delete(TerrainMapManager2._temp_vec3_delete);
     }
 
     // Return map
-    get(addr) {
+    get(addr : Vector) {
         return this.maps_cache.get(addr);
     }
 
     // Generate maps
-    generateAround(chunk, chunk_addr, smooth, generate_trees) {
+    generateAround(chunk : ChunkWorkerChunk, chunk_addr : Vector, smooth : boolean = false, generate_trees : boolean = false) {
 
         const rad                   = generate_trees ? 2 : 1;
         const noisefn               = this.noise2d;
@@ -236,12 +247,12 @@ export class TerrainMapManager2 {
     }
 
     // угол между точками на плоскости
-    angleTo(xyz, tx, tz) {
+    angleTo(xyz : Vector, tx : number, tz : number) {
         const angle = Math.atan2(tx - xyz.x, tz - xyz.z);
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
 
-    rnd(x, z) {
+    rnd(x : int, z : int) {
         const resp = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453 + this.float_seed
         return resp - Math.floor(resp)
     }
@@ -494,12 +505,7 @@ export class TerrainMapManager2 {
 
     }
 
-    /**
-     * @param {int} x 
-     * @param {int} z 
-     * @returns {?RiverPoint}
-     */
-    makeRiverPoint(x, z) {
+    makeRiverPoint(x : int, z : int) : RiverPoint | null {
         x += 91234;
         z -= 95678;
         const value1 = this.noise2d((x + 10) / RIVER_OCTAVE_1, (z + 10) / RIVER_OCTAVE_1) * 0.7;
@@ -507,9 +513,9 @@ export class TerrainMapManager2 {
         const value3 = this.noise2d((x - 10) / RIVER_OCTAVE_3, (z - 10) / RIVER_OCTAVE_3) * 0.1;
         const value = Math.abs((value1 + value2 + value3) / 0.004);
         if(value > WATER_START && value < WATERFRONT_STOP) {
-            return new RiverPoint(value);
+            return new RiverPoint(value)
         }
-        return null;
+        return null
     }
     
     /**
@@ -525,13 +531,13 @@ export class TerrainMapManager2 {
             this.biomes.calcNoise(xz.x * .5, xz.z * .5, 2)
         );
 
-        if(preset.op?.modifyClimate) {
+        if(preset && preset.op?.modifyClimate) {
             preset.op.modifyClimate(xz, params)
         }
 
         const biome = this.biomes.getBiome(params);
 
-        return biome; // {biome, temperature, humidity};
+        return biome
 
     }
 
@@ -576,8 +582,7 @@ export class TerrainMapManager2 {
         }
 
         // 2. Create cluster
-        const map_manager = real_chunk.chunkManager.world.generator.maps
-        map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord, map_manager);
+        map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord, this)
 
         // Aquifera
         map.aquifera = new Aquifera(chunk.coord)
@@ -636,7 +641,7 @@ export class TerrainMapManager2 {
     }
 
     //
-    destroyAroundPlayers(players) : int {
+    destroyAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {
         let cnt_destroyed = 0;
         for(let map_addr of this.maps_cache.keys()) {
             let can_destroy = true;

@@ -23,7 +23,20 @@ for(let i = 0; i < randoms.length; i++) {
 
 // Terrain generator class
 export default class Terrain_Generator extends Demo_Map {
-    [key: string]: any;
+
+    maps:                   TerrainMapManager
+    world:                  WorkerWorld
+    clusterManager:         ClusterManager
+    bottomCavesGenerator:   BottomCavesGenerator
+    dungeon:                DungeonGenerator
+    flying_islands:         FlyIslands
+    OCEAN_BIOMES:           string[]
+
+    temp_vec:               Vector
+    _createBlockAABB:       AABB
+    temp_set_block:         any
+    noisefn:                any
+    noisefn3d:              any
 
     constructor(world : WorkerWorld, seed : string, world_id : string, options : object) {
         super(seed, world_id, options);
@@ -311,5 +324,8 @@ export default class Terrain_Generator extends Demo_Map {
 
     }
 
+    destroyMapsAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {
+        return this.maps.destroyAroundPlayers(players)
+    }
 
 }

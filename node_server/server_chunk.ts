@@ -630,11 +630,12 @@ export class ServerChunk {
         // 1. Check modified blocks
         const ml = this.modify_list.obj;
         if(ml) {
-            for(let index in ml) {
-                const current_block_on_pos = ml[index];
+            for(let index_key in ml) {
+                const current_block_on_pos = ml[index_key];
                 if(!current_block_on_pos) {
                     continue;
                 }
+                const index = parseInt(index_key)
                 _pos.fromFlatChunkIndex(index);
                 // @todo if chest
                 if(!block || block.id != current_block_on_pos.id) {

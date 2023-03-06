@@ -14,21 +14,23 @@ import type { Biome } from "../biomes.js";
 import type Terrain_Generator from "../index.js";
 import { FLUID_STRIDE } from "../../../fluid/FluidConst.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
+import type { ClusterManager } from "../../cluster/manager.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
 const BIG_STONE_DESNSITY = 0.6;
 
 export default class Biome3LayerOverworld {
-    generator: Terrain_Generator;
-    noise2d: any;
-    noise3d: any;
-    maps: TerrainMapManager2;
-    ore_generator: WorldClientOreGenerator;
-    clusterManager: any;
-    dungeon: DungeonGenerator;
-    slab_candidates: any[];
-    seed: string;
+
+    generator:          Terrain_Generator
+    maps:               TerrainMapManager2
+    ore_generator:      WorldClientOreGenerator
+    clusterManager:     ClusterManager
+    dungeon:            DungeonGenerator
+    noise2d:            any
+    noise3d:            any
+    slab_candidates:    any[]
+    seed:               string
 
     constructor(generator : Terrain_Generator) {
 
@@ -61,7 +63,7 @@ export default class Biome3LayerOverworld {
 
         // Cluster
         chunk.timers.start('generate_cluster')
-        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, this.generator.maps) ?? null
+        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, this.maps) ?? null
         chunk.timers.stop()
 
         // Generate chunk data

@@ -28,7 +28,7 @@ export default class Biome3LayerEnd {
 
         // Cluster
         chunk.timers.start('generate_cluster')
-        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, this.generator.maps) ?? null
+        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, null) ?? null
         chunk.cluster.fillBlocks(null, chunk, null, false, false)
         chunk.timers.stop()
 

@@ -312,3 +312,14 @@ interface INetworkMessage<DataT = any> {
     name: int
     data: DataT
 }
+
+interface IDestroyMapsAroundPlayers {
+    chunk_render_dist : int
+    chunk_addr : IVector
+}
+
+interface ITerrainMapManager {
+    seed:           string
+    world_id:       string
+    calcBiome(center_coord : IVector, preset : any) : any
+}

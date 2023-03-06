@@ -20,7 +20,9 @@ const vox_templates : Map<string, {chunk: any, palette: any}>= new Map()
 
 // Terrain generator class
 export default class Demo_Map extends Default_Terrain_Generator {
-    [key: string]: any;
+    islands: any[];
+    extruders: any[];
+    _createBlockAABB_second: any;
 
     async init() {
         this.islands                = [];

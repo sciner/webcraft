@@ -54,20 +54,22 @@ const temp_chunk = {
     size: size
 };
 
-// Map manager
-export class TerrainMapManager {
 
-    static _temp_vec3 = Vector.ZERO.clone();
-    static _temp_vec3_delete = Vector.ZERO.clone();
-    seed: string;
-    world_id: string;
-    noisefn: Function;
-    noisefn3d: Function;
-    maps_cache: VectorCollector;
+// Map manager
+export class TerrainMapManager implements ITerrainMapManager {
+    seed:           string
+    world_id:       string
+    noisefn:        Function
+    noisefn3d:      Function
+    maps_cache:     VectorCollector
+
     //static maps_in_memory = 0;
     //static registry = new FinalizationRegistry(heldValue => {
     //    TerrainMapManager.maps_in_memory--;
     //});;
+
+    static _temp_vec3 = Vector.ZERO.clone();
+    static _temp_vec3_delete = Vector.ZERO.clone();
 
     constructor(seed : string, world_id : string, noisefn? : Function, noisefn3d? : Function) {
         this.seed = seed;
@@ -88,6 +90,10 @@ export class TerrainMapManager {
     // Return map
     get(addr : IVector) {
         return this.maps_cache.get(addr);
+    }
+
+    calcBiome(center_coord : Vector, preset : any) : any | null {
+        return null
     }
 
     // Generate maps
@@ -281,7 +287,7 @@ export class TerrainMapManager {
         return map;
     }
 
-    destroyAroundPlayers(players) {
+    destroyAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {
         let cnt_destroyed = 0;
         for(let map_addr of this.maps_cache.keys()) {
             let can_destroy = true;
@@ -297,6 +303,7 @@ export class TerrainMapManager {
             }
         }
         // console.log('destroyAroundPlayers', this.maps_cache.size, TerrainMapManager.maps_in_memory)
+        return cnt_destroyed
     }
 
 }

@@ -186,9 +186,7 @@ class ChunkWorkerRoot {
                 break;
             }
             case 'destroyMap': {
-                if (world.generator.maps) {
-                    world.generator.maps.destroyAroundPlayers(args.players);
-                }
+                world.generator.destroyMapsAroundPlayers(args.players as IDestroyMapsAroundPlayers[])
                 break;
             }
             case 'buildVertices': {

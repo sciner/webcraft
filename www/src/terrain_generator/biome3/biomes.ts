@@ -15,13 +15,13 @@ const DEFAULT_DIRT_COLOR = IndexedColor.GRASS; // new IndexedColor(82, 450, 0);
 const DEFAULT_WATER_COLOR = IndexedColor.WATER;
 
 const DESERT_BUILDINGS = {others: [
-    {class: 'WaterWell',      max_count: 3,        chance: .1},
+    {class: 'BuildingBlocks', max_count: 3, chance: .1, block_templates: ['waterwell', 'waterwell2']},
     {class: 'Farmland',       max_count: Infinity, chance: .2},
     {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['sand_house', 'sand_house_2']},
 ]}
 
 const TAIGA_BUILDINGS = {others: [
-    {class: 'WaterWell',      max_count: 3,        chance: .1},
+    {class: 'BuildingBlocks', max_count: 3, chance: .1, block_templates: ['waterwell', 'waterwell2']},
     {class: 'Farmland',       max_count: Infinity, chance: .2},
     {class: 'BuildingBlocks', max_count: Infinity, chance: .7, block_templates: ['farmer_house']},
     {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_house2']},

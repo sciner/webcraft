@@ -40,9 +40,24 @@ export class Default_Terrain_Map {
 
 //
 export class Default_Terrain_Generator {
-    [key: string]: any;
 
     seed: string
+    voxel_buildings: any[];
+    noise2d: any;
+    noise3d: any;
+    world_id: string;
+    options: any;
+    x: number;
+    xyz_temp: Vector;
+    xyz_temp_find: Vector;
+    xyz_temp_coord: Vector;
+    _chunk_addr: Vector;
+    _block_pos: Vector;
+    temp_block: { id: number; };
+    temp_tblock: any;
+    tree_styles: Map<any, any>;
+    seed_int: number;
+    fastRandoms: FastRandom;
 
     constructor(seed : string, world_id? : string, options?, noise2d? : any, noise3d? : any) {
         this.voxel_buildings = [];
@@ -59,10 +74,6 @@ export class Default_Terrain_Generator {
         this._block_pos     = new Vector(0, 0, 0);
         this.temp_block     = {id: 0};
         this.temp_tblock    = null;
-        this.maps = {
-            delete: function() {},
-            destroyAroundPlayers: function() {}
-        };
         // Tree styles
         this.tree_styles = new Map()
         this.tree_styles.set('cactus', this.plantCactus.bind(this)) // кактус
@@ -893,6 +904,10 @@ export class Default_Terrain_Generator {
         // корни дерева
         generateRoots(x, y, z);
 
+    }
+
+    destroyMapsAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {
+        return 0
     }
 
 }
