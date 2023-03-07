@@ -265,8 +265,8 @@ export default class Biome3LayerOverworld {
         chunk.timers.stop()
 
         //
-        const plantGrass = (x : int, y : int, z : int, block_id : int, cell : TerrainMapCell, density_params : DensityParams) : boolean => {
-            const plant_blocks = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params)
+        const plantGrass = (x : int, y : int, z : int, block_id : int, cell : TerrainMapCell, density_params : DensityParams, xyz : Vector) : boolean => {
+            const plant_blocks = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params, xyz)
             if(plant_blocks) {
                 for(let i = 0; i < plant_blocks.length; i++) {
                     const p = plant_blocks[i];
@@ -322,6 +322,7 @@ export default class Biome3LayerOverworld {
                     // Блоки камня
                     if(density > DENSITY_AIR_THRESHOLD) {
 
+                        const air_height = air_count
                         air_count = 0
 
                         // убираем баг с полосой земли на границах чанков по высоте
@@ -404,7 +405,7 @@ export default class Biome3LayerOverworld {
                                     }
 
                                     // Plants and grass (растения и трава)
-                                    if(plantGrass(x, y + 1, z, block_id, cell, density_params)) {
+                                    if(plantGrass(x, y + 1, z, block_id, cell, density_params, xyz)) {
                                         // замена блока травы на землю, чтобы потом это не делал тикер (например арбуз)
                                         block_id = dirt_block_id
                                     }
@@ -433,7 +434,7 @@ export default class Biome3LayerOverworld {
 
                             } else {
 
-                                // первый слой поверхности под водой
+                                // первый слой поверхности под водой (дно)
 
                                 if(dcaves == 0) {
                                     // поверхность дна водоемов
@@ -443,6 +444,21 @@ export default class Biome3LayerOverworld {
                                         block_id = gravel_id
                                     } else {
                                         block_id = sand_block_id
+                                    }
+                                }
+
+                                // ламинария | kelp
+                                if((chunk.size.y - y == air_height + 1) && !cell.biome.is_snowy) {
+                                    if((block_id != gravel_id) && (rnd.double() < .15)) {
+                                        if((d3 > 0)) {
+                                            for(let i = 0; i <= air_height - d3 * 2; i++) {
+                                                chunk.setBlockIndirect(x, y + i, z, bm.KELP.id)
+                                            }
+                                        } else {
+                                            for(let i = 0; i <= 2; i++) {
+                                                chunk.setBlockIndirect(x, y + i, z, bm.SEAGRASS.id)
+                                            }
+                                        }
                                     }
                                 }
 
@@ -499,11 +515,14 @@ export default class Biome3LayerOverworld {
                                         }
                                     }
 
-                                    if((d4 > .4 && d4 < .8) && air_count > 5 && air_count < CHUNK_SIZE_Y / 2) {
-                                        if(xyz.y == local_water_line && !cell.biome.is_snowy) {
-                                            if(rnd.double() < .1) {
-                                                for(let i = 0; i < 8 * d4 + 2; i++) {
-                                                    chunk.setBlockIndirect(x, y + air_count - i, z, bm.OAK_LEAVES.id)
+                                    // свисающая столбом листва
+                                    if(local_fluid_block_id == bm.STILL_WATER.id) {
+                                        if((d4 > .4 && d4 < .8) && air_count > 5 && air_count < CHUNK_SIZE_Y / 2) {
+                                            if(xyz.y == local_water_line && !cell.biome.is_snowy) {
+                                                if(rnd.double() < .1) {
+                                                    for(let i = 0; i < 8 * d4 + 2; i++) {
+                                                        chunk.setBlockIndirect(x, y + air_count - i, z, bm.OAK_LEAVES.id)
+                                                    }
                                                 }
                                             }
                                         }
@@ -513,7 +532,7 @@ export default class Biome3LayerOverworld {
                                 } else {
                                     chunk.fluid.setFluidIndirect(x, y, z, block_id);
                                 }
-                            } else if (xyz.y == local_water_line + 1 && cell.biome.title == 'Болото') {
+                            } else if ((xyz.y == local_water_line + 1) && cell.biome.is_swamp) {
                                 if(rnd.double() < .07) {
                                     chunk.setBlockIndirect(x, y, z, bm.LILY_PAD.id)
                                     has_lily_pad = true
@@ -529,7 +548,7 @@ export default class Biome3LayerOverworld {
                                     // CATTAIL | РОГОЗ
                                     if(!has_lily_pad && chunk.addr.y == 2) {
                                         if(d4 > .4 && d4 < .8) {
-                                            if(cell.biome.title == 'Болото' || (d1 < .1 && d2 < .1 && !cell.biome.is_snowy && !cell.biome.is_sand && !cell.biome.is_desert)) {
+                                            if(cell.biome.is_swamp || ((d1 < .1 && d2 < .1) && !cell.biome.is_snowy && !cell.biome.is_sand && !cell.biome.is_desert)) {
                                                 if(rnd.double() < .25) {
                                                     chunk.setBlockIndirect(x, y, z, bm.CATTAIL.id)
                                                 }
@@ -539,7 +558,7 @@ export default class Biome3LayerOverworld {
                                     if(chunk.addr.y > 2) {
                                         let {block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
                                         // Plants and grass (растения и трава)
-                                        plantGrass(x, y, z, block_id, cell, density_params)
+                                        plantGrass(x, y, z, block_id, cell, density_params, xyz)
                                     }
                                 }
                             }

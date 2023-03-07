@@ -233,25 +233,37 @@ export default class style {
             }
         }
 
-        for(let i = 0; i < planes.length; i++) {
-            const plane = planes[i];
-            // fill object
-            if (!isNaN((plane as any).dir)) {
-                texture = bm.calcMaterialTexture(material, (plane as any).dir);
+        let loops = 1
+        if(block.material.name == 'SUGAR_CANE') {
+            if(neighbours.DOWN?.id != block.id) {
+                if(neighbours.DOWN.material.layering) {
+                    loops = 2
+                    y -= .5
+                }
             }
-            _pl.size     = plane.size;
-            _pl.uv       = plane.uv as tupleFloat2;
-            _pl.rot      = plane.rot as Vector;
-            _pl.lm       = style.lm;
-            _pl.pos      = _vec.set(
-                x + dx + (plane.move?.x || 0),
-                y + dy + (plane.move?.y || 0),
-                z + dz + (plane.move?.z || 0)
-            );
-            _pl.matrix   = matrix;
-            _pl.flag     = flag;
-            _pl.texture  = texture;
-            default_style.pushPlane(vertices, _pl);
+        }
+
+        for(let j = 0; j < loops; j++) {
+            for(let i = 0; i < planes.length; i++) {
+                const plane = planes[i];
+                // fill object
+                if (!isNaN((plane as any).dir)) {
+                    texture = bm.calcMaterialTexture(material, (plane as any).dir);
+                }
+                _pl.size     = plane.size;
+                _pl.uv       = plane.uv as tupleFloat2;
+                _pl.rot      = plane.rot as Vector;
+                _pl.lm       = style.lm;
+                _pl.pos      = _vec.set(
+                    x + dx + (plane.move?.x || 0),
+                    y + dy + (plane.move?.y || 0) + j,
+                    z + dz + (plane.move?.z || 0)
+                );
+                _pl.matrix   = matrix;
+                _pl.flag     = flag;
+                _pl.texture  = texture;
+                default_style.pushPlane(vertices, _pl);
+            }
         }
 
     }

@@ -322,7 +322,8 @@ export class BaseResourcePack {
             if(neighbours && neighbours.DOWN) {
                 const under_height = neighbours.DOWN.material.height;
                 if(under_height && under_height < 1) {
-                    y -= 1 - under_height;
+                    const mh = 1 - under_height;
+                    y -= mh
                 }
             }
         }

@@ -41,14 +41,14 @@ const RIVER_OCTAVE_3                    = 48 / RIVER_SCALE;
 class RiverPoint {
     value:                  any
     percent:                number
-    percent_sqrt:           number
+    // percent_sqrt:           number
     river_percent:          number
     waterfront_percent:     number
 
     constructor(value) {
         this.value = value;
         this.percent = (value - WATER_START) / RIVER_FULL_WIDTH;
-        this.percent_sqrt = Math.sqrt(this.percent);
+        // this.percent_sqrt = Math.sqrt(this.percent);
         this.river_percent = this.percent < WATER_PERCENT ? (1 - this.percent / WATER_PERCENT) : 0;
         this.waterfront_percent = (this.percent - WATER_PERCENT) / (1 - WATER_PERCENT);
     }
@@ -406,10 +406,10 @@ export class TerrainMapManager2 {
 
         // rivers/реки
         if(cell.river_point) {
-            const {value, percent, percent_sqrt, river_percent, waterfront_percent} = cell.river_point;
+            const {value, percent, river_percent, waterfront_percent} = cell.river_point;
             const river_vert_dist = WATER_LEVEL - xyz.y;
-            const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent_sqrt)) / Math.PI);
-            density = Math.min(density, density * river_density + (d3 * .1) * percent_sqrt);
+            const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent)) / Math.PI);
+            density = Math.min(density, density * river_density + (d3 * .1) * percent);
         }
 
         // Если это твердый камень, то попробуем превратить его в пещеру

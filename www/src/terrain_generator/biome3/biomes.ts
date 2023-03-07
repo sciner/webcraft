@@ -1,7 +1,7 @@
 import { BLOCK } from '../../blocks.js';
 import { IndexedColor } from '../../helpers.js';
 import { BiomeTree, TREES } from '../biomes.js';
-import { ClimateParams } from './terrain/manager_vars.js';
+import { ClimateParams, WATER_LEVEL } from './terrain/manager_vars.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
@@ -58,6 +58,7 @@ export class Biome {
         this.is_desert = title.toLowerCase().indexOf('пустын') >= 0
         this.is_sand = this.is_desert || title.toLowerCase().indexOf('пляж') >= 0
         this.is_taiga = title.toLowerCase().indexOf('тайга') >= 0
+        this.is_swamp = title.toLowerCase().indexOf('болото') >= 0
         this.is_snowy = false
         for(let dl of dirt_layers) {
             for(let block_id of dl.blocks) {
@@ -154,7 +155,9 @@ export class Biomes {
             grass = {
                 frequency: .5,
                 list: [
-                    {percent: .75, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .0125, blocks: [{id: BLOCK.SUGAR_CANE.id}, {id: BLOCK.SUGAR_CANE.id}, {id: BLOCK.SUGAR_CANE.id}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .1, max: .15}}},
+                    {percent: .0125, blocks: [{id: BLOCK.SUGAR_CANE.id}, {id: BLOCK.SUGAR_CANE.id}, {id: BLOCK.SUGAR_CANE.id}, {id: BLOCK.SUGAR_CANE.id}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .15, max: .2}}},
+                    {percent: .725, blocks: [{id: BLOCK.GRASS.id}]},
                     {percent: .05, blocks: [{id: BLOCK.WINDFLOWERS.id}]},
                     {percent: .05, blocks: [{id: BLOCK.BURDOCK.id}]},
                     {percent: .005, blocks: [{id: BLOCK.PEBBLES.id}]},
@@ -316,9 +319,20 @@ export class Biomes {
             frequency: PLANTS_FREQUENCY,
             list: [
                 {percent: .5, blocks: [{id: BLOCK.RED_MUSHROOM.id}]},
-                {percent: .5, blocks: [{id: BLOCK.BROWN_MUSHROOM.id}]},
+                {percent: .45, blocks: [{id: BLOCK.BROWN_MUSHROOM.id}]},
             ]
-        }, undefined, new IndexedColor(140, 480, 0), new IndexedColor(1, 254, 0));
+        }, {
+            frequency: GRASS_FREQUENCY * 100,
+            list: [
+                {percent: .0125, blocks: [{id: BLOCK.SUGAR_CANE.id}, {id: BLOCK.SUGAR_CANE.id}, {id: BLOCK.SUGAR_CANE.id}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .1, max: .15}}},
+                {percent: .7375, blocks: [{id: BLOCK.GRASS.id}]},
+                {percent: .05, blocks: [{id: BLOCK.WINDFLOWERS.id}]},
+                {percent: .05, blocks: [{id: BLOCK.BURDOCK.id}]},
+                {percent: .005, blocks: [{id: BLOCK.PEBBLES.id}]},
+                {percent: .005, blocks: [{id: BLOCK.PINK_PETALS.id}]},
+                {percent: .14, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]}
+            ]
+        }, new IndexedColor(140, 480, 0), new IndexedColor(1, 254, 0));
         this.addBiome(134, 'Холмистое болото', 0.8, 0.9);
         this.addBiome(16, 'Пляж', 0.8, 0.4, [new BiomeDirtLayer([BLOCK.SANDSTONE.id, BLOCK.SAND.id]), new BiomeDirtLayer([BLOCK.STONE.id])]);
         // this.addBiome('Река', 0.5, 0.5);
