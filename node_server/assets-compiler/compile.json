@@ -9808,6 +9808,31 @@
                 "slab": true,
                 "full_block_name": "SAND"
             }
+        },
+        {
+            "id": 1046,
+            "name": "COMPOSTER",
+            "style": "composter",
+            "transparent": true,
+            "can_rotate": true,
+            "max_in_stack": 1,
+            "extra_data": {
+                "level": 0
+            },
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "texture": {
+                "up": "block/composter_top.png",
+                "side": "block/composter_side.png",
+                "east": "block/composter_compost.png",
+                "west": "block/composter_ready.png",
+                "down": "block/composter_bottom.png"
+            }
         }
     ]
 }
