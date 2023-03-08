@@ -56,7 +56,7 @@ import {ServerGame} from "./server_game.js";
 import {ServerAPI} from "./server_api.js";
 import {PluginManager} from "./plugin_manager.js";
 
-import features from "@client/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
+import features from "@client/prismarine-physics/lib/features.json" assert { type: "json" };
 import type { GameSettings } from '@client/game.js';
 // const features = {}
 
@@ -94,7 +94,7 @@ Config.init().then(async (config) => {
     } as GameSettings);
 
     // Hack ;)
-    Resources.physics = {features}; // (await import("@client/vendors/prismarine-physics/lib/features.json")).default
+    Resources.physics = {features}; // (await import("@client/prismarine-physics/lib/features.json")).default
 
     // http://expressjs.com/en/api.html#req.originalUrl
     const app = express();
