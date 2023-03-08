@@ -1,14 +1,17 @@
-import type { Vector } from "../../../helpers.js";
 import { Default_Terrain_Map_Cell } from "../../default.js";
+import type { Vector } from "../../../helpers.js";
+import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { DensityParams } from "./manager_vars.js";
+import type { Biome } from "../biomes.js";
+
+const CALC_SET_DX_WHERE_LIST = ['d1', 'd2', 'd3', 'd4']
 
 // Map cell
 export class TerrainMapCell extends Default_Terrain_Map_Cell {
-    [key: string]: any;
 
     blocks_good_for_plants : int[]
 
-    constructor(value, humidity, temperature, biome, dirt_block_id) {
+    constructor(value : int, humidity : float, temperature : float, biome : Biome, dirt_block_id : int) {
         super(biome);
         this.value                  = value;
         this.value2                 = value;
@@ -20,7 +23,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         this.blocks_good_for_grass  = [BLOCK.GRASS_BLOCK.id, BLOCK.MOSS_BLOCK.id]
     }
 
-    genPlantOrGrass(x : int, y : int, z : int, size : Vector, block_id : int, rnd, density_params : DensityParams, xyz : Vector) {
+    genPlantOrGrass(x : int, y : int, z : int, xyz : Vector, size : Vector, block_id : int, rnd, density_params : DensityParams, chunk? : ChunkWorkerChunk) {
 
         const biome = this.biome
         const FLOWERS_THRESHOLD = .3
@@ -30,9 +33,10 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         if((biome.plants || biome.grass) && this.blocks_good_for_plants.includes(block_id)) {
 
             let r = rnd.double()
+            let r2 = rnd.double()
 
             if(density_params.d4 < .05 && biome.plants) {
-                plant_blocks = this.calcSet(r, y, size, biome.plants, xyz, density_params)
+                plant_blocks = this.calcSet(r, y, size, biome.plants, xyz, density_params, r2, chunk)
             }
 
             if(!plant_blocks && biome.plants && density_params.d2 > .85 && r < FLOWERS_THRESHOLD) {
@@ -40,7 +44,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
             }
 
             if(!plant_blocks && biome.grass) {
-                plant_blocks = this.calcSet(r, y, size, biome.grass, xyz, density_params)
+                plant_blocks = this.calcSet(r, y, size, biome.grass, xyz, density_params, r2, chunk)
             }
 
         }
@@ -57,7 +61,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
 
     }
 
-    calcSet(r : float, y : int, size : Vector, plant_set, xyz : Vector, density_params : DensityParams) {
+    calcSet(r : float, y : int, size : Vector, plant_set, xyz : Vector, density_params : DensityParams, r2 : float, chunk? : ChunkWorkerChunk) {
         if(r < plant_set.frequency) {
             const freq = r / plant_set.frequency
             let s = 0
@@ -65,24 +69,38 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
                 const p = plant_set.list[i]
                 s += p.percent
                 if(freq < s) {
-                    if(p.when) {
-                        const when = p.when
-                        if('y' in when) {
-                            if(!(xyz.y >= when.y.min && xyz.y < when.y.max)) continue
+                    if(this.checkWhen(p.when, xyz, density_params)) {
+                        if(y + p.blocks.length < size.y) {
+                            return p.blocks
                         }
-                        if('d3' in when) {
-                            const d3 = density_params.d3
-                            if(!(d3 >= when.d3.min && d3 < when.d3.max)) continue
-                        }
-                    }
-                    if(y + p.blocks.length < size.y) {
-                        return p.blocks
                     }
                     break
                 }
             }
         }
         return null
+    }
+
+    checkWhen(when : any, xyz : Vector, density_params : DensityParams) : boolean {
+        if(!when) {
+            return true
+        }
+        if('y' in when) {
+            if(xyz.y < when.y.min || xyz.y >= when.y.max) {
+                return false
+            }
+        }
+        for(let i = 0; i < CALC_SET_DX_WHERE_LIST.length; i++) {
+            const dk = CALC_SET_DX_WHERE_LIST[i]
+            if(dk in when) {
+                const when_criteria = when[dk]
+                const value = density_params[dk]
+                if(value < when_criteria.min || value > when_criteria.max) {
+                    return false
+                }
+            }
+        }
+        return true
     }
 
     getCapBlockId() {

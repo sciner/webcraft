@@ -234,13 +234,8 @@ export default class style {
 
     /**
      * Can draw face
-     * @param {*} block
-     * @param {*} neighbour
-     * @param {boolean} drawAllSides
-     * @param {int} dir
-     * @returns
      */
-    static canDrawFace(block, neighbour, drawAllSides, dir) {
+    static canDrawFace(block : any, neighbour : any, drawAllSides : boolean, dir : int) {
         if(!neighbour) {
             return true;
         }
@@ -424,6 +419,7 @@ export default class style {
                 if(block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id) {
                     lm.r += GRASS_PALETTE_OFFSET;
                 }
+                flags = QUAD_FLAGS.MASK_BIOME;
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
                 if(block.extra_data && block.extra_data.v != undefined) {
