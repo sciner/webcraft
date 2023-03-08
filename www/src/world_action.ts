@@ -2124,6 +2124,7 @@ function putInComposter(e, world, pos, player, world_block, world_material, mat_
     actions.decrement = true
     if (Math.random() <= chance) {
         actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: (level + 1) } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        // @todo нужные правльные звуки
         actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'dig', pos: position, except_players: [player.session.user_id]})
     } else {
         actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'place', pos: position, except_players: [player.session.user_id]})

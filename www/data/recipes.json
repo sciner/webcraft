@@ -1657,5 +1657,23 @@
             "item": "madcraft:snow_dirt",
             "count": 1
         }
+    },
+    {
+        "id": "f71885bf-bff5-4c27-92b4-57344da97b12",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "# #",
+            "# #",
+            "###"
+        ],
+        "key": {
+            "#": {
+                "item": "special:wooden_slab"
+            }
+        },
+        "result": {
+            "item": "madcraft:composter",
+            "count": 1
+        }
     }
 ]
