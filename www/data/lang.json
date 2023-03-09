@@ -190,6 +190,7 @@
         "ender_chest": {"en": "Ender chest", "ru": "Эндер-сундук", "fr": "", "es": "", "man": ""},
         "sign_edit": {"en": "Edit sign text", "ru": "Введите текст", "fr": "", "es": "", "man": ""},
         "crafting": {"en": "Crafting", "ru": "Создание", "fr": "", "es": "", "man": ""},
-        "charging_station": {"en": "Charging station", "ru": "Зарядная станция", "fr": "", "es": "", "man": ""}
+        "charging_station": {"en": "Charging station", "ru": "Зарядная станция", "fr": "", "es": "", "man": ""},
+        "hopper": {"en": "Hopper", "ru": "Загрузочная воронка", "fr": "", "es": "", "man": ""}
     }
 }

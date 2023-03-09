@@ -9808,6 +9808,43 @@
                 "slab": true,
                 "full_block_name": "SAND"
             }
+        }, 
+        {
+            "id": 1048,
+            "name": "HOPPER",
+            "style": "hopper",
+            "transparent": true,
+            "can_rotate": true,
+            "max_in_stack": 1,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/hopper.png"
+            },
+            "extra_data": {
+                "power": true
+            },
+            "material": {
+                "id": "iron"
+            },
+            "tags": [
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "texture": {
+                "up": "block/hopper_top.png",
+                "east": "block/hopper_inside.png",
+                "west": "block/hopper_inside_arrow.png",
+                "side": "block/hopper_outside.png",
+                "down": "block/hopper_outside_arrow.png"
+            },
+            "ticking": {
+                "type": "hopper"
+            },
+            "window": "frmHopper",
+            "chest": {
+                "slots": 5
+            },
+            "is_entity": true
         }
     ]
 }
