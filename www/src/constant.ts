@@ -53,7 +53,21 @@ export enum LEAVES_TYPE {
     NO = 0,
     NORMAL = 1,
     BEAUTIFUL = 2,
-};
+}
+
+export enum BLOCK_FLAG {
+    SOLID                           = 0x1 | 0,
+    REMOVE_ONAIR_BLOCKS_IN_CLUSTER  = 0x2 | 0, // these blocks must be removed over structures and buildings
+    BIOME                           = 0x4 | 0,
+    COLOR                           = 0x8 | 0,
+    AO_INVISIBLE                    = 0x10 | 0,
+    SPAWN_EGG                       = 0x20 | 0,
+    STONE                           = 0x40 | 0,
+    FLUID                           = 0x80 | 0,
+    OPAQUE_FOR_NATURAL_SLAB         = 0x100 | 0,
+    NOT_CREATABLE                   = 0x200 | 0,
+    IS_DIRT                         = 0x400 | 0,
+}
 
 // ========================= Sound options =========================
 

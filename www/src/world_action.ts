@@ -13,7 +13,7 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
-import { COVER_STYLE_SIDES } from "./constant.js";
+import { BLOCK_FLAG, COVER_STYLE_SIDES } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 
@@ -1014,7 +1014,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
 
-        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK.FLAG_NOT_CREATABLE)))) {
+        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK_FLAG.NOT_CREATABLE)))) {
             console.warn('warning_mat_block.deprecated');
             return [null, pos];
         }

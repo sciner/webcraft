@@ -65,7 +65,9 @@
         {"name": "fern",                "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "burdock",             "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "wildflowers",         "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "cattail",             "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "cattail",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "reed",                "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "sugar_cane",          "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -2056,6 +2058,37 @@
                 ]
             }
 
+        },
+        {
+            "id": 504,
+            "name": "REED",
+            "inventory": {
+                "scale": 0.55,
+                "move": {"x": 0, "y": 0, "z": -1}
+            },
+            "bb": {
+                "model": "reed",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
+            }
+        },
+        {
+            "id": 486,
+            "name": "SUGAR_CANE",
+            "bb": {
+                "model": "sugar_cane",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ],
+                "set_state": [
+                    {"name": "top", "when": {"neighbour.up": "AIR"}},
+                    {"name": "base"}
+                ]
+            },
+            "tags": [
+                "draw_bottom_copy"
+            ]
         }
     ]
 }

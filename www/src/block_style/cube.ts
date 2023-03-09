@@ -234,29 +234,34 @@ export default class style {
 
     /**
      * Can draw face
-     * @param {*} block
-     * @param {*} neighbour
-     * @param {boolean} drawAllSides
-     * @param {int} dir
-     * @returns
      */
-    static canDrawFace(block, neighbour, drawAllSides, dir) {
+    static canDrawFace(block : any, neighbour : any, drawAllSides : boolean, dir : int) {
         if(!neighbour) {
             return true;
         }
+
         const bmat = block.material;
         const nmat = neighbour.material;
+
+        if(nmat.is_solid && (dir == DIRECTION.DOWN || dir == DIRECTION.UP)) {
+            if(bmat.is_layering) {
+                const point = block.extra_data?.point
+                if(point) {
+                    if(point.y < .5) {
+                        return dir != DIRECTION.DOWN
+                    } else {
+                        return dir != DIRECTION.UP
+                    }
+                }
+                return true
+            }
+        }
+
         let resp = drawAllSides || (nmat && nmat.transparent);
         if(resp) {
             if(block.id == neighbour.id && bmat.selflit) {
                 resp = false;
             } else if(bmat.is_water && nmat.is_water) {
-                return false;
-            } else if(nmat.is_solid && dir == DIRECTION.DOWN) {
-                if(bmat.layering) {
-                    if(bmat.extra_data?.point && bmat.extra_data?.point.y < .5) return false
-                    return true;
-                }
                 return false;
             } else if(nmat.id == bmat.id && bmat.layering && !block.extra_data) {
                 return false;
@@ -295,8 +300,7 @@ export default class style {
             if(block.extra_data) {
                 height = block.extra_data?.height || height;
             }
-        }
-        if(material.is_dirt) {
+        } else if(material.is_dirt) {
             if(up_mat && (!up_mat.transparent || up_mat.is_fluid || neighbours.UP.material.is_dirt)) {
                 height = 1;
             }
@@ -368,12 +372,12 @@ export default class style {
         let upFlags                 = flags;
         const sides                 = {} as IBlockSides;
 
-        let DIRECTION_UP            = DIRECTION.UP;
-        let DIRECTION_DOWN          = DIRECTION.DOWN;
+        let DIRECTION_UP            = DIRECTION.UP
+        let DIRECTION_DOWN          = DIRECTION.DOWN
         let DIRECTION_BACK          = DIRECTION.BACK
         let DIRECTION_RIGHT         = DIRECTION.RIGHT
         let DIRECTION_FORWARD       = DIRECTION.FORWARD
-        let DIRECTION_LEFT          = DIRECTION.LEFT;
+        let DIRECTION_LEFT          = DIRECTION.LEFT
 
         if(!material.is_simple_qube) {
             const sz = style.calculateBlockSize(block, neighbours);
@@ -423,6 +427,9 @@ export default class style {
                 lm.copyFrom(dirt_color)
                 if(block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id) {
                     lm.r += GRASS_PALETTE_OFFSET;
+                }
+                if(!material.is_dirt) {
+                    flags = QUAD_FLAGS.MASK_BIOME;
                 }
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
@@ -486,12 +493,12 @@ export default class style {
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
             let replace_side_tex = false;
-            if(material.is_dirt && ('height' in material)) {
-                const up_mat = neighbours.UP?.material;
-                if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == bm.DIRT_PATH.id))) {
-                    replace_side_tex = true;
-                }
-            }
+            // if(material.is_dirt && ('height' in material)) {
+            //     const up_mat = neighbours.UP?.material;
+            //     if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == bm.DIRT_PATH.id))) {
+            //         replace_side_tex = true;
+            //     }
+            // }
             if(material.name == 'SANDSTONE') {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && up_mat.name == 'SANDSTONE') {
@@ -504,8 +511,9 @@ export default class style {
                 DIRECTION_RIGHT     = DIRECTION.DOWN;
                 DIRECTION_FORWARD   = DIRECTION.DOWN;
                 DIRECTION_LEFT      = DIRECTION.DOWN;
-                sideFlags = 0;
-                upFlags = 0;
+                flags = 0
+                sideFlags = 0
+                upFlags = 0
             }
 
             // uvlock
