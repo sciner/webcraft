@@ -18,6 +18,11 @@ export default class Biome3LayerEnd {
 
     constructor(generator : Terrain_Generator) {
         this.generator = generator
+
+        // const world = generator.world
+        const world_id = generator.world_id
+        const seed = generator.seed
+
         this.noise2d = generator.noise2d
         this.noise3d = generator.noise3d
         this.block_manager = generator.block_manager
@@ -45,7 +50,21 @@ export default class Biome3LayerEnd {
                 }
             }
         }
+        let x = 0;
+        let y = 0
+        let z = 0
+        for (let x = 0; x < chunk.size.x; x++) {
+            for (let z = 0; z < chunk.size.z; z++) {
+              //  for (let y = 0; y < chunk.size.y; y++) {
+            this.generator.plantTree(this.world, {'type':{percent: .95, leaves: BLOCK.OAK_LEAVES.id, style: 'acacia', height: {min: 3, max: 7}}}, chunk, x, y, z, true);
+              //  }
+            }
+        }
         return this.generator.generateDefaultMap(chunk)
+    }
+
+    world(world: any, tree: any, chunk: ChunkWorkerChunk, x: number, y: number, z: number, arg6: boolean) {
+        throw new Error("Method not implemented.");
     }
 
 }
