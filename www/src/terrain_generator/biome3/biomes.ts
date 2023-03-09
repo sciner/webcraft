@@ -1,4 +1,5 @@
 import { BLOCK } from '../../blocks.js';
+import { BLOCK_FLAG } from '../../constant.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { BiomeTree, TREES } from '../biomes.js';
@@ -64,6 +65,7 @@ class BambooGenerator extends ChunkGroundBlockGenerator {
     ]
 
     when = {
+        under_good_for_plant: true,
         d2: {min: .1, max: .5},
         d3: {min: .1, max: .5}
     }
@@ -81,7 +83,7 @@ class BambooGenerator extends ChunkGroundBlockGenerator {
             _hvec.y += h
             const index = _hvec.worldPosToChunkIndex()
             const block_id = ids[index]
-            if(blockFlags[block_id] & bm.FLAG_SOLID) {
+            if(blockFlags[block_id] & BLOCK_FLAG.SOLID) {
                 height = h
                 break
             }

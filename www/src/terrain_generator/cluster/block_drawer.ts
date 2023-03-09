@@ -1,4 +1,5 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
+import { BLOCK_FLAG } from "../../constant.js";
 import { AABB } from "../../core/AABB.js";
 import { Vector, VectorCollector, VectorCardinalTransformer } from "../../helpers.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
@@ -85,7 +86,7 @@ export class BlockDrawer {
                         break
                     }
                     const over_block_id = cluster.getBlock(chunk, pos.x, pos.y, pos.z)
-                    if(!(bm.flags[over_block_id] & bm.FLAG_REMOVE_ONAIR_BLOCKS_IN_CLUSTER)) {
+                    if(!(bm.flags[over_block_id] & BLOCK_FLAG.REMOVE_ONAIR_BLOCKS_IN_CLUSTER)) {
                         break
                     }
                     if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, BLOCK_AIR_ID)) {

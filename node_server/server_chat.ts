@@ -6,6 +6,7 @@ import { MobSpawnParams } from "./mob.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
+import { BLOCK_FLAG } from "@client/constant.js";
 
 const MAX_LINE_LENGTH = 100 // TODO based on the cleint's screen size
 
@@ -194,7 +195,7 @@ export class ServerChat {
                     // TODO: check admin rights
                     if(!is_admin) {
                         const blockFlags = bm.flags
-                        if(!this.world.isBuildingWorld() && (blockFlags[b.id] & bm.FLAG_NOT_CREATABLE)) {
+                        if(!this.world.isBuildingWorld() && (blockFlags[b.id] & BLOCK_FLAG.NOT_CREATABLE)) {
                             this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, player)
                             return true
                         }

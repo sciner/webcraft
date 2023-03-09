@@ -3,6 +3,8 @@ import type { Vector } from "../../../helpers.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { DensityParams } from "./manager_vars.js";
 import type { Biome } from "../biomes.js";
+import { BLOCK_FLAG } from "../../../constant.js";
+import { BLOCK } from "../../../blocks.js";
 
 const CALC_SET_DX_WHERE_LIST = ['d1', 'd2', 'd3', 'd4']
 
@@ -69,7 +71,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
                 const p = plant_set.list[i]
                 s += p.percent
                 if(freq < s) {
-                    if(this.checkWhen(p.when, xyz, density_params)) {
+                    if(this.checkWhen(p.when, xyz, density_params, null, null)) {
                         if(y + p.blocks.length < size.y) {
                             return p.blocks
                         }
@@ -81,12 +83,18 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         return null
     }
 
-    checkWhen(when : any, xyz : Vector, density_params : DensityParams) : boolean {
+    checkWhen(when : any, xyz : Vector, density_params : DensityParams, under_block_id? : int, bm? : BLOCK) : boolean {
         if(!when) {
             return true
         }
         if('y' in when) {
             if(xyz.y < when.y.min || xyz.y >= when.y.max) {
+                return false
+            }
+        }
+        // check if under block is dirt
+        if(when.under_good_for_plant) {
+            if(!this.blocks_good_for_plants.includes(under_block_id)) {
                 return false
             }
         }

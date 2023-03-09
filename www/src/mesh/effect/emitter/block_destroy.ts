@@ -1,7 +1,7 @@
 import { LEAVES_COLOR_FLAGS } from "../../../block_style/cube.js";
 import { CHUNK_SIZE_X } from "../../../chunk_const.js";
 import { ChunkManager } from "../../../chunk_manager.js";
-import { GRASS_PALETTE_OFFSET } from "../../../constant.js";
+import { BLOCK_FLAG, GRASS_PALETTE_OFFSET } from "../../../constant.js";
 import { DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from "../../../helpers.js";
 import { Mesh_Effect_Particle, PARTICLE_FLAG_BOUNCE_CEILING } from "../particle.js";
 
@@ -151,7 +151,7 @@ export default class emitter {
         let lm = _lm_grass.copyFrom(IndexedColor.WHITE);
         if(block) {
             const blockFlags = bm.flags[block.id]
-            if(blockFlags & bm.FLAG_BIOME) {
+            if(blockFlags & BLOCK_FLAG.BIOME) {
                 _pos_floored.copyFrom(pos).flooredSelf();
                 const index = ((_pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (_pos_floored.x - chunk.coord.x)) * 2;
                 lm.set(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
@@ -165,7 +165,7 @@ export default class emitter {
                     lm.r = color.r
                     lm.g = color.g
                 }
-            } else if(blockFlags & bm.FLAG_COLOR) {
+            } else if(blockFlags & BLOCK_FLAG.COLOR) {
                 lm.set(block.mask_color.r, block.mask_color.g, block.mask_color.b);
                 flags |= QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             } else if(block.tags.includes('multiply_color')) {
