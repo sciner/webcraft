@@ -600,16 +600,19 @@ export default class Biome3LayerOverworld {
                                                 }
                                             }
                                         }
+
+                                        if(dcaves_over == 0 && cell.biome.is_swamp) {
+                                            if(rnd.double() < .07) {
+                                                chunk.setBlockIndirect(x, y + 1, z, bm.LILY_PAD.id)
+                                                has_lily_pad = true
+                                            }
+                                        }
+
                                     }
 
                                     chunk.setBlockIndirect(x, y, z, block_id);
                                 } else {
                                     chunk.fluid.setFluidIndirect(x, y, z, block_id);
-                                }
-                            } else if ((xyz.y == local_water_line + 1) && cell.biome.is_swamp) {
-                                if(rnd.double() < .07) {
-                                    chunk.setBlockIndirect(x, y, z, bm.LILY_PAD.id)
-                                    has_lily_pad = true
                                 }
                             }
 
