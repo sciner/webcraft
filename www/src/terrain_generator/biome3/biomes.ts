@@ -125,6 +125,7 @@ export class Biome {
     is_taiga:                   boolean
     is_swamp:                   boolean
     is_snowy:                   boolean
+    is_grassy_surface:          boolean
 
     constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, ground_block_generators? : ChunkGroundBlockGenerator[], dirt_color? : IndexedColor, water_color? : IndexedColor, no_smooth_heightmap : boolean = false, building_options? : any) {
         this.id                         = id
@@ -151,11 +152,14 @@ export class Biome {
         this.is_swamp                   = title.toLowerCase().indexOf('болото') >= 0
         // calc is_snowy
         this.is_snowy = false
+        this.is_grassy_surface = false
         for(let dl of dirt_layers) {
             for(let block_id of dl.blocks) {
-                if(block_id == BLOCK.SNOW_DIRT.id) {
+                if([BLOCK.SNOW_DIRT.id, BLOCK.ICE.id].includes(block_id)) {
                     this.is_snowy = true
-                    break
+                }
+                if([BLOCK.GRASS_BLOCK.id].includes(block_id)) {
+                    this.is_grassy_surface = true
                 }
             }
         }

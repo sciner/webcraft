@@ -494,10 +494,10 @@ export default class Biome3LayerOverworld {
 
                                     // draw big stones
                                     if(y < chunk.size.y - 2 && big_stone_density > .5) {
-                                        if(!cell.biome.is_sand) {
+                                        if(cell.biome.is_grassy_surface) {
                                             block_id = null
                                             // chunk.setGroundInColumIndirect(columnIndex, x, y, z, dirt_block_id)
-                                            chunk.setBlockIndirect(x, y, z, dirt_block_id);
+                                            chunk.setBlockIndirect(x, y, z, dirt_block_id)
                                         }
                                         // chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, bm.MOSSY_COBBLESTONE.id);
                                         let big_stone_block_id = bm.MOSSY_COBBLESTONE.id
@@ -650,7 +650,7 @@ export default class Biome3LayerOverworld {
                                 xyz.y++
                                 if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
                                     // CATTAIL | РОГОЗ
-                                    if(!has_overfluid_block && chunk.addr.y == 2) {
+                                    if(!has_overfluid_block && chunk.addr.y == 2 && !cell.biome.is_snowy) {
                                         if(d4 > .4 && d4 < .8) {
                                             if(cell.biome.is_swamp || ((d1 < .1 && d2 < .1) && !cell.biome.is_snowy && !cell.biome.is_sand && !cell.biome.is_desert)) {
                                                 const r2 = rnd.double()
