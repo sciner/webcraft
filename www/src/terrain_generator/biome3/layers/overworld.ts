@@ -306,6 +306,7 @@ export default class Biome3LayerOverworld {
         const bm                        = chunk.chunkManager.block_manager
         const map                       = chunk.map as TerrainMap2;
         const xyz                       = new Vector(0, 0, 0);
+        const xyz_temp                  = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
@@ -455,13 +456,33 @@ export default class Biome3LayerOverworld {
                                         if(y < chunk.size.y - cluster_cell.height) {
                                             if(cluster_cell.block_id.length != null) { // fast check Array.isArray(cluster_cell.block_id)
                                                 for(let yy = 0; yy < cluster_cell.height; yy++) {
+                                                    const block_id = cluster_cell.block_id[yy]
                                                     // chunk.setGroundInColumIndirect(columnIndex, x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
-                                                    chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
+                                                    chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, block_id)
+                                                    //
+                                                    if(yy == cluster_cell.height - 1) {
+                                                        const slab_block_id = bm.REPLACE_TO_SLAB[block_id]
+                                                        if(slab_block_id) {
+                                                            xyz_temp.copyFrom(xyz)
+                                                            xyz_temp.y = chunk.coord.y + y + yy + cluster_cell.y_shift
+                                                            this.addSlabCandidate(xyz_temp, block_id, slab_block_id)
+                                                        }
+                                                    }
                                                 }
                                             } else {
                                                 for(let yy = 0; yy < cluster_cell.height; yy++) {
+                                                    const block_id = cluster_cell.block_id
                                                     // chunk.setGroundInColumIndirect(columnIndex, x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
-                                                    chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
+                                                    chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id)
+                                                    //
+                                                    if(yy == cluster_cell.height - 1) {
+                                                        const slab_block_id = bm.REPLACE_TO_SLAB[block_id]
+                                                        if(slab_block_id) {
+                                                            xyz_temp.copyFrom(xyz)
+                                                            xyz_temp.y = chunk.coord.y + y + yy + cluster_cell.y_shift
+                                                            this.addSlabCandidate(xyz_temp, block_id, slab_block_id)
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }

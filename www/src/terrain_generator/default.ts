@@ -373,9 +373,12 @@ export class Default_Terrain_Generator {
         let rad = Math.round(r);
         this.temp_block.id = tree.type.leaves;
         setTreeBlock(tree, chunk, x, ystart, z, this.temp_block, false);
-        if(tree.biome_code == 'SNOW') {
+        
+        const is_snowy = (tree.biome_code == 'SNOW') || tree.biome?.is_snowy
+
+        if(is_snowy) {
             this.temp_block.id = BLOCK.SNOW.id;
-            setTreeBlock(tree, chunk, x, ystart + 1, z, this.temp_block, false);
+            setTreeBlock(tree, chunk, x, ystart + 1, z, this.temp_block, false, null, {height: 0.5});
         }
 
         let step = 0;
@@ -399,9 +402,9 @@ export class Default_Terrain_Generator {
                         if(b_id == 0 || b_id != tree.type.trunk) {
                             this.temp_block.id = tree.type.leaves;
                             setTreeBlock(tree, chunk, i, py, j, this.temp_block, false);
-                            if(tree.biome_code == 'SNOW') {
+                            if(is_snowy) {
                                 this.temp_block.id = BLOCK.SNOW.id;
-                                setTreeBlock(tree, chunk, i, py + 1, j, this.temp_block, false);
+                                setTreeBlock(tree, chunk, i, py + 1, j, this.temp_block, false, null, {height: 0.5});
                             }
                         }
                     }

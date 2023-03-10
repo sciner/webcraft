@@ -3021,6 +3021,9 @@
                 "up":  "block/dirt_path_top.png",
                 "down":  "block/dirt.png",
                 "side":  "block/dirt_path_side.png"
+            },
+            "generator": {
+                "can_replace_to_slab": "DIRT_PATH_SLAB"
             }
         },
         {
@@ -9830,6 +9833,32 @@
                 "is_tall_grass",
                 "is_tall_grass_3"
             ]
+        },
+        {
+            "id": 520,
+            "name": "DIRT_PATH_SLAB",
+            "transparent": true,
+            "is_opaque_for_fluid": true,
+            "height": 0.5,
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "dirt"
+            },
+            "tags": [
+                "random_rotate_up",
+                "is_solid_for_fluid",
+                "dirt"
+            ],
+            "texture": {
+                "up":  "block/dirt_path_top.png",
+                "down":  "block/dirt.png",
+                "side":  "block/dirt_path_side.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DIRT_PATH"
+            }
         }
     ]
 }

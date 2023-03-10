@@ -308,6 +308,45 @@ export default class style {
         return {width, height, depth};
     }
 
+    static makeLeaves(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
+        
+        const bm                    = style.block_manager
+        const material              = block.material;
+        const leaves_tex = bm.calcTexture(material.texture, 'round');
+        _lm_leaves.copyFrom(dirt_color);
+        _lm_leaves.b = leaves_tex[3] * TX_CNT;
+        const r1 = (randoms[(z * 13 + x * 3 + y * 23) % randoms.length] | 0) / 100;
+        const r2 = (randoms[(z * 11 + x * 37 + y) % randoms.length] | 0) / 100;
+        // Shift the horizontal plane randomly, to prevent a visible big plane.
+        // Alternate shift by 0.25 block up/down from the center + some random.
+        leaves_planes[0].move.y = ((x + z) % 2 - 0.5) * 0.5 + (r2 - 0.5) * 0.3;
+        let flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES | QUAD_FLAGS.NORMAL_UP
+        if(block.extra_data) {
+            if(block.extra_data && block.extra_data.v != undefined) {
+                const color = LEAVES_COLOR_FLAGS[block.extra_data.v % LEAVES_COLOR_FLAGS.length]
+                _lm_leaves.r = color.r
+                _lm_leaves.g = color.g
+            }
+        }
+        for(let i = 0; i < leaves_planes.length; i++) {
+            const plane = leaves_planes[i];
+            // fill object
+            _pl.size     = plane.size;
+            _pl.uv       = plane.uv as [number, number];
+            _pl.rot      = new Vector(Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]);
+            _pl.lm       = _lm_leaves;
+            _pl.pos      = _vec.set(
+                x + (plane.move?.x || 0),
+                y + (plane.move?.y || 0),
+                z + (plane.move?.z || 0)
+            );
+            _pl.matrix   = leaves_matrices[i];
+            _pl.flag     = flag;
+            _pl.texture  = leaves_tex;
+            default_style.pushPlane(vertices, _pl);
+        }
+    }
+
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
@@ -316,50 +355,18 @@ export default class style {
             return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color);
         }
 
-        const bm                    = style.block_manager
         const material              = block.material;
-        const no_anim               = material.is_simple_qube || !material.texture_animations;
-        let emmited_blocks
 
         // Beautiful leaves
         const sheared = (block?.extra_data?.sheared) ? block?.extra_data?.sheared : false;
         if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL && !sheared) {
-            const leaves_tex = bm.calcTexture(material.texture, 'round');
-            _lm_leaves.copyFrom(dirt_color);
-            _lm_leaves.b = leaves_tex[3] * TX_CNT;
-            const r1 = (randoms[(z * 13 + x * 3 + y * 23) % randoms.length] | 0) / 100;
-            const r2 = (randoms[(z * 11 + x * 37 + y) % randoms.length] | 0) / 100;
-            // Shift the horizontal plane randomly, to prevent a visible big plane.
-            // Alternate shift by 0.25 block up/down from the center + some random.
-            leaves_planes[0].move.y = ((x + z) % 2 - 0.5) * 0.5 + (r2 - 0.5) * 0.3;
-            let flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES
-            if(block.extra_data) {
-                if(block.extra_data && block.extra_data.v != undefined) {
-                    const color = LEAVES_COLOR_FLAGS[block.extra_data.v % LEAVES_COLOR_FLAGS.length]
-                    _lm_leaves.r = color.r
-                    _lm_leaves.g = color.g
-                }
-            }
-            for(let i = 0; i < leaves_planes.length; i++) {
-                const plane = leaves_planes[i];
-                // fill object
-                _pl.size     = plane.size;
-                _pl.uv       = plane.uv as [number, number];
-                _pl.rot      = new Vector(Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]);
-                _pl.lm       = _lm_leaves;
-                _pl.pos      = _vec.set(
-                    x + (plane.move?.x || 0),
-                    y + (plane.move?.y || 0),
-                    z + (plane.move?.z || 0)
-                );
-                _pl.matrix   = leaves_matrices[i];
-                _pl.flag     = flag;
-                _pl.texture  = leaves_tex;
-                default_style.pushPlane(vertices, _pl);
-            }
-            return;
+            return style.makeLeaves(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex)
         }
 
+        const bm                    = style.block_manager
+        const no_anim               = material.is_simple_qube || !material.texture_animations;
+
+        let emmited_blocks
         let width                   = 1;
         let height                  = 1;
         let depth                   = 1;
@@ -548,8 +555,12 @@ export default class style {
                 }
             }
             _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block);
-            if((block.id == BLOCK.GRASS_BLOCK_SLAB.id || block.id == BLOCK.SNOW_DIRT_SLAB.id) && side != 'up' && side != 'down') {
-                _sideParams.t[1] -= .5 / material.tx_cnt;
+            if(side != 'up' && side != 'down') {
+                if(block.id == BLOCK.GRASS_BLOCK_SLAB.id || block.id == BLOCK.SNOW_DIRT_SLAB.id) {
+                    _sideParams.t[1] -= .5 / material.tx_cnt
+                } else if(block.id == BLOCK.DIRT_PATH_SLAB.id) {
+                    _sideParams.t[1] -= .45 / material.tx_cnt
+                }
             }
             _sideParams.f = flags | animFlag;
             if(side == 'up') {
