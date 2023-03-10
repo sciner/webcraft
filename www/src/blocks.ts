@@ -1007,6 +1007,9 @@ export class BLOCK {
                 block[k] = v;
             }
         }
+        if(block.layering?.slab) {
+            block.max_in_stack *= 2
+        }
         //
         block.title = block.title ?? StringHelpers.capitalizeFirstLetterOfEachWord(
             block.name.replaceAll('_', ' ').toLowerCase());
