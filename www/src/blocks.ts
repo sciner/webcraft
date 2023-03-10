@@ -1008,7 +1008,10 @@ export class BLOCK {
             }
         }
         if(block.layering?.slab) {
-            block.max_in_stack *= 2
+            block.max_in_stack = INVENTORY_STACK_DEFAULT_SIZE * 2
+        }
+        if(block.tags.includes('stairs')) {
+            block.max_in_stack = INVENTORY_STACK_DEFAULT_SIZE * 1.5
         }
         //
         block.title = block.title ?? StringHelpers.capitalizeFirstLetterOfEachWord(
