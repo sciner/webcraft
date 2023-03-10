@@ -374,7 +374,7 @@ export default class Biome3LayerOverworld {
                 let cluster_drawed = false;
                 let not_air_count = 0;
                 let air_count = 0
-                let has_lily_pad = false
+                let has_overfluid_block = false
 
                 let dcaves = 0
                 let dcaves_over = 0
@@ -500,10 +500,16 @@ export default class Biome3LayerOverworld {
                                             chunk.setBlockIndirect(x, y, z, dirt_block_id);
                                         }
                                         // chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, bm.MOSSY_COBBLESTONE.id);
-                                        chunk.setBlockIndirect(x, y + 1, z, bm.MOSSY_COBBLESTONE.id);
+                                        let big_stone_block_id = bm.MOSSY_COBBLESTONE.id
+                                        if(d4 < 0) {
+                                            big_stone_block_id = bm.TUFF.id
+                                        } else if (d4 > .5) {
+                                            big_stone_block_id = bm.STONE.id
+                                        }
+                                        chunk.setBlockIndirect(x, y + 1, z, big_stone_block_id)
                                         if(big_stone_density > BIG_STONE_DESNSITY) {
                                             // chunk.setGroundInColumIndirect(columnIndex, x, y + 2, z, bm.MOSSY_COBBLESTONE.id);
-                                            chunk.setBlockIndirect(x, y + 2, z, bm.MOSSY_COBBLESTONE.id);
+                                            chunk.setBlockIndirect(x, y + 2, z, big_stone_block_id)
                                         }
                                     }
 
@@ -571,9 +577,12 @@ export default class Biome3LayerOverworld {
 
                             // если это уровень воды
                             if(xyz.y <= local_water_line) {
+
                                 let block_id = local_fluid_block_id;
+
                                 // поверхность воды
                                 if(xyz.y == local_water_line) {
+
                                     if(local_fluid_block_id == bm.STILL_WATER.id) {
                                         // если холодно, то рисуем рандомные льдины
                                         const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
@@ -583,14 +592,16 @@ export default class Biome3LayerOverworld {
                                             if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
                                                 const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
                                                 for(let ph = 0; ph < peekh; ph++) {
-                                                    chunk.setBlockIndirect(x, y + ph, z, block_id);
+                                                    chunk.setBlockIndirect(x, y + ph, z, block_id)
                                                 }
                                             }
                                         }
                                     }
 
-                                    // свисающая столбом листва
+                                    // if inside water
                                     if(local_fluid_block_id == bm.STILL_WATER.id) {
+
+                                        // hanging foliage | свисающая столбом листва
                                         if((d4 > .4 && d4 < .8) && air_count > 5 && air_count < CHUNK_SIZE_Y / 2) {
                                             if(xyz.y == local_water_line && !cell.biome.is_snowy) {
                                                 if(rnd.double() < .1) {
@@ -601,10 +612,11 @@ export default class Biome3LayerOverworld {
                                             }
                                         }
 
+                                        // water lily leaf on the water surface | лист кувшинки на водной глади
                                         if(dcaves_over == 0 && cell.biome.is_swamp) {
                                             if(rnd.double() < .07) {
                                                 chunk.setBlockIndirect(x, y + 1, z, bm.LILY_PAD.id)
-                                                has_lily_pad = true
+                                                has_overfluid_block = true
                                             }
                                         }
 
@@ -613,6 +625,21 @@ export default class Biome3LayerOverworld {
                                     chunk.setBlockIndirect(x, y, z, block_id);
                                 } else {
                                     chunk.fluid.setFluidIndirect(x, y, z, block_id);
+
+                                    if(local_fluid_block_id == bm.STILL_WATER.id) {
+                                        // если холодно, то рисуем рандомные льдины
+                                        const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
+                                        if(water_cap_ice > .12) {
+                                            block_id = bm.ICE.id;
+                                            // в еще более рандомных случаях под льдиной рисуем пики
+                                            if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
+                                                const peekh = Math.floor(CHUNK_SIZE_Y * .5 * d3 * d4);
+                                                for(let ph = 0; ph < peekh; ph++) {
+                                                    chunk.setBlockIndirect(x, y - ph, z, block_id)
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
@@ -623,7 +650,7 @@ export default class Biome3LayerOverworld {
                                 xyz.y++
                                 if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
                                     // CATTAIL | РОГОЗ
-                                    if(!has_lily_pad && chunk.addr.y == 2) {
+                                    if(!has_overfluid_block && chunk.addr.y == 2) {
                                         if(d4 > .4 && d4 < .8) {
                                             if(cell.biome.is_swamp || ((d1 < .1 && d2 < .1) && !cell.biome.is_snowy && !cell.biome.is_sand && !cell.biome.is_desert)) {
                                                 const r2 = rnd.double()

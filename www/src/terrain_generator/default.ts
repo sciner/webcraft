@@ -246,6 +246,8 @@ export class Default_Terrain_Generator {
     plantCactus(world, tree, chunk, x, y, z, setTreeBlock) {
         const ystart = y + tree.height;
         // ствол
+        this.temp_block.id = 11
+        setTreeBlock(tree, chunk, x, y - 1, z, this.temp_block, true)
         this.temp_block.id = tree.type.trunk;
         for(let p = y; p < ystart; p++) {
             setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);

@@ -72,13 +72,16 @@ export class Farmland extends Building {
                         water_pos[axe] += 3;
 
                         // fix. because water not replace FARMLAND_WET
-                        this.blocks.appendQuboidBlocks(water_pos, water_size, bm.AIR.id);
+                        this.blocks.appendQuboidBlocks(water_pos, water_size, bm.BLD_AIR.id);
                         this.blocks.appendQuboidBlocks(water_pos, water_size, bm.STILL_WATER.id);
 
                         // remove seeds under water
                         water_pos.y++;
-                        this.blocks.appendQuboidBlocks(water_pos, water_size, bm.AIR.id);
+                        this.blocks.appendQuboidBlocks(water_pos, water_size, bm.BLD_AIR.id);
                         water_pos.y--;
+                        water_pos.y--;
+                        this.blocks.appendQuboidBlocks(water_pos, water_size, bm.DIRT.id);
+                        water_pos.y++;
 
                     }
 
