@@ -8,7 +8,7 @@ function World(saved_state, connectedCallback) {
 
     var that = this;
 
-    var serverURL = Helpers.isDev() ? 'ws://127.0.0.1:5700/ws' : 'wss://webcraft.whiteframe.ru/ws';
+    var serverURL = Helpers.isDev() ? 'ws://127.0.0.1:5700/ws' : 'wss://go.madcraft.io/ws';
 
     // Create server client
     that.server = new ServerClient(serverURL, function() {
