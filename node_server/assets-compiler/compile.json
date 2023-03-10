@@ -1686,6 +1686,7 @@
             "style": "extruder",
             "item": {"name": "stick"},
             "diagonal": true,
+            "max_in_stack": 128,
             "texture": {
                 "side": "item/stick.png"
             },

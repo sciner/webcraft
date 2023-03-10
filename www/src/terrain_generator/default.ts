@@ -425,14 +425,26 @@ export class Default_Terrain_Generator {
     }
 
     // Дуб, берёза
-    plantOak(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantOak(world, tree, chunk : ChunkWorkerChunk, x : int, y : int, z : int, setTreeBlock : Function) {
         const extra_data = this.makeLeavesExtraData(chunk, x, y, z)
-        //
-        let ystart = y + tree.height;
         // ствол
-        for(let p = y; p < ystart; p++) {
+        for(let i = 0; i < tree.height; i++) {
             this.temp_block.id = tree.type.trunk;
-            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
+            setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true)
+        }
+        // Create bee nest
+        if(tree.height > 6) {
+            if(BLOCK.fromId(tree.type.trunk).name == 'BIRCH_LOG') {
+                const xyz = new Vector(x, y, z).addSelf(chunk.coord)
+                const random = new alea('tree_' + xyz.toHash())
+                if(random.double() < 1/32) {
+                    const side = Math.floor(random.double() * 4)
+                    const vec = Vector.ZERO.clone().addByCardinalDirectionSelf(Vector.ZP, side)
+                    const bee_nest_block = BLOCK.fromName('BEE_NEST')
+                    const bee_block = {id: bee_nest_block.id, extra_data: {pollen: 0, max_ticks: 100, bees: [{pollen: 0}]}}
+                    setTreeBlock(tree, chunk, x + vec.x, y + 2, z + vec.z, bee_block, true, new Vector(side, 0, 0), bee_block.extra_data)
+                }
+            }
         }
         // листва
         let py = y + tree.height;

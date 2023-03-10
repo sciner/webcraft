@@ -659,7 +659,7 @@ export class Vector implements IVector {
         }
     }
 
-    addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
+    addByCardinalDirectionSelf(vec : IVector, dir : int, mirror_x = false, mirror_z = false) {
         const x_sign = mirror_x ? -1 : 1;
         const z_sign = mirror_z ? -1 : 1;
         this.y += vec.y;
