@@ -663,7 +663,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         // root rotation
-        for(let st of this.sceneTree) {
+        for(const st of this.sceneTree) {
 
             const draw_yaw = this.draw_yaw;
             const add_angle = this.body_rotate * Math.PI * (HEAD_MAX_ROTATE_ANGLE / 180);
@@ -674,7 +674,7 @@ export class MobModel extends NetworkPhysicObject {
             if(this.sitting) {
                 subY = this.height * 1/3
             } else if(this.sleep) {
-                subY = this.height * 0.5
+                subY = this.height * 5/6
             } else if(this.sneak) {
                 subY = SNEAK_MINUS_Y_MUL
             }

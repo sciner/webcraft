@@ -642,9 +642,6 @@ export class Player implements IPlayer {
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: null
             })
-            if (this.state.sleep) {
-                this.controls.jump = true
-            }
         }
     }
 
@@ -810,8 +807,6 @@ export class Player implements IPlayer {
         //
         this.blockPos = this.getBlockPos();
         this.chunkAddr = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-
-        console.log('player: ' + pc.player_state.onGround + 'ground: ' + this.onGround)
     }
 
     getFlying() {
