@@ -1736,10 +1736,9 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     const time = world.getTime()
     // время пользования кроватью
     if(time.hours < 18 && time.hours > 6) {
-        if (!Qubatch.is_server) {
-            Qubatch.hotbar.strings.setText(1, Lang.bed_no_sleep, 4000);
+        if (Qubatch.is_server) {
+        
         }
-        return true
     }
     // растояние до кровати (java не более 2, br не более 3)
     if(player.pos.distance(pos) > 3.0) {
@@ -1749,15 +1748,15 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
         return true
     }
     // где находится подушка у кровати (голова игрока, когда лежит)
-    let position_head = world_block.posworld.offset(.5, 0, !extra_data?.is_head ? -.42 : .58)
+    let position_head = world_block.posworld.offset(.5, 1.5, !extra_data?.is_head ? -.42 : .58)
     if (rotate.x == 2) {
-        position_head = world_block.posworld.offset(.5, 0, !extra_data?.is_head ? 1.42 : .42)
+        position_head = world_block.posworld.offset(.5, 1.5, !extra_data?.is_head ? 1.42 : .42)
     }
     if (rotate.x == 1) {
-        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0, .5)
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 1.5, .5)
     }
     if (rotate.x == 3) {
-        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0, .5)
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 1.5, .5)
     }
     //Проверяем, что кровать не заблочена
     const block = world.getBlock(position_head.offset(0, 1, 0).floored())
@@ -1778,6 +1777,7 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     actions.reset_mouse_actions = true
     // разворот игрока, что бы ноги всегда лежали на кровате
     const player_rotation = new Vector(0, 0, ((rotate.x + 2) % 4) / 4)
+    console.log(position_head)
     actions.setSleep(position_head, player_rotation)
     return true
 }

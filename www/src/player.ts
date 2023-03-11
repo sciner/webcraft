@@ -810,6 +810,8 @@ export class Player implements IPlayer {
         //
         this.blockPos = this.getBlockPos();
         this.chunkAddr = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+
+        console.log('player: ' + pc.player_state.onGround + 'ground: ' + this.onGround)
     }
 
     getFlying() {
