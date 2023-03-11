@@ -1014,7 +1014,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.createBlock ??= [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp]) {
+        for(let func of FUNCS.createBlock ??= [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp, putInComposter]) {
             if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -2076,6 +2076,54 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
     return false;
 
+}
+
+// работа с компостером
+function putInComposter(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    const bm = world.block_manager
+    if (!world_material || world_material.id != bm.COMPOSTER.id)  {
+        return false
+    }
+    const position = new Vector(pos)
+    const level = extra_data.level
+    if (level > 5) {
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'dig', pos: position, except_players: [player.session.user_id]})
+        actions.addDropItem({pos: position.offset(0, 0.5, 0), items: [{id: bm.BONE_MEAL.id, count: 1}], force: true});
+        actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: 0 } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        return true
+    }
+    let chance = 0
+    if ([bm.CAKE.id, bm.PUMPKIN_PIE.id].includes(mat_block.id)) {
+        chance = 1.0
+    }
+    if ([bm.RED_MUSHROOM_BLOCK.id, bm.BROWN_MUSHROOM_BLOCK.id, bm.HAY_BLOCK.id, bm.COOKIE.id, bm.BAKED_POTATO.id, bm.BREAD.id, bm.FLOWERING_AZALEA.id].includes(mat_block.id)) {
+        chance = 0.85
+    }
+    if ([bm.LILY_PAD.id, bm.MELON.id, bm.APPLE.id, bm.COCOA_BEANS.id, bm.POTATO.id, bm.CARROT.id, bm.MOSS_BLOCK.id, bm.WHEAT.id, bm.AZALEA.id, bm.FERN.id, bm.LARGE_FERN.id, bm.BROWN_MUSHROOM.id 
+        , bm.RED_MUSHROOM.id, bm.BEETROOT.id, bm.NETHER_WART.id, bm.PUMPKIN.id, bm.LIT_PUMPKIN.id, bm.DANDELION.id, bm.RED_TULIP.id, bm.ALLIUM.id, bm.BLUE_ORCHID.id, bm.OXEYE_DAISY.id, bm.CATTAIL.id
+        , bm.LILY_OF_THE_VALLEY.id, bm.CORNFLOWER.id, bm.PEONY.id, bm.LILAC.id, bm.WITHER_ROSE.id, bm.WHITE_TULIP.id, bm.ORANGE_TULIP.id, bm.PINK_TULIP.id, bm.SUNFLOWER.id, bm.AZURE_BLUET.id, bm.POPPY.id
+    ].includes(mat_block.id)) {
+        chance = 0.65
+    }
+    if ([bm.DRIED_KELP.id, bm.TALL_GRASS.id, bm.GLOW_LICHEN.id, bm.VINE.id, bm.MELON_SLICE.id, bm.CACTUS.id, bm.SUGAR_CANE.id].includes(mat_block.id)) {
+        chance = 0.5
+    }
+    if ([bm.KELP.id, bm.BIRCH_LEAVES.id, bm.OAK_LEAVES.id, bm.ACACIA_LEAVES.id, bm.SPRUCE_LEAVES.id, bm.SEAGRASS.id, bm.WHEAT_SEEDS.id, bm.CARROT_SEEDS.id, bm.MELON_SEEDS.id, bm.PUMPKIN_SEEDS.id, bm.BEETROOT_SEEDS.id, bm.SWEET_BERRY_BUSH.id, bm.GRASS.id, bm.CAVE_VINE_BERRY.id].includes(mat_block.id)) {
+        chance = 0.3
+    }
+    if (chance == 0) {
+        return false
+    }
+    actions.addParticles([{type: 'villager_happy', pos: position.offset(0, 0.5, 0), area: false}])
+    actions.decrement = true
+    if (Math.random() <= chance) {
+        actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: (level + 1) } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        // @todo нужные правльные звуки
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'dig', pos: position, except_players: [player.session.user_id]})
+    } else {
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'place', pos: position, except_players: [player.session.user_id]})
+    }
+    return true
 }
 
 // добавление ламинарии вручную
