@@ -188,6 +188,7 @@ interface IBlockMaterial {
     group: string
     passable: number
     power: number
+    can_auto_drop: boolean
     /**
      * @deprecated
      */

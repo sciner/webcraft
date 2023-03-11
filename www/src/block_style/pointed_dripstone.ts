@@ -61,7 +61,7 @@ export default class style {
         if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up == true && dir == DIRECTION.UP && (extra_data?.water || extra_data?.lava)) {
             QubatchChunkWorker.postMessage(['add_animated_block', {
                 block_pos:  block.posworld,
-                pos:        [block.posworld.add(new Vector(.5, .8, .5))],
+                pos:        [block.posworld.clone().addScalarSelf(.5, .8, .5)],
                 type:       'dripping',
                 isWater:    extra_data?.water
             }]);

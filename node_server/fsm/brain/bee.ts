@@ -5,6 +5,7 @@ import { BeeNest } from "@client/block_type/bee_nest.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { Effect } from "@client/block_type/effect.js";
 import type { EnumDamage } from "@client/enums/enum_damage.js";
+import { DEFAULT_STYLE_NAME } from "@client/constant.js";
 
 const MAX_POLLEN = 4;
 const POLLEN_PER_TICK = 0.02;
@@ -68,7 +69,7 @@ export class Brain extends FSMBrain {
         const legs = world.getBlock(pos_legs);
 
         // if on plant
-        if (legs && legs.id != 0 && legs.material.style == 'default') {
+        if (legs && legs.id != 0 && legs.material.style == DEFAULT_STYLE_NAME) {
             if(ignore_nest || (legs && legs.hasTag && !legs.hasTag('bee_nest'))) {
                 this.fly = Math.random() * 20 | 0;
             }

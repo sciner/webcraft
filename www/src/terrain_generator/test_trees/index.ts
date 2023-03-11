@@ -116,7 +116,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 for(let x = -1; x < 2; x++) {
                     for(let z = -1; z < 2; z++) {
 
-                        const addr = chunk.addr.add(new Vector(x, 0, z));
+                        const addr = chunk.addr.clone().addScalarSelf(x, 0, z);
                         const has_tree = addr.x % 2 == 0 && addr.z % 2 == 0;
 
                         if(has_tree) {

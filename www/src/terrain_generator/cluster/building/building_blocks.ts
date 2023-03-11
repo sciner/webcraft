@@ -7,6 +7,9 @@ import { Building } from "../building.js";
 //
 export class BuildingBlocks extends Building {
 
+    chunks: VectorCollector<any>
+    transformer: VectorCardinalTransformer
+
     constructor(cluster: any, seed: float, coord: Vector, entrance: Vector, door_direction: int, size: Vector, building_template: any) {
         super(cluster, seed, coord, entrance, door_direction, size, building_template)
         this.chunks = new VectorCollector()

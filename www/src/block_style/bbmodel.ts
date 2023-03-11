@@ -171,13 +171,17 @@ export default class style {
 
         // Add particles for block
         const particles = []
-        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix, (type, pos, args) => {
-            if(typeof QubatchChunkWorker == 'undefined') {
-                return
-            }
-            const p = new Vector(pos).addScalarSelf(.5, 0, .5)
-            particles.push({pos: p.addSelf(block.posworld), type, args})
-        })
+        let draw_bottom_copy = block.hasTag('draw_bottom_copy') && (neighbours?.DOWN && neighbours?.DOWN.material.layering)
+        const floors = draw_bottom_copy ? 2 : 1
+        for(let i = 0; i < floors; i++) {
+            model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type, pos, args) => {
+                if(typeof QubatchChunkWorker == 'undefined') {
+                    return
+                }
+                const p = new Vector(pos).addScalarSelf(.5, 0, .5)
+                particles.push({pos: p.addSelf(block.posworld), type, args})
+            })
+        }
         style.addParticles(model, block, matrix, particles)
         if(particles.length > 0) {
             QubatchChunkWorker.postMessage(['add_animated_block', {
@@ -300,7 +304,7 @@ export default class style {
         // 1.
         if(bb.set_state /* && !(tblock instanceof FakeTBlock) */) {
             for(let state of bb.set_state) {
-                if(style.checkWhen(model, tblock, state.when)) {
+                if(style.checkWhen(model, tblock, state.when, neighbours)) {
                     model.state = style.processName(state.name, tblock)
                     model.hideAllExcept([model.state])
                     break
@@ -524,7 +528,7 @@ export default class style {
         }
     }
 
-    static checkWhen(model : BBModel_Model, tblock : TBlock | FakeTBlock, when : object) : boolean {
+    static checkWhen(model : BBModel_Model, tblock : TBlock | FakeTBlock, when : object, neighbours? : any) : boolean {
         if(!when) {
             return true
         }
@@ -544,7 +548,18 @@ export default class style {
                     break
                 }
                 default: {
-                    if(k.startsWith('extra_data.')) {
+                    if(k.startsWith('neighbour.')) {
+                        // Example: "when": {"neighbour.up": "AIR"}
+                        const nname = k.substring(10).toUpperCase()
+                        const n = neighbours[nname]
+                        if(!n) {
+                            return false
+                        }
+                        const nmat = n.material
+                        if(!nmat || n.material.name != when[k]) {
+                            return false
+                        }
+                    } else if(k.startsWith('extra_data.')) {
                         const key = k.substring(11)
                         const value = tblock.extra_data ? (tblock.extra_data[key] ?? null) : null
                         if(Array.isArray(condition_value)) {

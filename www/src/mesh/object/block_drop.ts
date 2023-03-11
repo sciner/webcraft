@@ -142,7 +142,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         const MAX_FLY_SPEED             = 12; // m/s
         const MIN_DIST_FOR_PICKUP_NOW   = .3; // m
 
-        const target_pos = player.lerpPos.add(new Vector(0, .85, 0));
+        const target_pos = player.lerpPos.clone().addScalarSelf(0, .85, 0);
         const dist = this.pos.distance(target_pos);
 
         // if drop item already find near player
