@@ -1733,13 +1733,6 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     if(!goToBed) {
         return false
     }
-    const time = world.getTime()
-    // время пользования кроватью
-    if(time.hours < 18 && time.hours > 6) {
-        if (Qubatch.is_server) {
-        
-        }
-    }
     // растояние до кровати (java не более 2, br не более 3)
     if(player.pos.distance(pos) > 3.0) {
         if (!Qubatch.is_server) {
@@ -1778,6 +1771,9 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     // разворот игрока, что бы ноги всегда лежали на кровате
     const player_rotation = new Vector(0, 0, ((rotate.x + 2) % 4) / 4)
     actions.setSleep(position_head, player_rotation)
+    if (Qubatch.is_server) {
+        world.getAllSleep(player.session.user_id)
+    }
     return true
 }
 
