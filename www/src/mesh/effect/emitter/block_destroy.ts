@@ -158,7 +158,9 @@ export default class emitter {
                 if(block.id == bm.GRASS_BLOCK.id || block.is_grass) {
                     lm.r += GRASS_PALETTE_OFFSET;
                 }
-                flags |= QUAD_FLAGS.MASK_BIOME;
+                if(!block.is_dirt) {
+                    flags |= QUAD_FLAGS.MASK_BIOME
+                }
                 // leaves custom color
                 if(extra_data && extra_data.v != undefined) {
                     const color = LEAVES_COLOR_FLAGS[extra_data.v % LEAVES_COLOR_FLAGS.length]

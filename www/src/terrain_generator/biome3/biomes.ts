@@ -343,7 +343,7 @@ export class Biomes {
         this.addBiome(30, 'Заснеженная тайга', -0.8, 0.4,            snow_dirt_layers, {
             frequency: TREE_FREQUENCY * 2,
             list: [
-                // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
+                // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                 {percent: 0.05, ...TREES.SPRUCE, height: {min: 6, max: 24}},
                 {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
@@ -537,7 +537,7 @@ export class Biomes {
             {
                 frequency: TREE_FREQUENCY / 10,
                 list: [
-                    new BiomeTree(BLOCK.CACTUS.id, null, 'cactus', {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
+                    new BiomeTree(BLOCK.CACTUS.id, null, 'cactus', {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
                 ]
             },
             {
@@ -556,7 +556,7 @@ export class Biomes {
             {
                 frequency: TREE_FREQUENCY / 2,
                 list: [
-                    new BiomeTree(BLOCK.CACTUS.id, null, 'cactus', {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
+                    new BiomeTree(BLOCK.CACTUS.id, null, 'cactus', {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
                 ]
             },
             {

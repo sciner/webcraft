@@ -1,4 +1,4 @@
-import { calcRotateMatrix, DIRECTION, IndexedColor, StringHelpers, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, Helpers, IndexedColor, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
@@ -505,7 +505,7 @@ export default class style {
     }
 
     static addParticles(model : BBModel_Model, tblock : TBlock | FakeTBlock, matrix : imat4, particles) {
-        if(typeof worker == 'undefined') {
+        if(!Helpers.inWorker()) {
             return
         }
         const mat = tblock.material

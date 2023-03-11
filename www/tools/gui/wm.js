@@ -854,9 +854,6 @@ export class Window extends PIXI.Container {
                     if(!isNaN(v)) {
                         v = {left: v, top: v, right: v, bottom: v};
                     }
-                    for(let k in v) {
-                        v[k] *= this.zoom
-                    }
                     this.style[param] = v
                     break
                 }
