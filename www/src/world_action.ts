@@ -304,7 +304,7 @@ function makeDropItem(block, item) {
  * Drop block
  * @returns dropped blocks
  */
-export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldAction, force : boolean, current_inventory_item? : any) : object[] {
+export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, actions : WorldAction, force : boolean, current_inventory_item? : any) : object[] {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
@@ -330,13 +330,13 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
     if (Array.isArray(drop_item)) {
         for (const drop of drop_item) {
             if (drop && checkInstrument(instrument_block_id, drop)) {
-                const block = BLOCK.fromName(drop?.name);
+                const block = BLOCK.fromName(drop.name)
                 const chance = drop.chance ?? 1;
                 if(Math.random() < chance) {
                     let count = drop.count ?? 1;
                     if(count > 0) {
                         const item = makeDropItem(tblock, {id: block.id, count: count});
-                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
                         return [item];
                     }
                 }
@@ -359,7 +359,7 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
                     count = Math.trunc(count);
                     if(count > 0) {
                         const item = makeDropItem(tblock, {id: drop_block.id, count: count});
-                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
                         return [item];
                     }
                 }
@@ -394,7 +394,7 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
             items.push(makeDropItem(tblock, {id: tblock.id, count: 1}));
         }
         for(let item of items) {
-            actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+            actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
         }
         return items
     }
@@ -690,7 +690,7 @@ export class WorldAction {
         drop_blocks_chance = parseFloat(drop_blocks_chance);
 
         //
-        const createAutoDrop = (tblock) => {
+        const createAutoDrop = (tblock : TBlock) => {
             const mat = tblock.material;
             if(!mat.can_auto_drop) {
                 return false;
@@ -698,28 +698,22 @@ export class WorldAction {
             if((!mat.chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) || tblock.id == BLOCK.TNT.id) {
                 return false;
             }
-            const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
+            const pos = tblock.posworld.clone().addScalarSelf(.5, .5, .5)
             extruded_blocks.set(pos, 'drop');
-            // drop
-            const drop_item: DropItemParams = {
-                force: true,
-                pos: pos,
-                items: [
-                    // @todo need to calculate drop item ID and count
-                    { id: mat.id, count: 1 } as IBlockItem
-                ]
-            }
             if(mat.chest) {
                 if(tblock.hasTag('store_items_in_chest')) {
-                    const di = drop_item.items[0]
-                    di.extra_data = {...tblock.extra_data}
-                    di.entity_id = tblock.entity_id || randomUUID()
+                    const drop_item = {
+                        id: mat.id,
+                        count: 1
+                    } as IBlockItem
+                    drop_item.extra_data = {...tblock.extra_data}
+                    drop_item.entity_id = tblock.entity_id || randomUUID()
                 } else {
                     this.dropChest(tblock)
                 }
             }
-            this.addDropItem(drop_item)
-            return true;
+            dropBlock(null, tblock, this, true)
+            return true
         };
 
         const distance              = rad;
@@ -1309,7 +1303,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
     pushBlock({pos: new Vector(pos), item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
     // Установить головной блок, если устанавливаемый блок двух-блочный
     if(mat_block.has_head) {
-        // const new_rotate = orientation.add(new Vector(2, 0, 0));
+        // const new_rotate = orientation.clone().addScalarSelf(2, 0, 0);
         const new_rotate = orientation.clone();
         const next_block = {
             pos: pos.clone().addByCardinalDirectionSelf(mat_block.has_head.pos, orientation.x + 2),
@@ -2249,7 +2243,7 @@ function removeFromPot(e, world, pos, player, world_block, world_material, mat_b
             actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
             // Create drop item
-            actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [drop_item], force: true});
+            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, 0, .5), items: [drop_item], force: true});
             return true;
         }
     }
@@ -2812,7 +2806,7 @@ function removeFurnitureUpholstery(e, world, pos, player, world_block, world_mat
             }]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
             // Create drop item
-            actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, .5, .5)), items: [drop_item], force: true});
+            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true});
             return true;
         }
     }

@@ -79,13 +79,13 @@ export default class style {
             // candlewicks
             planes.push(...[
                 {
-                    pos: pos.add(new Vector(mx / TX_SIZE, (height / 2 + .5) / TX_SIZE, mz / TX_SIZE)),
+                    pos: pos.clone().addScalarSelf(mx / TX_SIZE, (height / 2 + .5) / TX_SIZE, mz / TX_SIZE),
                     size: {x: 0, y: 1, z: 1},
                     uv: [0.5, 5.5],
                     rot: [0, Math.PI / 4, 0]
                 },
                 {
-                    pos: pos.add(new Vector(mx / TX_SIZE, (height / 2 + .5) / TX_SIZE, mz / TX_SIZE)),
+                    pos: pos.clone().addScalarSelf(mx / TX_SIZE, (height / 2 + .5) / TX_SIZE, mz / TX_SIZE),
                     size: {x: 0, y: 1, z: 1},
                     uv: [0.5, 5.5],
                     rot: [0, Math.PI / 4 + Math.PI / 2, 0]
@@ -93,7 +93,7 @@ export default class style {
             ]);
 
             if(active && typeof QubatchChunkWorker != 'undefined') {
-                wick_positions.push(block.posworld.add(new Vector(-x, -y, -z)).addSelf(planes[planes.length - 1].pos));
+                wick_positions.push(block.posworld.clone().addScalarSelf(-x, -y, -z).addSelf(planes[planes.length - 1].pos));
             }
 
             // part

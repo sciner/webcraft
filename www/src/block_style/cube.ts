@@ -623,7 +623,7 @@ export default class style {
             if (neighbours.UP?.id == bm.BUBBLE_COLUMN.id) {
                 QubatchChunkWorker.postMessage(['add_animated_block', {
                     block_pos: block.posworld,
-                    pos: [block.posworld.add(new Vector(.5, .5, .5))],
+                    pos: [block.posworld.clone().addScalarSelf(.5, .5, .5)],
                     type: 'bubble_column',
                     isBottom: true
                 }]);
@@ -650,11 +650,11 @@ export default class style {
             QubatchChunkWorker.postMessage(['play_disc', {
                 ...disc,
                 dt: tblock.extra_data?.dt,
-                pos: chunk.coord.add(new Vector(x, y, z))
+                pos: chunk.coord.clone().addScalarSelf(x, y, z)
             }]);
             QubatchChunkWorker.postMessage(['add_animated_block', {
                 block_pos: tblock.posworld,
-                pos: [tblock.posworld.add(new Vector(.5, .5, .5))],
+                pos: [tblock.posworld.clone().addScalarSelf(.5, .5, .5)],
                 type: 'music_note'
             }]);
         }

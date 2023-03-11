@@ -190,7 +190,7 @@ export default class Mesh_Object_Rain {
         //     const item = ArrayHelpers.randomItem(this.contact_blocks)
         //     if(item !== prev_item) {
         //         const scale = Mth.clamp(1 - this.#_player_pos.distance(item.pos) / 8, 0, 1) * .5
-        //         render.destroyBlock({id: 202}, item.pos.add(new Vector(Math.random(), 1, Math.random())), true, scale, .5, 1)
+        //         render.destroyBlock({id: 202}, item.pos.clone().addScalarSelf(Math.random(), 1, Math.random()), true, scale, .5, 1)
         //         prev_item = item
         //     }
         // }

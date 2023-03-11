@@ -121,7 +121,7 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
     const xyz = new Vector();
     for(let sx = 0; sx < SZ; sx++) {
         for(let sz = 0; sz < SZ; sz++) {
-            const chunk_addr = chunk_addr_start.add(new Vector(sx, 0, sz));
+            const chunk_addr = chunk_addr_start.clone().addScalarSelf(sx, 0, sz);
             let maps = Tmaps.generateAround(fake_chunk, chunk_addr, true, true);
             let map = maps[4];
             all_maps.set(chunk_addr, map);

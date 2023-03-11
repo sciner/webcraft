@@ -827,7 +827,7 @@ export class Renderer {
             if(tblock.hasTag && tblock?.hasTag('leaves')) {
                 const tblock_under = world.getBlock(tblock.posworld.add(Vector.YN))
                 if(tblock_under?.id === 0) {
-                    this.destroyBlock(tblock, tblock.posworld.add(new Vector(.5, .5, .5)), false, 1, 0, 1)
+                    this.destroyBlock(tblock, tblock.posworld.clone().addScalarSelf(.5, .5, .5), false, 1, 0, 1)
                 }
             }
         }

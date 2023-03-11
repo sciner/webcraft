@@ -109,7 +109,7 @@ export class BlockDrawer {
         const list = this.list[this.list.length - 1]
         const rotate = new Vector(dir, 0, 0);
         list.push({move: pos, block_id, rotate, extra_data: {point: new Vector(0, 0, 0), opened, left, is_head: false}});
-        list.push({move: pos.add(new Vector(0, 1, 0)), block_id, rotate, extra_data: {point: new Vector(0, 0, 0), opened, left, is_head: true}});
+        list.push({move: pos.clone().addScalarSelf(0, 1, 0), block_id, rotate, extra_data: {point: new Vector(0, 0, 0), opened, left, is_head: true}});
     }
 
     append4WallsBlocks(pos : Vector, size : Vector, block_palette : any) {

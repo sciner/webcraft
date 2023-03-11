@@ -302,8 +302,6 @@ export class Default_Terrain_Generator {
 
     // Акация
     plantAcacia(world, tree, chunk, orig_x, orig_y, orig_z, setTreeBlock) {
-        // let xyz = chunk.coord.add(new Vector(orig_x, orig_y, orig_z));
-        // let random = new alea('tree' + xyz.toHash());
         let iterations = 0;
         let that = this;
         let plant = function(x, y, z, height, px, pz, rads) {
@@ -737,7 +735,7 @@ export class Default_Terrain_Generator {
     plantTestTree(world, tree, chunk, x, y, z, setTreeBlock) {
 
         const conus_rad = 16;
-        const xyz2 = chunk.coord.add(new Vector(x, y, z));
+        const xyz2 = chunk.coord.clone().addScalarSelf(x, y, z);
         const random_alea2 = new alea('tree_big' + xyz2.toHash());
         const blocks = [BLOCK.GREEN_CONCRETE, BLOCK.GREEN_CONCRETE_POWDER, BLOCK.GREEN_TERRACOTTA, BLOCK.MOSS_BLOCK, BLOCK.GREEN_WOOL];
 
@@ -771,7 +769,7 @@ export class Default_Terrain_Generator {
 
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
         const height = Math.min(CHUNK_SIZE_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
-        const xyz = chunk.coord.add(new Vector(x, y, z));
+        const xyz = chunk.coord.clone().addScalarSelf(x, y, z);
         const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
         // рисуем корни

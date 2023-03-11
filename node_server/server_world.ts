@@ -864,7 +864,7 @@ export class ServerWorld implements IWorld {
                                         packets: [{
                                             name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
                                             data: {
-                                                pos: params.pos.add(new Vector(.5, .5, .5)),
+                                                pos: params.pos.clone().addScalarSelf(.5, .5, .5),
                                                 item: params.destroy_block
                                             }
                                         }]

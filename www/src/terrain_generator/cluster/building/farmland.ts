@@ -31,7 +31,7 @@ export class Farmland extends Building {
         this.blocks.list.push(this, [])
 
         // add air above
-        this.blocks.appendQuboidBlocks(new Vector(0, -1, 0), right_size.add(new Vector(0, 5, 0)), bm.AIR.id)
+        this.blocks.appendQuboidBlocks(new Vector(0, -1, 0), right_size.clone().addScalarSelf(0, 5, 0), bm.AIR.id)
 
         // box
         this.blocks.appendQuboidBlocks(new Vector(0, -1, 0), right_size.add(Vector.YP), bm.OAK_LOG.id)

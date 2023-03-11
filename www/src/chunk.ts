@@ -466,12 +466,12 @@ export class Chunk {
     }
 
     //
-    static createFrustumGeometry(coord, size) {
+    static createFrustumGeometry(coord : Vector, size : Vector) {
         let frustum_geometry = [];
         let box_radius = size.x;
         let sphere_radius = (Math.sqrt(3) * box_radius / 2) * 1.05;
-        frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y / 4, size.z / 2)), sphere_radius));
-        frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y - size.y / 4, size.z / 2)), sphere_radius));
+        frustum_geometry.push(new Sphere(coord.clone().addScalarSelf(size.x / 2, size.y / 4, size.z / 2), sphere_radius))
+        frustum_geometry.push(new Sphere(coord.clone().addScalarSelf(size.x / 2, size.y - size.y / 4, size.z / 2), sphere_radius))
         return frustum_geometry;
     }
 
