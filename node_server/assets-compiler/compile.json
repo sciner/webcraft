@@ -3417,8 +3417,12 @@
             "transparent": true,
             "planting": false,
             "sound": "madcraft:block.cloth",
+            "coocked_item": {
+                "name": "GREEN_DYE", 
+                "count": 1
+            },
             "material": {
-                "id": "plant"
+                "id": "cactus"
             },
             "ticking": {
                 "type": "stage",
