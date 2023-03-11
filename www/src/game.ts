@@ -257,7 +257,6 @@ export class GameClass {
                     }
                     return true;
                 } else if (type == MOUSE.WHEEL) {
-                    if(e.ctrlKey) return;
                     if(player) {
                         if(controls.enabled) {
                             if(!player.changeSpectatorSpeed(-e.deltaY)) {
@@ -275,6 +274,7 @@ export class GameClass {
                             });
                         }
                     }
+                    if(e.ctrlKey) return;
                     return true;
                 }
                 if(!this.player.controls.enabled || player.chat.active || hasVisibleWindow) {
