@@ -1,22 +1,16 @@
 import { Vector } from "../../../helpers.js";
 import { Building } from "../building.js";
 import { calcMinFloorYbyXZ } from '../building_helpers.js';
+import type { ClusterBase } from "../base.js";
 
 // Farmland
 export class Farmland extends Building {
-    [key: string]: any;
+
+    seeds: any
 
     static SIZE_LIST = Building.makeRandomSizeList([3, 5, 7, 7, 10, 10, 10, 13, 13, 13, 16, 16, 16]);
 
-    /**
-     * @param { import("../base.js").ClusterBase } cluster
-     * @param {float} seed
-     * @param {Vector} coord
-     * @param {Vector} entrance
-     * @param {int} door_direction
-     * @param {Vector} size
-     */
-    constructor(cluster, seed, coord, entrance, door_direction, size) {
+    constructor(cluster : ClusterBase, seed : float, coord : Vector, entrance : Vector, door_direction : int, size : Vector) {
 
         size.y = 2;
 
@@ -25,7 +19,7 @@ export class Farmland extends Building {
         const bm = cluster.block_manager
 
         this.seeds = this.randoms.double() < .5 ? bm.CARROT_SEEDS : bm.WHEAT_SEEDS;
-        this.draw_entrance = false;
+        this.draw_entrance = false
 
         const right_size = this.size.clone()
         if(door_direction % 2 == 1) {
@@ -98,7 +92,7 @@ export class Farmland extends Building {
     // Draw
     draw(cluster, chunk) {
 
-        super.draw(cluster, chunk);
+        super.draw(cluster, chunk)
 
         this.blocks.draw(cluster, chunk);
 

@@ -10,7 +10,6 @@ import {ChunkLight} from "./light/ChunkLight.js";
 import type { BaseResourcePack } from "./base_resource_pack.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
-import type WebGLRenderer from "./renders/webgl/index.js";
 
 let global_uniqId = 0;
 

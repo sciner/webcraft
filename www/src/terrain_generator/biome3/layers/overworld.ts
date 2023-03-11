@@ -416,7 +416,7 @@ export default class Biome3LayerOverworld {
 
                         if(block_id == grass_block_id && !cell.biome.is_snowy) {
                             if(xyz.y - WATER_LEVEL < 2) {
-                                if(d4 < 0) {
+                                if(d4 * .3 + d3 * .7 < 0) {
                                     block_id = cell.biome.is_swamp ? podzol_block_id : sand_block_id
                                 }
                             }

@@ -158,7 +158,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         //     if(b.entrance.y != Infinity) {
         //         // this.drawBulding(chunk, maps, b, map)
         //         // draw basement before the building
-        //         if (b.getautoBasementAABB()?.intersect(chunk.aabb)) {
+        //         if (b.getAutoBasementAABB()?.intersect(chunk.aabb)) {
         //             b.drawAutoBasement(chunk)
         //         }
         //     }
