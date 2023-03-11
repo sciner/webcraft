@@ -74,6 +74,7 @@ export class ServerWorld implements IWorld {
         out_count_by_type?: int[]; in_count_by_type?: int[];
         out_size_by_type?: int[]; in_size_by_type?: int[];
     };
+    timer_skip_night: number = -1;
     start_time: number;
     weather_update_time: number;
     rules: GameRule;
@@ -484,6 +485,9 @@ export class ServerWorld implements IWorld {
             //
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
+
+            // отложеная смена ночи на день
+            this.skipNight()
 
             // Do different periodic tasks in different ticks to reduce lag spikes
             if(this.ticks_stat.number % 100 == 0) {
@@ -1248,6 +1252,42 @@ export class ServerWorld implements IWorld {
             hours:          hours,
             minutes:        minutes,
             string:         hours_string + ':' + minutes_string
+        }
+    }
+
+    /*
+    * Проверям спят ли все
+    */
+    getAllSleep(id) {
+        const time = this.getTime()
+        if(time.hours < 18 && time.hours > 6) {
+            return false
+        }
+        // находим игроков
+        for (const player of this.players.values()) {
+            if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS.DEAD && player.session.user_id != id) {
+                if (!player.state.sleep) {
+                    return false
+                }
+            }
+        }
+        this.timer_skip_night = 30
+        return true
+    }
+    /*
+    * Меняем ночь на день с задержкой
+    */
+    skipNight() {
+        if (this.timer_skip_night == 0) {
+            const age = this.info.calendar.age + this.info.calendar.day_time / GAME_DAY_SECONDS
+            const day_time = (age - Math.floor(age)) * GAME_DAY_SECONDS
+            this.info.add_time += Math.round(6000 - day_time)
+            this.db.updateAddTime(this.info.guid, this.info.add_time)
+            this.updateWorldCalendar()
+            this.sendUpdatedInfo()
+        }
+        if (this.timer_skip_night > -1) {
+            this.timer_skip_night--
         }
     }
 
