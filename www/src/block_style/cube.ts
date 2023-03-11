@@ -106,7 +106,7 @@ export default class style {
             block_manager.DECAL2.material_key,
         )
         return new BlockStyleRegInfo(
-            ['cube', 'default'],
+            ['cube'],
             this.func,
             this.computeAABB
         );

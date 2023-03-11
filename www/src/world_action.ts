@@ -13,7 +13,7 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
-import { BLOCK_FLAG, COVER_STYLE_SIDES } from "./constant.js";
+import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 
@@ -2323,7 +2323,7 @@ function restrictLadder(e, world, pos, player, world_block, world_material, mat_
         return false;
     }
     // Лианы можно ставить на блоки с прозрачностью
-    if(world_material.transparent && world_material.style_name != 'default') {
+    if(world_material.transparent && world_material.style_name != DEFAULT_STYLE_NAME) {
         return true;
     }
     //

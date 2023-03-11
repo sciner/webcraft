@@ -5,7 +5,7 @@ import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { StringHelpers } from "./helpers.js";
 import { Lang } from "./lang.js";
-import { BLOCK_FLAG, LEAVES_TYPE } from "./constant.js";
+import { BLOCK_FLAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
 import type { GameSettings } from "./game.js";
@@ -803,7 +803,7 @@ export class BLOCK {
         if(block.id == 0) {
             return false
         }
-        return (block.style_name == 'default' || block.tags.includes('ore')) &&
+        return (block.style_name == DEFAULT_STYLE_NAME || block.tags.includes('ore')) &&
             !block.is_fluid &&
             !block.transparent &&
             !block.is_leaves &&
@@ -1463,7 +1463,7 @@ export class BLOCK {
                 b.sort_index = 85;
             } else if((b.width || b.height || b.depth) && !b.window && b.material.id != 'dirt') {
                 b.sort_index = 84;
-            } else if(b.style_name == 'default' || b.style_name == 'cube') {
+            } else if(b.style_name == DEFAULT_STYLE_NAME) {
                 b.sort_index = sortByMaterial(b, 83);
             } else {
                 b.sort_index = sortByMaterial(b, 101);

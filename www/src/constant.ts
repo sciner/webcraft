@@ -21,6 +21,7 @@ export const DIRT_COLOR_NOISE_RANGE         = 20; // mix dirt colors on every bl
 export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', 'west', 'east'];
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= ['BEDROCK'];
 export const ITEM_LABEL_MAX_LENGTH          = 19;
+export const DEFAULT_STYLE_NAME             = 'cube'
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
