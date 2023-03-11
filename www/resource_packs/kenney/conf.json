@@ -6,7 +6,7 @@
     "textures": {
         "default": {
             "image": "/textures/default.png",
-            "tx_cnt": 32
+            "tx_cnt": 64
         },
         "tool": {
             "image": "/textures/tool.png",

@@ -3,15 +3,29 @@
         "id": 2,
         "name": "GRASS_BLOCK",
         "texture": {
-            "up": [0, 16],
+            "up": [0, 15],
             "down": [2, 0],
-            "side": [2, 16]
+            "side": [2, 15]
         }
+    },
+    {
+        "id": 114,
+        "name": "GRASS_BLOCK_SLAB",
+        "texture": {
+            "up": [0, 15],
+            "down": [2, 0],
+            "side": [2, 15]
+        }
+    },
+    {
+        "id": 18,
+        "name": "DIRT",
+        "texture": [2, 0]
     },
     {
         "id": 31,
         "name": "GRASS",
-        "texture": [4, 16]
+        "texture": [4, 15]
     },
     {
         "id": 56,
@@ -22,26 +36,26 @@
         "id": 106,
         "name": "VINE",
         "texture": {
-            "south": [6, 16],
-            "side": [6, 16]
+            "south": [6, 15],
+            "side": [6, 15]
         }
     },
     {
         "id": 162,
         "name": "BIRCH_LOG",
         "texture": {
-            "up": [20, 17],
-            "down": [20, 17],
-            "side": [20, 16]
+            "up": [9, 13],
+            "down": [9, 13],
+            "side": [9, 12]
         }
     },
     {
         "id": 3,
         "name": "OAK_LOG",
         "texture": {
-            "up": [21, 17],
-            "down": [21, 17],
-            "side": [21, 16]
+            "up": [10, 13],
+            "down": [10, 13],
+            "side": [10, 12]
         }
     },
     {
@@ -65,48 +79,49 @@
     {
         "id": 233,
         "name": "OAK_LEAVES",
-        "texture": [10, 19]
+        "texture": [10, 14]
     },
     {
         "id": 220,
         "name": "ACACIA_LEAVES",
-        "texture": [10, 20]
+        "texture": [10, 14]
     },
     {
         "id": 190,
         "name": "SPRUCE_LEAVES",
-        "texture": [10, 21]
+        "texture": [10, 14]
     },
 
-    {"id": 456, "name": "BIRCH_PLANKS", "texture": [20, 19]},
-    {"id": 7, "name": "OAK_PLANKS", "texture": [21, 19]},
-    {"id": 457, "name": "ACACIA_PLANKS", "texture": [22, 19]},
-    {"id": 460, "name": "SPRUCE_PLANKS", "texture": [23, 19]},
+    {"id": 456, "name": "BIRCH_PLANKS", "texture": [9, 15]},
+    {"id": 7, "name": "OAK_PLANKS", "texture": [10, 15]},
+    {"id": 457, "name": "ACACIA_PLANKS", "texture": [22, 15]},
+    {"id": 460, "name": "SPRUCE_PLANKS", "texture": [12, 15]},
 
-    {"id": 458, "name": "BIRCH_SLAB", "texture": [20, 19]},
-    {"id": 126, "name": "OAK_SLAB", "texture": [21, 19]},
-    {"id": 459, "name": "ACACIA_SLAB", "texture": [22, 19]},
-    {"id": 461, "name": "SPRUCE_SLAB", "texture": [23, 19]},
+    {"id": 458, "name": "BIRCH_SLAB", "texture": [9, 15]},
+    {"id": 126, "name": "OAK_SLAB", "texture": [10, 15]},
+    {"id": 459, "name": "ACACIA_SLAB", "texture": [22, 15]},
+    {"id": 461, "name": "SPRUCE_SLAB", "texture": [12, 15]},
     {"id": 501, "name": "BRICK_SLAB", "texture": [7, 0]},
 
     {"id": 1, "name": "BEDROCK","texture": [1, 1]},
     {"id": 8, "name": "COBBLESTONE", "texture": [0, 1]},
     {"id": 9, "name": "STONE", "texture": [1, 0]},
+    {"id": 1023, "name": "UNCERTAIN_STONE", "texture": [1, 0]},
     {"id": 10, "name": "BRICKS", "texture": [7, 0]},
     {"id": 11, "name": "SAND", "texture": [2, 1]},
     {"id": 12, "name": "GRAVEL", "texture": [3, 1]},
     {"id": 15, "name": "IRON_ORE", "texture": [1, 2]},
     {"id": 16, "name": "COAL_ORE", "texture": [2, 2]},
     {"id": 14, "name": "GOLD_ORE", "texture": [0, 2]},
-    {"id": 189, "name": "BIRCH_FENCE", "texture": [20, 19]},
-    {"id": 85, "name": "OAK_FENCE", "texture": [21, 19]},
-    {"id": 188, "name": "ACACIA_FENCE", "texture": [22, 19]},
-    {"id": 191, "name": "SPRUCE_FENCE", "texture": [23, 19]},
+    {"id": 189, "name": "BIRCH_FENCE", "texture": [9, 15]},
+    {"id": 85, "name": "OAK_FENCE", "texture": [10, 15]},
+    {"id": 188, "name": "ACACIA_FENCE", "texture": [22, 15]},
+    {"id": 191, "name": "SPRUCE_FENCE", "texture": [12, 15]},
     {"id": 108, "name": "BRICK_STAIRS", "texture": [7, 0]},
-    {"id": 135, "name": "BIRCH_STAIRS", "texture": [20, 19]},
-    {"id": 53, "name": "OAK_STAIRS", "texture": [21, 19]},
-    {"id": 163, "name": "ACACIA_STAIRS", "texture": [22, 19]},
-    {"id": 134, "name": "SPRUCE_STAIRS", "texture": [23, 19]},
+    {"id": 135, "name": "BIRCH_STAIRS", "texture": [9, 15]},
+    {"id": 53, "name": "OAK_STAIRS", "texture": [10, 15]},
+    {"id": 163, "name": "ACACIA_STAIRS", "texture": [22, 15]},
+    {"id": 134, "name": "SPRUCE_STAIRS", "texture": [12, 15]},
     {"id": 4, "name": "TNT", 
         "texture": {
             "up": [9, 0],
@@ -116,8 +131,8 @@
     },
     {"id": 5, "name": "BOOKSHELF",
         "texture": {
-            "up": [21, 19],
-            "down": [21, 19],
+            "up": [10, 15],
+            "down": [10, 15],
             "side": [3, 2]
         }
     },
@@ -136,7 +151,10 @@
     {"id": 36, "name": "DANDELION", "texture": [13, 0]},
     {"id": 79, "name": "ICE", "texture": [3, 4]},
     {"id": 109, "name": "STONE_STAIRS", "texture": [1, 0]},
+    {"id": 615, "name": "STONE_BRICK_STAIRS", "texture": [6, 3]},
     {"id": 67, "name": "COBBLESTONE_STAIRS", "texture": [0, 1]},
+    {"id": 139, "name": "COBBLESTONE_WALL", "texture": [0, 1]},
+    {"id": 45, "name": "COBBLESTONE_SLAB", "texture": [0, 1]},
     {"id": 61, "name": "FURNACE",
         "texture": {
             "up": [14, 3],
