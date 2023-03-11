@@ -197,7 +197,6 @@ export class GameClass {
         const player = this.player;
         const add_mouse_rotate = new Vector();
         const controls = that.player.controls;
-        let freezeF4Up = false;
         const kb = this.kb = new Kb(el, {
             onPaste: (e) => {
                 const clipboardData = e.clipboardData || (window as any).clipboardData;
@@ -333,7 +332,6 @@ export class GameClass {
                                 }
                                 kb.keys[KEY.F3] = false;
                                 kb.keys[KEY.F4] = false;
-                                freezeF4Up = true;
                             }
                         }
                         return true;
@@ -442,15 +440,11 @@ export class GameClass {
                                 }
                             }
                         } else {
-                            if(freezeF4Up) {
-                                freezeF4Up = false;
-                            } else {
-                                if(e.shiftKey) {
-                                    this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
-                                    Qubatch.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
-                                } else if(kb.keys[e.keyCode]) {
-                                    player.changeSpawnpoint();
-                                }
+                            if (e.shiftKey) {
+                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
+                                Qubatch.render.addAsteroid(player.pos.add({ x: 0, y: 16, z: 0 }), 5);
+                            } else if (kb.keys[e.keyCode]) {
+                                player.changeSpawnpoint();
                             }
                         }
                         break;
