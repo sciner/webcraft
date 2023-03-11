@@ -4,7 +4,6 @@ import { impl as alea } from "../../../vendors/alea.js";
 import { ArrayHelpers, Vector, VectorCollector } from "../../helpers.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import { BlockDrawer } from "./block_drawer.js";
-
 import type { Biome } from "../biome3/biomes.js";
 import type { ClusterManager } from "./manager.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
