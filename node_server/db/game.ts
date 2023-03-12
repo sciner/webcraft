@@ -197,6 +197,10 @@ export class DBGame {
             `INSERT INTO "world_player"("world_id", "user_id", "dt") SELECT 1000001, "user".id, 1635956652 FROM "user"`,
         ]});
 
+        migrations.push({version: 14, queries: [
+            `UPDATE world SET generator = replace(generator, '"generate_big_caves":false', '"generate_big_caves":true') WHERE _rowid_ = 1000001`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
