@@ -301,6 +301,7 @@ export class HUD {
             // Draw game technical info
             this.drawInfo()
             this.drawAverageFPS()
+            this.drawCompas()
         }
 
         for(const item of this.items) {
@@ -608,7 +609,6 @@ export class HUD {
         let text_block = this.wm.hud_window[id]
         if(!text_block) {
             text_block = this.wm.hud_window[id] = new HUDLabel(x, y, this.wm.w - x, this.wm.h - y, `hud_${id}`)
-
             const fs = text_block.style.font._font_style
             fs.stroke = '#00000099'
             fs.strokeThickness = 4
@@ -639,6 +639,18 @@ export class HUD {
         text_block. position.set(x, y)
         text_block.text = str
 
+    }
+
+    drawCompas() {
+        const rot = Qubatch.player.rotate.z
+        const text = '          N                    E                    S                    W                    N           '
+        let x  = Math.round(rot * 13)
+        if (!this.wm.hud_window['compas']) {
+            this.wm.hud_window['compas'] = new Label((this.wm.w / 2) - 140, 40 * this.zoom, 280, 40, 'compas', '', '')
+            this.wm.hud_window.addChild(this.wm.hud_window['compas'])
+            this.wm.hud_window['compas'].style.background.color = '#00ff0055'
+        }
+        this.wm.hud_window['compas'].text = text.substring(x, x + 24)
     }
 
 }
