@@ -103,6 +103,9 @@ export class ClusterEndCity extends ClusterBuildingBase {
             )
             this.appendBuilding(building)
         }
+
+        this.resetNearMask()
+
     }
 
     /**
