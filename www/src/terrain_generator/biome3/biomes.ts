@@ -151,7 +151,7 @@ export class Biome {
         this.is_taiga                   = title.toLowerCase().indexOf('тайга') >= 0
         this.is_swamp                   = title.toLowerCase().indexOf('болото') >= 0
         // calc is_snowy
-        this.is_snowy = false
+        this.is_snowy = title.toLowerCase().indexOf('заснеж') >= 0
         this.is_grassy_surface = false
         for(let dl of dirt_layers) {
             for(let block_id of dl.blocks) {
@@ -376,8 +376,8 @@ export class Biomes {
                 {percent: 0.681 + 0.150, ...TREES.SPRUCE, height: {min: 6, max: 11}}
             ]
         }, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
-        this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4,   snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
-        this.addBiome(26, 'Заснеженный пляж', -0.05, 0.3,            [new BiomeDirtLayer([BLOCK.SANDSTONE.id, BLOCK.STONE.id], BLOCK.SNOW.id), new BiomeDirtLayer([BLOCK.STONE.id], BLOCK.SNOW.id)], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
+        this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4, snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
+        this.addBiome(26, 'Заснеженный пляж', -0.05, 0.3, [new BiomeDirtLayer([BLOCK.SANDSTONE.id, BLOCK.STONE.id], BLOCK.SNOW.id), new BiomeDirtLayer([BLOCK.STONE.id], BLOCK.SNOW.id)], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
         // this.addBiome('Замерзшая река', 0. -0.2);
         // this.addBiome('Замерзший океан', 0. -0.1);
         // this.addBiome('Глубокий замерзший океан', 0.8, -0.1);
