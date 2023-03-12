@@ -1,7 +1,12 @@
-import { decompressPlayerStateC } from "@client/packet_compressor.js";
+import {InPacketBuffer, PacketBuffer} from "@client/packet_compressor.js";
 import { ServerClient } from "@client/server_client.js";
+import type {ServerPlayer} from "../../server_player.js";
 
 export default class packet_reader {
+
+    private static inPacketBuffer = new InPacketBuffer()
+
+    static terminateOnException = true
 
     // must be put to queue
     static get queue() {
@@ -13,23 +18,18 @@ export default class packet_reader {
         return ServerClient.CMD_PLAYER_STATE;
     }
 
-    // 
-    static async read(player, packet) {
-        if(player.wait_portal) {
-            return true;
-        }
-        const data = decompressPlayerStateC(packet.data);
-        if(player.state.sitting || player.state.lies || player.state.sleep) {
-            data.pos = player.state.pos.clone();
-            // data.rotate = player.state.rotate.clone();
-        }
-        player.changePosition(data);
-        //
-        const distance = Math.sqrt(Math.pow(data.pos.x, 2) + Math.pow(data.pos.y, 2) + Math.pow(data.pos.z, 2));
-        if ((parseFloat(distance.toFixed(1)) % 1) == 0) {
-            player.state.stats.distance++;
-            player.addExhaustion(0.01);
-        }
+    //
+    static async read(player: ServerPlayer, packet: INetworkMessage<PacketBuffer>) {
+        const data = packet.data
+
+        /* Reading ping_value.
+        See also commented client code that writes ping_value in Player.sendState()
+
+        const ping_value = data.pop()
+        */
+
+        const inPacketBuffer = this.inPacketBuffer.import(data)
+        player.controlManager.onClientTicks(inPacketBuffer)
         return true;
     }
 

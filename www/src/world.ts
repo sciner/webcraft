@@ -46,6 +46,12 @@ export class World implements IWorld {
         this.blockModifierListeners = [];
     }
 
+    /** Closes the connection on an unrecoverable error */
+    terminate(err: any) {
+        console.error(`Connection is closed due to ${err}`)
+        this.server.ws.close(1000)
+    }
+
     get serverTimeWithLatency() {
         return this.serverTime - Math.max(this.latency, World.MIN_LATENCY);
     }

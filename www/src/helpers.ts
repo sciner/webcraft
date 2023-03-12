@@ -31,6 +31,8 @@ import {Color} from "./helpers/color.js";
 
 const {mat4, quat} = glMatrix;
 
+let _monotonicDateNowValue = 0 // previous value of monotonicDateNow()
+
 /**
  * @param {string} url
  * @param {*} callback
@@ -769,4 +771,13 @@ export function isMobileBrowser() : boolean {
 //
 export function isScalar(v : any) : boolean {
     return !(typeof v === 'object' && v !== null);
+}
+
+/** Similar to Date.now(), but the values are non-decreasing even if the computer adjusts time. */
+export function monotonicDateNow(): number {
+    const now = Date.now()
+    if (_monotonicDateNowValue > now) {
+        return _monotonicDateNowValue
+    }
+    return _monotonicDateNowValue = now
 }

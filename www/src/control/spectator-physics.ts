@@ -1,41 +1,24 @@
 "use strict";
 
-import { KEY, SPECTATOR_SPEED_MUL } from "./constant.js";
-import { Vector } from "./helpers.js";
+import {KEY, PLAYER_HEIGHT, SPECTATOR_SPEED_MUL} from "../constant.js";
+import { Vector } from "../helpers.js";
+import {PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
+import {PlayerControl} from "./player_control.js";
+import type {World} from "../world.js";
+import {PLAYER_CONTROL_TYPE} from "./player_control.js";
+import type {PlayerTickData} from "./player_control_manager.js";
 
-export class PlayerControl  {
-    [key: string]: any;
+export class SpectatorPlayerController extends PlayerControl {
+    world: World
+    timeAccumulator: int
+    physicsEnabled: boolean
+    keys
+    physics
+    scale: number
+    mul: float
 
-    constructor(options) {
-        this.mouseX             = 0;
-        this.mouseY             = 0;
-        this.mouse_sensitivity  = (options.mouse_sensitivity ?? 100.0) / 100;
-        this.inited             = false;
-        this.enabled            = false;
-        this.reset();
-    }
-
-    // reset controls
-    reset() {
-        this.setState(false, false, false, false, false, false, false);
-    }
-
-    setState(forward, back, left, right, jump, sneak, sprint) {
-        this.forward            = forward;
-        this.back               = back;
-        this.left               = left;
-        this.right              = right;
-        this.jump               = jump;
-        this.sneak              = sneak;
-        this.sprint             = sprint;
-    }
-
-}
-
-export class SpectatorPlayerControl {
-    [key: string]: any;
-
-    constructor(world, start_position) {
+    constructor(world: World, start_position: Vector) {
+        super()
         this.world              = world;
         this.timeAccumulator    = 0;
         this.physicsEnabled     = true;
@@ -43,34 +26,22 @@ export class SpectatorPlayerControl {
         //
         this.physics            = {}
         //
-        this.player             = {
-            entity: {
-                position: new Vector(start_position)
-            }
-        }
-        //
-        this.controls = {
-            forward: false,
-            back: false,
-            left: false,
-            right: false,
-            jump: false,
-            sprint: false,
-            sneak: false
-        };
-        //
         this.player_state = {
             yaw: 0,
             vel: new Vector(0, 0, 0),
-            pos: new Vector(0, 0, 0),
+            pos: start_position.clone(),
             onGround: true,
             flying: true,
             isInWater: false
         }
     }
 
+    get type()                  { return PLAYER_CONTROL_TYPE.SPECTATOR }
+    get sneak(): boolean        { return false }
+    get playerHeight(): float   { return PLAYER_HEIGHT }
+
     // Tick
-    tick(delta, scale) {
+    tick(delta: float, scale?: float) {
         if(this.controls.forward) {
             if(!this.keys[KEY.W]) this.keys[KEY.W] = performance.now();
         } else {
@@ -116,7 +87,7 @@ export class SpectatorPlayerControl {
         let passable = 1;
         const mulx = SPECTATOR_SPEED_MUL * (this.mul ?? 1);
         const mul = ((this.controls.sprint ? this.player_state.flying ? 1.15 : 1.5 : 1) * passable / 2.8) * mulx;
-        this.player.entity.position.addScalarSelf(
+        this.player_state.pos.addScalarSelf(
             this.player_state.vel.x * delta * mul,
             this.player_state.vel.y * delta * (mul * 2),
             this.player_state.vel.z * delta * mul
@@ -161,4 +132,20 @@ export class SpectatorPlayerControl {
         return add_force;
     }
 
+    backupPartialState(): void {
+        // do nothing
+    }
+
+    restorePartialState(pos: Vector): void {
+        this.player_state.pos.copyFrom(pos)
+    }
+
+    simulatePhysicsTick(): void {
+        this.tick(PHYSICS_TIMESTEP, this.scale)
+    }
+
+    validateWithoutSimulation(prevData: PlayerTickData | null, data: PlayerTickData): boolean {
+        // TODO implement
+        return true
+    }
 }

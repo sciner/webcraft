@@ -8,8 +8,11 @@ import {Physics, PlayerState} from "./index.js";
 import {Resources} from "../resources.js";
 import {FLUID_TYPE_MASK, FLUID_LEVEL_MASK, FLUID_WATER_ID, FLUID_LAVA_ID} from "../fluid/FluidConst.js";
 import {TBlock} from "../typed_blocks3.js";
+import {PlayerControl} from "../control/player_control.js";
+import {PHYSICS_INTERVAL_MS} from "../constant.js";
+import {PLAYER_CONTROL_TYPE} from "../control/player_control.js";
+import type {PlayerTickData} from "../control/player_control_manager.js";
 
-const PHYSICS_INTERVAL_MS   = 50;
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
 export const DEFAULT_SLIPPERINESS = 0.6;
 
@@ -66,7 +69,7 @@ class FakeWorld {
      * Return block from real world
      * @param {Vector} pos
      * @param {?TBlock} tblock
-     * 
+     *
      * @returns {FakeBlock}
      */
     getBlock(pos, tblock = null) {
@@ -134,7 +137,7 @@ export class FakeBlock {
     }
 }
 
-// FakePlayer
+// It's used only during initialization
 function FakePlayer(pos, effects) {
     return {
         entity: {
@@ -154,33 +157,37 @@ function FakePlayer(pos, effects) {
     }
 }
 
-export class PrismarinePlayerControl {
-    player_state: any;
+export class PrismarinePlayerControl extends PlayerControl {
+    declare player_state: PlayerState;
+    private partialStateBackup = {
+        vel: new Vector(),
+        jumpQueued: false,
+        jumpTicks: 0
+    }
     world: FakeWorld;
     physics: any; // { scale: any; gravity: number; flyinGravity: number; flyingYSpeed: number; flyingInertiaMultiplyer: number; airdrag: number; yawSpeed: number; pitchSpeed: number; sprintSpeed: number; sneakSpeed: number; swimDownDrag: { down: number; maxDown: number; }; stepHeight: any; negligeableVelocity: number; soulsandSpeed: number; honeyblockSpeed: number; honeyblockJumpSpeed: number; ladderMaxSpeed: number; ladderClimbSpeed: number; playerHalfWidth: any; playerHeight: any; waterInertia: number; lavaInertia: number; liquidAcceleration: number; airborneInertia: number; airborneAcceleration: number; defaultSlipperiness: any; outOfLiquidImpulse: number; autojumpCooldown: number; bubbleColumnSurfaceDrag: { down: number; maxDown: number; up: number; maxUp: number; }; bubbleColumnDrag: { down: number; maxDown: number; up: number; maxUp: number; }; slowFalling: number; speedEffect: number; slowEffect: number; };
-    player: { entity: { position: any; velocity: Vec3; onGround: boolean; isInWater: boolean; isInLava: boolean; isInWeb: boolean; isCollidedHorizontally: boolean; isCollidedVertically: boolean; yaw: number; effects: any; }; jumpTicks: number; jumpQueued: boolean; };
     timeAccumulator: number;
     physicsEnabled: boolean;
-    controls: { forward: boolean; back: boolean; left: boolean; right: boolean; jump: boolean; sprint: boolean; sneak: boolean; };
 
-    constructor(world, pos, options) {
+    constructor(world, pos: Vector, options) {
+        super()
         const mcData            = FakeWorld.getMCData(world);
         this.world              = new FakeWorld(world);
         this.physics            = Physics(mcData, this.world, options);
-        this.player             = FakePlayer(pos,options.effects);
+        const fakePlayer        = FakePlayer(pos, options.effects);
         this.timeAccumulator    = 0;
         this.physicsEnabled     = true;
-        this.controls = {
-            forward: false,
-            back: false,
-            left: false,
-            right: false,
-            jump: false,
-            sprint: false,
-            sneak: false
-        };
-        this.player_state = new PlayerState(this.player, this.controls, mcData, Resources.physics.features, options.baseSpeed);
+        this.player_state = new PlayerState(fakePlayer, this.controls, mcData, Resources.physics.features, options.baseSpeed);
     }
+
+    get type()              { return PLAYER_CONTROL_TYPE.PRISMARINE }
+
+    get sneak(): boolean {
+        const player_state = this.player_state
+        return player_state.control.sneak && player_state.onGround
+    }
+
+    get playerHeight(): float { return this.physics.playerHeight }
 
     // https://github.com/PrismarineJS/mineflayer/blob/436018bde656225edd29d09f6ed6129829c3af42/lib/plugins/physics.js
     tick(deltaSeconds) {
@@ -188,7 +195,7 @@ export class PrismarinePlayerControl {
         let ticks = 0;
         while(this.timeAccumulator >= PHYSICS_TIMESTEP) {
             if (this.physicsEnabled) {
-                this.physics.simulatePlayer(this.player_state, this.world).apply(this.player);
+                this.physics.simulatePlayer(this.player_state, this.world)
                 // bot.emit('physicsTick')
             }
             // updatePosition(PHYSICS_TIMESTEP);
@@ -199,4 +206,35 @@ export class PrismarinePlayerControl {
         // this.physics.simulatePlayer(this.player_state, this.world).apply(this.player);
     }
 
+    resetState(): void {
+        super.resetState()
+        this.player_state.jumpQueued = false
+        this.player_state.jumpTicks = 0
+    }
+
+    backupPartialState(): void {
+        this.copyPartialStateFromTo(this.player_state, this.partialStateBackup)
+    }
+
+    restorePartialState(pos: Vector): void {
+        this.copyPartialStateFromTo(this.partialStateBackup, this.player_state)
+        this.player_state.pos.copyFrom(pos)
+    }
+
+    simulatePhysicsTick(): void {
+        if (this.physicsEnabled) {
+            this.physics.simulatePlayer(this.player_state, this.world)
+        }
+    }
+
+    private copyPartialStateFromTo(src: any, dst: any) {
+        dst.vel.copyFrom(src.vel)
+        dst.jumpQueued  = src.jumpQueued
+        dst.jumpTicks   = src.jumpTicks
+    }
+
+    validateWithoutSimulation(prevData: PlayerTickData | null, data: PlayerTickData): boolean {
+        // TODO implement
+        return true
+    }
 }
