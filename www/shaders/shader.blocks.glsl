@@ -126,8 +126,6 @@
     out vec3 v_normal;
     out vec4 v_color;
     out float v_animInterp;
-    out float v_lightMode;
-    out float v_useFog;
     out float v_lightId;
     out vec4 v_lightOffset;
     out vec3 v_aoOffset;
