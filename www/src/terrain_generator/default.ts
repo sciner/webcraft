@@ -909,93 +909,51 @@ export class Default_Terrain_Generator {
 
     // Дерево хоруса
     plantChorus(world, tree, chunk, x, y, z, setTreeBlock) {
+        const blocks = new Map()
         const isNeighbors = (pos, ignore?) => {
-            const faces = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP]
+            const faces = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YP]
             for (const face of faces) {
                 const position = pos.add(face)
                 if (ignore && position.equal(ignore)) {
                     continue
                 }
-                //if (position.x > 16 || position.x < 0 || position.z > 16 || position.z < 0) {
-                  //  return true
-                //}
-                const id = chunk.tblocks.getBlockId(position.x, position.y, position.z)
-                if (id == 1043) {
+                if (blocks.has(position.toHash())) {
                     return true
                 }
             }
             return false
         }
-
-        const setChorus = (x, y, z) => {
-            for (let i = 0; i < 5; i++) {
-                if (isNeighbors(new Vector(x, y + i, z))) {
-                    return
-                }
-                this.temp_block.id = tree.type.trunk
-                setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true)
-                if (random.double() < 0.1) {
-                    let age = random.nextInt(4)
-                    for (let l = 0; l < age; l++) {
-                        const sh_x = random.nextInt(3) - 1
-                        const sh_z = (sh_x == 0) ? random.nextInt(3) - 1 : 0
-                        if (!isNeighbors(new Vector(x + sh_x, y + i, z + sh_z), new Vector(x, y + i, z))) {
-                            setChorus(x + sh_x, y + i + 1, z + sh_z)
-                            this.temp_block.id = tree.type.trunk
-                            setTreeBlock(tree, chunk, x + sh_x, y + i, z + sh_z, this.temp_block, true)
-                        }
-                    }
-                    return
-                }
-                /*if (random.double() < 0.2) {
-                    this.temp_block.id = tree.type.trunk
-                    setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true)
-                    let age = random.nextInt(4)
-                    for (let l = 0; l < age; l++) {
-                        const sh_x = random.nextInt(3) - 1
-                        const sh_z = (sh_x == 0) ? random.nextInt(3) - 1 : 0
-                        if (!isNeighbors(new Vector(x + sh_x, y + i, z + sh_z), new Vector(x, y + i, z))) {
-                            setChorus(x + sh_x, y + i, z + sh_z)
-                        }
-                    }
-                    return
-                } else {
-                    if (isNeighbors(new Vector(x, y + i, z))) {
-                        return
-                    }
-                    this.temp_block.id = tree.type.trunk
-                    setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true)
-                }*/
-            }
-           /* let age = random.nextInt(4)
-            for (let l = 0; l < age; l++) {
-                const sh_x = random.nextInt(3) - 1
-                const sh_z = (sh_x == 0) ? random.nextInt(3) - 1 : 0
-            }*/
-        }
+        let ages = 0
         const xyz = chunk.coord.add(new Vector(x, y, z))
         const random = new alea('chorus' + xyz.toHash())
-        let ystart = y + tree.height;
-        for (let i = 0; i < 5; i++) {
-            this.temp_block.id = tree.type.trunk
-            setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true)
-            const b = this.getBlock(chunk, x, y + i, z)
-            console.log(b?.id)
-        }
-        //setChorus(x, y + 1, z)
-        /* ствол
-        for(let p = y; p < ystart; p++) {
-            let age = random.nextInt(4)
-            for (let l = 0; l < age; l++) {
-                const sh_x = random.nextInt(3) - 1
-                const sh_z = (sh_x == 0) ? random.nextInt(3) - 1 : 0
-                const block = this.getBlock(chunk, x + sh_x, p, z + sh_z)
-                if (block && block.id == 0 && block.fluid == 0) {
-                    this.temp_block.id = tree.type.trunk
-                    setTreeBlock(tree, chunk, x + sh_x, p, z + sh_z, this.temp_block, true)
+        const setChorus = (pos) => {
+            if (ages++ > 20) {
+                return
+            }
+            for (let i = 0; i < 6; i++) {
+                const tmp_pos = pos.offset(0, i, 0)
+                blocks.set(tmp_pos.toHash(), true)
+                if (isNeighbors(tmp_pos) && i != 0) {
+                    return
+                }
+                setTreeBlock(tree, chunk, tmp_pos.x, tmp_pos.y, tmp_pos.z, {id: tree.type.trunk}, true)
+                if (random.double() < 0.1) {
+                    const age = random.nextInt(4)
+                    for (let l = 0; l < age; l++) {
+                        const sh_x = random.nextInt(3) - 1
+                        const sh_z = (sh_x == 0) ? random.nextInt(3) - 1 : 0
+                        const sh_pos = tmp_pos.offset(sh_x, 0, sh_z)
+                        if (!isNeighbors(sh_pos, tmp_pos)) {
+                            setChorus(sh_pos)
+                        }
+                    }
+                    return
                 }
             }
-        }*/
+            setTreeBlock(tree, chunk, pos.x, pos.y + 6, pos.z, {id: tree.type.leaves}, true, null, {notick: true})
+        }
+        setChorus(new Vector(x, y + 1, z))
+        
     }
 
     destroyMapsAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {

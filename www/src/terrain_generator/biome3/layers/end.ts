@@ -60,7 +60,7 @@ class EndTerrainMapManager extends TerrainMapManagerBase {
                             "type": {
                                 "percent": 1,
                                 "trunk": 1043,
-                                "leaves": 527,
+                                "leaves": 1042,
                                 "style": "chorus",
                                 "height": {
                                     "min": 16,
