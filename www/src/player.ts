@@ -83,11 +83,11 @@ type PlayerStateDynamicPart = {
 
 /** Fields that are saved together into DB in user.state field. */
 export type PlayerState = PlayerStateDynamicPart & {
-    pos_spawn   : Vector
-    indicators  : Indicators
-    chunk_render_dist : int
-    game_mode ? : string
-    stats       : PlayerStats
+    pos_spawn           : Vector
+    indicators          : Indicators
+    chunk_render_dist   : int
+    game_mode ?         : string
+    stats               : PlayerStats
 }
 
 export type PlayerStateUpdate = PlayerStateDynamicPart & {

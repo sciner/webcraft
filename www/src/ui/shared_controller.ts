@@ -5,7 +5,7 @@ import { SkinManager } from './skin-manager.js';
 import { GameClass } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
-import { KEY, MOUSE } from "../constant.js";
+import { DEFAULT_LIGHT_TYPE_ID, DEFAULT_RENDER_DISTANCE, KEY, LIGHT_TYPE, MOUSE } from "../constant.js";
 // import { PlayerWindowManager } from '../player_window_manager.js';
 
 // Mouse event enumeration
@@ -127,10 +127,10 @@ export class Shared_Controller {
         // Settings
         this.settings = {
             form: {
-                texture_pack: 'base',
-                render_distance: 4,
-                use_light: 1, // {id: 0, name: 'No'}, {id: 1, name: 'Normal'}, {id: 2, name: 'RTX'}
-                mipmap: false
+                texture_pack:       'base',
+                render_distance:    DEFAULT_RENDER_DISTANCE,
+                use_light:          DEFAULT_LIGHT_TYPE_ID, // {id: 0, name: 'No'}, {id: 1, name: 'Normal'}, {id: 2, name: 'RTX'}
+                mipmap:             false
             },
             save: function() {
                 localStorage.setItem('settings', JSON.stringify(this.form));
@@ -153,7 +153,7 @@ export class Shared_Controller {
                     }
                     // add default render_distance
                     if(!('render_distance' in this.form)) {
-                        this.form.render_distance = 4;
+                        this.form.render_distance = DEFAULT_RENDER_DISTANCE;
                     }
                     // use_light
                     if('use_light' in this.form) {

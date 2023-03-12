@@ -138,7 +138,7 @@ let gameCtrl = async function($scope, $timeout) {
             }
         }, {
             mipmap: true,
-            render_distance: 4,
+            render_distance: 5,
             texture_pack: 'base',
             use_light: true
         });

@@ -309,14 +309,14 @@ interface IBlockMaterial {
 }
 
 interface INetworkMessage<DataT = any> {
-    time?: number
-    name: int
-    data: DataT
+    time ?  : number
+    name    : int
+    data    : DataT
 }
 
 interface IDestroyMapsAroundPlayers {
-    chunk_render_dist : int
-    chunk_addr : IVector
+    chunk_render_dist   : int
+    chunk_addr          : IVector
 }
 
 interface ITerrainMapManager {
