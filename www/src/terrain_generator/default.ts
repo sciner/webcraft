@@ -976,7 +976,13 @@ export class Default_Terrain_Generator {
         const xyz = chunk.coord.add(new Vector(x, y, z))
         const random = new alea('chorus' + xyz.toHash())
         let ystart = y + tree.height;
-        setChorus(x, y + 1, z)
+        for (let i = 0; i < 5; i++) {
+            this.temp_block.id = tree.type.trunk
+            setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true)
+            const b = this.getBlock(chunk, x, y + i, z)
+            console.log(b?.id)
+        }
+        //setChorus(x, y + 1, z)
         /* ствол
         for(let p = y; p < ystart; p++) {
             let age = random.nextInt(4)
