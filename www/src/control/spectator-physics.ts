@@ -8,7 +8,7 @@ import type {World} from "../world.js";
 import {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import type {PlayerTickData} from "./player_control_manager.js";
 
-export class SpectatorPlayerController extends PlayerControl {
+export class SpectatorPlayerControl extends PlayerControl {
     world: World
     timeAccumulator: int
     physicsEnabled: boolean

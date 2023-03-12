@@ -7,7 +7,7 @@ import {InDeltaCompressor, InPacketBuffer, OutDeltaCompressor, OutPacketBuffer,
 } from "../packet_compressor.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl} from "../vendors/prismarine-physics/using.js";
-import {SpectatorPlayerController} from "./spectator-physics.js";
+import {SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
     PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_ROTATION_DECIMALS, PHYSICS_MAX_MS_PROCESS
@@ -237,7 +237,7 @@ export abstract class PlayerControlManager {
     player: Player
 
     // the different controllers
-    spectator: SpectatorPlayerController
+    spectator: SpectatorPlayerControl
     prismarine: PrismarinePlayerControl
     protected controlByType: PlayerControl[]
     /** The controller selected at the moment. */
@@ -261,7 +261,7 @@ export abstract class PlayerControlManager {
         this.player = player
         const pos = new Vector(player.sharedProps.pos)
         this.prismarine = new PrismarinePlayerControl(player.world, pos, {effects: player.effects})
-        this.spectator = new SpectatorPlayerController(player.world, pos)
+        this.spectator = new SpectatorPlayerControl(player.world, pos)
         this.controlByType = [this.prismarine, this.spectator]
         this.current = this.prismarine // it doesn't matter what we choose here, it'll be corrected in the next line
         this.updateCurrentControlType(false)
