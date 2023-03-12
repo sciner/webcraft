@@ -930,14 +930,14 @@ export class Default_Terrain_Generator {
             if (ages++ > 20) {
                 return
             }
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 8; i++) {
                 const tmp_pos = pos.offset(0, i, 0)
                 blocks.set(tmp_pos.toHash(), true)
                 if (isNeighbors(tmp_pos) && i != 0) {
                     return
                 }
                 setTreeBlock(tree, chunk, tmp_pos.x, tmp_pos.y, tmp_pos.z, {id: tree.type.trunk}, true)
-                if (random.double() < 0.1) {
+                if (random.double() < 0.3) {
                     const age = random.nextInt(4)
                     for (let l = 0; l < age; l++) {
                         const sh_x = random.nextInt(3) - 1
