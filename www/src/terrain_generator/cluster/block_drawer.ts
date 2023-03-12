@@ -34,6 +34,7 @@ export class BlockDrawer {
         const _pos2d        = new Vector()
         const transformer   = this.transformer
         const bm_flags      = bm.flags
+        const air_id        = bm.AIR.id
 
         // let p = performance.now()
         let cnt = 0
@@ -50,12 +51,12 @@ export class BlockDrawer {
                     const index = pos.relativePosToFlatIndexInChunk()
                     if(_depth_blocks_buffer[index]) {
                         // check weight for replace
-                        if(item.block_id <= _depth_blocks_buffer[index].block_id) {
-                            let fl1 = !!(bm_flags[item.block_id] & BLOCK_FLAG.FLUID) ? 1 : 0
-                            let fl2 = !!(bm_flags[_depth_blocks_buffer[index].block_id] & BLOCK_FLAG.FLUID) ? 1 : 0
-                            if(fl1 < fl2) {
-                                continue
-                            }
+                        const new_id = item.block_id
+                        const old_id = _depth_blocks_buffer[index].block_id
+                        const new_mul = !!(bm_flags[new_id] & BLOCK_FLAG.FLUID) ? 1000000 : 1
+                        const old_mul = !!(bm_flags[old_id] & BLOCK_FLAG.FLUID) ? 1000000 : 1
+                        if(new_id + new_mul < old_id + old_mul) {
+                            continue
                         }
                     } else {
                         draw_indexes[cnt++] = index
@@ -70,6 +71,12 @@ export class BlockDrawer {
             const item = _depth_blocks_buffer[index]
             _depth_blocks_buffer[index] = null
             pos.fromFlatChunkIndex(index)
+            // delete block id fluid
+            if(BLOCK.flags[item.block_id] & BLOCK_FLAG.FLUID) {
+                if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, air_id, null, null, false, false, false, map)) {
+                    blocks_setted++
+                }
+            }
             if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map)) {
                 blocks_setted++
             }
