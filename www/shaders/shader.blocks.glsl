@@ -16,27 +16,28 @@
     #define CHUNK_SIZE vec3(18.0, 18.0, 84.0)
 
     // bit shifts
-    #define NORMAL_UP_FLAG 0
-    #define MASK_BIOME_FLAG 1
-    #define NO_AO_FLAG 2
-    #define NO_FOG_FLAG 3
-    #define LOOK_AT_CAMERA 4
-    #define FLAG_ANIMATED 5
-    #define FLAG_TEXTURE_SCROLL 6
-    #define NO_CAN_TAKE_AO 7
-    #define QUAD_FLAG_OPACITY 8
-    #define QUAD_FLAG_SDF 9
-    #define NO_CAN_TAKE_LIGHT 10
-    #define FLAG_TRIANGLE 11
-    #define FLAG_MIR2_TEX 12
-    #define FLAG_MULTIPLY_COLOR 13
-    #define FLAG_LEAVES 14
-    #define LOOK_AT_CAMERA_HOR 15
-    #define FLAG_ENCHANTED_ANIMATION 16
-    #define FLAG_RAIN_OPACITY 17
-    #define FLAG_MASK_COLOR_ADD 18
-    #define FLAG_WAVES_VERTEX 19
-    #define FLAG_TORCH_FLAME 20
+    #define NORMAL_UP                   0
+    #define MASK_BIOME                  1
+    #define NO_AO                       2
+    #define NO_FOG                      3
+    #define FLAG_ANIMATED               5
+    #define FLAG_TEXTURE_SCROLL         6
+    #define NO_CAN_TAKE_AO              7
+    #define QUAD_FLAG_OPACITY           8
+    #define QUAD_FLAG_SDF               9
+    #define NO_CAN_TAKE_LIGHT           10
+    #define FLAG_MULTIPLY_COLOR         11
+    #define FLAG_LEAVES                 12
+    #define FLAG_ENCHANTED_ANIMATION    13
+    #define FLAG_RAIN_OPACITY           14
+    #define FLAG_MASK_COLOR_ADD         15
+    #define FLAG_TORCH_FLAME            16
+    #define DELIMITER_VERTEX     ((1 << 17) - 1)
+    #define FLAG_WAVES_VERTEX           17
+    #define LOOK_AT_CAMERA              18
+    #define LOOK_AT_CAMERA_HOR          19
+    #define FLAG_TRIANGLE               20
+    #define FLAG_MIR2_TEX               21
 
 #endif
 
@@ -52,7 +53,6 @@
     uniform bool u_crosshairOn;
     uniform float u_chunkBlockDist;
 
-    //
     uniform float u_brightness;
     uniform float u_time;
     uniform float u_rain_strength;
@@ -68,7 +68,10 @@
         return vec3(u_camera_posi % ivec3(1000)) + u_camera_pos;
     }
 
-    //--
+    bool checkFlag(int flag) {
+        return (v_flags & (1 << flag)) != 0;
+    }
+
 #endif
 
 #ifdef global_uniforms_frag
@@ -132,19 +135,8 @@
     out vec3 v_axisV;
 
     // quad flags
-    out float v_noCanTakeAO;
-    out float v_flagOpacity;
-    out float v_flagQuadSDF;
-    out float v_noCanTakeLight;
-    out float v_Triangle;
-    out float v_Mir2_Tex;
-    out float v_flagMultiplyColor;
-    out float v_flagLeaves;
-    out float v_flagEnchantedAnimation;
-    out float v_flagScroll;
-    out float v_flagRainOpacity;
-    out float v_flagMaskColorAdd;
-    out float v_flagTorchFlame;
+    out float v_flags_nft;
+    int v_flags;
 
     //--
 #endif
@@ -161,25 +153,15 @@
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
     in float v_animInterp;
-    in float v_lightMode;
-    in float v_useFog;
     in float v_lightId;
     in vec4 v_lightOffset;
     in vec3 v_axisU;
     in vec3 v_axisV;
 
     // quad flags
-    in float v_noCanTakeAO;
-    in float v_flagOpacity;
-    in float v_flagQuadSDF;
-    in float v_noCanTakeLight;
-    in float v_Triangle;
-    in float v_flagMultiplyColor;
-    in float v_flagEnchantedAnimation;
-    in float v_flagRainOpacity;
-    in float v_flagLeaves;
-    in float v_flagMaskColorAdd;
-    in float v_flagTorchFlame;
+    in float v_flags_nft;
+    int v_flags;
+    float v_lightMode;
 
     out vec4 outColor;
 #endif
@@ -261,18 +243,18 @@
     float tf_noise( in vec2 p ) {
         const float K1 = 0.366025404; // (sqrt(3)-1)/2;
         const float K2 = 0.211324865; // (3-sqrt(3))/6;
-        
+
         vec2 i = floor( p + (p.x+p.y)*K1 );
-        
+
         vec2 a = p - i + (i.x+i.y)*K2;
         vec2 o = (a.x>a.y) ? vec2(1.0,0.0) : vec2(0.0,1.0);
         vec2 b = a - o + K2;
         vec2 c = a - 1.0 + 2.0*K2;
-        
+
         vec3 h = max( 0.5-vec3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
-        
+
         vec3 n = h*h*h*h*vec3( dot(a, tf_hash(i+0.0)), dot(b, tf_hash(i+o)), dot(c, tf_hash(i+1.0)));
-        
+
         return dot( n, vec3(70.0) );
     }
 
@@ -420,7 +402,10 @@
 
     // Calc fog amount
     float fogDistance = length(v_world_pos.xyz);
-    float fogFactorDiv = max(1.0,  (1. - v_useFog) * 15.);
+    float fogFactorDiv = 1.0;
+    if (checkFlag(NO_FOG)) {
+        fogFactorDiv = 15.0;
+    }
     float refBlockDist = u_chunkBlockDist * fogFactorDiv;
     float refBlockDist2 = 4. * fogFactorDiv;
 
@@ -445,44 +430,13 @@
 #ifdef terrain_read_flags_vert
     // read flags
     int flags = int(a_flags) & 0xffffff;
-    int flagNormalUp = (flags >> NORMAL_UP_FLAG)  & 1;
-    int flagBiome = (flags >> MASK_BIOME_FLAG) & 1;
-    int flagNoAO = (flags >> NO_AO_FLAG) & 1;
-    int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
-    int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
-    int flagLookAtCameraHor = (flags >> LOOK_AT_CAMERA_HOR) & 1;
-    int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
-    int flagScroll = (flags >> FLAG_TEXTURE_SCROLL) & 1;
-    int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;
-    int flagFlagOpacity = (flags >> QUAD_FLAG_OPACITY) & 1;
-    int flagQuadSDF = (flags >> QUAD_FLAG_SDF) & 1;
-    int flagNoCanTakeLight = (flags >> NO_CAN_TAKE_LIGHT) & 1;
-    int flagTriangle = (flags >> FLAG_TRIANGLE) & 1;
-    int flagMir2_Tex = (flags >> FLAG_MIR2_TEX) & 1;
-    int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
-    int flagLeaves = (flags >> FLAG_LEAVES) & 1;
-    int flagEnchantedAnimation = (flags >> FLAG_ENCHANTED_ANIMATION) & 1;
-    int flagRainOpacity = (flags >> FLAG_RAIN_OPACITY) & 1;
-    int flagMaskColorAdd = (flags >> FLAG_MASK_COLOR_ADD) & 1;
-    int flagWavesVertex = (flags >> FLAG_WAVES_VERTEX) & 1;
-    int flagTorchFlame = (flags >> FLAG_TORCH_FLAME) & 1;
+    v_flags_nft = float(flags & DELIMITER_VERTEX);
+    v_flags = flags;
+#endif
 
-    v_useFog    = 1.0 - float(flagNoFOG);
-    v_lightMode = 1.0 - float(flagNoAO);
-    v_noCanTakeAO = float(flagNoCanTakeAO);
-    v_flagOpacity = float(flagFlagOpacity);
-    v_flagQuadSDF = float(flagQuadSDF);
-    v_noCanTakeLight = float(flagNoCanTakeLight);
-    v_Triangle = float(flagTriangle);
-    v_Mir2_Tex = float(flagMir2_Tex);
-    v_flagMultiplyColor = float(flagMultiplyColor);
-    v_flagLeaves = float(flagLeaves);
-    v_flagEnchantedAnimation = float(flagEnchantedAnimation);
-    v_flagRainOpacity = float(flagRainOpacity);
-    v_flagMaskColorAdd = float(flagMaskColorAdd);
-    v_flagTorchFlame = float(flagTorchFlame);
-
-    //--
+#ifdef terrain_read_flags_frag
+    v_flags = int(round(v_flags_nft));
+    v_lightMode = 1.0 - float((v_flags >> NO_AO) & 1);
 #endif
 
 #ifdef sun_light_pass
