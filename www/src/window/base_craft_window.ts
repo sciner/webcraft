@@ -546,13 +546,11 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             let srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
                             let targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
                             if(this.slot_index >= INVENTORY_VISIBLE_SLOT_COUNT) {
-                                srcListFirstIndexOffset = 0
                                 targetList = srcList.slice(0, INVENTORY_VISIBLE_SLOT_COUNT)
                             } else {
-                                srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
                                 targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
                             }
-                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
+                            this.appendToList(targetItem, targetList);
                         }
                         this.setItem(targetItem, e)
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot shiftKey frmInventory')
@@ -567,20 +565,16 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         if (this.ct.loading) {
                             break; // prevent spreading to the slots that are not ready
                         }
-                        let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
-                        let srcListFirstIndexOffset = 0
-                        let targetList = srcList
-                        this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset)
+                        let targetList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
+                        this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.parent.lastChange.type = INVENTORY_CHANGE_SHIFT_SPREAD
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot INVENTORY_CHANGE_SHIFT_SPREAD')
                         break
                     }
                     case 'frmCraft': {
-                        let srcList = e.target.is_craft_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
-                        let srcListFirstIndexOffset = 0
-                        let targetList = srcList
-                        this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset)
+                        let targetList = e.target.is_craft_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
+                        this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot frmCraft')
                     }
@@ -629,52 +623,46 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
     /**
      * Помещает предмет в список (например инвентарный)
+     * Модифицирует количество в {@link srcItem}. После перемещения, вызывающий должен не забыть обновить исходный слот.
      * @param {*} srcItem Исходный слот для перемещения
      * @param {*} target_list Итоговый  список слотов, куда нужно переместить исходный слот
-     * @param {*} srcList Ссылка на оригинальный список, чтобы можно было в него добавить/заменить новый элемент
-     * @param {*} srcListFirstIndexOffset Смещение в оригинальном списке, откуда взяли target_list
      */
-    appendToList(srcItem, target_list, srcList, srcListFirstIndexOffset) {
-        if(typeof srcListFirstIndexOffset != 'number') {
-            throw 'Invalid srcListFirstIndexOffset';
+    appendToList(srcItem, target_list) {
+        if (srcItem.count === 0) {
+            return
         }
-        if(!srcItem.entity_id && !srcItem.extra_data) {
-            const max_stack_count = BLOCK.getItemMaxStack(srcItem);
-            // 1. проход в поисках подобного
-            if(srcItem.count > 0) {
-                for(let slot of target_list) {
-                    if(slot instanceof CraftTableInventorySlot) {
-                        const item = slot.getItem();
-                        if(!slot.readonly && InventoryComparator.itemsEqualExceptCount(item, srcItem)) {
-                            let free_count = max_stack_count - item.count;
-                            if(free_count > 0) {
-                                let count = Math.min(free_count, srcItem.count);
-                                srcItem.count -= count
-                                item.count += count;
-                                slot.setItem(item);
-                            }
+        const max_stack_count = BLOCK.getItemMaxStack(srcItem);
+        // 1. проход в поисках подобного
+        for(let slot of target_list) {
+            if(slot instanceof CraftTableInventorySlot) {
+                const item = slot.getItem();
+                if(!slot.readonly && InventoryComparator.itemsEqualExceptCount(item, srcItem)) {
+                    const free_count = max_stack_count - item.count;
+                    if(free_count > 0) {
+                        const count = Math.min(free_count, srcItem.count);
+                        srcItem.count -= count
+                        item.count += count;
+                        slot.setItem(item);
+                        if (srcItem.count === 0) {
+                            return
                         }
-                    } else {
-                        console.error(slot);
-                        throw 'error_invalid_slot_type';
                     }
                 }
+            } else {
+                console.error(slot);
+                throw 'error_invalid_slot_type';
             }
         }
         // 2. проход в поисках свободных слотов
-        if(srcItem.count > 0) {
-            for(let index = 0; target_list < target_list.length; index++) {
-                const slot = target_list[index];
-                if(slot instanceof CraftTableInventorySlot) {
-                    if(!slot.readonly && !slot.getItem()) {
-                        let slot_index = (srcListFirstIndexOffset | 0) + (index | 0);
-                        srcList[slot_index].setItem({...srcItem});
-                        srcItem.count = 0;
-                        break;
-                    }
-                } else {
-                    throw 'error_invalid_slot_type';
+        for(let slot of target_list) {
+            if(slot instanceof CraftTableInventorySlot) {
+                if(!slot.readonly && !slot.getItem()) {
+                    slot.setItem({...srcItem});
+                    srcItem.count = 0;
+                    break;
                 }
+            } else {
+                throw 'error_invalid_slot_type';
             }
         }
     }
