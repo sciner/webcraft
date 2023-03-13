@@ -33,7 +33,7 @@ export async function initEditor(canvas_id) {
     })
     
     await renderBackend.init({
-        blocks: Resources.shaderBlocks
+        shaderPreprocessor: Resources.shaderPreprocessor
     })
     
     render.resetAfter()

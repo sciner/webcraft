@@ -118,4 +118,7 @@ void main() {
     if(checkFlag(FLAG_TRIANGLE) && gl_VertexID > 2) {
         gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
     }
+
+    v_flags = v_flags & DELIMITER_VERTEX;
+    #include_post<flat_encode>
 }

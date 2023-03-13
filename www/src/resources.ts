@@ -2,6 +2,7 @@ import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
 import { CLIENT_SKIN_ROOT, CLIENT_MUSIC_ROOT } from "./constant.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
+import {ShaderPreprocessor} from "./renders/ShaderPreprocessor.js";
 
 export const COLOR_PALETTE = {
     white: [0, 0],      // Белая - white_terracotta
@@ -44,8 +45,8 @@ export class Resources {
     static blockDayLight      : any = null;
     static maskColor          : any = null;
     static layout             : any = {}
-    static shaderBlocks       : any = {};
     static atlas              : Map<string, SpriteAtlas> = new Map()
+    static shaderPreprocessor = new ShaderPreprocessor();
 
     static progress = {
         loaded:     0,
@@ -89,7 +90,7 @@ export class Resources {
         } else {
             all.push(
                 loadTextFile('./shaders/shader.blocks.glsl')
-                    .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
+                    .then(text => Resources.shaderPreprocessor.parseBlocks(text))
                     .then(blocks => {
                         console.debug('Load shader blocks:', blocks)
                     })
@@ -216,43 +217,6 @@ export class Resources {
         // TODO: add retry
         return Promise.all(all);
 
-    }
-
-    /**
-     * Parse shader.blocks file defenition
-     * @param {string} text
-     * @param {{[key: string]: string}} blocks
-     */
-    static async parseShaderBlocks(text, blocks = {}) {
-        const blocksStart = '#ifdef';
-        const blocksEnd = '#endif';
-
-        let start = text.indexOf(blocksStart);
-        let end = start;
-
-        while(start > -1) {
-            end = text.indexOf(blocksEnd, start);
-
-            if (end === -1) {
-                throw new TypeError('Shader block has unclosed ifdef statement at:' + start + '\n\n' + text);
-            }
-
-            const block = text.substring(start  + blocksStart.length, end);
-            const lines = block.split('\n');
-            const name = lines.shift().trim();
-
-            const source = lines.map((e) => {
-                return e.startsWith('    ') // remove first tab (4 space)
-                    ? e.substring(4).trimEnd()
-                    : e.trimEnd();
-            }).join('\n');
-
-            blocks[name] = source.trim();
-
-            start = text.indexOf(blocksStart, start + blocksStart.length);
-        }
-
-        return blocks;
     }
 
     //
