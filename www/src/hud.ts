@@ -301,7 +301,7 @@ export class HUD {
             // Draw game technical info
             this.drawInfo()
             this.drawAverageFPS()
-            this.drawCompas(600, 20, 200)
+            this.drawCompas(this.wm.w / 2, 20 * this.zoom, 400 * this.zoom)
         }
 
         for(const item of this.items) {
@@ -646,41 +646,47 @@ export class HUD {
         const marks = [
             {
                 'angle': 0,
-                'title': 'N'
+                'title': 'N',
+                'color': '#FF0000'
             },
             {
-                'angle': 1.57,
+                'angle': Math.PI / 2,
                 'title': 'E'
             },
             {
-                'angle': 3.14,
+                'angle': Math.PI,
                 'title': 'S'
             },
             {
-                'angle': 4.71,
+                'angle': 3 * Math.PI / 2,
                 'title': 'W'
             }
         ]
         if (!this.wm.hud_window['compass_background']) {
-            this.wm.hud_window['compass_background'] = new Label((x - w) * this.zoom, y * this.zoom, w * this.zoom, 24 * this.zoom, 'compass_background', '', '')
-            this.wm.hud_window['compass_background'].style.background.color = '#00ff0055'
+            this.wm.hud_window['compass_background'] = new Label(x - w / 2, y, w + 20 * this.zoom, 24 * this.zoom, 'compass_background', '', '    |')
+            this.wm.hud_window['compass_background'].style.background.color = '#00ff0033'
+            this.wm.hud_window['compass_background'].style.textAlign.horizontal = 'center'
             this.wm.hud_window.addChild(this.wm.hud_window['compass_background'])
         }
+        this.wm.hud_window['compass_background'].x = x - w / 2
         for (const mark of marks) {
             const id = 'compass_' + mark.title
             if (!this.wm.hud_window[id]) {
-                this.wm.hud_window[id] = new Label((x - w / 2) * this.zoom, y * this.zoom, 20 * this.zoom, 20 * this.zoom, id, mark.title, mark.title)
+                this.wm.hud_window[id] = new Label((x - w / 2), y, 20 * this.zoom, 20 * this.zoom, id, mark.title, mark.title)
                 this.wm.hud_window.addChild(this.wm.hud_window[id])
                 this.wm.hud_window[id].style.textAlign.horizontal = 'center'
             }
             let angle = rot - mark.angle
-            if (angle < -3.15 || angle > 3.15) {
+            if (angle < -Math.PI || angle > Math.PI) {
                 angle = -angle
             }
-            if (angle < -4.17) {
-                angle = -6.28 - angle 
+            if (angle < -3 * Math.PI / 2) {
+                angle = -2 * Math.PI - angle 
             }
-            this.wm.hud_window[id].x = (x - w / 2) * this.zoom - (w / 3) * this.zoom * Math.atan(2 * angle)
+            if (mark?.color) {
+                this.wm.hud_window[id].style.font.color = mark.color
+            }
+            this.wm.hud_window[id].x = x  -  w * Math.atan(angle) / 2.8
         }
     }
 
