@@ -47,7 +47,7 @@ export class ClusterManager {
                 cluster = new ClusterVilage(this, addr.clone(), biome)
             } else {
                 // cluster = new ClusterStructures(this, addr.clone(), biome)
-                //cluster = new ClusterEndCity(this, addr.clone(), biome)
+                cluster = new ClusterEndCity(this, addr.clone(), biome)
             }
         } else {
             if(r <= .1) {
