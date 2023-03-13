@@ -1,5 +1,5 @@
 import { Vector, unixTime, ObjectHelpers } from "@client/helpers.js";
-import { PrismarinePlayerControl } from "@client/vendors/prismarine-physics/using.js";
+import { PrismarinePlayerControl } from "@client/prismarine-physics/using.js";
 import {ServerClient} from "@client/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
 import type { ServerWorld } from "./server_world.js";

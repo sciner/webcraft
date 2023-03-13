@@ -179,7 +179,7 @@ export class Resources {
         all.push(Resources.loadBBModels());
 
         // Physics features
-        all.push(fetch('/src/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
+        all.push(fetch('/src/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
 
         // Clouds texture
         all.push(loadImage('/media/clouds.png').then((image1 : CanvasImageSource) => {
