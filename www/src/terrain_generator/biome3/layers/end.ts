@@ -109,8 +109,9 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
 
         // Cluster
         chunk.timers.start('generate_cluster')
+        const map = chunk.map = maps[4]
         chunk.cluster = this.clusterManager.getForCoord(chunk.coord, null) ?? null
-        chunk.cluster.fillBlocks(null, chunk, null, false, false)
+        chunk.cluster.fillBlocks(null, chunk, map, false, false)
         chunk.timers.stop()
 
         // Generate chunk data
