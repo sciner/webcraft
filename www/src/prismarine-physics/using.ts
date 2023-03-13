@@ -2,12 +2,12 @@
 * https://github.com/PrismarineJS/prismarine-physics
 **/
 
-import {Vec3, Vector} from "../../helpers.js";
-import {BLOCK} from "../../blocks.js";
+import {Vec3, Vector} from "../helpers.js";
+import {BLOCK} from "../blocks.js";
 import {Physics, PlayerState} from "./index.js";
-import {Resources} from "../../resources.js";
-import {FLUID_TYPE_MASK, FLUID_LEVEL_MASK, FLUID_WATER_ID, FLUID_LAVA_ID} from "../../fluid/FluidConst.js";
-import {TBlock} from "../../typed_blocks3.js";
+import {Resources} from "../resources.js";
+import {FLUID_TYPE_MASK, FLUID_LEVEL_MASK, FLUID_WATER_ID, FLUID_LAVA_ID} from "../fluid/FluidConst.js";
+import {TBlock} from "../typed_blocks3.js";
 
 const PHYSICS_INTERVAL_MS   = 50;
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;

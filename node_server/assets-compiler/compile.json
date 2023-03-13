@@ -1686,6 +1686,7 @@
             "style": "extruder",
             "item": {"name": "stick"},
             "diagonal": true,
+            "max_in_stack": 128,
             "texture": {
                 "side": "item/stick.png"
             },
@@ -3021,6 +3022,9 @@
                 "up":  "block/dirt_path_top.png",
                 "down":  "block/dirt.png",
                 "side":  "block/dirt_path_side.png"
+            },
+            "generator": {
+                "can_replace_to_slab": "DIRT_PATH_SLAB"
             }
         },
         {
@@ -3413,8 +3417,12 @@
             "transparent": true,
             "planting": false,
             "sound": "madcraft:block.cloth",
+            "coocked_item": {
+                "name": "GREEN_DYE", 
+                "count": 1
+            },
             "material": {
-                "id": "plant"
+                "id": "cactus"
             },
             "ticking": {
                 "type": "stage",
@@ -9782,7 +9790,6 @@
                 "id": "plant"
             },
             "texture": "./textures/cattail.png",
-            "_has_head": {"pos": {"x": 0, "y": 2, "z": 0}},
             "tags": [
                 "is_tall_grass",
                 "is_tall_grass_3"
@@ -9807,6 +9814,80 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "SAND"
+            }
+        },
+        {
+            "id": 1046,
+            "name": "COMPOSTER",
+            "style": "composter",
+            "transparent": true,
+            "can_rotate": true,
+            "max_in_stack": 1,
+            "extra_data": {
+                "level": 0
+            },
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "texture": {
+                "up": "block/composter_top.png",
+                "side": "block/composter_side.png",
+                "east": "block/composter_compost.png",
+                "west": "block/composter_ready.png",
+                "down": "block/composter_bottom.png"
+            }
+        },
+        {
+            "id": 504,
+            "name": "REED",
+            "transparent": true,
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "side": "./textures/reed.png",
+                "side2": "./textures/reed2.png",
+                "side_short": "./textures/reed_short.png",
+                "side_short2": "./textures/reed2_short.png"
+            },
+            "tags": [
+                "has_short",
+                "is_tall_grass",
+                "is_tall_grass_3"
+            ]
+        },
+        {
+            "id": 520,
+            "name": "DIRT_PATH_SLAB",
+            "transparent": true,
+            "is_opaque_for_fluid": true,
+            "height": 0.5,
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "dirt"
+            },
+            "tags": [
+                "random_rotate_up",
+                "is_solid_for_fluid",
+                "dirt"
+            ],
+            "texture": {
+                "up":  "block/dirt_path_top.png",
+                "down":  "block/dirt.png",
+                "side":  "block/dirt_path_side.png"
+            },
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DIRT_PATH"
             }
         }
     ]

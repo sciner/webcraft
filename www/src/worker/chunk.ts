@@ -9,11 +9,12 @@ import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
-import {isFluidId, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID, PACKET_CELL_DIRT_COLOR_G, PACKET_CELL_DIRT_COLOR_R, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R} from "../fluid/FluidConst.js";
+import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID, PACKET_CELL_DIRT_COLOR_G, PACKET_CELL_DIRT_COLOR_R, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R} from "../fluid/FluidConst.js";
 import type { BaseResourcePack } from "../base_resource_pack.js";
 import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
 import type { WorkerWorld } from "./world.js";
 import type { FluidChunk } from "../fluid/FluidChunk.js";
+import { BLOCK_FLAG } from "../constant.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -333,7 +334,7 @@ export class ChunkWorkerChunk {
 
         this.genValue++
 
-        if(BLOCK.flags[block_id] & BLOCK.FLAG_FLUID) {
+        if(BLOCK.flags[block_id] & BLOCK_FLAG.FLUID) {
             this.fluid.setFluidIndirect(x, y, z, block_id);
             return
         }
@@ -446,7 +447,7 @@ export class ChunkWorkerChunk {
             }
             const exId = uint16View[index]
             const exBlockFlags = BLOCK.flags[exId]
-            if(exBlockFlags & (BLOCK.FLAG_SOLID | BLOCK.FLAG_FLUID)) {
+            if(exBlockFlags & (BLOCK_FLAG.SOLID | BLOCK_FLAG.FLUID)) {
                 return
             }
         } else {

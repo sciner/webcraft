@@ -659,7 +659,7 @@ export class Vector implements IVector {
         }
     }
 
-    addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
+    addByCardinalDirectionSelf(vec : IVector, dir : int, mirror_x = false, mirror_z = false) {
         const x_sign = mirror_x ? -1 : 1;
         const z_sign = mirror_z ? -1 : 1;
         this.y += vec.y;
@@ -723,8 +723,12 @@ export class Vector implements IVector {
         return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
     }
 
-    static relativePosToChunkIndex(x, y, z) {
+    static relativePosToChunkIndex(x : int, y : int, z : int) : int {
         return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
+    }
+
+    static relativePosToFlatIndexInChunk(x : int, y : int, z : int) : int {
+        return CHUNK_SIZE_X * (CHUNK_SIZE_Z * y + z) + x;
     }
 
     relativePosToChunkIndex() {

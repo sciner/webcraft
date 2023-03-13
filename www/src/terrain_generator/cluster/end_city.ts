@@ -116,6 +116,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
             return false;
         }
         this.timers.start('fill_blocks')
+
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []
         // draw chunk blocks

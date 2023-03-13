@@ -47,7 +47,7 @@ export const PACKET_CELL_IS_SNOWY       = 5;
 
 /**
  * @returns fluid id or 0.
- * If you only to check whether it's fluid or not, ckecking (BLOCK.flags[id] & BLOCK.FLAG_FLUID) is much faster.
+ * If you only to check whether it's fluid or not, ckecking (BLOCK.flags[id] & BLOCK_FLAG.FLUID) is much faster.
  * See also BLOCK.addHardcodedFlags
  */
 export function isFluidId(blockId: number): number {

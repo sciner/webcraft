@@ -1,10 +1,11 @@
 #include<header>
 #include<constants>
 
+#include<terrain_attrs_vert>
+
 #include<global_uniforms>
 #include<global_uniforms_vert>
 
-#include<terrain_attrs_vert>
 #include<waves_vertex_func>
 
 float wing_speed = 2.5;
@@ -26,18 +27,18 @@ void main() {
     vec3 axisX = a_axisX;
     vec3 axisY = a_axisY;
 
-    if (flagLookAtCamera > 0) {
+    if (checkFlag(LOOK_AT_CAMERA)) {
         mat3 lookAtMat = inverse(mat3(u_worldView));
         axisX = lookAtMat * axisX.xzy;
         axisY = lookAtMat * axisY.xzy;
-    } else if (flagLookAtCameraHor > 0) {
+    } else if (checkFlag(LOOK_AT_CAMERA_HOR)) {
         // mat3 lookAtMat = inverse(mat3(u_worldView));
         axisX = vec3(normalize((a_position + add_pos).yx) * length(a_axisX), 0.0);
         axisX.y = -axisX.y;
     }
 
     // Animated textures
-    if(flagAnimated > 0) {
+    if(checkFlag(FLAG_ANIMATED)) {
         // v_color.b contain number of animation frames
         int frames = int(v_color.b);
         v_color.b = 1.0; // no mask_shift for you, sorry
@@ -50,7 +51,7 @@ void main() {
     }
 
     //
-    if (flagNormalUp == 1) {
+    if (checkFlag(NORMAL_UP)) {
         v_normal = -axisY;
     } else {
         v_normal = normalize(cross(axisX, axisY));
@@ -59,7 +60,7 @@ void main() {
     v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
 
     vec3 pos;
-    if(v_Mir2_Tex < .5) {
+    if(!checkFlag(FLAG_MIR2_TEX)) {
         pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
         v_axisU = normalize(axisX);
         v_axisV = normalize(axisY);
@@ -70,7 +71,7 @@ void main() {
     }
 
     // Scrolled textures
-    if (flagScroll > 0) {
+    if (checkFlag(FLAG_TEXTURE_SCROLL)) {
         vec2 sz = vec2(128.0, 512.0);
         uvCenter0.x += u_time / 1000.0 * v_color.r / sz.x;
         uvCenter1.x += u_time / 1000.0 * v_color.r / sz.x;
@@ -87,14 +88,14 @@ void main() {
     v_texcoord1_diff = uvCenter1 - uvCenter0;
 
     if(u_fogOn) {
-        if (flagBiome + flagMaskColorAdd == 0) {
+        if (!checkFlag(MASK_BIOME) && !checkFlag(FLAG_MASK_COLOR_ADD)) {
             v_color.a = 0.0;
         }
     }
 
     v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
 
-    if(flagLeaves == 1 && (gl_VertexID == 1 || gl_VertexID == 0 || gl_VertexID == 3)) {
+    if(checkFlag(FLAG_LEAVES) && (gl_VertexID == 1 || gl_VertexID == 0 || gl_VertexID == 3)) {
         float amp = wing_amplitude - wing_amplitude * (mod(v_chunk_pos.x + v_chunk_pos.z, 10.) / 10. * .95);
         float wind_shift = (sin((u_time / 1000. + (v_chunk_pos.x + v_chunk_pos.z) / 10.) * wing_speed)) * amp;
         v_chunk_pos.x += wind_shift;
@@ -106,7 +107,7 @@ void main() {
     v_world_pos = v_chunk_pos + add_pos;
 
     // Waves
-    if(flagWavesVertex > 0) {
+    if(checkFlag(FLAG_WAVES_VERTEX)) {
         v_chunk_pos.z += getWaveValue();
         v_world_pos = v_chunk_pos + add_pos;
     }
@@ -114,7 +115,7 @@ void main() {
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
 
-    if(v_Triangle >= .5 && gl_VertexID > 2) {
+    if(checkFlag(FLAG_TRIANGLE) && gl_VertexID > 2) {
         gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
     }
 }

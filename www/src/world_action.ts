@@ -13,7 +13,7 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
-import { COVER_STYLE_SIDES } from "./constant.js";
+import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 
@@ -304,7 +304,7 @@ function makeDropItem(block, item) {
  * Drop block
  * @returns dropped blocks
  */
-export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldAction, force : boolean, current_inventory_item? : any) : object[] {
+export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, actions : WorldAction, force : boolean, current_inventory_item? : any) : object[] {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
@@ -330,13 +330,13 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
     if (Array.isArray(drop_item)) {
         for (const drop of drop_item) {
             if (drop && checkInstrument(instrument_block_id, drop)) {
-                const block = BLOCK.fromName(drop?.name);
+                const block = BLOCK.fromName(drop.name)
                 const chance = drop.chance ?? 1;
                 if(Math.random() < chance) {
                     let count = drop.count ?? 1;
                     if(count > 0) {
                         const item = makeDropItem(tblock, {id: block.id, count: count});
-                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
                         return [item];
                     }
                 }
@@ -359,7 +359,7 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
                     count = Math.trunc(count);
                     if(count > 0) {
                         const item = makeDropItem(tblock, {id: drop_block.id, count: count});
-                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
                         return [item];
                     }
                 }
@@ -394,7 +394,7 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
             items.push(makeDropItem(tblock, {id: tblock.id, count: 1}));
         }
         for(let item of items) {
-            actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+            actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
         }
         return items
     }
@@ -690,7 +690,7 @@ export class WorldAction {
         drop_blocks_chance = parseFloat(drop_blocks_chance);
 
         //
-        const createAutoDrop = (tblock) => {
+        const createAutoDrop = (tblock : TBlock) => {
             const mat = tblock.material;
             if(!mat.can_auto_drop) {
                 return false;
@@ -698,28 +698,22 @@ export class WorldAction {
             if((!mat.chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) || tblock.id == BLOCK.TNT.id) {
                 return false;
             }
-            const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
+            const pos = tblock.posworld.clone().addScalarSelf(.5, .5, .5)
             extruded_blocks.set(pos, 'drop');
-            // drop
-            const drop_item: DropItemParams = {
-                force: true,
-                pos: pos,
-                items: [
-                    // @todo need to calculate drop item ID and count
-                    { id: mat.id, count: 1 } as IBlockItem
-                ]
-            }
             if(mat.chest) {
                 if(tblock.hasTag('store_items_in_chest')) {
-                    const di = drop_item.items[0]
-                    di.extra_data = {...tblock.extra_data}
-                    di.entity_id = tblock.entity_id || randomUUID()
+                    const drop_item = {
+                        id: mat.id,
+                        count: 1
+                    } as IBlockItem
+                    drop_item.extra_data = {...tblock.extra_data}
+                    drop_item.entity_id = tblock.entity_id || randomUUID()
                 } else {
                     this.dropChest(tblock)
                 }
             }
-            this.addDropItem(drop_item)
-            return true;
+            dropBlock(null, tblock, this, true)
+            return true
         };
 
         const distance              = rad;
@@ -1014,13 +1008,13 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
 
-        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK.FLAG_NOT_CREATABLE)))) {
+        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK_FLAG.NOT_CREATABLE)))) {
             console.warn('warning_mat_block.deprecated');
             return [null, pos];
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.createBlock ??= [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp]) {
+        for(let func of FUNCS.createBlock ??= [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp, putInComposter]) {
             if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1309,7 +1303,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
     pushBlock({pos: new Vector(pos), item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
     // Установить головной блок, если устанавливаемый блок двух-блочный
     if(mat_block.has_head) {
-        // const new_rotate = orientation.add(new Vector(2, 0, 0));
+        // const new_rotate = orientation.clone().addScalarSelf(2, 0, 0);
         const new_rotate = orientation.clone();
         const next_block = {
             pos: pos.clone().addByCardinalDirectionSelf(mat_block.has_head.pos, orientation.x + 2),
@@ -1733,14 +1727,6 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     if(!goToBed) {
         return false
     }
-    const time = world.getTime()
-    // время пользования кроватью
-    if(time.hours < 18 && time.hours > 6) {
-        if (!Qubatch.is_server) {
-            Qubatch.hotbar.strings.setText(1, Lang.bed_no_sleep, 4000);
-        }
-        return true
-    }
     // растояние до кровати (java не более 2, br не более 3)
     if(player.pos.distance(pos) > 3.0) {
         if (!Qubatch.is_server) {
@@ -1749,15 +1735,15 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
         return true
     }
     // где находится подушка у кровати (голова игрока, когда лежит)
-    let position_head = world_block.posworld.offset(.5, 0, !extra_data?.is_head ? -.42 : .58)
+    let position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? -.42 : .58)
     if (rotate.x == 2) {
-        position_head = world_block.posworld.offset(.5, 0, !extra_data?.is_head ? 1.42 : .42)
+        position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? 1.42 : .42)
     }
     if (rotate.x == 1) {
-        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0, .5)
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0.6, .5)
     }
     if (rotate.x == 3) {
-        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0, .5)
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0.6, .5)
     }
     //Проверяем, что кровать не заблочена
     const block = world.getBlock(position_head.offset(0, 1, 0).floored())
@@ -1779,6 +1765,9 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     // разворот игрока, что бы ноги всегда лежали на кровате
     const player_rotation = new Vector(0, 0, ((rotate.x + 2) % 4) / 4)
     actions.setSleep(position_head, player_rotation)
+    if (Qubatch.is_server) {
+        world.getAllSleep(player.session.user_id)
+    }
     return true
 }
 
@@ -2084,6 +2073,54 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
 }
 
+// работа с компостером
+function putInComposter(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    const bm = world.block_manager
+    if (!world_material || world_material.id != bm.COMPOSTER.id)  {
+        return false
+    }
+    const position = new Vector(pos)
+    const level = extra_data.level
+    if (level > 5) {
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'dig', pos: position, except_players: [player.session.user_id]})
+        actions.addDropItem({pos: position.offset(0, 0.5, 0), items: [{id: bm.BONE_MEAL.id, count: 1}], force: true});
+        actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: 0 } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        return true
+    }
+    let chance = 0
+    if ([bm.CAKE.id, bm.PUMPKIN_PIE.id].includes(mat_block.id)) {
+        chance = 1.0
+    }
+    if ([bm.RED_MUSHROOM_BLOCK.id, bm.BROWN_MUSHROOM_BLOCK.id, bm.HAY_BLOCK.id, bm.COOKIE.id, bm.BAKED_POTATO.id, bm.BREAD.id, bm.FLOWERING_AZALEA.id].includes(mat_block.id)) {
+        chance = 0.85
+    }
+    if ([bm.LILY_PAD.id, bm.MELON.id, bm.APPLE.id, bm.COCOA_BEANS.id, bm.POTATO.id, bm.CARROT.id, bm.MOSS_BLOCK.id, bm.WHEAT.id, bm.AZALEA.id, bm.FERN.id, bm.LARGE_FERN.id, bm.BROWN_MUSHROOM.id 
+        , bm.RED_MUSHROOM.id, bm.BEETROOT.id, bm.NETHER_WART.id, bm.PUMPKIN.id, bm.LIT_PUMPKIN.id, bm.DANDELION.id, bm.RED_TULIP.id, bm.ALLIUM.id, bm.BLUE_ORCHID.id, bm.OXEYE_DAISY.id, bm.CATTAIL.id
+        , bm.LILY_OF_THE_VALLEY.id, bm.CORNFLOWER.id, bm.PEONY.id, bm.LILAC.id, bm.WITHER_ROSE.id, bm.WHITE_TULIP.id, bm.ORANGE_TULIP.id, bm.PINK_TULIP.id, bm.SUNFLOWER.id, bm.AZURE_BLUET.id, bm.POPPY.id
+    ].includes(mat_block.id)) {
+        chance = 0.65
+    }
+    if ([bm.DRIED_KELP.id, bm.TALL_GRASS.id, bm.GLOW_LICHEN.id, bm.VINE.id, bm.MELON_SLICE.id, bm.CACTUS.id, bm.SUGAR_CANE.id].includes(mat_block.id)) {
+        chance = 0.5
+    }
+    if ([bm.KELP.id, bm.BIRCH_LEAVES.id, bm.OAK_LEAVES.id, bm.ACACIA_LEAVES.id, bm.SPRUCE_LEAVES.id, bm.SEAGRASS.id, bm.WHEAT_SEEDS.id, bm.CARROT_SEEDS.id, bm.MELON_SEEDS.id, bm.PUMPKIN_SEEDS.id, bm.BEETROOT_SEEDS.id, bm.SWEET_BERRY_BUSH.id, bm.GRASS.id, bm.CAVE_VINE_BERRY.id].includes(mat_block.id)) {
+        chance = 0.3
+    }
+    if (chance == 0) {
+        return false
+    }
+    actions.addParticles([{type: 'villager_happy', pos: position.offset(0, 0.5, 0), area: false}])
+    actions.decrement = true
+    if (Math.random() <= chance) {
+        actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: (level + 1) } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        // @todo нужные правльные звуки
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'dig', pos: position, except_players: [player.session.user_id]})
+    } else {
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'place', pos: position, except_players: [player.session.user_id]})
+    }
+    return true
+}
+
 // добавление ламинарии вручную
 function putKelp(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if (!world_material || !mat_block || mat_block.id != BLOCK.KELP.id)  {
@@ -2249,7 +2286,7 @@ function removeFromPot(e, world, pos, player, world_block, world_material, mat_b
             actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
             // Create drop item
-            actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [drop_item], force: true});
+            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, 0, .5), items: [drop_item], force: true});
             return true;
         }
     }
@@ -2329,7 +2366,7 @@ function restrictLadder(e, world, pos, player, world_block, world_material, mat_
         return false;
     }
     // Лианы можно ставить на блоки с прозрачностью
-    if(world_material.transparent && world_material.style_name != 'default') {
+    if(world_material.transparent && world_material.style_name != DEFAULT_STYLE_NAME) {
         return true;
     }
     //
@@ -2812,7 +2849,7 @@ function removeFurnitureUpholstery(e, world, pos, player, world_block, world_mat
             }]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
             // Create drop item
-            actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, .5, .5)), items: [drop_item], force: true});
+            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true});
             return true;
         }
     }

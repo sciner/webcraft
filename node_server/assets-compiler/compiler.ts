@@ -2,7 +2,7 @@ import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
 import { DEFAULT_TEXTURE_SUFFIXES, Spritesheet } from "./spritesheet.js";
 import { CompileData } from "./compile_data.js";
-import { DEFAULT_TX_CNT } from '@client/constant.js';
+import { DEFAULT_STYLE_NAME, DEFAULT_TX_CNT } from '@client/constant.js';
 import { Mth } from '@client/helpers.js';
 
 const BLOCK_NAMES = {
@@ -143,8 +143,10 @@ export class Compiler {
     }
 
     makeModelName(block) {
-        if(!block.style) block.style = 'default'
-        block.style_name = block.bb?.model ?? (block.style || 'default')
+        if(!block.style) {
+            block.style = DEFAULT_STYLE_NAME
+        }
+        block.style_name = block.bb?.model ?? block.style
     }
 
     //

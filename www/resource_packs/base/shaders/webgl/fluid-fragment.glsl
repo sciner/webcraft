@@ -1,9 +1,6 @@
 #include<header>
 #include<constants>
 
-#include<global_uniforms>
-#include<global_uniforms_frag>
-
 uniform vec4 u_fluidUV[2];
 
 in vec3 v_position;
@@ -14,17 +11,18 @@ in vec3 v_normal;
 in float v_fogDepth;
 in vec3 v_world_pos;
 in vec3 v_chunk_pos;
-in float v_lightMode;
-in float v_useFog;
+in float v_flags_nft;
+int v_flags;
+float v_lightMode;
 in float v_lightId;
 in vec4 v_lightOffset;
-
-in float v_noCanTakeAO;
-in float v_noCanTakeLight;
-in float v_flagMultiplyColor;
-flat in int cubeSide;
+in float v_cubeSide_nft;
+int v_cubeSide;
 
 out vec4 outColor;
+
+#include<global_uniforms>
+#include<global_uniforms_frag>
 
 #include<crosshair_define_func>
 
@@ -33,9 +31,6 @@ out vec4 outColor;
 #include<manual_mip_define_func>
 #include<raindrops_define_func>
 #include<shoreline_func>
-
-
-
 
 ////// LAVA
 
@@ -47,7 +42,7 @@ out vec4 outColor;
         return fract(cos(dot(n, vec2(5.9898, 4.1414))) * 65899.89956);
     }
 
-    float noise( in vec2 n ) {   
+    float noise( in vec2 n ) {
         const vec2 d = vec2(0.0, 1.0);
         vec2 b = floor(n);
         vec2 f = smoothstep(vec2(0.), vec2(1), fract(n));
@@ -73,15 +68,15 @@ out vec4 outColor;
             n*=rot(iTime*.5-(0.03456*p.x+0.0342322*p.y)*50.);
             p += n*.5;
             total+= (sin(noise(p)*8.5)*0.55+0.4566)/amplitude;
-            
+
             p = mix(pom,p,0.5);
-            
+
             amplitude *= 1.3;
-            
+
             p *= 2.007556;
             pom *= 1.6895367;
         }
-        return total;	
+        return total;
     }
 
 //// LAVA
@@ -96,7 +91,7 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(mask_shift, 1.), texc.y) * mipData.zw + mipData.xy);
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
         color.rgb += color_mask.rgb * color_mult.rgb;
-    } else if (v_flagMultiplyColor > 0.0) {
+    } else if (checkFlag(FLAG_MULTIPLY_COLOR)) {
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
         color.rgb *= color_mult.rgb;
     }
@@ -105,6 +100,9 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
 }
 
 void main() {
+    #include<terrain_read_flags_frag>
+    v_cubeSide = int(round(v_cubeSide_nft));
+
     vec2 size = vec2(textureSize(u_texture, 0));
     int fluidId = int(round(v_fluidAnim.x));
     vec2 fluidSubTexSize = u_fluidUV[fluidId].xy;
@@ -116,90 +114,81 @@ void main() {
     vec3 combinedLight = vec3(1.0);
     vec4 centerSample;
 
-    // Game
-    if(u_fogOn) {
-        // default texture fetch pipeline
-
-        mipData = manual_mip(v_texcoord0 * fluidSubTexSize, size);
-        biome = ivec2(round(v_color.rg));
-        color = sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.y), biome);
-        if (v_fluidAnim.w > 0.0) {
-            color = mix(
-                color,
-                sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.z), biome),
-                v_fluidAnim.w
-            );
-        }
-
-        vec3 minecraftSun = vec3(0.6, 0.8, 1.0);
-
-        if (v_normal.z < 0.0) minecraftSun.z = 0.5;
-        float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
-
-        if(fluidId == 1) {
-            /// LAVA
-            vec3 cam_period5 = getCamPeriod();
-            float scale = 4.;
-            float pixels = 1. / 32.;
-            float div = pixels / scale;
-            vec2 uv;
-            if(cubeSide == 2 || cubeSide == 3) {
-                vec2 tms = vec2(0., u_time / 5000.);
-                uv = vec2(v_world_pos.xz + cam_period5.xz + tms + pixels / 2.) / scale;
-            } else if(cubeSide == 4 || cubeSide == 5) {
-                vec2 tms = vec2(0., u_time / 5000.);
-                uv = vec2(v_world_pos.yz + cam_period5.yz + tms + pixels / 2.) / scale;
-            } else {
-                uv = vec2(v_world_pos.xy + cam_period5.xy + pixels / 2.) / scale;
-            }
-            // pixelate
-            uv = round(uv / div) * div;
-            float fbm_value = fbm(uv);
-            vec3 col = vec3(.212, 0.08, 0.03) / max(fbm_value, 0.0001);
-            col = pow(col, vec3(1.5));
-            color.rgb = col;
-            ///// LAVA
-        } else {
-
-            #include<caustic_pass_onwater>
-            #include<raindrops_onwater>
-
-            if(v_noCanTakeLight < 0.5) {
-                #include<local_light_pass>
-                #include<ao_light_pass>
-                #include<shoreline>
-                // Apply light
-                color.rgb *= (combinedLight * sunNormalLight);
-            } else {
-                color.rgb *= sunNormalLight;
-            }
-        }
-
-        // _include<swamp_fog>
-
-        // // vintage sepia
-        // vec3 sepia = vec3(1.2, 1.0, 0.8);
-        // float grey = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-        // vec3 sepiaColour = vec3(grey) * sepia;
-        // color.rgb = mix(color.rgb, vec3(sepiaColour), 0.65);
-        // // swap r & b
-        // float bb = color.b;
-        // color.b = color.r;
-        // color.r = bb;
-        // // vintage sepia
-
-        outColor = color;
-
-        #include<fog_frag>
-        if(u_crosshairOn) {
-            #include<crosshair_call_func>
-        }
-        #include<vignetting_call_func>
-
-    } else {
-        outColor = texture(u_texture, texClamped);
-        if(outColor.a < 0.1) discard;
-        outColor *= v_color;
+    // default texture fetch pipeline
+    mipData = manual_mip(v_texcoord0 * fluidSubTexSize, size);
+    biome = ivec2(round(v_color.rg));
+    color = sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.y), biome);
+    if (v_fluidAnim.w > 0.0) {
+        color = mix(
+            color,
+            sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.z), biome),
+            v_fluidAnim.w
+        );
     }
+
+    vec3 minecraftSun = vec3(0.6, 0.8, 1.0);
+
+    if (v_normal.z < 0.0) minecraftSun.z = 0.5;
+    sunNormalLight = dot(minecraftSun, v_normal * v_normal);
+
+    if(fluidId == 1) {
+        /// LAVA
+        vec3 cam_period5 = getCamPeriod();
+        float scale = 4.;
+        float pixels = 1. / 32.;
+        float div = pixels / scale;
+        vec2 uv;
+        if(v_cubeSide == 2 || v_cubeSide == 3) {
+            vec2 tms = vec2(0., u_time / 5000.);
+            uv = vec2(v_world_pos.xz + cam_period5.xz + tms + pixels / 2.) / scale;
+        } else if(v_cubeSide == 4 || v_cubeSide == 5) {
+            vec2 tms = vec2(0., u_time / 5000.);
+            uv = vec2(v_world_pos.yz + cam_period5.yz + tms + pixels / 2.) / scale;
+        } else {
+            uv = vec2(v_world_pos.xy + cam_period5.xy + pixels / 2.) / scale;
+        }
+        // pixelate
+        uv = round(uv / div) * div;
+        float fbm_value = fbm(uv);
+        vec3 col = vec3(.212, 0.08, 0.03) / max(fbm_value, 0.0001);
+        col = pow(col, vec3(1.5));
+        color.rgb = col;
+        ///// LAVA
+    } else {
+
+        #include<caustic_pass_onwater>
+        #include<raindrops_onwater>
+
+        if(!checkFlag(NO_CAN_TAKE_LIGHT)) {
+            #include<local_light_pass>
+            #include<ao_light_pass>
+            #include<shoreline>
+            // Apply light
+            color.rgb *= (combinedLight * sunNormalLight);
+        } else {
+            color.rgb *= sunNormalLight;
+        }
+    }
+
+    // _include<swamp_fog>
+
+    // // vintage sepia
+    // vec3 sepia = vec3(1.2, 1.0, 0.8);
+    // float grey = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+    // vec3 sepiaColour = vec3(grey) * sepia;
+    // color.rgb = mix(color.rgb, vec3(sepiaColour), 0.65);
+    // // swap r & b
+    // float bb = color.b;
+    // color.b = color.r;
+    // color.r = bb;
+    // // vintage sepia
+
+    outColor = color;
+
+    #include<fog_frag>
+    if(u_crosshairOn) {
+        #include<crosshair_call_func>
+    }
+    #include<vignetting_call_func>
 
 }

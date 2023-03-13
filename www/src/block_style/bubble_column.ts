@@ -1,10 +1,10 @@
-import type { BlockManager, FakeTBlock } from '../blocks.js';
 import { AABB } from '../core/AABB.js';
-import { IndexedColor, Vector } from '../helpers.js';
+import { BlockStyleRegInfo } from './default.js';
 
+import type { BlockManager, FakeTBlock } from '../blocks.js';
+import type { IndexedColor } from '../helpers.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-import { BlockStyleRegInfo } from './default.js';
 
 export default class style {
     [key: string]: any;
@@ -31,10 +31,10 @@ export default class style {
         // Add animations
         if(typeof QubatchChunkWorker != 'undefined') {
             QubatchChunkWorker.postMessage(['add_animated_block', {
-                block_pos: block.posworld,
-                pos: [block.posworld.add(new Vector(.5, .5, .5))],
-                type: 'bubble_column',
-                isBottom: false
+                block_pos:  block.posworld,
+                pos:        [block.posworld.clone().addScalarSelf(.5, .5, .5)],
+                type:       'bubble_column',
+                isBottom:   false
             }]);
         }
     }

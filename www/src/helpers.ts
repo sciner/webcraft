@@ -65,6 +65,11 @@ export class Helpers {
         return Helpers.cache;
     }
 
+    static inWorker() : boolean {
+        return (typeof (self as any).WorkerGlobalScope !== 'undefined') ||
+               (typeof worker != 'undefined')
+    }
+
     //
     angleTo(pos, target) {
         let angle = Math.atan2(target.x - pos.x, target.z - pos.z);

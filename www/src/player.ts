@@ -4,7 +4,7 @@ import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS } from "./constant.js";
-import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "./vendors/prismarine-physics/using.js";
+import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "./prismarine-physics/using.js";
 import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
@@ -83,11 +83,11 @@ type PlayerStateDynamicPart = {
 
 /** Fields that are saved together into DB in user.state field. */
 export type PlayerState = PlayerStateDynamicPart & {
-    pos_spawn   : Vector
-    indicators  : Indicators
-    chunk_render_dist : int
-    game_mode ? : string
-    stats       : PlayerStats
+    pos_spawn           : Vector
+    indicators          : Indicators
+    chunk_render_dist   : int
+    game_mode ?         : string
+    stats               : PlayerStats
 }
 
 export type PlayerStateUpdate = PlayerStateDynamicPart & {
@@ -618,7 +618,8 @@ export class Player implements IPlayer {
                     const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style_name == 'planting') ? true : false;
                     const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
                     const is_cauldron  = (target_mat && target_mat.id == BLOCK.CAULDRON.id);
-                    if(!is_cauldron && !is_plant_berry && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
+                    const is_composter  = (target_mat && target_mat.id == BLOCK.COMPOSTER.id)
+                    if(!is_composter &&!is_cauldron && !is_plant_berry && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
@@ -642,9 +643,6 @@ export class Player implements IPlayer {
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: null
             })
-            if (this.state.sleep) {
-                this.controls.jump = true
-            }
         }
     }
 

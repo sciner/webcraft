@@ -7,7 +7,7 @@ import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE, DEFAULT_RENDER_DISTANCE } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
@@ -35,7 +35,7 @@ export class GameSettings {
     texture_pack:            string = 'base'
     // camera
     fov:                     float = DEFAULT_FOV_NORMAL
-    render_distance:         int = 5
+    render_distance:         int = DEFAULT_RENDER_DISTANCE
     base_ambient_light_level:float = 100
     // quality
     use_light:               int = LIGHT_TYPE.RTX
@@ -257,7 +257,6 @@ export class GameClass {
                     }
                     return true;
                 } else if (type == MOUSE.WHEEL) {
-                    if(e.ctrlKey) return;
                     if(player) {
                         if(controls.enabled) {
                             if(!player.changeSpectatorSpeed(-e.deltaY)) {
@@ -275,6 +274,7 @@ export class GameClass {
                             });
                         }
                     }
+                    if(e.ctrlKey) return;
                     return true;
                 }
                 if(!this.player.controls.enabled || player.chat.active || hasVisibleWindow) {

@@ -19,6 +19,8 @@ export class Default_Terrain_Map_Cell {
 
 }
 
+const _cache = {} as {[key: string] : any}
+
 //
 export class Default_Terrain_Map {
     [key: string]: any;
@@ -247,6 +249,8 @@ export class Default_Terrain_Generator {
     plantCactus(world, tree, chunk, x, y, z, setTreeBlock) {
         const ystart = y + tree.height;
         // ствол
+        this.temp_block.id = 11
+        setTreeBlock(tree, chunk, x, y - 1, z, this.temp_block, true)
         this.temp_block.id = tree.type.trunk;
         for(let p = y; p < ystart; p++) {
             setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
@@ -301,8 +305,6 @@ export class Default_Terrain_Generator {
 
     // Акация
     plantAcacia(world, tree, chunk, orig_x, orig_y, orig_z, setTreeBlock) {
-        // let xyz = chunk.coord.add(new Vector(orig_x, orig_y, orig_z));
-        // let random = new alea('tree' + xyz.toHash());
         let iterations = 0;
         let that = this;
         let plant = function(x, y, z, height, px, pz, rads) {
@@ -372,9 +374,12 @@ export class Default_Terrain_Generator {
         let rad = Math.round(r);
         this.temp_block.id = tree.type.leaves;
         setTreeBlock(tree, chunk, x, ystart, z, this.temp_block, false);
-        if(tree.biome_code == 'SNOW') {
+        
+        const is_snowy = (tree.biome_code == 'SNOW') || tree.biome?.is_snowy
+
+        if(is_snowy) {
             this.temp_block.id = BLOCK.SNOW.id;
-            setTreeBlock(tree, chunk, x, ystart + 1, z, this.temp_block, false);
+            setTreeBlock(tree, chunk, x, ystart + 1, z, this.temp_block, false, null, {height: 0.5});
         }
 
         let step = 0;
@@ -398,9 +403,9 @@ export class Default_Terrain_Generator {
                         if(b_id == 0 || b_id != tree.type.trunk) {
                             this.temp_block.id = tree.type.leaves;
                             setTreeBlock(tree, chunk, i, py, j, this.temp_block, false);
-                            if(tree.biome_code == 'SNOW') {
+                            if(is_snowy) {
                                 this.temp_block.id = BLOCK.SNOW.id;
-                                setTreeBlock(tree, chunk, i, py + 1, j, this.temp_block, false);
+                                setTreeBlock(tree, chunk, i, py + 1, j, this.temp_block, false, null, {height: 0.5});
                             }
                         }
                     }
@@ -421,14 +426,26 @@ export class Default_Terrain_Generator {
     }
 
     // Дуб, берёза
-    plantOak(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantOak(world, tree, chunk : ChunkWorkerChunk, x : int, y : int, z : int, setTreeBlock : Function) {
         const extra_data = this.makeLeavesExtraData(chunk, x, y, z)
-        //
-        let ystart = y + tree.height;
         // ствол
-        for(let p = y; p < ystart; p++) {
+        for(let i = 0; i < tree.height; i++) {
             this.temp_block.id = tree.type.trunk;
-            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
+            setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true)
+        }
+        // Create bee nest
+        if(tree.height > 6) {
+            if(BLOCK.fromId(tree.type.trunk).name == 'BIRCH_LOG') {
+                const xyz = new Vector(x, y, z).addSelf(chunk.coord)
+                const random = new alea('tree_' + xyz.toHash())
+                if(random.double() < 1/32) {
+                    const side = Math.floor(random.double() * 4)
+                    const vec = Vector.ZERO.clone().addByCardinalDirectionSelf(Vector.ZP, side)
+                    const bee_nest_block = BLOCK.fromName('BEE_NEST')
+                    const bee_block = {id: bee_nest_block.id, extra_data: {pollen: 0, max_ticks: 100, bees: [{pollen: 0}]}}
+                    setTreeBlock(tree, chunk, x + vec.x, y + 2, z + vec.z, bee_block, true, new Vector(side, 0, 0), bee_block.extra_data)
+                }
+            }
         }
         // листва
         let py = y + tree.height;
@@ -601,7 +618,13 @@ export class Default_Terrain_Generator {
         const maxW = Math.floor(TREE_HEIGHT / 2)
         const minW = Math.floor(TREE_HEIGHT / 3)
         const mainseed = x + z + y + chunk.coord.x + chunk.coord.y + chunk.coord.z;
-        const vine_block = { id: BLOCK.VINE.id };
+        const vine_block = _cache.vine_block || (_cache.vine_block = { id: BLOCK.VINE.id })
+        const vine_blocks = _cache.vine_blocks || (_cache.vine_blocks = [
+            {...vine_block, extra_data: {north: true, east: true, rotate: false}},
+            {...vine_block, extra_data: {east: true, south: true, rotate: false}},
+            {...vine_block, extra_data: {south: true, west: true, rotate: false}},
+            {...vine_block, extra_data: {west: true, north: true, rotate: false}},
+        ])
         // получаю большое число
         const cnt = Math.floor(this.fastRandoms.double(mainseed + tree.height) * Math.pow(2, 58))
         const dy = Math.floor(cnt / 2 ** 32)
@@ -669,18 +692,22 @@ export class Default_Terrain_Generator {
                                     h == 0 &&
                                     (i == dx || i == dx + w || j == dz || j == dz + w)
                                 ) {
+                                    const vb_index = i == dx ? 3 : i == dx + w ? 1 : j == dz + w ? 2 : 0
+                                    const vb = vine_blocks[vb_index]
+                                    // const rot = new Vector(
+                                    //     vb_index,
+                                    //     0,
+                                    //     j == dz ? 3 : 0
+                                    // )
                                     for(let t = 1; t <= Math.floor(1 + rad * (arr[1 + (t % 6)] / 255)); t++) {
                                         setTreeBlock(
                                             tree,
                                             chunk,
                                             i, y + h - t, j,
-                                            vine_block,
+                                            vb,
                                             false,
-                                            new Vector(
-                                                i == dx ? 3 : i == dx + w ? 1 : j == dz + w ? 2 : 0,
-                                                0,
-                                                j == dz ? 3 : 0
-                                            )
+                                            null, // rot,
+                                            vb.extra_data
                                         )
                                     }
                                 }
@@ -721,7 +748,7 @@ export class Default_Terrain_Generator {
     plantTestTree(world, tree, chunk, x, y, z, setTreeBlock) {
 
         const conus_rad = 16;
-        const xyz2 = chunk.coord.add(new Vector(x, y, z));
+        const xyz2 = chunk.coord.clone().addScalarSelf(x, y, z);
         const random_alea2 = new alea('tree_big' + xyz2.toHash());
         const blocks = [BLOCK.GREEN_CONCRETE, BLOCK.GREEN_CONCRETE_POWDER, BLOCK.GREEN_TERRACOTTA, BLOCK.MOSS_BLOCK, BLOCK.GREEN_WOOL];
 
@@ -755,7 +782,7 @@ export class Default_Terrain_Generator {
 
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
         const height = Math.min(CHUNK_SIZE_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
-        const xyz = chunk.coord.add(new Vector(x, y, z));
+        const xyz = chunk.coord.clone().addScalarSelf(x, y, z);
         const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
         // рисуем корни

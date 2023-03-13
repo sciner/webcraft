@@ -1,4 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "@client/chunk_const.js";
+import { DEFAULT_RENDER_DISTANCE } from "@client/constant.js";
 import type { Indicators } from "@client/player.js";
 import type { ServerWorld } from "../../server_world.js";
 import type { DBWorld } from "../world.js";
@@ -156,7 +157,7 @@ export class DBWorldMigration {
         ]});
         migrations.push({version: 4, queries: [
             `alter table world add column "game_mode" TEXT DEFAULT 'survival'`,
-            `alter table user add column "chunk_render_dist" integer DEFAULT 4`
+            `alter table user add column "chunk_render_dist" integer DEFAULT ${DEFAULT_RENDER_DISTANCE}`
         ]});
         migrations.push({version: 5, queries: [
             `CREATE INDEX "world_modify_xyz" ON "world_modify" ("x", "y", "z")`,
@@ -893,6 +894,52 @@ export class DBWorldMigration {
         migrations.push({version: 93, queries: [
             // TODO after some time, remove other colums that are included in the state
             'ALTER TABLE user ADD COLUMN state TEXT DEFAULT NULL'
+        ]});
+
+        migrations.push({version: 94, queries: [
+
+            `DROP INDEX "main"."user_guid";`,
+
+            `DROP INDEX "main"."user_is_admin";`,
+            
+            `ALTER TABLE "main"."user" RENAME TO "_user_old_20230312";`,
+            
+            `CREATE TABLE "main"."user" (
+              "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+              "guid" text NOT NULL,
+              "username" TEXT,
+              "inventory" TEXT,
+              "indicators" TEXT,
+              "dt" integer,
+              "pos_spawn" TEXT,
+              "pos" TEXT,
+              "rotate" TEXT,
+              "dt_moved" integer,
+              "is_admin" integer DEFAULT 0,
+              "chunk_render_dist" integer DEFAULT ${DEFAULT_RENDER_DISTANCE},
+              "game_mode" TEXT DEFAULT NULL,
+              "stats" TEXT,
+              "ender_chest" TEXT DEFAULT '{"slots":{}}',
+              "state" TEXT DEFAULT NULL
+            );`,
+            
+            `INSERT INTO "main"."sqlite_sequence" (name, seq) VALUES ('user', '2355');`,
+            
+            `INSERT INTO "main"."user" ("id", "guid", "username", "inventory", "indicators", "dt", "pos_spawn", "pos", "rotate", "dt_moved", "is_admin", "chunk_render_dist", "game_mode", "stats", "ender_chest", "state") SELECT "id", "guid", "username", "inventory", "indicators", "dt", "pos_spawn", "pos", "rotate", "dt_moved", "is_admin", "chunk_render_dist", "game_mode", "stats", "ender_chest", "state" FROM "main"."_user_old_20230312";`,
+            
+            `CREATE INDEX "main"."user_guid"
+            ON "user" (
+              "guid" ASC
+            );`,
+            
+            `CREATE INDEX "main"."user_is_admin"
+            ON "user" (
+              "is_admin" ASC
+            );`
+        ]});
+
+        migrations.push({version: 95, queries: [
+            'UPDATE user SET chunk_render_dist = 5 WHERE chunk_render_dist = 4;'
         ]});
 
         for(let m of migrations) {

@@ -1,3 +1,10 @@
+// Global light type
+export enum LIGHT_TYPE {
+    NO      = 0,
+    SMOOTH  = 1,
+    RTX     = 2,
+}
+
 export const GAME_ONE_SECOND                = 72;
 export const GAME_DAY_SECONDS               = 24000;
 // If more time than this has passed since the last update, player.update() is skipped.
@@ -21,6 +28,9 @@ export const DIRT_COLOR_NOISE_RANGE         = 20; // mix dirt colors on every bl
 export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', 'west', 'east'];
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= ['BEDROCK'];
 export const ITEM_LABEL_MAX_LENGTH          = 19;
+export const DEFAULT_STYLE_NAME             = 'cube'
+export const DEFAULT_RENDER_DISTANCE        = 5
+export const DEFAULT_LIGHT_TYPE_ID          = LIGHT_TYPE.SMOOTH
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
@@ -53,7 +63,21 @@ export enum LEAVES_TYPE {
     NO = 0,
     NORMAL = 1,
     BEAUTIFUL = 2,
-};
+}
+
+export enum BLOCK_FLAG {
+    SOLID                           = 0x1 | 0,
+    REMOVE_ONAIR_BLOCKS_IN_CLUSTER  = 0x2 | 0, // these blocks must be removed over structures and buildings
+    BIOME                           = 0x4 | 0,
+    COLOR                           = 0x8 | 0,
+    AO_INVISIBLE                    = 0x10 | 0,
+    SPAWN_EGG                       = 0x20 | 0,
+    STONE                           = 0x40 | 0,
+    FLUID                           = 0x80 | 0,
+    OPAQUE_FOR_NATURAL_SLAB         = 0x100 | 0,
+    NOT_CREATABLE                   = 0x200 | 0,
+    IS_DIRT                         = 0x400 | 0,
+}
 
 // ========================= Sound options =========================
 
@@ -142,13 +166,6 @@ export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
 // World types
 export const WORLD_TYPE_NORMAL              = 1;
 export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
-
-// Global light type
-export enum LIGHT_TYPE {
-    NO      = 0,
-    SMOOTH  = 1,
-    RTX     = 2,
-}
 
 export const MOUSE = {
     DOWN: 1,

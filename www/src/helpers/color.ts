@@ -48,6 +48,14 @@ export class Color {
         return this;
     }
 
+    divideScalarSelf(value : number): Color {
+        this.r /= value
+        this.g /= value
+        this.b /= value
+        this.a /= value
+        return this
+    }
+
     set(r: number | Color, g: number, b: number, a: number): Color {
         if (r instanceof Color) {
             g = r.g;
