@@ -7,7 +7,7 @@ import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
-import type { GameSettings } from "./game.js";
+import type {GameClass} from "./game.js";
 
 // QuestActionType
 export enum QuestActionType {
@@ -354,6 +354,7 @@ export class HUD {
             return;
         }
 
+        const game              : GameClass = Qubatch;
         const world             = Qubatch.world;
         const player            = Qubatch.player;
         const render            = Qubatch.render;
@@ -409,6 +410,11 @@ export class HUD {
                 this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
             }
 
+            const trackName = game.sounds.music.track?.name
+            if (trackName) {
+                this.text += `\nPlaying track: ${trackName}`
+            }
+
             // Chunks inited
             this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ') ' + this.splash?.generate_terrain_time;
 
@@ -447,7 +453,7 @@ export class HUD {
                     this.block_text += `\nrotate: ` + new Vector(desc.block.rotate);
                 }
                 if (desc.block.entity_id) {
-                    this.block_text += '\nentiry_id: ' + desc.block.entity_id;
+                    this.block_text += '\nentity_id: ' + desc.block.entity_id;
                 }
                 if (desc.block.power) {
                     this.block_text += '\npower: ' + desc.block.power;
