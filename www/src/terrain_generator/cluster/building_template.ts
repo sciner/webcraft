@@ -110,6 +110,8 @@ export class BuildingTemplate {
         if(!json) debugger
         if(!bm) debugger
 
+        this.block_manager = bm
+
         for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks', 'fluids']) {
             if(prop in json) {
                 switch(prop) {
@@ -358,10 +360,10 @@ export class BuildingTemplate {
 
     }
 
-    createBiomeDirtCapBlocks(all_blocks, min, bm) {
+    createBiomeDirtCapBlocks(all_blocks : VectorCollector, min : Vector, bm : BLOCK) {
         const move = new Vector(0, 0, 0)
-        const block_id = 1
-        const mat = bm.fromId(block_id)
+        const cap_block_id = bm.BEDROCK.id
+        const mat = bm.fromId(cap_block_id)
         for(let x = 0; x < this.size.x; x++) {
             for(let z = 0; z < this.size.z; z++) {
                 for(let y = this.size.y; y > 0; y--) {
@@ -371,7 +373,7 @@ export class BuildingTemplate {
                         if(block.mat?.is_solid) {
                             //if(move.y >= 80) {
                                 move.y++
-                                all_blocks.set(move, {block_id, mat, move: move.clone(), candidate_for_cap_block: true})
+                                all_blocks.set(move, {block_id: cap_block_id, mat, move: move.clone(), candidate_for_cap_block: true})
                             //}
                         }
                         break

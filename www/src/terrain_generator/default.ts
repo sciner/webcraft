@@ -7,6 +7,8 @@ import { WorldAction } from "../world_action.js";
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
 import type { TerrainMapCell } from "./terrain_map.js";
 
+declare type ISetTreeBlock = (tree : any, chunk : any, x : int, y : int, z : int, block_type : any, force_replace : boolean, rotate? : IVector, extra_data? : any) => any
+
 export {alea, noise};
 
 // Map cell
@@ -136,7 +138,7 @@ export class Default_Terrain_Generator {
     }
 
     //
-    getVoxelBuilding(xyz) {
+    getVoxelBuilding(xyz : Vector) {
         for (let i = 0; i < this.voxel_buildings.length; i++) {
             const vb = this.voxel_buildings[i];
             if(xyz.x >= vb.coord.x && xyz.y >= vb.coord.y && xyz.z >= vb.coord.z &&
@@ -197,7 +199,7 @@ export class Default_Terrain_Generator {
     }
 
     //
-    setTreeBlock(tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
+    setTreeBlock(tree, chunk, x : int, y : int, z : int, block_type : any, force_replace : boolean = false, rotate : Vector, extra_data : any) {
 
         const ax = chunk.coord.x + x
         const ay = chunk.coord.y + y
@@ -221,13 +223,17 @@ export class Default_Terrain_Generator {
 
     }
 
-    // Return block from chunk
-    getBlock(chunk, x, y, z) {
-        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0) { 
-            const xyz = new Vector(x, y, z);
-            return chunk.tblocks.get(xyz);
-        }
-    }
+    // /**
+    //  * Return block from chunk
+    //  * @deprecated
+    //  * @returns 
+    //  */
+    // getBlock(chunk, x, y, z) {
+    //     if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0) { 
+    //         const xyz = new Vector(x, y, z);
+    //         return chunk.tblocks.get(xyz);
+    //     }
+    // }
 
     // setBlock
     setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_type : any, force_replace : boolean = false, rotate? : IVector, extra_data? : any) {
@@ -246,7 +252,7 @@ export class Default_Terrain_Generator {
     }
 
     // Кактус
-    plantCactus(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantCactus(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
         const ystart = y + tree.height;
         // ствол
         this.temp_block.id = 11
@@ -258,7 +264,7 @@ export class Default_Terrain_Generator {
     }
 
     // Бамбук
-    plantBamboo(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantBamboo(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
         const ystart = y + tree.height;
         // ствол
         this.temp_block.id = tree.type.trunk;
@@ -272,7 +278,7 @@ export class Default_Terrain_Generator {
     }
 
     // Пенёк
-    plantStump(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantStump(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
         const ystart = y + tree.height;
         // ствол
         this.temp_block.id = tree.type.trunk;
@@ -286,7 +292,7 @@ export class Default_Terrain_Generator {
     }
 
     // Tundra stone
-    plantTundraStone(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantTundraStone(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
         y--;
         const ystart = y + tree.height;
         // ствол
@@ -304,7 +310,7 @@ export class Default_Terrain_Generator {
     }
 
     // Акация
-    plantAcacia(world, tree, chunk, orig_x, orig_y, orig_z, setTreeBlock) {
+    plantAcacia(world : any, tree : any, chunk : any, orig_x : int, orig_y : int, orig_z : int, setTreeBlock : ISetTreeBlock) {
         let iterations = 0;
         let that = this;
         let plant = function(x, y, z, height, px, pz, rads) {
@@ -357,7 +363,7 @@ export class Default_Terrain_Generator {
     }
 
     // Ель
-    plantSpruce(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantSpruce(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
 
         let max_rad = 5;
         let ystart = y + tree.height;
@@ -525,7 +531,7 @@ export class Default_Terrain_Generator {
     }
 
     // Brown mushroom
-    plantBrownMushroom(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantBrownMushroom(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
         let ystart = y + tree.height;
         // ствол
         for(let p = y; p < ystart; p++) {
@@ -580,7 +586,7 @@ export class Default_Terrain_Generator {
     }
 
     // Red mushroom
-    plantRedMushroom(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantRedMushroom(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
 
         let ystart = y + tree.height;
 
@@ -638,7 +644,7 @@ export class Default_Terrain_Generator {
     }
 
     // Тропическое дерево
-    plantJungle(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantJungle(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
         const TREE_HEIGHT = tree.height - 2 // рандомная высота дерева, переданная из генератора
         const ystart = y + TREE_HEIGHT
         const maxW = Math.floor(TREE_HEIGHT / 2)
@@ -771,7 +777,7 @@ export class Default_Terrain_Generator {
     }
 
     // Тестовое дерево
-    plantTestTree(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantTestTree(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
 
         const conus_rad = 16;
         const xyz2 = chunk.coord.clone().addScalarSelf(x, y, z);
@@ -798,7 +804,7 @@ export class Default_Terrain_Generator {
     }
 
     // Большой дуб
-    plantBigOak(world, tree, chunk, x, y, z, setTreeBlock) {
+    plantBigOak(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
 
         const orig_y = y;
 
@@ -961,28 +967,31 @@ export class Default_Terrain_Generator {
     }
 
     // Дерево хоруса
-    plantChorus(world, tree, chunk, x, y, z, setTreeBlock) {
-        const block = this.getBlock(chunk, 1, 1, 0)
-        console.log(block.id + ' ' + y)
-        const blocks = new Map()
-        const isNeighbors = (pos, ignore?) => {
-            const faces = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YP]
+    plantChorus(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
+
+        const blocks        = new Map()
+        const faces         = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YP]
+        const trunk_block   = {id: tree.type.trunk}
+        const leaves_block  = {id: tree.type.leaves}
+
+        const isNeighbors = (pos : Vector, ignore? : Vector) : boolean => {
             for (const face of faces) {
                 const position = pos.add(face)
                 if (ignore && position.equal(ignore)) {
                     continue
                 }
-                
                 if (blocks.has(position.toHash())) {
                     return true
                 }
             }
             return false
         }
+
         let ages = 0
-        const xyz = chunk.coord.add(new Vector(x, y, z))
+        const xyz = chunk.coord.clone().addScalarSelf(x, y, z)
         const random = new alea('chorus' + xyz.toHash())
-        const setChorus = (pos) => {
+
+        const setChorus = (pos : Vector) => {
             if (ages++ > 20) {
                 return
             }
@@ -992,7 +1001,7 @@ export class Default_Terrain_Generator {
                 if (isNeighbors(tmp_pos) && i != 0) {
                     return
                 }
-                setTreeBlock(tree, chunk, tmp_pos.x, tmp_pos.y, tmp_pos.z, {id: tree.type.trunk}, true)
+                setTreeBlock(tree, chunk, tmp_pos.x, tmp_pos.y, tmp_pos.z, trunk_block, false)
                 if (random.double() < 0.35) {
                     const age = random.nextInt(4)
                     for (let l = 0; l < age; l++) {
@@ -1006,9 +1015,11 @@ export class Default_Terrain_Generator {
                     return
                 }
             }
-            setTreeBlock(tree, chunk, pos.x, pos.y + tree.height, pos.z, {id: tree.type.leaves}, true, null, {notick: true})
+            setTreeBlock(tree, chunk, pos.x, pos.y + tree.height, pos.z, leaves_block, false, null, {notick: true})
         }
-        setChorus(new Vector(x, y + 1, z)) 
+
+        setChorus(new Vector(x, y + 1, z))
+
     }
 
     destroyMapsAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {
