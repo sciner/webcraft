@@ -371,6 +371,7 @@ export default class Biome3LayerOverworld {
                 const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);
 
                 const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
+                const hanging_foliage_block_id = cell.biome.is_snowy ? bm.ICE.id : bm.OAK_LEAVES.id
 
                 let cluster_drawed = false;
                 let not_air_count = 0;
@@ -624,10 +625,10 @@ export default class Biome3LayerOverworld {
 
                                         // hanging foliage | свисающая столбом листва
                                         if((d4 > .4 && d4 < .8) && air_count > 5 && air_count < CHUNK_SIZE_Y / 2) {
-                                            if(xyz.y == local_water_line && !cell.biome.is_snowy) {
+                                            if(xyz.y == local_water_line) {
                                                 if(rnd.double() < .1) {
                                                     for(let i = 0; i < 8 * d4 + 2; i++) {
-                                                        chunk.setBlockIndirect(x, y + air_count - i, z, bm.OAK_LEAVES.id)
+                                                        chunk.setBlockIndirect(x, y + air_count - i, z, hanging_foliage_block_id)
                                                     }
                                                 }
                                             }

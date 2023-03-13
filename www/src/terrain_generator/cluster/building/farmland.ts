@@ -42,6 +42,13 @@ export class Farmland extends Building {
         // seeds
         this.blocks.appendQuboidBlocks(new Vector(1, 1, 1), inner_size, this.seeds.id, {stage: 7, complete: true});
 
+        const composter_pos = new Vector(
+            1 + Math.round(this.randoms.double()) * (inner_size.x - 1),
+            1,
+            1 + Math.round(this.randoms.double()) * (inner_size.z - 1)
+        )
+        this.blocks.appendQuboidBlocks(composter_pos, new Vector(1, 2, 1), bm.COMPOSTER.id, {level: Math.floor(this.randoms.double() * 6)});
+
         // water
         for(let axe of ['x', 'z']) {
             if(right_size[axe] >= 7) {
@@ -66,7 +73,7 @@ export class Farmland extends Building {
                         water_pos[axe] += 3;
 
                         // fix. because water not replace FARMLAND_WET
-                        this.blocks.appendQuboidBlocks(water_pos, water_size, bm.BLD_AIR.id);
+                        // this.blocks.appendQuboidBlocks(water_pos, water_size, bm.BLD_AIR.id);
                         this.blocks.appendQuboidBlocks(water_pos, water_size, bm.STILL_WATER.id);
 
                         // remove seeds under water
