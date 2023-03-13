@@ -116,6 +116,10 @@ export class ClusterBase {
         return chunk.tblocks.id[index];
     }
 
+    resetNearMask() {
+        this.near_mask = new Array(this.size.x * this.size.z).fill(255)
+    }
+
     moveToRandomCorner() {
         const resp = new Vector(0, 0, 0);
         if(this.is_empty) {
@@ -164,7 +168,7 @@ export class ClusterBase {
 
         // make new mask
         const new_mask = new Array(this.size.x * this.size.z);
-        this.near_mask = new Array(this.size.x * this.size.z).fill(255);
+        this.resetNearMask()
         for(let x = 0; x < this.size.x; x++) {
             for(let z = 0; z < this.size.z; z++) {
                 const index = z * this.size.x + x;

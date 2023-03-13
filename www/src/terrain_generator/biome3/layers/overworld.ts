@@ -10,22 +10,20 @@ import { alea } from "../../default.js";
 import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
 import type { TerrainMap2 } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
-import type { Biome } from "../biomes.js";
 import type Terrain_Generator from "../index.js";
 import { FLUID_STRIDE } from "../../../fluid/FluidConst.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
+import Biome3LayerBase from "./base.js";
 import type { ClusterManager } from "../../cluster/manager.js";
 import { BLOCK_FLAG } from "../../../constant.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
 const BIG_STONE_DESNSITY = 0.6;
-
 const GROUND_PLACE_SIZE = 3
 const _ground_places = new Array(CHUNK_SIZE * GROUND_PLACE_SIZE)
 
-export default class Biome3LayerOverworld {
-
+export default class Biome3LayerOverworld extends Biome3LayerBase {
     generator:              Terrain_Generator
     maps:                   TerrainMapManager2
     ore_generator:          WorldClientOreGenerator
@@ -39,15 +37,11 @@ export default class Biome3LayerOverworld {
 
     constructor(generator : Terrain_Generator) {
 
-        this.generator = generator
+        super(generator)
 
-        // const world = generator.world
-        const world_id = generator.world_id
         const seed = generator.seed
 
-        this.noise2d = generator.noise2d
-        this.noise3d = generator.noise3d
-
+        const world_id = generator.world_id
         this.maps = new TerrainMapManager2(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options);
 
         this.ore_generator = new WorldClientOreGenerator(world_id)
@@ -244,48 +238,12 @@ export default class Biome3LayerOverworld {
         return 0.;
     }
 
-    /**
-     * Plant chunk trees
-     */
-    plantTrees(maps : TerrainMap2[], chunk : ChunkWorkerChunk) {
-        const bm = chunk.chunkManager.block_manager
-        for(let i = 0; i < maps.length; i++) {
-            const m = maps[i];
-            for(let j = 0; j < m.trees.length; j++) {
-
-                const tree = m.trees[j];
-
-                const x = m.chunk.coord.x + tree.pos.x - chunk.coord.x;
-                const y = m.chunk.coord.y + tree.pos.y - chunk.coord.y;
-                const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
-
-                // Replace grass_block with dirt under trees
-                if(chunk.addr.x == m.chunk.addr.x && chunk.addr.z == m.chunk.addr.z) {
-                    const yu = y - 1
-                    if(yu >= 0 && yu < chunk.size.y) {
-                        const cell = m.getCell(tree.pos.x, tree.pos.z)
-                        if(!cell.is_sand && !tree.type.transparent_trunk) {
-                            chunk.setGroundIndirect(x, yu, z, bm.DIRT.id)
-                        }
-                    }
-                }
-
-                // Draw tree blocks into chunk
-                this.generator.plantTree(this.world, tree, chunk, x, y, z, true);
-
-            }
-        }
-    }
-    world(world: any, tree: any, chunk: ChunkWorkerChunk, x: number, y: number, z: number, arg6: boolean) {
-        throw new Error("Method not implemented.");
-    }
-
     calcColumnNoiseSize(chunk : ChunkWorkerChunk) : Vector {
         let maxY = WATER_LEVEL
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
-                const cell = chunk.map.cells[z * CHUNK_SIZE_X + x];
-                maxY = Math.max(maxY, this.maps.getMaxY(cell));
+                const cell = chunk.map.cells[z * CHUNK_SIZE_X + x]
+                maxY = Math.max(maxY, (this.maps as TerrainMapManager2).getMaxY(cell))
             }
         }
         if(chunk.map.aquifera && !chunk.map.aquifera.is_empty) {
@@ -294,8 +252,8 @@ export default class Biome3LayerOverworld {
 
         maxY = Math.ceil(maxY + 1e-3);
         const resp = chunk.size.clone();
-        resp.y = Math.min(resp.y, Math.max(1, maxY - chunk.coord.y));
-        resp.y++;
+        resp.y = Math.min(resp.y, Math.max(1, maxY - chunk.coord.y))
+        resp.y++
         return resp
     }
 
@@ -317,7 +275,8 @@ export default class Biome3LayerOverworld {
         const gravel_id                 = bm.GRAVEL.id
         const blockFlags                = bm.flags
         const block_result              = new MapsBlockResult()
-        const rand_lava                 = new alea('random_lava_source_' + this.seed);
+        const rand_lava                 = new alea('random_lava_source_' + this.seed)
+        const map_manager               = this.maps as TerrainMapManager2
 
         // generate densisiy values for column
         chunk.timers.start('generate_noise3d')
@@ -390,7 +349,7 @@ export default class Biome3LayerOverworld {
                     xyz.y = chunk.coord.y + y;
 
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
-                    this.maps.calcDensity(xyz, cell, density_params, map);
+                    map_manager.calcDensity(xyz, cell, density_params, map);
                     let {d1, d2, d3, d4, density, in_aquifera, local_water_line} = density_params;
 
                     dcaves_over = dcaves
@@ -405,7 +364,7 @@ export default class Biome3LayerOverworld {
                         // убираем баг с полосой земли на границах чанков по высоте
                         if(y == chunk.size.y - 1) {
                             xyz.y++
-                            this.maps.calcDensity(xyz, cell, over_density_params, map);
+                            map_manager.calcDensity(xyz, cell, over_density_params, map);
                             xyz.y--
                             if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
                                 not_air_count = 100;
@@ -413,7 +372,7 @@ export default class Biome3LayerOverworld {
                         }
 
                         // get block
-                        let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
+                        let {dirt_layer, block_id} = map_manager.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
                         if(block_id == grass_block_id && !cell.biome.is_snowy) {
                             if(xyz.y - WATER_LEVEL < 2) {
@@ -438,7 +397,7 @@ export default class Biome3LayerOverworld {
                             // нужно обязательно проверить ватерлинию над текущим блоком
                             // (чтобы не сажать траву в аквиферах)
                             xyz.y++
-                            this.maps.calcDensity(xyz, cell, over_density_params, map);
+                            map_manager.calcDensity(xyz, cell, over_density_params, map);
                             xyz.y--
 
                             // если это над водой
@@ -668,7 +627,7 @@ export default class Biome3LayerOverworld {
                             // чтобы на самом нижнем уровне блоков чанка тоже росла трава
                             if(y == 0) {
                                 xyz.y--
-                                this.maps.calcDensity(xyz, cell, over_density_params, map)
+                                map_manager.calcDensity(xyz, cell, over_density_params, map)
                                 xyz.y++
                                 if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
                                     // CATTAIL | РОГОЗ
@@ -683,7 +642,7 @@ export default class Biome3LayerOverworld {
                                         }
                                     }
                                     if(chunk.addr.y > 2) {
-                                        let {block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params, block_result)
+                                        let {block_id} = map_manager.getBlock(xyz, not_air_count, cell, density_params, block_result)
                                         // Plants and grass (растения и трава)
                                         plantGrass(x, y, z, xyz, block_id, cell, density_params)
                                     }
@@ -726,20 +685,6 @@ export default class Biome3LayerOverworld {
 
         chunk.timers.stop()
 
-    }
-
-    /**
-     * Dump biome
-     */
-     dumpBiome(xyz : Vector, biome : Biome) {
-        if(!globalThis.used_biomes) {
-            globalThis.used_biomes = new Map();
-        }
-        if(!globalThis.used_biomes.has(biome.title)) {
-            globalThis.used_biomes.set(biome.title, biome.title);
-            console.table(Array.from(globalThis.used_biomes.values()))
-            console.log(biome.title, xyz.toHash())
-        }
     }
 
 }

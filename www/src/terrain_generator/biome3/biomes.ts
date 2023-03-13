@@ -603,6 +603,8 @@ export class Biomes {
         this.addBiome('Долина песка душ', 2, 0);
         */
 
+        this.addBiome(500, 'Летающие острова', .911, .911);
+
     }
 
     /**

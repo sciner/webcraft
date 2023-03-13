@@ -91,6 +91,7 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('spruce', this.plantSpruce.bind(this)) // ель
         this.tree_styles.set('jungle', this.plantJungle.bind(this)) // тропическое дерево
         this.tree_styles.set('big_oak', this.plantBigOak.bind(this)) // большой дуб
+        this.tree_styles.set('chorus', this.plantChorus.bind(this)) // растение хоруса
     }
 
     async init() : Promise<boolean> {
@@ -222,8 +223,8 @@ export class Default_Terrain_Generator {
 
     // Return block from chunk
     getBlock(chunk, x, y, z) {
-        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
-            let xyz = new Vector(x, y, z);
+        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0) { 
+            const xyz = new Vector(x, y, z);
             return chunk.tblocks.get(xyz);
         }
     }
@@ -931,6 +932,57 @@ export class Default_Terrain_Generator {
         // корни дерева
         generateRoots(x, y, z);
 
+    }
+
+    // Дерево хоруса
+    plantChorus(world, tree, chunk, x, y, z, setTreeBlock) {
+        const block = this.getBlock(chunk, 1, 1, 0)
+        console.log(block.id + ' ' + y)
+        const blocks = new Map()
+        const isNeighbors = (pos, ignore?) => {
+            const faces = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YP]
+            for (const face of faces) {
+                const position = pos.add(face)
+                if (ignore && position.equal(ignore)) {
+                    continue
+                }
+                
+                if (blocks.has(position.toHash())) {
+                    return true
+                }
+            }
+            return false
+        }
+        let ages = 0
+        const xyz = chunk.coord.add(new Vector(x, y, z))
+        const random = new alea('chorus' + xyz.toHash())
+        const setChorus = (pos) => {
+            if (ages++ > 20) {
+                return
+            }
+            for (let i = 0; i < tree.height; i++) {
+                const tmp_pos = pos.offset(0, i, 0)
+                blocks.set(tmp_pos.toHash(), true)
+                if (isNeighbors(tmp_pos) && i != 0) {
+                    return
+                }
+                setTreeBlock(tree, chunk, tmp_pos.x, tmp_pos.y, tmp_pos.z, {id: tree.type.trunk}, true)
+                if (random.double() < 0.35) {
+                    const age = random.nextInt(4)
+                    for (let l = 0; l < age; l++) {
+                        const sh_x = random.nextInt(3) - 1
+                        const sh_z = (sh_x == 0) ? random.nextInt(3) - 1 : 0
+                        const sh_pos = tmp_pos.offset(sh_x, 0, sh_z)
+                        if (!isNeighbors(sh_pos, tmp_pos)) {
+                            setChorus(sh_pos)
+                        }
+                    }
+                    return
+                }
+            }
+            setTreeBlock(tree, chunk, pos.x, pos.y + tree.height, pos.z, {id: tree.type.leaves}, true, null, {notick: true})
+        }
+        setChorus(new Vector(x, y + 1, z)) 
     }
 
     destroyMapsAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {
