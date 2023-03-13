@@ -844,7 +844,7 @@ export class Player implements IPlayer {
     update(delta: float): void {
 
         // View
-        if(this.lastUpdate && this.status !== PLAYER_STATUS.WAITING_DATA) {
+        if(this.lastUpdate && this.status === PLAYER_STATUS.ALIVE) {
 
             // for compatibility with renderHandsWithItems
             this.yBobO = this.yBob;

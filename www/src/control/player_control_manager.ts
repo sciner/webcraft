@@ -13,7 +13,7 @@ import {
     PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_ROTATION_DECIMALS, PHYSICS_MAX_MS_PROCESS
 } from "../constant.js";
 import {SimpleQueue} from "../helpers/simple_queue.js";
-import {monotonicDateNow} from "../helpers.js";
+import {monotonicUTCMillis} from "../helpers.js";
 import type {PlayerControl} from "./player_control.js";
 import {GameMode} from "../game_mode.js";
 
@@ -248,7 +248,7 @@ export abstract class PlayerControlManager {
     /** If of the current physics session. They are numbered consecutively. The 1st session will start from 0. */
     protected physicsSessionId = -1
 
-    /** The time {@link monotonicDateNow} at which the physics session started. */
+    /** The time {@link monotonicUTCMillis} at which the physics session started. */
     protected baseTime: float
     /** The number of physics session (see {@link PHYSICS_INTERVAL_MS}) from the start of the current physics session. */
     protected knownPhysicsTicks: int
@@ -406,7 +406,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     }
 
     doClientTicks(): boolean {
-        const now = monotonicDateNow()
+        const now = monotonicUTCMillis()
 
         // the initial step
         if (this.physicsSessionState === PHYSICS_SESSION_STATE.UNINITIALIZED) {

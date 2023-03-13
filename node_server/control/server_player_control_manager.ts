@@ -13,7 +13,7 @@ import {
     PLAYER_EXHAUSTION_PER_BLOCK, SERVER_SEND_CMD_MAX_INTERVAL
 } from "../server_constant.js";
 import {ServerClient} from "@client/server_client.js";
-import {monotonicDateNow, Vector} from "@client/helpers.js";
+import {monotonicUTCMillis, Vector} from "@client/helpers.js";
 
 const tmpOutPacketBuffer = new OutPacketBuffer()
 
@@ -89,7 +89,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             return // this physics session is over, nothing to do until the next one starts
         }
 
-        const stateTimeMustBeKnown = monotonicDateNow() - SERVER_UNCERTAINTY_MS
+        const stateTimeMustBeKnown = monotonicUTCMillis() - SERVER_UNCERTAINTY_MS
         let physicsTicks = Math.floor((stateTimeMustBeKnown - this.knownTime) / PHYSICS_INTERVAL_MS )
         if (physicsTicks <= 0) {
             return
@@ -119,7 +119,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     }
 
     onClientTicks(buf: InPacketBuffer) {
-        const now = monotonicDateNow()
+        const now = monotonicUTCMillis()
         const dc = this.inDeltaCompressor.start(buf)
 
         // read the header
