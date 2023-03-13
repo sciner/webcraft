@@ -433,8 +433,8 @@ export default class WebGLRenderer extends BaseRenderer {
 
     createProgram({vertex, fragment}, preprocessArgs = {}) {
         return Helpers.createGLProgram(this.gl, {
-            vertex: this.preprocess(vertex, preprocessArgs),
-            fragment: this.preprocess(fragment, preprocessArgs)
+            vertex: this.preprocessor.applyBlocks(vertex, preprocessArgs),
+            fragment: this.preprocessor.applyBlocks(fragment, preprocessArgs)
         });
     }
 

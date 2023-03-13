@@ -1,0 +1,111 @@
+export class ShaderPreprocessor {
+    blocks: Dict<string> = {};
+    global_defines: Dict<string> = {};
+    constructor() {
+    }
+
+    parseBlocks(text) {
+        const {blocks} = this;
+        const blocksStart = '#ifdef';
+        const blocksEnd = '#endif';
+
+        let start = text.indexOf(blocksStart);
+        let end = start;
+
+        while(start > -1) {
+            end = text.indexOf(blocksEnd, start);
+
+            if (end === -1) {
+                throw new TypeError('Shader block has unclosed ifdef statement at:' + start + '\n\n' + text);
+            }
+
+            const block = text.substring(start  + blocksStart.length, end);
+            const lines = block.split('\n');
+            const name = lines.shift().trim();
+
+            const source = lines.map((e) => {
+                return e.startsWith('    ') // remove first tab (4 space)
+                    ? e.substring(4).trimEnd()
+                    : e.trimEnd();
+            }).join('\n');
+
+            blocks[name] = source.trim();
+
+            start = text.indexOf(blocksStart, start + blocksStart.length);
+        }
+
+        return blocks;
+    }
+
+    merge(preprocessor: ShaderPreprocessor) {
+        Object.assign(this.blocks, preprocessor.blocks);
+    }
+
+    applyBlocks(shaderText : string, args = {}) {
+        if (!shaderText) {
+            return shaderText;
+        }
+
+        const pattern = /#include<([^>]+)>/g;
+
+        // remove commented lines
+        shaderText = shaderText.replaceAll(/^\s*[\/\/].*$/gm, '')
+
+        let out = shaderText
+            .replaceAll(pattern, (_, r, offset, string) => {
+                return this._onReplace(r, offset, string, args || {});
+            });
+
+        const defines = this.global_defines;
+
+        for (const argkey in defines) {
+            const r = new RegExp(`#define[^\\S]+(${argkey}\\s+)`, 'gmi');
+
+            out = out.replaceAll(r, `#define ${argkey} ${defines[argkey]} //default: `);
+        }
+
+        console.debug('Preprocess result:\n', out);
+
+        return out;
+    }
+
+    _onReplace(replace, offset, string, args = {}) {
+        const {
+            blocks
+        } = this;
+
+        const key = replace.trim();
+
+        if (!(key in blocks)) {
+            throw '[Preprocess] Block for ' + key + 'not found';
+        }
+
+        // compute pad spaces
+        let pad = 0;
+        for(pad = 0; pad < 32; pad ++) {
+            if (string[offset - pad - 1] !== ' ') {
+                break;
+            }
+        }
+
+        let block = blocks[key]
+            .split('\n')
+            // we should skip first block because pad applied in repalce
+            .map((e, i) => (' '.repeat(i === 0 ? 0 : pad) + e))
+            .join('\n');
+
+        const defines = args[key] || {};
+
+        if (defines.skip) {
+            return '// skip block ' + key;
+        }
+
+        for(const argkey in defines) {
+            const r = new RegExp(`#define[^\\S]+(${argkey}\\s+)`, 'gmi');
+
+            block = block.replaceAll(r, `#define ${argkey} ${defines[argkey]} // default:`);
+        }
+
+        return block;
+    }
+}
