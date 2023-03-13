@@ -361,12 +361,26 @@ export class Default_Terrain_Generator {
 
         let max_rad = 5;
         let ystart = y + tree.height;
-        let b = null;
+
+        let random = null
+        const getRandom = () => {
+            if(!random) {
+                const xyz = new Vector(x, y, z).addSelf(chunk.coord)
+                random = new alea('tree_' + xyz.toHash())
+            }
+            return random.double()
+        }
 
         // ствол
-        for(let p = y; p < ystart; p++) {
+        for(let i = 0; i < tree.height; i++) {
             this.temp_block.id = tree.type.trunk;
-            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
+            let extra_data = null
+            if(tree.type.has_cavity && (i == 1)) {
+                if(getRandom() < 1/16) {
+                    extra_data = {cavity: Math.floor(getRandom() * 4)}
+                }
+            }
+            setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true, undefined, extra_data)
         }
 
         // листва
@@ -428,18 +442,30 @@ export class Default_Terrain_Generator {
     // Дуб, берёза
     plantOak(world, tree, chunk : ChunkWorkerChunk, x : int, y : int, z : int, setTreeBlock : Function) {
         const extra_data = this.makeLeavesExtraData(chunk, x, y, z)
+        let random = null
+        const getRandom = () => {
+            if(!random) {
+                const xyz = new Vector(x, y, z).addSelf(chunk.coord)
+                random = new alea('tree_' + xyz.toHash())
+            }
+            return random.double()
+        }
         // ствол
         for(let i = 0; i < tree.height; i++) {
             this.temp_block.id = tree.type.trunk;
-            setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true)
+            let extra_data = null
+            if(tree.type.has_cavity && (i == tree.height - 5)) {
+                if(getRandom() < 1/32) {
+                    extra_data = {cavity: Math.floor(getRandom() * 4)}
+                }
+            }
+            setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true, undefined, extra_data)
         }
         // Create bee nest
         if(tree.height > 6) {
             if(BLOCK.fromId(tree.type.trunk).name == 'BIRCH_LOG') {
-                const xyz = new Vector(x, y, z).addSelf(chunk.coord)
-                const random = new alea('tree_' + xyz.toHash())
-                if(random.double() < 1/32) {
-                    const side = Math.floor(random.double() * 4)
+                if(getRandom() < 1/32) {
+                    const side = Math.floor(getRandom() * 4)
                     const vec = Vector.ZERO.clone().addByCardinalDirectionSelf(Vector.ZP, side)
                     const bee_nest_block = BLOCK.fromName('BEE_NEST')
                     const bee_block = {id: bee_nest_block.id, extra_data: {pollen: 0, max_ticks: 100, bees: [{pollen: 0}]}}

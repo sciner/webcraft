@@ -67,7 +67,8 @@
         {"name": "wildflowers",         "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "cattail",             "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "reed",                "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "sugar_cane",          "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "sugar_cane",          "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "branch",              "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {

@@ -3091,7 +3091,8 @@
             "texture": {
                 "up": "block/birch_log_top.png",
                 "down": "block/birch_log_top.png",
-                "side": "block/birch_log.png"
+                "side": "block/birch_log.png",
+                "cavity": "block/cavity/birch.png"
             }
         },
         {
@@ -3112,7 +3113,8 @@
             "texture": {
                 "up": "block/oak_log_top.png",
                 "down": "block/oak_log_top.png",
-                "side": "block/oak_log.png"
+                "side": "block/oak_log.png",
+                "cavity": "block/cavity/oak.png"
             }
         },
         {
@@ -3133,7 +3135,8 @@
             "texture": {
                 "up": "block/acacia_log_top.png",
                 "down": "block/acacia_log_top.png",
-                "side": "block/acacia_log.png"
+                "side": "block/acacia_log.png",
+                "cavity": "block/cavity/acacia.png"
             }
         },
         {
@@ -3154,7 +3157,8 @@
             "texture": {
                 "up": "block/spruce_log_top.png",
                 "down": "block/spruce_log_top.png",
-                "side": "block/spruce_log.png"
+                "side": "block/spruce_log.png",
+                "cavity": "block/cavity/spruce.png"
             }
         },
         {
@@ -3175,7 +3179,8 @@
             "texture": {
                 "up": "block/dark_oak_log_top.png",
                 "down": "block/dark_oak_log_top.png",
-                "side": "block/dark_oak_log.png"
+                "side": "block/dark_oak_log.png",
+                "cavity": "block/cavity/dark_oak.png"
             }
         },
         {
@@ -3196,7 +3201,8 @@
             "texture": {
                 "up": "block/jungle_log_top.png",
                 "down": "block/jungle_log_top.png",
-                "side": "block/jungle_log.png"
+                "side": "block/jungle_log.png",
+                "cavity": "block/cavity/jungle.png"
             }
         },
         {

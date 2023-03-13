@@ -20,13 +20,15 @@ export class BiomeTree {
     style: string
     height: {min: int, max: int}
     percent?: float
+    has_cavity: boolean
 
-    constructor(trunk: int, leaves: int | null, style: string, height: {min: int, max: int}, percent : float = 1) {
+    constructor(trunk: int, leaves: int | null, style: string, height: {min: int, max: int}, percent : float = 1, has_cavity : boolean = false) {
         this.trunk = trunk
         this.leaves = leaves
         this.style = style
         this.height = height
         this.percent = percent
+        this.has_cavity = has_cavity
     }
 
 }
@@ -47,11 +49,11 @@ export class TREES {
         if(TREES.BIRCH) {
             return false;
         }
-        TREES.BIRCH             = new BiomeTree(BLOCK.BIRCH_LOG.id, BLOCK.BIRCH_LEAVES.id, 'wood', {min: 4, max: 8})
-        TREES.OAK               = new BiomeTree(BLOCK.OAK_LOG.id, BLOCK.OAK_LEAVES.id, 'wood', {min: 4, max: 8})
-        TREES.ACACIA            = new BiomeTree(BLOCK.ACACIA_LOG.id, BLOCK.ACACIA_LEAVES.id, 'acacia', {min: 5, max: 12})
-        TREES.SPRUCE            = new BiomeTree(BLOCK.SPRUCE_LOG.id, BLOCK.SPRUCE_LEAVES.id, 'spruce', {min: 6, max: 22})
-        TREES.JUNGLE            = new BiomeTree(BLOCK.JUNGLE_LOG.id, BLOCK.JUNGLE_LEAVES.id, 'jungle', {min: 1, max: 22})
+        TREES.BIRCH             = new BiomeTree(BLOCK.BIRCH_LOG.id, BLOCK.BIRCH_LEAVES.id, 'wood', {min: 4, max: 8}, undefined, true)
+        TREES.OAK               = new BiomeTree(BLOCK.OAK_LOG.id, BLOCK.OAK_LEAVES.id, 'wood', {min: 4, max: 8}, undefined, true)
+        TREES.ACACIA            = new BiomeTree(BLOCK.ACACIA_LOG.id, BLOCK.ACACIA_LEAVES.id, 'acacia', {min: 5, max: 12}, undefined, true)
+        TREES.SPRUCE            = new BiomeTree(BLOCK.SPRUCE_LOG.id, BLOCK.SPRUCE_LEAVES.id, 'spruce', {min: 6, max: 22}, undefined, true)
+        TREES.JUNGLE            = new BiomeTree(BLOCK.JUNGLE_LOG.id, BLOCK.JUNGLE_LEAVES.id, 'jungle', {min: 1, max: 22}, undefined, true)
         TREES.RED_MUSHROOM      = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.RED_MUSHROOM_BLOCK.id, 'red_mushroom', {min: 5, max: 12})
         TREES.BROWN_MUSHROOM    = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.BROWN_MUSHROOM_BLOCK.id, 'brown_mushroom', {min: 5, max: 12})
         TREES.BIG_OAK           = new BiomeTree(BLOCK.OAK_LOG.id, BLOCK.OAK_LEAVES.id, 'big_oak', {min: 20, max: 35})

@@ -292,6 +292,7 @@ interface IBlockMaterial {
     is_glass: boolean
     is_grass: boolean
     is_battery: boolean
+    is_log: boolean
     coocked_item: { count: number, name: string }
     fuel_time: number
     //
