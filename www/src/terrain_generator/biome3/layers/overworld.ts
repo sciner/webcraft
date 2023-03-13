@@ -14,7 +14,6 @@ import type Terrain_Generator from "../index.js";
 import { FLUID_STRIDE } from "../../../fluid/FluidConst.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
 import Biome3LayerBase from "./base.js";
-import type { ClusterManager } from "../../cluster/manager.js";
 import { BLOCK_FLAG } from "../../../constant.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
@@ -24,15 +23,12 @@ const GROUND_PLACE_SIZE = 3
 const _ground_places = new Array(CHUNK_SIZE * GROUND_PLACE_SIZE)
 
 export default class Biome3LayerOverworld extends Biome3LayerBase {
-    generator:              Terrain_Generator
-    maps:                   TerrainMapManager2
+
+    declare maps:           TerrainMapManager2
+
     ore_generator:          WorldClientOreGenerator
-    clusterManager:         ClusterManager
     dungeon:                DungeonGenerator
-    noise2d:                any
-    noise3d:                any
     slab_candidates:        any[]
-    seed:                   string
     onground_place_index:   any
 
     constructor(generator : Terrain_Generator) {
