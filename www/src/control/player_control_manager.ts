@@ -20,7 +20,7 @@ import {GameMode} from "../game_mode.js";
 const tmpInBuffer = new InPacketBuffer()
 
 enum PLAYER_TICK_DATA_STATUS {
-    NEW,
+    NEW = 1,
     PROCESSED_SEND_ASAP,
     PROCESSED_SENDING_DELAYED,
     SENT
@@ -28,7 +28,7 @@ enum PLAYER_TICK_DATA_STATUS {
 
 /** Ids of subsets of fields used by the delta compressor */
 export enum PLAYER_TICK_DATA_SEQUENCE {
-    INPUT,
+    INPUT = 1,
     CONTEXT_OUTPUT
 }
 
@@ -508,7 +508,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
         }
 
-        return true
+        return physicsTicks != 0
     }
 
     applyCorrection(packetData: PacketBuffer) {
