@@ -6,7 +6,7 @@ import {InDeltaCompressor, InPacketBuffer, OutDeltaCompressor, OutPacketBuffer,
     packBooleans, unpackBooleans
 } from "../packet_compressor.js";
 import type {PacketBuffer} from "../packet_compressor.js";
-import {PrismarinePlayerControl} from "../vendors/prismarine-physics/using.js";
+import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
 import {SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,

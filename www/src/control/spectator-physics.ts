@@ -2,7 +2,7 @@
 
 import {KEY, PLAYER_HEIGHT, SPECTATOR_SPEED_MUL} from "../constant.js";
 import { Vector } from "../helpers.js";
-import {PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
+import {PHYSICS_TIMESTEP} from "../prismarine-physics/using.js";
 import {PlayerControl} from "./player_control.js";
 import type {World} from "../world.js";
 import {PLAYER_CONTROL_TYPE} from "./player_control.js";
