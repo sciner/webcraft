@@ -218,7 +218,7 @@ export class FSMBrain {
         this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
         this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
-        this.is_wall = (ahead.id != 0 && ahead.id != -1 && ahead.material.style_name != 'planting' && ahead.material.style_name != 'chicken_nest') || (alegs.material.style_name == 'fence');
+        this.is_wall = (ahead?.id != 0 && ahead?.id != -1 && ahead?.material?.style_name != 'planting' && ahead?.material?.style_name != 'chicken_nest') || (alegs?.material?.style_name == 'fence');
         this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
         this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.time_fire == 0;
         this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);

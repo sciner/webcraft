@@ -2,7 +2,7 @@ import {GradientGraphics, Label, Window, WindowManager} from "../tools/gui/wm.js
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
-import { isMobileBrowser, Vector } from "./helpers.js";
+import { isMobileBrowser, Mth, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
@@ -301,7 +301,7 @@ export class HUD {
             // Draw game technical info
             this.drawInfo()
             this.drawAverageFPS()
-            this.drawCompas()
+            this.drawCompas(600, 20, 200)
         }
 
         for(const item of this.items) {
@@ -641,16 +641,47 @@ export class HUD {
 
     }
 
-    drawCompas() {
+    drawCompas(x, y, w) {
         const rot = Qubatch.player.rotate.z
-        const text = '          N                    E                    S                    W                    N           '
-        let x  = Math.round(rot * 13)
-        if (!this.wm.hud_window['compas']) {
-            this.wm.hud_window['compas'] = new Label((this.wm.w / 2) - 140, 40 * this.zoom, 280, 40, 'compas', '', '')
-            this.wm.hud_window.addChild(this.wm.hud_window['compas'])
-            this.wm.hud_window['compas'].style.background.color = '#00ff0055'
+        const marks = [
+            {
+                'angle': 0,
+                'title': 'N'
+            },
+            {
+                'angle': 1.57,
+                'title': 'E'
+            },
+            {
+                'angle': 3.14,
+                'title': 'S'
+            },
+            {
+                'angle': 4.71,
+                'title': 'W'
+            }
+        ]
+        if (!this.wm.hud_window['compass_background']) {
+            this.wm.hud_window['compass_background'] = new Label((x - w) * this.zoom, y * this.zoom, w * this.zoom, 24 * this.zoom, 'compass_background', '', '')
+            this.wm.hud_window['compass_background'].style.background.color = '#00ff0055'
+            this.wm.hud_window.addChild(this.wm.hud_window['compass_background'])
         }
-        this.wm.hud_window['compas'].text = text.substring(x, x + 24)
+        for (const mark of marks) {
+            const id = 'compass_' + mark.title
+            if (!this.wm.hud_window[id]) {
+                this.wm.hud_window[id] = new Label((x - w / 2) * this.zoom, y * this.zoom, 20 * this.zoom, 20 * this.zoom, id, mark.title, mark.title)
+                this.wm.hud_window.addChild(this.wm.hud_window[id])
+                this.wm.hud_window[id].style.textAlign.horizontal = 'center'
+            }
+            let angle = rot - mark.angle
+            if (angle < -3.15 || angle > 3.15) {
+                angle = -angle
+            }
+            if (angle < -4.17) {
+                angle = -6.28 - angle 
+            }
+            this.wm.hud_window[id].x = (x - w / 2) * this.zoom - (w / 3) * this.zoom * Math.atan(2 * angle)
+        }
     }
 
 }
