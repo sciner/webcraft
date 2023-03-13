@@ -1,6 +1,12 @@
+const intToFloat = {
+    'int': 'float',
+    'vec3': 'ivec3',
+}
+
 export class ShaderPreprocessor {
     blocks: Dict<string> = {};
     global_defines: Dict<string> = {};
+    fallbackProvoke = false;
     constructor() {
     }
 
@@ -60,13 +66,32 @@ export class ShaderPreprocessor {
 
         // check after-include process
 
-        const pattern_post = /#include_post<([^>]+)>/g;
-        const postLines: Dict<[string]> = {};
+        const postLines: Dict<string[]> = {};
 
+        if (this.fallbackProvoke) {
+            const decode = postLines['flat_decode'] = [];
+            const encode = postLines['flat_encode'] = [];
+            const pattern_flat = /flat (in|out) (int|ivec3) (\w+);/g;
+
+            //flat out int v_flags;
+            includesApplied = includesApplied.replaceAll(pattern_flat, (_, inout, type, name, offset, string) => {
+                const type2 = intToFloat[type];
+                const name2 = name + '_fallback';
+                if (inout === 'in') {
+                    decode.push(`${name} = ${type}(round(${name2}));`);
+                } else {
+                    encode.push(`${name2} = ${type2}(${name});`);
+                }
+                return `${type} ${name}; ${inout} ${type2} ${name2};`;
+            });
+        }
+
+        const pattern_post = /#include_post<([^>]+)>/g;
         let out = includesApplied
             .replaceAll(pattern_post, (_, r, offset, string) => {
                 return this._onReplace2(r, offset, string, postLines);
             });
+
 
         const defines = this.global_defines;
 
