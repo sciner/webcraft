@@ -11,13 +11,11 @@ in vec3 v_normal;
 in float v_fogDepth;
 in vec3 v_world_pos;
 in vec3 v_chunk_pos;
-in float v_flags_nft;
-int v_flags;
+flat in int v_flags;
 float v_lightMode;
 in float v_lightId;
 in vec4 v_lightOffset;
-in float v_cubeSide_nft;
-int v_cubeSide;
+flat in int v_cubeSide;
 
 out vec4 outColor;
 
@@ -100,8 +98,8 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
 }
 
 void main() {
+    #include_post<flat_decode>
     #include<terrain_read_flags_frag>
-    v_cubeSide = int(round(v_cubeSide_nft));
 
     vec2 size = vec2(textureSize(u_texture, 0));
     int fluidId = int(round(v_fluidAnim.x));

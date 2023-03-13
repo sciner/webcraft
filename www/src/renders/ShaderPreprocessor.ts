@@ -46,14 +46,26 @@ export class ShaderPreprocessor {
             return shaderText;
         }
 
-        const pattern = /#include<([^>]+)>/g;
-
         // remove commented lines
         shaderText = shaderText.replaceAll(/^\s*[\/\/].*$/gm, '')
 
-        let out = shaderText
+        const pattern = /#include<([^>]+)>/g;
+
+        let includesApplied = shaderText
             .replaceAll(pattern, (_, r, offset, string) => {
                 return this._onReplace(r, offset, string, args || {});
+            });
+
+        // find all flats
+
+        // check after-include process
+
+        const pattern_post = /#include_post<([^>]+)>/g;
+        const postLines: Dict<[string]> = {};
+
+        let out = includesApplied
+            .replaceAll(pattern_post, (_, r, offset, string) => {
+                return this._onReplace2(r, offset, string, postLines);
             });
 
         const defines = this.global_defines;
@@ -107,5 +119,26 @@ export class ShaderPreprocessor {
         }
 
         return block;
+    }
+
+    _onReplace2(replace, offset, string, postLines) {
+        const key = replace.trim();
+
+        if (!(key in postLines)) {
+            return '';
+        }
+
+        // compute pad spaces
+        let pad = 0;
+        for(pad = 0; pad < 32; pad ++) {
+            if (string[offset - pad - 1] !== ' ') {
+                break;
+            }
+        }
+
+        return postLines[key]
+            // we should skip first block because pad applied in repalce
+            .map((e, i) => (' '.repeat(i === 0 ? 0 : pad) + e))
+            .join('\n');
     }
 }

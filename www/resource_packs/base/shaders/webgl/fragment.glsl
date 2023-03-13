@@ -154,6 +154,7 @@ vec3 colorCorrection(vec3 color) {
 }
 
 void main() {
+    #include_post<flat_decode>
     #include<terrain_read_flags_frag>
 
     vec2 size = vec2(textureSize(u_texture, 0));

@@ -27,11 +27,8 @@ out float v_lightId;
 out vec4 v_lightOffset;
 out vec3 v_aoOffset;
 
-out float v_flags_nft;
-int v_flags;
-
-out float v_cubeSide_nft;
-int v_cubeSide;
+flat out int v_flags;
+flat out int v_cubeSide;
 
 #include<global_uniforms>
 #include<global_uniforms_vert>
@@ -100,7 +97,6 @@ void main() {
 
     uint fluidId = a_fluidId & uint(3);
     v_cubeSide = int(a_fluidId >> 2) & 7;
-    v_cubeSide_nft = float(v_cubeSide);
     int blockIndex = int(a_blockId) & 0xffff;
     int iSize = chunkData0.w;
     ivec3 chunkSize = ivec3(iSize & 0xff, (iSize >> 8) & 0xff, (iSize >> 16) & 0xff);
@@ -113,7 +109,6 @@ void main() {
     );
 
     v_flags = u_fluidFlags[fluidId];
-    v_flags_nft = float(v_flags & DELIMITER_VERTEX);
     v_color = vec4(float(a_color & uint(0x3ff)),
         float((a_color >> 10) & uint(0x3ff)),
         a_color >> 20, 0.0);
@@ -153,4 +148,5 @@ void main() {
 
     v_position = (u_worldView * vec4(v_world_pos, 1.0)).xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
+    #include_post<flat_encode>
 }

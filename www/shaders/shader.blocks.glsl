@@ -133,8 +133,7 @@
     out vec3 v_axisV;
 
     // quad flags
-    out float v_flags_nft;
-    int v_flags;
+    flat out int v_flags;
 
     //--
 #endif
@@ -157,8 +156,7 @@
     in vec3 v_axisV;
 
     // quad flags
-    in float v_flags_nft;
-    int v_flags;
+    flat in int v_flags;
     float v_lightMode;
 
     out vec4 outColor;
@@ -428,12 +426,10 @@
 #ifdef terrain_read_flags_vert
     // read flags
     int flags = int(a_flags) & 0xffffff;
-    v_flags_nft = float(flags & DELIMITER_VERTEX);
     v_flags = flags;
 #endif
 
 #ifdef terrain_read_flags_frag
-    v_flags = int(round(v_flags_nft));
     v_lightMode = 1.0 - float((v_flags >> NO_AO) & 1);
 #endif
 
