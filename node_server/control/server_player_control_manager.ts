@@ -106,16 +106,22 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         newData.initInputEmpty(this.lastData, physicsTicks)
         newData.initContextFrom(this.player as any)
 
-        this.applyPlayerStateToControl()
-        if (!this.simulate(this.lastData, newData)) {
-            if (DEBUG_LOG_PLAYER_CONTROL) {
-                console.log(`   simulation failed`)
+        if (this.current === this.spectator) {
+            newData.initOutputFrom(this.spectator)
+        } else {
+            this.applyPlayerStateToControl()
+            if (!this.simulate(this.lastData, newData)) {
+                if (DEBUG_LOG_PLAYER_CONTROL) {
+                    console.log(`   simulation failed`)
+                }
+                return // the chunk is not ready. No problem, just wait
             }
-            return // the chunk is not ready. No problem, just wait
         }
         this.knownPhysicsTicks += physicsTicks
         this.onNewData()
-        this.sendCorrection()
+        if (this.current !== this.spectator) {
+            this.sendCorrection()
+        }
     }
 
     onClientTicks(buf: InPacketBuffer) {
@@ -196,10 +202,12 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             newData.copyInputFrom(clientData)
             newData.initContextFrom(this.player as any)
             let simulatedSuccessfully: boolean
-            if (this.knownPhysicsTicks > this.maxUnvalidatedPhysicsTick) {
-                simulatedSuccessfully = this.simulate(this.lastData, newData)
-            } else {
+            if (this.current === this.spectator ||
+                this.knownPhysicsTicks <= this.maxUnvalidatedPhysicsTick
+            ) {
                 simulatedSuccessfully = false
+            } else {
+                simulatedSuccessfully = this.simulate(this.lastData, newData)
             }
             this.knownPhysicsTicks = this.clientPhysicsTicks
 
