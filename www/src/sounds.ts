@@ -7,8 +7,13 @@ import { Mth, Vector, ArrayHelpers } from "./helpers.js";
 import type { Player } from "./player.js";
 import type { World } from "./world.js";
 
+interface ITrack {
+    name: string
+    props: { volume?: float }
+}
+
 interface IMusicPlaylist /*extends Dict<{name: string, props: {}}>*/ {
-    [key: string]: {name: string, props: {}}[]
+    [key: string]: ITrack[]
 }
 
 class Music {
@@ -18,7 +23,7 @@ class Music {
     #playing : boolean = false
     #timeoutId?: NodeJS.Timeout;
     config: IMusicPlaylist;
-    track: any;
+    track: ITrack | null;
     howl: any;
     nextTracklistName: any;
 
@@ -87,7 +92,7 @@ class Music {
         this.howl?.pause()
     }
 
-    get tracklistName() { return this.tracklistName }
+    get tracklistName() { return this.#tracklistName }
 
     /**
      * Changes the current tracklist to the specified one.
