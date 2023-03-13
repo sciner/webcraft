@@ -19,6 +19,8 @@ export class Default_Terrain_Map_Cell {
 
 }
 
+const _cache = {} as {[key: string] : any}
+
 //
 export class Default_Terrain_Map {
     [key: string]: any;
@@ -615,7 +617,13 @@ export class Default_Terrain_Generator {
         const maxW = Math.floor(TREE_HEIGHT / 2)
         const minW = Math.floor(TREE_HEIGHT / 3)
         const mainseed = x + z + y + chunk.coord.x + chunk.coord.y + chunk.coord.z;
-        const vine_block = { id: BLOCK.VINE.id };
+        const vine_block = _cache.vine_block || (_cache.vine_block = { id: BLOCK.VINE.id })
+        const vine_blocks = _cache.vine_blocks || (_cache.vine_blocks = [
+            {...vine_block, extra_data: {north: true, east: true, rotate: false}},
+            {...vine_block, extra_data: {east: true, south: true, rotate: false}},
+            {...vine_block, extra_data: {south: true, west: true, rotate: false}},
+            {...vine_block, extra_data: {west: true, north: true, rotate: false}},
+        ])
         // получаю большое число
         const cnt = Math.floor(this.fastRandoms.double(mainseed + tree.height) * Math.pow(2, 58))
         const dy = Math.floor(cnt / 2 ** 32)
@@ -683,18 +691,22 @@ export class Default_Terrain_Generator {
                                     h == 0 &&
                                     (i == dx || i == dx + w || j == dz || j == dz + w)
                                 ) {
+                                    const vb_index = i == dx ? 3 : i == dx + w ? 1 : j == dz + w ? 2 : 0
+                                    const vb = vine_blocks[vb_index]
+                                    // const rot = new Vector(
+                                    //     vb_index,
+                                    //     0,
+                                    //     j == dz ? 3 : 0
+                                    // )
                                     for(let t = 1; t <= Math.floor(1 + rad * (arr[1 + (t % 6)] / 255)); t++) {
                                         setTreeBlock(
                                             tree,
                                             chunk,
                                             i, y + h - t, j,
-                                            vine_block,
+                                            vb,
                                             false,
-                                            new Vector(
-                                                i == dx ? 3 : i == dx + w ? 1 : j == dz + w ? 2 : 0,
-                                                0,
-                                                j == dz ? 3 : 0
-                                            )
+                                            null, // rot,
+                                            vb.extra_data
                                         )
                                     }
                                 }
