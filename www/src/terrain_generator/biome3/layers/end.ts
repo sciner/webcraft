@@ -121,7 +121,9 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
 
         // Plant trees
         chunk.timers.start('generate_trees')
-        this.plantTrees(maps, chunk)
+        if(chunk.addr.y == 1) {
+            this.plantTrees(maps, chunk)
+        }
         chunk.timers.stop()
 
         return chunk.map
