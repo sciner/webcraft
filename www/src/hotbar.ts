@@ -92,8 +92,6 @@ export class Hotbar {
 
         // Load hotbar atlases
         const all = []
-        all.push(this.effect_icons = new SpriteAtlas().fromFile('./media/gui/inventory2.png'))
-
         this.icons_atlas = Resources.atlas.get('icons')
 
         Promise.all(all).then(_ => {

@@ -2,7 +2,7 @@ import {GradientGraphics, Label, Window, WindowManager} from "../tools/gui/wm.js
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
-import { isMobileBrowser, Vector } from "./helpers.js";
+import { isMobileBrowser, Mth, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
@@ -243,7 +243,7 @@ export class HUD {
     }
 
     get zoom() {
-        return UI_ZOOM
+        return UI_ZOOM * Qubatch.settings.window_size / 100
     }
 
     add(item, zIndex) {
@@ -295,12 +295,16 @@ export class HUD {
             if(c instanceof HUDLabel) {
                 c.visible = false
             }
+            if(c instanceof Label) {
+                c.visible = false
+            }
         }
 
         if(this.isActive()) {
             // Draw game technical info
             this.drawInfo()
             this.drawAverageFPS()
+            this.drawCompas(this.wm.w / 2, 20 * this.zoom, 400 * this.zoom)
         }
 
         for(const item of this.items) {
@@ -614,7 +618,6 @@ export class HUD {
         let text_block = this.wm.hud_window[id]
         if(!text_block) {
             text_block = this.wm.hud_window[id] = new HUDLabel(x, y, this.wm.w - x, this.wm.h - y, `hud_${id}`)
-
             const fs = text_block.style.font._font_style
             fs.stroke = '#00000099'
             fs.strokeThickness = 4
@@ -645,6 +648,68 @@ export class HUD {
         text_block. position.set(x, y)
         text_block.text = str
 
+    }
+
+    drawCompas(x, y, w) {
+        if (!Qubatch.settings.show_compass) {
+            return
+        }
+        const rot = Qubatch.player.rotate.z
+        const marks = [
+            {
+                'angle': 0,
+                'title': 'N',
+                'color': '#F56F6F'
+            },
+            {
+                'angle': Math.PI / 2,
+                'title': 'E'
+            },
+            {
+                'angle': Math.PI,
+                'title': 'S'
+            },
+            {
+                'angle': (3 * Math.PI / 2),
+                'title': 'W'
+            }
+        ]
+        if (!this.wm.hud_window['compass_background']) {
+            this.wm.hud_window['compass_background'] = new Label(x - w / 2, y, w + 20 * this.zoom, 22 * this.zoom, 'compass_background', '', '|')
+            this.wm.hud_window['compass_background'].style.background.color = '#FFFFFF33'
+            this.wm.hud_window['compass_background'].style.textAlign.horizontal = 'center'
+            this.wm.hud_window['compass_background'].style.border.hidden = false
+            this.wm.hud_window['compass_background'].style.border.color = '#00000020'
+            this.wm.hud_window.addChild(this.wm.hud_window['compass_background'])
+        }
+        this.wm.hud_window['compass_background'].visible = true
+        this.wm.hud_window['compass_background'].x = x - w / 2
+        for (const mark of marks) {
+            let angle = rot - mark.angle
+            if (angle < -Math.PI || angle > Math.PI) {
+                angle = -angle
+            }
+            if (angle < -3 * Math.PI / 2) {
+                angle = -2 * Math.PI - angle 
+            }
+            let alpha = Math.round((1.37 - Math.abs(Math.atan(angle))) * 190).toString(16)
+            if (alpha.length == 1) {
+                alpha = '0' + alpha
+            }
+            const id = 'compass_' + mark.title
+            if (!this.wm.hud_window[id]) {
+                this.wm.hud_window[id] = new Label((x - w / 2), y, 20 * this.zoom, 20 * this.zoom, id, mark.title, mark.title)
+                this.wm.hud_window.addChild(this.wm.hud_window[id])
+                this.wm.hud_window[id].style.textAlign.horizontal = 'center'
+            }
+            this.wm.hud_window[id].visible = true
+            this.wm.hud_window[id].x = x  -  w * Math.atan(angle) / 2.8
+            if (mark?.color) {
+                this.wm.hud_window[id].style.font.color = mark.color + '' + alpha
+            } else {
+                this.wm.hud_window[id].style.font.color = '#FFFFFF' + '' + alpha
+            }
+        }
     }
 
 }

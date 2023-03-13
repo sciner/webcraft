@@ -50,6 +50,7 @@ export class GameSettings {
     cluster_draw_debug_grid: boolean = false
     // interface
     window_size:             float = 100
+    show_compass:            boolean = false
 
     //
     _json_url?: string
