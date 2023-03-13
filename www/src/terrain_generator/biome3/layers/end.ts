@@ -152,7 +152,7 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
     generateChunkData(chunk : ChunkWorkerChunk, maps : any[], seed : string, rnd : any) {
 
         const map = chunk.map = maps[4]
-        const { cx, cy, cz, cw, uint16View } = chunk.tblocks.dataChunk
+        const { uint16View } = chunk.tblocks.dataChunk
         const xyz = new Vector(0, 0, 0)
 
         if(chunk.addr.y == 0) {
@@ -163,7 +163,6 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
                         const block_id = this.getBlock(xyz)
                         if(block_id > 0) {
                             const index = xyz.worldPosToChunkIndex()
-                            // const index = cx * x + cy * y + cz * z + cw
                             uint16View[index] = block_id
                         }
                     }
