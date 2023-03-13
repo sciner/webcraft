@@ -16,17 +16,11 @@ out vec3 v_world_pos;
 out vec3 v_chunk_pos;
 out vec3 v_position;
 out vec2 v_texcoord0;
-out vec4 v_fluidAnim;
-out vec3 v_normal;
-out vec4 v_color;
-
-out float v_lightMode;
-out float v_useFog;
-
-out float v_lightId;
-out vec4 v_lightOffset;
-out vec3 v_aoOffset;
-
+flat out vec4 v_fluidAnim;
+flat out vec3 v_normal;
+flat out vec4 v_color;
+flat out float v_lightId;
+flat out vec4 v_lightOffset;
 flat out int v_flags;
 flat out int v_cubeSide;
 

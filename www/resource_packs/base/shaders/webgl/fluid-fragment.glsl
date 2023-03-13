@@ -3,18 +3,17 @@
 
 uniform vec4 u_fluidUV[2];
 
-in vec3 v_position;
-in vec2 v_texcoord0;
-in vec4 v_fluidAnim;
-in vec4 v_color;
-in vec3 v_normal;
-in float v_fogDepth;
 in vec3 v_world_pos;
 in vec3 v_chunk_pos;
+in vec3 v_position;
+in vec2 v_texcoord0;
+flat in vec4 v_fluidAnim;
+flat in vec3 v_normal;
+flat in vec4 v_color;
+flat in float v_lightId;
+flat in vec4 v_lightOffset;
 flat in int v_flags;
 float v_lightMode;
-in float v_lightId;
-in vec4 v_lightOffset;
 flat in int v_cubeSide;
 
 out vec4 outColor;

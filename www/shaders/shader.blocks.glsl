@@ -121,16 +121,16 @@
     out vec3 v_chunk_pos;
     out vec3 v_position;
     out vec2 v_texcoord0;
-    out vec2 v_texcoord1_diff;
-    out vec4 v_texClamp0;
-    out vec3 v_normal;
-    out vec4 v_color;
-    out float v_animInterp;
-    out float v_lightId;
-    out vec4 v_lightOffset;
-    out vec3 v_aoOffset;
-    out vec3 v_axisU;
-    out vec3 v_axisV;
+    flat out vec2 v_texcoord1_diff;
+    flat out vec4 v_texClamp0;
+    flat out vec3 v_normal;
+    flat out vec4 v_color;
+    flat out float v_animInterp;
+    flat out float v_lightId;
+    flat out vec4 v_lightOffset;
+    flat out vec3 v_aoOffset;
+    flat out vec3 v_axisU;
+    flat out vec3 v_axisV;
 
     // quad flags
     flat out int v_flags;
@@ -140,20 +140,19 @@
 
 #ifdef terrain_attrs_frag
     // terrain shader attributes and varings
-    in vec3 v_position;
-    in vec2 v_texcoord0;
-    in vec2 v_texcoord1_diff;
-    in vec4 v_texClamp0;
-    in vec4 v_color;
-    in vec3 v_normal;
-    in float v_fogDepth;
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
-    in float v_animInterp;
-    in float v_lightId;
-    in vec4 v_lightOffset;
-    in vec3 v_axisU;
-    in vec3 v_axisV;
+    in vec3 v_position;
+    in vec2 v_texcoord0;
+    flat in vec2 v_texcoord1_diff;
+    flat in vec4 v_texClamp0;
+    flat in vec3 v_normal;
+    flat in vec4 v_color;
+    flat in float v_animInterp;
+    flat in float v_lightId;
+    flat in vec4 v_lightOffset;
+    flat in vec3 v_axisU;
+    flat in vec3 v_axisV;
 
     // quad flags
     flat in int v_flags;
