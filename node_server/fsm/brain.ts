@@ -1,5 +1,5 @@
 import { FSMStack } from "./stack.js";
-import { PrismarinePlayerControl } from "@client/vendors/prismarine-physics/using.js";
+import { PrismarinePlayerControl } from "@client/prismarine-physics/using.js";
 import { Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import { Raycaster } from "@client/Raycaster.js";

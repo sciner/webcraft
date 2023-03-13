@@ -1,10 +1,10 @@
-import { Vec3, Vector } from "../../helpers.js";
-import { Effect } from "../../block_type/effect.js";
+import { Vec3, Vector } from "../helpers.js";
+import { Effect } from "../block_type/effect.js";
 import { AABB } from "./lib/aabb.js";
-import {Resources} from "../../resources.js";
+import {Resources} from "../resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
-import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../../constant.js";
-import { TBlock } from "../../typed_blocks3.js";
+import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../constant.js";
+import { TBlock } from "../typed_blocks3.js";
 
 const BLOCK_NOT_EXISTS = -2;
 const _ladder_check_tblock = new TBlock()
