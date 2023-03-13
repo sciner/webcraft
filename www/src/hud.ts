@@ -647,7 +647,7 @@ export class HUD {
             {
                 'angle': 0,
                 'title': 'N',
-                'color': '#A56F6F'
+                'color': '#F56F6F'
             },
             {
                 'angle': Math.PI / 2,
