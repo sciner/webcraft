@@ -243,7 +243,7 @@ export class HUD {
     }
 
     get zoom() {
-        return UI_ZOOM
+        return UI_ZOOM * Qubatch.settings.window_size / 100
     }
 
     add(item, zIndex) {
@@ -293,6 +293,9 @@ export class HUD {
         // Hide all inner text blocks
         for(let c of this.wm.hud_window.children) {
             if(c instanceof HUDLabel) {
+                c.visible = false
+            }
+            if(c instanceof Label) {
                 c.visible = false
             }
         }
@@ -642,6 +645,9 @@ export class HUD {
     }
 
     drawCompas(x, y, w) {
+        if (!Qubatch.settings.show_compass) {
+            return
+        }
         const rot = Qubatch.player.rotate.z
         const marks = [
             {
@@ -670,6 +676,7 @@ export class HUD {
             this.wm.hud_window['compass_background'].style.border.color = '#00000020'
             this.wm.hud_window.addChild(this.wm.hud_window['compass_background'])
         }
+        this.wm.hud_window['compass_background'].visible = true
         this.wm.hud_window['compass_background'].x = x - w / 2
         for (const mark of marks) {
             let angle = rot - mark.angle
@@ -689,6 +696,7 @@ export class HUD {
                 this.wm.hud_window.addChild(this.wm.hud_window[id])
                 this.wm.hud_window[id].style.textAlign.horizontal = 'center'
             }
+            this.wm.hud_window[id].visible = true
             this.wm.hud_window[id].x = x  -  w * Math.atan(angle) / 2.8
             if (mark?.color) {
                 this.wm.hud_window[id].style.font.color = mark.color + '' + alpha
