@@ -1747,12 +1747,12 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     }
     //Проверяем, что кровать не заблочена
     const block = world.getBlock(position_head.offset(0, 1, 0).floored())
-    if (block.id != 0 || block.fluid != 0) {
+    /*if (block.id != 0 || block.fluid != 0) {
         if (!Qubatch.is_server) {
             Qubatch.hotbar.strings.setText(1, Lang.bed_not_valid, 4000)
         }
-        return true
-    }
+        //return true
+    }*/
     for(const player of world.players.eachContainingVec(position_head)) {
         if (player.sharedProps.sleep) {
             if (!Qubatch.is_server) {
@@ -1766,7 +1766,7 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     const player_rotation = new Vector(0, 0, ((rotate.x + 2) % 4) / 4)
     actions.setSleep(position_head, player_rotation)
     if (Qubatch.is_server) {
-        world.getAllSleep(player.session.user_id)
+        world.getSleep(player.session.user_id, position_head)
     }
     return true
 }
