@@ -216,6 +216,15 @@ export type PacketBuffer = any[]
 export interface IOutPacketBuffer {
     /** It's useful in {@link OutDeltaCompressor} to access the underlying buffer to write data without delta compression. */
     get buf(): OutPacketBuffer
+    get length(): int
+    /**
+     * Clears the buffer, prepares it for writing a new packet.
+     * It must be called before starting writing a new packet.
+     */
+    start(): IOutPacketBuffer
+    /** Returns the current packet data. After that, to start a new packet, {@link start} must be called. */
+    export(): PacketBuffer
+
     /** Puts the value of any type (e.g., whole objects) without validation and processing. */
     put(v: any): IOutPacketBuffer
     putInt(v: int): IOutPacketBuffer
@@ -241,6 +250,10 @@ export interface IOutPacketBuffer {
  */
 export interface IInPacketBuffer {
     get buf(): InPacketBuffer
+    get remaining(): int
+    /** Starts reading data from {@link data} */
+    start(data: PacketBuffer): IInPacketBuffer
+
     get<T = any>(): T
     getInt(): int
     getFloat(): float
@@ -252,13 +265,13 @@ export interface IInPacketBuffer {
 
 /** It stores data of packet that is being built, appends values to it, and exports it as {@link PacketBuffer} */
 export class OutPacketBuffer implements IOutPacketBuffer {
-    private data: PacketBuffer = []
+    private data: PacketBuffer
 
     /**
      * The last index of the element reserved for bits. -1 means the element doesn't exist.
      * @see putBoolean for the general explanation of this feature.
      */
-    private bitsIndex = -1
+    private bitsIndex: int
     /** Accumulated bits that will be stored in by the address {@link bitsIndex} */
     private bitsValue: int
     /**
@@ -266,24 +279,28 @@ export class OutPacketBuffer implements IOutPacketBuffer {
      * The initial value BITS_PER_ELEMENT means "there are no free bits", so the first written bit causes a data element
      * to be allocated.
      */
-    private bitsCount = BITS_PER_ELEMENT
+    private bitsCount: int
 
-    get buf() { return this }
+    get buf(): this     { return this }
+    get length(): int   { return this.data.length }
 
-    /** Returns the current packet data. Resets the buffer, so it can build a new packet. */
-    exportAndReset(): PacketBuffer {
+    start(): this {
+        this.data = [] // clear the buffer for the next use
+        this.bitsIndex = -1
+        this.bitsCount = BITS_PER_ELEMENT
+        // it's ok to not initialize this.bitsValue here; it'll be overwritten when the 1st bits is added
+        return this
+    }
+
+    export(): PacketBuffer {
         const data = this.data
         // flush the remaining bits
         if (this.bitsIndex >= 0) {
             data[this.bitsIndex] = this.bitsValue
-            this.bitsIndex = -1
-            this.bitsCount = BITS_PER_ELEMENT
         }
-        this.data = [] // clear the buffer for the next use
+        this.data = null
         return data
     }
-
-    get length() { return this.data.length }
 
     put(v: any): this {
         this.data.push(v)
@@ -291,7 +308,7 @@ export class OutPacketBuffer implements IOutPacketBuffer {
     }
 
     putInt(v: int): this {
-        if ((v | 0) !== v) {
+        if (Math.round(v) !== v || !isFinite(v)) {
             throw `incorrect int ${v}`
         }
         this.data.push(v)
@@ -299,6 +316,9 @@ export class OutPacketBuffer implements IOutPacketBuffer {
     }
 
     putFloat(v: float, decimals?: int): this {
+        if (typeof v !== 'number' || !isFinite(v)) {
+            throw `incorrect float ${v}`
+        }
         if (decimals != null) {
             v = Mth.round(v, decimals)
         }
@@ -315,7 +335,9 @@ export class OutPacketBuffer implements IOutPacketBuffer {
     }
 
     putIntVector(v: IVector): this {
-        this.data.push(v.x, v.y, v.z)
+        this.putInt(v.x)
+        this.putInt(v.y)
+        this.putInt(v.z)
         return this
     }
 
@@ -355,16 +377,15 @@ export class InPacketBuffer implements IInPacketBuffer {
     private bitsValue: int
     private bitsCount: int
 
-    get buf() { return this }
+    get buf(): InPacketBuffer   { return this }
+    get remaining(): int        { return this.data.length - this.index }
 
-    import(data: PacketBuffer): this {
+    start(data: PacketBuffer): this {
         this.data = data
         this.index = 0
         this.bitsCount = 0
         return this
     }
-
-    get remaining(): int { return this.data.length - this.index }
 
     get<T = any>(): T {
         this.checkRemaining()
@@ -373,7 +394,7 @@ export class InPacketBuffer implements IInPacketBuffer {
 
     getInt(): int {
         const v = this.data[this.index++]
-        if ((v | 0) !== v) {
+        if (Math.round(v) !== v || !isFinite(v)) {
             this._checkUnderflow()
             throw `incorrect int ${v}`
         }
@@ -382,7 +403,7 @@ export class InPacketBuffer implements IInPacketBuffer {
 
     getFloat(): float {
         const v = this.data[this.index++]
-        if (typeof v !== 'number') {
+        if (typeof v !== 'number' || !isFinite(v)) {
             this._checkUnderflow()
             throw `incorrect float ${v}`
         }
@@ -426,12 +447,7 @@ export class InPacketBuffer implements IInPacketBuffer {
         return res
     }
 
-    static checkMinMax(v: number, min: number, max: number = Infinity) {
-        if (v < min || v > max) {
-            throw `value ${v} is out of range ${min} ${max}`
-        }
-    }
-
+    /** @throws an exception if there are less than {@link length} values remaining */
     checkRemaining(length: int = 1): void {
         const remaining = this.data.length - this.index
         if (length > remaining) {
@@ -459,9 +475,10 @@ abstract class AbstractDeltaCompressor {
     }
 
     /** Starts reading/writing a sequence of values from the beginning of that sequence. */
-    startSequence(sequenceId: string | int | null): this {
+    startSequence(sequenceId: string | int | null = null): this {
         this.prevValues = this.prevValuesBySequenceId[sequenceId] ?? (this.prevValuesBySequenceId[sequenceId] = [])
         this.prevValuesIndex = 0
+        this.hash = 0
         return this
     }
 }
@@ -485,13 +502,21 @@ abstract class AbstractDeltaCompressor {
  * Values can can be written/read without delta compression using the underlying {@link buf}.
  */
 export class OutDeltaCompressor extends AbstractDeltaCompressor implements IOutPacketBuffer {
-    buf: OutPacketBuffer
+    readonly buf: OutPacketBuffer
 
-    start(buf: OutPacketBuffer, sequenceId: string | int | null = null): this {
-        this.buf = buf
-        this.hash = 0
-        return this.startSequence(sequenceId)
+    constructor(buf: OutPacketBuffer | null = null, useHash = true) {
+        super(useHash)
+        this.buf = buf ?? new OutPacketBuffer()
     }
+
+    get length(): int       { return this.buf.length }
+
+    start(): this {
+        this.buf.start()
+        return this.startSequence()
+    }
+
+    export(): PacketBuffer  { return this.buf.export() }
 
     /** Puts the value of any type without validation and processing. */
     put(v: any): this {
@@ -518,6 +543,9 @@ export class OutDeltaCompressor extends AbstractDeltaCompressor implements IOutP
         v = prev + delta    // get the exact same value as InDeltaCompressor would get, including rounding errors
 
         this.hash = (this.hash << 5) - this.hash + Mth.intHash(v) | 0
+        if (typeof v !== 'number' || !isFinite(v)) {
+            throw `incorrect float ${v}`
+        }
         this.buf.put(delta)
         this.prevValues[ind] = v
         return this
@@ -564,12 +592,18 @@ export class OutDeltaCompressor extends AbstractDeltaCompressor implements IOutP
 
 /** It reads what {@link OutDeltaCompressor} writes. */
 export class InDeltaCompressor extends AbstractDeltaCompressor implements IInPacketBuffer {
-    buf: InPacketBuffer
+    readonly buf: InPacketBuffer
 
-    start(buf: InPacketBuffer, sequenceId: string | int | null = null): this {
-        this.buf = buf
-        this.hash = 0
-        return this.startSequence(sequenceId)
+    constructor(buf: InPacketBuffer | null = null, useHash = true) {
+        super(useHash)
+        this.buf = buf ?? new InPacketBuffer()
+    }
+
+    get remaining(): int    { return this.buf.remaining }
+
+    start(data: PacketBuffer): this {
+        this.buf.start(data)
+        return this.startSequence()
     }
 
     get<T = any>(): T { return this.buf.get<T>() }
@@ -618,6 +652,15 @@ export class InDeltaCompressor extends AbstractDeltaCompressor implements IInPac
     checkHash() {
         if (this.useHash && (this.hash & 0x7FFFFFFF) !== this.buf.get()) {
             throw `incorrect delta compressor hash`
+        }
+    }
+}
+
+export class DataValidator {
+
+    static checkMinMax(v: number, min: number, max: number = Infinity) {
+        if (v < min || v > max) {
+            throw `value ${v} is out of range ${min} ${max}`
         }
     }
 }

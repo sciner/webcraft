@@ -2,231 +2,20 @@
 
 import {Vector} from "../helpers/vector.js";
 import type {Player} from "../player.js";
-import {InDeltaCompressor, InPacketBuffer, OutDeltaCompressor, OutPacketBuffer,
-    packBooleans, unpackBooleans
-} from "../packet_compressor.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
 import {SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
-    PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_ROTATION_DECIMALS, PHYSICS_MAX_MS_PROCESS
+    PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_MAX_MS_PROCESS
 } from "../constant.js";
 import {SimpleQueue} from "../helpers/simple_queue.js";
-import {monotonicUTCMillis} from "../helpers.js";
 import type {PlayerControl} from "./player_control.js";
 import {GameMode} from "../game_mode.js";
-
-const tmpInBuffer = new InPacketBuffer()
-
-enum PLAYER_TICK_DATA_STATUS {
-    NEW = 1,
-    PROCESSED_SEND_ASAP,
-    PROCESSED_SENDING_DELAYED,
-    SENT
-}
-
-/** Ids of subsets of fields used by the delta compressor */
-export enum PLAYER_TICK_DATA_SEQUENCE {
-    INPUT = 1,
-    CONTEXT_OUTPUT
-}
-
-/** It represents input and output of player controls & physics in one several consecutive physics ticks. */
-export abstract class PlayerTickData {
-    static INPUT_FLAGS_COUNT = 8
-    static OUT_FLAGS_COUNT = 2
-
-    // input data
-    inputFlags: int
-    inputRotation = new Vector()
-    // it's not a direct user input, but it's initialized/transferred along with input, because it fulfills a similar role
-    physicsTicks: int // how many simulated physics ticks are contained in this data
-    // context data - needed to repeat ticks correctly (acts somewhat like input, but from the game rather than the user)
-    contextGameModeIndex: int
-    contextControlType: int
-    // output data
-    outFlags: int
-    outPos = new Vector()
-    outVelocity = new Vector()
-
-    /** Returns true if every serializable field is equal except {@link physicsTicks} */
-    equal(other: PlayerTickData): boolean {
-        return this.outEqual(other) && this.contextEqual(other) &&
-            this.inputFlags === other.inputFlags &&
-            this.inputRotation.equal(other.inputRotation)
-    }
-
-    initInputEmpty(prev: PlayerTickData | null, physicsTicks: int) {
-        this.physicsTicks = physicsTicks
-        this.inputFlags = 0
-        if (prev) {
-            this.inputRotation.copyFrom(prev.inputRotation)
-        } else {
-            this.inputRotation.set(0, 0, 0)
-        }
-    }
-
-    copyInputFrom(src: PlayerTickData) {
-        this.physicsTicks = src.physicsTicks
-        this.inputFlags = src.inputFlags
-        this.inputRotation.copyFrom(src.inputRotation)
-    }
-
-    applyInputTo(controlManager: PlayerControlManager, pc: PlayerControl) {
-        const controls = pc.controls
-        const player_state = pc.player_state
-        // TODO rewrite it into a single destructing assignment when IntellijIDEA starts understanding it
-        const [back, forward, right, left, jump, sneak, sprint, switchFlying] = unpackBooleans(
-            this.inputFlags, PlayerTickData.INPUT_FLAGS_COUNT)
-        controls.back       = back
-        controls.forward    = forward
-        controls.right      = right
-        controls.left       = left
-        controls.jump       = jump
-        controls.sneak      = sneak
-        controls.sprint     = sprint
-        player_state.yaw = this.inputRotation.z
-
-        const game_mode = GameMode.byIndex[this.contextGameModeIndex]
-        if (switchFlying && game_mode.can_fly) {
-            player_state.flying = !player_state.flying
-        }
-    }
-
-    initContextFrom(player: Player) {
-        const controlManager = player.controlManager
-        this.contextGameModeIndex  = player.game_mode.getCurrent().index
-        this.contextControlType   = controlManager.current.type
-    }
-
-    copyContextFrom(src: PlayerTickData) {
-        this.contextControlType = src.contextControlType
-        this.contextGameModeIndex = src.contextGameModeIndex
-    }
-
-    contextEqual(other: PlayerTickData): boolean {
-        return this.contextControlType === other.contextControlType &&
-            this.contextGameModeIndex === other.contextGameModeIndex
-    }
-
-    initOutputFrom(pc: PlayerControl) {
-        this.outFlags = packBooleans(pc.sneak, pc.player_state.flying)
-        this.outPos.copyFrom(pc.player_state.pos)
-        this.outVelocity.copyFrom(pc.player_state.vel)
-    }
-
-    copyOutputFrom(src: PlayerTickData) {
-        this.outFlags = src.outFlags
-        this.outPos.copyFrom(src.outPos)
-        this.outVelocity.copyFrom(src.outVelocity)
-    }
-
-    applyOutputToControl(pc: PlayerControl) {
-        const [sneak, flying] = unpackBooleans(this.outFlags, PlayerTickData.OUT_FLAGS_COUNT)
-        const player_state = pc.player_state
-        player_state.flying = flying
-        player_state.pos.copyFrom(this.outPos)
-        player_state.vel.copyFrom(this.outVelocity)
-    }
-
-    outEqual(other: PlayerTickData): boolean {
-        return this.outFlags === other.outFlags &&
-            this.outPos.equal(other.outPos) &&
-            this.outVelocity.equal(other.outVelocity)
-    }
-
-    writeInput(dc: OutDeltaCompressor) {
-        dc.startSequence(PLAYER_TICK_DATA_SEQUENCE.INPUT)
-            .putInt(this.physicsTicks)
-            .putInt(this.inputFlags)
-            .putFloatVector(this.inputRotation)
-    }
-
-    writeContextAndOutput(dc: OutDeltaCompressor) {
-        dc.startSequence(PLAYER_TICK_DATA_SEQUENCE.CONTEXT_OUTPUT)
-            // context
-            .putInt(this.contextControlType)
-            .putInt(this.contextGameModeIndex)
-            // output
-            .putInt(this.outFlags)
-            .putFloatVector(this.outPos)
-            .putFloatVector(this.outVelocity)
-    }
-
-    readInput(dc: InDeltaCompressor): void {
-        dc.startSequence(PLAYER_TICK_DATA_SEQUENCE.INPUT)
-        this.physicsTicks = dc.getInt()
-        InPacketBuffer.checkMinMax(this.physicsTicks, 1)
-        this.inputFlags = dc.getInt()
-        dc.getFloatVector(this.inputRotation)
-    }
-
-    readContextAndOutput(dc: InDeltaCompressor): void {
-        dc.startSequence(PLAYER_TICK_DATA_SEQUENCE.CONTEXT_OUTPUT)
-        // context
-        this.contextControlType = dc.getInt()
-        this.contextGameModeIndex = dc.getInt()
-        // output
-        this.outFlags = dc.getInt()
-        dc.getFloatVector(this.outPos)
-        dc.getFloatVector(this.outVelocity)
-    }
-
-    toStr(startingPhysicsTick: int): string {
-        return `t${startingPhysicsTick}+${this.physicsTicks}=t${startingPhysicsTick+this.physicsTicks} ${this.outPos}`
-    }
-}
-
-class ClientPlayerTickData extends PlayerTickData {
-    // local data, not serialized
-    startingPhysicsTick?: int
-    status = PLAYER_TICK_DATA_STATUS.NEW
-    /**
-     * It means the following:
-     * - results of the previous physics ticks have been corrected, so this result is likely incorrect
-     * - it must be processed again
-     * - it shouldn't be sent again, because it was already sent
-     */
-    invalidated?: boolean
-    
-    constructor(startingPhysicsTick: int) {
-        super()
-        this.startingPhysicsTick = startingPhysicsTick
-    }
-
-    initInputFrom(player: Player, physicsTicks: int) {
-        const state = player.state
-        const controls = player.controls
-        const controlManager = player.controlManager
-        const applyControl = controls.enabled && !state.sleep && !state.sitting && !state.lies
-
-        this.inputFlags = applyControl
-            ? packBooleans(controls.back,
-                controls.forward,
-                controls.right,
-                controls.left,
-                controls.jump,
-                controls.sneak,
-                controls.sprint,
-                controlManager.instantControls.switchFlying
-            ) : 0
-        player.controlManager.instantControls.switchFlying = false
-        this.inputRotation.copyFrom(player.rotate).roundSelf(PHYSICS_ROTATION_DECIMALS)
-        this.physicsTicks = physicsTicks
-    }
-
-    // Not inclusive
-    get endPhysicsTick() { return this.startingPhysicsTick + this.physicsTicks }
-}
-
-/** @see PlayerControlManager.startNewPhysicsSession */
-export enum PHYSICS_SESSION_STATE {
-    UNINITIALIZED,    // must send/receive the 1st packet
-    WAITING_FIRST_PACKET,
-    ONGOING,
-    CLOSED  // a player is not moving, and is waiting for the data/portal to start a new session
-}
+import {MonotonicUTCDate} from "../helpers.js";
+import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PlayerTickData} from "./player_tick_data.js";
+import {ServerClient} from "../server_client.js";
+import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
 
 /**
  * It contains multiple controllers (subclasses of {@link PlayerControl}), switches between them,
@@ -243,18 +32,22 @@ export abstract class PlayerControlManager {
     /** The controller selected at the moment. */
     current: PlayerControl
 
-    /** @see startNewPhysicsSession */
-    protected physicsSessionState: PHYSICS_SESSION_STATE
+    /**
+     * Each session starts uninitialzied. To become initialized, {@link baseTime} must be set.
+     * (a client sets it when in the first physics tick of the session, and the server receives this
+     * value from the client).
+     * @see startNewPhysicsSession
+     * @see ClientPlayerControlManager.initializePhysicsSession
+     */
+    protected physicsSessionInitialized: boolean
     /** If of the current physics session. They are numbered consecutively. The 1st session will start from 0. */
-    protected physicsSessionId = -1
+    protected physicsSessionId: int = -1
 
-    /** The time {@link monotonicUTCMillis} at which the physics session started. */
-    protected baseTime: float
+    /** The time {@link MonotonicUTCDate.now} at which the physics session started. */
+    protected baseTime: number
     /** The number of physics session (see {@link PHYSICS_INTERVAL_MS}) from the start of the current physics session. */
     protected knownPhysicsTicks: int
 
-    protected outDeltaCompressor = new OutDeltaCompressor()
-    protected inDeltaCompressor = new InDeltaCompressor()
     private tmpPos = new Vector()
 
     constructor(player: Player) {
@@ -303,7 +96,7 @@ export abstract class PlayerControlManager {
         pc.resetState()
         pc.setPos(pos)
         this.physicsSessionId++
-        this.physicsSessionState = PHYSICS_SESSION_STATE.UNINITIALIZED
+        this.physicsSessionInitialized = false
         this.knownPhysicsTicks = 0
     }
 
@@ -384,12 +177,12 @@ export class ClientPlayerControlManager extends PlayerControlManager {
      */
     private dataQueue = new SimpleQueue<ClientPlayerTickData>()
 
+    private controlPacketWriter = new PlayerControlPacketWriter()
     private hasCorrection = false
-    private tmpCorrectedData = new ClientPlayerTickData(0)
-    private outPacketBuffer = new OutPacketBuffer()
+    private correctionPacket = new PlayerControlCorrectionPacket()
 
     getCurrentTickFraction(): float {
-        if (this.physicsSessionState === PHYSICS_SESSION_STATE.UNINITIALIZED) {
+        if (!this.physicsSessionInitialized) {
             return 0
         }
         // we can't use this.knownTime here, because it may be rolled back by the server updates
@@ -406,17 +199,13 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     }
 
     doClientTicks(): boolean {
-        const now = monotonicUTCMillis()
-
-        // the initial step
-        if (this.physicsSessionState === PHYSICS_SESSION_STATE.UNINITIALIZED) {
-            this.physicsSessionState = PHYSICS_SESSION_STATE.WAITING_FIRST_PACKET
-            this.baseTime = now
-            this.knownPhysicsTicks = 0
+        // if the initial step of the current physics session
+        if (!this.physicsSessionInitialized) {
+            this.initializePhysicsSession()
             return true
         }
 
-        this.knownInputTime = now
+        this.knownInputTime = MonotonicUTCDate.now()
 
         // prepare the simulation
         const dataQueue = this.dataQueue
@@ -448,9 +237,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
         }
 
-        // simulate the new tick(s)
+        // the number of new ticks to be simulated
         let physicsTicks = Math.floor((this.knownInputTime - this.knownTime) / PHYSICS_INTERVAL_MS)
-
+        // simulate the new tick(s)
         if (physicsTicks) {
             if (physicsTicks < 0) {
                 throw new Error('physicsTicks < 0') // this should not happen
@@ -508,17 +297,16 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
         }
 
-        return physicsTicks != 0
+        return physicsTicks !== 0
     }
 
     applyCorrection(packetData: PacketBuffer) {
-        tmpInBuffer.import(packetData)
-        const dc = this.inDeltaCompressor.start(tmpInBuffer)
+        const packet = this.correctionPacket
+        packet.read(packetData)
+
         const debPrevKnownPhysicsTicks = this.knownPhysicsTicks
-        const correctedPhysicsTick = tmpInBuffer.getInt()
-        const correctedData = this.tmpCorrectedData
-        correctedData.readContextAndOutput(dc)
-        dc.checkHash()
+        const correctedPhysicsTick = packet.knownPhysicsTicks
+        const correctedData = packet.data
 
         // remove all old data before the correction; we won't need it ever
         const dataQueue = this.dataQueue
@@ -591,18 +379,8 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         }
     }
 
-    /** @returns a pakced data if there is an update to server ready, or null if there isn't */
-    exportUpdate(): PacketBuffer | null {
-        const buf = this.outPacketBuffer
-        const dc = this.outDeltaCompressor.start(buf)
-
-        // 1st packet of a physics session
-        if (this.physicsSessionState === PHYSICS_SESSION_STATE.WAITING_FIRST_PACKET) {
-            this.physicsSessionState = PHYSICS_SESSION_STATE.ONGOING
-            this.writePacketHeader(dc)
-            buf.putFloat(this.baseTime)
-        }
-
+    /** Sends an update, if there is anything that must be sent now */
+    sendUpdate(): void {
         // find unsent data
         const dataQueue = this.dataQueue
         let firstUnsentIndex = dataQueue.length
@@ -620,29 +398,39 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                 lastMustBeSentIndex = i
             }
         }
+        // send all the data that must be sent now
         if (lastMustBeSentIndex !== null) {
-            if (buf.length === 0) { // if we haven't written anything yet
-                this.writePacketHeader(dc)
-            }
-            // export all the data that must be sent now
+            const writer = this.controlPacketWriter
+            writer.startPutSessionId(this.physicsSessionId)
             for(let i = firstUnsentIndex; i <= lastMustBeSentIndex; i++) {
                 const data = dataQueue.get(i)
-                data.writeInput(dc)
-                data.writeContextAndOutput(dc)
+                writer.putTickData(data)
                 data.status = PLAYER_TICK_DATA_STATUS.SENT
             }
+            this.player.world.server.Send({
+                name: ServerClient.CMD_PLAYER_CONTROL_UPDATE,
+                data: writer.finish()
+            })
         }
-        return buf.length ? dc.putHash().buf.exportAndReset() : null
+    }
+
+    private initializePhysicsSession(): void {
+        // initialize the session
+        this.physicsSessionInitialized = true
+        this.baseTime = MonotonicUTCDate.now()
+        this.knownPhysicsTicks = 0
+        // notify the server
+        const data: PlayerControlSessionPacket = {
+            sessionId: this.physicsSessionId,
+            baseTime: this.baseTime
+        }
+        this.player.world.server.Send({name: ServerClient.CMD_PLAYER_CONTROL_SESSION, data})
     }
     
     protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
         const pc = this.controlByType[data.contextControlType]
         prevData?.applyOutputToControl(pc)
         return super.simulate(prevData, data)
-    }
-
-    private writePacketHeader(dc: OutDeltaCompressor) {
-        dc.putInt(this.physicsSessionId)
     }
 
 }

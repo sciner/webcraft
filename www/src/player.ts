@@ -339,10 +339,10 @@ export class Player implements IPlayer {
             this.status = PLAYER_STATUS.ALIVE;
         });
         server.AddCmdListener([ServerClient.CMD_TELEPORT], cmd => this.onTeleported(cmd.data.pos))
-        server.AddCmdListener([ServerClient.CMD_PLAYER_STATE_CORRECTION], cmd => {
+        server.AddCmdListener([ServerClient.CMD_PLAYER_CONTROL_CORRECTION], cmd => {
             this.controlManager.applyCorrection(cmd.data)
         }, null, true)
-        server.AddCmdListener([ServerClient.CMD_PLAYER_STATE_ACCEPTED], cmd => {
+        server.AddCmdListener([ServerClient.CMD_PLAYER_CONTROL_ACCEPTED], cmd => {
             this.controlManager.onServerAccepted(cmd.data)
         })
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
@@ -865,6 +865,7 @@ export class Player implements IPlayer {
             // Physics tick
             const hasUpdate = this.controlManager.doClientTicks()
             if (hasUpdate) {
+                this.controlManager.sendUpdate();
                 this.prevPos.copyFrom(this.pos);
             }
             this.pos.copyFrom(pc.player_state.pos);
@@ -969,9 +970,6 @@ export class Player implements IPlayer {
             this.render.updateNightVision(this.getEffectLevel(Effect.NIGHT_VISION));
             // Update picking target
             this.updatePickingTarget()
-            if (hasUpdate) {
-                this.sendState()
-            }
         }
         this.lastUpdate = performance.now();
     }
@@ -1150,26 +1148,26 @@ export class Player implements IPlayer {
         }
     }
 
-    // Отправка информации о позиции и ориентации игрока на сервер
-    sendState() {
-        const data = this.controlManager.exportUpdate()
-        if (!data) {
-            return
-        }
-
-        /* Sending ping_value.
-        In the old code, ping_value has been sent in CMD_PLAYER_STATE, but it was incorrectly
-        and not used on the server.
-        See also commented server code that reads ping_value in cmd_player_state.ts
-
-        data.push(Math.round(this.world.server.ping_value))
-        */
-
-        this.world.server.Send({
-            name: ServerClient.CMD_PLAYER_STATE,
-            data: data
-        });
-    }
+    // // Отправка информации о позиции и ориентации игрока на сервер
+    // sendState() {
+    //     const data = this.controlManager.exportUpdate()
+    //     if (!data) {
+    //         return
+    //     }
+    //
+    //     /* Sending ping_value.
+    //     In the old code, ping_value has been sent in CMD_PLAYER_STATE, but it was incorrectly
+    //     and not used on the server.
+    //     See also commented server code that reads ping_value in cmd_player_control_update.ts
+    //
+    //     data.push(Math.round(this.world.server.ping_value))
+    //     */
+    //
+    //     this.world.server.Send({
+    //         name: ServerClient.CMD_PLAYER_STATE,
+    //         data: data
+    //     });
+    // }
 
     // Start use of item
     startItemUse(material) {

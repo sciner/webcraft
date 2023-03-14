@@ -11,7 +11,7 @@ import {TBlock} from "../typed_blocks3.js";
 import {PlayerControl} from "../control/player_control.js";
 import {PHYSICS_INTERVAL_MS} from "../constant.js";
 import {PLAYER_CONTROL_TYPE} from "../control/player_control.js";
-import type {PlayerTickData} from "../control/player_control_manager.js";
+import type {PlayerTickData} from "../control/player_tick_data.js";
 
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
 export const DEFAULT_SLIPPERINESS = 0.6;

@@ -1,54 +1,40 @@
 "use strict";
 
-import {PHYSICS_SESSION_STATE, PlayerControlManager, PlayerTickData} from "@client/control/player_control_manager.js";
-import {InDeltaCompressor, InPacketBuffer, OutPacketBuffer, unpackBooleans} from "@client/packet_compressor.js";
+import {PlayerControlManager} from "@client/control/player_control_manager.js";
+import type {PacketBuffer} from "@client/packet_compressor.js";
 import {
     MAX_PACKET_AHEAD_OF_TIME_MS, MAX_PACKET_LAG_SECONDS, PHYSICS_INTERVAL_MS, PHYSICS_POS_DECIMALS,
     PLAYER_STATUS, DEBUG_LOG_PLAYER_CONTROL
 } from "@client/constant.js";
 import type {ServerPlayer} from "../server_player.js";
 import {
-    ACCEPTABLE_PLAYER_POS_ERROR, ACCEPTABLE_PLAYER_VELOCITY_ERROR,
     DONT_VALIDATE_AFTER_MODE_CHANGE_MS, SERVER_UNCERTAINTY_MS,
     PLAYER_EXHAUSTION_PER_BLOCK, SERVER_SEND_CMD_MAX_INTERVAL
 } from "../server_constant.js";
 import {ServerClient} from "@client/server_client.js";
-import {monotonicUTCMillis, Vector} from "@client/helpers.js";
+import {MonotonicUTCDate, Vector} from "@client/helpers.js";
+import {ServerPlayerTickData} from "./server_player_tick_data.js";
+import {PlayerControlCorrectionPacket, PlayerControlPacketReader, PlayerControlSessionPacket} from "@client/control/player_control_packets.js";
+import type {PlayerTickData} from "@client/control/player_tick_data.js";
 
-const tmpOutPacketBuffer = new OutPacketBuffer()
-
-const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they possible)
-
-class ServerPlayerTickData extends PlayerTickData {
-
-    /** @returns true if the outputs of two simulations are similar enough that a client doesn't need a correction */
-    outputSimilar(other: ServerPlayerTickData): boolean {
-        return this.outFlags === other.outFlags &&
-            this.outPos.distanceSqr(other.outPos) < ACCEPTABLE_PLAYER_POS_ERROR * ACCEPTABLE_PLAYER_POS_ERROR &&
-            this.outVelocity.distanceSqr(other.outVelocity) < ACCEPTABLE_PLAYER_VELOCITY_ERROR * ACCEPTABLE_PLAYER_VELOCITY_ERROR
-    }
-
-    applyOutputToPlayer(player: ServerPlayer) {
-        this.applyOutputToControl(player.controlManager.current)
-        const [sneak, flying] = unpackBooleans(this.outFlags, PlayerTickData.OUT_FLAGS_COUNT)
-        player.changePosition(this.outPos, this.inputRotation, sneak)
-    }
-}
+const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
 
 export class ServerPlayerControlManager extends PlayerControlManager {
     //@ts-expect-error
     player: ServerPlayer
 
-    lastData: ServerPlayerTickData | null = null
-    clientData = new ServerPlayerTickData()
-    newData = new ServerPlayerTickData()
+    private lastData: ServerPlayerTickData | null = null
+    private clientData = new ServerPlayerTickData()
+    private newData = new ServerPlayerTickData()
+    private controlPacketReader = new PlayerControlPacketReader()
+    private correctionPacket = new PlayerControlCorrectionPacket()
 
     /** {@see DONT_VALIDATE_AFTER_MODE_CHANGE_MS} */
-    maxUnvalidatedPhysicsTick: int = -Infinity
+    private maxUnvalidatedPhysicsTick: int = -Infinity
 
-    clientPhysicsTicks: int // How many physics ticks in the current session are received from the client
-    accumulatedDistance = 0
-    lastCmdSentTime = performance.now()
+    private clientPhysicsTicks: int // How many physics ticks in the current session are received from the client
+    private accumulatedDistance = 0
+    private lastCmdSentTime = performance.now()
 
     updateCurrentControlType(notifyClient: boolean): boolean {
         if (!super.updateCurrentControlType(notifyClient)) {
@@ -85,11 +71,11 @@ export class ServerPlayerControlManager extends PlayerControlManager {
      * @see SERVER_UNCERTAINTY_MS
      */
     doLaggingServerTicks(doSimulation: boolean) {
-        if (this.player.status !== PLAYER_STATUS.ALIVE || this.physicsSessionState < PHYSICS_SESSION_STATE.ONGOING) {
+        if (this.player.status !== PLAYER_STATUS.ALIVE || !this.physicsSessionInitialized) {
             return // this physics session is over, nothing to do until the next one starts
         }
 
-        const stateTimeMustBeKnown = monotonicUTCMillis() - SERVER_UNCERTAINTY_MS
+        const stateTimeMustBeKnown = MonotonicUTCDate.now() - SERVER_UNCERTAINTY_MS
         let physicsTicks = Math.floor((stateTimeMustBeKnown - this.knownTime) / PHYSICS_INTERVAL_MS )
         if (physicsTicks <= 0) {
             return
@@ -124,54 +110,57 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         }
     }
 
-    onClientTicks(buf: InPacketBuffer) {
-        const now = monotonicUTCMillis()
-        const dc = this.inDeltaCompressor.start(buf)
+    onClientSession(data: PlayerControlSessionPacket): void {
+        if (data.sessionId !== this.physicsSessionId) {
+            return // it's for another session, skip it
+        }
+        if (this.physicsSessionInitialized) {
+            throw 'this.baseTime < now - MAX_PACKET_LAG_SECONDS * 1000'
+        }
+        const now = MonotonicUTCDate.now()
+        if (data.baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS) {
+            throw 'baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS'
+        }
+        // ensure the server doesn't freeze on calculations
+        if (data.baseTime < now - MAX_PACKET_LAG_SECONDS * 1000) {
+            throw 'baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS'
+        }
+        this.physicsSessionInitialized = true
+        this.baseTime = data.baseTime
+        // If the client sent us base time that is too far behind, we mustn't accept a large batch of outdated of commands afterwards
+        this.doLaggingServerTicks(false)
+    }
 
-        // read the header
-        const packetPhysicsSessionId = dc.getInt()
+    onClientTicks(data: PacketBuffer): void {
+        const reader = this.controlPacketReader
+
+        // check if it's for the current session
+        const packetPhysicsSessionId = reader.startGetSessionId(data)
         if (packetPhysicsSessionId !== this.physicsSessionId) {
-            this.skipClientData(dc)
+            reader.finish()
             if (DEBUG_LOG_PLAYER_CONTROL) {
                 console.log(`Control ${this.username}: skipping physics session ${packetPhysicsSessionId} !== ${this.physicsSessionId}`)
             }
             return // it's from the previous session. Ignore it.
         }
 
-        // 1st packet of a physics session
-        if (this.physicsSessionState <= PHYSICS_SESSION_STATE.WAITING_FIRST_PACKET) {
-            this.physicsSessionState = PHYSICS_SESSION_STATE.ONGOING
-            this.baseTime = buf.getFloat()
-            if (this.baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS) {
-                this.player.terminate('this.baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS')
-                return
-            }
-            // ensure the server doesn't freeze on calculations
-            if (this.baseTime < now - MAX_PACKET_LAG_SECONDS * 1000) {
-                this.player.terminate('this.baseTime < now - MAX_PACKET_LAG_SECONDS * 1000')
-                return
-            }
-
-            // If the client sent us base time that is too far behind, we mustn't accept a large batch of outdated of commands afterwards
-            this.doLaggingServerTicks(false)
+        if (!this.physicsSessionInitialized) { // we should have received CMD_PLAYER_CONTROL_SESSION first
+            throw 'this.baseTime < now - MAX_PACKET_LAG_SECONDS * 1000'
         }
 
         if (this.player.status !== PLAYER_STATUS.ALIVE) {
-            this.skipClientData(dc)
+            reader.finish()
             // It's from the current session, but this session will end when the player is resurrected and/or teleported.
             return
         }
 
         const clientData = this.clientData
         const newData = this.newData
-
+        const now = MonotonicUTCDate.now()
         let clientStateAccepted = false
-        let hasNewData = false // if it's the 1st tick, it might have no data other than the initial time
         this.applyPlayerStateToControl()
-        while (buf.remaining > 1) { // read one or more packets
-            hasNewData = true
-            clientData.readInput(dc)
-            clientData.readContextAndOutput(dc)
+
+        while (reader.readTickData(clientData)) {
             if (DEBUG_LOG_PLAYER_CONTROL) {
                 console.log(`Control ${this.username}: received ${clientData.toStr(this.clientPhysicsTicks)}`)
             }
@@ -181,10 +170,8 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             this.clientPhysicsTicks += clientData.physicsTicks
             const clientStateTime = this.baseTime + this.clientPhysicsTicks * PHYSICS_INTERVAL_MS
             if (clientStateTime > now + MAX_PACKET_AHEAD_OF_TIME_MS) {
-                this.skipClientData(dc)
-                // The client sends us a state too ahead of time. Maybe ask the client to adjust its clock.
-                this.player.terminate('clientStateTime > now + MAX_PACKET_AHEAD_OF_TIME_MS')
-                return
+                // The client sends us a state too ahead of time
+                throw'clientStateTime > now + MAX_PACKET_AHEAD_OF_TIME_MS'
             }
 
             // check if the data is at least partially outside the time window where the changes are still allowed
@@ -222,20 +209,19 @@ export class ServerPlayerControlManager extends PlayerControlManager {
                 clientStateAccepted = this.onWithoutSimulation()
             }
         }
-        dc.checkHash() // if the hash doesn't match, it'll throw an exception, and the connection will be terminated
-        if (hasNewData) {
-            this.onNewData()
-            if (clientStateAccepted) {
-                if (this.lastCmdSentTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
-                    this.player.sendPackets([{
-                        name: ServerClient.CMD_PLAYER_STATE_ACCEPTED,
-                        data: this.knownPhysicsTicks
-                    }])
-                    this.lastCmdSentTime = performance.now()
-                }
-            } else {
-                this.sendCorrection()
+        reader.finish()
+
+        this.onNewData()
+        if (clientStateAccepted) {
+            if (this.lastCmdSentTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
+                this.player.sendPackets([{
+                    name: ServerClient.CMD_PLAYER_CONTROL_ACCEPTED,
+                    data: this.knownPhysicsTicks
+                }])
+                this.lastCmdSentTime = performance.now()
             }
+        } else {
+            this.sendCorrection()
         }
     }
 
@@ -252,34 +238,16 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         this.updateLastData()
     }
 
-    /** Sends {@link lastData} (physics tick, context and output) as the correction to the client */
+    /** Sends {@link lastData} as the correction to the client. */
     private sendCorrection(): void {
-        const data = this.lastData
-        if (DEBUG_LOG_PLAYER_CONTROL) {
-            console.log(`Control ${this.username}: sending correction ${this.knownPhysicsTicks}`)
-        }
-        const buf = tmpOutPacketBuffer
-        const dc = this.outDeltaCompressor.start(buf)
-        buf.putInt(this.knownPhysicsTicks)
-        data.writeContextAndOutput(dc)
+        const cp = this.correctionPacket
+        cp.knownPhysicsTicks = this.knownPhysicsTicks
+        cp.data = this.lastData
         this.player.sendPackets([{
-            name: ServerClient.CMD_PLAYER_STATE_CORRECTION,
-            data: dc.putHash().buf.exportAndReset()
+            name: ServerClient.CMD_PLAYER_CONTROL_CORRECTION,
+            data: cp.export()
         }])
         this.lastCmdSentTime = performance.now()
-    }
-
-    /**
-     * It reads the client data until then end of the buffer, but doesn't process it.
-     * It's needed for the delta compressor correctness.
-     */
-    private skipClientData(dc: InDeltaCompressor) {
-        const clientData = this.clientData
-        while (dc.buf.remaining > 1) { // read one or more packets
-            clientData.readInput(dc)
-            clientData.readContextAndOutput(dc)
-        }
-        dc.checkHash()
     }
 
     /**

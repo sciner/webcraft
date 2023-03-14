@@ -12,6 +12,7 @@ export * from './helpers/alphabet_texture.js';
 export * from './helpers/spiral_generator.js';
 export * from './helpers/indexed_color.js';
 export * from './helpers/fast_random.js';
+export * from './helpers/monotonic_utc_date.js';
 
 export * from "./helpers/vector_collector_2d.js";
 export * from "./helpers/vector_cardinal_transformer.js";
@@ -30,11 +31,6 @@ import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
 
 const {mat4, quat} = glMatrix;
-
-let _monotonicUTCMillisValue = 0 // previous value of monotonicUTCMillis()
-let _timezoneOffsetMillis = new Date().getTimezoneOffset() * 60000
-// if the difference between the current and previous time is greater than this value, we try tio detect if the computer adjusted its timezone
-const TIME_DIFF_WITHOUT_CHECK = 1000
 
 /**
  * @param {string} url
@@ -774,22 +770,4 @@ export function isMobileBrowser() : boolean {
 //
 export function isScalar(v : any) : boolean {
     return !(typeof v === 'object' && v !== null);
-}
-
-/** Similar to Date.now(), in UTC and the values are non-decreasing even if the computer adjusts time. */
-export function monotonicUTCMillis(): number {
-    let now = Date.now() + _timezoneOffsetMillis
-    // check if an unusual time change occurred
-    if ((now < _monotonicUTCMillisValue || now > _monotonicUTCMillisValue + TIME_DIFF_WITHOUT_CHECK) &&
-        _monotonicUTCMillisValue // check the change only if _monotonicUTCMillisValue was initialized
-    ) {
-        // maybe the player's computer changed its timezone
-        _timezoneOffsetMillis = new Date().getTimezoneOffset() * 60000
-        now = Date.now() + _timezoneOffsetMillis
-        if (now < _monotonicUTCMillisValue) {
-            // maybe PC adjusted uts clock back a bit. Just wait until it catches up the previous value.
-            return _monotonicUTCMillisValue
-        }
-    }
-    return _monotonicUTCMillisValue = now
 }

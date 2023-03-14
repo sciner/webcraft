@@ -6,7 +6,7 @@ import {PHYSICS_TIMESTEP} from "../prismarine-physics/using.js";
 import {PlayerControl} from "./player_control.js";
 import type {World} from "../world.js";
 import {PLAYER_CONTROL_TYPE} from "./player_control.js";
-import type {PlayerTickData} from "./player_control_manager.js";
+import type {PlayerTickData} from "./player_tick_data.js";
 
 export class SpectatorPlayerControl extends PlayerControl {
     world: World

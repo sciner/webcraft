@@ -1,7 +1,7 @@
 "use strict";
 
 import type {Vector} from "../helpers/vector.js";
-import type {PlayerTickData} from "./player_control_manager.js";
+import type {PlayerTickData} from "./player_tick_data.js";
 import {PHYSICS_POS_DECIMALS} from "../constant.js";
 
 export enum PLAYER_CONTROL_TYPE {
