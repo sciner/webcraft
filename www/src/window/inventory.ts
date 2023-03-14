@@ -70,19 +70,20 @@ export class InventoryWindow extends BaseCraftWindow {
         const lblTitle = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.create)
         this.add(lblTitle)
 
+        const btnClose = new Button(this.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+        this.add(btnClose)
+
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
             const that = this
             // Close button
-            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
             btnClose.style.font.family = 'Arial'
             btnClose.style.background.image = image
             // btnClose.style.background.image_size_mode = 'stretch';
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
                 that.hide()
             }
-            that.add(btnClose)
         })
 
     }

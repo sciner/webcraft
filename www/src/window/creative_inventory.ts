@@ -218,20 +218,21 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         // Создание слотов для блоков коллекций
         this.createCollectionSlots()
+        
+        const btnClose = new Button(this.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+        this.add(btnClose)
 
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
             const that = this
             // Close button
-            const btnClose = new Button(that.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial'
             btnClose.style.background.image = image
             btnClose.style.background.image_size_mode = 'stretch'
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
                 that.hide()
             }
-            that.add(btnClose)
         });
 
         // Search input

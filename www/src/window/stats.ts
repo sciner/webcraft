@@ -30,19 +30,20 @@ export class StatsWindow extends BlankWindow {
         const label_distance = new Label(17 * this.zoom, 140 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_distance', null, '0');
         this.add(label_distance)
 
+        const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+        this.add(btnClose)
+
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
             const that = this
             // Close button
-            const btnClose = new Button(that.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial'
             btnClose.style.background.image = image
             btnClose.style.background.image_size_mode = 'stretch';
             btnClose.onMouseDown = function(e) {
                 that.hide()
             }
-            that.add(btnClose)
         })
 
         player.world.server.AddCmdListener([ServerClient.CMD_STATS], (cmd) => {

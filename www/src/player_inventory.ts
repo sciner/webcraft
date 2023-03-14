@@ -67,11 +67,14 @@ export class PlayerInventory extends Inventory {
 
     // Open window
     open() {
-        if(this.player.game_mode.isCreative()) {
-            this.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
-        } else {
-            this.hud.wm.getWindow('frmInventory').toggleVisibility();
-        }
+
+        this.hud.wm.getWindow('frmInGameMain').toggleVisibility();
+
+        // if(this.player.game_mode.isCreative()) {
+        //     this.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
+        // } else {
+        //     this.hud.wm.getWindow('frmInventory').toggleVisibility();
+        // }
     }
 
     // Refresh

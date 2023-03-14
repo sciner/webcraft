@@ -25,7 +25,7 @@ export class PlayerWindowManager {
         this.addWindow(new ScreenshotWindow(player));
         this.addWindow(new BookWindow(player));
         this.addWindow(new BarrelWindow(inventory));
-        // this.addWindow(new InGameMain(player, inventory, inventory.recipes));
+        this.addWindow(new InGameMain(player, inventory, inventory.recipes));
         this.addWindow(new ModeWindow(player));
         this.addWindow(new BrewingWindow(inventory));
     }
