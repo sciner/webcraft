@@ -3,7 +3,6 @@ import type { BLOCK } from "../../../blocks.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { Vector } from "../../../helpers.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
-import type { ClusterEndCity } from "../../cluster/end_city.js";
 import { TerrainMapCell } from "../../terrain_map.js";
 import type Terrain_Generator from "../index.js";
 import { TerrainMapManagerBase } from "../terrain/manager_base.js";
@@ -110,7 +109,7 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
         // Cluster
         chunk.timers.start('generate_cluster')
         const map = chunk.map = maps[4]
-        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, null) ?? null
+        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, null, 'end') ?? null
         chunk.cluster.fillBlocks(null, chunk, map, false, false)
         chunk.timers.stop()
 

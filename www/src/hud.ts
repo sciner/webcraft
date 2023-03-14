@@ -674,16 +674,19 @@ export class HUD {
                 'title': 'W'
             }
         ]
-        if (!this.wm.hud_window['compass_background']) {
-            this.wm.hud_window['compass_background'] = new Label(x - w / 2, y, w + 20 * this.zoom, 22 * this.zoom, 'compass_background', '', '|')
-            this.wm.hud_window['compass_background'].style.background.color = '#FFFFFF33'
-            this.wm.hud_window['compass_background'].style.textAlign.horizontal = 'center'
-            this.wm.hud_window['compass_background'].style.border.hidden = false
-            this.wm.hud_window['compass_background'].style.border.color = '#00000020'
-            this.wm.hud_window.addChild(this.wm.hud_window['compass_background'])
+        const hud_window = this.wm.hud_window
+        const compass_background_id = 'compass_background'
+        let compas = hud_window[compass_background_id]
+        if (!compas) {
+            compas = hud_window[compass_background_id] = new Label(x - w / 2, y, w + 20 * this.zoom, 22 * this.zoom, compass_background_id, '', '|')
+            compas.style.background.color = '#FFFFFF33'
+            compas.style.textAlign.horizontal = 'center'
+            compas.style.border.hidden = false
+            compas.style.border.color = '#00000020'
+            hud_window.addChild(compas)
         }
-        this.wm.hud_window['compass_background'].visible = true
-        this.wm.hud_window['compass_background'].x = x - w / 2
+        compas.visible = true
+        compas.x = x - w / 2
         for (const mark of marks) {
             let angle = rot - mark.angle
             if (angle < -Math.PI || angle > Math.PI) {
@@ -697,17 +700,18 @@ export class HUD {
                 alpha = '0' + alpha
             }
             const id = 'compass_' + mark.title
-            if (!this.wm.hud_window[id]) {
-                this.wm.hud_window[id] = new Label((x - w / 2), y, 20 * this.zoom, 20 * this.zoom, id, mark.title, mark.title)
-                this.wm.hud_window.addChild(this.wm.hud_window[id])
-                this.wm.hud_window[id].style.textAlign.horizontal = 'center'
+            let mark_label = hud_window[id]
+            if (!mark_label) {
+                mark_label = hud_window[id] = new Label((x - w / 2), y, 20 * this.zoom, 20 * this.zoom, id, mark.title, mark.title)
+                hud_window.addChild(mark_label)
+                mark_label.style.textAlign.horizontal = 'center'
             }
-            this.wm.hud_window[id].visible = true
-            this.wm.hud_window[id].x = x  -  w * Math.atan(angle) / 2.8
+            mark_label.visible = true
+            mark_label.x = x  -  w * Math.atan(angle) / 2.8
             if (mark?.color) {
-                this.wm.hud_window[id].style.font.color = mark.color + '' + alpha
+                mark_label.style.font.color = mark.color + '' + alpha
             } else {
-                this.wm.hud_window[id].style.font.color = '#FFFFFF' + '' + alpha
+                mark_label.style.font.color = '#FFFFFF' + '' + alpha
             }
         }
     }

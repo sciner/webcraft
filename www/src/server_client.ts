@@ -313,16 +313,16 @@ export class ServerClient {
         }, 0);
     }
 
-    loadChunk(addr) {
+    loadChunk(addr : Vector) {
         this.chunks_added++;
         this.Send({name: ServerClient.CMD_CHUNK_LOAD, data: {pos: addr}});
     }
 
-    setRenderDist(value) {
+    setRenderDist(value : int) {
         this.Send({name: ServerClient.CMD_CHANGE_RENDER_DIST, data: value});
     }
 
-    SendMessage(text) {
+    SendMessage(text : string) {
         this.Send({name: ServerClient.CMD_CHAT_SEND_MESSAGE, data: {text: text}});
     }
 
@@ -344,7 +344,7 @@ export class ServerClient {
     }
 
     //
-    Teleport(place_id, pos, safe) {
+    Teleport(place_id : string, pos : Vector, safe : boolean) {
         this.Send({name: ServerClient.CMD_TELEPORT_REQUEST, data: {
             place_id: place_id,
             pos: pos,

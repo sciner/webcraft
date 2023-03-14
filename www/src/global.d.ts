@@ -325,3 +325,17 @@ interface ITerrainMapManager {
     world_id:       string
     calcBiome(center_coord : IVector, preset : any) : any
 }
+
+interface IPickatEvent {
+    button_id:          3
+    cloneBlock:         boolean
+    createBlock:        boolean
+    destroyBlock:       boolean
+    id:                 any
+    interactMobID:      any
+    interactPlayerID:   any
+    number:             int
+    pos:                {x : float, y : float, z: float, mob: any, player: any, aabb?: any, n: IVector, block_id: int}
+    shiftKey:           boolean
+    start_time:         float
+}

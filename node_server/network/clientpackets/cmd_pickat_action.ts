@@ -87,7 +87,8 @@ export default class packet_reader {
                 }
             }
             // compare two actions
-            if (packet.data.actions?.blocks?.list) {
+            const player_modify_blocks = packet.data.actions?.blocks?.list
+            if (Array.isArray(player_modify_blocks) && player_modify_blocks.length > 0) {
                 const player_json = JSON.stringify(packet.data.actions.blocks.list);
                 const server_json = JSON.stringify(actions.blocks.list);
                 const same_results = player_json == server_json;

@@ -540,7 +540,7 @@ class DestroyBlocks {
 export class WorldAction {
     [key: string]: any;
 
-    #world;
+    #world : any;
     play_sound: PlaySoundParams[]
     drop_items: DropItemParams[]
     blocks: ActionBlocks
@@ -2335,7 +2335,7 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
 }
 
 //
-function setOnWater(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function setOnWater(e, world, pos, player, world_block : TBlock, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!mat_block || !mat_block.tags.includes('set_on_water')) {
         return false;
     }
@@ -2344,6 +2344,7 @@ function setOnWater(e, world, pos, player, world_block, world_material, mat_bloc
         position.addSelf(pos.n);
         const block_air = world.getBlock(position.add(pos.n));
         if (block_air.id == BLOCK.AIR.id && block_air.fluid === 0) {
+            actions.decrement = true
             actions.addBlocks([{
                 pos: position,
                 item: {

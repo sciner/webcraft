@@ -7,6 +7,7 @@ import { ClusterEndCity } from "./end_city.js";
 
 import type { ClusterBase } from "./base.js";
 import type { WorkerWorld } from "../../worker/world.js";
+import { ClusterStructures } from "./structures.js";
 
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
@@ -32,7 +33,7 @@ export class ClusterManager {
     /**
      * Return existing cluster or create new and return
      */
-    getForCoord(coord : Vector, map_manager? : ITerrainMapManager) : ClusterBase {
+    getForCoord(coord : Vector, map_manager? : ITerrainMapManager, layer_name : string = null) : ClusterBase {
         const addr = new Vector(coord.x, coord.y, coord.z).divScalarVecSelf(this.size).flooredSelf()
         let cluster = this.all.get(addr);
         if(cluster) {
@@ -43,11 +44,14 @@ export class ClusterManager {
         const rand = new alea(this.seed + '_' + addr.toHash());
         const r = rand.double();
         if(this.version == 2) {
-            if(r < 0.2) {
-                cluster = new ClusterVilage(this, addr.clone(), biome)
-            } else {
-                // cluster = new ClusterStructures(this, addr.clone(), biome)
+            if(layer_name && (layer_name == 'end')) {
                 cluster = new ClusterEndCity(this, addr.clone(), biome)
+            } else {
+                if(r < 0.2) {
+                    cluster = new ClusterVilage(this, addr.clone(), biome)
+                } else {
+                    cluster = new ClusterStructures(this, addr.clone(), biome)
+                }
             }
         } else {
             if(r <= .1) {
