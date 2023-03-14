@@ -2,6 +2,7 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
+import { Button, Label } from "../../tools/gui/wm.js";
 
 export class FurnaceWindow extends BaseChestWindow {
     [key: string]: any;
@@ -16,12 +17,18 @@ export class FurnaceWindow extends BaseChestWindow {
             }
         })
 
+        this.test = new Label(50, 50, 50, 50, `11111_bgicon`, '444', '555')
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
         this.atlas.fromFile('./media/gui/form-furnace.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+            //this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+            this.test.setBackground(await this.atlas.getSprite(704, 0, 58, 56), 'none', this.zoom)
         })
 
+        
+        
+        
+        this.add(this.test)
     }
 
     //
