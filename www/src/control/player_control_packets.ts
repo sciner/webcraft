@@ -28,7 +28,7 @@ export class PlayerControlPacketWriter {
         data.writeContextAndOutput(this.dc)
     }
 
-    finish(): PacketBuffer | null {
+    finish(): PacketBuffer {
         return this.dc.putHash().export()
     }
 }
