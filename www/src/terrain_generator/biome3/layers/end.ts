@@ -3,19 +3,20 @@ import type { BLOCK } from "../../../blocks.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { Vector } from "../../../helpers.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
+import { ClusterEndCity } from "../../cluster/end_city.js";
+import { ClusterManager } from "../../cluster/manager.js";
 import { TerrainMapCell } from "../../terrain_map.js";
 import type Terrain_Generator from "../index.js";
 import { TerrainMapManagerBase } from "../terrain/manager_base.js";
 import { TerrainMap2 } from "../terrain/map.js";
-import Biome3LayerBase from "./base.js";
+import { Biome3LayerBase } from "./base.js";
 
 class EndTerrainMapManager extends TerrainMapManagerBase {
 
-    layer : Biome3LayerEnd
+    declare layer : Biome3LayerEnd
 
     constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerEnd) {
-        super(seed, world_id, noise2d, noise3d, block_manager, generator_options)
-        this.layer = layer
+        super(seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
     }
 
     // generate map
@@ -85,18 +86,9 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
 
     constructor(generator : Terrain_Generator) {
         super(generator)
-        this.generator = generator
-
-        // const world = generator.world
-        const world_id = generator.world_id
-        const seed = generator.seed
-
-        this.noise2d = generator.noise2d
-        this.noise3d = generator.noise3d
-        this.block_manager = generator.block_manager
-        this.clusterManager = generator.clusterManager
-
-        this.maps = new EndTerrainMapManager(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
+        this.clusterManager = new ClusterManager(generator.world, generator.seed, this)
+        this.clusterManager.registerCluster(.6, ClusterEndCity)
+        this.maps = new EndTerrainMapManager(generator.seed, generator.world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
     }
 
     generate(chunk : ChunkWorkerChunk, seed : string, rnd : alea) {
@@ -109,7 +101,7 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
         // Cluster
         chunk.timers.start('generate_cluster')
         const map = chunk.map = maps[4]
-        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, null, 'end') ?? null
+        chunk.cluster = this.clusterManager.getForCoord(chunk.coord, null) ?? null
         chunk.cluster.fillBlocks(null, chunk, map, false, false)
         chunk.timers.stop()
 

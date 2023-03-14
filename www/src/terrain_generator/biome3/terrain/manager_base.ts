@@ -5,6 +5,7 @@ import { TerrainMap2 } from "./map.js";
 
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
+import type { Biome3LayerBase } from "../layers/base.js";
 
 //
 const _temp_chunk = {
@@ -24,16 +25,18 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
     noise3d:                any
     generator_options:      any
     float_seed:             any
+    layer:                  Biome3LayerBase
 
     static _temp_vec3 = Vector.ZERO.clone()
     static _temp_vec3_delete = Vector.ZERO.clone()
 
-    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options) {
+    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
         this.seed = seed;
         this.world_id = world_id;
         this.noise2d = noise2d;
         this.noise3d = noise3d;
         this.block_manager = block_manager;
+        this.layer = layer;
         this.maps_cache = new VectorCollector();
         this.biomes = new Biomes(noise2d);
         this.generator_options = generator_options
@@ -126,7 +129,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
                 cnt_destroyed++;
             }
         }
-        // console.log('destroyAroundPlayers', this.maps_cache.size, TerrainMapManager2.maps_in_memory)
+        // console.log('destroyAroundPlayers', this.maps_cache.size, TerrainMapManager3.maps_in_memory)
         return cnt_destroyed
     }
 

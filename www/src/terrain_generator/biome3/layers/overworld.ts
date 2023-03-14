@@ -1,20 +1,24 @@
 import { Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
-import { DENSITY_AIR_THRESHOLD, MapsBlockResult, TerrainMapManager2, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager.js";
+import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager_vars.js";
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
 import { AQUIFERA_UP_PADDING } from "../aquifera.js";
 import { WorldClientOreGenerator } from "../client_ore_generator.js";
 import { DungeonGenerator } from "../../dungeon.js";
-
 import { alea } from "../../default.js";
 import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
+import { FLUID_STRIDE } from "../../../fluid/FluidConst.js";
+import { Biome3LayerBase } from "./base.js";
+import { BLOCK_FLAG } from "../../../constant.js";
+import { ClusterManager } from "../../cluster/manager.js";
+import { ClusterVilage } from "../../cluster/vilage.js";
+import { ClusterStructures } from "../../cluster/structures.js";
+
 import type { TerrainMap2 } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type Terrain_Generator from "../index.js";
-import { FLUID_STRIDE } from "../../../fluid/FluidConst.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
-import Biome3LayerBase from "./base.js";
-import { BLOCK_FLAG } from "../../../constant.js";
+import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
@@ -24,7 +28,7 @@ const _ground_places = new Array(CHUNK_SIZE * GROUND_PLACE_SIZE)
 
 export default class Biome3LayerOverworld extends Biome3LayerBase {
 
-    declare maps:           TerrainMapManager2
+    declare maps:           TerrainMapManager3
 
     ore_generator:          WorldClientOreGenerator
     dungeon:                DungeonGenerator
@@ -36,12 +40,15 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         super(generator)
 
         const seed = generator.seed
-
         const world_id = generator.world_id
-        this.maps = new TerrainMapManager2(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options);
+        this.clusterManager = new ClusterManager(generator.world, generator.seed, this)
+        this.clusterManager.registerCluster(.2, ClusterVilage)
+        this.clusterManager.registerCluster(1, ClusterStructures)
+
+        this.maps = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
 
         this.ore_generator = new WorldClientOreGenerator(world_id)
-        this.clusterManager = generator.clusterManager
+        // this.clusterManager = generator.clusterManager
         this.dungeon = new DungeonGenerator(seed)
         // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {})
 
@@ -239,7 +246,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 const cell = chunk.map.cells[z * CHUNK_SIZE_X + x]
-                maxY = Math.max(maxY, (this.maps as TerrainMapManager2).getMaxY(cell))
+                maxY = Math.max(maxY, (this.maps as TerrainMapManager3).getMaxY(cell))
             }
         }
         if(chunk.map.aquifera && !chunk.map.aquifera.is_empty) {
@@ -272,7 +279,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const blockFlags                = bm.flags
         const block_result              = new MapsBlockResult()
         const rand_lava                 = new alea('random_lava_source_' + this.seed)
-        const map_manager               = this.maps as TerrainMapManager2
+        const map_manager               = this.maps as TerrainMapManager3
 
         // generate densisiy values for column
         chunk.timers.start('generate_noise3d')

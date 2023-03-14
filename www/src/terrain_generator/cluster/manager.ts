@@ -1,13 +1,10 @@
 import {Vector, VectorCollector} from "../../helpers.js";
-import {ClusterVilage} from "./vilage.js";
-import {ClusterPyramid} from "./pyramid.js";
-import {ClusterEmpty} from "./empty.js";
 import {impl as alea} from '../../../vendors/alea.js';
-import { ClusterEndCity } from "./end_city.js";
+import {ClusterEmpty} from "./empty.js";
 
 import type { ClusterBase } from "./base.js";
 import type { WorkerWorld } from "../../worker/world.js";
-import { ClusterStructures } from "./structures.js";
+import type { Biome3LayerBase } from "../biome3/layers/base.js";
 
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
@@ -16,24 +13,34 @@ export const CLUSTER_SIZE_V2 = new Vector(256, 200, 256)
 
 // ClusterManager
 export class ClusterManager {
-    [key: string]: any;
+
+    cluster_types:      {chance: float, cluster_class : any | null}[] = []
+    all:                VectorCollector<any> = new VectorCollector()
+    layer:              Biome3LayerBase
+    world:              WorkerWorld
+    size:               Vector
+    seed:               string
+    chunkManager:       any
 
     /**
      * All clusters
      */
-    constructor(world : WorkerWorld, seed, version) {
-        this.seed = seed;
-        this.version = version;
+    constructor(world : WorkerWorld, seed : string, layer? : Biome3LayerBase | null) {
+        this.seed = seed
+        this.layer = layer
         this.world = world
-        this.chunkManager = world.chunkManager;
-        this.all = new VectorCollector();
-        this.size = new Vector(version == 2 ? CLUSTER_SIZE_V2 : CLUSTER_SIZE)
+        this.chunkManager = world.chunkManager
+        this.size = new Vector(layer ? CLUSTER_SIZE_V2 : CLUSTER_SIZE)
+    }
+
+    registerCluster(chance : float, cluster_class : any | null) {
+        this.cluster_types.push({chance, cluster_class})
     }
 
     /**
      * Return existing cluster or create new and return
      */
-    getForCoord(coord : Vector, map_manager? : ITerrainMapManager, layer_name : string = null) : ClusterBase {
+    getForCoord(coord : Vector, map_manager? : ITerrainMapManager) : ClusterBase {
         const addr = new Vector(coord.x, coord.y, coord.z).divScalarVecSelf(this.size).flooredSelf()
         let cluster = this.all.get(addr);
         if(cluster) {
@@ -42,26 +49,22 @@ export class ClusterManager {
         const center_coord = addr.mul(this.size).addScalarSelf(this.size.x / 2, this.size.y / 2, this.size.z / 2)
         const biome = map_manager?.calcBiome(center_coord, null) ?? null
         const rand = new alea(this.seed + '_' + addr.toHash());
-        const r = rand.double();
-        if(this.version == 2) {
-            if(layer_name && (layer_name == 'end')) {
-                cluster = new ClusterEndCity(this, addr.clone(), biome)
-            } else {
-                if(r < 0.2) {
-                    cluster = new ClusterVilage(this, addr.clone(), biome)
-                } else {
-                    cluster = new ClusterStructures(this, addr.clone(), biome)
-                }
-            }
-        } else {
-            if(r <= .1) {
-                cluster = new ClusterPyramid(this, addr.clone(), biome);
-            } else if(r < .6) {
-                // empty
-            } else {
-                cluster = new ClusterVilage(this, addr.clone(), biome);
+        const r = rand.double()
+
+        //
+        let cluster_class = null
+        for(let i = 0; i < this.cluster_types.length; i++) {
+            let item = this.cluster_types[i]
+            if(item.chance === null || item.chance > r) {
+                cluster_class = item.cluster_class
+                break
             }
         }
+
+        if(cluster_class) {
+            cluster = new cluster_class(this, addr.clone(), biome)
+        }
+
         if(!cluster) {
             cluster = new ClusterEmpty(this, addr.clone(), biome);
         }

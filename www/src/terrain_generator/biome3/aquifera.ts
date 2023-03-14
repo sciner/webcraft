@@ -1,7 +1,7 @@
 import { BLOCK } from '../../blocks.js';
 import { Vector } from "../../helpers.js";
 import { alea } from "../default.js";
-import { DENSITY_AIR_THRESHOLD } from "./terrain/manager.js";
+import { DENSITY_AIR_THRESHOLD } from "./terrain/manager_vars.js";
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 
 export const AQUIFERA_UP_PADDING = 10

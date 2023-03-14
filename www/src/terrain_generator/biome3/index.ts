@@ -1,15 +1,14 @@
-import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from "../default.js";
-// import { IndexedColor } from "../../helpers.js";
+import { IndexedColor } from "../../helpers.js";
 import { createNoise2D } from '../../../vendors/simplex-noise.js';
 import { NoiseFactory } from "./NoiseFactory.js";
-import { ClusterManager } from "../cluster/manager.js";
-import { GENERATOR_OPTIONS } from "./terrain/manager.js";
+import { GENERATOR_OPTIONS, WATER_LEVEL } from "./terrain/manager_vars.js";
+import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from "../default.js";
 import { Biome3LayerManager } from "./layer_manager.js";
+
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { TerrainMap2 } from "./terrain/map.js";
 import type { WorkerWorld } from "../../worker/world.js";
-import { WATER_LEVEL } from "./terrain/manager_vars.js";
-import { IndexedColor } from "../../helpers.js";
+import type { ClusterManager } from "../cluster/manager.js";
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -17,9 +16,10 @@ const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
 export const DEFAULT_CELL = {
     dirt_color: DEFAULT_DIRT_COLOR,
     water_color: DEFAULT_WATER_COLOR,
+    // TODO: Biome or Default_Terrain_Map_Cell?
     biome: new Default_Terrain_Map_Cell({
-    code: 'flat'
-})};
+        code: 'flat'
+    })};
 
 const DEFAUL_MAP_OPTIONS = {WATER_LEVEL}
 
@@ -45,7 +45,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.world          = world
         this.tempAlea       = al
         this.block_manager  = BLOCK
-        this.clusterManager = new ClusterManager(world, seed, 2)
 
     }
 
