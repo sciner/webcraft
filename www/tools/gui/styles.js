@@ -336,7 +336,6 @@ export class BorderStyle {
         }
 
         const border_width = .5 * this.#window.zoom
-        console.log(this.#window.zoom)
 
         color1 = parseColorAndAlpha(color1)
         color2 = parseColorAndAlpha(color2)
