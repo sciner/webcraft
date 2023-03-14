@@ -345,7 +345,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
             const {value, percent, river_percent, waterfront_percent} = cell.river_point;
             const river_vert_dist = WATER_LEVEL - xyz.y;
             const river_bottom_rad = Math.PI / 1
-            const vertical_shore_coeff = (density + 1) / 2
+            const vertical_shore_coeff = ((d1 * .05 + d2 * .1 + d3 * .3 + d4 * .4) + 1) / 2
             const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent)) / river_bottom_rad);
             density = Math.min(density, density * river_density + (d3 * vertical_shore_coeff) * percent);
         }
