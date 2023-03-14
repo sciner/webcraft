@@ -676,13 +676,14 @@ export class HUD {
         ]
         const hud_window = this.wm.hud_window
         const compass_background_id = 'compass_background'
-        let compas = hud_window[compass_background_id]
+        let compas : Label = hud_window[compass_background_id]
         if (!compas) {
             compas = hud_window[compass_background_id] = new Label(x - w / 2, y, w + 20 * this.zoom, 22 * this.zoom, compass_background_id, '', '|')
             compas.style.background.color = '#FFFFFF33'
             compas.style.textAlign.horizontal = 'center'
             compas.style.border.hidden = false
-            compas.style.border.color = '#00000020'
+            compas.style.border.style = 'fixed_single'
+            compas.style.border.color = '#00000077'
             hud_window.addChild(compas)
         }
         compas.visible = true

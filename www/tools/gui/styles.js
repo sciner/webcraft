@@ -32,7 +32,7 @@ export function parseColorAndAlpha(value) {
         resp.alpha = 0
         return resp
     }
-    if(isNaN) {
+    if(isNaN(value)) {
         const has_alpha = value.length == 9
         resp.color = parseInt(`0x${value.substring(1, 7)}`, 16)
         if(has_alpha) {
@@ -240,7 +240,9 @@ export class BorderStyle {
 
     #window
     #_wmborder
-    #_style = 'normal'
+    #_style = 'normal' // | normal | inset | fixed_single
+    #_color = '#ffffffff'
+    #_shadow_color = '#888888ff'
 
     constructor(window) {
 
@@ -254,6 +256,22 @@ export class BorderStyle {
         this._redraw()
         window.addChild(border)
 
+    }
+
+    /**
+     * @returns {string}
+     */
+    get color() {
+        return this.#_color
+    }
+
+    /**
+     * @param {string} value
+     */
+    set color(value) {
+        this.#_color = value
+        // TODO: need to calc this.#_shadow_color
+        this._redraw()
     }
 
     /**
@@ -296,18 +314,39 @@ export class BorderStyle {
         const {w, h} = this.#window
         const border = this.#_wmborder
 
-        const inset = this.style == 'inset'
-        const color1 = inset ? 0x888888 : 0xffffff
-        const color2 = inset ? 0xffffff : 0x888888
-        const border_width = 3
-        const border_alpha = .9
+        let color1 = null
+        let color2 = null
 
-        border.lineStyle(border_width, color2, border_alpha)
+        switch(this.style) {
+            case 'normal': {
+                color1 = this.#_color
+                color2 = this.#_shadow_color
+                break
+            }
+            case 'inset': {
+                color1 = this.#_shadow_color
+                color2 = this.#_color
+                break
+            }
+            case 'fixed_single': {
+                color1 = this.#_color
+                color2 = this.#_color
+                break
+            }
+        }
+
+        const border_width = .5 * this.#window.zoom
+        console.log(this.#window.zoom)
+
+        color1 = parseColorAndAlpha(color1)
+        color2 = parseColorAndAlpha(color2)
+
+        border.lineStyle(border_width, color1.color, color1.alpha)
         border.moveTo(w, h)
             .lineTo(0, h)
             .lineTo(0, 0)
 
-        border.lineStyle(border_width, color1, border_alpha)
+        border.lineStyle(border_width, color2.color, color2.alpha)
         border.moveTo(0, 0)
             .lineTo(w, 0)
             .lineTo(w, h)
