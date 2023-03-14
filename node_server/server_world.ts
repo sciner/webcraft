@@ -1261,7 +1261,9 @@ export class ServerWorld implements IWorld {
     getSleep(id, pos) {
         // устаналиваем место спауна
         const existing_player = this.players.get(id)
-        existing_player.changePosSpawn({pos: pos, id: id})
+        if (!existing_player.state.pos_spawn.equal(pos)) {
+            existing_player.changePosSpawn({pos: pos, id: id})
+        }
         const time = this.getTime()
         if(time.hours < 18 && time.hours > 6) {
             return false
