@@ -331,13 +331,20 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
         for (const drop of drop_item) {
             if (drop && checkInstrument(instrument_block_id, drop)) {
                 const block = BLOCK.fromName(drop.name)
-                const chance = drop.chance ?? 1;
+                const chance = drop.chance ?? 1
                 if(Math.random() < chance) {
-                    let count = drop.count ?? 1;
+                    let count = 1
+                    if (drop?.count) {
+                        if (typeof drop.count === 'object') {
+                            count = ((Math.random() * (drop.count.max - drop.count.min)) | 0) + drop.count.min
+                        } else {
+                            count = drop.count
+                        }
+                    }
                     if(count > 0) {
-                        const item = makeDropItem(tblock, {id: block.id, count: count});
-                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
-                        return [item];
+                        const item = makeDropItem(tblock, {id: block.id, count: count})
+                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force})
+                        return [item]
                     }
                 }
             }

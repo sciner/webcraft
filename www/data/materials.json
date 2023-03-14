@@ -27,7 +27,7 @@
         "iron": {"mining": {"time": 10, "instruments": ["pickaxe"], "instrument_boost": 6, "blast_resistance": 6}},
         "lava": {"mining": {"time": -1, "instruments": [], "blast_resistance": 100}},
         "leather": {"mining": {"time": 1, "instruments": [], "blast_resistance": 0.5}},
-        "leaves": {"mining": {"time": 4, "instruments": ["shovel", "hoe"], "blast_resistance": 0.2}},
+        "leaves": {"mining": {"time": 2, "instruments": ["shovel", "hoe", "sword"], "blast_resistance": 0.2}},
         "netherite": {"mining": {"time": 250, "instruments": ["pickaxe"], "instrument_boost": 18, "blast_resistance": 1200}},
         "netherrack": {"mining": {"time": 2, "instruments": ["pickaxe"], "instrument_boost": 18, "blast_resistance": 0.4}},
         "obsidian": {"mining": {"time": 15, "instruments": ["pickaxe"], "blast_resistance": 1200}},
