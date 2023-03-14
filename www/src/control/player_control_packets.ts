@@ -67,21 +67,21 @@ export class PlayerControlPacketReader {
 /** A packet for command {@link ServerClient.CMD_PLAYER_CONTROL_CORRECTION} */
 export class PlayerControlCorrectionPacket {
 
-    private static inDc = new InDeltaCompressor(null, DEBUG_USE_HASH)
-    private static outDc = new OutDeltaCompressor(null, DEBUG_USE_HASH)
+    private inDc = new InDeltaCompressor(null, DEBUG_USE_HASH)
+    private outDc = new OutDeltaCompressor(null, DEBUG_USE_HASH)
 
     knownPhysicsTicks: int
     data = new PlayerTickData()
 
     export(): PacketBuffer {
-        const dc = PlayerControlCorrectionPacket.outDc.start()
+        const dc = this.outDc.start()
         dc.putInt(this.knownPhysicsTicks)
         this.data.writeContextAndOutput(dc)
         return dc.putHash().export()
     }
 
     read(buf: PacketBuffer) {
-        const dc = PlayerControlCorrectionPacket.inDc.start(buf)
+        const dc = this.inDc.start(buf)
         this.knownPhysicsTicks = dc.getInt()
         this.data.readContextAndOutput(dc)
         dc.checkHash()
