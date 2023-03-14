@@ -97,6 +97,7 @@
     uniform mat4 uProjMatrix;
     uniform mat4 u_worldView;
     uniform mat4 uModelMatrix;
+    uniform int uModelMatrixMode;
     uniform vec3 u_add_pos;
     uniform float u_pixelSize;
     uniform highp isampler2D u_chunkDataSampler;
@@ -129,8 +130,6 @@
     flat out float v_lightId;
     flat out vec4 v_lightOffset;
     flat out vec3 v_aoOffset;
-    flat out vec3 v_axisU;
-    flat out vec3 v_axisV;
 
     // quad flags
     flat out int v_flags;
@@ -151,8 +150,6 @@
     flat in float v_animInterp;
     flat in float v_lightId;
     flat in vec4 v_lightOffset;
-    flat in vec3 v_axisU;
-    flat in vec3 v_axisV;
 
     // quad flags
     flat in int v_flags;
@@ -621,6 +618,28 @@
     caveSample = pow(caveSample, 1.0 / gamma);*/
 
     combinedLight = lutColor * (1.0 - aoSample);
+#endif
+
+#ifdef normal_light_vert_varying
+flat out vec3 v_axisU;
+flat out vec3 v_axisV;
+#endif
+
+#ifdef normal_light_frag_varying
+flat in vec3 v_axisU;
+flat in vec3 v_axisV;
+#endif
+
+#ifdef normal_light_vert
+if(!checkFlag(FLAG_MIR2_TEX)) {
+    v_axisU = normalize(axisX);
+    v_axisV = normalize(axisY);
+} else {
+    v_axisU = normalize(-axisY);
+    v_axisV = normalize(-axisX);
+}
+v_axisU *= sign(a_uvSize.x);
+v_axisV *= sign(a_uvSize.y);
 #endif
 
 #ifdef normal_light_pass

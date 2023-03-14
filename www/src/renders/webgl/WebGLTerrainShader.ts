@@ -22,6 +22,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
         this.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
         this.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
+        this.uModelMatMode      = gl.getUniformLocation(program, 'uModelMatrixMode');
 
         this.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
         this.u_camera_pos       = gl.getUniformLocation(program, 'u_camera_pos');
@@ -184,6 +185,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     resetMatUniforms() {
         const { gl } = this.context;
         gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
+        gl.uniform1i(this.uModelMatMode, 0);
         this.hasModelMatrix = false;
         // Tint color
         gl.uniform4fv(this.u_tintColor, this.tintColor.toArray());
@@ -214,10 +216,12 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         }
         if (modelMatrix) {
             gl.uniformMatrix4fv(this.uModelMat, false, modelMatrix);
+            gl.uniform1i(this.uModelMatMode, 1);
             this.hasModelMatrix = true;
         } else {
             if (this.hasModelMatrix) {
                 gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
+                gl.uniform1i(this.uModelMatMode, 0);
             }
             this.hasModelMatrix = false;
         }

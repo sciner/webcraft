@@ -191,6 +191,7 @@ export class Renderer {
             // world.chunkManager.setLightTexFormat('rgba4unorm', false);
             if (settings.use_light === LIGHT_TYPE.RTX) {
                 world.chunkManager.setLightTexFormat(true);
+                renderBackend.preprocessor.useNormalMap = true;
                 renderBackend.globalUniforms.useNormalMap = true;
             } else {
                 world.chunkManager.setLightTexFormat(false);
