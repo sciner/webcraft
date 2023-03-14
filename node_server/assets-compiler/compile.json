@@ -1062,7 +1062,26 @@
             "name": "BIRCH_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "BIRCH_SAPLING", "count": 1, "chance": 0.05},
+            "drop_item": [ 
+                {
+                    "name": "BIRCH_SAPLING", 
+                    "count": 1, 
+                    "chance": 0.05
+                },
+                {
+                    "name": "STICK", 
+                    "count": {
+                        "min": 1,
+                        "max": 2
+                    }, 
+                    "chance": 0.02
+                },
+                {
+                    "name": "APPLE", 
+                    "count": 1, 
+                    "chance": 0.005
+                }
+            ],
             "texture": {
                 "side": "block/birch_leaves.png",
                 "round": "./textures/birch_leaves.png"
@@ -1081,7 +1100,26 @@
             "name": "OAK_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "OAK_SAPLING", "count": 1, "chance": 0.05},
+            "drop_item": [ 
+                {
+                    "name": "OAK_SAPLING", 
+                    "count": 1, 
+                    "chance": 0.05
+                },
+                {
+                    "name": "STICK", 
+                    "count": {
+                        "min": 1,
+                        "max": 2
+                    }, 
+                    "chance": 0.02
+                },
+                {
+                    "name": "APPLE", 
+                    "count": 1, 
+                    "chance": 0.005
+                }
+            ],
             "texture": {
                 "side": "block/oak_leaves.png",
                 "round": "./textures/oak_leaves.png"
@@ -1103,7 +1141,26 @@
             "name": "ACACIA_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "ACACIA_SAPLING", "count": 1, "chance": 0.05},
+            "drop_item": [ 
+                {
+                    "name": "ACACIA_SAPLING", 
+                    "count": 1, 
+                    "chance": 0.05
+                },
+                {
+                    "name": "STICK", 
+                    "count": {
+                        "min": 1,
+                        "max": 2
+                    }, 
+                    "chance": 0.02
+                },
+                {
+                    "name": "APPLE", 
+                    "count": 1, 
+                    "chance": 0.005
+                }
+            ],
             "texture": {
                 "side": "block/acacia_leaves.png",
                 "round": "./textures/acacia_leaves.png"
@@ -1122,7 +1179,26 @@
             "name": "SPRUCE_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "SPRUCE_SAPLING", "count": 1, "chance": 0.05},
+            "drop_item": [ 
+                {
+                    "name": "SPRUCE_SAPLING", 
+                    "count": 1, 
+                    "chance": 0.05
+                },
+                {
+                    "name": "STICK", 
+                    "count": {
+                        "min": 1,
+                        "max": 2
+                    }, 
+                    "chance": 0.02
+                },
+                {
+                    "name": "APPLE", 
+                    "count": 1, 
+                    "chance": 0.005
+                }
+            ],
             "texture": {
                 "side": "block/spruce_leaves.png",
                 "round": "./textures/spruce_leaves.png"
@@ -1141,7 +1217,26 @@
             "name": "DARK_OAK_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "DARK_OAK_SAPLING", "count": 1, "chance": 0.05},
+            "drop_item": [ 
+                {
+                    "name": "DARK_OAK_SAPLING", 
+                    "count": 1, 
+                    "chance": 0.05
+                },
+                {
+                    "name": "STICK", 
+                    "count": {
+                        "min": 1,
+                        "max": 2
+                    }, 
+                    "chance": 0.02
+                },
+                {
+                    "name": "APPLE", 
+                    "count": 1, 
+                    "chance": 0.005
+                }
+            ],
             "texture": {
                 "side": "block/dark_oak_leaves.png",
                 "round": "./textures/dark_oak_leaves.png"
@@ -1160,7 +1255,26 @@
             "name": "JUNGLE_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "JUNGLE_SAPLING", "count": 1, "chance": 0.05},
+            "drop_item": [ 
+                {
+                    "name": "JUNGLE_SAPLING", 
+                    "count": 1, 
+                    "chance": 0.05
+                },
+                {
+                    "name": "STICK", 
+                    "count": {
+                        "min": 1,
+                        "max": 2
+                    }, 
+                    "chance": 0.02
+                },
+                {
+                    "name": "APPLE", 
+                    "count": 1, 
+                    "chance": 0.005
+                }
+            ],
             "texture": {
                 "side": "block/jungle_leaves.png",
                 "round": "./textures/jungle_leaves.png"
