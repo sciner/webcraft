@@ -3,7 +3,7 @@ import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_w
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
-import { SpriteAtlas } from "../core/sprite_atlas.js";
+// import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { blobToImage } from "../helpers.js";
 
 const PLAYER_BOX_WIDTH = 98;
@@ -18,7 +18,7 @@ export class InventoryWindow extends BaseCraftWindow {
      */
     constructor(inventory, recipes) {
 
-        super(10, 10, 352, 332, 'frmInventory', null, null, inventory)
+        super(10, 10, 700, 332, 'frmInventory', null, null, inventory)
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
@@ -26,10 +26,10 @@ export class InventoryWindow extends BaseCraftWindow {
         this.recipes = recipes
 
         // Create sprite atlas
-        this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/form-inventory.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
-        })
+        // this.atlas = new SpriteAtlas()
+        // this.atlas.fromFile('./media/gui/form-inventory.png').then(async atlas => {
+        //     this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+        // })
 
         this.skinKey = null
         this.skinViewer = null // lazy initialized if necessary
@@ -45,8 +45,8 @@ export class InventoryWindow extends BaseCraftWindow {
         //
         this.addPlayerBox()
 
-        // Add buttons
-        this.addRecipesButton()
+        // // Add buttons
+        // this.addRecipesButton()
 
         // слоты для подсказок
         this.addHelpSlots()
@@ -70,37 +70,52 @@ export class InventoryWindow extends BaseCraftWindow {
         const lblTitle = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.create)
         this.add(lblTitle)
 
-        const btnClose = new Button(this.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
-        this.add(btnClose)
+        // const btnClose = new Button(this.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+        // this.add(btnClose)
 
-        // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            // Close button
-            btnClose.style.font.family = 'Arial'
-            btnClose.style.background.image = image
-            // btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-        })
+        // // Add close button
+        // this.loadCloseButtonImage((image) => {
+        //     // Add buttons
+        //     const that = this
+        //     // Close button
+        //     btnClose.style.font.family = 'Arial'
+        //     btnClose.style.background.image = image
+        //     // btnClose.style.background.image_size_mode = 'stretch';
+        //     btnClose.onDrop = btnClose.onMouseDown = function(e) {
+        //         that.hide()
+        //     }
+        // })
 
     }
 
     // Обработчик открытия формы
     onShow(args) {
-        this.getRoot().center(this)
-        Qubatch.releaseMousePointer()
+
+        if(!this.frmRecipe) {
+            const form = this.inventory.player.inventory.recipes.frmRecipe
+            this.frmRecipe = form
+            form.style.background.image = null
+            form.parent.delete(form.id)
+            form.x = 370 * this.zoom
+            form.y = 0 * this.zoom
+            this.add(form)
+        }
+
+        // this.getRoot().center(this)
+        // Qubatch.releaseMousePointer()
         this.previewSkin()
         this.setHelperSlots(null)
         super.onShow(args)
+
+        this.frmRecipe.assignCraftWindow(this)
+        this.frmRecipe.show()
     }
 
     // Обработчик закрытия формы
     onHide() {
+        this.frmRecipe.hide()
         // Close recipe window
-        this.getRoot().getWindow('frmRecipe', false)?.hide()
+        // this.inventory.player.inventory.recipes.frmRecipe?.hide()
         // Drag
         this.inventory.clearDragItem(true)
         // Clear result
@@ -116,7 +131,9 @@ export class InventoryWindow extends BaseCraftWindow {
         this.inventory.player.updateArmor()
         // Save inventory
         Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
-        this.skinViewer.renderPaused = true
+        if(this.skinViewer) {
+            this.skinViewer.renderPaused = true
+        }
     }
 
     async previewSkin() {
@@ -193,19 +210,19 @@ export class InventoryWindow extends BaseCraftWindow {
         ct.add(this.lblPlayerBox);
     }
 
-    // Recipes button
-    addRecipesButton() {
-        const ct = this;
-        let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
-        btnRecipes.tooltip = Lang.toggle_recipes;
-        btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5)
-        btnRecipes.onMouseDown = (e) => {
-            const frmRecipe = this.getRoot().getWindow('frmRecipe');
-            frmRecipe.assignCraftWindow(this)
-            frmRecipe.toggleVisibility()
-        }
-        ct.add(btnRecipes);
-    }
+    // // Recipes button
+    // addRecipesButton() {
+    //     const ct = this;
+    //     let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
+    //     btnRecipes.tooltip = Lang.toggle_recipes;
+    //     btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5)
+    //     btnRecipes.onMouseDown = (e) => {
+    //         const frmRecipe = this.inventory.player.inventory.recipes.frmRecipe
+    //         frmRecipe.assignCraftWindow(this)
+    //         frmRecipe.toggleVisibility()
+    //     }
+    //     ct.add(btnRecipes);
+    // }
 
     /**
      * Создание слотов для крафта

@@ -19,32 +19,45 @@ export class StatsWindow extends BlankWindow {
         this.setBackground('./media/gui/form-empty.png')
 
         // Add labels to window
-        const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 300 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.btn_statistics);
-        this.add(lbl1)
-        const label_death = new Label(17 * this.zoom, 50 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_death', null, '0');
+        // const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 300 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.btn_statistics);
+        // this.add(lbl1)
+
+        let x = 17 * this.zoom
+        let y = 17 * this.zoom
+        let w = 300 * this.zoom
+        const one_line = 22 * this.zoom
+        const margin = 8 * this.zoom
+
+        const getY = () => {
+            const resp = y
+            y += one_line + margin
+            return resp
+        }
+
+        const label_death = new Label(x, getY(), w, one_line, 'label_death', null, '0');
         this.add(label_death)
-        const label_time = new Label(17 * this.zoom, 80 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_time', null, '0');
+        const label_time = new Label(x, getY(), w, one_line, 'label_time', null, '0');
         this.add(label_time)
-        const label_pickat = new Label(17 * this.zoom, 110 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_pickat', null, '0');
+        const label_pickat = new Label(x, getY(), w, one_line, 'label_pickat', null, '0');
         this.add(label_pickat)
-        const label_distance = new Label(17 * this.zoom, 140 * this.zoom, 300 * this.zoom, 22 * this.zoom, 'label_distance', null, '0');
+        const label_distance = new Label(x, getY(), w, one_line, 'label_distance', null, '0');
         this.add(label_distance)
 
-        const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-        this.add(btnClose)
+        // const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+        // this.add(btnClose)
 
-        // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            // Close button
-            btnClose.style.font.family = 'Arial'
-            btnClose.style.background.image = image
-            btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-        })
+        // // Add close button
+        // this.loadCloseButtonImage((image) => {
+        //     // Add buttons
+        //     const that = this
+        //     // Close button
+        //     btnClose.style.font.family = 'Arial'
+        //     btnClose.style.background.image = image
+        //     btnClose.style.background.image_size_mode = 'stretch';
+        //     btnClose.onMouseDown = function(e) {
+        //         that.hide()
+        //     }
+        // })
 
         player.world.server.AddCmdListener([ServerClient.CMD_STATS], (cmd) => {
             let times = cmd.data.time_formatted;
@@ -61,8 +74,8 @@ export class StatsWindow extends BlankWindow {
 
     // Обработчик открытия формы
     onShow(args) {
-        this.getRoot().center(this)
-        Qubatch.releaseMousePointer()
+        // this.getRoot().center(this)
+        // Qubatch.releaseMousePointer()
         this.player.world.server.Send({name: ServerClient.CMD_STATS})
         super.onShow(args)
     }

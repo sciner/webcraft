@@ -82,7 +82,7 @@ export class CraftTable extends BaseCraftWindow {
     // Обработчик закрытия формы
     onHide() {
         // Close recipe window
-        this.getRoot().getWindow('frmRecipe').hide()
+        this.inventory.player.inventory.recipes.frmRecipe?.hide()
         this.clearCraft()
         // Save inventory
         Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
@@ -96,7 +96,7 @@ export class CraftTable extends BaseCraftWindow {
         btnRecipes.tooltip = 'Toggle recipes';
         btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5);
         btnRecipes.onMouseDown = (e) => {
-            let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
+            const frmRecipe = this.inventory.player.inventory.recipes.frmRecipe
             frmRecipe.assignCraftWindow(this);
             frmRecipe.toggleVisibility();
             this.setHelperSlots(null);

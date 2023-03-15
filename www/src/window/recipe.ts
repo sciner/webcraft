@@ -78,7 +78,6 @@ export class RecipeSlot extends Window {
 
 // RecipeWindow...
 export class RecipeWindow extends BlankWindow {
-    [key: string]: any;
 
     constructor(recipe_manager) {
 

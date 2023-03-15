@@ -204,36 +204,36 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.w *= this.zoom
         this.h *= this.zoom
         this.inventory = inventory
-        this.setBackground('./media/gui/creative_inventory/tab_items.png')
+        // this.setBackground('./media/gui/creative_inventory/tab_items.png')
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Window title
-        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
-        this.add(lblTitle)
-
-        // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size)
+        // const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
+        // this.add(lblTitle)
 
         // Создание слотов для блоков коллекций
         this.createCollectionSlots()
-        
-        const btnClose = new Button(this.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
-        this.add(btnClose)
 
-        // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            // Close button
-            btnClose.style.font.family = 'Arial'
-            btnClose.style.background.image = image
-            btnClose.style.background.image_size_mode = 'stretch'
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-        });
+        // Создание слотов для инвентаря
+        this.createInventorySlots(this.cell_size)
+        
+        // const btnClose = new Button(this.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+        // this.add(btnClose)
+
+        // // Add close button
+        // this.loadCloseButtonImage((image) => {
+        //     // Add buttons
+        //     const that = this
+        //     // Close button
+        //     btnClose.style.font.family = 'Arial'
+        //     btnClose.style.background.image = image
+        //     btnClose.style.background.image_size_mode = 'stretch'
+        //     btnClose.onDrop = btnClose.onMouseDown = function(e) {
+        //         that.hide()
+        //     }
+        // });
 
         // Search input
         this.createSearchInput()
@@ -245,7 +245,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         // Text editor
         const txtSearch = new TextEdit(
             16 * this.zoom,
-            37 * this.zoom,
+            10 * this.zoom,
             this.cell_size * 9,
             25 * this.zoom,
             'txtSearch1',
@@ -276,8 +276,8 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     // Обработчик открытия формы
     onShow(args) {
-        this.getRoot().center(this);
-        Qubatch.releaseMousePointer()
+        // this.getRoot().center(this);
+        // Qubatch.releaseMousePointer()
         if(this.inventory_slots) {
             for(let slot of this.inventory_slots) {
                 if(slot) {
@@ -299,7 +299,7 @@ export class CreativeInventoryWindow extends BlankWindow {
     * Создание слотов для инвентаря
     * @param int sz Ширина / высота слота
     */
-    createInventorySlots(sz) {
+    createInventorySlots(sz : int) {
         if(this.inventory_slots) {
             console.error('createInventorySlots() already created')
             return
@@ -307,7 +307,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.inventory_slots = []
         // нижний ряд (видимые на хотбаре)
         const sx          = 16 * this.zoom
-        const sy          = this.h - this.cell_size - 14 * this.zoom
+        const sy          = this.collection.y + this.collection.h + 10 * this.zoom //  this.h - this.cell_size - 14 * this.zoom
         const xcnt        = 9
         for(let i = 0; i < xcnt; i++) {
             const lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
@@ -322,7 +322,7 @@ export class CreativeInventoryWindow extends BlankWindow {
             console.error('error_create_collection_slots_already_created')
             return
         }
-        this.collection = new CreativeInventoryCollection(16 * this.zoom, 68 * this.zoom, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots')
+        this.collection = new CreativeInventoryCollection(16 * this.zoom, 38 * this.zoom, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots')
         this.add(this.collection)
         this.collection.init()
         return this.collection

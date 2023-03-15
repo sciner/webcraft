@@ -586,11 +586,11 @@ export class Window extends PIXI.Container {
     }
 
     show(args) {
-        for(let w of wmGlobal.visibleWindows()) {
-            if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
-                return
-            }
-        }
+        // for(let w of wmGlobal.visibleWindows()) {
+        //     if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
+        //         return
+        //     }
+        // }
         this.visible = true
         this.resetHover()
         this.onShow(args)

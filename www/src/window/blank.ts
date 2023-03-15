@@ -18,7 +18,7 @@ export class BlankWindow extends Window {
         const {keyCode, down, first} = e
         switch(keyCode) {
             case KEY.ESC: {
-                if(!down) {
+                if(!down && !this.ignore_esc) {
                     ct.hide()
                     try {
                         Qubatch.setupMousePointer(true)
@@ -33,7 +33,6 @@ export class BlankWindow extends Window {
     }
 
     onShow(args) {
-        this.getRoot().centerChild()
         super.onShow(args)
     }
 

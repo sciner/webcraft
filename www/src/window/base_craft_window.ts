@@ -121,6 +121,10 @@ export class CraftTableSlot extends SimpleBlockSlot {
         this.ct = ct
         this.setSlotIndex(slot_index)
         ct.inventory.addInventorySlot(this)
+        this.style.background.color = '#00000011'
+        this.style.border.color = '#00000033'
+        this.style.border.hidden = false
+        this.style.border.style = 'inset'
     }
 
     //

@@ -1,5 +1,5 @@
 import { Button, Label, ToggleButton, Window } from "../../tools/gui/wm.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_SLOT_SIZE, KEY } from "../constant.js";
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { CreativeInventoryWindow } from "./creative_inventory.js";
@@ -26,20 +26,6 @@ export class InGameMain extends Window {
         this.inventory = inventory;
         this.recipes = recipes;
 
-        const fromInv = new InventoryWindow(inventory, recipes)
-        fromInv.autosize = false;
-        // fromInv.visible = true;
-        fromInv.onShow = () => {};
-
-        const fromCreativeInv = new CreativeInventoryWindow(inventory)
-        fromCreativeInv.autosize = false;
-        fromCreativeInv.onShow = () => {};
-
-        const frmStats = new StatsWindow(player)
-        fromCreativeInv.autosize = false;
-        frmStats.style.background.image = null
-        fromCreativeInv.onShow = () => {};
-
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Close button
@@ -50,11 +36,15 @@ export class InGameMain extends Window {
             this.add(btnClose)
         })
 
+        // console.log(this.inventory.player.inventory.recipes)
+        // debugger
+        // console.log(this.inventory.player.inventory.recipes.frmRecipe.parent())
+
         // const windows = []
-        const tabs = [
-            {title: 'Inventory', form: fromInv, button: null, fix_pos: new Vector(2, 0, 0)},
-            {title: 'Creative', form: fromCreativeInv, button: null, fix_pos: new Vector(0, 0, 0)},
-            {title: 'Stats', form: frmStats, button: null, fix_pos: new Vector(0, 0, 0)}
+        const tabs = this.tabs = [
+            {title: 'Inventory', form: new InventoryWindow(inventory, recipes), button: null, fix_pos: new Vector(2, 0, 0)},
+            {title: 'Creative', form: new CreativeInventoryWindow(inventory), button: null, fix_pos: new Vector(0, 0, 0)},
+            {title: 'Stats', form: new StatsWindow(player), button: null, fix_pos: new Vector(0, 0, 0)}
         ]
 
         for(let i = 0; i < tabs.length; i++) {
@@ -66,27 +56,34 @@ export class InGameMain extends Window {
             tab.button.style.textAlign.horizontal = 'center'
             tab.button.style.textAlign.vertical = 'middle'
             tab.form.x = tab.fix_pos.x * this.zoom
-            tab.form.y += (tab.fix_pos.y * this.zoom +btn_height)
+            tab.form.y += (tab.fix_pos.y * this.zoom + btn_height + btn_margin)
             const btnClose = tab.form.list.get('btnClose')
             if(btnClose) {
                 btnClose.visible = false
             }
-            // tab.form.style.background.image = null
+            tab.form.style.background.image = null
+            tab.form.autosize = false
+            tab.form.ignore_esc = true
+            // tab.form.onShow = () => {}
             tab.button.form = tab.form
+            // tab.button.index = 1
             this.add(tab.form)
             // windows.push(item.form)
             tab.button.onMouseDown = function(e) {
                 for(let tab of tabs) {
                     const active = this.form == tab.form
                     if(active) console.log(tab.form.id)
-                    tab.form.visible = active
+                    if(active) {
+                        tab.form.show()
+                    } else {
+                        tab.form.visible = active
+                    }
                     tab.button.style.background.color = active ? '#7882b9' : '#ffffff55'
+                    // tab.form.style.background.color = '#00000033'
                 }
             }
             this.add(tab.button)
         }
-
-        tabs[0].button.onMouseDown(null)
 
         //
         // this.appendLayout({
@@ -128,9 +125,35 @@ export class InGameMain extends Window {
 
     // Обработчик открытия формы
     onShow(args) {
+        // 
+        this.tabs[0].button.onMouseDown(null)
+        // 
         this.getRoot().center(this)
+        // this.getRoot().centerChild()
         Qubatch.releaseMousePointer()
         super.onShow(args)
+    }
+
+    // Hook for keyboard input
+    onKeyEvent(e) {
+        const ct = this
+        const {keyCode, down, first} = e
+        switch(keyCode) {
+            case KEY.ESC: {
+                if(!down) {
+                    ct.hide()
+                    try {
+                        Qubatch.setupMousePointer(true)
+                    } catch(e) {
+                        console.error(e)
+                    }
+                }
+                return true
+            }
+        }
+        return false
+        // return true
+        // return super.onKeyEvent(e)
     }
 
 }
