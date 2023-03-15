@@ -111,6 +111,7 @@ export class BaseMultiGeometry {
         if (this.buffer) {
             this.buffer.data = this.data;
         }
+        console.debug(`multigeometry resize ${newSize}`);
     }
 
     optimizeUpdates() {

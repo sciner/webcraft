@@ -1,7 +1,8 @@
-import { BaseBuffer } from "../BaseRenderer.js";
+import {BaseBuffer} from "../BaseRenderer.js";
 
 export class WebGLBuffer extends BaseBuffer {
     [key: string]: any;
+
     /**
      *
      * @param { WebGLRenderer } context
@@ -15,7 +16,7 @@ export class WebGLBuffer extends BaseBuffer {
     }
 
     update() {
-        const  {
+        const {
             /**
              * @type {WebGL2RenderingContext}
              */
@@ -41,7 +42,7 @@ export class WebGLBuffer extends BaseBuffer {
     }
 
     updatePartial(len) {
-        const  {
+        const {
             gl
         } = this.context;
 
@@ -79,13 +80,23 @@ export class WebGLBuffer extends BaseBuffer {
         gl.bindBuffer(this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER, this.buffer);
     }
 
-    multiUpdate(segments) {
-        const { gl } = this.context;
-        for (let i=0;i<segments.length;i+=2) {
-            //todo: check if we need slice Float32Array for certain browser
-            gl.bufferSubData(gl.ARRAY_BUFFER, segments[i] * 4, this.data, segments[i], segments[i+1] - segments[i]);
-            // gl.bufferSubData(gl.ARRAY_BUFFER, segments[i], this.data.slice(segments[i], segments[i+1]));
+    multiUpdate(segments, perBuffer = 4096) {
+        const {gl} = this.context;
+        let size = 0;
+        let start = 0;
+        let cnt = 0;
+        while (start < segments.length) {
+            let finish = start + 2;
+            while (finish < segments.length && segments[finish] - segments[finish - 1] <= perBuffer) {
+                finish += 2;
+            }
+            let len = segments[finish - 1] - segments[start];
+            gl.bufferSubData(gl.ARRAY_BUFFER, segments[start] * 4, this.data, segments[start], len);
+            size += len;
+            cnt++;
+            start = finish;
         }
+        console.debug(`multiupdate ${cnt} ${size}`)
     }
 
     destroy() {
