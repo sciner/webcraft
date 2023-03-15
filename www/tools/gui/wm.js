@@ -1066,6 +1066,26 @@ export class Window extends PIXI.Container {
 
 }
 
+export class Icon extends Window {
+    constructor(x, y, w, h, zoom, id) {
+        super(x * zoom, y * zoom, w * zoom / 2, h * zoom / 2, id + '' + w, '', '')
+        this.sprite_w = w
+        this.sprite_h = h
+        this.axis_x = true
+    }
+    scroll(val) {
+        const spite =  this.style.background.sprite
+        if (this.axis_x){
+            spite.texture.frame.width = this.sprite_w * val
+        } else {
+            spite.y = spite._height * (1 - val)
+            spite.texture.frame.y = this.sprite_h * (1 - val)
+            spite.texture.frame.height = this.sprite_h * val
+        }
+        spite.texture.updateUvs()
+    }
+}
+
 // Button
 export class Button extends Window {
 
