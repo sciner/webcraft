@@ -24,6 +24,8 @@ export class MonotonicUTCDate {
     private static correction = 0
     /** At which performance.now() moment {@link correction} is given */
     private static correctionAtPerf = -Infinity
+    /** Used only for logging */
+    private static debugLastDecreasingValue = -Infinity
 
     /** Similar to Date.now(), but in UTC, and the values are non-decreasing even if the computer adjusts time. */
     static now(): number {
@@ -52,6 +54,7 @@ export class MonotonicUTCDate {
                 // add the new correction to the remaining exiting correction
                 this.correction = this.getGradualCorrection() + newCorrection
                 this.correctionAtPerf = performance.now() // start counting correction from the current moment
+                console.warn(`MonotonicUTCDate: new clock correction ${newCorrection}`)
             }
         }
 
@@ -64,6 +67,10 @@ export class MonotonicUTCDate {
         // - small negative clock adjustments that don't cause the correction to be applied
         // - possible if the correction is applied with rounding errors
         if (UTCNow < this.prevCorrectedUTCNow) {
+            if (this.debugLastDecreasingValue !== this.prevCorrectedUTCNow) {
+                this.debugLastDecreasingValue = this.prevCorrectedUTCNow
+                console.warn(`MonotonicUTCDate: preventing decreasing time by ${UTCNow - this.prevCorrectedUTCNow}`)
+            }
             return this.prevCorrectedUTCNow
         }
         return this.prevCorrectedUTCNow = UTCNow
@@ -75,13 +82,15 @@ export class MonotonicUTCDate {
         if (correction > 0) {
             correction = Math.round(correction - decay)
             if (correction <= 0) {
-                this.correction = 0 // enough time has passed to stop correcting
+                console.log('MonotonicUTCDate: clock correction ended')
+                this.correction = 0
                 return 0
             }
-        } else {
+        } else if (correction < 0) {
             correction = Math.round( correction + decay)
             if (correction >= 0) {
-                this.correction = 0 // enough time has passed to stop correcting
+                console.log('MonotonicUTCDate: clock correction ended')
+                this.correction = 0
                 return 0
             }
         }

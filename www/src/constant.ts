@@ -95,7 +95,8 @@ export const PHYSICS_VELOCITY_DECIMALS      = 4
 export const PHYSICS_ROTATION_DECIMALS      = 4 // It's applied to the input before physics calculations
 export const PHYSICS_INTERVAL_MS            = 50
 export const PHYSICS_MAX_MS_PROCESS         = 2000
-export const DEBUG_LOG_PLAYER_CONTROL       = false
+export const DEBUG_LOG_PLAYER_CONTROL       = true  // log moderately detailed debug info about the player controls
+export const DEBUG_LOG_PLAYER_CONTROL_DETAIL= false // log very detailed debug info about the player controls
 
 // ========================= Sound options =========================
 

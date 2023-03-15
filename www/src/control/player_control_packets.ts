@@ -9,18 +9,25 @@ export type PlayerControlSessionPacket = {
     baseTime: number
 }
 
+export type PlayerControlPacketHeader = {
+    physicsSessionId: int
+    physicsTick: int   // the starting tick of this packet (the tick data starts with this tick)
+}
+
 /** 
  * It constructs a packet for command {@link ServerClient.CMD_PLAYER_CONTROL_UPDATE}
  * It consists of:
- * - physicsSessionId
+ * - {@link PlayerControlPacketHeader}
  * - one or more {@link PlayerTickData}
  * - (optional) hash
  */
 export class PlayerControlPacketWriter {
     private dc = new OutDeltaCompressor(null, DEBUG_USE_HASH)
 
-    startPutSessionId(physicsSessionId: int): void {
-        this.dc.start().putInt(physicsSessionId)
+    startPutHeader(header: PlayerControlPacketHeader): void {
+        this.dc.start()
+            .putInt(header.physicsSessionId)
+            .putInt(header.physicsTick)
     }
 
     putTickData(data: PlayerTickData): void {
@@ -35,11 +42,22 @@ export class PlayerControlPacketWriter {
 
 /** It reads what {@link PlayerControlPacketWriter} writes */
 export class PlayerControlPacketReader {
-    private dc = new InDeltaCompressor(null, DEBUG_USE_HASH)
+
     private static dummyData = new PlayerTickData()
 
-    startGetSessionId(data: PacketBuffer): int {
-        return this.dc.start(data).getInt()
+    private dc = new InDeltaCompressor(null, DEBUG_USE_HASH)
+
+    private header: PlayerControlPacketHeader = {
+        physicsSessionId: 0,
+        physicsTick: 0
+    }
+
+    startGetHeader(data: PacketBuffer): PlayerControlPacketHeader {
+        const dc = this.dc.start(data)
+        const header = this.header
+        header.physicsSessionId = dc.getInt()
+        header.physicsTick = dc.getInt()
+        return header
     }
 
     /**
@@ -48,12 +66,12 @@ export class PlayerControlPacketReader {
      * @returns true if the data has been read
      */
     readTickData(dst: PlayerTickData): boolean {
-        if (this.dc.remaining > 1) {
-            dst.readInput(this.dc)
-            dst.readContextAndOutput(this.dc)
-            return true
+        if (this.dc.remaining <= 1) {
+            return false
         }
-        return false
+        dst.readInput(this.dc)
+        dst.readContextAndOutput(this.dc)
+        return true
     }
 
     finish(): void {
@@ -70,11 +88,13 @@ export class PlayerControlCorrectionPacket {
     private inDc = new InDeltaCompressor(null, DEBUG_USE_HASH)
     private outDc = new OutDeltaCompressor(null, DEBUG_USE_HASH)
 
+    physicsSessionId: int
     knownPhysicsTicks: int
     data = new PlayerTickData()
 
     export(): PacketBuffer {
         const dc = this.outDc.start()
+        dc.putInt(this.physicsSessionId)
         dc.putInt(this.knownPhysicsTicks)
         this.data.writeContextAndOutput(dc)
         return dc.putHash().export()
@@ -82,6 +102,7 @@ export class PlayerControlCorrectionPacket {
 
     read(buf: PacketBuffer) {
         const dc = this.inDc.start(buf)
+        this.physicsSessionId = dc.getInt()
         this.knownPhysicsTicks = dc.getInt()
         this.data.readContextAndOutput(dc)
         dc.checkHash()

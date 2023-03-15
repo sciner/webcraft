@@ -7,7 +7,7 @@ import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
 import {SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
-    PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_MAX_MS_PROCESS
+    PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_MAX_MS_PROCESS, DEBUG_LOG_PLAYER_CONTROL_DETAIL
 } from "../constant.js";
 import {SimpleQueue} from "../helpers/simple_queue.js";
 import type {PlayerControl} from "./player_control.js";
@@ -91,7 +91,7 @@ export abstract class PlayerControlManager {
      * When a major game event, such as teleport occurs, and it's hard to keep the hosts synchronized,
      * the controls are reset and a new physics session begins.
      */
-    startNewPhysicsSession(pos: IVector) {
+    startNewPhysicsSession(pos: IVector): void {
         const pc = this.current
         pc.resetState()
         pc.setPos(pos)
@@ -190,7 +190,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         return physicsTicksFloat - Math.floor(physicsTicksFloat)
     }
 
-    startNewPhysicsSession(pos: IVector) {
+    startNewPhysicsSession(pos: IVector): void {
         super.startNewPhysicsSession(pos)
         if (this.dataQueue) { // if the subclass constructor finished
             this.dataQueue.length = 0
@@ -221,11 +221,11 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
             let prevData = dataQueue.get(ind)
 
-            if (DEBUG_LOG_PLAYER_CONTROL) {
-                if (prevData?.endPhysicsTick !== this.knownPhysicsTicks) {
-                    console.log(`control: prevData?.endPhysicsTick !== this.knownPhysicsTicks`, prevData.endPhysicsTick)
-                }
-                console.log(`control: applied at ${this.knownPhysicsTicks}`, this.current.player_state.pos)
+            if (prevData?.endPhysicsTick !== this.knownPhysicsTicks) {
+                console.error(`Control: prevData?.endPhysicsTick !== this.knownPhysicsTicks`, prevData.endPhysicsTick)
+            }
+            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
+                console.log(`Control: correction applied at ${this.knownPhysicsTicks}`, this.current.player_state.pos)
             }
 
             while (++ind < dataQueue.length) {
@@ -249,6 +249,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             const maxPhysicsTicksProcess = Math.floor(PHYSICS_MAX_MS_PROCESS / PHYSICS_INTERVAL_MS)
             const skipPhysicsTicks = physicsTicks - maxPhysicsTicksProcess
             if (skipPhysicsTicks > 0) {
+                console.error(`Control: skipping ${skipPhysicsTicks} ticks`)
                 const skippedTicksData = new ClientPlayerTickData(this.knownPhysicsTicks)
                 skippedTicksData.initInputFrom(this.player, skipPhysicsTicks)
                 skippedTicksData.initContextFrom(this.player)
@@ -266,7 +267,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             const prevData = dataQueue.getLast()
             this.simulate(prevData, data)
 
-            if (DEBUG_LOG_PLAYER_CONTROL) {
+            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                 console.log(`control: simulated t${this.knownPhysicsTicks} ${data.outPos} ${data.outVelocity}`)
             }
 
@@ -277,13 +278,13 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                     // it can't be merged with the data already sent, but it contains no new data, so it can be delayed
                     data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED
                     dataQueue.push(data)
-                    if (DEBUG_LOG_PLAYER_CONTROL) {
+                    if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                         console.log(`  control: pushed same`)
                     }
                 } else {
                     // merge with the previous unsent data
                     prevData.physicsTicks += data.physicsTicks
-                    if (DEBUG_LOG_PLAYER_CONTROL) {
+                    if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                         console.log(`  control: merged s${prevData.status} #->${prevData.physicsTicks}`)
                     }
                 }
@@ -291,7 +292,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                 // it differs, send it ASAP
                 data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP
                 dataQueue.push(data)
-                if (DEBUG_LOG_PLAYER_CONTROL) {
+                if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                     console.log(`  control: pushed different`)
                 }
             }
@@ -303,6 +304,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     applyCorrection(packetData: PacketBuffer) {
         const packet = this.correctionPacket
         packet.read(packetData)
+        if (packet.physicsSessionId !== this.physicsSessionId) {
+            return
+        }
 
         const debPrevKnownPhysicsTicks = this.knownPhysicsTicks
         const correctedPhysicsTick = packet.knownPhysicsTicks
@@ -349,15 +353,15 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         if (correctedPhysicsTick <= this.knownPhysicsTicks &&
             exData.contextEqual(correctedData) && exData.outEqual(correctedData)
         ) {
-            if (DEBUG_LOG_PLAYER_CONTROL) {
+            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                 console.log(`Control: correction ${debPrevKnownPhysicsTicks}->${correctedPhysicsTick} skipped`)
             }
             // It's possible that we have sent several packets and received several corrections,
             // so the current data might be already corrected. Do nothing then.
             return
         }
-        if (DEBUG_LOG_PLAYER_CONTROL) {
-            console.log(`correction ${debPrevKnownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTick}`, exData.outPos, correctedData.outPos)
+        if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
+            console.log(`Control: correction ${debPrevKnownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTick}`, exData.outPos, correctedData.outPos)
         }
 
         // The data differs. Set the result at that tick, and invalidate the results in later ticks
@@ -401,7 +405,10 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         // send all the data that must be sent now
         if (lastMustBeSentIndex !== null) {
             const writer = this.controlPacketWriter
-            writer.startPutSessionId(this.physicsSessionId)
+            writer.startPutHeader({
+                physicsSessionId: this.physicsSessionId,
+                physicsTick: dataQueue.get(firstUnsentIndex).startingPhysicsTick
+            })
             for(let i = firstUnsentIndex; i <= lastMustBeSentIndex; i++) {
                 const data = dataQueue.get(i)
                 writer.putTickData(data)

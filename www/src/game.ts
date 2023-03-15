@@ -651,9 +651,9 @@ export class GameClass {
         const tm      = performance.now();
         const delta   = this.hud.FPS.delta;
 
-        if(!this.hud.splash.loading && delta <= MAX_FPS_DELTA_PROCESSED) {
+        if(!this.hud.splash.loading) {
             if(!this.free_cam) {
-                player.update(delta);
+                player.update(Math.min(delta, MAX_FPS_DELTA_PROCESSED));
             }
         } else {
             player.lastUpdate = null;

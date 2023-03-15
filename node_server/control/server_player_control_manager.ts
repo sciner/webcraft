@@ -4,7 +4,7 @@ import {PlayerControlManager} from "@client/control/player_control_manager.js";
 import type {PacketBuffer} from "@client/packet_compressor.js";
 import {
     MAX_PACKET_AHEAD_OF_TIME_MS, MAX_PACKET_LAG_SECONDS, PHYSICS_INTERVAL_MS, PHYSICS_POS_DECIMALS,
-    PLAYER_STATUS, DEBUG_LOG_PLAYER_CONTROL
+    PLAYER_STATUS, DEBUG_LOG_PLAYER_CONTROL, DEBUG_LOG_PLAYER_CONTROL_DETAIL
 } from "@client/constant.js";
 import type {ServerPlayer} from "../server_player.js";
 import {
@@ -58,7 +58,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         return true
     }
 
-    startNewPhysicsSession(pos: IVector) {
+    startNewPhysicsSession(pos: IVector): void {
         super.startNewPhysicsSession(pos)
         this.lastData = null
         // clear the previous value, otherwise validation might be disabled for a long time
@@ -70,26 +70,37 @@ export class ServerPlayerControlManager extends PlayerControlManager {
      * If the player is lagging too much, the server executes the old player ticks even without knowing the input.
      * @see SERVER_UNCERTAINTY_MS
      */
-    doLaggingServerTicks(doSimulation: boolean) {
+    doLaggingServerTicks(): void {
+        this.doServerTicks(true)
+    }
+
+    /**
+     * Increases {@link knownPhysicsTicks} up to {@link tickMustBeKnown}, if it's less than that.
+     * @param doSimulation - if it's true, the control performs its ticks.
+     *   Otherwise, the method only changes {@link knownPhysicsTicks}.
+     * @param tickMustBeKnown - the default value is based on the current time and {@link SERVER_UNCERTAINTY_MS}
+     */
+    private doServerTicks(doSimulation: boolean, tickMustBeKnown?: int): void {
         if (this.player.status !== PLAYER_STATUS.ALIVE || !this.physicsSessionInitialized) {
             return // this physics session is over, nothing to do until the next one starts
         }
 
-        const stateTimeMustBeKnown = MonotonicUTCDate.now() - SERVER_UNCERTAINTY_MS
-        let physicsTicks = Math.floor((stateTimeMustBeKnown - this.knownTime) / PHYSICS_INTERVAL_MS )
-        if (physicsTicks <= 0) {
+        tickMustBeKnown ??= Math.floor((MonotonicUTCDate.now() - SERVER_UNCERTAINTY_MS - this.baseTime) / PHYSICS_INTERVAL_MS)
+        const physicsTicksAdded = tickMustBeKnown - this.knownPhysicsTicks
+        if (physicsTicksAdded <= 0) {
             return
         }
+
         if (!doSimulation) {
-            this.knownPhysicsTicks += physicsTicks
+            this.knownPhysicsTicks = tickMustBeKnown
             return
         }
         if (DEBUG_LOG_PLAYER_CONTROL) {
-            console.log(`Control ${this.username}: need to simulate ${physicsTicks} lagging ticks`)
+            console.log(`Control ${this.username}: simulate ${physicsTicksAdded} ticks without client's input`)
         }
 
         const newData = this.newData
-        newData.initInputEmpty(this.lastData, physicsTicks)
+        newData.initInputEmpty(this.lastData, physicsTicksAdded)
         newData.initContextFrom(this.player as any)
 
         if (this.current === this.spectator) {
@@ -103,7 +114,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
                 return // the chunk is not ready. No problem, just wait
             }
         }
-        this.knownPhysicsTicks += physicsTicks
+        this.knownPhysicsTicks = tickMustBeKnown
         this.onNewData()
         if (this.current !== this.spectator) {
             this.sendCorrection()
@@ -128,18 +139,18 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         this.physicsSessionInitialized = true
         this.baseTime = data.baseTime
         // If the client sent us base time that is too far behind, we mustn't accept a large batch of outdated of commands afterwards
-        this.doLaggingServerTicks(false)
+        this.doServerTicks(false)
     }
 
     onClientTicks(data: PacketBuffer): void {
         const reader = this.controlPacketReader
 
         // check if it's for the current session
-        const packetPhysicsSessionId = reader.startGetSessionId(data)
-        if (packetPhysicsSessionId !== this.physicsSessionId) {
+        const header = reader.startGetHeader(data)
+        if (header.physicsSessionId !== this.physicsSessionId) {
             reader.finish()
             if (DEBUG_LOG_PLAYER_CONTROL) {
-                console.log(`Control ${this.username}: skipping physics session ${packetPhysicsSessionId} !== ${this.physicsSessionId}`)
+                console.log(`Control ${this.username}: skipping physics session ${header.physicsSessionId} !== ${this.physicsSessionId}`)
             }
             return // it's from the previous session. Ignore it.
         }
@@ -154,24 +165,38 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             return
         }
 
+        // the maximum client physics tick (slightly ahead of time, to account for slightly different clocks) that the client can use now
+        const maxAllowedClientPhysTick = Math.ceil((MonotonicUTCDate.now() + MAX_PACKET_AHEAD_OF_TIME_MS - this.baseTime) / PHYSICS_INTERVAL_MS)
+
+        // It happens, e.g. when the client skips simulating physics ticks (we could have sent a message in this case, but we don't)
+        // It may also happen due to bugs.
+        if (header.physicsTick !== this.clientPhysicsTicks) {
+            if (header.physicsTick < this.clientPhysicsTicks) {
+                throw `header.physTick < this.clientPhysicsTicks ${header.physicsTick} ${this.clientPhysicsTicks}`
+            }
+            if (header.physicsTick > maxAllowedClientPhysTick) {
+                throw `header.physTick > maxClientTickAhead ${header.physicsTick} ${maxAllowedClientPhysTick}`
+            }
+            // here we know that the tick increases, and it's allowed
+            this.clientPhysicsTicks = header.physicsTick
+            this.doServerTicks(true, header.physicsTick)
+        }
+
         const clientData = this.clientData
         const newData = this.newData
-        const now = MonotonicUTCDate.now()
         let clientStateAccepted = false
         this.applyPlayerStateToControl()
 
         while (reader.readTickData(clientData)) {
-            if (DEBUG_LOG_PLAYER_CONTROL) {
+            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                 console.log(`Control ${this.username}: received ${clientData.toStr(this.clientPhysicsTicks)}`)
             }
 
             // validate time
             let prevClientPhysicsTicks = this.clientPhysicsTicks
             this.clientPhysicsTicks += clientData.physicsTicks
-            const clientStateTime = this.baseTime + this.clientPhysicsTicks * PHYSICS_INTERVAL_MS
-            if (clientStateTime > now + MAX_PACKET_AHEAD_OF_TIME_MS) {
-                // The client sends us a state too ahead of time
-                throw'clientStateTime > now + MAX_PACKET_AHEAD_OF_TIME_MS'
+            if (this.clientPhysicsTicks > maxAllowedClientPhysTick) {
+                throw `this.clientPhysicsTicks > maxClientTickAhead ${this.clientPhysicsTicks} ${maxAllowedClientPhysTick}`
             }
 
             // check if the data is at least partially outside the time window where the changes are still allowed
@@ -200,7 +225,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
 
             if (simulatedSuccessfully) {
                 // Accept the server state on the server. We may or may not correct the client.
-                if (DEBUG_LOG_PLAYER_CONTROL) {
+                if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                     console.log(`    simulated ${newData.toStr(prevClientPhysicsTicks)}`)
                 }
                 clientStateAccepted = newData.contextEqual(clientData) && newData.outputSimilar(clientData)
@@ -225,6 +250,15 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         }
     }
 
+    private increaseClientPhysTicks(newClientPhysTicks: int, UTCNow: number) {
+        this.clientPhysicsTicks = newClientPhysTicks
+        const clientStateTime = this.baseTime + this.clientPhysicsTicks * PHYSICS_INTERVAL_MS
+        if (clientStateTime > UTCNow + MAX_PACKET_AHEAD_OF_TIME_MS) {
+            // The client sends us a state too ahead of time
+            throw'clientStateTime > now + MAX_PACKET_AHEAD_OF_TIME_MS'
+        }
+    }
+
     private updateLastData() {
         const newData = this.newData
         const lastData = this.lastData ??= new ServerPlayerTickData()
@@ -241,6 +275,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     /** Sends {@link lastData} as the correction to the client. */
     private sendCorrection(): void {
         const cp = this.correctionPacket
+        cp.physicsSessionId = this.physicsSessionId
         cp.knownPhysicsTicks = this.knownPhysicsTicks
         cp.data = this.lastData
         this.player.sendPackets([{

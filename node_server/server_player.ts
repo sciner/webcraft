@@ -490,7 +490,7 @@ export class ServerPlayer extends Player {
         }
         this.checkVisibleChunks();
         this.sendNearPlayers();
-        this.controlManager.doLaggingServerTicks(true);
+        this.controlManager.doLaggingServerTicks();
         this.checkIndicators(tick_number);
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
