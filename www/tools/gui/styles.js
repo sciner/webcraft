@@ -106,6 +106,22 @@ export class BackgroundStyle {
         this.color = '#00000000'
     }
 
+    scroll(val, axes_x = true, reverse = false) {
+
+        
+
+        //ancher в бок
+        //this.#_bgimage.pivot.set(x/100, 0)
+        //this.#_bgimage.texture.frame.height = x
+        //this.#_bgimage.position.y = x
+        this.#_bgimage.texture.frame.y = 58 - x
+        this.#_bgimage.position.y = 58 - x
+        this.#_bgimage.texture.frame.height = x
+        this.#_bgimage.texture.updateUvs()
+        //this.#_bgimage._texture._frame.y = x
+        //this.#_bgimage.anchor.x = 0.5
+    }
+
     /**
      * @type {PIXI.Sprite}
      */

@@ -3,6 +3,8 @@ import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 import { Button, Label } from "../../tools/gui/wm.js";
+import { MySprite } from "../../tools/gui/MySpriteRenderer.js"
+import { PIXI } from "../../tools/gui/pixi.js"
 
 export class FurnaceWindow extends BaseChestWindow {
     [key: string]: any;
@@ -17,18 +19,15 @@ export class FurnaceWindow extends BaseChestWindow {
             }
         })
 
-        this.test = new Label(50, 50, 50, 50, `11111_bgicon`, '444', '555')
+        this.lbl_fire = new Label(150 * this.zoom, 50 * this.zoom, 56 * this.zoom / 2, 58 * this.zoom / 2, `lblFire`)
+
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
         this.atlas.fromFile('./media/gui/form-furnace.png').then(async atlas => {
-            //this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
-            this.test.setBackground(await this.atlas.getSprite(704, 0, 58, 56), 'none', this.zoom)
+            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+            this.lbl_fire.setBackground(await this.atlas.getSprite(704, 0, 56, 58), 'none', this.zoom / 2.0)
         })
-
-        
-        
-        
-        this.add(this.test)
+        this.add(this.lbl_fire)
     }
 
     //
@@ -38,6 +37,16 @@ export class FurnaceWindow extends BaseChestWindow {
         resp.push({pos: new Vector(111 * this.zoom, 105 * this.zoom, 0)});
         resp.push({pos: new Vector(230 * this.zoom, 68 * this.zoom, 0), readonly: true});
         return resp;
+    }
+
+    // Пришло содержимое сундука от сервера
+    setData(chest) {
+        super.setData(chest)
+       // const fuel_percent = this.state.fuel_time / this.state.max_time;
+      //  const sub_height = Math.floor(58 * (1 - fuel_percent));
+       // console.log(this.state)
+       // this.test.style.background.test(sub_height, 0)
+       //this.test2.texture.updateUvs()
     }
 
     // Draw
