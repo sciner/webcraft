@@ -102,6 +102,8 @@ export abstract class PlayerControlManager {
 
     /**
      * Simulates all the physics ticks described by {@link data}
+     * If the simulation is successful, sets output of {@link data}.
+     * If the simulation is unsuccessful, sets output of {@link data} only on the client.
      * @return true if the simulation was successful, i.e. the {@link PlayerControl.simulatePhysicsTick}.
      *   It may be unsuccessful if the chunk is not ready.
      *   If the simulation fails, all the important properties of {@link PlayerControl} remain unchanged
@@ -439,7 +441,11 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
         const pc = this.controlByType[data.contextControlType]
         prevData?.applyOutputToControl(pc)
-        return super.simulate(prevData, data)
+        if (super.simulate(prevData, data)) {
+            return true
+        }
+        data.initOutputFrom(pc)
+        return false
     }
 
 }
