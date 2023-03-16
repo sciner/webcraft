@@ -66,6 +66,7 @@ export class Config {
     SSLCertFile: string
     SSLKeyFile: string
     Debug: boolean
+    OpenAIToken: string
 
     constructor() {
         Object.assign(this, conf)

@@ -12,5 +12,6 @@
     "UseSecureProtocol": false,
     "SSLCertFile": "/var/ssl/auth/fullchain.pem",
     "SSLKeyFile": "/var/ssl/auth/privkey.pem",
-    "Debug": false
+    "Debug": false,
+    "OpenAIToken": ""
 }

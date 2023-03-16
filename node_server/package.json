@@ -21,6 +21,7 @@
     "express-less": "^0.1.0",
     "mkdirp": "^1.0.4",
     "nodemon": "^2.0.20",
+    "openai": "^3.2.1",
     "prismarine-schematic": "github:sciner/prismarine-schematic#master",
     "semver": "^7.3.7",
     "simplex-noise": "^3.0.1",
