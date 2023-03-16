@@ -370,12 +370,11 @@ export class ServerChat {
                         this.sendSystemChatMessageToSelectedPlayers(stringWithNewlines, player);
                       } else {
                         // Information about error during request
-                        this.sendSystemChatMessageToSelectedPlayers('Those voices in my had... They have nothing to say...', player);
+                        this.sendSystemChatMessageToSelectedPlayers('These voices in my had... They have nothing to say...', player);
                       }
                     } else {
                         throw 'openai_token_not_provided';
                     }
-                    
                 } else {
                     throw 'error_invalid_arguments_count';
                 }
