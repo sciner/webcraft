@@ -177,6 +177,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
      */
     private dataQueue = new SimpleQueue<ClientPlayerTickData>()
 
+    private sedASAP = false // if it's true, the next physics tick data should be sent ASAP (not merged with previous)
     private controlPacketWriter = new PlayerControlPacketWriter()
     private hasCorrection = false
     private correctionPacket = new PlayerControlCorrectionPacket()
@@ -273,7 +274,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
             // Save the tick data to be sent to the server.
             // Possibly postpone its sending, and/or merge it with the previously unsent data.
-            if (prevData?.equal(data)) {
+            if (prevData?.equal(data) && !this.sedASAP) {
                 if (prevData.status === PLAYER_TICK_DATA_STATUS.SENT) {
                     // it can't be merged with the data already sent, but it contains no new data, so it can be delayed
                     data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED
@@ -289,11 +290,12 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                     }
                 }
             } else {
-                // it differs, send it ASAP
+                // it differs (or we had to send it ASAP because we're far behind the server), send it ASAP
+                this.sedASAP = false
                 data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP
                 dataQueue.push(data)
                 if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                    console.log(`  control: pushed different`)
+                    console.log(`  control: pushed different or ASAP`)
                 }
             }
         }
@@ -319,9 +321,8 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         }
         let exData = dataQueue.getFirst()
         if (exData == null) {
-            // This is unexpected, but let's try to recover from this situation
-            // TODO this is untested and probably buggy
-            console.error('Control: applying correction: exData == null')
+            // It happens e.g. when the browser window was closed. The client is severely behind the server.
+            console.warn('Control: applying correction without existing data')
             const data = new ClientPlayerTickData(correctedPhysicsTick - 1)
             data.status = PLAYER_TICK_DATA_STATUS.SENT
             data.initInputEmpty(null, 1)
@@ -330,6 +331,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             dataQueue.push(data)
             this.hasCorrection = true
             this.knownPhysicsTicks = correctedPhysicsTick
+            this.sedASAP = true // because the client is severely behind the server, notify the server ASAP
             return
         }
 
