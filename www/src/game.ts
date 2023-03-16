@@ -547,7 +547,7 @@ export class GameClass {
                     case KEY.TAB: {
                         if(e.down) {
                             if(!hud.wm.hasVisibleWindow()) {
-                                hud.wm.getWindow('frmQuests').toggleVisibility();
+                                hud.wm.getWindow('frmInGameMain').toggleVisibility()
                                 return true;
                             }
                         }

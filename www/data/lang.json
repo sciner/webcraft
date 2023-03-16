@@ -191,6 +191,7 @@
         "sign_edit": {"en": "Edit sign text", "ru": "Введите текст", "fr": "", "es": "", "man": ""},
         "crafting": {"en": "Crafting", "ru": "Создание", "fr": "", "es": "", "man": ""},
         "charging_station": {"en": "Charging station", "ru": "Зарядная станция", "fr": "", "es": "", "man": ""},
-        "show_compass": {"en": "Show compass", "ru": "Включить компас", "fr": "", "es": "", "man": ""}
+        "show_compass": {"en": "Show compass", "ru": "Включить компас", "fr": "", "es": "", "man": ""},
+        "in_game_main_menu": {"en": "Crafting, quests, stats...", "ru": "Крафт, квесты, статистика...", "fr": "", "es": "", "man": ""}
     }
 }

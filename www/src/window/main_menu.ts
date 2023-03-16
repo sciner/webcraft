@@ -22,17 +22,23 @@ export class MainMenu extends BlankWindow {
             Qubatch.hud.wm.closeAll()
         });
 
-        this.addButton(Lang.quests, 90, () => {
-            Qubatch.hud.wm.closeAll();
-            Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
-        });
+        this.addButton(Lang.in_game_main_menu, 90, () => {
+            Qubatch.hud.wm.closeAll()
+            Qubatch.hud.wm.getWindow('frmInGameMain').toggleVisibility()
+        })
 
-        this.addButton(Lang.btn_statistics, 140, () => {
-            Qubatch.hud.wm.closeAll();
-            Qubatch.hud.wm.getWindow('frmStats').show();
-        });
+        // this.addButton(Lang.quests, 90, () => {
+        //     Qubatch.hud.wm.closeAll();
+        //     Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
+        // });
+
+        // this.addButton(Lang.btn_statistics, 140, () => {
+        //     Qubatch.hud.wm.closeAll();
+        //     Qubatch.hud.wm.getWindow('frmStats').show();
+        // });
+
         // [TODO] use callback instead of row readressing
-        this.addButton(Lang.btn_exit, 190, () => {
+        this.addButton(Lang.btn_exit, 140, () => {
             Qubatch.exit();
         });
 

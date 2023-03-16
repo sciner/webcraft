@@ -319,13 +319,13 @@ export class BorderStyle {
 
         switch(this.style) {
             case 'normal': {
-                color1 = this.#_color
-                color2 = this.#_shadow_color
+                color1 = this.#_shadow_color
+                color2 = this.#_color
                 break
             }
             case 'inset': {
-                color1 = this.#_shadow_color
-                color2 = this.#_color
+                color1 = this.#_color
+                color2 = this.#_shadow_color
                 break
             }
             case 'fixed_single': {

@@ -225,21 +225,26 @@ export class RecipeWindow extends BlankWindow {
             50 * this.zoom,
             26 * this.zoom,
             160 * this.zoom,
-            22 * this.zoom,
+            25 * this.zoom,
             'txtSearch1',
             null,
             'Type for search'
         );
-        txtSearch.word_wrap                = false
-        txtSearch.focused                  = true
-        txtSearch.max_length               = 100
-        txtSearch.max_lines                = 1
-        txtSearch.max_chars_per_line       = 20
+        txtSearch.word_wrap                 = false
+        txtSearch.focused                   = true
+        txtSearch.max_length                = 100
+        txtSearch.max_lines                 = 1
+        txtSearch.max_chars_per_line        = 20
         // style
-        txtSearch.style.color              = '#ffffff';
-        txtSearch.style.background.color   = '#ffffff88';
-        txtSearch.style.border.hidden      = false
-        txtSearch.style.textAlign.vertical = 'middle'
+        txtSearch.style.border.hidden       = false
+        txtSearch.style.border.style        = 'inset'
+        txtSearch.style.font.color          = '#ffffff'
+        txtSearch.style.background.color    = '#706f6c'
+        txtSearch.style.padding.left        = 5 * this.zoom
+        // txtSearch.style.color            = '#ffffff';
+        // txtSearch.style.background.color = '#ffffff88';
+        // txtSearch.style.border.hidden    = false
+        txtSearch.style.textAlign.vertical  = 'middle'
         this.add(txtSearch);
         
         txtSearch.onChange = (text) => {

@@ -4,6 +4,7 @@ import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { CreativeInventoryWindow } from "./creative_inventory.js";
 import { InventoryWindow } from "./inventory.js";
+import { QuestWindow } from "./quest.js";
 import { StatsWindow } from "./stats.js";
 
 export class InGameMain extends Window {
@@ -44,6 +45,7 @@ export class InGameMain extends Window {
         const tabs = this.tabs = [
             {title: 'Inventory', form: new InventoryWindow(inventory, recipes), button: null, fix_pos: new Vector(2, 0, 0)},
             {title: 'Creative', form: new CreativeInventoryWindow(inventory), button: null, fix_pos: new Vector(0, 0, 0)},
+            {title: 'Quests', form: new QuestWindow(player), button: null, fix_pos: new Vector(0, 0, 0)},
             {title: 'Stats', form: new StatsWindow(player), button: null, fix_pos: new Vector(0, 0, 0)}
         ]
 
