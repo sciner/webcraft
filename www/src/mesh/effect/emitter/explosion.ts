@@ -6,8 +6,7 @@ export default class emitter {
     [key: string]: any;
 
     static textures = [
-        [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [7, 3],
-        [0, 4], [1, 4], [2, 4], [3, 4]
+        [0, 7], [1, 7], [2, 7], [3, 7], [4, 7]
     ];
 
     constructor(pos, params) {
@@ -27,7 +26,7 @@ export default class emitter {
      * @returns {bool}
      */
     canDelete() {
-        return this.ticks > 0;
+        return false;
     }
 
     /**
@@ -36,34 +35,30 @@ export default class emitter {
      */
     emit() {
 
-        if(this.ticks++ > 1) {
+        if(Math.random() > .01) {
             return [];
         }
 
-        const count = 20;
+        const count = 1;
         const resp = [];
 
-        for(let i = 0; i < count; i++) {
+       // for(let i = 0; i < count; i++) {
 
             const {texture, texture_index} = getEffectTexture(emitter.textures);
+            console.log(texture_index)
 
             // новая частица
             const particle = new Mesh_Effect_Particle({
-                life:           1 + Math.random() * .5,
+                life:           1,
                 texture:        texture,
                 size:           1/8,
                 scale:          1,
-                smart_scale:    {0: 1, 1: 0},
-                has_physics:    false,
+                smart_scale:    {0: 1, 1: 1},
                 ag:             new Vector(0, 0, 0),
                 pp:             this.pp,
                 material_key:   this.material_key,
                 material:       this.material,
-                velocity:       new Vector(
-                    Math.random() - Math.random(),
-                    Math.random() - Math.random(),
-                    Math.random() - Math.random()
-                ).multiplyScalarSelf(50),
+                velocity:       new Vector(0, 0, 0),
                 pos:            this.pos.clone().addScalarSelf(
                     (Math.random() - Math.random()) * .3,
                     .35 + .25 * Math.random(),
@@ -73,7 +68,7 @@ export default class emitter {
 
             resp.push(particle);
 
-        }
+       // }
 
         return resp;
 
