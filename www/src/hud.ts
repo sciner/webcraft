@@ -578,7 +578,7 @@ export class HUD {
         if(isMobileBrowser()) {
             return false;
         }
-        const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
+        const active_quest = Qubatch.hud.wm.getWindow('frmInGameMain').getTab('frmQuests').form.active;
         if(active_quest) {
             if(!active_quest.mt) {
                 const quest_text = [active_quest.title];

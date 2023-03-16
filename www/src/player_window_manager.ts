@@ -17,7 +17,7 @@ export class PlayerWindowManager {
         this.addWindow(new EditSignWindow());
         this.addWindow(new EnderChestWindow(inventory));
         this.addWindow(new NotImplementedWindow());
-        this.addWindow(new QuestWindow(player));
+        // this.addWindow(new QuestWindow(player));
         this.addWindow(new StatsWindow(player));
         this.addWindow(new DieWindow());
         this.addWindow(new AnvilWindow(inventory));

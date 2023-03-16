@@ -374,21 +374,21 @@ export class GameClass {
                 // Windows
                 if(hud.wm.hasVisibleWindow()) {
                     if(e.down && e.keyCode == KEY.TAB) {
-                        if(hud.wm.getWindow('frmQuests').visible) {
-                            hud.wm.getWindow('frmQuests').hide();
-                            return true;
+                        if(hud.wm.getWindow('frmInGameMain').visible) {
+                            hud.wm.getWindow('frmInGameMain').hide()
+                            return true
                         }
                     }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
                             if(hud.frmMainMenu.visible) {
-                                hud.wm.closeAll();
-                                Qubatch.setupMousePointer(false);
-                                return true;
+                                hud.wm.closeAll()
+                                Qubatch.setupMousePointer(false)
+                                return true
                             }
                         }
                     }
-                    return hud.wm.onKeyEvent(e);
+                    return hud.wm.onKeyEvent(e)
                 }
                 //
                 switch(e.keyCode) {
@@ -547,11 +547,11 @@ export class GameClass {
                     case KEY.TAB: {
                         if(e.down) {
                             if(!hud.wm.hasVisibleWindow()) {
-                                hud.wm.getWindow('frmInGameMain').toggleVisibility()
-                                return true;
+                                hud.wm.getWindow('frmInGameMain').openTab('frmQuests')
+                                return true
                             }
                         }
-                        break;
+                        break
                     }
                     // T (Open chat)
                     case KEY.T: {

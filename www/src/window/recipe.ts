@@ -3,6 +3,7 @@ import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
 import { getBlockImage } from "./tools/blocks.js";
+import type { RecipeManager } from "../recipes.js";
 
 export class RecipeSlot extends Window {
     [key: string]: any;
@@ -79,7 +80,7 @@ export class RecipeSlot extends Window {
 // RecipeWindow...
 export class RecipeWindow extends BlankWindow {
 
-    constructor(recipe_manager) {
+    constructor(recipe_manager : RecipeManager) {
 
         super(10, 10, 592/2, 668/2, 'frmRecipe', null, null)
         this.canBeOpenedWith = ['frmInventory', 'frmCraft']
@@ -247,13 +248,13 @@ export class RecipeWindow extends BlankWindow {
         txtSearch.style.textAlign.vertical  = 'middle'
         this.add(txtSearch);
         
-        txtSearch.onChange = (text) => {
+        txtSearch.onChange = (text : string) => {
             this.filter_text = text;
             this.createRecipes();
             this.paginator.update();
-        };
+        }
+
     }
-    
 
     /**
     * Создание слотов

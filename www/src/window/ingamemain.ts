@@ -49,6 +49,7 @@ export class InGameMain extends Window {
             {title: 'Stats', form: new StatsWindow(player), button: null, fix_pos: new Vector(0, 0, 0)}
         ]
 
+        // Each all tabs and make menu
         for(let i = 0; i < tabs.length; i++) {
             const tab = tabs[i]
             const btn_margin = 5 * this.zoom
@@ -66,19 +67,15 @@ export class InGameMain extends Window {
             tab.form.style.background.image = null
             tab.form.autosize = false
             tab.form.ignore_esc = true
-            // tab.form.onShow = () => {}
             tab.button.form = tab.form
-            // tab.button.index = 1
             this.add(tab.form)
-            // windows.push(item.form)
             tab.button.onMouseDown = function(e) {
                 for(let tab of tabs) {
                     const active = this.form == tab.form
-                    if(active) console.log(tab.form.id)
                     if(active) {
                         tab.form.show()
-                    } else {
-                        tab.form.visible = active
+                    } else if(tab.form.visible) {
+                        tab.form.hide()
                     }
                     tab.button.style.background.color = active ? '#7882b9' : '#ffffff55'
                     // tab.form.style.background.color = '#00000033'
@@ -87,53 +84,46 @@ export class InGameMain extends Window {
             this.add(tab.button)
         }
 
-        //
-        // this.appendLayout({
-        //     questViewLayout: {
-        //         type: 'VerticalLayout',
-        //         x: 0,
-        //         y: 0,
-        //         width: this.w,
-        //         childs: {
-        //             btnInventory: {
-        //                 type: 'Button',
-        //                 title: 'Inventory',
-        //                 height: 40 * this.zoom,
-        //                 autosize: true,
-        //                 onMouseDown: () => {
-        //                     fromInv.visible = true;
-        //                     fromCreativeInv.visible = false;
-        //                     this.parent.refresh();
-        //                 }
-        //             },
-        //             btnCreativeInventory: {
-        //                 type: 'Button',
-        //                 title: 'Creative inventory',
-        //                 height: 40 * this.zoom,
-        //                 autosize: true,
-        //                 onMouseDown: () => {
-        //                     fromInv.visible = false;
-        //                     fromCreativeInv.visible = true;
-        //                     this.parent.refresh();
-        //                 }
-        //             },
-        //             fromInv,
-        //             fromCreativeInv
-        //         }
-        //     }
-        // });
-
     }
 
     // Обработчик открытия формы
     onShow(args) {
-        // 
-        this.tabs[0].button.onMouseDown(null)
-        // 
         this.getRoot().center(this)
         // this.getRoot().centerChild()
         Qubatch.releaseMousePointer()
         super.onShow(args)
+    }
+
+    openTab(id : string) {
+        for(let i = 0; i < this.tabs.length; i++) {
+            const tab = this.tabs[i]
+            if(tab.form.id == id) {
+                tab.button.onMouseDown(null)
+                this.show()
+                return
+            }
+        }
+    }
+
+    getTab(id : string) : Window | null {
+        for(let i = 0; i < this.tabs.length; i++) {
+            const tab = this.tabs[i]
+            if(tab.form.id == id) {
+                return tab
+            }
+        }
+        return null
+    }
+
+    // Обработчик закрытия формы
+    onHide() {
+        for(let i = 0; i < this.tabs.length; i++) {
+            const tab = this.tabs[i]
+            if(tab.form.visible) {
+                tab.form.hide()
+            }
+        }
+        super.onHide()
     }
 
     // Hook for keyboard input

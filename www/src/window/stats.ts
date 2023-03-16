@@ -5,7 +5,6 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 
 export class StatsWindow extends BlankWindow {
-    [key: string]: any;
 
     constructor(player) {
 
@@ -36,10 +35,13 @@ export class StatsWindow extends BlankWindow {
 
         const label_death = new Label(x, getY(), w, one_line, 'label_death', null, '0');
         this.add(label_death)
+
         const label_time = new Label(x, getY(), w, one_line, 'label_time', null, '0');
         this.add(label_time)
+
         const label_pickat = new Label(x, getY(), w, one_line, 'label_pickat', null, '0');
         this.add(label_pickat)
+
         const label_distance = new Label(x, getY(), w, one_line, 'label_distance', null, '0');
         this.add(label_distance)
 

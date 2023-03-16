@@ -1,4 +1,4 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+// import { Button, Label } from "../../tools/gui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { QuestMenu } from "./quest/menu.js";
 import { QuestView } from "./quest/view.js";
@@ -107,7 +107,7 @@ export class QuestWindow extends BlankWindow {
     updateActive() {
         let quest_in_progress = null;
         let quest_new = null;
-        for(let g of Qubatch.hud.wm.getWindow('frmQuests').data) {
+        for(let g of Qubatch.hud.wm.getWindow('frmInGameMain').getTab('frmQuests').form.data) {
             for(let q of g.quests) {
                 // console.log(q.title, q.is_completed, q.in_progress);
                 if(q.in_progress && !quest_in_progress) {

@@ -869,6 +869,7 @@ export class Window extends PIXI.Container {
      * @param {object} layout 
      */
     appendLayout(layout) {
+        layout = JSON.parse(JSON.stringify(layout))
         const ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
         ]

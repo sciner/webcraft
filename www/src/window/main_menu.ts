@@ -11,7 +11,7 @@ export class MainMenu extends BlankWindow {
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
-        const lblTitle = new Label(0, 0, this.w, 30 * this.zoom, 'lblTitle', null, Lang.menu);
+        const lblTitle = new Label(0, 0, this.w, 30 * this.zoom, 'lblTitle', null, Lang.menu)
         lblTitle.style.textAlign.horizontal = 'center'
         lblTitle.style.textAlign.vertical = 'middle'
         lblTitle.style.font.color = '#ffffff'
@@ -20,27 +20,17 @@ export class MainMenu extends BlankWindow {
         // Add buttons
         this.addButton(Lang.btn_return, 40, () => {
             Qubatch.hud.wm.closeAll()
-        });
+        })
 
         this.addButton(Lang.in_game_main_menu, 90, () => {
             Qubatch.hud.wm.closeAll()
-            Qubatch.hud.wm.getWindow('frmInGameMain').toggleVisibility()
+            Qubatch.hud.wm.getWindow('frmInGameMain').openTab('frmInventory')
         })
-
-        // this.addButton(Lang.quests, 90, () => {
-        //     Qubatch.hud.wm.closeAll();
-        //     Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
-        // });
-
-        // this.addButton(Lang.btn_statistics, 140, () => {
-        //     Qubatch.hud.wm.closeAll();
-        //     Qubatch.hud.wm.getWindow('frmStats').show();
-        // });
 
         // [TODO] use callback instead of row readressing
         this.addButton(Lang.btn_exit, 140, () => {
             Qubatch.exit();
-        });
+        })
 
     }
 
