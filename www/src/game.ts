@@ -19,25 +19,27 @@ import type { HUD } from "./hud.js";
 (globalThis as any).TrackerPlayer = new Tracker_Player();
 
 // Reset zoom
-// TODO: pixi
-let zoom = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio
-let x_zoom = undefined
-let y_zoom = undefined
-const maxsp = new Vector(.95, .8)
-const test = new Vector(INGAME_MAIN_WIDTH * zoom, INGAME_MAIN_HEIGHT * zoom)
-const screen = new Vector(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio).mul(maxsp)
-if(test.x > screen.x) {
-    x_zoom = zoom / (test.x / screen.x)
+function calcUIZoom() {
+    let zoom = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio
+    let x_zoom = undefined
+    let y_zoom = undefined
+    const maxsp = new Vector(.95, .8)
+    const test = new Vector(INGAME_MAIN_WIDTH * zoom, INGAME_MAIN_HEIGHT * zoom)
+    const screen = new Vector(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio).mul(maxsp)
+    if(test.x > screen.x) {
+        x_zoom = zoom / (test.x / screen.x)
+    }
+    if(test.y > screen.y) {
+        y_zoom = zoom / (test.y / screen.y)
+    }
+    if(x_zoom !== undefined || y_zoom != undefined) {
+        zoom = Math.min(x_zoom ?? zoom, y_zoom ?? zoom)
+    }
+    return zoom
 }
-if(test.y > screen.y) {
-    y_zoom = zoom / (test.y / screen.y)
-}
-if(x_zoom !== undefined || y_zoom != undefined) {
-    zoom = Math.min(x_zoom ?? zoom, y_zoom ?? zoom)
-}
-(globalThis as any).UI_ZOOM = zoom
-console.log('zoom', UI_ZOOM)
-globalThis.UI_FONT = 'Ubuntu';
+(globalThis as any).UI_ZOOM = calcUIZoom();
+(globalThis as any).UI_FONT = 'Ubuntu';
+console.debug('zoom and font', UI_ZOOM, UI_FONT);
 
 export class GameSettings {
 
