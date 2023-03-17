@@ -74,6 +74,7 @@ export class CraftTable extends BaseCraftWindow {
 
     // onShow
     onShow(args) {
+        this.inventory.player.inventory.recipes.frmRecipe.visible = false
         Qubatch.releaseMousePointer()
         this.setHelperSlots(null)
         super.onShow(args)

@@ -91,24 +91,22 @@ export class InventoryWindow extends BaseCraftWindow {
     // Обработчик открытия формы
     onShow(args) {
 
-        if(!this.frmRecipe) {
-            const form = this.inventory.player.inventory.recipes.frmRecipe
-            this.frmRecipe = form
+        if(!this.frmInventoryRecipe) {
+            const form = this.inventory.player.inventory.recipes.frmInventoryRecipe
             form.style.background.image = null
             form.parent.delete(form.id)
             form.x = 370 * this.zoom
             form.y = 0 * this.zoom
+            this.frmInventoryRecipe = form
             this.add(form)
         }
 
-        // this.getRoot().center(this)
-        // Qubatch.releaseMousePointer()
         this.previewSkin()
         this.setHelperSlots(null)
         super.onShow(args)
 
-        this.frmRecipe.assignCraftWindow(this)
-        this.frmRecipe.show()
+        this.frmInventoryRecipe.assignCraftWindow(this)
+        this.frmInventoryRecipe.show()
     }
 
     // Обработчик закрытия формы
@@ -214,7 +212,7 @@ export class InventoryWindow extends BaseCraftWindow {
     //     btnRecipes.tooltip = Lang.toggle_recipes;
     //     btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5)
     //     btnRecipes.onMouseDown = (e) => {
-    //         const frmRecipe = this.inventory.player.inventory.recipes.frmRecipe
+    //         const frmInventoryRecipe = this.inventory.player.inventory.recipes.frmRecipe
     //         frmRecipe.assignCraftWindow(this)
     //         frmRecipe.toggleVisibility()
     //     }
