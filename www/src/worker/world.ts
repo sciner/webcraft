@@ -5,6 +5,7 @@ import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
 import type { GameSettings } from "../game.js";
 import type { DataChunk } from "../core/DataChunk";
+import type {TBlocksGeneratedWorkerMessage} from "./messages.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
 const DEBUG_CHUNK_GEN_TIMERS = false
@@ -258,11 +259,6 @@ export class WorkerWorld {
 
                 times += chunk.genValue || genPerIter;
                 minGenDist = Math.min(minGenDist, chunk.queueDist);
-                // Ticking blocks
-                let ticking_blocks = [];
-                for(let k of chunk.ticking_blocks.keys()) {
-                    ticking_blocks.push(k.toHash());
-                }
 
                 if (buildQueue) {
                     buildQueue.push(chunk);
@@ -271,20 +267,20 @@ export class WorkerWorld {
 
                 // Return chunk object
                 const ci = {
+                    // ChunkWorkerChunk has no .key property.
+                    // Maybe it was supposed to be the result of ChunkWorkerChunk.doGen()? (which also has key === undefined)
                     key:            chunk.key,
                     addr:           chunk.addr,
                     tblocks:        chunk.tblocks,
-                    ticking_blocks: ticking_blocks,
                     map:            chunk.map
                 };
 
                 const non_zero = ci.tblocks.refreshNonZero();
-                const ci2 = {
+                const ci2: TBlocksGeneratedWorkerMessage = {
                     addr: ci.addr,
                     uniqId: chunk.uniqId,
                     // key: ci.key,
                     tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
-                    ticking_blocks: ci.ticking_blocks,
                     packedCells: chunk.packCells(),
                     genQueueSize: genQueue.size()
                 }

@@ -44,13 +44,15 @@ type DropItemParams = {
     force ? : boolean
 }
 
+export type TActionBlock = {
+    pos             : Vector
+    action_id       : int
+    item            : IBlockItem
+    destroy_block ? : { id: int }
+}
+
 type ActionBlocks = {
-    list: {
-        pos             : Vector
-        action_id       : int
-        item            : IBlockItem
-        destroy_block   : { id: int }
-    }[]
+    list: TActionBlock[]
     options: {
         ignore_check_air    : boolean
         on_block_set        : boolean
@@ -609,7 +611,7 @@ export class WorldAction {
         this.play_sound.push(item);
     }
 
-    addBlock(item) {
+    addBlock(item: TActionBlock): void {
         if(!item.action_id) {
             throw 'error_undefined_action_id';
         }
@@ -627,7 +629,7 @@ export class WorldAction {
     }
 
     // Add block
-    addBlocks(items) {
+    addBlocks(items: TActionBlock[]): void {
         for(let i = 0; i < items.length; i++) {
             this.addBlock(items[i])
         }

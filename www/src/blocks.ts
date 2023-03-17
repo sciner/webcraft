@@ -244,10 +244,10 @@ export class BLOCK {
 
     static list                             = new Map();
     static styles                           = new Map();
+    /** Sorted blocks, without null elements. Not by id. Not to be confused with {@link BLOCK_BY_ID} */
     static list_arr                         : IBlockMaterial[] = []; // see also getAll()
     static resource_pack_manager            : ResourcePackManager = null;
     static max_id                           = 0;
-    static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID: IBlockMaterial[]    = [];
     static bySuffix                         = {}; // map of arrays
     static REPLACE_TO_SLAB                  = {};
@@ -749,11 +749,6 @@ export class BLOCK {
     }
 
     //
-    static isRandomTickingBlock(block_id : int) : boolean {
-        return !!BLOCK.fromId(block_id).random_ticker;
-    }
-
-    //
     static getBlockStyleGroup(block) : string {
         let group = 'regular';
         if('group' in block) return block.group;
@@ -982,7 +977,10 @@ export class BLOCK {
             BLOCK.addFlag(BLOCK_FLAG.SOLID, block.id)
         }
         if(block.ticking) {
-            BLOCK.TICKING_BLOCKS.set(block.id, block);
+            this.addFlag(BLOCK_FLAG.TICKING, block.id)
+        }
+        if(block.random_ticker) {
+            this.addFlag(BLOCK_FLAG.RANDOM_TICKER, block.id)
         }
         if (block.style_name == 'planting' || (block.layering && !block.layering.slab)) {
             BLOCK.addFlag(BLOCK_FLAG.REMOVE_ONAIR_BLOCKS_IN_CLUSTER, block.id)
@@ -1134,7 +1132,7 @@ export class BLOCK {
         return tx_cnt;
     }
 
-    // getAll
+    /** Sorted blocks, without null elements. Not by id. Not to be confused with {@link BLOCK_BY_ID} */
     static getAll() : IBlockMaterial[] {
         return this.list_arr;
     }

@@ -102,7 +102,6 @@ export class ChunkWorkerChunk {
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.coord          = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
         this.id             = this.addr.toHash();
-        this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new Map();
         this.temp_vec       = new Vector(0, 0, 0);
         this.aabb           = new AABB();
@@ -167,7 +166,7 @@ export class ChunkWorkerChunk {
 
     }
 
-    packCells() {
+    packCells(): Int16Array {
         const {cells} = this.map;
         let len = cells.length;
         let packed = new Int16Array(PACKED_CELL_LENGTH * len);
@@ -181,14 +180,6 @@ export class ChunkWorkerChunk {
             packed[i * PACKED_CELL_LENGTH + PACKET_CELL_BIOME_ID] = Math.floor(cell.biome.id + eps);
         }
         return packed;
-    }
-
-    addTickingBlock(pos) {
-        this.ticking_blocks.set(pos, pos);
-    }
-
-    deleteTickingBlock(pos) {
-        this.ticking_blocks.delete(pos);
     }
 
     //
@@ -352,7 +343,7 @@ export class ChunkWorkerChunk {
             if(check_is_solid && BLOCK.isSolidID(existingId)) {
                 return
             }
-            this.tblocks.deleteExtraInGenerator(TypedBlocks3._tmp.set(x, y, z))
+            this.tblocks.deleteExtraInGenerator(index)
         }
 
         uint16View[index] = block_id;
@@ -387,7 +378,7 @@ export class ChunkWorkerChunk {
         const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk
         const index = cx * x + cy * y + cz * z + cw
         if (uint16View[index] > 0) {
-            this.tblocks.deleteExtraInGenerator(TypedBlocks3._tmp.set(x, y, z))
+            this.tblocks.deleteExtraInGenerator(index)
         }
         uint16View[index] = block_id
     }
@@ -401,7 +392,7 @@ export class ChunkWorkerChunk {
         const { cy, uint16View } = this.tblocks.dataChunk
         const index = columnIndex + cy * y
         if (uint16View[index] > 0) {
-            this.tblocks.deleteExtraInGenerator(TypedBlocks3._tmp.set(x, y, z))
+            this.tblocks.deleteExtraInGenerator(index)
         }
         uint16View[index] = block_id
     }

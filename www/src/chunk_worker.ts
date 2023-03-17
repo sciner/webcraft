@@ -1,3 +1,5 @@
+// We can't import types because of the TS bug https://github.com/microsoft/TypeScript/issues/44040
+
 // import type { WorkerWorldManager } from './worker/world.js'
 
 class ChunkWorkerRoot {
@@ -166,12 +168,11 @@ class ChunkWorkerRoot {
                         const chunk = world.chunks.get(item.addr);
                         chunk.uniqId = item.uniqId;
                         const non_zero = chunk.tblocks.refreshNonZero();
+                        // the message type is TBlocksGeneratedWorkerMessage (but we can't import types in the worker)
                         this.postMessage(['blocks_generated', {
-                            key: chunk.key,
                             addr: chunk.addr,
                             uniqId: item.uniqId,
                             tblocks: non_zero > 0 ? chunk.tblocks.saveState() : null,
-                            ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
                             packedCells: chunk.packCells()
                         }]);
                     } else {

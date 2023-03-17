@@ -17,6 +17,7 @@ import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import type { World } from "./world.js";
 import type { Renderer } from "./render.js";
 import type { BaseResourcePack } from "./base_resource_pack.js";
+import type {TBlocksGeneratedWorkerMessage} from "./worker/messages.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -202,10 +203,11 @@ export class ChunkManager {
                     break;
                 }
                 case 'blocks_generated': {
+                    const msg = args as TBlocksGeneratedWorkerMessage
                     // console.log('4. createChunk: generated', new Vector(args.addr).toHash());
-                    const chunk = that.chunks.get(args.addr);
+                    const chunk = that.chunks.get(msg.addr);
                     if(chunk) {
-                        chunk.onBlocksGenerated(args);
+                        chunk.onBlocksGenerated(msg);
                     }
                     break;
                 }

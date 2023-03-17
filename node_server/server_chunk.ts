@@ -3,8 +3,8 @@ import { ServerClient } from "@client/server_client.js";
 import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "@client/helpers.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "@client/block_helpers.js";
 import { newTypedBlocks, TBlock, TypedBlocks3 } from "@client/typed_blocks3.js";
-import { dropBlock, WorldAction } from "@client/world_action.js";
-import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "@client/constant.js";
+import {dropBlock, TActionBlock, WorldAction} from "@client/world_action.js";
+import {BLOCK_FLAG, COVER_STYLE_SIDES, NO_TICK_BLOCKS} from "@client/constant.js";
 import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
@@ -19,6 +19,7 @@ import type { ServerChunkManager } from "./server_chunk_manager.js";
 import { FluidChunkQueue } from "@client/fluid/FluidChunkQueue.js";
 import type { DBItemBlock } from "@client/blocks";
 import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
+import type {TBlocksGeneratedWorkerMessage} from "@client/worker/messages.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -42,14 +43,24 @@ export interface ChunkRecord {
     dirty?  : boolean
 }
 
+/** A non-random ticker */
+export type TTickerFunction = (
+    manager: TickingBlockManager, tick_number: int, world: ServerWorld, chunk: ServerChunk,
+    v: TickingBlock, check_pos: Vector, ignore_coords: VectorCollector
+) => (TActionBlock | null)[] | TActionBlock | null
+
+export type TRandomTickerFunction = (
+    world: ServerWorld, actions: WorldAction, world_light: number, tblock: TBlock) => void
+
 // Ticking block
 class TickingBlock {
 
     #chunk : ServerChunk;
     pos: Vector;
-    ticking: any;
-    ticker: any;
+    ticking: IBlockMaterialTicking;
+    ticker: TTickerFunction;
     _preloadFluidBuf: any;
+    private tmpTBlock = new TBlock()
 
     constructor(chunk: ServerChunk) {
         this.#chunk     = chunk;
@@ -60,14 +71,23 @@ class TickingBlock {
         this._preloadFluidBuf   = null;
     }
 
-    setState(pos_index) {
-        this.pos.fromFlatChunkIndex(pos_index).addSelf(this.#chunk.coord);
+    /**
+     * If the block with the given flat index has a non-random ticker, it sets fields
+     * of this class to the values of that block.
+     * @returns true if success
+     */
+    setState(flat_pos_index: int): boolean {
+        this.pos.fromFlatChunkIndex(flat_pos_index).addSelf(this.#chunk.coord);
         // this.tblock = this.#chunk.getBlock(this.pos);
         const tblock = this.tblock;
-        if(!tblock || !tblock.material.ticking || !tblock.extra_data || ('notick' in tblock.extra_data)) {
+        if(!tblock) {
+            return false
+        }
+        this.ticking = tblock.material.ticking
+        const extra_data = tblock.extra_data
+        if (!this.ticking || !extra_data || extra_data.notick) {
             return false;
         }
-        this.ticking = tblock.material.ticking;
         this.ticker = this.#chunk.world.tickers.get(this.ticking.type);
         if(!this.ticker) {
             console.error(`Invalid ticking type: ${this.ticking.type}`);
@@ -76,8 +96,8 @@ class TickingBlock {
         return true;
     }
 
-    get tblock() {
-        return this.#chunk.getBlock(this.pos);
+    get tblock(): TBlock {
+        return this.#chunk.getBlock(this.pos, null, null, this.tmpTBlock);
     }
 
 }
@@ -85,34 +105,41 @@ class TickingBlock {
 // TickingBlockManager
 export class TickingBlockManager {
 
-    #chunk;
-    #pos = new Vector(0, 0, 0);
-    v: TickingBlock;
-    blocks: Set<unknown>;
+    private static tmpDeleteVec = new Vector()
 
-    constructor(chunk) {
+    #chunk: ServerChunk
+    blockFlatIndices = new Set<int>();
+    private tmp_check_pos = new Vector(0, 0, 0);
+    private tmpTickingBlock: TickingBlock;
+    private ignore_coords = new VectorCollector<any>();
+
+    constructor(chunk: ServerChunk) {
         this.#chunk = chunk;
-        this.v = new TickingBlock(chunk);
-        this.blocks = new Set();
+        this.tmpTickingBlock = new TickingBlock(chunk);
     }
 
-    get chunk() {
+    get size(): int { return this.blockFlatIndices.size }
+
+    get chunk(): ServerChunk {
         return this.#chunk;
     }
 
     // addTickingBlock
-    add(pos_world) {
-        const pos_index = pos_world.getFlatIndexInChunk();
-        this.blocks.add(pos_index);
-        this.#chunk.world.chunks.addTickingChunk(this.#chunk.addr);
+    add(pos_world: Vector): void {
+        const pos_index = pos_world.getFlatIndexInChunk()
+        this.blockFlatIndices.add(pos_index);
+        const chunk = this.#chunk
+        if (chunk.load_state === CHUNK_STATE.READY) {
+            chunk.world.chunks.addTickingChunk(chunk.addr)
+        }
     }
 
     // deleteTickingBlock
-    delete(pos_world : Vector) {
-        const vec = new Vector(pos_world)
+    delete(pos_world: IVector): void {
+        const vec = TickingBlockManager.tmpDeleteVec.copyFrom(pos_world);
         const pos_index = vec.getFlatIndexInChunk();
-        this.blocks.delete(pos_index);
-        if(this.blocks.size == 0) {
+        this.blockFlatIndices.delete(pos_index);
+        if(this.blockFlatIndices.size == 0) {
             this.#chunk.world.chunks.removeTickingChunk(this.#chunk.addr);
         }
     }
@@ -122,22 +149,35 @@ export class TickingBlockManager {
 
         const world             = this.#chunk.world;
         const updated_blocks    = [];
-        const ignore_coords     = new VectorCollector();
-        const check_pos         = new Vector(0, 0, 0);
-        const v                 = this.v;
+        const check_pos         = this.tmp_check_pos.setScalar(0, 0, 0);
+        const v                 = this.tmpTickingBlock;
+        this.ignore_coords.clear()
 
         //
-        for(const pos_index of this.blocks) {
+        for(const pos_index of this.blockFlatIndices) {
             if(!v.setState(pos_index)) {
                 this.delete(v.pos);
                 continue;
             }
-            const upd_blocks = v.ticker.call(this, tick_number + (pos_index as int), world, this.#chunk, v, check_pos, ignore_coords);
+            const upd_blocks = v.ticker.call(this, tick_number + pos_index, world, this.#chunk, v, check_pos, this.ignore_coords);
             TickerHelpers.pushBlockUpdates(updated_blocks, upd_blocks);
         }
         world.addUpdatedBlocksActions(updated_blocks);
     }
 
+    *tickingBlocks(): IterableIterator<TickingBlock> {
+        if (this.chunk.load_state !== CHUNK_STATE.READY) {
+            return
+        }
+        const v = this.tmpTickingBlock
+        for(const pos_index of this.blockFlatIndices) {
+            if(!v.setState(pos_index)) {
+                this.delete(v.pos)
+                continue
+            }
+            yield v
+        }
+    }
 }
 
 let global_uniqId = 0;
@@ -165,11 +205,10 @@ export class ServerChunk {
     options:                            {}                          = {};
     tblocks:                            TypedBlocks3;
     ticking_blocks:                     TickingBlockManager;
-    block_random_tickers:               any;
+    block_random_tickers:               TRandomTickerFunction[];
     mobGenerator:                       MobGenerator;
     delayedCalls:                       DelayedCalls;
     dbActor:                            ChunkDBActor;
-    readyPromise:                       Promise<void>;
     /**
      * When unloading process has started
      */
@@ -182,7 +221,6 @@ export class ServerChunk {
     scanId:                             number                      = -1;
     light:                              ChunkLight;
     load_state:                         CHUNK_STATE;
-    ticking:                            Map<any, any>;
     _preloadFluidBuf:                   any;
     _random_tick_actions:               any;
     waitingToUnloadWater:               boolean;
@@ -207,7 +245,6 @@ export class ServerChunk {
         this.setState(CHUNK_STATE.NEW);
         this.delayedCalls               = new DelayedCalls(world.blockCallees);
         this.dbActor                    = world.dbActor.getOrCreateChunkActor(this);
-        this.readyPromise               = Promise.resolve(); // It's used only to reach CHUNK_STATE.READY
         this.light                      = new ChunkLight(this);
     }
 
@@ -277,7 +314,6 @@ export class ServerChunk {
         //
         const afterLoad = ([ml, fluid]: [ServerModifyList, any]) => {
             this.modify_list = ml;
-            this.ticking = new Map();
             if (this.load_state >= CHUNK_STATE.UNLOADING) {
                 return;
             }
@@ -487,7 +523,7 @@ export class ServerChunk {
     }
 
     // onBlocksGenerated ... Webworker callback method
-    async onBlocksGenerated(args) {
+    onBlocksGenerated(args: TBlocksGeneratedWorkerMessage): void {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
@@ -518,8 +554,10 @@ export class ServerChunk {
             this._preloadFluidBuf = null;
         }
         this.light.init();
-        this.readyPromise = this.loadMobs();
-        this.onBlocksGeneratedOrRestored(args);
+        // noinspection JSIgnoredPromiseFromCall
+        this.loadMobs();
+        this.onBlocksGeneratedOrRestored();
+        this.scanTickingBlocks();
     }
 
     restoreUnloaded() {
@@ -535,7 +573,7 @@ export class ServerChunk {
         this.onMobsLoadedOrRestored();
     }
 
-    onBlocksGeneratedOrRestored(blockGenArgs = {ticking_blocks: []}) {
+    private onBlocksGeneratedOrRestored(): void {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
@@ -543,17 +581,13 @@ export class ServerChunk {
         chunkManager.dataWorld.syncOuter(this);
         // fluid
         this.fluid.queue.init();
-        // Scan ticking blocks
-        this.randomTickingBlockCount = 0;
-        for(let i = 0; i < this.tblocks.id.length; i++) {
-            const block_id = this.tblocks.id[i];
-            if(this.world.block_manager.isRandomTickingBlock(block_id)) {
-                this.randomTickingBlockCount++;
-            }
-        }
-        this.scanTickingBlocks(blockGenArgs.ticking_blocks);
     }
 
+    /**
+     * @returns a promise, but it doesn't matter, and the caller don't have to process it.
+     *  This method calls {@link onMobsLoadedOrRestored} later asynchronously,
+     *  which changes the chunk state, sends data to the clients, etc.
+     */
     async loadMobs() {
         this.setState(CHUNK_STATE.LOADING_MOBS);
 
@@ -620,41 +654,40 @@ export class ServerChunk {
         return true;
     }
 
-    //
-    scanTickingBlocks(ticking_blocks) {
+    private scanTickingBlocks(): void {
         if(NO_TICK_BLOCKS) {
-            return false;
+            return
         }
-        let block = null;
-        const _pos = new Vector(0, 0, 0);
-        // 1. Check modified blocks
-        const ml = this.modify_list.obj;
-        if(ml) {
-            for(let index_key in ml) {
-                const current_block_on_pos = ml[index_key];
-                if(!current_block_on_pos) {
-                    continue;
-                }
-                const index = parseInt(index_key)
-                _pos.fromFlatChunkIndex(index);
-                // @todo if chest
-                if(!block || block.id != current_block_on_pos.id) {
-                    block = this.world.block_manager.fromId(current_block_on_pos.id);
-                }
-                if(block.ticking && current_block_on_pos.extra_data && !('notick' in current_block_on_pos.extra_data)) {
-                    this.ticking_blocks.add(_pos.add(this.coord));
-                }
+        const bm = this.world.block_manager
+        const flagsById = bm.flags
+        const blockIds = this.tblocks.id
+        const ANY_TICKER_FLAGS = BLOCK_FLAG.TICKING | BLOCK_FLAG.RANDOM_TICKER
+        const pos = new Vector()
+
+        this.randomTickingBlockCount = 0
+        for(let index = 0; index < blockIds.length; index++) {
+            const block_id = blockIds[index]
+            const flags = flagsById[block_id]
+            if ((flags & ANY_TICKER_FLAGS) === 0) { // a single fast check to exclude most of the blocks
+                continue
             }
-        }
-        // 2. Check generated blocks
-        if(ticking_blocks.length > 0) {
-            for(let k of ticking_blocks) {
-                _pos.fromHash(k);
-                if(!ml || !ml[_pos.getFlatIndexInChunk()]) {
-                    const block = this.getBlock(_pos);
-                    if(block.material.ticking && block.extra_data && !('notick' in block.extra_data)) {
-                        this.ticking_blocks.add(_pos);
-                    }
+
+            // find the relative block pos; check if it isn't in the chunk padding
+            pos.fromChunkIndex(index)
+            if (!pos.isRelativePosInChunk()) {
+                continue
+            }
+
+            if ((flags & BLOCK_FLAG.RANDOM_TICKER) !== 0) {
+                this.randomTickingBlockCount++;
+            }
+
+            if ((flags & BLOCK_FLAG.TICKING) !== 0) {
+                const extra_data = this.tblocks.extra_data.getByIndex(index)
+                // don't add tickers without extra_data because that's how it's checked in TickingBlock.setState()
+                if (extra_data && !extra_data.notick) {
+                    pos.addSelf(this.coord) // convert to the world coordinate system
+                    this.ticking_blocks.add(pos)
                 }
             }
         }
@@ -708,7 +741,7 @@ export class ServerChunk {
     // directly is easier and faster.
     // If the argument after the coordiantes (y or fromOtherChunks) is true,
     // it can return blocks from chunks outside its boundary.
-    getBlock(pos : number | Vector, y? : number, z? : number, resultBlock = null, fromOtherChunks: boolean = false) {
+    getBlock(pos : number | Vector, y? : number, z? : number, resultBlock: TBlock | null = null, fromOtherChunks: boolean = false) {
         if(this.load_state !== CHUNK_STATE.READY) {
             return this.getChunkManager().DUMMY;
         }
@@ -1226,7 +1259,7 @@ export class ServerChunk {
                     this.randomTickingBlockCount++;
                 }
                 if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
-                    this.ticking_blocks.add(pos);
+                    this.ticking_blocks.add(pos as Vector);
                 }
             }
         }
@@ -1259,7 +1292,7 @@ export class ServerChunk {
             _rnd_check_pos.fromFlatChunkIndex(Math.floor(Math.random() * CHUNK_SIZE));
             const block_id = this.tblocks.getBlockId(_rnd_check_pos.x, _rnd_check_pos.y, _rnd_check_pos.z);
             if(block_id > 0) {
-                const ticker = this.block_random_tickers.get(block_id);
+                const ticker = this.block_random_tickers[block_id];
                 if(ticker) {
                     tblock = this.tblocks.get(_rnd_check_pos, tblock);
                     ticker.call(this, this.world, this.getActions(), world_light, tblock);
@@ -1361,7 +1394,6 @@ export class ServerChunk {
         if (!chunkManager || this.load_state !== CHUNK_STATE.READY) {
             throw new Error(`!chunkManager || this.load_state !== CHUNK_STATE.READY ${chunkManager} ${this.load_state}`);
         }
-        // we don't have to wait for readyPromise here, because it's already READY
 
         this.unloadingStartedTime = performance.now();
         this.setState(CHUNK_STATE.UNLOADING);

@@ -26,6 +26,12 @@ declare type TypedArray = Uint8Array | Uint16Array | Uint32Array | Int8Array
 declare type AnyArray = any[] | TypedArray
 
 /**
+ * Describes block strides in a chunk, possibly with padding.
+ * The members have the same semantics as in BaseChunk.
+ */
+type TBlockStrides = [cx: int, cy: int, cz: int, cw: int]
+
+/**
  * A object like Vector
  */
 interface IVector {
@@ -176,6 +182,12 @@ interface IPlane {
     rot: tupleFloat3 | IVector
 }
 
+interface IBlockMaterialTicking {
+    type: string
+    max_stage?: number
+    times_per_stage?: number
+}
+
 interface IBlockMaterial {
     id: int
     name: string
@@ -240,11 +252,7 @@ interface IBlockMaterial {
         private: boolean
         readonly_slots: int
     }
-    ticking: {
-        type: string
-        max_stage?: number
-        times_per_stage?: number
-    }
+    ticking: IBlockMaterialTicking
     drop_item: {
         name : string
         count? : number
