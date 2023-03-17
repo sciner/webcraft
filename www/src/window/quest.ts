@@ -1,4 +1,4 @@
-// import { Button, Label } from "../../tools/gui/wm.js";
+import { ToggleButton } from "../../tools/gui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { QuestMenu } from "./quest/menu.js";
 import { QuestView } from "./quest/view.js";
@@ -7,7 +7,9 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 
 export class QuestWindow extends BlankWindow {
-    [key: string]: any;
+    [key: string]: any
+
+    groups : QuestMenu
 
     constructor(player) {
 
@@ -76,12 +78,12 @@ export class QuestWindow extends BlankWindow {
         this.updateActive();
 
         if(this.groups) {
-            return this.groups.update(data);
+            return this.groups.update(data)
         }
 
         this.groups = new QuestMenu(
             16 * this.zoom,
-            15 * this.zoom,
+            5 * this.zoom,
             250 * this.zoom,
             this.h - (45 + 20) * this.zoom,
             'wGroups'
@@ -101,6 +103,17 @@ export class QuestWindow extends BlankWindow {
 
         //
         this.groups.setViewer(this.quest_view);
+
+        // Auto show first actual quest
+        let last_complete_group = null
+        let first_inprogress_group = null
+        for(let tb of this.groups.list.values()) {
+            if(tb instanceof ToggleButton) {
+                if(tb.quest.is_completed) last_complete_group = tb
+                if(!tb.quest.is_completed && !first_inprogress_group) first_inprogress_group = tb
+            }
+        }
+        (first_inprogress_group || last_complete_group)?.onMouseDown(null)
 
     }
 

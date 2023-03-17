@@ -1,6 +1,6 @@
-import { SpriteAtlas } from "./core/sprite_atlas.js";
+// import { SpriteAtlas } from "./core/sprite_atlas.js";
 import { Resources } from "./resources.js";
-import { PlayerInventory } from "./player_inventory.js";
+// import { PlayerInventory } from "./player_inventory.js";
 import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
 import { Effect } from "./block_type/effect.js";
 import { Window } from "../tools/gui/wm.js";
@@ -196,6 +196,7 @@ export class Hotbar {
 
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
             const lblSlot = new CraftTableInventorySlot(i * sz, 0, sz, sz, `lblSlot${i}`, null, null, this, i)
+            lblSlot.style.border.hidden = true
             inventory_slots.add(lblSlot)
         }
         this.hud.wm.addChild(inventory_slots)

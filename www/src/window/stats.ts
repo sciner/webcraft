@@ -33,43 +33,46 @@ export class StatsWindow extends BlankWindow {
             return resp
         }
 
-        const label_death = new Label(x, getY(), w, one_line, 'label_death', null, '0');
-        this.add(label_death)
+        //
+        for(let item of [
+            {id: 'label_death', title: Lang.stat_death},
+            {id: 'label_time', title: Lang.stat_time},
+            {id: 'label_pickat', title: Lang.stat_pickat},
+            {id: 'label_distance', title: Lang.stat_distance},
+        ]) {
+            const y = getY()
+            const lbl_title = new Label(x, y, w, one_line, item.id + '_title', item.title, item.title)
+            const lbl = new Label(x + 100 * this.zoom, y, w, one_line, item.id, item.title, item.title)
+            lbl_title.style.font.size = 14
+            lbl_title.style.font.weight = 'bold'
+            lbl.style.textAlign.horizontal = 'right'
+            lbl.style.font.size = 14
+            this.add(lbl_title)
+            this.add(lbl)
+        }
 
-        const label_time = new Label(x, getY(), w, one_line, 'label_time', null, '0');
-        this.add(label_time)
+        //
+        const setValue = (id : string, value : string) => {
+            for(let w of this.list.values()) {
+                if(w.id == id) {
+                    w.text = value
+                }
+            }
+        }
 
-        const label_pickat = new Label(x, getY(), w, one_line, 'label_pickat', null, '0');
-        this.add(label_pickat)
-
-        const label_distance = new Label(x, getY(), w, one_line, 'label_distance', null, '0');
-        this.add(label_distance)
-
-        // const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
-        // this.add(btnClose)
-
-        // // Add close button
-        // this.loadCloseButtonImage((image) => {
-        //     // Add buttons
-        //     const that = this
-        //     // Close button
-        //     btnClose.style.font.family = 'Arial'
-        //     btnClose.style.background.image = image
-        //     btnClose.style.background.image_size_mode = 'stretch';
-        //     btnClose.onMouseDown = function(e) {
-        //         that.hide()
-        //     }
-        // })
-
+        //
         player.world.server.AddCmdListener([ServerClient.CMD_STATS], (cmd) => {
+
             let times = cmd.data.time_formatted;
             times = times.replace('days', Lang.days);
             times = times.replace('hours', Lang.hours);
             times = times.replace('minutes', Lang.minutes);
-            label_death.text = `${Lang.stat_death}: ${cmd.data.death}`;
-            label_time.text = `${Lang.stat_time}: ` + times;
-            label_pickat.text = `${Lang.stat_pickat}: ${cmd.data.pickat}`;
-            label_distance.text = `${Lang.stat_distance}: ${cmd.data.distance_formatted}`;
+
+            setValue('label_death', cmd.data.death)
+            setValue('label_time', times)
+            setValue('label_pickat', cmd.data.pickat)
+            setValue('label_distance', cmd.data.distance_formatted)
+
         })
 
     }

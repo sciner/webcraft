@@ -30,14 +30,16 @@ export class QuestMenu extends Window {
 
     // Update menu
     update(groups) {
+
         // save active menu
-        const active_quest = this.quest_viewer.quest;
+        const active_quest = this.quest_viewer.quest
 
         // remove previous menu items
-        this.list.clear();
+        this.list.clear()
 
         // create menu items
-        this.init(groups);
+        this.init(groups)
+    
         // refresh quest view
         if(active_quest) {
             for(let id of this.list.keys()) {
@@ -53,6 +55,7 @@ export class QuestMenu extends Window {
                 }
             }
         }
+
     }
 
     // Init
@@ -71,7 +74,7 @@ export class QuestMenu extends Window {
 
             const group = groups[i];
 
-            const lblGroup = new QuestGroup(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblGroup' + group.id, group.title, null);
+            const lblGroup = new QuestGroup(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblGroup' + group.id, group.title, group.title)
             lblGroup.style.textAlign.vertical = 'bottom';
             lblGroup.style.padding.left = 0;
             lblGroup.style.padding.bottom = 0;
@@ -87,21 +90,22 @@ export class QuestMenu extends Window {
                 const title = quest.title;
                 const status = quest.is_completed ? '✅' : (quest.in_progress ? '🕒' : '🆕');
                 const tb = new ToggleButton(x, y, this.w, BUTTON_HEIGHT, 'btnQuest' + quest.id, `${status} ${title}`);
-                tb.style.font.size = 14;
-                ct.add(tb);
-                y += tb.h + GROUP_MARGIN;
+                tb.style.font.size = 14
+                tb.quest = quest
+                ct.add(tb)
+                y += tb.h + GROUP_MARGIN
                 tb.onMouseDown = (e) => {
                     if(tb.toggled) {
-                        return false;
+                        return false
                     }
-                    this.quest_viewer.show(quest);
-                    tb.toggle();
+                    this.quest_viewer.show(quest)
+                    tb.toggle()
                 }
             }
 
         }
 
-        this.calcMaxHeight();
+        this.calcMaxHeight()
 
     }
 

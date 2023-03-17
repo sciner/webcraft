@@ -80,6 +80,7 @@ export class Window extends PIXI.Container {
 
         this._w = 0
         this._h = 0
+        this.interactiveChildren = true
 
         // List of childs
         this.list = {
@@ -680,10 +681,12 @@ export class Window extends PIXI.Container {
     _clarifyMouseEvent(e) {
         // список окон отсортированный по Z координате
         const visible_windows = []
-        for(let window of this.list.values()) {
-            if(window.visible) {
-                if(window.catchEvents) {
-                    visible_windows.push(window)
+        if(this.interactiveChildren) {
+            for(let window of this.list.values()) {
+                if(window.visible) {
+                    if(window.catchEvents) {
+                        visible_windows.push(window)
+                    }
                 }
             }
         }
@@ -1076,6 +1079,9 @@ export class Button extends Window {
         this.style.border.hidden = false
         this.style.padding.set(10)
 
+        this.interactiveChildren = false
+        // this.buttonMode = true
+
         if(this.text_container) {
             this.style.textAlign.horizontal = 'center'
             this.style.textAlign.vertical = 'middle'
@@ -1125,6 +1131,7 @@ export class Label extends Window {
         this.style.background.color = '#00000000'
         this.style.border.hidden = true
         this.setText(text)
+        this.interactiveChildren = false
     }
 
 }
@@ -1136,10 +1143,12 @@ export class TextEdit extends Window {
 
         super(x, y, w, h, id, title, text)
 
-        this.max_length         = 0;
-        this.max_lines          = 0;
-        this.max_chars_per_line = 0;
-        this.draw_cariage       = true
+        this.max_length             = 0;
+        this.max_lines              = 0;
+        this.max_chars_per_line     = 0;
+        this.draw_cariage           = true
+
+        this.interactiveChildren    = false
 
         // Styles
         this.style.background.color = '#ffffff77'
@@ -1298,6 +1307,8 @@ export class SimpleBlockSlot extends Window {
         this.style.font.shadow.enable = true
         this.style.font.shadow.alpha = .5
         this.style.font.size = 14
+
+        this.interactiveChildren = false
 
         this.text_container.anchor.set(1, 1)
         this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)

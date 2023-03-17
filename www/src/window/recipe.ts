@@ -191,6 +191,8 @@ export class RecipeWindow extends BlankWindow {
         const lblPages = new Label(110 * this.zoom, 268 * this.zoom, 70 * this.zoom, 45 * this.zoom, 'lblPages', '1 / 2')
         lblPages.style.font.color = '#ffffff'
         lblPages.style.font.shadow.enable = true
+        lblPages.style.font.shadow.alpha = .5
+        lblPages.style.font.shadow.color = '#00000055'
         lblPages.text_container.anchor.set(.5, .5)
         lblPages.style.textAlign.horizontal = 'center'
         lblPages.style.textAlign.vertical = 'middle'

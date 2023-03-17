@@ -113,9 +113,6 @@ export class InventoryWindow extends BaseCraftWindow {
 
     // Обработчик закрытия формы
     onHide() {
-        // Close recipe window
-        // this.frmRecipe.hide()
-        // this.inventory.player.inventory.recipes.frmRecipe?.hide()
         // Drag
         this.inventory.clearDragItem(true)
         // Clear result

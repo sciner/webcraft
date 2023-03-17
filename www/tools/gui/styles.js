@@ -261,6 +261,21 @@ export class BorderStyle {
     /**
      * @returns {string}
      */
+    get shadow_color() {
+        return this.#_shadow_color
+    }
+
+    /**
+     * @param {string} value
+     */
+    set shadow_color(value) {
+        this.#_shadow_color = value
+        this._redraw()
+    }
+
+    /**
+     * @returns {string}
+     */
     get color() {
         return this.#_color
     }
@@ -340,6 +355,7 @@ export class BorderStyle {
         color1 = parseColorAndAlpha(color1)
         color2 = parseColorAndAlpha(color2)
 
+        border.clear()
         border.lineStyle(border_width, color1.color, color1.alpha)
         border.moveTo(w, h)
             .lineTo(0, h)
@@ -544,6 +560,17 @@ export class FontStyle {
 
         this.shadow = new TextShadowStyle(window)
 
+    }
+
+    get weight() {
+        return this._font_style.fontWeight
+    }
+
+    /**
+     * @type {string}
+     */
+    set weight(value) {
+        this._font_style.fontWeight = value
     }
 
     get anchor() {

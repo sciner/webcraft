@@ -12,7 +12,7 @@ export class InGameMain extends Window {
 
     constructor(player, inventory, recipes) {
 
-        super(10, 10, 1700/2, 1200/2, 'frmInGameMain', null, null);
+        super(10, 10, 860, 610, 'frmInGameMain', null, null);
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
@@ -43,23 +43,31 @@ export class InGameMain extends Window {
 
         // const windows = []
         const tabs = this.tabs = [
-            {title: 'Inventory', form: new InventoryWindow(inventory, recipes), button: null, fix_pos: new Vector(2, 0, 0)},
-            {title: 'Creative', form: new CreativeInventoryWindow(inventory), button: null, fix_pos: new Vector(0, 0, 0)},
-            {title: 'Quests', form: new QuestWindow(player), button: null, fix_pos: new Vector(0, 0, 0)},
-            {title: 'Stats', form: new StatsWindow(player), button: null, fix_pos: new Vector(0, 0, 0)}
+            {title: Lang.inventory, form: new InventoryWindow(inventory, recipes), button: null, fix_pos: new Vector(2, 0, 0)},
+            {title: Lang.creative_inventory, form: new CreativeInventoryWindow(inventory), button: null, fix_pos: new Vector(0, 0, 0)},
+            {title: Lang.quests, form: new QuestWindow(player), button: null, fix_pos: new Vector(0, 0, 0)},
+            {title: Lang.btn_statistics, form: new StatsWindow(player), button: null, fix_pos: new Vector(0, 0, 0)}
         ]
+
+        let bx = 0
 
         // Each all tabs and make menu
         for(let i = 0; i < tabs.length; i++) {
             const tab = tabs[i]
             const btn_margin = 5 * this.zoom
-            const btn_width = 120 * this.zoom
+            const btn_width = 150 * this.zoom
             const btn_height = 30 * this.zoom
-            tab.button = new Label(17 * this.zoom + i * (btn_width + btn_margin), 12 * this.zoom, btn_width, btn_height, `btn${i}`, tab.title, tab.title)
+            tab.button = new Label(17 * this.zoom + bx, 12 * this.zoom, btn_width, btn_height, `btn${i}`, tab.title, tab.title)
+
+            tab.button.w = tab.button.getTextMetrics().width + btn_margin * 4
+            bx += tab.button.w + btn_margin
+
             tab.button.style.textAlign.horizontal = 'center'
             tab.button.style.textAlign.vertical = 'middle'
             tab.form.x = tab.fix_pos.x * this.zoom
-            tab.form.y += (tab.fix_pos.y * this.zoom + btn_height + btn_margin)
+            tab.form.y = tab.button.y + tab.button.h //  (tab.fix_pos.y * this.zoom + btn_height + btn_margin / 2)
+            tab.form.w = this.w
+            tab.form.h = this.h - tab.form.y
             const btnClose = tab.form.list.get('btnClose')
             if(btnClose) {
                 btnClose.visible = false
@@ -77,8 +85,8 @@ export class InGameMain extends Window {
                     } else if(tab.form.visible) {
                         tab.form.hide()
                     }
-                    tab.button.style.background.color = active ? '#7882b9' : '#ffffff55'
-                    // tab.form.style.background.color = '#00000033'
+                    tab.button.style.background.color = active ? '#00000011' : '#00000000'
+                    tab.form.style.background.color = '#00000011'
                 }
             }
             this.add(tab.button)
