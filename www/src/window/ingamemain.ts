@@ -1,5 +1,5 @@
-import { Button, Label, ToggleButton, Window } from "../../tools/gui/wm.js";
-import { INVENTORY_SLOT_SIZE, KEY } from "../constant.js";
+import { Button, Label, Window } from "../../tools/gui/wm.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_SLOT_SIZE, KEY } from "../constant.js";
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { CreativeInventoryWindow } from "./creative_inventory.js";
@@ -12,7 +12,7 @@ export class InGameMain extends Window {
 
     constructor(player, inventory, recipes) {
 
-        super(10, 10, 860, 610, 'frmInGameMain', null, null);
+        super(10, 10, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmInGameMain', null, null);
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom

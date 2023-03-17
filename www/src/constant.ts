@@ -5,6 +5,8 @@ export enum LIGHT_TYPE {
     RTX     = 2,
 }
 
+export const INGAME_MAIN_WIDTH              = 860
+export const INGAME_MAIN_HEIGHT             = 610
 export const GAME_ONE_SECOND                = 72;
 export const GAME_DAY_SECONDS               = 24000;
 // If more time than this has passed since the last update, player.update() is skipped.

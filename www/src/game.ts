@@ -7,7 +7,7 @@ import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE, DEFAULT_RENDER_DISTANCE } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE, DEFAULT_RENDER_DISTANCE, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
@@ -20,9 +20,23 @@ import type { HUD } from "./hud.js";
 
 // Reset zoom
 // TODO: pixi
-const zoom = (window.innerHeight > window.innerWidth) ? (window.innerHeight / 1220) : (window.innerWidth / 1720);
-(globalThis as any).UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio * zoom * 0.8;
-console.debug('zoom', UI_ZOOM)
+let zoom = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio
+let x_zoom = undefined
+let y_zoom = undefined
+const maxsp = new Vector(.95, .8)
+const test = new Vector(INGAME_MAIN_WIDTH * zoom, INGAME_MAIN_HEIGHT * zoom)
+const screen = new Vector(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio).mul(maxsp)
+if(test.x > screen.x) {
+    x_zoom = zoom / (test.x / screen.x)
+}
+if(test.y > screen.y) {
+    y_zoom = zoom / (test.y / screen.y)
+}
+if(x_zoom !== undefined || y_zoom != undefined) {
+    zoom = Math.min(x_zoom ?? zoom, y_zoom ?? zoom)
+}
+(globalThis as any).UI_ZOOM = zoom
+console.log('zoom', UI_ZOOM)
 globalThis.UI_FONT = 'Ubuntu';
 
 export class GameSettings {
