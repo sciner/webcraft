@@ -20,7 +20,8 @@ import type { HUD } from "./hud.js";
 
 // Reset zoom
 // TODO: pixi
-(globalThis as any).UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
+const zoom = (window.innerHeight > window.innerWidth) ? (window.innerHeight / 1220) : (window.innerWidth / 1720);
+(globalThis as any).UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio * zoom * 0.8;
 console.debug('zoom', UI_ZOOM)
 globalThis.UI_FONT = 'Ubuntu';
 
