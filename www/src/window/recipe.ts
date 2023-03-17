@@ -16,6 +16,7 @@ export class RecipeSlot extends Window {
         this.recipe = recipe
         this.block = block
         this.ct = ct
+        this.interactiveChildren = false
 
         const image = getBlockImage(block)
         this.setBackground(image, 'center', 1.25)
@@ -143,9 +144,9 @@ export class RecipeWindow extends BlankWindow {
 
     }
 
-    onKeyEvent(e) : boolean {
-        return false
-    }
+    // onKeyEvent(e) : boolean {
+    //     return false
+    // }
 
     onShow(args) {
         // Создание слотов

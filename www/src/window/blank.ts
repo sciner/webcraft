@@ -29,7 +29,7 @@ export class BlankWindow extends Window {
                 return true
             }
         }
-        return false
+        return super.onKeyEvent(e)
     }
 
     onShow(args) {

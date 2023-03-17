@@ -257,22 +257,23 @@ export class Window extends PIXI.Container {
 
     // onKeyEvent
     onKeyEvent(e) {
+        let fired = false
         for(let w of this.list.values()) {
-            if(w.visible) {
-                let fired = false;
-                for(let f of w.list.values()) {
-                    if(f.focused) {
-                        fired = f.onKeyEvent(e);
+            if(w.visible && w.interactiveChildren) {
+                for(let child of w.list.values()) {
+                    if(child.focused || child.interactiveChildren) {
+                        fired = child.onKeyEvent(e)
                         if(fired) {
-                            break;
+                            return fired
                         }
                     }
                 }
                 if(!fired) {
-                    w.onKeyEvent(e);
+                    fired = w.onKeyEvent(e)
                 }
             }
         }
+        return fired
     }
 
     /**
@@ -1144,7 +1145,7 @@ export class TextEdit extends Window {
         super(x, y, w, h, id, title, text)
 
         this.max_length             = 0;
-        this.max_lines              = 0;
+        this.max_lines              = 1;
         this.max_chars_per_line     = 0;
         this.draw_cariage           = true
 
@@ -1180,27 +1181,26 @@ export class TextEdit extends Window {
             }
         }
 
-        // typeChar
-        this.typeChar = (e, charCode, ch) => {
-            if(!this.focused) {
-                return;
-            }
-            if(charCode == 13) {
-                return false;
-            }
-            if(this.buffer.length < this.max_length || this.max_length == 0) {
-                if(this.max_lines > 0) {
-                    const ot = this.buffer.join('') + ch;
-                    const lines = this.calcPrintLines(ot);
-                    if(lines.length > this.max_lines) {
-                        return;
-                    }
-                }
-                this.buffer.push(ch);
-                this._changed();
-            }
+    }
+    
+    typeChar(e, charCode, ch) {
+        if(!this.focused) {
+            return;
         }
-
+        if(charCode == 13 && this.max_lines < 2) {
+            return false
+        }
+        if(this.buffer.length < this.max_length || this.max_length == 0) {
+            if(this.max_lines > 1) {
+                const ot = this.buffer.join('') + ch;
+                const lines = this.calcPrintLines(ot);
+                if(lines.length > this.max_lines) {
+                    return
+                }
+            }
+            this.buffer.push(ch);
+            this._changed();
+        }
     }
 
     /**
@@ -1249,19 +1249,21 @@ export class TextEdit extends Window {
         switch(keyCode) {
             case KEY.ENTER: {
                 if(down) {
-                    this.buffer.push(String.fromCharCode(13));
-                    this._changed()
+                    if(this.max_lines > 1) {
+                        this.buffer.push(String.fromCharCode(13));
+                        this._changed()
+                    }
                 }
-                return true;
+                return true
             }
             case KEY.BACKSPACE: {
                 if(down) {
                     this.backspace()
-                    break;
                 }
-                return true;
+                return true
             }
         }
+        return false
     }
 
 }

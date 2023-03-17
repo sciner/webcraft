@@ -381,7 +381,7 @@ export class GameClass {
                     }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
-                            if(hud.frmMainMenu.visible) {
+                            if(hud.frmMainMenu.visible || hud.wm.getWindow('frmInGameMain').visible) {
                                 hud.wm.closeAll()
                                 Qubatch.setupMousePointer(false)
                                 return true
@@ -610,11 +610,13 @@ export class GameClass {
                 return false;
             },
             onDoubleKeyDown: (e) => {
-                if(e.keyCode == KEY.W) {
-                    player.controls.sprint = true;
-                } else if (e.keyCode == KEY.SPACE) {
-                    if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
-                        player.setFlying(!player.getFlying());
+                if(!hud.wm.hasVisibleWindow() && !player.chat.active) {
+                    if(e.keyCode == KEY.W) {
+                        player.controls.sprint = true;
+                    } else if (e.keyCode == KEY.SPACE) {
+                        if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
+                            player.setFlying(!player.getFlying());
+                        }
                     }
                 }
             }

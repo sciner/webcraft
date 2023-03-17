@@ -20,6 +20,7 @@ class CreativeInventoryCollection extends Window {
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
         this.max_height = 0
+        this.slots_count = 0
         this.style.background.color = '#00000000'
         this.style.border.hidden = true
 
@@ -43,7 +44,7 @@ class CreativeInventoryCollection extends Window {
     updateVisibleSlots() {
         const start_index = -this.scrollY / this.cell_size * this.xcnt
         const end_index = start_index + this.xcnt * this.ycnt
-        for(let i = 0; i < this.slots.length; i++) {
+        for(let i = 0; i < this.slots_count; i++) {
             const child = this.slots[i]
             child.visible = i >= start_index && i < end_index
         }
@@ -110,15 +111,12 @@ class CreativeInventoryCollection extends Window {
     initCollection(all_blocks) {
 
         // remove all childrens
-        for(let i = this.slots.length - 1; i >= 0; i--) {
-            const child = this.slots[i]
-            this.container.removeChild(child)
+        for(let i = 0; i < this.slots.length; i++) {
+            this.slots[i].visible = false
         }
 
-        this.slots.length = 0
-
+        this.slots_count        = all_blocks.length
         this.scrollY            = 0
-        this.max_height         = 0
         this.container.y        = 0
 
         let sx                  = 0
@@ -172,42 +170,33 @@ class CreativeInventoryCollection extends Window {
             return false
         }
 
-        const items = all_blocks
-        for(let i = 0; i < items.length; i++) {
-            const x = sx + (i % xcnt) * sz
-            const y = sy + Math.floor(i / xcnt) * this.cell_size
-            if(y + this.cell_size > this.max_height) {
-                this.max_height = y + this.cell_size
+        for(let i = 0; i < all_blocks.length; i++) {
+
+            if(i >= this.slots.length) {
+                this.slots.push(null)
             }
-            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent, null)
-            lblSlot.style.border.style = 'inset'
-            lblSlot.style.border.shadow_color = '#00000000'
-            lblSlot.style.border.color = '#00000055'
-            lblSlot.onDrop = dropFunc
-            lblSlot.onMouseDown = onMouseDownFunc
-            this.container.add(lblSlot)
-            this.container.h = lblSlot.y + lblSlot.h
+
+            let lblSlot = this.slots[i]
+            if(!lblSlot) {
+                lblSlot = this.slots[i] = new CraftTableInventorySlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent, null)
+                lblSlot.style.border.style = 'inset'
+                lblSlot.style.border.shadow_color = '#00000000'
+                lblSlot.style.border.color = '#00000055'
+                lblSlot.onDrop = dropFunc
+                lblSlot.onMouseDown = onMouseDownFunc
+                this.container.add(lblSlot)
+            }
+
+            lblSlot.x = sx + (i % xcnt) * sz
+            lblSlot.y = sy + Math.floor(i / xcnt) * this.cell_size
             lblSlot.setItem(all_blocks[i])
-            this.slots.push(lblSlot)
+
         }
 
-        this.updateVisibleSlots()
+        this.max_height = Math.ceil(all_blocks.length / xcnt) * this.cell_size
+        this.container.h = this.max_height
 
-        // // Empty slots
-        // const remains = items.length < 81 ? 81 - items.length : 9 - (items.length % 9);
-        // for(let j = 0; j < remains; j++) {
-        //     let i = j + items.length
-        //     let x = sx + (i % xcnt) * sz
-        //     let y = sy + Math.floor(i / xcnt) * this.cell_size
-        //     if(y + this.cell_size > this.max_height) {
-        //         this.max_height = y + this.cell_size
-        //     }
-        //     const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null)
-        //     lblSlot.onDrop = dropFunc
-        //     this.container.add(lblSlot)
-        //     this.container.h = lblSlot.y + lblSlot.h
-        //     lblSlot.setItem(all_blocks[i])
-        // }
+        this.updateVisibleSlots()
 
     }
 
@@ -226,7 +215,6 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.w *= this.zoom
         this.h *= this.zoom
         this.inventory = inventory
-        // this.setBackground('./media/gui/creative_inventory/tab_items.png')
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom

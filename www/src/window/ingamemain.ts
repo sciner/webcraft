@@ -134,26 +134,4 @@ export class InGameMain extends Window {
         super.onHide()
     }
 
-    // Hook for keyboard input
-    onKeyEvent(e) {
-        const ct = this
-        const {keyCode, down, first} = e
-        switch(keyCode) {
-            case KEY.ESC: {
-                if(!down) {
-                    ct.hide()
-                    try {
-                        Qubatch.setupMousePointer(true)
-                    } catch(e) {
-                        console.error(e)
-                    }
-                }
-                return true
-            }
-        }
-        return false
-        // return true
-        // return super.onKeyEvent(e)
-    }
-
 }
