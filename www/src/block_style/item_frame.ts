@@ -1,13 +1,13 @@
 import {calcRotateMatrix, DIRECTION, IndexedColor, QUAD_FLAGS, Vector} from '../helpers.js';
-import {BlockManager, DropItemVertices, FakeTBlock} from "../blocks.js";
+import type { BlockManager, FakeTBlock } from '../blocks.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 import type { TBlock } from '../typed_blocks3.js';
-import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import { BlockStyleRegInfo, default as default_style } from './default.js';
 
 
 const {mat4} = glMatrix;
@@ -27,7 +27,7 @@ for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
 
-// Горшок
+// Рамка для предметов
 export default class style {
     [key: string]: any;
 
@@ -77,123 +77,40 @@ export default class style {
         const material = block.material;
         const flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.NO_AO;
 
-        // Textures
-        const c_up = bm.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = bm.calcMaterialTexture(block.material, DIRECTION.EAST);
+        const c_side = bm.calcTexture(bm.OAK_PLANKS.texture, DIRECTION.DOWN);
         const c_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
-        const c_inner_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
-        c_side[1] += 10/32/32;
-        c_down[1] += 10/32/32;
-
-        let aabb = new AABB();
-        aabb.set(
-            x + .5 - WIDTH / 2,
-            y + .6,
-            z + .5 - WIDTH / 2,
-            x + .5 + WIDTH / 2,
-            y + .6 + HEIGHT,
-            z + .5 + WIDTH / 2,
-        );
-
-        matrix = mat4.create();
-
-        // Rotate
-        const rotate = block.rotate || DEFAULT_ROTATE;
-        const cardinal_direction = block.getCardinalDirection();
-        matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
-
-        // outer
-        const aabb_down = new AABB();
-        aabb_down.set(
-            x + .5 - WIDTH/2,
-            y,
-            z + .5 - WIDTH/2,
-            x + .5 + WIDTH/2,
-            y + HEIGHT,
-            z + .5 + WIDTH/2,
-        );
-
-        //
-        pushAABB(
-            vertices,
-            aabb_down,
-            pivot,
-            matrix,
+        const parts = []
+        parts.push(...[
             {
-                up:     new AABBSideParams(c_up, flags, 1, null, null, true), // flag: 0, anim: 1 implicit
-                down:   new AABBSideParams(c_side, flags, 1, null, null, true),
-                south:  new AABBSideParams(c_side, flags, 1, null, null, true),
-                north:  new AABBSideParams(c_side, flags, 1, null, null, true),
-                west:   new AABBSideParams(c_side, flags, 1, null, null, true),
-                east:   new AABBSideParams(c_side, flags, 1, null, null, true),
-            },
-            new Vector(x, y, z)
-        );
-
-        // inner
-        aabb_down.set(
-            x + .5 - WIDTH_INNER/2,
-            y + HEIGHT - HEIGHT_INNER,
-            z + .5 - WIDTH_INNER/2,
-            x + .5 + WIDTH_INNER/2,
-            y + HEIGHT,
-            z + .5 + WIDTH_INNER/2,
-        );
-
-        pushAABB(
-            vertices,
-            aabb_down,
-            pivot,
-            matrix,
-            {
-                down:   new AABBSideParams(c_inner_down, flags, 1, null, null, true),
-                south:  new AABBSideParams(c_side, flags, 1, null, null, true),
-                north:  new AABBSideParams(c_side, flags, 1, null, null, true),
-                west:   new AABBSideParams(c_side, flags, 1, null, null, true),
-                east:   new AABBSideParams(c_side, flags, 1, null, null, true),
-            },
-            new Vector(x, y, z)
-        );
-
-        // return item in frame
-        if(block.extra_data && block.extra_data.item) {
-            const vg = QubatchChunkWorker.drop_item_meshes[block.extra_data.item.id];
-
-            const scale = 0.3;
-
-            // old version compatibility
-            if(!('rot' in block.extra_data)) {
-                block.extra_data.rot = 0;
-            }
-
-            // Rotate item in frame
-            const matRotate = mat4.create();
-
-            // rotate item inside frame
-            mat4.rotate(matRotate, matRotate, Math.PI / 4 * block.extra_data.rot + Math.PI, [0, 0, 1]);
-            mat4.rotate(matRotate, matRotate, Math.PI, [1, 0, 0]);
-            mat4.scale(matRotate, matRotate, [scale, scale, scale]);
-
-            if(rotate.y == 0) {
-                let angle = 0;
-                if(rotate.x == 7) angle = Math.PI / 2 * 2;
-                if(rotate.x == 18) angle = Math.PI / 2 * 0;
-                if(rotate.x == 22) angle = Math.PI / 2 * 1;
-                if(rotate.x == 13) angle = Math.PI / 2 * 3;
-                mat4.rotate(matRotate, matRotate, angle, [0, 1, 0]);
-            } else {
-                mat4.rotate(matRotate, matRotate, Math.PI/2, [1, 0, 0]);
-                if(rotate.y == -1) {
-                    mat4.rotate(matRotate, matRotate, Math.PI, [0, 0, 1]);
+                "size": {"x": 1, "y": 12, "z": 1},
+                "translate": {"x": 7.5, "y": 0, "z": 6},
+                "faces": {
+                    "north": {"uv": [8, 8],"texture": c_side},
+                    "south": {"uv": [8, 8],"texture": c_side},
+                    "east": {"uv": [8, 8],"texture": c_side},
+                    "west": {"uv": [8, 8],"texture": c_side}
+                }
+            },{
+                "size": {"x": 1, "y": 1, "z": 12},
+                "translate": {"x": 7.5, "y": 6, "z": 0},
+                "faces": {
+                    "north": {"uv": [8, 8],"texture": c_side},
+                    "south": {"uv": [8, 8],"texture": c_side},
+                    "east": {"uv": [8, 8],"texture": c_side},
+                    "west": {"uv": [8, 8],"texture": c_side}
                 }
             }
-
-            const mesh = new DropItemVertices(block.extra_data.item.id, block.extra_data, new Vector(x, y, z), rotate, matRotate, vg.vertices);
-            return [mesh];
+        ])
+        const pos = new Vector(x, y, z)
+        for (const part of parts) {
+            default_style.pushPART(vertices, {
+                ...part,
+                lm:         IndexedColor.WHITE,
+                pos:        pos,
+                matrix:     matrix
+            })
         }
-
-        // return empty frame
         return null;
 
     }
