@@ -419,6 +419,7 @@ export class TypedBlocks3 {
      * It deletes only the extra properties that are used by the generator.
      * It doesn't change the block id.
      * It's much faster than {@link delete}
+     * @param ind - non-flat block index in chunk
      */
     deleteExtraInGenerator(ind: int) : void {
         this.rotate.deleteByIndex(ind)

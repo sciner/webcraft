@@ -24,7 +24,7 @@ import type { HUD } from "./hud.js";
 console.debug('zoom', UI_ZOOM)
 globalThis.UI_FONT = 'Ubuntu';
 
-export class GameSettings {
+export class GameSettings implements TWorldSettings {
 
     // control
     mouse_sensitivity:       float = 100

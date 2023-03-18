@@ -1,3 +1,5 @@
+/// <reference path="./worker/messages.d.ts" />
+
 // We can't import types because of the TS bug https://github.com/microsoft/TypeScript/issues/44040
 
 // import type { WorkerWorldManager } from './worker/world.js'
@@ -85,7 +87,9 @@ class ChunkWorkerRoot {
         console.debug('[ChunkWorker] Preloaded, load time:', performance.now() - start);
     }
 
-    async initWorld(generator, world_seed, world_guid, settings, cache) {
+    async initWorld(generator: TGeneratorInfo, world_seed: string, world_guid: string,
+                    settings: TBlocksSettings, cache: Map<any, any>, is_server: boolean
+    ) {
         if (cache) {
             this.Helpers.setCache(cache);
         }
@@ -102,7 +106,7 @@ class ChunkWorkerRoot {
             await this.blockManager.init(settings);
             //
             const terrainGenerators = await terrainGeneratorsPromise;
-            this.worlds = new this.WorkerWorldManager(this.blockManager, terrainGenerators);
+            this.worlds = new this.WorkerWorldManager(this.blockManager, terrainGenerators, is_server);
 
             // bulding_schemas
             if (this.bulding_schemas.length > 0) {
@@ -139,15 +143,18 @@ class ChunkWorkerRoot {
             data = e.data;
         }
         const cmd = data[0];
+        /** Its type is {@link } */
         const args = data[1];
         if (cmd == 'init') {
             // Init modules
+            const msg: TChunkWorkerMessageInit = args
             return await this.initWorld(
-                args.generator,
-                args.world_seed,
-                args.world_guid,
-                args.settings,
-                args.resource_cache
+                msg.generator,
+                msg.world_seed,
+                msg.world_guid,
+                msg.settings,
+                msg.resource_cache,
+                msg.is_server
             );
         }
         const world = this.world;
@@ -167,14 +174,15 @@ class ChunkWorkerRoot {
                     if (from_cache) {
                         const chunk = world.chunks.get(item.addr);
                         chunk.uniqId = item.uniqId;
-                        const non_zero = chunk.tblocks.refreshNonZero();
-                        // the message type is TBlocksGeneratedWorkerMessage (but we can't import types in the worker)
-                        this.postMessage(['blocks_generated', {
+                        const non_zero = chunk.refreshNonZero();
+                        const msg: TChunkWorkerMessageBlocksGenerated = {
                             addr: chunk.addr,
                             uniqId: item.uniqId,
                             tblocks: non_zero > 0 ? chunk.tblocks.saveState() : null,
-                            packedCells: chunk.packCells()
-                        }]);
+                            packedCells: chunk.packCells(),
+                            tickers: non_zero ? chunk.scanTickingBlocks() : null
+                        }
+                        this.postMessage(['blocks_generated', msg]);
                     } else {
                         world.createChunk(item);
                     }

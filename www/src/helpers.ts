@@ -1,4 +1,5 @@
 /// <reference path="./global.d.ts" />
+/// <reference path="./worker/messages.d.ts" />
 
 export * from "./helpers/helper_const.js";
 export * from './helpers/color.js';

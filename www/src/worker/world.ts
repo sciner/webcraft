@@ -3,9 +3,7 @@ import { VectorCollector, Vector, getChunkAddr, PerformanceTimer } from "../help
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
-import type { GameSettings } from "../game.js";
 import type { DataChunk } from "../core/DataChunk";
-import type {TBlocksGeneratedWorkerMessage} from "./messages.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
 const DEBUG_CHUNK_GEN_TIMERS = false
@@ -17,13 +15,15 @@ export class WorkerWorldManager {
     list: WorkerWorld[]
     curIndex: number
     terrainGenerators: Map<string, object>
+    is_server: boolean
 
     /**
      * @param { BLOCK } block_manager
      */
-    constructor(block_manager : BLOCK, terrainGenerators: Map<string, object>) {
+    constructor(block_manager : BLOCK, terrainGenerators: Map<string, object>, is_server: boolean) {
         this.block_manager = block_manager
         this.terrainGenerators = terrainGenerators
+        this.is_server = is_server
         this.all = new Map();
         this.list = [];
         this.curIndex = 0;
@@ -43,14 +43,14 @@ export class WorkerWorldManager {
         return terrainGenerators;
     }
 
-    async add(g, seed, world_id, settings : GameSettings) {
+    async add(g, seed, world_id, settings : TBlocksSettings) {
         const generator_options = g?.options || {};
         const generator_id = g.id;
         const key = generator_id + '/' + seed;
         if(this.all.has(key)) {
             return this.all.get(key);
         }
-        const world = new WorkerWorld(this.block_manager, settings);
+        const world = new WorkerWorld(this.block_manager, settings, this.is_server);
         const generator_class = this.terrainGenerators.get(generator_id);
         await world.init(seed, world_id, generator_class, generator_options)
         this.all.set(key, world);
@@ -93,15 +93,14 @@ export class WorkerWorld {
     generator: any;
     activePotentialCenter: any;
 
-    settings : GameSettings = null
+    settings : TBlocksSettings = null
     totalChunkTimers = DEBUG_CHUNK_GEN_TIMERS ? new PerformanceTimer() : null
+    is_server: boolean
 
-    /**
-     * @param { BLOCK } block_manager
-     */
-     constructor(block_manager: BLOCK, settings : GameSettings) {
+    constructor(block_manager: BLOCK, settings: TBlocksSettings, is_server: boolean) {
         this.block_manager = block_manager
         this.settings = settings
+        this.is_server = is_server
         this.chunks = new VectorCollector();
         this.genQueue = new ChunkWorkQueue(this);
         this.buildQueue = null;
@@ -247,16 +246,6 @@ export class WorkerWorld {
 
                 chunk.doGen();
 
-                const total = this.totalChunkTimers
-                if (total) {
-                    total.addFrom(chunk.timers).count++
-                    if (genQueue.size() == 0) {
-                        console.log(`[ChunkWorker] generated ${total.count} chunks. Times, ms:`)
-                        console.log(total.addSum().round().exportMultiline())
-                        this.totalChunkTimers = null
-                    }
-                }
-
                 times += chunk.genValue || genPerIter;
                 minGenDist = Math.min(minGenDist, chunk.queueDist);
 
@@ -266,23 +255,26 @@ export class WorkerWorld {
                 }
 
                 // Return chunk object
-                const ci = {
-                    // ChunkWorkerChunk has no .key property.
-                    // Maybe it was supposed to be the result of ChunkWorkerChunk.doGen()? (which also has key === undefined)
-                    key:            chunk.key,
-                    addr:           chunk.addr,
-                    tblocks:        chunk.tblocks,
-                    map:            chunk.map
-                };
-
-                const non_zero = ci.tblocks.refreshNonZero();
-                const ci2: TBlocksGeneratedWorkerMessage = {
-                    addr: ci.addr,
+                const non_zero = chunk.refreshNonZero();
+                const ci2: TChunkWorkerMessageBlocksGenerated = {
+                    addr: chunk.addr,
                     uniqId: chunk.uniqId,
                     // key: ci.key,
-                    tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
+                    tblocks: non_zero > 0 ? chunk.tblocks.saveState() : null,
                     packedCells: chunk.packCells(),
+                    tickers: non_zero ? chunk.scanTickingBlocks() : null,
                     genQueueSize: genQueue.size()
+                }
+
+                // Update and log timers - after the chunk finished exporting
+                const total = this.totalChunkTimers
+                if (total) {
+                    total.addFrom(chunk.timers).count++
+                    if (genQueue.size() == 0) {
+                        console.log(`[ChunkWorker] generated ${total.count} chunks. Times, ms:`)
+                        console.log(total.addSum().round().exportMultiline())
+                        this.totalChunkTimers = null
+                    }
                 }
 
                 QubatchChunkWorker.postMessage(['blocks_generated', ci2]);

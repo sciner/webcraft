@@ -52,6 +52,12 @@ interface IVectorPoint extends IVector {
 
 interface TSideSet {}
 
+type TGeneratorInfo = {
+    id: string
+    cluster_size?: IVector
+    options: any
+}
+
 declare interface TWorldInfo {
 
     id:             int
@@ -62,11 +68,7 @@ declare interface TWorldInfo {
     seed:           string
     ore_seed:       string
     game_mode:      string
-    generator:      {
-        id: string
-        cluster_size?: IVector
-        options: any
-    }
+    generator:      TGeneratorInfo
     pos_spawn:      IVector
     rules:          Dict<any>
     state:          object
@@ -80,7 +82,15 @@ declare interface TWorldInfo {
 
 }
 
-interface TWorldSettings {
+/** A subset of the game settings needed for the chunk worker and BLOCK class */
+interface TBlocksSettings {
+    json_url?: string
+    texture_pack?: string
+    resource_packs_url?: string
+    overlay_textures?: boolean
+}
+
+interface TWorldSettings extends TBlocksSettings {
     chunks_draw_debug_grid: boolean
     cluster_draw_debug_grid: boolean
     use_light: number
@@ -274,6 +284,8 @@ interface IBlockMaterial {
     multiply_color: IColor
     mask_color: IColor
     has_head: {pos: IVector}
+    window?: string
+    spawn_egg?: {type, skin}
     // boolean values
     spawnable: boolean
     planting: boolean
@@ -281,6 +293,7 @@ interface IBlockMaterial {
     transparent: boolean
     diagonal: boolean
     uvlock: boolean
+    selflit: boolean
     gravity: boolean // Is sand or gravel
     random_rotate_up: boolean // Need to random rotate top texture
     can_rotate: boolean
@@ -301,6 +314,24 @@ interface IBlockMaterial {
     is_grass: boolean
     is_battery: boolean
     is_log: boolean
+    // boolean values that are automatically calculated by BLOCK, not from JSON
+    has_window: boolean
+    is_jukebox: boolean
+    is_mushroom_block: boolean
+    is_sapling: boolean
+    is_sign: boolean
+    is_banner: boolean
+    transmits_light: boolean
+    invisible_for_cam: boolean
+    invisible_for_rain: boolean
+    can_take_shadow: boolean
+    is_solid_for_fluid: boolean
+    can_interact_with_hand: boolean
+    can_replace_by_tree: boolean
+    drop_if_unlinked: boolean
+    visible_for_ao: boolean
+    interact_water: boolean
+    //
     coocked_item: { count: number, name: string }
     fuel_time: number
     //

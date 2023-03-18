@@ -19,7 +19,6 @@ import type { ServerChunkManager } from "./server_chunk_manager.js";
 import { FluidChunkQueue } from "@client/fluid/FluidChunkQueue.js";
 import type { DBItemBlock } from "@client/blocks";
 import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
-import type {TBlocksGeneratedWorkerMessage} from "@client/worker/messages.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -124,6 +123,15 @@ export class TickingBlockManager {
         return this.#chunk;
     }
 
+    init(tickers: TScannedTickers): void {
+        if (this.#chunk.load_state !== CHUNK_STATE.LOADING_BLOCKS) {
+            throw new Error()
+        }
+        for(const flatIndex of tickers.tickerFlatIndices) {
+            this.blockFlatIndices.add(flatIndex)
+        }
+    }
+
     // addTickingBlock
     add(pos_world: Vector): void {
         const pos_index = pos_world.getFlatIndexInChunk()
@@ -196,7 +204,7 @@ export class ServerChunk {
     preq:                               Map<any, any>               = new Map();
     mobs:                               Map<int, Mob>               = new Map();
     drop_items:                         Map<string, DropItem>       = new Map();
-    randomTickingBlockCount:            number                      = 0;
+    randomTickingBlockCount:            int                         = 0;
     dataChunk:                          any                         = null;
     fluid:                              any                         = null;
     blocksUpdatedByListeners:           any[]                       = [];
@@ -523,7 +531,7 @@ export class ServerChunk {
     }
 
     // onBlocksGenerated ... Webworker callback method
-    onBlocksGenerated(args: TBlocksGeneratedWorkerMessage): void {
+    onBlocksGenerated(args: TChunkWorkerMessageBlocksGenerated): void {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
@@ -548,6 +556,10 @@ export class ServerChunk {
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
         }
+        if (args.tickers) {
+            this.randomTickingBlockCount = args.tickers.randomTickersCount
+            this.ticking_blocks.init(args.tickers)
+        }
         if(this._preloadFluidBuf) {
             // now its stored in fluid facet
             this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
@@ -557,7 +569,6 @@ export class ServerChunk {
         // noinspection JSIgnoredPromiseFromCall
         this.loadMobs();
         this.onBlocksGeneratedOrRestored();
-        this.scanTickingBlocks();
     }
 
     restoreUnloaded() {
@@ -608,7 +619,7 @@ export class ServerChunk {
         this.onMobsLoadedOrRestored();
     }
 
-    onMobsLoadedOrRestored() {
+    private onMobsLoadedOrRestored() {
         const chunkManager = this.getChunkManager();
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0) {
@@ -654,44 +665,7 @@ export class ServerChunk {
         return true;
     }
 
-    private scanTickingBlocks(): void {
-        if(NO_TICK_BLOCKS) {
-            return
-        }
-        const bm = this.world.block_manager
-        const flagsById = bm.flags
-        const blockIds = this.tblocks.id
-        const ANY_TICKER_FLAGS = BLOCK_FLAG.TICKING | BLOCK_FLAG.RANDOM_TICKER
-        const pos = new Vector()
 
-        this.randomTickingBlockCount = 0
-        for(let index = 0; index < blockIds.length; index++) {
-            const block_id = blockIds[index]
-            const flags = flagsById[block_id]
-            if ((flags & ANY_TICKER_FLAGS) === 0) { // a single fast check to exclude most of the blocks
-                continue
-            }
-
-            // find the relative block pos; check if it isn't in the chunk padding
-            pos.fromChunkIndex(index)
-            if (!pos.isRelativePosInChunk()) {
-                continue
-            }
-
-            if ((flags & BLOCK_FLAG.RANDOM_TICKER) !== 0) {
-                this.randomTickingBlockCount++;
-            }
-
-            if ((flags & BLOCK_FLAG.TICKING) !== 0) {
-                const extra_data = this.tblocks.extra_data.getByIndex(index)
-                // don't add tickers without extra_data because that's how it's checked in TickingBlock.setState()
-                if (extra_data && !extra_data.notick) {
-                    pos.addSelf(this.coord) // convert to the world coordinate system
-                    this.ticking_blocks.add(pos)
-                }
-            }
-        }
-    }
 
     // Return block key
     getBlockKey(pos) {

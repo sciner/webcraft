@@ -145,11 +145,14 @@ export class ServerChunkManager {
         });
         // Init webworkers
         const world_info = this.world.info;
-        const generator = world_info.generator;
-        const world_seed = world_info.seed;
-        const world_guid = world_info.guid;
-        const settings = {texture_pack: null};
-        this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
+        const msg: TChunkWorkerMessageInit = {
+            generator: world_info.generator,
+            world_seed: world_info.seed,
+            world_guid: world_info.guid,
+            settings: {texture_pack: null},
+            is_server: true
+        }
+        this.postWorkerMessage(['init', msg]);
         return promise;
     }
 

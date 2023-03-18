@@ -14,7 +14,7 @@ import type { BaseResourcePack } from "../base_resource_pack.js";
 import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
 import type { WorkerWorld } from "./world.js";
 import type { FluidChunk } from "../fluid/FluidChunk.js";
-import { BLOCK_FLAG } from "../constant.js";
+import {BLOCK_FLAG, NO_TICK_BLOCKS} from "../constant.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -126,6 +126,8 @@ export class ChunkWorkerChunk {
         this.genValue = 0;
     }
 
+    get world(): WorkerWorld { return this.chunkManager.world }
+
     init() {
         // Variables
         this.vertices_length    = 0;
@@ -157,6 +159,7 @@ export class ChunkWorkerChunk {
 
         this.inited = true
 
+        // The result is unused; this.key is undefined
         return {
             key:        this.key,
             addr:       this.addr,
@@ -167,19 +170,30 @@ export class ChunkWorkerChunk {
     }
 
     packCells(): Int16Array {
+        this.timers.start('packCells');
         const {cells} = this.map;
         let len = cells.length;
         let packed = new Int16Array(PACKED_CELL_LENGTH * len);
         const eps = 1e-2;
         for (let i = 0; i < len; i++) {
             const cell = cells[i];
-            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_DIRT_COLOR_R] = Math.floor(cell.dirt_color.r + eps);
-            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_DIRT_COLOR_G] = Math.floor(cell.dirt_color.g + eps);
-            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R] = Math.floor(cell.water_color.r + eps);
-            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G] = Math.floor(cell.water_color.g + eps);
-            packed[i * PACKED_CELL_LENGTH + PACKET_CELL_BIOME_ID] = Math.floor(cell.biome.id + eps);
+            const ind = i * PACKED_CELL_LENGTH;
+            packed[ind + PACKET_CELL_DIRT_COLOR_R] = Math.floor(cell.dirt_color.r + eps);
+            packed[ind + PACKET_CELL_DIRT_COLOR_G] = Math.floor(cell.dirt_color.g + eps);
+            packed[ind + PACKET_CELL_WATER_COLOR_R] = Math.floor(cell.water_color.r + eps);
+            packed[ind + PACKET_CELL_WATER_COLOR_G] = Math.floor(cell.water_color.g + eps);
+            packed[ind + PACKET_CELL_BIOME_ID] = cell.biome.id;
         }
+        this.timers.stop();
         return packed;
+    }
+
+    /** The same as {@link TypedBlocks3.refreshNonZero}, but accounts it in the performance timer */
+    refreshNonZero(): int {
+        this.timers.start('refreshNonZero')
+        const res = this.tblocks.refreshNonZero()
+        this.timers.stop()
+        return res
     }
 
     //
@@ -201,23 +215,70 @@ export class ChunkWorkerChunk {
         this.modify_list = ml;
         //
         const pos = new Vector(0, 0, 0);
-        const block_vec_index = new Vector(0, 0, 0);
+        const ids = this.tblocks.id
         for(let k in ml) {
-            const index = parseInt(k)
-            const m = ml[index];
+            const flatIndex = parseInt(k)
+            const m = ml[flatIndex];
             if(!m) continue;
-            pos.fromFlatChunkIndex(index);
+            pos.fromFlatChunkIndex(flatIndex);
             if(m.id < 1) {
-                BLOCK.getBlockIndex(pos, null, null, block_vec_index);
-                this.tblocks.delete(block_vec_index);
+                const index = pos.relativePosToChunkIndex()
+                ids[index] = 0
+                this.tblocks.deleteExtraInGenerator(index)
                 continue;
             }
             // setBlock
             this.setBlockIndirect(pos.x, pos.y, pos.z, m.id, m.rotate, m.extra_data);
-            this.emitted_blocks.delete(index);
+            this.emitted_blocks.delete(flatIndex);
 
         }
         this.modify_list = null;
+    }
+
+    scanTickingBlocks(): TScannedTickers | null {
+        if (!this.world.is_server || NO_TICK_BLOCKS) {
+            return null
+        }
+        this.timers.start('scanTickingBlocks')
+        const bm = this.world.block_manager
+        const flagsById = bm.flags
+        const blockIds = this.tblocks.id
+        const ANY_TICKER_FLAGS = BLOCK_FLAG.TICKING | BLOCK_FLAG.RANDOM_TICKER
+        const pos = new Vector()
+        const length = blockIds.length // accessing array length in the loop is slow!
+        // the result
+        const tickerFlatIndices: int[] = []
+        let randomTickersCount = 0
+
+        for(let index = 0; index < length; index++) {
+            const block_id = blockIds[index]
+            // optimization note: additional check (!block_id) here makes it slower
+            const flags = flagsById[block_id]
+            if ((flags & ANY_TICKER_FLAGS) === 0) { // a single fast check to exclude most of the blocks
+                continue
+            }
+
+            // find the relative block pos; check if it isn't in the chunk padding
+            pos.fromChunkIndex(index)
+            if (!pos.isRelativePosInChunk()) {
+                continue
+            }
+
+            if ((flags & BLOCK_FLAG.RANDOM_TICKER) !== 0) {
+                randomTickersCount++;
+            }
+
+            if ((flags & BLOCK_FLAG.TICKING) !== 0) {
+                const extra_data = this.tblocks.extra_data.getByIndex(index)
+                // don't add tickers without extra_data because that's how it's checked in TickingBlock.setState()
+                if (extra_data && !extra_data.notick) {
+                    pos.addSelf(this.coord) // convert to the world coordinate system
+                    tickerFlatIndices.push(pos.getFlatIndexInChunk())
+                }
+            }
+        }
+        this.timers.stop()
+        return { randomTickersCount, tickerFlatIndices }
     }
 
     /** Returns the index of the bottom of a column of blocks */
