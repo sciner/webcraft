@@ -1,14 +1,11 @@
 import {calcRotateMatrix, DIRECTION, IndexedColor, QUAD_FLAGS, Vector} from '../helpers.js';
-import type { BlockManager, FakeTBlock } from '../blocks.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {impl as alea} from "../../vendors/alea.js";
-import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
+import { BlockManager, DropItemVertices, FakeTBlock } from '../blocks.js';
+import {AABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { BlockStyleRegInfo, default as default_style } from './default.js';
-
 
 const {mat4} = glMatrix;
 
@@ -17,15 +14,6 @@ const pivotObj = {x: 0.5, y: .5, z: 0.5};
 
 const WIDTH =  12 / 16;
 const HEIGHT = 1 / 16;
-
-const WIDTH_INNER = 10/16;
-const HEIGHT_INNER = .5/16;
-
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
 
 // Рамка для предметов
 export default class style {
@@ -75,33 +63,69 @@ export default class style {
 
         const bm = style.block_manager
         const material = block.material;
-        const flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.NO_AO;
-
         const c_side = bm.calcTexture(bm.OAK_PLANKS.texture, DIRECTION.DOWN);
         const c_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
-
         const parts = []
         parts.push(...[
             {
-                "size": {"x": 1, "y": 12, "z": 1},
-                "translate": {"x": 7.5, "y": 0, "z": 6},
+                "size": {"x": 12, "y": 1, "z": 1},
+                "translate": {"x": 0, "y": -7.5, "z": 5.5},
                 "faces": {
-                    "north": {"uv": [8, 8],"texture": c_side},
-                    "south": {"uv": [8, 8],"texture": c_side},
-                    "east": {"uv": [8, 8],"texture": c_side},
-                    "west": {"uv": [8, 8],"texture": c_side}
+                    "north": {"uv": [6, 6],"texture": c_side},
+                    "south": {"uv": [6, 6],"texture": c_side},
+                    "east": {"uv": [6, 6],"texture": c_side},
+                    "west": {"uv": [6, 6],"texture": c_side},
+                    "up": {"uv": [6, 6],"texture": c_side},
+                    "down": {"uv": [6, 6],"texture": c_side}
                 }
             },{
-                "size": {"x": 1, "y": 1, "z": 12},
-                "translate": {"x": 7.5, "y": 6, "z": 0},
+                "size": {"x": 12, "y": 1, "z": 1},
+                "translate": {"x": 0, "y": -7.5, "z": -5.5},
                 "faces": {
-                    "north": {"uv": [8, 8],"texture": c_side},
-                    "south": {"uv": [8, 8],"texture": c_side},
-                    "east": {"uv": [8, 8],"texture": c_side},
-                    "west": {"uv": [8, 8],"texture": c_side}
+                    "north": {"uv": [6, 6],"texture": c_side},
+                    "south": {"uv": [6, 6],"texture": c_side},
+                    "east": {"uv": [6, 6],"texture": c_side},
+                    "west": {"uv": [6, 6],"texture": c_side},
+                    "up": {"uv": [6, 6],"texture": c_side},
+                    "down": {"uv": [6, 6],"texture": c_side}
+                }
+            },{
+                "size": {"x": 1, "y": 1, "z": 10},
+                "translate": {"x": -5.5, "y": -7.5, "z": 0},
+                "faces": {
+                    "north": {"uv": [6, 6],"texture": c_side},
+                    "south": {"uv": [6, 6],"texture": c_side},
+                    "east": {"uv": [6, 6],"texture": c_side},
+                    "west": {"uv": [6, 6],"texture": c_side},
+                    "up": {"uv": [6, 6],"texture": c_side},
+                    "down": {"uv": [6, 6],"texture": c_side}
+                }
+            },{
+                "size": {"x": 1, "y": 1, "z": 10},
+                "translate": {"x": 5.5, "y": -7.5, "z": 0},
+                "faces": {
+                    "north": {"uv": [6, 6],"texture": c_side},
+                    "south": {"uv": [6, 6],"texture": c_side},
+                    "east": {"uv": [6, 6],"texture": c_side},
+                    "west": {"uv": [6, 6],"texture": c_side},
+                    "up": {"uv": [6, 6],"texture": c_side},
+                    "down": {"uv": [6, 6],"texture": c_side}
+                }
+            },{
+                "size": {"x": 10, "y": 1, "z": 10},
+                "translate": {"x": 0, "y": -8, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8],"texture": c_down},
+                    "down": {"uv": [8, 8],"texture": c_down}
                 }
             }
         ])
+
+        matrix = mat4.create()
+        const rotate = block.rotate || DEFAULT_ROTATE
+        const cd = block.getCardinalDirection()
+        matrix = calcRotateMatrix(material, rotate, cd, matrix)
+
         const pos = new Vector(x, y, z)
         for (const part of parts) {
             default_style.pushPART(vertices, {
@@ -111,7 +135,45 @@ export default class style {
                 matrix:     matrix
             })
         }
-        return null;
+
+        // return item in frame
+        if(block.extra_data && block.extra_data.item) {
+            const vg = QubatchChunkWorker.drop_item_meshes[block.extra_data.item.id]
+
+            const scale = 0.3
+
+            // old version compatibility
+            if(!('rot' in block.extra_data)) {
+                block.extra_data.rot = 0
+            }
+
+            // Rotate item in frame
+            const matRotate = mat4.create()
+
+            // rotate item inside frame
+            mat4.rotate(matRotate, matRotate, Math.PI / 4 * block.extra_data.rot + Math.PI, [0, 0, 1])
+            mat4.rotate(matRotate, matRotate, Math.PI, [1, 0, 0])
+            mat4.scale(matRotate, matRotate, [scale, scale, scale])
+
+            if(rotate.y == 0) {
+                let angle = 0
+                if(rotate.x == 7) angle = Math.PI / 2 * 2
+                if(rotate.x == 18) angle = Math.PI / 2 * 0
+                if(rotate.x == 22) angle = Math.PI / 2 * 1
+                if(rotate.x == 13) angle = Math.PI / 2 * 3
+                mat4.rotate(matRotate, matRotate, angle, [0, 1, 0])
+            } else {
+                mat4.rotate(matRotate, matRotate, Math.PI/2, [1, 0, 0])
+                if(rotate.y == -1) {
+                    mat4.rotate(matRotate, matRotate, Math.PI, [0, 0, 1])
+                }
+            }
+
+            const mesh = new DropItemVertices(block.extra_data.item.id, block.extra_data, new Vector(x, y, z), rotate, matRotate, vg.vertices)
+            return [mesh]
+        }
+
+        return null
 
     }
 
