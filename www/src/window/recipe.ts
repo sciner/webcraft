@@ -264,6 +264,10 @@ export class RecipeWindow extends BlankWindow {
     */
     createRecipes() {
 
+        if(!this.craft_window) {
+            return
+        }
+
         this.craft_window.setHelperSlots(null)
 
         if(this.recipes) {

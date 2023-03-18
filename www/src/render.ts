@@ -1040,12 +1040,12 @@ export class Renderer {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
     }
 
-    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string) {
+    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string, doubleface : boolean = false) {
         const model = Resources._bbmodels.get(bbname)
         if(!model) {
             return false
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name)
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface)
         bbmodel.setAnimation(animation_name)
         return this.meshes.add(bbmodel, key)
     }

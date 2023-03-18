@@ -5,18 +5,18 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 // import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { blobToImage } from "../helpers.js";
+import type { RecipeWindow } from "./recipe.js";
+import type { InventoryRecipeWindow } from "./inventory_recipe.js";
+import type { PlayerInventory } from "../player_inventory.js";
 
 const PLAYER_BOX_WIDTH = 98;
 const PLAYER_BOX_HEIGHT = 140;
 
 export class InventoryWindow extends BaseCraftWindow {
-    [key: string]: any;
 
-    /**
-     * @param { import("../player_inventory.js").PlayerInventory } inventory
-     * @param {*} recipes
-     */
-    constructor(inventory, recipes) {
+    frmInventoryRecipe : InventoryRecipeWindow
+
+    constructor(inventory : PlayerInventory, recipes) {
 
         super(10, 10, 700, 332, 'frmInventory', null, null, inventory)
         this.x *= this.zoom 
@@ -107,6 +107,7 @@ export class InventoryWindow extends BaseCraftWindow {
 
         this.frmInventoryRecipe.assignCraftWindow(this)
         this.frmInventoryRecipe.show()
+
     }
 
     // Обработчик закрытия формы
@@ -204,20 +205,6 @@ export class InventoryWindow extends BaseCraftWindow {
         }
         ct.add(this.lblPlayerBox);
     }
-
-    // // Recipes button
-    // addRecipesButton() {
-    //     const ct = this;
-    //     let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
-    //     btnRecipes.tooltip = Lang.toggle_recipes;
-    //     btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5)
-    //     btnRecipes.onMouseDown = (e) => {
-    //         const frmInventoryRecipe = this.inventory.player.inventory.recipes.frmRecipe
-    //         frmRecipe.assignCraftWindow(this)
-    //         frmRecipe.toggleVisibility()
-    //     }
-    //     ct.add(btnRecipes);
-    // }
 
     /**
      * Создание слотов для крафта

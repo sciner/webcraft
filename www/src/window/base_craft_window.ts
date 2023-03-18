@@ -385,16 +385,8 @@ export class CraftTableResultSlot extends CraftTableSlot {
 }
 
 export class CraftTableInventorySlot extends CraftTableSlot {
-    [key: string]: any;
 
-    /**
-     * @param {Float} x - screen poition x
-     * @param {Float} y - screen poition y
-     * @param {BaseChestWindow} ct - parent window
-     * @param { object } options - optonal parameters:
-     *  { readonly, onMouseEnterBackroundColor, disableIfLoading }
-     */
-    constructor(x, y, w, h, id, title, text, ct, slot_index, options = null) {
+    constructor(x : float, y : float, w : float, h : float, id : string, title : string, text : string, ct : any, slot_index : int, options : object = null) {
 
         super(x, y, w, h, id, title, text, ct, slot_index)
 

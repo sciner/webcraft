@@ -10,6 +10,7 @@ import { msdf } from "../../data/font.js";
 import {MyText} from "./MySpriteRenderer.js";
 import { BLOCK } from "../../js/blocks.js";
 import { Lang } from "../../js/lang.js";
+import { Resources } from "../../js/resources.js";
 
 globalThis.visible_change_count = 0
 
@@ -1041,16 +1042,17 @@ export class Window extends PIXI.Container {
         }
     }
 
-    clip() {
+    clip(x, y, w, h) {
 
-        const w = this.w
-        const h = this.h
+        x = x ?? 0
+        y = y ?? 0
+        w = w ?? this.w
+        h = h ?? this.h
 
         let clip_mask = this.#_wmclip
         if(!clip_mask) {
             clip_mask = new Graphics()
             clip_mask.id = `${this.id}_clip_mask`
-            clip_mask.transform.position.set(0, 0)
             clip_mask.width = w
             clip_mask.height = h
             clip_mask.clear()
@@ -1066,6 +1068,8 @@ export class Window extends PIXI.Container {
             clip_mask.beginFill(0x00ff0055)
             clip_mask.drawRect(0, 0, w, h)
         }
+
+        clip_mask.transform.position.set(x, y)
 
     }
 
@@ -1303,6 +1307,17 @@ class Tooltip extends Label {
 
 export class SimpleBlockSlot extends Window {
 
+    /**
+     * @type Label
+     */
+    bar = null // : Label
+
+    /**
+     * @type Label
+     */
+    bar_value = null // : Label
+    hud_atlas = null
+
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)
         this.style.font.color = '#ffffff'
@@ -1315,17 +1330,29 @@ export class SimpleBlockSlot extends Window {
         this.text_container.anchor.set(1, 1)
         this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)
 
-        const padding = 3 * this.zoom
+        const padding = 0
         const bar_height = 3 * this.zoom
+        
         this.bar = new Label(padding, h - bar_height - padding, this.w - padding * 2, bar_height, 'lblBar')
         this.bar.style.background.color = '#000000aa'
         this.bar.visible = false
         this.bar.catchEvents = false
-        this.bar_value = new Label(0, 0, this.bar.w / 2, this.bar.h, 'lblBar')
-        this.bar_value.style.background.color = '#00ff00'
-        this.addChild(this.bar)
+        this.bar_value = new Label(0, 0, this.bar.w, this.bar.h, 'lblBar')
         this.bar.addChild(this.bar_value)
+        this.addChild(this.bar)
+
+        this.hud_atlas = Resources.atlas.get('hud')
+        if(this.hud_atlas) {
+            const bar_sprite = this.hud_atlas.getSpriteFromMap('tooldmg_0')
+            this.bar.style.background.color = '#00000000'
+            const zoom = this.bar.w / bar_sprite.width
+            this.bar.y = this.bar.y - (bar_sprite.height * zoom * .7)
+            this.bar_value.h = this.bar.h = bar_sprite.height * zoom
+            this.bar.setBackground(bar_sprite)
+        }
+
         this.item = null
+
     }
 
     getItem() {
@@ -1380,10 +1407,12 @@ export class SimpleBlockSlot extends Window {
             // draw instrument life
             this.bar.visible = (mat.item?.instrument_id && item.power < mat.power) || power_in_percent
             if(this.bar.visible) {
-                const percent = Math.min(item.power / mat.power, 1)
-                const rgb = Helpers.getColorForPercentage(percent)
-                this.bar_value.w = this.bar.w * percent
-                this.bar_value.style.background.color = rgb.toHex(true)
+                const percent = Math.max(Math.min(item.power / mat.power, 1), 0)
+                const sprites = ['tooldmg_3', 'tooldmg_2', 'tooldmg_1']
+                const index = Math.round(Math.min(sprites.length * percent, .999))
+                const bar_value_sprite = this.hud_atlas.getSpriteFromMap(sprites[index])
+                this.bar_value.setBackground(bar_value_sprite)
+                this.bar_value.clip(0, 0, this.bar.w * percent)
             }
 
         }
