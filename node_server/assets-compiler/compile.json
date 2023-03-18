@@ -4558,7 +4558,9 @@
                 "texture": "item/item_frame.png"
             },
             "mining_time": 0,
-            "extra_data": {"item_id": null},
+            "extra_data": {
+                "item_id": null
+            },
             "tags": [
                 "item_frame",
                 "rotate_by_pos_n",
@@ -4569,8 +4571,6 @@
                 "id": "wood"
             },
             "texture": {
-                "up": "./textures/item_frame_border.png",
-                "side": "block/oak_planks.png",
                 "down": "block/item_frame.png"
             }
         },
@@ -10008,6 +10008,40 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "DIRT_PATH"
+            }
+        },
+        {
+            "id": 1047,
+            "name": "GLOW_ITEM_FRAME",
+            "style": "item_frame",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "can_rotate": true,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/glow_item_frame.png"
+            },
+            "mining_time": 0,
+            "extra_data": {
+                "item_id": null
+            },
+            "tags": [
+                "item_frame",
+                "rotate_by_pos_n",
+                "pot",
+                "no_drop_ao"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "down": "block/item_frame.png"
+            },
+            "light_power": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 140
             }
         }
     ]

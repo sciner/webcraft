@@ -112,7 +112,7 @@ export default class style {
                     "down": {"uv": [6, 6],"texture": c_side}
                 }
             },{
-                "size": {"x": 10, "y": 1, "z": 10},
+                "size": {"x": 10, "y": 0.1, "z": 10},
                 "translate": {"x": 0, "y": -8, "z": 0},
                 "faces": {
                     "up": {"uv": [8, 8],"texture": c_down},
