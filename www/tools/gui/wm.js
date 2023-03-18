@@ -576,14 +576,14 @@ export class Window extends PIXI.Container {
      * @param {?string} image_size_mode
      * @param {?float} scale
      */
-    async setIcon(urlOrImage, image_size_mode = 'none', scale) {
+    async setIcon(urlOrImage, image_size_mode = 'none', scale, tintMode = 0) {
         //if(!isScalar(urlOrImage)) {
         //    if(urlOrImage instanceof Promise) {
         //        urlOrImage = await urlOrImage
         //    }
         //}
         if(urlOrImage) {
-            this._wmicon.setBackground(urlOrImage, image_size_mode, scale)
+            this._wmicon.setBackground(urlOrImage, image_size_mode, scale, tintMode)
         }
         this._wmicon.visible = !!urlOrImage
     }
@@ -1343,12 +1343,17 @@ export class SimpleBlockSlot extends Window {
 
         this.hud_atlas = Resources.atlas.get('hud')
         if(this.hud_atlas) {
+            //
+            this.setBackground(this.hud_atlas.getSpriteFromMap('slot_empty'))
+            //
             const bar_sprite = this.hud_atlas.getSpriteFromMap('tooldmg_0')
             this.bar.style.background.color = '#00000000'
             const zoom = this.bar.w / bar_sprite.width
             this.bar.y = this.bar.y - (bar_sprite.height * zoom * .7)
             this.bar_value.h = this.bar.h = bar_sprite.height * zoom
             this.bar.setBackground(bar_sprite)
+            // // this.swapChildren(this._wmicon, this._bgimage)
+            this.swapChildren(this._wmicon, this.text_container)
         }
 
         this.item = null
@@ -1377,7 +1382,7 @@ export class SimpleBlockSlot extends Window {
 
         const item = this.getItem()
 
-        this._bgimage.visible = !!item
+        this._wmicon.visible = !!item
         this.bar.visible = !!item
 
         let label = null
@@ -1388,7 +1393,7 @@ export class SimpleBlockSlot extends Window {
             const mat = BLOCK.fromId(item.id)
             const tintMode = item.extra_data?.enchantments ? 1 : 0
 
-            this.setBackground(getBlockImage(item), 'centerstretch', 1.0, tintMode)
+            this.setIcon(getBlockImage(item), 'centerstretch', 1.0, tintMode)
 
             // let font_size = 18
             const power_in_percent = mat?.item?.indicator == 'bar'

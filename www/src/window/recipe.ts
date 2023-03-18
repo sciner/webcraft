@@ -4,6 +4,7 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
 import { getBlockImage } from "./tools/blocks.js";
 import type { RecipeManager } from "../recipes.js";
+import { Resources } from "../resources.js";
 
 export class RecipeSlot extends Window {
     [key: string]: any;
@@ -20,21 +21,26 @@ export class RecipeSlot extends Window {
 
         const image = getBlockImage(block)
         this.setBackground(image, 'center', 1.25)
-        this.swapChildren(this.children[0], this.children[1])
 
-        //
-        this.style.border.color = '#ffffffff';
-        this.style.background.color = '#ffffff55';
+        // this.swapChildren(this.children[0], this.children[1])
+        // this.style.border.color = '#ffffffff';
+        // this.style.background.color = '#ffffff55';
+
+        this.hud_atlas = Resources.atlas.get('hud')
+        if(this.hud_atlas) {
+            this.setIcon(this.hud_atlas.getSpriteFromMap('slot_empty'))
+            this.swapChildren(this._wmicon, this._bgimage)
+        }
 
     }
 
     // Custom drawing
     onMouseEnter(e) {
-        this.style.background.color = this.can_make ? '#ffffffcc' : '#A1515177'
+        // this.style.background.color = this.can_make ? '#00000000' : '#A1515177'
     }
 
     onMouseLeave(e) {
-        this.style.background.color = this.can_make ? '#ffffff55' : '#A1515155'
+        // this.style.background.color = this.can_make ? '#00000000' : '#A1515155'
     }
 
     onMouseDown(e) {
@@ -73,7 +79,9 @@ export class RecipeSlot extends Window {
             this.can_make = this.recipe.size.width <= craft_area_size.width &&
                             this.recipe.size.height <= craft_area_size.height;
         }
-        this.style.background.color = this.can_make ? '#ffffff55' : '#A1515155';
+        // this.style.background.color = this.can_make ? '#00000000' : '#A1515155';
+        this._bgimage.alpha = this.can_make ? 1 : .2
+        this.style.background.sprite.tintMode = this.can_make ? 0 : 2
     }
 
 }
@@ -337,8 +345,8 @@ export class RecipeWindow extends BlankWindow {
             const block = BLOCK.fromId(id)
             const lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + id, null, null, recipe, block, this);
             lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${id})`
-            lblRecipe.style.border.hidden = false
-            lblRecipe.style.border.style = 'inset'
+            // lblRecipe.style.border.hidden = false
+            // lblRecipe.style.border.style = 'inset'
             this.recipes.push(lblRecipe)
             this.add(lblRecipe)
             lblRecipe.update()

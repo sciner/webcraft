@@ -9,6 +9,7 @@ import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
 import { getBlockImage } from "./tools/blocks.js";
+import type { PlayerInventory } from "../player_inventory.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
@@ -121,10 +122,10 @@ export class CraftTableSlot extends SimpleBlockSlot {
         this.ct = ct
         this.setSlotIndex(slot_index)
         ct.inventory.addInventorySlot(this)
-        this.style.background.color = '#00000011'
-        this.style.border.color = '#00000033'
-        this.style.border.hidden = false
-        this.style.border.style = 'inset'
+        // this.style.background.color = '#00000011'
+        // this.style.border.color = '#00000033'
+        this.style.border.hidden = true
+        // this.style.border.style = 'inset'
     }
 
     //
@@ -205,10 +206,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
         this.slot_index = index
     }
 
-    /**
-     * @returns { import("../player_inventory.js").PlayerInventory }
-     */
-    getInventory() {
+    getInventory() : PlayerInventory {
         return this.ct.inventory
     }
 
@@ -495,12 +493,12 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         if (this.options.disableIfLoading && this.ct.loading) {
             return
         }
-        this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55'
+        // this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55'
     }
 
     onMouseLeave(e) {
         // don't disable it if loading
-        this.style.background.color = '#00000000'
+        // this.style.background.color = '#00000000'
     }
 
     // Mouse down

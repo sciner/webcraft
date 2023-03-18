@@ -396,8 +396,8 @@ export class Hotbar {
             const x = this.inventory_slots_window.x + i * (sx * SLOT_MARGIN_PERCENT)
             const y = this.inventory_slots_window.y
             // item
-            const item = this.inventory_slots_window.slots[i].getItem()
-            this.tilemap.drawImage(item ? this.hud_sprites.slot_full : this.hud_sprites.slot_empty, x, y)
+            // const item = this.inventory_slots_window.slots[i].getItem()
+            // this.tilemap.drawImage(item ? this.hud_sprites.slot_full : this.hud_sprites.slot_empty, x, y)
             // selector
             if (i == this.inventory.getRightIndex()) {
                 this.tilemap.drawImage(this.hud_sprites.slot_selection, x, y)
