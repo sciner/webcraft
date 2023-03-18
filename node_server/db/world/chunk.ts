@@ -57,9 +57,14 @@ const UPDATE = {
     REBUILD_MODIFIERS_BY_XYZ: undefined,
     BULK_WMC_BY_ADDR: undefined,
     BULK_CHUNK: undefined,
+    /**
+     * The 1st jon_patch() contains null values. It removes blocks before setting them.
+     * It's necessary to remove nested fields from blocks (e.g. clear slots).
+     * The 2nd patch contains actual blocks with the same keys.
+     */
     BULK_WORLD_MODIFY_CHUNKS:
         `UPDATE world_modify_chunks
-        SET data = json_patch(data, %0),
+        SET data = json_patch(json_patch(data, %0), %1),
             data_blob = NULL,
             private_data_blob = NULL,
             has_data_blob = 0
@@ -266,21 +271,22 @@ export class DBWorldChunk {
         this.world.worldChunkFlags.bulkAdd(rows, WorldChunkFlags.DB_WORLD_MODIFY_CHUNKS | WorldChunkFlags.MODIFIED_BLOCKS);
     }
 
-    static toUpdateWorldModifyChunksWithBLOBs(data_patch: BlocksPatch, rowId: int, ml): [int, string, BLOB, BLOB] {
+    static toUpdateWorldModifyChunksWithBLOBs(data_patch: BlocksPatch, rowId: int, ml): [int, string, string, BLOB, BLOB] {
         return [
             rowId,
+            this.toNullPatch(data_patch),
             JSON.stringify(data_patch),
             ml.compressed ?? null,
             ml.private_compressed ?? null
         ];
     }
 
-    async bulkUpdateChunkModifiersWithBLOBs(rows: [int, string, any, any][]) {
+    async bulkUpdateChunkModifiersWithBLOBs(rows: [int, string, string, BLOB, BLOB][]) {
         return runBulkQuery(this.conn,
-            'WITH cte (_rowid, data_patch, compr, priv_compr) AS (VALUES',
-            '(?,?,?,?)',
+            'WITH cte (_rowid, nulls_patch, data_patch, compr, priv_compr) AS (VALUES',
+            '(?,?,?,?,?)',
             `)UPDATE world_modify_chunks
-            SET data = json_patch(data, data_patch),
+            SET data = json_patch(json_patch(data, nulls_patch), data_patch),
                 data_blob = compr,
                 private_data_blob = priv_compr,
                 has_data_blob = CASE WHEN compr IS NULL THEN 0 ELSE 1 END
@@ -290,32 +296,32 @@ export class DBWorldChunk {
         );
     }
 
-    static toUpdateWorldModifyChunksRowById(data_patch: BlocksPatch, rowId: int): [string, int] {
-        return [JSON.stringify(data_patch), rowId];
+    static toUpdateWorldModifyChunksRowById(data_patch: BlocksPatch, rowId: int): [string, string, int] {
+        return [this.toNullPatch(data_patch), JSON.stringify(data_patch), rowId];
     }
 
     /**
      * We can't extract BLOB from JSON, so it's only suitable for chunks without
      * compressed modifiers.
      */
-    async bulkUpdateWorldModifyChunksById(rows: [string, int][]) {
+    async bulkUpdateWorldModifyChunksById(rows: [string, string, int][]) {
         UPDATE.BULK_WMC_BY_ID = UPDATE.BULK_WMC_BY_ID ?? preprocessSQL(`
             ${UPDATE.BULK_WORLD_MODIFY_CHUNKS}
-            WHERE world_modify_chunks._rowid_ = %1
+            WHERE world_modify_chunks._rowid_ = %2
         `);
         return rows.length
             ? run(this.conn, UPDATE.BULK_WMC_BY_ID, [JSON.stringify(rows)])
             : null;
     }
 
-    static toUpdateWorldModifyChunksRowByAddr(data_patch: BlocksPatch, addr: IVector): [string, int, int, int] {
-        return [JSON.stringify(data_patch), addr.x, addr.y, addr.z];
+    static toUpdateWorldModifyChunksRowByAddr(data_patch: BlocksPatch, addr: IVector): [string, string, int, int, int] {
+        return [this.toNullPatch(data_patch), JSON.stringify(data_patch), addr.x, addr.y, addr.z]
     }
 
-    async bulkUpdateWorldModifyChunksByAddr(rows: [string, int, int, int][]) {
+    async bulkUpdateWorldModifyChunksByAddr(rows: [string, string, int, int, int][]) {
         UPDATE.BULK_WMC_BY_ADDR = UPDATE.BULK_WMC_BY_ADDR ?? preprocessSQL(`
             ${UPDATE.BULK_WORLD_MODIFY_CHUNKS}
-            WHERE x = %1 AND y = %2 AND z = %3
+            WHERE x = %2 AND y = %3 AND z = %4
         `);
         return rows.length
             ? run(this.conn, UPDATE.BULK_WMC_BY_ADDR, [JSON.stringify(rows)])
@@ -509,6 +515,15 @@ export class DBWorldChunk {
                 ':dt': dt
             }),
         ]);
+    }
+
+    /** Returns an object with the same keys, but null values. */
+    private static toNullPatch(data_patch: BlocksPatch): string {
+        const obj = {}
+        for(const key in data_patch) {
+            obj[key] = null
+        }
+        return JSON.stringify(obj)
     }
 
 }
