@@ -1393,6 +1393,7 @@ export class SimpleBlockSlot extends Window {
             const mat = BLOCK.fromId(item.id)
             const tintMode = item.extra_data?.enchantments ? 1 : 0
 
+            this.setBackground(this.hud_atlas.getSpriteFromMap('slot_full'))
             this.setIcon(getBlockImage(item), 'centerstretch', 1.0, tintMode)
 
             // let font_size = 18
@@ -1420,6 +1421,8 @@ export class SimpleBlockSlot extends Window {
                 this.bar_value.clip(0, 0, this.bar.w * percent)
             }
 
+        } else {
+            this.setBackground(this.hud_atlas.getSpriteFromMap('slot_empty'))
         }
 
         this.text = label
