@@ -1,4 +1,4 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label } from "../ui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";

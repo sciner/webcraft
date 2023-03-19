@@ -63,10 +63,20 @@ export const RENDER_EAT_FOOD_DURATION       = 1800;
 
 export const UI_THEME = {
     base_text_color: '#5bc4da',
+    second_text_color: '#ffffffbb',
     label_text_color: '#ffffff33',
     window_padding: 10,
     slot_margin: 5,
     window_slot_size: 45,
+    button: {
+        font: {
+            size: 14,
+            color: '#ffffff'
+        },
+        background: {
+            color: '#5bc4da44'
+        }
+    },
     // chat
     chat: {
         // main text

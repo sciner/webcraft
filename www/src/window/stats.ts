@@ -1,4 +1,4 @@
-import { Button, Label, Slider } from "../../tools/gui/wm.js";
+import { Button, Label, Slider } from "../ui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
@@ -48,7 +48,7 @@ export class StatsWindow extends BlankWindow {
             lbl_title.style.font.color = UI_THEME.base_text_color
             lbl.style.textAlign.horizontal = 'right'
             lbl.style.font.size = 14
-            lbl.style.font.color = UI_THEME.base_text_color
+            lbl.style.font.color = UI_THEME.second_text_color
             this.add(lbl_title)
             this.add(lbl)
         }

@@ -1,4 +1,4 @@
-import { Label, Window } from "../../tools/gui/wm.js";
+import { Label, Window } from "./wm.js";
 
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 

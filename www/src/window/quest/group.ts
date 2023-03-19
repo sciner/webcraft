@@ -1,4 +1,4 @@
-import {Label} from "../../../tools/gui/wm.js";
+import {Label} from "../../ui/wm.js";
 
 export class QuestGroup extends Label {
     [key: string]: any;

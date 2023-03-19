@@ -1,7 +1,7 @@
 /**
 * Window Manager based on PIXI.js
 */
-import { RuneStrings, deepAssign, Helpers, isScalar } from "../../js/helpers.js";
+import { RuneStrings, deepAssign, isScalar } from "../../js/helpers.js";
 import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
 import {Style} from "./styles.js";
@@ -1107,7 +1107,7 @@ export class Button extends Window {
             this.style.color_save = this.style.font.color
         }
         this.style.background.color = '#8892c9'
-        this.style.color = '#ffffff'
+        this.style.font.color = '#ffffff'
         super.onMouseEnter()
     }
 
@@ -1751,6 +1751,15 @@ export class VerticalLayout extends Window {
 // ToggleButton
 export class ToggleButton extends Button {
 
+    toggled_font_color = '#ffffff'
+    untoggled_font_color = '#3f3f3f'
+
+    toggled_bgcolor = '#7882b9'
+    untoggled_bgcolor = '#00000000'
+
+    mouse_enter_bgcolor = '#8892c9'
+    mouse_enter_font_color = '#ffffff'
+
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         this.toggled = false;
@@ -1759,13 +1768,15 @@ export class ToggleButton extends Button {
     }
 
     onMouseEnter() {
-        this.style.background.color = '#8892c9'
-        this.style.color = '#ffffff'
+        super.onMouseEnter()
+        this.style.background.color = this.mouse_enter_bgcolor
+        this.style.font.color = this.mouse_enter_font_color
     }
 
     onMouseLeave() {
-        this.style.background.color = this.toggled ? '#7882b9' : '#00000000'
-        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f'
+        super.onMouseEnter()
+        this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
+        this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
 
     //
@@ -1776,8 +1787,8 @@ export class ToggleButton extends Button {
         }
         this.toggled = !this.toggled;
         this.parent.__toggledButton = this;
-        this.style.background.color = this.toggled ? '#8892c9' : '#00000000';
-        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
+        this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
+        this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
 
 }

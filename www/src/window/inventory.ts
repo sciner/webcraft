@@ -1,4 +1,4 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label } from "../ui/wm.js";
 import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
@@ -39,7 +39,7 @@ export class InventoryWindow extends BaseCraftWindow {
 
     }
 
-    init(parent : InGameMain) {
+    initControls(parent : InGameMain) {
 
         // слоты для подсказок
         this.addHelpSlots()

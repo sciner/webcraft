@@ -1,4 +1,4 @@
-import { ToggleButton } from "../../tools/gui/wm.js";
+import { ToggleButton } from "../ui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { QuestMenu } from "./quest/menu.js";
 import { QuestView } from "./quest/view.js";

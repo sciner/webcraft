@@ -1,4 +1,4 @@
-import { Window } from "../../tools/gui/wm.js";
+import { Window } from "../ui/wm.js";
 import { KEY } from "../constant.js";
 
 //

@@ -7,7 +7,7 @@ export class PlayerInventory extends Inventory {
     [key: string]: any;
 
     /**
-     * @type { import("../tools/gui/wm.js").WindowManager }
+     * @type { import("./ui/wm.js").WindowManager }
      */
     wm
 
@@ -84,7 +84,7 @@ export class PlayerInventory extends Inventory {
     /**
      * @param {*} slot 
      * @param {*} item 
-     * @param { import("../tools/gui/wm.js").Pointer } drag
+     * @param { import("./ui/wm.js").Pointer } drag
      * @param {*} width 
      * @param {*} height 
      */

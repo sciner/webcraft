@@ -1,6 +1,6 @@
 import { ArrayHelpers, ObjectHelpers, Vector } from "../helpers.js";
 import { BLOCK } from "../blocks.js";
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label } from "../ui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 

@@ -32,7 +32,7 @@ export class Inventory {
         this.onSelect           = (item) => {};
         this.applyNewItems(state.items, false)
         /**
-         * @type { import("../tools/gui/wm.js").SimpleBlockSlot[] } slot
+         * @type { import("ui/wm.js").SimpleBlockSlot[] } slot
          */
         this.inventory_ui_slots = []
     }

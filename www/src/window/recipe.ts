@@ -1,5 +1,5 @@
 import { BLOCK } from "../blocks.js";
-import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
+import { Button, Label, Window, TextEdit } from "../ui/wm.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
 import { getBlockImage } from "./tools/blocks.js";
@@ -248,10 +248,10 @@ export class RecipeWindow extends BlankWindow {
         txtSearch.max_lines                 = 1
         txtSearch.max_chars_per_line        = 20
         // style
-        txtSearch.style.border.hidden       = false
-        txtSearch.style.border.style        = 'inset'
-        txtSearch.style.font.color          = '#ffffff'
-        txtSearch.style.background.color    = '#706f6c'
+        // txtSearch.style.border.hidden       = false
+        // txtSearch.style.border.style        = 'inset'
+        // txtSearch.style.font.color          = '#ffffff'
+        // txtSearch.style.background.color    = '#706f6c'
         txtSearch.style.padding.left        = 5 * this.zoom
         // txtSearch.style.color            = '#ffffff';
         // txtSearch.style.background.color = '#ffffff88';

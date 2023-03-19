@@ -1,15 +1,15 @@
 // import { SpriteAtlas } from "./core/sprite_atlas.js";
 import { Resources } from "./resources.js";
 // import { PlayerInventory } from "./player_inventory.js";
-import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
+
 import { Effect } from "./block_type/effect.js";
-import { Label, Window } from "../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./window/base_craft_window.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_LEGGINGS } from "./constant.js";
 import type { Inventory } from "./inventory.js";
 import type { SpriteAtlas } from "./core/sprite_atlas.js";
 import type { HUD } from "./hud.js";
 import type { PlayerInventory } from "./player_inventory.js";
+import { Label, MySprite, MyTilemap, Window } from "./ui/wm.js";
 
 const MAX_NAME_SHOW_TIME    = 2000;
 const SLOT_MARGIN_PERCENT   = 1

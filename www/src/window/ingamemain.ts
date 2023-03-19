@@ -1,4 +1,3 @@
-import { Button, Label, Window } from "../../tools/gui/wm.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_SLOT_SIZE, KEY, UI_THEME } from "../constant.js";
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
@@ -7,6 +6,7 @@ import { InventoryWindow } from "./inventory.js";
 import { CharacterWindow } from "./character.js";
 import { QuestWindow } from "./quest.js";
 import { StatsWindow } from "./stats.js";
+import { Button, Label, Window } from "../ui/wm.js";
 
 export class InGameMain extends Window {
     [key: string]: any;
@@ -80,8 +80,8 @@ export class InGameMain extends Window {
             tab.button.form = tab.form
             this.add(tab.form)
 
-            if('init' in tab.form) {
-                tab.form.init(this)
+            if('initControls' in tab.form) {
+                tab.form.initControls(this)
             }
 
             tab.button.onMouseDown = function(e) {

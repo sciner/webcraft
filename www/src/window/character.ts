@@ -1,4 +1,4 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label } from "../ui/wm.js";
 import { ArmorSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT, UI_THEME } from "../constant.js";
@@ -38,7 +38,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
     }
 
-    init(parent : InGameMain) {
+    initControls(parent : InGameMain) {
 
         //
         this.addPlayerBox()

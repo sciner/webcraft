@@ -1,4 +1,4 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label } from "../ui/wm.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 
@@ -42,11 +42,9 @@ export class MainMenu extends BlankWindow {
     }
 
     //
-    addButton(label, y, onclick) {
+    addButton(label : string, y : number, onclick : Function) {
         const btnID = `btn_${this.id}_${y}`;
         const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
-        btn.style.background.color = '#d4d0c8'
-        btn.style.font.color = '#000000bb'
         btn.onMouseDown = onclick
         this.add(btn);
     }

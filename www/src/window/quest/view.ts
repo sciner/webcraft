@@ -1,7 +1,8 @@
-import { Window } from "../../../tools/gui/wm.js";
+import { Window } from "../../ui/wm.js";
 import { BLOCK } from "../../blocks.js";
 import { Resources } from "../../resources.js";
 import { Helpers } from "../../helpers.js";
+import { UI_THEME } from "../../constant.js";
 
 // QuestActionType
 export enum QuestActionType {
@@ -53,6 +54,13 @@ export class QuestView extends Window {
         //
         lblTitle.text = quest.title
         lDesc.text = quest.description
+
+        for(let w of ql.list.values()) {
+            w.style.font.color = UI_THEME.base_text_color
+        }
+        lDesc.style.font.color = UI_THEME.second_text_color
+        lblActions.style.font.color = UI_THEME.second_text_color
+        lblRewards.style.font.color = UI_THEME.second_text_color
         
         if(quest.is_completed) {
             lblTitle.text = `✅ ${lblTitle.text}`
