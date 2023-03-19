@@ -333,7 +333,10 @@ export class Hotbar {
 
         let hotbar_height = 0
 
-        const mayGetDamaged = player.game_mode.mayGetDamaged();
+        const mayGetDamaged = player.game_mode.mayGetDamaged()
+
+        this.bars_base_window.visible = mayGetDamaged
+
         if (mayGetDamaged) {
             const left = 180 * this.zoom
             const right = 15 * this.zoom
