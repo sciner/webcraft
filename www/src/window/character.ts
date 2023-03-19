@@ -9,9 +9,10 @@ import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
 import type { Player } from "../player.js";
+import { Resources } from "../resources.js";
 
-const PLAYER_BOX_WIDTH = 98;
-const PLAYER_BOX_HEIGHT = 140;
+// const PLAYER_BOX_WIDTH = 409 / 2;
+// const PLAYER_BOX_HEIGHT = 620 / 4;
 
 export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
@@ -40,31 +41,33 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
     initControls(parent : InGameMain) {
 
-        //
-        this.addPlayerBox()
+        this.hud_atlas = Resources.atlas.get('hud')
 
         // Ширина / высота слота
         this.cell_size = UI_THEME.window_slot_size * this.zoom
 
         const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
-        const x = this.w / this.zoom - slots_width
-
-        // Add label
-        const lblBackpackWidth = 80 * this.zoom
-        const lblBackpackHeight = 30 * this.zoom
-        const lblBackpack = new Label(this.w - (UI_THEME.window_padding) * this.zoom - lblBackpackWidth, UI_THEME.window_padding * this.zoom, lblBackpackWidth, lblBackpackHeight, 'lblBackpack', null, Lang.backpack)
-        lblBackpack.style.font.color = UI_THEME.label_text_color
-        lblBackpack.style.font.size = 14
-        lblBackpack.style.textAlign.horizontal = 'right'
-        lblBackpack.text = Lang.backpack
-        this.add(lblBackpack)
 
         // Создание слотов для инвентаря
+        const x = this.w / this.zoom - slots_width
         const y = 35
         this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding)
 
         // Создания слота для армора
         this.createArmorSlots(this.cell_size)
+
+        //
+        this.addPlayerBox()
+
+        // Add label
+        const lblBackpackWidth = (slots_width - UI_THEME.window_padding) * this.zoom
+        const lblBackpackHeight = 30 * this.zoom
+        const lblBackpack = new Label(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, lblBackpackHeight, 'lblBackpack', null, Lang.backpack)
+        lblBackpack.style.font.color = UI_THEME.label_text_color
+        lblBackpack.style.font.size = 14
+        lblBackpack.style.textAlign.horizontal = 'left'
+        lblBackpack.text = Lang.backpack
+        this.add(lblBackpack)
 
     }
 
@@ -93,7 +96,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
             this.skinViewer.draw();
             this.skinViewer.renderPaused = true;
             this.skinViewerCanvas.toBlob(async blob => {
-                this.lblPlayerBox.setBackground(await blobToImage(blob), 'centerstretch', .9)
+                this.lblPlayerBox.setIcon(await blobToImage(blob), 'centerstretch', .9)
             })
         }
 
@@ -146,19 +149,36 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
     addPlayerBox() {
         const ct = this;
-        this.lblPlayerBox = new Label(52 * this.zoom, 16 * this.zoom,
-            PLAYER_BOX_WIDTH * this.zoom, PLAYER_BOX_HEIGHT * this.zoom,
-            'lblPlayerBox', null, null);
 
-        this.skinViewerCanvas = document.createElement('canvas');
-        this.skinViewerCanvas.width = PLAYER_BOX_WIDTH * this.zoom;
-        this.skinViewerCanvas.height = PLAYER_BOX_HEIGHT * this.zoom;
+        const sprite_character_back = this.hud_atlas.getSpriteFromMap('char_back')
+        const armor_slot = this.armor_slots[0]
+        const margin = UI_THEME.slot_margin * this.zoom
+
+        const PLAYER_BOX_HEIGHT = (this.cell_size + margin) * 4 - margin
+        const PLAYER_BOX_WIDTH = PLAYER_BOX_HEIGHT * (sprite_character_back.width / sprite_character_back.height)
+
+        this.lblPlayerBox = new Label(armor_slot.x + armor_slot.w + margin, armor_slot.y, PLAYER_BOX_WIDTH, PLAYER_BOX_HEIGHT, 'lblPlayerBox', null, null)
+        this.lblPlayerBox.setBackground(sprite_character_back)
+
+        // Add locked armor slots
+        for(let lbl of ct.inventory_slots) {
+            if(lbl instanceof ArmorSlot) {
+                const x = this.lblPlayerBox.x + this.lblPlayerBox.w + margin
+                const l = new Label(x, lbl.y, lbl.w, lbl.w, `${lbl.id}_fake`)
+                l.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
+                ct.add(l)
+            }
+        }
+
+        this.skinViewerCanvas = document.createElement('canvas')
+        this.skinViewerCanvas.width = PLAYER_BOX_WIDTH
+        this.skinViewerCanvas.height = PLAYER_BOX_HEIGHT
         // this.lblPlayerBox.setBackground(this.skinViewerCanvas, 'centerstretch', .9);
         this.lblPlayerBox.onMouseDown = () => {
             this.skinViewer.animation = this.skinViewer.animation || new skinview3d.WalkingAnimation();
             this.skinViewer.renderPaused = !this.skinViewer.renderPaused;
         }
-        ct.add(this.lblPlayerBox);
+        ct.add(this.lblPlayerBox)
     }
 
     getSlots() {
@@ -193,6 +213,8 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const lblSlotBoots = new ArmorSlot(x, getY(), sz, 36, this)
         ct.add(lblSlotBoots)
         ct.inventory_slots.push(lblSlotBoots)
+
+        this.armor_slots = [lblSlotHead, lblSlotChest, lblSlotLeggs, lblSlotBoots]
 
     }
 

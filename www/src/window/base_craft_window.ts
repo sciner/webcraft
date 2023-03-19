@@ -533,6 +533,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         } else {
             if(e.shiftKey) {
                 switch(this.parent.id) {
+                    case 'frmCharacterWindow':
                     case 'frmInventory': {
                         const srcList = this.parent.inventory_slots;
                         if(!this.appendToSpecialList(targetItem, srcList)) {
@@ -571,6 +572,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot frmCraft')
+                        break
                     }
                     default: {
                         console.log('this.parent.id', this.parent.id)
