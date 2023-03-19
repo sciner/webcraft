@@ -1,5 +1,5 @@
 import { Button, Label, Window } from "../../tools/gui/wm.js";
-import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_SLOT_SIZE, KEY } from "../constant.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_SLOT_SIZE, KEY, UI_THEME } from "../constant.js";
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { CreativeInventoryWindow } from "./creative_inventory.js";
@@ -93,6 +93,7 @@ export class InGameMain extends Window {
                         tab.form.hide()
                     }
                     tab.button.style.background.color = active ? '#00000011' : '#00000000'
+                    tab.button.style.font.color = active ? UI_THEME.tabs.active.font.color : UI_THEME.tabs.inactive.font.color
                     tab.form.style.background.color = '#00000011'
                 }
             }

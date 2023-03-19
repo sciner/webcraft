@@ -530,7 +530,7 @@ export class Inventory {
      */
     getArmorPower(slot_index) {
         if (this.items[slot_index]) {
-            return 10
+            return 90
         }
         return 0
     }

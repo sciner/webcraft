@@ -370,7 +370,7 @@ export class Hotbar {
             const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
             const low_live = live < 3
 
-            this.bars_base_window.transform.position.y = this.inventory_slots_window.transform.position.y
+            this.bars_base_window.transform.position.y = this.inventory_slots_window.transform.position.y + this.bars_base_window.h * .03
 
             this.armor_base_window.transform.position.y = this.inventory_slots_window.transform.position.y - 70 *this.zoom
 
