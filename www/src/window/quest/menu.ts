@@ -1,5 +1,5 @@
 import { ToggleButton, Window } from "../../../tools/gui/wm.js";
-import { INVENTORY_SLOT_SIZE } from "../../constant.js";
+import { INVENTORY_SLOT_SIZE, UI_THEME } from "../../constant.js";
 import { QuestGroup } from "./group.js";
 
 //
@@ -78,6 +78,7 @@ export class QuestMenu extends Window {
             lblGroup.style.textAlign.vertical = 'bottom';
             lblGroup.style.padding.left = 0;
             lblGroup.style.padding.bottom = 0;
+            lblGroup.style.font.color = UI_THEME.base_text_color
             lblGroup.onMouseDown = function(e) {
                 return false;
             };
@@ -90,6 +91,7 @@ export class QuestMenu extends Window {
                 const title = quest.title;
                 const status = quest.is_completed ? '✅' : (quest.in_progress ? '🕒' : '🆕');
                 const tb = new ToggleButton(x, y, this.w, BUTTON_HEIGHT, 'btnQuest' + quest.id, `${status} ${title}`);
+                tb.style.font.color = UI_THEME.base_text_color
                 tb.style.font.size = 14
                 tb.quest = quest
                 ct.add(tb)

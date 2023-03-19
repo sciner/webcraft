@@ -1,20 +1,21 @@
 import { Button, Label } from "../../tools/gui/wm.js";
 import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 // import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { blobToImage } from "../helpers.js";
 import type { RecipeWindow } from "./recipe.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
-
-const PLAYER_BOX_WIDTH = 98;
-const PLAYER_BOX_HEIGHT = 140;
+import type { InGameMain } from "./ingamemain.js";
 
 export class InventoryWindow extends BaseCraftWindow {
 
     frmInventoryRecipe : InventoryRecipeWindow
+
+    slot_empty = 'slot_empty'
+    slot_full = 'slot_full'
 
     constructor(inventory : PlayerInventory, recipes) {
 
@@ -24,12 +25,6 @@ export class InventoryWindow extends BaseCraftWindow {
         this.w *= this.zoom
         this.h *= this.zoom
         this.recipes = recipes
-
-        // Create sprite atlas
-        // this.atlas = new SpriteAtlas()
-        // this.atlas.fromFile('./media/gui/form-inventory.png').then(async atlas => {
-        //     this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
-        // })
 
         this.skinKey = null
         this.skinViewer = null // lazy initialized if necessary
@@ -42,17 +37,15 @@ export class InventoryWindow extends BaseCraftWindow {
             }
         };
 
-        //
-        this.addPlayerBox()
+    }
 
-        // // Add buttons
-        // this.addRecipesButton()
+    init(parent : InGameMain) {
 
         // слоты для подсказок
         this.addHelpSlots()
 
         // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
+        this.cell_size = UI_THEME.window_slot_size * this.zoom // INVENTORY_SLOT_SIZE
 
         // Создание слотов для крафта
         this.createCraft(this.cell_size)
@@ -60,31 +53,13 @@ export class InventoryWindow extends BaseCraftWindow {
         // Создание слотов для инвентаря
         this.createInventorySlots(this.cell_size)
 
-        // Создания слота для армора
-        this.createArmorSlots(this.cell_size)
-
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(306 * this.zoom, 54 * this.zoom)
 
         // Add labels to window
         const lblTitle = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.create)
+        lblTitle.style.font.color = UI_THEME.base_text_color
         this.add(lblTitle)
-
-        // const btnClose = new Button(this.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
-        // this.add(btnClose)
-
-        // // Add close button
-        // this.loadCloseButtonImage((image) => {
-        //     // Add buttons
-        //     const that = this
-        //     // Close button
-        //     btnClose.style.font.family = 'Arial'
-        //     btnClose.style.background.image = image
-        //     // btnClose.style.background.image_size_mode = 'stretch';
-        //     btnClose.onDrop = btnClose.onMouseDown = function(e) {
-        //         that.hide()
-        //     }
-        // })
 
     }
 
@@ -101,7 +76,7 @@ export class InventoryWindow extends BaseCraftWindow {
             this.add(form)
         }
 
-        this.previewSkin()
+        // this.previewSkin()
         this.setHelperSlots(null)
         super.onShow(args)
 
@@ -123,13 +98,10 @@ export class InventoryWindow extends BaseCraftWindow {
                 slot.setItem(null)
             }
         }
-        // Update player mob model
-        this.inventory.player.updateArmor()
+
         // Save inventory
         Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
-        if(this.skinViewer) {
-            this.skinViewer.renderPaused = true
-        }
+
     }
 
     async previewSkin() {
@@ -189,23 +161,6 @@ export class InventoryWindow extends BaseCraftWindow {
 
     }
 
-    addPlayerBox() {
-        const ct = this;
-        this.lblPlayerBox = new Label(52 * this.zoom, 16 * this.zoom,
-            PLAYER_BOX_WIDTH * this.zoom, PLAYER_BOX_HEIGHT * this.zoom,
-            'lblPlayerBox', null, null);
-
-        this.skinViewerCanvas = document.createElement('canvas');
-        this.skinViewerCanvas.width = PLAYER_BOX_WIDTH * this.zoom;
-        this.skinViewerCanvas.height = PLAYER_BOX_HEIGHT * this.zoom;
-        // this.lblPlayerBox.setBackground(this.skinViewerCanvas, 'centerstretch', .9);
-        this.lblPlayerBox.onMouseDown = () => {
-            this.skinViewer.animation = this.skinViewer.animation || new skinview3d.WalkingAnimation();
-            this.skinViewer.renderPaused = !this.skinViewer.renderPaused;
-        }
-        ct.add(this.lblPlayerBox);
-    }
-
     /**
      * Создание слотов для крафта
      * @param {int} sz Ширина / высота слота
@@ -236,22 +191,6 @@ export class InventoryWindow extends BaseCraftWindow {
 
     getSlots() {
         return this.inventory_slots;
-    }
-
-    createArmorSlots(sz) {
-        const ct = this;
-        const lblSlotHead = new ArmorSlot(16.5 * this.zoom, 16 * this.zoom, 32 * this.zoom, 39, this);
-        ct.add(lblSlotHead);
-        ct.inventory_slots.push(lblSlotHead);
-        const lblSlotChest = new ArmorSlot(16.5 * this.zoom, 52 * this.zoom, 32 * this.zoom, 38, this);
-        ct.add(lblSlotChest);
-        ct.inventory_slots.push(lblSlotChest);
-        const lblSlotLeggs = new ArmorSlot(16.5 * this.zoom, 88 * this.zoom, 32 * this.zoom, 37, this);
-        ct.add(lblSlotLeggs);
-        ct.inventory_slots.push(lblSlotLeggs);
-        const lblSlotBoots = new ArmorSlot(16.5 * this.zoom, 123 * this.zoom, 32 * this.zoom, 36, this);
-        ct.add(lblSlotBoots);
-        ct.inventory_slots.push(lblSlotBoots);
     }
 
 }

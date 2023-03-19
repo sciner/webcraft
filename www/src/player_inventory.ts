@@ -67,7 +67,7 @@ export class PlayerInventory extends Inventory {
 
     // Open window
     open() {
-        this.hud.wm.getWindow('frmInGameMain').openTab('frmInventory')
+        this.hud.wm.getWindow('frmInGameMain').openTab('frmCharacterWindow')
     }
 
     // Refresh

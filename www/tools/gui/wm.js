@@ -1318,6 +1318,10 @@ export class SimpleBlockSlot extends Window {
     bar_value = null // : Label
     hud_atlas = null
 
+    slot_empty  = 'window_slot' // 'slot_empty'
+    slot_full   = 'window_slot' // 'slot_full'
+    slot_locked = 'window_slot_locked' // 'slot_full'
+
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)
         this.style.font.color = '#ffffff'
@@ -1354,7 +1358,7 @@ export class SimpleBlockSlot extends Window {
         }
         this.hud_atlas = Resources.atlas.get('hud')
         if(this.hud_atlas) {
-            this.setBackground(this.hud_atlas.getSpriteFromMap('slot_empty'))
+            this.setBackground(this.hud_atlas.getSpriteFromMap(this.slot_empty))
             const bar_sprite = this.hud_atlas.getSpriteFromMap('tooldmg_0')
             this.bar.style.background.color = '#00000000'
             const zoom = this.bar.w / bar_sprite.width
@@ -1405,7 +1409,7 @@ export class SimpleBlockSlot extends Window {
             const mat = BLOCK.fromId(item.id)
             const tintMode = item.extra_data?.enchantments ? 1 : 0
 
-            this.setBackground(hud_atlas.getSpriteFromMap('slot_full'))
+            this.setBackground(hud_atlas.getSpriteFromMap(this.slot_full))
             this.setIcon(getBlockImage(item), 'centerstretch', 1.0, tintMode)
 
             const power_in_percent = mat?.item?.indicator == 'bar'
@@ -1430,7 +1434,7 @@ export class SimpleBlockSlot extends Window {
             }
 
         } else {
-            this.setBackground(hud_atlas.getSpriteFromMap('slot_empty'))
+            this.setBackground(hud_atlas.getSpriteFromMap(this.slot_empty))
         }
 
         this.text = label

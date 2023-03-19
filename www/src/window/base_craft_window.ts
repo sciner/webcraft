@@ -1,7 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
 import { Label, SimpleBlockSlot } from "../../tools/gui/wm.js";
 import { Recipe } from "../recipes.js";
@@ -706,28 +706,28 @@ export class ArmorSlot extends CraftTableInventorySlot {
         this.onMouseEnter(e)
     }
 
-    // Custom drawing
-    onMouseEnter(e) {
-        const dragItem = Qubatch.hud.wm.drag.getItem()
-        if (!dragItem || this.isValidDragItem(dragItem)) {
-            if(!this.getItem()) {
-                this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
-            } else {
-                this.style.background.color = ARMOR_SLOT_BACKGROUND_ACTIVE
-            }
-        }
-    }
+    // // Custom drawing
+    // onMouseEnter(e) {
+    //     const dragItem = Qubatch.hud.wm.drag.getItem()
+    //     if (!dragItem || this.isValidDragItem(dragItem)) {
+    //         if(!this.getItem()) {
+    //             this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
+    //         } else {
+    //             this.style.background.color = ARMOR_SLOT_BACKGROUND_ACTIVE
+    //         }
+    //     }
+    // }
 
-    onMouseLeave(e) {
-        if(!this.getItem()) {
-            super.onMouseLeave(e)
-        } else {
-            this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE
-        }
-    }
+    // onMouseLeave(e) {
+    //     if(!this.getItem()) {
+    //         super.onMouseLeave(e)
+    //     } else {
+    //         this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE
+    //     }
+    // }
 
     setItem(item) {
-        this.style.background.color = item ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#00000000'
+        // this.style.background.color = item ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#00000000'
         super.setItem(item)
     }
 
@@ -778,37 +778,62 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     /**
     * Создание слотов для инвентаря
     * @param int sz Ширина / высота слота
-    * @param int xs Смешение словтов по оси x
-    * @param int ys Смешение словтов по оси y
+    * @param int xs Смешение слотов по оси x
+    * @param int ys Смешение слотов по оси y
     */
-    createInventorySlots(sz, sx = 14, sy = 166) {
+    createInventorySlots(sz, sx = UI_THEME.window_padding, sy = 166, belt_x? : float, belt_y? : float) {
+
         const ct = this;
         if(ct.inventory_slots) {
-            console.error('createInventorySlots() already created');
+            console.error('createInventorySlots() already created')
             return
         }
-        ct.inventory_slots  = [];
-        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
+
+        ct.inventory_slots  = []
+        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
         sx *= this.zoom
         sy *= this.zoom
         let index = 0
+        const margin = UI_THEME.slot_margin * this.zoom
+        const padding = UI_THEME.window_padding * this.zoom
+
+        if(belt_x === undefined) {
+            belt_x = sx
+        } else {
+            belt_x *= this.zoom
+        }
+
+        if(belt_y === undefined) {
+            belt_y = this.h - sz - padding
+        } else {
+            belt_y *= this.zoom
+        }
+
         //
-        const createSlot = (x, y) => {
+        const createSlot = (x : float, y : float) => {
             const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
-            ct.add(lblSlot);
+            ct.add(lblSlot)
             ct.inventory_slots.push(lblSlot)
             index++
         }
+
         // не менять порядок нижних и верхних!
         // иначе нарушится их порядок в массиве ct.inventory_slots
         // нижний ряд (видимые на хотбаре)
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            createSlot(sx + (i % xcnt) * sz, (sy + 116 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
+            const x = belt_x + (i % xcnt) * (sz + margin)
+            // const y = (sy + 120 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom + margin)
+            const y = belt_y
+            createSlot(x, y)
         }
+
         // верхние 3 ряда
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
+            const x = sx + (i % xcnt) * (sz + margin)
+            const y = sy + Math.floor(i / xcnt) * (sz + margin)
+            createSlot(x, y)
         }
+
     }
 
     clearCraftSlotIfPosible(slot) {

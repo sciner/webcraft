@@ -246,6 +246,9 @@ export class Hotbar {
 
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
             const lblSlot = new CraftTableInventorySlot(i * (sz * SLOT_MARGIN_PERCENT), 0, sz, sz, `lblSlot${i}`, null, null, this, i)
+            lblSlot.slot_empty  = 'slot_empty'
+            lblSlot.slot_full   = 'slot_full'
+            lblSlot.slot_locked = 'slot_empty'
             lblSlot.style.background.color = '#00000000'
             lblSlot.style.border.hidden = true
             inventory_slots_window.add(lblSlot)

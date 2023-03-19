@@ -1,7 +1,7 @@
 import { Button, Label, Slider } from "../../tools/gui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 
 export class StatsWindow extends BlankWindow {
@@ -45,8 +45,10 @@ export class StatsWindow extends BlankWindow {
             const lbl = new Label(x + 100 * this.zoom, y, w, one_line, item.id, item.title, item.title)
             lbl_title.style.font.size = 14
             lbl_title.style.font.weight = 'bold'
+            lbl_title.style.font.color = UI_THEME.base_text_color
             lbl.style.textAlign.horizontal = 'right'
             lbl.style.font.size = 14
+            lbl.style.font.color = UI_THEME.base_text_color
             this.add(lbl_title)
             this.add(lbl)
         }

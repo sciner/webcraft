@@ -4,6 +4,7 @@ import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { CreativeInventoryWindow } from "./creative_inventory.js";
 import { InventoryWindow } from "./inventory.js";
+import { CharacterWindow } from "./character.js";
 import { QuestWindow } from "./quest.js";
 import { StatsWindow } from "./stats.js";
 
@@ -43,6 +44,7 @@ export class InGameMain extends Window {
 
         // const windows = []
         const tabs = this.tabs = [
+            {title: Lang.btn_character,      form: new CharacterWindow(player, inventory),  button: null, fix_pos: new Vector(2, 0, 0)},
             {title: Lang.inventory,          form: new InventoryWindow(inventory, recipes), button: null, fix_pos: new Vector(2, 0, 0)},
             {title: Lang.creative_inventory, form: new CreativeInventoryWindow(inventory),  button: null, fix_pos: new Vector(0, 0, 0)},
             {title: Lang.quests,             form: new QuestWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)},
@@ -77,6 +79,11 @@ export class InGameMain extends Window {
             tab.form.ignore_esc = true
             tab.button.form = tab.form
             this.add(tab.form)
+
+            if('init' in tab.form) {
+                tab.form.init(this)
+            }
+
             tab.button.onMouseDown = function(e) {
                 for(let tab of tabs) {
                     const active = this.form == tab.form

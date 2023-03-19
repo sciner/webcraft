@@ -8,7 +8,7 @@ export class PlayerWindowManager {
         this.player = player;
         const inventory = player.inventory;
         this.addWindow(new CraftTable(inventory, inventory.recipes));
-        this.addWindow(new InventoryWindow(inventory, inventory.recipes));
+        // this.addWindow(new InventoryWindow(inventory, inventory.recipes));
         this.addWindow(new CreativeInventoryWindow(inventory));
         this.addWindow(new ChestWindow(inventory));
         this.addWindow(new DoubleChestWindow(inventory));

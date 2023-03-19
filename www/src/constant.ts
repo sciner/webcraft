@@ -5,8 +5,8 @@ export enum LIGHT_TYPE {
     RTX     = 2,
 }
 
-export const INGAME_MAIN_WIDTH              = 860
-export const INGAME_MAIN_HEIGHT             = 610
+export const INGAME_MAIN_WIDTH              = 772
+export const INGAME_MAIN_HEIGHT             = 514
 export const GAME_ONE_SECOND                = 72;
 export const GAME_DAY_SECONDS               = 24000;
 // If more time than this has passed since the last update, player.update() is skipped.
@@ -60,6 +60,100 @@ export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
+
+export const UI_THEME = {
+    base_text_color: '#5bc4da',
+    label_text_color: '#ffffff33',
+    window_padding: 10,
+    slot_margin: 5,
+    window_slot_size: 45,
+    // chat
+    chat: {
+        // main text
+        text: {
+            font: {
+                color: '#5bc4da',
+                size: 40
+            }
+        },
+        //
+        nicknames: {
+            font: {
+                color: '#8ff3ff',
+                size: 60
+            }
+        }
+    },
+    // tabs control
+    tabs: {
+        // active tab
+        active: {
+            font: {
+                color: '#feaa25',
+                size: 60
+            }
+        },
+        // inactive tab
+        inactive: {
+            font: {
+                color: '#5bc4da',
+                font_size: 60
+            }
+        }
+    },
+    // search input
+    search: {
+        // filled
+        filled: {
+            font: {
+                color: '#5bc4da',
+                size: 48
+            }
+        },
+        // empty
+        empty: {
+            font: {
+                color: '#293f51',
+                font_size: 60
+            }
+        }
+    },
+    // quests
+    quest: {
+        // main quest
+        main: {
+            font: {
+                color: '#feaa25',
+                size: 40
+            }
+        },
+        completed: {
+            font: {
+                color: '#4ffc88',
+                size: 32
+            }
+        },
+        incomplete: {
+            font: {
+                color: '#a6a6a6',
+                size: 32
+            }
+        },
+        //
+        others: {
+            font: {
+                color: '#8ff3ff',
+                size: 60
+            }
+        }
+    },
+    paginator: {
+        font: {
+            color: '#3a576f',
+            size: 36
+        }
+    }
+}
 
 export enum LEAVES_TYPE {
     NO = 0,
