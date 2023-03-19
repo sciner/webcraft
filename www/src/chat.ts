@@ -303,6 +303,8 @@ export class Chat extends TextBox {
         if(!this.chat_input) {
             this.init(hud)
             this.history_messages_window = new Window(50, 600, 500, 200, 'history_messages_window')
+            this.history_messages_window.text = '_'
+            this.history_messages_window.style.font.color = UI_THEME.base_text_color
             this.history_messages_window.style.font.word_wrap = true
             //this.history_messages_window.style.background.color = '#ff000000'
             hud.hudwindow.add(this.history_messages_window)
