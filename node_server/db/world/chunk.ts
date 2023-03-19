@@ -88,6 +88,7 @@ const UPDATE = {
 
 const tmpVector = new Vector()
 const tmpAddr = new Vector()
+const tmpStringArray: string[] = []
 
 // It contains queries dealing with chunks. It doesn't contain logic.
 export class DBWorldChunk {
@@ -519,11 +520,23 @@ export class DBWorldChunk {
 
     /** Returns an object with the same keys, but null values. */
     private static toNullPatch(data_patch: BlocksPatch): string {
-        const obj = {}
+        // it's faster than construct and stringify an object
+        const arr = tmpStringArray
+        arr.length = 0
+        arr.push('{"')
+        let added = false
         for(const key in data_patch) {
-            obj[key] = null
+            if (added) {
+                arr.push('":null,"')
+            }
+            arr.push(key)
+            added = true
         }
-        return JSON.stringify(obj)
+        if (!added) {
+            return '{}'
+        }
+        arr.push('":null}')
+        return arr.join('')
     }
 
 }
