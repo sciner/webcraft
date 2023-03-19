@@ -1334,30 +1334,35 @@ export class SimpleBlockSlot extends Window {
         const bar_height = 3 * this.zoom
         
         this.bar = new Label(padding, h - bar_height - padding, this.w - padding * 2, bar_height, 'lblBar')
-        this.bar.style.background.color = '#000000aa'
+        this.bar.style.background.color = '#00000000'
         this.bar.visible = false
         this.bar.catchEvents = false
         this.bar_value = new Label(0, 0, this.bar.w, this.bar.h, 'lblBar')
         this.bar.addChild(this.bar_value)
         this.addChild(this.bar)
 
+        // this.swapChildren(this._wmicon, this._wmbgimage)
+        this.swapChildren(this._wmicon, this.text_container)
+
+        this.item = null
+
+    }
+
+    initAndReturnAtlas() {
+        if(this.hud_atlas) {
+            return this.hud_atlas
+        }
         this.hud_atlas = Resources.atlas.get('hud')
         if(this.hud_atlas) {
-            //
             this.setBackground(this.hud_atlas.getSpriteFromMap('slot_empty'))
-            //
             const bar_sprite = this.hud_atlas.getSpriteFromMap('tooldmg_0')
             this.bar.style.background.color = '#00000000'
             const zoom = this.bar.w / bar_sprite.width
             this.bar.y = this.bar.y - (bar_sprite.height * zoom * .7)
             this.bar_value.h = this.bar.h = bar_sprite.height * zoom
             this.bar.setBackground(bar_sprite)
-            // // this.swapChildren(this._wmicon, this._bgimage)
-            this.swapChildren(this._wmicon, this.text_container)
         }
-
-        this.item = null
-
+        return this.hud_atlas
     }
 
     getItem() {
@@ -1380,6 +1385,13 @@ export class SimpleBlockSlot extends Window {
      */
     refresh() {
 
+        const hud_atlas = this.initAndReturnAtlas()
+
+        if(!hud_atlas) {
+            console.error('error_atlas_not_found')
+            return false
+        }
+
         const item = this.getItem()
 
         this._wmicon.visible = !!item
@@ -1393,21 +1405,17 @@ export class SimpleBlockSlot extends Window {
             const mat = BLOCK.fromId(item.id)
             const tintMode = item.extra_data?.enchantments ? 1 : 0
 
-            this.setBackground(this.hud_atlas.getSpriteFromMap('slot_full'))
+            this.setBackground(hud_atlas.getSpriteFromMap('slot_full'))
             this.setIcon(getBlockImage(item), 'centerstretch', 1.0, tintMode)
 
-            // let font_size = 18
             const power_in_percent = mat?.item?.indicator == 'bar'
             label = item.count > 1 ? item.count : null
-            // let shift_y = 0
             if(!label && 'power' in item) {
                 if(power_in_percent) {
                     label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%'
                 } else {
                     label = null
                 }
-                // font_size = 12
-                // shift_y = -10
             }
 
             // draw instrument life
@@ -1416,13 +1424,13 @@ export class SimpleBlockSlot extends Window {
                 const percent = Math.max(Math.min(item.power / mat.power, 1), 0)
                 const sprites = ['tooldmg_3', 'tooldmg_2', 'tooldmg_1']
                 const index = Math.round(Math.min(sprites.length * percent, .999))
-                const bar_value_sprite = this.hud_atlas.getSpriteFromMap(sprites[index])
+                const bar_value_sprite = hud_atlas.getSpriteFromMap(sprites[index])
                 this.bar_value.setBackground(bar_value_sprite)
                 this.bar_value.clip(0, 0, this.bar.w * percent)
             }
 
         } else {
-            this.setBackground(this.hud_atlas.getSpriteFromMap('slot_empty'))
+            this.setBackground(hud_atlas.getSpriteFromMap('slot_empty'))
         }
 
         this.text = label
@@ -1438,6 +1446,7 @@ export class Pointer extends SimpleBlockSlot {
 
     constructor() {
         super(0, 0, 40 * UI_ZOOM, 40 * UI_ZOOM, '_wmpointer', null, null)
+        this._wmbgimage.alpha = 0
     }
 
 }
@@ -1649,7 +1658,7 @@ export class WindowManager extends Window {
                 };
                 this.drag.slot = null // if a slot previously remembered itself in this.darg when clicked, forget it
                 if(this.drag.getItem()) {
-                     //this._drop(evt)
+                     // this._drop(evt)
                 } else {
                     this._mousedown(evt)
                 }

@@ -29,7 +29,7 @@ export class RecipeSlot extends Window {
         this.hud_atlas = Resources.atlas.get('hud')
         if(this.hud_atlas) {
             this.setIcon(this.hud_atlas.getSpriteFromMap('slot_empty'))
-            this.swapChildren(this._wmicon, this._bgimage)
+            this.swapChildren(this._wmicon, this._wmbgimage)
         }
 
     }
@@ -80,7 +80,7 @@ export class RecipeSlot extends Window {
                             this.recipe.size.height <= craft_area_size.height;
         }
         // this.style.background.color = this.can_make ? '#00000000' : '#A1515155';
-        this._bgimage.alpha = this.can_make ? 1 : .2
+        this._wmbgimage.alpha = this.can_make ? 1 : .2
         this.style.background.sprite.tintMode = this.can_make ? 0 : 2
     }
 
