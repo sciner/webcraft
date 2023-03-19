@@ -525,6 +525,17 @@ export class Inventory {
     }
 
     /**
+     * Возвращает прочность надетого премета
+     * @returns {int}
+     */
+    getArmorPower(slot_index) {
+        if (this.items[slot_index]) {
+            return 10
+        }
+        return 0
+    }
+
+    /**
      * Deletes items with count = 0.
      * @param {Array|Object} items
      * @reurn null if nothing is deleted, or an error String

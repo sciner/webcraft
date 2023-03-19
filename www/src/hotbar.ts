@@ -5,7 +5,7 @@ import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
 import { Effect } from "./block_type/effect.js";
 import { Label, Window } from "../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./window/base_craft_window.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_LEGGINGS } from "./constant.js";
 import type { Inventory } from "./inventory.js";
 import type { SpriteAtlas } from "./core/sprite_atlas.js";
 import type { HUD } from "./hud.js";
@@ -239,6 +239,22 @@ export class Hotbar {
         }
         this.hud.wm.addChild(bars_base_window)
 
+        this.armors = {}
+        const armor_base_sprite = this.hud_atlas.getSpriteFromMap('armor_0') 
+        const armor_base_window = this.armor_base_window = new Window(MARGIN * this.zoom, 0, armor_base_sprite.width * sprite_zoom, armor_base_sprite.height * sprite_zoom, 'armor_base')
+        armor_base_window.catchEvents = false
+        armor_base_window.auto_center = false
+        armor_base_window.setBackground(armor_base_sprite)
+        this.armors[PLAYER_ARMOR_SLOT_HELMET] = new Label( 8.5 * this.zoom, 0, 47 * sprite_zoom, 38 * sprite_zoom, 'armor_helmet')
+        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_HELMET])
+        this.armors[PLAYER_ARMOR_SLOT_CHESTPLATE] = new Label( 0, 12 * this.zoom, 104 * sprite_zoom, 71 * sprite_zoom, 'armor_chestplate')
+        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_CHESTPLATE])
+        this.armors[PLAYER_ARMOR_SLOT_LEGGINGS] = new Label( 7.5 * this.zoom, 33 * this.zoom, 53 * sprite_zoom, 62 * sprite_zoom, 'armor_leggins')
+        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_LEGGINGS])
+        this.armors[PLAYER_ARMOR_SLOT_BOOTS] = new Label( 7.5 * this.zoom, 52 * this.zoom, 53 * sprite_zoom, 26 * sprite_zoom, 'armor_boots')
+        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_BOOTS])
+        this.hud.wm.addChild(armor_base_window)
+
         const inventory_slots_window = this.inventory_slots_window = new Window(bars_base_window.x + bars_base_window.w + MARGIN * this.zoom, 0, INVENTORY_HOTBAR_SLOT_COUNT * (sz * SLOT_MARGIN_PERCENT) - (sz * SLOT_MARGIN_PERCENT - sz), sz, 'hotbar_inventory_slots')
         inventory_slots_window.auto_center = false
         inventory_slots_window.catchEvents = false
@@ -339,6 +355,7 @@ export class Hotbar {
         const mayGetDamaged = player.game_mode.mayGetDamaged()
 
         this.bars_base_window.visible = mayGetDamaged
+        this.armor_base_window.visible = mayGetDamaged
 
         if (mayGetDamaged) {
             const left = 180 * this.zoom
@@ -354,6 +371,8 @@ export class Hotbar {
             const low_live = live < 3
 
             this.bars_base_window.transform.position.y = this.inventory_slots_window.transform.position.y
+
+            this.armor_base_window.transform.position.y = this.inventory_slots_window.transform.position.y - 70 *this.zoom
 
             this.bars.hp.clip(0, 0, this.bars.hp.w * (live / 20.))
 
@@ -388,10 +407,20 @@ export class Hotbar {
             if (oxygen < 20) {
                 this.drawStrip(hud.width / 2 + right,  hud.height - bottom_two_line, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
             }
-            // броня
-            const armor = this.inventory.getArmorLevel()
-            if (armor > 0) {
-                this.drawStrip(hud.width / 2 - left, hud.height - bottom_two_line, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black)
+
+            for(const slot_index of [PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET]) {
+                if (this.armors[slot_index]) {
+                    const power = this.inventory.getArmorPower(slot_index)
+                    if (power > 70) {
+                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_green')
+                    } else if (power > 40) {
+                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_yellow')
+                    } else if (power > 0) {
+                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_red')
+                    } else {
+                        this.armors[slot_index].setBackground(null)
+                    }
+                }
             }
         }
 
@@ -432,6 +461,7 @@ export class Hotbar {
         this.strings.draw(this.lblHotbarText, this.lblHotbarTextShadow)
 
     }
+
 
     drawEffects(hud) {
         const margin = 4 * this.zoom
