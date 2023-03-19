@@ -1,9 +1,10 @@
 import { ServerClient } from "./server_client.js";
 import { Lang } from "./lang.js";
 import { TextBox } from "./ui/textbox.js";
-import { KEY } from "./constant.js";
+import { Label, Window } from "./ui/wm.js";
+import { KEY, UI_THEME } from "./constant.js";
 import type { KbEvent } from "./kb.js";
-import { Window } from "./ui/wm.js";
+import { Resources } from "./resources.js";
 
 const MESSAGE_SHOW_TIME         = 7000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
@@ -131,6 +132,7 @@ export class Chat extends TextBox {
                 }
             }
         }
+        this.hud_atlas = Resources.atlas.get('hud')
     }
 
     //
@@ -300,12 +302,23 @@ export class Chat extends TextBox {
 
         if(!this.chat_input) {
             this.init(hud)
-            this.history_messages_window = new Window(0, 0, 0, 0, 'history_messages_window')
+            this.history_messages_window = new Window(50, 600, 500, 200, 'history_messages_window')
+            this.history_messages_window.style.font.word_wrap = true
+            //this.history_messages_window.style.background.color = '#ff000000'
             hud.hudwindow.add(this.history_messages_window)
             // style
-            this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
-            this.history_messages_window.style.font.color = '#ffffff'
-            this.history_messages_window.style.background.color = '#00000000'
+            //this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
+            //this.history_messages_window.style.font.color = '#ffffff'
+            this.history_messages_window.style.background.color = '#00000055'
+
+            
+           const top_label =  new Label( 0, 0, 500, 1, 'LabelTop')
+           top_label.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
+           this.history_messages_window.addChild(top_label)
+
+           const bottom_label =  new Label( 0, 199, 500, 1, 'LabelBottom')
+           bottom_label.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
+           this.history_messages_window.addChild(bottom_label)
         }
 
         const x = margin
@@ -333,9 +346,7 @@ export class Chat extends TextBox {
                 }
                 let texts = m.text.split('\n')
                 for(let i = texts.length - 1; i >= 0; i--) {
-                    const text = i === 0
-                        ? m.username + ': ' + texts[i]
-                        : '  ' + texts[i]
+                    const text = i === 0 ? m.username + ': ' + texts[i] : '  ' + texts[i]
                     strings.push(text)
                 }
                 // for(let i = texts.length - 1; i >= 0; i--) {
@@ -366,12 +377,12 @@ export class Chat extends TextBox {
         strings.reverse()
 
         this.history_messages_window.text = strings.join('\n')
-        this.history_messages_window.transform.position.set(margin, margin)
-        this.history_messages_window.w = input_width
-        this.history_messages_window.h = y + input_height - margin
-        this.history_messages_window.text_container.transform.position.set(margin, this.history_messages_window.h - margin)
+     //   this.history_messages_window.transform.position.set(margin, margin)
+     //   this.history_messages_window.w = input_width
+    //   this.history_messages_window.h = y + input_height - margin
+     //   this.history_messages_window.text_container.transform.position.set(margin, this.history_messages_window.h - margin)
 
-        this.history_messages_window.text_container.anchor.y = 1
+     //   this.history_messages_window.text_container.anchor.y = 1
 
     }
 
