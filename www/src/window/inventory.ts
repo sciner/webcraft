@@ -66,7 +66,7 @@ export class InventoryWindow extends BaseCraftWindow {
 
         const labels = [
             new Label(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, 30 * this.zoom, 'lblBackpack', null, Lang.backpack),
-            new Label(UI_THEME.window_padding * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.craft),
+            new Label(UI_THEME.window_padding * this.zoom * 2, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.craft),
         ]
 
         for(let lbl of labels) {
@@ -185,7 +185,7 @@ export class InventoryWindow extends BaseCraftWindow {
             return
         }
         const szm         = sz + UI_THEME.slot_margin * this.zoom
-        const sx          = UI_THEME.window_padding * this.zoom + szm
+        const sx          = UI_THEME.window_padding * this.zoom * 2 + szm
         const sy          = 34 * this.zoom
         const xcnt        = 2
         this.craft = {
@@ -206,10 +206,10 @@ export class InventoryWindow extends BaseCraftWindow {
         }
 
         const locked_slots = [
-            {x: sx, y: sy},
-            {x: sx, y: sy + szm},
-            {x: sx + szm * 3, y: sy},
-            {x: sx + szm * 3, y: sy + szm},
+            {x: sx - szm, y: sy},
+            {x: sx - szm, y: sy + szm},
+            {x: sx + szm * 2, y: sy},
+            {x: sx + szm * 2, y: sy + szm},
         ]
 
         for(let i = 0; i < locked_slots.length; i++) {

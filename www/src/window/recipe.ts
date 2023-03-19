@@ -5,6 +5,7 @@ import { BlankWindow } from "./blank.js";
 import { getBlockImage } from "./tools/blocks.js";
 import type { RecipeManager } from "../recipes.js";
 import { Resources } from "../resources.js";
+import { UI_THEME } from "../constant.js";
 
 export class RecipeSlot extends Window {
     [key: string]: any;
@@ -89,6 +90,11 @@ export class RecipeSlot extends Window {
 // RecipeWindow...
 export class RecipeWindow extends BlankWindow {
 
+    slot_margin : float
+    cell_size : float
+    slots_x : float
+    slots_y : float
+
     constructor(recipe_manager : RecipeManager, id : string = 'frmRecipe') {
 
         super(10, 10, 592/2, 668/2, id, null, null)
@@ -104,7 +110,10 @@ export class RecipeWindow extends BlankWindow {
         this.only_can           = false
 
         // Ширина / высота слота
-        this.cell_size = 50 * this.zoom
+        this.cell_size          = 42 * this.zoom
+        this.slot_margin        = UI_THEME.window_padding * this.zoom
+        this.slots_x            = UI_THEME.window_padding * this.zoom
+        this.slots_y            = 62 * this.zoom;
 
         // Get window by ID
         const ct = this
@@ -142,19 +151,12 @@ export class RecipeWindow extends BlankWindow {
                 that.lblPages.text = this.pages == 0 ? '0/0' : (this.page + 1) + ' / ' + this.pages
                 that.createRecipes()
             }
-        };
+        }
 
         // кнопки пагинатора
         this.addPaginatorButtons()
-        
-        // строка поиска
-        this.addFinder()
 
     }
-
-    // onKeyEvent(e) : boolean {
-    //     return false
-    // }
 
     onShow(args) {
         // Создание слотов
@@ -171,16 +173,16 @@ export class RecipeWindow extends BlankWindow {
     async addToggleButton() {
 
         const self = this
-        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', null)
+        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', 'Only')
 
         this.atlas.getSprite(608, 162, 106, 67).then(image => {
 
-            btnFilter.setBackground(image, 'none', self.zoom / 2)
+            // btnFilter.setBackground(image, 'none', self.zoom / 2)
             btnFilter.style.border.hidden = true
 
             btnFilter.onMouseDown = async function(e) {
                 self.only_can = !self.only_can
-                btnFilter.setBackground(await self.atlas.getSprite(self.only_can ? 719 : 608, 162, 106, 67), 'none', self.zoom / 2)
+                // btnFilter.setBackground(await self.atlas.getSprite(self.only_can ? 719 : 608, 162, 106, 67), 'none', self.zoom / 2)
                 self.createRecipes();
                 self.paginator.update()
             }
@@ -195,24 +197,14 @@ export class RecipeWindow extends BlankWindow {
     addPaginatorButtons() {
 
         const ct = this
-
-        // Label
-        const lblPages = new Label(110 * this.zoom, 268 * this.zoom, 70 * this.zoom, 45 * this.zoom, 'lblPages', '1 / 2')
-        lblPages.style.font.color = '#ffffff'
-        lblPages.style.font.shadow.enable = true
-        lblPages.style.font.shadow.alpha = .5
-        lblPages.style.font.shadow.color = '#00000055'
-        lblPages.text_container.anchor.set(.5, .5)
-        lblPages.style.textAlign.horizontal = 'center'
-        lblPages.style.textAlign.vertical = 'middle'
-        // lblPages.style.font.shadow.x = 1
-        // lblPages.style.font.shadow.y = 1
-        ct.add(lblPages)
-        this.lblPages = lblPages
-        lblPages.text_container.position.set(lblPages.w / 2, lblPages.h / 2)
+        const sz = this.cell_size
+        const szm = sz + this.slot_margin
+        const sy = this.slots_y + szm * 4
+        const x = this.slots_x + szm
+        const w = szm * 3 - this.slot_margin
 
         // Prev
-        const btnPrev = new Button(65 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnPrev', null)
+        const btnPrev = new Button(this.slots_x, sy, sz, sz, 'btnPrev', null)
         btnPrev.style.border.hidden = true
         btnPrev.setBackground('./media/gui/btn_prev.png', 'centerstretch', .5);
         btnPrev.onMouseDown = (e) => {
@@ -221,7 +213,8 @@ export class RecipeWindow extends BlankWindow {
         ct.add(btnPrev)
 
         // Next
-        const btnNext = new Button(185 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnNext', null)
+        const nx = this.slots_x + szm * 4
+        const btnNext = new Button(nx, sy, sz, sz, 'btnNext', null)
         btnNext.style.border.hidden = true
         btnNext.setBackground('./media/gui/btn_next.png', 'centerstretch', .5);
         btnNext.onMouseDown = (e) => {
@@ -229,14 +222,15 @@ export class RecipeWindow extends BlankWindow {
         }
         ct.add(btnNext)
 
-    }
-    
-    addFinder() {
+        // const sz = this.cell_size
+        // const szm = sz + this.slot_margin
+        // const sy = this.slots_y + szm * 4
+
         // Text editor
         const txtSearch = new TextEdit(
-            50 * this.zoom,
-            26 * this.zoom,
-            160 * this.zoom,
+            x,
+            sy + sz * 0.5,
+            w,
             25 * this.zoom,
             'txtSearch1',
             null,
@@ -247,15 +241,8 @@ export class RecipeWindow extends BlankWindow {
         txtSearch.max_length                = 100
         txtSearch.max_lines                 = 1
         txtSearch.max_chars_per_line        = 20
-        // style
-        // txtSearch.style.border.hidden       = false
-        // txtSearch.style.border.style        = 'inset'
-        // txtSearch.style.font.color          = '#ffffff'
-        // txtSearch.style.background.color    = '#706f6c'
         txtSearch.style.padding.left        = 5 * this.zoom
-        // txtSearch.style.color            = '#ffffff';
-        // txtSearch.style.background.color = '#ffffff88';
-        // txtSearch.style.border.hidden    = false
+        txtSearch.style.font.size           = 12
         txtSearch.style.textAlign.vertical  = 'middle'
         this.add(txtSearch);
         
@@ -264,6 +251,17 @@ export class RecipeWindow extends BlankWindow {
             this.createRecipes();
             this.paginator.update();
         }
+
+        // Pages
+        const lblPages = new Label(x, sy, w, 15 * this.zoom, 'lblPages', '1 / 2')
+        lblPages.style.font.color = UI_THEME.second_text_color
+        lblPages.style.font.size = 10
+        lblPages.text_container.anchor.set(.5, .5)
+        lblPages.style.textAlign.horizontal = 'center'
+        lblPages.style.textAlign.vertical = 'middle'
+        ct.add(lblPages)
+        this.lblPages = lblPages
+        lblPages.text_container.position.set(lblPages.w / 2, lblPages.h / 2)
 
     }
 
@@ -282,9 +280,6 @@ export class RecipeWindow extends BlankWindow {
             for(let i = this.recipes.length - 1; i >= 0; i--) {
                 this.removeChild(this.recipes[i])
             }
-            // for(let w of ct.recipes) {
-            //     this.delete(w.id)
-            // }
         }
 
         const canMake = (recipes) => {
@@ -301,9 +296,10 @@ export class RecipeWindow extends BlankWindow {
 
         //
         let i               = 0;
-        const sz            = this.cell_size;
-        const sx            = 22 * this.zoom;
-        const sy            = 62 * this.zoom;
+        const sz            = this.cell_size
+        const szm           = sz + this.slot_margin
+        const sx            = this.slots_x
+        const sy            = this.slots_y
         const xcnt          = 5;
         const list          = this.recipe_manager.crafting_shaped.grouped;
         const min_index     = this.paginator.page * this.items_per_page;
@@ -335,15 +331,17 @@ export class RecipeWindow extends BlankWindow {
 
         for(let index = 0; index < tmp_recipes.length; index++) {
             if(index < min_index) {
-                continue;
+                continue
             }
             if(index >= max_index) {
-                continue;
+                continue
             }
             const recipe = tmp_recipes[index]
             const id = recipe.result.item_id
             const block = BLOCK.fromId(id)
-            const lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + id, null, null, recipe, block, this);
+            const x = sx + (i % xcnt) * szm
+            const y = sy + Math.floor(i / xcnt) * szm
+            const lblRecipe = new RecipeSlot(x, y, sz, sz, 'lblRecipeSlot' + id, null, null, recipe, block, this);
             lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${id})`
             // lblRecipe.style.border.hidden = false
             // lblRecipe.style.border.style = 'inset'
