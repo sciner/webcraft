@@ -41,7 +41,7 @@ export class TextBox {
         this.chat_input.style.font.family = CHAT_INPUT_FONT
         this.chat_input.style.font.size = 18
         this.chat_input.style.font.color = '#ffffff'
-        this.chat_input.style.background.color = '#000000aa'
+        this.chat_input.style.background.color = '#00000055'
 
         // measure line height
         this.chat_input.text = 'TW|'
@@ -54,6 +54,7 @@ export class TextBox {
         this.lbl_cariage.style.font.family = CHAT_INPUT_FONT
         this.lbl_cariage.style.font.size = 18
         this.lbl_cariage.style.font.color = '#ffffff'
+        this.lbl_cariage.style.background.color = '#00000055'
         this.lbl_cariage.text = '_'
         const ctm = this.lbl_cariage.getTextMetrics()
         this.space_width = ctm.width
