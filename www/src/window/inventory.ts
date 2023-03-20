@@ -1,5 +1,5 @@
-import { Label } from "../ui/wm.js";
-import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
+import { Label, Window } from "../ui/wm.js";
+import { BaseCraftWindow, CraftTableRecipeSlot, HelpSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
@@ -8,6 +8,7 @@ import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
 import { Resources } from "../resources.js";
+import type { SpriteAtlas } from "../core/sprite_atlas.js";
 
 export class InventoryWindow extends BaseCraftWindow {
 
@@ -15,6 +16,11 @@ export class InventoryWindow extends BaseCraftWindow {
 
     slot_empty = 'slot_empty'
     slot_full = 'slot_full'
+    cell_size : float
+    slot_margin : float
+    slots_x : float
+    slots_y : float
+    hud_atlas : SpriteAtlas
 
     constructor(inventory : PlayerInventory, recipes) {
 
@@ -27,6 +33,13 @@ export class InventoryWindow extends BaseCraftWindow {
 
         this.skinKey = null
         this.skinViewer = null // lazy initialized if necessary
+
+        // Ширина / высота слота
+        // this.cell_size = UI_THEME.window_slot_size * this.zoom
+        this.cell_size          = UI_THEME.window_slot_size * this.zoom
+        this.slot_margin        = UI_THEME.window_padding * this.zoom
+        this.slots_x            = UI_THEME.window_padding * this.zoom
+        this.slots_y            = 62 * this.zoom;
 
         // Craft area
         this.area = {
@@ -42,14 +55,16 @@ export class InventoryWindow extends BaseCraftWindow {
 
         this.hud_atlas = Resources.atlas.get('hud')
 
-        // слоты для подсказок
-        this.addHelpSlots()
+        const sz          = this.cell_size
+        const szm         = sz + UI_THEME.slot_margin * this.zoom
+        const sx          = UI_THEME.window_padding * this.zoom * 2 + szm
+        const sy          = 34 * this.zoom
 
-        // Ширина / высота слота
-        this.cell_size = UI_THEME.window_slot_size * this.zoom
+        // слоты для подсказок
+        this.addHelpSlots(sx, sy, sz, szm)
 
         // Создание слотов для крафта
-        this.createCraft(this.cell_size)
+        this.createCraft()
 
         // Calc backpack slots width
         const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
@@ -60,13 +75,17 @@ export class InventoryWindow extends BaseCraftWindow {
         this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding)
 
         // Итоговый слот (то, что мы получим)
-        this.createResultSlot(306 * this.zoom, 54 * this.zoom)
+        this.createResultSlot(UI_THEME.window_padding * this.zoom * 3.5 + szm * 4, 34 * this.zoom + sz * .5)
+
+        const result_arrow = new Window(UI_THEME.window_padding * this.zoom * 3.5 + szm * 3, 34 * this.zoom + sz * .5, sz, sz, 'resultArrow')
+        this.add(result_arrow)
+        result_arrow.setIcon(this.hud_atlas.getSpriteFromMap('arrow_next_locked'), 'stretchcenter', .25)
 
         const lblBackpackWidth = (slots_width - UI_THEME.window_padding) * this.zoom
 
         const labels = [
             new Label(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, 30 * this.zoom, 'lblBackpack', null, Lang.backpack),
-            new Label(UI_THEME.window_padding * this.zoom * 2, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.craft),
+            new Label(UI_THEME.window_padding * this.zoom * 3.5 + szm, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.craft),
         ]
 
         for(let lbl of labels) {
@@ -101,11 +120,13 @@ export class InventoryWindow extends BaseCraftWindow {
 
     // Обработчик закрытия формы
     onHide() {
+
         // Drag
         this.inventory.clearDragItem(true)
+
         // Clear result
         this.lblResultSlot.setItem(null)
-        //
+
         for(let slot of this.craft.slots) {
             if(slot && slot.item) {
                 this.inventory.increment(slot.item)
@@ -177,39 +198,37 @@ export class InventoryWindow extends BaseCraftWindow {
 
     /**
      * Создание слотов для крафта
-     * @param {int} sz Ширина / высота слота
      */
-    createCraft(sz) {
+    createCraft() {
+
         if(this.craft) {
             console.error('error_inventory_craft_slots_already_created')
             return
         }
+
+        const sz          = this.cell_size
         const szm         = sz + UI_THEME.slot_margin * this.zoom
-        const sx          = UI_THEME.window_padding * this.zoom * 2 + szm
+        const sx          = UI_THEME.window_padding * this.zoom * 3.5 + szm
         const sy          = 34 * this.zoom
         const xcnt        = 2
+
         this.craft = {
             slots: [null, null, null, null]
-        };
+        }
+
         for(let i = 0; i < this.craft.slots.length; i++) {
             const x = sx + (i % xcnt) * szm
             const y = sy + Math.floor(i / xcnt) * szm
             const lblSlot = new CraftTableRecipeSlot(x, y, sz, sz, 'lblCraftRecipeSlot' + i, null, null, this, null)
-            // lblSlot.onMouseEnter = function() {
-            //     this.style.background.color = '#ffffff33'
-            // }
-            // lblSlot.onMouseLeave = function() {
-            //     this.style.background.color = '#00000000'
-            // }
             this.craft.slots[i] = lblSlot
             this.add(lblSlot)
         }
 
         const locked_slots = [
-            {x: sx - szm, y: sy},
-            {x: sx - szm, y: sy + szm},
-            {x: sx + szm * 2, y: sy},
-            {x: sx + szm * 2, y: sy + szm},
+            // {x: sx - szm, y: sy},
+            // {x: sx - szm, y: sy + szm},
+            // {x: sx + szm * 2, y: sy},
+            // {x: sx + szm * 2, y: sy + szm},
         ]
 
         for(let i = 0; i < locked_slots.length; i++) {

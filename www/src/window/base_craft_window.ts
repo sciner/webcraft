@@ -3,13 +3,15 @@ import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../he
 import { INVENTORY_HOTBAR_SLOT_COUNT,
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
-import { Label, SimpleBlockSlot } from "../ui/wm.js";
+import { Label, SimpleBlockSlot, Window } from "../ui/wm.js";
 import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
 import { getBlockImage } from "./tools/blocks.js";
 import type { PlayerInventory } from "../player_inventory.js";
+import type { SpriteAtlas } from "../core/sprite_atlas.js";
+import { Resources } from "../resources.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
@@ -17,16 +19,20 @@ const ARMOR_SLOT_BACKGROUND_ACTIVE = '#828282ff'
 const DOUBLE_CLICK_TIME = 300.0;
 
 export class HelpSlot extends Label {
-    [key: string]: any;
 
-    constructor(x, y, sz, id, ct) {
+    hud_atlas : SpriteAtlas
+
+    constructor(x : float, y : float, sz : float, id : string, ct : Window) {
         super(x, y, sz, sz, id, null, null)
         this.ct = ct
         this.item = null
         this.swapChildren(this.children[0], this.children[1])
+        this.hud_atlas = Resources.atlas.get('hud')
+        // this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
+        this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
     }
 
-    setItem(id) {
+    setItem(id : int) {
 
         this.item = id
 
@@ -35,10 +41,10 @@ export class HelpSlot extends Label {
         if(id) {
             this.block = BLOCK.fromId(id)
             const tintMode = 0 // item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(getBlockImage(this.block), 'centerstretch', 1.0, tintMode)
+            this.setIcon(getBlockImage(this.block), 'centerstretch', 1.0, tintMode)
         } else {
             this.block = null
-            this.setBackground(null, 'center')
+            this.setIcon(null)
         }
 
     }
@@ -54,63 +60,6 @@ export class HelpSlot extends Label {
         }
         return null
     }
-
-    // Custom drawing
-    onMouseEnter(e) {
-        this.style.background.color = this.can_make ? '#ffffff55' : '#ff000077'
-    }
-
-    onMouseLeave(e) {
-        this.style.background.color = this.can_make ? '#00000000' : '#ff000055'
-    }
-
-    // // Draw slot
-    // draw(ctx, ax, ay) {
-    //     if (this.ct.lblResultSlot.item) {
-    //         return;
-    //     }
-    //     for(const slot of this.ct.craft.slots) {
-    //         if (slot.item) {
-    //             return;
-    //         }
-    //     }
-    //     this.applyStyle(ctx, ax, ay);
-    //     this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
-    //     this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.w, this.h);
-    //     super.draw(ctx, ax, ay);
-    // }
-
-    // // Draw item
-    // drawItem(ctx, item, x, y, width, height) {
-
-    //     const image = Qubatch.player.inventory.inventory_image;
-
-    //     if(!image || !item) {
-    //         return;
-    //     }
-
-    //     const size = image.width;
-    //     const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
-    //     const zoom = this.zoom;
-    //     const mat = BLOCK.fromId(item);
-
-    //     ctx.imageSmoothingEnabled = true;
-
-    //     // 1. Draw icon
-    //     const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);style.font.size
-    //     const dest_icon_size = 40 * zoom;
-    //     ctx.drawImage(
-    //         image,
-    //         icon.x,
-    //         icon.y,
-    //         icon.width,
-    //         icon.height,
-    //         x + width / 2 - dest_icon_size / 2,
-    //         y + height / 2 - dest_icon_size / 2,
-    //         dest_icon_size,
-    //         dest_icon_size
-    //     );
-    // }
 
 }
 
@@ -667,14 +616,11 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
 // Ячейка рецепта
 export class CraftTableRecipeSlot extends CraftTableInventorySlot {
-    [key: string]: any;
 
     /**
      * Вызывается после изменения любой из её ячеек
-     * @param {?object} item
-     * @param {boolean} update_inventory
      */
-    setItem(item, update_inventory = true) {
+    setItem(item? : object, update_inventory : boolean = true) {
         super.setItem(item, update_inventory)
         if(update_inventory) {
             this.parent.checkRecipe()
@@ -750,13 +696,14 @@ export class ArmorSlot extends CraftTableInventorySlot {
 export class BaseCraftWindow extends BaseInventoryWindow {
     [key: string]: any;
 
+    lblResultSlot: CraftTableResultSlot
+
     /**
     * Итоговый слот (то, что мы получим)
     */
-    createResultSlot(x, y) {
-        const ct = this;
-        // x, y, w, h, id, title, text, ct, slot_index
-        let lblResultSlot = this.lblResultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
+    createResultSlot(x : float, y : float) {
+        const ct = this
+        const lblResultSlot = this.lblResultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
         lblResultSlot.onMouseEnter = function() {
             this.style.background.color = '#ffffff33';
         }
@@ -976,14 +923,27 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     }
 
     // слоты помощи в крафте
-    addHelpSlots() {
+    // addHelpSlots() {
+    //     const size = this.area.size.width
+    //     const sx = (size == 2) ? 196 : 60.5
+    //     const sy = (size == 2) ? 36 : 34.5
+    //     this.help_slots = []
+    //     for (let i = 0; i < size; i++) {
+    //         for (let j = 0; j < size; j++) {
+    //             const slot = new HelpSlot((sx + 36 * j) * this.zoom, (sy + 36 * i) * this.zoom, 32 * this.zoom, 'help_' + i + '_' + j, this);
+    //             this.help_slots.push(slot)
+    //             this.add(slot)
+    //         }
+    //     }
+    // }
+
+    // слоты помощи в крафте
+    addHelpSlots(sx : float, sy : float, sz : float, szm : float) {
         const size = this.area.size.width
-        const sx = (size == 2) ? 196 : 60.5
-        const sy = (size == 2) ? 36 : 34.5
         this.help_slots = []
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
-                const slot = new HelpSlot((sx + 36 * j) * this.zoom, (sy + 36 * i) * this.zoom, 32 * this.zoom, 'help_' + i + '_' + j, this);
+                const slot = new HelpSlot((sx + szm * j), (sy + szm * i), sz, `help_${i}_${j}`, this)
                 this.help_slots.push(slot)
                 this.add(slot)
             }

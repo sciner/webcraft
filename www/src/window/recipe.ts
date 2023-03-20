@@ -10,6 +10,8 @@ import { UI_THEME } from "../constant.js";
 export class RecipeSlot extends Window {
     [key: string]: any;
 
+    hud_atlas : SpriteAtlas
+
     constructor(x : int, y : int, w : int, h : int, id : string, title : string | null, text : string | null, recipe : any, block : any, ct? : Window) {
 
         super(x, y, w, h, id, title, text)
@@ -21,15 +23,11 @@ export class RecipeSlot extends Window {
         this.interactiveChildren = false
 
         const image = getBlockImage(block)
-        this.setBackground(image, 'center', 1.25)
-
-        // this.swapChildren(this.children[0], this.children[1])
-        // this.style.border.color = '#ffffffff';
-        // this.style.background.color = '#ffffff55';
+        this.setIcon(image, 'center', 1.25)
 
         this.hud_atlas = Resources.atlas.get('hud')
         if(this.hud_atlas) {
-            this.setIcon(this.hud_atlas.getSpriteFromMap('slot_empty'))
+            this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
             this.swapChildren(this._wmicon, this._wmbgimage)
         }
 
@@ -90,6 +88,7 @@ export class RecipeSlot extends Window {
 // RecipeWindow...
 export class RecipeWindow extends BlankWindow {
 
+    hud_atlas : SpriteAtlas
     slot_margin : float
     cell_size : float
     slots_x : float
@@ -110,10 +109,12 @@ export class RecipeWindow extends BlankWindow {
         this.only_can           = false
 
         // Ширина / высота слота
-        this.cell_size          = 42 * this.zoom
-        this.slot_margin        = UI_THEME.window_padding * this.zoom
-        this.slots_x            = UI_THEME.window_padding * this.zoom
+        this.cell_size          = UI_THEME.window_slot_size * this.zoom
+        this.slot_margin        = UI_THEME.slot_margin * this.zoom
+        this.slots_x            = UI_THEME.window_padding * this.zoom * 2.5
         this.slots_y            = 62 * this.zoom;
+
+        this.hud_atlas = Resources.atlas.get('hud')
 
         // Get window by ID
         const ct = this
@@ -199,43 +200,13 @@ export class RecipeWindow extends BlankWindow {
         const ct = this
         const sz = this.cell_size
         const szm = sz + this.slot_margin
-        const sy = this.slots_y + szm * 4
+        const sy = this.slots_y + szm * 4 + sz * 0.5
         const x = this.slots_x + szm
         const w = szm * 3 - this.slot_margin
-
-        // Prev
-        const btnPrev = new Button(this.slots_x, sy, sz, sz, 'btnPrev', null)
-        btnPrev.style.border.hidden = true
-        btnPrev.setBackground('./media/gui/btn_prev.png', 'centerstretch', .5);
-        btnPrev.onMouseDown = (e) => {
-            this.paginator.prev()
-        }
-        ct.add(btnPrev)
-
-        // Next
-        const nx = this.slots_x + szm * 4
-        const btnNext = new Button(nx, sy, sz, sz, 'btnNext', null)
-        btnNext.style.border.hidden = true
-        btnNext.setBackground('./media/gui/btn_next.png', 'centerstretch', .5);
-        btnNext.onMouseDown = (e) => {
-            this.paginator.next()
-        }
-        ct.add(btnNext)
-
-        // const sz = this.cell_size
-        // const szm = sz + this.slot_margin
-        // const sy = this.slots_y + szm * 4
+        const h = 25 * this.zoom
 
         // Text editor
-        const txtSearch = new TextEdit(
-            x,
-            sy + sz * 0.5,
-            w,
-            25 * this.zoom,
-            'txtSearch1',
-            null,
-            'Type for search'
-        );
+        const txtSearch = new TextEdit(x, sy, w, h, 'txtSearch1', null, 'Type for search')
         txtSearch.word_wrap                 = false
         txtSearch.focused                   = true
         txtSearch.max_length                = 100
@@ -252,8 +223,27 @@ export class RecipeWindow extends BlankWindow {
             this.paginator.update();
         }
 
+        // Prev
+        const btnPrev = new Button(txtSearch.x - h - this.slot_margin, sy, h, h, 'btnPrev', null)
+        btnPrev.style.border.hidden = true
+        btnPrev.setBackground(this.hud_atlas.getSpriteFromMap('arrow_prev_big'), 'centerstretch', .5);
+        btnPrev.onMouseDown = (e) => {
+            this.paginator.prev()
+        }
+        ct.add(btnPrev)
+
+        // Next
+        const nx = this.slots_x + szm * 4
+        const btnNext = new Button(nx, sy, h, h, 'btnNext', null)
+        btnNext.style.border.hidden = true
+        btnNext.setBackground(this.hud_atlas.getSpriteFromMap('arrow_next_big'), 'centerstretch', .5);
+        btnNext.onMouseDown = (e) => {
+            this.paginator.next()
+        }
+        ct.add(btnNext)
+
         // Pages
-        const lblPages = new Label(x, sy, w, 15 * this.zoom, 'lblPages', '1 / 2')
+        const lblPages = new Label(x, sy - sz * 0.5, w, 15 * this.zoom, 'lblPages', '1 / 2')
         lblPages.style.font.color = UI_THEME.second_text_color
         lblPages.style.font.size = 10
         lblPages.text_container.anchor.set(.5, .5)
@@ -343,8 +333,6 @@ export class RecipeWindow extends BlankWindow {
             const y = sy + Math.floor(i / xcnt) * szm
             const lblRecipe = new RecipeSlot(x, y, sz, sz, 'lblRecipeSlot' + id, null, null, recipe, block, this);
             lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${id})`
-            // lblRecipe.style.border.hidden = false
-            // lblRecipe.style.border.style = 'inset'
             this.recipes.push(lblRecipe)
             this.add(lblRecipe)
             lblRecipe.update()

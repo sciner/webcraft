@@ -1,6 +1,6 @@
 import { Button, Label } from "../ui/wm.js";
 import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Lang } from "../lang.js";
 
@@ -35,7 +35,12 @@ export class CraftTable extends BaseCraftWindow {
         this.addRecipesButton()
 
         // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
+
+        const sz          = this.cell_size
+        const szm         = sz + UI_THEME.slot_margin * this.zoom
+        const sx          = 60.5 // UI_THEME.window_padding * this.zoom * 2 + szm
+        const sy          = 35.5 // 34 * this.zoom
 
         // Создание слотов для крафта
         this.createCraft(this.cell_size);
@@ -47,7 +52,7 @@ export class CraftTable extends BaseCraftWindow {
         this.createResultSlot(246 * this.zoom, 68 * this.zoom);
         
         // слоты (лабел) для подсказок
-        this.addHelpSlots()
+        this.addHelpSlots(sx, sy, sz, szm)
 
         // Add labels to window
         const lbl1 = new Label(59 * this.zoom, 10 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.crafting);
