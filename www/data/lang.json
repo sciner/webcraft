@@ -197,6 +197,7 @@
         "btn_character": {"en": "Character", "ru": "Персонаж", "fr": "", "es": "", "man": ""},
         "backpack": {"en": "BACKPACK", "ru": "РЮКЗАК", "fr": "", "es": "", "man": ""},
         "recipes": {"en": "RECIPES", "ru": "РЕЦЕПТЫ", "fr": "", "es": "", "man": ""},
-        "only_can": {"en": "I can", "ru": "Я могу", "fr": "", "es": "", "man": ""}
+        "only_can": {"en": "I can", "ru": "Я могу", "fr": "", "es": "", "man": ""},
+        "crafting_table": {"en": "WORKBENCH", "ru": "ВЕРСТАК", "fr": "", "es": "", "man": ""}
     }
 }

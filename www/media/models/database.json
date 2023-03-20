@@ -269,7 +269,7 @@
         },
         "zombie": {
             "type": "json",
-            "geom": "json/steve.geo.json",
+            "geom": "json/zombie.geo.json",
             "baseSkin": "base",
             "skins": {
                 "base": "textures/zombie/zombie.png"

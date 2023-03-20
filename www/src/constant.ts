@@ -70,7 +70,7 @@ export const UI_THEME = {
     label_text_color: '#ffffff33',
     window_padding: 10,
     slot_margin: 5,
-    window_slot_size: 45,
+    window_slot_size: 40,
     button: {
         font: {
             size: 14,

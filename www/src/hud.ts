@@ -1,7 +1,7 @@
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
-import { isMobileBrowser, Vector } from "./helpers.js";
+import { isMobileBrowser, Mth, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
@@ -434,6 +434,9 @@ export class HUD {
                 this.text += '\nPackets: ' + Qubatch.world.server.stat.out_packets.total + '/' + Qubatch.world.server.stat.in_packets.total; // + '(' + Qubatch.world.server.stat.in_packets.physical + ')';
                 if(render) {
                     this.text += '\nParticles: ' + Mesh_Effect.current_count;
+                    if(render.draw_mobs_stat) {
+                        this.text += `\nDraw mobs: ${render.draw_mobs_stat.count} ... ${Math.round(render.draw_mobs_stat.time * 100) / 100}ms`
+                    }
                     this.text += '\nDrawcalls: ' + render.renderBackend.stat.drawcalls;
                     if (render.renderBackend.stat.multidrawcalls) {
                         this.text += ' + ' + render.renderBackend.stat.multidrawcalls + '(multi)';

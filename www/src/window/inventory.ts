@@ -1,7 +1,7 @@
 import { Label, Window } from "../ui/wm.js";
-import { BaseCraftWindow, CraftTableRecipeSlot, HelpSlot } from "./base_craft_window.js";
+import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT, UI_THEME } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 import { blobToImage } from "../helpers.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
@@ -198,13 +198,14 @@ export class InventoryWindow extends BaseCraftWindow {
     /**
      * Создание слотов для крафта
      */
-    createCraft(sx, sy, sz, szm) {
+    createCraft(sx : float, sy : float, sz : float, szm : float) {
 
         if(this.craft) {
             console.error('error_inventory_craft_slots_already_created')
             return
         }
-        const xcnt        = 2
+
+        const xcnt = 2
 
         this.craft = {
             slots: [null, null, null, null]

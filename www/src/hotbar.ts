@@ -339,9 +339,14 @@ export class Hotbar {
             return false;
         }
 
+        const mayGetDamaged = player.game_mode.mayGetDamaged()
+
         // Inventory slots
         // this.inventory_slots_window.transform.position.set(hud.width / 2 - this.inventory_slots_window.w / 2, hud.height - this.inventory_slots_window.h - MARGIN * this.zoom)
-        this.inventory_slots_window.transform.position.y = hud.height - this.inventory_slots_window.h - MARGIN * this.zoom
+        this.inventory_slots_window.transform.position.set(
+            mayGetDamaged ? this.bars_base_window.x + this.bars_base_window.w + MARGIN * this.zoom : MARGIN * this.zoom,
+            hud.height - this.inventory_slots_window.h - MARGIN * this.zoom
+        )
         if(this.inventory_update_number != this.inventory.update_number) {
             this.inventory_update_number = this.inventory.update_number
             for(let i = 0; i < this.inventory_slots_window.slots.length; i++) {
@@ -351,8 +356,6 @@ export class Hotbar {
         }
 
         let hotbar_height = 0
-
-        const mayGetDamaged = player.game_mode.mayGetDamaged()
 
         this.bars_base_window.visible = mayGetDamaged
         this.armor_base_window.visible = mayGetDamaged

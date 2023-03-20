@@ -1,6 +1,6 @@
 import { BLOCK } from "../blocks.js";
 import { Button, Label, Window, TextEdit } from "../ui/wm.js";
-import { SpriteAtlas } from "../core/sprite_atlas.js";
+// import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
 import { getBlockImage } from "./tools/blocks.js";
 import type { RecipeManager } from "../recipes.js";
@@ -11,7 +11,7 @@ import { Lang } from "../lang.js";
 export class RecipeSlot extends Window {
     [key: string]: any;
 
-    hud_atlas : SpriteAtlas
+    // hud_atlas : SpriteAtlas
 
     constructor(x : int, y : int, w : int, h : int, id : string, title : string | null, text : string | null, recipe : any, block : any, ct? : Window) {
 
@@ -90,7 +90,7 @@ export class RecipeSlot extends Window {
 // RecipeWindow...
 export class RecipeWindow extends BlankWindow {
 
-    hud_atlas : SpriteAtlas
+    // hud_atlas : SpriteAtlas
     slot_margin : float
     cell_size : float
     slots_x : float
@@ -121,13 +121,13 @@ export class RecipeWindow extends BlankWindow {
         // Get window by ID
         const ct = this
 
-        // Create sprite atlas
-        this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/recipe_book.png').then(async atlas => {
-            ct.setBackground(await atlas.getSprite(0, 0, 592, 668), 'none', this.zoom)
-            // кнопка доступные или все рецепты
-            this.addToggleButton()
-        })
+        // // Create sprite atlas
+        // this.atlas = new SpriteAtlas()
+        // this.atlas.fromFile('./media/gui/recipe_book.png').then(async atlas => {
+        //     ct.setBackground(await atlas.getSprite(0, 0, 592, 668), 'none', this.zoom)
+        //     // кнопка доступные или все рецепты
+        //     this.addToggleButton()
+        // })
 
         const that = this
 
@@ -178,7 +178,7 @@ export class RecipeWindow extends BlankWindow {
         const self = this
         const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', Lang.only_can)
 
-        this.atlas.getSprite(608, 162, 106, 67).then(image => {
+        // this.atlas.getSprite(608, 162, 106, 67).then(image => {
 
             // btnFilter.setBackground(image, 'none', self.zoom / 2)
             btnFilter.style.border.hidden = true
@@ -192,7 +192,7 @@ export class RecipeWindow extends BlankWindow {
 
             this.add(btnFilter)
 
-        })
+        // })
 
     }
 
