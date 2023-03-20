@@ -35,11 +35,10 @@ export class InventoryWindow extends BaseCraftWindow {
         this.skinViewer = null // lazy initialized if necessary
 
         // Ширина / высота слота
-        // this.cell_size = UI_THEME.window_slot_size * this.zoom
-        this.cell_size          = UI_THEME.window_slot_size * this.zoom
-        this.slot_margin        = UI_THEME.window_padding * this.zoom
-        this.slots_x            = UI_THEME.window_padding * this.zoom
-        this.slots_y            = 62 * this.zoom;
+        this.cell_size     = UI_THEME.window_slot_size * this.zoom
+        this.slot_margin   = UI_THEME.window_padding * this.zoom
+        this.slots_x       = UI_THEME.window_padding * this.zoom
+        this.slots_y       = 62 * this.zoom;
 
         // Craft area
         this.area = {
@@ -57,14 +56,14 @@ export class InventoryWindow extends BaseCraftWindow {
 
         const sz          = this.cell_size
         const szm         = sz + UI_THEME.slot_margin * this.zoom
-        const sx          = UI_THEME.window_padding * this.zoom * 2 + szm
+        const sx          = UI_THEME.window_padding * this.zoom * 3.5 + szm
         const sy          = 34 * this.zoom
 
         // слоты для подсказок
         this.addHelpSlots(sx, sy, sz, szm)
 
         // Создание слотов для крафта
-        this.createCraft()
+        this.createCraft(sx, sy, sz, szm)
 
         // Calc backpack slots width
         const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
@@ -90,7 +89,7 @@ export class InventoryWindow extends BaseCraftWindow {
 
         for(let lbl of labels) {
             lbl.style.font.color = UI_THEME.label_text_color
-            lbl.style.font.size = 14
+            lbl.style.font.size = UI_THEME.base_font.size
             this.add(lbl)
         }
 
@@ -104,7 +103,7 @@ export class InventoryWindow extends BaseCraftWindow {
             form.style.background.image = null
             form.parent.delete(form.id)
             form.x = UI_THEME.window_padding * this.zoom
-            form.y = 80 * this.zoom
+            form.y = 95 * this.zoom
             this.frmInventoryRecipe = form
             this.add(form)
         }
@@ -199,17 +198,12 @@ export class InventoryWindow extends BaseCraftWindow {
     /**
      * Создание слотов для крафта
      */
-    createCraft() {
+    createCraft(sx, sy, sz, szm) {
 
         if(this.craft) {
             console.error('error_inventory_craft_slots_already_created')
             return
         }
-
-        const sz          = this.cell_size
-        const szm         = sz + UI_THEME.slot_margin * this.zoom
-        const sx          = UI_THEME.window_padding * this.zoom * 3.5 + szm
-        const sy          = 34 * this.zoom
         const xcnt        = 2
 
         this.craft = {

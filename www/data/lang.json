@@ -195,6 +195,8 @@
         "show_compass": {"en": "Show compass", "ru": "Включить компас", "fr": "", "es": "", "man": ""},
         "in_game_main_menu": {"en": "Crafting, quests, stats...", "ru": "Крафт, квесты, статистика...", "fr": "", "es": "", "man": ""},
         "btn_character": {"en": "Character", "ru": "Персонаж", "fr": "", "es": "", "man": ""},
-        "backpack": {"en": "BACKPACK", "ru": "РЮКЗАК", "fr": "", "es": "", "man": ""}
+        "backpack": {"en": "BACKPACK", "ru": "РЮКЗАК", "fr": "", "es": "", "man": ""},
+        "recipes": {"en": "RECIPES", "ru": "РЕЦЕПТЫ", "fr": "", "es": "", "man": ""},
+        "only_can": {"en": "I can", "ru": "Я могу", "fr": "", "es": "", "man": ""}
     }
 }

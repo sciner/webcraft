@@ -78,7 +78,7 @@ export class QuestMenu extends Window {
             lblGroup.style.textAlign.vertical = 'bottom';
             lblGroup.style.padding.left = 0;
             lblGroup.style.padding.bottom = 0;
-            lblGroup.style.font.color = UI_THEME.base_text_color
+            lblGroup.style.font.color = UI_THEME.base_font.color
             lblGroup.onMouseDown = function(e) {
                 return false;
             };
@@ -91,8 +91,6 @@ export class QuestMenu extends Window {
                 const title = quest.title;
                 const status = quest.is_completed ? '✅' : (quest.in_progress ? '🕒' : '🆕');
                 const tb = new ToggleButton(x, y, this.w, BUTTON_HEIGHT, 'btnQuest' + quest.id, `${status} ${title}`);
-                // tb.style.font.color = UI_THEME.base_text_color
-                // tb.style.font.size = 14
                 tb.quest = quest
                 ct.add(tb)
                 y += tb.h + GROUP_MARGIN

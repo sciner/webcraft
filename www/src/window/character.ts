@@ -64,7 +64,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const lblBackpackHeight = 30 * this.zoom
         const lblBackpack = new Label(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, lblBackpackHeight, 'lblBackpack', null, Lang.backpack)
         lblBackpack.style.font.color = UI_THEME.label_text_color
-        lblBackpack.style.font.size = 14
+        lblBackpack.style.font.size = UI_THEME.base_font.size
         lblBackpack.style.textAlign.horizontal = 'left'
         lblBackpack.text = Lang.backpack
         this.add(lblBackpack)

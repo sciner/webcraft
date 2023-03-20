@@ -318,10 +318,10 @@ export class Chat extends TextBox {
                 if (alpha.length == 1) {
                     alpha = '0' + alpha
                 }
-                this.history_messages_window.style.font.color = UI_THEME.base_text_color + alpha
+                this.history_messages_window.style.font.color = UI_THEME.base_font.color + alpha
             }
         } else {
-            this.history_messages_window.style.font.color = UI_THEME.base_text_color
+            this.history_messages_window.style.font.color = UI_THEME.base_font.color
             this.history_messages_window.visible = true
         }
         const strings = []

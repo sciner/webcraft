@@ -48,7 +48,7 @@ export class Button extends btn {
         super(x, y, w, h, id, title, text)
         this.style.border.style = 'fixed_single'
         this.style.font.color = UI_THEME.button.font.color
-        this.style.border.color = UI_THEME.base_text_color
+        this.style.border.color = UI_THEME.base_font.color
         this.style.background.color = UI_THEME.button.background.color
         this.style.font.size = UI_THEME.button.font.size
     }
@@ -61,7 +61,7 @@ export class Button extends btn {
 
     onMouseLeave() {
         super.onMouseLeave()
-        this.style.border.color = UI_THEME.base_text_color
+        this.style.border.color = UI_THEME.base_font.color
         this.style.background.color = UI_THEME.button.background.color
         this.style.font.color = UI_THEME.button.font.color
     }
@@ -74,7 +74,7 @@ export class ToggleButton extends tb {
     toggled_font_color = UI_THEME.button.font.color
     untoggled_font_color = UI_THEME.button.font.color
 
-    toggled_bgcolor = UI_THEME.base_text_color
+    toggled_bgcolor = UI_THEME.base_font.color
     untoggled_bgcolor = UI_THEME.button.background.color
 
     mouse_enter_bgcolor = '#ffffff22'
@@ -83,7 +83,7 @@ export class ToggleButton extends tb {
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
         this.style.border.style = 'fixed_single'
-        this.style.border.color = UI_THEME.base_text_color
+        this.style.border.color = UI_THEME.base_font.color
         this.style.background.color = UI_THEME.button.background.color
         this.style.font.color = UI_THEME.button.font.color
         this.style.font.size = UI_THEME.button.font.size
@@ -99,8 +99,8 @@ export class TextEdit extends txted {
         this.style.background.color = '#00000055'
         this.style.border.style = 'fixed_single'
         this.style.border.hidden = false
-        this.style.border.color = UI_THEME.base_text_color
-        this.style.font.color = UI_THEME.base_text_color
+        this.style.border.color = UI_THEME.base_font.color
+        this.style.font.color = UI_THEME.base_font.color
     }
 
 }

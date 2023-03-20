@@ -229,11 +229,14 @@ export class CraftTableSlot extends SimpleBlockSlot {
 export class CraftTableResultSlot extends CraftTableSlot {
     [key: string]: any;
 
+    slot_empty = 'window_slot_locked'
+
     constructor(x, y, w, h, id, title, text, ct) {
         super(x, y, w, h, id, title, text, ct, null);
         this.recipe = null;
         this.used_recipes = [];
-        this.setupHandlers();
+        this.setupHandlers()
+        this.refresh()
     }
 
     // Return used recipes and clear list
@@ -704,12 +707,6 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     createResultSlot(x : float, y : float) {
         const ct = this
         const lblResultSlot = this.lblResultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
-        lblResultSlot.onMouseEnter = function() {
-            this.style.background.color = '#ffffff33';
-        }
-        lblResultSlot.onMouseLeave = function() {
-            this.style.background.color = '#00000000';
-        }
         ct.add(lblResultSlot);
     }
 

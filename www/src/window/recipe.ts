@@ -6,6 +6,7 @@ import { getBlockImage } from "./tools/blocks.js";
 import type { RecipeManager } from "../recipes.js";
 import { Resources } from "../resources.js";
 import { UI_THEME } from "../constant.js";
+import { Lang } from "../lang.js";
 
 export class RecipeSlot extends Window {
     [key: string]: any;
@@ -79,7 +80,8 @@ export class RecipeSlot extends Window {
                             this.recipe.size.height <= craft_area_size.height;
         }
         // this.style.background.color = this.can_make ? '#00000000' : '#A1515155';
-        this._wmbgimage.alpha = this.can_make ? 1 : .2
+        // this._wmbgimage.alpha = this.can_make ? 1 : .2
+        this._wmicon.alpha = this.can_make ? 1 : .2
         this.style.background.sprite.tintMode = this.can_make ? 0 : 2
     }
 
@@ -174,7 +176,7 @@ export class RecipeWindow extends BlankWindow {
     async addToggleButton() {
 
         const self = this
-        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', 'Only')
+        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', Lang.only_can)
 
         this.atlas.getSprite(608, 162, 106, 67).then(image => {
 
@@ -298,6 +300,18 @@ export class RecipeWindow extends BlankWindow {
         const filter_text   = (this.filter_text) ? this.filter_text.toUpperCase().replaceAll('_', ' ').replace(/\s\s+/g, ' ') : null;
 
         this.recipes        = []
+
+        // Заголовок списка рецептов
+        if(!this.list.has('lblRecipesTitle')) {
+            const labels = [
+                new Label(sx, sy - 23 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblRecipesTitle', null, Lang.recipes),
+            ]
+            for(let lbl of labels) {
+                lbl.style.font.color = UI_THEME.label_text_color
+                lbl.style.font.size = UI_THEME.base_font.size
+                this.add(lbl)
+            }
+        }
         
         const tmp_recipes = [];
         for(const index in list) {

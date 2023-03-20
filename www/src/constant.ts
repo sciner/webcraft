@@ -62,7 +62,10 @@ export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
 
 export const UI_THEME = {
-    base_text_color: '#5bc4da',
+    base_font: {
+        color: '#5bc4da',
+        size: 14
+    },
     second_text_color: '#ffffffbb',
     label_text_color: '#ffffff33',
     window_padding: 10,

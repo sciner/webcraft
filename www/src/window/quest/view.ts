@@ -56,7 +56,7 @@ export class QuestView extends Window {
         lDesc.text = quest.description
 
         for(let w of ql.list.values()) {
-            w.style.font.color = UI_THEME.base_text_color
+            w.style.font.color = UI_THEME.base_font.color
         }
         lDesc.style.font.color = UI_THEME.second_text_color
         lblActions.style.font.color = UI_THEME.second_text_color

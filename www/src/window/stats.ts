@@ -43,11 +43,11 @@ export class StatsWindow extends BlankWindow {
             const y = getY()
             const lbl_title = new Label(x, y, w, one_line, item.id + '_title', item.title, item.title)
             const lbl = new Label(x + 100 * this.zoom, y, w, one_line, item.id, item.title, item.title)
-            lbl_title.style.font.size = 14
+            lbl_title.style.font.size = UI_THEME.base_font.size
             lbl_title.style.font.weight = 'bold'
-            lbl_title.style.font.color = UI_THEME.base_text_color
+            lbl_title.style.font.color = UI_THEME.base_font.color
             lbl.style.textAlign.horizontal = 'right'
-            lbl.style.font.size = 14
+            lbl.style.font.size = UI_THEME.base_font.size
             lbl.style.font.color = UI_THEME.second_text_color
             this.add(lbl_title)
             this.add(lbl)
