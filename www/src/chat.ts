@@ -19,7 +19,7 @@ export class Chat extends TextBox {
         const that = this
         this.player = player
         this.history_max_messages = 64
-        this.old_time = 0
+        this.old_time = -1
         this.messages = {
             list: [],
             send(text) {
@@ -292,8 +292,9 @@ export class Chat extends TextBox {
             this.history_messages_window.text = '_'
             this.history_messages_window.style.padding = { top: margin, bottom: margin, left: margin, right: margin }
             this.history_messages_window.style.font.word_wrap = true
-            this.history_messages_window.style.background.color = '#00000055'
+            this.history_messages_window.style.font.color = UI_THEME.base_font.color
             this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
+            this.history_messages_window.setBackground(this.hud_atlas.getSpriteFromMap('chat_background'))
             hud.hudwindow.add(this.history_messages_window)
             const top_label = new Label(0, 0, width * this.zoom, 2 * this.zoom, 'LabelTop')
             top_label.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
@@ -314,15 +315,11 @@ export class Chat extends TextBox {
         } else if (time >= half_show_time) {
             const transparent_time = time - half_show_time
             if (transparent_time > 0) {
-                let alpha = (260 - Math.ceil(transparent_time * 255 / half_show_time)).toString(16)
-                if (alpha.length == 1) {
-                    alpha = '0' + alpha
-                }
-                this.history_messages_window.style.font.color = UI_THEME.base_font.color + alpha
+                this.history_messages_window.alpha = 1.1 - transparent_time / half_show_time
             }
         } else {
-            this.history_messages_window.style.font.color = UI_THEME.base_font.color
             this.history_messages_window.visible = true
+            this.history_messages_window.alpha = 1
         }
         const strings = []
         // Draw message history
