@@ -98,7 +98,7 @@ export class RecipeWindow extends BlankWindow {
 
     constructor(recipe_manager : RecipeManager, id : string = 'frmRecipe') {
 
-        super(10, 10, 592/2, 668/2, id, null, null)
+        super(10, 10, 592/2, 342, id, null, null)
         this.canBeOpenedWith = ['frmInventory', 'frmCraft']
         this.x *= this.zoom 
         this.y *= this.zoom

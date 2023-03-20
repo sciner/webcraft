@@ -3,14 +3,16 @@ import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Lang } from "../lang.js";
+import type { Inventory } from "../inventory.js";
+import type { RecipeManager } from "../recipes.js";
 
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
     [key: string]: any;
 
-    constructor(inventory, recipes) {
+    constructor(inventory : Inventory, recipes : RecipeManager) {
 
-        super(0, 0, 352, 332, 'frmCraft', null, null, inventory);
+        super(0, 0, 382, 342, 'frmCraft', null, null, inventory);
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
@@ -27,7 +29,7 @@ export class CraftTable extends BaseCraftWindow {
 
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/form-crafting-table.png').then(async atlas => {
+        this.atlas.fromFile('./media/gui/form-crafting-table.png').then(async (atlas : SpriteAtlas) => {
             this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
         })
 
@@ -59,6 +61,10 @@ export class CraftTable extends BaseCraftWindow {
         const lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl2', null, Lang.inventory);
         this.add(lbl1)
         this.add(lbl2)
+        for(let lbl of [lbl1, lbl2]) {
+            lbl.style.font.color = UI_THEME.label_text_color
+            lbl.style.font.size = UI_THEME.base_font.size
+        }
 
         // Add close button
         this.loadCloseButtonImage((image) => {
