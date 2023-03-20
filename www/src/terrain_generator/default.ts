@@ -588,59 +588,99 @@ export class Default_Terrain_Generator {
     // Red mushroom
     plantRedMushroom(world : any, tree : any, chunk : any, x : int, y : int, z : int, setTreeBlock : ISetTreeBlock) {
 
-        let ystart = y + tree.height;
-
-        // ствол
-        for(let p = y; p < ystart; p++) {
+        let ystart = y + tree.height * 2;
+        let s = 0;
+        const step = Math.PI / (tree.height * 2);
+        const xyz = new Vector(x, y, z).addSelf(chunk.coord);
+        const random = new alea('tree' + xyz.toHash());
+        const shift_sign = random() < .5 ? -1 : 1; // в какую сторону наклонять(- или +)
+        const shift_by_x = random() < .5; // (по какой оси, x или z)
+        const shift = 5 * shift_sign; // максимальное смещение ствола, количество кубов
+        let x_new_pos = x;
+        let z_new_pos = z;
+        for (let p = y; p < ystart; p++) {
             this.temp_block.id = tree.type.trunk;
-            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
+            const c = ((Math.cos(s)) / 2) * shift_sign;
+            s += step;
+            if (shift_by_x) {
+                x_new_pos = x - Math.floor(c * shift) * shift_sign;
+            } else {
+                z_new_pos = z - Math.floor(c * shift) * shift_sign;
+            }
+            setTreeBlock(tree, chunk, x_new_pos, p, z_new_pos, this.temp_block, true);
+            setTreeBlock(tree, chunk, x_new_pos + shift_sign, p, z_new_pos, this.temp_block, true);
+            setTreeBlock(tree, chunk, x_new_pos, p, z_new_pos + shift_sign, this.temp_block, true);
+            setTreeBlock(tree, chunk, x_new_pos + shift_sign, p, z_new_pos + shift_sign, this.temp_block, true);
         }
-
-        // листва
-        let py = y + tree.height;
-        for(let rad of [1, 2, 2, 2]) {
-            for(let i = -rad; i <= rad; i++) {
-                for(let j = -rad; j <= rad; j++) {
-                    if(py < y + tree.height) {
-                        if(Math.abs(i) < 2 && Math.abs(j) < 2) {
-                            continue;
-                        }
-                    }
-                    let m = (i == -rad && j == -rad) ||
-                        (i == rad && j == rad) ||
-                        (i == -rad && j == rad) ||
-                        (i == rad && j == -rad);
-                    if(m && py < y + tree.height) {
-                        continue;
-                    }
-                    const b = tree.blocks.get(this.xyz_temp_find.set(chunk.coord.x + i + x, chunk.coord.y + py, chunk.coord.z + j + z))
-                    const b_id = b?.id ?? 0
-                    if(b_id == 0 || b_id != tree.type.trunk) {
-                        this.temp_block.id = tree.type.leaves;
-                        // determining which side to cover with which texture
-                        let t = 0;
-                        if(py >= y + tree.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
-                        if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
-                        if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
-                        if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
-                        if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
-                        //
-                        if(py < y + tree.height) {
-                            if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
-                            if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
-                            if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
-                            if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
-                        }
-                        let extra_data = t ? {t: t} : null;
-                        setTreeBlock(tree, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
+        const x_pos = x_new_pos; // новая координата x где будет центр шляпы
+        const z_pos = z_new_pos; // новая координата z где будет центр шляпы
+        const rad = tree.height;
+        const determineSideToCover = (x, y, z, radius, top, qube_center) => {
+            let t = 0;
+            for (let i = -.5; i <= .5; i++) {
+                for (let j = -.5; j <= .5; j++) {
+                    const qube_above: Vector = new Vector(x + i, y + 1.5, z + j);
+                    if (qube_center.distance(qube_above) > radius) {
+                        t |= (1 << DIRECTION_BIT.UP);
                     }
                 }
             }
-            py--;
+            if (y == top - radius+1) {
+                const qube_bottom: Vector = new Vector(x+.5,y+.5,z+.5);
+                if (qube_center.distance(qube_bottom) >= radius*0.8) {
+                    t |= (1<<DIRECTION_BIT.DOWN);
+                }
+            }
+            const qube_east_north: Vector = new Vector(x + 1.5, y + .5, z + .5);
+            const qube_east_south: Vector = new Vector(x + 1.5, y + .5, z - .5);
+            if (qube_center.distance(qube_east_north) >= radius || qube_center.distance(qube_east_south) >= radius) {
+                t |= (1 << DIRECTION_BIT.EAST);
+            }
+            const qube_west_north: Vector = new Vector(x - 1.5, y + .5, z + .5);
+            const qube_west_south: Vector = new Vector(x - 1.5, y + .5, z - .5);
+            if (qube_center.distance(qube_west_north) >= radius || qube_center.distance(qube_west_south) >= radius) {
+                t |= (1 << DIRECTION_BIT.WEST);
+            }
+            const qube_north_east: Vector = new Vector(x + .5, y + .5, z + 1.5);
+            const qube_north_west: Vector = new Vector(x - .5, y + .5, z + 1.5);
+            if (qube_center.distance(qube_north_east) >= radius || qube_center.distance(qube_north_west) >= radius) {
+                t |= (1 << DIRECTION_BIT.NORTH);
+            }
+            const qube_south_east: Vector = new Vector(x + .5, y + .5, z - 1.5);
+            const qube_south_west: Vector = new Vector(x - .5, y + .5, z - 1.5);
+            if (qube_center.distance(qube_south_east) >= radius || qube_center.distance(qube_south_west) >= radius) {
+                t |= (1 << DIRECTION_BIT.SOUTH);
+            }
+            return t ? {t: t} : null;
         }
-        if (tree.params?.effects) {
-            this.addMushroomEffects(world, chunk, x, y, z, BLOCK.RED_MUSHROOM, tree.height);
+        const bottom_pos = ystart - rad;
+        const qube_center: Vector = new Vector(x_pos, bottom_pos, z_pos);
+        const height_coeff = 1.2; // коэффициэнт насколько вытянуть шляпу вверх
+        for (let cube_pos_y = Math.floor(ystart*height_coeff); cube_pos_y > bottom_pos; cube_pos_y--) {
+            for(let i = -rad; i <= rad; i++) {
+                for(let j = -rad; j <= rad; j++) {
+                    const x_shift = i < 0 ? -.5 : .5;
+                    const z_shift = j < 0 ? -.5 : .5;
+                    const cube_pos_x = i + x_pos;
+                    const cube_pos_z = j + z_pos;
+                    const cube_pos: Vector = new Vector(cube_pos_x + x_shift, Math.ceil(cube_pos_y/height_coeff) + .5, cube_pos_z + z_shift);
+                    const dist = qube_center.distance(cube_pos)
+                    if (dist > rad || dist < rad * 0.7) {
+                        continue;
+                    }
+                    const b = tree.blocks.get(this.xyz_temp_find.set(chunk.coord.x + cube_pos_x, chunk.coord.y + cube_pos_y, chunk.coord.z + cube_pos_z))
+                    const b_id = b?.id ?? 0
+                    if(b_id == 0 || b_id != tree.type.trunk) {
+                        this.temp_block.id = tree.type.leaves;
+                        let extra_data = determineSideToCover(cube_pos_x, Math.ceil(cube_pos_y/height_coeff), cube_pos_z, rad, ystart, qube_center);
+                        setTreeBlock(tree, chunk, cube_pos_x, cube_pos_y, cube_pos_z, this.temp_block, false, null, extra_data);
+                    }
+                }
+            }
         }
+        // if (tree.params?.effects) {
+        //     this.addMushroomEffects(world, chunk, x, y, z, BLOCK.RED_MUSHROOM, tree.height);
+        // }
     }
 
     // Тропическое дерево
