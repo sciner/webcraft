@@ -36,31 +36,25 @@ export class TextBox {
 
         const CHAT_INPUT_FONT = 'UbuntuMono-Regular'
         this.chat_input = new Window(0, 0, 0, 0, 'chat_input')
-
         // create chat text input
         this.chat_input.style.font.family = CHAT_INPUT_FONT
         this.chat_input.style.font.size = 18
         this.chat_input.style.font.color = '#ffffff'
-        this.chat_input.style.background.color = '#00000055'
-
         // measure line height
         this.chat_input.text = 'TW|'
         const tm = this.chat_input.getTextMetrics()
         this.line_height = tm.height + 14 * this.zoom
         hud.hudwindow.add(this.chat_input)
-
         // create cariage
         this.lbl_cariage = new Label(0, 0, 0, 0, 'lbl_cariage')
         this.lbl_cariage.style.font.family = CHAT_INPUT_FONT
         this.lbl_cariage.style.font.size = 18
         this.lbl_cariage.style.font.color = '#ffffff'
-        this.lbl_cariage.style.background.color = '#00000055'
         this.lbl_cariage.text = '_'
         const ctm = this.lbl_cariage.getTextMetrics()
         this.space_width = ctm.width
         this.lbl_cariage.visible = false
         hud.hudwindow.add(this.lbl_cariage)
-
     }
 
     draw(x, y, width, height, margin) {
