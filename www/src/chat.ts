@@ -303,6 +303,7 @@ export class Chat extends TextBox {
             bottom_label.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
             this.history_messages_window.addChild(bottom_label)
         }
+        this.history_messages_window.y = hud.height - (height + bottom) * this.zoom
         this.chat_input.visible = this.active
         if (this.active) {
             this.draw(0, hud.height - bottom * this.zoom, width * this.zoom, this.line_height, margin)
