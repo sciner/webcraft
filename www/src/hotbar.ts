@@ -330,16 +330,16 @@ export class Hotbar {
         this.tilemap.clear()
 
         const player  = this.inventory.player;
-
+        const mayGetDamaged = player.game_mode.mayGetDamaged()
         const visible = !player.game_mode.isSpectator() && hud.isActive()
 
         this.inventory_slots_window.visible = visible
+        this.bars_base_window.visible = visible && mayGetDamaged
+        this.armor_base_window.visible = visible && mayGetDamaged
 
         if(!visible) {
             return false;
         }
-
-        const mayGetDamaged = player.game_mode.mayGetDamaged()
 
         // Inventory slots
         // this.inventory_slots_window.transform.position.set(hud.width / 2 - this.inventory_slots_window.w / 2, hud.height - this.inventory_slots_window.h - MARGIN * this.zoom)
@@ -356,9 +356,6 @@ export class Hotbar {
         }
 
         let hotbar_height = 0
-
-        this.bars_base_window.visible = mayGetDamaged
-        this.armor_base_window.visible = mayGetDamaged
 
         if (mayGetDamaged) {
             const left = 180 * this.zoom
