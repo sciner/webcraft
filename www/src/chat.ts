@@ -315,11 +315,13 @@ export class Chat extends TextBox {
         } else if (time >= half_show_time) {
             const transparent_time = time - half_show_time
             if (transparent_time > 0) {
-                this.history_messages_window.alpha = 1.1 - transparent_time / half_show_time
+                this.history_messages_window.alpha = 1 - transparent_time / half_show_time
+                this.history_messages_window.text_container.alpha = this.history_messages_window.alpha
             }
         } else {
             this.history_messages_window.visible = true
             this.history_messages_window.alpha = 1
+            this.history_messages_window.text_container.alpha = this.history_messages_window.alpha
         }
         const strings = []
         // Draw message history
