@@ -51,14 +51,14 @@ export class InGameMain extends Window {
             {title: Lang.btn_statistics,     form: new StatsWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)}
         ]
 
+        const btn_margin = 5 * this.zoom
+        const btn_width = 150 * this.zoom
+        const btn_height = 30 * this.zoom
         let bx = 0
 
         // Each all tabs and make menu
         for(let i = 0; i < tabs.length; i++) {
             const tab = tabs[i]
-            const btn_margin = 5 * this.zoom
-            const btn_width = 150 * this.zoom
-            const btn_height = 30 * this.zoom
             tab.button = new Label(17 * this.zoom + bx, 12 * this.zoom, btn_width, btn_height, `btn${i}`, tab.title, tab.title)
 
             tab.button.w = tab.button.getTextMetrics().width + btn_margin * 4
@@ -104,8 +104,26 @@ export class InGameMain extends Window {
 
     // Обработчик открытия формы
     onShow(args) {
+
+        const is_creative = this.player.game_mode.isCreative()
+
+        const btn_margin = 5 * this.zoom
+        const buttons_x = 17 * this.zoom
+        let bx = 0
+
+        // Each all tabs and make menu
+        for(let i = 0; i < this.tabs.length; i++) {
+            const tab = this.tabs[i]
+            if(!is_creative && tab.form instanceof CreativeInventoryWindow) {
+                tab.button.visible = false
+                continue
+            }
+            tab.button.visible = true
+            tab.button.x = buttons_x + bx
+            bx += tab.button.w + btn_margin
+        }
+
         this.getRoot().center(this)
-        // this.getRoot().centerChild()
         Qubatch.releaseMousePointer()
         super.onShow(args)
     }
@@ -121,16 +139,6 @@ export class InGameMain extends Window {
         }
     }
 
-    getTab(id : string) : Window | null {
-        for(let i = 0; i < this.tabs.length; i++) {
-            const tab = this.tabs[i]
-            if(tab.form.id == id) {
-                return tab
-            }
-        }
-        return null
-    }
-
     // Обработчик закрытия формы
     onHide() {
         for(let i = 0; i < this.tabs.length; i++) {
@@ -140,6 +148,16 @@ export class InGameMain extends Window {
             }
         }
         super.onHide()
+    }
+
+    getTab(id : string) : Window | null {
+        for(let i = 0; i < this.tabs.length; i++) {
+            const tab = this.tabs[i]
+            if(tab.form.id == id) {
+                return tab
+            }
+        }
+        return null
     }
 
 }
