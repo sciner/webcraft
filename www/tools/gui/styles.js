@@ -105,7 +105,7 @@ export class BackgroundStyle {
         this._image_size_mode = null
         this.color = '#00000000'
     }
-
+    
     /**
      * @type {PIXI.Sprite}
      */
