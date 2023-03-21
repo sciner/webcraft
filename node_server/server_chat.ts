@@ -7,6 +7,7 @@ import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
 import { BLOCK_FLAG } from "@client/constant.js";
+import { Configuration, OpenAIApi } from "openai";
 
 const MAX_LINE_LENGTH = 100 // TODO based on the cleint's screen size
 
@@ -328,6 +329,52 @@ export class ServerChat {
                         player.teleport({p2p: {from: args[1].substring(1), to: args[2].substring(1)}, pos: null, safe: safe});
                     } else {
                         throw 'error_invalid_arguments';
+                    }
+                } else {
+                    throw 'error_invalid_arguments_count';
+                }
+                break;
+            }
+            case '/gpt': {
+                // Merging other arguments to query string for ChatGPT
+                if(args.length > 1) {
+                    const message = args.slice(1).join(' ');
+                    if (config.OpenAIToken) {
+                        const configuration = new Configuration({
+                            apiKey: config.OpenAIToken,
+                        });
+                        const openai = new OpenAIApi(configuration);
+                        const response = await openai.createCompletion({
+                            model: "text-davinci-003",
+                            prompt: message,
+                            max_tokens: 1000,
+                            temperature: 0,
+                        });
+                        if (response.data && Array.isArray(response.data.choices) && response.data.choices.length > 0) {
+                            let longString = response.data.choices[0].text.replace(/\n/g, '');
+                            let lines = [];
+                            let line = '';
+                            const words = longString.split(' ');
+                            for (let i = 0; i < words.length; i++) {
+                                const word = words[i];
+                                // The maximum count of symbols fit on screen
+                                if (line.length + word.length + 1 > 120) {
+                                    lines.push(line.trim());
+                                    line = '';
+                                }
+                                line += word + ' ';
+                            }
+                            if (line.length > 0) {
+                                lines.push(line.trim());
+                            }
+                            const stringWithNewlines = lines.join('\n');
+                            this.sendSystemChatMessageToSelectedPlayers(stringWithNewlines, player);
+                        } else {
+                            // Information about error during request
+                            this.sendSystemChatMessageToSelectedPlayers('These voices in my had... They have nothing to say...', player);
+                        }
+                    } else {
+                        throw 'openai_token_not_provided';
                     }
                 } else {
                     throw 'error_invalid_arguments_count';
