@@ -942,6 +942,10 @@ export class DBWorldMigration {
             'UPDATE user SET chunk_render_dist = 5 WHERE chunk_render_dist = 4;'
         ]});
 
+        migrations.push({version: 96, queries: [
+            'ALTER TABLE user ADD COLUMN world_data TEXT DEFAULT NULL'
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

@@ -109,7 +109,8 @@ export type PlayerConnectData = {
     inventory : {
         current
         items
-    }
+    },
+    world_data  : Dict
 }
 
 export class PlayerSharedProps implements IPlayerSharedProps {
@@ -178,6 +179,7 @@ export class Player implements IPlayer {
     //
     headBlock:                  any = null;
     state:                      PlayerState;
+    world_data:                 Dict
     indicators:                 Indicators;
     lastBlockPos:               any;
     xBob:                       any;
@@ -272,6 +274,7 @@ export class Player implements IPlayer {
         this.status                 = data.status;
         this.indicators             = data.state.indicators;
         this.skin                   = data.skin;
+        this.world_data             = data.world_data;
         // Game mode
         this.game_mode              = new GameMode(this, data.state.game_mode);
         this.game_mode.onSelect     = (mode) => {
@@ -355,6 +358,9 @@ export class Player implements IPlayer {
             this.state.lies    = false
             this.state.sitting = false
             this.state.sleep   = false
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_WORLD_DATA], (cmd) => {
+            this.world_data = cmd.data
         });
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             let pc_previous = this.getPlayerControl();
