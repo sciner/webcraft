@@ -153,10 +153,10 @@
         },
         "creeper": {
             "type": "json",
-            "geom": "json/creeper.geo.json",
+            "geom": "json/zombie_bomber.geo.json",
             "baseSkin": "base",
             "skins": {
-                "base": "textures/creeper/creeper.png"
+                "base": "textures/zombie_bomber/zombie_bomber.png"
             }
         },
         "snow_golem": {
