@@ -347,6 +347,10 @@ export class MobAnimation {
            aniangle /= 16;
         }
 
+        if(!animable.type.startsWith('player:')) {
+            aniangle /= 2
+        }
+
         if(isArm) {
             sign *= -1
         }
