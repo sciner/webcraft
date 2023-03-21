@@ -281,6 +281,12 @@ export class MobAnimator extends Animator {
 export class MobAnimation {
     [key: string]: any;
 
+    model : MobModel
+
+    constructor(model : MobModel) {
+        this.model = model
+    }
+
     head({
         part, index, delta, animable, camPos
     }) {
@@ -487,15 +493,17 @@ export class MobAnimation {
             anim = sign;
         }
 
-        quat.fromEuler(
-            part.quat,
-            0,
-            -anim * (Math.sin(p * Math.PI * 2 / 8) * 30 + 90),
-            0,
-        );
+        const add_wing_angle = ['bee'].includes(this.model.type) ? 0 : 90
 
-        part.updateMatrix();
+        const wing_angle = -anim * (Math.sin(p * Math.PI * 2 / 8) * 60 + add_wing_angle)
 
+        if(['bee'].includes(this.model.type)) {
+            quat.fromEuler(part.quat, wing_angle, 0, 0)
+        } else {
+            quat.fromEuler(part.quat, 0, wing_angle, 0)
+        }
+
+        part.updateMatrix()
 
     }
 
@@ -557,7 +565,7 @@ export class MobModel extends NetworkPhysicObject {
 
         this.animator = new MobAnimator();
 
-        this.animationScript = new MobAnimation();
+        this.animationScript = new MobAnimation(this);
 
         this.armor = null;
         this.prev = {

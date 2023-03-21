@@ -86,7 +86,7 @@
             "geom": "json/bee.geo.json",
             "baseSkin": "base",
             "skins": {
-                "base": "textures/bee.png"
+                "base": "textures/bee/bee.png"
             }
         },
 
