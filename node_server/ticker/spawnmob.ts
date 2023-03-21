@@ -16,6 +16,8 @@ export default class Ticker {
     //
     static func(this: TickingBlockManager, tick_number, world, chunk, v) {
 
+        const ambientLight = (world.info.rules.ambientLight || 0) * 255 / 15
+
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
@@ -68,7 +70,7 @@ export default class Ticker {
                 const spawn_pos = pos.clone().addScalarSelf(x, y, z).floored()
                 let spawn_disabled = false;
                 //
-                for(let player of players) {
+                for(const player of players) {
                     const check_pos = player.state.pos.floored();
                     if (check_pos.x == spawn_pos.x && check_pos.z == spawn_pos.z) {
                         spawn_disabled = true;
@@ -89,6 +91,12 @@ export default class Ticker {
                     // const legs = world.getBlock(spawn_pos.sub(Vector.YP));
                     if (body.id != 0) {
                         spawn_disabled = true;
+                    }
+                    // проверяем освещенность для нежети
+                    if ((body.lightValue & 0xFF) > 160 || ((body.lightValue >> 8) < 100)) {
+                        if (extra_data.type == 'zombie' || extra_data.type == 'skeleton') {
+                            spawn_disabled = true
+                        }
                     }
                     if(!spawn_disabled) {
                         const params = {
