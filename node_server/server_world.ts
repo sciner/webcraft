@@ -28,7 +28,7 @@ import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
 import { SHUTDOWN_ADDITIONAL_TIMEOUT } from "./server_constant.js"
 
-import { WorldAction } from "@client/world_action.js";
+import {TActionBlock, WorldAction} from "@client/world_action.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
@@ -39,6 +39,7 @@ import type { DBWorld } from "./db/world.js";
 import type { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
 import type { Indicators, PlayerConnectData, PlayerSkin } from "@client/player.js";
+import type {TRandomTickerFunction, TTickerFunction} from "./server_chunk.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -48,8 +49,8 @@ export class ServerWorld implements IWorld {
     updatedBlocksByListeners: any[];
     shuttingDown: any;
     game: any;
-    tickers: Map<string, any>;
-    random_tickers: Map<string, any>;
+    tickers: Map<string, TTickerFunction>;
+    random_tickers: Map<string, TRandomTickerFunction>;
     blockListeners: BlockListeners;
     blockCallees: any;
     brains: Brains;
@@ -1182,7 +1183,7 @@ export class ServerWorld implements IWorld {
         for(const addr of this.chunkManager.ticking_chunks.keys()) {
             const chunk = this.chunkManager.get(addr);
             if(chunk) {
-                for(const ticking_block of chunk.ticking_blocks.blocks.values()) {
+                for(const ticking_block of chunk.ticking_blocks.tickingBlocks()) {
                     if(ticking_block.ticking.type == 'bee_nest') {
                         const tblock = this.getBlock(ticking_block.pos);
                         if(tblock && tblock.id > 0 && tblock.hasTag('bee_nest')) {
@@ -1291,7 +1292,7 @@ export class ServerWorld implements IWorld {
         }
     }
 
-    addUpdatedBlocksActions(updated_blocks) {
+    addUpdatedBlocksActions(updated_blocks: (TActionBlock | null)[]): void {
         ArrayHelpers.filterSelf(updated_blocks, v => v != null);
         if (updated_blocks.length) {
             const action = new WorldAction(null, this, false, true);

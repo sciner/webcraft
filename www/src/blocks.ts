@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor } from './helpers.js';
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -8,7 +8,7 @@ import { Lang } from "./lang.js";
 import { BLOCK_FLAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
-import type { GameSettings } from "./game.js";
+import type {BaseResourcePack} from "./base_resource_pack.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202, 415];
@@ -238,16 +238,16 @@ export class BLOCK {
     [key: string]: any;
     static [key: string]: any;
 
-    static settings : GameSettings          = null
+    static settings : TBlocksSettings       = null
 
     static MAX_BLOCK_ID                     = 2048
 
     static list                             = new Map();
     static styles                           = new Map();
+    /** Sorted blocks, without null elements. Not by id. Not to be confused with {@link BLOCK_BY_ID} */
     static list_arr                         : IBlockMaterial[] = []; // see also getAll()
     static resource_pack_manager            : ResourcePackManager = null;
     static max_id                           = 0;
-    static TICKING_BLOCKS                   = new Map();
     static BLOCK_BY_ID: IBlockMaterial[]    = [];
     static bySuffix                         = {}; // map of arrays
     static REPLACE_TO_SLAB                  = {};
@@ -749,11 +749,6 @@ export class BLOCK {
     }
 
     //
-    static isRandomTickingBlock(block_id : int) : boolean {
-        return !!BLOCK.fromId(block_id).random_ticker;
-    }
-
-    //
     static getBlockStyleGroup(block) : string {
         let group = 'regular';
         if('group' in block) return block.group;
@@ -830,7 +825,7 @@ export class BLOCK {
     }
 
     // add
-    static async add(resource_pack, block) {
+    static async add(resource_pack: BaseResourcePack, block: IBlockMaterial) {
 
         // Check duplicate ID
         if(!('name' in block) || !('id' in block)) {
@@ -953,21 +948,19 @@ export class BLOCK {
             }
         }
         block.group             = block.group ?? this.getBlockStyleGroup(block);
-        block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
+        block.planting          = block.planting ?? (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
-        block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
+        block.can_rotate        = block.can_rotate ?? ArrayHelpers.includesAny(block.tags, 'trapdoor', 'stairs', 'door', 'rotate_by_pos_n');
         block.tx_cnt            = BLOCK.calcTxCnt(block);
-        block.uvlock            = !('uvlock' in block) ? true : false;
+        block.uvlock            = !('uvlock' in block);
         block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style_name == 'planting') || block.style_name == 'ladder' || block?.material?.id == 'glass';
         block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style_name == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         block.random_rotate_up  = block.tags.includes('random_rotate_up');
         block.is_log            = block.tags.includes('log')
         block.is_solid          = this.isSolid(block);
-        block.is_solid_for_fluid= block.tags.includes('is_solid_for_fluid') ||
-                                    block.tags.includes('stairs') ||
-                                    block.tags.includes('log') ||
+        block.is_solid_for_fluid= ArrayHelpers.includesAny(block.tags, 'is_solid_for_fluid', 'stairs', 'log') ||
                                     ['wall', 'pane'].includes(block.style_name);
 
         block.is_simple_qube    = this.isSimpleQube(block);
@@ -975,14 +968,17 @@ export class BLOCK {
         const can_replace_by_tree = ['leaves', 'plant', 'dirt'].includes(block.material.id) || ['SNOW', 'SAND'].includes(block.name);
         block.can_replace_by_tree = can_replace_by_tree && !block.tags.includes('cant_replace_by_tree');
         //
-        if(block.planting && !('inventory_style' in block)) {
-            block.inventory_style = 'extruder';
+        if(block.planting) {
+            block.inventory_style ??= 'extruder';
         }
         if (block.is_solid) {
             BLOCK.addFlag(BLOCK_FLAG.SOLID, block.id)
         }
         if(block.ticking) {
-            BLOCK.TICKING_BLOCKS.set(block.id, block);
+            this.addFlag(BLOCK_FLAG.TICKING, block.id)
+        }
+        if(block.random_ticker) {
+            this.addFlag(BLOCK_FLAG.RANDOM_TICKER, block.id)
         }
         if (block.style_name == 'planting' || (block.layering && !block.layering.slab)) {
             BLOCK.addFlag(BLOCK_FLAG.REMOVE_ONAIR_BLOCKS_IN_CLUSTER, block.id)
@@ -1134,7 +1130,7 @@ export class BLOCK {
         return tx_cnt;
     }
 
-    // getAll
+    /** Sorted blocks, without null elements. Not by id. Not to be confused with {@link BLOCK_BY_ID} */
     static getAll() : IBlockMaterial[] {
         return this.list_arr;
     }
@@ -1511,7 +1507,7 @@ export class BLOCK {
     }
 
     // Init
-    static async init(settings : GameSettings) {
+    static async init(settings : TBlocksSettings) {
 
         if(BLOCK.list.size > 0) {
             return BLOCK

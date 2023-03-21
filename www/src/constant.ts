@@ -77,6 +77,8 @@ export enum BLOCK_FLAG {
     OPAQUE_FOR_NATURAL_SLAB         = 0x100 | 0,
     NOT_CREATABLE                   = 0x200 | 0,
     IS_DIRT                         = 0x400 | 0,
+    TICKING                         = 0x800 | 0,
+    RANDOM_TICKER                   = 0x1000 | 0,
 }
 
 // ========================= Sound options =========================
