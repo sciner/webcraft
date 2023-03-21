@@ -179,6 +179,11 @@ export class Player implements IPlayer {
     //
     headBlock:                  any = null;
     state:                      PlayerState;
+    /**
+     * A general-purpose persistent data field.
+     * A server checks if it's modified one per tick. If a change is detected, it's
+     * sent to the client, and marked to be saved to the DB in the next transaction.
+     */
     world_data:                 Dict
     indicators:                 Indicators;
     lastBlockPos:               any;
