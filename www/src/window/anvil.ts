@@ -1,30 +1,25 @@
 import { ItemHelpers } from "../block_helpers.js";
-import { Button, Label, TextEdit } from "../ui/wm.js";
-import { INVENTORY_SLOT_SIZE, ITEM_LABEL_MAX_LENGTH } from "../constant.js";
+import { Label, TextEdit } from "../ui/wm.js";
+import { ITEM_LABEL_MAX_LENGTH, UI_THEME } from "../constant.js";
 import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
+import { Resources } from "../resources.js";
+import type { PlayerInventory } from "../player_inventory.js";
 
 //
 class AnvilSlot extends CraftTableSlot {
     [key: string]: any;
 
     constructor(x, y, w, h, id, title, text, ct) {
-        super(x, y, w, h, id, title, text, ct, null);
-        this.ct = ct;
+        super(x, y, w, h, id, title, text, ct, null)
+        this.ct = ct
+        this.refresh()
     }
 
-    onMouseEnter() {
-        this.style.background.color = '#ffffff55';
-    }
-
-    onMouseLeave() {
-        this.style.background.color = '#00000000';
-    }
-
-    onMouseDown(e) {
+    onMouseDown(e : any) {
         const ct = this.ct
         const dragItem = this.getItem()
         if (!dragItem) {
@@ -38,7 +33,7 @@ class AnvilSlot extends CraftTableSlot {
         ct.updateResult()
     }
 
-    onDrop(e) {
+    onDrop(e : any) {
         const ct = this.ct
         if (this == ct.result_slot) {
             return;
@@ -66,36 +61,40 @@ class AnvilSlot extends CraftTableSlot {
 
 //
 export class AnvilWindow extends BaseCraftWindow {
-    [key: string]: any;
 
-    constructor(inventory) {
+    constructor(inventory : PlayerInventory) {
 
-        super(10, 10, 350, 330, 'frmAnvil', null, null, inventory);
+        const w = 420
+        const h = 400
+
+        super(0, 0, w, h, 'frmAnvil', null, null, inventory)
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
-        this.style.background.image_size_mode = 'stretch';
-        this.recipes = new AnvilRecipeManager();
-        this.used_recipes = [];
-        this.current_recipe = null;
-        this.current_recipe_outCount = null;
+
+        this.recipes = new AnvilRecipeManager()
+        this.used_recipes = []
+        this.current_recipe = null
+        this.current_recipe_outCount = null
 
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/anvil.png').then(async atlas => {
+        this.atlas.fromFile('./media/gui/anvil.png').then(async (atlas : SpriteAtlas) => {
 
-            this.setBackground(await atlas.getSprite(0, 0, 703, 664), 'none', this.zoom / 2.0)
-
-            // Add labels to window
-            const lblTitle = new Label(110 * this.zoom, 12 * this.zoom, 150 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.repair)
-            this.add(lblTitle)
+            this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'stretch', this.zoom / 2.0)
 
             // Ширина / высота слота
-            this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
+            this.cell_size     = UI_THEME.window_slot_size * this.zoom
+            this.slot_margin   = UI_THEME.slot_margin * this.zoom
+            this.slots_x       = UI_THEME.window_padding * this.zoom
+            this.slots_y       = 62 * this.zoom
+        
+            const szm = this.cell_size + this.slot_margin
+            const inventory_y = this.h - szm * 4 - (UI_THEME.window_padding * this.zoom)
 
              // Создание слотов для инвентаря
-            this.createInventorySlots(this.cell_size)
+            this.createInventorySlots(this.cell_size, undefined, inventory_y / this.zoom)
 
             // Создание слотов для крафта
             this.createCraft(this.cell_size);
@@ -103,19 +102,11 @@ export class AnvilWindow extends BaseCraftWindow {
             // Редактор названия предмета
             this.createEdit()
 
+            // Add labels to window
+            this.addWindowTitle(Lang.repair)
+
             // Add close button
-            this.loadCloseButtonImage((image) => {
-                // Add buttons
-                const that = this
-                // Close button
-                const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-                btnClose.style.font.family = 'Arial'
-                btnClose.style.background.image = image
-                btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                    that.hide()
-                }
-                that.add(btnClose)
-            })
+            this.addCloseButton()
 
         })
 
@@ -141,16 +132,13 @@ export class AnvilWindow extends BaseCraftWindow {
     }
 
     async createEdit() {
-        this.lbl_edit = new TextEdit(118 * this.zoom, 40 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'lbl_edit', null, 'Hello, World!')
+        this.lbl_edit = new TextEdit(118 * this.zoom, 62.5 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'lbl_edit', null, 'Hello, World!')
         this.lbl_edit.word_wrap          = false
         this.lbl_edit.max_length         = ITEM_LABEL_MAX_LENGTH
         this.lbl_edit.max_lines          = 1
         this.lbl_edit.style.font.color   = '#ffffff'
         this.lbl_edit.style.padding.left = 5 * this.zoom
         this.lbl_edit.style.textAlign.vertical = 'middle'
-        this.lbl_edit.setBackground(await this.atlas.getSprite(0, 665, 440, 62))
-        this.lbl_edit.style.border.hidden = true
-        this.lbl_edit.style.background.color = '#00000000'
         this.lbl_edit.onChange = this.updateResult.bind(this)
         this.add(this.lbl_edit)
     }
@@ -159,9 +147,10 @@ export class AnvilWindow extends BaseCraftWindow {
         this.craft = {
             slots: [null, null]
         };
-        this.first_slot = new AnvilSlot(52 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this);
-        this.second_slot = new AnvilSlot(150 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
-        this.result_slot = new AnvilSlot(266 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
+        const y = 91 + 22.5
+        this.first_slot = new AnvilSlot(52 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this);
+        this.second_slot = new AnvilSlot(150 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
+        this.result_slot = new AnvilSlot(266 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
         this.add(this.craft.slots[0] = this.first_slot);
         this.add(this.craft.slots[1] = this.second_slot);
         this.add(this.lblResultSlot = this.result_slot);
@@ -207,29 +196,6 @@ export class AnvilWindow extends BaseCraftWindow {
             count,
             label: this.current_recipe_label
         });
-    }
-
-    draw(ctx, ax, ay) {
-        super.draw(ctx, ax, ay);
-        if(this.result_slot.getItem() == null) {
-            if(typeof this.style.background.image == 'object') {
-                const x = ax + this.x;
-                const y = ay + this.y;
-                const arrow = {x: 704, y: 0, width: 112, height: 80, tox: 198 * this.zoom, toy: 88 * this.zoom};
-                ctx.drawImage(
-                    this.style.background.image,
-                    arrow.x,
-                    arrow.y,
-                    arrow.width,
-                    arrow.height,
-                    x + arrow.tox,
-                    y + arrow.toy,
-                    arrow.width * this.zoom / 2,
-                    arrow.height * this.zoom / 2
-                );
-            }
-        }
-
     }
 
 }

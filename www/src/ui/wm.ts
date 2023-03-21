@@ -1,6 +1,15 @@
-import { SimpleBlockSlot as sbs, Slider as sld, ToggleButton as tb, Label as lbl, Button as btn, TextEdit as txted, Window as wnd, GradientGraphics as gg, WindowManager as wm } from "../../tools/gui/wm.js";
+import { Icon as icn, SimpleBlockSlot as sbs, Slider as sld, ToggleButton as tb, Label as lbl, Button as btn, TextEdit as txted, Window as wnd, GradientGraphics as gg, WindowManager as wm } from "../../tools/gui/wm.js";
 import { UI_THEME } from "../constant.js";
 export { MySprite, MyTilemap } from "../../tools/gui/MySpriteRenderer.js";
+
+export class Icon extends icn {
+    [key: string]: any;
+
+    constructor(x : number, y : number, w : number, h : number, id : string, zoom : number) {
+        super(x, y, w, h, id, zoom)
+    }
+
+}
 
 export class GradientGraphics extends gg {
     static [key: string]: any;

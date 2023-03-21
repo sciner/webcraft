@@ -1076,12 +1076,14 @@ export class Window extends PIXI.Container {
 }
 
 export class Icon extends Window {
-    constructor(x, y, w, h, zoom, id) {
+
+    constructor(x, y, w, h, id, zoom) {
         super(x * zoom, y * zoom, w * zoom / 2, h * zoom / 2, id + '' + w, '', '')
         this.sprite_w = w
         this.sprite_h = h
         this.axis_x = true
     }
+
     scroll(val) {
         const spite =  this.style.background.sprite
         if (this.axis_x){
@@ -1093,6 +1095,7 @@ export class Icon extends Window {
         }
         spite.texture.updateUvs()
     }
+
 }
 
 // Button

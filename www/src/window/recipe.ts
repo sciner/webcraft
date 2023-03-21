@@ -118,17 +118,6 @@ export class RecipeWindow extends BlankWindow {
 
         this.hud_atlas = Resources.atlas.get('hud')
 
-        // Get window by ID
-        const ct = this
-
-        // // Create sprite atlas
-        // this.atlas = new SpriteAtlas()
-        // this.atlas.fromFile('./media/gui/recipe_book.png').then(async atlas => {
-        //     ct.setBackground(await atlas.getSprite(0, 0, 592, 668), 'none', this.zoom)
-        //     // кнопка доступные или все рецепты
-        //     this.addToggleButton()
-        // })
-
         const that = this
 
         // Paginator
