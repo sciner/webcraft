@@ -6,6 +6,14 @@
     "textures": {},
     "bbmodels": [
         {"name": "arm",                 "shift": {"x": 16, "y": 0, "z": 0}},
+
+        {"name": "mob/pig",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mob/zombie",          "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mob/skeleton",        "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mob/cow",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mob/bee",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mob/zombie_bomber",   "shift": {"x": 16, "y": 0, "z": 0}},
+
         {"name": "ladder",              "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "torch",               "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "fence",               "shift": {"x": 16, "y": 0, "z": 0}},
@@ -69,9 +77,6 @@
         {"name": "reed",                "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "sugar_cane",          "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "bough",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "mob/pig",             "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "mob/zombie",          "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "mob/skeleton",        "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "dandelion",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "poppy",               "shift": {"x": 16, "y": 0, "z": 0}}
     ],
