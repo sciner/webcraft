@@ -122,7 +122,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
     }
 
     // drawBuilding...
-    drawBuilding(xyz : IVector, x : int, y : int, z : int, chunk) {
+    drawBuilding(xyz : Vector, x : int, y : int, z : int, chunk : any) {
         let vb = this.getVoxelBuilding(xyz);
         if(vb) {
             let block = vb.getBlock(xyz);

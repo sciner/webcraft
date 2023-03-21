@@ -1,22 +1,18 @@
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js"
 import type { Default_Terrain_Map } from "../../default.js";
 import type Terrain_Generator from "../index.js"
+import { Biome3LayerBase } from "./base.js";
 
 /**
  * Generate underworld infinity stones
  */
-export default class Biome3LayerStone {
-    [key: string]: any;
+export default class Biome3LayerStone extends Biome3LayerBase {
 
-    constructor(generator: Terrain_Generator) {
+    declare maps: Map<any, any> | any
 
-        this.generator = generator
-
-        this.noise2d = generator.noise2d
-        this.noise3d = generator.noise3d
-        this.block_manager = generator.block_manager
+    constructor(generator : Terrain_Generator) {
+        super(generator)
         this.maps = new Map()
-
     }
 
     generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {

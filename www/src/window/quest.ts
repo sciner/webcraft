@@ -1,4 +1,4 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+import { ToggleButton } from "../ui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { QuestMenu } from "./quest/menu.js";
 import { QuestView } from "./quest/view.js";
@@ -7,7 +7,9 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 
 export class QuestWindow extends BlankWindow {
-    [key: string]: any;
+    [key: string]: any
+
+    groups : QuestMenu
 
     constructor(player) {
 
@@ -18,24 +20,24 @@ export class QuestWindow extends BlankWindow {
         this.h *= this.zoom
         this.player = player
 
-        this.setBackground('./media/gui/form-quest.png')
+        // this.setBackground('./media/gui/form-quest.png') 
 
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
-        // Add labels to window
-        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
-        this.add(lblTitle)
+        // // Add labels to window
+        // const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
+        // this.add(lblTitle)
 
-        // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Close button
-            const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose')
-            btnClose.style.background.image = image;
-            btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.onMouseDown = this.hide.bind(this)
-            this.add(btnClose)
-        })
+        // // Add close button
+        // this.loadCloseButtonImage((image) => {
+        //     // Close button
+        //     const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose')
+        //     btnClose.style.background.image = image;
+        //     btnClose.style.background.image_size_mode = 'stretch';
+        //     btnClose.onMouseDown = this.hide.bind(this)
+        //     this.add(btnClose)
+        // })
 
         // Quests updated
         player.world.server.AddCmdListener([ServerClient.CMD_QUEST_ALL], (cmd) => {
@@ -60,7 +62,7 @@ export class QuestWindow extends BlankWindow {
 
     // Обработчик открытия формы
     onShow(args) {
-        this.getRoot().center(this)
+        // this.getRoot().center(this)
         Qubatch.releaseMousePointer()
         super.onShow(args)
     }
@@ -76,12 +78,12 @@ export class QuestWindow extends BlankWindow {
         this.updateActive();
 
         if(this.groups) {
-            return this.groups.update(data);
+            return this.groups.update(data)
         }
 
         this.groups = new QuestMenu(
             16 * this.zoom,
-            45 * this.zoom,
+            5 * this.zoom,
             250 * this.zoom,
             this.h - (45 + 20) * this.zoom,
             'wGroups'
@@ -92,7 +94,7 @@ export class QuestWindow extends BlankWindow {
         //
         this.quest_view = new QuestView(
             (this.groups.x + this.groups.w + 16 * this.zoom),
-            45 * this.zoom,
+            15 * this.zoom,
             (this.w - this.groups.w - (16 * 3) * this.zoom),
             this.h - (45 + 20) * this.zoom,
             'qView'
@@ -102,12 +104,23 @@ export class QuestWindow extends BlankWindow {
         //
         this.groups.setViewer(this.quest_view);
 
+        // Auto show first actual quest
+        let last_complete_group = null
+        let first_inprogress_group = null
+        for(let tb of this.groups.list.values()) {
+            if(tb instanceof ToggleButton) {
+                if(tb.quest.is_completed) last_complete_group = tb
+                if(!tb.quest.is_completed && !first_inprogress_group) first_inprogress_group = tb
+            }
+        }
+        (first_inprogress_group || last_complete_group)?.onMouseDown(null)
+
     }
 
     updateActive() {
         let quest_in_progress = null;
         let quest_new = null;
-        for(let g of Qubatch.hud.wm.getWindow('frmQuests').data) {
+        for(let g of Qubatch.hud.wm.getWindow('frmInGameMain').getTab('frmQuests').form.data) {
             for(let q of g.quests) {
                 // console.log(q.title, q.is_completed, q.in_progress);
                 if(q.in_progress && !quest_in_progress) {

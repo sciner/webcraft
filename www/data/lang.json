@@ -12,6 +12,7 @@
         "btn_return": {"en": "Return", "ru": "Вернуться","fr": "Retour","es":"Devolver","man":"返回","hind":"वापसी"},
         "menu": {"en": "Menu", "ru": "Меню","fr": "Menu","es":"Menú","man":"菜单","hind":"मेन्यू"},
         "create": {"en": "Create", "ru": "Создать","fr": "Creer","es":"Crear","man":"创造","hind":"सृजन करना"},
+        "craft": {"en": "CRAFT", "ru": "СОЗДАТЬ","fr": "Creer","es":"Crear","man":"创造","hind":"सृजन करना"},
         "btn_statistics": {"en": "Statistics", "ru": "Статистика","fr": "Statistique","es":"Estadísticas","man":"统计数据","hind":"आंकड़े"},
         "toggle_recipes": {"en": "Toggle recipes", "ru": "Рецепты","fr": "Basculer recette","es":"Alternar recetas","man":"切换食谱","hind":"व्यंजनों"},
         "creative_inventory": {"en": "Creative inventory", "ru": "Креативный инвентарь","fr": "Creer Inventaire","es":"Inventario creativo","man":"创意库存","hind":"रचनात्मक सूची"},
@@ -190,6 +191,13 @@
         "ender_chest": {"en": "Ender chest", "ru": "Эндер-сундук", "fr": "", "es": "", "man": ""},
         "sign_edit": {"en": "Edit sign text", "ru": "Введите текст", "fr": "", "es": "", "man": ""},
         "crafting": {"en": "Crafting", "ru": "Создание", "fr": "", "es": "", "man": ""},
-        "charging_station": {"en": "Charging station", "ru": "Зарядная станция", "fr": "", "es": "", "man": ""}
+        "charging_station": {"en": "Charging station", "ru": "Зарядная станция", "fr": "", "es": "", "man": ""},
+        "show_compass": {"en": "Show compass", "ru": "Включить компас", "fr": "", "es": "", "man": ""},
+        "in_game_main_menu": {"en": "Crafting, quests, stats...", "ru": "Крафт, квесты, статистика...", "fr": "", "es": "", "man": ""},
+        "btn_character": {"en": "Character", "ru": "Персонаж", "fr": "", "es": "", "man": ""},
+        "backpack": {"en": "BACKPACK", "ru": "РЮКЗАК", "fr": "", "es": "", "man": ""},
+        "recipes": {"en": "RECIPES", "ru": "РЕЦЕПТЫ", "fr": "", "es": "", "man": ""},
+        "only_can": {"en": "I can", "ru": "Я могу", "fr": "", "es": "", "man": ""},
+        "crafting_table": {"en": "WORKBENCH", "ru": "ВЕРСТАК", "fr": "", "es": "", "man": ""}
     }
 }

@@ -2,6 +2,7 @@ import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
 import { CLIENT_SKIN_ROOT, CLIENT_MUSIC_ROOT } from "./constant.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
+import {ShaderPreprocessor} from "./renders/ShaderPreprocessor.js";
 
 export const COLOR_PALETTE = {
     white: [0, 0],      // Белая - white_terracotta
@@ -21,6 +22,12 @@ export const COLOR_PALETTE = {
     red: [1, 1],        // Красная - red_terracotta
     black: [3, 0],      // Чёрная - black_terracotta
 };
+
+type ResourcesLoadSettings = {
+    glsl        : boolean   // need glsl
+    wgsl        : boolean   // need wgls for webgpu
+    imageBitmap : boolean   // return imageBitmap for image instead of Image
+}
 
 export class Resources {
     [key: string]: any;
@@ -44,8 +51,8 @@ export class Resources {
     static blockDayLight      : any = null;
     static maskColor          : any = null;
     static layout             : any = {}
-    static shaderBlocks       : any = {};
     static atlas              : Map<string, SpriteAtlas> = new Map()
+    static shaderPreprocessor = new ShaderPreprocessor();
 
     static progress = {
         loaded:     0,
@@ -75,7 +82,7 @@ export class Resources {
 
     static onLoading = (state) => {};
 
-    static async preload(settings) {
+    static async preload(settings: ResourcesLoadSettings) {
 
         // Functions
         const loadTextFile = Resources.loadTextFile
@@ -89,7 +96,7 @@ export class Resources {
         } else {
             all.push(
                 loadTextFile('./shaders/shader.blocks.glsl')
-                    .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
+                    .then(text => Resources.shaderPreprocessor.parseBlocks(text))
                     .then(blocks => {
                         console.debug('Load shader blocks:', blocks)
                     })
@@ -100,14 +107,7 @@ export class Resources {
 
     }
 
-    /**
-     * @param settings
-     * @param settings.glsl need glsl
-     * @param settings.wgsl need wgls for webgpu
-     * @param settings.imageBitmap return imageBitmap for image instead of Image
-     * @returns {Promise<void>}
-     */
-    static load(settings) {
+    static load(settings: ResourcesLoadSettings): Promise<any> {
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
@@ -134,7 +134,7 @@ export class Resources {
          * @type {Object.<string, SpriteAtlas>}
          */
         this.atlas = new Map()
-        for(let name of ['hotbar', 'bn', 'icons']) {
+        for(let name of ['hotbar', 'bn', 'icons', 'hud']) {
             all.push(new Promise(async (resolve, reject) => {
                 const atlas_files = await Promise.all([
                     fetch(`data/atlas/${name}/atlas.json`).then(response => response.json()), // .then(json => { atlas.map = json})
@@ -218,43 +218,6 @@ export class Resources {
 
     }
 
-    /**
-     * Parse shader.blocks file defenition
-     * @param {string} text
-     * @param {{[key: string]: string}} blocks
-     */
-    static async parseShaderBlocks(text, blocks = {}) {
-        const blocksStart = '#ifdef';
-        const blocksEnd = '#endif';
-
-        let start = text.indexOf(blocksStart);
-        let end = start;
-
-        while(start > -1) {
-            end = text.indexOf(blocksEnd, start);
-
-            if (end === -1) {
-                throw new TypeError('Shader block has unclosed ifdef statement at:' + start + '\n\n' + text);
-            }
-
-            const block = text.substring(start  + blocksStart.length, end);
-            const lines = block.split('\n');
-            const name = lines.shift().trim();
-
-            const source = lines.map((e) => {
-                return e.startsWith('    ') // remove first tab (4 space)
-                    ? e.substring(4).trimEnd()
-                    : e.trimEnd();
-            }).join('\n');
-
-            blocks[name] = source.trim();
-
-            start = text.indexOf(blocksStart, start + blocksStart.length);
-        }
-
-        return blocks;
-    }
-
     //
     static async loadWebGLShaders(vertex, fragment) {
         let all = [];
@@ -288,7 +251,7 @@ export class Resources {
         return fetch(url).then(response => json ? response.json() : response.text());
     }
 
-    static loadImage(url,  imageBitmap): Promise<HTMLImageElement|ImageBitmap> {
+    static loadImage(url: string, imageBitmap: boolean): Promise<HTMLImageElement|ImageBitmap> {
         if (imageBitmap) {
             return fetch(url)
                 .then(r => r.blob())
@@ -387,13 +350,13 @@ export class Resources {
     }
 
     // loadResourcePacks...
-    static async loadResourcePacks(settings) {
+    static async loadResourcePacks(settings: TBlocksSettings) {
         const resource_packs_url = (settings && settings.resource_packs_url) ? settings.resource_packs_url : '../data/resource_packs.json';
         return Helpers.fetchJSON(resource_packs_url, true, 'rp');
     }
 
     // Load supported block styles
-    static async loadBlockStyles(options) {
+    static async loadBlockStyles(options: TBlocksSettings) {
         const resp = new Set();
         const all = [];
         const json_url = (options && options.json_url) ? options.json_url : '../data/block_style.json';

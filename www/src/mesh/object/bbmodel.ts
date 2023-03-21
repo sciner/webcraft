@@ -1,8 +1,8 @@
 import { IndexedColor, Vector } from '../../helpers.js';
 import GeometryTerrain from '../../geometry_terrain.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
-import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from '../../render.js';
+import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4}    = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -87,6 +87,12 @@ export class Mesh_Object_BBModel {
 
         render.renderBackend.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
 
+    }
+
+    applyRotate() {
+        this.matrix = mat4.create()
+        const z = this.rotate.z
+        mat4.rotateZ(this.matrix, this.matrix, z)
     }
 
     destroy() {

@@ -7,7 +7,7 @@ export class PlayerInventory extends Inventory {
     [key: string]: any;
 
     /**
-     * @type { import("../tools/gui/wm.js").WindowManager }
+     * @type { import("./ui/wm.js").WindowManager }
      */
     wm
 
@@ -67,11 +67,7 @@ export class PlayerInventory extends Inventory {
 
     // Open window
     open() {
-        if(this.player.game_mode.isCreative()) {
-            this.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
-        } else {
-            this.hud.wm.getWindow('frmInventory').toggleVisibility();
-        }
+        this.hud.wm.getWindow('frmInGameMain').openTab('frmCharacterWindow')
     }
 
     // Refresh
@@ -79,7 +75,7 @@ export class PlayerInventory extends Inventory {
         this.player.state.hands.right = this.current_item;
         if(this.hud) {
             this.hud.refresh();
-            const frmRecipe = this.hud.wm.getVisibleWindowOrNull('frmRecipe');
+            const frmRecipe = this.player.inventory?.recipes?.frmRecipe || null
             frmRecipe?.paginator.update();
         }
         return true;
@@ -88,7 +84,7 @@ export class PlayerInventory extends Inventory {
     /**
      * @param {*} slot 
      * @param {*} item 
-     * @param { import("../tools/gui/wm.js").Pointer } drag
+     * @param { import("./ui/wm.js").Pointer } drag
      * @param {*} width 
      * @param {*} height 
      */

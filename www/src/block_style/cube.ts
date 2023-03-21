@@ -365,6 +365,7 @@ export default class style {
 
         const bm                    = style.block_manager
         const no_anim               = material.is_simple_qube || !material.texture_animations;
+        const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
 
         let emmited_blocks
         let width                   = 1;
@@ -546,6 +547,10 @@ export default class style {
 
         //
         const calcSideParams = (side : string, dir : int | string, width? : float, height? : float) : TCalcSideParamsResult => {
+            const is_side = side != 'up' && side != 'down'
+            if(is_side && cavity_id === dir) {
+                dir = 'cavity'
+            }
             // force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
             _sideParams.anim_frames = no_anim ? 0 : bm.getAnimations(material, side);
             const animFlag = _sideParams.anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
@@ -556,7 +561,7 @@ export default class style {
                 }
             }
             _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block);
-            if(side != 'up' && side != 'down') {
+            if(is_side) {
                 if(block.id == BLOCK.GRASS_BLOCK_SLAB.id || block.id == BLOCK.SNOW_DIRT_SLAB.id) {
                     _sideParams.t[1] -= .5 / material.tx_cnt
                 } else if(block.id == BLOCK.DIRT_PATH_SLAB.id) {

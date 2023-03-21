@@ -1,13 +1,13 @@
-import {GradientGraphics, Label, Window, WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
-import { isMobileBrowser, Vector } from "./helpers.js";
+import { isMobileBrowser, Mth, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
-import type { GameSettings } from "./game.js";
+import type {GameClass} from "./game.js";
+import { GradientGraphics, Label, Window, WindowManager } from "./ui/wm.js";
 
 // QuestActionType
 export enum QuestActionType {
@@ -243,7 +243,7 @@ export class HUD {
     }
 
     get zoom() {
-        return UI_ZOOM
+        return UI_ZOOM * Qubatch.settings.window_size / 100
     }
 
     add(item, zIndex) {
@@ -295,12 +295,16 @@ export class HUD {
             if(c instanceof HUDLabel) {
                 c.visible = false
             }
+            if(c instanceof Label) {
+                c.visible = false
+            }
         }
 
         if(this.isActive()) {
             // Draw game technical info
             this.drawInfo()
             this.drawAverageFPS()
+            this.drawCompas(this.wm.w / 2, 20 * this.zoom, 400 * this.zoom)
         }
 
         for(const item of this.items) {
@@ -354,6 +358,7 @@ export class HUD {
             return;
         }
 
+        const game              : GameClass = Qubatch;
         const world             = Qubatch.world;
         const player            = Qubatch.player;
         const render            = Qubatch.render;
@@ -409,6 +414,11 @@ export class HUD {
                 this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
             }
 
+            const trackName = game.sounds.music.track?.name
+            if (trackName) {
+                this.text += `\nPlaying track: ${trackName}`
+            }
+
             // Chunks inited
             this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ') ' + this.splash?.generate_terrain_time;
 
@@ -424,6 +434,9 @@ export class HUD {
                 this.text += '\nPackets: ' + Qubatch.world.server.stat.out_packets.total + '/' + Qubatch.world.server.stat.in_packets.total; // + '(' + Qubatch.world.server.stat.in_packets.physical + ')';
                 if(render) {
                     this.text += '\nParticles: ' + Mesh_Effect.current_count;
+                    if(render.draw_mobs_stat) {
+                        this.text += `\nDraw mobs: ${render.draw_mobs_stat.count} ... ${Math.round(render.draw_mobs_stat.time * 100) / 100}ms`
+                    }
                     this.text += '\nDrawcalls: ' + render.renderBackend.stat.drawcalls;
                     if (render.renderBackend.stat.multidrawcalls) {
                         this.text += ' + ' + render.renderBackend.stat.multidrawcalls + '(multi)';
@@ -447,7 +460,7 @@ export class HUD {
                     this.block_text += `\nrotate: ` + new Vector(desc.block.rotate);
                 }
                 if (desc.block.entity_id) {
-                    this.block_text += '\nentiry_id: ' + desc.block.entity_id;
+                    this.block_text += '\nentity_id: ' + desc.block.entity_id;
                 }
                 if (desc.block.power) {
                     this.block_text += '\npower: ' + desc.block.power;
@@ -568,7 +581,7 @@ export class HUD {
         if(isMobileBrowser()) {
             return false;
         }
-        const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
+        const active_quest = Qubatch.hud.wm.getWindow('frmInGameMain').getTab('frmQuests').form.active;
         if(active_quest) {
             if(!active_quest.mt) {
                 const quest_text = [active_quest.title];
@@ -608,7 +621,6 @@ export class HUD {
         let text_block = this.wm.hud_window[id]
         if(!text_block) {
             text_block = this.wm.hud_window[id] = new HUDLabel(x, y, this.wm.w - x, this.wm.h - y, `hud_${id}`)
-
             const fs = text_block.style.font._font_style
             fs.stroke = '#00000099'
             fs.strokeThickness = 4
@@ -639,6 +651,73 @@ export class HUD {
         text_block. position.set(x, y)
         text_block.text = str
 
+    }
+
+    drawCompas(x, y, w) {
+        if (!Qubatch.settings.show_compass) {
+            return
+        }
+        const rot = Qubatch.player.rotate.z
+        const marks = [
+            {
+                'angle': 0,
+                'title': 'N',
+                'color': '#F56F6F'
+            },
+            {
+                'angle': Math.PI / 2,
+                'title': 'E'
+            },
+            {
+                'angle': Math.PI,
+                'title': 'S'
+            },
+            {
+                'angle': (3 * Math.PI / 2),
+                'title': 'W'
+            }
+        ]
+        const hud_window = this.wm.hud_window
+        const compass_background_id = 'compass_background'
+        let compas : Label = hud_window[compass_background_id]
+        if (!compas) {
+            compas = hud_window[compass_background_id] = new Label(x - w / 2, y, w + 20 * this.zoom, 22 * this.zoom, compass_background_id, '', '|')
+            compas.style.background.color = '#FFFFFF33'
+            compas.style.textAlign.horizontal = 'center'
+            compas.style.border.hidden = false
+            compas.style.border.style = 'fixed_single'
+            compas.style.border.color = '#00000077'
+            hud_window.addChild(compas)
+        }
+        compas.visible = true
+        compas.x = x - w / 2
+        for (const mark of marks) {
+            let angle = rot - mark.angle
+            if (angle < -Math.PI || angle > Math.PI) {
+                angle = -angle
+            }
+            if (angle < -3 * Math.PI / 2) {
+                angle = -2 * Math.PI - angle 
+            }
+            let alpha = Math.round((1.37 - Math.abs(Math.atan(angle))) * 190).toString(16)
+            if (alpha.length == 1) {
+                alpha = '0' + alpha
+            }
+            const id = 'compass_' + mark.title
+            let mark_label = hud_window[id]
+            if (!mark_label) {
+                mark_label = hud_window[id] = new Label((x - w / 2), y, 20 * this.zoom, 20 * this.zoom, id, mark.title, mark.title)
+                hud_window.addChild(mark_label)
+                mark_label.style.textAlign.horizontal = 'center'
+            }
+            mark_label.visible = true
+            mark_label.x = x  -  w * Math.atan(angle) / 2.8
+            if (mark?.color) {
+                mark_label.style.font.color = mark.color + '' + alpha
+            } else {
+                mark_label.style.font.color = '#FFFFFF' + '' + alpha
+            }
+        }
     }
 
 }

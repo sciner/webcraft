@@ -44,13 +44,15 @@ type DropItemParams = {
     force ? : boolean
 }
 
+export type TActionBlock = {
+    pos             : Vector
+    action_id       : int
+    item            : IBlockItem
+    destroy_block ? : { id: int }
+}
+
 type ActionBlocks = {
-    list: {
-        pos             : Vector
-        action_id       : int
-        item            : IBlockItem
-        destroy_block   : { id: int }
-    }[]
+    list: TActionBlock[]
     options: {
         ignore_check_air    : boolean
         on_block_set        : boolean
@@ -331,13 +333,20 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
         for (const drop of drop_item) {
             if (drop && checkInstrument(instrument_block_id, drop)) {
                 const block = BLOCK.fromName(drop.name)
-                const chance = drop.chance ?? 1;
+                const chance = drop.chance ?? 1
                 if(Math.random() < chance) {
-                    let count = drop.count ?? 1;
+                    let count = 1
+                    if (drop?.count) {
+                        if (typeof drop.count === 'object') {
+                            count = ((Math.random() * (drop.count.max - drop.count.min)) | 0) + drop.count.min
+                        } else {
+                            count = drop.count
+                        }
+                    }
                     if(count > 0) {
-                        const item = makeDropItem(tblock, {id: block.id, count: count});
-                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
-                        return [item];
+                        const item = makeDropItem(tblock, {id: block.id, count: count})
+                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force})
+                        return [item]
                     }
                 }
             }
@@ -533,7 +542,7 @@ class DestroyBlocks {
 export class WorldAction {
     [key: string]: any;
 
-    #world;
+    #world : any;
     play_sound: PlaySoundParams[]
     drop_items: DropItemParams[]
     blocks: ActionBlocks
@@ -602,7 +611,7 @@ export class WorldAction {
         this.play_sound.push(item);
     }
 
-    addBlock(item) {
+    addBlock(item: TActionBlock): void {
         if(!item.action_id) {
             throw 'error_undefined_action_id';
         }
@@ -620,7 +629,7 @@ export class WorldAction {
     }
 
     // Add block
-    addBlocks(items) {
+    addBlocks(items: TActionBlock[]): void {
         for(let i = 0; i < items.length; i++) {
             this.addBlock(items[i])
         }
@@ -2087,31 +2096,12 @@ function putInComposter(e, world, pos, player, world_block, world_material, mat_
         actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: 0 } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
         return true
     }
-    let chance = 0
-    if ([bm.CAKE.id, bm.PUMPKIN_PIE.id].includes(mat_block.id)) {
-        chance = 1.0
-    }
-    if ([bm.RED_MUSHROOM_BLOCK.id, bm.BROWN_MUSHROOM_BLOCK.id, bm.HAY_BLOCK.id, bm.COOKIE.id, bm.BAKED_POTATO.id, bm.BREAD.id, bm.FLOWERING_AZALEA.id].includes(mat_block.id)) {
-        chance = 0.85
-    }
-    if ([bm.LILY_PAD.id, bm.MELON.id, bm.APPLE.id, bm.COCOA_BEANS.id, bm.POTATO.id, bm.CARROT.id, bm.MOSS_BLOCK.id, bm.WHEAT.id, bm.AZALEA.id, bm.FERN.id, bm.LARGE_FERN.id, bm.BROWN_MUSHROOM.id 
-        , bm.RED_MUSHROOM.id, bm.BEETROOT.id, bm.NETHER_WART.id, bm.PUMPKIN.id, bm.LIT_PUMPKIN.id, bm.DANDELION.id, bm.RED_TULIP.id, bm.ALLIUM.id, bm.BLUE_ORCHID.id, bm.OXEYE_DAISY.id, bm.CATTAIL.id
-        , bm.LILY_OF_THE_VALLEY.id, bm.CORNFLOWER.id, bm.PEONY.id, bm.LILAC.id, bm.WITHER_ROSE.id, bm.WHITE_TULIP.id, bm.ORANGE_TULIP.id, bm.PINK_TULIP.id, bm.SUNFLOWER.id, bm.AZURE_BLUET.id, bm.POPPY.id
-    ].includes(mat_block.id)) {
-        chance = 0.65
-    }
-    if ([bm.DRIED_KELP.id, bm.TALL_GRASS.id, bm.GLOW_LICHEN.id, bm.VINE.id, bm.MELON_SLICE.id, bm.CACTUS.id, bm.SUGAR_CANE.id].includes(mat_block.id)) {
-        chance = 0.5
-    }
-    if ([bm.KELP.id, bm.BIRCH_LEAVES.id, bm.OAK_LEAVES.id, bm.ACACIA_LEAVES.id, bm.SPRUCE_LEAVES.id, bm.SEAGRASS.id, bm.WHEAT_SEEDS.id, bm.CARROT_SEEDS.id, bm.MELON_SEEDS.id, bm.PUMPKIN_SEEDS.id, bm.BEETROOT_SEEDS.id, bm.SWEET_BERRY_BUSH.id, bm.GRASS.id, bm.CAVE_VINE_BERRY.id].includes(mat_block.id)) {
-        chance = 0.3
-    }
-    if (chance == 0) {
+    if (!mat_block?.composter_chance)  {
         return false
     }
     actions.addParticles([{type: 'villager_happy', pos: position.offset(0, 0.5, 0), area: false}])
     actions.decrement = true
-    if (Math.random() <= chance) {
+    if (Math.random() <= mat_block.composter_chance) {
         actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: (level + 1) } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
         // @todo нужные правльные звуки
         actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'dig', pos: position, except_players: [player.session.user_id]})
@@ -2328,7 +2318,7 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
 }
 
 //
-function setOnWater(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function setOnWater(e, world, pos, player, world_block : TBlock, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!mat_block || !mat_block.tags.includes('set_on_water')) {
         return false;
     }
@@ -2337,6 +2327,7 @@ function setOnWater(e, world, pos, player, world_block, world_material, mat_bloc
         position.addSelf(pos.n);
         const block_air = world.getBlock(position.add(pos.n));
         if (block_air.id == BLOCK.AIR.id && block_air.fluid === 0) {
+            actions.decrement = true
             actions.addBlocks([{
                 pos: position,
                 item: {

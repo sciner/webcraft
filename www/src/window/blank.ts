@@ -1,4 +1,4 @@
-import { Window } from "../../tools/gui/wm.js";
+import { Window } from "../ui/wm.js";
 import { KEY } from "../constant.js";
 
 //
@@ -18,7 +18,7 @@ export class BlankWindow extends Window {
         const {keyCode, down, first} = e
         switch(keyCode) {
             case KEY.ESC: {
-                if(!down) {
+                if(!down && !this.ignore_esc) {
                     ct.hide()
                     try {
                         Qubatch.setupMousePointer(true)
@@ -29,11 +29,10 @@ export class BlankWindow extends Window {
                 return true
             }
         }
-        return false
+        return super.onKeyEvent(e)
     }
 
     onShow(args) {
-        this.getRoot().centerChild()
         super.onShow(args)
     }
 

@@ -97,6 +97,7 @@
     uniform mat4 uProjMatrix;
     uniform mat4 u_worldView;
     uniform mat4 uModelMatrix;
+    uniform int uModelMatrixMode;
     uniform vec3 u_add_pos;
     uniform float u_pixelSize;
     uniform highp isampler2D u_chunkDataSampler;
@@ -121,44 +122,37 @@
     out vec3 v_chunk_pos;
     out vec3 v_position;
     out vec2 v_texcoord0;
-    out vec2 v_texcoord1_diff;
-    out vec4 v_texClamp0;
-    out vec3 v_normal;
-    out vec4 v_color;
-    out float v_animInterp;
-    out float v_lightId;
-    out vec4 v_lightOffset;
-    out vec3 v_aoOffset;
-    out vec3 v_axisU;
-    out vec3 v_axisV;
+    flat out vec2 v_texcoord1_diff;
+    flat out vec4 v_texClamp0;
+    flat out vec3 v_normal;
+    flat out vec4 v_color;
+    flat out float v_animInterp;
+    flat out float v_lightId;
+    flat out vec4 v_lightOffset;
+    flat out vec3 v_aoOffset;
 
     // quad flags
-    out float v_flags_nft;
-    int v_flags;
+    flat out int v_flags;
 
     //--
 #endif
 
 #ifdef terrain_attrs_frag
     // terrain shader attributes and varings
-    in vec3 v_position;
-    in vec2 v_texcoord0;
-    in vec2 v_texcoord1_diff;
-    in vec4 v_texClamp0;
-    in vec4 v_color;
-    in vec3 v_normal;
-    in float v_fogDepth;
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
-    in float v_animInterp;
-    in float v_lightId;
-    in vec4 v_lightOffset;
-    in vec3 v_axisU;
-    in vec3 v_axisV;
+    in vec3 v_position;
+    in vec2 v_texcoord0;
+    flat in vec2 v_texcoord1_diff;
+    flat in vec4 v_texClamp0;
+    flat in vec3 v_normal;
+    flat in vec4 v_color;
+    flat in float v_animInterp;
+    flat in float v_lightId;
+    flat in vec4 v_lightOffset;
 
     // quad flags
-    in float v_flags_nft;
-    int v_flags;
+    flat in int v_flags;
     float v_lightMode;
 
     out vec4 outColor;
@@ -428,12 +422,10 @@
 #ifdef terrain_read_flags_vert
     // read flags
     int flags = int(a_flags) & 0xffffff;
-    v_flags_nft = float(flags & DELIMITER_VERTEX);
     v_flags = flags;
 #endif
 
 #ifdef terrain_read_flags_frag
-    v_flags = int(round(v_flags_nft));
     v_lightMode = 1.0 - float((v_flags >> NO_AO) & 1);
 #endif
 
@@ -626,6 +618,28 @@
     caveSample = pow(caveSample, 1.0 / gamma);*/
 
     combinedLight = lutColor * (1.0 - aoSample);
+#endif
+
+#ifdef normal_light_vert_varying
+flat out vec3 v_axisU;
+flat out vec3 v_axisV;
+#endif
+
+#ifdef normal_light_frag_varying
+flat in vec3 v_axisU;
+flat in vec3 v_axisV;
+#endif
+
+#ifdef normal_light_vert
+if(!checkFlag(FLAG_MIR2_TEX)) {
+    v_axisU = normalize(axisX);
+    v_axisV = normalize(axisY);
+} else {
+    v_axisU = normalize(-axisY);
+    v_axisV = normalize(-axisX);
+}
+v_axisU *= sign(a_uvSize.x);
+v_axisV *= sign(a_uvSize.y);
 #endif
 
 #ifdef normal_light_pass

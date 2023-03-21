@@ -86,7 +86,7 @@
             "geom": "json/bee.geo.json",
             "baseSkin": "base",
             "skins": {
-                "base": "textures/bee.png"
+                "base": "textures/bee/bee.png"
             }
         },
 
@@ -153,10 +153,10 @@
         },
         "creeper": {
             "type": "json",
-            "geom": "json/creeper.geo.json",
+            "geom": "json/zombie_bomber.geo.json",
             "baseSkin": "base",
             "skins": {
-                "base": "textures/creeper/creeper.png"
+                "base": "textures/zombie_bomber/zombie_bomber.png"
             }
         },
         "snow_golem": {
@@ -269,7 +269,7 @@
         },
         "zombie": {
             "type": "json",
-            "geom": "json/steve.geo.json",
+            "geom": "json/zombie.geo.json",
             "baseSkin": "base",
             "skins": {
                 "base": "textures/zombie/zombie.png"

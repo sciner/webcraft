@@ -516,7 +516,7 @@ export class ServerChat {
                 const pos = new Vector();
                 for(let addr of world.chunks.ticking_chunks) {
                     const chunk = world.chunks.get(addr);
-                    for(let flatIndex of chunk.ticking_blocks.blocks.values()) {
+                    for(let flatIndex of chunk.ticking_blocks.blockFlatIndices) {
                         pos.fromFlatChunkIndex(flatIndex).addSelf(chunk.coord);
                         const ticking_block = chunk.getMaterial(pos);
                         const ttype = ticking_block.ticking.type;

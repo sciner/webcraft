@@ -1,7 +1,7 @@
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { KEY } from "../constant.js";
-import { Label, Window } from "../../tools/gui/wm.js";
+import { Label, Window } from "../ui/wm.js";
 import { Resources } from "../resources.js";
 
 const GAME_MODE_LIST = ['survival', 'creative', 'adventure', 'spectator']

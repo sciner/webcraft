@@ -716,6 +716,12 @@ export class Vector implements IVector {
         return this;
     }
 
+    /** Returns true if a point relative to a chunk is inside the chunk (not in its padding). */
+    isRelativePosInChunk() {
+        return (this.x | this.y | this.z) >= 0 &&
+            this.x < CHUNK_SIZE_X && this.y < CHUNK_SIZE_Y && this.z < CHUNK_SIZE_Z
+    }
+
     worldPosToChunkIndex() {
         const x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
         const y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;

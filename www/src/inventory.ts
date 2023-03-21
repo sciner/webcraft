@@ -32,7 +32,7 @@ export class Inventory {
         this.onSelect           = (item) => {};
         this.applyNewItems(state.items, false)
         /**
-         * @type { import("../tools/gui/wm.js").SimpleBlockSlot[] } slot
+         * @type { import("ui/wm.js").SimpleBlockSlot[] } slot
          */
         this.inventory_ui_slots = []
     }
@@ -522,6 +522,17 @@ export class Inventory {
             }
         }
         return resp
+    }
+
+    /**
+     * Возвращает прочность надетого премета
+     * @returns {int}
+     */
+    getArmorPower(slot_index) {
+        if (this.items[slot_index]) {
+            return 90
+        }
+        return 0
     }
 
     /**

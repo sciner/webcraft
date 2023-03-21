@@ -8,7 +8,7 @@ export class PlayerWindowManager {
         this.player = player;
         const inventory = player.inventory;
         this.addWindow(new CraftTable(inventory, inventory.recipes));
-        this.addWindow(new InventoryWindow(inventory, inventory.recipes));
+        // this.addWindow(new InventoryWindow(inventory, inventory.recipes));
         this.addWindow(new CreativeInventoryWindow(inventory));
         this.addWindow(new ChestWindow(inventory));
         this.addWindow(new DoubleChestWindow(inventory));
@@ -17,7 +17,7 @@ export class PlayerWindowManager {
         this.addWindow(new EditSignWindow());
         this.addWindow(new EnderChestWindow(inventory));
         this.addWindow(new NotImplementedWindow());
-        this.addWindow(new QuestWindow(player));
+        // this.addWindow(new QuestWindow(player));
         this.addWindow(new StatsWindow(player));
         this.addWindow(new DieWindow());
         this.addWindow(new AnvilWindow(inventory));
@@ -25,7 +25,7 @@ export class PlayerWindowManager {
         this.addWindow(new ScreenshotWindow(player));
         this.addWindow(new BookWindow(player));
         this.addWindow(new BarrelWindow(inventory));
-        // this.addWindow(new InGameMain(player, inventory, inventory.recipes));
+        this.addWindow(new InGameMain(player, inventory, inventory.recipes));
         this.addWindow(new ModeWindow(player));
         this.addWindow(new BrewingWindow(inventory));
     }

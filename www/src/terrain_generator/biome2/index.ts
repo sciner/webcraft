@@ -13,6 +13,8 @@ import BottomCavesGenerator from "../bottom_caves/index.js";
 import { ClusterManager } from "../cluster/manager.js";
 import type { WorkerWorld } from "../../worker/world.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+import { ClusterPyramid } from "../cluster/pyramid.js";
+import { ClusterVilage } from "../cluster/vilage.js";
 
 // Randoms
 const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -41,7 +43,12 @@ export default class Terrain_Generator extends Demo_Map {
     constructor(world : WorkerWorld, seed : string, world_id : string, options : object) {
         super(seed, world_id, options);
         this.world = world;
-        this.clusterManager = new ClusterManager(world, seed, 1);
+        this.clusterManager = new ClusterManager(world, seed, null)
+
+        this.clusterManager.registerCluster(.1, ClusterPyramid)
+        this.clusterManager.registerCluster(.6, null)
+        this.clusterManager.registerCluster(1, ClusterVilage)
+
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;

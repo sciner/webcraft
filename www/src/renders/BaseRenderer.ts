@@ -1,6 +1,7 @@
 import {Color, Mth, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
+import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 
 const {mat4} = glMatrix;
 
@@ -413,6 +414,7 @@ export default class BaseRenderer {
     [key: string]: any;
 
     batch : BatchSystem
+    preprocessor = new ShaderPreprocessor();
 
     /**
      *
@@ -472,16 +474,12 @@ export default class BaseRenderer {
         this._emptyTex3D.emptyRegion = this._emptyTex3D;
 
         this.globalUniforms = new GlobalUniformGroup();
-
-        /**
-         * Shader blocks
-         */
-        this.blocks = {};
-
         /**
          * @type {{[key: string]: string}}
          */
-        this.global_defines = Object.assign({}, options.defines || {});
+        if (options.defines) {
+            this.preprocessor.global_defines = Object.assign({}, options.defines);
+        }
 
         this.batch = new BatchSystem(this);
 
@@ -492,10 +490,11 @@ export default class BaseRenderer {
         return (this.constructor as any).kind;
     }
 
-    async init(options: {blocks?: Dict<string>} = {}) {
-        this.blocks = options.blocks || {};
-
-        if (Object.keys(this.blocks).length === 0) {
+    async init(options: { shaderPreprocessor?: ShaderPreprocessor} = {}) {
+        if (options.shaderPreprocessor) {
+            this.preprocessor.merge(options.shaderPreprocessor);
+        }
+        if (Object.keys(this.preprocessor.blocks).length === 0) {
             console.warn('Shader blocks is empty');
         }
     }
@@ -538,41 +537,6 @@ export default class BaseRenderer {
         }
 
         return block;
-    }
-
-    /***
-     * Preprocess shader
-     * You can define args to block that was replaced if needed
-     * pass a `skip: true` for block - ignore block compilation
-     * @param {string} shaderText
-     * @param {{[key: string]: {skip?: boolean, [key: string]: string } }} args
-     */
-    preprocess (shaderText : string, args = {}) {
-        if (!shaderText) {
-            return shaderText;
-        }
-
-        const pattern = /#include<([^>]+)>/g;
-
-        // remove commented lines
-        shaderText = shaderText.replaceAll(/^\s*[\/\/].*$/gm, '')
-
-        let out = shaderText
-            .replaceAll(pattern, (_, r, offset, string) => {
-                return this._onReplace(r, offset, string, args || {});
-            });
-
-        const defines = this.global_defines || {};
-
-        for (const argkey in defines) {
-            const r = new RegExp(`#define[^\\S]+(${argkey}\\s+)`, 'gmi');
-
-            out = out.replaceAll(r, `#define ${argkey} ${defines[argkey]} //default: `);
-        }
-
-        console.debug('Preprocess result:\n', out);
-
-        return out;
     }
 
     /**

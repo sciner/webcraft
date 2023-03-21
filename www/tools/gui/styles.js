@@ -32,7 +32,7 @@ export function parseColorAndAlpha(value) {
         resp.alpha = 0
         return resp
     }
-    if(isNaN) {
+    if(isNaN(value)) {
         const has_alpha = value.length == 9
         resp.color = parseInt(`0x${value.substring(1, 7)}`, 16)
         if(has_alpha) {
@@ -80,7 +80,7 @@ export class TextAlignStyle {
 export class BackgroundStyle {
 
     #window
-    #_bgimage
+    #_wmbgimage
     #_bgcolor
 
     /**
@@ -89,14 +89,14 @@ export class BackgroundStyle {
     constructor(window) {
         this.#window = window
         // Background image
-        this.#_bgimage = new MySprite(PIXI.Texture.EMPTY)
-        window._bgimage = this.#_bgimage
-        window._bgimage.catchEvents = false
-        // this.#_bgimage.anchor.x = 0
-        // this.#_bgimage.anchor.y = 0
-        // this.#_bgimage.position.x = 0
-        // this.#_bgimage.position.y = 0
-        window.addChildAt(this.#_bgimage, 0)
+        this.#_wmbgimage = new MySprite(PIXI.Texture.EMPTY)
+        window._wmbgimage = this.#_wmbgimage
+        window._wmbgimage.catchEvents = false
+        // this.#_wmbgimage.anchor.x = 0
+        // this.#_wmbgimage.anchor.y = 0
+        // this.#_wmbgimage.position.x = 0
+        // this.#_wmbgimage.position.y = 0
+        window.addChildAt(this.#_wmbgimage, 0)
         // Create a Graphics object, set a fill color, draw a rectangle
         this.#_bgcolor = new PIXI.Graphics()
         window.addChildAt(this.#_bgcolor, 1)
@@ -105,12 +105,12 @@ export class BackgroundStyle {
         this._image_size_mode = null
         this.color = '#00000000'
     }
-
+    
     /**
      * @type {PIXI.Sprite}
      */
     get sprite() {
-        return this.#_bgimage
+        return this.#_wmbgimage
     }
 
     /**
@@ -118,11 +118,11 @@ export class BackgroundStyle {
      */
     set image(urlOrImage) {
 
-        const background = this.#_bgimage
+        const background = this.#_wmbgimage
         const window = this.#window
         const scale = this.scale
 
-        window._bgimage.visible = !!urlOrImage
+        window._wmbgimage.visible = !!urlOrImage
 
         if (!urlOrImage) {
             return;
@@ -148,7 +148,7 @@ export class BackgroundStyle {
      */
     set image_size_mode(value) {
         this._image_size_mode = value
-        const background = this.#window._bgimage
+        const background = this.#window._wmbgimage
         if(!background) {
             return
         }
@@ -240,7 +240,9 @@ export class BorderStyle {
 
     #window
     #_wmborder
-    #_style = 'normal'
+    #_style = 'normal' // | normal | inset | fixed_single
+    #_color = '#ffffffff'
+    #_shadow_color = '#888888ff'
 
     constructor(window) {
 
@@ -254,6 +256,37 @@ export class BorderStyle {
         this._redraw()
         window.addChild(border)
 
+    }
+
+    /**
+     * @returns {string}
+     */
+    get shadow_color() {
+        return this.#_shadow_color
+    }
+
+    /**
+     * @param {string} value
+     */
+    set shadow_color(value) {
+        this.#_shadow_color = value
+        this._redraw()
+    }
+
+    /**
+     * @returns {string}
+     */
+    get color() {
+        return this.#_color
+    }
+
+    /**
+     * @param {string} value
+     */
+    set color(value) {
+        this.#_color = value
+        // TODO: need to calc this.#_shadow_color
+        this._redraw()
     }
 
     /**
@@ -296,18 +329,39 @@ export class BorderStyle {
         const {w, h} = this.#window
         const border = this.#_wmborder
 
-        const inset = this.style == 'inset'
-        const color1 = inset ? 0x888888 : 0xffffff
-        const color2 = inset ? 0xffffff : 0x888888
-        const border_width = 3
-        const border_alpha = .9
+        let color1 = null
+        let color2 = null
 
-        border.lineStyle(border_width, color2, border_alpha)
+        switch(this.style) {
+            case 'normal': {
+                color1 = this.#_shadow_color
+                color2 = this.#_color
+                break
+            }
+            case 'inset': {
+                color1 = this.#_color
+                color2 = this.#_shadow_color
+                break
+            }
+            case 'fixed_single': {
+                color1 = this.#_color
+                color2 = this.#_color
+                break
+            }
+        }
+
+        const border_width = 1 * this.#window.zoom
+
+        color1 = parseColorAndAlpha(color1)
+        color2 = parseColorAndAlpha(color2)
+
+        border.clear()
+        border.lineStyle(border_width, color1.color, color1.alpha)
         border.moveTo(w, h)
             .lineTo(0, h)
             .lineTo(0, 0)
 
-        border.lineStyle(border_width, color1, border_alpha)
+        border.lineStyle(border_width, color2.color, color2.alpha)
         border.moveTo(0, 0)
             .lineTo(w, 0)
             .lineTo(w, h)
@@ -506,6 +560,17 @@ export class FontStyle {
 
         this.shadow = new TextShadowStyle(window)
 
+    }
+
+    get weight() {
+        return this._font_style.fontWeight
+    }
+
+    /**
+     * @type {string}
+     */
+    set weight(value) {
+        this._font_style.fontWeight = value
     }
 
     get anchor() {

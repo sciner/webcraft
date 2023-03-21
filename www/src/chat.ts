@@ -1,51 +1,51 @@
 import { ServerClient } from "./server_client.js";
 import { Lang } from "./lang.js";
 import { TextBox } from "./ui/textbox.js";
-import { Window } from "../tools/gui/wm.js";
-import { KEY } from "./constant.js";
+import { Label, Window } from "./ui/wm.js";
+import { KEY, UI_THEME } from "./constant.js";
 import type { KbEvent } from "./kb.js";
+import { Resources } from "./resources.js";
 
-const MESSAGE_SHOW_TIME         = 7000; // максимальное время отображения текста, после закрытия чата (мс)
-const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
-const SYSTEM_NAME               = '<MadCraft>';
+const MESSAGE_SHOW_TIME = 7000; // максимальное время отображения текста, после закрытия чата (мс)
+const SYSTEM_MESSAGE_SHOW_TIME = 3000;
+const SYSTEM_NAME = '<MadCraft>';
 
 export class Chat extends TextBox {
     [key: string]: any;
 
     constructor(player) {
         super(UI_ZOOM * Qubatch.settings.window_size / 100);
-        const that                    = this;
-        this.player                 = player;
-        this.history_max_messages   = 64;
+        this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
+        const that = this
+        this.player = player
+        this.history_max_messages = 64
+        this.old_time = -1
         this.messages = {
             list: [],
             send(text) {
                 this.add('YOU', text);
-                if(text.trim().toLowerCase() == '/ping') {
+                if (text.trim().toLowerCase() == '/ping') {
                     that.send_ping = performance.now();
                 }
                 that.player.world.server.SendMessage(text);
                 Qubatch.setupMousePointer(true);
             },
             addSystem(text) {
-                this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
+                this.add(SYSTEM_NAME, text);
             },
             addError(text) {
-                this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
+                this.add(SYSTEM_NAME, text);
             },
-            add(username, text, timeout) {
+            add(username, text) {
                 text = String(text);
-                if(!timeout) {
-                    timeout = 0;
-                }
                 this.list.unshift({
-                    username:   username,
-                    text:       text,
-                    time:       performance.now() - timeout
+                    username: username,
+                    text: text
                 });
-                if(this.list.length > this.history_max_messages) {
+                if (this.list.length > this.history_max_messages) {
                     this.list.pop();
                 }
+                that.old_time = performance.now()
             }
         };
         //
@@ -76,25 +76,25 @@ export class Chat extends TextBox {
                 this.draft = [];
             },
             navigate(go_back, buffer, onchange) {
-                if(this.list.length < 1) {
+                if (this.list.length < 1) {
                     return false;
                 }
-                if(buffer.length > 0 && this.index == -1) {
+                if (buffer.length > 0 && this.index == -1) {
                     this.draft = buffer;
                 }
-                if(go_back) {
+                if (go_back) {
                     // up
                     this.index++;
-                    if(this.index >= this.list.length - 1) {
+                    if (this.index >= this.list.length - 1) {
                         this.index = this.list.length - 1;
                     }
                     onchange([...this.list[this.list.length - this.index - 1]]);
                 } else {
                     // down
                     this.index--;
-                    if(this.index >= 0) {
+                    if (this.index >= 0) {
                         onchange([...this.list[this.list.length - this.index - 1]]);
-                    } else if(this.index == -1) {
+                    } else if (this.index == -1) {
                         onchange(this.draft);
                         onchange([...this.draft]);
                         this.draft = [];
@@ -108,8 +108,8 @@ export class Chat extends TextBox {
         Qubatch.hud.add(this, 1);
         // Add listeners for server commands
         this.player.world.server.AddCmdListener([ServerClient.CMD_CHAT_SEND_MESSAGE], (cmd) => {
-            if(cmd.data.is_system) {
-                if(cmd.data.text == 'pong') {
+            if (cmd.data.is_system) {
+                if (cmd.data.text == 'pong') {
                     const elpapsed = Math.round((performance.now() - that.send_ping) * 1000) / 1000;
                     cmd.data.text += ` ${elpapsed} ms`;
                 } else {
@@ -120,17 +120,18 @@ export class Chat extends TextBox {
         });
         // Restore sent history
         let hist = localStorage.getItem(`chat_history_${that.player.world.info.guid}`);
-        if(hist) {
+        if (hist) {
             hist = JSON.parse(hist);
-            if(Array.isArray(hist)) {
-                for(let i = 0; i < hist.length; i++) {
+            if (Array.isArray(hist)) {
+                for (let i = 0; i < hist.length; i++) {
                     const buf = hist[i];
-                    if(Array.isArray(buf)) {
+                    if (Array.isArray(buf)) {
                         this.history.add(buf);
                     }
                 }
             }
         }
+        this.hud_atlas = Resources.atlas.get('hud')
     }
 
     //
@@ -142,7 +143,7 @@ export class Chat extends TextBox {
     }
 
     open(start_buffer) {
-        if(this.active) {
+        if (this.active) {
             return
         }
         this.history.reset();
@@ -169,24 +170,21 @@ export class Chat extends TextBox {
     }
 
     submit() {
-        if(!this.active) {
+        if (!this.active) {
             return;
         }
         const text = this.buffer.join('');
-        if(text != '' && text != '/') {
-            //
-            const render    = Qubatch.render;
-            const player    = this.player;
-            const chat      = player.chat;
+        if (text != '' && text != '/') {
+            const player = this.player;
             // Parse commands
-            const temp      = text.replace(/  +/g, ' ').split(' ');
-            const cmd       = temp.shift();
+            const temp = text.replace(/  +/g, ' ').split(' ');
+            const cmd = temp.shift();
             let no_send = false;
-            switch(cmd.trim().toLowerCase()) {
+            switch (cmd.trim().toLowerCase()) {
                 case '/clusterborders': {
-                    if(temp.length && temp[0].trim().length > 0) {
+                    if (temp.length && temp[0].trim().length > 0) {
                         const value = temp[0].toLowerCase();
-                        if(['true', 'false'].includes(value)) {
+                        if (['true', 'false'].includes(value)) {
                             Qubatch.world.chunkManager.setDebugClusterGridVisibility(value == 'true');
                         }
                     } else {
@@ -196,9 +194,9 @@ export class Chat extends TextBox {
                     break;
                 }
                 case '/chunkborders': {
-                    if(temp.length && temp[0].trim().length > 0) {
+                    if (temp.length && temp[0].trim().length > 0) {
                         const value = temp[0].toLowerCase();
-                        if(['true', 'false'].includes(value)) {
+                        if (['true', 'false'].includes(value)) {
                             Qubatch.world.chunkManager.setDebugGridVisibility(value == 'true');
                         }
                     } else {
@@ -208,9 +206,9 @@ export class Chat extends TextBox {
                     break;
                 }
                 case '/mobborders': {
-                    if(temp.length && temp[0].trim().length > 0) {
+                    if (temp.length && temp[0].trim().length > 0) {
                         const value = temp[0].toLowerCase();
-                        if(['true', 'false'].includes(value)) {
+                        if (['true', 'false'].includes(value)) {
                             Qubatch.world.mobs.setDebugGridVisibility(value == 'true');
                         }
                     } else {
@@ -221,14 +219,14 @@ export class Chat extends TextBox {
                 }
                 case '/exportglb': {
                     const name = (temp[0] || '').trim() || Qubatch.world.info.title
-                    Qubatch.world.chunkManager.export.encode( Qubatch.render.camPos, name );
+                    Qubatch.world.chunkManager.export.encode(Qubatch.render.camPos, name);
                     no_send = true;
                     break;
                 }
                 case '/blockinfo': {
-                    if(temp.length && temp[0].trim().length > 0) {
+                    if (temp.length && temp[0].trim().length > 0) {
                         const value = temp[0].toLowerCase();
-                        if(['true', 'false'].includes(value)) {
+                        if (['true', 'false'].includes(value)) {
                             Qubatch.hud.draw_block_info = value == 'true';
                         }
                     } else {
@@ -239,7 +237,7 @@ export class Chat extends TextBox {
                 }
                 case '/deepdark': {
                     const value = (temp[0] || '').trim().toLowerCase();
-                    if(['on', 'off', 'auto'].includes(value)) {
+                    if (['on', 'off', 'auto'].includes(value)) {
                         Qubatch.render.env.deepDarkMode = value;
                     } else {
                         this.messages.add(SYSTEM_NAME, '/deepdark (auto | on | off)');
@@ -251,8 +249,8 @@ export class Chat extends TextBox {
                 case '/bb': {
                     let bbname = null;
                     let animation_name = null;
-                    if(temp.length > 0) bbname = temp.shift().trim();
-                    if(temp.length > 0) animation_name = temp.shift().trim();
+                    if (temp.length > 0) bbname = temp.shift().trim();
+                    if (temp.length > 0) animation_name = temp.shift().trim();
                     Qubatch.render.addBBModel(player.lerpPos.clone(), bbname, Qubatch.player.rotate, animation_name);
                     no_send = true;
                     break;
@@ -262,7 +260,7 @@ export class Chat extends TextBox {
                     break;
                 }
             }
-            if(!no_send) {
+            if (!no_send) {
                 this.messages.send(text);
             }
             this.history.add(this.buffer);
@@ -272,123 +270,90 @@ export class Chat extends TextBox {
         this.close();
     }
 
-    hasDrawContent() {
-        if(this.active) {
-            return true;
-        }
-        for(let m of this.messages.list) {
-            let time_diff = performance.now() - m.time;
-            if(this.active || time_diff < MESSAGE_SHOW_TIME) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * @param { import("./hud.js").HUD } hud
      * @returns
      */
     drawHUD(hud) {
-
-        const margin            = 10 * this.zoom;
-        const multiLineMarginAdd= 10 * this.zoom; // additional left margin for multi-line messages
-        const padding           = this.style.padding;
-        const top               = 45 * this.zoom;
-        const now               = performance.now();
-        const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)
-
-        if(!this.chat_input) {
+        const getLength = () => {
+            let len = 0
+            for (const s of strings) {
+                len += Math.ceil(s.length / 40)
+            }
+            return len
+        }
+        const height = 130
+        const width = 300
+        const bottom = 170
+        const margin = UI_THEME.window_padding * this.zoom
+        if (!this.chat_input) {
             this.init(hud)
-            this.history_messages_window = new Window(0, 0, 0, 0, 'history_messages_window')
-            hud.hudwindow.add(this.history_messages_window)
-            // style
+            this.history_messages_window = new Window(0, hud.height - (height + bottom) * this.zoom, width * this.zoom, height * this.zoom, 'history_messages_window')
+            this.history_messages_window.text = '_'
+            this.history_messages_window.style.padding = { top: margin, bottom: margin, left: margin, right: margin }
+            this.history_messages_window.style.font.word_wrap = true
+            this.history_messages_window.style.font.color = UI_THEME.base_font.color
             this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
-            this.history_messages_window.style.font.color = '#ffffff'
-            this.history_messages_window.style.background.color = '#00000000'
+            this.history_messages_window.setBackground(this.hud_atlas.getSpriteFromMap('chat_background'))
+            hud.hudwindow.add(this.history_messages_window)
+            const top_label = new Label(0, 0, width * this.zoom, 2 * this.zoom, 'LabelTop')
+            top_label.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
+            this.history_messages_window.addChild(top_label)
+            const bottom_label = new Label(0, (height - 2) * this.zoom, width * this.zoom, 2 * this.zoom, 'LabelBottom')
+            bottom_label.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
+            this.history_messages_window.addChild(bottom_label)
         }
-
-        const x = margin
-        const y = hud.height - (top + margin + this.line_height)
-        const input_width = hud.width - margin * 2
-        const input_height = this.line_height
-
+        this.history_messages_window.y = hud.height - (height + bottom) * this.zoom
         this.chat_input.visible = this.active
-        if(this.active) {
-            this.draw(x, hud.height - top, input_width, input_height, margin)
+        if (this.active) {
+            this.draw(0, hud.height - bottom * this.zoom, width * this.zoom, this.line_height, margin)
+            this.old_time = performance.now()
+        } 
+        const time = performance.now() - this.old_time
+        const half_show_time = (MESSAGE_SHOW_TIME / 2)
+        if (time >= MESSAGE_SHOW_TIME) {
+            this.history_messages_window.visible = false
+        } else if (time >= half_show_time) {
+            const transparent_time = time - half_show_time
+            if (transparent_time > 0) {
+                this.history_messages_window.alpha = 1 - transparent_time / half_show_time
+                this.history_messages_window.text_container.alpha = this.history_messages_window.alpha
+            }
+        } else {
+            this.history_messages_window.visible = true
+            this.history_messages_window.alpha = 1
+            this.history_messages_window.text_container.alpha = this.history_messages_window.alpha
         }
-
         const strings = []
-
         // Draw message history
-        for(const m of this.messages.list) {
-            const time_diff = now - m.time;
-            if(this.active || time_diff < MESSAGE_SHOW_TIME) {
-                let alpha = 1
-                if(!this.active) {
-                    let time_remains = MESSAGE_SHOW_TIME - time_diff;
-                    if(time_remains < fadeout_time) {
-                        alpha = time_remains / fadeout_time;
-                    }
-                }
-                let texts = m.text.split('\n')
-                for(let i = texts.length - 1; i >= 0; i--) {
-                    const text = i === 0
-                        ? m.username + ': ' + texts[i]
-                        : '  ' + texts[i]
-                    strings.push(text)
-                }
-                // for(let i = texts.length - 1; i >= 0; i--) {
-                //     let text = texts[i];
-                //     var leftMargin = margin;
-                //     if(i == 0) {
-                //         text = m.username + ': ' + text;
-                //     } else {
-                //         leftMargin += multiLineMarginAdd;
-                //     }
-                //     let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                //     hud.ctx.fillStyle = '#000000' + aa;
-                //     hud.ctx.fillRect(leftMargin, y - padding, hud.width - margin - leftMargin, this.line_height);
-                //     //
-                //     aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                //     hud.ctx.fillStyle = '#000000' + aa;
-                //     hud.ctx.fillText(text, leftMargin + padding, y + 4 * this.zoom);
-                //     //
-                //     aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                //     hud.ctx.fillStyle = '#ffffff' + aa;
-                //     hud.ctx.fillText(text, leftMargin + padding + 2, y + 2 * this.zoom);
-                //     //
-                //     y -= this.line_height;
-                // }
+        for (const m of this.messages.list) {
+            const texts = m.text.split('\n')
+            for (let i = texts.length - 1; i >= 0; i--) {
+                const text = i === 0 ? m.username + ': ' + texts[i] : '  ' + texts[i]
+                strings.push(text)
             }
         }
-
         strings.reverse()
-
+        while (getLength() > 6) {
+            strings.shift()
+        }
         this.history_messages_window.text = strings.join('\n')
-        this.history_messages_window.transform.position.set(margin, margin)
-        this.history_messages_window.w = input_width
-        this.history_messages_window.h = y + input_height - margin
-        this.history_messages_window.text_container.transform.position.set(margin, this.history_messages_window.h - margin)
-
-        this.history_messages_window.text_container.anchor.y = 1
-
     }
 
     // Hook for keyboard input.
     onKeyEvent(e: KbEvent) {
-        const {keyCode, down, first} = e;
-        switch(keyCode) {
+        const { keyCode, down, first } = e;
+        switch (keyCode) {
             case KEY.ARROW_UP:
             case KEY.ARROW_DOWN: {
-                if(down) {
+                if (down) {
                     this.historyNavigate(keyCode == KEY.ARROW_UP);
                     return true;
                 }
                 break;
             }
             case KEY.ESC: {
-                if(down) {
+                if (down) {
                     this.close();
                     // Qubatch.setupMousePointer(true);
                     return true;
@@ -396,42 +361,42 @@ export class Chat extends TextBox {
                 break;
             }
             case KEY.BACKSPACE: {
-                if(down) {
+                if (down) {
                     this.backspace();
                     break;
                 }
                 return true;
             }
             case KEY.DEL: {
-                if(down) {
+                if (down) {
                     this.onKeyDel();
                     break;
                 }
                 return true;
             }
             case KEY.HOME: {
-                if(down) {
+                if (down) {
                     this.onKeyHome();
                     break;
                 }
                 return true;
             }
             case KEY.END: {
-                if(down) {
+                if (down) {
                     this.onKeyEnd();
                     break;
                 }
                 return true;
             }
             case KEY.ARROW_LEFT: {
-                if(down) {
+                if (down) {
                     this.moveCarriage(-1);
                     break;
                 }
                 return true;
             }
             case KEY.ARROW_RIGHT: {
-                if(down) {
+                if (down) {
                     this.moveCarriage(1);
                     break;
                 }

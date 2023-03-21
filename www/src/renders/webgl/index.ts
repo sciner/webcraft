@@ -330,15 +330,23 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     async init(args) {
-        super.init(args);
+        await super.init(args);
 
-        this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
+        const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
         this.resetBefore();
         for (let i = 6; i < 16; i++) {
             this._emptyTex3D.bind(i);
         }
-        this.multidrawExt = this.gl.getExtension('WEBGL_multi_draw');
-        this.multidrawBaseExt = this.gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
+        this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
+        this.multidrawBaseExt = gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
+
+        const provokeExt = gl.getExtension('WEBGL_provoking_vertex');
+
+        if (provokeExt) {
+            provokeExt.provokingVertexWEBGL(provokeExt.FIRST_VERTEX_CONVENTION_WEBGL);
+        } else {
+            this.preprocessor.fallbackProvoke = true;
+        }
 
         this.line.init();
     }
@@ -433,8 +441,8 @@ export default class WebGLRenderer extends BaseRenderer {
 
     createProgram({vertex, fragment}, preprocessArgs = {}) {
         return Helpers.createGLProgram(this.gl, {
-            vertex: this.preprocess(vertex, preprocessArgs),
-            fragment: this.preprocess(fragment, preprocessArgs)
+            vertex: this.preprocessor.applyBlocks(vertex, preprocessArgs),
+            fragment: this.preprocessor.applyBlocks(fragment, preprocessArgs)
         });
     }
 

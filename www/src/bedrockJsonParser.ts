@@ -92,6 +92,9 @@ export function fillCube({
     } else {
         const uv_point = uv as Dict
         for(const key in uvSides) {
+            if(!uv_point[key]) {
+                continue
+            }
             const [x, y] = uv_point[key].uv;
             const [width, height] = uv_point[key].uv_size;
 

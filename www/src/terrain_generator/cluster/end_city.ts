@@ -207,7 +207,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         return true
     }
 
-    addFatTower(depth : int, current : BuildingPiece, position? : Vector, rand? : alea) {
+    addFatTower(depth : int, current : BuildingPiece, position? : Vector | null, rand? : alea) {
         if (depth > 8) {
             return false
         }
@@ -229,7 +229,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         return true
     }
 
-    addBridge(depth : int, current : BuildingPiece, position? : Vector, rand? : alea) {
+    addBridge(depth : int, current : BuildingPiece, position? : Vector | null, rand? : alea) {
         if (depth > 8) {
             return
         }

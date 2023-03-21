@@ -15,7 +15,8 @@ Compile the texture pack. It's required for the first run of the game, because t
 Optionally, copy the music. The music is not required to run the game, and can be copied later.
 For example you can download this texture pack from https://polyflore.net/projects/depixel
 ```
-1. extract the resource pack to directory ../resource-packs/1 (one level up from project root directory)
+1. extract the resource pack to directory ../resource-packs/depixel (one level up from project root directory)
+1. clone second resource pack https://github.com/sciner/webcraft-texturepack to directory ../resource-packs/1 (one level up from project root directory)
 2. (optional step) create directory ../music (on the same level as ../resource-packs), and fill it like described in ./doc/music.md
 3. cd ./node_server
 4. npm install
@@ -24,7 +25,7 @@ For example you can download this texture pack from https://polyflore.net/projec
 
 Start server:
 ```
-// Run NodeJS v17.9.0 server!
+// Run NodeJS v19.7.0 server!
 npm i
 npm run watch:www // run this command in separate terminal window
 cd ./node_server

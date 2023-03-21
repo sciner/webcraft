@@ -1,7 +1,7 @@
 /**
 * Window Manager based on PIXI.js
 */
-import { RuneStrings, deepAssign, Helpers, isScalar } from "../../js/helpers.js";
+import { RuneStrings, deepAssign, isScalar } from "../../js/helpers.js";
 import { getBlockImage } from "../../js/window/tools/blocks.js";
 import { PIXI } from './pixi.js';
 import {Style} from "./styles.js";
@@ -10,6 +10,7 @@ import { msdf } from "../../data/font.js";
 import {MyText} from "./MySpriteRenderer.js";
 import { BLOCK } from "../../js/blocks.js";
 import { Lang } from "../../js/lang.js";
+import { Resources } from "../../js/resources.js";
 
 globalThis.visible_change_count = 0
 
@@ -80,6 +81,7 @@ export class Window extends PIXI.Container {
 
         this._w = 0
         this._h = 0
+        this.interactiveChildren = true
 
         // List of childs
         this.list = {
@@ -256,22 +258,23 @@ export class Window extends PIXI.Container {
 
     // onKeyEvent
     onKeyEvent(e) {
+        let fired = false
         for(let w of this.list.values()) {
-            if(w.visible) {
-                let fired = false;
-                for(let f of w.list.values()) {
-                    if(f.focused) {
-                        fired = f.onKeyEvent(e);
+            if(w.visible && w.interactiveChildren) {
+                for(let child of w.list.values()) {
+                    if(child.focused || child.interactiveChildren) {
+                        fired = child.onKeyEvent(e)
                         if(fired) {
-                            break;
+                            return fired
                         }
                     }
                 }
                 if(!fired) {
-                    w.onKeyEvent(e);
+                    fired = w.onKeyEvent(e)
                 }
             }
         }
+        return fired
     }
 
     /**
@@ -573,24 +576,24 @@ export class Window extends PIXI.Container {
      * @param {?string} image_size_mode
      * @param {?float} scale
      */
-    async setIcon(urlOrImage, image_size_mode = 'none', scale) {
+    async setIcon(urlOrImage, image_size_mode = 'none', scale, tintMode = 0) {
         //if(!isScalar(urlOrImage)) {
         //    if(urlOrImage instanceof Promise) {
         //        urlOrImage = await urlOrImage
         //    }
         //}
         if(urlOrImage) {
-            this._wmicon.setBackground(urlOrImage, image_size_mode, scale)
+            this._wmicon.setBackground(urlOrImage, image_size_mode, scale, tintMode)
         }
         this._wmicon.visible = !!urlOrImage
     }
 
     show(args) {
-        for(let w of wmGlobal.visibleWindows()) {
-            if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
-                return
-            }
-        }
+        // for(let w of wmGlobal.visibleWindows()) {
+        //     if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
+        //         return
+        //     }
+        // }
         this.visible = true
         this.resetHover()
         this.onShow(args)
@@ -680,10 +683,12 @@ export class Window extends PIXI.Container {
     _clarifyMouseEvent(e) {
         // список окон отсортированный по Z координате
         const visible_windows = []
-        for(let window of this.list.values()) {
-            if(window.visible) {
-                if(window.catchEvents) {
-                    visible_windows.push(window)
+        if(this.interactiveChildren) {
+            for(let window of this.list.values()) {
+                if(window.visible) {
+                    if(window.catchEvents) {
+                        visible_windows.push(window)
+                    }
                 }
             }
         }
@@ -869,6 +874,7 @@ export class Window extends PIXI.Container {
      * @param {object} layout 
      */
     appendLayout(layout) {
+        layout = JSON.parse(JSON.stringify(layout))
         const ignored_props = [
             'x', 'y', 'width', 'height', 'childs', 'style', 'type'
         ]
@@ -1036,16 +1042,17 @@ export class Window extends PIXI.Container {
         }
     }
 
-    clip() {
+    clip(x, y, w, h) {
 
-        const w = this.w
-        const h = this.h
+        x = x ?? 0
+        y = y ?? 0
+        w = w ?? this.w
+        h = h ?? this.h
 
         let clip_mask = this.#_wmclip
         if(!clip_mask) {
             clip_mask = new Graphics()
             clip_mask.id = `${this.id}_clip_mask`
-            clip_mask.transform.position.set(0, 0)
             clip_mask.width = w
             clip_mask.height = h
             clip_mask.clear()
@@ -1062,8 +1069,30 @@ export class Window extends PIXI.Container {
             clip_mask.drawRect(0, 0, w, h)
         }
 
+        clip_mask.transform.position.set(x, y)
+
     }
 
+}
+
+export class Icon extends Window {
+    constructor(x, y, w, h, zoom, id) {
+        super(x * zoom, y * zoom, w * zoom / 2, h * zoom / 2, id + '' + w, '', '')
+        this.sprite_w = w
+        this.sprite_h = h
+        this.axis_x = true
+    }
+    scroll(val) {
+        const spite =  this.style.background.sprite
+        if (this.axis_x){
+            spite.texture.frame.width = this.sprite_w * val
+        } else {
+            spite.y = spite._height * (1 - val)
+            spite.texture.frame.y = this.sprite_h * (1 - val)
+            spite.texture.frame.height = this.sprite_h * val
+        }
+        spite.texture.updateUvs()
+    }
 }
 
 // Button
@@ -1074,6 +1103,9 @@ export class Button extends Window {
         super(x, y, w, h, id, title, title)
         this.style.border.hidden = false
         this.style.padding.set(10)
+
+        this.interactiveChildren = false
+        // this.buttonMode = true
 
         if(this.text_container) {
             this.style.textAlign.horizontal = 'center'
@@ -1095,7 +1127,7 @@ export class Button extends Window {
             this.style.color_save = this.style.font.color
         }
         this.style.background.color = '#8892c9'
-        this.style.color = '#ffffff'
+        this.style.font.color = '#ffffff'
         super.onMouseEnter()
     }
 
@@ -1124,6 +1156,7 @@ export class Label extends Window {
         this.style.background.color = '#00000000'
         this.style.border.hidden = true
         this.setText(text)
+        this.interactiveChildren = false
     }
 
 }
@@ -1135,10 +1168,12 @@ export class TextEdit extends Window {
 
         super(x, y, w, h, id, title, text)
 
-        this.max_length         = 0;
-        this.max_lines          = 0;
-        this.max_chars_per_line = 0;
-        this.draw_cariage       = true
+        this.max_length             = 0;
+        this.max_lines              = 1;
+        this.max_chars_per_line     = 0;
+        this.draw_cariage           = true
+
+        this.interactiveChildren    = false
 
         // Styles
         this.style.background.color = '#ffffff77'
@@ -1170,27 +1205,26 @@ export class TextEdit extends Window {
             }
         }
 
-        // typeChar
-        this.typeChar = (e, charCode, ch) => {
-            if(!this.focused) {
-                return;
-            }
-            if(charCode == 13) {
-                return false;
-            }
-            if(this.buffer.length < this.max_length || this.max_length == 0) {
-                if(this.max_lines > 0) {
-                    const ot = this.buffer.join('') + ch;
-                    const lines = this.calcPrintLines(ot);
-                    if(lines.length > this.max_lines) {
-                        return;
-                    }
-                }
-                this.buffer.push(ch);
-                this._changed();
-            }
+    }
+    
+    typeChar(e, charCode, ch) {
+        if(!this.focused) {
+            return;
         }
-
+        if(charCode == 13 && this.max_lines < 2) {
+            return false
+        }
+        if(this.buffer.length < this.max_length || this.max_length == 0) {
+            if(this.max_lines > 1) {
+                const ot = this.buffer.join('') + ch;
+                const lines = this.calcPrintLines(ot);
+                if(lines.length > this.max_lines) {
+                    return
+                }
+            }
+            this.buffer.push(ch);
+            this._changed();
+        }
     }
 
     /**
@@ -1239,19 +1273,21 @@ export class TextEdit extends Window {
         switch(keyCode) {
             case KEY.ENTER: {
                 if(down) {
-                    this.buffer.push(String.fromCharCode(13));
-                    this._changed()
+                    if(this.max_lines > 1) {
+                        this.buffer.push(String.fromCharCode(13));
+                        this._changed()
+                    }
                 }
-                return true;
+                return true
             }
             case KEY.BACKSPACE: {
                 if(down) {
                     this.backspace()
-                    break;
                 }
-                return true;
+                return true
             }
         }
+        return false
     }
 
 }
@@ -1291,6 +1327,21 @@ class Tooltip extends Label {
 
 export class SimpleBlockSlot extends Window {
 
+    /**
+     * @type Label
+     */
+    bar = null // : Label
+
+    /**
+     * @type Label
+     */
+    bar_value = null // : Label
+    hud_atlas = null
+
+    slot_empty  = 'window_slot' // 'slot_empty'
+    slot_full   = 'window_slot' // 'slot_full'
+    slot_locked = 'window_slot_locked' // 'slot_full'
+
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text)
         this.style.font.color = '#ffffff'
@@ -1298,20 +1349,44 @@ export class SimpleBlockSlot extends Window {
         this.style.font.shadow.alpha = .5
         this.style.font.size = 14
 
+        this.interactiveChildren = false
+
         this.text_container.anchor.set(1, 1)
         this.text_container.transform.position.set(this.w - 2 * this.zoom, this.h - 2 * this.zoom)
 
-        const padding = 3 * this.zoom
+        const padding = 0
         const bar_height = 3 * this.zoom
+        
         this.bar = new Label(padding, h - bar_height - padding, this.w - padding * 2, bar_height, 'lblBar')
-        this.bar.style.background.color = '#000000aa'
+        this.bar.style.background.color = '#00000000'
         this.bar.visible = false
         this.bar.catchEvents = false
-        this.bar_value = new Label(0, 0, this.bar.w / 2, this.bar.h, 'lblBar')
-        this.bar_value.style.background.color = '#00ff00'
-        this.addChild(this.bar)
+        this.bar_value = new Label(0, 0, this.bar.w, this.bar.h, 'lblBar')
         this.bar.addChild(this.bar_value)
+        this.addChild(this.bar)
+
+        // this.swapChildren(this._wmicon, this._wmbgimage)
+        this.swapChildren(this._wmicon, this.text_container)
+
         this.item = null
+
+    }
+
+    initAndReturnAtlas() {
+        if(this.hud_atlas) {
+            return this.hud_atlas
+        }
+        this.hud_atlas = Resources.atlas.get('hud')
+        if(this.hud_atlas) {
+            this.setBackground(this.hud_atlas.getSpriteFromMap(this.slot_empty))
+            const bar_sprite = this.hud_atlas.getSpriteFromMap('tooldmg_0')
+            this.bar.style.background.color = '#00000000'
+            const zoom = this.bar.w / bar_sprite.width
+            this.bar.y = this.bar.y - (bar_sprite.height * zoom * .7)
+            this.bar_value.h = this.bar.h = bar_sprite.height * zoom
+            this.bar.setBackground(bar_sprite)
+        }
+        return this.hud_atlas
     }
 
     getItem() {
@@ -1334,9 +1409,16 @@ export class SimpleBlockSlot extends Window {
      */
     refresh() {
 
+        const hud_atlas = this.initAndReturnAtlas()
+
+        if(!hud_atlas) {
+            console.error('error_atlas_not_found')
+            return false
+        }
+
         const item = this.getItem()
 
-        this._bgimage.visible = !!item
+        this._wmicon.visible = !!item
         this.bar.visible = !!item
 
         let label = null
@@ -1347,31 +1429,32 @@ export class SimpleBlockSlot extends Window {
             const mat = BLOCK.fromId(item.id)
             const tintMode = item.extra_data?.enchantments ? 1 : 0
 
-            this.setBackground(getBlockImage(item), 'centerstretch', 1.0, tintMode)
+            this.setBackground(hud_atlas.getSpriteFromMap(this.slot_full))
+            this.setIcon(getBlockImage(item), 'centerstretch', 1.0, tintMode)
 
-            // let font_size = 18
             const power_in_percent = mat?.item?.indicator == 'bar'
             label = item.count > 1 ? item.count : null
-            // let shift_y = 0
             if(!label && 'power' in item) {
                 if(power_in_percent) {
                     label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%'
                 } else {
                     label = null
                 }
-                // font_size = 12
-                // shift_y = -10
             }
 
             // draw instrument life
             this.bar.visible = (mat.item?.instrument_id && item.power < mat.power) || power_in_percent
             if(this.bar.visible) {
-                const percent = Math.min(item.power / mat.power, 1)
-                const rgb = Helpers.getColorForPercentage(percent)
-                this.bar_value.w = this.bar.w * percent
-                this.bar_value.style.background.color = rgb.toHex(true)
+                const percent = Math.max(Math.min(item.power / mat.power, 1), 0)
+                const sprites = ['tooldmg_3', 'tooldmg_2', 'tooldmg_1']
+                const index = Math.round(Math.min(sprites.length * percent, .999))
+                const bar_value_sprite = hud_atlas.getSpriteFromMap(sprites[index])
+                this.bar_value.setBackground(bar_value_sprite)
+                this.bar_value.clip(0, 0, this.bar.w * percent)
             }
 
+        } else {
+            this.setBackground(hud_atlas.getSpriteFromMap(this.slot_empty))
         }
 
         this.text = label
@@ -1387,6 +1470,7 @@ export class Pointer extends SimpleBlockSlot {
 
     constructor() {
         super(0, 0, 40 * UI_ZOOM, 40 * UI_ZOOM, '_wmpointer', null, null)
+        this._wmbgimage.alpha = 0
     }
 
 }
@@ -1598,7 +1682,7 @@ export class WindowManager extends Window {
                 };
                 this.drag.slot = null // if a slot previously remembered itself in this.darg when clicked, forget it
                 if(this.drag.getItem()) {
-                     //this._drop(evt)
+                     // this._drop(evt)
                 } else {
                     this._mousedown(evt)
                 }
@@ -1687,6 +1771,15 @@ export class VerticalLayout extends Window {
 // ToggleButton
 export class ToggleButton extends Button {
 
+    toggled_font_color = '#ffffff'
+    untoggled_font_color = '#3f3f3f'
+
+    toggled_bgcolor = '#7882b9'
+    untoggled_bgcolor = '#00000000'
+
+    mouse_enter_bgcolor = '#8892c9'
+    mouse_enter_font_color = '#ffffff'
+
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         this.toggled = false;
@@ -1695,13 +1788,15 @@ export class ToggleButton extends Button {
     }
 
     onMouseEnter() {
-        this.style.background.color = '#8892c9'
-        this.style.color = '#ffffff'
+        super.onMouseEnter()
+        this.style.background.color = this.mouse_enter_bgcolor
+        this.style.font.color = this.mouse_enter_font_color
     }
 
     onMouseLeave() {
-        this.style.background.color = this.toggled ? '#7882b9' : '#00000000'
-        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f'
+        super.onMouseEnter()
+        this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
+        this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
 
     //
@@ -1712,8 +1807,8 @@ export class ToggleButton extends Button {
         }
         this.toggled = !this.toggled;
         this.parent.__toggledButton = this;
-        this.style.background.color = this.toggled ? '#8892c9' : '#00000000';
-        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
+        this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
+        this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
 
 }

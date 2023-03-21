@@ -494,7 +494,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
         })
 
         await renderBackend.init({
-            blocks: Resources.shaderBlocks
+            shaderPreprocessor: Resources.shaderPreprocessor
         })
 
         render.resetAfter();

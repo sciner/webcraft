@@ -1,0 +1,193 @@
+{
+	"meta": {
+		"format_version": "4.5",
+		"model_format": "animated_entity_model",
+		"box_uv": false
+	},
+	"name": "bough",
+	"model_identifier": "",
+	"front_gui_light": false,
+	"visible_box": [1, 1, 0],
+	"variable_placeholders": "",
+	"variable_placeholder_buttons": [],
+	"timeline_setups": [],
+	"unhandled_root_fields": {},
+	"resolution": {
+		"width": 32,
+		"height": 32
+	},
+	"elements": [
+		{
+			"name": "cube",
+			"box_uv": false,
+			"rescale": false,
+			"locked": false,
+			"from": [0, 5, -12.15],
+			"to": [4, 17, -8.15],
+			"autouv": 0,
+			"color": 1,
+			"rotation": [54.73561, -30, -35.26439],
+			"origin": [0, 5, -12.15],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 4, 12],
+					"texture": 5
+				},
+				"east": {
+					"uv": [4, 0, 8, 12],
+					"texture": 5
+				},
+				"south": {
+					"uv": [8, 0, 12, 12],
+					"texture": 5
+				},
+				"west": {
+					"uv": [0, 12, 4, 24],
+					"texture": 5
+				},
+				"up": {
+					"uv": [16, 4, 12, 0],
+					"texture": 5
+				},
+				"down": {
+					"uv": [20, 4, 28, 12],
+					"texture": null
+				}
+			},
+			"type": "cube",
+			"uuid": "c9864896-0788-5638-30f6-c5d5407ce34a"
+		}
+	],
+	"outliner": ["c9864896-0788-5638-30f6-c5d5407ce34a"],
+	"textures": [
+		{
+			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\DARK_OAK_BRANCH.png",
+			"name": "DARK_OAK_BOUGH",
+			"folder": "",
+			"namespace": "",
+			"id": "0",
+			"particle": false,
+			"render_mode": "default",
+			"render_sides": "auto",
+			"frame_time": 1,
+			"frame_order_type": "loop",
+			"frame_order": "",
+			"frame_interpolate": false,
+			"visible": true,
+			"mode": "bitmap",
+			"saved": false,
+			"uuid": "27d2995a-7401-e7e1-10e6-33bf8c1fb6f9",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAABMpJREFUeF7tWstu01AUPEka122SBihBqEUCygKExGMBa6T+AH/AP/IDSGyhEi9RtQsqimhECWmUV5M6D6O5aMxR1GCqRM5NbG/q+hHfM2fOnLnXTj1/es1vdn35Uq7L5UJGrhTy0mh3ZC23Itiw3x8OguOb66tSLOTke6VlzmMruCk5qp5Kq9uTjfW14Bh+t3ZQk0w6FVw7GPrBPo7vNHt/TwZnottJvdi+7SMYBFqpe3Jno2gCwuAJxEmzJUvpjAHlRikv9WbbBIz/eS0AXFlOGQB4nwFmryau68pgOBDHccTzPPN30B9I+7Qj79r92QJABpSrDXGdtNwsFYIMI3AygiwAAACMoIARAAv3d858ebx1yYCD49i+7Z6I6zrS83rC7CPzuXxOGo3W7AHYflDykanDStNk+f6tUpBhBM3MI0BkFwDsfq2Y4AgK9gnAs0eb5jzZAQByqysm2xoIHKvVW/LZ82fLAADAWmfdI8iPBz+k6w0l72ZNNveP6gYA1juOATQwBMdwntdCIwjC8f4vubpeNNlG5rNOVrpdz4DRaHZmDwBLAJQG/Ulf/IUmYAOtdYCgPDbeg30yiJknOBoAXEdBBBBWAAARhKgxwwyKnYGiqAOk8uMYQKNgsiQ0IwbHXVMCFEGIH/Yz6YwdIogSIOVR79gobLodAhhsFEVco9mCzON6LYoQ1aVqPxA/rzcI+puTzRg2zLwNEgDUrBY9XevIMACAJug2h4AhmrhXawLLA9fvlc9mKnJhjiIFDaCx0W1PZ5gUh9GB0GmTRAC0JwAw7BLvv3bsBoAawCAZOCnNwEB3XeOjRmjUFeI+AGo9AOwCdHT0BKh1MoLmh16AFGcL1CJIUWRr3Tlo2c0AaADFC4NmMKTwqDOkMSLNaZzQEVDzdzeL5jeoIdYD8GQr77OmOWg9+WGAem7A7kDgoCFv9srGCsMJwiqTUa8+VexmAAHAZAY9nx6fmdOTJQKlTRMnSAQApomiCoCsZwBLAFmvNf/06cOqF2SNADHbFMOHW9dNpnmczk97gbkQQQY4brA8D0pjg2OEwQEA9A7QCe0UOWECqHPTBcbVKhkCLeA0WKv/uCkzJlMQTOtLAG3w5dufY4UKAOj5gV4cYctk69NtEwAAKOtFMMwqogRwDY0R26POLs3U6PQYLfFf4IY9O4rzoS1KawDdHwzRqMcHCHohBFqxEABQA/7X2ur1hbnQgDCaMaCL9HTdWq3vAmEA0AhdVMxQOpg9Wj8d1k4PA0bdstYBzkUDDwPUtvNmPYCTF+3mqPq29/FJAQ1ejOilcT0ZigUAWBTVc3pOeWNTAvpdH2aFpaITvNiw3chMXAJcFH394cj8Fl+Qzst8fioAcCFErwNyRrfwGsB3g2h92vNzfT82bXDc9wELD0DY9wELXwJh3wfY7uWnJoLjvg+IBQB8iXHe9wG2T2YmZkDY9wF6hXjSh9l4f7AidG9j2ceb39HvA2IDALLD9T/9fcDCd4HzaKnNUSwBACjQBrjD2ALAkog1ADaq9rTHFPpeYNoPtO33EgBsy0jU40kYEDXitj0vYYBtGYl6PAkDokbctuclDLAtI1GPJ2FA1Ijb9ryEAbZlJOrxJAyIGnHbnpcwwLaMRD2e2DPgN0zmZn0z9F9rAAAAAElFTkSuQmCC",
+			"relative_path": "../DARK_OAK_BRANCH.png"
+		},
+		{
+			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\JUNGLE_BRANCH.png",
+			"name": "JUNGLE_BOUGH",
+			"folder": "",
+			"namespace": "",
+			"id": "1",
+			"particle": false,
+			"render_mode": "default",
+			"render_sides": "auto",
+			"frame_time": 1,
+			"frame_order_type": "loop",
+			"frame_order": "",
+			"frame_interpolate": false,
+			"visible": true,
+			"mode": "bitmap",
+			"saved": false,
+			"uuid": "73091375-b385-6494-05ac-8ee61015652c",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAABNdJREFUeF7tWs9rE0EUntRiktZqY4vGSqntJVIQfyGi4EE8iCj48yp6ETyVnv0DvAniQQQvile9CeJBRBA9iHoRsYLVKo2ltE01tmlEjXwTvvVlsu1uTXXHceeyye7MZt/3vve99yabOHsoU1FKqdWpNA41I5tZrr+//PhJH2dK3+rmTMx+VZ0t1XkY3Zm2mjl7enJ1a+SJAxfuJxac8IcvJggAQaDR0vCRyVnV09GiQZqaK3mPhPMw3jRazjmc26KyXT2qWJhQndluNTH2QR/L5ZIay4+oyAE4d6KrAqPpZVoH436Ul6mD29fUXAMIK7qa1fvhogbk+eikBoejf90qb/7bfFkN7t2pWtOtaqY0U+PLnt6NauTtq+gB2L+tpbK9r73OszAeoyn5XR/xvbcrqUpJHTHqx3T1PEIAY+v6Dn0PgoL5WDuwe7dmALwtgcC5d29eq6OXH0UbAgd2JSs0Vroo21uN69z6lWr881c1NFTwLvvN50UCRl04ltukcv2btbcxCAKOk1NT0QOAEACNaRTYMFqZ9YynYQCBA2DAwPHCd48hMgzIEsw/sra/BgDewyoA8FCkrxQwZgbE/Jd8NQNIkZRCyQwBQVxIBCF+EMS2TKcdIogsYKZAU9gofCtKTRoEKZh+qREgfCgUtT5AAzjmSmXvcyqd1J8jzwIAgGkOD0Qw4OmxQpX29KhUeKzBoDjSMglIU/sydf3WdKQiJ3XN73MCIoj4RdxC8IZGP6t0OVGT82X+J1iYn2lL1YkjMgUGdcB6ABgC1AAKIECANyF0MIog0DAYj1EozumjBIMpEMe7z2btZoAshUl1GL6jr0M9GZ7UcQzF57E13ewxaT4wxvMlL6tYDwDSoIwNgkAtkN8hjrLuxzoCZcYXgAKQN+4V7WYAAIBi/8rPzXU1P68xDGCYyQi/shjrrtwu2A0ARJBqLr1I6qJUxnmKmwkGM8fT4WlvDvsIVIV3HpftBgAaIFMXRE/GLQGg4agUzWF2iLjOULE+BGQW8KPrpTMbPI248+Kjl/vhXVkDyGJKVosDV9/ZzQBoADw4X6zK/QJJf1BeDjDD3ED5JzQAFF8oVQGAVGe1uFmzcrnuDDFavjTppkmmPHaCDAEznOpix4ITgfQcPJ3VIUDjWfjgHKu8U8fbvTDhPgFts14DgpwgQwDqjo0PjPM38zXgzVdPWJ8GgwAwDTMNN9dDNNlE+QEV9Ht/+3pgCDANLiano7b4Z9JgEOI0ZrGx/Lvrgp5nqa/rdhg3NXM6doEePJywvptrFJAEKC7LXHPv33YRaxgAihy3sGTr29Hdqi5eGwvUiUYfIsr1CdkNooWVPT5yvu07Oo2C5/01hn9x/IbtGxpLAgDjHpueZsNjezvbMABshmQ3x/YWrPgvGCC3u82tMOezQND7Abb38w2HQND7Ac4zIOj9AOc1IOj9AOcBCHo/wPlCKOj9gHOX3rtdClNF5e4wzyElBm2ANKrCUa/33daS7wc4nwX8PMDMgK2t/4oBEoyg/wuipu5S/f6CAndyX1tlsVthS/Vgf+s+Tit8GBBjAMKg5PKcmAEuezeMbTEDwqDk8pyYAS57N4xtMQPCoOTynJgBLns3jG0xA8Kg5PKcmAEuezeMbTEDwqDk8pyYAS57N4xtPwEZ5spf46xUQQAAAABJRU5ErkJggg==",
+			"relative_path": "../JUNGLE_BRANCH.png"
+		},
+		{
+			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\OAK_BRANCH.png",
+			"name": "OAK_BOUGH",
+			"folder": "",
+			"namespace": "",
+			"id": "2",
+			"particle": false,
+			"render_mode": "default",
+			"render_sides": "auto",
+			"frame_time": 1,
+			"frame_order_type": "loop",
+			"frame_order": "",
+			"frame_interpolate": false,
+			"visible": true,
+			"mode": "bitmap",
+			"saved": false,
+			"uuid": "53f120ae-d7e5-13ca-49d4-64fa245ef75f",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAABSBJREFUeF7tmk9oFVcUxu8LxIfRmMQ/+dfWF/80Qa02aEuD2HZjQSuKlHZTugsUdCVu3Llw407cFQJuBcGFUNSNG20rBmoIWrBWG32iNUZjEiOR16BPfhe+4Tq8ZCZonMnNzOa9ue/emTnf+c53zj1vcod/7CxfuHrH/D/5yuzb22mKg+Om0Fxrfr1yzzTWVZvmhsX2nHEO5n6yeoX5Yl1LMMZ4e2G5KZVKpvfGQ7vm2t0Ru/6bziaTr19i13KURp8F3xnfc+h8LhhI4Evu551ry303H5lvu9bY22MsB4YMjU2a3V0rraGDI8+tYQDQuKzebGprCIDhNwDJ5/Pmn+ITO5e1zPns0xbTWtdgJiYnTGNdrRkaG7efzydemjvFovnh6B/JA4DB8qi8jRF/DTw23bs2BYAwB2bcH3xqAWOugMJYWAAA8j6AbSwsMk2tK8zoRCnwPp5vb1lurt8YSB6AvVsLZaiKcRjjUvvclX+DsJCXmQNjOABBxnL+VWebBQCWbN+yyjKBEFhVKFhvu0Aw9nvf3+ZAT1+yDAAA0Vnxy4Nj5IfNSy2NZbxCA2agGQKAMHHBAwCYw9j6j5aYHds2WG/j+fqavHn032MLRt/1e8kDgAaEhU4ALKiusp7Ey64WEN+EAaJJSACS9AOjFTpox9LFVQEAzJEgAkQqAHAZ4Iod9AcAFN81SJRXGMASgYOBEkCNoQHQXSKI+PG9promHSIoDVD8Su0BAOM4hoZHLRMkejDG1QTph9Ifa8QKsoBS34PhF0Gi+2DZQsuGxNMgdQBe/f7rj4M8zlPi4c0dTdb7SnuMKxygOqBd6r9r0+NUabL72G+JilxUaZEDAB5eDHBpjBddlXe1QmsEgNYBGGGjuakHwBVBt4oTjQHAzQSqCCV60g2lTwGm8yMn+9PNAImgPOiWsW5sy+BKJbJAYo5qABVFqQcABrjek7dFYTe/I4Inzl6zmoDKU/oSAhzSAZXA2hukPgTQAAzDmNMXb9kNjIxQWaxPjDp+qtemx/3fff7G5kciqE9d86ejF9IdAmENwHjS3uWbY/bB9bs8+suZ/gAAbXy0R1DqEwisST0AJw5+WQ6XsTIeAMKlskpklb9QH0PFHlc3AKLn/O10MwAAEDbqgEreChdKKpAAQIJICgUAmKPdo7JD6gFQIXTmcrGipwgBwgKAoDwAUCApW7h9AWUDGKH6IPVZAACme0i3UkQAtQ1W18jdJKmxot8AJ/UARJWKhAipD2ojgNr8kDUUMmIJO0Sxg/jnSH0IzAQAxTUxH9aLrR11ZXoEAKC6Yk6IYBQA8q5iPaqwUdZQKpzzIaAsgOjFNcatLaIAi3LAbP8emaOhNru7mcYy4jknCiF5y+3kuL3BmRo+2x5719fPQfFw79/tCv05MB7Jknf9UO/zejkoTrtL2+FwW3zeABDe+XFO3vcegPBmBwZwkPMpe70HQHne3d3J+1R9U+0R3meczua9gqao29EBDJW93gPgVnpuX1DbXu8BiHo/wPs6IOr9AO8ZAABQf6r3A9z22GyKUVLXtpXgdO8HeJ8Go94PmBchMN37Ad6HgGKP1lel9wPmDQAAoX+KYcS8qQMqqa9SI/097+uAqdKPxDFuGyypNPa295222RH1n8Hb3jwN673u9sQBOAMgDko+z8kY4LN349iWMSAOSj7PyRjgs3fj2JYxIA5KPs/JGOCzd+PYljEgDko+z8kY4LN349iWMSAOSj7PyRjgs3fj2PYa9fAKfR85EUMAAAAASUVORK5CYII=",
+			"relative_path": "../OAK_BRANCH.png"
+		},
+		{
+			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\BIRCH_BRANCH.png",
+			"name": "BIRCH_BOUGH",
+			"folder": "",
+			"namespace": "",
+			"id": "3",
+			"particle": false,
+			"render_mode": "default",
+			"render_sides": "auto",
+			"frame_time": 1,
+			"frame_order_type": "loop",
+			"frame_order": "",
+			"frame_interpolate": false,
+			"visible": true,
+			"mode": "bitmap",
+			"saved": false,
+			"uuid": "6623bcaa-7149-7fe2-0963-3670bdcf0ea4",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAABKhJREFUeF7tWs9rVUcUPrf6YkzI05ofjT9SutAEihEj6iK60LrtQim0hRbBnTtdChYK1YK0u/oHKKIggqiIGze6sRsXijZKUiklNTbNL/WJJiY2t3wTv+fJvPsyt6i8efPubOa++XHvO9/5zjdn5t7o6ePRWEQkv7xFCk/GcCmFoVF5kXtprtvb1pi6XBkeeWi6GmaWmDq/unWufn2/wRu/yKuZqDh9cc48zhS09+z54U3ngk96P50RAMCffdh3v+QJBEEDoYHiBBsEDcQf14/LR831EudyMvX8udQ3Npp6aV2djBcmpfvzI5UFoL//lnGJ7UHtRTAChYB0dm4sAYvsIRi859jvZ6WtvUkmxgtFJoAFDfWLpPBstvIMAAAwntSl4agHBm6XhAAYgEKD9XjdZsYMjcrffSdlzcrl8s/4lGjDwQq0VTwE4jiO+ceT6K29b+tBOTA0cP1Xf5bm5gbj7XzTB/Ji6l/DBLBiaHBUtn71U2VDQIug5jU1QesAtYCGJzHBZgEBgOEUPtTeAAAG0BAYBu+hPHr0p6lPnTht6rt375j6zNlz8s3XX0p39wY5dPg705a0UhCk2xe/NyI4OT1thI9iiGtvQoCeTxIyAEEQbvx6s0iSfNOSRBDssOAyODM9VZybq6s319AEL1YBepAKrj2KNhcIMAZswOqg9QTtURRVNMZLliurIeIymAQCAdHhQBaAAQwJ+yFcJgHGsg9b/Qbg2rULMSiOGNdxTaNsYI79eNR0Mf5tDdB5APq6unr8BqBz7cdGBLf1bpG9+76VVas+KYqabQyTJe3xpJQZ8wic9wwAADR+bWtXMSHSeoDrJON13m8LKXMK7wHYt/eLGJ5HAQAoOiu0U9ukjNEWPtwDbZjrfQgwFaYHQWmIGNWbmyXmBxhHkWPGpxMjtJEtDR0t0ryszW8N0JshxrP2mk6VDTvUttk2XAsnw6Zj/ad+A0APl1uy2K9jXBs+UZjbKaKsyM+dBeh02HsNYCpcLmEBQ6jotuFjw0PS0r56nvEEZPFsZNjifSIEDy/kpb9+u1c8wkFM24Vep+H4DQYQLO8BKLHIahh/OvLmDEtE4HUKIY3DGE1/rRPeh4ALgCQNSFretFjqIzLvRdAFgH1g4qK0fcRW9QBoBriMJ5gAgeLofR6QhgEYk9Z43o/a4T0AWuXx5+3Nje8i5nKgqz8iANrwalJxl4Gu/oiboU0bt88by/NB3zczLgNd/QYADOKOcMeO3VWVyroMdPVHm3vWxYVnc+8BcS6Aok97gmcAlrldn/UKQMA5H8G4fOWSAaMmALCPvmA4zv5wADrwYNDr7ayL4q5+83YYgzQI3P0dPLBfTpw6XxsAlPs+oCZCYKHvA4IHwPV9wP9NgV0x51u/eTO00PcBwTPA9X1A8HsB1/cBvu/n3zakikucff7PF6I7d+4JexnUCCblBMFrQBKFCAT6gteAcjEEEKrh3d4704CkG2GJrMkQeFtUq2l+0AqfxhEZAGlQCnlMxoCQvZvGtowBaVAKeUzGgJC9m8a2jAFpUAp5TMaAkL2bxraMAWlQCnlMxoCQvZvGtowBaVAKeUzNM+A/k6qhX3WS85IAAAAASUVORK5CYII=",
+			"relative_path": "../BIRCH_BRANCH.png"
+		},
+		{
+			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\SPRUCE_BRANCH.png",
+			"name": "SPRUCE_BOUGH",
+			"folder": "",
+			"namespace": "",
+			"id": "4",
+			"particle": false,
+			"render_mode": "default",
+			"render_sides": "auto",
+			"frame_time": 1,
+			"frame_order_type": "loop",
+			"frame_order": "",
+			"frame_interpolate": false,
+			"visible": true,
+			"mode": "bitmap",
+			"saved": false,
+			"uuid": "d12c3f15-3d12-cc1a-cb84-ba23d76b6675",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAABPJJREFUeF7tmk9v1FYUxa8nkwxMJgks0tCGNi2EtqoEFam6ZNGPwdfqupW641sUdVMWqKnEAgWUUlUVFTRCkD8zYSaTGP0eOs7taBIHDfW8OPZmbD97/O65555777OT766eT58+3bXFxfN2aa5uzzb7duWDWXvw54b1980uzDay82ZmmxuvLW0k9uXH0+FabdzT6XZs7e92uGen3Q3337p+zTr7SXZdcyLN9jn/wy9rh4PZSHE7yc35WlqfMNt8dZCBwOMxhPPLH7019NVWNxgGABPNxFrTh8AwBiDNRtOe/LsVruVerrl6eckWWpNWr5l1un1rNurhd2qybtu7Pfv+50fjBwCD29uHAMjgpJvaF8ut4A4Awcj1f9q230ltbv5cYIaAwlhYAADyPoABwOLspL1s9zImwIJGvWYvu+n4GfDtpVoKVTFORoraGOIZsLI8b6vrGwYwAMAmY9lnHABgCeMw4etrn9rixWl7vrNn3nBYwbmxhwAAiM6KX9Ed4xjjGOMU42IGQAkkDx4AwBzOAcB8qxG8fbGRWLd/EJgAK/560baffn0y/hCAqqIvnlRMP1rfCZ4cZIK0gWsJCUBiU0h4gJYWPgwAYDibBDEaADwDvNhhDADs9FJrTSXBo/K4zw4AoDAhm0zP1P4jnhLB3t5b4ZMYsh9NCGCQ4lf0V3yTHQDAix6MEUtEfX4R0rkLteBpseL60ifB6/29Xpbb6pNTYR9NGHsWoA6A4jc+O4xxJicjZZQM8jEvUfTXApZPk3dWt8ca43kVRQIAEjkUXBqgPC5aCxQVS7qHrAAAbFwLABRKKqCiB4BCSJP1VZxorCpRlFeK5Pw3X81kRZIqQ6VFHd/9YzduBkgE5Xlfxqo2kIfxPqKHZhAaAkDpkv9QDaCsEj0AMMB7T3nfs0LjygzEOOJ46+ZCKIy8Zih01BtEHwJoAIZRx6sBkhGKd98kqRIkPcKAweJJWUT/+eO953GHwKAGYDy1/upWGiaucXkUDSD+8b4aH/UIyhQCgXuiB+D2ykw6WMbKeAAYVipLAOV93z573QCI3zcO4mYAACBs1AHDvKVmyRdKKoUliIwRPjBH3aOqyugBUCF0/9lwT2m9AIAGW12pv1KljmGE6oPoswAAHDdJXykKAHWP6gN+e7id9QB+jP3oAcgrFQkRmiLfDNH8kDUUMp+fs5QegPrAp0T2ow+BkwJA2mPdUCXwoF6szCapFkFUN5wKEcwDwK8ZkvfzChtlDaXCUx8CGKQF05Ma42uLPMDyHPB/j+fmaKgN/R+/ttxr/WQRz1NRCMlbWspG4Hx5G7uIjcqQBIoPrv0rfk+DiI0MgNRb7bB/43OmAPAdHwWPjk8qfKN6Ylz3hxDw7wUGX3GVXgOU5734yfvU9kf1COPy2Pt+brYoqpVdOj0aH5oZ9ksPgBjgFzPU3oJ26QHI+z7gzGjAUd8HlJ4BhABUP+r7AL889r4FKIb/C2nwuO8DSs+AvO8DSg+AX/b27wYpiFgJKn0IKA5Z+hr2fcCZAQAg9KZY7wLPRCU4TIn9GkHp64CjUpHEsfTd4HG5OO+dQQx5fNQ5vNM636gPi/H+CoAYvVLknCoGFIl2jM+qGBCjV4qcU8WAItGO8VkVA2L0SpFzqhhQJNoxPqtiQIxeKXJOFQOKRDvGZ1UMiNErRc6pYkCRaMf4rDe+ogN93oVcaAAAAABJRU5ErkJggg==",
+			"relative_path": "../SPRUCE_BRANCH.png"
+		},
+		{
+			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\ACACIA_BRANCH.png",
+			"name": "ACACIA_BOUGH",
+			"folder": "",
+			"namespace": "",
+			"id": "5",
+			"particle": false,
+			"render_mode": "default",
+			"render_sides": "auto",
+			"frame_time": 1,
+			"frame_order_type": "loop",
+			"frame_order": "",
+			"frame_interpolate": false,
+			"visible": true,
+			"mode": "bitmap",
+			"saved": false,
+			"uuid": "34f0874b-96b9-8f9e-ad05-81773f8df261",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAABQZJREFUeF7tmstrXVUUxtclybVNbptHDRhCQ4JakYDxgSAK0g4rHQmdOHMgDpyI4MiR/4D/gANnTgRHxU6UdiIWqxWFkNpXQmOokObV3MTmpuHKb8N3WB5yPclJ6d059+xJDmfvfXPWt771rbX2OZVPPnivubL6wBiLK0s2PHjC1jY2rL+vL9zjutF4aPXNTRsaGLLx0RHrHzhmc3MLYZ4xOHDcrk1P29Fqtz0zPJLc43enlq9bT7U7WbvdeJRcc/+ji9cryY02XFQ+//TDJsbMLswnBmAQDy8gAAYAJkZP2vj4qK2trtvcwr0Aktb6/drH3LN/XbORviNW3962E/01W1qrh79bm1t2d6VuH/9wq70AiAEYUOvttVMTE4mHPSNgAewAAABjrlo9EhgBWH4/4HCfMXbnZxuqPWXrjR2T9/H8+HC/3VxYaj8A758/18RTN2Zng0FTk6cSD2M09/D034v3Ar0B4PfpG8E4gcI1ABAi7Gde7ACAscFa8LYHgnsz99fts8u328sAAFCsK+7lzZ1HDTvae9yWV5f/Ex7yMKDBCgCcuflnWCuNEAjPLc7Yy2NPB2/j+WPVLluubwUw5tceth8AhQCUhv4Yh8F485/NB8Hrim8Z6EWTPQwxSJ4XOB4A1kkQASIKABBBRA0PYqwXPGmAGKFwkPJjJABIMBUSnhFvb82HEJAIIn5c13p64hBBQoC4vvrbHyHeGRI2nw4Bg6E0yRqFgjIC67UXzejqrtrZnpVE/DZ2QrSF0ddVCWxoexoUAMSsFz28KAPxMACgCbBEwPBXoofhoj0Gav3Fy7+2VeSySovK6TenmmfeeiNJbbt5WBRHE9ABXySlVV9rlSUufP9T/AC8OjmZxLGojZG+oIENPsbThZCQFnPYDwsOBQBUeKroVBPABImgih/VAqK4UqAXQYmiUuu3312KnwGq8XnoNIXTlaEyAexgqHAi/tGIF59/IfyGmBA9AO++c6apmNZDi+oSOdKk7w28CKrwuXL1l6APAEKpLEZ99c2FuBkgAHzjg5flOTVL6ZSoognw0o2UukX2RM8A0qBaXgzH+164PEASSNa8/spLwdPspXKkkfIZRKkzehGUga0UW/NQmkHFSIEDAKodaJUBQPqghikNZlZObsd8Rb1Aq1gVQ4jtSz9eSTytGG/VMquyjD4EAOCLL79uKVQAoEaJUx/vaaVMpT6fNgGAkIheBLNoRwiwRoWR4j0tlGSKdHtMSvw/cLP+95OYz0xRXgPUKnP2l67xyRb+IAStKAQA0oC9lrb+fMGz5El4M8//yGSADNpPTvepNfo0mIWaCqH9ihmhQ/cYfTucPhYnbtXpAc5+Dc8CNLb5pA7QsZd/MbIf2sdm2F6fJ3kx4o/GfTMUeyGzV0NbrQsA+G7PH4t1TAj4d31646Pj7dgLmQMzQIei1PmcDKmcPSz9/GMBQG93AUB9vzq6wmsADNB7PV/z63y/Y9KgP+j0pz+FByDr+4DCh0DW9wGx1/KPTQRbfR/QEQDoJcZu3wfE3swcmAFZ3wcUHgAhePb0a83dvg8ofAh4Cun8z38fUPgssFsM6cMpzgU6EgBAQRs6GgBAICQ6lgEHTS+HZX/mqfBhMSTvc5YA5EWuKPtKBhTFk3ntKBmQF7mi7CsZUBRP5rWjZEBe5Iqyr2RAUTyZ146SAXmRK8q+kgFF8WReO0oG5EWuKPs6ngH/AvwVPX2KNJXoAAAAAElFTkSuQmCC",
+			"relative_path": "../ACACIA_BRANCH.png"
+		}
+	],
+	"geckoSettings": {
+		"formatVersion": 2,
+		"modSDK": "Forge 1.12 - 1.16",
+		"objectType": "OBJ_TYPE_ITEM_BLOCK",
+		"entityType": "Entity",
+		"javaPackage": "com.example.mod",
+		"animFileNamespace": "MODID",
+		"animFilePath": "animations/ANIMATIONFILE.json"
+	}
+}

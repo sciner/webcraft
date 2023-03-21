@@ -375,9 +375,9 @@ export class Player implements IPlayer {
             this.inventory.hud.refresh();
         });
         // pickAt
-        this.pickAt = new PickAt(this.world, this.render, async (arg1, arg2, arg3) => {
-            return await this.onPickAtTarget(arg1, arg2, arg3);
-        }, async (e) => {
+        this.pickAt = new PickAt(this.world, this.render, async (e : IPickatEvent, times : float, number : int) => {
+            return await this.onPickAtTarget(e, times, number)
+        }, async (e : IPickatEvent) => {
             const instrument = this.getCurrentInstrument()
             const speed = instrument?.speed ? instrument.speed : 1
             const time = e.start_time - this.timer_attack
@@ -410,7 +410,7 @@ export class Player implements IPlayer {
             }
         }, (bPos) => {
             // onInteractFluid
-            const e = this.pickAt.damage_block.event;
+            const e = this.pickAt.damage_block.event as IPickatEvent
             const hand_current_item = this.inventory.current_item;
             if(e && e.createBlock && hand_current_item) {
                 const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
@@ -639,7 +639,7 @@ export class Player implements IPlayer {
     }
 
     // onPickAtTarget
-    async onPickAtTarget(e, times, number) {
+    async onPickAtTarget(e : IPickatEvent, times : float, number : int) {
 
         this.inMiningProcess = true;
         this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
@@ -668,7 +668,7 @@ export class Player implements IPlayer {
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
-                    this.render.destroyBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
+                    this.render.destroyBlock(block, new Vector(bPos as IVector).addScalarSelf(.5, .5, .5), true);
                     Qubatch.sounds.play(block.sound, 'hit');
                     this.startArmSwingProgress();
                 }
