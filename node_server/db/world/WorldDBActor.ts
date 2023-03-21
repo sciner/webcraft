@@ -29,9 +29,9 @@ export class WorldTransactionUnderConstruction {
     worldModifyChunksMidPriority    : ChunkDBActor[] = []   // for chunless changes
     worldModifyChunksLowPriority    : ChunkDBActor[] = []   // periodicaly for all ready chunks
     // world_modify_chunk, part 2: the actual data to be saved
-    updateWorldModifyChunkById      : [string, int][] = []
-    updateWorldModifyChunkByAddr    : [string, int, int, int][] = []
-    updateWorldModifyChunksWithBLOBs: [int, string, any, any][] = []
+    updateWorldModifyChunkById      : [string, string, int][] = []
+    updateWorldModifyChunkByAddr    : [string, string, int, int, int][] = []
+    updateWorldModifyChunksWithBLOBs: [int, string, string, BLOB, BLOB][] = []
     // world_modify_chunk, part 3: after the transaction
     chunklessActorsWritingWorldModifyChunks: ChunkDBActor[] = []
     // chunk
