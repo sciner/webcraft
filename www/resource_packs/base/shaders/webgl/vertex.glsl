@@ -2,6 +2,7 @@
 #include<constants>
 
 #include<terrain_attrs_vert>
+#include<normal_light_vert_varying>
 
 #include<global_uniforms>
 #include<global_uniforms_vert>
@@ -52,22 +53,16 @@ void main() {
 
     //
     if (checkFlag(NORMAL_UP)) {
-        v_normal = -axisY;
+        v_normal = -normalize(axisY);
     } else {
         v_normal = normalize(cross(axisX, axisY));
     }
 
-    v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
-
     vec3 pos;
     if(!checkFlag(FLAG_MIR2_TEX)) {
         pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
-        v_axisU = normalize(axisX);
-        v_axisV = normalize(axisY);
     } else {
         pos = a_position + (axisX * -a_quad.y) + (axisY * -a_quad.x);
-        v_axisU = normalize(-axisY);
-        v_axisV = normalize(-axisX);
     }
 
     // Scrolled textures
@@ -81,8 +76,7 @@ void main() {
 
     //
     v_texcoord0 = uvCenter0 + a_uvSize * a_quad;
-    v_axisU *= sign(a_uvSize.x);
-    v_axisV *= sign(a_uvSize.y);
+    #include<normal_light_vert>
 
     v_texClamp0 = vec4(uvCenter0 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, uvCenter0 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
     v_texcoord1_diff = uvCenter1 - uvCenter0;
@@ -93,7 +87,12 @@ void main() {
         }
     }
 
-    v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
+    if (uModelMatrixMode > 0) {
+        v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
+        v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
+    } else {
+        v_chunk_pos = pos;
+    }
 
     if(checkFlag(FLAG_LEAVES) && (gl_VertexID == 1 || gl_VertexID == 0 || gl_VertexID == 3)) {
         float amp = wing_amplitude - wing_amplitude * (mod(v_chunk_pos.x + v_chunk_pos.z, 10.) / 10. * .95);

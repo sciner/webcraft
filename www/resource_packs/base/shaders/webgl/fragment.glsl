@@ -2,6 +2,7 @@
 #include<constants>
 
 #include<terrain_attrs_frag>
+#include<normal_light_frag_varying>
 
 #include<global_uniforms>
 #include<global_uniforms_frag>

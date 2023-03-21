@@ -7,6 +7,7 @@ export class ShaderPreprocessor {
     blocks: Dict<string> = {};
     global_defines: Dict<string> = {};
     fallbackProvoke = false;
+    useNormalMap = false;
     constructor() {
     }
 
@@ -116,6 +117,10 @@ export class ShaderPreprocessor {
         } = this;
 
         const key = replace.trim();
+
+        if (key.indexOf('normal_light') === 0 && !this.useNormalMap) {
+            return "";
+        }
 
         if (!(key in blocks)) {
             throw '[Preprocess] Block for ' + key + 'not found';
