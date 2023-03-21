@@ -21,7 +21,71 @@ export default class Ticker {
         const pos = v.pos.clone()
         const neighbours = tblock.getNeighbours(world, BLOCK_CACHE)
         const updated = []
-        const getStackItem = () => {
+
+        const decItem = (id) => {
+            for (let i = 0; i < 5; i++) {
+                if (tblock.extra_data.slots[i]?.id == id) {
+                    tblock.extra_data.slots[i].count--
+                    if (tblock.extra_data.slots[i].count <= 0) {
+                        delete (tblock.extra_data.slots[i])
+                    }
+                    updated.push({ pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                    world.chests.sendChestToPlayers(tblock, null)
+                    return true
+                }
+            }
+            if (neighbours.UP.id == bm.CHEST.id) {
+                for (let i = 0; i < 27; i++) {
+                    if (neighbours.UP.extra_data.slots[i]?.id == id) {
+                        neighbours.UP.extra_data.slots[i].count--
+                        if (neighbours.UP.extra_data.slots[i].count <= 0) {
+                            delete (neighbours.UP.extra_data.slots[i])
+                        }
+                        updated.push({ pos: neighbours.UP.posworld, item: neighbours.UP.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                        world.chests.sendChestToPlayers(tblock, null)
+                        return true
+                    } 
+                }
+            }
+        }
+
+        const incItem = (id) => {
+            if (neighbours.DOWN.id == bm.CHEST.id) {
+                for (let i = 0; i < 27; i++) {
+                    if (neighbours.DOWN.extra_data.slots[i]?.id == id && neighbours.DOWN.extra_data.slots[i].count < 64) {
+                        neighbours.DOWN.extra_data.slots[i].count++
+                        updated.push({ pos: neighbours.DOWN.posworld, item: neighbours.DOWN.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                        world.chests.sendChestToPlayers(neighbours.DOWN, null)
+                        return true
+                    }
+                }   
+                for (let i = 0; i < 27; i++) {
+                    if (!neighbours.DOWN.extra_data.slots[i]) {
+                        neighbours.DOWN.extra_data.slots[i] = {id: id, count: 1}
+                        updated.push({ pos: neighbours.DOWN.posworld, item: neighbours.DOWN.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                        world.chests.sendChestToPlayers(neighbours.DOWN, null)
+                        return true
+                    }
+                } 
+            }
+        }
+
+       // if ((bm.CHEST.id == neighbours.UP.id)) {
+         //   console.log(neighbours.UP.extra_data)
+        //}
+
+        // если под воронкой блок который производит
+        if (bm.FURNACE.id == neighbours.DOWN.id) {
+            if (neighbours.DOWN.extra_data.slots[0]) {
+                const item = neighbours.DOWN.extra_data.slots[0]
+                if (item.count < 64 && decItem(item.id)) {
+                    neighbours.DOWN.extra_data.slots[0].count++
+                    updated.push({pos: neighbours.DOWN.posworld, item: neighbours.DOWN.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY})
+                }
+            }
+        }
+
+        /*const getStackItem = () => {
             for (let i = 0; i < 5; i++) {
                 if (tblock.extra_data.slots[i]) {
                     const item = tblock.extra_data.slots[i]
@@ -73,7 +137,7 @@ export default class Ticker {
                 }
             }
         }
-        
+        */
 
 
         return updated
