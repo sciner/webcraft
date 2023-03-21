@@ -1,11 +1,20 @@
 import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
+import type {PlayerInventory} from "../player_inventory.js";
+import type {Pointer} from "../../tools/gui/wm.js";
+import type {World} from "../world.js";
+import type {ServerClient} from "../server_client.js";
 
 export class BaseInventoryWindow extends BlankWindow {
     [key: string]: any;
 
-    constructor(x, y, w, h, id, title, text, inventory) {
+    world       : World
+    server ?    : ServerClient
+    inventory   : PlayerInventory
+    drag        : Pointer
+
+    constructor(x, y, w, h, id, title, text, inventory: PlayerInventory) {
 
         super(x, y, w, h, id, title, text)
 

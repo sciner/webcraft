@@ -6,7 +6,6 @@ import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
-import { Resources } from "../resources.js";
 import type { PlayerInventory } from "../player_inventory.js";
 
 //
@@ -68,7 +67,7 @@ export class AnvilWindow extends BaseCraftWindow {
         const h = 400
 
         super(0, 0, w, h, 'frmAnvil', null, null, inventory)
-        this.x *= this.zoom 
+        this.x *= this.zoom
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
@@ -89,7 +88,7 @@ export class AnvilWindow extends BaseCraftWindow {
             this.slot_margin   = UI_THEME.slot_margin * this.zoom
             this.slots_x       = UI_THEME.window_padding * this.zoom
             this.slots_y       = 62 * this.zoom
-        
+
             const szm = this.cell_size + this.slot_margin
             const inventory_y = this.h - szm * 4 - (UI_THEME.window_padding * this.zoom)
 
@@ -114,9 +113,14 @@ export class AnvilWindow extends BaseCraftWindow {
 
     // Обработчик закрытия формы
     onHide() {
-        this.clearCraft()
+        const thrown_items = this.clearCraft()
         // Save inventory
-        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.used_recipes, 'anvil')
+        this.world.server.InventoryNewState({
+            state: this.inventory.exportItems(),
+            used_recipes: this.used_recipes,
+            recipe_manager_type: 'anvil',
+            thrown_items
+        })
         this.used_recipes = []
     }
 

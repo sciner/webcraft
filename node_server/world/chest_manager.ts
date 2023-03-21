@@ -146,7 +146,7 @@ export class WorldChestManager {
         }
         if (newInventoryItems) {
             try {
-                const changeIsValid = player.inventory.sanitizeAndValidateClinetItemsChange(newInventoryItems, true, null, null);
+                const changeIsValid = player.inventory.sanitizeAndValidateClientItemsChange(newInventoryItems, true);
                 if(changeIsValid) {
                     // apply new
                     player.inventory.applyNewItems(newInventoryItems, false);
