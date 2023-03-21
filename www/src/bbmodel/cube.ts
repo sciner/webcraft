@@ -35,6 +35,10 @@ export class BBModel_Cube extends BBModel_Child {
                 flag |= QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.LOOK_AT_CAMERA_HOR | QUAD_FLAGS.NORMAL_UP
                 flag |= QUAD_FLAGS.FLAG_TORCH_FLAME
             }
+            // flag |= QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NORMAL_UP
+            if(['dandelion', 'poppy'].includes(this.model.json.name)) {
+                flag |= QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_LEAVES // | QUAD_FLAGS.NORMAL_UP;
+            }
             for(let f in faces) {
                 // remove empty faces
                 const face = faces[f]

@@ -145,7 +145,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.head = null;
         this.health = props.health;
 
-        this.animationScript = new PlayerAnimation();
+        this.animationScript = new PlayerAnimation(this)
 
         /**
          * @type {Map<string, ModelSlot>}

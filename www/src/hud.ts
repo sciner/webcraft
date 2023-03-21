@@ -1,4 +1,3 @@
-import {GradientGraphics, Label, Window, WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
@@ -8,6 +7,7 @@ import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISI
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import type {GameClass} from "./game.js";
+import { GradientGraphics, Label, Window, WindowManager } from "./ui/wm.js";
 
 // QuestActionType
 export enum QuestActionType {
@@ -434,6 +434,9 @@ export class HUD {
                 this.text += '\nPackets: ' + Qubatch.world.server.stat.out_packets.total + '/' + Qubatch.world.server.stat.in_packets.total; // + '(' + Qubatch.world.server.stat.in_packets.physical + ')';
                 if(render) {
                     this.text += '\nParticles: ' + Mesh_Effect.current_count;
+                    if(render.draw_mobs_stat) {
+                        this.text += `\nDraw mobs: ${render.draw_mobs_stat.count} ... ${Math.round(render.draw_mobs_stat.time * 100) / 100}ms`
+                    }
                     this.text += '\nDrawcalls: ' + render.renderBackend.stat.drawcalls;
                     if (render.renderBackend.stat.multidrawcalls) {
                         this.text += ' + ' + render.renderBackend.stat.multidrawcalls + '(multi)';
@@ -578,7 +581,7 @@ export class HUD {
         if(isMobileBrowser()) {
             return false;
         }
-        const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
+        const active_quest = Qubatch.hud.wm.getWindow('frmInGameMain').getTab('frmQuests').form.active;
         if(active_quest) {
             if(!active_quest.mt) {
                 const quest_text = [active_quest.title];

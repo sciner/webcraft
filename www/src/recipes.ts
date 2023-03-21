@@ -308,6 +308,7 @@ export class RecipeManager {
                     await import("./window/index.js").then((module) => {
                         // Recipe window
                         Qubatch.hud.wm.add(that.frmRecipe = new module.RecipeWindow(that))
+                        Qubatch.hud.wm.add(that.frmInventoryRecipe = new module.InventoryRecipeWindow(that))
                     });
                 }
             });

@@ -235,6 +235,7 @@ interface IBlockMaterial {
     resource_pack: any
     extra_data: any
     item: {
+        indicator? : any
         name: string
         emit_on_set: string,
         instrument_id? : string

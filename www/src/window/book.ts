@@ -1,4 +1,4 @@
-import { Button, Label, Window } from "../../tools/gui/wm.js";
+import { Button, Label, Window } from "../ui/wm.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
 

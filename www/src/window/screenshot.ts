@@ -1,4 +1,4 @@
-import { Button } from "../../tools/gui/wm.js";
+import { Button } from "../ui/wm.js";
 import { Lang } from "../lang.js";
 import { Helpers } from "../helpers.js";
 import { BlankWindow } from "./blank.js";

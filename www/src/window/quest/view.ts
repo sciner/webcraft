@@ -1,18 +1,16 @@
-import { Window } from "../../../tools/gui/wm.js";
+import { Window } from "../../ui/wm.js";
 import { BLOCK } from "../../blocks.js";
 import { Resources } from "../../resources.js";
 import { Helpers } from "../../helpers.js";
+import { UI_THEME } from "../../constant.js";
 
 // QuestActionType
-export class QuestActionType {
-    [key: string]: any;
-
-    static PICKUP       = 1; // Добыть
-    static CRAFT        = 2; // Скрафтить
-    static SET_BLOCK    = 3; // Установить блок
-    static USE_ITEM     = 4; // Использовать инструмент
-    static GOTO_COORD   = 5; // Достигнуть координат
-
+export enum QuestActionType {
+    PICKUP       = 1, // Добыть
+    CRAFT        = 2, // Скрафтить
+    SET_BLOCK    = 3, // Установить блок
+    USE_ITEM     = 4, // Использовать инструмент
+    GOTO_COORD   = 5, // Достигнуть координат
 }
 
 // QuestView
@@ -56,6 +54,13 @@ export class QuestView extends Window {
         //
         lblTitle.text = quest.title
         lDesc.text = quest.description
+
+        for(let w of ql.list.values()) {
+            w.style.font.color = UI_THEME.base_font.color
+        }
+        lDesc.style.font.color = UI_THEME.second_text_color
+        lblActions.style.font.color = UI_THEME.second_text_color
+        lblRewards.style.font.color = UI_THEME.second_text_color
         
         if(quest.is_completed) {
             lblTitle.text = `✅ ${lblTitle.text}`
@@ -94,17 +99,16 @@ export class QuestView extends Window {
         // rewards
         const rewards = []
         for(const item of quest.rewards) {
-            const block = BLOCK.fromId(item.block_id);
+            const block = BLOCK.fromId(item.block_id)
             if(block) {
-                rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt);
+                rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt)
             }
         }
         lblRewards.text = rewards.join('\r\n\r\n')
 
-        ql.visible = true;
+        ql.visible = true
 
-        //
-        ql.refresh();
+        ql.refresh()
 
     }
 

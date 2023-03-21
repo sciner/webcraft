@@ -32,6 +32,7 @@ import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { World } from "./world.js";
+import type { MobModel } from "./mob_model.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -55,6 +56,11 @@ const NIGHT_SHIFT_RANGE         = 16;
 // Shake camera on damage
 const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
+
+class DrawMobsStat {
+    count: int
+    time: float
+}
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
@@ -102,6 +108,7 @@ export class Renderer {
     weather_name: string;
     material_shadow: any;
     obstacle_pos: any;
+    draw_mobs_stat: DrawMobsStat = new DrawMobsStat()
 
     constructor(qubatchRenderSurfaceId : string) {
         this.xrMode             = false;
@@ -1041,12 +1048,12 @@ export class Renderer {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
     }
 
-    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string) {
+    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string, doubleface : boolean = false) {
         const model = Resources._bbmodels.get(bbname)
         if(!model) {
             return false
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name)
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface)
         bbmodel.setAnimation(animation_name)
         return this.meshes.add(bbmodel, key)
     }
@@ -1109,17 +1116,20 @@ export class Renderer {
     }
 
     // drawMobs
-    drawMobs(delta) {
+    drawMobs(delta : float) : DrawMobsStat {
         const mobs_count = this.world.mobs.list.size;
         if(mobs_count < 1) {
-            return;
+            return this.draw_mobs_stat;
         }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         let prev_chunk = null;
         let prev_chunk_addr = new Vector();
         const pos_of_interest = this.player.getEyePos();
-        for(let [id, mob] of this.world.mobs.list) {
+        const mobs_list : MobModel[] = this.world.mobs.list.values()
+        this.draw_mobs_stat.count = 0
+        this.draw_mobs_stat.time = performance.now()
+        for(let mob of mobs_list) {
             const ca = mob.chunk_addr;
             if(!prev_chunk || !prev_chunk_addr.equal(ca)) {
                 prev_chunk_addr.copyFrom(ca);
@@ -1127,8 +1137,11 @@ export class Renderer {
             }
             if(prev_chunk && prev_chunk.in_frustum) {
                 mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
+                this.draw_mobs_stat.count++
             }
         }
+        this.draw_mobs_stat.time = performance.now() - this.draw_mobs_stat.time
+        return this.draw_mobs_stat
     }
 
     // drawDropItems

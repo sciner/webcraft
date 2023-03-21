@@ -1,4 +1,4 @@
-import { Label, Window } from "../../tools/gui/wm.js";
+import { Label, Window } from "./wm.js";
 
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
@@ -36,19 +36,15 @@ export class TextBox {
 
         const CHAT_INPUT_FONT = 'UbuntuMono-Regular'
         this.chat_input = new Window(0, 0, 0, 0, 'chat_input')
-
         // create chat text input
         this.chat_input.style.font.family = CHAT_INPUT_FONT
         this.chat_input.style.font.size = 18
         this.chat_input.style.font.color = '#ffffff'
-        this.chat_input.style.background.color = '#000000aa'
-
         // measure line height
         this.chat_input.text = 'TW|'
         const tm = this.chat_input.getTextMetrics()
         this.line_height = tm.height + 14 * this.zoom
         hud.hudwindow.add(this.chat_input)
-
         // create cariage
         this.lbl_cariage = new Label(0, 0, 0, 0, 'lbl_cariage')
         this.lbl_cariage.style.font.family = CHAT_INPUT_FONT
@@ -59,7 +55,6 @@ export class TextBox {
         this.space_width = ctm.width
         this.lbl_cariage.visible = false
         hud.hudwindow.add(this.lbl_cariage)
-
     }
 
     draw(x, y, width, height, margin) {

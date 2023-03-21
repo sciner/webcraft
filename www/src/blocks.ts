@@ -836,7 +836,7 @@ export class BLOCK {
         const replace_block = existing_block && (block.name == existing_block.name)
         const original_props = Object.keys(block)
 
-        const calculated_props = ['is_solid', 'is_solid_for_fluid']
+        const calculated_props = ['is_solid', 'is_solid_for_fluid', 'transmits_light']
         if(existing_block && replace_block) {
             for(let prop_name of calculated_props) {
                 delete(existing_block[prop_name])

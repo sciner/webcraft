@@ -1,14 +1,19 @@
-import { SpriteAtlas } from "./core/sprite_atlas.js";
+// import { SpriteAtlas } from "./core/sprite_atlas.js";
 import { Resources } from "./resources.js";
-import { PlayerInventory } from "./player_inventory.js";
-import { MySprite, MyTilemap } from "../tools/gui/MySpriteRenderer.js";
-import { Effect } from "./block_type/effect.js";
-import { Window } from "../tools/gui/wm.js";
-import { CraftTableInventorySlot } from "./window/base_craft_window.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
-import type { Inventory } from "./inventory.js";
+// import { PlayerInventory } from "./player_inventory.js";
 
-const MAX_NAME_SHOW_TIME = 2000;
+import { Effect } from "./block_type/effect.js";
+import { CraftTableInventorySlot } from "./window/base_craft_window.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_LEGGINGS } from "./constant.js";
+import type { Inventory } from "./inventory.js";
+import type { SpriteAtlas } from "./core/sprite_atlas.js";
+import type { HUD } from "./hud.js";
+import type { PlayerInventory } from "./player_inventory.js";
+import { Label, MySprite, MyTilemap, Window } from "./ui/wm.js";
+
+const MAX_NAME_SHOW_TIME    = 2000;
+const SLOT_MARGIN_PERCENT   = 1
+const MARGIN                = 6
 
 //
 const LIVE_SHIFT_RANDOM = new Array(1024);
@@ -78,17 +83,25 @@ class Strings {
 }
 
 export class Hotbar {
-    [key: string]: any;
-    sprites: Dict<MySprite> = {};
-    inventory: Inventory
+    [key: string]: any
 
-    constructor(hud) {
+    sprites:                    Dict<MySprite> = {}
+    inventory:                  Inventory
+    hotbar_atlas:               SpriteAtlas
+    hud_atlas:                  SpriteAtlas
+    hud_sprites:                Dict<MySprite> = {}
+    inventory_slots_window:     Window
+    sx:                         float
+    sy:                         float
+    sprite_zoom:                float
+    bars:                       Dict<Label> = {}
 
-        // console.log(new Error().stack)
+    constructor(hud : HUD) {
 
-        this.hud = hud
-        this.last_damage_time = null
-        this.strings = new Strings()
+        this.hud                = hud
+        this.last_damage_time   = null
+        this.strings            = new Strings()
+        this.sprite_zoom        = .3 * this.zoom
 
         // Load hotbar atlases
         const all = []
@@ -129,7 +142,16 @@ export class Hotbar {
             }
 
             this.hotbar_atlas = Resources.atlas.get('hotbar')
+            
+            // HUD sprites
+            this.hud_atlas = Resources.atlas.get('hud')
+            for(let name of Object.keys(this.hud_atlas.sheet.data.frames)) {
+                this.hud_sprites[name] = new MySprite(this.hud_atlas.getSpriteFromMap(name), this.sprite_zoom)
+            }
+            this.sx = this.hud_sprites.slot_empty.width
+            this.sy = this.hud_sprites.slot_empty.height
 
+            // Hotbar
             for(const [name, scale] of Object.entries(spriteScale)) {
                 this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale * this.zoom)
             }
@@ -183,41 +205,86 @@ export class Hotbar {
 
     /**
     * Создание слотов для инвентаря
-    * @param int sz Ширина / высота слота
+    * @param sz Ширина / высота слота
     */
-    createInventorySlots(sz) {
+    createInventorySlots() {
 
-        sz *= this.zoom
+        const sz = this.sx
 
-        const inventory_slots = this.inventory_slots = new Window(0, 0, INVENTORY_HOTBAR_SLOT_COUNT * sz, sz, 'hotbar_inventory_slots')
-        // inventory_slots.style.background.color = '#00000044'
-        inventory_slots.auto_center = false
-        inventory_slots.catchEvents = false
+        // bars
+        this.bars = {}
+        const bars_base_sprite = this.hud_atlas.getSpriteFromMap('bars_base') // this.hud_sprites.bars_base
+        const sprite_zoom = this.sprite_zoom
+        const bars_base_window = this.bars_base_window = new Window(MARGIN * this.zoom, 0, bars_base_sprite.width * sprite_zoom, bars_base_sprite.height * sprite_zoom, 'bars_base')
+        bars_base_window.catchEvents = false
+        bars_base_window.auto_center = false
+        bars_base_window.setBackground(this.hud_atlas.getSpriteFromMap('bars_base'))
+        let y = 6 * this.zoom
+        for(let item of [{id: 'hp', sprite: 'hpbar_back', sprite_value: 'hpbar'}, {id: 'hunger', sprite: 'hungerbar_back', sprite_value: 'hungerbar'}]) {
+            const sprite = this.hud_atlas.getSpriteFromMap(item.sprite)
+            const x = 28 * this.zoom
+            const w = sprite.width * sprite_zoom
+            const h = sprite.height * sprite_zoom
+            //
+            const bar = new Label(x, y, w, h, item.id)
+            bar.setBackground(sprite)
+            //
+            const bar_value = new Label(0, 0, w, h, item.id)
+            bar_value.setBackground(this.hud_atlas.getSpriteFromMap(item.sprite_value))
+            bar.add(bar_value)
+            //
+            bars_base_window.add(bar)
+            this.bars[item.id] = bar_value
+            y += h + 12 * sprite_zoom
+        }
+        this.hud.wm.addChild(bars_base_window)
+
+        this.armors = {}
+        const armor_base_sprite = this.hud_atlas.getSpriteFromMap('armor_0') 
+        const armor_base_window = this.armor_base_window = new Window(MARGIN * this.zoom, 0, armor_base_sprite.width * sprite_zoom, armor_base_sprite.height * sprite_zoom, 'armor_base')
+        armor_base_window.catchEvents = false
+        armor_base_window.auto_center = false
+        armor_base_window.setBackground(armor_base_sprite)
+        this.armors[PLAYER_ARMOR_SLOT_HELMET] = new Label( 8.5 * this.zoom, 0, 47 * sprite_zoom, 38 * sprite_zoom, 'armor_helmet')
+        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_HELMET])
+        this.armors[PLAYER_ARMOR_SLOT_CHESTPLATE] = new Label( 0, 12 * this.zoom, 104 * sprite_zoom, 71 * sprite_zoom, 'armor_chestplate')
+        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_CHESTPLATE])
+        this.armors[PLAYER_ARMOR_SLOT_LEGGINGS] = new Label( 7.5 * this.zoom, 33 * this.zoom, 53 * sprite_zoom, 62 * sprite_zoom, 'armor_leggins')
+        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_LEGGINGS])
+        this.armors[PLAYER_ARMOR_SLOT_BOOTS] = new Label( 7.5 * this.zoom, 52 * this.zoom, 53 * sprite_zoom, 26 * sprite_zoom, 'armor_boots')
+        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_BOOTS])
+        this.hud.wm.addChild(armor_base_window)
+
+        const inventory_slots_window = this.inventory_slots_window = new Window(bars_base_window.x + bars_base_window.w + MARGIN * this.zoom, 0, INVENTORY_HOTBAR_SLOT_COUNT * (sz * SLOT_MARGIN_PERCENT) - (sz * SLOT_MARGIN_PERCENT - sz), sz, 'hotbar_inventory_slots')
+        inventory_slots_window.auto_center = false
+        inventory_slots_window.catchEvents = false
+        inventory_slots_window.slots = []
 
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            const lblSlot = new CraftTableInventorySlot(i * sz, 0, sz, sz, `lblSlot${i}`, null, null, this, i)
-            inventory_slots.add(lblSlot)
+            const lblSlot = new CraftTableInventorySlot(i * (sz * SLOT_MARGIN_PERCENT), 0, sz, sz, `lblSlot${i}`, null, null, this, i)
+            lblSlot.slot_empty  = 'slot_empty'
+            lblSlot.slot_full   = 'slot_full'
+            lblSlot.slot_locked = 'slot_empty'
+            lblSlot.style.background.color = '#00000000'
+            lblSlot.style.border.hidden = true
+            inventory_slots_window.add(lblSlot)
+            inventory_slots_window.slots.push(lblSlot)
         }
-        this.hud.wm.addChild(inventory_slots)
+        this.hud.wm.addChild(inventory_slots_window)
 
     }
 
-    get zoom() {
+    get zoom() : float {
         return UI_ZOOM * Qubatch.settings.window_size / 100
     }
 
-    /**
-     * @param {PlayerInventory} inventory
-     */
-    setInventory(inventory) {
-
+    setInventory(inventory : PlayerInventory) {
         this.inventory = inventory
-
-        this.createInventorySlots(40)
+        this.createInventorySlots()
     }
 
     //
-    damage(damage_value, reason_text) {
+    damage(damage_value : float, reason_text : string) {
         this.last_damage_time = performance.now();
         console.error('error_not_implemented', damage_value, reason_text);
         this.inventory.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
@@ -258,34 +325,38 @@ export class Hotbar {
         }
     }
 
-    drawHUD(hud) {
+    drawHUD(hud : HUD) {
 
         this.tilemap.clear()
 
         const player  = this.inventory.player;
-
+        const mayGetDamaged = player.game_mode.mayGetDamaged()
         const visible = !player.game_mode.isSpectator() && hud.isActive()
 
-        this.inventory_slots.visible = visible
+        this.inventory_slots_window.visible = visible
+        this.bars_base_window.visible = visible && mayGetDamaged
+        this.armor_base_window.visible = visible && mayGetDamaged
 
         if(!visible) {
             return false;
         }
 
         // Inventory slots
-        this.inventory_slots.transform.position.set(hud.width / 2 - this.inventory_slots.w / 2, hud.height - this.inventory_slots.h - 6 * this.zoom)
+        // this.inventory_slots_window.transform.position.set(hud.width / 2 - this.inventory_slots_window.w / 2, hud.height - this.inventory_slots_window.h - MARGIN * this.zoom)
+        this.inventory_slots_window.transform.position.set(
+            mayGetDamaged ? this.bars_base_window.x + this.bars_base_window.w + MARGIN * this.zoom : MARGIN * this.zoom,
+            hud.height - this.inventory_slots_window.h - MARGIN * this.zoom
+        )
         if(this.inventory_update_number != this.inventory.update_number) {
             this.inventory_update_number = this.inventory.update_number
-            this.inventory_slots.children.map(w => {
-                if(w instanceof CraftTableInventorySlot) {
-                    w.setItem(w.getItem(), false)
-                }
-            })
+            for(let i = 0; i < this.inventory_slots_window.slots.length; i++) {
+                const w = this.inventory_slots_window.slots[i]
+                w.setItem(w.getItem(), false)
+            }
         }
 
         let hotbar_height = 0
 
-        const mayGetDamaged = player.game_mode.mayGetDamaged();
         if (mayGetDamaged) {
             const left = 180 * this.zoom
             const right = 15 * this.zoom
@@ -298,39 +369,73 @@ export class Hotbar {
             // моргание от урона
             const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
             const low_live = live < 3
-            if (player.getEffectLevel(Effect.POISON) > 0) {
-                this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live_poison, this.sprites.live_poison_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
-            } else {
-                this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
-            }
+
+            this.bars_base_window.transform.position.y = this.inventory_slots_window.transform.position.y + this.bars_base_window.h * .03
+
+            this.armor_base_window.transform.position.y = this.inventory_slots_window.transform.position.y - 70 *this.zoom
+
+            this.bars.hp.clip(0, 0, this.bars.hp.w * (live / 20.))
+
             // еда
             const food = player.indicators.food;
-            if (player.getEffectLevel(Effect.HUNGER) > 0) {
-                this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food_poison, this.sprites.food_poison_half, this.sprites.food_bg_black, null, false, false, true);
-            } else {
-                this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
-            }
+            this.bars.hunger.clip(0, 0, this.bars.hunger.w * (food / 20.))
+
+            // const x = MARGIN * this.zoom
+            // const y = this.inventory_slots_window.y
+            // this.tilemap.drawImage(this.hud_sprites.bars_base, x, y)
+            // this.bars.hp_bar
+            // this.bars.hunger_bar
+
+            // this.tilemap.drawImage(this.hud_sprites.hpbar_back, x + 28 * this.zoom, y + 6 * this.zoom)
+            // this.tilemap.drawImage(this.hud_sprites.hungerbar_back, x + 28 * this.zoom, y + (6 + 16) * this.zoom)
+
+            // if (player.getEffectLevel(Effect.POISON) > 0) {
+            //     this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live_poison, this.sprites.live_poison_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+            // } else {
+            //     this.drawStrip(hud.width / 2 - left, hud.height - bottom_one_line , live, this.sprites.live, this.sprites.live_half, this.sprites.live_bg_black, this.sprites.live_bg_white, is_damage, low_live)
+            // }
+            // // еда
+            // const food = player.indicators.food;
+            // if (player.getEffectLevel(Effect.HUNGER) > 0) {
+            //     this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food_poison, this.sprites.food_poison_half, this.sprites.food_bg_black, null, false, false, true);
+            // } else {
+            //     this.drawStrip(hud.width / 2 + right, hud.height - bottom_one_line , food, this.sprites.food, this.sprites.food_half, this.sprites.food_bg_black, null, false, false, true);
+            // }
+
             // кислород
             const oxygen = player.indicators.oxygen;
             if (oxygen < 20) {
                 this.drawStrip(hud.width / 2 + right,  hud.height - bottom_two_line, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
             }
-            // броня
-            const armor = this.inventory.getArmorLevel()
-            if (armor > 0) {
-                this.drawStrip(hud.width / 2 - left, hud.height - bottom_two_line, armor, this.sprites.armor, this.sprites.armor_half, this.sprites.armor_bg_black)
+
+            for(const slot_index of [PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET]) {
+                if (this.armors[slot_index]) {
+                    const power = this.inventory.getArmorPower(slot_index)
+                    if (power > 70) {
+                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_green')
+                    } else if (power > 40) {
+                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_yellow')
+                    } else if (power > 0) {
+                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_red')
+                    } else {
+                        this.armors[slot_index].setBackground(null)
+                    }
+                }
             }
         }
 
         // хотбар и селектор
-        const sx = this.sprites.slot.width
-        const sy = this.sprites.slot.height + 5 * this.zoom
-        for (let i = 0; i < 9; i++) {
-            this.tilemap.drawImage(this.sprites.slot, (hud.width - sx * 9) / 2 + i * sx, hud.height - sy)
-        }
-        for (let i = 0; i < 9; i++) {
+        const sx = this.sx
+        const sy = this.sy
+        for (let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            const x = this.inventory_slots_window.x + i * (sx * SLOT_MARGIN_PERCENT)
+            const y = this.inventory_slots_window.y
+            // item
+            // const item = this.inventory_slots_window.slots[i].getItem()
+            // this.tilemap.drawImage(item ? this.hud_sprites.slot_full : this.hud_sprites.slot_empty, x, y)
+            // selector
             if (i == this.inventory.getRightIndex()) {
-                this.tilemap.drawImage(this.sprites.selector, (hud.width - sx * 9) / 2 + i * sx - 2 * this.zoom, hud.height - sy - 2 * this.zoom)
+                this.tilemap.drawImage(this.hud_sprites.slot_selection, x, y)
             }
         }
 
@@ -356,6 +461,7 @@ export class Hotbar {
         this.strings.draw(this.lblHotbarText, this.lblHotbarTextShadow)
 
     }
+
 
     drawEffects(hud) {
         const margin = 4 * this.zoom

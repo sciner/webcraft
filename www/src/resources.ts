@@ -134,7 +134,7 @@ export class Resources {
          * @type {Object.<string, SpriteAtlas>}
          */
         this.atlas = new Map()
-        for(let name of ['hotbar', 'bn', 'icons']) {
+        for(let name of ['hotbar', 'bn', 'icons', 'hud']) {
             all.push(new Promise(async (resolve, reject) => {
                 const atlas_files = await Promise.all([
                     fetch(`data/atlas/${name}/atlas.json`).then(response => response.json()), // .then(json => { atlas.map = json})

@@ -1,20 +1,33 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label, Window } from "../ui/wm.js";
 import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
-import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
+import type { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Lang } from "../lang.js";
+import type { Inventory } from "../inventory.js";
+import type { RecipeManager } from "../recipes.js";
+import type { RecipeWindow } from "./recipe.js";
+import { Resources } from "../resources.js";
+
+const SHIFT_Y = 15
 
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
     [key: string]: any;
 
-    constructor(inventory, recipes) {
+    frmRecipe : RecipeWindow
+    hud_atlas : SpriteAtlas
 
-        super(0, 0, 352, 332, 'frmCraft', null, null, inventory);
+    constructor(inventory : Inventory, recipes : RecipeManager) {
+
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCraft', null, null, inventory);
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
+
+        this.setBackground('./media/gui/form-quest.png')
+
+        this.hud_atlas = Resources.atlas.get('hud')
         this.recipes = recipes
 
         // Craft area
@@ -25,47 +38,65 @@ export class CraftTable extends BaseCraftWindow {
             }
         }
 
-        // Create sprite atlas
-        this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/form-crafting-table.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
-        })
-
-        // Add buttons
-        this.addRecipesButton()
+        // Ширина / высота слота
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
+        this.cell_size      = UI_THEME.window_slot_size * this.zoom
+        this.slot_margin    = UI_THEME.window_padding * this.zoom
+        this.slots_x        = UI_THEME.window_padding * this.zoom
+        this.slots_y        = 62 * this.zoom;
 
-        // Создание слотов для крафта
-        this.createCraft(this.cell_size);
-
-        // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size);
-
-        // Итоговый слот (то, что мы получим)
-        this.createResultSlot(246 * this.zoom, 68 * this.zoom);
+        const sz            = this.cell_size
+        const szm           = sz + UI_THEME.slot_margin * this.zoom
+        const sx            = UI_THEME.window_padding * this.zoom * 3.5 + szm
+        const sy            = (34 + SHIFT_Y) * this.zoom
         
         // слоты (лабел) для подсказок
-        this.addHelpSlots()
+        this.addHelpSlots(sx, sy, sz, szm)
 
-        // Add labels to window
-        const lbl1 = new Label(59 * this.zoom, 10 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.crafting);
-        const lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl2', null, Lang.inventory);
-        this.add(lbl1)
-        this.add(lbl2)
+        // Создание слотов для крафта
+        this.createCraft(sx - szm, sy, sz, szm)
+
+        // Calc backpack slots width
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+
+        // Создание слотов для инвентаря
+        const x = this.w / this.zoom - slots_width
+        const y = 35 + SHIFT_Y
+        this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding)
+
+        // Итоговый слот (то, что мы получим)
+        this.createResultSlot(UI_THEME.window_padding * this.zoom * 3.5 + szm * 4, (34 + SHIFT_Y) * this.zoom + szm)
+
+        const result_arrow = new Window(UI_THEME.window_padding * this.zoom * 3.5 + szm * 3, (34 + SHIFT_Y) * this.zoom + szm, sz, sz, 'resultArrow')
+        this.add(result_arrow)
+        result_arrow.setIcon(this.hud_atlas.getSpriteFromMap('arrow_next_locked'), 'stretchcenter', .25)
+
+        const lblBackpackWidth = (slots_width - UI_THEME.window_padding) * this.zoom
+
+        const labels = [
+            // new Label(UI_THEME.window_padding * this.zoom * 3.5, (UI_THEME.window_padding + SHIFT_Y) * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.crafting_table),
+            new Label(UI_THEME.window_padding * this.zoom * 3.5, (UI_THEME.window_padding + SHIFT_Y) * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.craft),
+            new Label(x * this.zoom, (UI_THEME.window_padding + SHIFT_Y) * this.zoom, lblBackpackWidth, 30 * this.zoom, 'lblBackpack', null, Lang.backpack),
+        ]
+
+        for(let lbl of labels) {
+            lbl.style.font.color = UI_THEME.label_text_color
+            lbl.style.font.size = UI_THEME.base_font.size
+            this.add(lbl)
+        }
 
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
             const that = this
             // Close button
-            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial';
-            btnClose.style.background.image = image;
-            btnClose.style.background.image_size_mode = 'stretch';
+            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
+            btnClose.style.background.image = image
+            btnClose.style.background.image_size_mode = 'stretch'
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide();
+                that.hide()
             }
             that.add(btnClose)
         })
@@ -73,62 +104,65 @@ export class CraftTable extends BaseCraftWindow {
     }
 
     // onShow
-    onShow(args) {
+    onShow(args : any) {
+
+        if(!this.frmRecipe) {
+            const form = this.inventory.player.inventory.recipes.frmRecipe
+            form.style.background.image = null
+            form.parent.delete(form.id)
+            form.x = UI_THEME.window_padding * this.zoom
+            form.y = (140 + SHIFT_Y) * this.zoom
+            this.frmRecipe = form
+            this.add(form)
+        }
+
+        // this.inventory.player.inventory.recipes.frmRecipe.visible = false
         Qubatch.releaseMousePointer()
         this.setHelperSlots(null)
         super.onShow(args)
+
+        this.frmRecipe.assignCraftWindow(this)
+        this.frmRecipe.show()
+
     }
 
     // Обработчик закрытия формы
     onHide() {
-        // Close recipe window
-        this.getRoot().getWindow('frmRecipe').hide()
         this.clearCraft()
         // Save inventory
         Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
         super.onHide()
     }
 
-    // Recipes button
-    addRecipesButton() {
-        const ct = this;
-        let btnRecipes = new Button(10 * this.zoom, 68 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
-        btnRecipes.tooltip = 'Toggle recipes';
-        btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5);
-        btnRecipes.onMouseDown = (e) => {
-            let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
-            frmRecipe.assignCraftWindow(this);
-            frmRecipe.toggleVisibility();
-            this.setHelperSlots(null);
-        }
-        ct.add(btnRecipes);
-    }
-
     /**
     * Создание слотов для крафта
-    * @param int sz Ширина / высота слота
     */
-    createCraft(sz) {
-        const ct = this;
-        if(ct.craft) {
-            console.error('createCraftSlots() already created');
-            return;
+    createCraft(sx : float, sy : float, sz : float, szm : float) {
+
+        const ct = this
+
+        if(this.craft) {
+            console.error('error_inventory_craft_slots_already_created')
+            return
         }
-        let sx          = 58 * this.zoom;
-        let sy          = 32 * this.zoom;
-        let xcnt        = 3;
+
+        const xcnt = 3
+
         this.craft = {
             slots: [null, null, null, null, null, null, null, null, null]
-        };
+        }
+
         for(let i = 0; i < ct.craft.slots.length; i++) {
+            const x = sx + (i % xcnt) * szm
+            const y = sy + Math.floor(i / xcnt) * szm
             const options = {
                 onMouseEnterBackroundColor: '#ffffff33'
-            };
-            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
-                'lblCraftRecipeSlot' + i, null, '' + i, this, null, options);
-            lblSlot.is_craft_slot = true;
-            ct.add(this.craft.slots[i] = lblSlot);
+            }
+            let lblSlot = new CraftTableRecipeSlot(x, y, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null, options)
+            lblSlot.is_craft_slot = true
+            ct.add(this.craft.slots[i] = lblSlot)
         }
+
     }
 
     getSlots() {

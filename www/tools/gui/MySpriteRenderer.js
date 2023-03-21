@@ -78,6 +78,12 @@ void main() {
                  )), 7.) * 25.);
                  
         outColor.rgb += k.rgb * outColor.a * vec3(1.5, 0., 6.);
+    } else if (tintMode == 2) {
+        if(outColor.a > 0.) {
+            float c = (outColor.r + outColor.g + outColor.b) / 3.;
+            outColor.rgba = vec4(c, c, c, .25);
+            // outColor.rgba = mix(outColor.rgba, vec4(1.0, 0., 0., 1.), .1);
+        }
     }
 }
 `;
