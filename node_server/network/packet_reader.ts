@@ -50,7 +50,8 @@ export interface ICommandReader {
 //
 export class PacketReader {
     static CMDS_POSSIBLE_IF_DEAD: int[] = [ServerClient.CMD_RESURRECTION, ServerClient.CMD_CHUNK_LOAD,
-        ServerClient.CMD_PLAYER_STATE // this command must read every packet because of delta compressor
+        ServerClient.CMD_PLAYER_CONTROL_SESSION,// this command must read every packet to ensure we don't miss when the player switches the session
+        ServerClient.CMD_PLAYER_CONTROL_UPDATE  // this command must read every packet because of delta compressor
     ]
 
     queue: PacketRequerQueue;

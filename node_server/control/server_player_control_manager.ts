@@ -130,11 +130,11 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         }
         const now = MonotonicUTCDate.now()
         if (data.baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS) {
-            throw 'baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS'
+            throw `baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS ${data.baseTime} ${now} ${Date.now()}`
         }
         // ensure the server doesn't freeze on calculations
         if (data.baseTime < now - MAX_PACKET_LAG_SECONDS * 1000) {
-            throw 'baseTime > now + MAX_PACKET_AHEAD_OF_TIME_MS'
+            throw `baseTime < now - MAX_PACKET_LAG_SECONDS * 1000 ${data.baseTime} ${now} ${Date.now()}`
         }
         this.physicsSessionInitialized = true
         this.baseTime = data.baseTime
