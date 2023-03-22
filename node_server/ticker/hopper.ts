@@ -34,7 +34,7 @@ export default class Ticker {
                     return true
                 }
             }
-            if (neighbours.UP.id == bm.CHEST.id) {
+            if (neighbours.UP && neighbours.UP.id == bm.CHEST.id) {
                 for (let i = 0; i < 27; i++) {
                     if (neighbours.UP.extra_data.slots[i]?.id == id) {
                         neighbours.UP.extra_data.slots[i].count--
@@ -50,7 +50,7 @@ export default class Ticker {
         }
 
         const incItem = (id) => {
-            if (neighbours.DOWN.id == bm.CHEST.id) {
+            if (neighbours.DOWN && neighbours.DOWN.id == bm.CHEST.id) {
                 for (let i = 0; i < 27; i++) {
                     if (neighbours.DOWN.extra_data.slots[i]?.id == id && neighbours.DOWN.extra_data.slots[i].count < 64) {
                         neighbours.DOWN.extra_data.slots[i].count++
@@ -68,8 +68,77 @@ export default class Ticker {
                     }
                 } 
             }
+            return false
         }
 
+        const isMoveItem = (item) => {
+            if (neighbours.UP && neighbours.UP.id == bm.CHEST.id) {
+                for (let i = 0; i < 27; i++) {
+                    if (neighbours.UP.extra_data.slots[i]?.id == item.id) {
+                        neighbours.UP.extra_data.slots[i].count--
+                        if (neighbours.UP.extra_data.slots[i].count <= 0) {
+                            delete (neighbours.UP.extra_data.slots[i])
+                        }
+                        updated.push({ pos: neighbours.DOWN.posworld, item: neighbours.DOWN.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                        world.chests.sendChestToPlayers(neighbours.DOWN, null)
+                        return true
+                    }
+                }
+            }
+        }
+
+        /*const isMoveItem = (item) => {
+            if (neighbours.DOWN && neighbours.DOWN.id == bm.CHEST.id) {
+                for (let i = 0; i < 27; i++) {
+                    if (neighbours.DOWN.extra_data.slots[i]?.id == item.id && neighbours.DOWN.extra_data.slots[i].count < 64) {
+                        neighbours.DOWN.extra_data.slots[i].count++
+                        updated.push({ pos: neighbours.DOWN.posworld, item: neighbours.DOWN.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                        world.chests.sendChestToPlayers(neighbours.DOWN, null)
+                        return true
+                    }
+                }
+                for (let i = 0; i < 27; i++) {
+                    if (!neighbours.DOWN.extra_data.slots[i]) {
+                        neighbours.DOWN.extra_data.slots[i] = {id: item.id, count: 1}
+                        updated.push({ pos: neighbours.DOWN.posworld, item: neighbours.DOWN.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                        world.chests.sendChestToPlayers(neighbours.DOWN, null)
+                        return true
+                    }
+                } 
+            }
+            return false
+        }
+
+        // Проверка что в воронке что то есть
+        for (let i = 0; i < 5; i++) {
+            if (tblock.extra_data.slots[i] && isMoveItem(tblock.extra_data.slots[i])) {
+                tblock.extra_data.slots[i].count--
+                if (tblock.extra_data.slots[i].count <= 0) {
+                    delete (tblock.extra_data.slots[i])
+                }
+                updated.push({ pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                world.chests.sendChestToPlayers(tblock, null)
+                return updated
+            }
+        }
+
+        // Если наверху сундук
+        if (neighbours.UP && neighbours.UP.id == bm.CHEST.id) {
+            for (let i = 0; i < 27; i++) {
+                if (neighbours?.UP?.extra_data?.slots[i]?.id && isMoveItem(neighbours.UP.extra_data.slots[i])) {
+                    neighbours.UP.extra_data.slots[i].count--
+                    if (neighbours.UP.extra_data.slots[i].count <= 0) {
+                        delete(neighbours.UP.extra_data.slots[i])
+                    }
+                    updated.push({ pos: neighbours.UP.posworld, item: neighbours.UP.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                    world.chests.sendChestToPlayers(neighbours.UP, null)
+                    return updated
+                }
+            }
+        }
+
+
+/*
        // if ((bm.CHEST.id == neighbours.UP.id)) {
          //   console.log(neighbours.UP.extra_data)
         //}
@@ -85,7 +154,7 @@ export default class Ticker {
             }
         }
 
-        /*const getStackItem = () => {
+        const getStackItem = () => {
             for (let i = 0; i < 5; i++) {
                 if (tblock.extra_data.slots[i]) {
                     const item = tblock.extra_data.slots[i]
