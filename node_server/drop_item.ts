@@ -212,6 +212,7 @@ export class DropItem {
             if(this.motion === MOTION_MOVED) {
                 this.motion = MOTION_JUST_STOPPED;
                 this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
+                this.goItemHopper()
             } else {
                 this.motion = MOTION_STAYED;
             }
@@ -262,6 +263,49 @@ export class DropItem {
                 : underConstruction.updateDropItemRows;
             list.push(row);
             this.dirty = DropItem.DIRTY_CLEAR;
+        }
+    }
+
+    goItemHopper(resultBlock = null) {
+        const setSlot = (item) => {
+            for (let i = 0; i < 5; i++) {
+                if (block?.extra_data?.slots[i]?.id == item.id && (block.extra_data.slots[i].count + item.count) < 64) {
+                    block.extra_data.slots[i].count += item.count
+                    return true
+                }
+            }
+            return false
+        }
+        const addSlot = (item) => {
+            for (let i = 0; i < 5; i++) {
+                if (!block.extra_data.slots[i]) {
+                    block.extra_data.slots[i] = { id: item.id, count: item.count }
+                    return true
+                }
+            }
+            return false
+        }
+        const world = this.getWorld()
+        const bm = world.block_manager
+        const block = this.inChunk.getBlock(this.pos.offset(0, -1, 0), null, null, resultBlock)
+        if (block.id == bm.HOPPER.id) {
+            let update = false
+            for (const item of this.items) {
+                if (setSlot(item)) {
+                    update = true
+                } else if (addSlot(item)) {
+                    update = true
+                }
+            }
+            if (update) {
+                this.#world.chunks.itemWorld.delete(this, true)
+                const packetsA = [{
+                    name: ServerClient.CMD_DROP_ITEM_DELETED,
+                    data: [this.entity_id]
+                }];
+                this.inChunk.sendAll(packetsA, []);
+                world.chests.sendChestToPlayers(block, null)
+            }
         }
     }
 

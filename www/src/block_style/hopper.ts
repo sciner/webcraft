@@ -37,7 +37,7 @@ export default class style {
             return
         }
 
-        const hopping_blocks = [bm.FURNACE.id, bm.CHEST.id]
+        const hopping_blocks = [bm.FURNACE.id, bm.CHEST.id, bm.HOPPER.id]
         const c_up = bm.calcMaterialTexture(block.material, DIRECTION.UP)
         const c_side = bm.calcMaterialTexture(block.material, DIRECTION.FORWARD)
         const c_inside = bm.calcMaterialTexture(block.material, DIRECTION.EAST)

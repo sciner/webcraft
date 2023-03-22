@@ -30,18 +30,38 @@ export default class Ticker {
             return true
         }
 
-        const updateSlot = (block, i, id, is_add = false) => {
-            if (is_add && !block.extra_data.slots[i]) {
-                block.extra_data.slots[i] = {id:id, count: 1}
-                updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
-                world.chests.sendChestToPlayers(block, null)
-                return true
-            }
-            if (block?.extra_data?.slots[i]?.id == id && block.extra_data.slots[i].count < 64 && !is_add) {
+        const updateSlot = (block, id, i) => {
+            if (block?.extra_data?.slots[i]?.id == id && block.extra_data.slots[i].count < 64) {
                 block.extra_data.slots[i].count++
                 updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
                 world.chests.sendChestToPlayers(block, null)
                 return true
+            }
+            if (!block.extra_data.slots[i]) {
+                block.extra_data.slots[i] = { id: id, count: 1 }
+                updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                world.chests.sendChestToPlayers(block, null)
+                return true
+            }
+            return false
+        }
+
+        const updateSlots = (block, id, n) => {
+            for (let i = 0; i < n; i++) {
+                if (block?.extra_data?.slots[i]?.id == id && block.extra_data.slots[i].count < 64) {
+                    block.extra_data.slots[i].count++
+                    updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                    world.chests.sendChestToPlayers(block, null)
+                    return true
+                }
+            }
+            for (let i = 0; i < n; i++) {
+                if (!block.extra_data.slots[i]) {
+                    block.extra_data.slots[i] = {id:id, count: 1}
+                    updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
+                    world.chests.sendChestToPlayers(block, null)
+                    return true
+                }
             }
             return false
         }
@@ -50,75 +70,86 @@ export default class Ticker {
             if (isFullHopper(id)) {
                 return false
             }
+            //Если что то внизу
             if (neighbours.DOWN && cd <= 3) {
                 // Сундук
-                if (neighbours.DOWN.id == bm.CHEST.id) {
-                    for (let i = 0; i < 27; i++) {
-                        if (updateSlot(neighbours.DOWN, i, id)) {
-                            return true
-                        }
-                    }
-                    for (let i = 0; i < 27; i++) {
-                        if (updateSlot(neighbours.DOWN, i, id, true)) {
-                            return true
-                        }
-                    }
-                }
-                // печка (продукция)
-                if (neighbours.DOWN.id == bm.FURNACE.id) {
-                    if (updateSlot(neighbours.DOWN, 0, id)) {
-                        return true
-                    }
-                    if (updateSlot(neighbours.DOWN, 0, id, true)) {
-                        return true
-                    }
-                }
-            }
-            // печка сбоку
-            if (neighbours.WEST && neighbours.WEST.id == bm.FURNACE.id && cd == 13) {
-                if (updateSlot(neighbours.WEST, 1, id)) {
+                if (neighbours.DOWN.id == bm.CHEST.id && updateSlots(neighbours.DOWN, id, 27)) {
                     return true
                 }
-                if (updateSlot(neighbours.WEST, 1, id, true)) {
+                // печка
+                if (neighbours.DOWN.id == bm.FURNACE.id && updateSlot(neighbours.DOWN, id, 0)) {
+                    return true
+                }
+                // воронка
+                if (neighbours.DOWN.id == bm.HOPPER.id && updateSlots(neighbours.DOWN, id, 5)) {
                     return true
                 }
             }
-            if (neighbours.EAST && neighbours.EAST.id == bm.FURNACE.id && cd == 22) {
-                if (updateSlot(neighbours.EAST, 1, id)) {
+            // если что то на западе
+            if (neighbours.WEST && cd == 13) {
+                // печка
+                if (neighbours.WEST.id == bm.FURNACE.id && updateSlot(neighbours.WEST, id, 1)) {
                     return true
                 }
-                if (updateSlot(neighbours.EAST, 1, id, true)) {
+                // воронка
+                if (neighbours.WEST.id == bm.HOPPER.id && updateSlots(neighbours.WEST, id, 5)) {
+                    return true
+                }
+                // Сундук
+                if (neighbours.WEST.id == bm.CHEST.id && updateSlots(neighbours.WEST, id, 27)) {
                     return true
                 }
             }
-            if (neighbours.NORTH && neighbours.NORTH.id == bm.FURNACE.id && cd == 7) {
-                if (updateSlot(neighbours.NORTH, 1, id)) {
+            // если что то на востоке
+            if (neighbours.EAST && cd == 22) {
+                // печка
+                if (neighbours.EAST.id == bm.FURNACE.id && updateSlot(neighbours.EAST, id, 1)) {
                     return true
                 }
-                if (updateSlot(neighbours.NORTH, 1, id, true)) {
+                // воронка
+                if (neighbours.EAST.id == bm.HOPPER.id && updateSlots(neighbours.EAST, id, 5)) {
+                    return true
+                }
+                // Сундук
+                if (neighbours.EAST.id == bm.CHEST.id && updateSlots(neighbours.EAST, id, 27)) {
                     return true
                 }
             }
-            if (neighbours.SOUTH && neighbours.SOUTH.id == bm.FURNACE.id && cd == 18) {
-                if (updateSlot(neighbours.SOUTH, 1, id)) {
+            // если что то на севере
+            if (neighbours.NORTH && cd == 7) {
+                // печка
+                if (neighbours.NORTH.id == bm.FURNACE.id && updateSlot(neighbours.NORTH, id, 1)) {
                     return true
                 }
-                if (updateSlot(neighbours.SOUTH, 1, id, true)) {
+                // воронка
+                if (neighbours.NORTH.id == bm.HOPPER.id && updateSlots(neighbours.NORTH, id, 5)) {
+                    return true
+                }
+                // Сундук
+                if (neighbours.NORTH.id == bm.CHEST.id && updateSlots(neighbours.NORTH, id, 27)) {
+                    return true
+                }
+            }
+            // если что то на юге
+            if (neighbours.SOUTH && cd == 18) {
+                // печка
+                if (neighbours.SOUTH.id == bm.FURNACE.id && updateSlot(neighbours.SOUTH, id, 1)) {
+                    return true
+                }
+                // воронка
+                if (neighbours.SOUTH.id == bm.HOPPER.id && updateSlots(neighbours.SOUTH, id, 5)) {
+                    return true
+                }
+                // Сундук
+                if (neighbours.SOUTH.id == bm.CHEST.id && updateSlots(neighbours.SOUTH, id, 27)) {
                     return true
                 }
             }
             if (is_hopper) {
                 return false
             }
-            for (let i = 0; i < 5; i++) {
-                if (updateSlot(tblock, i, id)) {
-                    return true
-                }
-            }
-            for (let i = 0; i < 5; i++) {
-                if (updateSlot(tblock, i, id, true)) {
-                    return true
-                }         
+            if (updateSlots(tblock, id, 5)) {
+                return true
             }
             return false
         }
@@ -143,7 +174,6 @@ export default class Ticker {
                 if (neighbours.UP.extra_data.slots[2].count <= 0) {
                     delete (neighbours.UP.extra_data.slots[2])
                 }
-                updated.push({ pos: neighbours.UP.posworld, item: neighbours.UP.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
                 world.chests.sendChestToPlayers(neighbours.UP, null)
                 return updated
             }
@@ -157,7 +187,6 @@ export default class Ticker {
                     if (neighbours.UP.extra_data.slots[i].count <= 0) {
                         delete(neighbours.UP.extra_data.slots[i])
                     }
-                    updated.push({ pos: neighbours.UP.posworld, item: neighbours.UP.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
                     world.chests.sendChestToPlayers(neighbours.UP, null)
                     return updated
                 }
