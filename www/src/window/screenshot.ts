@@ -34,6 +34,9 @@ export class ScreenshotWindow extends BlankWindow {
             this.send(false)
         }
 
+        // Add labels to window
+        // this.addWindowTitle(Lang.screen_taken)
+
         // Add close button
         this.addCloseButton()
 
