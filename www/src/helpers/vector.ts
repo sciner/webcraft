@@ -374,7 +374,7 @@ export class Vector implements IVector {
      */
     roundSelf(decimals?: number) : this {
         if(decimals) {
-            decimals = Math.pow(10, decimals);
+            decimals = Mth.POWER_OF_10[decimals];
             this.x = Math.round(this.x * decimals) / decimals;
             this.y = Math.round(this.y * decimals) / decimals;
             this.z = Math.round(this.z * decimals) / decimals;

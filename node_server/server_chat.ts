@@ -7,6 +7,7 @@ import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
 import { BLOCK_FLAG } from "@client/constant.js";
+import {EnumDamage} from "@client/enums/enum_damage.js";
 
 const MAX_LINE_LENGTH = 100 // TODO based on the cleint's screen size
 
@@ -127,8 +128,16 @@ export class ServerChat {
         switch (cmd) {
             case "/kill": {
                 args = this.parseCMD(args, ['string', 'string'])
-                if (args[1] == 'mobs') {
-                    this.world.mobs.kill()
+                switch (args[1]) {
+                    case 'mobs':
+                        checkIsAdmin()
+                        this.world.mobs.kill()
+                        break
+                    case 'me':
+                        player.setDamage(999999, EnumDamage.OTHER, player)
+                        break
+                    default:
+                        this.sendSystemChatMessageToSelectedPlayers('!langUsage: /kill (me|mobs)', player)
                 }
                 break
             }
@@ -238,6 +247,7 @@ export class ServerChat {
                         '/spawnpoint',
                         '/seed',
                         '/give <item> [<count>]',
+                        '/kill (me|mobs)',
                         '/help [admin]'
                     ]
                 }

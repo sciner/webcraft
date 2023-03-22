@@ -13,6 +13,7 @@ export * from './helpers/alphabet_texture.js';
 export * from './helpers/spiral_generator.js';
 export * from './helpers/indexed_color.js';
 export * from './helpers/fast_random.js';
+export * from './helpers/monotonic_utc_date.js';
 
 export * from "./helpers/vector_collector_2d.js";
 export * from "./helpers/vector_cardinal_transformer.js";

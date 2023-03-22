@@ -190,6 +190,25 @@ export enum BLOCK_FLAG {
     RANDOM_TICKER                   = 0x1000 | 0,
 }
 
+// ======================== Network options =========================
+
+// If we receive packets older than this, terminate the connection
+export const MAX_PACKET_LAG_SECONDS         = 60
+// If another host sent a packet that's marked as ahead of this host's time,
+// it's accepted only if the difference doesn't exceed this value
+export const MAX_PACKET_AHEAD_OF_TIME_MS    = 100
+export const MAX_CLIENT_STATE_INTERVAL      = 500 // the maximum interval between a client sends CMD_PLAYER_STATE
+
+// ======================== Physics options =========================
+
+export const PHYSICS_POS_DECIMALS           = 4
+export const PHYSICS_VELOCITY_DECIMALS      = 4
+export const PHYSICS_ROTATION_DECIMALS      = 4 // It's applied to the input before physics calculations
+export const PHYSICS_INTERVAL_MS            = 50
+export const PHYSICS_MAX_MS_PROCESS         = 2000
+export const DEBUG_LOG_PLAYER_CONTROL       = true  // log moderately detailed debug info about the player controls
+export const DEBUG_LOG_PLAYER_CONTROL_DETAIL= false // log very detailed debug info about the player controls
+
 // ========================= Sound options =========================
 
 export const DEFAULT_SOUND_MAX_DIST         = 16
@@ -345,8 +364,16 @@ export const PLAYER_SKIN_TYPES = {
 
 export enum PLAYER_STATUS {
     DEAD         = 0,
-    /* A player with this status is alive, but doesn't move or interat with the world
-    until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point). */
+    /**
+     * A player with this status is alive, but doesn't move or interact with the world
+     * until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point).
+     * When the data is loaded, a new physics session is started for its controls.
+     */
     WAITING_DATA = 1,
-    ALIVE        = 2,
+    /**
+     * A player with status has (ServerPlayer.wait_portal != null) and can't move.
+     * When the data is loaded, a new physics session is started for its controls.
+     */
+    WAITING_PORTAL = 2,
+    ALIVE        = 3,
 }

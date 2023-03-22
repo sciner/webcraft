@@ -22,6 +22,7 @@ import { EnumDamage } from "@client/enums/enum_damage.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
+import {ServerPlayerControlManager} from "./control/server_player_control_manager.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -36,6 +37,19 @@ export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
         this.name = name;
         this.data = data as DataT;
     }
+}
+
+type TeleportParams = {
+    pos ?       : IVector
+    place_id ?  : string
+    safe ?      : boolean
+    p2p ? : {
+        from: string
+        to: string
+    }
+    portal ? : { type, from_portal_id }
+    found_or_generate_portal ? : boolean
+    from_portal_id ?
 }
 
 const MAX_COORD                 = 2000000000;
@@ -56,26 +70,28 @@ class ServerPlayerSharedProps extends PlayerSharedProps {
     }
 
     get isAlive() : boolean { return this.p.live_level > 0; }
+    get pos()     : Vector  { return this.p.state.pos; }
 }
 
 export class ServerPlayer extends Player {
     raycaster: Raycaster;
     quests: QuestPlayer;
     damage: ServerPlayerDamage;
-    wait_portal: WorldPortalWait;
+    wait_portal: WorldPortalWait | null;
     //@ts-expect-error
     world: ServerWorld
     //@ts-expect-error
     effects: ServerPlayerEffects
     //@ts-expect-error
     inventory: ServerPlayerInventory;
+    //@ts-expect-error
+    controlManager: ServerPlayerControlManager
     private prev_world_data: Dict
 
     #forward : Vector;
     #_rotateDegree : Vector;
     vision: ServerPlayerVision;
     indicators_changed: boolean; // Unused. TODO: auto detect changes, delta compression
-    position_changed: boolean;   // Unused. TODO: auto detect changes, delta compression
     chunk_addr: Vector;
     session_id: string;
     checkDropItemIndex: number;
@@ -111,7 +127,6 @@ export class ServerPlayer extends Player {
     constructor() {
         super();
         this.indicators_changed     = true;
-        this.position_changed       = false;
         this.chunk_addr             = new Vector(0, 0, 0);
         this._eye_pos               = new Vector(0, 0, 0);
         this.#_rotateDegree         = new Vector(0, 0, 0);
@@ -164,10 +179,20 @@ export class ServerPlayer extends Player {
             if (this.game_mode.isCreative()) {
                 this.damage.restoreAll();
             }
-            await this.world.db.changeGameMode(this, mode.id);
             this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
+            this.controlManager.updateCurrentControlType(true);
             this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
+            await this.world.db.changeGameMode(this, mode.id);
         };
+        this.controlManager = new ServerPlayerControlManager(this as any)
+    }
+
+    /** Closes the player's session after encountering an unrecoverable error. */
+    terminate(error: any): void {
+        if (this.conn) {
+            console.log(`Player ${this.session.username} connection is closed due to ${error}`)
+            this.conn.close(1000)
+        }
     }
 
     /**
@@ -347,12 +372,13 @@ export class ServerPlayer extends Player {
         }
 
         if (!EMULATED_PING) {
-            this.conn.send(json);
+            // it's possible that the connection was just closed (now it's null), but the game is still trying to send data
+            this.conn?.send(json);
             return;
         }
 
         setTimeout(() => {
-            this.conn.send(json);
+            this.conn?.send(json);
         }, EMULATED_PING);
     }
 
@@ -481,6 +507,7 @@ export class ServerPlayer extends Player {
         }
         this.checkVisibleChunks();
         this.sendNearPlayers();
+        this.controlManager.doLaggingServerTicks();
         this.checkIndicators(tick_number);
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
@@ -509,29 +536,43 @@ export class ServerPlayer extends Player {
         return this._aabb
     }
 
+    /**
+     * Instantly teleports the player to the specified position without any checks.
+     * (possibly finishes teleporting the player who was waiting for data or a portal)
+     * After that, the player is ready to move.
+     */
+    sendTeleport(pos: Vector, place_id?: string): void {
+        console.log(`${this.session.username} teleported to ${pos}`)
+
+        const packets = [{
+            name: ServerClient.CMD_TELEPORT,
+            data: {
+                pos: pos,
+                place_id: place_id
+            }
+        }]
+        this.world.packets_queue.add([this.session.user_id], packets)
+
+        // stop waiting for teleportation
+        this.wait_portal = null
+        this.status = PLAYER_STATUS.ALIVE
+
+        // update the position and controls
+        this.state.pos = new Vector(pos)
+        this.controlManager.startNewPhysicsSession(pos)
+
+        // add teleport particles
+        // const actions = new WorldAction(randomUUID());
+        // actions.addParticles([{type: 'explosion', pos: wait_info.old_pos}]);
+        // world.actions_queue.add(null, actions);
+    }
+
     async checkWaitPortal() {
         if(!this.wait_portal) {
             return false;
         }
         //
         const wait_info = this.wait_portal;
-        //
-        const sendTeleport = () => {
-            console.log('Teleport to', wait_info.pos.toHash());
-            const packets = [{
-                name: ServerClient.CMD_TELEPORT,
-                data: {
-                    pos: wait_info.pos,
-                    place_id: wait_info.params.place_id
-                }
-            }];
-            this.world.packets_queue.add([this.session.user_id], packets);
-            this.wait_portal = null;
-            // add teleport particles
-            // const actions = new WorldAction(randomUUID());
-            // actions.addParticles([{type: 'explosion', pos: wait_info.old_pos}]);
-            // world.actions_queue.add(null, actions);
-        };
         if(wait_info.params?.found_or_generate_portal) {
             const from_portal_id = wait_info.params?.from_portal_id;
             let from_portal;
@@ -559,7 +600,7 @@ export class ServerPlayer extends Player {
             if(exists_portal) {
                 this.prev_use_portal = performance.now();
                 wait_info.pos = exists_portal.player_pos;
-                sendTeleport();
+                this.sendTeleport(wait_info.pos, wait_info.params.place_id);
             } else {
                 // check max attempts
                 //const max_attempts = [
@@ -579,14 +620,14 @@ export class ServerPlayer extends Player {
                                 // @todo update new portal
                                 await this.world.db.portal.setPortalPair(new_portal.id, {id: from_portal.id, player_pos: from_portal.player_pos});
                             }
-                            sendTeleport();
+                            this.sendTeleport(wait_info.pos, wait_info.params.place_id);
                             break;
                         }
                     }
                 }
             }
         } else {
-            sendTeleport();
+            this.sendTeleport(wait_info.pos, wait_info.params.place_id);
         }
     }
 
@@ -605,22 +646,8 @@ export class ServerPlayer extends Player {
             // teleport
         let initialPos = this.vision.safePosInitialOverride || this.state.pos_spawn;
         this.vision.safePosInitialOverride = null;
-        this.state.pos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin);
-
-        // change status
-        this.status = PLAYER_STATUS.ALIVE;
-        // send changes
-        const packets = [{
-            name: ServerClient.CMD_TELEPORT,
-            data: {
-                pos: this.state.pos,
-                place_id: 'spawn'
-            }
-        }, {
-            name: ServerClient.CMD_SET_STATUS_ALIVE,
-            data: {}
-        }];
-        this.world.packets_queue.add([this.session.user_id], packets);
+        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin);
+        this.sendTeleport(safePos, 'spawn');
     }
 
     // Check player visible chunks
@@ -762,25 +789,22 @@ export class ServerPlayer extends Player {
     }
 
     // changePosition...
-    changePosition(params) {
-        if (!ALLOW_NEGATIVE_Y && params.pos.y < 0) {
-            this.teleport({
-                place_id: 'spawn'
-            })
+    changePosition(pos: IVector, rotate?: IVector, sneak: boolean = false): void {
+        if (!ALLOW_NEGATIVE_Y && pos.y < 0) {
+            this.teleport({ place_id: 'spawn' })
             return;
         }
-        this.state.pos = new Vector(params.pos);
-        this.state.rotate = new Vector(params.rotate);
-        this.state.sneak = !!params.sneak;
-        this.position_changed = true;
+        this.state.pos = new Vector(pos);
+        if (rotate) {
+            this.state.rotate = new Vector(rotate);
+        }
+        this.state.sneak = sneak;
     }
 
     /**
      * Teleport
-     * @param { object } params
-     * @return {void}
      */
-    teleport(params) {
+    teleport(params: TeleportParams): void {
         const world = this.world;
         let new_pos = null;
         let teleported_player = this;
@@ -855,7 +879,7 @@ export class ServerPlayer extends Player {
                     new_pos,
                     params
                 );
-                teleported_player.state.pos = new_pos;
+                teleported_player.setPosition(new_pos);
                 teleported_player.vision.checkSpiralChunks();
             }
         }

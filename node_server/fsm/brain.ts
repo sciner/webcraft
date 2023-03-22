@@ -9,6 +9,7 @@ import { EnumDamage } from "@client/enums/enum_damage.js";
 // import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import { WorldAction } from "@client/world_action.js";
+import type {MobControlParams} from "@client/control/player_control.js";
 
 const MUL_1_SEC = 20;
 
@@ -33,7 +34,7 @@ export class FSMBrain {
     target: any;
     to: any;
     resistance_light: boolean;
-    pc: any;
+    pc: PrismarinePlayerControl;
     under_id: any;
     legs_id: any;
     in_water: boolean;
@@ -90,12 +91,7 @@ export class FSMBrain {
         }
     }
 
-    /**
-     * @param {FSMBrain} brain
-     * @param {object} options
-     * @return {PrismarinePlayerControl}
-     */
-    createPlayerControl(brain, options) {
+    createPlayerControl(brain: FSMBrain, options): PrismarinePlayerControl {
         const mob = brain.mob;
         const world = mob.getWorld();
         options.effects
@@ -124,13 +120,17 @@ export class FSMBrain {
         world.packets_queue.add(Array.from(chunk_over.connections.keys()), packets);
     }
 
-    // Update state and send to players
-    updateControl(new_states) {
+    /** Updates the control {@link pc} */
+    updateControl(new_states: MobControlParams): void {
+        this.pc.updateMob(new_states)
+
+        /* The old code - slow
+
         const pc = this.pc;
         for (let [key, value] of Object.entries(new_states)) {
             switch (key) {
                 case 'yaw': {
-                    pc.player_state[key] = value;
+                    pc.player_state.yaw = value as float;
                     break;
                 }
                 default: {
@@ -139,12 +139,13 @@ export class FSMBrain {
                 }
             }
         }
+        */
     }
 
     applyControl(delta : float) {
         const pc = this.pc;
         pc.tick(delta);// * (this.timer_panick > 0 ? 4 : 1));
-        this.mob.pos.copyFrom(pc.player.entity.position);
+        this.mob.pos.copyFrom(pc.getPos());
     }
 
 
@@ -188,11 +189,8 @@ export class FSMBrain {
         return this._eye_pos.set(mob.pos.x, mob.pos.y + this.height * 0.85 - subY, mob.pos.z);
     }
 
-    /**
-     * @returns {float}
-     */
-    get height() {
-        return this.pc.physics.playerHeight;
+    get height(): float {
+        return this.pc.playerHeight
     }
 
     // контроль жизней и состяния моба

@@ -3,6 +3,7 @@ import { DEFAULT_FOV_NORMAL, Renderer, ZOOM_FACTOR } from "./render.js";
 import { AverageClockTimer, isMobileBrowser, Mth, Vector} from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
+import { ServerClient } from "./server_client.js";
 import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
@@ -126,7 +127,6 @@ export class GameClass {
     onStarted                   : Function = () => {}
     onControlsEnabledChanged    : Function = (value : boolean) => {}
     preLoopEnable               : boolean = true
-    sendStateInterval?          : NodeJS.Timer
 
     App                         : any;
     skin                        : any;
@@ -146,7 +146,7 @@ export class GameClass {
     // Start
     async Start(server_url : string, world_guid : string, resource_loading_progress? : (state : any) => {}) {
         Qubatch.game = this;
-        
+
         const settings = this.settings
 
         // Load resources
@@ -197,10 +197,9 @@ export class GameClass {
         // Set render loop
         this.loop = this.loop.bind(this);
         // Interval functions
-        this.sendStateInterval = setInterval(() => {
+        setInterval(() => {
             this.world.history.deletOld();
-            player.sendState();
-        }, 50);
+        }, 1000);
         // Run render loop
         this.preLoopEnable = false
         this.render.requestAnimationFrame(this.loop);
@@ -632,7 +631,7 @@ export class GameClass {
                         player.controls.sprint = true;
                     } else if (e.keyCode == KEY.SPACE) {
                         if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
-                            player.setFlying(!player.getFlying());
+                            player.controlManager.instantControls.switchFlying = true
                         }
                     }
                 }
@@ -672,9 +671,9 @@ export class GameClass {
         const tm      = performance.now();
         const delta   = this.hud.FPS.delta;
 
-        if(!this.hud.splash.loading && delta <= MAX_FPS_DELTA_PROCESSED) {
+        if(!this.hud.splash.loading) {
             if(!this.free_cam) {
-                player.update(delta);
+                player.update(Math.min(delta, MAX_FPS_DELTA_PROCESSED));
             }
         } else {
             player.lastUpdate = null;
@@ -860,7 +859,7 @@ export class GameClass {
             this.free_cam = null;
         } else {
             this.free_cam = true;
-            this.player.pr_spectator.player.entity.position.copyFrom(this.player.getEyePos());
+            this.player.controlManager.spectator.setPos(this.player.getEyePos());
             this.player.controls.sneak = false;
         }
         return true;
@@ -868,7 +867,7 @@ export class GameClass {
 
     getFreeCamPos(delta) {
         const player = this.player;
-        const pc = player.pr_spectator;
+        const pc = player.controlManager.spectator;
         pc.controls.back       = player.controls.back;
         pc.controls.forward    = player.controls.forward;
         pc.controls.right      = player.controls.right;
@@ -878,7 +877,7 @@ export class GameClass {
         pc.controls.sprint     = player.controls.sprint;
         pc.player_state.yaw    = player.rotate.z;
         pc.tick(delta / 1000 * 3., player.scale);
-        return pc.player.entity.position;
+        return pc.getPos();
     }
 
     //

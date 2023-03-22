@@ -26,7 +26,7 @@ export class DropItem {
 
     #world : ServerWorld;
     #chunk_addr : Vector;
-    #pc;
+    #pc: PrismarinePlayerControl;
 
     static DIRTY_CLEAR      = 0;
     static DIRTY_NEW        = 1;
@@ -194,7 +194,7 @@ export class DropItem {
         if (this.inChunk?.isReady()) {
             const pc = this.#pc;
             pc.tick(delta);
-            this.pos.copyFrom(pc.player.entity.position);
+            this.pos.copyFrom(pc.getPos());
         }
         if(!this.pos.equal(this.posO)) { // it moved
             this.motion = MOTION_MOVED;

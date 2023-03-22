@@ -4,15 +4,15 @@ import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS } from "./constant.js";
-import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "./prismarine-physics/using.js";
-import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
+import type {SpectatorPlayerControl} from "./control/spectator-physics.js";
+import {ClientPlayerControlManager} from "./control/player_control_manager.js";
+import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
-import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
@@ -122,7 +122,7 @@ export class PlayerSharedProps implements IPlayerSharedProps {
 
     get isAlive() : boolean { return this.p.state.indicators.live != 0; }
     get user_id() : int     { return this.p.session.user_id; }
-    get pos()     : Vector  { return this.p.state.pos; }
+    get pos()     : Vector  { return this.p.pos; }
     get sitting() : boolean { return this.p.state.sitting; }
     get sleep()   : boolean { return this.p.state.sleep; }
 }
@@ -137,8 +137,7 @@ export class Player implements IPlayer {
     options:                    any;
     game_mode:                  GameMode;
     inventory:                  PlayerInventory;
-    pr_spectator:               SpectatorPlayerControl;
-    controls:                   PlayerControl;
+    controls:                   PlayerControls;
     windows:                    PlayerWindowManager;
     pickAt:                     PickAt;
     arm:                        PlayerArm;
@@ -147,13 +146,17 @@ export class Player implements IPlayer {
     #forward:                   Vector = new Vector(0, 0, 0);
     inAttackProcess:            number;
     scale:                      number = PLAYER_ZOOM;
-    current_state:              { rotate: Vector; pos: Vector; sneak: boolean; ping: number; };
     effects:                    any;
     status:                     PLAYER_STATUS;
+    controlManager:             ClientPlayerControlManager
 
+    /** The position slightly in the future, at the end of the physics simulation tick */
     pos:                        Vector;
+    /** The position at the beginning of the physics simulation tick */
     prevPos:                    Vector;
+    /** The position interpolated between {@link pos} and {@link prevPos} */
     lerpPos:                    Vector;
+    /** It's used only inside {@link update} to remember the previous value of {@link lerpPos} */
     posO:                       Vector = new Vector(0, 0, 0);
     _block_pos:                 Vector = new Vector(0, 0, 0);
     _eye_pos:                   Vector = new Vector(0, 0, 0);
@@ -206,7 +209,6 @@ export class Player implements IPlayer {
     body_rotate_speed:          number;
     mineTime:                   number;
     timer_attack:               number;
-    pr:                         any;
     inhand_animation_duration:  number;
     pn_start_change_sneak:      number;
     _sneak_period:              number;
@@ -224,8 +226,6 @@ export class Player implements IPlayer {
     swimingDistIntPrev:         any;
     swimingDistIntPrevO:        any;
     underwater_track_id:        any;
-    previous_state:             any;
-    ping:                       number;
     _eating_sound_tick:         number;
     _eating_sound:              any;
 
@@ -233,12 +233,6 @@ export class Player implements IPlayer {
         this.render = render
         this.inAttackProcess = ATTACK_PROCESS_NONE;
         this.options = options;
-        this.current_state = {
-            rotate:             new Vector(),
-            pos:                new Vector(),
-            sneak:              false,
-            ping:               0
-        };
         this.effects = {effects:[]}
         this.status = PLAYER_STATUS.WAITING_DATA;
         this.sharedProps = this._createSharedProps();
@@ -283,6 +277,7 @@ export class Player implements IPlayer {
         // Game mode
         this.game_mode              = new GameMode(this, data.state.game_mode);
         this.game_mode.onSelect     = (mode) => {
+            this.controlManager.updateCurrentControlType(false)
             if(!mode.can_fly) {
                 this.lastBlockPos = this.getBlockPos().clone();
                 this.setFlying(false);
@@ -296,7 +291,6 @@ export class Player implements IPlayer {
         this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
-        this.posO                   = new Vector(0, 0, 0);
         this._block_pos             = new Vector(0, 0, 0);
         this._eye_pos               = new Vector(0, 0, 0);
         this.#forward               = new Vector(0, 0, 0);
@@ -336,15 +330,15 @@ export class Player implements IPlayer {
         this.timer_attack           = 0
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
-        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
-        this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
+        this.controlManager         = new ClientPlayerControlManager(this)
         this.chat                   = new Chat(this);
-        this.controls               = new PlayerControl(this.options);
+        this.controls               = new PlayerControls(this.options);
         this.windows                = new PlayerWindowManager(this);
         if (this.status === PLAYER_STATUS.DEAD) {
             this.setDie();
         }
         // Add listeners for server commands
+        const server = this.world.server
         this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
         this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_WAITING_DATA], (cmd) => {
             this.status = PLAYER_STATUS.WAITING_DATA;
@@ -352,7 +346,13 @@ export class Player implements IPlayer {
         this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_ALIVE], (cmd) => {
             this.status = PLAYER_STATUS.ALIVE;
         });
-        this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
+        server.AddCmdListener([ServerClient.CMD_TELEPORT], cmd => this.onTeleported(cmd.data.pos))
+        server.AddCmdListener([ServerClient.CMD_PLAYER_CONTROL_CORRECTION], cmd => {
+            this.controlManager.applyCorrection(cmd.data)
+        }, null, true)
+        server.AddCmdListener([ServerClient.CMD_PLAYER_CONTROL_ACCEPTED], cmd => {
+            this.controlManager.onServerAccepted(cmd.data)
+        })
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
@@ -368,19 +368,10 @@ export class Player implements IPlayer {
             this.world_data = cmd.data
         });
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
-            let pc_previous = this.getPlayerControl();
             this.game_mode.applyMode(cmd.data.id, true);
-            let pc_current = this.getPlayerControl();
-            //
-            pc_current.player.entity.velocity   = new Vector(0, 0, 0);
-            pc_current.player_state.vel         = new Vector(0, 0, 0);
-            //
-            let pos                             = new Vector(pc_previous.player.entity.position);
-            pc_current.player.entity.position   = new Vector(pos);
-            pc_current.player_state.pos         = new Vector(pos);
+            let pos = this.controlManager.current.getPos();
             this.lerpPos                        = new Vector(pos);
             this.pos                            = new Vector(pos);
-            this.posO                           = new Vector(pos);
             this.prevPos                        = new Vector(pos);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd : {data: {indicators: Indicators}}) => {
@@ -403,7 +394,7 @@ export class Player implements IPlayer {
             const time = e.start_time - this.timer_attack
             if (time < 500) {
                 return
-            } 
+            }
             this.mineTime = 0
             if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
                 this.inAttackProcess = ATTACK_PROCESS_ONGOING;
@@ -482,14 +473,7 @@ export class Player implements IPlayer {
 
     // Return player is sneak
     get isSneak() {
-        // Get current player control
-        const pc = this.getPlayerControl();
-        if(pc instanceof PrismarinePlayerControl) {
-            if(pc.player_state.control.sneak && pc.player_state.onGround) {
-                return true;
-            }
-        }
-        return false;
+        return this.controlManager.current.sneak
     }
 
     // Return player height
@@ -799,23 +783,29 @@ export class Player implements IPlayer {
         return this._block_pos.copyFrom(this.lerpPos).floored();
     }
 
+    onTeleported(vec: IVector): void {
+        this.setPosition(vec)
+        this.controlManager.startNewPhysicsSession(vec)
+        this.status = PLAYER_STATUS.ALIVE
+    }
+
     //
-    setPosition(vec) {
-        vec = new Vector(vec);
+    setPosition(vec: IVector): void {
         //
         const pc = this.getPlayerControl();
-        pc.player.entity.position.copyFrom(vec);
-        pc.player_state.pos.copyFrom(vec);
         pc.player_state.onGround = false;
+        this.controlManager.current.setPos(vec);
         //
-        this.stopAllActivity();
+        if (!Qubatch.is_server) {
+            this.stopAllActivity();
+        }
         //
         this.onGround = false;
         this.lastBlockPos = null;
         this.lastOnGroundTime = null;
         //
-        this.pos = vec.clone();
-        this.lerpPos = vec.clone();
+        this.pos = new Vector(vec);
+        this.lerpPos = new Vector(vec);
         //
         this.blockPos = this.getBlockPos();
         this.chunkAddr = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
@@ -830,7 +820,7 @@ export class Player implements IPlayer {
      * @param {boolean} value
      */
     setFlying(value) {
-        let pc = this.getPlayerControl();
+        let pc = this.getPlayerControl() as SpectatorPlayerControl;
         pc.mul = 1;
         pc.player_state.flying = value;
     }
@@ -843,7 +833,7 @@ export class Player implements IPlayer {
         if(!this.game_mode.isSpectator()) {
             return false;
         }
-        const pc = this.pr_spectator;
+        const pc = this.controlManager.spectator;
         let mul = pc.mul ?? 1;
         const multiplyer = 1.05;
         if(value > 0) {
@@ -855,23 +845,17 @@ export class Player implements IPlayer {
         return true;
     }
 
-    //
-    getPlayerControl() {
-        if(this.game_mode.isSpectator()) {
-            return this.pr_spectator;
-        }
-        return this.pr;
+    getPlayerControl(): PlayerControl {
+        return this.controlManager.current
     }
 
     /**
      * Updates this local player (gravity, movement)
-     * @param {float} delta
-     * @returns
      */
-    update(delta) {
+    update(delta: float): void {
 
         // View
-        if(this.lastUpdate && this.status !== PLAYER_STATUS.WAITING_DATA) {
+        if(this.lastUpdate && this.status === PLAYER_STATUS.ALIVE) {
 
             // for compatibility with renderHandsWithItems
             this.yBobO = this.yBob;
@@ -886,36 +870,20 @@ export class Player implements IPlayer {
             let isSpectator = this.game_mode.isSpectator();
             let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
             //
-            const pc               = this.getPlayerControl();
-            this.posO.set(this.lerpPos.x, this.lerpPos.y, this.lerpPos.z);
-            const applyControl =  !this.state.sleep && !this.state.sitting && !this.state.lies && this.controls.enabled;
-            pc.controls.back       = applyControl && this.controls.back;
-            pc.controls.forward    = applyControl && this.controls.forward;
-            pc.controls.right      = applyControl && this.controls.right;
-            pc.controls.left       = applyControl && this.controls.left;
-            pc.controls.jump       = applyControl && this.controls.jump;
-            pc.controls.sneak      = applyControl && this.controls.sneak;
-            pc.controls.sprint     = applyControl && this.controls.sprint;
-            pc.player_state.yaw    = this.rotate.z;
-            //
+            const pc = this.controlManager.current;
+            this.posO.copyFrom(this.lerpPos);
             this.checkBodyRot(delta);
             // Physics tick
-            let ticks = pc.tick(delta, this.scale);
-            //
-            if(isSpectator) {
-                this.lerpPos = pc.player.entity.position;
-                this.pos = this.lerpPos;
+            const hasUpdate = this.controlManager.doClientTicks()
+            if (hasUpdate) {
+                this.controlManager.sendUpdate();
+                this.prevPos.copyFrom(this.pos);
+            }
+            this.pos.copyFrom(pc.player_state.pos);
+            if (this.pos.distance(this.prevPos) > 10.0) {
+                this.lerpPos.copyFrom(this.pos);
             } else {
-                // Prismarine player control
-                if (ticks > 0) {
-                    this.prevPos.copyFrom(this.pos);
-                }
-                this.pos.copyFrom(pc.player.entity.position);
-                if (this.pos.distance(this.prevPos) > 10.0) {
-                    this.lerpPos.copyFrom(this.pos);
-                } else {
-                    this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
-                }
+                this.lerpPos.lerpFrom(this.prevPos, this.pos, this.controlManager.getCurrentTickFraction());
             }
             this.lerpPos.roundSelf(8);
             const minMovingDist = delta * MOVING_MIN_BLOCKS_PER_SECOND;
@@ -1037,10 +1005,7 @@ export class Player implements IPlayer {
         return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
     }
 
-    /**
-     * @param {float} delta
-     */
-    checkBodyRot(delta) {
+    checkBodyRot(delta: float): void {
         const pc = this.getPlayerControl();
         const value = delta * this.body_rotate_speed;
         if(pc.controls.right && !pc.controls.left) {
@@ -1194,39 +1159,26 @@ export class Player implements IPlayer {
         }
     }
 
-    // Отправка информации о позиции и ориентации игрока на сервер
-    sendState() {
-        const cs = this.current_state;
-        const ps = this.previous_state;
-        cs.rotate.copyFrom(this.rotate).roundSelf(4);
-        cs.pos.copyFrom(this.lerpPos).roundSelf(4);
-        cs.sneak = this.isSneak;
-        this.ping = Math.round(this.world.server.ping_value);
-        const not_equal = !ps ||
-            (
-                ps.rotate.x != cs.rotate.x || ps.rotate.y != cs.rotate.y || ps.rotate.z != cs.rotate.z ||
-                ps.pos.x != cs.pos.x || ps.pos.y != cs.pos.y || ps.pos.z != cs.pos.z ||
-                ps.sneak != cs.sneak ||
-                ps.ping != cs.ping
-            );
-        if(not_equal) {
-            if(!ps) {
-                this.previous_state = JSON.parse(JSON.stringify(cs));
-                this.previous_state.rotate = new Vector(cs.rotate);
-                this.previous_state.pos = new Vector(cs.pos);
-            } else {
-                // copy current state to previous state
-                this.previous_state.rotate.copyFrom(cs.rotate);
-                this.previous_state.pos.copyFrom(cs.pos);
-                this.previous_state.sneak = cs.sneak;
-                this.previous_state.ping = cs.ping;
-            }
-            this.world.server.Send({
-                name: ServerClient.CMD_PLAYER_STATE,
-                data: compressPlayerStateC(cs)
-            });
-        }
-    }
+    // // Отправка информации о позиции и ориентации игрока на сервер
+    // sendState() {
+    //     const data = this.controlManager.exportUpdate()
+    //     if (!data) {
+    //         return
+    //     }
+    //
+    //     /* Sending ping_value.
+    //     In the old code, ping_value has been sent in CMD_PLAYER_STATE, but it was incorrectly
+    //     and not used on the server.
+    //     See also commented server code that reads ping_value in cmd_player_control_update.ts
+    //
+    //     data.push(Math.round(this.world.server.ping_value))
+    //     */
+    //
+    //     this.world.server.Send({
+    //         name: ServerClient.CMD_PLAYER_STATE,
+    //         data: data
+    //     });
+    // }
 
     // Start use of item
     startItemUse(material) {

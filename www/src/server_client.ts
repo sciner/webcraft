@@ -1,5 +1,9 @@
 import { getChunkAddr, Vector } from "./helpers.js";
 
+type CmdListener = (INetworkMessage) => void
+type CmdListenersSet = Set<CmdListener>
+type CmdListenersMap = Map<int, CmdListenersSet>
+
 export class ServerClient {
     [key: string]: any;
 
@@ -35,6 +39,10 @@ export class ServerClient {
     static CMD_PLAYER_JOIN              = 41;
     static CMD_PLAYER_LEAVE             = 42;
     static CMD_PLAYER_STATE             = 43; // server -> player, player -> server
+    static CMD_PLAYER_CONTROL_SESSION   = 112 // p->s (a client stated a new physics session)
+    static CMD_PLAYER_CONTROL_UPDATE    = 113 // p->s (c client sends input and output of the player controller in one or multiple ticks)
+    static CMD_PLAYER_CONTROL_CORRECTION= 114 // s->p (a server doesn't accept the client's state, and tells the clint the correct state)
+    static CMD_PLAYER_CONTROL_ACCEPTED  = 115 // s->p (a server notifies the client that is accepts its state)
 
     // The current player
     static CMD_STANDUP_STRAIGHT         = 48; // встать с дивана/кресла
@@ -54,7 +62,7 @@ export class ServerClient {
     static CMD_ENTITY_INDICATORS        = 69; // server -> player (player indicators)
 	static CMD_WORLD_INFO               = 74; // server -> player
 	static CMD_GAMEMODE_NEXT            = 80; // player -> server (player switch to next game mode)
-	static CMD_GAMEMODE_SET             = 81; // player -> server (player switch to specific game mode)
+	static CMD_GAMEMODE_SET             = 81; // p->s, s->p (player switch to specific game mode)
 	static CMD_PLAY_SOUND               = 85;
 	static CMD_PARTICLE_BLOCK_DESTROY   = 87;
 	static CMD_PICKAT_ACTION            = 88;
@@ -68,7 +76,7 @@ export class ServerClient {
 
     static CMD_STATS                    = 96;
     static CMD_DIE                      = 97;
-    static CMD_RESURRECTION             = 98;
+    static CMD_RESURRECTION             = 98;  // p->s
     static CMD_SET_STATUS_WAITING_DATA  = 103; // s->p: changes player.status to PLAYER_STATUS.WAITING_DATA
     static CMD_SET_STATUS_ALIVE         = 104; // s->p: changes player.status to PLAYER_STATUS.ALIVE
 
@@ -110,10 +118,16 @@ export class ServerClient {
     static BLOCK_ACTION_MODIFY          = 3;
     static BLOCK_ACTION_REPLACE         = 4;
 
+    ws                                  : WebSocket
     lastPacketReceivedTime              = Infinity; // set to performance.now() when a packet is received
 
+    cmdListeners                        : CmdListenersMap
+    cmdListenersForPlayers              : Map<string, CmdListenersMap>
+    /** If i-th element is true, then if a listener of i-th command throws an exception, the connection is closed. */
+    cmdTerminateOnException             : boolean[] = []
+
     // Constructor
-    constructor(ws) {
+    constructor(ws: WebSocket) {
         this.ws                         = ws;
         this.chunks_added               = 0;
         this.ping_time                  = null;
@@ -146,25 +160,22 @@ export class ServerClient {
     }
 
     // Add listeners for server commands
-    AddCmdListener(cmd_list, listener, user_guid? : string) {
+    AddCmdListener(cmd_list: int[], listener: CmdListener, user_guid? : string | null, terminateOnException?: boolean) {
+        let listeners = this.cmdListeners
         if(user_guid) {
             if(!this.cmdListenersForPlayers.has(user_guid)) {
                 this.cmdListenersForPlayers.set(user_guid, new Map());
             }
-            let listeners = this.cmdListenersForPlayers.get(user_guid);
-            for(let cmd of cmd_list) {
-                if(!listeners.has(cmd)) {
-                    listeners.set(cmd, new Set());
-                }
-                listeners.get(cmd).add(listener);
-            }
-            return;
+            listeners = this.cmdListenersForPlayers.get(user_guid);
         }
         for(let cmd of cmd_list) {
-            if(!this.cmdListeners.has(cmd)) {
-                this.cmdListeners.set(cmd, new Set());
+            if(!listeners.has(cmd)) {
+                listeners.set(cmd, new Set())
             }
-            this.cmdListeners.get(cmd).add(listener);
+            listeners.get(cmd).add(listener)
+            if (terminateOnException) {
+                this.cmdTerminateOnException[cmd] = true
+            }
         }
     }
 
@@ -280,8 +291,16 @@ export class ServerClient {
                 listeners = this.cmdListeners.get(cmd.name);
             }
             if(listeners) {
-                for(let listener of listeners.values()) {
-                    listener(cmd);
+                try {
+                    for(let listener of listeners.values()) {
+                        listener(cmd);
+                    }
+                } catch (e) {
+                    if (this.cmdTerminateOnException[cmd.name]) {
+                        console.error(`Connection is closed due to unrecoverable error in command ${cmd.name} ${e}`)
+                        this.ws.close(1000)
+                    }
+                    throw e
                 }
             }
         }
