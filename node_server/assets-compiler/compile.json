@@ -2031,15 +2031,17 @@
             "style": "planting",
             "inventory": {
                 "style": "extruder",
-                "texture": "block/peony_top.png"
+                "texture": "block/peony.png"
             },
             "sound": "madcraft:block.grass",
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "texture": {
-                "up": "block/peony_top.png",
-                "down": "block/peony_bottom.png"
+                "side": "block/peony.png"
             },
-            "tags": ["flower"],
+            "tags": [
+                "is_tall_grass",
+                "flower"
+            ],
             "material": {
                 "id": "plant"
             },
@@ -2058,13 +2060,13 @@
             "sound": "madcraft:block.grass",
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "texture": {
-                "up": "block/lilac_top.png",
-                "down": "block/lilac_bottom.png"
+                "side": "block/lilac.png"
             },
             "material": {
                 "id": "plant"
             },
             "tags": [
+                "is_tall_grass",
                 "flower"
             ],
             "composter_chance": 0.65
@@ -7185,10 +7187,12 @@
             "sound": "madcraft:block.grass",
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "texture": {
-                "up": "block/rose_bush_top.png",
-                "down": "block/rose_bush_bottom.png"
+                "side": "block/rose_bush.png"
             },
-            "tags": ["flower"],
+            "tags": [
+                "is_tall_grass",
+                "flower"
+            ],
             "material": {
                 "id": "plant"
             }

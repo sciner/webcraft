@@ -266,7 +266,10 @@ export class Biomes {
                     {percent: .05, blocks: [{name: 'BURDOCK'}]},
                     {percent: .005, blocks: [{name: 'PEBBLES'}]},
                     {percent: .005, blocks: [{name: 'PINK_PETALS'}]},
-                    {percent: .14, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]}
+                    {percent: .13, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]},
+                    {percent: .005, blocks: [{name: 'PEONY'}, {name: 'PEONY', extra_data: {is_head: true}}]},
+                    {percent: .005, blocks: [{name: 'LILAC'}, {name: 'LILAC', extra_data: {is_head: true}}]},
+                    // {percent: .01, blocks: [{name: 'ROSE_BUSH'}, {name: 'ROSE_BUSH', extra_data: {is_head: true}}]},
                 ]
             };
         }
