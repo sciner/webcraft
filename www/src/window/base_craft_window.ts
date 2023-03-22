@@ -115,6 +115,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
         }
     }
 
+    //@ts-ignore
     setItem(item: any, update_inventory : any = true) {
         if (item && item.count <= 0) {
             if (item.count < 0) {
