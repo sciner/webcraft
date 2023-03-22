@@ -9827,6 +9827,7 @@
                 "id": "iron"
             },
             "tags": [
+                "rotate_by_pos_n",
                 "no_drop_ao",
                 "doubleface"
             ],

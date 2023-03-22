@@ -40,7 +40,6 @@ export default class style {
         const hopping_blocks = [bm.FURNACE.id, bm.CHEST.id]
         const c_up = bm.calcMaterialTexture(block.material, DIRECTION.UP)
         const c_side = bm.calcMaterialTexture(block.material, DIRECTION.FORWARD)
-        //const c_down = bm.calcMaterialTexture(block.material, DIRECTION.WEST)
         const c_inside = bm.calcMaterialTexture(block.material, DIRECTION.EAST)
         let parts = [];
         parts.push(...[
@@ -81,16 +80,21 @@ export default class style {
             }
         ])
         let sh_x = 0, sh_z = 0, sh_y = -2
-        if (hopping_blocks.includes(neighbours.WEST.id)) {
-            sh_x = -6
-        } else if (hopping_blocks.includes(neighbours.EAST.id)) {
-            sh_x = 6
-        } else if (hopping_blocks.includes(neighbours.NORTH.id)) {
-            sh_z = 6
-        } else if (hopping_blocks.includes(neighbours.SOUTH.id)) {
-            sh_z = -6
-        } else if (hopping_blocks.includes(neighbours.DOWN.id)) {
+        const cd = block.getCardinalDirection()
+        if (hopping_blocks.includes(neighbours.DOWN.id) && (cd <= 3)) {
             sh_y = -6
+        } else 
+        if (hopping_blocks.includes(neighbours.WEST.id) && cd == 13) {
+            sh_x = -6
+        }
+        if (hopping_blocks.includes(neighbours.EAST.id) && cd == 22) {
+            sh_x = 6
+        } 
+        if (hopping_blocks.includes(neighbours.NORTH.id) && cd == 7) {
+            sh_z = 6
+        }
+        if (hopping_blocks.includes(neighbours.SOUTH.id) && cd == 18) {
+            sh_z = -6
         }
         parts.push(...[
             {
