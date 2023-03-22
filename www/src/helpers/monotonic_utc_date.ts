@@ -29,14 +29,14 @@ export class MonotonicUTCDate {
 
     /** Similar to Date.now(), but in UTC, and the values are non-decreasing even if the computer adjusts time. */
     static now(): number {
-        let UTCNow = Date.now() + this.timezoneOffsetMillis
+        let UTCNow = Date.now() - this.timezoneOffsetMillis
         let performanceDelta = UTCNow - performance.now()
 
         // check if significant clock adjustment is detected
         if (Math.abs(performanceDelta - this.prevPerformanceDelta) > this.MAX_PERFORMANCE_DELTA) {
             // update the timezone; maybe it changed
             this.timezoneOffsetMillis = new Date().getTimezoneOffset() * 60000
-            UTCNow = Date.now() + this.timezoneOffsetMillis
+            UTCNow = Date.now() - this.timezoneOffsetMillis
             performanceDelta = UTCNow - performance.now()
 
             // if updating the timezone didn't fix the problem
