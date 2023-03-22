@@ -448,30 +448,31 @@ export class Default_Terrain_Generator {
     // Дуб, берёза
     plantOak(world, tree, chunk : ChunkWorkerChunk, x : int, y : int, z : int, setTreeBlock : Function) {
         const extra_data = this.makeLeavesExtraData(chunk, x, y, z)
-        let random = null
-        const getRandom = () => {
-            if(!random) {
-                const xyz = new Vector(x, y, z).addSelf(chunk.coord)
-                random = new alea('tree_' + xyz.toHash())
-            }
-            return random.double()
-        }
+
+        const xyz = new Vector(x, y, z).addSelf(chunk.coord)
+        const random = new alea('tree_' + xyz.toHash())
+        const cavity_chance = 1/32
+        const bee_nest_chance = 1/32
+
         // ствол
         for(let i = 0; i < tree.height; i++) {
             this.temp_block.id = tree.type.trunk;
             let extra_data = null
             if(tree.type.has_cavity && (i == tree.height - 5)) {
-                if(getRandom() < 1/32) {
-                    extra_data = {cavity: Math.floor(getRandom() * 4)}
+                const r_cavity = random.double()
+                if(r_cavity < cavity_chance) {
+                    extra_data = {cavity: Math.floor((r_cavity / cavity_chance) * 4)}
                 }
             }
             setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true, undefined, extra_data)
         }
+
         // Create bee nest
         if(tree.height > 6) {
             if(BLOCK.fromId(tree.type.trunk).name == 'BIRCH_LOG') {
-                if(getRandom() < 1/32) {
-                    const side = Math.floor(getRandom() * 4)
+                const r_bee_nest = random.double()
+                if(r_bee_nest < bee_nest_chance) {
+                    const side = Math.floor((r_bee_nest / bee_nest_chance) * 4)
                     const vec = Vector.ZERO.clone().addByCardinalDirectionSelf(Vector.ZP, side)
                     const bee_nest_block = BLOCK.fromName('BEE_NEST')
                     const bee_block = {id: bee_nest_block.id, extra_data: {pollen: 0, max_ticks: 100, bees: [{pollen: 0}]}}
@@ -479,31 +480,56 @@ export class Default_Terrain_Generator {
                 }
             }
         }
+
+        // // листва
+        // let py = y + tree.height;
+        // for(let rad of [1, 1, 2, 2]) {
+        //     for(let i = x - rad; i <= x + rad; i++) {
+        //         for(let j = z - rad; j <= z + rad; j++) {
+        //             const m = (i == x - rad && j == z - rad) ||
+        //                 (i == x + rad && j == z + rad) ||
+        //                 (i == x - rad && j == z + rad) ||
+        //                 (i == x + rad && j == z - rad);
+        //             const m2 = (py == y + tree.height) ||
+        //                 (i + chunk.coord.x + j + chunk.coord.z + py + chunk.coord.y) % 3 > 0;
+        //             if(m && m2) {
+        //                 continue;
+        //             }
+        //             const b = tree.blocks.get(this.xyz_temp_find.set(chunk.coord.x + i, chunk.coord.y + py, chunk.coord.z + j))
+        //             const b_id = b?.id ?? 0
+        //             if(b_id == 0 || b_id != tree.type.trunk) {
+        //                 this.temp_block.id = tree.type.leaves;
+        //                 // tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data
+        //                 setTreeBlock(tree, chunk, i, py, j, this.temp_block, false, null, extra_data);
+        //             }
+        //         }
+        //     }
+        //     py--;
+        // }
+
         // листва
-        let py = y + tree.height;
-        for(let rad of [1, 1, 2, 2]) {
-            for(let i = x - rad; i <= x + rad; i++) {
-                for(let j = z - rad; j <= z + rad; j++) {
-                    const m = (i == x - rad && j == z - rad) ||
-                        (i == x + rad && j == z + rad) ||
-                        (i == x - rad && j == z + rad) ||
-                        (i == x + rad && j == z - rad);
-                    const m2 = (py == y + tree.height) ||
-                        (i + chunk.coord.x + j + chunk.coord.z + py + chunk.coord.y) % 3 > 0;
-                    if(m && m2) {
-                        continue;
-                    }
-                    const b = tree.blocks.get(this.xyz_temp_find.set(chunk.coord.x + i, chunk.coord.y + py, chunk.coord.z + j))
-                    const b_id = b?.id ?? 0
-                    if(b_id == 0 || b_id != tree.type.trunk) {
-                        this.temp_block.id = tree.type.leaves;
-                        // tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data
-                        setTreeBlock(tree, chunk, i, py, j, this.temp_block, false, null, extra_data);
+        this.temp_block.id = tree.type.leaves
+
+        const y_leaves_start = y + tree.height
+        const r_rad = Math.floor(random.double() * 16)
+        const rad_ver = (r_rad % 4) + 2
+        const rad_hor = Math.floor(r_rad / 4) + 2
+        const center = new Vector(x, y_leaves_start, z)
+        const pos = new Vector(0, 0, 0)
+
+        for(let k = -rad_ver; k < rad_ver; k++) {
+            const perc = (k + rad_ver) / (rad_ver * 2)
+            const r = rad_ver - (perc * (rad_ver * 1.5)) + 1
+            for(let i = x - rad_hor; i <= x + rad_hor; i++) {
+                for(let j = z - rad_hor; j <= z + rad_hor; j++) {
+                    pos.set(i, y_leaves_start + k, j)
+                    if(pos.distance(center) < r) {
+                        setTreeBlock(tree, chunk, i, y_leaves_start + k, j, this.temp_block, false, null, extra_data);
                     }
                 }
             }
-            py--;
         }
+
     }
 
     addMushroomEffects(world, chunk, x, y, z, world_material, height) {
