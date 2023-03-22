@@ -1,4 +1,4 @@
-import {PIXI} from './pixi.js';
+import {PIXI} from '../../../tools/gui/pixi.js';
 
 globalThis.PIXI = PIXI;
 //PIXI.BatchRenderer.defaultMaxTextures = Math.min(PIXI.BatchRenderer.defaultMaxTextures, 16);
@@ -89,6 +89,8 @@ void main() {
 `;
 
 export class MyBatchGeometry extends PIXI.Geometry {
+    [key: string]: any;
+
     static vertexSize = 10;
 
     constructor(_static = false) {
@@ -143,6 +145,8 @@ export class MyBatchShaderGenerator extends PIXI.BatchShaderGenerator {
 }
 
 export class MySpriteRenderer extends PIXI.BatchRenderer {
+    [key: string]: any;
+
     static extension = {
         name: 'mySprite',
         type: PIXI.ExtensionType.RendererPlugin,
@@ -208,6 +212,8 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
 }
 
 export class MySprite extends PIXI.Sprite {
+    [key: string]: any;
+
     constructor(texture, scale = 1) {
         super(texture);
         this.pluginName = 'mySprite';
@@ -228,6 +234,8 @@ export class MySprite extends PIXI.Sprite {
 }
 
 export class MyTilemap extends PIXI.Container {
+    [key: string]: any;
+
     constructor() {
         super();
 
@@ -400,7 +408,9 @@ export class MyTilemap extends PIXI.Container {
 }
 
 export class MyText extends PIXI.Text {
-    constructor(text, style, canvas) {
+    [key: string]: any;
+
+    constructor(text, style, canvas? : any) {
         super(text, style, canvas);
         this.tintMode = 0;
         this.pluginName = 'mySprite';

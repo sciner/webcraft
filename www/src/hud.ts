@@ -104,10 +104,10 @@ class HUDWindow extends Window {
         this.lbl_loading.style.padding._changed()
         this.kb_tips.h = height
         this.splash.visible = loading
-        this.resize(width, height, loading_parts)
+        this.resize2(width, height, loading_parts)
     }
 
-    resize(width, height, loading_parts) {
+    resize2(width, height, loading_parts) {
         this.splash.width = width
         this.splash.height = height
         this.progressbar.y = height - this.progressbar.h
@@ -269,7 +269,7 @@ export class HUD {
         return this.active;
     }
 
-    draw(force) {
+    draw(force : boolean = false) {
 
         this.frmMainMenu.parent.center(this.frmMainMenu)
 

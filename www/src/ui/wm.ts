@@ -1,6 +1,6 @@
-import { Icon as icn, SimpleBlockSlot as sbs, Slider as sld, ToggleButton as tb, Label as lbl, Button as btn, TextEdit as txted, Window as wnd, GradientGraphics as gg, WindowManager as wm } from "../../tools/gui/wm.js";
 import { UI_THEME } from "../constant.js";
-export { MySprite, MyTilemap } from "../../tools/gui/MySpriteRenderer.js";
+import { Icon as icn, SimpleBlockSlot as sbs, Slider as sld, ToggleButton as tb, Label as lbl, Button as btn, TextEdit as txted, Window as wnd, GradientGraphics as gg, WindowManager as wm } from "../vendors/wm/wm.js";
+export { MySprite, MyTilemap } from "../vendors/wm/MySpriteRenderer.js";
 
 export class Icon extends icn {
     [key: string]: any;

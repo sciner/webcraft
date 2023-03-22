@@ -33,6 +33,7 @@ import { SpriteAtlas } from "./core/sprite_atlas.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { World } from "./world.js";
 import type { MobModel } from "./mob_model.js";
+import type { HUD } from "./hud.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -95,7 +96,7 @@ export class Renderer {
     projMatrix: any;
     viewMatrix: any;
     camPos: any;
-    HUD: any;
+    HUD: HUD;
     maskColorTex: any;
     stars: any;
     blockDayLightTex: any;

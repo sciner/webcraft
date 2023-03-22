@@ -115,11 +115,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
         }
     }
 
-    /**
-     * @param {?object} item
-     * @returns
-     */
-    setItem(item, update_inventory = true) {
+    setItem(item: any, update_inventory : any = true) {
         if (item && item.count <= 0) {
             if (item.count < 0) {
                 window.alert('item.count < 0')
@@ -441,17 +437,17 @@ export class CraftTableInventorySlot extends CraftTableSlot {
     }
 
     // Custom drawing
-    onMouseEnter(e) {
-        if (this.options.disableIfLoading && this.ct.loading) {
-            return
-        }
-        // this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55'
-    }
+    // onMouseEnter(e) {
+    //     if (this.options.disableIfLoading && this.ct.loading) {
+    //         return
+    //     }
+    //     // this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55'
+    // }
 
-    onMouseLeave(e) {
-        // don't disable it if loading
-        // this.style.background.color = '#00000000'
-    }
+    // onMouseLeave(e) {
+    //     // don't disable it if loading
+    //     // this.style.background.color = '#00000000'
+    // }
 
     // Mouse down
     onMouseDown(e) {

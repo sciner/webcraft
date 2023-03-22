@@ -69,23 +69,23 @@ class ActiveButton extends Window {
         */
     }
 
-    setIcon(name) {
-        /*
-        // TODO: pixi
-        switch(name) {
-            case 'back': {
-                this.style.background.sprite.x = 8;
-                this.style.background.sprite.y = 415;
-                break;
-            }
-            case 'next': {
-                this.style.background.sprite.x = 8;
-                this.style.background.sprite.y = 390;
-                break;
-            }
-        }
-        */
-    }
+    // setIcon(name) {
+    //     /*
+    //     // TODO: pixi
+    //     switch(name) {
+    //         case 'back': {
+    //             this.style.background.sprite.x = 8;
+    //             this.style.background.sprite.y = 415;
+    //             break;
+    //         }
+    //         case 'next': {
+    //             this.style.background.sprite.x = 8;
+    //             this.style.background.sprite.y = 390;
+    //             break;
+    //         }
+    //     }
+    //     */
+    // }
 
 }
 

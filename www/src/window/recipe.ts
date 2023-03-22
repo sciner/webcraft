@@ -34,15 +34,6 @@ export class RecipeSlot extends Window {
 
     }
 
-    // Custom drawing
-    onMouseEnter(e) {
-        // this.style.background.color = this.can_make ? '#00000000' : '#A1515177'
-    }
-
-    onMouseLeave(e) {
-        // this.style.background.color = this.can_make ? '#00000000' : '#A1515155'
-    }
-
     onMouseDown(e) {
         const ct = this.ct
         ct.craft_window.setHelperSlots(null)
