@@ -25,10 +25,11 @@ export type BulkDropItemsRow = [
     number, number, number  // x, y, z
 ]
 
-export type PlyaerInitInfo = {
+export type PlayerInitInfo = {
     state: PlayerState,
     inventory,
-    status: PLAYER_STATUS
+    status: PLAYER_STATUS,
+    world_data: Dict
 }
 
 /** Old format of indictors, used in DB for backwards compatibility (for some time). */
@@ -77,7 +78,8 @@ const INSERT = {
 const UPDATE = {
     BULK_DROP_ITEMS: undefined,
     BULK_INVENTORY: undefined,
-    BULK_PLAYER_STATE: undefined
+    BULK_PLAYER_STATE: undefined,
+    BULK_WORLD_DATA: undefined
 }
 
 // World database provider
@@ -266,9 +268,12 @@ export class DBWorld {
     }
 
     // Register new player or returns existed
-    async registerPlayer(world: ServerWorld, player: ServerPlayer): Promise<PlyaerInitInfo> {
+    async registerPlayer(world: ServerWorld, player: ServerPlayer): Promise<PlayerInitInfo> {
         // Find existing user record
-        const row = await this.conn.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode, stats, state FROM user WHERE guid = ?", [player.session.user_guid]);
+        const row = await this.conn.get(`SELECT id, inventory, pos, pos_spawn, rotate, indicators,
+            chunk_render_dist, game_mode, stats, state, world_data
+            FROM user WHERE guid = ?`,[player.session.user_guid]
+        )
         if(row) {
 
             const fixInventory = (inventory) => {
@@ -319,7 +324,8 @@ export class DBWorld {
             return {
                 state: state,
                 inventory: inventory,
-                status: state.indicators.live ? PLAYER_STATUS.ALIVE : PLAYER_STATUS.DEAD
+                status: state.indicators.live ? PLAYER_STATUS.ALIVE : PLAYER_STATUS.DEAD,
+                world_data: JSON.parse(row.world_data ?? '{}')
             };
         }
         const default_pos_spawn = world.info.pos_spawn;
@@ -374,6 +380,13 @@ export class DBWorld {
         return rows.length
             ? run(this.conn, UPDATE.BULK_INVENTORY, [JSON.stringify(rows)])
             : null;
+    }
+
+    async bulkUpdatePlayerWorldData(rows: [userId: int, world_data: string][]) {
+        UPDATE.BULK_WORLD_DATA = UPDATE.BULK_WORLD_DATA ?? preprocessSQL(
+            'UPDATE user SET world_data = %1 FROM json_each(?) WHERE user.id = %0'
+        )
+        return rows.length && run(this.conn, UPDATE.BULK_WORLD_DATA, [JSON.stringify(rows)])
     }
 
     static toPlayerUpdateRow(player: ServerPlayer): PlayerUpdateRow {

@@ -31,11 +31,14 @@ export class ServerClient {
     static CMD_MODIFY_INDICATOR_REQUEST = 33;
     static CMD_SET_WEATHER              = 38;
 
-    // Players
+    // Players (others, and optionally the current player)
     static CMD_PLAYER_JOIN              = 41;
     static CMD_PLAYER_LEAVE             = 42;
     static CMD_PLAYER_STATE             = 43; // server -> player, player -> server
+
+    // The current player
     static CMD_STANDUP_STRAIGHT         = 48; // встать с дивана/кресла
+    static CMD_PLAYER_WORLD_DATA        = 116 // s->p (an update to player.world_data)
 
     // Entities
     static CMD_LOAD_CHEST               = 45; // player -> server
@@ -99,7 +102,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 112
+    // NEXT UNUSED COMMAND INDEX        = 117
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
