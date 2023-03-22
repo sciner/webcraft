@@ -78,10 +78,10 @@ export class SpectatorPlayerControl extends PlayerControl {
         // Calculate new velocity
         let add_force = this.calcForce();
         let y = delta/(1/(60/(delta/(1/60))));
-        let p = this.player_state.flying ? .97 : .9;
+        let p = 0.85;
         p = Math.pow(p, y);
         this.player_state.vel = velocity
-            .add(add_force.normal())
+            .add(add_force.normal().mulScalar(3))
             .mul(new Vector(p, 1, p));
         //
         let passable = 1;
