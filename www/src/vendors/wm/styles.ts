@@ -1,6 +1,6 @@
-import { PIXI } from "./pixi.js"
+import { PIXI } from "../../../tools/gui/pixi.js"
 import { MySprite } from "./MySpriteRenderer.js";
-import { Vector } from "../../js/helpers.js";
+import { Vector } from "../../helpers.js";
 
 export const USE_BITMAP_FONT = false;
 
@@ -44,6 +44,7 @@ export function parseColorAndAlpha(value) {
 
 // Text align
 export class TextAlignStyle {
+    [key: string]: any;
 
     #window
 
@@ -78,6 +79,7 @@ export class TextAlignStyle {
 
 // Background
 export class BackgroundStyle {
+    [key: string]: any;
 
     #window
     #_wmbgimage
@@ -490,6 +492,7 @@ export class PaddingStyle {
 }
 
 export class TextShadowStyle {
+    [key: string]: any;
 
     #window
     
@@ -522,7 +525,7 @@ export class TextShadowStyle {
      * @returns {boolean}
      */
     get enable() {
-        this._getTextContainer()._style.dropShadow
+        return this._getTextContainer()._style.dropShadow
     }
 
     /**
@@ -536,6 +539,7 @@ export class TextShadowStyle {
 
 // Font
 export class FontStyle {
+    [key: string]: any;
 
     #window
 
@@ -657,6 +661,7 @@ export class FontStyle {
 
 // All styles
 export class Style {
+    [key: string]: any;
 
     #window
 

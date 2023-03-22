@@ -47,7 +47,8 @@ export class WorldTransactionUnderConstruction {
     // player
     // ender chests are saved with non-bulk queries and added to promises (they can be made bulk too)
     updatePlayerState   : PlayerUpdateRow[] = []
-    updatePlayerInventory = []
+    updatePlayerInventory : [int, string][] = []
+    updatePlayerWorldData : [int, string][] = []
     // player quests
     insertQuests        = []
     updateQuests        = []
@@ -319,6 +320,7 @@ export class WorldDBActor {
             uc.pushPromises(
                 // players
                 db.bulkUpdateInventory(uc.updatePlayerInventory),
+                db.bulkUpdatePlayerWorldData(uc.updatePlayerWorldData),
                 db.bulkUpdatePlayerState(uc.updatePlayerState, dt),
                 // player quests
                 db.quests.bulkInsertPlayerQuests(uc.insertQuests, dt),

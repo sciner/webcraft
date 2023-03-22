@@ -88,18 +88,7 @@ export class CraftTable extends BaseCraftWindow {
         }
 
         // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            // Close button
-            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
-            btnClose.style.background.image = image
-            btnClose.style.background.image_size_mode = 'stretch'
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-            that.add(btnClose)
-        })
+        this.addCloseButton()
 
     }
 

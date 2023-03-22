@@ -1,22 +1,26 @@
 /**
 * Window Manager based on PIXI.js
 */
-import { RuneStrings, deepAssign, isScalar } from "../../js/helpers.js";
-import { getBlockImage } from "../../js/window/tools/blocks.js";
-import { PIXI } from './pixi.js';
+import { RuneStrings, deepAssign, isScalar } from "../../helpers.js";
+import { getBlockImage } from "../../window/tools/blocks.js";
+import { PIXI } from '../../../tools/gui/pixi.js';
 import {Style} from "./styles.js";
 
-import { msdf } from "../../data/font.js";
+import { msdf } from "../../../data/font.js";
 import {MyText} from "./MySpriteRenderer.js";
-import { BLOCK } from "../../js/blocks.js";
-import { Lang } from "../../js/lang.js";
-import { Resources } from "../../js/resources.js";
+import { BLOCK } from "../../blocks.js";
+import { Lang } from "../../lang.js";
+import { Resources } from "../../resources.js";
+import { KEY } from "../../constant.js";
 
 globalThis.visible_change_count = 0
 
-export class Graphics extends PIXI.Graphics {
+export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
-    constructor(id) {
+export class Graphics extends PIXI.Graphics {
+    [key: string]: any;
+
+    constructor(id? : any) {
         super()
         this.catchEvents = false
         if(id) {
@@ -64,6 +68,7 @@ export class GradientGraphics {
 
 // Base window
 export class Window extends PIXI.Container {
+    [key: string]: any;
 
     #_tooltip = null
     #_bgicon = null
@@ -71,7 +76,7 @@ export class Window extends PIXI.Container {
 
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x, y, w, h, id, title? : string, text? : string) {
 
         super()
 
@@ -239,15 +244,15 @@ export class Window extends PIXI.Container {
         }
     }
 
-    onMouseEnter() {}
-    onMouseDown(e) {}
-    onMouseUp(e) {}
-    onMouseMove(e) {}
-    onDrop(e) {}
-    onWheel(e) {}
-    onHide() {}
+    onMouseEnter(_e?) {}
+    onMouseDown(_e?) {}
+    onMouseUp(_e?) {}
+    onMouseMove(_e?) {}
+    onDrop(_e?) {}
+    onWheel(_e?) {}
+    onHide(_e?) {}
 
-    onShow(args) {
+    onShow(_args) {
         for(let window of this.list.values()) {
             if(window instanceof TextEdit) {
                 window.focused = true
@@ -364,7 +369,7 @@ export class Window extends PIXI.Container {
 
     set visible(value) {
         if (super.visible != value) {
-            visible_change_count++
+            globalThis.visible_change_count++
         }
         super.visible = value
     }
@@ -460,13 +465,13 @@ export class Window extends PIXI.Container {
      */
     clear() {}
 
-    draw(ctx, ax, ay) {
+    draw(_ctx, _ax, _ay) {
     }
 
     /**
      * @deprecated
      */
-    updateMeasure(ctx, ax, ay) {}
+    updateMeasure(_ctx, _ax, _ay) {}
 
     calcMaxHeight() {
         let mh = 0;
@@ -559,7 +564,7 @@ export class Window extends PIXI.Container {
      * @param {?string} image_size_mode
      * @param {?float} scale
      */
-    async setBackground(urlOrImage, image_size_mode, scale, tintMode = 0) {
+    async setBackground(urlOrImage, image_size_mode? : string, scale? : float, tintMode : int = 0) {
         //if(!isScalar(urlOrImage)) {
         //    if(urlOrImage instanceof Promise) {
         //        urlOrImage = await urlOrImage
@@ -576,7 +581,7 @@ export class Window extends PIXI.Container {
      * @param {?string} image_size_mode
      * @param {?float} scale
      */
-    async setIcon(urlOrImage, image_size_mode = 'none', scale, tintMode = 0) {
+    async setIcon(urlOrImage, image_size_mode : string = 'none', scale? : float, tintMode : int = 0) {
         //if(!isScalar(urlOrImage)) {
         //    if(urlOrImage instanceof Promise) {
         //        urlOrImage = await urlOrImage
@@ -588,7 +593,7 @@ export class Window extends PIXI.Container {
         this._wmicon.visible = !!urlOrImage
     }
 
-    show(args) {
+    show(args?) {
         // for(let w of wmGlobal.visibleWindows()) {
         //     if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
         //         return
@@ -762,7 +767,7 @@ export class Window extends PIXI.Container {
     //     return { width, actualBoundingBoxDescent };
     // }
 
-    calcPrintLines(original_text, ax, ay) {
+    calcPrintLines(original_text, ax? : number, ay? : number) {
         if(!this.word_wrap || !this.ctx) {
             return [original_text];
         }
@@ -830,7 +835,7 @@ export class Window extends PIXI.Container {
             }
         }
         // Print lines
-        for(let i in lines) {
+        for(let i = 0; i < lines.length; i++) {
             const line = lines[i];
             this.ctx.fillText(line, x, y + (lineHeight * i));
         }
@@ -865,73 +870,6 @@ export class Window extends PIXI.Container {
                 default: {
                     deepAssign(deep_assign_options)(this.style[param], v)
                     break
-                }
-            }
-        }
-    }
-
-    /**
-     * @param {object} layout 
-     */
-    appendLayout(layout) {
-        layout = JSON.parse(JSON.stringify(layout))
-        const ignored_props = [
-            'x', 'y', 'width', 'height', 'childs', 'style', 'type'
-        ]
-        const zoom = UI_ZOOM  * Qubatch.settings.window_size / 100
-        const calcLayoutSize = (value, def_value) => {
-            if(value === undefined) {
-                return def_value
-            }
-            return (value | 0) * zoom
-        }
-        for(let id in layout) {
-            const cl = layout[id]
-            let control = null
-            if(cl instanceof Window) {
-                control = cl
-            } else {
-                const x = calcLayoutSize(cl.x, 0)
-                const y = calcLayoutSize(cl.y, 0)
-                const w = calcLayoutSize(cl.width, this.w)
-                const h = calcLayoutSize(cl.height, 0)
-                if (cl?.style?.padding) {
-                    cl.style.padding *= zoom
-                }
-                if (cl?.gap) {
-                    cl.gap *= zoom
-                }
-                switch(cl.type) {
-                    case 'VerticalLayout': {
-                        control = new VerticalLayout(x, y, w, id);
-                        if(cl.childs) {
-                            control.appendLayout(cl.childs)
-                        }
-                        break
-                    }
-                    case 'Label': {
-                        control = new Label(x, y, w, h, id, cl?.title, cl?.text)
-                        break
-                    }
-                    case 'Button': {
-                        control = new Button(x, y, w, h, id, cl?.title, cl?.text)
-                        break
-                    }
-                }
-            }
-            if(control) {
-                if(cl.style) {
-                    control.assignStyles(cl.style)
-                }
-                // set other props
-                for(let prop in cl) {
-                    if(ignored_props.indexOf(prop) < 0) {
-                        control[prop] = cl[prop]
-                    }
-                }
-                this.add(control)
-                if('refresh' in control) {
-                    control.refresh()
                 }
             }
         }
@@ -1042,7 +980,7 @@ export class Window extends PIXI.Container {
         }
     }
 
-    clip(x, y, w, h) {
+    clip(x? : float, y? : float, w? : float, h? : float) {
 
         x = x ?? 0
         y = y ?? 0
@@ -1076,12 +1014,14 @@ export class Window extends PIXI.Container {
 }
 
 export class Icon extends Window {
-    constructor(x, y, w, h, zoom, id) {
+
+    constructor(x, y, w, h, id, zoom) {
         super(x * zoom, y * zoom, w * zoom / 2, h * zoom / 2, id + '' + w, '', '')
         this.sprite_w = w
         this.sprite_h = h
         this.axis_x = true
     }
+
     scroll(val) {
         const spite =  this.style.background.sprite
         if (this.axis_x){
@@ -1093,6 +1033,7 @@ export class Icon extends Window {
         }
         spite.texture.updateUvs()
     }
+
 }
 
 // Button
@@ -1151,7 +1092,7 @@ export class Label extends Window {
      * @param {?string} title
      * @param {?string} text
      */
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x, y, w, h, id, title? : string, text? : string) {
         super(x, y, w, h, id, title, title)
         this.style.background.color = '#00000000'
         this.style.border.hidden = true
@@ -1393,7 +1334,7 @@ export class SimpleBlockSlot extends Window {
         return this.item
     }
 
-    setItem(item, slot) {
+    setItem(item : any, slot? : any) {
         this.item = item
         this.slot = slot
         return this.refresh()
@@ -1496,7 +1437,7 @@ export class WindowManager extends Window {
 
     static draw_calls = 0
 
-    constructor(canvas, x, y, w, h, create_mouse_listeners) {
+    constructor(canvas, x, y, w, h, create_mouse_listeners : boolean = false) {
 
         super(x, y, w, h, '_wm', null)
 
@@ -1509,8 +1450,8 @@ export class WindowManager extends Window {
         this.parent = new PIXI.Container()
         this.parent.addChild(this)
 
-        this.rootMouseEnter = (el) => {}
-        this.rootMouseLeave = (el) => {}
+        this.rootMouseEnter = (_el) => {}
+        this.rootMouseLeave = (_el) => {}
 
         // Все манипуляции мышью не будут работать без передачи менеджеру окон событий мыши
         if(create_mouse_listeners) {

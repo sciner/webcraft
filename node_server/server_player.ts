@@ -1,4 +1,4 @@
-import { Mth, Vector } from "@client/helpers.js";
+import {Mth, ObjectHelpers, Vector} from "@client/helpers.js";
 import { Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps } from "@client/player.js";
 import { GameMode } from "@client/game_mode.js";
 import { ServerClient } from "@client/server_client.js";
@@ -14,7 +14,7 @@ import { ServerPlayerEffects } from "./player/effects.js";
 import { Effect } from "@client/block_type/effect.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
-import { DBWorld, PlyaerInitInfo } from "./db/world.js"
+import { DBWorld, PlayerInitInfo } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
 import {compressNearby} from "@client/packet_compressor.js";
 import { AABB } from "@client/core/AABB.js"
@@ -86,6 +86,7 @@ export class ServerPlayer extends Player {
     inventory: ServerPlayerInventory;
     //@ts-expect-error
     controlManager: ServerPlayerControlManager
+    private prev_world_data: Dict
 
     #forward : Vector;
     #_rotateDegree : Vector;
@@ -118,6 +119,7 @@ export class ServerPlayer extends Player {
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
     static DB_DIRTY_FLAG_ENDER_CHEST   = 0x2;
     static DB_DIRTY_FLAG_QUESTS        = 0x4;
+    static DB_DIRTY_FLAG_WORLD_DATA    = 0x8;
 
     // These flags show what must be sent to the client
     static NET_DIRTY_FLAG_RENDER_DISTANCE    = 0x1;
@@ -159,7 +161,7 @@ export class ServerPlayer extends Player {
         this._aabb = new AABB()
     }
 
-    init(init_info: PlyaerInitInfo): void {
+    init(init_info: PlayerInitInfo): void {
         this.state = init_info.state;
         this.state.lies ||= false;
         this.state.sitting ||= false;
@@ -169,6 +171,8 @@ export class ServerPlayer extends Player {
         this.oxygen_level = this.state.indicators.oxygen;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
         this.status = init_info.status;
+        this.world_data = init_info.world_data;
+        this.prev_world_data = ObjectHelpers.deepClone(this.world_data);
         // GameMode
         this.game_mode = new GameMode(this, init_info.state.game_mode);
         this.game_mode.onSelect = async (mode) => {
@@ -188,6 +192,19 @@ export class ServerPlayer extends Player {
         if (this.conn) {
             console.log(`Player ${this.session.username} connection is closed due to ${error}`)
             this.conn.close(1000)
+        }
+    }
+
+    /**
+     * Checks if the world data changed. If it has, sends it to the player, and marks it dirty in DB.
+     * We can't rey on mods always notifying the game of changes, so we have to check it automatically.
+     * Call it every tick.
+     */
+    checkWorldDataChange(): void {
+        if (!ObjectHelpers.deepEqualObject(this.world_data, this.prev_world_data)) {
+            this.prev_world_data = ObjectHelpers.deepClone(this.world_data)
+            this.dbDirtyFlags |= ServerPlayer.DB_DIRTY_FLAG_WORLD_DATA
+            this.sendPackets([{name: ServerClient.CMD_PLAYER_WORLD_DATA, data: this.world_data}])
         }
     }
 
@@ -370,7 +387,7 @@ export class ServerPlayer extends Player {
         params.pos = new Vector(params.pos).round(3);
         this.world.db.changePosSpawn(this, params);
         this.state.pos_spawn = new Vector(params.pos);
-        let message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
+        const message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
         this.world.chat.sendSystemChatMessageToSelectedPlayers(message, [this.session.user_id]);
     }
 
@@ -1032,6 +1049,12 @@ export class ServerPlayer extends Player {
         }
         if (this.dbDirtyFlags & ServerPlayer.DB_DIRTY_FLAG_QUESTS) {
             this.quests.writeToWorldTransaction(underConstruction);
+        }
+        if (this.dbDirtyFlags & ServerPlayer.DB_DIRTY_FLAG_WORLD_DATA) {
+            underConstruction.updatePlayerWorldData.push([
+                this.session.user_id,
+                JSON.stringify(this.world_data)
+            ])
         }
         this.dbDirtyFlags = 0;
     }

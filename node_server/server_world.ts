@@ -466,6 +466,7 @@ export class ServerWorld implements IWorld {
             this.ticks_stat.add('tickChunkQueue');
             for(const player of this.players.values()) {
                 player.postTick(delta, this.ticks_stat.number);
+                player.checkWorldDataChange();
             }
             this.ticks_stat.add('player.postTick');
             //
@@ -597,7 +598,8 @@ export class ServerWorld implements IWorld {
             inventory: {
                 current: player.inventory.current,
                 items: player.inventory.items
-            }
+            },
+            world_data: player.world_data
         }
         player.sendPackets([{name: ServerClient.CMD_CONNECTED, data}]);
         // 10. Add night vision for building world
@@ -1257,9 +1259,14 @@ export class ServerWorld implements IWorld {
     }
 
     /*
-    * Проверям спят ли все
+    * Проверям спят ли все и устанавливаем место спавна
     */
-    getAllSleep(id) {
+    getSleep(id, pos) {
+        // устаналиваем место спауна
+        const existing_player = this.players.get(id)
+        if (!existing_player.state.pos_spawn.equal(pos)) {
+            existing_player.changePosSpawn({pos: pos, id: id})
+        }
         const time = this.getTime()
         if(time.hours < 18 && time.hours > 6) {
             return false

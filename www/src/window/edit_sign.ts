@@ -1,5 +1,5 @@
 import {Button, Label, TextEdit, Window} from "../ui/wm.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 
@@ -17,17 +17,14 @@ export class EditSignWindow extends BlankWindow {
         const ct = this
         ct.setBackground('./media/gui/form-empty.png', 'stretch')
 
-        // Add labels to window
-        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.sign_edit)
-        this.add(lblTitle)
-
         // Text editors
-        const margin            = 14 // (this.w / this.zoom) / 48 * 2;
-        const textEditWidth     = 200 * this.zoom
+        const margin            = 14
+        const textEditWidth     = this.w - UI_THEME.window_padding * this.zoom * 2
         const textEditHeight    = textEditWidth / 2
         const txtEdit1 = this.txtEdit1 = new TextEdit(this.w / 2 - textEditWidth / 2, 40 * this.zoom, textEditWidth, textEditHeight, 'txtEdit1', null, '')
         txtEdit1.word_wrap          = true
         txtEdit1.style.font.color   = '#ffffff'
+        // txtEdit1.style.font.size    = 16
         txtEdit1.max_length         = 100
         txtEdit1.max_lines          = 5
         txtEdit1.max_chars_per_line = 20
@@ -38,18 +35,11 @@ export class EditSignWindow extends BlankWindow {
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
+        // Add labels to window
+        this.addWindowTitle(Lang.sign_edit)
+
         // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            const btnClose = new Button(that.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial'
-            btnClose.setBackground(image, 'stretch')
-            btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-            that.add(btnClose)
-        });
+        this.addCloseButton()
 
         // Save button
         const btn_height = margin * 1.5;

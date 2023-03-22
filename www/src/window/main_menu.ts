@@ -45,7 +45,7 @@ export class MainMenu extends BlankWindow {
     addButton(label : string, y : number, onclick : Function) {
         const btnID = `btn_${this.id}_${y}`;
         const btn = new Button(20 * this.zoom, y * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, btnID, label);
-        btn.onMouseDown = onclick
+        (btn as any).onMouseDown = onclick
         this.add(btn);
     }
 
