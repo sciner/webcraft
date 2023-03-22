@@ -195,8 +195,8 @@ export enum BLOCK_FLAG {
 // If we receive packets older than this, terminate the connection
 export const MAX_PACKET_LAG_SECONDS         = 60
 // If another host sent a packet that's marked as ahead of this host's time,
-// it's accepted only if the difference doesn't exceed this value
-export const MAX_PACKET_AHEAD_OF_TIME_MS    = 100
+// it's accepted only if the difference doesn't exceed this value. TODO decrease this value when we have synchronized clocks
+export const MAX_PACKET_AHEAD_OF_TIME_MS    = 10000
 export const MAX_CLIENT_STATE_INTERVAL      = 500 // the maximum interval between a client sends CMD_PLAYER_STATE
 
 // ======================== Physics options =========================
