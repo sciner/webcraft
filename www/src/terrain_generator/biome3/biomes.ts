@@ -9,7 +9,7 @@ const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
 const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
-const TREE_FREQUENCY        = 0.015 * 32;
+const TREE_FREQUENCY        = 0.015 * 32; // 0.48
 const PLANTS_FREQUENCY      = 0.015;
 const GRASS_FREQUENCY       = 0.015;
 
@@ -232,14 +232,15 @@ export class Biomes {
             trees = {
                 frequency: 0, // TREE_FREQUENCY,
                 list: [
-                    /*{percent: .125, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-                    {percent: .125, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
-                    {percent: .125, ...TREES.JUNGLE, height: {min: 16, max: 22}},
-                    {percent: .125, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
-                    {percent: .125, ...TREES.SPRUCE, height: {min: 6, max: 24}},
-                    {percent: .125, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
-                    {percent: .125, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
-                    {percent: .125, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
+                    /*
+                    {percent: .125, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {...TREES.OAK, percent: .125, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                    {...TREES.JUNGLE, percent: .125, height: {min: 16, max: 22}},
+                    {...TREES.ACACIA, percent: .125, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
+                    {...TREES.SPRUCE, percent: .125, height: {min: 6, max: 24}},
+                    {...TREES.BIRCH, percent: .125, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                    {...TREES.BROWN_MUSHROOM, percent: .125, height: {min: 5, max: 8}},
+                    {...TREES.RED_MUSHROOM, percent: .125, height: {min: 8, max: 12}}
                     */
                 ]
             };
@@ -348,9 +349,9 @@ export class Biomes {
             list: [
                 // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.05, ...TREES.SPRUCE, height: {min: 6, max: 24}},
+                {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
                 {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
-                {percent: 0.681 + 0.150, ...TREES.SPRUCE, height: {min: 6, max: 11}}
+                {...TREES.SPRUCE, percent: 0.681 + 0.150, height: {min: 6, max: 11}}
             ]
         }, {
             frequency: PLANTS_FREQUENCY,
@@ -374,9 +375,9 @@ export class Biomes {
             list: [
                 // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.05, ...TREES.SPRUCE, height: {min: 6, max: 24}},
+                {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
                 {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
-                {percent: 0.681 + 0.150, ...TREES.SPRUCE, height: {min: 6, max: 11}}
+                {...TREES.SPRUCE, percent: 0.681 + 0.150, height: {min: 6, max: 11}}
             ]
         }, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
         this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4, snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
@@ -389,8 +390,8 @@ export class Biomes {
         this.addBiome(1, 'Равнины', 0.8, 0.4, undefined, {
             frequency: TREE_FREQUENCY / 12,
             list: [
-                {percent: .95, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
-                {percent: .05, ...TREES.BIG_OAK}
+                {...TREES.OAK, percent: .95, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                {...TREES.BIG_OAK, percent: .05}
             ]
         }, undefined, undefined, new IndexedColor(75, 435, 0));
         this.addBiome(129, 'Подсолнечниковые равнины', 0.8, 0.4);
@@ -398,10 +399,10 @@ export class Biomes {
             frequency: TREE_FREQUENCY * 3,
             list: [
                 {percent: 0.01, trunk: TREES.BIRCH.trunk, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.4, ...TREES.OAK},
-                {percent: 0.4, ...TREES.BIRCH},
-                {percent: .09, ...TREES.BIG_OAK},
-                {percent: .1, ...TREES.BIG_OAK, trunk: TREES.BIRCH.trunk, leaves: TREES.BIRCH.leaves},
+                {...TREES.OAK, percent: 0.4},
+                {...TREES.BIRCH, percent: 0.4},
+                {...TREES.BIG_OAK, percent: .09},
+                {...TREES.BIG_OAK, percent: .1, trunk: TREES.BIRCH.trunk, leaves: TREES.BIRCH.leaves},
             ]
         });
         this.addBiome(18, 'Холмистый лес', 0.7, 0.8);
@@ -410,8 +411,9 @@ export class Biomes {
             frequency: TREE_FREQUENCY * 1.2,
             list: [
                 {percent: 0.01, trunk: TREES.BIRCH.trunk, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.97, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
-                {percent: .02, ...TREES.BIG_OAK, trunk: TREES.BIRCH.trunk, leaves: TREES.BIRCH.leaves},
+                {...TREES.BIRCH, percent: 0.98, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                {...TREES.BIG_OAK, percent: .008, trunk: TREES.BIRCH.trunk, leaves: TREES.BIRCH.leaves},
+                {...TREES.RED_MUSHROOM, percent: .002, height: {min: 8, max: 12}},
             ]
         }, undefined, undefined, new IndexedColor(70, 370, 0));
         this.addBiome(28, 'Холмистый березняк', 0.6, 0.6);
@@ -423,7 +425,7 @@ export class Biomes {
             frequency: TREE_FREQUENCY * .25,
             list: [
                 {percent: .95, trunk: TREES.OAK.trunk, leaves: BLOCK.OAK_LEAVES.id, style: 'acacia', height: {min: 3, max: 7}},
-                {percent: .05, ...TREES.BIG_OAK}
+                {...TREES.BIG_OAK, percent: .05}
             ]
         }, {
             frequency: PLANTS_FREQUENCY,
@@ -455,10 +457,10 @@ export class Biomes {
         this.addBiome(21, 'Джунгли', 0.95, 0.9, undefined, {
                 frequency: TREE_FREQUENCY * 40,
                 list: [
-                    {percent: .025, ...TREES.JUNGLE, height: {min: 16, max: 22}},
-                    {percent: .1, ...TREES.JUNGLE, height: {min: 9, max: 14}},
-                    {percent: .4, ...TREES.JUNGLE, height: {min: 3, max: 8}},
-                    {percent: .2 + .175, ...TREES.JUNGLE, height: {min: 1, max: 1}},
+                    {...TREES.JUNGLE, percent: .025, height: {min: 16, max: 22}},
+                    {...TREES.JUNGLE, percent: .1, height: {min: 9, max: 14}},
+                    {...TREES.JUNGLE, percent: .4, height: {min: 3, max: 8}},
+                    {...TREES.JUNGLE, percent: .2 + .175, height: {min: 1, max: 1}},
                     // bamboo
                     {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
                 ]
@@ -488,10 +490,10 @@ export class Biomes {
         this.addBiome(23, 'Окраина джунглей', 0.95, 0.8, undefined, {
                 frequency: TREE_FREQUENCY * 4,
                 list: [
-                    {percent: .025, ...TREES.JUNGLE, height: {min: 16, max: 22}},
-                    {percent: .1, ...TREES.JUNGLE, height: {min: 9, max: 14}},
-                    {percent: .4, ...TREES.JUNGLE, height: {min: 3, max: 8}},
-                    {percent: .2, ...TREES.JUNGLE, height: {min: 1, max: 1}},
+                    {...TREES.JUNGLE, percent: .025, height: {min: 16, max: 22}},
+                    {...TREES.JUNGLE, percent: .1, height: {min: 9, max: 14}},
+                    {...TREES.JUNGLE, percent: .4, height: {min: 3, max: 8}},
+                    {...TREES.JUNGLE, percent: .2, height: {min: 1, max: 1}},
                     // bamboo
                     {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
                 ]
@@ -521,8 +523,8 @@ export class Biomes {
         this.addBiome(14, 'Грибные поля', 0.9, 1, undefined, {
             frequency: TREE_FREQUENCY / 4,
             list: [
-                {percent: .5, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
-                {percent: .5, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
+                {...TREES.BROWN_MUSHROOM, percent: .5, height: {min: 5, max: 8}},
+                {...TREES.RED_MUSHROOM, percent: .5, height: {min: 8, max: 12}}
             ]
         }, {
             frequency: PLANTS_FREQUENCY * 5,
@@ -575,15 +577,15 @@ export class Biomes {
         this.addBiome(35, 'Саванна', 1.2, 0, undefined, {
             frequency: TREE_FREQUENCY,
             list: [
-                {percent: .9, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
-                {percent: .1, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: 1}},
+                {...TREES.ACACIA, percent: .9, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
+                {...TREES.ACACIA, percent: .1, height: {min: TREE_MIN_HEIGHT, max: 1}},
             ]
         }, null, undefined, new IndexedColor(0, 510, 0), new IndexedColor(128, 194, 0));
         this.addBiome(36, 'Плато саванны', 1, 0, undefined, {
             frequency: TREE_FREQUENCY,
             list: [
-                {percent: .25, ...TREES.ACACIA, height: {min: 2, max: 2}},
-                {percent: .75, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
+                {...TREES.ACACIA, percent: .25, height: {min: 2, max: 2}},
+                {...TREES.ACACIA, percent: .75, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
                 // {percent: .05, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
                 // {percent: .05, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
             ]
