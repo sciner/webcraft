@@ -1,4 +1,4 @@
-import { getChunkAddr, IndexedColor, Vector } from "../../../helpers.js";
+import { getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from "../../../helpers.js";
 import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../../effect.js";
 import { Mesh_Effect_Particle } from "../particle.js";
 
@@ -6,19 +6,26 @@ export default class emitter {
     [key: string]: any;
 
     static textures = [
-        [0, 7], [1, 7], [2, 7], [3, 7], [4, 7]
+        [8, 0]
+        // [0, 7], [1, 7], [2, 7], [3, 7], [4, 7]
     ];
 
     constructor(pos, params) {
+        const lm = IndexedColor.WHITE.clone()
         this.max_distance   = 64;
-        this.pp             = IndexedColor.WHITE.clone().pack();
+        this.pp             = lm.pack();
         this.pos            = pos;
+        this.flags          = 0
         this.chunk_addr     = Vector.toChunkAddr(this.pos);
         this.material_key   = DEFAULT_EFFECT_MATERIAL_KEY;
         const m             = this.material_key.split('/');
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);
         this.material       = resource_pack.getMaterial(this.material_key);
         this.ticks          = 0;
+        // animations
+        lm.b = 12
+        this.pp = lm.pack()
+        this.flags = QUAD_FLAGS.FLAG_ANIMATED
     }
 
     /**
@@ -52,6 +59,7 @@ export default class emitter {
                 life:           1,
                 texture:        texture,
                 size:           1/8,
+                flags:          this.flags,
                 scale:          1,
                 smart_scale:    {0: 1, 1: 1},
                 ag:             new Vector(0, 0, 0),

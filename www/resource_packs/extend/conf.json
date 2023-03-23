@@ -6,7 +6,7 @@
     "textures": {
         "effects": {
             "image": "/textures/effects.png",
-            "tx_cnt": 8
+            "tx_cnt": 64
         }
     }
 }

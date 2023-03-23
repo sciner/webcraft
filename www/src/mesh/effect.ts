@@ -3,6 +3,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { LIGHT_TYPE } from '../constant.js';
+import type { Mesh_Effect_Particle } from './effect/particle.js';
 
 const STRIDE_FLOATS                         = GeometryTerrain.strideFloats;
 const chunk_size                            = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
@@ -59,9 +60,8 @@ export class Mesh_Effect {
 
     /**
      * Add particle
-     * @param {Mesh_Effect_Particle} particle
      */
-    add(particle) {
+    add(particle : Mesh_Effect_Particle) {
 
         const flags = particle.force_flags || (QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (particle.flags || 0))
         const pp = particle.pp;

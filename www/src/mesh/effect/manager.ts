@@ -41,14 +41,17 @@ export class Mesh_Effect_Manager {
         this.effects.set('cloud', Mesh_Effect_Emitter_Cloud);
         this.effects.set('bubble', Mesh_Effect_Emitter_Bubble);
 		this.effects.set('dripping', Mesh_Effect_Emitter_Dripping);
+
+        // TODO: need to read from resource pack
+        const tx_cnt = 64
         
         for(const item of this.effects.values()) {
             if(item.textures) {
                 for(let i in item.textures) {
-                    item.textures[i][0] = (item.textures[i][0] + .5) / 8;
-                    item.textures[i][1] = (item.textures[i][1] + .5) / 8;
-                    item.textures[i][2] = 1 / 8;
-                    item.textures[i][3] = 1 / 8;
+                    item.textures[i][0] = (item.textures[i][0] + .5) / tx_cnt;
+                    item.textures[i][1] = (item.textures[i][1] + .5) / tx_cnt;
+                    item.textures[i][2] = 1 / tx_cnt;
+                    item.textures[i][3] = 1 / tx_cnt;
                 }
             }
         }
