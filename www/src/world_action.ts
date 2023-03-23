@@ -1,7 +1,7 @@
 import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
     SpatialDeterministicRandom, ObjectHelpers } from "./helpers.js";
 import { AABB } from './core/AABB.js';
-import {CubeSym} from './core/CubeSym.js';
+import {CD_ROT, CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
@@ -1264,8 +1264,8 @@ function calcBlockOrientation(mat_block, rotate, n) {
         resp = calcRotateByPosN(rotate, n);
         if(mat_block.tags.includes('rotate_by_pos_n_xyz')) {
             if(resp.y) resp.set(0, 1, 0);
-            if(resp.x == 18) resp.set(7, 0, 0);
-            if(resp.x == 22) resp.set(13, 0, 0);
+            if(resp.x == CD_ROT.SOUTH) resp.set(7, 0, 0);
+            if(resp.x == CD_ROT.EAST) resp.set(13, 0, 0);
         }
     } else {
         resp = calcRotate(rotate, n, rotate_by_pos_n_5);

@@ -1,9 +1,10 @@
-import { DIRECTION, Vector, IndexedColor, QUAD_FLAGS } from '../helpers.js';
+import { DIRECTION, Vector, IndexedColor } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style } from './default.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import { CD_ROT } from '../core/CubeSym.js';
 
 
 // Hopper
@@ -23,9 +24,11 @@ export default class style {
 
     // computeAABB
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
-        const aabb = new AABB();
-        aabb.set( 0, 0, 0, 1, 1, 1);
-        return [aabb];
+        return [
+            new AABB(0, 10/16, 0, 1, 1, 1),
+            new AABB(4/16, 4/16, 4/16, 12/16, 10/16, 12/16),
+            new AABB(6/16, 0, 6/16, 10/16, 4/16, 10/16),
+        ];
     }
 
     // Build function
@@ -84,16 +87,16 @@ export default class style {
         if (hopping_blocks.includes(neighbours.DOWN.id) && (cd <= 3)) {
             sh_y = -6
         } else 
-        if (hopping_blocks.includes(neighbours.WEST.id) && cd == 13) {
+        if (hopping_blocks.includes(neighbours.WEST.id) && cd == CD_ROT.WEST) {
             sh_x = -6
         }
-        if (hopping_blocks.includes(neighbours.EAST.id) && cd == 22) {
+        if (hopping_blocks.includes(neighbours.EAST.id) && cd == CD_ROT.EAST) {
             sh_x = 6
         } 
-        if (hopping_blocks.includes(neighbours.NORTH.id) && cd == 7) {
+        if (hopping_blocks.includes(neighbours.NORTH.id) && cd == CD_ROT.NORTH) {
             sh_z = 6
         }
-        if (hopping_blocks.includes(neighbours.SOUTH.id) && cd == 18) {
+        if (hopping_blocks.includes(neighbours.SOUTH.id) && cd == CD_ROT.SOUTH) {
             sh_z = -6
         }
         parts.push(...[

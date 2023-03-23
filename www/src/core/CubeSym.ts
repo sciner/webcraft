@@ -2,6 +2,13 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat3} = glMatrix;
 
+export enum CD_ROT {
+    NORTH   = 7,
+    WEST    = 13,
+    SOUTH   = 18,
+    EAST    = 22,
+}
+
 export const CubeSym = {
     ID: 0,
     ROT_Y: 1,

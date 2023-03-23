@@ -1,3 +1,4 @@
+import { CD_ROT } from "@client/core/CubeSym.js";
 import { Vector } from "@client/helpers.js";
 import { InventoryComparator } from "@client/inventory_comparator.js";
 import { ServerClient } from "@client/server_client.js";
@@ -75,7 +76,7 @@ export default class Ticker {
             if (isFullHopper(item)) {
                 return false
             }
-            //Если что то внизу
+            // Если что то внизу
             if (neighbours.DOWN && cd <= 3) {
                 // Сундук
                 if (neighbours.DOWN.id == bm.CHEST.id && updateSlots(neighbours.DOWN, item)) {
@@ -91,7 +92,7 @@ export default class Ticker {
                 }
             }
             // если что то на западе
-            if (neighbours.WEST && cd == 13) {
+            if (neighbours.WEST && cd == CD_ROT.WEST) {
                 // печка
                 if (neighbours.WEST.id == bm.FURNACE.id && updateSlot(neighbours.WEST, item, 1)) {
                     return true
@@ -106,7 +107,7 @@ export default class Ticker {
                 }
             }
             // если что то на востоке
-            if (neighbours.EAST && cd == 22) {
+            if (neighbours.EAST && cd == CD_ROT.EAST) {
                 // печка
                 if (neighbours.EAST.id == bm.FURNACE.id && updateSlot(neighbours.EAST, item, 1)) {
                     return true
@@ -121,7 +122,7 @@ export default class Ticker {
                 }
             }
             // если что то на севере
-            if (neighbours.NORTH && cd == 7) {
+            if (neighbours.NORTH && cd == CD_ROT.NORTH) {
                 // печка
                 if (neighbours.NORTH.id == bm.FURNACE.id && updateSlot(neighbours.NORTH, item, 1)) {
                     return true
@@ -136,7 +137,7 @@ export default class Ticker {
                 }
             }
             // если что то на юге
-            if (neighbours.SOUTH && cd == 18) {
+            if (neighbours.SOUTH && cd == CD_ROT.SOUTH) {
                 // печка
                 if (neighbours.SOUTH.id == bm.FURNACE.id && updateSlot(neighbours.SOUTH, item, 1)) {
                     return true
@@ -186,7 +187,7 @@ export default class Ticker {
 
         // если надо воронкой сундук
         if (neighbours.UP && neighbours.UP.id == bm.CHEST.id) {
-            for (let i = 0; i < 27; i++) {
+            for (let i = 0; i < neighbours.UP.material.chest.slots; i++) {
                 if (neighbours.UP?.extra_data?.slots[i]?.id && isMoveItem(neighbours.UP.extra_data.slots[i])) {
                     neighbours.UP.extra_data.slots[i].count--
                     if (neighbours.UP.extra_data.slots[i].count <= 0) {

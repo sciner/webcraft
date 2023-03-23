@@ -1,4 +1,5 @@
 import { Label, Window } from "../../tools/gui/wm.js";
+import { KEY } from "../constant.js";
 
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
@@ -121,7 +122,7 @@ export class TextBox {
         if(!this.active) {
             return;
         }
-        if(charCode == 13) {
+        if(charCode == KEY.ENTER) {
             return this.submit();
         }
         if(this.carriage < this.buffer.length) {

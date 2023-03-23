@@ -4,7 +4,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { CubeSym } from '../core/CubeSym.js';
+import { CD_ROT, CubeSym } from '../core/CubeSym.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
@@ -177,10 +177,10 @@ export default class style {
 
             if(rotate.y == 0) {
                 let angle = 0;
-                if(rotate.x == 7) angle = Math.PI / 2 * 2;
-                if(rotate.x == 18) angle = Math.PI / 2 * 0;
-                if(rotate.x == 22) angle = Math.PI / 2 * 1;
-                if(rotate.x == 13) angle = Math.PI / 2 * 3;
+                if(rotate.x == CD_ROT.NORTH) angle = Math.PI / 2 * 2;
+                if(rotate.x == CD_ROT.WEST) angle = Math.PI / 2 * 3;
+                if(rotate.x == CD_ROT.SOUTH) angle = Math.PI / 2 * 0;
+                if(rotate.x == CD_ROT.EAST) angle = Math.PI / 2 * 1;
                 mat4.rotate(matRotate, matRotate, angle, [0, 1, 0]);
             } else {
                 mat4.rotate(matRotate, matRotate, Math.PI/2, [1, 0, 0]);
