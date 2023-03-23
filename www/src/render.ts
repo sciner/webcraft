@@ -1271,7 +1271,7 @@ export class Renderer {
     // createShadowBuffer...
     createShadowVertices(vertices, shapes, pos, c) {
         let lm          = new IndexedColor(0, 0, Math.round((performance.now() / 1000) % 1 * 255));
-        let flags       = QUAD_FLAGS.QUAD_FLAG_OPACITY, sideFlags = 0, upFlags = 0;
+        let flags       = QUAD_FLAGS.QUAD_FLAG_OPACITY, sideFlags = 0, upFlags = QUAD_FLAGS.NO_FOG;
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
             let x1 = shape[0];
