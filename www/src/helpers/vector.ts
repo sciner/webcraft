@@ -374,7 +374,7 @@ export class Vector implements IVector {
      */
     roundSelf(decimals?: number) : this {
         if(decimals) {
-            decimals = Math.pow(10, decimals);
+            decimals = Mth.POWER_OF_10[decimals];
             this.x = Math.round(this.x * decimals) / decimals;
             this.y = Math.round(this.y * decimals) / decimals;
             this.z = Math.round(this.z * decimals) / decimals;
@@ -659,7 +659,7 @@ export class Vector implements IVector {
         }
     }
 
-    addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
+    addByCardinalDirectionSelf(vec : IVector, dir : int, mirror_x = false, mirror_z = false) {
         const x_sign = mirror_x ? -1 : 1;
         const z_sign = mirror_z ? -1 : 1;
         this.y += vec.y;
@@ -716,6 +716,12 @@ export class Vector implements IVector {
         return this;
     }
 
+    /** Returns true if a point relative to a chunk is inside the chunk (not in its padding). */
+    isRelativePosInChunk() {
+        return (this.x | this.y | this.z) >= 0 &&
+            this.x < CHUNK_SIZE_X && this.y < CHUNK_SIZE_Y && this.z < CHUNK_SIZE_Z
+    }
+
     worldPosToChunkIndex() {
         const x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
         const y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
@@ -723,8 +729,12 @@ export class Vector implements IVector {
         return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
     }
 
-    static relativePosToChunkIndex(x, y, z) {
+    static relativePosToChunkIndex(x : int, y : int, z : int) : int {
         return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
+    }
+
+    static relativePosToFlatIndexInChunk(x : int, y : int, z : int) : int {
+        return CHUNK_SIZE_X * (CHUNK_SIZE_Z * y + z) + x;
     }
 
     relativePosToChunkIndex() {

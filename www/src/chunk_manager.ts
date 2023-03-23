@@ -202,11 +202,10 @@ export class ChunkManager {
                     break;
                 }
                 case 'blocks_generated': {
+                    const msg = args as TChunkWorkerMessageBlocksGenerated
                     // console.log('4. createChunk: generated', new Vector(args.addr).toHash());
-                    const chunk = that.chunks.get(args.addr);
-                    if(chunk) {
-                        chunk.onBlocksGenerated(args);
-                    }
+                    const chunk = that.chunks.get(msg.addr);
+                    chunk?.onBlocksGenerated(msg);
                     break;
                 }
                 case 'gen_queue_size': {
@@ -289,23 +288,22 @@ export class ChunkManager {
         }
         // Init webworkers
         let world_info = world.info;
-        const generator = world_info.generator;
-        const world_seed = world_info.seed;
-        const world_guid = world_info.guid;
         const settings = world.settings;
-        const resource_cache = Helpers.getCache();
 
         this.use_light                = settings.use_light != LIGHT_TYPE.NO;
         this.worker_counter           = this.use_light ? 2 : 1;
 
-        this.postWorkerMessage(['init', {
-            generator,
-            world_seed,
-            world_guid,
+        const msg: TChunkWorkerMessageInit = {
+            generator: world_info.generator,
+            world_seed: world_info.seed,
+            world_guid: world_info.guid,
             settings,
+            is_server: false,
             // bbmodels,
-            resource_cache
-        }]);
+            resource_cache: Helpers.getCache()
+        }
+        this.postWorkerMessage(['init', msg]);
+
         this.postLightWorkerMessage(['init', null]);
         this.postLightWorkerMessage([
             'genLayerParams',

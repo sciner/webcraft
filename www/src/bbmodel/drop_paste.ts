@@ -143,7 +143,7 @@ export class BBModel_DropPaste {
                                 Math.cos(player.rotate.z) * 2,
                             )
                             const key = randomUUID()
-                            const mesh = game.render.addBBModel(pos, model.name, player.rotate.add(new Vector(0, 0, Math.PI)), animation_name as string, key)
+                            const mesh = game.render.addBBModel(pos, model.name, player.rotate.clone().addScalarSelf(0, 0, Math.PI), animation_name as string, key, true)
                             previous_meshes.set(key, mesh)
                         }
 

@@ -135,12 +135,13 @@ let gameCtrl = async function($scope : any, $timeout : any) {
             // Don't show it, but log it.
             console.error(JSON.stringify(message))
             message = 'error'
+        } else {
+            console.error(message)
         }
         // special option - show alert
         let alert = false
         if (message.startsWith('!alert')) {
             message = message.substring(6)
-            console.error(message)
             alert = true
         }
         // Multilingual messages
@@ -494,7 +495,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
         })
 
         await renderBackend.init({
-            blocks: Resources.shaderBlocks
+            shaderPreprocessor: Resources.shaderPreprocessor
         })
 
         render.resetAfter();

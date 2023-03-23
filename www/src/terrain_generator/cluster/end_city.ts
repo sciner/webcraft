@@ -4,11 +4,12 @@ import { impl as alea } from "../../../vendors/alea.js";
 import { ArrayHelpers, Vector, VectorCollector } from "../../helpers.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import { BlockDrawer } from "./block_drawer.js";
-
 import type { Biome } from "../biome3/biomes.js";
 import type { ClusterManager } from "./manager.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
+
+const MAX_FIND_RADIUS = 40
 
 const CITY_BUILDING_SCHEMAS = [
     'endcity_fat_tower_top',
@@ -54,11 +55,27 @@ export class ClusterEndCity extends ClusterBuildingBase {
     
         this.is_empty = !((this.coord.z % 1024) == 0 && (this.coord.x % 1024) == 0)
         if (this.is_empty) {
-            
             return
         }
-        console.log('ok ' + this.coord.z + ' ' + this.coord.x )
-        this.random = new alea(this.coord.z + 'seed' + this.coord.x)
+        
+        // находим место с максимальной высотой
+        const size_half_x = this.size.x / 2
+        const size_half_z = this.size.z / 2
+        let max_noise = 1
+        let sh_x = 0
+        let sh_z = 0
+        for (let x = -MAX_FIND_RADIUS; x < MAX_FIND_RADIUS; x++) {
+            for (let z = -MAX_FIND_RADIUS; z < MAX_FIND_RADIUS; z++) {
+                const noise = this.generator.noise2d((this.coord.x + size_half_x + x) / 100, (this.coord.z + size_half_z + z) / 100)
+                if (noise < max_noise) {
+                    max_noise = noise
+                    sh_x = x
+                    sh_z = z
+                }
+            }
+        }
+
+        this.random = new alea('seed' + this.generator.seed + 'x' + this.coord.x + 'z' + this.coord.z)
 
         // используемые шаблоны структур
         for (const schema_name of CITY_BUILDING_SCHEMAS) {
@@ -66,8 +83,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
             this.templates.set(schema_name, template)
         }
 
-        // абсолютная позиция внутри layer-а (в центре кластера, на высоте 87 блоков)
-        this.start_coord = this.coord.clone().addScalarSelf(this.size.x / 2, 39, this.size.z / 2)
+        this.start_coord = this.coord.clone().addScalarSelf(size_half_x + sh_x, 39, size_half_z + sh_z)
 
         this.addCity(new Vector(0, 0, 0), 0, this.random)
 
@@ -88,57 +104,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
             this.appendBuilding(building)
         }
 
-        /*
-
-        for(let i = 0; i < 10; i ++) {
-
-            // выбираем рандомную структуру
-            const template = templates[Math.floor(this.randoms.double() * templates.length)]
-
-            // направление, куда повернута структура (0...3)
-            // поворот всегда осуществляется вокруг точки двери
-            const door_direction = i % 4 // Math.floor(this.randoms.double() * 4)
-
-            // координата относительно стартовой точки
-            const coord = new Vector(
-                0, // Math.trunc(this.randoms.double() * 8) - 4, // рандомный сдвиг в сторону
-                i * 5, // "рандомный" сдвиг по высоте относительно ABS_MY_Y
-                0 // Math.trunc(this.randoms.double() * 8) - 4 // рандомный сдвиг в сторону
-            )
-
-            // создаем структуру из шаблона
-            const building = new BuildingBlocks(
-                this,
-                this.randoms.double(),
-                coord.clone(),
-                coord.clone(),
-                door_direction,
-                null,
-                template
-            )
-
-            // структура устанавливается на эту позицию своим левым передним углом
-            building.movePosTo(coord, false)
-            // const aabb = building.getRealAABB()
-
-            this.appendBuilding(building)
-
-        }
-        */
-
-        // создание маски, чтобы трава и деревья "расступились" вокруг структур
-        this.makeNearMask()
-
-        // let m = ''
-        // for(let x = 0; x < this.size.x; x+=8) {
-        //     for(let z = 0; z < this.size.z; z+=8) {
-        //         const nidx = z * this.size.x + x
-        //         let v = this.near_mask[nidx]
-        //         m += (v == 255) ? '.' : '#'
-        //     }
-        //     m += '\n'
-        // }
-        // console.log(m)
+        this.resetNearMask()
 
     }
 
@@ -146,37 +112,17 @@ export class ClusterEndCity extends ClusterBuildingBase {
      * Fill chunk blocks
      */
     fillBlocks(maps : TerrainMapManager, chunk : ChunkWorkerChunk, map : TerrainMap, fill_blocks : boolean = true, calc_building_y : boolean = true) {
-
         if(this.is_empty) {
             return false;
         }
-
         this.timers.start('fill_blocks')
-
-        // // each all buildings
-        // for(let b of this.buildings.values()) {
-        //     if(b.entrance.y != Infinity) {
-        //         // this.drawBulding(chunk, maps, b, map)
-        //         // draw basement before the building
-        //         if (b.getautoBasementAABB()?.intersect(chunk.aabb)) {
-        //             b.drawAutoBasement(chunk)
-        //         }
-        //     }
-        // }
 
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []
         // draw chunk blocks
         this.blocks.draw(this, chunk, map)
-
-        // if(fill_blocks) {
-        //     super.fillBlocks(maps, chunk, map);
-        // }
-
-        //
         this.timers.stop()
         this.timers.count++;
-
     }
 
     appendBuilding(building : BuildingBlocks) {
@@ -261,7 +207,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         return true
     }
 
-    addFatTower(depth : int, current : BuildingPiece, position? : Vector, rand? : alea) {
+    addFatTower(depth : int, current : BuildingPiece, position? : Vector | null, rand? : alea) {
         if (depth > 8) {
             return false
         }
@@ -283,7 +229,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
         return true
     }
 
-    addBridge(depth : int, current : BuildingPiece, position? : Vector, rand? : alea) {
+    addBridge(depth : int, current : BuildingPiece, position? : Vector | null, rand? : alea) {
         if (depth > 8) {
             return
         }

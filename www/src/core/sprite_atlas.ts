@@ -50,7 +50,7 @@ export class SpriteAtlas {
 
     }
 
-    async getSprite(x : int, y : int, width : int, height : int, dest_width : int, dest_height : int) : PIXI.Texture {
+    async getSprite(x : int, y : int, width : int, height : int, dest_width? : int, dest_height? : int) : PIXI.Texture {
         const key = `${x}, ${y}, ${width}, ${height}, ${dest_width}, ${dest_height}`
         let tex = null
         if(this.cache.has(key)) {

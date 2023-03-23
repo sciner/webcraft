@@ -256,7 +256,9 @@ export class PickAt {
     }
 
     createTargetLines(pos, geom) {
-        const aabbConfig = {isLocal: true, lineWidth: .25, colorBGRA: 0xFF000000};
+        const lineWidth = 100 / Qubatch.render.HUD.height * 1.5 // .25
+
+        const aabbConfig = {isLocal: true, lineWidth, colorBGRA: 0xFF000000};
         let vertices    = [];
         geom.clear();
         geom.pos.copyFrom(pos);

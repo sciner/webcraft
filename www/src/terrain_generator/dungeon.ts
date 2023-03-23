@@ -358,9 +358,6 @@ export class DungeonGenerator {
             if(rotate || extra_data) {
                 tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data);
             }
-            if(BLOCK.TICKING_BLOCKS.has(block_type.id)) {
-                chunk.addTickingBlock(chunk.coord.offset(x, y, z))
-            }
         }
     }
 

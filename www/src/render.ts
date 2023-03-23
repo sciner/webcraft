@@ -32,6 +32,8 @@ import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { World } from "./world.js";
+import type { MobModel } from "./mob_model.js";
+import type { HUD } from "./hud.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -55,6 +57,11 @@ const NIGHT_SHIFT_RANGE         = 16;
 // Shake camera on damage
 const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
+
+class DrawMobsStat {
+    count: int
+    time: float
+}
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
@@ -89,7 +96,7 @@ export class Renderer {
     projMatrix: any;
     viewMatrix: any;
     camPos: any;
-    HUD: any;
+    HUD: HUD;
     maskColorTex: any;
     stars: any;
     blockDayLightTex: any;
@@ -102,6 +109,7 @@ export class Renderer {
     weather_name: string;
     material_shadow: any;
     obstacle_pos: any;
+    draw_mobs_stat: DrawMobsStat = new DrawMobsStat()
 
     constructor(qubatchRenderSurfaceId : string) {
         this.xrMode             = false;
@@ -191,6 +199,7 @@ export class Renderer {
             // world.chunkManager.setLightTexFormat('rgba4unorm', false);
             if (settings.use_light === LIGHT_TYPE.RTX) {
                 world.chunkManager.setLightTexFormat(true);
+                renderBackend.preprocessor.useNormalMap = true;
                 renderBackend.globalUniforms.useNormalMap = true;
             } else {
                 world.chunkManager.setLightTexFormat(false);
@@ -705,7 +714,7 @@ export class Renderer {
         this.rain?.update(this.getWeather(), delta)
         globalUniforms.rainStrength = this.rain?.strength_val ?? 0
 
-        let blockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+        let chunkBlockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
         let nightshift = 1.;
         let preset = PRESET_NAMES.NORMAL;
 
@@ -713,49 +722,77 @@ export class Renderer {
             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
 
+        const getPlayerBlockColor = () : Color | null => {
+            const cm = this.world.chunkManager;
+            const chunk = cm.getChunk(player.chunkAddr);
+            if(chunk?.inited) {
+                const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X
+                const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z
+                // const biome_id = player.getOverChunkBiomeId()
+                // const biome = biome_id > 0 ? player.world.chunkManager.biomes.byID.get(biome_id) : null
+                // if(biome.is_sand) {
+                //     return new Color(255, 255, 0, 1)
+                // }
+                const cell_index = z * CHUNK_SIZE_X + x;
+                const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R];
+                const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G];
+                return this.maskColorTex.getColorAt(x_pos, y_pos)
+            }
+            return null
+        }
+
         if(player.eyes_in_block) {
             if(player.eyes_in_block.is_water) {
                 preset = PRESET_NAMES.WATER;
-                blockDist = 8;
+                chunkBlockDist = 8;
 
-                const p = FOG_PRESETS[preset];
-                const cm = this.world.chunkManager;
-                const chunk = cm.getChunk(player.chunkAddr);
-                if(chunk?.inited) {
-                    const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X;
-                    const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z;
-                    const cell_index = z * CHUNK_SIZE_X + x;
-                    const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R];
-                    const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G];
-                    const color = this.maskColorTex.getColorAt(x_pos, y_pos)
-                    p.color[0] = color.r / 255;
-                    p.color[1] = color.g / 255;
-                    p.color[2] = color.b / 255;
-                    p.addColor[0] = color.r / 255;
-                    p.addColor[1] = color.g / 255;
-                    p.addColor[2] = color.b / 255;
-                    this.env.presets[preset] = new FogPreset(p);
-                    this.env._fogDirty = true;
+                const p = FOG_PRESETS[preset]
+                const color = getPlayerBlockColor()
+                if(color) {
+                    color.divideScalarSelf(255)
+                    p.color[0] = color.r
+                    p.color[1] = color.g
+                    p.color[2] = color.b
+                    p.addColor[0] = color.r
+                    p.addColor[1] = color.g
+                    p.addColor[2] = color.b
+                    this.env.presets[preset] = new FogPreset(p)
+                    this.env._fogDirty = true
                 }
 
             } else if(player.eyes_in_block.name == 'NETHER_PORTAL') {
                 preset = PRESET_NAMES.NETHER_PORTAL;
-                blockDist = 6; //
+                chunkBlockDist = 6; //
             } else {
                 preset = PRESET_NAMES.LAVA;
-                blockDist = 4; //
+                chunkBlockDist = 4; //
             }
-        }
+        } /*else {
+            preset = PRESET_NAMES.WATER;
+            const p = FOG_PRESETS[preset]
+            const color = getPlayerBlockColor()
+            if(color) {
+                color.divideScalarSelf(255)
+                p.color[0] = color.r
+                p.color[1] = color.g
+                p.color[2] = color.b
+                p.addColor[0] = color.r
+                p.addColor[1] = color.g
+                p.addColor[2] = color.b
+                this.env.presets[preset] = new FogPreset(p)
+                this.env._fogDirty = true
+            }
+        }*/
 
         this.env.setEnvState({
-            chunkBlockDist: blockDist,
-            nightshift: nightshift,
-            preset: preset
-        });
+            chunkBlockDist,
+            nightshift,
+            preset
+        })
 
-        this.env.update(delta, args);
+        this.env.update(delta, args)
 
-        this.checkLightTextures();
+        this.checkLightTextures()
 
         if (this.player.currentInventoryItem) {
             const mat = BLOCK.fromId(this.player.currentInventoryItem.id);
@@ -799,7 +836,7 @@ export class Renderer {
             if(tblock.hasTag && tblock?.hasTag('leaves')) {
                 const tblock_under = world.getBlock(tblock.posworld.add(Vector.YN))
                 if(tblock_under?.id === 0) {
-                    this.destroyBlock(tblock, tblock.posworld.add(new Vector(.5, .5, .5)), false, 1, 0, 1)
+                    this.destroyBlock(tblock, tblock.posworld.clone().addScalarSelf(.5, .5, .5), false, 1, 0, 1)
                 }
             }
         }
@@ -1012,12 +1049,12 @@ export class Renderer {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
     }
 
-    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string) {
+    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string, doubleface : boolean = false) {
         const model = Resources._bbmodels.get(bbname)
         if(!model) {
             return false
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name)
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface)
         bbmodel.setAnimation(animation_name)
         return this.meshes.add(bbmodel, key)
     }
@@ -1080,17 +1117,20 @@ export class Renderer {
     }
 
     // drawMobs
-    drawMobs(delta) {
+    drawMobs(delta : float) : DrawMobsStat {
         const mobs_count = this.world.mobs.list.size;
         if(mobs_count < 1) {
-            return;
+            return this.draw_mobs_stat;
         }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         let prev_chunk = null;
         let prev_chunk_addr = new Vector();
         const pos_of_interest = this.player.getEyePos();
-        for(let [id, mob] of this.world.mobs.list) {
+        const mobs_list : MobModel[] = this.world.mobs.list.values()
+        this.draw_mobs_stat.count = 0
+        this.draw_mobs_stat.time = performance.now()
+        for(let mob of mobs_list) {
             const ca = mob.chunk_addr;
             if(!prev_chunk || !prev_chunk_addr.equal(ca)) {
                 prev_chunk_addr.copyFrom(ca);
@@ -1098,8 +1138,11 @@ export class Renderer {
             }
             if(prev_chunk && prev_chunk.in_frustum) {
                 mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
+                this.draw_mobs_stat.count++
             }
         }
+        this.draw_mobs_stat.time = performance.now() - this.draw_mobs_stat.time
+        return this.draw_mobs_stat
     }
 
     // drawDropItems

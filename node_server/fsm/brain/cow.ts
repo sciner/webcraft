@@ -51,7 +51,7 @@ export class Brain extends FSMBrain {
             items.push({ id: bm.LEATHER.id, count: rnd_count_leather });
         }
         actions.addDropItem({ pos: mob.pos, items: items, force: true });
-        actions.addPlaySound({ tag: 'madcraft:block.sheep', action: 'death', pos: mob.pos.clone() });
+        actions.addPlaySound({ tag: 'madcraft:block.cow', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
     }
 

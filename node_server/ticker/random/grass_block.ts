@@ -37,8 +37,13 @@ export default function randomTicker(world, actions, world_light, tblock) {
                 if(rnd_block.id == BLOCK.DIRT_SLAB.id) {
                     new_block_id = BLOCK.GRASS_BLOCK_SLAB.id
                 }
+                const item = {id: new_block_id} as IBlockItem
+                const extra_data = rnd_block.extra_data
+                if(extra_data) {
+                    item.extra_data = extra_data
+                }
                 actions.addBlocks([
-                    {pos: rnd_block.posworld.clone(), item: {id: new_block_id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}
+                    {pos: rnd_block.posworld.clone(), item: item, action_id: ServerClient.BLOCK_ACTION_REPLACE}
                 ]);
             }
         }

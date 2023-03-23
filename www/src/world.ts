@@ -46,6 +46,12 @@ export class World implements IWorld {
         this.blockModifierListeners = [];
     }
 
+    /** Closes the connection on an unrecoverable error */
+    terminate(err: any) {
+        console.error(`Connection is closed due to ${err}`)
+        this.server.ws.close(1000)
+    }
+
     get serverTimeWithLatency() {
         return this.serverTime - Math.max(this.latency, World.MIN_LATENCY);
     }
@@ -313,7 +319,7 @@ export class World implements IWorld {
             if(tblock.extra_data) {
                 destroy_data.item.extra_data = tblock.extra_data
             }
-            Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos.add(new Vector(.5, .5, .5)), false);
+            Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos.clone().addScalarSelf(.5, .5, .5), false)
             this.onBlockDestroy(destroy_data.pos, destroy_data.item);
         }
         //

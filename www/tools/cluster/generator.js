@@ -91,7 +91,7 @@ class Sandbox {
                 let text = (Math.round((performance.now() - tm) * 1000) / 1000) + ` ms`
                 text += `<br>attempts: ${attempts}`
                 text += `<br>addr: ${this.cluster.addr.toHash()}`
-                text += `<br>coord: ${this.cluster.coord.add(new Vector(this.cluster.size.x/2, 0, this.cluster.size.z/2)).toHash()}`
+                text += `<br>coord: ${this.cluster.coord.clone().addScalarSelf(this.cluster.size.x/2, 0, this.cluster.size.z/2).toHash()}`
                 document.getElementById('timer').innerHTML = text
                 break
             }

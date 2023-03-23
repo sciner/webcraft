@@ -1,26 +1,35 @@
-import { Button, Label, TextEdit, Window } from "../../tools/gui/wm.js";
+import { TextEdit, Window } from "../ui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
-import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 
 class CreativeInventoryCollection extends Window {
     [key: string]: any;
 
-    //
-    constructor(x : int, y : int, w : int, h : int, id : string, title? : string, text? : string) {
-        
-        super(x, y, w, h, id, title, text)
-        // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
-        this.max_height = 0
-        this.style.background.color = '#00000000'
-        this.style.border.hidden = true
+    slots : CraftTableInventorySlot[] = []
+    xcnt : int = 0
+    ycnt : int = 13
 
-        this.container = new Window(0, 0, w, h, id + '_container')
-        // this.style.background.color = '#ff000055'
+    //
+    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float) {
+        
+        super(x, y, w, h, id)
+
+        // Ширина / высота слота
+        this.cell_size = cell_size
+        this.slot_margin = slot_margin
+
+        this.xcnt   = xcnt
+        this.ycnt   = ycnt
+
+        this.max_height                 = 0
+        this.slots_count                = 0
+        this.style.background.color     = '#00000000'
+        this.style.border.hidden        = true
+
+        this.container = new Window(0, 0, this.w, this.h, this.id + '_container')
         this.add(this.container)
 
         // create clip mask
@@ -29,10 +38,24 @@ class CreativeInventoryCollection extends Window {
     }
 
     _wheel(e) {
-        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size
+        const sz    = this.cell_size
+        const szm   = sz + this.slot_margin
+        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * szm
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.container.y = this.scrollY
+        this.updateVisibleSlots()
+    }
+
+    updateVisibleSlots() {
+        const sz            = this.cell_size
+        const szm           = sz + this.slot_margin
+        const start_index   = Math.floor((-this.scrollY / szm) * this.xcnt)
+        const end_index     = start_index + (this.xcnt * this.ycnt)
+        for(let i = 0; i < this.slots_count; i++) {
+            const child = this.slots[i]
+            child.visible = i >= start_index && i < end_index
+        }
     }
 
     // Init
@@ -96,21 +119,19 @@ class CreativeInventoryCollection extends Window {
     initCollection(all_blocks) {
 
         // remove all childrens
-        for(let i = this.container.children.length - 1; i >= 0; i--) {
-            const child = this.container.children[i]
-            if(child instanceof CraftTableInventorySlot) {
-                this.container.removeChild(child)
-            }
+        for(let i = 0; i < this.slots.length; i++) {
+            this.slots[i].visible = false
         }
 
+        this.slots_count        = all_blocks.length
         this.scrollY            = 0
-        this.max_height         = 0
         this.container.y        = 0
 
         let sx                  = 0
         let sy                  = 0
         let sz                  = this.cell_size
-        let xcnt                = 9
+        let szm                 = sz + this.slot_margin
+        let xcnt                = this.xcnt
 
         // Drop on pallette slots
         const dropFunc = function(e) {
@@ -158,36 +179,34 @@ class CreativeInventoryCollection extends Window {
             return false
         }
 
-        const items = all_blocks
-        for(let i = 0; i < items.length; i++) {
-            const x = sx + (i % xcnt) * sz
-            const y = sy + Math.floor(i / xcnt) * this.cell_size
-            if(y + this.cell_size > this.max_height) {
-                this.max_height = y + this.cell_size
+        for(let i = 0; i < all_blocks.length; i++) {
+
+            if(i >= this.slots.length) {
+                this.slots.push(null)
             }
-            const lblSlot = new CraftTableInventorySlot(x, y + 3 * this.zoom, sz, sz - 3 * this.zoom, 'lblCollectionSlot' + (i), null, null, this.parent, null)
-            lblSlot.onDrop = dropFunc
-            lblSlot.onMouseDown = onMouseDownFunc
-            this.container.add(lblSlot)
-            this.container.h = lblSlot.y + lblSlot.h
+
+            let lblSlot = this.slots[i]
+            if(!lblSlot) {
+                lblSlot = this.slots[i] = new CraftTableInventorySlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent, null)
+                lblSlot.style.border.style = 'inset'
+                lblSlot.style.border.shadow_color = '#00000000'
+                lblSlot.style.border.color = '#00000055'
+                lblSlot.onDrop = dropFunc
+                lblSlot.onMouseDown = onMouseDownFunc
+                this.container.add(lblSlot)
+            }
+
+            lblSlot.x = sx + (i % xcnt) * szm
+            lblSlot.y = sy + Math.floor(i / xcnt) * szm
+
             lblSlot.setItem(all_blocks[i])
+
         }
 
-        // Empty slots
-        const remains = items.length < 81 ? 81 - items.length : 9 - (items.length % 9);
-        for(let j = 0; j < remains; j++) {
-            let i = j + items.length
-            let x = sx + (i % xcnt) * sz
-            let y = sy + Math.floor(i / xcnt) * this.cell_size
-            if(y + this.cell_size > this.max_height) {
-                this.max_height = y + this.cell_size
-            }
-            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null)
-            lblSlot.onDrop = dropFunc
-            this.container.add(lblSlot)
-            this.container.h = lblSlot.y + lblSlot.h
-            lblSlot.setItem(all_blocks[i])
-        }
+        this.max_height = Math.ceil(all_blocks.length / xcnt) * szm - (szm - sz)
+        this.container.h = this.max_height
+
+        this.updateVisibleSlots()
 
     }
 
@@ -197,55 +216,63 @@ class CreativeInventoryCollection extends Window {
 export class CreativeInventoryWindow extends BlankWindow {
     [key: string]: any;
 
+    collection : CreativeInventoryCollection
+
     constructor(inventory) {
-        super(10, 10, 390, 450, 'frmCreativeInventory')
+        super(10, 10, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
         this.inventory = inventory
-        this.setBackground('./media/gui/creative_inventory/tab_items.png')
+    }
 
-        // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
-
-        // Window title
-        const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory)
-        this.add(lblTitle)
-
-        // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size)
-
-        // Создание слотов для блоков коллекций
-        this.createCollectionSlots()
-
-        // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            // Close button
-            const btnClose = new Button(that.w - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial'
-            btnClose.style.background.image = image
-            btnClose.style.background.image_size_mode = 'stretch'
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-            that.add(btnClose)
-        });
+    initControls() {
 
         // Search input
         this.createSearchInput()
 
+        // Ширина / высота слота
+        this.xcnt = 18
+        let szm = this.txtSearch.w / this.xcnt
+        szm += (szm - szm / 1.1) / this.xcnt
+        const sz = szm / 1.1
+        this.cell_size = sz
+        this.slot_margin = szm - sz
+
+        // Создание слотов для блоков коллекций
+        this.createCollectionSlots()
+
+        // Создание слотов для инвентаря
+        this.createInventorySlots()
+
+    }
+
+    //
+    createCollectionSlots() {
+        if(this.collection) {
+            console.error('error_create_collection_slots_already_created')
+            return
+        }
+        const szm = this.cell_size + this.slot_margin
+        const w = this.txtSearch.w
+        const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h) / szm) - 1) * szm
+        this.ycnt = Math.floor(h / szm)
+        this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin)
+        this.add(this.collection)
+        this.collection.init()
+        return this.collection
     }
 
     // Search input
     createSearchInput() {
         // Text editor
+        const x = 16 * this.zoom
         const txtSearch = new TextEdit(
-            16 * this.zoom,
-            37 * this.zoom,
-            this.cell_size * 9,
+            x,
+            10 * this.zoom,
+            // this.cell_size * 9,
+            this.w - x * 2,
             25 * this.zoom,
             'txtSearch1',
             null,
@@ -259,13 +286,14 @@ export class CreativeInventoryWindow extends BlankWindow {
         txtSearch.max_chars_per_line     = 20
 
         // style
-        txtSearch.style.border.hidden    = false
-        txtSearch.style.border.style     = 'inset'
-        txtSearch.style.font.color       = '#ffffff'
-        txtSearch.style.background.color = '#706f6c'
-        txtSearch.style.padding.left     = 5 * this.zoom
-        txtSearch.style.textAlign.vertical = 'middle'
+        txtSearch.style.border.hidden       = false
+        // txtSearch.style.border.style     = 'inset'
+        // txtSearch.style.font.color          = '#ffffff'
+        // txtSearch.style.background.color = '#706f6c'
+        txtSearch.style.padding.left        = 5 * this.zoom
+        txtSearch.style.textAlign.vertical  = 'middle'
         this.add(txtSearch)
+        this.txtSearch = txtSearch
 
         txtSearch.onChange = (text) => {
             this.collection.init(text)
@@ -275,8 +303,8 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     // Обработчик открытия формы
     onShow(args) {
-        this.getRoot().center(this);
-        Qubatch.releaseMousePointer()
+        // this.getRoot().center(this);
+        // Qubatch.releaseMousePointer()
         if(this.inventory_slots) {
             for(let slot of this.inventory_slots) {
                 if(slot) {
@@ -296,35 +324,25 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     /**
     * Создание слотов для инвентаря
-    * @param int sz Ширина / высота слота
     */
-    createInventorySlots(sz) {
+    createInventorySlots() {
         if(this.inventory_slots) {
             console.error('createInventorySlots() already created')
             return
         }
+        const sz = this.cell_size // Ширина / высота слота
+        const szm = sz + this.slot_margin // Ширина / высота слота
         this.inventory_slots = []
         // нижний ряд (видимые на хотбаре)
         const sx          = 16 * this.zoom
-        const sy          = this.h - this.cell_size - 14 * this.zoom
+        const sy          = this.collection.y + this.collection.h + 10 * this.zoom
         const xcnt        = 9
+        const init_x        = (this.w / 2 - sx) - (xcnt * szm) / 2
         for(let i = 0; i < xcnt; i++) {
-            const lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
+            const lblSlot = new CraftTableInventorySlot(init_x + sx + (i % xcnt) * (szm), sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
             this.add(lblSlot)
             this.inventory_slots.push(lblSlot)
         }
-    }
-
-    //
-    createCollectionSlots() {
-        if(this.collection) {
-            console.error('error_create_collection_slots_already_created')
-            return
-        }
-        this.collection = new CreativeInventoryCollection(16 * this.zoom, 68 * this.zoom, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots')
-        this.add(this.collection)
-        this.collection.init()
-        return this.collection
     }
 
     // Return inventory slots
@@ -335,4 +353,5 @@ export class CreativeInventoryWindow extends BlankWindow {
     fixAndValidateSlots(context) {
         // Do nothing. It's called by slots and used to vlidate in other windows.
     }
+
 }

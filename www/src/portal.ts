@@ -1,8 +1,8 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { ServerClient } from "./server_client.js";
-import { Color, DIRECTION, getChunkAddr, Vector } from "./helpers.js";
+import { Color, DIRECTION, Vector } from "./helpers.js";
 import { WorldAction } from "./world_action.js";
-import { PORTAL_SIZE } from "./constant.js";
+import { DEFAULT_STYLE_NAME, PORTAL_SIZE } from "./constant.js";
 
 //
 export const PORTAL_TYPES = [
@@ -72,7 +72,7 @@ export class WorldPortal {
     static suitablePortalFloorMaterial(mat) {
         return (mat.passable == 0) &&
             (!mat.transparent) &&
-            ['default', 'cube'].includes(mat.style_name) &&
+            [DEFAULT_STYLE_NAME].includes(mat.style_name) &&
             !('width' in mat) && !('height' in mat);
     }
 

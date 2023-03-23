@@ -190,6 +190,17 @@ export class DBGame {
             'CREATE INDEX user_skin_skin_id ON user_skin (skin_id)',
         ]});
 
+        migrations.push({version: 13, queries: [
+            `INSERT INTO "main"."world"("id", "guid", "title", "user_id", "dt", "seed", "generator", "pos_spawn", "play_count", "cover", "game_mode") VALUES (1000000, '3ee277a4-1834-4310-91da-389bf9c8demo', '⛰️ Demo 3D', 1, 1678641670, '1740540541', '{"id":"biome3","pos_spawn":{"x":0,"y":120,"z":0},"options":{"auto_generate_mobs":true,"keep_inventory_on_dead":true,"bonus_chest":false,"generate_bottom_caves_lava":false,"generate_big_caves":false,"generate_natural_slabs":true,"random_spawn_radius":50,"sapling_speed_multipliyer":1,"tool_durability":1,"tool_mining_speed":1},"rules":{"portals":true},"cluster_size":{"x":256,"y":200,"z":256}}', '{"x":0,"y":120,"z":0}', 1, NULL, 'survival');`,
+            `INSERT INTO "main"."world"("id", "guid", "title", "user_id", "dt", "seed", "generator", "pos_spawn", "play_count", "cover", "game_mode") VALUES (1000001, 'd5d3520c-c6cb-4ef2-b439-d37df069demo', '☠️ Demo caves!', 1, 1678641670, '1740540541', '{"id":"biome3","pos_spawn":{"x":0,"y":120,"z":0},"options":{"auto_generate_mobs":true,"keep_inventory_on_dead":true,"bonus_chest":false,"generate_bottom_caves_lava":false,"generate_big_caves":false,"generate_natural_slabs":true,"random_spawn_radius":50,"sapling_speed_multipliyer":1,"tool_durability":1,"tool_mining_speed":1},"rules":{"portals":true},"cluster_size":{"x":256,"y":200,"z":256}}', '{"x":0,"y":120,"z":0}', 1, NULL, 'survival');`,
+            `INSERT INTO "world_player"("world_id", "user_id", "dt") SELECT 1000000, "user".id, 1635956652 FROM "user"`,
+            `INSERT INTO "world_player"("world_id", "user_id", "dt") SELECT 1000001, "user".id, 1635956652 FROM "user"`,
+        ]});
+
+        migrations.push({version: 14, queries: [
+            `UPDATE world SET generator = replace(generator, '"generate_big_caves":false', '"generate_big_caves":true') WHERE _rowid_ = 1000001`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
@@ -229,36 +240,45 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async Registration(username, password) {
-        if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ?", [username])) {
-            throw 'error_player_exists';
-        }
-        const guid = randomUUID();
-        const result = await this.conn.run('INSERT OR IGNORE INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
-            ':dt':          unixTime(),
-            ':guid':        guid,
-            ':username':    username,
-            ':password':    password
-        });
-        // lastID
-        let lastID = result.lastID;
-        if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
-            const row = await this.conn.get('SELECT id AS lastID FROM user WHERE guid = :guid', {
-                ':guid': guid
-            });
-            if (!row) {
+        await this.conn.get('begin transaction');
+        try {
+            if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ?", [username])) {
                 throw 'error_player_exists';
             }
-            lastID = row.lastID;
-        } else {
-            if(lastID == 1) {
-                await this.conn.run('UPDATE user SET flags = 256 WHERE _rowid_ = :id', {
-                    ':id': lastID
-                })
+            const guid = randomUUID();
+            const result = await this.conn.run('INSERT OR IGNORE INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
+                ':dt':          unixTime(),
+                ':guid':        guid,
+                ':username':    username,
+                ':password':    password
+            });
+            // lastID
+            let lastID = result.lastID;
+            if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
+                const row = await this.conn.get('SELECT id AS lastID FROM user WHERE guid = :guid', {
+                    ':guid': guid
+                });
+                if (!row) {
+                    throw 'error_player_exists';
+                }
+                lastID = row.lastID;
+            } else {
+                if(lastID == 1) {
+                    await this.conn.run('UPDATE user SET flags = 256 WHERE _rowid_ = :id', {
+                        ':id': lastID
+                    })
+                }
             }
+            //
+            await this.JoinWorld(lastID, "demo")
+            await this.JoinWorld(lastID, "d5d3520c-c6cb-4ef2-b439-d37df069demo")
+            await this.JoinWorld(lastID, "3ee277a4-1834-4310-91da-389bf9c8demo")
+            await this.conn.get('commit')
+            return lastID
+        } catch(e) {
+            await this.conn.get('rollback')
+            throw e
         }
-        //
-        await this.JoinWorld(lastID, "demo")
-        return lastID;
     }
 
     // Login...

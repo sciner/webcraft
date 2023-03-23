@@ -4,6 +4,7 @@ import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
 import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
+import type { Player } from "./player.js";
 const { mat4, vec3, quat } = glMatrix;
 
 const lm        = IndexedColor.WHITE
@@ -12,11 +13,7 @@ const vecZero   = Vector.ZERO.clone()
 export class PlayerArm {
     [key: string]: any;
 
-    /**
-     * @param { import("./player.js").ServerPlayer } player
-     * @param { import("./render.js").Renderer } render
-     */
-    constructor(player, render) {
+    constructor(player : Player, render : Renderer) {
 
         const model = Resources._bbmodels.get('arm')
         const arm = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)

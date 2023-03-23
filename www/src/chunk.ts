@@ -10,7 +10,6 @@ import {ChunkLight} from "./light/ChunkLight.js";
 import type { BaseResourcePack } from "./base_resource_pack.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
-import type WebGLRenderer from "./renders/webgl/index.js";
 
 let global_uniqId = 0;
 
@@ -114,7 +113,7 @@ export class Chunk {
     }
 
     // onBlocksGenerated ... Webworker callback method
-    onBlocksGenerated(args) {
+    onBlocksGenerated(args: TChunkWorkerMessageBlocksGenerated): void {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
@@ -467,12 +466,12 @@ export class Chunk {
     }
 
     //
-    static createFrustumGeometry(coord, size) {
+    static createFrustumGeometry(coord : Vector, size : Vector) {
         let frustum_geometry = [];
         let box_radius = size.x;
         let sphere_radius = (Math.sqrt(3) * box_radius / 2) * 1.05;
-        frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y / 4, size.z / 2)), sphere_radius));
-        frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y - size.y / 4, size.z / 2)), sphere_radius));
+        frustum_geometry.push(new Sphere(coord.clone().addScalarSelf(size.x / 2, size.y / 4, size.z / 2), sphere_radius))
+        frustum_geometry.push(new Sphere(coord.clone().addScalarSelf(size.x / 2, size.y - size.y / 4, size.z / 2), sphere_radius))
         return frustum_geometry;
     }
 

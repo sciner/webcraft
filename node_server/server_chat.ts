@@ -6,6 +6,8 @@ import { MobSpawnParams } from "./mob.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
+import { BLOCK_FLAG } from "@client/constant.js";
+import {EnumDamage} from "@client/enums/enum_damage.js";
 
 const MAX_LINE_LENGTH = 100 // TODO based on the cleint's screen size
 
@@ -126,8 +128,16 @@ export class ServerChat {
         switch (cmd) {
             case "/kill": {
                 args = this.parseCMD(args, ['string', 'string'])
-                if (args[1] == 'mobs') {
-                    this.world.mobs.kill()
+                switch (args[1]) {
+                    case 'mobs':
+                        checkIsAdmin()
+                        this.world.mobs.kill()
+                        break
+                    case 'me':
+                        player.setDamage(999999, EnumDamage.OTHER, player)
+                        break
+                    default:
+                        this.sendSystemChatMessageToSelectedPlayers('!langUsage: /kill (me|mobs)', player)
                 }
                 break
             }
@@ -194,7 +204,7 @@ export class ServerChat {
                     // TODO: check admin rights
                     if(!is_admin) {
                         const blockFlags = bm.flags
-                        if(!this.world.isBuildingWorld() && (blockFlags[b.id] & bm.FLAG_NOT_CREATABLE)) {
+                        if(!this.world.isBuildingWorld() && (blockFlags[b.id] & BLOCK_FLAG.NOT_CREATABLE)) {
                             this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, player)
                             return true
                         }
@@ -237,6 +247,7 @@ export class ServerChat {
                         '/spawnpoint',
                         '/seed',
                         '/give <item> [<count>]',
+                        '/kill (me|mobs)',
                         '/help [admin]'
                     ]
                 }
@@ -505,7 +516,7 @@ export class ServerChat {
                 const pos = new Vector();
                 for(let addr of world.chunks.ticking_chunks) {
                     const chunk = world.chunks.get(addr);
-                    for(let flatIndex of chunk.ticking_blocks.blocks.values()) {
+                    for(let flatIndex of chunk.ticking_blocks.blockFlatIndices) {
                         pos.fromFlatChunkIndex(flatIndex).addSelf(chunk.coord);
                         const ticking_block = chunk.getMaterial(pos);
                         const ttype = ticking_block.ticking.type;

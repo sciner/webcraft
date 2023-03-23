@@ -1,11 +1,12 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
-import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_AIR_THRESHOLD } from "./manager.js";
+import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_AIR_THRESHOLD } from "./manager_vars.js";
 import { TerrainMap } from "../../terrain_map.js";
 import { BIOME3_CAVE_LAYERS, CaveGenerator, CaveGeneratorBigCaves, CaveGeneratorRegular } from "../cave_generator.js";
-import type { TerrainMapCell } from "./map_cell.js";
 import { DensityParams } from "./manager_vars.js";
+
+import type { TerrainMapCell } from "./map_cell.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { ClusterBase } from "../../cluster/base.js";
 
@@ -66,7 +67,7 @@ export class TerrainMap2 extends TerrainMap {
                 const height = Helpers.clamp(Math.round(rand_height * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
                 const rad = Math.max(Math.trunc(height / 2), 2);
                 const pos = new Vector(x, y, z)
-                this.trees.push({height, rad, type, pos})
+                this.trees.push({height, rad, type, pos, biome})
                 return true;
             }
         }
@@ -78,7 +79,7 @@ export class TerrainMap2 extends TerrainMap {
     /**
      * @param { import("../../../worker/chunk.js").ChunkWorkerChunk } chunk 
      * @param {*} seed 
-     * @param {TerrainMapManager2} manager 
+     * @param {TerrainMapManager3} manager 
      */
     generateTrees(real_chunk, seed, manager) {
 

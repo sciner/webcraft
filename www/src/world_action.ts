@@ -13,7 +13,7 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
-import { COVER_STYLE_SIDES } from "./constant.js";
+import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 
@@ -44,13 +44,15 @@ type DropItemParams = {
     force ? : boolean
 }
 
+export type TActionBlock = {
+    pos             : Vector
+    action_id       : int
+    item            : IBlockItem
+    destroy_block ? : { id: int }
+}
+
 type ActionBlocks = {
-    list: {
-        pos             : Vector
-        action_id       : int
-        item            : IBlockItem
-        destroy_block   : { id: int }
-    }[]
+    list: TActionBlock[]
     options: {
         ignore_check_air    : boolean
         on_block_set        : boolean
@@ -304,7 +306,7 @@ function makeDropItem(block, item) {
  * Drop block
  * @returns dropped blocks
  */
-export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldAction, force : boolean, current_inventory_item? : any) : object[] {
+export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, actions : WorldAction, force : boolean, current_inventory_item? : any) : object[] {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
@@ -330,14 +332,21 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
     if (Array.isArray(drop_item)) {
         for (const drop of drop_item) {
             if (drop && checkInstrument(instrument_block_id, drop)) {
-                const block = BLOCK.fromName(drop?.name);
-                const chance = drop.chance ?? 1;
+                const block = BLOCK.fromName(drop.name)
+                const chance = drop.chance ?? 1
                 if(Math.random() < chance) {
-                    let count = drop.count ?? 1;
+                    let count = 1
+                    if (drop?.count) {
+                        if (typeof drop.count === 'object') {
+                            count = ((Math.random() * (drop.count.max - drop.count.min)) | 0) + drop.count.min
+                        } else {
+                            count = drop.count
+                        }
+                    }
                     if(count > 0) {
-                        const item = makeDropItem(tblock, {id: block.id, count: count});
-                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
-                        return [item];
+                        const item = makeDropItem(tblock, {id: block.id, count: count})
+                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force})
+                        return [item]
                     }
                 }
             }
@@ -359,7 +368,7 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
                     count = Math.trunc(count);
                     if(count > 0) {
                         const item = makeDropItem(tblock, {id: drop_block.id, count: count});
-                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
                         return [item];
                     }
                 }
@@ -394,7 +403,7 @@ export function dropBlock(player, tblock : TBlock | FakeTBlock, actions : WorldA
             items.push(makeDropItem(tblock, {id: tblock.id, count: 1}));
         }
         for(let item of items) {
-            actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+            actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
         }
         return items
     }
@@ -533,7 +542,7 @@ class DestroyBlocks {
 export class WorldAction {
     [key: string]: any;
 
-    #world;
+    #world : any;
     play_sound: PlaySoundParams[]
     drop_items: DropItemParams[]
     blocks: ActionBlocks
@@ -602,7 +611,7 @@ export class WorldAction {
         this.play_sound.push(item);
     }
 
-    addBlock(item) {
+    addBlock(item: TActionBlock): void {
         if(!item.action_id) {
             throw 'error_undefined_action_id';
         }
@@ -620,7 +629,7 @@ export class WorldAction {
     }
 
     // Add block
-    addBlocks(items) {
+    addBlocks(items: TActionBlock[]): void {
         for(let i = 0; i < items.length; i++) {
             this.addBlock(items[i])
         }
@@ -690,7 +699,7 @@ export class WorldAction {
         drop_blocks_chance = parseFloat(drop_blocks_chance);
 
         //
-        const createAutoDrop = (tblock) => {
+        const createAutoDrop = (tblock : TBlock) => {
             const mat = tblock.material;
             if(!mat.can_auto_drop) {
                 return false;
@@ -698,28 +707,22 @@ export class WorldAction {
             if((!mat.chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) || tblock.id == BLOCK.TNT.id) {
                 return false;
             }
-            const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
+            const pos = tblock.posworld.clone().addScalarSelf(.5, .5, .5)
             extruded_blocks.set(pos, 'drop');
-            // drop
-            const drop_item: DropItemParams = {
-                force: true,
-                pos: pos,
-                items: [
-                    // @todo need to calculate drop item ID and count
-                    { id: mat.id, count: 1 } as IBlockItem
-                ]
-            }
             if(mat.chest) {
                 if(tblock.hasTag('store_items_in_chest')) {
-                    const di = drop_item.items[0]
-                    di.extra_data = {...tblock.extra_data}
-                    di.entity_id = tblock.entity_id || randomUUID()
+                    const drop_item = {
+                        id: mat.id,
+                        count: 1
+                    } as IBlockItem
+                    drop_item.extra_data = {...tblock.extra_data}
+                    drop_item.entity_id = tblock.entity_id || randomUUID()
                 } else {
                     this.dropChest(tblock)
                 }
             }
-            this.addDropItem(drop_item)
-            return true;
+            dropBlock(null, tblock, this, true)
+            return true
         };
 
         const distance              = rad;
@@ -1014,13 +1017,13 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
 
-        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK.FLAG_NOT_CREATABLE)))) {
+        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK_FLAG.NOT_CREATABLE)))) {
             console.warn('warning_mat_block.deprecated');
             return [null, pos];
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.createBlock ??= [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp]) {
+        for(let func of FUNCS.createBlock ??= [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp, putInComposter]) {
             if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1309,7 +1312,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
     pushBlock({pos: new Vector(pos), item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
     // Установить головной блок, если устанавливаемый блок двух-блочный
     if(mat_block.has_head) {
-        // const new_rotate = orientation.add(new Vector(2, 0, 0));
+        // const new_rotate = orientation.clone().addScalarSelf(2, 0, 0);
         const new_rotate = orientation.clone();
         const next_block = {
             pos: pos.clone().addByCardinalDirectionSelf(mat_block.has_head.pos, orientation.x + 2),
@@ -1733,14 +1736,6 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     if(!goToBed) {
         return false
     }
-    const time = world.getTime()
-    // время пользования кроватью
-    if(time.hours < 18 && time.hours > 6) {
-        if (!Qubatch.is_server) {
-            Qubatch.hotbar.strings.setText(1, Lang.bed_no_sleep, 4000);
-        }
-        return true
-    }
     // растояние до кровати (java не более 2, br не более 3)
     if(player.pos.distance(pos) > 3.0) {
         if (!Qubatch.is_server) {
@@ -1749,24 +1744,24 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
         return true
     }
     // где находится подушка у кровати (голова игрока, когда лежит)
-    let position_head = world_block.posworld.offset(.5, 0, !extra_data?.is_head ? -.42 : .58)
+    let position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? -.42 : .58)
     if (rotate.x == 2) {
-        position_head = world_block.posworld.offset(.5, 0, !extra_data?.is_head ? 1.42 : .42)
+        position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? 1.42 : .42)
     }
     if (rotate.x == 1) {
-        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0, .5)
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0.6, .5)
     }
     if (rotate.x == 3) {
-        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0, .5)
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0.6, .5)
     }
     //Проверяем, что кровать не заблочена
     const block = world.getBlock(position_head.offset(0, 1, 0).floored())
-    if (block.id != 0 || block.fluid != 0) {
+    /*if (block.id != 0 || block.fluid != 0) {
         if (!Qubatch.is_server) {
             Qubatch.hotbar.strings.setText(1, Lang.bed_not_valid, 4000)
         }
-        return true
-    }
+        //return true
+    }*/
     for(const player of world.players.eachContainingVec(position_head)) {
         if (player.sharedProps.sleep) {
             if (!Qubatch.is_server) {
@@ -1779,6 +1774,9 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     // разворот игрока, что бы ноги всегда лежали на кровате
     const player_rotation = new Vector(0, 0, ((rotate.x + 2) % 4) / 4)
     actions.setSleep(position_head, player_rotation)
+    if (Qubatch.is_server) {
+        world.getSleep(player.session.user_id, position_head)
+    }
     return true
 }
 
@@ -2084,6 +2082,35 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
 }
 
+// работа с компостером
+function putInComposter(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    const bm = world.block_manager
+    if (!world_material || world_material.id != bm.COMPOSTER.id)  {
+        return false
+    }
+    const position = new Vector(pos)
+    const level = extra_data.level
+    if (level > 5) {
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'dig', pos: position, except_players: [player.session.user_id]})
+        actions.addDropItem({pos: position.offset(0, 0.5, 0), items: [{id: bm.BONE_MEAL.id, count: 1}], force: true});
+        actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: 0 } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        return true
+    }
+    if (!mat_block?.composter_chance)  {
+        return false
+    }
+    actions.addParticles([{type: 'villager_happy', pos: position.offset(0, 0.5, 0), area: false}])
+    actions.decrement = true
+    if (Math.random() <= mat_block.composter_chance) {
+        actions.addBlocks([{pos: position, item: { id: bm.COMPOSTER.id, extra_data: { level: (level + 1) } }, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+        // @todo нужные правльные звуки
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'dig', pos: position, except_players: [player.session.user_id]})
+    } else {
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'place', pos: position, except_players: [player.session.user_id]})
+    }
+    return true
+}
+
 // добавление ламинарии вручную
 function putKelp(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if (!world_material || !mat_block || mat_block.id != BLOCK.KELP.id)  {
@@ -2249,7 +2276,7 @@ function removeFromPot(e, world, pos, player, world_block, world_material, mat_b
             actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
             // Create drop item
-            actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [drop_item], force: true});
+            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, 0, .5), items: [drop_item], force: true});
             return true;
         }
     }
@@ -2291,7 +2318,7 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
 }
 
 //
-function setOnWater(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function setOnWater(e, world, pos, player, world_block : TBlock, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!mat_block || !mat_block.tags.includes('set_on_water')) {
         return false;
     }
@@ -2300,6 +2327,7 @@ function setOnWater(e, world, pos, player, world_block, world_material, mat_bloc
         position.addSelf(pos.n);
         const block_air = world.getBlock(position.add(pos.n));
         if (block_air.id == BLOCK.AIR.id && block_air.fluid === 0) {
+            actions.decrement = true
             actions.addBlocks([{
                 pos: position,
                 item: {
@@ -2329,7 +2357,7 @@ function restrictLadder(e, world, pos, player, world_block, world_material, mat_
         return false;
     }
     // Лианы можно ставить на блоки с прозрачностью
-    if(world_material.transparent && world_material.style_name != 'default') {
+    if(world_material.transparent && world_material.style_name != DEFAULT_STYLE_NAME) {
         return true;
     }
     //
@@ -2812,7 +2840,7 @@ function removeFurnitureUpholstery(e, world, pos, player, world_block, world_mat
             }]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
             // Create drop item
-            actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, .5, .5)), items: [drop_item], force: true});
+            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true});
             return true;
         }
     }

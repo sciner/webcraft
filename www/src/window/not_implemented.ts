@@ -1,4 +1,4 @@
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label } from "../ui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
@@ -20,25 +20,10 @@ export class NotImplementedWindow extends BlankWindow {
         this.add(lbl1)
 
         // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
 
         // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const ct = this;
-            let btnClose = new Button(ct.width - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial';
-            btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.style.background.image = image;
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                ct.hide();
-            }
-            btnClose.onMouseLeave = function() {
-                this.style.background.color = '#c6c6c6';
-                this.style.color = '#3f3f3f';
-            }
-            ct.add(btnClose);
-        });
+        this.addCloseButton()
 
     }
 

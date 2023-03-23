@@ -1,9 +1,6 @@
 #include<header>
 #include<constants>
 
-#include<global_uniforms>
-#include<global_uniforms_vert>
-
 // 4 liquids max
 uniform int u_fluidFlags[2];
 uniform vec4 u_fluidUV[2];
@@ -19,21 +16,16 @@ out vec3 v_world_pos;
 out vec3 v_chunk_pos;
 out vec3 v_position;
 out vec2 v_texcoord0;
-out vec4 v_fluidAnim;
-out vec3 v_normal;
-out vec4 v_color;
-out float v_lightMode;
-out float v_useFog;
-out float v_lightId;
-out vec4 v_lightOffset;
-out vec3 v_aoOffset;
+flat out vec4 v_fluidAnim;
+flat out vec3 v_normal;
+flat out vec4 v_color;
+flat out float v_lightId;
+flat out vec4 v_lightOffset;
+flat out int v_flags;
+flat out int v_cubeSide;
 
-// quad flags
-out float v_noCanTakeAO;
-out float v_noCanTakeLight;
-out float v_flagMultiplyColor;
-
-flat out int cubeSide;
+#include<global_uniforms>
+#include<global_uniforms_vert>
 
 const vec3 cubeVert[24] = vec3[24] (
 // up
@@ -98,7 +90,7 @@ void main() {
     v_lightId = float(chunkData1.w);
 
     uint fluidId = a_fluidId & uint(3);
-    cubeSide = int(a_fluidId >> 2) & 7;
+    v_cubeSide = int(a_fluidId >> 2) & 7;
     int blockIndex = int(a_blockId) & 0xffff;
     int iSize = chunkData0.w;
     ivec3 chunkSize = ivec3(iSize & 0xff, (iSize >> 8) & 0xff, (iSize >> 16) & 0xff);
@@ -110,27 +102,13 @@ void main() {
         float(blockIndex / (outerSize.x * outerSize.y)) - 1.0
     );
 
-    int flags = u_fluidFlags[fluidId];
-    int flagNoAO = (flags >> NO_AO_FLAG) & 1;
-    int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
-    int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
-    int flagScroll = (flags >> FLAG_TEXTURE_SCROLL) & 1;
-    int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;
-    int flagNoCanTakeLight = (flags >> NO_CAN_TAKE_LIGHT) & 1;
-    int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
-
-    v_useFog    = 1.0 - float(flagNoFOG);
-    v_lightMode = 1.0 - float(flagNoAO);
-    v_noCanTakeAO = float(flagNoCanTakeAO);
-    v_noCanTakeLight = float(flagNoCanTakeLight);
-    v_flagMultiplyColor = float(flagMultiplyColor);
-
+    v_flags = u_fluidFlags[fluidId];
     v_color = vec4(float(a_color & uint(0x3ff)),
         float((a_color >> 10) & uint(0x3ff)),
         a_color >> 20, 0.0);
 
     v_fluidAnim.x = float(fluidId);
-    if(flagAnimated > 0) {
+    if(checkFlag(FLAG_ANIMATED)) {
         int frames = u_fluidFrames[fluidId];
         float t = ((u_time * float(frames) / 3.) / 1000.);
         int i = int(t);
@@ -139,19 +117,19 @@ void main() {
         v_fluidAnim.w = fract(t);
     }
 
-    vec3 subPos = cubeVert[cubeSide * 4 + gl_VertexID % 4];
+    vec3 subPos = cubeVert[v_cubeSide * 4 + gl_VertexID % 4];
     subPos.z = a_height;
 
-    v_normal = cubeNorm[cubeSide];
-    if (cubeSide == 2 || cubeSide == 3) {
+    v_normal = cubeNorm[v_cubeSide];
+    if (v_cubeSide == 2 || v_cubeSide == 3) {
         v_texcoord0 = subPos.xz;
-    } else if (cubeSide == 4 || cubeSide == 5) {
+    } else if (v_cubeSide == 4 || v_cubeSide == 5) {
         v_texcoord0 = subPos.yz;
     } else {
         v_texcoord0 = subPos.xy;
     }
     // Scrolled textures
-    if (flagScroll > 0 || v_color.b > 0.0) {
+    if (checkFlag(FLAG_TEXTURE_SCROLL) || v_color.b > 0.0) {
         v_texcoord0.y += mod(u_time / 1000.0, 1.0);
     }
 
@@ -164,4 +142,5 @@ void main() {
 
     v_position = (u_worldView * vec4(v_world_pos, 1.0)).xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
+    #include_post<flat_encode>
 }

@@ -1,11 +1,11 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
-import { ArrayHelpers, Helpers, Vector, VectorCollector } from "../../../helpers.js";
-import { Biome, BiomeDirtLayer, Biomes } from "./../biomes.js";
+import { ArrayHelpers, Helpers, Vector } from "../../../helpers.js";
+import type { Biome, BiomeDirtLayer } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 import { Aquifera, AquiferaParams } from "../aquifera.js";
-import { WATER_LEVEL, DensityParams, MapCellPreset, ClimateParams } from "./manager_vars.js";
+import { WATER_LEVEL, DensityParams, MapCellPreset, ClimateParams, DENSITY_AIR_THRESHOLD, BUILDING_MIN_Y_SPACE } from "./manager_vars.js";
 
 // Presets
 import { MapCellPreset_Mountains } from "./map_preset/mountains.js";
@@ -14,14 +14,8 @@ import { MapCellPreset_Swamp } from "./map_preset/swamp.js";
 import { MapCellPreset_Ices } from "./map_preset/ices.js";
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
-
-export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
-export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
-export const MAX_TREES_PER_CHUNK        = 16; // Максимальное число деревьев в чанке
-export const TREE_MIN_Y_SPACE           = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
-export const BUILDING_MIN_Y_SPACE       = 10; // Минимальное число блоков воздуха для установки дома
-export const DENSITY_AIR_THRESHOLD      = .6; // всё что больше этого значения - камень
-export const UNCERTAIN_ORE_THRESHOLD    = .025;
+import { TerrainMapManagerBase } from "./manager_base.js";
+import type { Biome3LayerBase } from "../layers/base.js";
 
 // Water
 const WATER_START                       = 0;
@@ -118,44 +112,18 @@ const MAP_PRESETS = {
     ices:                       new MapCellPreset_Ices()
 };
 
-//
-const _temp_chunk = {
-    addr: new Vector(),
-    coord: new Vector(),
-    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
-};
-
 const ZeroDensity = new DensityParams(0, 0, 0, 0, 0, 0);
 const _aquifera_params = new AquiferaParams()
 
 // Map manager
-export class TerrainMapManager2 {
-
-    block_manager:          BLOCK
-    maps_cache:             VectorCollector<any>
-    biomes:                 Biomes
-    seed:                   string
-    world_id:               string
-    noise2d:                any
-    noise3d:                any
-    generator_options:      any
-    float_seed:             any
-    presets:                any[]
+export class TerrainMapManager3 extends TerrainMapManagerBase {
     mountain_desert_mats:   any[]
+    presets:                any[]
 
-    static _temp_vec3 = Vector.ZERO.clone();
-    static _temp_vec3_delete = Vector.ZERO.clone();
     static _climateParams = new ClimateParams();
 
-    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options) {
-        this.seed = seed;
-        this.world_id = world_id;
-        this.noise2d = noise2d;
-        this.noise3d = noise3d;
-        this.block_manager = block_manager;
-        this.maps_cache = new VectorCollector();
-        this.biomes = new Biomes(noise2d);
-        this.generator_options = generator_options
+    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
+        super(seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
         this.makePresetsList(seed)
         this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
         this.initMats();
@@ -189,48 +157,16 @@ export class TerrainMapManager2 {
         }
     }
 
-    // Delete map for unused chunk
-    delete(addr : Vector) {
-        TerrainMapManager2._temp_vec3_delete.copyFrom(addr);
-        TerrainMapManager2._temp_vec3_delete.y = 0;
-        this.maps_cache.delete(TerrainMapManager2._temp_vec3_delete);
-    }
-
-    // Return map
-    get(addr : Vector) {
-        return this.maps_cache.get(addr);
-    }
-
     // Generate maps
     generateAround(chunk : ChunkWorkerChunk, chunk_addr : Vector, smooth : boolean = false, generate_trees : boolean = false) {
 
-        const rad                   = generate_trees ? 2 : 1;
-        const noisefn               = this.noise2d;
-        const maps                  = [];
+        const maps = super.generateAround(chunk, chunk_addr, smooth, generate_trees)
 
-        /**
-         * @type {TerrainMap2}
-         */
-        let center_map              = null;
-
-        for(let x = -rad; x <= rad; x++) {
-            for(let z = -rad; z <= rad; z++) {
-                TerrainMapManager2._temp_vec3.set(x, -chunk_addr.y, z);
-                _temp_chunk.addr.copyFrom(chunk_addr).addSelf(TerrainMapManager2._temp_vec3);
-                _temp_chunk.coord.copyFrom(_temp_chunk.addr).multiplyVecSelf(_temp_chunk.size);
-                const map = this.generateMap(chunk, _temp_chunk, noisefn);
-                if(Math.abs(x) < 2 && Math.abs(z) < 2) {
-                    maps.push(map);
-                }
-                if(x == 0 && z == 0) {
-                    center_map = map;
-                }
-            }
-        }
+        let center_map: TerrainMap2 = maps[4]
 
         // Smooth (for central and part of neighbours)
         if(smooth && !center_map.smoothed) {
-            center_map.smooth(this);
+            (center_map as any).smooth(this)
         }
 
         // Generate trees
@@ -408,17 +344,21 @@ export class TerrainMapManager2 {
         if(cell.river_point) {
             const {value, percent, river_percent, waterfront_percent} = cell.river_point;
             const river_vert_dist = WATER_LEVEL - xyz.y;
-            const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent)) / Math.PI);
-            density = Math.min(density, density * river_density + (d3 * .1) * percent);
+            const river_bottom_rad = Math.PI / 1
+            const vertical_shore_coeff = ((d1 * .05 + d2 * .1 + d3 * .3 + d4 * .4) + 1) / 2
+            const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent)) / river_bottom_rad);
+            density = Math.min(density, density * river_density + (d3 * vertical_shore_coeff) * percent);
         }
 
         // Если это твердый камень, то попробуем превратить его в пещеру
-        const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
-        if(density > cave_density_threshold) {
-            const caveDensity = map.caves.getPoint(xyz, cell, false, res);
-            if(caveDensity !== null) {
-                res.dcaves = caveDensity
-                density = caveDensity
+        if(density > DENSITY_AIR_THRESHOLD) {
+            const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
+            if(density > cave_density_threshold) {
+                const caveDensity = map.caves.getPoint(xyz, cell, false, res);
+                if(caveDensity !== null) {
+                    density = caveDensity
+                    res.dcaves = density
+                }
             }
         }
 
@@ -523,7 +463,7 @@ export class TerrainMapManager2 {
      */
     calcBiome(xz : Vector, preset? : MapCellPresetResult ) : Biome {
 
-        const params = TerrainMapManager2._climateParams
+        const params = TerrainMapManager3._climateParams
 
         // Create map cell
         params.set(
@@ -541,13 +481,8 @@ export class TerrainMapManager2 {
 
     }
 
-    // generateMap
+    // generate map
     generateMap(real_chunk, chunk, noisefn) {
-
-        const cached = this.maps_cache.get(chunk.addr);
-        if(cached) {
-            return cached;
-        }
 
         if(!real_chunk.chunkManager) {
             throw 'error_no_chunk_manager'
@@ -582,7 +517,7 @@ export class TerrainMapManager2 {
         }
 
         // 2. Create cluster
-        map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord, this)
+        map.cluster = this.layer.clusterManager.getForCoord(chunk.coord, this)
 
         // Aquifera
         map.aquifera = new Aquifera(chunk.coord)
@@ -633,31 +568,10 @@ export class TerrainMapManager2 {
             }
         }
 
-        this.maps_cache.set(chunk.addr, map);
         // console.log(`Actual maps count: ${this.maps_cache.size}`);
 
         return map;
 
-    }
-
-    //
-    destroyAroundPlayers(players : IDestroyMapsAroundPlayers[]) : int {
-        let cnt_destroyed = 0;
-        for(let map_addr of this.maps_cache.keys()) {
-            let can_destroy = true;
-            for(let player of players) {
-                const {chunk_render_dist, chunk_addr} = player;
-                if(map_addr.distance(chunk_addr) < chunk_render_dist + 3) {
-                    can_destroy = false;
-                }
-            }
-            if(can_destroy) {
-                this.maps_cache.delete(map_addr);
-                cnt_destroyed++;
-            }
-        }
-        // console.log('destroyAroundPlayers', this.maps_cache.size, TerrainMapManager2.maps_in_memory)
-        return cnt_destroyed
     }
 
 }

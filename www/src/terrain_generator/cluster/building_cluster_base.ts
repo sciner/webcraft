@@ -147,7 +147,7 @@ export class ClusterBuildingBase extends ClusterBase {
             this.fixBuildingHeight(maps, chunk, building)
         }
         // draw basement before the building
-        if (building.getautoBasementAABB()?.intersect(chunk.aabb)) {
+        if (building.getAutoBasementAABB()?.intersect(chunk.aabb)) {
             building.drawAutoBasement(chunk)
         }
         // draw building

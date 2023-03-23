@@ -70,11 +70,10 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
         player.distance = data.dist;
         player.armor = data.armor;
         player.health = data.health;
-
+        player.sleep = data.sleep
         if(data.pos) {
             player.sitting = data.sitting;
             player.lies = data.lies;
-            player.sleep = data.sleep
             player.applyNetState({
                 pos: data.pos,
                 sneak: !!data.sneak,

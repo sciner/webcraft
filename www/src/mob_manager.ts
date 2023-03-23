@@ -1,11 +1,14 @@
 import { SimpleShifted3DArray, Vector } from "./helpers.js";
+import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { MobModel } from "./mob_model.js";
+import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
 
 export class MobManager {
     [key: string]: any;
 
     #world;
+    models: Map<string, Mesh_Object_BBModel> = new Map()
 
     constructor(world) {
         this.#world = world;
@@ -22,6 +25,35 @@ export class MobManager {
 
     // Client side method
     init() {
+
+        for(let name of ['pig']) {
+            const model = Resources._bbmodels.get(`mob/${name}`)
+            const mesh = new Mesh_Object_BBModel(Qubatch.render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+            mesh.parts = {
+                'head': [],
+                'legs': [],
+                'arms': [],
+                'wings': [],
+                'body': [],
+            }
+            for(let group of model.groups.values()) {
+                if(group.name.startsWith('leg')) {
+                    mesh.parts.legs.push(group)
+                } else if(group.name.startsWith('wing')) {
+                    mesh.parts.wings.push(group)
+                } else if(['leftLeg', 'rightLeg'].includes(group.name)) {
+                    mesh.parts.legs.push(group)
+                } else if(['leftArm', 'rightArm'].includes(group.name)) {
+                    mesh.parts.arms.push(group)
+                } else if(group.name == 'head') {
+                    mesh.parts.head.push(group)
+                } else if(group.name == 'body') {
+                    mesh.parts.body.push(group)
+                }
+            }
+            this.models.set(name, mesh)
+        }
+
         // On server message
         this.#world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
             switch(cmd.name) {

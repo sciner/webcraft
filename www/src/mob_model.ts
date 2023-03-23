@@ -1,6 +1,6 @@
 import { Resources } from "./resources.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector, chunkAddrToCoord } from "./helpers.js";
+import { Color, Helpers, Vector, chunkAddrToCoord, IndexedColor } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
@@ -9,8 +9,11 @@ import { BLOCK } from "./blocks.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { SceneNode } from "./SceneNode.js";
+import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
+import GeometryTerrain from "./geometry_terrain.js";
+import type { BBModel_Group } from "./bbmodel/group.js";
 
-const { quat } = glMatrix;
+const { quat, mat4 } = glMatrix;
 
 const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
 const MAX_DETONATION_TIME           = 2000; // ms
@@ -278,6 +281,12 @@ export class MobAnimator extends Animator {
 export class MobAnimation {
     [key: string]: any;
 
+    model : MobModel
+
+    constructor(model : MobModel) {
+        this.model = model
+    }
+
     head({
         part, index, delta, animable, camPos
     }) {
@@ -336,6 +345,10 @@ export class MobAnimation {
 
         if(isZombie && isArm) {
            aniangle /= 16;
+        }
+
+        if(!animable.type.startsWith('player:')) {
+            aniangle /= 2
         }
 
         if(isArm) {
@@ -484,15 +497,17 @@ export class MobAnimation {
             anim = sign;
         }
 
-        quat.fromEuler(
-            part.quat,
-            0,
-            -anim * (Math.sin(p * Math.PI * 2 / 8) * 30 + 90),
-            0,
-        );
+        const add_wing_angle = ['bee'].includes(this.model.type) ? 0 : 90
 
-        part.updateMatrix();
+        const wing_angle = -anim * (Math.sin(p * Math.PI * 2 / 8) * 60 + add_wing_angle)
 
+        if(['bee'].includes(this.model.type)) {
+            quat.fromEuler(part.quat, wing_angle, 0, 0)
+        } else {
+            quat.fromEuler(part.quat, 0, wing_angle, 0)
+        }
+
+        part.updateMatrix()
 
     }
 
@@ -554,7 +569,7 @@ export class MobModel extends NetworkPhysicObject {
 
         this.animator = new MobAnimator();
 
-        this.animationScript = new MobAnimation();
+        this.animationScript = new MobAnimation(this);
 
         this.armor = null;
         this.prev = {
@@ -663,7 +678,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         // root rotation
-        for(let st of this.sceneTree) {
+        for(const st of this.sceneTree) {
 
             const draw_yaw = this.draw_yaw;
             const add_angle = this.body_rotate * Math.PI * (HEAD_MAX_ROTATE_ANGLE / 180);
@@ -674,7 +689,7 @@ export class MobModel extends NetworkPhysicObject {
             if(this.sitting) {
                 subY = this.height * 1/3
             } else if(this.sleep) {
-                subY = this.height * 0.5
+                subY = this.height * 5/6
             } else if(this.sneak) {
                 subY = SNEAK_MINUS_Y_MUL
             }
@@ -712,14 +727,8 @@ export class MobModel extends NetworkPhysicObject {
 
     /**
      * Draw mob model
-     * @param {Renderer} render
-     * @param {Vector} camPos
-     * @param {float} delta
-     * @param {float} speed
-     * @param {boolean} draw_debug_grid
-     * @returns
      */
-    draw(render, camPos, delta, speed, draw_debug_grid = false) {
+    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) {
 
         this.lazyInit(render);
         this.update(render, camPos, delta, speed);
@@ -728,89 +737,126 @@ export class MobModel extends NetworkPhysicObject {
             return null;
         }
 
-        // If mob die
-        if(this.isAlive === false) {
-            // first enter to this code
-            if(!this.die_info) {
-                this.yaw_before_die = this.yaw;
-                this.die_info = {
-                    time: performance.now(),
-                    scale: Array.from(this.sceneTree[0].scale)
-                };
-                this.sneak = 1;
-            }
-            const elapsed = performance.now() - this.die_info.time;
-            const max_die_animation_time = 1000;
-            let elapsed_percent = elapsed / max_die_animation_time;
-            if(elapsed_percent < 1) {
-                if(this.netBuffer.length > 0) {
-                    const state = this.netBuffer[0];
-                    state.rotate.z = this.yaw_before_die + elapsed / 100;
-                    if(!this.extra_data.play_death_animation) {
-                        elapsed_percent = 1;
-                    }
-                    for(let st of this.sceneTree) {
-                        st.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
-                        st.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
-                        st.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);
-                    }
-                }
-                this.tintColor.set(1, 1, 1, .3);
-            } else {
-                return false;
-            }
-        } else if(this.isDetonationStarted()) {
-            if(!this.detonation_started_info) {
-                this.detonation_started_info = {
-                    time: performance.now(),
-                    scale: Array.from(this.sceneTree[0].scale)
-                }
-            }
-            const info = this.detonation_started_info;
-            const elapsed = performance.now() - info.time;
-            const elapsed_percent = Math.min(elapsed / MAX_DETONATION_TIME, 1);
-            const is_tinted = Math.round(elapsed / 150) % 2 == 0;
-            if(elapsed_percent == 1 || is_tinted) {
-                this.tintColor.set(1, 1, 1, .5);
-            } else {
-                this.tintColor.set(0, 0, 0, 0);
-            }
-            const CREEPER_MAX_DETONATION_SCALE = 1.35;
-            const new_creeper_scale = info.scale[0] * (1 + elapsed_percent * (CREEPER_MAX_DETONATION_SCALE - 1));
-            for(let st of this.sceneTree) {
-                st.scale[0] = new_creeper_scale;
-                st.scale[1] = new_creeper_scale;
-                st.scale[2] = new_creeper_scale;
-            }
-        } else if(this.detonation_started_info) {
-            this.tintColor.set(0, 0, 0, 0);
-            for(let st of this.sceneTree) {
-                st.scale = this.detonation_started_info.scale;
-            }
-            this.detonation_started_info = null;
-        }
-
-        this.setArmor();
-
-        this.setSkin();
-
-        // Draw in fire
-        if(this.extra_data?.in_fire) {
-            this.drawInFire(render, delta);
-        }
-
         // ignore_roots
         const ignore_roots = [];
         if(this.type == 'sheep' && this.extra_data?.is_shaered) {
             ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
         }
 
-        // run render
-        this.renderer.drawLayer(render, this, ignore_roots);
+        // Draw in fire
+        if(this.extra_data?.in_fire) {
+            this.drawInFire(render, delta);
+        }
 
         // Draw AABB wireframe
         if(this.aabb && draw_debug_grid) {
             this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
+        }
+
+        const mesh : Mesh_Object_BBModel = null // this._mesh || (this._mesh = render.world.mobs.models.get(this.type))
+        if(mesh) {
+
+            //
+            // const init_matrix = mat4.create()
+            // const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
+            // let rotate_matrix = mat4.create()
+            // mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
+            // let leg_matrix = mat4.create()
+            // mat4.rotateY(leg_matrix, leg_matrix, performance.now() / 1000)
+            // mat4.rotateZ(leg_matrix, leg_matrix, rotate.z)
+            // for(let k in mesh.parts) {
+            //     const parts = mesh.parts[k]
+            //     const parent_matrix = (k == 'legs') ? leg_matrix : rotate_matrix
+            //     for(let i = 0; i < parts.length; i++) {
+            //         const group : BBModel_Group = parts[i]
+            //         if(group instanceof GeometryTerrain) {
+            //             render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
+            //         } else {
+            //             const vertices = []
+            //             group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
+            //             const gt = new GeometryTerrain(vertices)
+            //             parts[i] = gt
+            //         }
+            //     }
+            // }
+
+            // mesh.setAnimation('walk')
+            mesh.rotate.z = this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0
+            mesh.apos.copyFrom(this._pos)
+            mesh.applyRotate()
+            mesh.draw(render, delta)
+
+        } else {
+
+            // If mob die
+            if(this.isAlive === false) {
+                // first enter to this code
+                if(!this.die_info) {
+                    this.yaw_before_die = this.yaw;
+                    this.die_info = {
+                        time: performance.now(),
+                        scale: Array.from(this.sceneTree[0].scale)
+                    };
+                    this.sneak = 1;
+                }
+                const elapsed = performance.now() - this.die_info.time;
+                const max_die_animation_time = 1000;
+                let elapsed_percent = elapsed / max_die_animation_time;
+                if(elapsed_percent < 1) {
+                    if(this.netBuffer.length > 0) {
+                        const state = this.netBuffer[0];
+                        state.rotate.z = this.yaw_before_die + elapsed / 100;
+                        if(!this.extra_data.play_death_animation) {
+                            elapsed_percent = 1;
+                        }
+                        for(let st of this.sceneTree) {
+                            st.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
+                            st.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
+                            st.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);
+                        }
+                    }
+                    this.tintColor.set(1, 1, 1, .3);
+                } else {
+                    return false;
+                }
+            } else if(this.isDetonationStarted()) {
+                if(!this.detonation_started_info) {
+                    this.detonation_started_info = {
+                        time: performance.now(),
+                        scale: Array.from(this.sceneTree[0].scale)
+                    }
+                }
+                const info = this.detonation_started_info;
+                const elapsed = performance.now() - info.time;
+                const elapsed_percent = Math.min(elapsed / MAX_DETONATION_TIME, 1);
+                const is_tinted = Math.round(elapsed / 150) % 2 == 0;
+                if(elapsed_percent == 1 || is_tinted) {
+                    this.tintColor.set(1, 1, 1, .5);
+                } else {
+                    this.tintColor.set(0, 0, 0, 0);
+                }
+                const CREEPER_MAX_DETONATION_SCALE = 1.35;
+                const new_creeper_scale = info.scale[0] * (1 + elapsed_percent * (CREEPER_MAX_DETONATION_SCALE - 1));
+                for(let st of this.sceneTree) {
+                    st.scale[0] = new_creeper_scale;
+                    st.scale[1] = new_creeper_scale;
+                    st.scale[2] = new_creeper_scale;
+                }
+            } else if(this.detonation_started_info) {
+                this.tintColor.set(0, 0, 0, 0);
+                for(let st of this.sceneTree) {
+                    st.scale = this.detonation_started_info.scale;
+                }
+                this.detonation_started_info = null;
+            }
+
+            this.setArmor();
+
+            this.setSkin();
+
+            // run render
+            this.renderer.drawLayer(render, this, ignore_roots);
+
         }
 
     }

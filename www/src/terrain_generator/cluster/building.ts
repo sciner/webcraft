@@ -10,12 +10,6 @@ import type { ClusterBase } from "./base.js";
 
 export const BUILDING_AABB_MARGIN  = 3; // because building must calling to draw from neighbours chunks
 
-// roof types
-export const ROOF_TYPE_PITCHED = 'pitched';
-export const ROOF_TYPE_FLAT = 'flat';
-
-const DEFAULT_DOOR_POS = new Vector(0, 0, 0);
-
 // It describes the shape of the basement's borders.
 // For each horizontal distance from the ground floor, it's minimum and maximum depth to draw earth blocks.
 export const BASEMNET_DEPTHS_BY_DISTANCE = [
@@ -34,6 +28,8 @@ export const BASEMENT_SIDE_BULGE = 0.5
 export const BASEMENT_BOTTOM_BULGE_BLOCKS = 2   // How many bllocks are added to the depth of the basement at its center
 export const BASEMENT_BOTTOM_BULGE_PERCENT = 0.1 // Which fraction of the basement's width is added to its depth at its center
 
+const DEFAULT_DOOR_POS = new Vector(0, 0, 0);
+
 const BASEMENT_MAX_CLUSTER_BLOCKS_HEIGHT = 1 // From 0. The maximum height at which clster blocks are used at the top of the basement
 
 const BASEMENT_NOISE_HARSHNESS = 1.3 // from 1. Higher values make it more pronounced, often clamped to its range.
@@ -46,10 +42,28 @@ const tmpYMatrix = new ShiftedMatrix(0, 0, 1, 1)
 
 // Base building
 export class Building {
-    [key: string]: any;
 
-    blocks : BlockDrawer
-    _autoBasementAABB: AABB
+    id:                 string
+    coord:              Vector
+    door_direction:     int
+    size:               Vector
+    blocks:             BlockDrawer
+    mirror_x:           boolean
+    mirror_z:           boolean
+    entrance:           Vector
+    draw_entrance:      boolean
+    aabb:               AABB
+    _autoBasementAABB:  AABB
+
+    randoms:            any
+    cluster:            any
+    seed:               any
+    building_template:  any
+    materials:          any
+    biome:              any
+    temperature:        any
+    humidity:           any
+    minFloorYbyXZ:      any
 
     constructor(cluster: any, seed: any, coord: Vector, _entrance: Vector, door_direction: int, _size: Vector, building_template? : any) {
 
@@ -90,24 +104,15 @@ export class Building {
 
     get generator() { return this.cluster.clusterManager.world.generator }
 
-    /**
-     * @returns {Vector}
-     */
-    get pos() {
+    get pos() : Vector {
         return this.entrance.add(Vector.YP)
     }
 
-    /**
-     * @returns {int}
-     */
-    get direction() {
+    get direction() : int {
         return this.door_direction;
     }
 
-    /**
-     * @returns {Vector}
-     */
-    get ahead_entrance() {
+    get ahead_entrance() : Vector {
         return this.entrance
             .clone()
             .addSelf(
@@ -117,12 +122,7 @@ export class Building {
 
     addBlocks() {}
 
-    /**
-     * @param {*} biome
-     * @param {float} temperature
-     * @param {float} humidity
-     */
-    setBiome(biome, temperature, humidity) {
+    setBiome(biome : any, temperature : float, humidity : float) {
         this.biome = biome;
         this.temperature = temperature;
         this.humidity = humidity;
@@ -365,7 +365,7 @@ export class Building {
      * Call it only after getRealAABB(), because getRealAABB() modifies the buildng's position.
      * @return {AABB} of basement in the worlds's coordinate system.
      */
-    getautoBasementAABB() : AABB {
+    getAutoBasementAABB() : AABB {
         if (this._autoBasementAABB) {
             this.initToWorld(tmpTransformer)
             tmpTransformer.tranformAABB(this.building_template.autoBasement.aabb, this._autoBasementAABB)
@@ -409,11 +409,9 @@ export class Building {
 
     /**
      * For old style generators
-     * @param {*} chunk
-     * @param {*} maps
      * @deprecated
      */
-    findYOld(chunk, maps) {
+    findYOld(chunk, maps) : boolean {
         if(this.entrance.y != Infinity) {
             return false;
         }

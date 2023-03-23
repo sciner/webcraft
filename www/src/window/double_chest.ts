@@ -10,7 +10,10 @@ export class DoubleChestWindow extends BaseChestWindow {
 
         const bm = inventory.player.world.block_manager
 
-        super(10, 10, 352, 440, 'frmDoubleChest', null, null, inventory, {
+        const w = 420
+        const h = 530
+
+        super(0, 0, w, h, 'frmDoubleChest', null, null, inventory, {
             title: Lang.chest,
             sound: {
                 open: {tag: bm.CHEST.sound, action: 'open'},
@@ -21,7 +24,8 @@ export class DoubleChestWindow extends BaseChestWindow {
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
         this.atlas.fromFile('./media/gui/form-double-chest.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 440 * 2), 'none', this.zoom / 2.0)
+            // this.style.background.color = '#333377cc'
+            this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'none', this.zoom / 2.0)
         })
 
     }

@@ -1,6 +1,5 @@
 import { Mth, Vector } from "../../../../helpers.js";
-import { DENSITY_AIR_THRESHOLD } from "../manager.js";
-import { ClimateParams, DensityParams, WATER_LEVEL } from "../manager_vars.js";
+import { ClimateParams, DensityParams, WATER_LEVEL, DENSITY_AIR_THRESHOLD } from "../manager_vars.js";
 import type { TerrainMapCell } from "../map_cell.js";
 import { MapCellPreset_Mountains } from "./mountains.js";
 

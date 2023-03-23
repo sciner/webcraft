@@ -1,18 +1,20 @@
 import { BaseResourcePack } from "./base_resource_pack.js";
-import type { GameSettings } from "./game.js";
 import { Resources } from "./resources.js";
+import type {BLOCK} from "./blocks.js";
 
 export class ResourcePackManager {
-    [key: string]: any;
+    list: Map<any, any>
+    settings: TBlocksSettings
+    BLOCK: BLOCK
 
     // constructor
-    constructor(BLOCK) {
+    constructor(block: BLOCK) {
         this.list = new Map();
-        this.BLOCK = BLOCK;
+        this.BLOCK = block;
     }
 
     // init
-    async init(settings : GameSettings) {
+    async init(settings: TBlocksSettings) {
 
         this.settings = settings;
 

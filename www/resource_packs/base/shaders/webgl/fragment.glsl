@@ -1,10 +1,11 @@
 #include<header>
 #include<constants>
 
+#include<terrain_attrs_frag>
+#include<normal_light_frag_varying>
+
 #include<global_uniforms>
 #include<global_uniforms_frag>
-
-#include<terrain_attrs_frag>
 
 #include<crosshair_define_func>
 
@@ -84,7 +85,7 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
         vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(mask_shift, 1.), texc.y) * mipData.zw + mipData.xy);
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
         // Old Blend Mode
-        if(v_flagMaskColorAdd > .5) {
+        if(checkFlag(FLAG_MASK_COLOR_ADD)) {
             color.rgb += color_mask.rgb * color_mult.rgb;
         } else {
             color.rgb += color_mask.rgb * color_mult.rgb;
@@ -101,7 +102,7 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
 
             // color_mask.rgb = pow(color_mask.rgb, vec3(0.850));
             // color.rgb += pow(color_mask.rgb * color_mult.rgb, vec3(1.0 / 0.85));
-            // color.rgb += 
+            // color.rgb +=
 
             // Photoshop Blend Mode @Color
             // color.rgb += BlendMode_Color(color_mask.rgb, color_mult.rgb);
@@ -113,14 +114,10 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
 
         }
 
-    } else if (v_flagMultiplyColor > 0.0) {
+    } else if (checkFlag(FLAG_MULTIPLY_COLOR)) {
         vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
         color.rgb *= color_mult.rgb;
     }
-
-    //if(v_flagEnchantedAnimation > 0.0) {
-    //    color.rgb *= 2.0;
-    //}
 
     // color.rgb = pow(color.rgb, vec3(1.0 / 0.6)); // gamma
     // color.rgb = brightnessContrast(color.rgb, 0.05, 0.8); // brightness + contrast
@@ -158,6 +155,8 @@ vec3 colorCorrection(vec3 color) {
 }
 
 void main() {
+    #include_post<flat_decode>
+    #include<terrain_read_flags_frag>
 
     vec2 size = vec2(textureSize(u_texture, 0));
     vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
@@ -168,139 +167,125 @@ void main() {
     float playerLight = 0.0, sunNormalLight = 1.0;
     vec3 combinedLight = vec3(1.0);
 
-    // Game
-    // if(u_fogOn) {
+    if(checkFlag(QUAD_FLAG_SDF)) {
 
-        if(v_flagQuadSDF > 0.5) {
+        // sdf pipeline
 
-            // sdf pipeline
+        // text not should be mip-mapped
+        // ignore a lot of pipeline passes
+        vec4 data = texture(u_texture, texClamped);
 
-            // text not should be mip-mapped
-            // ignore a lot of pipeline passes
-            vec4 data = texture(u_texture, texClamped);
+        float threshold = 0.6;
+        float outline = 0.2;
 
-            float threshold = 0.6;
-            float outline = 0.2;
+        float msdfSize = 100.0;
 
-            float msdfSize = 100.0;
+        vec4 msdfColor = vec4(v_color.rgb / 255.0, 1.0);
+        vec4 outlineColor = vec4(1.0 - v_color.rgb / 255.0, 0.8);
 
-            vec4 msdfColor = vec4(v_color.rgb / 255.0, 1.0);
-            vec4 outlineColor = vec4(1.0 - v_color.rgb / 255.0, 0.8);
+        float msdfFactor =  0.5 * length(fwidth(v_texcoord0) * msdfSize);
+        float totalThreshold = threshold - outline;
 
-            float msdfFactor =  0.5 * length(fwidth(v_texcoord0) * msdfSize);
-            float totalThreshold = threshold - outline;
+        float dist = median(data);
+        float fill = smoothstep(
+            totalThreshold - msdfFactor,
+            totalThreshold + msdfFactor,
+            dist
+        );
 
-            float dist = median(data);
-            float fill = smoothstep(
-                totalThreshold - msdfFactor,
-                totalThreshold + msdfFactor,
-                dist
+        color = mix(vec4(0.0), msdfColor, fill);
+
+        color = mix(color, outlineColor, 1. - smoothstep(totalThreshold - msdfFactor, threshold, dist)) * color.a;
+
+        // discard transparency
+        // for smooth edge value should be lower than visible step
+        if (color.a < 4.0 / 256.0) {
+            discard;
+        }
+    } else {
+
+        // default texture fetch pipeline
+
+        biome = ivec2(round(v_color.rg));
+        mipData = manual_mip(v_texcoord0, size);
+        color = sampleAtlassTexture (mipData, texClamped, biome);
+        if (u_useNormalMap > 0.5) {
+            uvNormal = texture(u_texture_n, texClamped * mipData.zw + mipData.xy).rgb * 2.0 - 1.0;
+        }
+
+        if (v_animInterp > 0.0) {
+            color = mix(
+                color,
+                sampleAtlassTexture (mipData, texClamped + v_texcoord1_diff, biome),
+                v_animInterp
             );
+        }
 
-            color = mix(vec4(0.0), msdfColor, fill);
-
-            color = mix(color, outlineColor, 1. - smoothstep(totalThreshold - msdfFactor, threshold, dist)) * color.a;
-
-            // discard transparency
-            // for smooth edge value should be lower than visible step
-            if (color.a < 4.0 / 256.0) {
-                discard;
-            }
+        if(checkFlag(FLAG_TORCH_FLAME)) {
+            #include<torch_flame>
+            if(color.a < 0.7) discard;
         } else {
-
-            // default texture fetch pipeline
-
-            biome = ivec2(round(v_color.rg));
-            mipData = manual_mip(v_texcoord0, size);
-            color = sampleAtlassTexture (mipData, texClamped, biome);
-            if (u_useNormalMap > 0.5) {
-                uvNormal = texture(u_texture_n, texClamped * mipData.zw + mipData.xy).rgb * 2.0 - 1.0;
-            }
-
-            if (v_animInterp > 0.0) {
-                color = mix(
-                    color,
-                    sampleAtlassTexture (mipData, texClamped + v_texcoord1_diff, biome),
-                    v_animInterp
-                );
-            }
-
-            if(v_flagTorchFlame > .5) {
-                #include<torch_flame>
-                if(color.a < 0.7) discard;
-
+            // text not allow to discard in this place
+            if(checkFlag(QUAD_FLAG_OPACITY)) {
+                color.a *= v_color.b / 255.0;
             } else {
-
-                // text not allow to discard in this place
-                if(v_flagOpacity != 0.) {
-                    color.a *= v_color.b / 255.0;
-                } else {
-                    if(color.a < 0.1) discard;
-                    if (u_opaqueThreshold > 0.1) {
-                        if (color.a < u_opaqueThreshold) {
-                            discard;
-                        } else {
-                            color.a = 1.0;
-                        }
+                if(color.a < 0.1) discard;
+                if (u_opaqueThreshold > 0.1) {
+                    if (color.a < u_opaqueThreshold) {
+                        discard;
+                    } else {
+                        color.a = 1.0;
                     }
                 }
-
-                if(v_flagEnchantedAnimation > 0.0) {
-                    #include<enchanted_animation>
-                }
-
             }
 
-        }
-
-        if(v_noCanTakeLight < 0.5) {
-
-            vec4 centerSample;
-            #include<local_light_pass>
-            #include<ao_light_pass>
-            if(v_noCanTakeAO == .0) {
-                #include<sun_light_pass>
+            if(checkFlag(FLAG_ENCHANTED_ANIMATION)) {
+                #include<enchanted_animation>
             }
-            if (cavePart > 0.0 && u_useNormalMap > 0.5 && u_SunDir.w < 0.5) {
-                #include<normal_light_pass>
-            }
-            if(u_eyeinwater > 0. && v_useFog > 0.5) {
-                // caustics on underwater blocks
-                #include<caustic1_pass>
-            }
-            // Apply light
-            color.rgb *= combinedLight * sunNormalLight;
         }
 
-        if(v_flagRainOpacity > .5) {
-            color.a *= u_rain_strength;
+    }
+
+    if(!checkFlag(NO_CAN_TAKE_LIGHT)) {
+        vec4 centerSample;
+        #include<local_light_pass>
+        #include<ao_light_pass>
+        if(!checkFlag(NO_CAN_TAKE_AO)) {
+            #include<sun_light_pass>
         }
-
-        // _include<swamp_fog>
-
-        // float dist = distance(vec3(0., 0., 1.4), v_world_pos) / 64.;
-        outColor = color;
-        // outColor.rgb = colorCorrection(outColor.rgb);
-
-        #include<fog_frag>
-
-        // // vintage sepia
-        // vec3 sepia = vec3(1.2, 1.0, 0.8);
-        // float grey = dot(outColor.rgb, vec3(0.299, 0.587, 0.114));
-        // vec3 sepiaColour = vec3(grey) * sepia;
-        // outColor.rgb = mix(outColor.rgb, vec3(sepiaColour), 0.5);
-        // outColor.rgb = mix(outColor.rgb, vec3(.0, .0, 1.), .025);
-        // // vintage sepia
-
-        if(u_crosshairOn) {
-            #include<crosshair_call_func>
+        if (cavePart > 0.0 && u_useNormalMap > 0.5 && u_SunDir.w < 0.5) {
+            #include<normal_light_pass>
         }
-        #include<vignetting_call_func>
+        if(u_eyeinwater > 0. && !checkFlag(NO_FOG)) {
+            // caustics on underwater blocks
+            #include<caustic1_pass>
+        }
+        // Apply light
+        color.rgb *= combinedLight * sunNormalLight;
+    }
 
-    // } else {
-    //     outColor = texture(u_texture, texClamped);
-    //     if(outColor.a < 0.1) discard;
-    //     outColor *= v_color;
-    // }
+    if(checkFlag(FLAG_RAIN_OPACITY)) {
+        color.a *= u_rain_strength;
+    }
 
+    // _include<swamp_fog>
+
+    // float dist = distance(vec3(0., 0., 1.4), v_world_pos) / 64.;
+    outColor = color;
+    // outColor.rgb = colorCorrection(outColor.rgb);
+
+    #include<fog_frag>
+
+    // // vintage sepia
+    // vec3 sepia = vec3(1.2, 1.0, 0.8);
+    // float grey = dot(outColor.rgb, vec3(0.299, 0.587, 0.114));
+    // vec3 sepiaColour = vec3(grey) * sepia;
+    // outColor.rgb = mix(outColor.rgb, vec3(sepiaColour), 0.5);
+    // outColor.rgb = mix(outColor.rgb, vec3(.0, .0, 1.), .025);
+    // // vintage sepia
+
+    if(u_crosshairOn) {
+        #include<crosshair_call_func>
+    }
+    #include<vignetting_call_func>
 }

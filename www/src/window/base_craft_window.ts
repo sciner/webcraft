@@ -1,14 +1,17 @@
 import {BLOCK} from "../blocks.js";
 import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT,
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
-import { Label, SimpleBlockSlot } from "../../tools/gui/wm.js";
+import { Label, SimpleBlockSlot, Window } from "../ui/wm.js";
 import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
 import { getBlockImage } from "./tools/blocks.js";
+import type { PlayerInventory } from "../player_inventory.js";
+import type { SpriteAtlas } from "../core/sprite_atlas.js";
+import { Resources } from "../resources.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
@@ -16,16 +19,20 @@ const ARMOR_SLOT_BACKGROUND_ACTIVE = '#828282ff'
 const DOUBLE_CLICK_TIME = 300.0;
 
 export class HelpSlot extends Label {
-    [key: string]: any;
 
-    constructor(x, y, sz, id, ct) {
+    hud_atlas : SpriteAtlas
+
+    constructor(x : float, y : float, sz : float, id : string, ct : Window) {
         super(x, y, sz, sz, id, null, null)
         this.ct = ct
         this.item = null
         this.swapChildren(this.children[0], this.children[1])
+        this.hud_atlas = Resources.atlas.get('hud')
+        // this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
+        this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
     }
 
-    setItem(id) {
+    setItem(id : int) {
 
         this.item = id
 
@@ -34,10 +41,10 @@ export class HelpSlot extends Label {
         if(id) {
             this.block = BLOCK.fromId(id)
             const tintMode = 0 // item.extra_data?.enchantments ? 1 : 0
-            this.setBackground(getBlockImage(this.block), 'centerstretch', 1.0, tintMode)
+            this.setIcon(getBlockImage(this.block), 'centerstretch', 1.0, tintMode)
         } else {
             this.block = null
-            this.setBackground(null, 'center')
+            this.setIcon(null)
         }
 
     }
@@ -54,63 +61,6 @@ export class HelpSlot extends Label {
         return null
     }
 
-    // Custom drawing
-    onMouseEnter(e) {
-        this.style.background.color = this.can_make ? '#ffffff55' : '#ff000077'
-    }
-
-    onMouseLeave(e) {
-        this.style.background.color = this.can_make ? '#00000000' : '#ff000055'
-    }
-
-    // // Draw slot
-    // draw(ctx, ax, ay) {
-    //     if (this.ct.lblResultSlot.item) {
-    //         return;
-    //     }
-    //     for(const slot of this.ct.craft.slots) {
-    //         if (slot.item) {
-    //             return;
-    //         }
-    //     }
-    //     this.applyStyle(ctx, ax, ay);
-    //     this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
-    //     this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.w, this.h);
-    //     super.draw(ctx, ax, ay);
-    // }
-
-    // // Draw item
-    // drawItem(ctx, item, x, y, width, height) {
-
-    //     const image = Qubatch.player.inventory.inventory_image;
-
-    //     if(!image || !item) {
-    //         return;
-    //     }
-
-    //     const size = image.width;
-    //     const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
-    //     const zoom = this.zoom;
-    //     const mat = BLOCK.fromId(item);
-
-    //     ctx.imageSmoothingEnabled = true;
-
-    //     // 1. Draw icon
-    //     const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);style.font.size
-    //     const dest_icon_size = 40 * zoom;
-    //     ctx.drawImage(
-    //         image,
-    //         icon.x,
-    //         icon.y,
-    //         icon.width,
-    //         icon.height,
-    //         x + width / 2 - dest_icon_size / 2,
-    //         y + height / 2 - dest_icon_size / 2,
-    //         dest_icon_size,
-    //         dest_icon_size
-    //     );
-    // }
-
 }
 
 export class CraftTableSlot extends SimpleBlockSlot {
@@ -121,6 +71,10 @@ export class CraftTableSlot extends SimpleBlockSlot {
         this.ct = ct
         this.setSlotIndex(slot_index)
         ct.inventory.addInventorySlot(this)
+        // this.style.background.color = '#00000011'
+        // this.style.border.color = '#00000033'
+        this.style.border.hidden = true
+        // this.style.border.style = 'inset'
     }
 
     //
@@ -161,11 +115,8 @@ export class CraftTableSlot extends SimpleBlockSlot {
         }
     }
 
-    /**
-     * @param {?object} item
-     * @returns
-     */
-    setItem(item, update_inventory = true) {
+    //@ts-ignore
+    setItem(item: any, update_inventory : any = true) {
         if (item && item.count <= 0) {
             if (item.count < 0) {
                 window.alert('item.count < 0')
@@ -201,10 +152,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
         this.slot_index = index
     }
 
-    /**
-     * @returns { import("../player_inventory.js").PlayerInventory }
-     */
-    getInventory() {
+    getInventory() : PlayerInventory {
         return this.ct.inventory
     }
 
@@ -278,11 +226,14 @@ export class CraftTableSlot extends SimpleBlockSlot {
 export class CraftTableResultSlot extends CraftTableSlot {
     [key: string]: any;
 
+    slot_empty = 'window_slot_locked'
+
     constructor(x, y, w, h, id, title, text, ct) {
         super(x, y, w, h, id, title, text, ct, null);
         this.recipe = null;
         this.used_recipes = [];
-        this.setupHandlers();
+        this.setupHandlers()
+        this.refresh()
     }
 
     // Return used recipes and clear list
@@ -381,16 +332,8 @@ export class CraftTableResultSlot extends CraftTableSlot {
 }
 
 export class CraftTableInventorySlot extends CraftTableSlot {
-    [key: string]: any;
 
-    /**
-     * @param {Float} x - screen poition x
-     * @param {Float} y - screen poition y
-     * @param {BaseChestWindow} ct - parent window
-     * @param { object } options - optonal parameters:
-     *  { readonly, onMouseEnterBackroundColor, disableIfLoading }
-     */
-    constructor(x, y, w, h, id, title, text, ct, slot_index, options = null) {
+    constructor(x : float, y : float, w : float, h : float, id : string, title : string, text : string, ct : any, slot_index : int, options : object = null) {
 
         super(x, y, w, h, id, title, text, ct, slot_index)
 
@@ -495,17 +438,17 @@ export class CraftTableInventorySlot extends CraftTableSlot {
     }
 
     // Custom drawing
-    onMouseEnter(e) {
-        if (this.options.disableIfLoading && this.ct.loading) {
-            return
-        }
-        this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55'
-    }
+    // onMouseEnter(e) {
+    //     if (this.options.disableIfLoading && this.ct.loading) {
+    //         return
+    //     }
+    //     // this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55'
+    // }
 
-    onMouseLeave(e) {
-        // don't disable it if loading
-        this.style.background.color = '#00000000'
-    }
+    // onMouseLeave(e) {
+    //     // don't disable it if loading
+    //     // this.style.background.color = '#00000000'
+    // }
 
     // Mouse down
     onMouseDown(e) {
@@ -539,6 +482,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         } else {
             if(e.shiftKey) {
                 switch(this.parent.id) {
+                    case 'frmCharacterWindow':
                     case 'frmInventory': {
                         const srcList = this.parent.inventory_slots;
                         if(!this.appendToSpecialList(targetItem, srcList)) {
@@ -546,13 +490,11 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             let srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
                             let targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
                             if(this.slot_index >= INVENTORY_VISIBLE_SLOT_COUNT) {
-                                srcListFirstIndexOffset = 0
                                 targetList = srcList.slice(0, INVENTORY_VISIBLE_SLOT_COUNT)
                             } else {
-                                srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
                                 targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
                             }
-                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
+                            this.appendToList(targetItem, targetList);
                         }
                         this.setItem(targetItem, e)
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot shiftKey frmInventory')
@@ -567,22 +509,19 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         if (this.ct.loading) {
                             break; // prevent spreading to the slots that are not ready
                         }
-                        let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
-                        let srcListFirstIndexOffset = 0
-                        let targetList = srcList
-                        this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset)
+                        let targetList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
+                        this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.parent.lastChange.type = INVENTORY_CHANGE_SHIFT_SPREAD
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot INVENTORY_CHANGE_SHIFT_SPREAD')
                         break
                     }
                     case 'frmCraft': {
-                        let srcList = e.target.is_craft_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
-                        let srcListFirstIndexOffset = 0
-                        let targetList = srcList
-                        this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset)
+                        let targetList = e.target.is_craft_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
+                        this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot frmCraft')
+                        break
                     }
                     default: {
                         console.log('this.parent.id', this.parent.id)
@@ -629,52 +568,46 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
     /**
      * Помещает предмет в список (например инвентарный)
+     * Модифицирует количество в {@link srcItem}. После перемещения, вызывающий должен не забыть обновить исходный слот.
      * @param {*} srcItem Исходный слот для перемещения
      * @param {*} target_list Итоговый  список слотов, куда нужно переместить исходный слот
-     * @param {*} srcList Ссылка на оригинальный список, чтобы можно было в него добавить/заменить новый элемент
-     * @param {*} srcListFirstIndexOffset Смещение в оригинальном списке, откуда взяли target_list
      */
-    appendToList(srcItem, target_list, srcList, srcListFirstIndexOffset) {
-        if(typeof srcListFirstIndexOffset != 'number') {
-            throw 'Invalid srcListFirstIndexOffset';
+    appendToList(srcItem, target_list) {
+        if (srcItem.count === 0) {
+            return
         }
-        if(!srcItem.entity_id && !srcItem.extra_data) {
-            const max_stack_count = BLOCK.getItemMaxStack(srcItem);
-            // 1. проход в поисках подобного
-            if(srcItem.count > 0) {
-                for(let slot of target_list) {
-                    if(slot instanceof CraftTableInventorySlot) {
-                        const item = slot.getItem();
-                        if(!slot.readonly && InventoryComparator.itemsEqualExceptCount(item, srcItem)) {
-                            let free_count = max_stack_count - item.count;
-                            if(free_count > 0) {
-                                let count = Math.min(free_count, srcItem.count);
-                                srcItem.count -= count
-                                item.count += count;
-                                slot.setItem(item);
-                            }
+        const max_stack_count = BLOCK.getItemMaxStack(srcItem);
+        // 1. проход в поисках подобного
+        for(let slot of target_list) {
+            if(slot instanceof CraftTableInventorySlot) {
+                const item = slot.getItem();
+                if(!slot.readonly && InventoryComparator.itemsEqualExceptCount(item, srcItem)) {
+                    const free_count = max_stack_count - item.count;
+                    if(free_count > 0) {
+                        const count = Math.min(free_count, srcItem.count);
+                        srcItem.count -= count
+                        item.count += count;
+                        slot.setItem(item);
+                        if (srcItem.count === 0) {
+                            return
                         }
-                    } else {
-                        console.error(slot);
-                        throw 'error_invalid_slot_type';
                     }
                 }
+            } else {
+                console.error(slot);
+                throw 'error_invalid_slot_type';
             }
         }
         // 2. проход в поисках свободных слотов
-        if(srcItem.count > 0) {
-            for(let index = 0; target_list < target_list.length; index++) {
-                const slot = target_list[index];
-                if(slot instanceof CraftTableInventorySlot) {
-                    if(!slot.readonly && !slot.getItem()) {
-                        let slot_index = (srcListFirstIndexOffset | 0) + (index | 0);
-                        srcList[slot_index].setItem({...srcItem});
-                        srcItem.count = 0;
-                        break;
-                    }
-                } else {
-                    throw 'error_invalid_slot_type';
+        for(let slot of target_list) {
+            if(slot instanceof CraftTableInventorySlot) {
+                if(!slot.readonly && !slot.getItem()) {
+                    slot.setItem({...srcItem});
+                    srcItem.count = 0;
+                    break;
                 }
+            } else {
+                throw 'error_invalid_slot_type';
             }
         }
     }
@@ -683,14 +616,11 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
 // Ячейка рецепта
 export class CraftTableRecipeSlot extends CraftTableInventorySlot {
-    [key: string]: any;
 
     /**
      * Вызывается после изменения любой из её ячеек
-     * @param {?object} item
-     * @param {boolean} update_inventory
      */
-    setItem(item, update_inventory = true) {
+    setItem(item? : object, update_inventory : boolean = true) {
         super.setItem(item, update_inventory)
         if(update_inventory) {
             this.parent.checkRecipe()
@@ -724,28 +654,28 @@ export class ArmorSlot extends CraftTableInventorySlot {
         this.onMouseEnter(e)
     }
 
-    // Custom drawing
-    onMouseEnter(e) {
-        const dragItem = Qubatch.hud.wm.drag.getItem()
-        if (!dragItem || this.isValidDragItem(dragItem)) {
-            if(!this.getItem()) {
-                this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
-            } else {
-                this.style.background.color = ARMOR_SLOT_BACKGROUND_ACTIVE
-            }
-        }
-    }
+    // // Custom drawing
+    // onMouseEnter(e) {
+    //     const dragItem = Qubatch.hud.wm.drag.getItem()
+    //     if (!dragItem || this.isValidDragItem(dragItem)) {
+    //         if(!this.getItem()) {
+    //             this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
+    //         } else {
+    //             this.style.background.color = ARMOR_SLOT_BACKGROUND_ACTIVE
+    //         }
+    //     }
+    // }
 
-    onMouseLeave(e) {
-        if(!this.getItem()) {
-            super.onMouseLeave(e)
-        } else {
-            this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE
-        }
-    }
+    // onMouseLeave(e) {
+    //     if(!this.getItem()) {
+    //         super.onMouseLeave(e)
+    //     } else {
+    //         this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE
+    //     }
+    // }
 
     setItem(item) {
-        this.style.background.color = item ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#00000000'
+        // this.style.background.color = item ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#00000000'
         super.setItem(item)
     }
 
@@ -766,19 +696,14 @@ export class ArmorSlot extends CraftTableInventorySlot {
 export class BaseCraftWindow extends BaseInventoryWindow {
     [key: string]: any;
 
+    lblResultSlot: CraftTableResultSlot
+
     /**
     * Итоговый слот (то, что мы получим)
     */
-    createResultSlot(x, y) {
-        const ct = this;
-        // x, y, w, h, id, title, text, ct, slot_index
-        let lblResultSlot = this.lblResultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
-        lblResultSlot.onMouseEnter = function() {
-            this.style.background.color = '#ffffff33';
-        }
-        lblResultSlot.onMouseLeave = function() {
-            this.style.background.color = '#00000000';
-        }
+    createResultSlot(x : float, y : float) {
+        const ct = this
+        const lblResultSlot = this.lblResultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
         ct.add(lblResultSlot);
     }
 
@@ -796,37 +721,62 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     /**
     * Создание слотов для инвентаря
     * @param int sz Ширина / высота слота
-    * @param int xs Смешение словтов по оси x
-    * @param int ys Смешение словтов по оси y
+    * @param int xs Смешение слотов по оси x
+    * @param int ys Смешение слотов по оси y
     */
-    createInventorySlots(sz, sx = 14, sy = 166) {
+    createInventorySlots(sz, sx = UI_THEME.window_padding, sy = 166, belt_x? : float, belt_y? : float) {
+
         const ct = this;
         if(ct.inventory_slots) {
-            console.error('createInventorySlots() already created');
+            console.error('createInventorySlots() already created')
             return
         }
-        ct.inventory_slots  = [];
-        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
+
+        ct.inventory_slots  = []
+        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
         sx *= this.zoom
         sy *= this.zoom
         let index = 0
+        const margin = UI_THEME.slot_margin * this.zoom
+        const padding = UI_THEME.window_padding * this.zoom
+
+        if(belt_x === undefined) {
+            belt_x = sx
+        } else {
+            belt_x *= this.zoom
+        }
+
+        if(belt_y === undefined) {
+            belt_y = this.h - sz - padding
+        } else {
+            belt_y *= this.zoom
+        }
+
         //
-        const createSlot = (x, y) => {
+        const createSlot = (x : float, y : float) => {
             const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
-            ct.add(lblSlot);
+            ct.add(lblSlot)
             ct.inventory_slots.push(lblSlot)
             index++
         }
+
         // не менять порядок нижних и верхних!
         // иначе нарушится их порядок в массиве ct.inventory_slots
         // нижний ряд (видимые на хотбаре)
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            createSlot(sx + (i % xcnt) * sz, (sy + 116 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
+            const x = belt_x + (i % xcnt) * (sz + margin)
+            // const y = (sy + 120 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom + margin)
+            const y = belt_y
+            createSlot(x, y)
         }
+
         // верхние 3 ряда
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
+            const x = sx + (i % xcnt) * (sz + margin)
+            const y = sy + Math.floor(i / xcnt) * (sz + margin)
+            createSlot(x, y)
         }
+
     }
 
     clearCraftSlotIfPosible(slot) {
@@ -967,14 +917,27 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     }
 
     // слоты помощи в крафте
-    addHelpSlots() {
+    // addHelpSlots() {
+    //     const size = this.area.size.width
+    //     const sx = (size == 2) ? 196 : 60.5
+    //     const sy = (size == 2) ? 36 : 34.5
+    //     this.help_slots = []
+    //     for (let i = 0; i < size; i++) {
+    //         for (let j = 0; j < size; j++) {
+    //             const slot = new HelpSlot((sx + 36 * j) * this.zoom, (sy + 36 * i) * this.zoom, 32 * this.zoom, 'help_' + i + '_' + j, this);
+    //             this.help_slots.push(slot)
+    //             this.add(slot)
+    //         }
+    //     }
+    // }
+
+    // слоты помощи в крафте
+    addHelpSlots(sx : float, sy : float, sz : float, szm : float) {
         const size = this.area.size.width
-        const sx = (size == 2) ? 196 : 60.5
-        const sy = (size == 2) ? 36 : 34.5
         this.help_slots = []
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
-                const slot = new HelpSlot((sx + 36 * j) * this.zoom, (sy + 36 * i) * this.zoom, 32 * this.zoom, 'help_' + i + '_' + j, this);
+                const slot = new HelpSlot((sx + szm * j), (sy + szm * i), sz, `help_${i}_${j}`, this)
                 this.help_slots.push(slot)
                 this.add(slot)
             }

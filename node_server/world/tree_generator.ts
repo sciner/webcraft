@@ -92,6 +92,7 @@ export class TreeGenerator extends Default_Terrain_Generator {
         //
         let is_invalid_operation = false;
         const ubl = new VectorCollector();
+        const _vec = new Vector(0, 0, 0)
         this.setBlock = function(chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
             if(is_invalid_operation) {
                 return false;
@@ -106,7 +107,7 @@ export class TreeGenerator extends Default_Terrain_Generator {
                 return false;
             }
             if(tblock.id == 0 || tblock.material.is_leaves || tblock.material.is_sapling || tblock.material.material.id == 'plant') {
-                ubl.set(new Vector(x, y, z), {id: block_type.id, extra_data, rotate})
+                ubl.set(_vec.set(x, y, z), {id: block_type.id, extra_data, rotate})
                 return true;
             }
             return false;

@@ -25,6 +25,7 @@ export default class WebGPURenderer extends BaseRenderer{
         /**
          *
          * @type {GPUAdapter}
+         * @type {GPUAdapter}
          */
         this.adapter = null;
         /**

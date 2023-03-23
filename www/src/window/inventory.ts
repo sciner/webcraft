@@ -1,38 +1,44 @@
-import { Button, Label } from "../../tools/gui/wm.js";
-import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
+import { Label, Window } from "../ui/wm.js";
+import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT, UI_THEME } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
-import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { blobToImage } from "../helpers.js";
-
-const PLAYER_BOX_WIDTH = 98;
-const PLAYER_BOX_HEIGHT = 140;
+import type { InventoryRecipeWindow } from "./inventory_recipe.js";
+import type { PlayerInventory } from "../player_inventory.js";
+import type { InGameMain } from "./ingamemain.js";
+import { Resources } from "../resources.js";
+import type { SpriteAtlas } from "../core/sprite_atlas.js";
 
 export class InventoryWindow extends BaseCraftWindow {
-    [key: string]: any;
 
-    /**
-     * @param { import("../player_inventory.js").PlayerInventory } inventory
-     * @param {*} recipes
-     */
-    constructor(inventory, recipes) {
+    frmInventoryRecipe : InventoryRecipeWindow
 
-        super(10, 10, 352, 332, 'frmInventory', null, null, inventory)
+    slot_empty = 'slot_empty'
+    slot_full = 'slot_full'
+    cell_size : float
+    slot_margin : float
+    slots_x : float
+    slots_y : float
+    hud_atlas : SpriteAtlas
+
+    constructor(inventory : PlayerInventory, recipes) {
+
+        super(10, 10, 700, 332, 'frmInventory', null, null, inventory)
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
         this.recipes = recipes
 
-        // Create sprite atlas
-        this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/form-inventory.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
-        })
-
         this.skinKey = null
         this.skinViewer = null // lazy initialized if necessary
+
+        // Ширина / высота слота
+        this.cell_size     = UI_THEME.window_slot_size * this.zoom
+        this.slot_margin   = UI_THEME.window_padding * this.zoom
+        this.slots_x       = UI_THEME.window_padding * this.zoom
+        this.slots_y       = 62 * this.zoom;
 
         // Craft area
         this.area = {
@@ -42,80 +48,94 @@ export class InventoryWindow extends BaseCraftWindow {
             }
         };
 
-        //
-        this.addPlayerBox()
+    }
 
-        // Add buttons
-        this.addRecipesButton()
+    initControls(parent : InGameMain) {
+
+        this.hud_atlas = Resources.atlas.get('hud')
+
+        const sz          = this.cell_size
+        const szm         = sz + UI_THEME.slot_margin * this.zoom
+        const sx          = UI_THEME.window_padding * this.zoom * 3.5 + szm
+        const sy          = 34 * this.zoom
 
         // слоты для подсказок
-        this.addHelpSlots()
-
-        // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
+        this.addHelpSlots(sx, sy, sz, szm)
 
         // Создание слотов для крафта
-        this.createCraft(this.cell_size)
+        this.createCraft(sx, sy, sz, szm)
+
+        // Calc backpack slots width
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
 
         // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size)
-
-        // Создания слота для армора
-        this.createArmorSlots(this.cell_size)
+        const x = this.w / this.zoom - slots_width
+        const y = 35
+        this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding)
 
         // Итоговый слот (то, что мы получим)
-        this.createResultSlot(306 * this.zoom, 54 * this.zoom)
+        this.createResultSlot(UI_THEME.window_padding * this.zoom * 3.5 + szm * 4, 34 * this.zoom + sz * .5)
 
-        // Add labels to window
-        const lblTitle = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.create)
-        this.add(lblTitle)
+        const result_arrow = new Window(UI_THEME.window_padding * this.zoom * 3.5 + szm * 3, 34 * this.zoom + sz * .5, sz, sz, 'resultArrow')
+        this.add(result_arrow)
+        result_arrow.setIcon(this.hud_atlas.getSpriteFromMap('arrow_next_locked'), 'stretchcenter', .25)
 
-        // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            // Close button
-            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
-            btnClose.style.font.family = 'Arial'
-            btnClose.style.background.image = image
-            // btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-            that.add(btnClose)
-        })
+        const lblBackpackWidth = (slots_width - UI_THEME.window_padding) * this.zoom
+
+        const labels = [
+            new Label(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, 30 * this.zoom, 'lblBackpack', null, Lang.backpack),
+            new Label(UI_THEME.window_padding * this.zoom * 3.5 + szm, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lblTitle', null, Lang.craft),
+        ]
+
+        for(let lbl of labels) {
+            lbl.style.font.color = UI_THEME.label_text_color
+            lbl.style.font.size = UI_THEME.base_font.size
+            this.add(lbl)
+        }
 
     }
 
     // Обработчик открытия формы
     onShow(args) {
-        this.getRoot().center(this)
-        Qubatch.releaseMousePointer()
-        this.previewSkin()
+
+        if(!this.frmInventoryRecipe) {
+            const form = this.inventory.player.inventory.recipes.frmInventoryRecipe
+            form.style.background.image = null
+            form.parent.delete(form.id)
+            form.x = UI_THEME.window_padding * this.zoom
+            form.y = 95 * this.zoom
+            this.frmInventoryRecipe = form
+            this.add(form)
+        }
+
+        // this.previewSkin()
         this.setHelperSlots(null)
         super.onShow(args)
+
+        this.frmInventoryRecipe.assignCraftWindow(this)
+        this.frmInventoryRecipe.show()
+
     }
 
     // Обработчик закрытия формы
     onHide() {
-        // Close recipe window
-        this.getRoot().getWindow('frmRecipe', false)?.hide()
+
         // Drag
         this.inventory.clearDragItem(true)
+
         // Clear result
         this.lblResultSlot.setItem(null)
-        //
+
         for(let slot of this.craft.slots) {
             if(slot && slot.item) {
                 this.inventory.increment(slot.item)
                 slot.setItem(null)
             }
         }
-        // Update player mob model
-        this.inventory.player.updateArmor()
+
         // Save inventory
         Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
-        this.skinViewer.renderPaused = true
+
     }
 
     async previewSkin() {
@@ -175,83 +195,48 @@ export class InventoryWindow extends BaseCraftWindow {
 
     }
 
-    addPlayerBox() {
-        const ct = this;
-        this.lblPlayerBox = new Label(52 * this.zoom, 16 * this.zoom,
-            PLAYER_BOX_WIDTH * this.zoom, PLAYER_BOX_HEIGHT * this.zoom,
-            'lblPlayerBox', null, null);
-
-        this.skinViewerCanvas = document.createElement('canvas');
-        this.skinViewerCanvas.width = PLAYER_BOX_WIDTH * this.zoom;
-        this.skinViewerCanvas.height = PLAYER_BOX_HEIGHT * this.zoom;
-        // this.lblPlayerBox.setBackground(this.skinViewerCanvas, 'centerstretch', .9);
-        this.lblPlayerBox.onMouseDown = () => {
-            this.skinViewer.animation = this.skinViewer.animation || new skinview3d.WalkingAnimation();
-            this.skinViewer.renderPaused = !this.skinViewer.renderPaused;
-        }
-        ct.add(this.lblPlayerBox);
-    }
-
-    // Recipes button
-    addRecipesButton() {
-        const ct = this;
-        let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
-        btnRecipes.tooltip = Lang.toggle_recipes;
-        btnRecipes.setBackground('./media/gui/recipes.png', 'centerstretch', .5)
-        btnRecipes.onMouseDown = (e) => {
-            const frmRecipe = this.getRoot().getWindow('frmRecipe');
-            frmRecipe.assignCraftWindow(this)
-            frmRecipe.toggleVisibility()
-        }
-        ct.add(btnRecipes);
-    }
-
     /**
      * Создание слотов для крафта
-     * @param {int} sz Ширина / высота слота
      */
-    createCraft(sz) {
+    createCraft(sx : float, sy : float, sz : float, szm : float) {
+
         if(this.craft) {
             console.error('error_inventory_craft_slots_already_created')
             return
         }
-        const sx          = 194 * this.zoom
-        const sy          = 34 * this.zoom
-        const xcnt        = 2
+
+        const xcnt = 2
+
         this.craft = {
             slots: [null, null, null, null]
-        };
+        }
+
         for(let i = 0; i < this.craft.slots.length; i++) {
-            const lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * INVENTORY_SLOT_SIZE * this.zoom, sz, sz, 'lblCraftRecipeSlot' + i, null, null, this, null)
-            lblSlot.onMouseEnter = function() {
-                this.style.background.color = '#ffffff33'
-            }
-            lblSlot.onMouseLeave = function() {
-                this.style.background.color = '#00000000'
-            }
+            const x = sx + (i % xcnt) * szm
+            const y = sy + Math.floor(i / xcnt) * szm
+            const lblSlot = new CraftTableRecipeSlot(x, y, sz, sz, 'lblCraftRecipeSlot' + i, null, null, this, null)
             this.craft.slots[i] = lblSlot
             this.add(lblSlot)
         }
+
+        const locked_slots = [
+            // {x: sx - szm, y: sy},
+            // {x: sx - szm, y: sy + szm},
+            // {x: sx + szm * 2, y: sy},
+            // {x: sx + szm * 2, y: sy + szm},
+        ]
+
+        for(let i = 0; i < locked_slots.length; i++) {
+            const ls = locked_slots[i]
+            const lbl = new Label(ls.x, ls.y, sz, sz, `lblLocked_${i}`)
+            lbl.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
+            this.add(lbl)
+        }
+
     }
 
     getSlots() {
         return this.inventory_slots;
-    }
-
-    createArmorSlots(sz) {
-        const ct = this;
-        const lblSlotHead = new ArmorSlot(16.5 * this.zoom, 16 * this.zoom, 32 * this.zoom, 39, this);
-        ct.add(lblSlotHead);
-        ct.inventory_slots.push(lblSlotHead);
-        const lblSlotChest = new ArmorSlot(16.5 * this.zoom, 52 * this.zoom, 32 * this.zoom, 38, this);
-        ct.add(lblSlotChest);
-        ct.inventory_slots.push(lblSlotChest);
-        const lblSlotLeggs = new ArmorSlot(16.5 * this.zoom, 88 * this.zoom, 32 * this.zoom, 37, this);
-        ct.add(lblSlotLeggs);
-        ct.inventory_slots.push(lblSlotLeggs);
-        const lblSlotBoots = new ArmorSlot(16.5 * this.zoom, 123 * this.zoom, 32 * this.zoom, 36, this);
-        ct.add(lblSlotBoots);
-        ct.inventory_slots.push(lblSlotBoots);
     }
 
 }

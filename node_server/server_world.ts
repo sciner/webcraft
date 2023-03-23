@@ -28,7 +28,7 @@ import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
 import { SHUTDOWN_ADDITIONAL_TIMEOUT } from "./server_constant.js"
 
-import { WorldAction } from "@client/world_action.js";
+import {TActionBlock, WorldAction} from "@client/world_action.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
@@ -39,6 +39,7 @@ import type { DBWorld } from "./db/world.js";
 import type { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
 import type { Indicators, PlayerConnectData, PlayerSkin } from "@client/player.js";
+import type {TRandomTickerFunction, TTickerFunction} from "./server_chunk.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -48,8 +49,8 @@ export class ServerWorld implements IWorld {
     updatedBlocksByListeners: any[];
     shuttingDown: any;
     game: any;
-    tickers: Map<string, any>;
-    random_tickers: Map<string, any>;
+    tickers: Map<string, TTickerFunction>;
+    random_tickers: Map<string, TRandomTickerFunction>;
     blockListeners: BlockListeners;
     blockCallees: any;
     brains: Brains;
@@ -74,6 +75,7 @@ export class ServerWorld implements IWorld {
         out_count_by_type?: int[]; in_count_by_type?: int[];
         out_size_by_type?: int[]; in_size_by_type?: int[];
     };
+    timer_skip_night: number = -1;
     start_time: number;
     weather_update_time: number;
     rules: GameRule;
@@ -464,6 +466,7 @@ export class ServerWorld implements IWorld {
             this.ticks_stat.add('tickChunkQueue');
             for(const player of this.players.values()) {
                 player.postTick(delta, this.ticks_stat.number);
+                player.checkWorldDataChange();
             }
             this.ticks_stat.add('player.postTick');
             //
@@ -484,6 +487,9 @@ export class ServerWorld implements IWorld {
             //
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
+
+            // отложеная смена ночи на день
+            this.skipNight()
 
             // Do different periodic tasks in different ticks to reduce lag spikes
             if(this.ticks_stat.number % 100 == 0) {
@@ -592,7 +598,8 @@ export class ServerWorld implements IWorld {
             inventory: {
                 current: player.inventory.current,
                 items: player.inventory.items
-            }
+            },
+            world_data: player.world_data
         }
         player.sendPackets([{name: ServerClient.CMD_CONNECTED, data}]);
         // 10. Add night vision for building world
@@ -864,7 +871,7 @@ export class ServerWorld implements IWorld {
                                         packets: [{
                                             name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
                                             data: {
-                                                pos: params.pos.add(new Vector(.5, .5, .5)),
+                                                pos: params.pos.clone().addScalarSelf(.5, .5, .5),
                                                 item: params.destroy_block
                                             }
                                         }]
@@ -1178,7 +1185,7 @@ export class ServerWorld implements IWorld {
         for(const addr of this.chunkManager.ticking_chunks.keys()) {
             const chunk = this.chunkManager.get(addr);
             if(chunk) {
-                for(const ticking_block of chunk.ticking_blocks.blocks.values()) {
+                for(const ticking_block of chunk.ticking_blocks.tickingBlocks()) {
                     if(ticking_block.ticking.type == 'bee_nest') {
                         const tblock = this.getBlock(ticking_block.pos);
                         if(tblock && tblock.id > 0 && tblock.hasTag('bee_nest')) {
@@ -1251,7 +1258,48 @@ export class ServerWorld implements IWorld {
         }
     }
 
-    addUpdatedBlocksActions(updated_blocks) {
+    /*
+    * Проверям спят ли все и устанавливаем место спавна
+    */
+    getSleep(id, pos) {
+        // устаналиваем место спауна
+        const existing_player = this.players.get(id)
+        if (!existing_player.state.pos_spawn.equal(pos)) {
+            existing_player.changePosSpawn({pos: pos, id: id})
+        }
+        const time = this.getTime()
+        if(time.hours < 18 && time.hours > 6) {
+            return false
+        }
+        // находим игроков
+        for (const player of this.players.values()) {
+            if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS.DEAD && player.session.user_id != id) {
+                if (!player.state.sleep) {
+                    return false
+                }
+            }
+        }
+        this.timer_skip_night = 30
+        return true
+    }
+    /*
+    * Меняем ночь на день с задержкой
+    */
+    skipNight() {
+        if (this.timer_skip_night == 0) {
+            const age = this.info.calendar.age + this.info.calendar.day_time / GAME_DAY_SECONDS
+            const day_time = (age - Math.floor(age)) * GAME_DAY_SECONDS
+            this.info.add_time += Math.round(6000 - day_time)
+            this.db.updateAddTime(this.info.guid, this.info.add_time)
+            this.updateWorldCalendar()
+            this.sendUpdatedInfo()
+        }
+        if (this.timer_skip_night > -1) {
+            this.timer_skip_night--
+        }
+    }
+
+    addUpdatedBlocksActions(updated_blocks: (TActionBlock | null)[]): void {
         ArrayHelpers.filterSelf(updated_blocks, v => v != null);
         if (updated_blocks.length) {
             const action = new WorldAction(null, this, false, true);

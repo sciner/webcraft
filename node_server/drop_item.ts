@@ -1,5 +1,5 @@
 import { Vector, unixTime, ObjectHelpers } from "@client/helpers.js";
-import { PrismarinePlayerControl } from "@client/vendors/prismarine-physics/using.js";
+import { PrismarinePlayerControl } from "@client/prismarine-physics/using.js";
 import {ServerClient} from "@client/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
 import type { ServerWorld } from "./server_world.js";
@@ -34,7 +34,7 @@ export class DropItem {
 
     #world : ServerWorld;
     #chunk_addr : Vector;
-    #pc;
+    #pc: PrismarinePlayerControl;
 
     static DIRTY_CLEAR      = 0;
     static DIRTY_NEW        = 1;
@@ -198,7 +198,7 @@ export class DropItem {
         if (this.inChunk?.isReady()) {
             const pc = this.#pc;
             pc.tick(delta);
-            this.pos.copyFrom(pc.player.entity.position);
+            this.pos.copyFrom(pc.getPos());
         }
         if(!this.pos.equal(this.posO)) { // it moved
             this.motion = MOTION_MOVED;

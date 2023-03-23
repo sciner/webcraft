@@ -16,6 +16,8 @@ export default class Ticker {
     //
     static func(this: TickingBlockManager, tick_number, world, chunk, v) {
 
+        const ambientLight = (world.info.rules.ambientLight || 0) * 255 / 15
+
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
@@ -29,7 +31,7 @@ export default class Ticker {
 
             // Одноразовый спавнер
             if (extra_data?.limit?.count === 1) {
-                const spawn_pos = pos.add(new Vector(.5, 0, .5));
+                const spawn_pos = pos.clone().addScalarSelf(.5, 0, .5);
                 const params = {
                     type           : extra_data.type,
                     skin           : extra_data.skin,
@@ -65,10 +67,10 @@ export default class Ticker {
                 const x = Math.floor(Math.random() * (SPAWN_RAD_HOR * 2 + 1) + -SPAWN_RAD_HOR);
                 const z = Math.floor(Math.random() * (SPAWN_RAD_HOR * 2 + 1) + -SPAWN_RAD_HOR);
                 const y = Math.random() * SPAWN_RAD_VERT | 0;
-                const spawn_pos = pos.add(new Vector(x, y, z)).floored();
+                const spawn_pos = pos.clone().addScalarSelf(x, y, z).floored()
                 let spawn_disabled = false;
                 //
-                for(let player of players) {
+                for(const player of players) {
                     const check_pos = player.state.pos.floored();
                     if (check_pos.x == spawn_pos.x && check_pos.z == spawn_pos.z) {
                         spawn_disabled = true;
@@ -89,6 +91,12 @@ export default class Ticker {
                     // const legs = world.getBlock(spawn_pos.sub(Vector.YP));
                     if (body.id != 0) {
                         spawn_disabled = true;
+                    }
+                    // проверяем освещенность для нежети
+                    if ((body.lightValue & 0xFF) > 160 || ((body.lightValue >> 8) < 100)) {
+                        if (extra_data.type == 'zombie' || extra_data.type == 'skeleton') {
+                            spawn_disabled = true
+                        }
                     }
                     if(!spawn_disabled) {
                         const params = {

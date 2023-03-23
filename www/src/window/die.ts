@@ -1,4 +1,4 @@
-import { Label, Button } from "../../tools/gui/wm.js";
+import { Label, Button } from "../ui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";

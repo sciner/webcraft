@@ -39,11 +39,11 @@ export class ClusterBase {
         this.id             = this.clusterManager.seed + '_' + addr.toHash();
         this.randoms        = new alea(`villages_${this.id}`);
         this.r              = new alea(`cluster_r_${this.id}`).double();
-        this.is_empty       = (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
+        this.is_empty       = clusterManager.layer ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
         this.mask           = new Array(this.size.x * this.size.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
-        this.corner         = (clusterManager.version == 2) ? Math.floor(this.randoms.double() * 4) : undefined
+        this.corner         = clusterManager.layer ? Math.floor(this.randoms.double() * 4) : undefined
     }
 
     get generator() { return this.clusterManager.world.generator }
@@ -96,9 +96,6 @@ export class ClusterBase {
             }
         }
         chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid, destroy_fluid)
-        if(bm.TICKING_BLOCKS.has(block_id)) {
-            chunk.addTickingBlock(chunk.coord.offset(x, y, z));
-        }
         return true;
     }
 
@@ -114,6 +111,10 @@ export class ClusterBase {
         const {cx, cy, cz, cw} = chunk.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         return chunk.tblocks.id[index];
+    }
+
+    resetNearMask() {
+        this.near_mask = new Array(this.size.x * this.size.z).fill(255)
     }
 
     moveToRandomCorner() {
@@ -164,7 +165,7 @@ export class ClusterBase {
 
         // make new mask
         const new_mask = new Array(this.size.x * this.size.z);
-        this.near_mask = new Array(this.size.x * this.size.z).fill(255);
+        this.resetNearMask()
         for(let x = 0; x < this.size.x; x++) {
             for(let z = 0; z < this.size.z; z++) {
                 const index = z * this.size.x + x;
@@ -327,7 +328,6 @@ export class ClusterBase {
         }
         const npc_extra_data = bm.calculateExtraData(this.generateNPCSpawnExtraData(), rel_pos);
         this.setBlock(chunk, rel_pos.x, rel_pos.y, rel_pos.z, bm.MOB_SPAWN.id, null, npc_extra_data);
-        chunk.addTickingBlock(pos);
         return true;
     }
 

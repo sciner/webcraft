@@ -2,13 +2,21 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
+import { Icon } from "../ui/wm.js";
+import type { PlayerInventory } from "../player_inventory.js";
 
 export class FurnaceWindow extends BaseChestWindow {
-    [key: string]: any;
 
-    constructor(inventory) {
+    icon_arrow : Icon
+    icon_fire : Icon
+    atlas : SpriteAtlas
 
-        super(0, 0, 352, 332, 'frmFurnace', null, null, inventory, {
+    constructor(inventory : PlayerInventory) {
+
+        const w = 420
+        const h = 400
+
+        super(0, 0, w, h, 'frmFurnace', null, null, inventory, {
             title: Lang.furnace,
             sound: {
                 open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
@@ -16,79 +24,39 @@ export class FurnaceWindow extends BaseChestWindow {
             }
         })
 
+        this.icon_arrow = new Icon(158, 68.5, 96, 68, 'iconArrow', this.zoom)
+        this.add(this.icon_arrow)
+
+        this.icon_fire = new Icon(112.5, 72, 58, 56, 'iconFire', this.zoom)
+        this.icon_fire.axis_x = false
+        this.add(this.icon_fire)
+
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/form-furnace.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+        this.atlas.fromFile('./media/gui/form-furnace.png').then(async (atlas : SpriteAtlas) => {
+            this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'none', this.zoom / 2.0)
+            this.icon_arrow.setBackground(await this.atlas.getSprite(840, 56, 96, 68), 'none', this.zoom / 2.0 )
+            this.icon_fire.setBackground(await this.atlas.getSprite(840, 0, 58, 56), 'none', this.zoom / 2.0 )
         })
-
+        
     }
 
     //
     prepareSlots() {
         const resp = [];
-        resp.push({pos: new Vector(111 * this.zoom, 32 * this.zoom, 0)});
-        resp.push({pos: new Vector(111 * this.zoom, 105 * this.zoom, 0)});
-        resp.push({pos: new Vector(230 * this.zoom, 68 * this.zoom, 0), readonly: true});
+        resp.push({pos: new Vector(108, 31, 0).multiplyScalarSelf(this.zoom)});
+        resp.push({pos: new Vector(108, 104, 0).multiplyScalarSelf(this.zoom)});
+        resp.push({pos: new Vector(230, 68, 0).multiplyScalarSelf(this.zoom), readonly: true});
         return resp;
     }
 
-    // Draw
-    // TODO: pixi
-    draw(ctx, ax, ay) {
-        super.draw(ctx, ax, ay);
-        if(this.state) {
-            if(typeof this.style.background.image == 'object') {
-                const fuel_percent = this.state.fuel_time / this.state.max_time;
-                // 1. fire
-                let x = ax + this.x;
-                let y = ay + this.y;
-                const fire = {
-                    x:      704,
-                    y:      0,
-                    width:  58,
-                    height: 58,
-                    tox:    113 * this.zoom,
-                    toy:    73 * this.zoom
-                };
-                const sub_height = Math.floor(fire.height * (1 - fuel_percent));
-                // (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-                ctx.drawImage(
-                    // image
-                    this.style.background.image,
-                    // sx, sy
-                    fire.x, fire.y + sub_height,
-                    // sWidth, sHeight
-                    fire.width, fire.height - sub_height,
-                    // dx, dy
-                    x + fire.tox,
-                    y + fire.toy + sub_height / 2 * this.zoom,
-                    // dWidth, dHeight
-                    fire.width / 2 * this.zoom,
-                    (fire.height - sub_height) / 2 * this.zoom
-                );
-                // 2. arrow
-                const arrow = {
-                    x:      704,
-                    y:      56,
-                    width:  96,
-                    height: 68,
-                    tox:    158 * this.zoom,
-                    toy:    69 * this.zoom
-                };
-                let arrow_width = Math.floor(arrow.width * this.state.result_percent);
-                ctx.drawImage(
-                    this.style.background.image,
-                    arrow.x,
-                    arrow.y,
-                    arrow_width,
-                    arrow.height,
-                    x + arrow.tox,
-                    y + arrow.toy,
-                    arrow_width / 2 * this.zoom,
-                    arrow.height / 2 * this.zoom
-                );
-            }
+    // Пришло содержимое сундука от сервера
+    setData(chest : any) {
+        super.setData(chest)
+        if (this.state) {
+            const fuel_percent = this.state.fuel_time / this.state.max_time
+            this.icon_arrow.scroll(this.state.result_percent)
+            this.icon_fire.scroll(fuel_percent) 
         }
     }
 

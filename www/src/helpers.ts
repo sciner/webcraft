@@ -1,4 +1,5 @@
 /// <reference path="./global.d.ts" />
+/// <reference path="./worker/messages.d.ts" />
 
 export * from "./helpers/helper_const.js";
 export * from './helpers/color.js';
@@ -12,6 +13,7 @@ export * from './helpers/alphabet_texture.js';
 export * from './helpers/spiral_generator.js';
 export * from './helpers/indexed_color.js';
 export * from './helpers/fast_random.js';
+export * from './helpers/monotonic_utc_date.js';
 
 export * from "./helpers/vector_collector_2d.js";
 export * from "./helpers/vector_cardinal_transformer.js";
@@ -63,6 +65,11 @@ export class Helpers {
 
     static getCache() : Map<any, any> {
         return Helpers.cache;
+    }
+
+    static inWorker() : boolean {
+        return (typeof (self as any).WorkerGlobalScope !== 'undefined') ||
+               (typeof worker != 'undefined')
     }
 
     //
