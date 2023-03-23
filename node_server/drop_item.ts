@@ -277,7 +277,7 @@ export class DropItem {
             }
             const max_stack = bm.getItemMaxStack(item)
             for (let i = 0; i < block.material.chest.slots; i++) {
-                if (InventoryComparator.itemsEqualExceptCount(block?.extra_data?.slots[i], item) && (block.extra_data.slots[i].count + item.count) < max_stack) {
+                if (InventoryComparator.itemsEqualExceptCount(block?.extra_data?.slots[i], item) && (block.extra_data.slots[i].count + item.count) <= max_stack) {
                     block.extra_data.slots[i].count += item.count
                     return true
                 }
