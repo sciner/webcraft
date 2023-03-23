@@ -34,6 +34,7 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { World } from "./world.js";
 import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
+import type {Player} from "./player.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -101,7 +102,7 @@ export class Renderer {
     stars: any;
     blockDayLightTex: any;
     world: World;
-    player: any;
+    player: Player;
     _base_texture: any;
     _base_texture_n: any;
     make_screenshot: any;
@@ -691,7 +692,7 @@ export class Renderer {
         this.world = world;
     }
 
-    setPlayer(player) {
+    setPlayer(player: Player) {
         this.player = player;
     }
 
@@ -998,7 +999,7 @@ export class Renderer {
 
         // @todo и тут тоже не должно быть
         this.defaultShader.bind();
-        if(!player.game_mode.isSpectator() && Qubatch.hud.active && !Qubatch.free_cam) {
+        if(!player.game_mode.isSpectator() && Qubatch.hud.active && !player.controlManager.isFreeCam) {
             this.drawInhandItem(delta);
         }
 
