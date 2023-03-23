@@ -95,7 +95,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             this.knownPhysicsTicks = tickMustBeKnown
             return
         }
-        if (DEBUG_LOG_PLAYER_CONTROL) {
+        if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
             console.log(`Control ${this.username}: simulate ${physicsTicksAdded} ticks without client's input`)
         }
 
@@ -109,7 +109,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             this.applyPlayerStateToControl()
             if (!this.simulate(this.lastData, newData)) {
                 if (DEBUG_LOG_PLAYER_CONTROL) {
-                    console.log(`   simulation failed`)
+                    console.log(`   simulation without client's input failed`)
                 }
                 return // the chunk is not ready. No problem, just wait
             }
