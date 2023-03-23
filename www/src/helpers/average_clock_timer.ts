@@ -1,6 +1,6 @@
 // AverageClockTimer
 export class AverageClockTimer {
-    [key: string]: any;
+
     sum: number;
     history_index: number;
     history: number[];

@@ -152,9 +152,7 @@ export class Player implements IPlayer {
 
     /** The position slightly in the future, at the end of the physics simulation tick */
     pos:                        Vector;
-    /** The position at the beginning of the physics simulation tick */
-    prevPos:                    Vector;
-    /** The position interpolated between {@link pos} and {@link prevPos} */
+    /** The position interpolated between {@link pos} and the position at the end of the previos physics tick */
     lerpPos:                    Vector;
     /** It's used only inside {@link update} to remember the previous value of {@link lerpPos} */
     posO:                       Vector = new Vector(0, 0, 0);
@@ -289,7 +287,6 @@ export class Player implements IPlayer {
         // Position
         this._height                = PLAYER_HEIGHT;
         this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
-        this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this._block_pos             = new Vector(0, 0, 0);
         this._eye_pos               = new Vector(0, 0, 0);
@@ -372,7 +369,6 @@ export class Player implements IPlayer {
             let pos = this.controlManager.current.getPos();
             this.lerpPos                        = new Vector(pos);
             this.pos                            = new Vector(pos);
-            this.prevPos                        = new Vector(pos);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd : {data: {indicators: Indicators}}) => {
             if (this.indicators.live > cmd.data.indicators.live) {
@@ -820,29 +816,7 @@ export class Player implements IPlayer {
      * @param {boolean} value
      */
     setFlying(value) {
-        let pc = this.getPlayerControl() as SpectatorPlayerControl;
-        pc.mul = 1;
-        pc.player_state.flying = value;
-    }
-
-    /**
-     * @param {int} value
-     * @returns
-     */
-    changeSpectatorSpeed(value) {
-        if(!this.game_mode.isSpectator()) {
-            return false;
-        }
-        const pc = this.controlManager.spectator;
-        let mul = pc.mul ?? 1;
-        const multiplyer = 1.05;
-        if(value > 0) {
-            mul = Math.min(mul * multiplyer, 16);
-        } else {
-            mul = Math.max(mul / multiplyer, 0.05);
-        }
-        pc.mul = mul;
-        return true;
+        this.getPlayerControl().player_state.flying = value;
     }
 
     getPlayerControl(): PlayerControl {
@@ -850,7 +824,18 @@ export class Player implements IPlayer {
     }
 
     /**
-     * Updates this local player (gravity, movement)
+     * Updates this player (gravity, movement). Does the minimal necessary to send updates to the server.
+     */
+    updateControl(): void {
+        const cm = this.controlManager
+        cm.doClientTicks()
+        this.pos.copyFrom(cm.current.getPos())
+        cm.lerpPos(this.lerpPos)
+    }
+
+    /**
+     * Updates this local player (gravity, movement), triggers various effects, e.g. entering water.
+     * It includes calling {@link updateControl}.
      */
     update(delta: float): void {
 
@@ -867,25 +852,13 @@ export class Player implements IPlayer {
             if(!overChunk?.inited) {
                 return;
             }
-            let isSpectator = this.game_mode.isSpectator();
             let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
             //
             const pc = this.controlManager.current;
             this.posO.copyFrom(this.lerpPos);
             this.checkBodyRot(delta);
             // Physics tick
-            const hasUpdate = this.controlManager.doClientTicks()
-            if (hasUpdate) {
-                this.controlManager.sendUpdate();
-                this.prevPos.copyFrom(this.pos);
-            }
-            this.pos.copyFrom(pc.player_state.pos);
-            if (this.pos.distance(this.prevPos) > 10.0) {
-                this.lerpPos.copyFrom(this.pos);
-            } else {
-                this.lerpPos.lerpFrom(this.prevPos, this.pos, this.controlManager.getCurrentTickFraction());
-            }
-            this.lerpPos.roundSelf(8);
+            this.updateControl()
             const minMovingDist = delta * MOVING_MIN_BLOCKS_PER_SECOND;
             this.moving     = this.lerpPos.distanceSqr(this.posO) > minMovingDist * minMovingDist
                 && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);

@@ -4,7 +4,7 @@ import {Vector} from "../helpers/vector.js";
 import type {Player} from "../player.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
-import {SpectatorPlayerControl} from "./spectator-physics.js";
+import {SPECTATOR_SPEED_CHANGE_MAX, SPECTATOR_SPEED_CHANGE_MIN, SPECTATOR_SPEED_CHANGE_MULTIPLIER, SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
     PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_MAX_MS_PROCESS, DEBUG_LOG_PLAYER_CONTROL_DETAIL
@@ -122,7 +122,6 @@ export abstract class PlayerControlManager {
         // apply input
         data.applyInputTo(this, pc)
         // special input adjustments
-        this.spectator.scale = this.player.scale
         player_state.flying &&= gameMode.can_fly // a hack-fix to ensure the player isn't flying when it shouldn't
 
         // remember the state before the simulation
@@ -164,6 +163,14 @@ export abstract class PlayerControlManager {
 export class ClientPlayerControlManager extends PlayerControlManager {
 
     /**
+     * A separate {@link SpectatorPlayerControl} used only for free cam.
+     * Unlike using {@link this.spectator}, the actual control isn't switched.
+     * It's a client-only feature, the server doesn't know about it.
+     */
+    private freeCamSpectator: SpectatorPlayerControl
+    #isFreeCam = false
+
+    /**
      * These input values are set by the game.
      * They correspond to instant events (e.g. clicks and double clicks), not to continuous pressing of a button.
      * When the controls are processed, they are used once (cause some chagne to the player state), then reset.
@@ -173,6 +180,10 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     }
 
     private knownInputTime: float = 0
+    private prevPhysicsTickPos = new Vector() // used to interpolate pos within the tick
+    private prevPhysicsTickFreeCamPos = new Vector()
+    private skipFreeCamSneakInput = false // used to skip pressing SHIFT after switching to freeCamp
+    private freeCamPos = new Vector()
     /**
      * It contains data for all recent physics ticks (at least, those that are possibly not known to the server).
      * If a server sends a correction to an earlier tick, it's used to repeat the movement in the later ticks.
@@ -184,7 +195,14 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     private hasCorrection = false
     private correctionPacket = new PlayerControlCorrectionPacket()
 
-    getCurrentTickFraction(): float {
+    constructor(player: Player) {
+        super(player)
+        const pos = new Vector(player.sharedProps.pos)
+        this.freeCamSpectator = new SpectatorPlayerControl(player.world, pos)
+        this.prevPhysicsTickPos.copyFrom(player.sharedProps.pos)
+    }
+
+    private getCurrentTickFraction(): float {
         if (!this.physicsSessionInitialized) {
             return 0
         }
@@ -195,17 +213,62 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
     startNewPhysicsSession(pos: IVector): void {
         super.startNewPhysicsSession(pos)
+        this.prevPhysicsTickPos?.copyFrom(pos) // it's null in the constructor
         if (this.dataQueue) { // if the subclass constructor finished
             this.dataQueue.length = 0
         }
         this.hasCorrection = false
     }
 
-    doClientTicks(): boolean {
+    lerpPos(dst: Vector, prevPos: Vector = this.prevPhysicsTickPos, pc: PlayerControl = this.current): void {
+        const pos = pc.player_state.pos
+        if (pos.distance(prevPos) > 10.0) {
+            dst.copyFrom(pos)
+        } else {
+            dst.lerpFrom(prevPos, pos, this.getCurrentTickFraction())
+        }
+        dst.roundSelf(8)
+    }
+
+    get isFreeCam(): boolean { return this.#isFreeCam }
+
+    set isFreeCam(v: boolean) {
+        this.#isFreeCam = v
+        if (v) {
+            const pos = this.player.getEyePos()
+            this.freeCamSpectator.resetState()
+            this.freeCamSpectator.setPos(pos)
+            this.prevPhysicsTickFreeCamPos.copyFrom(pos)
+            this.skipFreeCamSneakInput = true
+        }
+    }
+
+    getFreeCampPos(): Vector {
+        this.lerpPos(this.freeCamPos, this.prevPhysicsTickFreeCamPos, this.freeCamSpectator)
+        return this.freeCamPos
+    }
+
+    changeSpectatorSpeed(value: number): boolean {
+        let pc: SpectatorPlayerControl
+        if (this.#isFreeCam) {
+            pc = this.freeCamSpectator
+        } else if (this.current === this.spectator) {
+            pc = this.spectator
+        } else {
+            return false
+        }
+        const mul = pc.speedMultiplier ?? 1
+        pc.speedMultiplier = value > 0
+            ? Math.min(mul * SPECTATOR_SPEED_CHANGE_MULTIPLIER, SPECTATOR_SPEED_CHANGE_MAX)
+            : Math.max(mul / SPECTATOR_SPEED_CHANGE_MULTIPLIER, SPECTATOR_SPEED_CHANGE_MIN)
+        return true
+    }
+
+    doClientTicks(): void {
         // if the initial step of the current physics session
         if (!this.physicsSessionInitialized) {
             this.initializePhysicsSession()
-            return true
+            this.sendUpdate()
         }
 
         this.knownInputTime = MonotonicUTCDate.now()
@@ -267,7 +330,14 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             data.initContextFrom(this.player)
             this.knownPhysicsTicks += physicsTicks
 
+            // Simulate freeCam in addition to the normal simulation. Clear the input to the normal simulation
+            if (this.#isFreeCam) {
+                this.simulateFreeCam(data)
+                data.initInputEmpty(data, data.physicsTicks)
+            }
+
             const prevData = dataQueue.getLast()
+            this.prevPhysicsTickPos.copyFrom(prevData?.outPos ?? this.controlByType[data.contextControlType].getPos())
             this.simulate(prevData, data)
 
             if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
@@ -302,7 +372,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
         }
 
-        return physicsTicks !== 0
+        if (physicsTicks !== 0) {
+            this.sendUpdate()
+        }
     }
 
     applyCorrection(packetData: PacketBuffer) {
@@ -388,7 +460,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     }
 
     /** Sends an update, if there is anything that must be sent now */
-    sendUpdate(): void {
+    private sendUpdate(): void {
         // find unsent data
         const dataQueue = this.dataQueue
         let firstUnsentIndex = dataQueue.length
@@ -448,4 +520,18 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         return false
     }
 
+    private simulateFreeCam(data: PlayerTickData) {
+        const pc = this.freeCamSpectator
+        data.applyInputTo(this, pc)
+        // skip pressing SHIFT after switching to freeCamp
+        if (this.skipFreeCamSneakInput) {
+            this.skipFreeCamSneakInput &&= pc.controls.sneak
+            pc.controls.sneak = false
+        }
+        // simulate the steps
+        for(let i = 0; i < data.physicsTicks; i++) {
+            this.prevPhysicsTickFreeCamPos.copyFrom(pc.getPos())
+            pc.simulatePhysicsTick()
+        }
+    }
 }

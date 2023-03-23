@@ -249,6 +249,13 @@ export class Vector implements IVector {
         return new Vector(this.x * k, this.y * k, this.z * k)
     }
 
+    mulScalarSelf(k: float): this {
+        this.x *= k
+        this.y *= k
+        this.z *= k
+        return this
+    }
+
     /**
      * @param {Vector} vec
      * @return {Vector}
@@ -473,6 +480,17 @@ export class Vector implements IVector {
         return this.normal();
     }
 
+    normalizeSelf(newLength: float = 1.0): this {
+        let norm = this.length()
+        if (norm) {
+            norm = newLength / norm
+            this.x *= norm
+            this.y *= norm
+            this.z *= norm
+        }
+        return this
+    }
+
     offset(x: number, y: number, z: number) : Vector {
         return new Vector(this.x + x, this.y + y, this.z + z);
     }
@@ -680,6 +698,16 @@ export class Vector implements IVector {
             }
         }
         return this;
+    }
+
+    /** Rotates the vector around Y axis */
+    rotateYawSelf(yaw: float): this {
+        const {x, z} = this
+        const sin = Math.sin(yaw)
+        const cos = Math.cos(yaw)
+        this.x = x * cos + z * sin
+        this.z = z * cos - x * sin
+        return this
     }
 
     //

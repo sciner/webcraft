@@ -124,6 +124,8 @@ class HUDWindow extends Window {
 export class HUD {
     [key: string]: any;
 
+    FPS                         = new FPSCounter()
+
     constructor(canvas) {
 
         this.canvas = canvas
@@ -139,7 +141,6 @@ export class HUD {
         this.prevInfo                   = null
         this.prevDrawTime               = 0
         this.strMeasures                = new Map()
-        this.FPS                        = new FPSCounter()
 
         // Init Window Manager
         const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
@@ -378,8 +379,8 @@ export class HUD {
         }
 
         // FPS
-        this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
-
+        this.text += `FPS: ${Math.round(this.FPS.fps)} / worst: ${Math.round(this.FPS.worstFrameFps)}` +
+            ` / avg. main loop: ${this.FPS.averageClockTimerAvg?.toFixed(2)} ms`
         //
         if(!short_info) {
             this.text += '\nMAT: ';

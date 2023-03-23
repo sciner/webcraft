@@ -115,6 +115,7 @@ export class GameClass {
     render                      : Renderer
     hud                         : HUD
     sounds                      : Sounds
+    /** Averaged durations of {@link loop} calls. It doesn't include time between the calls. */
     averageClockTimer           : AverageClockTimer
     bbmodelDropPaste            : BBModel_DropPaste
     kb                          : Kb;
@@ -133,7 +134,6 @@ export class GameClass {
     settings                    : GameSettings
     local_server_client?        : any
     prev_player_state?          : any
-    free_cam?                   : any
 
     constructor() {
         this.render     = new Renderer('qubatchRenderSurface');
@@ -275,7 +275,7 @@ export class GameClass {
                 } else if (type == MOUSE.WHEEL) {
                     if(player) {
                         if(controls.enabled) {
-                            if(!player.changeSpectatorSpeed(-e.deltaY)) {
+                            if(!player.controlManager.changeSpectatorSpeed(-e.deltaY)) {
                                 player.onScroll(e.deltaY > 0);
                             }
                         }
@@ -380,7 +380,7 @@ export class GameClass {
                             e.e_orig.stopPropagation();
                         }
                         if(e.down && e.shiftKey) {
-                            this.toggleFreeCam();
+                            this.player.controlManager.isFreeCam = !this.player.controlManager.isFreeCam;
                         }
                         return true;
                     }
@@ -662,18 +662,23 @@ export class GameClass {
      */
     loop(time : number = 0, ...args) {
         const player  = this.player;
-        const tm      = performance.now();
+        const iterationStartTime = performance.now();
         const delta   = this.hud.FPS.delta;
+        const isFreeCam = player.controlManager.isFreeCam
 
         if(!this.hud.splash.loading) {
-            if(!this.free_cam) {
+            if(!isFreeCam) {
                 player.update(Math.min(delta, MAX_FPS_DELTA_PROCESSED));
+            } else {
+                // Updating the control is needed for the server.
+                // It doesn't do everything correctly in the freecam mode (it never did). Maybe fix it.
+                player.updateControl()
             }
         } else {
             player.lastUpdate = null;
         }
 
-        // Update visible winows, e.g. automaticaly close the chest window if the player is too far way.
+        // Update visible windows, e.g. automatically close the chest window if the player is too far way.
         this.hud.wm.updateVisibleWindows();
 
         // update a sounds after player update
@@ -682,7 +687,8 @@ export class GameClass {
         this.world.chunkManager.update(player.pos, delta);
 
         // change camera location
-        this.render.setCamera(player, this.free_cam ? this.getFreeCamPos(delta) : player.getEyePos(), player.rotate, !!this.free_cam);
+        const camPos = isFreeCam ? player.controlManager.getFreeCampPos() : player.getEyePos()
+        this.render.setCamera(player, camPos, player.rotate, isFreeCam)
 
         // Update world
         // this is necessary
@@ -701,7 +707,7 @@ export class GameClass {
 
         // Счетчик FPS
         this.hud.FPS.incr();
-        this.averageClockTimer.add(performance.now() - tm);
+        this.averageClockTimer.add(performance.now() - iterationStartTime);
 
         this.render.requestAnimationFrame(this.loop)
 
@@ -846,32 +852,6 @@ export class GameClass {
             tim.cnt = cnt;
         }
         console.table(timers);
-    }
-
-    toggleFreeCam() {
-        if(this.free_cam) {
-            this.free_cam = null;
-        } else {
-            this.free_cam = true;
-            this.player.controlManager.spectator.setPos(this.player.getEyePos());
-            this.player.controls.sneak = false;
-        }
-        return true;
-    }
-
-    getFreeCamPos(delta) {
-        const player = this.player;
-        const pc = player.controlManager.spectator;
-        pc.controls.back       = player.controls.back;
-        pc.controls.forward    = player.controls.forward;
-        pc.controls.right      = player.controls.right;
-        pc.controls.left       = player.controls.left;
-        pc.controls.jump       = player.controls.jump;
-        pc.controls.sneak      = player.controls.sneak;
-        pc.controls.sprint     = player.controls.sprint;
-        pc.player_state.yaw    = player.rotate.z;
-        pc.tick(delta / 1000 * 3., player.scale);
-        return pc.getPos();
     }
 
     //
