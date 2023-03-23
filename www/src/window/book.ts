@@ -1,4 +1,4 @@
-import { Button, Label, Window } from "../../tools/gui/wm.js";
+import { Button, Label, Window } from "../ui/wm.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
 
@@ -69,23 +69,23 @@ class ActiveButton extends Window {
         */
     }
 
-    setIcon(name) {
-        /*
-        // TODO: pixi
-        switch(name) {
-            case 'back': {
-                this.style.background.sprite.x = 8;
-                this.style.background.sprite.y = 415;
-                break;
-            }
-            case 'next': {
-                this.style.background.sprite.x = 8;
-                this.style.background.sprite.y = 390;
-                break;
-            }
-        }
-        */
-    }
+    // setIcon(name) {
+    //     /*
+    //     // TODO: pixi
+    //     switch(name) {
+    //         case 'back': {
+    //             this.style.background.sprite.x = 8;
+    //             this.style.background.sprite.y = 415;
+    //             break;
+    //         }
+    //         case 'next': {
+    //             this.style.background.sprite.x = 8;
+    //             this.style.background.sprite.y = 390;
+    //             break;
+    //         }
+    //     }
+    //     */
+    // }
 
 }
 

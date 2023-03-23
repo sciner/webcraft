@@ -29,9 +29,9 @@ export class WorldTransactionUnderConstruction {
     worldModifyChunksMidPriority    : ChunkDBActor[] = []   // for chunless changes
     worldModifyChunksLowPriority    : ChunkDBActor[] = []   // periodicaly for all ready chunks
     // world_modify_chunk, part 2: the actual data to be saved
-    updateWorldModifyChunkById      : [string, int][] = []
-    updateWorldModifyChunkByAddr    : [string, int, int, int][] = []
-    updateWorldModifyChunksWithBLOBs: [int, string, any, any][] = []
+    updateWorldModifyChunkById      : [string, string, int][] = []
+    updateWorldModifyChunkByAddr    : [string, string, int, int, int][] = []
+    updateWorldModifyChunksWithBLOBs: [int, string, string, BLOB, BLOB][] = []
     // world_modify_chunk, part 3: after the transaction
     chunklessActorsWritingWorldModifyChunks: ChunkDBActor[] = []
     // chunk
@@ -47,7 +47,8 @@ export class WorldTransactionUnderConstruction {
     // player
     // ender chests are saved with non-bulk queries and added to promises (they can be made bulk too)
     updatePlayerState   : PlayerUpdateRow[] = []
-    updatePlayerInventory = []
+    updatePlayerInventory : [int, string][] = []
+    updatePlayerWorldData : [int, string][] = []
     // player quests
     insertQuests        = []
     updateQuests        = []
@@ -319,6 +320,7 @@ export class WorldDBActor {
             uc.pushPromises(
                 // players
                 db.bulkUpdateInventory(uc.updatePlayerInventory),
+                db.bulkUpdatePlayerWorldData(uc.updatePlayerWorldData),
                 db.bulkUpdatePlayerState(uc.updatePlayerState, dt),
                 // player quests
                 db.quests.bulkInsertPlayerQuests(uc.insertQuests, dt),

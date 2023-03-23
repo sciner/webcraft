@@ -23,6 +23,12 @@ export const COLOR_PALETTE = {
     black: [3, 0],      // Чёрная - black_terracotta
 };
 
+type ResourcesLoadSettings = {
+    glsl        : boolean   // need glsl
+    wgsl        : boolean   // need wgls for webgpu
+    imageBitmap : boolean   // return imageBitmap for image instead of Image
+}
+
 export class Resources {
     [key: string]: any;
 
@@ -76,7 +82,7 @@ export class Resources {
 
     static onLoading = (state) => {};
 
-    static async preload(settings) {
+    static async preload(settings: ResourcesLoadSettings) {
 
         // Functions
         const loadTextFile = Resources.loadTextFile
@@ -101,14 +107,7 @@ export class Resources {
 
     }
 
-    /**
-     * @param settings
-     * @param settings.glsl need glsl
-     * @param settings.wgsl need wgls for webgpu
-     * @param settings.imageBitmap return imageBitmap for image instead of Image
-     * @returns {Promise<void>}
-     */
-    static load(settings) {
+    static load(settings: ResourcesLoadSettings): Promise<any> {
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
@@ -135,7 +134,7 @@ export class Resources {
          * @type {Object.<string, SpriteAtlas>}
          */
         this.atlas = new Map()
-        for(let name of ['hotbar', 'bn', 'icons']) {
+        for(let name of ['hotbar', 'bn', 'icons', 'hud']) {
             all.push(new Promise(async (resolve, reject) => {
                 const atlas_files = await Promise.all([
                     fetch(`data/atlas/${name}/atlas.json`).then(response => response.json()), // .then(json => { atlas.map = json})
@@ -252,7 +251,7 @@ export class Resources {
         return fetch(url).then(response => json ? response.json() : response.text());
     }
 
-    static loadImage(url,  imageBitmap): Promise<HTMLImageElement|ImageBitmap> {
+    static loadImage(url: string, imageBitmap: boolean): Promise<HTMLImageElement|ImageBitmap> {
         if (imageBitmap) {
             return fetch(url)
                 .then(r => r.blob())
@@ -351,13 +350,13 @@ export class Resources {
     }
 
     // loadResourcePacks...
-    static async loadResourcePacks(settings) {
+    static async loadResourcePacks(settings: TBlocksSettings) {
         const resource_packs_url = (settings && settings.resource_packs_url) ? settings.resource_packs_url : '../data/resource_packs.json';
         return Helpers.fetchJSON(resource_packs_url, true, 'rp');
     }
 
     // Load supported block styles
-    static async loadBlockStyles(options) {
+    static async loadBlockStyles(options: TBlocksSettings) {
         const resp = new Set();
         const all = [];
         const json_url = (options && options.json_url) ? options.json_url : '../data/block_style.json';

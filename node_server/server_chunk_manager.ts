@@ -1,4 +1,4 @@
-import {ServerChunk} from "./server_chunk.js";
+import {ServerChunk, TRandomTickerFunction} from "./server_chunk.js";
 import { WorldTickStat } from "./world/tick_stat.js";
 import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "@client/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, SimpleQueue} from "@client/helpers.js";
@@ -29,17 +29,17 @@ export class ServerChunkManager {
     fluidWorld : FluidWorld
     world: ServerWorld;
     worldId: string;
-    all: VectorCollector;
-    chunk_queue_load: VectorCollector;
-    chunk_queue_gen_mobs: VectorCollector;
-    ticking_chunks: VectorCollector;
+    all: VectorCollector<ServerChunk>;
+    chunk_queue_load: VectorCollector<ServerChunk>;
+    chunk_queue_gen_mobs: VectorCollector<ServerChunk>;
+    ticking_chunks: VectorCollector<IVector>;
     chunks_with_delayed_calls: Set<ServerChunk>;
-    invalid_chunks_queue: any[];
-    disposed_chunk_addrs: any[];
-    unloaded_chunks_queue: SimpleQueue;
-    unloading_chunks: VectorCollector;
-    unloading_subset_index: number;
-    unloading_state_count: number;
+    invalid_chunks_queue: ServerChunk[];
+    disposed_chunk_addrs: {addr: Vector, uniqId: int}[];
+    unloaded_chunks_queue: SimpleQueue<ServerChunk>;
+    unloading_chunks: VectorCollector<ServerChunk>;
+    unloading_subset_index: int;
+    unloading_state_count: int;
     ticks_stat: WorldTickStat;
     DUMMY: { id: any; name: any; shapes: any[]; properties: any; material: any; getProperties: () => any; };
     dataWorld: DataWorld;
@@ -51,13 +51,13 @@ export class ServerChunkManager {
     worker_inited: boolean;
     worker: any;
     lightWorker: any;
-    random_chunks: any;
-    random_tickers: any;
-    block_random_tickers: Map<any, any>;
+    random_chunks: ServerChunk[];
+    random_tickers: Map<string, TRandomTickerFunction>;
+    block_random_tickers: TRandomTickerFunction[]; // TRandomTickerFunction by block id
 
     static STAT_NAMES = ['unload', 'load', 'generate_mobs', 'ticking_chunks', 'delayed_calls', 'dispose']
 
-    constructor(world : ServerWorld, random_tickers) {
+    constructor(world : ServerWorld, random_tickers: Map<string, TRandomTickerFunction>) {
         this.world                  = world;
         this.worldId                = 'SERVER';
         this.all                    = new VectorCollector();
@@ -118,9 +118,7 @@ export class ServerChunkManager {
                 case 'blocks_generated': {
                     let chunk = this.get(args.addr);
                     this.genQueueSize = args.genQueueSize;
-                    if(chunk) {
-                        chunk.readyPromise = chunk.onBlocksGenerated(args);
-                    }
+                    chunk?.onBlocksGenerated(args);
                     break;
                 }
                 case 'gen_queue_size': {
@@ -147,11 +145,14 @@ export class ServerChunkManager {
         });
         // Init webworkers
         const world_info = this.world.info;
-        const generator = world_info.generator;
-        const world_seed = world_info.seed;
-        const world_guid = world_info.guid;
-        const settings = {texture_pack: null};
-        this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
+        const msg: TChunkWorkerMessageInit = {
+            generator: world_info.generator,
+            world_seed: world_info.seed,
+            world_guid: world_info.guid,
+            settings: {texture_pack: null},
+            is_server: true
+        }
+        this.postWorkerMessage(['init', msg]);
         return promise;
     }
 
@@ -212,13 +213,16 @@ export class ServerChunkManager {
         return this.world;
     }
 
-    chunkStateChanged(chunk, old_state, state_id) {
+    chunkStateChanged(chunk: ServerChunk, old_state: CHUNK_STATE, state_id: CHUNK_STATE): void {
         if (old_state === CHUNK_STATE.UNLOADING) {
             this.unloading_state_count--;
         }
         switch(state_id) {
             case CHUNK_STATE.READY: {
                 this.chunk_queue_gen_mobs.set(chunk.addr, chunk);
+                if (chunk.ticking_blocks.size) { // it's needed e.g. after the chunk was restored
+                    this.addTickingChunk(chunk.addr)
+                }
                 break;
             }
             case CHUNK_STATE.UNLOADING:
@@ -337,11 +341,11 @@ export class ServerChunkManager {
         }
     }
 
-    addTickingChunk(addr) {
+    addTickingChunk(addr: IVector): void {
         this.ticking_chunks.set(addr, addr);
     }
 
-    removeTickingChunk(addr) {
+    removeTickingChunk(addr: IVector): void {
         this.ticking_chunks.delete(addr);
     }
 
@@ -397,12 +401,8 @@ export class ServerChunkManager {
         this.all.set(chunk.addr, chunk);
     }
 
-    /**
-     * Return chunk by addr
-     * @param {Vector} addr
-     * @returns {ServerChunk}
-     */
-    get(addr) {
+    /** Return chunk by addr */
+    get(addr: IVector): ServerChunk | null {
         return this.all.get(addr) || null;
     }
 
@@ -571,12 +571,10 @@ export class ServerChunkManager {
     //
     async initRandomTickers(random_tickers) {
         this.random_tickers = random_tickers;
-        this.block_random_tickers = new Map();
+        this.block_random_tickers = [];
         for(const [block_id, block] of this.world.block_manager.list) {
             const ticker = this.random_tickers.get(block.random_ticker ?? '') ?? null;
-            if(ticker) {
-                this.block_random_tickers.set(block_id, ticker);
-            }
+            this.block_random_tickers[block_id] = ticker;
         }
     }
 

@@ -1,7 +1,28 @@
-// network
+// ========================= network =============================
 
 /** The server sends a command to each player at least once per this interval of time. */
 export const SERVER_SEND_CMD_MAX_INTERVAL = 1000
+
+// by how many blocks the client's pos may differ without needing correction
+export const ACCEPTABLE_PLAYER_POS_ERROR = 0.01
+export const ACCEPTABLE_PLAYER_VELOCITY_ERROR = 0.01
+
+/**
+ * Because the type of player control on a server and a client changes at different time, it may lead to position
+ * desynchronization and visible corrections (e.g. a spectator started falling at a different time).
+ * To avoid it, the server doesn't validate the client state for some ticks after the change.
+ * It seems it should be bigger than MAX_CLIENT_STATE_INTERVAL.
+ * TODO this is a potential exploit, make it more secure
+ */
+export const DONT_VALIDATE_AFTER_MODE_CHANGE_MS = 2000
+
+/**
+ * The server accepts client input of the lagging player that is not older than this value.
+ * If the client input known to the server becomes older than this value, the server assumes that the player's input
+ * at that time was empty, and simulates the physics with this input. If the client later sends this input later,
+ * it'll be ignored. It's to prevent the client from delaying packets for too long, then "teleporting".
+ */
+export const SERVER_UNCERTAINTY_MS = 10000
 
 // database
 
@@ -10,7 +31,7 @@ export const SERVER_SEND_CMD_MAX_INTERVAL = 1000
  * so the older code can open it.
  * If it's false, indicators are saved in the new, more effecient format.
  *
- * TODO change it to false after a few mobths.
+ * TODO change it to false after a few months.
  */
 export const SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS = true;
 
@@ -57,3 +78,7 @@ export const IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB = true;
 export const DEAD_MOB_TTL       = 1000;     // time between the mob is detected dead and unloaded
 export const MOB_SAVE_PERIOD    = 10000;
 export const MOB_SAVE_DISTANCE  = 4;     // force saving if travelled more than this number of blocks
+
+// ============================= game mechanics ============================
+
+export const PLAYER_EXHAUSTION_PER_BLOCK = 0.01

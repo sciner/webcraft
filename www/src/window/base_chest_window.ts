@@ -1,17 +1,20 @@
 import { ArrayHelpers, ObjectHelpers, Vector } from "../helpers.js";
 import { BLOCK } from "../blocks.js";
-import { Button, Label } from "../../tools/gui/wm.js";
+import { Button, Label } from "../ui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
-    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION
+    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION, UI_THEME
 } from "../constant.js";
 import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
     INVENTORY_CHANGE_CLOSE_WINDOW } from "../inventory.js";
 import { ChestHelpers, isBlockRoughlyWithinPickatRange } from "../block_helpers.js"
 import { Lang } from "../lang.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
+import type { TBlock } from "../typed_blocks3.js";
+
+const SHIFT_Y = 0
 
 class ChestConfirmData {
     chestSessionId: string
@@ -34,19 +37,25 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.w *= this.zoom
         this.h *= this.zoom
 
+        // Ширина / высота слота
+        this.cell_size     = UI_THEME.window_slot_size * this.zoom
+        this.slot_margin   = UI_THEME.slot_margin * this.zoom
+        this.slots_x       = UI_THEME.window_padding * this.zoom
+        this.slots_y       = 62 * this.zoom
+
         this.firstLoading  = false;
         this.secondLoading = false;
         this.timeout    = null;
         this.maxDirtyTime  = null;
 
-        // Ширина / высота слота
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
-
         // Создание слотов
         this.createSlots(this.prepareSlots())
         
+        const szm = this.cell_size + this.slot_margin
+        const inventory_y = this.h - szm * 4 - (UI_THEME.window_padding * this.zoom)
+
         // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size, h);
+        this.createInventorySlots(this.cell_size, UI_THEME.window_padding, inventory_y / this.zoom)
         
         this.lastChange = {
             type: INVENTORY_CHANGE_NONE,
@@ -63,32 +72,34 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.chestSessionId = null
 
         //
-        this.blockModifierListener = (tblock) => {
-            let targetInfo;
+        this.blockModifierListener = (tblock : TBlock) => {
+            let targetInfo : any = null
             const posworld = tblock.posworld;
             if (this.info.pos.equal(posworld)) {
-                targetInfo = this.info;
+                targetInfo = this.info
             } else if (this.secondInfo && this.secondInfo.pos.equal(posworld)) {
-                targetInfo = this.secondInfo;
+                targetInfo = this.secondInfo
             } else {
-                return;
+                return
             }
             // If a chest was removed by the server
             if (tblock.id !== targetInfo.block_id) {
-                this.hideAndSetupMousePointer(); // It also takes care of the dragged item.
-                return;
+                this.hideAndSetupMousePointer() // It also takes care of the dragged item.
+                return
             }
-            const mat = tblock.material;
+            const mat = tblock.material
             if (!(mat.chest.private || mat.id === BLOCK.ENDER_CHEST.id)) {
-                this.setLocalData(tblock);
+                this.setLocalData(tblock)
             }
         }
 
         // Add labels to window
-        this.lbl1 = new Label(15 * this.zoom, 12 * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl1', null, options.title)
-        this.add(this.lbl1);
-        this.lbl2 = new Label(15 * this.zoom, (h + (147 - 332)) * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl2', null, Lang.inventory)
+        this.lbl2 = new Label(UI_THEME.window_padding * this.zoom, inventory_y - (UI_THEME.base_font.size + UI_THEME.window_padding) * this.zoom, this.w / 2, 30 * this.zoom, 'lbl2', null, Lang.inventory)
         this.add(this.lbl2);
+        for(let lbl of [this.lbl2]) {
+            lbl.style.font.color = UI_THEME.label_text_color
+            lbl.style.font.size = UI_THEME.base_font.size
+        }
 
         // Add listeners for server commands
         this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
@@ -107,20 +118,11 @@ export class BaseChestWindow extends BaseInventoryWindow {
             }
         })
 
+        // Add labels to window
+        this.addWindowTitle(options.title)
+
         // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            // Close button
-            const btnClose = new Button(that.w - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '')
-            btnClose.style.font.family = 'Arial'
-            btnClose.style.background.image = image
-            btnClose.style.background.image_size_mode = 'stretch'
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-            that.add(btnClose)
-        });
+        this.addCloseButton()
 
         // Catch action
         this.catchActions()
@@ -128,7 +130,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     // Обработчик открытия формы
-    onShow(args) {
+    onShow(args : any) {
         this.lastChange.type = INVENTORY_CHANGE_NONE
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
@@ -141,7 +143,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     // Обработчик закрытия формы
-    onHide(wasVisible) {
+    onHide(was_visible : boolean) {
         if (this.chestSessionId != null) { // if the closing wasn't forced by the server
             this.lastChange.type = INVENTORY_CHANGE_CLOSE_WINDOW
             // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
@@ -150,7 +152,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.fixAndValidateSlots('clearDragItem')
             this.confirmAction()
         }
-        if(wasVisible && this.options.sound.close) {
+        if(was_visible && this.options.sound.close) {
             Qubatch.sounds.play(this.options.sound.close.tag, this.options.sound.close.action)
         }
         this.info = null; // disables AddCmdListener listeners 
@@ -181,13 +183,15 @@ export class BaseChestWindow extends BaseInventoryWindow {
             updateLastChangeSlots(this);
             this._originalMouseDown(e);
             this.parent.confirmAction();
-        };
+        }
+
         //
         const handlerOnDrop = function(e) {
             updateLastChangeSlots(this);
             this._originalOnDrop(e);
             this.parent.confirmAction();
-        };
+        }
+
         //
         for(let slots of [this.chest.slots, this.inventory_slots]) {
             for(let slot of slots) {
@@ -199,13 +203,14 @@ export class BaseChestWindow extends BaseInventoryWindow {
                 slot.onDrop = handlerOnDrop;
             }
         }
+
     }
 
     // Confirm action
     confirmAction() {
         this.fixAndValidateSlots('confirmAction')
 
-        const that = this;
+        const that = this
 
         function extractOneChest(isFirst, info) {
             const res = { pos: info.pos, slots: {} };
@@ -254,11 +259,6 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.lastChange.prevInventory = null;
         this.maxDirtyTime = null;
     }
-
-    // draw(ctx, ax, ay) {
-    //     this.parent.center(this);
-    //     super.draw(ctx, ax, ay);
-    // }
 
     get loading() {
         return this.firstLoading || this.secondLoading;
@@ -376,20 +376,25 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     // Prepare slots based on specific window type
     prepareSlots(count = DEFAULT_CHEST_SLOT_COUNT) {
+
         const resp  = [];
-        const xcnt  = 9;
-        const sx    = 14 * this.zoom;
-        const sy    = 34 * this.zoom;
-        const sz    = this.cell_size;
+        const xcnt  = INVENTORY_HOTBAR_SLOT_COUNT
+        const sx    = this.slots_x
+        const sy    = 40 * this.zoom
+        const sz    = this.cell_size
+        const szm   = sz + this.slot_margin
+
         for(let i = 0; i < count; i++) {
             const pos = new Vector(
-                sx + (i % xcnt) * sz,
-                sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom),
+                sx + (i % xcnt) * szm,
+                sy + Math.floor(i / xcnt) * szm,
                 0
             );
-            resp.push({pos});
+            resp.push({pos})
         }
-        return resp;
+
+        return resp
+
     }
 
     /**
@@ -428,36 +433,60 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     /**
     * Создание слотов для инвентаря
-    * @param int sz Ширина / высота слота
     */
-    createInventorySlots(sz, baseWindowH) {
+    createInventorySlots(sz, sx = UI_THEME.window_padding, sy : float = 205, belt_x? : float, belt_y? : float) {
+
         const ct = this;
         if(ct.inventory_slots) {
-            console.error('createInventorySlots() already created');
-            return;
+            console.error('createInventorySlots() already created')
+            return
         }
+
+        const szm = sz + UI_THEME.slot_margin * this.zoom
+
         ct.inventory_slots  = []
         const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
-        // нижний ряд (видимые на хотбаре)
-        let sx = 14 * this.zoom;
-        let sy = (baseWindowH + (282 - 332)) * this.zoom;
+        sx *= this.zoom
+        sy *= this.zoom
         let index = 0
+        const padding = UI_THEME.window_padding * this.zoom
+
+        if(belt_x === undefined) {
+            belt_x = sx
+        } else {
+            belt_x *= this.zoom
+        }
+
+        if(belt_y === undefined) {
+            belt_y = this.h - sz - padding
+        } else {
+            belt_y *= this.zoom
+        }
+
         //
-        const createSlot = (x, y) => {
+        const createSlot = (x : float, y : float) => {
             const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
-            ct.add(lblSlot);
+            ct.add(lblSlot)
             ct.inventory_slots.push(lblSlot)
             index++
         }
+
+        // не менять порядок нижних и верхних!
+        // иначе нарушится их порядок в массиве ct.inventory_slots
+        // нижний ряд (видимые на хотбаре)
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
+            const x = belt_x + (i % xcnt) * szm
+            const y = belt_y
+            createSlot(x, y)
         }
+
         // верхние 3 ряда
-        sx = 14 * this.zoom;
-        sy = (baseWindowH + (166 - 332)) * this.zoom;
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            createSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom))
+            const x = sx + (i % xcnt) * szm
+            const y = sy + Math.floor(i / xcnt) * szm
+            createSlot(x, y)
         }
+
     }
 
     getSlots() {
@@ -487,4 +516,5 @@ export class BaseChestWindow extends BaseInventoryWindow {
             }
         }
     }
+
 }

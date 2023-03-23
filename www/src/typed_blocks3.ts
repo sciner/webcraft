@@ -43,34 +43,42 @@ export class BlockNeighbours {
 }
 
 const tmp_BlockAccessor_Vector = new Vector();
+const tmp_VectorCollector1D_Vector = new Vector();
 
 // VectorCollector...
-export class VectorCollector1D {
+export class VectorCollector1D<T = any> {
 
-    dims: IVector
-    sy: number
-    sz: number
-    list: Map<number, any>
-    size: number
+    private cx: int
+    private cy: int
+    private cz: int
+    private cw: int
+    list: Map<int, T>
+    size: int
 
-    constructor(dims: IVector, list?: Map<number, any>) {
-        this.dims = dims;
-        this.sy = dims.x * dims.z;
-        this.sz = dims.x;
+    constructor(stride: TBlockStrides, list?: Map<int, T>) {
+        this.cx = stride[0]
+        this.cy = stride[1]
+        this.cz = stride[2]
+        this.cw = stride[3]
         this.clear(list);
     }
 
-    clear(list?: Map<number, any>) {
+    clear(list?: Map<int, T>): void {
         this.list = list ?? new Map();
         this.size = this.list.size;
     }
 
-    set(vec, value) {
-        const {sy, sz, list} = this;
-        let ind = vec.x + vec.y * sy + vec.z * sz;
+    set(vec: IVector, value: T | ((IVector) => T)): boolean {
+        const {cx, cy, cz, cw} = this;
+        const ind = vec.x * cx + vec.y * cy + vec.z * cz + cw;
         if (typeof value === 'function') {
-            value = value(vec);
+            value = (value as Function)(vec);
         }
+        return this.setByIndex(ind, value as T)
+    }
+
+    setByIndex(ind: int, value: T): boolean {
+        const list = this.list;
         list.set(ind, value);
         if (this.size < list.size) {
             this.size = list.size;
@@ -79,9 +87,23 @@ export class VectorCollector1D {
         return false;
     }
 
-    add(vec, value) {
-        const {sy, sz, list} = this;
-        let ind = vec.x + vec.y * sy + vec.z * sz;
+    /**
+     * Sets the value if it's a true-like value (not 0, null or undefined). Otherwise, deletes the value.
+     * It's the same semantics as in TBlock setters.
+     */
+    setOrDeleteByIndex(ind: int, value: T | undefined | null): void {
+        const list = this.list
+        if (value) {
+            list.set(ind, value)
+        } else {
+            list.delete(ind)
+        }
+        this.size = list.size
+    }
+
+    add(vec: IVector, value: T): T {
+        const {cx, cy, cz, cw, list} = this;
+        const ind = vec.x * cx + vec.y * cy + vec.z * cz + cw;
         if(!list.get(ind)) {
             if (typeof value === 'function') {
                 value = value(vec);
@@ -89,12 +111,17 @@ export class VectorCollector1D {
             list.set(ind, value);
         }
         this.size = list.size;
-        return list.get(ind);
+        return value;
     }
 
-    delete(vec) {
-        const {sy, sz, list} = this;
-        let ind = vec.x + vec.y * sy + vec.z * sz;
+    delete(vec: IVector): boolean {
+        const {cx, cy, cz, cw} = this;
+        const ind = vec.x * cx + vec.y * cy + vec.z * cz + cw;
+        return this.deleteByIndex(ind);
+    }
+
+    deleteByIndex(ind: int): boolean {
+        const list = this.list;
         if(list.delete(ind)) {
             this.size = list.size;
             return true;
@@ -102,22 +129,24 @@ export class VectorCollector1D {
         return false;
     }
 
-    has(vec) {
-        const {sy, sz, list} = this;
-        let ind = vec.x + vec.y * sy + vec.z * sz;
-        return list.has(ind) || false;
+    has(vec: IVector): boolean {
+        const {cx, cy, cz, cw, list} = this;
+        const ind = vec.x * cx + vec.y * cy + vec.z * cz + cw;
+        return list.has(ind);
     }
 
-    get(vec) {
-        const {sy, sz, list} = this;
-        let ind = vec.x + vec.y * sy + vec.z * sz;
+    get(vec: IVector): T | null {
+        const {cx, cy, cz, cw, list} = this;
+        const ind = vec.x * cx + vec.y * cy + vec.z * cz + cw;
         return list.get(ind) || null;
     }
 
+    getByIndex(ind: int): T | null {
+        return this.list.get(ind) ?? null
+    }
+
     *[Symbol.iterator]() {
-        for (let value of this.list.values()) {
-            yield value;
-        }
+        yield *this.list.values()
     }
 }
 
@@ -137,14 +166,19 @@ export class TypedBlocks3 {
 
     tblocks?        : TypedBlocks3 = null
     id              : Uint16Array = null
+    /** TODO it's unused. Maybe remove it */
     power           : VectorCollector1D = null
-    rotate          : VectorCollector1D = null
-    entity_id       : VectorCollector1D = null
+    rotate          : VectorCollector1D<IVector> = null
+    entity_id       : VectorCollector1D<string> = null
     texture         : VectorCollector1D = null
     extra_data      : VectorCollector1D = null
+    /** TODO it's unused. Maybe remove it */
     falling         : VectorCollector1D = null
+    /** TODO it's unused. Maybe remove it. See the comment to {@link TBlock.shapes} */
     shapes          : VectorCollector1D = null
+    /** TODO it's never set. Maybe remove it */
     metadata        : VectorCollector1D = null
+    /** TODO it seems to be not used. Maybe remove it */
     position        : VectorCollector1D = null
     // TODO: type it. its ServerChunk
     chunk           : any
@@ -154,7 +188,10 @@ export class TypedBlocks3 {
     constructor(coord : Vector, grid: ChunkGrid) {
         this.addr       = grid.toChunkAddr(coord);
         this.coord      = coord;
-        const cs = this.chunkSize  = grid.chunkSize;
+        this.chunkSize  = grid.chunkSize;
+        //
+        this.dataChunk  = new DataChunk({ grid, strideBytes: 2 }).setPos(coord);
+        const cs        = this.dataChunk.getStrides();
         this.power      = new VectorCollector1D(cs);
         this.rotate     = new VectorCollector1D(cs);
         this.entity_id  = new VectorCollector1D(cs);
@@ -165,8 +202,6 @@ export class TypedBlocks3 {
         this.shapes     = new VectorCollector1D(cs);
         this.metadata   = new VectorCollector1D(cs);
         this.position   = new VectorCollector1D(cs);
-        //
-        this.dataChunk  = new DataChunk({ grid, strideBytes: 2 }).setPos(coord);
         /**
          * store resourcepack_id and number of vertices here
          * @type {Uint8Array}
@@ -219,13 +254,14 @@ export class TypedBlocks3 {
         const {chunkSize} = this;
 
         this.dataChunk.uint16View.set(state.id, 0);
-        this.power      = new VectorCollector1D(chunkSize, state.power);
-        this.rotate     = new VectorCollector1D(chunkSize, state.rotate);
-        this.entity_id  = new VectorCollector1D(chunkSize, state.entity_id);
-        this.texture    = new VectorCollector1D(chunkSize, state.texture);
-        this.extra_data = new VectorCollector1D(chunkSize, state.extra_data);
-        this.shapes     = new VectorCollector1D(chunkSize, state.shapes);
-        this.falling    = new VectorCollector1D(chunkSize, state.falling);
+        const strides   = this.dataChunk.getStrides();
+        this.power      = new VectorCollector1D(strides, state.power);
+        this.rotate     = new VectorCollector1D(strides, state.rotate);
+        this.entity_id  = new VectorCollector1D(strides, state.entity_id);
+        this.texture    = new VectorCollector1D(strides, state.texture);
+        this.extra_data = new VectorCollector1D(strides, state.extra_data);
+        this.shapes     = new VectorCollector1D(strides, state.shapes);
+        this.falling    = new VectorCollector1D(strides, state.falling);
         if(refresh_non_zero) {
             this.refreshNonZero();
         }
@@ -383,12 +419,13 @@ export class TypedBlocks3 {
      * It deletes only the extra properties that are used by the generator.
      * It doesn't change the block id.
      * It's much faster than {@link delete}
+     * @param ind - non-flat block index in chunk
      */
-    deleteExtraInGenerator(vec : IVector) : void {
-        this.rotate.delete(vec)
-        this.extra_data.delete(vec)
-        this.entity_id.delete(vec)
-        this.power.delete(vec)
+    deleteExtraInGenerator(ind: int) : void {
+        this.rotate.deleteByIndex(ind)
+        this.extra_data.deleteByIndex(ind)
+        this.entity_id.deleteByIndex(ind)
+        this.power.deleteByIndex(ind)
     }
 
     /**
@@ -500,33 +537,22 @@ export class TypedBlocks3 {
     }
 
     setBlockRotateExtra(x: number, y: number, z: number, rotate?: IVector | null, extra_data?: object | null, entity_id?: string | null, power?: number | null) {
-        const vec = TypedBlocks3._tmp.set(x, y, z);
+        const { cx, cy, cz, cw } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
         if (rotate !== undefined) {
-            if (rotate != null) {
-                this.rotate.set(vec, rotate);
-            } else {
-                this.rotate.delete(vec);
-            }
+            this.rotate.setOrDeleteByIndex(index, rotate)
         }
         if (extra_data !== undefined) {
-            if (extra_data != null) {
-                this.extra_data.set(vec, extra_data);
-            } else {
-                this.extra_data.delete(vec);
-            }
+            this.extra_data.setOrDeleteByIndex(index, extra_data);
         }
         if (entity_id !== undefined) {
-            if (entity_id != null) {
-                this.entity_id.set(vec, entity_id);
-            } else {
-                this.entity_id.delete(vec);
-            }
+            this.entity_id.setOrDeleteByIndex(index, entity_id);
         }
         if (power !== undefined) {
             if (power != null) {
-                this.power.set(vec, power);
+                this.power.setByIndex(index, power);
             } else {
-                this.power.delete(vec);
+                this.power.deleteByIndex(index);
             }
         }
     }
@@ -1005,7 +1031,7 @@ export class TBlock {
             + (Math.round(day * 255 / 15) << 8);
     }
 
-    //
+    /** TODO it's unused. Maybe remove it */
     get power() {
         let resp = this.tb.power.get(this.vec);
         if(resp === null) resp = POWER_NO;
@@ -1020,54 +1046,38 @@ export class TBlock {
     }
 
     //
-    get rotate() {
-        return this.tb.rotate.get(this.vec);
+    get rotate(): IVector | null {
+        return this.tb.rotate.getByIndex(this.index)
     }
-    set rotate(value) {
-        if(value) {
-            this.tb.rotate.set(this.vec, value)
-            return
-        }
-        this.tb.rotate.delete(this.vec);
+    set rotate(value: IVector | null | undefined) {
+        this.tb.rotate.setOrDeleteByIndex(this.index, value)
     }
 
     // entity_id
-    get entity_id() {
-        return this.tb.entity_id.get(this.vec);
+    get entity_id(): string | null {
+        return this.tb.entity_id.getByIndex(this.index)
     }
-    set entity_id(value) {
-        if(value) {
-            this.tb.entity_id.set(this.vec, value)
-            return
-        }
-        this.tb.entity_id.delete(this.vec);
+    set entity_id(value: string | null | undefined) {
+        this.tb.entity_id.setOrDeleteByIndex(this.index, value)
     }
 
     // texture
     get texture() {
-        return this.tb.texture.get(this.vec);
+        return this.tb.texture.getByIndex(this.index)
     }
     set texture(value) {
-        if(value) {
-            this.tb.texture.set(this.vec, value)
-            return
-        }
-        this.tb.texture.delete(this.vec);
+        this.tb.texture.setOrDeleteByIndex(this.index, value)
     }
 
     // extra_data
     get extra_data() {
-        return this.tb.extra_data.get(this.vec);
+        return this.tb.extra_data.getByIndex(this.index)
     }
     set extra_data(value) {
-        if(value) {
-            this.tb.extra_data.set(this.vec, value)
-            return
-        }
-        this.tb.extra_data.delete(this.vec);
+        this.tb.extra_data.setOrDeleteByIndex(this.index, value)
     }
 
-    // falling
+    /** TODO it's unused. Maybe remove it */
     get falling() {
         return this.tb.falling.get(this.vec);
     }
@@ -1091,7 +1101,11 @@ export class TBlock {
     //     this.tb.vertices.delete(this.vec);
     // }
 
-    // shapes
+    /**
+     * TODO it's never set. It's used by prismarine in {@link FakeWorld.getBlock}, but it's always null,
+     *  so {@link BLOCK.getShapes} is used instead.
+     *  Maybe make it always return null, or the same value as BLOCK.getShapes.
+     */
     get shapes() {
         return this.tb.shapes.get(this.vec);
     }
@@ -1126,7 +1140,7 @@ export class TBlock {
     getProperties() {
         return this.material;
     }
-    // position
+    /** TODO it seems to be not used. Maybe remove it */
     get position() {
         // return new Vector(this.vec.x + this.tb.coord.x, this.vec.y + this.tb.coord.y, this.vec.z + this.tb.coord.z);
         return this.tb.position.get(this.vec);
@@ -1138,6 +1152,8 @@ export class TBlock {
         }
         this.tb.position.delete(this.vec);
     }
+
+    /** TODO it's never set. Maybe remove it */
     get metadata() {
         return this.tb.metadata.get(this.vec);
     }

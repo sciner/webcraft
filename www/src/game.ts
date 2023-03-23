@@ -3,11 +3,12 @@ import { DEFAULT_FOV_NORMAL, Renderer, ZOOM_FACTOR } from "./render.js";
 import { AverageClockTimer, isMobileBrowser, Mth, Vector} from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
+import { ServerClient } from "./server_client.js";
 import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE, DEFAULT_RENDER_DISTANCE } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE, DEFAULT_RENDER_DISTANCE, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
@@ -19,12 +20,29 @@ import type { HUD } from "./hud.js";
 (globalThis as any).TrackerPlayer = new Tracker_Player();
 
 // Reset zoom
-// TODO: pixi
-(globalThis as any).UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
-console.debug('zoom', UI_ZOOM)
-globalThis.UI_FONT = 'Ubuntu';
+function calcUIZoom() {
+    let zoom = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio
+    let x_zoom = undefined
+    let y_zoom = undefined
+    const maxsp = new Vector(.95, .8)
+    const test = new Vector(INGAME_MAIN_WIDTH * zoom, INGAME_MAIN_HEIGHT * zoom)
+    const screen = new Vector(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio).mul(maxsp)
+    if(test.x > screen.x) {
+        x_zoom = zoom / (test.x / screen.x)
+    }
+    if(test.y > screen.y) {
+        y_zoom = zoom / (test.y / screen.y)
+    }
+    if(x_zoom !== undefined || y_zoom != undefined) {
+        zoom = Math.min(x_zoom ?? zoom, y_zoom ?? zoom)
+    }
+    return zoom
+}
+(globalThis as any).UI_ZOOM = calcUIZoom();
+(globalThis as any).UI_FONT = 'Ubuntu';
+console.debug('zoom and font', UI_ZOOM, UI_FONT);
 
-export class GameSettings {
+export class GameSettings implements TWorldSettings {
 
     // control
     mouse_sensitivity:       float = 100
@@ -109,7 +127,6 @@ export class GameClass {
     onStarted                   : Function = () => {}
     onControlsEnabledChanged    : Function = (value : boolean) => {}
     preLoopEnable               : boolean = true
-    sendStateInterval?          : NodeJS.Timer
 
     App                         : any;
     skin                        : any;
@@ -129,7 +146,7 @@ export class GameClass {
     // Start
     async Start(server_url : string, world_guid : string, resource_loading_progress? : (state : any) => {}) {
         Qubatch.game = this;
-        
+
         const settings = this.settings
 
         // Load resources
@@ -180,10 +197,9 @@ export class GameClass {
         // Set render loop
         this.loop = this.loop.bind(this);
         // Interval functions
-        this.sendStateInterval = setInterval(() => {
+        setInterval(() => {
             this.world.history.deletOld();
-            player.sendState();
-        }, 50);
+        }, 1000);
         // Run render loop
         this.preLoopEnable = false
         this.render.requestAnimationFrame(this.loop);
@@ -198,7 +214,6 @@ export class GameClass {
         const player = this.player;
         const add_mouse_rotate = new Vector();
         const controls = that.player.controls;
-        let freezeF4Up = false;
         const kb = this.kb = new Kb(el, {
             onPaste: (e) => {
                 const clipboardData = e.clipboardData || (window as any).clipboardData;
@@ -334,7 +349,6 @@ export class GameClass {
                                 }
                                 kb.keys[KEY.F3] = false;
                                 kb.keys[KEY.F4] = false;
-                                freezeF4Up = true;
                             }
                         }
                         return true;
@@ -374,21 +388,21 @@ export class GameClass {
                 // Windows
                 if(hud.wm.hasVisibleWindow()) {
                     if(e.down && e.keyCode == KEY.TAB) {
-                        if(hud.wm.getWindow('frmQuests').visible) {
-                            hud.wm.getWindow('frmQuests').hide();
-                            return true;
+                        if(hud.wm.getWindow('frmInGameMain').visible) {
+                            hud.wm.getWindow('frmInGameMain').hide()
+                            return true
                         }
                     }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
-                            if(hud.frmMainMenu.visible) {
-                                hud.wm.closeAll();
-                                Qubatch.setupMousePointer(false);
-                                return true;
+                            if(hud.frmMainMenu.visible || hud.wm.getWindow('frmInGameMain').visible) {
+                                hud.wm.closeAll()
+                                Qubatch.setupMousePointer(false)
+                                return true
                             }
                         }
                     }
-                    return hud.wm.onKeyEvent(e);
+                    return hud.wm.onKeyEvent(e)
                 }
                 //
                 switch(e.keyCode) {
@@ -443,15 +457,11 @@ export class GameClass {
                                 }
                             }
                         } else {
-                            if(freezeF4Up) {
-                                freezeF4Up = false;
-                            } else {
-                                if(e.shiftKey) {
-                                    this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
-                                    Qubatch.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
-                                } else if(kb.keys[e.keyCode]) {
-                                    player.changeSpawnpoint();
-                                }
+                            if (e.shiftKey) {
+                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
+                                Qubatch.render.addAsteroid(player.pos.add({ x: 0, y: 16, z: 0 }), 5);
+                            } else if (kb.keys[e.keyCode]) {
+                                player.changeSpawnpoint();
                             }
                         }
                         break;
@@ -547,11 +557,11 @@ export class GameClass {
                     case KEY.TAB: {
                         if(e.down) {
                             if(!hud.wm.hasVisibleWindow()) {
-                                hud.wm.getWindow('frmQuests').toggleVisibility();
-                                return true;
+                                hud.wm.getWindow('frmInGameMain').openTab('frmQuests')
+                                return true
                             }
                         }
-                        break;
+                        break
                     }
                     // T (Open chat)
                     case KEY.T: {
@@ -610,11 +620,13 @@ export class GameClass {
                 return false;
             },
             onDoubleKeyDown: (e) => {
-                if(e.keyCode == KEY.W) {
-                    player.controls.sprint = true;
-                } else if (e.keyCode == KEY.SPACE) {
-                    if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
-                        player.setFlying(!player.getFlying());
+                if(!hud.wm.hasVisibleWindow() && !player.chat.active) {
+                    if(e.keyCode == KEY.W) {
+                        player.controls.sprint = true;
+                    } else if (e.keyCode == KEY.SPACE) {
+                        if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
+                            player.controlManager.instantControls.switchFlying = true
+                        }
                     }
                 }
             }
@@ -653,9 +665,9 @@ export class GameClass {
         const tm      = performance.now();
         const delta   = this.hud.FPS.delta;
 
-        if(!this.hud.splash.loading && delta <= MAX_FPS_DELTA_PROCESSED) {
+        if(!this.hud.splash.loading) {
             if(!this.free_cam) {
-                player.update(delta);
+                player.update(Math.min(delta, MAX_FPS_DELTA_PROCESSED));
             }
         } else {
             player.lastUpdate = null;
@@ -841,7 +853,7 @@ export class GameClass {
             this.free_cam = null;
         } else {
             this.free_cam = true;
-            this.player.pr_spectator.player.entity.position.copyFrom(this.player.getEyePos());
+            this.player.controlManager.spectator.setPos(this.player.getEyePos());
             this.player.controls.sneak = false;
         }
         return true;
@@ -849,7 +861,7 @@ export class GameClass {
 
     getFreeCamPos(delta) {
         const player = this.player;
-        const pc = player.pr_spectator;
+        const pc = player.controlManager.spectator;
         pc.controls.back       = player.controls.back;
         pc.controls.forward    = player.controls.forward;
         pc.controls.right      = player.controls.right;
@@ -859,7 +871,7 @@ export class GameClass {
         pc.controls.sprint     = player.controls.sprint;
         pc.player_state.yaw    = player.rotate.z;
         pc.tick(delta / 1000 * 3., player.scale);
-        return pc.player.entity.position;
+        return pc.getPos();
     }
 
     //

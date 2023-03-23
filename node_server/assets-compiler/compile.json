@@ -276,7 +276,8 @@
             "texture_animations": {
                 "side": null
             },
-            "spawnable": true
+            "spawnable": true,
+            "composter_chance": 0.3
         },
         {
             "id": 627,
@@ -395,7 +396,8 @@
                 "offset_pos": {"x": 0, "y": 1, "z": 0},
                 "id": 797
             },
-            "spawnable": true
+            "spawnable": true,
+            "composter_chance": 0.3
         },
         {
             "id": -3,
@@ -1093,7 +1095,8 @@
                 "mask_biome",
                 "can_put_into_pot",
                 "leaves"
-            ]
+            ],
+            "composter_chance": 0.3
         },
         {
             "id": 233,
@@ -1134,7 +1137,8 @@
                 "mask_biome",
                 "can_put_into_pot",
                 "leaves"
-            ]
+            ],
+            "composter_chance": 0.3
         },
         {
             "id": 220,
@@ -1172,7 +1176,8 @@
                 "mask_biome",
                 "can_put_into_pot",
                 "leaves"
-            ]
+            ],
+            "composter_chance": 0.3
         },
         {
             "id": 190,
@@ -1210,7 +1215,8 @@
                 "mask_biome",
                 "can_put_into_pot",
                 "leaves"
-            ]
+            ],
+            "composter_chance": 0.3
         },
         {
             "id": 526,
@@ -1862,7 +1868,8 @@
             },
             "tags": [
                 "mask_biome"
-            ]
+            ],
+            "composter_chance": 0.3
         },
         {
             "id": 106,
@@ -1897,7 +1904,8 @@
                 "south": false,
                 "up": false,
                 "west": false
-            }
+            },
+            "composter_chance": 0.5
         },
         {
             "id": 32,
@@ -1923,7 +1931,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 38,
@@ -1936,7 +1945,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 509,
@@ -1950,7 +1960,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 510,
@@ -1964,7 +1975,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 511,
@@ -1978,7 +1990,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 512,
@@ -1992,7 +2005,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 513,
@@ -2006,7 +2020,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 514,
@@ -2016,18 +2031,21 @@
             "style": "planting",
             "inventory": {
                 "style": "extruder",
-                "texture": "block/peony_top.png"
+                "texture": "block/peony.png"
             },
             "sound": "madcraft:block.grass",
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "texture": {
-                "up": "block/peony_top.png",
-                "down": "block/peony_bottom.png"
+                "side": "block/peony.png"
             },
-            "tags": ["flower"],
+            "tags": [
+                "is_tall_grass",
+                "flower"
+            ],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 516,
@@ -2042,15 +2060,16 @@
             "sound": "madcraft:block.grass",
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "texture": {
-                "up": "block/lilac_top.png",
-                "down": "block/lilac_bottom.png"
+                "side": "block/lilac.png"
             },
             "material": {
                 "id": "plant"
             },
             "tags": [
+                "is_tall_grass",
                 "flower"
-            ]
+            ],
+            "composter_chance": 0.65
         },
         {
             "id": 39,
@@ -2062,7 +2081,8 @@
             "texture": "block/brown_mushroom.png",
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 40,
@@ -2074,7 +2094,8 @@
             "texture": "block/red_mushroom.png",
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 20,
@@ -2087,7 +2108,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 46,
@@ -2100,7 +2122,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 47,
@@ -2113,7 +2136,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 51,
@@ -2126,7 +2150,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 44,
@@ -2495,7 +2520,8 @@
             "texture": {
                 "side": "block/brown_mushroom_block.png",
                 "down": "block/mushroom_block_inside.png"
-            }
+            },
+            "composter_chance": 0.85
         },
         {
             "id": 100,
@@ -2511,7 +2537,8 @@
             "texture": {
                 "side": "block/red_mushroom_block.png",
                 "down": "block/mushroom_block_inside.png"
-            }
+            },
+            "composter_chance": 0.85
         },
         {
             "id": 101,
@@ -3559,7 +3586,8 @@
                 "up": "block/cactus_top.png",
                 "down": "block/cactus_bottom.png",
                 "side": "block/cactus_side.png"
-            }
+            },
+            "composter_chance": 0.5
         },
         {
             "id": 84,
@@ -3730,7 +3758,8 @@
                 "down": "block/pumpkin_top.png",
                 "side": "block/pumpkin_side.png"
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "composter_chance": 0.65
         },
         {
             "id": 909,
@@ -3749,7 +3778,8 @@
                 "down": "block/melon_top.png",
                 "side": "block/melon_side.png"
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "composter_chance": 0.65
         },
         {
             "id": 91,
@@ -3764,7 +3794,8 @@
                 "north": "block/carved_pumpkin.png",
                 "side": "block/pumpkin_side.png"
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "composter_chance": 0.65
         },
         {
             "id": 110,
@@ -3949,7 +3980,8 @@
             "tags": [
                 "is_tall_grass",
                 "mask_biome"
-            ]
+            ],
+            "composter_chance": 0.5
         },
         {
             "id": 574,
@@ -4293,7 +4325,8 @@
             "material": {
                 "id": "cobblestone"
             },
-            "texture": "./textures/moss_block.png"
+            "texture": "./textures/moss_block.png",
+            "composter_chance": 0.65
         },
         {
             "id": 601,
@@ -4380,7 +4413,8 @@
                 "b": 35,
                 "a": 164
             },
-            "texture": "./textures/cave_vines_berry.png"
+            "texture": "./textures/cave_vines_berry.png",
+            "composter_chance": 0.3
         },
         {
             "id": 606,
@@ -4512,7 +4546,8 @@
             "food": {
                 "amount": 3,
                 "saturation": 0.6
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 613,
@@ -4530,7 +4565,8 @@
                 "amount": 4,
                 "saturation": 0.3
             },
-            "texture": "item/apple.png"
+            "texture": "item/apple.png",
+            "composter_chance": 0.65
         },
         {
             "id": 615,
@@ -4558,7 +4594,9 @@
                 "texture": "item/item_frame.png"
             },
             "mining_time": 0,
-            "extra_data": {"item_id": null},
+            "extra_data": {
+                "item_id": null
+            },
             "tags": [
                 "item_frame",
                 "rotate_by_pos_n",
@@ -4569,8 +4607,6 @@
                 "id": "wood"
             },
             "texture": {
-                "up": "./textures/item_frame_border.png",
-                "side": "block/oak_planks.png",
                 "down": "block/item_frame.png"
             }
         },
@@ -4788,7 +4824,8 @@
                 "side": "block/hay_block_side.png",
                 "up": "block/hay_block_top.png",
                 "down": "block/hay_block_top.png"
-            }
+            },
+            "composter_chance": 0.85
         },
         {
             "id": 632,
@@ -4844,7 +4881,8 @@
             ],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.3
         },
         {
             "id": 633,
@@ -4876,7 +4914,8 @@
                 "amount": 5,
                 "saturation": 0.6
             },
-            "texture": "item/bread.png"
+            "texture": "item/bread.png",
+            "composter_chance": 0.85
         },
         {
             "id": 635,
@@ -4918,7 +4957,8 @@
             ],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.3
         },
         {
             "id": 73,
@@ -5331,7 +5371,8 @@
                 "up": "block/dried_kelp_top.png",
                 "side": "block/dried_kelp_side.png",
                 "down": "block/dried_kelp_bottom.png"
-            }
+            },
+            "composter_chance": 0.5
         },
         {
             "id": 656,
@@ -5351,7 +5392,8 @@
                 "up": "./textures/azalea_top.png",
                 "side": "./textures/azalea_side.png",
                 "down": "./textures/azalea_plant.png"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 657,
@@ -5372,7 +5414,8 @@
                 "up": "./textures/flowering_azalea_top.png",
                 "side": "./textures/flowering_azalea_side.png",
                 "down": "./textures/azalea_plant.png"
-            }
+            },
+            "composter_chance": 0.85
         },
         {
             "id": 658,
@@ -5405,7 +5448,8 @@
                 "side": "block/cake_side.png",
                 "east": "block/cake_inner.png",
                 "down": "block/cake_bottom.png"
-            }
+            },
+            "composter_chance": 1
         },
         {
             "id": 659,
@@ -5478,7 +5522,8 @@
             "can_rotate": true,
             "material": {
                 "id": "wood"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 992,
@@ -5496,7 +5541,8 @@
                 "no_drop",
                 "mask_biome",
                 "swinging_in_the_wind"
-            ]
+            ],
+            "composter_chance": 0.65
         },
         {
             "id": 993,
@@ -5520,7 +5566,8 @@
             "tags": [
                 "no_drop",
                 "mask_biome"
-            ]
+            ],
+            "composter_chance": 0.65
         },
         {
             "id": 1002,
@@ -5602,7 +5649,8 @@
             "food": {
                 "amount": 2,
                 "saturation": 0.3
-            }
+            },
+            "composter_chance": 0.3
         },
         {
             "id": 1419,
@@ -5663,7 +5711,8 @@
             "food": {
                 "amount": 2,
                 "saturation": 0.1
-            }
+            },
+            "composter_chance": 0.85
         },
         {
             "id": 1423,
@@ -5795,7 +5844,8 @@
             "food": {
                 "amount": 8,
                 "saturation": 0.3
-            }
+            },
+            "composter_chance": 1
         },
         {
             "id": 1434,
@@ -6048,7 +6098,8 @@
             "food": {
                 "amount": 2,
                 "saturation": 0.3
-            }
+            },
+            "composter_chance": 0.5
         },
         {
             "id": 1461,
@@ -6079,7 +6130,8 @@
             },
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.3
         },
         {
             "id": 1463,
@@ -6843,7 +6895,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 184,
@@ -6880,7 +6933,8 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 187,
@@ -7076,7 +7130,8 @@
                 "south": "block/sunflower_back.png",
                 "up": "block/sunflower_top.png",
                 "down": "block/sunflower_bottom.png"
-            }
+            },
+            "composter_chance": 0.65
         },
         {
             "id": 515,
@@ -7132,10 +7187,12 @@
             "sound": "madcraft:block.grass",
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "texture": {
-                "up": "block/rose_bush_top.png",
-                "down": "block/rose_bush_bottom.png"
+                "side": "block/rose_bush.png"
             },
-            "tags": ["flower"],
+            "tags": [
+                "is_tall_grass",
+                "flower"
+            ],
             "material": {
                 "id": "plant"
             }
@@ -7517,7 +7574,8 @@
                 "block/potatoes_stage1.png",
                 "block/potatoes_stage2.png",
                 "block/potatoes_stage3.png"
-            ]
+            ],
+            "composter_chance": 0.65
         },
         {
             "id": 197,
@@ -7535,7 +7593,8 @@
             "food": {
                 "amount": 5,
                 "saturation": 0.6
-            }
+            },
+            "composter_chance": 0.85
         },
         {
             "id": 486,
@@ -7563,7 +7622,8 @@
                 "offset_pos": {"x": 0, "y": 1, "z": 0},
                 "id": 486
             },
-            "texture": "block/sugar_cane.png"
+            "texture": "block/sugar_cane.png",
+            "composter_chance": 0.5
         },
         {
             "id": 227,
@@ -7631,7 +7691,8 @@
                 "no_drop_ao",
                 "random_rotate_up"
             ],
-            "texture": "block/lily_pad.png"
+            "texture": "block/lily_pad.png",
+            "composter_chance": 0.65
         },
         {
             "id": 228,
@@ -7698,7 +7759,8 @@
                 "up": false,
                 "west": false,
                 "rotate": false
-            }
+            },
+            "composter_chance": 0.5
         },
         {
             "id": 503,
@@ -7920,7 +7982,8 @@
             },
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.3
         },
         {
             "id": 216,
@@ -7957,7 +8020,8 @@
             ],
             "material": {
                 "id": "plant"
-            }
+            },
+            "composter_chance": 0.3
         },
         {
             "id": 217,
@@ -7971,7 +8035,8 @@
             "tags": [
                 "can_put_into_pot"
             ],
-            "texture": "item/beetroot.png"
+            "texture": "item/beetroot.png",
+            "composter_chance": 0.65
         },
         {
             "id": 507,
@@ -8671,7 +8736,8 @@
                 "style": "extruder",
                 "texture": "item/nether_wart.png"
             },
-            "texture": "block/nether_wart_stage0.png"
+            "texture": "block/nether_wart_stage0.png",
+            "composter_chance": 0.65
         },
         {
             "id": 263,
@@ -9913,7 +9979,8 @@
             "tags": [
                 "is_tall_grass",
                 "is_tall_grass_3"
-            ]
+            ],
+            "composter_chance": 0.65
         },
         {
             "id": 502,
@@ -10009,6 +10076,78 @@
                 "slab": true,
                 "full_block_name": "DIRT_PATH"
             }
+        },
+        {
+            "id": 1047,
+            "name": "GLOW_ITEM_FRAME",
+            "style": "item_frame",
+            "sound": "madcraft:block.wood",
+            "transparent": true,
+            "can_rotate": true,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/glow_item_frame.png"
+            },
+            "mining_time": 0,
+            "extra_data": {
+                "item_id": null
+            },
+            "tags": [
+                "item_frame",
+                "rotate_by_pos_n",
+                "pot",
+                "no_drop_ao"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "down": "block/item_frame.png"
+            },
+            "light_power": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 140
+            }
+        }, 
+        {
+            "id": 1048,
+            "name": "HOPPER",
+            "style": "hopper",
+            "transparent": true,
+            "can_rotate": true,
+            "max_in_stack": 1,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/hopper.png"
+            },
+            "extra_data": {
+                "power": true
+            },
+            "material": {
+                "id": "iron"
+            },
+            "tags": [
+                "rotate_by_pos_n",
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "texture": {
+                "up": "block/hopper_top.png",
+                "east": "block/hopper_inside.png",
+                "west": "block/hopper_inside_arrow.png",
+                "side": "block/hopper_outside.png",
+                "down": "block/hopper_outside_arrow.png"
+            },
+            "ticking": {
+                "type": "hopper"
+            },
+            "window": "frmHopper",
+            "chest": {
+                "slots": 5
+            },
+            "is_entity": true
         }
     ]
 }

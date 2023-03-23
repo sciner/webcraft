@@ -52,11 +52,20 @@ export function lerpComplex (a, b, t, res) {
 }
 
 export class Mth {
-    [key: string]: any;
 
     static PI_MUL2  = Math.PI * 2
     static PI_DIV2  = Math.PI / 2
     static PI_INV   = 1 / Math.PI
+
+    static POWER_OF_10 = new Float64Array(100)
+
+    static initStatics() {
+        let v = 1
+        for(let i = 0; i < this.POWER_OF_10.length; i++) {
+            this.POWER_OF_10[i] = v
+            v *= 10
+        }
+    }
 
     /**
      * Lerp any value between
@@ -69,8 +78,8 @@ export class Mth {
     static lerpComplex = lerpComplex;
 
     static lerp(amount, value1, value2) {
-        amount = amount < 0 ? 0 : amount;
-        amount = amount > 1 ? 1 : amount;
+        if (amount <= 0) return value1;
+        if (amount >= 1) return value2;
         return value1 + (value2 - value1) * amount;
     }
 
@@ -185,11 +194,11 @@ export class Mth {
     }
 
     static round(value: number, decimals: number) : number {
-        decimals = Math.pow(10, decimals)
+        decimals = this.POWER_OF_10[decimals]
         return Math.round(value * decimals) / decimals
     }
 
-    static roundUpToPowerOfTwo(v) {
+    static roundUpToPowerOfTwo(v: int): int {
         v--
         v |= v >> 1
         v |= v >> 2
@@ -266,4 +275,15 @@ export class Mth {
                 return arr[floorInd] * (1 - fi) + arr[floorInd + 1] * fi
             }
     }
+
+    /**
+     * Produces an int32 hash from any number.
+     * I doesn't distinguish NaN, Infinity, -Infinity and 0.
+     * This implementation is quite bad, but it works for practical purposes.
+     */
+    static intHash(v: number): int {
+        return v | (v - Math.floor(v)) * 1e16
+    }
 }
+
+Mth.initStatics()

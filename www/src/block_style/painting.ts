@@ -74,7 +74,6 @@ export default class style {
         }
 
         const aabb = style.computeAABB(block, false)[0];
-        aabb.pad(-1/500);
         aabb.translate(x, y, z);
 
         // Texture

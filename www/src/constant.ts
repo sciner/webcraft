@@ -5,6 +5,8 @@ export enum LIGHT_TYPE {
     RTX     = 2,
 }
 
+export const INGAME_MAIN_WIDTH              = 772
+export const INGAME_MAIN_HEIGHT             = 514
 export const GAME_ONE_SECOND                = 72;
 export const GAME_DAY_SECONDS               = 24000;
 // If more time than this has passed since the last update, player.update() is skipped.
@@ -59,6 +61,113 @@ export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
 
+export const UI_THEME = {
+    base_font: {
+        color: '#5bc4da',
+        size: 14
+    },
+    second_text_color: '#ffffffbb',
+    label_text_color: '#ffffff33',
+    window_padding: 10,
+    slot_margin: 5,
+    window_slot_size: 40,
+    button: {
+        font: {
+            size: 14,
+            color: '#ffffff'
+        },
+        background: {
+            color: '#5bc4da44'
+        }
+    },
+    // chat
+    chat: {
+        // main text
+        text: {
+            font: {
+                color: '#5bc4da',
+                size: 40
+            }
+        },
+        //
+        nicknames: {
+            font: {
+                color: '#8ff3ff',
+                size: 60
+            }
+        }
+    },
+    // tabs control
+    tabs: {
+        // active tab
+        active: {
+            font: {
+                color: '#feaa25',
+                size: 60
+            }
+        },
+        // inactive tab
+        inactive: {
+            font: {
+                color: '#5bc4da',
+                font_size: 60
+            }
+        }
+    },
+    // search input
+    search: {
+        // filled
+        filled: {
+            font: {
+                color: '#5bc4da',
+                size: 48
+            }
+        },
+        // empty
+        empty: {
+            font: {
+                color: '#293f51',
+                font_size: 60
+            }
+        }
+    },
+    // quests
+    quest: {
+        // main quest
+        main: {
+            font: {
+                color: '#feaa25',
+                size: 40
+            }
+        },
+        completed: {
+            font: {
+                color: '#4ffc88',
+                size: 32
+            }
+        },
+        incomplete: {
+            font: {
+                color: '#a6a6a6',
+                size: 32
+            }
+        },
+        //
+        others: {
+            font: {
+                color: '#8ff3ff',
+                size: 60
+            }
+        }
+    },
+    paginator: {
+        font: {
+            color: '#3a576f',
+            size: 36
+        }
+    }
+}
+
 export enum LEAVES_TYPE {
     NO = 0,
     NORMAL = 1,
@@ -77,7 +186,28 @@ export enum BLOCK_FLAG {
     OPAQUE_FOR_NATURAL_SLAB         = 0x100 | 0,
     NOT_CREATABLE                   = 0x200 | 0,
     IS_DIRT                         = 0x400 | 0,
+    TICKING                         = 0x800 | 0,
+    RANDOM_TICKER                   = 0x1000 | 0,
 }
+
+// ======================== Network options =========================
+
+// If we receive packets older than this, terminate the connection
+export const MAX_PACKET_LAG_SECONDS         = 60
+// If another host sent a packet that's marked as ahead of this host's time,
+// it's accepted only if the difference doesn't exceed this value. TODO decrease this value when we have synchronized clocks
+export const MAX_PACKET_AHEAD_OF_TIME_MS    = 10000
+export const MAX_CLIENT_STATE_INTERVAL      = 500 // the maximum interval between a client sends CMD_PLAYER_STATE
+
+// ======================== Physics options =========================
+
+export const PHYSICS_POS_DECIMALS           = 4
+export const PHYSICS_VELOCITY_DECIMALS      = 4
+export const PHYSICS_ROTATION_DECIMALS      = 4 // It's applied to the input before physics calculations
+export const PHYSICS_INTERVAL_MS            = 50
+export const PHYSICS_MAX_MS_PROCESS         = 2000
+export const DEBUG_LOG_PLAYER_CONTROL       = true  // log moderately detailed debug info about the player controls
+export const DEBUG_LOG_PLAYER_CONTROL_DETAIL= false // log very detailed debug info about the player controls
 
 // ========================= Sound options =========================
 
@@ -234,8 +364,16 @@ export const PLAYER_SKIN_TYPES = {
 
 export enum PLAYER_STATUS {
     DEAD         = 0,
-    /* A player with this status is alive, but doesn't move or interat with the world
-    until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point). */
+    /**
+     * A player with this status is alive, but doesn't move or interact with the world
+     * until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point).
+     * When the data is loaded, a new physics session is started for its controls.
+     */
     WAITING_DATA = 1,
-    ALIVE        = 2,
+    /**
+     * A player with status has (ServerPlayer.wait_portal != null) and can't move.
+     * When the data is loaded, a new physics session is started for its controls.
+     */
+    WAITING_PORTAL = 2,
+    ALIVE        = 3,
 }

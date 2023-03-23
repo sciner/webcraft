@@ -96,9 +96,6 @@ export class ClusterBase {
             }
         }
         chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid, destroy_fluid)
-        if(bm.TICKING_BLOCKS.has(block_id)) {
-            chunk.addTickingBlock(chunk.coord.offset(x, y, z));
-        }
         return true;
     }
 
@@ -331,7 +328,6 @@ export class ClusterBase {
         }
         const npc_extra_data = bm.calculateExtraData(this.generateNPCSpawnExtraData(), rel_pos);
         this.setBlock(chunk, rel_pos.x, rel_pos.y, rel_pos.z, bm.MOB_SPAWN.id, null, npc_extra_data);
-        chunk.addTickingBlock(pos);
         return true;
     }
 

@@ -5,6 +5,7 @@ import {Resources} from "../resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
 import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../constant.js";
 import { TBlock } from "../typed_blocks3.js";
+import type {IPlayerControlState} from "../control/player_control.js";
 
 const BLOCK_NOT_EXISTS = -2;
 const _ladder_check_tblock = new TBlock()
@@ -410,9 +411,9 @@ export function Physics(mcData, fake_world, options) {
     }
 
     /**
-     * @param {*} world 
-     * @param {Vector} pos 
-     * @returns 
+     * @param {*} world
+     * @param {Vector} pos
+     * @returns
      */
     function isOnLadder(world, pos) {
         const offset_value_y = .07
@@ -627,7 +628,7 @@ export function Physics(mcData, fake_world, options) {
         return isInWater
     }
 
-    (physics as any).simulatePlayer = (entity, world) => {
+    (physics as any).simulatePlayer = function(entity: PlayerState, world): PlayerState {
         const vel = entity.vel
         const pos = entity.pos
 
@@ -764,7 +765,7 @@ function getEffectLevel(val, effects) {
     return 0;
 }
 
-export class PlayerState {
+export class PlayerState implements IPlayerControlState {
     pos: any;
     vel: any;
     flying: boolean;

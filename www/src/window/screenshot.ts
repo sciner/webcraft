@@ -1,4 +1,4 @@
-import { Button } from "../../tools/gui/wm.js";
+import { Button } from "../ui/wm.js";
 import { Lang } from "../lang.js";
 import { Helpers } from "../helpers.js";
 import { BlankWindow } from "./blank.js";
@@ -34,21 +34,11 @@ export class ScreenshotWindow extends BlankWindow {
             this.send(false)
         }
 
+        // Add labels to window
+        // this.addWindowTitle(Lang.screen_taken)
+
         // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Add buttons
-            const that = this
-            // Close button
-            const btnClose = new Button(that.w - 40 * this.zoom, 15 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
-            btnClose.style.font.family = 'Arial'
-            btnClose.style.background.image = image
-            btnClose.z = 1
-            // btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.onDrop = btnClose.onMouseDown = function(e) {
-                that.hide()
-            }
-            that.add(btnClose)
-        })
+        this.addCloseButton()
 
     }
 

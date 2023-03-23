@@ -46,6 +46,26 @@ export class SimpleQueue<T = any> {
         }
     }
 
+    getFirst(): T | undefined {
+        if (this.length) {
+            return this.arr[this.left]
+        }
+    }
+
+    getLast(): T | undefined {
+        if (this.length) {
+            return this.arr[(this.left + this.length - 1) % this.arr.length]
+        }
+    }
+
+    /** Sets (replaces) an existing element within the queue. */
+    set(index: int, value: T): T {
+        if (index < 0 || index >= this.length) {
+            throw new Error()
+        }
+        return this.arr[(this.left + index) % this.arr.length] = value;
+    }
+
     _grow(): void {
         // grow: copy the beginning into the end; the beginning becomes empty.
         for(let i = 0; i < this.left; i++) {

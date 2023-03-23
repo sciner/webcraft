@@ -374,7 +374,7 @@ export class Vector implements IVector {
      */
     roundSelf(decimals?: number) : this {
         if(decimals) {
-            decimals = Math.pow(10, decimals);
+            decimals = Mth.POWER_OF_10[decimals];
             this.x = Math.round(this.x * decimals) / decimals;
             this.y = Math.round(this.y * decimals) / decimals;
             this.z = Math.round(this.z * decimals) / decimals;
@@ -714,6 +714,12 @@ export class Vector implements IVector {
         //Not implemented, and its fine, implementation is below
         //TODO: move ALL such method to grid!
         return this;
+    }
+
+    /** Returns true if a point relative to a chunk is inside the chunk (not in its padding). */
+    isRelativePosInChunk() {
+        return (this.x | this.y | this.z) >= 0 &&
+            this.x < CHUNK_SIZE_X && this.y < CHUNK_SIZE_Y && this.z < CHUNK_SIZE_Z
     }
 
     worldPosToChunkIndex() {

@@ -3,6 +3,26 @@ import {Mth} from "./mth.js";
 export class ArrayHelpers {
     static EMPTY = []
 
+    /**
+     * @param values can be either:
+     *  - a single array of scalars
+     *  - scalar rest parameters
+     * @returns true if {@link arr} includes any of {@link values}
+     */
+    static includesAny(arr: scalar[], ...values: (scalar | scalar[])[]): boolean {
+        if (arr.length) {
+            if (values.length === 1 && Array.isArray(values[0])) {
+                values = values[0]
+            }
+            for(const v of values) {
+                if (arr.includes(v as scalar)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     // elements order is not preserved
     static fastDelete(arr: any[], index: number): void {
         arr[index] = arr[arr.length - 1];

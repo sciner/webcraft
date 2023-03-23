@@ -113,7 +113,7 @@ export class Chunk {
     }
 
     // onBlocksGenerated ... Webworker callback method
-    onBlocksGenerated(args) {
+    onBlocksGenerated(args: TChunkWorkerMessageBlocksGenerated): void {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;

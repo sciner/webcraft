@@ -12,6 +12,7 @@ export { MainMenu } from "./main_menu.js";
 export { NotImplementedWindow } from "./not_implemented.js"
 export { QuestWindow } from "./quest.js";
 export { RecipeWindow } from "./recipe.js";
+export { InventoryRecipeWindow } from "./inventory_recipe.js";
 export { StatsWindow } from "./stats.js";
 export { AnvilWindow } from "./anvil.js";
 export { BeaconWindow } from "./bn.js";
@@ -21,3 +22,4 @@ export { BarrelWindow } from "./barrel.js";
 export { InGameMain } from "./ingamemain.js";
 export { ModeWindow } from "./mode.js";
 export { BrewingWindow } from "./brewing.js";
+export { HopperWindow } from "./hopper.js";

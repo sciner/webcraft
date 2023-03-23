@@ -151,9 +151,8 @@ export class ServerAPI {
                 return WorldGenerators.list;
             }
             case '/api/Game/Gamemodes': {
-                const game_modes = new GameMode();
                 const list = [];
-                for(let gm of game_modes.modes) {
+                for(let gm of GameMode.byIndex) {
                     list.push({id: gm.id, title: gm.title});
                 }
                 return list;

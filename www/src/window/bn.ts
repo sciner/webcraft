@@ -1,4 +1,4 @@
-import { Button, Window, Label} from "../../tools/gui/wm.js"
+import { Button, Window, Label} from "../ui/wm.js"
 import { INVENTORY_SLOT_SIZE } from "../constant.js"
 import { Resources } from "../resources.js"
 import { BaseChestWindow } from "./base_chest_window.js"

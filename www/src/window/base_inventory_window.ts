@@ -33,7 +33,7 @@ export class BaseInventoryWindow extends BlankWindow {
 
     // Return inventory slots
     getSlots() {
-        return this.inventory_slots;
+        return this.inventory_slots
     }
 
     /**

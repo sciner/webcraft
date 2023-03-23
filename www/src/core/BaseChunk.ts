@@ -7,10 +7,10 @@ import type {DataChunk} from "./DataChunk";
 const tempAABB = new AABB();
 
 export class BaseChunk {
-    cx: number
-    cy: number
-    cz: number
-    cw: number
+    cx: int
+    cy: int
+    cz: int
+    cw: int
     size: Vector
     aabb: AABB
     grid: ChunkGrid | null
@@ -77,6 +77,9 @@ export class BaseChunk {
         this.cw = padding * (this.cx + this.cy + this.cz);
     }
 
+    getStrides(): TBlockStrides {
+        return [this.cx, this.cy, this.cz, this.cw]
+    }
 
     nibbleDims: Vector;
     nibbleStrideBytes: number;

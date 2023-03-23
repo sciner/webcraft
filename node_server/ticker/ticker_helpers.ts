@@ -7,15 +7,15 @@ import { FLUID_TYPE_MASK, FLUID_WATER_INTERACT, FLUID_WATER_REMOVE,
     FLUID_WATER_ABOVE_INTERACT, FLUID_WATER_ABOVE_REMOVE 
 } from '@client/fluid/FluidConst.js';
 import type { ServerChunk } from '../server_chunk.js';
+import type {TActionBlock} from "@client/world_action.js";
 
 export class TickerHelpers {
 
-    // Pushes the result of a ticker into an array of updated blocks.
-    // The result can be a single item, or an array of items, posibly containing nulls.
-    static pushBlockUpdates(all_upd_blocks, new_upd_blocks) {
+    /** Pushes the result of {@link TTickerFunction} into an array of updated blocks */
+    static pushBlockUpdates(all_upd_blocks: TActionBlock[], new_upd_blocks: (TActionBlock | null)[] | TActionBlock | null): void {
         if (new_upd_blocks) {
             if (Array.isArray(new_upd_blocks)) {
-                // Sometimes it's covenient to add nulls, e.g. BlockUpdates.updateTNT(). Revome them here.
+                // Sometimes it's convenient to add nulls, e.g. BlockUpdates.updateTNT(). Remove them here.
                 ArrayHelpers.filterSelf(new_upd_blocks, v => v != null);
                 if (new_upd_blocks.length > 0) {
                     all_upd_blocks.push(...new_upd_blocks);

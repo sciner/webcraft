@@ -52,11 +52,13 @@ export class ClusterEndCity extends ClusterBuildingBase {
     constructor(clusterManager : ClusterManager, addr : Vector, biome? : Biome) {
 
         super(clusterManager, addr)
+
+        this.is_empty = false
     
-        this.is_empty = !((this.coord.z % 1024) == 0 && (this.coord.x % 1024) == 0)
-        if (this.is_empty) {
-            return
-        }
+        // this.is_empty = !((this.coord.z % 1024) == 0 && (this.coord.x % 1024) == 0)
+        // if (this.is_empty) {
+        //     return
+        // }
         
         // находим место с максимальной высотой
         const size_half_x = this.size.x / 2
