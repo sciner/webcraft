@@ -105,6 +105,7 @@ export class Hotbar {
 
         // Load hotbar atlases
         const all = []
+
         this.icons_atlas = Resources.atlas.get('icons')
 
         Promise.all(all).then(_ => {

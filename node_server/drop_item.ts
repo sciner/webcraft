@@ -6,10 +6,18 @@ import type { ServerWorld } from "./server_world.js";
 import type { DropItemPacket } from "@client/drop_item_manager.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js"
 import type { BulkDropItemsRow } from "./db/world.js"
+import { InventoryComparator } from "@client/inventory_comparator.js";
 
 export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
 export const MOTION_STAYED = 2;
+
+const HOPPER_FIND_MOVES = [
+    new Vector(0, -1, 0),
+    new Vector(-1, -1, -1), new Vector(0, -1, -1), new Vector(1, -1, -1),
+    new Vector(-1, -1, 0), new Vector(1, -1, 0),
+    new Vector(-1, -1, 1), new Vector(0, -1, 1), new Vector(1, -1, 1),
+]
 
 /** Parameters used in the constructor of {@link DropItem} */
 export type DropItemParams = {
@@ -71,7 +79,7 @@ export class DropItem {
             playerHeight: 0.25,
             stepHeight: .65,
             defaultSlipperiness: 0.75,
-            playerHalfWidth: .25
+            playerHalfWidth: .05
         });
         this.motion = MOTION_MOVED;
         //
@@ -121,11 +129,7 @@ export class DropItem {
         }
     }
 
-    /**
-     * @param {object} options
-     * @return {PrismarinePlayerControl}
-     */
-    createPlayerControl(options) {
+    createPlayerControl(options : object) : PrismarinePlayerControl {
         const world = this.getWorld();
         return new PrismarinePlayerControl({
             chunkManager: new PrismarineServerFakeChunkManager(world)
@@ -136,7 +140,7 @@ export class DropItem {
      * The address of the chunk in which the item should be acording to {@link pos}.
      * It may be different from {@link inChunk}.
      */
-    get chunk_addr() {
+    get chunk_addr() : Vector {
         return Vector.toChunkAddr(this.pos, this.#chunk_addr);
     }
 
@@ -145,7 +149,7 @@ export class DropItem {
         this.#pc.tick(0);
     }
 
-    getWorld() {
+    getWorld() : ServerWorld {
         return this.#world;
     }
 
@@ -212,6 +216,7 @@ export class DropItem {
             if(this.motion === MOTION_MOVED) {
                 this.motion = MOTION_JUST_STOPPED;
                 this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
+                this.putIntoHopper()
             } else {
                 this.motion = MOTION_STAYED;
             }
@@ -262,6 +267,59 @@ export class DropItem {
                 : underConstruction.updateDropItemRows;
             list.push(row);
             this.dirty = DropItem.DIRTY_CLEAR;
+        }
+    }
+
+    putIntoHopper(resultBlock = null) {
+        const setSlot = (item, block, bm) => {
+            if (!block?.extra_data?.slots) {
+                return false
+            }
+            const max_stack = bm.getItemMaxStack(item)
+            for (let i = 0; i < block.material.chest.slots; i++) {
+                if (InventoryComparator.itemsEqualExceptCount(block?.extra_data?.slots[i], item) && (block.extra_data.slots[i].count + item.count) < max_stack) {
+                    block.extra_data.slots[i].count += item.count
+                    return true
+                }
+            }
+            return false
+        }
+        const addSlot = (item, block) => {
+            if (!block?.extra_data?.slots) {
+                return false
+            }
+            for (let i = 0; i < block.material.chest.slots; i++) {
+                if (!block.extra_data.slots[i]) {
+                    block.extra_data.slots[i] = { id: item.id, count: item.count }
+                    return true
+                }
+            }
+            return false
+        }
+        const world = this.getWorld()
+        const bm = world.block_manager
+        for(let move of HOPPER_FIND_MOVES) {
+            const block = this.inChunk.getBlock(this.pos.add(move), null, null, resultBlock)
+            if (block && block.id == bm.HOPPER.id) {
+                let update = false
+                for (const item of this.items) {
+                    if (setSlot(item, block, bm)) {
+                        update = true
+                    } else if (addSlot(item, block)) {
+                        update = true
+                    }
+                }
+                if (update) {
+                    this.#world.chunks.itemWorld.delete(this, true)
+                    const packetsA = [{
+                        name: ServerClient.CMD_DROP_ITEM_DELETED,
+                        data: [this.entity_id]
+                    }];
+                    this.inChunk.sendAll(packetsA, []);
+                    world.chests.sendChestToPlayers(block, null)
+                }
+                break
+            }
         }
     }
 

@@ -10110,6 +10110,44 @@
                 "b": 255,
                 "a": 140
             }
+        }, 
+        {
+            "id": 1048,
+            "name": "HOPPER",
+            "style": "hopper",
+            "transparent": true,
+            "can_rotate": true,
+            "max_in_stack": 1,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/hopper.png"
+            },
+            "extra_data": {
+                "power": true
+            },
+            "material": {
+                "id": "iron"
+            },
+            "tags": [
+                "rotate_by_pos_n",
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "texture": {
+                "up": "block/hopper_top.png",
+                "east": "block/hopper_inside.png",
+                "west": "block/hopper_inside_arrow.png",
+                "side": "block/hopper_outside.png",
+                "down": "block/hopper_outside_arrow.png"
+            },
+            "ticking": {
+                "type": "hopper"
+            },
+            "window": "frmHopper",
+            "chest": {
+                "slots": 5
+            },
+            "is_entity": true
         }
     ]
 }

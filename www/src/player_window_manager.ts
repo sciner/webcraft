@@ -1,5 +1,5 @@
 import type { Player } from "./player.js";
-import { ChargingStationWindow, ChestWindow, DoubleChestWindow, CraftTable, CreativeInventoryWindow, DieWindow, EditSignWindow, FurnaceWindow, InventoryWindow, NotImplementedWindow, QuestWindow, StatsWindow, AnvilWindow, BeaconWindow, ScreenshotWindow, BookWindow, InGameMain, BarrelWindow, EnderChestWindow, ModeWindow, BrewingWindow} from "./window/index.js";
+import { ChargingStationWindow, ChestWindow, DoubleChestWindow, CraftTable, CreativeInventoryWindow, DieWindow, EditSignWindow, FurnaceWindow, InventoryWindow, NotImplementedWindow, QuestWindow, StatsWindow, AnvilWindow, BeaconWindow, ScreenshotWindow, BookWindow, InGameMain, BarrelWindow, EnderChestWindow, ModeWindow, BrewingWindow, HopperWindow} from "./window/index.js";
 
 export class PlayerWindowManager {
     player: Player;
@@ -28,6 +28,7 @@ export class PlayerWindowManager {
         this.addWindow(new InGameMain(player, inventory, inventory.recipes));
         this.addWindow(new ModeWindow(player));
         this.addWindow(new BrewingWindow(inventory));
+        this.addWindow(new HopperWindow(inventory))
     }
 
     addWindow(w) {
