@@ -275,7 +275,7 @@ export class GameClass {
                 } else if (type == MOUSE.WHEEL) {
                     if(player) {
                         if(controls.enabled) {
-                            if(!player.changeSpectatorSpeed(-e.deltaY)) {
+                            if(!player.controlManager.changeSpectatorSpeed(-e.deltaY)) {
                                 player.onScroll(e.deltaY > 0);
                             }
                         }

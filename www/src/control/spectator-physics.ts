@@ -13,38 +13,40 @@ import type {PlayerTickData} from "./player_tick_data.js";
  */
 type TFreeSpeedConfig = {
     max                     : float
-    acceleration            : float
-    accelerationPercent     : float // fraction of the max value added to the acceleration
-    deceleration            : float
-    exponentialDeceleration : float
+    acceleration            ? : float
+    accelerationPercent     ? : float // fraction of the max value added to the acceleration
+    exponentialSlowdown     ? : float // like deceleration, but applied during acceleration
+    deceleration            ? : float
+    decelerationPercent     ? : float
+    exponentialDeceleration ? : float
 }
 
 /**
  * How much effect {@link SpectatorPlayerControl.speedMultiplier} has on the vertical speed.
  * 1 means it has full effect (the same as on horizontal speed).
  */
-const Y_SPEED_SCALING = 0.3
+const Y_SPEED_SCALING = 1
+
+export const SPECTATOR_SPEED_CHANGE_MULTIPLIER = 1.05
+export const SPECTATOR_SPEED_CHANGE_MIN = 0.05
+export const SPECTATOR_SPEED_CHANGE_MAX = 16
 
 const SPEEDS: Dict<TFreeSpeedConfig> = {
     HORIZONTAL: {
-        max                     : 1.0,
-        acceleration            : 0.1,
-        accelerationPercent     : 0.1,
-        deceleration            : 0.01,
-        exponentialDeceleration : 0.7
+        max                     : 1.3,
+        accelerationPercent     : 0.03,
+        exponentialSlowdown     : 0.95,
+        deceleration            : 0.001,
+        exponentialDeceleration : 0.85
     },
     UP: {
-        max                     : 1,
-        acceleration            : 0.1,
-        accelerationPercent     : 0.1,
-        deceleration            : 0.01,
-        exponentialDeceleration : 0.7
+        max                     : 0.65,
+        acceleration            : Infinity, // instantly to max speed
+        decelerationPercent     : 0.22 // slightly less than 0.5 seconds to stop
     },
     DOWN: {
-        max                     : 1,
-        acceleration            : 0.1,
-        accelerationPercent     : 0.1,
-        deceleration            : 0,
+        max                     : 0.65,
+        acceleration            : Infinity, // instantly to max speed
         exponentialDeceleration : 0 // stops abruptly. That's how it behaved in the old code.
     }
 }
@@ -127,6 +129,7 @@ export class SpectatorPlayerControl extends PlayerControl {
             if (accelerationScalar) {
                 tmpVec.normalizeSelf(accelerationScalar) // delta velocity vector
                 vel.addSelf(tmpVec)
+                vel.mulScalarSelf(HORIZONTAL.exponentialSlowdown)
             }
         }
 
@@ -164,12 +167,14 @@ function initStatics() {
     const k = PHYSICS_INTERVAL_MS / 100
     for(const conf of Object.values(SPEEDS)) {
         // add accelerationPercent to acceleration
-        conf.acceleration += conf.accelerationPercent * conf.max
+        conf.acceleration = (conf.acceleration ?? 0) + (conf.accelerationPercent ?? 0) * conf.max
+        conf.deceleration = (conf.deceleration ?? 0) + (conf.decelerationPercent ?? 0) * conf.max
         // adjust by the tick length
         conf.acceleration *= k
         conf.deceleration *= k
-        conf.max *= k
-        conf.exponentialDeceleration = Math.pow(conf.exponentialDeceleration, k)
+        conf.exponentialSlowdown    = Math.pow(conf.exponentialSlowdown ?? 1, k)
+        conf.max *= k / conf.exponentialSlowdown
+        conf.exponentialDeceleration = Math.pow(conf.exponentialDeceleration ?? 1, k)
     }
 }
 

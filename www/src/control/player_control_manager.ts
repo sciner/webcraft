@@ -4,7 +4,7 @@ import {Vector} from "../helpers/vector.js";
 import type {Player} from "../player.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
-import {SpectatorPlayerControl} from "./spectator-physics.js";
+import {SPECTATOR_SPEED_CHANGE_MAX, SPECTATOR_SPEED_CHANGE_MIN, SPECTATOR_SPEED_CHANGE_MULTIPLIER, SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
     PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_MAX_MS_PROCESS, DEBUG_LOG_PLAYER_CONTROL_DETAIL
@@ -246,6 +246,22 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     getFreeCampPos(): Vector {
         this.lerpPos(this.freeCamPos, this.prevPhysicsTickFreeCamPos, this.freeCamSpectator)
         return this.freeCamPos
+    }
+
+    changeSpectatorSpeed(value: number): boolean {
+        let pc: SpectatorPlayerControl
+        if (this.#isFreeCam) {
+            pc = this.freeCamSpectator
+        } else if (this.current === this.spectator) {
+            pc = this.spectator
+        } else {
+            return false
+        }
+        const mul = pc.speedMultiplier ?? 1
+        pc.speedMultiplier = value > 0
+            ? Math.min(mul * SPECTATOR_SPEED_CHANGE_MULTIPLIER, SPECTATOR_SPEED_CHANGE_MAX)
+            : Math.max(mul / SPECTATOR_SPEED_CHANGE_MULTIPLIER, SPECTATOR_SPEED_CHANGE_MIN)
+        return true
     }
 
     doClientTicks(): void {

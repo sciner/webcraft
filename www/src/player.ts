@@ -819,26 +819,6 @@ export class Player implements IPlayer {
         this.getPlayerControl().player_state.flying = value;
     }
 
-    /**
-     * @param {int} value
-     * @returns
-     */
-    changeSpectatorSpeed(value) {
-        if(!this.game_mode.isSpectator()) {
-            return false;
-        }
-        const pc = this.controlManager.spectator;
-        let mul = pc.speedMultiplier ?? 1;
-        const multiplyer = 1.05;
-        if(value > 0) {
-            mul = Math.min(mul * multiplyer, 16);
-        } else {
-            mul = Math.max(mul / multiplyer, 0.05);
-        }
-        pc.speedMultiplier = mul;
-        return true;
-    }
-
     getPlayerControl(): PlayerControl {
         return this.controlManager.current
     }
