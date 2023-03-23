@@ -6,6 +6,7 @@ import type { ServerWorld } from "./server_world.js";
 import type { DropItemPacket } from "@client/drop_item_manager.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js"
 import type { BulkDropItemsRow } from "./db/world.js"
+import { InventoryComparator } from "@client/inventory_comparator.js";
 
 export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
@@ -270,9 +271,13 @@ export class DropItem {
     }
 
     putIntoHopper(resultBlock = null) {
-        const setSlot = (item, block) => {
-            for (let i = 0; i < 5; i++) {
-                if (block?.extra_data?.slots[i]?.id == item.id && (block.extra_data.slots[i].count + item.count) < 64) {
+        const setSlot = (item, block, bm) => {
+            if (!block?.extra_data?.slots) {
+                return false
+            }
+            const max_stack = bm.getItemMaxStack(item)
+            for (let i = 0; i < block.material.chest.slots; i++) {
+                if (InventoryComparator.itemsEqualExceptCount(block?.extra_data?.slots[i], item) && (block.extra_data.slots[i].count + item.count) < max_stack) {
                     block.extra_data.slots[i].count += item.count
                     return true
                 }
@@ -280,7 +285,10 @@ export class DropItem {
             return false
         }
         const addSlot = (item, block) => {
-            for (let i = 0; i < 5; i++) {
+            if (!block?.extra_data?.slots) {
+                return false
+            }
+            for (let i = 0; i < block.material.chest.slots; i++) {
                 if (!block.extra_data.slots[i]) {
                     block.extra_data.slots[i] = { id: item.id, count: item.count }
                     return true
@@ -295,7 +303,7 @@ export class DropItem {
             if (block && block.id == bm.HOPPER.id) {
                 let update = false
                 for (const item of this.items) {
-                    if (setSlot(item, block)) {
+                    if (setSlot(item, block, bm)) {
                         update = true
                     } else if (addSlot(item, block)) {
                         update = true
