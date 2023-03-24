@@ -15,39 +15,36 @@ export default class Ticker {
 
     //
     static func(this: TickingBlockManager, tick_number, world, chunk, v) {
-
-        const ambientLight = (world.info.rules.ambientLight || 0) * 255 / 15
-
-        const tblock = v.tblock;
-        const extra_data = tblock.extra_data;
-        const updated_blocks = [];
-        if (!extra_data?.type || !extra_data?.skin) {
-            return;
+        if (world.info.title == 'BLDGFYT') {
+            return
         }
-
-        if(tick_number % extra_data.max_ticks == 0) {
-
-            const pos = v.pos.clone();
-
-            // Одноразовый спавнер
-            if (extra_data?.limit?.count === 1) {
-                const spawn_pos = pos.clone().addScalarSelf(.5, 0, .5);
-                const params = {
-                    type           : extra_data.type,
-                    skin           : extra_data.skin,
-                    pos            : spawn_pos,
-                    pos_spawn      : spawn_pos.clone(),
-                    rotate         : new Vector(0, 0, 0).toAngles()
-                };
-                // Spawn mob
-                Ticker.spawnMob(world, params);
-                const updated_blocks = [];
-                updated_blocks.push({pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                // Delete completed block from tickings
-                this.delete(v.pos);
-                return updated_blocks;
+        const bm = world.block_manager
+        const tblock = v.tblock
+        const extra_data = tblock.extra_data
+        const updated_blocks = []
+        const pos = v.pos.clone()
+        const auto_generate_mobs = world.getGeneratorOptions('auto_generate_mobs', false)
+        // Одноразовый спавнер
+        if (extra_data?.limit?.count === 1) {
+            const spawn_pos = pos.clone().addScalarSelf(.5, 0, .5)
+            const npc_extra_data = bm.calculateExtraData(extra_data, spawn_pos)
+            const params = {
+                type: npc_extra_data.type,
+                skin: npc_extra_data.skin,
+                pos: spawn_pos,
+                pos_spawn: spawn_pos.clone(),
+                rotate: new Vector(0, 0, 0).toAngles()
             }
-
+            if (auto_generate_mobs) {
+                Ticker.spawnMob(world, params)
+            }
+            updated_blocks.push({ pos: pos.clone(), item: { id: bm.AIR.id }, action_id: ServerClient.BLOCK_ACTION_MODIFY });
+            // Delete completed block from tickings
+            this.delete(v.pos)
+            return updated_blocks
+        }
+        
+        if(tick_number % extra_data.max_ticks == 0) {
             // Проверяем наличие игроков в указанном радиусе
             const players = world.getPlayersNear(pos, SPAWN_PLAYER_DISTANCE, false, true);
             if (players.length == 0) {
