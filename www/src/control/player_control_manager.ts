@@ -16,6 +16,9 @@ import {MonotonicUTCDate} from "../helpers.js";
 import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PlayerTickData} from "./player_tick_data.js";
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
+import {PlayerSpeedLogger} from "./player_speed_logger.js";
+
+const DEBUG_LOG_SPECTATOR_SPEED = false
 
 /**
  * It contains multiple controllers (subclasses of {@link PlayerControl}), switches between them,
@@ -104,12 +107,14 @@ export abstract class PlayerControlManager {
      * Simulates all the physics ticks described by {@link data}
      * If the simulation is successful, sets output of {@link data}.
      * If the simulation is unsuccessful, sets output of {@link data} only on the client.
+     * @param outPosBeforeLastTick - the position before the last simulated tick.
      * @return true if the simulation was successful, i.e. the {@link PlayerControl.simulatePhysicsTick}.
      *   It may be unsuccessful if the chunk is not ready.
      *   If the simulation fails, all the important properties of {@link PlayerControl} remain unchanged
      *     (assuming {@link PlayerControl.restorePartialState} is correct).
      */
-    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
+    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData,
+                       outPosBeforeLastTick?: Vector): boolean {
         const pc = this.controlByType[data.contextControlType]
         const gameMode = GameMode.byIndex[data.contextGameModeIndex]
         const player_state = pc.player_state
@@ -130,6 +135,7 @@ export abstract class PlayerControlManager {
 
         // simulate the steps
         for(let i = 0; i < data.physicsTicks; i++) {
+            outPosBeforeLastTick?.copyFrom(player_state.pos)
             try {
                 pc.simulatePhysicsTick()
             } catch (e) {
@@ -184,6 +190,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     private prevPhysicsTickFreeCamPos = new Vector()
     private skipFreeCamSneakInput = false // used to skip pressing SHIFT after switching to freeCamp
     private freeCamPos = new Vector()
+    private speedLogger = DEBUG_LOG_SPECTATOR_SPEED ? new PlayerSpeedLogger() : null
     /**
      * It contains data for all recent physics ticks (at least, those that are possibly not known to the server).
      * If a server sends a correction to an earlier tick, it's used to repeat the movement in the later ticks.
@@ -218,6 +225,15 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             this.dataQueue.length = 0
         }
         this.hasCorrection = false
+        this.speedLogger?.reset()
+    }
+
+    updateCurrentControlType(notifyClient: boolean): boolean {
+        const res = super.updateCurrentControlType(notifyClient)
+        if (res) {
+            this.speedLogger?.reset()
+        }
+        return res
     }
 
     lerpPos(dst: Vector, prevPos: Vector = this.prevPhysicsTickPos, pc: PlayerControl = this.current): void {
@@ -228,6 +244,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             dst.lerpFrom(prevPos, pos, this.getCurrentTickFraction())
         }
         dst.roundSelf(8)
+        if (this.current === this.spectator) {
+            this.speedLogger?.add(dst)
+        }
     }
 
     get isFreeCam(): boolean { return this.#isFreeCam }
@@ -241,10 +260,12 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             this.prevPhysicsTickFreeCamPos.copyFrom(pos)
             this.skipFreeCamSneakInput = true
         }
+        this.speedLogger?.reset()
     }
 
     getFreeCampPos(): Vector {
         this.lerpPos(this.freeCamPos, this.prevPhysicsTickFreeCamPos, this.freeCamSpectator)
+        this.speedLogger?.add(this.freeCamPos)
         return this.freeCamPos
     }
 
@@ -337,8 +358,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
 
             const prevData = dataQueue.getLast()
-            this.prevPhysicsTickPos.copyFrom(prevData?.outPos ?? this.controlByType[data.contextControlType].getPos())
-            this.simulate(prevData, data)
+            this.simulate(prevData, data, this.prevPhysicsTickPos)
 
             if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                 console.log(`control: simulated t${this.knownPhysicsTicks} ${data.outPos} ${data.outVelocity}`)
@@ -510,10 +530,11 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         this.player.world.server.Send({name: ServerClient.CMD_PLAYER_CONTROL_SESSION, data})
     }
     
-    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
+    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData,
+                       outPosBeforeLastTick?: Vector): boolean {
         const pc = this.controlByType[data.contextControlType]
         prevData?.applyOutputToControl(pc)
-        if (super.simulate(prevData, data)) {
+        if (super.simulate(prevData, data, outPosBeforeLastTick)) {
             return true
         }
         data.initOutputFrom(pc)
