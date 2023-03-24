@@ -424,7 +424,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\barrel.png",
+			"path": ".\\BBmodels\\barrel.png",
 			"name": "barrel.png",
 			"folder": "block",
 			"namespace": "",

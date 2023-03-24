@@ -934,7 +934,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\cactus.png",
+			"path": ".\\BBmodels\\cactus.png",
 			"name": "CACTUS",
 			"folder": "block",
 			"namespace": "",

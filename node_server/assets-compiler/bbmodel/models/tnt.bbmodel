@@ -1121,7 +1121,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tnt.png",
+			"path": ".\\BBmodels\\tnt.png",
 			"name": "tnt.png",
 			"folder": "block",
 			"namespace": "",

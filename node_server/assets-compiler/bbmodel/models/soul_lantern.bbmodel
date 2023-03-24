@@ -812,7 +812,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\soul_lantern_light.png",
+			"path": ".\\BBmodels\\soul_lantern_light.png",
 			"name": "soul_lantern_light.png",
 			"folder": "block",
 			"namespace": "",
@@ -831,7 +831,7 @@
 			"relative_path": "../soul_lantern_light.png"
 		},
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\soul_lantern.png",
+			"path": ".\\BBmodels\\soul_lantern.png",
 			"name": "soul_lantern.png",
 			"folder": "block",
 			"namespace": "",

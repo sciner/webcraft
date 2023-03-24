@@ -464,7 +464,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\workbench.png",
+			"path": ".\\BBmodels\\workbench.png",
 			"name": "workbench.png",
 			"folder": "block",
 			"namespace": "",

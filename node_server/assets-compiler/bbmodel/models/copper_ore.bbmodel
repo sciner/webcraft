@@ -1625,7 +1625,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tex\\COPPER_ORE.png",
+			"path": ".\\BBmodels\\tex\\COPPER_ORE.png",
 			"name": "COPPER_ORE.png",
 			"folder": "",
 			"namespace": "",

@@ -1221,7 +1221,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\amet.png",
+			"path": ".\\BBmodels\\amet.png",
 			"name": "amet.png",
 			"folder": "block",
 			"namespace": "",

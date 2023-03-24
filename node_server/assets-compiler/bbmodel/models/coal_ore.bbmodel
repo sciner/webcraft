@@ -1764,7 +1764,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tex\\COAL_ORE.png",
+			"path": ".\\BBmodels\\tex\\COAL_ORE.png",
 			"name": "COAL_ORE.png",
 			"folder": "",
 			"namespace": "",

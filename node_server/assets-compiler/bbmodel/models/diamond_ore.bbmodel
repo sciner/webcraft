@@ -1625,7 +1625,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tex\\DIAMOND_ORE.png",
+			"path": ".\\BBmodels\\tex\\DIAMOND_ORE.png",
 			"name": "DIAMOND_ORE.png",
 			"folder": "",
 			"namespace": "",

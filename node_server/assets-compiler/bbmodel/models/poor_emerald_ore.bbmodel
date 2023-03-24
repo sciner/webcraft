@@ -864,7 +864,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tex\\POOR_EMERALD_ORE.png",
+			"path": ".\\BBmodels\\tex\\POOR_EMERALD_ORE.png",
 			"name": "POOR_EMERALD_ORE.png",
 			"folder": "",
 			"namespace": "",

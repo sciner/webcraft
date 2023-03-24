@@ -224,7 +224,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\ladder.png",
+			"path": ".\\BBmodels\\ladder.png",
 			"name": "ladder.png",
 			"folder": "block",
 			"namespace": "",

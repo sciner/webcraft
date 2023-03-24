@@ -1116,7 +1116,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\burdock.png",
+			"path": ".\\BBmodels\\burdock.png",
 			"name": "burdock.png",
 			"folder": "block",
 			"namespace": "",

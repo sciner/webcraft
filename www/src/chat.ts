@@ -345,7 +345,6 @@ export class Chat extends TextBox {
         // Update text window
         if(this.messagesUpdateID != this.messages.updateID) {
 
-            console.log('update chat text window')
             this.messagesUpdateID = this.messages.updateID
 
             for (const m of this.messages.list) {

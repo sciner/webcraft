@@ -864,7 +864,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\POOR_IRON_ORE.png",
+			"path": ".\\BBmodels\\POOR_IRON_ORE.png",
 			"name": "POOR_IRON_ORE.png",
 			"folder": "",
 			"namespace": "",

@@ -1764,7 +1764,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tex\\REDSTONE_ORE.png",
+			"path": ".\\BBmodels\\tex\\REDSTONE_ORE.png",
 			"name": "REDSTONE_ORE.png",
 			"folder": "",
 			"namespace": "",

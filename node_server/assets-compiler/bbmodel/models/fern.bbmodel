@@ -1157,7 +1157,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\grass1.png",
+			"path": ".\\BBmodels\\grass1.png",
 			"name": "FERN",
 			"folder": "block",
 			"namespace": "",

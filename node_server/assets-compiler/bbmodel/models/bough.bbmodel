@@ -61,7 +61,7 @@
 	"outliner": ["c9864896-0788-5638-30f6-c5d5407ce34a"],
 	"textures": [
 		{
-			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\DARK_OAK_BRANCH.png",
+			"path": "..\\BBmodels\\DARK_OAK_BRANCH.png",
 			"name": "DARK_OAK_BOUGH",
 			"folder": "",
 			"namespace": "",
@@ -81,7 +81,7 @@
 			"relative_path": "../DARK_OAK_BRANCH.png"
 		},
 		{
-			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\JUNGLE_BRANCH.png",
+			"path": "..\\BBmodels\\JUNGLE_BRANCH.png",
 			"name": "JUNGLE_BOUGH",
 			"folder": "",
 			"namespace": "",
@@ -101,7 +101,7 @@
 			"relative_path": "../JUNGLE_BRANCH.png"
 		},
 		{
-			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\OAK_BRANCH.png",
+			"path": "..\\BBmodels\\OAK_BRANCH.png",
 			"name": "OAK_BOUGH",
 			"folder": "",
 			"namespace": "",
@@ -121,7 +121,7 @@
 			"relative_path": "../OAK_BRANCH.png"
 		},
 		{
-			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\BIRCH_BRANCH.png",
+			"path": "..\\BBmodels\\BIRCH_BRANCH.png",
 			"name": "BIRCH_BOUGH",
 			"folder": "",
 			"namespace": "",
@@ -141,7 +141,7 @@
 			"relative_path": "../BIRCH_BRANCH.png"
 		},
 		{
-			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\SPRUCE_BRANCH.png",
+			"path": "..\\BBmodels\\SPRUCE_BRANCH.png",
 			"name": "SPRUCE_BOUGH",
 			"folder": "",
 			"namespace": "",
@@ -161,7 +161,7 @@
 			"relative_path": "../SPRUCE_BRANCH.png"
 		},
 		{
-			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\ACACIA_BRANCH.png",
+			"path": "..\\BBmodels\\ACACIA_BRANCH.png",
 			"name": "ACACIA_BOUGH",
 			"folder": "",
 			"namespace": "",

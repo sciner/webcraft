@@ -812,7 +812,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\lantern_light.png",
+			"path": ".\\BBmodels\\lantern_light.png",
 			"name": "lantern_light.png",
 			"folder": "block",
 			"namespace": "",
@@ -831,7 +831,7 @@
 			"relative_path": "../lantern_light.png"
 		},
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\lantern.png",
+			"path": ".\\BBmodels\\lantern.png",
 			"name": "lantern.png",
 			"folder": "block",
 			"namespace": "",

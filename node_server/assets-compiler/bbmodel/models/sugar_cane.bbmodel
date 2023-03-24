@@ -286,7 +286,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\sugar_cane.png",
+			"path": ".\\BBmodels\\sugar_cane.png",
 			"name": "SUGAR_CANE",
 			"folder": "",
 			"namespace": "",
