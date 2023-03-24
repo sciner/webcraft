@@ -1,27 +1,67 @@
 "use strict";
 
 import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, SPECTATOR_SPEED_MUL} from "../constant.js";
-import {Vector} from "../helpers.js";
+import {Mth, Vector} from "../helpers.js";
 import {PlayerControl} from "./player_control.js";
 import type {World} from "../world.js";
 import {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import type {PlayerTickData} from "./player_tick_data.js";
 
 /**
- * All values are given per 100 ms. If {@link PHYSICS_INTERVAL_MS} is not 100 ms,
- * these values are automatically adjusted to make the simulation independent of the tick length.
+ * Конфиг скорости для одного типа движения.
+ * Все значения даны за 1 секунду, но препроцессинг конфига автоматически пересчитывает их в
+ * значения за {@link PHYSICS_INTERVAL_MS}.
  */
 type TFreeSpeedConfig = {
+    /** Макс. скорость. Измеряется в блоках/секунду. */
     max                     : float
+    /**
+     * Линейное ускорение.
+     * Измеряется в (доля макс. скорости)/секунду.
+     * Например, acceleration = 2 означает: к скорости добавляется 2 макс. скорости в секунду,
+     * в результате чего разгон от 0 до (макс. скорость) займет 0.5 секунды.
+     */
     acceleration            ? : float
-    accelerationPercent     ? : float // fraction of the max value added to the acceleration
-    exponentialSlowdown     ? : float // like deceleration, but applied during acceleration
+    /**
+     * Задает начиная с какой скорости включается эффект снижения ускорения при приближении
+     * к максимальной скорости. Чем ближе к макс. скорости, тем меньше ускорение
+     * Такое поведение было в старом коде, и эта настройка достигает похожего (хотя не строго таких же значений).
+     * Значение от 0 до 1 - в долях от максимальной скорости.
+     * 1 - выключено (т.е. эффект включается не раньше чем достигнута макс. скорость)
+     * 0.5 - начиная с достижения половины макс. скорости
+     * 0 - с начала движения
+     *
+     * Используется только для горизонтального движения (так было в старом коде).
+     */
+    diminishingAccelerationThreshold ? : float
+    /**
+     * Минимальное значение ускорения при приближении у макс. скорости.
+     * Используется только если задано {@link diminishingAccelerationThreshold}
+     * В тех же единицах, что и {@link acceleration}
+     */
+    diminishingAcceleration          ? : float
+    /**
+     * Линейное ускорение торможения. Применяется когда игрок отпустил кнопки.
+     * В тех же единицах, что и {@link acceleration}
+     */
     deceleration            ? : float
-    decelerationPercent     ? : float
+    /**
+     * Экспоненциальное торможение. Применяется когда игрок отпустил кнопки.
+     * В каждый равный промежуток времени скорость уменьшается в одно и то же число раз.
+     * Значение 0 до 1. Это значение задается в конфиге за 1 секунду.
+     * Например, 0.25 означает что через скунду останется 0.25 первоначальной скорости
+     * (а за 0.5 секунды останется sqrt(0.25) = 0.5 первоначальной скорости)
+     */
     exponentialDeceleration ? : float
 }
 
 /**
+ * Насколько сиьный эффект {@link SpectatorPlayerControl.speedMultiplier} имеет на увеличение вертикальной
+ * скорости. От 0 до 1. 1 - полный эффект.
+ *
+ * Зачем это: чтобы при сильном увеличеснии горизонтальной скорости (много чанков в секунду) вертикальная
+ * росла не так быстро, и игрок не промахивался мимо уровня земли.
+ *
  * How much effect {@link SpectatorPlayerControl.speedMultiplier} has on the vertical speed.
  * 1 means it has full effect (the same as on horizontal speed).
  */
@@ -33,21 +73,25 @@ export const SPECTATOR_SPEED_CHANGE_MAX = 16
 
 const SPEEDS: Dict<TFreeSpeedConfig> = {
     HORIZONTAL: {
-        max                     : 1.3,
-        accelerationPercent     : 0.03,
-        exponentialSlowdown     : 0.95,
-        deceleration            : 0.001,
-        exponentialDeceleration : 0.85
+        max                     : 11.5,
+        acceleration            : 2.35,
+        // начиная с половины макс. скорости, ускорение начинает падать. Похожий эффект бы в старом коде (не в точности такой)
+        diminishingAccelerationThreshold : 0.33,
+        diminishingAcceleration : 1.0,
+        // не 0, а маленькое значение: в основном торможение экспоненцильное, но в конце достигается полная остановка
+        deceleration            : 0.01,
+        exponentialDeceleration : 0.035
     },
     UP: {
-        max                     : 0.65,
-        acceleration            : Infinity, // instantly to max speed
-        decelerationPercent     : 0.22 // slightly less than 0.5 seconds to stop
+        max                     : 5.7,
+        acceleration            : Infinity, // сразу макс. скорось
+        deceleration            : 2.0       // примерно 0.5 секунды до остановки
     },
     DOWN: {
-        max                     : 0.65,
-        acceleration            : Infinity, // instantly to max speed
-        exponentialDeceleration : 0 // stops abruptly. That's how it behaved in the old code.
+        max                     : 5.7,
+        acceleration            : Infinity, // сразу макс. скорось
+        deceleration            : 2.0
+        // exponentialDeceleration : 0         // мгновенная остановка
     }
 }
 
@@ -95,7 +139,7 @@ export class SpectatorPlayerControl extends PlayerControl {
 
         // change Y velocity
         if (forceUp === 0) {
-            vel.y = this.decelerate(vel.y, vel.y > 0 ? UP : DOWN)
+            vel.y = this.decelerate(vel.y, vel.y > 0 ? UP : DOWN, mul)
         } else {
             if (Math.sign(vel.y) !== forceUp) {
                 vel.y *= UP.exponentialDeceleration
@@ -113,23 +157,31 @@ export class SpectatorPlayerControl extends PlayerControl {
             // decelerate
             const oldVelScalar = vel.horizontalLength()
             if (oldVelScalar) {
-                const newVelScalar = this.decelerate(oldVelScalar, HORIZONTAL)
+                const newVelScalar = this.decelerate(oldVelScalar, HORIZONTAL, mul)
                 vel.mulScalarSelf(newVelScalar / oldVelScalar)
             }
         } else {
+            const conf = HORIZONTAL
+            const max = conf.max * mul
+
             // calculate the desired speed
             const tmpVec = this.tmpVec
                 .setScalar(-forceLeft, 0, forceForward)
-                .normalizeSelf(HORIZONTAL.max * mul)
+                .normalizeSelf(max)
                 .rotateYawSelf(this.player_state.yaw)
             // the difference between the desired speed and the current speed
             tmpVec.subSelf(vel)
+            const deltaVelScalar = tmpVec.horizontalLength()
+            // when the speed is closing to the desired, acceleration is reduced
+            const diminishedAcceleration = Mth.lerpAny(deltaVelScalar,
+                0, conf.diminishingAcceleration,
+                max * (1 - conf.diminishingAccelerationThreshold), conf.acceleration
+            )
             // acceleration in this tick, to make speed closer to desired
-            let accelerationScalar = Math.min(tmpVec.horizontalLength(), HORIZONTAL.acceleration * mul)
+            let accelerationScalar = Math.min(deltaVelScalar, diminishedAcceleration * mul)
             if (accelerationScalar) {
                 tmpVec.normalizeSelf(accelerationScalar) // delta velocity vector
                 vel.addSelf(tmpVec)
-                vel.mulScalarSelf(HORIZONTAL.exponentialSlowdown)
             }
         }
 
@@ -150,11 +202,11 @@ export class SpectatorPlayerControl extends PlayerControl {
         return true
     }
 
-    private decelerate(v: float, conf: TFreeSpeedConfig): float {
+    private decelerate(v: float, conf: TFreeSpeedConfig, mul: float): float {
         v *= conf.exponentialDeceleration
         return v > 0
-            ? Math.max(v - conf.deceleration, 0)
-            : Math.min(v + conf.deceleration, 0)
+            ? Math.max(v - conf.deceleration * mul, 0)
+            : Math.min(v + conf.deceleration * mul, 0)
     }
 }
 
@@ -164,17 +216,15 @@ function to01(v?: boolean): int {
 
 /** Adjusts values in {@link SPEEDS} to be independent of {@link PHYSICS_INTERVAL_MS} */
 function initStatics() {
-    const k = PHYSICS_INTERVAL_MS / 100
+    const k = PHYSICS_INTERVAL_MS / 1000
     for(const conf of Object.values(SPEEDS)) {
-        // add accelerationPercent to acceleration
-        conf.acceleration = (conf.acceleration ?? 0) + (conf.accelerationPercent ?? 0) * conf.max
-        conf.deceleration = (conf.deceleration ?? 0) + (conf.decelerationPercent ?? 0) * conf.max
-        // adjust by the tick length
-        conf.acceleration *= k
-        conf.deceleration *= k
-        conf.exponentialSlowdown    = Math.pow(conf.exponentialSlowdown ?? 1, k)
-        conf.max *= k / conf.exponentialSlowdown
+        conf.diminishingAccelerationThreshold ??= 1
         conf.exponentialDeceleration = Math.pow(conf.exponentialDeceleration ?? 1, k)
+        conf.max *= k // from blocks per second to blocks per 100 ms; adjust by the tick length
+        // adjust by the tick length (.max in acceleration/deceleration is multiplied by k twice - it's correct)
+        conf.acceleration = (conf.acceleration ?? 0) * conf.max * k
+        conf.deceleration = (conf.deceleration ?? 0) * conf.max * k
+        conf.diminishingAcceleration = (conf.diminishingAcceleration ?? 0) * conf.max * k
     }
 }
 
