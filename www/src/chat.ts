@@ -282,8 +282,8 @@ export class Chat extends TextBox {
             }
             return len
         }
-        const height = 130
-        const width = 300
+        const height = 260
+        const width = 400
         const bottom = 170
         const margin = UI_THEME.window_padding * this.zoom
         if (!this.chat_input) {
@@ -292,6 +292,7 @@ export class Chat extends TextBox {
             this.history_messages_window.text = '_'
             this.history_messages_window.style.padding = { top: margin, bottom: margin, left: margin, right: margin }
             this.history_messages_window.style.font.word_wrap = true
+            this.history_messages_window.style.font.size = 16
             this.history_messages_window.style.font.color = UI_THEME.base_font.color
             this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
             this.history_messages_window.setBackground(this.hud_atlas.getSpriteFromMap('chat_background'))

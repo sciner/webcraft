@@ -6,16 +6,14 @@ import { InventoryWindow } from "./inventory.js";
 import { CharacterWindow } from "./character.js";
 import { QuestWindow } from "./quest.js";
 import { StatsWindow } from "./stats.js";
-import { Button, Label, Window } from "../ui/wm.js";
+import { Label, Window } from "../ui/wm.js";
+import { BlankWindow } from "./blank.js";
 
-export class InGameMain extends Window {
-    [key: string]: any;
+export class InGameMain extends BlankWindow {
 
     constructor(player, inventory, recipes) {
 
-        super(10, 10, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmInGameMain', null, null);
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmInGameMain', null, null)
         this.w *= this.zoom
         this.h *= this.zoom
 
@@ -28,19 +26,8 @@ export class InGameMain extends Window {
         this.inventory = inventory;
         this.recipes = recipes;
 
-        // Add close button
-        this.loadCloseButtonImage((image) => {
-            // Close button
-            const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose')
-            btnClose.style.background.image = image;
-            btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.onMouseDown = this.hide.bind(this)
-            this.add(btnClose)
-        })
-
-        // console.log(this.inventory.player.inventory.recipes)
-        // debugger
-        // console.log(this.inventory.player.inventory.recipes.frmRecipe.parent())
+        // // Add close button
+        this.addCloseButton()
 
         // const windows = []
         const tabs = this.tabs = [

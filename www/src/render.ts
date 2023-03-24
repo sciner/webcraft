@@ -60,8 +60,8 @@ const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 
 class DrawMobsStat {
-    count: int
-    time: float
+    count: int = 0
+    time: float = 0
 }
 
 // Creates a new renderer with the specified canvas as target.

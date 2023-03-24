@@ -1,38 +1,55 @@
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
-import { KEY } from "../constant.js";
+import { KEY, UI_THEME } from "../constant.js";
 import { Label, Window } from "../ui/wm.js";
 import { Resources } from "../resources.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 const GAME_MODE_LIST = ['survival', 'creative', 'adventure', 'spectator']
 const ICON_SCALE = .9
 
 export class ModeWindow extends Window {
-    [key: string]: any;
+
+    atlas : SpriteAtlas
+    hud_atlas : SpriteAtlas
+    form_atlas : SpriteAtlas
 
     constructor(player) {
 
-        super(0, 0, 217, 130, 'frmMode')
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        const w = 220
+        const h = 130
+
+        super(0, 0, w, h, 'frmMode')
         this.w *= this.zoom
         this.h *= this.zoom
-        this.style.background.color = '#00000055'
+        // this.style.background.color = '#00000055'
+
         this.player = player
         this.mode == 'survival'
 
         this.atlas = Resources.atlas.get('icons')
+        this.hud_atlas = Resources.atlas.get('hud')
 
-        this.addComponent(0, 100, 217, 22, 'lblHelp', '[ F4 ] - Дальше')
-        this.addComponent(0, 10, 217, 22, 'lblTitle', 'Test'/*, 'toasts-0.png'*/)
-        this.addComponent(5, 48, 48, 48, 'lblSurvival', null, 'iron_sword.png')
-        this.addComponent(58, 48, 48, 48, 'lblCreative', null, 'brick.png')
-        this.addComponent(111, 48, 48, 48, 'lblAdventure', null, 'map.png')
+        // Create sprite atlas
+        this.form_atlas = new SpriteAtlas()
+        this.form_atlas.fromFile('./media/gui/form-mode.png').then(async (atlas : SpriteAtlas) => {
+            this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'none', this.zoom / 2.0)
+        })
+
+        const lblTitle = this.addComponent(0, 15, 217, 22, 'lblTitle', 'Test')
+        const lblHelp = this.addComponent(0, 105, 217, 22, 'lblHelp', '[ F4 ] - ' + Lang.next)
+        this.addComponent(8, 48, 48, 48, 'lblSurvival', null, 'iron_sword.png')
+        this.addComponent(60, 48, 48, 48, 'lblCreative', null, 'brick.png')
+        this.addComponent(112, 48, 48, 48, 'lblAdventure', null, 'map.png')
         this.addComponent(164, 48, 48, 48, 'lblSpectator', null, 'ender_eye.png')
+
+        lblHelp.style.font.color = UI_THEME.base_font.color
+        lblHelp.style.font.size = UI_THEME.base_font.size * 0.65
+        lblTitle.style.font.color = UI_THEME.base_font.color
 
     }
 
-    addComponent(x, y, w, h, id, title, icon?) {
+    addComponent(x : float, y : float, w : float, h : float, id : string, title? : string, icon? : string) {
         const label = this[id] = new Label(x * this.zoom, y * this.zoom, w * this.zoom, h * this.zoom, id, title, title)
         if(icon) {
             label.setIcon(this.atlas.getSpriteFromMap(icon), 'centerstretch', ICON_SCALE)
@@ -84,7 +101,7 @@ export class ModeWindow extends Window {
     async updateMode() {
 
         const getModeSprite = (mode) => {
-            return this.atlas.getSpriteFromMap(mode == this.mode ? 'inventory-1.png' : 'inventory-0.png')
+            return this.hud_atlas.getSpriteFromMap(mode == this.mode ? 'slot_full' : 'slot_empty')
         }
 
         this.lblSurvival.setBackground(getModeSprite('survival'), 'centerstretch', 1)

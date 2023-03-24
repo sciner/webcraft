@@ -26,6 +26,7 @@
         "select_skin": {"en": "Select skin", "ru": "Выбрать скин","fr": "CHOISIR PEAU","es":"PIEL SELECCIONADA","man":"选择皮肤","hind":"त्वचा का चयन करें"},
         "short_prev": {"en": "Previous", "ru": "Пред","fr": "Retour","es":"Previo","man":"以前的","hind":"पिछला"},
         "short_next": {"en": "Next", "ru": "След","fr": "Prochain","es":"Siguiente","man":"下一个","hind":"अगला"},
+        "next": {"en": "Next", "ru": "Далее","fr": "Prochain","es":"Siguiente","man":"下一个","hind":"अगला"},
         "save": {"en": "Save", "ru": "Сохранить","fr": "Sauvegarder","es":"Ahorrar","man":"节省","hind":"बचाना"},
         "cancel": {"en": "Cancel", "ru": "Отмена","fr": "Annuler","es":"Cancelar","man":"取消","hind":"रद्द करना"},
         "loading_resources": {"en": "Loading resources", "ru": "Загрузка ресурсов","fr": "Charger ressources","es":"Cargando recursos","man":"加载资源","hind":"संसाधन लोड हो रहा है"},

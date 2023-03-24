@@ -56,7 +56,10 @@ export class FurnaceWindow extends BaseChestWindow {
         if (this.state) {
             const fuel_percent = this.state.fuel_time / this.state.max_time
             this.icon_arrow.scroll(this.state.result_percent)
-            this.icon_fire.scroll(fuel_percent) 
+            this.icon_fire.scroll(fuel_percent)
+        } else {
+            this.icon_arrow.scroll(0)
+            this.icon_fire.scroll(0)
         }
     }
 
