@@ -1427,7 +1427,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\sweet_berry_bush.png",
+			"path": ".\\BBmodels\\sweet_berry_bush.png",
 			"name": "SWEET_BERRY_BUSH",
 			"folder": "block",
 			"namespace": "",

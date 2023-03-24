@@ -1,6 +1,7 @@
 import { UI_THEME } from "../constant.js";
 import { Icon as icn, SimpleBlockSlot as sbs, Slider as sld,
         ToggleButton as tb, Label as lbl, Button as btn, TextEdit as txted,
+        HTMLText as htmlt,
         Window as wnd, GradientGraphics as gg, WindowManager as wm, VerticalLayout as vl } from "../vendors/wm/wm.js";
 export { MySprite, MyTilemap } from "../vendors/wm/MySpriteRenderer.js";
 
@@ -201,6 +202,14 @@ export class Window extends wnd {
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
         this.appendLayout = appendLayout.bind(this)
+    }
+
+}
+
+export class HTMLText extends htmlt {
+
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
+        super(x, y, w, h, id, title, text)
     }
 
 }

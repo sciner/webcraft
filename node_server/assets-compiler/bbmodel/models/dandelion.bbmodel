@@ -154,7 +154,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\DANDELION.png",
+			"path": "..\\BBmodels\\DANDELION.png",
 			"name": "DANDELION",
 			"folder": "",
 			"namespace": "",

@@ -1329,7 +1329,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\cattail.png",
+			"path": ".\\BBmodels\\cattail.png",
 			"name": "cattail.png",
 			"folder": "block",
 			"namespace": "",

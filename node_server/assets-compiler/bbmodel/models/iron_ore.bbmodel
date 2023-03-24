@@ -1625,7 +1625,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tex\\IRON_ORE.png",
+			"path": ".\\BBmodels\\tex\\IRON_ORE.png",
 			"name": "IRON_ORE.png",
 			"folder": "",
 			"namespace": "",

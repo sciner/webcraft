@@ -154,7 +154,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\davedee\\OneDrive\\Рабочий стол\\Teserra\\BBmodels\\POPPY.png",
+			"path": "..\\BBmodels\\POPPY.png",
 			"name": "POPPY.png",
 			"folder": "",
 			"namespace": "",

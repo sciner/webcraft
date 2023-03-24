@@ -1764,7 +1764,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tex\\LAPIS_LAZULI_ORE.png",
+			"path": ".\\BBmodels\\tex\\LAPIS_LAZULI_ORE.png",
 			"name": "LAPIS_LAZULI_ORE.png",
 			"folder": "",
 			"namespace": "",

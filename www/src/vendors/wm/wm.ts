@@ -1824,3 +1824,40 @@ export class Slider extends Window {
         console.log('onHide')
     }
 }
+
+export class HTMLText extends Window {
+
+    #_wmhtmltext : PIXI.HTMLText
+    
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
+        super(x, y, w, h, id, title, text)
+        this.#_wmhtmltext = new PIXI.HTMLText("Hello <b>World</b>", {
+            fontSize: 16 * this.zoom,
+            wordWrap: true,
+            breakWords: true,
+            whiteSpace: 'pre-line',
+            wordWrapWidth: this.w,
+            fill: '#ffffff'
+        });
+        this.addChild(this.#_wmhtmltext)
+    }
+
+    get htmlStyle() {
+        return this.#_wmhtmltext.style
+    }
+
+    set text(value : string) {
+        this.#_wmhtmltext.text = value
+    }
+
+    set w(value : float) {
+        // this.#_wmhtmltext.style.wordWrapWidth = this.w
+        super.w = value
+    }
+
+    // set h(value : float) {
+    //     // this.#_wmhtmltext
+    //     super.h = value
+    // }
+
+}

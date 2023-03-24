@@ -1797,7 +1797,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\chest.png",
+			"path": ".\\BBmodels\\chest.png",
 			"name": "chest.png",
 			"folder": "block",
 			"namespace": "",

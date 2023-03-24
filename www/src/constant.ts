@@ -64,6 +64,7 @@ export const RENDER_EAT_FOOD_DURATION       = 1800;
 export const UI_THEME = {
     base_font: {
         color: '#5bc4da',
+        family: 'UbuntuMono-Regular',
         size: 14
     },
     second_text_color: '#ffffffbb',

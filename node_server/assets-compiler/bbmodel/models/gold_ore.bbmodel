@@ -1625,7 +1625,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\tex\\GOLD_ORE.png",
+			"path": ".\\BBmodels\\tex\\GOLD_ORE.png",
 			"name": "GOLD_ORE.png",
 			"folder": "",
 			"namespace": "",

@@ -512,7 +512,7 @@
 	],
 	"textures": [
 		{
-			"path": "C:\\Users\\Davedee\\Documents\\BBmodels\\DEAD_BUSH.png",
+			"path": ".\\BBmodels\\DEAD_BUSH.png",
 			"name": "DEAD_BUSH",
 			"folder": "block",
 			"namespace": "",

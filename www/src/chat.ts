@@ -1,17 +1,16 @@
 import { ServerClient } from "./server_client.js";
 import { Lang } from "./lang.js";
 import { TextBox } from "./ui/textbox.js";
-import { Label, Window } from "./ui/wm.js";
+import { HTMLText, Label, Window } from "./ui/wm.js";
 import { KEY, UI_THEME } from "./constant.js";
 import type { KbEvent } from "./kb.js";
 import { Resources } from "./resources.js";
+import type { HUD } from "./hud.js";
 
 const MESSAGE_SHOW_TIME = 7000; // максимальное время отображения текста, после закрытия чата (мс)
-const SYSTEM_MESSAGE_SHOW_TIME = 3000;
 const SYSTEM_NAME = '<MadCraft>';
 
 export class Chat extends TextBox {
-    [key: string]: any;
 
     constructor(player) {
         super(UI_ZOOM * Qubatch.settings.window_size / 100);
@@ -21,6 +20,7 @@ export class Chat extends TextBox {
         this.history_max_messages = 64
         this.old_time = -1
         this.messages = {
+            updateID: 0,
             list: [],
             send(text) {
                 this.add('YOU', text);
@@ -37,6 +37,7 @@ export class Chat extends TextBox {
                 this.add(SYSTEM_NAME, text);
             },
             add(username, text) {
+                this.updateID++
                 text = String(text);
                 this.list.unshift({
                     username: username,
@@ -161,21 +162,21 @@ export class Chat extends TextBox {
         Qubatch.hud.refresh();
     }
 
-    sendMessage(text) {
+    sendMessage(text : string) {
         this.active = true;
-        this.buffer = text.split('');
+        this.buffer = text.split('')
         this.resetCarriage();
-        this.submit();
-        this.active = false;
+        this.submit()
+        this.active = false
     }
 
-    submit() {
+    submit() : boolean {
         if (!this.active) {
-            return;
+            return false
         }
-        const text = this.buffer.join('');
+        const text = this.buffer.join('').trim()
         if (text != '' && text != '/') {
-            const player = this.player;
+            const player = this.player
             // Parse commands
             const temp = text.replace(/  +/g, ' ').split(' ');
             const cmd = temp.shift();
@@ -264,47 +265,62 @@ export class Chat extends TextBox {
                 this.messages.send(text);
             }
             this.history.add(this.buffer);
-            this.buffer = [];
-            this.resetCarriage();
         }
+        this.buffer = [];
+        this.resetCarriage();
         this.close();
+        return true
     }
 
-    /**
-     * @param { import("./hud.js").HUD } hud
-     * @returns
-     */
-    drawHUD(hud) {
-        const getLength = () => {
-            let len = 0
-            for (const s of strings) {
-                len += Math.ceil(s.length / 40)
-            }
-            return len
-        }
+    drawHUD(hud : HUD) {
+
         const height = 260
         const width = 400
         const bottom = 170
         const margin = UI_THEME.window_padding * this.zoom
+        const strings = []
+
+        const getLength = () => {
+            let len = 0
+            for (const s of strings) {
+                len += Math.ceil(s.length / 46)
+            }
+            return len
+        }
+
+        //
         if (!this.chat_input) {
             this.init(hud)
-            this.history_messages_window = new Window(0, hud.height - (height + bottom) * this.zoom, width * this.zoom, height * this.zoom, 'history_messages_window')
-            this.history_messages_window.text = '_'
-            this.history_messages_window.style.padding = { top: margin, bottom: margin, left: margin, right: margin }
-            this.history_messages_window.style.font.word_wrap = true
-            this.history_messages_window.style.font.size = 16
-            this.history_messages_window.style.font.color = UI_THEME.base_font.color
-            this.history_messages_window.style.font.family = 'UbuntuMono-Regular'
+            const w = width * this.zoom
+            const h = height * this.zoom
+            this.history_messages_window = new Window(0, hud.height - (height + bottom) * this.zoom, w, h, 'history_messages_window')
             this.history_messages_window.setBackground(this.hud_atlas.getSpriteFromMap('chat_background'))
+            // this.history_messages_window.style.border.hidden = false
+            // this.history_messages_window.style.border.style = 'fixed_single'
+            // this.history_messages_window.style.border.color = '#ffffff44'
             hud.hudwindow.add(this.history_messages_window)
-            const top_label = new Label(0, 0, width * this.zoom, 2 * this.zoom, 'LabelTop')
-            top_label.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
-            this.history_messages_window.addChild(top_label)
-            const bottom_label = new Label(0, (height - 2) * this.zoom, width * this.zoom, 2 * this.zoom, 'LabelBottom')
-            bottom_label.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
-            this.history_messages_window.addChild(bottom_label)
+            //
+            const lblTop = new Label(0, 0, w, 2 * this.zoom, 'lblTop')
+            lblTop.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
+            this.history_messages_window.addChild(lblTop)
+            //
+            const lblBottom = new Label(0, (height - 2) * this.zoom, w, 2 * this.zoom, 'lblBottom')
+            lblBottom.setBackground(this.hud_atlas.getSpriteFromMap('highlight_blue'))
+            this.history_messages_window.addChild(lblBottom)
+            //
+            const htmlText1 = this.htmlText1 = new HTMLText(margin, margin, w - margin * 2, h - margin * 2, '_wmhtmltext')
+            htmlText1.htmlStyle.wordWrapWidth = w - margin * 2
+            htmlText1.htmlStyle.loadFont('/style/UbuntuMono-Regular.ttf').then(() => {
+                htmlText1.htmlStyle.fontFamily = UI_THEME.base_font.family
+            })
+            htmlText1.clip(0, 0, w - margin * 2, h - margin * 2)
+            this.history_messages_window.addChild(htmlText1)
         }
+
+        // Calc new position
         this.history_messages_window.y = hud.height - (height + bottom) * this.zoom
+
+        // Change alpha
         this.chat_input.visible = this.active
         if (this.active) {
             this.draw(0, hud.height - bottom * this.zoom, width * this.zoom, this.line_height, margin)
@@ -318,27 +334,41 @@ export class Chat extends TextBox {
             const transparent_time = time - half_show_time
             if (transparent_time > 0) {
                 this.history_messages_window.alpha = 1 - transparent_time / half_show_time
-                this.history_messages_window.text_container.alpha = this.history_messages_window.alpha
+                this.htmlText1.alpha = this.history_messages_window.alpha
             }
         } else {
             this.history_messages_window.visible = true
             this.history_messages_window.alpha = 1
-            this.history_messages_window.text_container.alpha = this.history_messages_window.alpha
+            this.htmlText1.alpha = this.history_messages_window.alpha
         }
-        const strings = []
-        // Draw message history
-        for (const m of this.messages.list) {
-            const texts = m.text.split('\n')
-            for (let i = texts.length - 1; i >= 0; i--) {
-                const text = i === 0 ? m.username + ': ' + texts[i] : '  ' + texts[i]
-                strings.push(text)
+
+        // Update text window
+        if(this.messagesUpdateID != this.messages.updateID) {
+
+            this.messagesUpdateID = this.messages.updateID
+
+            for (const m of this.messages.list) {
+                const texts = m.text.split('\n')
+                for (let i = texts.length - 1; i >= 0; i--) {
+                    const _text = this.sanitizeHTML(texts[i])
+                    const text = i === 0 ? `<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font> ${_text}` : `&nbsp;&nbsp;${_text}`
+                    strings.push(text)
+                }
             }
+
+            while (getLength() > 32) {
+                strings.pop()
+            }
+
+            const htmlText = '<div style="word-wrap: break-word;">' + strings.join('<br><br>') + '</div>'
+            this.htmlText1.text = htmlText
+
         }
-        strings.reverse()
-        while (getLength() > 6) {
-            strings.shift()
-        }
-        this.history_messages_window.text = strings.join('\n')
+
+    }
+
+    sanitizeHTML(text : string) : string {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
     }
 
     // Hook for keyboard input.
