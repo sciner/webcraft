@@ -541,7 +541,7 @@ export class MobModel extends NetworkPhysicObject {
 
         this.type = props.type;
         this.skin = props.skin_id || props.skin;
-
+        
         /**
          * @type {SceneNode[]}
          */
@@ -933,7 +933,7 @@ export class MobModel extends NetworkPhysicObject {
             }
             // загружем скин для моба
             this.prev.skin = this.skin = this.skin || asset.baseSkin;
-            this.material = this.textures.get(this.skin);
+            this.material = this.textures.get(this.skin.toString());
         }
         // если игрок зомби или скелет, загружаем броню для них
         if (this.type.startsWith('player') || this.type == 'zombie' || this.type == 'skeleton') {
