@@ -10115,6 +10115,7 @@
             "id": 1048,
             "name": "HOPPER",
             "style": "hopper",
+            "sound": "madcraft:block.stone",
             "transparent": true,
             "can_rotate": true,
             "max_in_stack": 1,
