@@ -782,45 +782,30 @@ export class Default_Terrain_Generator {
                 }
             }
         }
-        const skirt_center = new Vector(skirt_center_x, skirt_bottom + 1, skirt_center_z);
-        const skirt_radius_sqr = skirt_radius * skirt_radius;
-        for (let i = -skirt_radius; i <= skirt_radius; i++) {
-            for (let j = -skirt_radius; j <= skirt_radius; j++) {
-                for (let coef = 0; coef < Math.PI; coef += .1) {
-                    const x_shift = i < 0 ? -.5 : .5;
-                    const z_shift = j < 0 ? -.5 : .5;
-                    const qube_pos_x = i + skirt_center_x;
-                    const qube_pos_z = j + skirt_center_z;
-                    const c = Math.cos(coef);
-                    const qube_pos_y = skirt_bottom + Math.ceil((c + 2) / 3 * skirt_radius);
-                    qube_pos.setScalar(qube_pos_x + x_shift, qube_pos_y + .5, qube_pos_z + z_shift);
-                    const dist = skirt_center.distanceSqr(qube_pos)
-                    if (dist > skirt_radius_sqr || dist < skirt_radius_sqr * .7) {
-                        continue;
+        if (tree.height > 7) {
+            const skirt_center = new Vector(skirt_center_x, skirt_bottom + 1, skirt_center_z);
+            const skirt_radius_sqr = skirt_radius * skirt_radius;
+            for (let i = -skirt_radius; i <= skirt_radius; i++) {
+                for (let j = -skirt_radius; j <= skirt_radius; j++) {
+                    for (let coef = 0; coef < Math.PI; coef += .1) {
+                        const x_shift = i < 0 ? -.5 : .5;
+                        const z_shift = j < 0 ? -.5 : .5;
+                        const qube_pos_x = i + skirt_center_x;
+                        const qube_pos_z = j + skirt_center_z;
+                        const c = Math.cos(coef);
+                        const qube_pos_y = skirt_bottom + Math.ceil((c + 2) / 3 * skirt_radius);
+                        qube_pos.setScalar(qube_pos_x + x_shift, qube_pos_y + .5, qube_pos_z + z_shift);
+                        const dist = skirt_center.distanceSqr(qube_pos)
+                        if (dist > skirt_radius_sqr || dist < skirt_radius_sqr * .7) {
+                            continue;
+                        }
+                        this.temp_block.id = tree.type.leaves;
+                        let extra_data = null;
+                        setTreeBlock(tree, qube_pos_x, qube_pos_y, qube_pos_z, this.temp_block, false, null, extra_data);
                     }
-                    this.temp_block.id = tree.type.leaves;
-                    let extra_data = null;
-                    setTreeBlock(tree, qube_pos_x, qube_pos_y, qube_pos_z, this.temp_block, false, null, extra_data);
                 }
-                // const c = 0.85;
-                // const t= skirt_bottom + skirt_radius;
-                // for (let qube_pos_y = skirt_bottom; qube_pos_y < t*c; qube_pos_y++) {
-                //     const x_shift = i < 0 ? -.5 : .5;
-                //     const z_shift = j < 0 ? -.5 : .5;
-                //     const qube_pos_x = i + skirt_center_x;
-                //     const qube_pos_z = j + skirt_center_z;
-                //     qube_pos.setScalar(qube_pos_x + x_shift,  Math.ceil(qube_pos_y/c)+ .5, qube_pos_z + z_shift);
-                //     const dist = skirt_center.distanceSqr(qube_pos)
-                //     if (dist > skirt_radius_sqr || dist < skirt_radius_sqr * .7) {
-                //         continue;
-                //     }
-                //     this.temp_block.id = tree.type.leaves;
-                //     let extra_data = null;
-                //     setTreeBlock(tree, qube_pos_x, qube_pos_y, qube_pos_z, this.temp_block, false, null, extra_data);
-                // }
             }
         }
-
         if (tree.params?.effects) {
             this.addMushroomEffects(world, xyz, BLOCK.RED_MUSHROOM, tree.height * height_incr_coefficient);
         }
