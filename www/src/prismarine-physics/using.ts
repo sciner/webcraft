@@ -182,6 +182,8 @@ export class PrismarinePlayerControl extends PlayerControl {
 
     get type()              { return PLAYER_CONTROL_TYPE.PRISMARINE }
 
+    get requiresChunk(): boolean { return true }
+
     get sneak(): boolean {
         const player_state = this.player_state
         return player_state.control.sneak && player_state.onGround

@@ -107,6 +107,7 @@ export abstract class PlayerControl {
     }
 
     abstract get type(): PLAYER_CONTROL_TYPE
+    abstract get requiresChunk(): boolean
     abstract get sneak(): boolean
     abstract get playerHeight(): float
 
