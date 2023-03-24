@@ -1,6 +1,6 @@
 "use strict";
 
-import {Vector} from "../helpers/vector.js";
+import {getChunkAddr, Vector} from "../helpers/vector.js";
 import type {Player} from "../player.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
@@ -16,6 +16,9 @@ import {MonotonicUTCDate} from "../helpers.js";
 import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PlayerTickData} from "./player_tick_data.js";
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
+import {CHUNK_STATE} from "../chunk_const.js";
+
+const tmpAddr = new Vector()
 
 /**
  * It contains multiple controllers (subclasses of {@link PlayerControl}), switches between them,
@@ -130,6 +133,15 @@ export abstract class PlayerControlManager {
 
         // simulate the steps
         for(let i = 0; i < data.physicsTicks; i++) {
+            if (pc.requiresChunk) {
+                const pos = player_state.pos
+                getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
+                const chunk = this.player.world.chunkManager.getChunk(tmpAddr)
+                if (!chunk || (chunk.load_state != null && chunk.load_state !== CHUNK_STATE.READY)) {
+                    pc.restorePartialState(prevPos)
+                    return false
+                }
+            }
             try {
                 pc.simulatePhysicsTick()
             } catch (e) {
