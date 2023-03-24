@@ -652,6 +652,7 @@ export class FontStyle {
     set word_wrap(value) {
         value = !!value
         this.#window.text_container.style.wordWrap = value
+        this.#window.text_container.style.whiteSpace = value ? 'pre-line' : 'normal'
         if(value) {
             this.#window.text_container.style.wordWrapWidth = this.#window.w
         }
