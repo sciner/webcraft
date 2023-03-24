@@ -90,7 +90,8 @@ const SPEEDS: Dict<TFreeSpeedConfig> = {
     DOWN: {
         max                     : 5.7,
         acceleration            : Infinity, // сразу макс. скорось
-        exponentialDeceleration : 0         // мгновенная остановка
+        deceleration            : 2.0
+        // exponentialDeceleration : 0         // мгновенная остановка
     }
 }
 
@@ -138,7 +139,7 @@ export class SpectatorPlayerControl extends PlayerControl {
 
         // change Y velocity
         if (forceUp === 0) {
-            vel.y = this.decelerate(vel.y, vel.y > 0 ? UP : DOWN)
+            vel.y = this.decelerate(vel.y, vel.y > 0 ? UP : DOWN, mul)
         } else {
             if (Math.sign(vel.y) !== forceUp) {
                 vel.y *= UP.exponentialDeceleration
@@ -156,7 +157,7 @@ export class SpectatorPlayerControl extends PlayerControl {
             // decelerate
             const oldVelScalar = vel.horizontalLength()
             if (oldVelScalar) {
-                const newVelScalar = this.decelerate(oldVelScalar, HORIZONTAL)
+                const newVelScalar = this.decelerate(oldVelScalar, HORIZONTAL, mul)
                 vel.mulScalarSelf(newVelScalar / oldVelScalar)
             }
         } else {
@@ -172,12 +173,12 @@ export class SpectatorPlayerControl extends PlayerControl {
             tmpVec.subSelf(vel)
             const deltaVelScalar = tmpVec.horizontalLength()
             // when the speed is closing to the desired, acceleration is reduced
-            const diminishingAcceleration = Mth.lerpAny(deltaVelScalar,
+            const diminishedAcceleration = Mth.lerpAny(deltaVelScalar,
                 0, conf.diminishingAcceleration,
-                max * (1 - conf.diminishingAccelerationThreshold), 1
+                max * (1 - conf.diminishingAccelerationThreshold), conf.acceleration
             )
             // acceleration in this tick, to make speed closer to desired
-            let accelerationScalar = Math.min(deltaVelScalar, conf.acceleration * mul) * diminishingAcceleration
+            let accelerationScalar = Math.min(deltaVelScalar, diminishedAcceleration * mul)
             if (accelerationScalar) {
                 tmpVec.normalizeSelf(accelerationScalar) // delta velocity vector
                 vel.addSelf(tmpVec)
@@ -201,11 +202,11 @@ export class SpectatorPlayerControl extends PlayerControl {
         return true
     }
 
-    private decelerate(v: float, conf: TFreeSpeedConfig): float {
+    private decelerate(v: float, conf: TFreeSpeedConfig, mul: float): float {
         v *= conf.exponentialDeceleration
         return v > 0
-            ? Math.max(v - conf.deceleration, 0)
-            : Math.min(v + conf.deceleration, 0)
+            ? Math.max(v - conf.deceleration * mul, 0)
+            : Math.min(v + conf.deceleration * mul, 0)
     }
 }
 
