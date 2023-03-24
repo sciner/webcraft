@@ -16,12 +16,10 @@ export default class Ticker {
     //
     static func(this: TickingBlockManager, tick_number, world, chunk, v) {
 
-        const ambientLight = (world.info.rules.ambientLight || 0) * 255 / 15
-
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
-        if (!extra_data?.type || !extra_data?.skin) {
+        if (!extra_data?.type || !extra_data?.skin || world.info.title == 'BLDGFYT') {
             return;
         }
 
