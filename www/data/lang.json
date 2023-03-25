@@ -200,6 +200,8 @@
         "backpack": {"en": "BACKPACK", "ru": "РЮКЗАК", "fr": "", "es": "", "man": ""},
         "recipes": {"en": "RECIPES", "ru": "РЕЦЕПТЫ", "fr": "", "es": "", "man": ""},
         "only_can": {"en": "I can", "ru": "Я могу", "fr": "", "es": "", "man": ""},
-        "crafting_table": {"en": "WORKBENCH", "ru": "ВЕРСТАК", "fr": "", "es": "", "man": ""}
+        "crafting_table": {"en": "WORKBENCH", "ru": "ВЕРСТАК", "fr": "", "es": "", "man": ""},
+        "pos_not_valid": {"en": "The place missing or obstructed", "ru": "Доступ к этому месту заблокирован", "fr": "", "es": "", "man": ""},
+        "pos_occupied": {"en": "This place is occupied", "ru": "Это место занято", "fr": "", "es": "", "man": ""}
     }
 }

@@ -1063,4 +1063,21 @@ export class ServerPlayer extends Player {
         return this.world.admins.checkIsAdmin(this)
     }
 
+    getFreePosition() {
+        const pos = new Vector(this.state.pos).flooredSelf()
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                const pos_legs = pos.offset(i, 0, j)
+                let tblock = this.world.getBlock(pos_legs)
+                if (tblock.id == 0) {
+                    tblock = this.world.getBlock(pos_legs.offset(0, 1, 0))
+                    if (tblock.id == 0) {
+                        console.log(pos_legs)
+                        this.setPosition(pos_legs)
+                        return pos_legs
+                    }
+                }
+            }
+        }
+    }
 }
