@@ -47,6 +47,7 @@ export class ChunkManager {
     state = {
         generated: {
             count: 0,
+            generated_count: 0,
             time: 0
         }
     }

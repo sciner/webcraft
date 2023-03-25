@@ -10,6 +10,7 @@ import {ChunkLight} from "./light/ChunkLight.js";
 import type { BaseResourcePack } from "./base_resource_pack.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
+import type { ChunkManager } from "./chunk_manager.js";
 
 let global_uniqId = 0;
 
@@ -49,7 +50,7 @@ export class Chunk {
     light : ChunkLight
     tblocks: TypedBlocks3
 
-    getChunkManager() {
+    getChunkManager() : ChunkManager {
         return this.chunkManager;
     }
 
@@ -145,8 +146,11 @@ export class Chunk {
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
         chunkManager.dataWorld.syncOuter(this);
-        this.inited = true;
+        if(this.inited) {
+            chunkManager.state.generated.count--
+        }
         chunkManager.state.generated.count++
+        this.inited = true;
         this.light.init();
     }
 
@@ -299,16 +303,21 @@ export class Chunk {
 
     // Apply vertices
     applyChunkWorkerVertices() {
-        let chunkManager = this.getChunkManager();
-        const args = this.vertices_args;
-        delete (this['vertices_args']);
-        this.need_apply_vertices = false;
-        this.buildVerticesInProgress = false;
+        const chunkManager = this.getChunkManager();
+        const args = this.vertices_args
+        delete(this['vertices_args'])
+        this.need_apply_vertices = false
+        this.buildVerticesInProgress = false
+        if(this.timers) {
+            chunkManager.state.generated.time -= this.timers.generate_terrain
+            chunkManager.state.generated.generated_count--
+        }
         this.timers = args.timers
         chunkManager.state.generated.time += this.timers.generate_terrain
-        this.gravity_blocks = args.gravity_blocks;
-        this.applyVertices('worker', chunkManager.bufferPool, args.vertices);
-        this.dirty = false;
+        chunkManager.state.generated.generated_count++
+        this.gravity_blocks = args.gravity_blocks
+        this.applyVertices('worker', chunkManager.bufferPool, args.vertices)
+        this.dirty = false
     }
 
     // Destruct chunk
@@ -318,10 +327,13 @@ export class Chunk {
             return;
         }
         // remove from stat
-        if(this.timers) {
-            chunkManager.state.generated.time -= this.timers.generate_terrain
+        if(this.inited) {
+            if(this.timers) {
+                chunkManager.state.generated.time -= this.timers.generate_terrain
+                chunkManager.state.generated.generated_count--
+            }
+            chunkManager.state.generated.count--
         }
-        chunkManager.state.generated.count--
         //
         this.chunkManager = null;
         this.light.dispose();
