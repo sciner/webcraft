@@ -2604,7 +2604,7 @@ function useBoneMeal(e, world, pos, player, world_block, world_material, mat_blo
         return false;
     }
     const position = new Vector(pos);
-    if(world_material.id == BLOCK.GRASS_BLOCK.id) {
+    if(world_material.id == BLOCK.GRASS_BLOCK.id || world_material.id == BLOCK.GRASS_BLOCK_SLAB.id) {
         const tblock_pos = new Vector(0, 0, 0);
         const tblock_pos_over = new Vector(0, 0, 0);
         const tblock_pos_over2 = new Vector(0, 0, 0);

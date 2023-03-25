@@ -340,7 +340,8 @@ export class GlobalUniformGroup {
 }
 
 export class CubeMesh {
-    [key: string]: any;
+    shader: any;
+    geom: any;
 
     constructor(shader, geom) {
         this.shader = shader;

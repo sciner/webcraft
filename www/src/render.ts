@@ -35,6 +35,7 @@ import type { World } from "./world.js";
 import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
+import type WebGLRenderer from "./renders/webgl/index.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -82,7 +83,7 @@ export class Renderer {
     env: Environment;
     camera_mode: CAMERA_MODE;
     rain: any;
-    renderBackend: any;
+    renderBackend: WebGLRenderer;
     meshes: MeshManager;
     camera: Camera;
     inHandOverlay: any;
@@ -531,7 +532,7 @@ export class Renderer {
         return new Promise((resolve, reject) => {
 
             // render target to Canvas
-            target.toImage('canvas').then((data) => {
+            target.toImage('canvas').then((data : any) => {
                 /**
                  * @type {CanvasRenderingContext2D}
                  */
@@ -661,7 +662,7 @@ export class Renderer {
                 tmpCanvas.width = tmpCanvas.height = 0
                 Resources.inventory.image = data
 
-                data.toBlob(async (blob) => {
+                data.toBlob(async (blob : Blob) => {
                     Resources.inventory.atlas = await SpriteAtlas.fromJSON(await blobToImage(blob) as HTMLImageElement, atlas_map)
                     if(callback instanceof Function) {
                         callback(blob)
