@@ -6,9 +6,7 @@ import { BlankWindow } from "./blank.js";
 export class DieWindow extends BlankWindow {
 
     constructor() {
-        super(10, 10, 352, 332, 'frmDie')
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, 352, 332, 'frmDie')
         this.w *= this.zoom
         this.h *= this.zoom
         const lblTitle = new Label(20 * this.zoom, 50 * this.zoom, this.w - 40 * this.zoom, 40 * this.zoom, 'lblTitle', null, Lang.you_died)

@@ -36,6 +36,7 @@ class HUDWindow extends Window {
     [key: string]: any;
 
     noConnectionWarning: Window
+    lbl_loading: Window
 
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
@@ -92,29 +93,30 @@ class HUDWindow extends Window {
             const sinceLastPacket = performance.now() - Qubatch.world.server.lastPacketReceivedTime
             if (sinceLastPacket > HUD_CONNECTION_WARNING_INTERVAL) {
                 this.noConnectionWarning.visible = true
-                this.noConnectionWarning.w = width
-                this.noConnectionWarning.style.padding._changed()
+                if(this.noConnectionWarning.w != width) {
+                    this.noConnectionWarning.w = width
+                }
                 this.noConnectionWarning.text = Lang[`no_connection|${sinceLastPacket * 0.001 | 0}`]
             }
-        } else {
+        }
+        if(this.lbl_loading.w != width || this.lbl_loading.h != height) {
+            this.lbl_loading.w = width
+            this.lbl_loading.h = height
+            this.kb_tips.h = height
         }
         this.lbl_loading.visible = loading
-        this.lbl_loading.w = width
-        this.lbl_loading.h = height
-        this.lbl_loading.style.padding._changed()
-        this.kb_tips.h = height
         this.splash.visible = loading
         this.resize2(width, height, loading_parts)
     }
 
-    resize2(width, height, loading_parts) {
-        this.splash.width = width
-        this.splash.height = height
-        this.progressbar.y = height - this.progressbar.h
-        //
+    resize2(width : number, height : number, loading_parts : any[]) {
+        if(this.splash.width != width || this.splash.height != height) {
+            this.splash.width = width
+            this.splash.height = height
+            this.progressbar.y = height - this.progressbar.h
+        }
         let percent = 0
         loading_parts.map(item => percent += item.percent / loading_parts.length)
-        //
         this.progressbar.w = percent * width
     }
 
@@ -124,7 +126,7 @@ class HUDWindow extends Window {
 export class HUD {
     [key: string]: any;
 
-    FPS                         = new FPSCounter()
+    FPS = new FPSCounter()
 
     constructor(canvas) {
 

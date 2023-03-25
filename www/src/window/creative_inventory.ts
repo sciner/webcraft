@@ -219,7 +219,7 @@ export class CreativeInventoryWindow extends BlankWindow {
     collection : CreativeInventoryCollection
 
     constructor(inventory) {
-        super(10, 10, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
         this.x *= this.zoom 
         this.y *= this.zoom
         this.w *= this.zoom

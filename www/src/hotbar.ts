@@ -23,7 +23,8 @@ for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
 
 //
 class Strings {
-    [key: string]: any;
+
+    strings : {set_time: any, text : any, measure : any, max_time : any}[]
 
     constructor() {
         this.strings = [
@@ -51,7 +52,7 @@ class Strings {
     }
 
     // draw
-    draw(window, window_shadow) {
+    draw(window : Window, window_shadow : Window) {
 
         const texts = []
 
@@ -75,8 +76,12 @@ class Strings {
             texts.push(item.text)
         }
 
-        window.text = texts.join('\n')
-        window_shadow.text = texts.join('\n')
+        const _text = texts.join('\n')
+
+        if(window.text != _text) {
+            window.text = _text
+            window_shadow.text = window.text
+        }
 
     }
 
@@ -95,6 +100,7 @@ export class Hotbar {
     sy:                         float
     sprite_zoom:                float
     bars:                       Dict<Label> = {}
+    strings:                    Strings
 
     constructor(hud : HUD) {
 
@@ -183,6 +189,7 @@ export class Hotbar {
         this.lblHotbarTextShadow.style.textAlign.horizontal = 'center'
         this.lblHotbarTextShadow.style.textAlign.vertical = 'bottom'
         this.lblHotbarTextShadow.style.font.color = '#00000055'
+        this.lblHotbarTextShadow.style.font.size = 18
 
         // Hotbar text in center of screen
         hud.wm._wmoverlay.add(this.lblHotbarText = new Window(0, 0, 0, 0, 'lblHotbarText', undefined, 'Lang.loading'))
@@ -190,6 +197,7 @@ export class Hotbar {
         this.lblHotbarText.style.textAlign.horizontal = 'center'
         this.lblHotbarText.style.textAlign.vertical = 'bottom'
         this.lblHotbarText.style.font.color = '#ffffff'
+        this.lblHotbarText.style.font.size = 18
 
         // const fs = this.lblHotbarText.text_container.style
         // fs.stroke = '#00000099'
@@ -240,20 +248,19 @@ export class Hotbar {
         }
         this.hud.wm.addChild(bars_base_window)
 
-        this.armors = {}
         const armor_base_sprite = this.hud_atlas.getSpriteFromMap('armor_0') 
         const armor_base_window = this.armor_base_window = new Window(MARGIN * this.zoom, 0, armor_base_sprite.width * sprite_zoom, armor_base_sprite.height * sprite_zoom, 'armor_base')
         armor_base_window.catchEvents = false
         armor_base_window.auto_center = false
         armor_base_window.setBackground(armor_base_sprite)
-        this.armors[PLAYER_ARMOR_SLOT_HELMET] = new Label( 8.5 * this.zoom, 0, 47 * sprite_zoom, 38 * sprite_zoom, 'armor_helmet')
-        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_HELMET])
-        this.armors[PLAYER_ARMOR_SLOT_CHESTPLATE] = new Label( 0, 12 * this.zoom, 104 * sprite_zoom, 71 * sprite_zoom, 'armor_chestplate')
-        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_CHESTPLATE])
-        this.armors[PLAYER_ARMOR_SLOT_LEGGINGS] = new Label( 7.5 * this.zoom, 33 * this.zoom, 53 * sprite_zoom, 62 * sprite_zoom, 'armor_leggins')
-        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_LEGGINGS])
-        this.armors[PLAYER_ARMOR_SLOT_BOOTS] = new Label( 7.5 * this.zoom, 52 * this.zoom, 53 * sprite_zoom, 26 * sprite_zoom, 'armor_boots')
-        armor_base_window.add(this.armors[PLAYER_ARMOR_SLOT_BOOTS])
+        this.armors = {}
+        this.armors[PLAYER_ARMOR_SLOT_HELMET]     = new Label(8.5 * this.zoom, 0, 47 * sprite_zoom, 38 * sprite_zoom, 'armor_helmet')
+        this.armors[PLAYER_ARMOR_SLOT_CHESTPLATE] = new Label(0, 12 * this.zoom, 104 * sprite_zoom, 71 * sprite_zoom, 'armor_chestplate')
+        this.armors[PLAYER_ARMOR_SLOT_LEGGINGS]   = new Label(7.5 * this.zoom, 33 * this.zoom, 53 * sprite_zoom, 62 * sprite_zoom, 'armor_leggins')
+        this.armors[PLAYER_ARMOR_SLOT_BOOTS]      = new Label(7.5 * this.zoom, 52 * this.zoom, 53 * sprite_zoom, 26 * sprite_zoom, 'armor_boots')
+        for(let k in this.armors) {
+            armor_base_window.add(this.armors[k])
+        }
         this.hud.wm.addChild(armor_base_window)
 
         const inventory_slots_window = this.inventory_slots_window = new Window(bars_base_window.x + bars_base_window.w + MARGIN * this.zoom, 0, INVENTORY_HOTBAR_SLOT_COUNT * (sz * SLOT_MARGIN_PERCENT) - (sz * SLOT_MARGIN_PERCENT - sz), sz, 'hotbar_inventory_slots')
@@ -359,27 +366,33 @@ export class Hotbar {
         let hotbar_height = 0
 
         if (mayGetDamaged) {
-            const left = 180 * this.zoom
+            // const left = 180 * this.zoom
             const right = 15 * this.zoom
-            const bottom_one_line = 70 * this.zoom
+            // const bottom_one_line = 70 * this.zoom
             const bottom_two_line = 90 * this.zoom
             hotbar_height = bottom_two_line
-            const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
-            // жизни
-            const live = player.indicators.live;
+            // const diff = Math.round(performance.now() - Qubatch.hotbar.last_damage_time);
             // моргание от урона
-            const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
-            const low_live = live < 3
+            // const is_damage = (diff > 0 && diff < 100 || diff > 200 && diff < 300)
+            // const low_live = live < 3
 
             this.bars_base_window.transform.position.y = this.inventory_slots_window.transform.position.y + this.bars_base_window.h * .03
 
             this.armor_base_window.transform.position.y = this.inventory_slots_window.transform.position.y - 70 *this.zoom
 
-            this.bars.hp.clip(0, 0, this.bars.hp.w * (live / 20.))
+            // здоровье
+            const live = player.indicators.live
+            if(this.bars.hp.prev_value !== live) {
+                this.bars.hp.prev_value = live
+                this.bars.hp.clip(0, 0, this.bars.hp.w * (live / 20.))
+            }
 
             // еда
-            const food = player.indicators.food;
-            this.bars.hunger.clip(0, 0, this.bars.hunger.w * (food / 20.))
+            const food = player.indicators.food
+            if(this.bars.hunger.prev_value !== food) {
+                this.bars.hunger.prev_value = food
+                this.bars.hunger.clip(0, 0, this.bars.hunger.w * (food / 20.))
+            }
 
             // const x = MARGIN * this.zoom
             // const y = this.inventory_slots_window.y
@@ -410,19 +423,24 @@ export class Hotbar {
             }
 
             for(const slot_index of [PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET]) {
-                if (this.armors[slot_index]) {
+                const slot = this.armors[slot_index]
+                if (slot) {
                     const power = this.inventory.getArmorPower(slot_index)
-                    if (power > 70) {
-                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_green')
-                    } else if (power > 40) {
-                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_yellow')
-                    } else if (power > 0) {
-                        this.armors[slot_index].setBackground(this.armors[slot_index].id + '_red')
-                    } else {
-                        this.armors[slot_index].setBackground(null)
+                    if(slot.prev_power != power) {
+                        slot.prev_power = power
+                        let bg = null
+                        if (power > 70) {
+                            bg = slot.id + '_green'
+                        } else if (power > 40) {
+                            bg = slot.id + '_yellow'
+                        } else if (power > 0) {
+                            bg = slot.id + '_red'
+                        }
+                        slot.setBackground(bg)
                     }
                 }
             }
+
         }
 
         // хотбар и селектор
@@ -444,20 +462,16 @@ export class Hotbar {
             hotbar_height = sy
         }
 
-        // TODO: pixi
         this.drawEffects(hud)
 
         // Draw strings
         this.lblHotbarText.w = hud.width
         this.lblHotbarText.h = hud.height
-        this.lblHotbarText.style.font.size = 18
         this.lblHotbarTextShadow.w = hud.width + 3
         this.lblHotbarTextShadow.h = hud.height + 3
 
         this.lblHotbarText.style.padding.bottom = hotbar_height + 10 * this.zoom
-        // this.lblHotbarTextShadow.style.padding.left = 2 * this.zoom
         this.lblHotbarTextShadow.style.padding.bottom = hotbar_height + 10 * this.zoom
-        this.lblHotbarTextShadow.style.font.size = 18
 
         this.strings.draw(this.lblHotbarText, this.lblHotbarTextShadow)
 

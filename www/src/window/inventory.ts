@@ -24,9 +24,7 @@ export class InventoryWindow extends BaseCraftWindow {
 
     constructor(inventory : PlayerInventory, recipes) {
 
-        super(10, 10, 700, 332, 'frmInventory', null, null, inventory)
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, 700, 332, 'frmInventory', null, null, inventory)
         this.w *= this.zoom
         this.h *= this.zoom
         this.recipes = recipes
@@ -71,7 +69,7 @@ export class InventoryWindow extends BaseCraftWindow {
         // Создание слотов для инвентаря
         const x = this.w / this.zoom - slots_width
         const y = 35
-        this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding)
+        this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding, undefined, true)
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(UI_THEME.window_padding * this.zoom * 3.5 + szm * 4, 34 * this.zoom + sz * .5)

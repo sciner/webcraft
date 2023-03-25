@@ -8,9 +8,8 @@ export class ScreenshotWindow extends BlankWindow {
     [key: string]: any;
 
     constructor(player) {
-        super(10, 10, 400 , 460, "frmScreenshot", null, null);
-        this.x *= this.zoom 
-        this.y *= this.zoom
+
+        super(0, 0, 400 , 460, "frmScreenshot", null, null)
         this.w *= this.zoom
         this.h *= this.zoom
         this.player = player

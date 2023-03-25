@@ -8,9 +8,7 @@ export class EditSignWindow extends BlankWindow {
 
     constructor() {
 
-        super(10, 10, 236, 192, 'frmEditSign', null, null);
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, 236, 192, 'frmEditSign', null, null)
         this.w *= this.zoom
         this.h *= this.zoom
         // Get window by ID

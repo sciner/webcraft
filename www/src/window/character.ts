@@ -23,7 +23,12 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
     constructor(player : Player, inventory : PlayerInventory) {
 
-        super(10, 10, 700, 332, 'frmCharacterWindow', null, null, inventory)
+        const w = 350
+        const h = 166
+
+        super(0, 0, w, h, 'frmCharacterWindow', null, null, inventory)
+        this.w *= this.zoom
+        this.h *= this.zoom
 
         this.player = player
         this.skinKey = null
@@ -51,7 +56,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         // Создание слотов для инвентаря
         const x = this.w / this.zoom - slots_width
         const y = 35
-        this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding)
+        this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding, undefined, true)
 
         // Создания слота для армора
         this.createArmorSlots(this.cell_size)
@@ -62,12 +67,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         // Add label
         const lblBackpackWidth = (slots_width - UI_THEME.window_padding) * this.zoom
         const lblBackpackHeight = 30 * this.zoom
-        const lblBackpack = new Label(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, lblBackpackHeight, 'lblBackpack', null, Lang.backpack)
-        lblBackpack.style.font.color = UI_THEME.label_text_color
-        lblBackpack.style.font.size = UI_THEME.base_font.size
-        lblBackpack.style.textAlign.horizontal = 'left'
-        lblBackpack.text = Lang.backpack
-        this.add(lblBackpack)
+        this.addLabel(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, lblBackpackHeight, Lang.backpack)
 
     }
 

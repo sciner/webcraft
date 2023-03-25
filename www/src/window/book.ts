@@ -94,21 +94,24 @@ export class BookWindow extends BlankWindow {
 
     constructor(player) {
 
-        super(10, 10, 290, 360, 'frmBook', null, null)
+        const w = 290
+        const h = 360
 
+        super(0, 0, w, h, 'frmBook', null, null)
         this.w *= this.zoom
         this.h *= this.zoom
+
         this.extra_data = null
         this.page = 0
         this.pages = []
 
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/book.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(40, 0, 290, 360), 'none', this.zoom / 2.0)
+        this.atlas.fromFile('./media/gui/book.png').then(async (atlas : SpriteAtlas) => {
+            this.setBackground(await atlas.getSprite(40, 0, w, h), 'none', this.zoom / 2.0)
         })
 
-        // Создание лебалов
+        // Создание лейблов
         this.createLabels()
 
         // Создание кнопок

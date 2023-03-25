@@ -8,9 +8,7 @@ export class NotImplementedWindow extends BlankWindow {
 
     constructor() {
 
-        super(10, 10, 236, 192, 'frmNotImplemented', null, null);
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, 236, 192, 'frmNotImplemented', null, null)
         this.w *= this.zoom
         this.h *= this.zoom
         this.setBackground('./media/gui/form-empty.png')

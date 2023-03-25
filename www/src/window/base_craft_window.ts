@@ -694,7 +694,6 @@ export class ArmorSlot extends CraftTableInventorySlot {
 }
 
 export class BaseCraftWindow extends BaseInventoryWindow {
-    [key: string]: any;
 
     lblResultSlot: CraftTableResultSlot
 
@@ -720,11 +719,8 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
     /**
     * Создание слотов для инвентаря
-    * @param int sz Ширина / высота слота
-    * @param int xs Смешение слотов по оси x
-    * @param int ys Смешение слотов по оси y
     */
-    createInventorySlots(sz, sx = UI_THEME.window_padding, sy = 166, belt_x? : float, belt_y? : float) {
+    createInventorySlots(sz, sx = UI_THEME.window_padding, sy = 166, belt_x? : float, belt_y? : float, draw_potential_slots : boolean = false) {
 
         const ct = this;
         if(ct.inventory_slots) {
@@ -775,6 +771,18 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             const x = sx + (i % xcnt) * (sz + margin)
             const y = sy + Math.floor(i / xcnt) * (sz + margin)
             createSlot(x, y)
+        }
+
+        // потенциальные, заблокированные слоты
+        if(draw_potential_slots) {
+            const hud_atlas = Resources.atlas.get('hud')
+            for(let i = INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT * 2; i++) {
+                const x = sx + (i % xcnt) * (sz + margin)
+                const y = sy + Math.floor(i / xcnt) * (sz + margin)
+                const lblSlot = new Label(x, y, sz, sz, `lblPotentialSlot${i}`)
+                lblSlot.setBackground(hud_atlas.getSpriteFromMap('window_slot_locked'))
+                ct.add(lblSlot)
+            }
         }
 
     }
