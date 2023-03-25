@@ -1649,7 +1649,7 @@ function sitDown(e, world, pos, player, world_block, world_material, mat_block, 
                 block = world.getBlock(pos.offset(i, -1, j))
                 if (block.material.is_solid) {
                     block = world.getBlock(pos.offset(i, 0, j))
-                    if (block.id == 0) {
+                    if (block.id == 0 || block?.material?.height < .5) {
                         block = world.getBlock(pos.offset(i, 1, j))
                         if (block.id == 0) {
                             return true
@@ -1709,7 +1709,7 @@ function sitDown(e, world, pos, player, world_block, world_material, mat_block, 
     actions.reset_mouse_actions = true
     const sit_rot = new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
     actions.setSitting(sit_pos, sit_rot)
-   return true
+    return true
 }
 
 // Нельзя ничего ставить поверх этого блока
