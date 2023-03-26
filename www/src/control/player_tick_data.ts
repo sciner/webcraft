@@ -5,6 +5,7 @@ import {GameMode} from "../game_mode.js";
 import type {Player} from "../player.js";
 import {PHYSICS_ROTATION_DECIMALS} from "../constant.js";
 import type {PlayerControlManager} from "./player_control_manager.js";
+import type {PLAYER_CONTROL_TYPE} from "./player_control.js";
 
 export enum PLAYER_TICK_DATA_STATUS {
     NEW = 1,
@@ -13,10 +14,17 @@ export enum PLAYER_TICK_DATA_STATUS {
     SENT
 }
 
+export enum PLAYER_TICK_MODE {
+    NORMAL = 0,
+    SITTING_OR_LYING,
+    FLYING
+}
+
 /** It represents input and output of player controls & physics in one several consecutive physics ticks. */
 export class PlayerTickData {
     protected static INPUT_FLAGS_COUNT = 8
-    protected static OUT_FLAGS_COUNT = 2
+    protected static OUT_CONTROL_FLAGS_COUNT = 1
+    protected static OUT_PLAYER_FLAGS_COUNT = 1
 
     private static SEQUENCE_INPUT = 0
     private static SEQUENCE_CONTEXT_AND_OUTPUT = 1
@@ -28,9 +36,11 @@ export class PlayerTickData {
     physicsTicks: int // how many simulated physics ticks are contained in this data
     // context data - needed to repeat ticks correctly (acts somewhat like input, but from the game rather than the user)
     contextGameModeIndex: int
-    contextControlType: int
+    contextControlType: PLAYER_CONTROL_TYPE
+    contextTickMode: PLAYER_TICK_MODE // a mode within of the same control that affects physics and/or how controls are processed
     // output data
-    outFlags: int
+    outControlFlags: int    // boolean values that are stored in the control's state
+    outPlayerFlags: int     // boolean values that are stored in the player's state
     outPos = new Vector()
     outVelocity = new Vector()
 
@@ -41,7 +51,7 @@ export class PlayerTickData {
             this.inputRotation.equal(other.inputRotation)
     }
 
-    initInputEmpty(prev: PlayerTickData | null, physicsTicks: int) {
+    initInputEmpty(prev: PlayerTickData | null, physicsTicks: int): void {
         this.physicsTicks = physicsTicks
         this.inputFlags = 0
         if (prev) {
@@ -51,13 +61,13 @@ export class PlayerTickData {
         }
     }
 
-    copyInputFrom(src: PlayerTickData) {
+    copyInputFrom(src: PlayerTickData): void {
         this.physicsTicks = src.physicsTicks
         this.inputFlags = src.inputFlags
         this.inputRotation.copyFrom(src.inputRotation)
     }
 
-    applyInputTo(controlManager: PlayerControlManager, pc: PlayerControl) {
+    applyInputTo(controlManager: PlayerControlManager, pc: PlayerControl): void {
         const controls = pc.controls
         const player_state = pc.player_state
         // TODO rewrite it into a single destructing assignment when IntellijIDEA starts understanding it
@@ -78,36 +88,46 @@ export class PlayerTickData {
         }
     }
 
-    initContextFrom(player: Player) {
-        const controlManager = player.controlManager
+    initContextFrom(player: Player): void {
+        const pc = player.controlManager.current
+        const state = player.state
         this.contextGameModeIndex  = player.game_mode.getCurrent().index
-        this.contextControlType   = controlManager.current.type
+        this.contextControlType   = pc.type
+        this.contextTickMode = state.sitting || state.lies || state.sleep
+            ? PLAYER_TICK_MODE.SITTING_OR_LYING
+            : pc.player_state.flying
+                ? PLAYER_TICK_MODE.FLYING
+                : PLAYER_TICK_MODE.NORMAL
     }
 
-    copyContextFrom(src: PlayerTickData) {
+    copyContextFrom(src: PlayerTickData): void {
         this.contextControlType = src.contextControlType
         this.contextGameModeIndex = src.contextGameModeIndex
+        this.contextTickMode = src.contextTickMode
     }
 
     contextEqual(other: PlayerTickData): boolean {
         return this.contextControlType === other.contextControlType &&
-            this.contextGameModeIndex === other.contextGameModeIndex
+            this.contextGameModeIndex === other.contextGameModeIndex &&
+            this.contextTickMode === other.contextTickMode
     }
 
-    initOutputFrom(pc: PlayerControl) {
-        this.outFlags = packBooleans(pc.sneak, pc.player_state.flying)
+    initOutputFrom(pc: PlayerControl): void {
+        this.outControlFlags = packBooleans(pc.player_state.flying)
+        this.outPlayerFlags = packBooleans(pc.sneak)
         this.outPos.copyFrom(pc.player_state.pos)
         this.outVelocity.copyFrom(pc.player_state.vel)
     }
 
-    copyOutputFrom(src: PlayerTickData) {
-        this.outFlags = src.outFlags
+    copyOutputFrom(src: PlayerTickData): void {
+        this.outControlFlags = src.outControlFlags
+        this.outPlayerFlags = src.outPlayerFlags
         this.outPos.copyFrom(src.outPos)
         this.outVelocity.copyFrom(src.outVelocity)
     }
 
-    applyOutputToControl(pc: PlayerControl) {
-        const [sneak, flying] = unpackBooleans(this.outFlags, PlayerTickData.OUT_FLAGS_COUNT)
+    applyOutputToControl(pc: PlayerControl): void {
+        const [flying] = unpackBooleans(this.outControlFlags, PlayerTickData.OUT_CONTROL_FLAGS_COUNT)
         const player_state = pc.player_state
         player_state.flying = flying
         player_state.pos.copyFrom(this.outPos)
@@ -115,25 +135,28 @@ export class PlayerTickData {
     }
 
     outEqual(other: PlayerTickData): boolean {
-        return this.outFlags === other.outFlags &&
+        return this.outControlFlags === other.outControlFlags &&
+            this.outPlayerFlags === other.outPlayerFlags &&
             this.outPos.equal(other.outPos) &&
             this.outVelocity.equal(other.outVelocity)
     }
 
-    writeInput(dc: OutDeltaCompressor) {
+    writeInput(dc: OutDeltaCompressor): void {
         dc.startSequence(PlayerTickData.SEQUENCE_INPUT)
             .putInt(this.physicsTicks)
             .putInt(this.inputFlags)
             .putFloatVector(this.inputRotation)
     }
 
-    writeContextAndOutput(dc: OutDeltaCompressor) {
+    writeContextAndOutput(dc: OutDeltaCompressor): void {
         dc.startSequence(PlayerTickData.SEQUENCE_CONTEXT_AND_OUTPUT)
             // context
             .putInt(this.contextControlType)
             .putInt(this.contextGameModeIndex)
+            .putInt(this.contextTickMode)
             // output
-            .putInt(this.outFlags)
+            .putInt(this.outControlFlags)
+            .putInt(this.outPlayerFlags)
             .putFloatVector(this.outPos)
             .putFloatVector(this.outVelocity)
     }
@@ -151,8 +174,10 @@ export class PlayerTickData {
         // context
         this.contextControlType = dc.getInt()
         this.contextGameModeIndex = dc.getInt()
+        this.contextTickMode = dc.getInt()
         // output
-        this.outFlags = dc.getInt()
+        this.outControlFlags = dc.getInt()
+        this.outPlayerFlags = dc.getInt()
         dc.getFloatVector(this.outPos)
         dc.getFloatVector(this.outVelocity)
     }

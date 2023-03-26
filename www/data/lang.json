@@ -143,7 +143,7 @@
         "weather_clear": {"en": "clear", "ru": "ясная", "fr": "", "es": "", "man": ""},
         "weather_rain": {"en": "rainy", "ru": "дождливая", "fr": "", "es": "", "man": ""},
         "weather_snow": {"en": "snowy", "ru": "снежная", "fr": "", "es": "", "man": ""},
-        "error_invalid_command": {"en": "Error: invalid comand", "ru": "Ошибка: неверная команда", "fr": "", "es": "", "man": ""},
+        "error_invalid_command": {"en": "Error: invalid command", "ru": "Ошибка: неверная команда", "fr": "", "es": "", "man": ""},
         "open_file": {"en": "Open file", "ru": "Открыть файл", "fr": "", "es": "", "man": ""},
         "new_skin": {"en": "Upload skin", "ru": "Загрузить скин", "fr": "", "es": "", "man": ""},
         "slim": {"en": "Slim", "ru": "Узкий", "fr": "", "es": "", "man": ""},

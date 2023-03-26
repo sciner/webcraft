@@ -1,9 +1,9 @@
 //@ts-check
-import { lerpComplex, Mth, Vector } from "./helpers.js";
-import { Renderer } from "./render.js";
-import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
+import { Mth, Vector } from "./helpers.js";
 import { Resources } from "./resources.js";
 import { Weather } from "./block_type/weather.js";
+import type { Renderer } from "./render.js";
+import type { CubeMesh } from "./renders/BaseRenderer.js";
 
 /**
  * @typedef {object} IFogPreset
@@ -547,12 +547,35 @@ export const SETTINGS = {
 };
 
 export class Environment {
-    [key: string]: any;
-    /**
-     *
-     * @param {Renderer} context
-     */
-    constructor(context) {
+
+    skyBox :                CubeMesh
+    context:                Renderer;
+    rawInterpolatedFog:     number[];
+    rawInterpolatedFogAdd:  number[];
+    interpolatedClearValue: number[];
+    presets:                {};
+    fogDensity:             number;
+    chunkBlockDist:          number;
+    sunDir:                 number[];
+    brightness:             number;
+    nightshift:             number;
+    _skyColor:              number[];
+    horizonBrightness:      number;
+    hbLastPos:              Vector;
+    hbLastTime:             number;
+    deepDarkMode:           string;
+    _currentPresetName:     string;
+    _fogInterpolationTime:  number;
+    _computedFogRaw:        number[];
+    _computedBrightness:    number;
+    _fogDirty:              boolean;
+    _sunFactor:             number;
+    _tasks:                 Map<any, any>;
+    _interpolationRun:      boolean;
+    _interpolatedPreset:    any;
+    _refLum:                any;
+
+    constructor(context : Renderer) {
         this.context = context;
 
         this.rawInterpolatedFog      = [0 ,0 ,0, 0];
@@ -660,10 +683,9 @@ export class Environment {
     }
 
     /**
-     *
      * @param {Renderer} render
      */
-    init (render) {
+    init (render : Renderer) {
         const  {
             renderBackend
         }  = render;
@@ -922,11 +944,7 @@ export class Environment {
         gu.sunDir               = this.sunDir;
     }
 
-    /**
-     *
-     * @param {Renderer} render
-     */
-    draw (render) {
+    draw (render : Renderer) {
         if (!this.skyBox) {
             return;
         }

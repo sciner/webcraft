@@ -1,8 +1,9 @@
-import type {Vector} from "../helpers/vector.js";
+import {Vector} from "../helpers/vector.js";
 import {Mth} from "../helpers/mth.js";
 
 const MIN_BLOCKS_PER_SECOND = 0.1
 const PERIOD = 100
+const MAX_LENGTH = 1000
 
 /**
  * It logs information about player's speed over time.
@@ -12,6 +13,7 @@ export class PlayerSpeedLogger {
 
     private firstPos    : Vector | null = null
     private prevPos     : Vector | null = null
+    private tmpPos      = new Vector()
     private prevTime    : number
     private speeds      : number[] = []
     private accumulatedTime     = 0
@@ -57,14 +59,23 @@ export class PlayerSpeedLogger {
                 }
                 this.accumulatedTime        -= usedDuration
                 this.accumulatedDistance    -= usedDistance
+                if (this.speeds.length >= MAX_LENGTH) {
+                    this.log(pos)
+                    this.firstPos.copyFrom(pos)
+                }
             }
-        } else if (this.speeds.length || this.accumulatedTime) {
+        } else if (this.firstPos) {
             const hadSpeed = Mth.round(this.accumulatedDistance / (PERIOD * 0.001), 2)
             this.speeds.push(hadSpeed)
-            const deltaPos = pos.sub(this.firstPos).roundSelf(1)
-            const length = Mth.round(deltaPos.length(), 1)
-            console.log(`Total movement: ${deltaPos}; ${length} blocks. Blocks/sec in each ${PERIOD} ms interval:`, JSON.stringify(this.speeds))
+            this.log(pos)
             this.reset()
         }
+    }
+
+    private log(currentPos: Vector) {
+        const deltaPos = this.tmpPos.copyFrom(currentPos).sub(this.firstPos).roundSelf(1)
+        const length = Mth.round(deltaPos.length(), 1)
+        console.log(`Total movement: ${deltaPos}; ${length} blocks. Blocks/sec in each ${PERIOD} ms interval:`, JSON.stringify(this.speeds))
+        this.speeds.length = 0
     }
 }

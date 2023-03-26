@@ -295,9 +295,6 @@ export class Chat extends TextBox {
             const h = height * this.zoom
             this.history_messages_window = new Window(0, hud.height - (height + bottom) * this.zoom, w, h, 'history_messages_window')
             this.history_messages_window.setBackground(this.hud_atlas.getSpriteFromMap('chat_background'))
-            // this.history_messages_window.style.border.hidden = false
-            // this.history_messages_window.style.border.style = 'fixed_single'
-            // this.history_messages_window.style.border.color = '#ffffff44'
             hud.hudwindow.add(this.history_messages_window)
             //
             const lblTop = new Label(0, 0, w, 2 * this.zoom, 'lblTop')
@@ -347,11 +344,22 @@ export class Chat extends TextBox {
 
             this.messagesUpdateID = this.messages.updateID
 
+            let prev_username = null
+
             for (const m of this.messages.list) {
-                const texts = m.text.split('\n')
-                for (let i = texts.length - 1; i >= 0; i--) {
-                    const _text = this.sanitizeHTML(texts[i])
-                    const text = i === 0 ? `<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font> ${_text}` : `&nbsp;&nbsp;${_text}`
+                let message_html = this.sanitizeHTML(m.text)
+                let need_hr = false
+                if(!prev_username || (prev_username != m.username)) {
+                    if(prev_username) {
+                        need_hr = true
+                    }
+                    prev_username = m.username
+                }
+                const texts = message_html.split('\n')
+                for(let i = 0; i < texts.length; i++) {
+                    let text = texts[i] + '<br>'
+                    let hr = i == 0 && need_hr ? '<br>' : ''
+                    text = i === 0 ? `${hr}<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font> ${text}` : `&nbsp;&nbsp;${text}`
                     strings.push(text)
                 }
             }
@@ -360,7 +368,7 @@ export class Chat extends TextBox {
                 strings.pop()
             }
 
-            const htmlText = '<div style="word-wrap: break-word;">' + strings.join('<br><br>') + '</div>'
+            const htmlText = '<div style="word-wrap: break-word;">' + strings.join('') + '</div>'
             this.htmlText1.text = htmlText
 
         }

@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat} from "./helpers.js";
+import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat, Mth} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -32,6 +32,63 @@ const CC = [
     {x:  1, y:  0, z:  0}
 ];
 
+export class ChunkManagerState {
+
+    stat = {
+        loaded:             0,
+        blocks_generated:   0,
+        applied_vertices:   0,
+        time:               0,
+    }
+
+    total = {
+        one_chunk_generate_time: 0,
+    }
+
+    loaded(chunk : Chunk) {
+        this.stat.loaded++
+        this.recalc()
+    }
+
+    blocksGenerated(chunk : Chunk) {
+        if(chunk.inited) {
+            this.stat.blocks_generated--
+        }
+        this.stat.blocks_generated++
+        this.recalc()
+    }
+
+    applyVertices(chunk : Chunk, timers : any) {
+        if(chunk.timers) {
+            this.stat.time -= chunk.timers.generate_terrain
+            this.stat.applied_vertices--
+        }
+        this.stat.time += timers.generate_terrain
+        this.stat.applied_vertices++
+        this.recalc()
+    }
+
+    unload(chunk : Chunk) {
+        if(chunk.timers) {
+            this.stat.time -= chunk.timers.generate_terrain
+            this.stat.applied_vertices--
+        }
+        if(chunk.inited) {
+            this.stat.blocks_generated--
+        }
+        this.stat.loaded--
+        this.recalc()
+    }
+
+    recalc() {
+        this.total.one_chunk_generate_time = 0
+        if(this.stat.applied_vertices) {
+            this.total.one_chunk_generate_time = Mth.round(this.stat.time / this.stat.applied_vertices, 2)
+        }
+    }
+
+}
+
 //
 export class ChunkManager {
     [key: string]: any;
@@ -44,13 +101,8 @@ export class ChunkManager {
 
     #world: World;
 
-    state = {
-        generated: {
-            count: 0,
-            generated_count: 0,
-            time: 0
-        }
-    }
+    //
+    chunks_state = new ChunkManagerState()
 
     constructor(world: World) {
 

@@ -469,6 +469,7 @@ export class Default_Terrain_Generator {
         const random = new alea('tree_' + xyz.toHash())
         const cavity_chance = 1/32
         const bee_nest_chance = 1/32
+        const is_complex = random.double() < .33
 
         // ствол
         for(let i = 0; i < tree.height; i++) {
@@ -481,6 +482,40 @@ export class Default_Terrain_Generator {
                 }
             }
             setTreeBlock(tree, x, y + i, z, this.temp_block, true, undefined, extra_data)
+            // if(is_complex && !extra_data) {
+            //     if(i == 0) {
+            //
+            //     } else if(i > 1 && i < Math.ceil(tree.height / 2)) {
+            //         let rr = random.double()
+            //         if(rr < .33) {
+            //             rr /= .33
+            //             const dirs = [CD_ROT.NORTH, CD_ROT.WEST, CD_ROT.SOUTH, CD_ROT.EAST]
+            //             const idx = Math.floor(rr * dirs.length)
+            //             const d = dirs[idx]
+            //             let xadd = 0
+            //             let zadd = 0
+            //             switch(d) {
+            //                 case CD_ROT.NORTH: {
+            //                     zadd++
+            //                     break
+            //                 }
+            //                 case CD_ROT.WEST: {
+            //                     xadd--
+            //                     break
+            //                 }
+            //                 case CD_ROT.SOUTH: {
+            //                     zadd--
+            //                     break
+            //                 }
+            //                 case CD_ROT.EAST: {
+            //                     xadd++
+            //                     break
+            //                 }
+            //             }
+            //             setTreeBlock(tree, x + xadd, y + i, z + zadd, this.temp_block, true, new Vector(d, 0, 0), extra_data)
+            //         }
+            //     }
+            // }
         }
 
         // Create bee nest
