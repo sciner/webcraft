@@ -8,6 +8,10 @@ import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import type {GameClass} from "./game.js";
 import { GradientGraphics, Label, Window, WindowManager } from "./ui/wm.js";
+import type { Player } from "./player.js";
+import type { Renderer } from "./render.js";
+import type { ChunkManager } from "./chunk_manager.js";
+import type { World } from "./world.js";
 
 // QuestActionType
 export enum QuestActionType {
@@ -122,6 +126,62 @@ class HUDWindow extends Window {
 
 }
 
+export class Splash {
+
+    hud:                    HUD        = null
+    hudwindow:              HUDWindow  = null
+    qubatch:                GameClass  = null
+    loading:                boolean    = true
+    image:                  any        = null
+    generate_terrain_time:  float      = 0
+    loaded_chunks_count:    int        = 0
+    generate_terrain_count: int        = 0
+
+    constructor(hud : HUD, hudwindow : HUDWindow) {
+        this.hud = hud
+        this.hudwindow = hudwindow
+        this.qubatch = Qubatch
+    }
+
+    draw() : boolean {
+
+        const qubatch = this.qubatch
+        const nc = 45
+
+        let cl = 0
+        let chunk_loaded_percent = 0
+
+        if(qubatch.world?.chunkManager) {
+            const cs = qubatch.world.chunkManager.chunks_state
+
+            this.generate_terrain_time      = cs.total.one_chunk_generate_time
+            this.loaded_chunks_count        = cs.stat.loaded
+            this.generate_terrain_count     = cs.stat.applied_vertices
+
+            cl = cs.stat.blocks_generated
+            const player_chunk_loaded = qubatch.player?.getOverChunk()?.inited
+
+            chunk_loaded_percent = cl / nc
+            this.loading = (chunk_loaded_percent < 1) || !player_chunk_loaded;
+        }
+
+        const loading_parts = [
+            {code: 'chunks', percent: Math.min(chunk_loaded_percent, 1)},
+            {code: 'resources', percent: (Resources.progress?.percent ?? 0) / 100}
+        ]
+
+        // Splash background
+        this.hudwindow.update(this.hud.width, this.hud.height, this.loading, loading_parts)
+
+        if(!this.loading) {
+            return false
+        }
+
+        return true
+    }
+
+}
+
 // Canvas used to draw HUD
 export class HUD {
     [key: string]: any;
@@ -163,54 +223,7 @@ export class HUD {
         wm._wmoverlay.addChild(hudwindow)
 
         // Splash screen (Loading...)
-        this.splash = {
-            loading:    true,
-            image:      null,
-            hud:        null,
-            generate_terrain_time: 0,
-            init: function(hud) {
-                this.hud = hud
-            },
-            draw: function() {
-                const Q : GameClass = Qubatch
-
-                let cl = 0;
-                let nc = 45;
-                let player_chunk_loaded = false;
-                this.generate_terrain_time = 0
-                this.generate_terrain_count = 0
-
-                if(Qubatch.world && Q.world.chunkManager) {
-                    const chunkManager = Q.world.chunkManager
-                    this.generate_terrain_time = chunkManager.state.generated.time;
-                    this.generate_terrain_count = chunkManager.state.generated.generated_count;
-                    cl = chunkManager.state.generated.count;
-                    player_chunk_loaded = Q.player?.getOverChunk()?.inited
-                }
-
-                if(this.generate_terrain_count > 0) {
-                    this.generate_terrain_time = Math.round(this.generate_terrain_time / this.generate_terrain_count * 100) / 100;
-                }
-
-                const chunk_loaded_percent = cl / nc
-                this.loading = (chunk_loaded_percent < 1) || !player_chunk_loaded;
-
-                const loading_parts = [
-                    {code: 'chunks', percent: Math.min(chunk_loaded_percent, 1)},
-                    {code: 'resources', percent: (Resources.progress?.percent ?? 0) / 100}
-                ]
-
-                // Splash background
-                hudwindow.update(this.hud.width, this.hud.height, this.loading, loading_parts)
-
-                if(!this.loading) {
-                    return false
-                }
-
-                return true
-            }
-        };
-        this.splash.init(this)
+        this.splash = new Splash(this, hudwindow)
 
     }
 
@@ -342,13 +355,15 @@ export class HUD {
             return;
         }
 
-        const game              : GameClass = Qubatch;
-        const world             = Qubatch.world;
-        const player            = Qubatch.player;
-        const render            = Qubatch.render;
-        const short_info        = isMobileBrowser();
-        const draw_player_list  = !short_info
-        const draw_tech_info    = true;
+        const game              : GameClass     = Qubatch
+        const world             : World         = Qubatch.world
+        const player            : Player        = Qubatch.player
+        const render            : Renderer      = Qubatch.render
+        const cm                : ChunkManager  = world.chunkManager
+        const short_info        : boolean       = isMobileBrowser()
+        const draw_player_list  : boolean       = !short_info
+        const draw_tech_info    : boolean       = true
+        const splash            : Splash        = this.splash
 
         this.text = '';
         if(render.renderBackend.kind != 'webgl') {
@@ -404,14 +419,14 @@ export class HUD {
             }
 
             // Chunks inited
-            this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ') ' + this.splash?.generate_terrain_time;
+            this.text += `\nChunks drawn: ${Math.round(cm.rendered_chunks.fact)} / ${cm.rendered_chunks.total} (${player.state.chunk_render_dist}) ${splash?.generate_terrain_time} ${splash?.loaded_chunks_count}`
 
             // Quads and Lightmap
-            let quads_length_total = world.chunkManager.vertices_length_total;
+            let quads_length_total = cm.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
                 + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb';
-            this.text += '\nLightmap: ' + Math.round(world.chunkManager.lightmap_count)
-                + ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
+            this.text += '\nLightmap: ' + Math.round(cm.lightmap_count)
+                + ' / ' + Math.round(cm.lightmap_bytes / 1024 / 1024) + 'Mb';
 
             // Draw tech info
             if(draw_tech_info) {
@@ -512,10 +527,10 @@ export class HUD {
         }
 
         if(this.prevInfo == this.text) {
-            return false;
+            return false
         }
-        this.prevInfo = this.text;
-        return true;
+        this.prevInfo = this.text
+        return true
     }
 
     // Draw game technical info

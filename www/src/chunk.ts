@@ -111,6 +111,8 @@ export class Chunk {
         this.packedCells = null;
         this.firstTimeBuilt = false;
         this.need_apply_vertices = false;
+        chunkManager.chunks_state.loaded(this)
+
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -146,10 +148,7 @@ export class Chunk {
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
         chunkManager.dataWorld.syncOuter(this);
-        if(this.inited) {
-            chunkManager.state.generated.count--
-        }
-        chunkManager.state.generated.count++
+        chunkManager.chunks_state.blocksGenerated(this)
         this.inited = true;
         this.light.init();
     }
@@ -308,13 +307,8 @@ export class Chunk {
         delete(this['vertices_args'])
         this.need_apply_vertices = false
         this.buildVerticesInProgress = false
-        if(this.timers) {
-            chunkManager.state.generated.time -= this.timers.generate_terrain
-            chunkManager.state.generated.generated_count--
-        }
+        chunkManager.chunks_state.applyVertices(this, args.timers)
         this.timers = args.timers
-        chunkManager.state.generated.time += this.timers.generate_terrain
-        chunkManager.state.generated.generated_count++
         this.gravity_blocks = args.gravity_blocks
         this.applyVertices('worker', chunkManager.bufferPool, args.vertices)
         this.dirty = false
@@ -327,13 +321,7 @@ export class Chunk {
             return;
         }
         // remove from stat
-        if(this.inited) {
-            if(this.timers) {
-                chunkManager.state.generated.time -= this.timers.generate_terrain
-                chunkManager.state.generated.generated_count--
-            }
-            chunkManager.state.generated.count--
-        }
+        chunkManager.chunks_state.unload(this)
         //
         this.chunkManager = null;
         this.light.dispose();
