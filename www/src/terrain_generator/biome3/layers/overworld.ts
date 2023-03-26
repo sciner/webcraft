@@ -35,7 +35,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     slab_candidates:        any[]
     onground_place_index:   any
 
-    constructor(generator : Terrain_Generator) {
+    constructor(generator : Terrain_Generator, map_manager ?: any) {
 
         super(generator)
 
@@ -45,7 +45,11 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         this.clusterManager.registerCluster(.2, ClusterVilage)
         this.clusterManager.registerCluster(1, ClusterStructures)
 
-        this.maps = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
+        if(!map_manager) {
+            map_manager = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
+        }
+
+        this.maps = map_manager
 
         this.ore_generator = new WorldClientOreGenerator(world_id)
         // this.clusterManager = generator.clusterManager
@@ -504,18 +508,11 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                 // первый слой поверхности под водой (дно)
 
                                 if(dcaves == 0) {
- 
-                                    // поверхность дна водоемов
-                                    if(d4 < 0) {
-                                        block_id = dirt_block_id
-                                    } else if(d4 < .3) {
-                                        block_id = gravel_id
-                                    } else {
-                                        block_id = sand_block_id
-                                    }
+
+                                    block_id = cell.biome.getRiverBottomBlock(density_params)
 
                                     // ламинария | kelp
-                                    if((chunk.size.y - y == air_height + 1) && !cell.biome.is_snowy) {
+                                    if((chunk.size.y - y == air_height + 1) && !cell.biome.is_snowy && !cell.biome.is_underworld) {
                                         if((block_id != gravel_id) && (rnd.double() < .15)) {
                                             if((d3 > 0)) {
                                                 for(let i = 0; i <= air_height - d3 * 2; i++) {
@@ -628,7 +625,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             }
 
                             // чтобы на самом нижнем уровне блоков чанка тоже росла трава
-                            if(y == 0) {
+                            if(y == 0 && !cell.biome.is_underworld) {
                                 xyz.y--
                                 map_manager.calcDensity(xyz, cell, over_density_params, map)
                                 xyz.y++

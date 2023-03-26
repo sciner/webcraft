@@ -3,7 +3,7 @@ import { BLOCK_FLAG } from '../../constant.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { BiomeTree, TREES } from '../biomes.js';
-import { WATER_LEVEL } from './terrain/manager_vars.js';
+import { DensityParams, WATER_LEVEL } from './terrain/manager_vars.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
@@ -28,6 +28,12 @@ const TAIGA_BUILDINGS = {others: [
     {class: 'BuildingBlocks', max_count: Infinity, chance: .7, block_templates: ['farmer_house']},
     {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_house2']},
 ]}
+
+const DEFAULT_RIVER_BOTTOM_BLOCKS = [
+    {value: 0, block_name: 'DIRT'},
+    {value: 0.3, block_name: 'GRAVEL'},
+    {value: 1, block_name: 'SAND'}
+]
 
 export class BiomeDirtLayer {
     blocks : int[] = []
@@ -109,6 +115,7 @@ export class Biome {
     temp:                       float
     humidity:                   float
     dirt_layers:                any[]
+    river_bottom_blocks:        IRiverBottomBlocks
 
     trees:                      any
     plants:                     any
@@ -126,14 +133,16 @@ export class Biome {
     is_swamp:                   boolean
     is_snowy:                   boolean
     is_grassy_surface:          boolean
+    is_underworld:              boolean
 
-    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, ground_block_generators? : ChunkGroundBlockGenerator[], dirt_color? : IndexedColor, water_color? : IndexedColor, no_smooth_heightmap : boolean = false, building_options? : any) {
+    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, ground_block_generators? : ChunkGroundBlockGenerator[], dirt_color? : IndexedColor, water_color? : IndexedColor, no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks) {
         this.id                         = id
         this.title                      = title
         this.temperature                = temperature
         this.temp                       = temperature
         this.humidity                   = humidity
         this.dirt_layers                = dirt_layers
+        this.river_bottom_blocks        = river_bottom_blocks
         //
         this.trees                      = trees
         this.plants                     = plants
@@ -161,11 +170,38 @@ export class Biome {
                 if([BLOCK.GRASS_BLOCK.id].includes(block_id)) {
                     this.is_grassy_surface = true
                 }
+                if([BLOCK.NETHERRACK.id].includes(block_id)) {
+                    this.is_underworld = true
+                }
+            }
+        }
+        //
+        for(let item of river_bottom_blocks) {
+            if(!item.block) {
+                item.block = BLOCK.fromName(item.block_name)
+                if(!item.block) throw 'invalid_river_bottom_block'
             }
         }
     }
 
+    getRiverBottomBlock(density_params : DensityParams) : int {
+        let block_id = 0
+        const d4 = density_params.d4
+        for(let i = 0; i < this.river_bottom_blocks.length; i++) {
+            const item = this.river_bottom_blocks[i]
+            if(d4 <= item.value) {
+                block_id = item.block.id
+            }
+        }
+        if(block_id == 0) {
+            throw 'error_river_bottom_block_not_selected'
+        }
+        return block_id
+    }
+
 }
+
+declare type IRiverBottomBlocks = {value: float, block_name: string, block ?: IBlockMaterial}[]
 
 export class Biomes {
     noise2d:        any
@@ -174,7 +210,7 @@ export class Biomes {
     max_pow:        number
     pows:           any[]
     list:           any
-    byName:         any
+    byName:         Map<string, Biome>
     byID:           any
     biomes_palette: any
 
@@ -218,7 +254,8 @@ export class Biomes {
         dirt_color? : IndexedColor,
         water_color? : IndexedColor,
         building_options? : any,
-        ground_block_generators? : any) {
+        ground_block_generators? : any,
+        river_bottom_blocks? : IRiverBottomBlocks) {
         // const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [
@@ -306,10 +343,14 @@ export class Biomes {
             }
         }
         //
+        if(typeof river_bottom_blocks == 'undefined') {
+            river_bottom_blocks = DEFAULT_RIVER_BOTTOM_BLOCKS
+        }
+        //
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
         water_color = water_color ?? DEFAULT_WATER_COLOR;
         const no_smooth_heightmap = true;
-        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, ground_block_generators, dirt_color, water_color, no_smooth_heightmap, building_options);
+        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, ground_block_generators, dirt_color, water_color, no_smooth_heightmap, building_options, river_bottom_blocks);
         this.list.push(biome);
         this.byName.set(title, biome);
         this.byID.set(biome.id, biome);
@@ -347,7 +388,6 @@ export class Biomes {
         this.addBiome(30, 'Заснеженная тайга', -0.8, 0.4,            snow_dirt_layers, {
             frequency: TREE_FREQUENCY * 2,
             list: [
-                // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                 {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
                 {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
@@ -609,6 +649,38 @@ export class Biomes {
         */
 
         this.addBiome(500, 'Летающие острова', .911, .911);
+        this.addBiome(
+            501,
+            'Эреб',
+            .912,
+            .912,
+            [
+                new BiomeDirtLayer([BLOCK.NETHERRACK.id])
+            ],
+            {
+                frequency: .4,
+                list: [
+                    {percent: .2, trunk: BLOCK.ANCIENT_DEBRIS.id, leaves: null, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT * 2, max: CACTUS_MAX_HEIGHT * 3}},
+                    // {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    // {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
+                    {percent: .3, trunk: BLOCK.GLOWSTONE.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    // {percent: .333, trunk: BLOCK.MAGMA_BLOCK.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    {...TREES.RED_MUSHROOM, percent: .2, height: {min: 8, max: 12}},
+                    {...TREES.OAK, percent: .1, trunk: BLOCK.CRIMSON_STEM.id, leaves: BLOCK.SHROOMLIGHT.id},
+                    {percent: .2, trunk: BLOCK.SHROOMLIGHT.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    // {...TREES.SPRUCE, percent: 0.681 + 0.150, height: {min: 6, max: 11}}
+                ]
+            },
+            undefined,
+            undefined,
+            undefined,
+            new IndexedColor(12, 268, 0),
+            undefined,
+            undefined,
+            [
+                {value: 1, block_name: 'BEDROCK'}
+            ]
+        );
 
     }
 

@@ -6,6 +6,7 @@ import Biome3LayerOverworld from "./layers/overworld.js";
 import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Default_Terrain_Map } from "../default.js";
+import Biome3LayerUnderworld from "./layers/underworld.js";
 
 export class Biome3LayerManager {
     [key: string]: any;
@@ -16,6 +17,7 @@ export class Biome3LayerManager {
         this.generator_options = generator.world.generator.options
 
         this.layer_types = new Map()
+        this.layer_types.set('underworld', Biome3LayerUnderworld)
         this.layer_types.set('overworld', Biome3LayerOverworld)
         this.layer_types.set('stone', Biome3LayerStone)
         this.layer_types.set('lava', Biome3LayerLava)

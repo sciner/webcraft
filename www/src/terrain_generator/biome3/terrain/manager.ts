@@ -65,7 +65,7 @@ export class MapsBlockResult {
 
 }
 
-class MapCellPresetResult {
+export class MapCellPresetResult {
     relief: float;
     mid_level: float;
     radius: float;
@@ -122,7 +122,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
     static _climateParams = new ClimateParams();
 
-    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
+    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer? : Biome3LayerBase) {
         super(seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
         this.makePresetsList(seed)
         this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
