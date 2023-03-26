@@ -354,6 +354,7 @@ export class Hotbar {
         this.inventory_slots_window.visible = visible
         this.bars_base_window.visible = visible && mayGetDamaged
         this.armor_base_window.visible = visible && mayGetDamaged
+        this.oxygen_bar.visible = visible && mayGetDamaged
 
         if(!visible) {
             return false;
