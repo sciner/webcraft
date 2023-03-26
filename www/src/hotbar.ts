@@ -248,6 +248,16 @@ export class Hotbar {
         }
         this.hud.wm.addChild(bars_base_window)
 
+        // Oxygen indicator
+        const oxygen_bar = this.oxygen_bar = new Label(0, 0, 432/3 * this.zoom, 44/3*this.zoom, 'oxygen_bar')
+        const oxygen_bar_value = new Label(0, 0, oxygen_bar.w, oxygen_bar.h, 'oxygen_bar_value')
+        oxygen_bar.auto_center = false
+        oxygen_bar.setBackground(this.hud_atlas.getSpriteFromMap('o2bar_back'))
+        oxygen_bar_value.setBackground(this.hud_atlas.getSpriteFromMap('o2bar'))
+        oxygen_bar.add(oxygen_bar_value)
+        oxygen_bar.value_bar = oxygen_bar_value
+        this.hud.wm.addChild(oxygen_bar)
+
         const armor_base_sprite = this.hud_atlas.getSpriteFromMap('armor_0') 
         const armor_base_window = this.armor_base_window = new Window(MARGIN * this.zoom, 0, armor_base_sprite.width * sprite_zoom, armor_base_sprite.height * sprite_zoom, 'armor_base')
         armor_base_window.catchEvents = false
@@ -367,7 +377,7 @@ export class Hotbar {
 
         if (mayGetDamaged) {
             // const left = 180 * this.zoom
-            const right = 15 * this.zoom
+            // const right = 15 * this.zoom
             // const bottom_one_line = 70 * this.zoom
             const bottom_two_line = 90 * this.zoom
             hotbar_height = bottom_two_line
@@ -417,9 +427,17 @@ export class Hotbar {
             // }
 
             // кислород
-            const oxygen = player.indicators.oxygen;
-            if (oxygen < 20) {
-                this.drawStrip(hud.width / 2 + right,  hud.height - bottom_two_line, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
+            const oxygen = player.indicators.oxygen
+            const oxygen_max = 20
+            this.oxygen_bar.visible = oxygen < oxygen_max
+            if (this.oxygen_bar.visible) {
+                // this.drawStrip(hud.width / 2 + right,  hud.height - bottom_two_line, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)
+                this.oxygen_bar.x = hud.width/2 - this.oxygen_bar.w/2
+                this.oxygen_bar.y = hud.height/2 + this.oxygen_bar.h * 10
+                if(this.oxygen_bar.value_bar.prev_value !== oxygen) {
+                    this.oxygen_bar.value_bar.prev_value = oxygen
+                    this.oxygen_bar.value_bar.clip(0, 0, this.oxygen_bar.value_bar.w * (oxygen / oxygen_max))
+                }
             }
 
             for(const slot_index of [PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET]) {
