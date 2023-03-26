@@ -238,7 +238,7 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         // Ширина / высота слота
         this.xcnt = 18
-        let szm = this.txtSearch.w / this.xcnt
+        let szm = (this.txtSearch.w - 20) / this.xcnt
         szm += (szm - szm / 1.1) / this.xcnt
         const sz = szm / 1.1
         this.cell_size = sz
