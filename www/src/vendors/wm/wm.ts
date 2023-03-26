@@ -1802,7 +1802,7 @@ export class HTMLText extends Window {
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
         this.#_wmhtmltext = new PIXI.HTMLText("Hello <b>World</b>", {
-            fontSize: 16 * this.zoom,
+            fontSize: 14 * this.zoom,
             wordWrap: true,
             breakWords: true,
             whiteSpace: 'pre-line',
