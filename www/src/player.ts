@@ -69,14 +69,24 @@ export type ArmorState = {
     boot ? : int
 }
 
+export type TSleepState = {
+    pos: IVector
+    rotate: IVector // possible values for rotate.z: 0, 0.25, 0.5, 0.75
+}
+
+export type TSittingState = {
+    pos: IVector
+    rotate: IVector // rotate.z is in radians
+}
+
 /** A part of {@link PlayerState} that is also sent in {@link PlayerStateUpdate} */
 type PlayerStateDynamicPart = {
     pos         : Vector
     rotate      : Vector
     lies ?      : boolean
-    sitting ?   : boolean
+    sitting ?   : false | TSittingState
     sneak ?     : boolean
-    sleep ?     : boolean
+    sleep ?     : false | TSleepState
     hands       : PlayerHands
 }
 
@@ -97,7 +107,7 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     skin        : PlayerSkin
     /** it's never set. It's just checked, and if it's not defined, 'player' type is used. */
     type ?
-    dist ?      : number
+    dist ?      : number // null means that the player is too far, and it stopped receiving updates
 }
 
 export type PlayerConnectData = {
@@ -122,8 +132,8 @@ export class PlayerSharedProps implements IPlayerSharedProps {
     get isAlive() : boolean { return this.p.state.indicators.live != 0; }
     get user_id() : int     { return this.p.session.user_id; }
     get pos()     : Vector  { return this.p.pos; }
-    get sitting() : boolean { return this.p.state.sitting; }
-    get sleep()   : boolean { return this.p.state.sleep; }
+    get sitting() : boolean { return !!this.p.state.sitting; }
+    get sleep()   : boolean { return !!this.p.state.sleep; }
 }
 
 // Creates a new local player manager.
@@ -365,7 +375,7 @@ export class Player implements IPlayer {
         });
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             this.game_mode.applyMode(cmd.data.id, true);
-            let pos = this.controlManager.current.getPos();
+            let pos = this.controlManager.getPos();
             this.lerpPos                        = new Vector(pos);
             this.pos                            = new Vector(pos);
         });
@@ -789,7 +799,7 @@ export class Player implements IPlayer {
         //
         const pc = this.getPlayerControl();
         pc.player_state.onGround = false;
-        this.controlManager.current.setPos(vec);
+        this.controlManager.setPos(vec);
         //
         if (!Qubatch.is_server) {
             this.stopAllActivity();
@@ -828,7 +838,7 @@ export class Player implements IPlayer {
     updateControl(): void {
         const cm = this.controlManager
         cm.doClientTicks()
-        this.pos.copyFrom(cm.current.getPos())
+        this.pos.copyFrom(cm.getPos())
         cm.lerpPos(this.lerpPos)
     }
 

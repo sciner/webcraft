@@ -82,3 +82,5 @@ export const MOB_SAVE_DISTANCE  = 4;     // force saving if travelled more than 
 // ============================= game mechanics ============================
 
 export const PLAYER_EXHAUSTION_PER_BLOCK = 0.01
+// if a player moves more than this distance from his original position, he wakes up or stands up from a chair
+export const WAKEUP_MOVEMENT_DISTANCE = 1.0

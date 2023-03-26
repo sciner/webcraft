@@ -7,15 +7,14 @@ import {
     PLAYER_STATUS, DEBUG_LOG_PLAYER_CONTROL, DEBUG_LOG_PLAYER_CONTROL_DETAIL
 } from "@client/constant.js";
 import type {ServerPlayer} from "../server_player.js";
-import {
-    DONT_VALIDATE_AFTER_MODE_CHANGE_MS, SERVER_UNCERTAINTY_MS,
-    PLAYER_EXHAUSTION_PER_BLOCK, SERVER_SEND_CMD_MAX_INTERVAL
-} from "../server_constant.js";
+import {DONT_VALIDATE_AFTER_MODE_CHANGE_MS, PLAYER_EXHAUSTION_PER_BLOCK, SERVER_SEND_CMD_MAX_INTERVAL,
+    SERVER_UNCERTAINTY_MS, WAKEUP_MOVEMENT_DISTANCE} from "../server_constant.js";
 import {ServerClient} from "@client/server_client.js";
 import {MonotonicUTCDate, Vector} from "@client/helpers.js";
 import {ServerPlayerTickData} from "./server_player_tick_data.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketReader, PlayerControlSessionPacket} from "@client/control/player_control_packets.js";
 import type {PlayerTickData} from "@client/control/player_tick_data.js";
+import type {Player} from "@client/player.js";
 
 const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
 
@@ -33,8 +32,14 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     private maxUnvalidatedPhysicsTick: int = -Infinity
 
     private clientPhysicsTicks: int // How many physics ticks in the current session are received from the client
-    private accumulatedDistance = 0
+    private accumulatedExhaustionDistance = 0
+    private accumulatedSleepSittingDistance = 0
     private lastCmdSentTime = performance.now()
+
+    /** The current physics tick according to the clock. The actual tick for which the state is known usually differs. */
+    private getPhysicsTickNow(): int {
+        return Math.floor((MonotonicUTCDate.now() - this.baseTime) / PHYSICS_INTERVAL_MS)
+    }
 
     updateCurrentControlType(notifyClient: boolean): boolean {
         if (!super.updateCurrentControlType(notifyClient)) {
@@ -45,7 +50,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         if (!lastData) {
             return true
         }
-        lastData.initContextFrom(this.player as any)
+        lastData.initContextFrom(this.player as any as Player)
         lastData.initOutputFrom(this.current)
 
         if (notifyClient) {
@@ -67,11 +72,38 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     }
 
     /**
-     * If the player is lagging too much, the server executes the old player ticks even without knowing the input.
+     * It must be called regularly.
+     * It executes actions that are not direct result of the incoming client packets. It includes:
+     * - if the player is lagging too much, do the old player ticks even without knowing the input
+     * - detect external position/velocity/sleep/etc. changes and send a correction
      * @see SERVER_UNCERTAINTY_MS
      */
-    doLaggingServerTicks(): void {
+    tick(): void {
+        // do ticks for severely lagging clients without their input
         this.doServerTicks(true)
+
+        // process external changes to the player
+        const lastData = this.lastData
+        if (!lastData) {
+            return
+        }
+        const newData = this.newData
+        newData.initContextFrom(this.player as any as Player)
+        newData.initOutputFrom(this.current)
+        if (!(lastData.contextEqual(newData) && lastData.outputSimilar(newData)) &&
+            // and knownPhysicsTicks isn't too far in the future (so we can add another tick)
+            this.knownPhysicsTicks <= Math.max(this.clientPhysicsTicks, this.getPhysicsTickNow())
+        ) {
+            // and one simulated tick that contains the position change, and send it as a correction
+            this.knownPhysicsTicks++
+            lastData.physicsTicks = 1
+            lastData.initContextFrom(this.player as any as Player)
+            lastData.initOutputFrom(this.current)
+            this.sendCorrection()
+            if (DEBUG_LOG_PLAYER_CONTROL) {
+                console.log(`Control ${this.username}: sent correction for externally changed position ${lastData.outPos} ${this.knownPhysicsTicks}`)
+            }
+        }
     }
 
     /**
@@ -80,12 +112,12 @@ export class ServerPlayerControlManager extends PlayerControlManager {
      *   Otherwise, the method only changes {@link knownPhysicsTicks}.
      * @param tickMustBeKnown - the default value is based on the current time and {@link SERVER_UNCERTAINTY_MS}
      */
-    private doServerTicks(doSimulation: boolean, tickMustBeKnown?: int): void {
+    private doServerTicks(doSimulation: boolean, tickMustBeKnown?: int) {
         if (this.player.status !== PLAYER_STATUS.ALIVE || !this.physicsSessionInitialized) {
             return // this physics session is over, nothing to do until the next one starts
         }
 
-        tickMustBeKnown ??= Math.floor((MonotonicUTCDate.now() - SERVER_UNCERTAINTY_MS - this.baseTime) / PHYSICS_INTERVAL_MS)
+        tickMustBeKnown ??= this.getPhysicsTickNow() - Math.floor(SERVER_UNCERTAINTY_MS / PHYSICS_INTERVAL_MS)
         const physicsTicksAdded = tickMustBeKnown - this.knownPhysicsTicks
         if (physicsTicksAdded <= 0) {
             return
@@ -101,7 +133,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
 
         const newData = this.newData
         newData.initInputEmpty(this.lastData, physicsTicksAdded)
-        newData.initContextFrom(this.player as any)
+        newData.initContextFrom(this.player as any as Player)
 
         if (this.current === this.spectator) {
             newData.initOutputFrom(this.spectator)
@@ -166,7 +198,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         }
 
         // the maximum client physics tick (slightly ahead of time, to account for slightly different clocks) that the client can use now
-        const maxAllowedClientPhysTick = Math.ceil((MonotonicUTCDate.now() + MAX_PACKET_AHEAD_OF_TIME_MS - this.baseTime) / PHYSICS_INTERVAL_MS)
+        const maxAllowedClientPhysTick = this.getPhysicsTickNow() + Math.ceil(MAX_PACKET_AHEAD_OF_TIME_MS / PHYSICS_INTERVAL_MS)
 
         // It happens, e.g. when the client skips simulating physics ticks (we could have sent a message in this case, but we don't)
         // It may also happen due to bugs.
@@ -212,7 +244,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             }
 
             newData.copyInputFrom(clientData)
-            newData.initContextFrom(this.player as any)
+            newData.initContextFrom(this.player as any as Player)
             let simulatedSuccessfully: boolean
             if (this.current === this.spectator ||
                 this.knownPhysicsTicks <= this.maxUnvalidatedPhysicsTick
@@ -247,15 +279,6 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             }
         } else {
             this.sendCorrection()
-        }
-    }
-
-    private increaseClientPhysTicks(newClientPhysTicks: int, UTCNow: number) {
-        this.clientPhysicsTicks = newClientPhysTicks
-        const clientStateTime = this.baseTime + this.clientPhysicsTicks * PHYSICS_INTERVAL_MS
-        if (clientStateTime > UTCNow + MAX_PACKET_AHEAD_OF_TIME_MS) {
-            // The client sends us a state too ahead of time
-            throw'clientStateTime > now + MAX_PACKET_AHEAD_OF_TIME_MS'
         }
     }
 
@@ -317,9 +340,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             accepted = false
         }
         if (accepted) {
-            if (prevData && !prevData.outPos.equal(newData.outPos)) {
-                this.onSimulationMoved(prevData.outPos, newData)
-            }
+            this.onSimulation(prevData.outPos ?? pc.getPos(), newData)
             this.updateLastData()
         } else {
             // Either cheating or a bug detected. The previous output remains unchanged.
@@ -332,16 +353,37 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         return accepted
     }
 
-    protected onSimulationMoved(prevPos: Vector, data: PlayerTickData): void {
-        super.onSimulationMoved(prevPos, data)
+    protected onSimulation(prevPos: Vector, data: PlayerTickData): void {
+        super.onSimulation(prevPos, data)
+
+        const ps = this.player.state
+        const sitsOrSleeps = ps.sitting || ps.lies || ps.sleep
+        const moved = !prevPos.equal(data.outPos)
+        if (!moved) {
+            if (!sitsOrSleeps) {
+                this.accumulatedSleepSittingDistance = 0
+            }
+            return
+        }
+
+        const distance = Math.min(data.outPos.distance(prevPos), MAX_ACCUMULATED_DISTANCE_INCREMENT)
+
+        // If the player moved too much while sitting/sleeping, then there is no more chair or a bed under them
+        this.accumulatedSleepSittingDistance += distance
+        if (this.accumulatedSleepSittingDistance > WAKEUP_MOVEMENT_DISTANCE) {
+            ps.sitting = false
+            ps.lies = false
+            ps.sleep = false
+            this.player.sendPackets([{name: ServerClient.CMD_STANDUP_STRAIGHT, data: null}])
+        }
 
         // add exhaustion
-        this.accumulatedDistance += Math.min(data.outPos.distance(prevPos), MAX_ACCUMULATED_DISTANCE_INCREMENT)
-        let accumulatedIntDistance = Math.floor(this.accumulatedDistance)
+        this.accumulatedExhaustionDistance += distance
+        let accumulatedIntDistance = Math.floor(this.accumulatedExhaustionDistance)
         if (accumulatedIntDistance) {
             const player = this.player
             player.state.stats.distance += accumulatedIntDistance
-            this.accumulatedDistance -= accumulatedIntDistance
+            this.accumulatedExhaustionDistance -= accumulatedIntDistance
             player.addExhaustion(PLAYER_EXHAUSTION_PER_BLOCK * accumulatedIntDistance)
         }
     }

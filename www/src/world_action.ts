@@ -16,6 +16,7 @@ import {
 import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
+import type {TSittingState, TSleepState} from "./player.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
@@ -550,6 +551,8 @@ export class WorldAction {
         activate: any[]
         spawn: any[]    // it should be MobSpawnParams, but it's server class
     }
+    sitting? : TSittingState
+    sleep? : TSleepState
 
     constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;

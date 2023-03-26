@@ -1,5 +1,5 @@
 import {Mth, ObjectHelpers, Vector} from "@client/helpers.js";
-import { Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps } from "@client/player.js";
+import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps} from "@client/player.js";
 import { GameMode } from "@client/game_mode.js";
 import { ServerClient } from "@client/server_client.js";
 import { Raycaster } from "@client/Raycaster.js";
@@ -465,19 +465,20 @@ export class ServerPlayer extends Player {
 
     //
     exportStateUpdate(): PlayerStateUpdate {
+        const state = this.state
         return {
             id:       this.session.user_id,
             username: this.session.username,
-            pos:      this.state.pos,
-            rotate:   this.state.rotate,
+            pos:      state.pos,
+            rotate:   state.rotate,
             skin:     this.skin,
-            hands:    this.state.hands,
-            sneak:    this.state.sneak,
-            sitting:  this.state.sitting,
-            sleep:    this.state.sleep,
-            lies:     this.state.lies,
+            hands:    state.hands,
+            sneak:    state.sneak,
+            sitting:  state.sitting,
+            sleep:    state.sleep,
+            lies:     state.lies,
             armor:    this.inventory.exportArmorState(),
-            health:   this.state.indicators.live
+            health:   state.indicators.live
         };
     }
 
@@ -506,8 +507,8 @@ export class ServerPlayer extends Player {
             this.vision.postTick();
         }
         this.checkVisibleChunks();
-        this.sendNearPlayers();
-        this.controlManager.doLaggingServerTicks();
+        this.sendNearPlayersToMe();
+        this.controlManager.tick();
         this.checkIndicators(tick_number);
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
@@ -677,7 +678,7 @@ export class ServerPlayer extends Player {
     }
 
     // Send other players states for me
-    sendNearPlayers() {
+    sendNearPlayersToMe() {
         const chunk_over = this.world.chunks.get(this.chunk_addr);
         if(!chunk_over) {
             return;

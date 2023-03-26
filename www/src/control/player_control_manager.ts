@@ -20,7 +20,7 @@ import {CHUNK_STATE} from "../chunk_const.js";
 import {PlayerSpeedLogger} from "./player_speed_logger.js";
 
 const tmpAddr = new Vector()
-const DEBUG_LOG_SPECTATOR_SPEED = false
+const DEBUG_LOG_SPEED = false
 
 /**
  * It contains multiple controllers (subclasses of {@link PlayerControl}), switches between them,
@@ -86,8 +86,7 @@ export abstract class PlayerControlManager {
             return false
         }
         this.current = pc
-        pc.resetState()
-        pc.setPos(pc_previous.player_state.pos)
+        this.resetState(pc_previous.getPos())
         return true
     }
 
@@ -97,12 +96,25 @@ export abstract class PlayerControlManager {
      * the controls are reset and a new physics session begins.
      */
     startNewPhysicsSession(pos: IVector): void {
-        const pc = this.current
-        pc.resetState()
-        pc.setPos(pos)
+        this.resetState(pos)
         this.physicsSessionId++
         this.physicsSessionInitialized = false
         this.knownPhysicsTicks = 0
+    }
+
+    protected resetState(pos: IVector): void {
+        this.current.resetState()
+        this.setPos(pos)
+    }
+
+    /**
+     * The result is read-only. It's valid only until the next change.
+     * Do not modify it directly or store a reference to it.
+     */
+    getPos(): Vector { return this.current.player_state.pos }
+
+    setPos(pos: IVector): void {
+        this.current.setPos(pos)
     }
 
     /**
@@ -159,19 +171,12 @@ export abstract class PlayerControlManager {
             player_state.vel.roundSelf(PHYSICS_VELOCITY_DECIMALS)
         }
         data.initOutputFrom(pc)
-
-        if (!prevPos.equal(data.outPos)) {
-            this.onSimulationMoved(prevPos, data)
-        }
+        this.onSimulation(prevPos, data)
         return true
     }
 
-    protected onSimulationMoved(prevPos: Vector, data: PlayerTickData): void {
-        // If the player moved, then there is no more chair or bed under them.
-        const ps = this.player.state
-        ps.sitting = false
-        ps.lies = false
-        ps.sleep = false
+    protected onSimulation(prevPos: Vector, data: PlayerTickData): void {
+        // nothing, override it subclasses
     }
 
     protected get username(): string { return this.player.session.username }
@@ -201,7 +206,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     private prevPhysicsTickFreeCamPos = new Vector()
     private skipFreeCamSneakInput = false // used to skip pressing SHIFT after switching to freeCamp
     private freeCamPos = new Vector()
-    private speedLogger = DEBUG_LOG_SPECTATOR_SPEED ? new PlayerSpeedLogger() : null
+    private speedLogger = DEBUG_LOG_SPEED ? new PlayerSpeedLogger() : null
     /**
      * It contains data for all recent physics ticks (at least, those that are possibly not known to the server).
      * If a server sends a correction to an earlier tick, it's used to repeat the movement in the later ticks.
@@ -236,15 +241,11 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             this.dataQueue.length = 0
         }
         this.hasCorrection = false
-        this.speedLogger?.reset()
     }
 
-    updateCurrentControlType(notifyClient: boolean): boolean {
-        const res = super.updateCurrentControlType(notifyClient)
-        if (res) {
-            this.speedLogger?.reset()
-        }
-        return res
+    protected resetState(pos: IVector): void {
+        super.resetState(pos)
+        this.speedLogger?.reset()
     }
 
     lerpPos(dst: Vector, prevPos: Vector = this.prevPhysicsTickPos, pc: PlayerControl = this.current): void {
@@ -255,9 +256,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             dst.lerpFrom(prevPos, pos, this.getCurrentTickFraction())
         }
         dst.roundSelf(8)
-        if (this.current === this.spectator) {
-            this.speedLogger?.add(dst)
-        }
+        this.speedLogger?.add(dst)
     }
 
     get isFreeCam(): boolean { return this.#isFreeCam }
@@ -419,6 +418,8 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         const correctedPhysicsTick = packet.knownPhysicsTicks
         const correctedData = packet.data
 
+        // TODO what if correctedData context is different?
+
         // remove all old data before the correction; we won't need it ever
         const dataQueue = this.dataQueue
         while(dataQueue.length && dataQueue.getFirst().endPhysicsTick < correctedPhysicsTick) {
@@ -427,13 +428,21 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         let exData = dataQueue.getFirst()
         if (exData == null) {
             // It happens e.g. when the browser window was closed. The client is severely behind the server.
-            console.warn('Control: applying correction without existing data')
+            // A server may also send a correction ahead of time when player's position is changed outside the control
+            if (DEBUG_LOG_PLAYER_CONTROL) {
+                console.warn('Control: applying correction without existing data')
+            }
+            // put the date into the data queue
             const data = new ClientPlayerTickData(correctedPhysicsTick - 1)
             data.status = PLAYER_TICK_DATA_STATUS.SENT
             data.initInputEmpty(null, 1)
             data.copyContextFrom(correctedData)
             data.copyOutputFrom(correctedData)
             dataQueue.push(data)
+            // change the player position immediately. This position will remain util this.knownInputTime catches up
+            data.applyOutputToControl(this.current)
+            this.prevPhysicsTickPos.copyFrom(data.outPos)
+
             this.hasCorrection = true
             this.knownPhysicsTicks = correctedPhysicsTick
             this.sedASAP = true // because the client is severely behind the server, notify the server ASAP
@@ -476,6 +485,11 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         this.knownPhysicsTicks = correctedPhysicsTick
         exData.copyContextFrom(correctedData)
         exData.copyOutputFrom(correctedData)
+        // if the data that determines the current player position was changed, update the player position immediately
+        if (dataQueue.length === 1) {
+            exData.applyOutputToControl(this.current)
+            this.prevPhysicsTickPos.copyFrom(exData.outPos)
+        }
         for(let i = 1; i < dataQueue.length; i++) {
             const invalidatedData = dataQueue.get(i)
             invalidatedData.invalidated = true
