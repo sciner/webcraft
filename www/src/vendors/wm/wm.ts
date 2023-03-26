@@ -1726,39 +1726,55 @@ export class ToggleButton extends Button {
 
 export class Slider extends Window {
 
-    constructor(x, y, w, h, id, value) {
+    constructor(x, y, w, h, id) {
         super(x, y, w, h, id, null, null)
-        this.style.background.color = '#8892c9'
-        this.min = -300
-        this.max = 300
-        this.value = value
+        this.min = 0
+        this.max = 100
+        this.value = 50
         this.step = 1
         this.grab = false
-        this.setIcon('./media/gui/scroll.png')
+        this._wmicon.style.background.color = '#000000'
+        this._wmicon.style.border.style = 'normal'
+        this._wmicon.style.border.color = '#ffffff55'
         if (w > h) {
             this.horizontal = true
-            this._wmicon.width = 30 * this._wmicon.h / 24
         } else {
             this.horizontal = false
-            this._wmicon.height = 24 * this._wmicon.w / 30
         }
-
         this.updete(this.value)
+    }
+
+    setMaxMin(max, min = 0) {
+        const len = max - min
+        if (this.horizontal) {
+            const size = this.w / len
+            this._wmicon.width = (size > 50) ? size : 50
+        } else {
+            const size = this.h / len
+            this._wmicon.height = (size > 50) ? size : 50
+        }
+        this.max = max
+        this.min = min
     }
 
     updete(val) {
         const cursor = this._wmicon
-        const half = ((this.horizontal) ? cursor.w : cursor.h) / 2
-        let pos = val - ((this.horizontal) ? this.x : this.y) - half
+        const size = ((this.horizontal) ? cursor.w : cursor.h)
+        let pos = val - ((this.horizontal) ? this.x : this.y) - size /2
         if (pos < 0.1) {
             pos = 0
+        }
+        const max_pos = ((this.horizontal) ? this.w : this.h) - size
+        if (pos > max_pos) {
+            pos = max_pos
         }
         if (this.horizontal) {
             cursor.x = Math.round(pos / this.step) * this.step
         } else {
             cursor.y = Math.round(pos / this.step) * this.step
         }
-        this.value = Math.floor(pos * (this.max - this.min) / (this.horizontal ? this.w : this.h) + this.min)
+        this.value = Math.floor(pos * (this.max - this.min) / ((this.horizontal ? this.w : this.h) - size) + this.min)
+        this.onScroll(this.value)
     }
 
     onMouseEnter() {
@@ -1792,6 +1808,10 @@ export class Slider extends Window {
     }
     onHide() {
         console.log('onHide')
+    }
+
+    onScroll(value) {
+
     }
 }
 

@@ -106,8 +106,13 @@ export class VerticalLayout extends vl {
 
 export class Slider extends sld {
 
-    constructor(x : number, y : number, w : number, h : number, id : string, value : any) {
-        super(x, y, w, h, id, value)
+    constructor(x : number, y : number, w : number, h : number, id : string) {
+        super(x, y, w, h, id)
+        this.style.border.style = 'fixed_single'
+        this.style.font.color = UI_THEME.button.font.color
+        this.style.border.color = UI_THEME.base_font.color
+        this.style.background.color = UI_THEME.button.background.color
+        this.style.font.size = UI_THEME.button.font.size
     }
 
 }

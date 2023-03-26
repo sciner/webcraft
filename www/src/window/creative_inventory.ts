@@ -1,4 +1,4 @@
-import { TextEdit, Window } from "../ui/wm.js";
+import { TextEdit, Window, Slider } from "../ui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
@@ -38,13 +38,17 @@ class CreativeInventoryCollection extends Window {
     }
 
     _wheel(e) {
+        this.updateScroll(Math.sign(e.original_event.wheelDeltaY))
+    }
+
+    updateScroll(val) {
         const sz    = this.cell_size
         const szm   = sz + this.slot_margin
-        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * szm
+        this.scrollY = val * szm
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.container.y = this.scrollY
-        this.updateVisibleSlots()
+        this.updateVisibleSlots() 
     }
 
     updateVisibleSlots() {
@@ -68,7 +72,7 @@ class CreativeInventoryCollection extends Window {
                 .replaceAll('_', ' ')
                 .replace(/\s\s+/g, ' ')
         }
-        for(let b of BLOCK.getAll()) {
+        for(const b of BLOCK.getAll()) {
             if(b.id < 1 || !b.spawnable) {
                 continue
             }
@@ -246,6 +250,18 @@ export class CreativeInventoryWindow extends BlankWindow {
         // Создание слотов для инвентаря
         this.createInventorySlots()
 
+        // скроллбар
+        this.scrollbar = new Slider((this.w - 40), 20, 40, this.h - 200, 'scroll')
+
+        this.scrollbar.min = 0
+        this.scrollbar.max = Math.ceil(this.collection.slots_count / this.collection.xcnt) 
+        this.scrollbar.onScroll = (value) => {
+            console.log("count: " + this.collection.slots_count + ' rows: ' + this.collection.slots_count / this.collection.xcnt + ' value: ' + value + ' max: ' + this.scrollbar.max)
+            const max = (this.collection.slots_count / this.collection.xcnt) - 8
+            this.scrollbar.setMaxMin(max > 1 ? max : 1)
+            this.collection.updateScroll(-value)
+        }
+        this.add(this.scrollbar)
     }
 
     //
