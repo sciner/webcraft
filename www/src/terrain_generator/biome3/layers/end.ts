@@ -86,8 +86,7 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
 
     constructor(generator : Terrain_Generator) {
         super(generator)
-        this.clusterManager = new ClusterManager(generator.world, generator.seed, this)
-        this.clusterManager.registerCluster(.6, ClusterEndCity)
+        this.clusterManager = new ClusterManager(generator.world, generator.seed, this, [{chance: .6, class: ClusterEndCity}])
         this.maps = new EndTerrainMapManager(generator.seed, generator.world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
     }
 

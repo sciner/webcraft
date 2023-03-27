@@ -379,3 +379,26 @@ interface IPickatEvent {
     shiftKey:           boolean
     start_time:         float
 }
+
+// class DirtPalette {
+//     x:              int
+//     y:              int
+//     w:              int
+//     h:              int
+//     noise_range:    int
+
+//     constructor(x, y, w, h, noise_range) {
+//         this.x = x
+//         this.y = y
+//         this.w = w
+//         this.h = h
+//         this.noise_range = noise_range
+//     }
+// }
+declare type DirtPalette = {
+    x:              int
+    y:              int
+    w:              int
+    h:              int
+    noise_range:    int
+}

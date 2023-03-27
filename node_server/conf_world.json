@@ -1559,6 +1559,75 @@
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "nether_tower",
+            "pos1": {
+                "x": -548,
+                "y": 0,
+                "z": 2
+            },
+            "pos2": {
+                "x": -562,
+                "y": 53,
+                "z": -11
+            },
+            "entrance": {
+                "x": -555,
+                "y": 1,
+                "z": 2
+            },
+            "meta": {
+                "dt": "2023-03-27T11:30:28.448Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "nether_portal",
+            "pos1": {
+                "x": -565,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -574,
+                "y": 15,
+                "z": -8
+            },
+            "entrance": {
+                "x": -569,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-03-27T11:33:28.904Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "nether_island",
+            "pos1": {
+                "x": -579,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -597,
+                "y": 74,
+                "z": -20
+            },
+            "entrance": {
+                "x": -588,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-03-27T11:46:36.480Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": true
+            }
         }
     ]
 }

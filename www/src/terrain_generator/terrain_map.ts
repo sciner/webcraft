@@ -1,6 +1,6 @@
 import { impl as alea } from '../../vendors/alea.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
-import { DIRT_COLOR_NOISE_RANGE } from '../constant.js';
+import { DEFAULT_DIRT_PALETTE } from '../constant.js';
 import { IndexedColor, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { BIOMES } from "./biomes.js";
@@ -436,14 +436,15 @@ export class TerrainMap extends Default_Terrain_Map {
                 cell.dirt_color = dirt_color.divide(COLOR_COMPUTER);
 
                 // mix dirt colors on every block with random value
-                if(DIRT_COLOR_NOISE_RANGE > 0) {
-                    const max_r = (cell.dirt_color.g - 256)
-                    cell.dirt_color.r += Math.round((Math.random() + Math.random()) * DIRT_COLOR_NOISE_RANGE);
+                const dp = cell.biome?.dirt_palette ?? DEFAULT_DIRT_PALETTE
+                if(dp.noise_range > 0) {
+                    const max_r = (cell.dirt_color.g - dp.y)
+                    cell.dirt_color.r += Math.round((Math.random() + Math.random()) * dp.noise_range)
                     if(cell.dirt_color.r < 0) cell.dirt_color.r = 0
                     if(cell.dirt_color.r > max_r) cell.dirt_color.r = max_r
-                    cell.dirt_color.g += Math.round((Math.random() + Math.random()) * DIRT_COLOR_NOISE_RANGE);
-                    if(cell.dirt_color.g < 256) cell.dirt_color.g = 256
-                    if(cell.dirt_color.g > 511) cell.dirt_color.g = 511
+                    cell.dirt_color.g += Math.round((Math.random() + Math.random()) * dp.noise_range)
+                    if(cell.dirt_color.g < dp.y) cell.dirt_color.g = dp.y
+                    if(cell.dirt_color.g > dp.y + dp.h - 1) cell.dirt_color.g = dp.y + dp.h - 1
                 }
 
                 cell.water_color = water_color.divide(COLOR_COMPUTER);

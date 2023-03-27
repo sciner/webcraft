@@ -25,12 +25,15 @@ export class ClusterManager {
     /**
      * All clusters
      */
-    constructor(world : WorkerWorld, seed : string, layer? : Biome3LayerBase | null) {
+    constructor(world : WorkerWorld, seed : string, layer? : Biome3LayerBase | null, cluster_sets? : {chance: float, class: any}[]) {
         this.seed = seed
         this.layer = layer
         this.world = world
         this.chunkManager = world.chunkManager
         this.size = new Vector(layer ? CLUSTER_SIZE_V2 : CLUSTER_SIZE)
+        for(let structure of cluster_sets) {
+            this.registerCluster(structure.chance, structure.class)
+        }
     }
 
     registerCluster(chance : float, cluster_class : any | null) {

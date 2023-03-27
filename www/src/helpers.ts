@@ -276,6 +276,7 @@ export class Helpers {
     static calcSpeed(pos1 : Vector, pos2 : IVector, delta : float) : float {
         return Math.round(pos1.distance(pos2) / delta * 360) / 100;
     }
+
 }
 
 // Make fetch functions

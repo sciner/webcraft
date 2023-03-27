@@ -1,4 +1,4 @@
-import { LEAVES_COLOR_FLAGS } from "../../../block_style/cube.js";
+import { LEAVES_COLORS } from "../../../block_style/cube.js";
 import { CHUNK_SIZE_X } from "../../../chunk_const.js";
 import { ChunkManager } from "../../../chunk_manager.js";
 import { BLOCK_FLAG, GRASS_PALETTE_OFFSET } from "../../../constant.js";
@@ -156,14 +156,15 @@ export default class emitter {
                 const index = ((_pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (_pos_floored.x - chunk.coord.x)) * 2;
                 lm.set(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
                 if(block.id == bm.GRASS_BLOCK.id || block.is_grass) {
-                    lm.r += GRASS_PALETTE_OFFSET;
+                    lm.r += GRASS_PALETTE_OFFSET.x;
+                    lm.y += GRASS_PALETTE_OFFSET.y;
                 }
                 if(!block.is_dirt) {
                     flags |= QUAD_FLAGS.MASK_BIOME
                 }
                 // leaves custom color
                 if(extra_data && extra_data.v != undefined) {
-                    const color = LEAVES_COLOR_FLAGS[extra_data.v % LEAVES_COLOR_FLAGS.length]
+                    const color = LEAVES_COLORS[extra_data.v % LEAVES_COLORS.length]
                     lm.r = color.r
                     lm.g = color.g
                 }

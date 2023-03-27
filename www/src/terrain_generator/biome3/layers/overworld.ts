@@ -22,6 +22,11 @@ import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
+const DEFAULT_CLUSTER_SETS = [
+    {chance: .2, class: ClusterVilage},
+    {chance: 1, class: ClusterStructures},
+]
+
 const BIG_STONE_DESNSITY = 0.6;
 const GROUND_PLACE_SIZE = 3
 const _ground_places = new Array(CHUNK_SIZE * GROUND_PLACE_SIZE)
@@ -35,24 +40,21 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     slab_candidates:        any[]
     onground_place_index:   any
 
-    constructor(generator : Terrain_Generator, map_manager ?: any) {
+    constructor(generator : Terrain_Generator, map_manager ?: any, cluster_sets? : {chance: float, class: any}[]) {
 
         super(generator)
 
         const seed = generator.seed
         const world_id = generator.world_id
-        this.clusterManager = new ClusterManager(generator.world, generator.seed, this)
-        this.clusterManager.registerCluster(.2, ClusterVilage)
-        this.clusterManager.registerCluster(1, ClusterStructures)
+
+        this.clusterManager = new ClusterManager(generator.world, generator.seed, this, cluster_sets ?? DEFAULT_CLUSTER_SETS)
 
         if(!map_manager) {
             map_manager = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
         }
 
         this.maps = map_manager
-
         this.ore_generator = new WorldClientOreGenerator(world_id)
-        // this.clusterManager = generator.clusterManager
         this.dungeon = new DungeonGenerator(seed)
         // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {})
 
@@ -496,7 +498,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                         }
                                         chunk.setBlockIndirect(x, y + 1, z, big_stone_block_id)
                                         if(big_stone_density > BIG_STONE_DESNSITY) {
-                                            // chunk.setGroundInColumIndirect(columnIndex, x, y + 2, z, bm.MOSSY_COBBLESTONE.id);
+                                            // chunk.setGroundInColumIndirect(columnIndex, x, y + 2, z, big_stone_block_id);
                                             chunk.setBlockIndirect(x, y + 2, z, big_stone_block_id)
                                         }
                                     }

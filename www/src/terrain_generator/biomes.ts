@@ -389,7 +389,7 @@ export class  BIOMES {
             block:      BLOCK.GRASS_BLOCK.id,
             code:       'GRASSLAND',
             color:      '#98a136',
-            dirt_color: new IndexedColor(82, 450, 0),
+            dirt_color: IndexedColor.GRASS,
             water_color: new IndexedColor(129, 194, 0),
             title:      'ТРАВЯНАЯ ЗЕМЛЯ',
             max_height: 18,
