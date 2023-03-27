@@ -1719,6 +1719,63 @@ export class Slider extends Window {
 
     constructor(x, y, w, h, id) {
         super(x, y, w, h, id, null, null)
+        this._min = 0
+        this._max = 0
+        this._value = 0
+        this._wmicon.style.background.color = '#000000'
+        this.grab = false
+        if (w > h) {
+            this.horizontal = true
+        } else {
+            this.horizontal = false
+        } 
+        this.min = 0
+        this.max = 100
+        this.value = 100
+    }
+
+    set value(value) {
+        if (value > this._max) {
+            this._value = this._max
+        } else if (value < this._min) {
+            this._value = this._min
+        } else {
+            this._value = value
+        }
+        const pr = this._value / (11 + this._max - this._min)
+        const cursor = this._wmicon
+        if (this.horizontal) {
+            cursor.x = Math.floor(pr * this.w)
+        } else {
+            cursor.y = Math.floor(pr * this.h)
+        }
+    }
+
+    set max(value) {
+        this._max = value > 1 ? value : 1
+        if (this.horizontal) {
+            const size = this.w / (this._max - this._min)
+            this._wmicon.width = (size > 50) ? size : 50
+        } else {
+            const size = this.h / (this._max - this._min)
+            this._wmicon.height = (size > 50) ? size : 50
+        }
+        this.value = 0
+    }
+
+    set min(value) {
+        this._min = value
+        if (this.horizontal) {
+            const size = this.w / (this._max - this._min)
+            this._wmicon.width = (size > 50) ? size : 50
+        } else {
+            const size = this.h / (this._max - this._min)
+            this._wmicon.height = (size > 50) ? size : 50
+        }
+    }
+
+   /* constructor(x, y, w, h, id) {
+        super(x, y, w, h, id, null, null)
         this.min = 0
         this.max = 100
         this.value = 50
@@ -1734,6 +1791,10 @@ export class Slider extends Window {
         this.update(this.value)
     }
 
+    set value(val) {
+
+    }
+
     setValue(value) {
         if (value > this.max) {
             this.value = this.max
@@ -1745,9 +1806,9 @@ export class Slider extends Window {
         const pr = this.value / (this.max - this.min)
         const cursor = this._wmicon
         if (this.horizontal) {
-            cursor.x = Math.round(pr * this.w)
+            cursor.x = Math.floor(pr * this.w)
         } else {
-            cursor.y = Math.round(pr * this.h)
+            cursor.y = Math.floor(pr * this.h)
         }
     }
 
@@ -1785,12 +1846,13 @@ export class Slider extends Window {
         this.value = Math.floor(pos * (this.max - this.min) / ((this.horizontal ? this.w : this.h) - size) + this.min)
         this.onScroll(this.value)
     }
-
+*/
     onMouseEnter() {
         console.log('onMouseEnter')
     }
 
     onMouseLeave() {
+        console.log('onMouseLeave')
        // this.grab = false
     }
 
@@ -1799,14 +1861,16 @@ export class Slider extends Window {
     }
 
     onMouseDown(e) {
+        console.log('onMouseDown')
         this.grab = true
     }
     onMouseUp(e) {
+        console.log('onMouseUP')
         this.grab = false
     }
     onMouseMove(e) {
         if (this.grab) {
-            this.update(this.horizontal ? e.x : e.y)
+          //  this.update(this.horizontal ? e.x : e.y)
         }
     }
     onDrop(e) {
@@ -1817,10 +1881,6 @@ export class Slider extends Window {
     }
     onHide() {
         console.log('onHide')
-    }
-
-    onScroll(value) {
-
     }
 }
 
