@@ -1722,7 +1722,6 @@ export class Slider extends Window {
         this.min = 0
         this.max = 100
         this.value = 50
-        this.step = 1
         this.grab = false
         this._wmicon.style.background.color = '#000000'
         this._wmicon.style.border.style = 'normal'
@@ -1732,7 +1731,24 @@ export class Slider extends Window {
         } else {
             this.horizontal = false
         }
-        this.updete(this.value)
+        this.update(this.value)
+    }
+
+    setValue(value) {
+        if (value > this.max) {
+            this.value = this.max
+        } else if (value < this.min) {
+            this.value = this.min
+        } else {
+            this.value = value
+        }
+        const pr = this.value / (this.max - this.min)
+        const cursor = this._wmicon
+        if (this.horizontal) {
+            cursor.x = Math.round(pr * this.w)
+        } else {
+            cursor.y = Math.round(pr * this.h)
+        }
     }
 
     setMaxMin(max, min = 0) {
@@ -1746,9 +1762,11 @@ export class Slider extends Window {
         }
         this.max = max
         this.min = min
+
+        
     }
 
-    updete(val) {
+    update(val) {
         const cursor = this._wmicon
         const size = ((this.horizontal) ? cursor.w : cursor.h)
         let pos = val - ((this.horizontal) ? this.x : this.y) - size /2
@@ -1760,9 +1778,9 @@ export class Slider extends Window {
             pos = max_pos
         }
         if (this.horizontal) {
-            cursor.x = Math.round(pos / this.step) * this.step
+            cursor.x = Math.round(pos)
         } else {
-            cursor.y = Math.round(pos / this.step) * this.step
+            cursor.y = Math.round(pos)
         }
         this.value = Math.floor(pos * (this.max - this.min) / ((this.horizontal ? this.w : this.h) - size) + this.min)
         this.onScroll(this.value)
@@ -1788,7 +1806,7 @@ export class Slider extends Window {
     }
     onMouseMove(e) {
         if (this.grab) {
-            this.updete(this.horizontal ? e.x : e.y)
+            this.update(this.horizontal ? e.x : e.y)
         }
     }
     onDrop(e) {

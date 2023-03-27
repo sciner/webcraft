@@ -114,7 +114,7 @@ export class Slider extends sld {
         this.style.background.color = UI_THEME.button.background.color
         this.style.font.size = UI_THEME.button.font.size
     }
-
+    
 }
 
 export class WindowManager extends wm {

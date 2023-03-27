@@ -13,9 +13,11 @@ class CreativeInventoryCollection extends Window {
     ycnt : int = 13
 
     //
-    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float) {
+    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float, ctx: Window) {
         
         super(x, y, w, h, id)
+
+        this.ctx = ctx
 
         // Ширина / высота слота
         this.cell_size = cell_size
@@ -38,7 +40,14 @@ class CreativeInventoryCollection extends Window {
     }
 
     _wheel(e) {
-        this.updateScroll(Math.sign(e.original_event.wheelDeltaY))
+        const sz    = this.cell_size
+        const szm   = sz + this.slot_margin
+        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * szm
+        this.scrollY = Math.min(this.scrollY, 0)
+        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
+        this.container.y = this.scrollY
+        this.ctx.scrollbar.setValue(-this.scrollY / szm)
+        this.updateVisibleSlots()
     }
 
     updateScroll(val) {
@@ -238,7 +247,7 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         // Ширина / высота слота
         this.xcnt = 18
-        let szm = (this.txtSearch.w - 20) / this.xcnt
+        let szm = this.txtSearch.w / this.xcnt
         szm += (szm - szm / 1.1) / this.xcnt
         const sz = szm / 1.1
         this.cell_size = sz
@@ -251,12 +260,11 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.createInventorySlots()
 
         // скроллбар
-        this.scrollbar = new Slider((this.w - 40), 20, 40, this.h - 200, 'scroll')
-
+        this.scrollbar = new Slider((this.w - 26 * this.zoom), 44 * this.zoom, 22 * this.zoom, this.h - 108 * this.zoom, 'scroll')
         this.scrollbar.min = 0
         this.scrollbar.max = Math.ceil(this.collection.slots_count / this.collection.xcnt) 
         this.scrollbar.onScroll = (value) => {
-            console.log("count: " + this.collection.slots_count + ' rows: ' + this.collection.slots_count / this.collection.xcnt + ' value: ' + value + ' max: ' + this.scrollbar.max)
+            console.log("count: " + this.collection.slots_count + ' rows: ' + this.collection.slots_count + ' value: ' + value + ' max: ' + this.scrollbar.max)
             const max = (this.collection.slots_count / this.collection.xcnt) - 8
             this.scrollbar.setMaxMin(max > 1 ? max : 1)
             this.collection.updateScroll(-value)
@@ -274,7 +282,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         const w = this.txtSearch.w
         const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h) / szm) - 1) * szm
         this.ycnt = Math.floor(h / szm)
-        this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin)
+        this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin, this)
         this.add(this.collection)
         this.collection.init()
         return this.collection
@@ -288,11 +296,11 @@ export class CreativeInventoryWindow extends BlankWindow {
             x,
             10 * this.zoom,
             // this.cell_size * 9,
-            this.w - x * 2,
+            this.w - x * 2 - 20,
             25 * this.zoom,
             'txtSearch1',
             null,
-            'Type for search'
+            ''
         )
 
         txtSearch.word_wrap              = false
