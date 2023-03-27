@@ -232,7 +232,7 @@ export class BuildingTemplate {
                  */
                 this.door_pos_corrected = this.door_pos && new Vector(this.door_pos).addSelf(min)
 
-                if(this.getMeta('air_column_from_basement', true)) {
+                if(this.getMeta('air_column_from_basement', true) && this.minFloorYbyXZ) {
                     // по 2D карте пола здания строим вертикальные столбы воздуха
                     // ставим блоки воздуха там, где они нужны, внутри здания, чтобы местность не занимала эти блоки
                     for(let [x, z, y] of this.minFloorYbyXZ.entries()) {

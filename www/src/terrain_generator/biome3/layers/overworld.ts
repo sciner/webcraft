@@ -337,7 +337,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);
 
                 const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
-                const hanging_foliage_block_id = cell.biome.is_snowy ? bm.ICE.id : bm.OAK_LEAVES.id
+                const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
 
                 let cluster_drawed = false;
                 let not_air_count = 0;
@@ -661,7 +661,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                     if(d1 > .25) {
                                         if(d3 > .25) {
                                             // chunk.setInitialGroundInColumnIndirect(columnIndex, y, bm.MOSS_BLOCK.id)
-                                            chunk.setBlockIndirect(x, y, z, bm.MOSS_BLOCK.id);
+                                            chunk.setBlockIndirect(x, y, z, (cell.biome.blocks.caves_second ?? bm.MOSS_BLOCK).id);
                                             continue
                                         }
                                     }

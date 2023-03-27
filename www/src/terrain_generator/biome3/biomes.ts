@@ -29,6 +29,18 @@ const TAIGA_BUILDINGS = {others: [
     {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_house2']},
 ]}
 
+const NETHER_BUILDINGS = {
+    crossroad: [
+        {class: 'BuildingBlocks', max_count: Infinity, chance: 1, block_templates: ['nether_streetlight', 'nether_streetlight2']}
+    ],
+    others: [
+        {class: 'BuildingBlocks', max_count: 3, chance: .1, block_templates: ['waterwell', 'waterwell2']},
+        // {class: 'Farmland',       max_count: Infinity, chance: .2},
+        {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['nether_house']},
+        {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_nether_house']},
+    ]
+}
+
 const DEFAULT_RIVER_BOTTOM_BLOCKS = [
     {value: 0, block_name: 'DIRT'},
     {value: 0.3, block_name: 'GRAVEL'},
@@ -116,6 +128,7 @@ export class Biome {
     humidity:                   float
     dirt_layers:                any[]
     river_bottom_blocks:        IRiverBottomBlocks
+    blocks?:                    { [key: string]: IBlockMaterial; } = {}
 
     trees:                      any
     plants:                     any
@@ -134,8 +147,9 @@ export class Biome {
     is_snowy:                   boolean
     is_grassy_surface:          boolean
     is_underworld:              boolean
+    hanging_foliage_block_id:   any;
 
-    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, ground_block_generators? : ChunkGroundBlockGenerator[], dirt_color? : IndexedColor, water_color? : IndexedColor, no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks) {
+    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, ground_block_generators? : ChunkGroundBlockGenerator[], dirt_color? : IndexedColor, water_color? : IndexedColor, no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks, blocks ?: { [key: string]: string; }) {
         this.id                         = id
         this.title                      = title
         this.temperature                = temperature
@@ -182,6 +196,17 @@ export class Biome {
                 if(!item.block) throw 'invalid_river_bottom_block'
             }
         }
+
+        this.blocks.hanging_foliage = this.is_snowy ? BLOCK.ICE : BLOCK.OAK_LEAVES
+
+        if(blocks) {
+            for(let k in blocks) {
+                const block = BLOCK.fromName(blocks[k])
+                if(!block) throw 'invalid_river_bottom_block'
+                this.blocks[k] = block
+            }
+        }
+
     }
 
     getRiverBottomBlock(density_params : DensityParams) : int {
@@ -255,7 +280,8 @@ export class Biomes {
         water_color? : IndexedColor,
         building_options? : any,
         ground_block_generators? : any,
-        river_bottom_blocks? : IRiverBottomBlocks) {
+        river_bottom_blocks? : IRiverBottomBlocks,
+        blocks ?: { [key: string]: string; }) : Biome {
         // const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [
@@ -350,10 +376,11 @@ export class Biomes {
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
         water_color = water_color ?? DEFAULT_WATER_COLOR;
         const no_smooth_heightmap = true;
-        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, ground_block_generators, dirt_color, water_color, no_smooth_heightmap, building_options, river_bottom_blocks);
+        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, ground_block_generators, dirt_color, water_color, no_smooth_heightmap, building_options, river_bottom_blocks, blocks)
         this.list.push(biome);
         this.byName.set(title, biome);
         this.byID.set(biome.id, biome);
+        return biome
     }
 
     initBiomes() {
@@ -675,11 +702,17 @@ export class Biomes {
             undefined,
             undefined,
             new IndexedColor(12, 268, 0),
-            undefined,
+            NETHER_BUILDINGS,
             undefined,
             [
                 {value: 1, block_name: 'BEDROCK'}
-            ]
+            ],
+            {
+                hanging_foliage:    'ANCIENT_DEBRIS',
+                basement:           'NETHERRACK',
+                dirt_path:          'NETHER_BRICKS',
+                caves_second:       'NETHER_BRICKS',
+            }
         );
 
     }
