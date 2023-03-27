@@ -260,8 +260,10 @@ export class Default_Terrain_Generator {
         const z = 0
         const ystart = y + tree.height;
         // ствол
-        this.temp_block.id = 11
-        setTreeBlock(tree, x, y - 1, z, this.temp_block, true)
+        if(tree.type.basis) {
+            this.temp_block.id = tree.type.basis
+            setTreeBlock(tree, x, y - 1, z, this.temp_block, true)
+        }
         this.temp_block.id = tree.type.trunk;
         for(let p = y; p < ystart; p++) {
             setTreeBlock(tree, x, p, z, this.temp_block, true);

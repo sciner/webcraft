@@ -807,6 +807,13 @@ export class BLOCK {
             !('height' in block);
     }
 
+    static isFlower(block) : boolean {
+        if(block.id == 0) {
+            return false
+        }
+        return (block.style_name == 'planting' && block.material.id == 'plant')
+    }
+
     /**
      * @param {int} block_id
      * @returns {number} non-zero if it's solid, 0 otherwise
@@ -960,6 +967,7 @@ export class BLOCK {
         block.random_rotate_up  = block.tags.includes('random_rotate_up');
         block.is_log            = block.tags.includes('log')
         block.is_solid          = this.isSolid(block);
+        block.is_flower         = this.isFlower(block);
         block.is_solid_for_fluid= ArrayHelpers.includesAny(block.tags, 'is_solid_for_fluid', 'stairs', 'log') ||
                                     ['wall', 'pane'].includes(block.style_name);
 

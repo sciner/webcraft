@@ -313,6 +313,7 @@ interface IBlockMaterial {
     is_portal: boolean
     is_glass: boolean
     is_grass: boolean
+    is_flower: boolean
     is_battery: boolean
     is_log: boolean
     // boolean values that are automatically calculated by BLOCK, not from JSON

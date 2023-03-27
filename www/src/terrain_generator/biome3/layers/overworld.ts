@@ -490,12 +490,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                             chunk.setBlockIndirect(x, y, z, dirt_block_id)
                                         }
                                         // chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, bm.MOSSY_COBBLESTONE.id);
-                                        let big_stone_block_id = bm.MOSSY_COBBLESTONE.id
-                                        if(d4 < 0) {
-                                            big_stone_block_id = bm.TUFF.id
-                                        } else if (d4 > .5) {
-                                            big_stone_block_id = bm.STONE.id
-                                        }
+                                        let big_stone_block_id = cell.biome.getBigStoneBlock(density_params)
                                         chunk.setBlockIndirect(x, y + 1, z, big_stone_block_id)
                                         if(big_stone_density > BIG_STONE_DESNSITY) {
                                             // chunk.setGroundInColumIndirect(columnIndex, x, y + 2, z, big_stone_block_id);

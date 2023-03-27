@@ -1,5 +1,5 @@
-import {Color, IndexedColor} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
+import { Color, IndexedColor } from '../helpers.js';
+import { BLOCK } from "../blocks.js";
 import { DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET } from '../constant.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
@@ -18,14 +18,16 @@ export class BiomeTree {
     
     trunk: int
     leaves: int | null
+    basis: int | null // block under tree e.g. DIRT or SAND
     style: string
     height: {min: int, max: int}
     percent?: float
     has_cavity: boolean
 
-    constructor(trunk: int, leaves: int | null, style: string, height: {min: int, max: int}, percent : float = 1, has_cavity : boolean = false) {
-        this.trunk = trunk
-        this.leaves = leaves
+    constructor(trunk: string, leaves: string | null, style: string, height: {min: int, max: int}, percent : float = 1, has_cavity : boolean = false, basis_block_id? : int) {
+        this.trunk = BLOCK.fromName(trunk).id
+        this.leaves = leaves ? BLOCK.fromName(leaves).id : null
+        this.basis = basis_block_id
         this.style = style
         this.height = height
         this.percent = percent
@@ -50,14 +52,14 @@ export class TREES {
         if(TREES.BIRCH) {
             return false;
         }
-        TREES.BIRCH             = new BiomeTree(BLOCK.BIRCH_LOG.id, BLOCK.BIRCH_LEAVES.id, 'wood', {min: 4, max: 8}, undefined, true)
-        TREES.OAK               = new BiomeTree(BLOCK.OAK_LOG.id, BLOCK.OAK_LEAVES.id, 'wood', {min: 4, max: 8}, undefined, true)
-        TREES.ACACIA            = new BiomeTree(BLOCK.ACACIA_LOG.id, BLOCK.ACACIA_LEAVES.id, 'acacia', {min: 5, max: 12}, undefined, true)
-        TREES.SPRUCE            = new BiomeTree(BLOCK.SPRUCE_LOG.id, BLOCK.SPRUCE_LEAVES.id, 'spruce', {min: 6, max: 22}, undefined, true)
-        TREES.JUNGLE            = new BiomeTree(BLOCK.JUNGLE_LOG.id, BLOCK.JUNGLE_LEAVES.id, 'jungle', {min: 1, max: 22}, undefined, true)
-        TREES.RED_MUSHROOM      = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.RED_MUSHROOM_BLOCK.id, 'red_mushroom', {min: 5, max: 12})
-        TREES.BROWN_MUSHROOM    = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.BROWN_MUSHROOM_BLOCK.id, 'brown_mushroom', {min: 5, max: 12})
-        TREES.BIG_OAK           = new BiomeTree(BLOCK.OAK_LOG.id, BLOCK.OAK_LEAVES.id, 'big_oak', {min: 20, max: 35})
+        TREES.BIRCH             = new BiomeTree('BIRCH_LOG', 'BIRCH_LEAVES', 'wood', {min: 4, max: 8}, undefined, true)
+        TREES.OAK               = new BiomeTree('OAK_LOG', 'OAK_LEAVES', 'wood', {min: 4, max: 8}, undefined, true)
+        TREES.ACACIA            = new BiomeTree('ACACIA_LOG', 'ACACIA_LEAVES', 'acacia', {min: 5, max: 12}, undefined, true)
+        TREES.SPRUCE            = new BiomeTree('SPRUCE_LOG', 'SPRUCE_LEAVES', 'spruce', {min: 6, max: 22}, undefined, true)
+        TREES.JUNGLE            = new BiomeTree('JUNGLE_LOG', 'JUNGLE_LEAVES', 'jungle', {min: 1, max: 22}, undefined, true)
+        TREES.RED_MUSHROOM      = new BiomeTree('MUSHROOM_STEM', 'RED_MUSHROOM_BLOCK', 'red_mushroom', {min: 5, max: 12})
+        TREES.BROWN_MUSHROOM    = new BiomeTree('MUSHROOM_STEM', 'BROWN_MUSHROOM_BLOCK', 'brown_mushroom', {min: 5, max: 12})
+        TREES.BIG_OAK           = new BiomeTree('OAK_LOG', 'OAK_LEAVES', 'big_oak', {min: 20, max: 35})
         return true;
     }
 
@@ -170,7 +172,7 @@ export class  BIOMES {
             trees:      {
                 frequency: TREE_FREQUENCY / 2,
                 list: [
-                    {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
+                    {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, basis: BLOCK.SAND.id, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 ]
             },
             plants: {
@@ -256,7 +258,7 @@ export class  BIOMES {
             trees:      {
                 frequency: TREE_FREQUENCY / 4,
                 list: [
-                    {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
+                    {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, basis: BLOCK.SAND.id, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 ]
             },
             plants: {
@@ -268,7 +270,7 @@ export class  BIOMES {
         };
 
         BIOMES.BARE = {
-            block: BLOCK.OAK_LOG.id,
+            block:      BLOCK.OAK_LOG.id,
             code:       'BARE',
             color:      '#CCCCCC',
             dirt_color: new IndexedColor(96, 363, 0),

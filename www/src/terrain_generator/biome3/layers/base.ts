@@ -51,12 +51,15 @@ export class Biome3LayerBase {
                 const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
 
                 // Replace grass_block with dirt under trees
-                if(chunk.addr.x == m.chunk.addr.x && chunk.addr.z == m.chunk.addr.z) {
-                    const yu = y - 1
-                    if(yu >= 0 && yu < chunk.size.y) {
-                        const cell = m.getCell(tree.pos.x, tree.pos.z)
-                        if(!cell.is_sand && !tree.type.transparent_trunk) {
-                            chunk.setGroundIndirect(x, yu, z, bm.DIRT.id)
+                const basis_block = tree.type.basis === undefined ? bm.DIRT.id : tree.type.basis
+                if(basis_block !== null) {
+                    if(chunk.addr.x == m.chunk.addr.x && chunk.addr.z == m.chunk.addr.z) {
+                        const yu = y - 1
+                        if(yu >= 0 && yu < chunk.size.y) {
+                            const cell = m.getCell(tree.pos.x, tree.pos.z)
+                            if(!cell.is_sand && !tree.type.transparent_trunk) {
+                                chunk.setGroundIndirect(x, yu, z, basis_block)
+                            }
                         }
                     }
                 }
