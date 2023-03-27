@@ -663,7 +663,7 @@ export class Default_Terrain_Generator {
         const step = Math.PI / (tree.height * height_incr_coefficient);
         const height_coef = 1.2 // + .7 * ((rskew % .25) / .25); // коэффициент насколько вытянуть шляпу вверх
         const ystart = y + tree.height * height_incr_coefficient;
-        const ystart_with_coef = Math.floor(ystart * height_coef);
+        const ystart_with_coef = Math.ceil(ystart * height_coef);
 
         this.temp_block.id = tree.type.trunk;
 
@@ -801,7 +801,7 @@ export class Default_Terrain_Generator {
                     const z_shift = j < 0 ? -.5 : .5;
                     const qube_pos_x = i + x_pos;
                     const qube_pos_z = j + z_pos;
-                    qube_pos.setScalar(qube_pos_x + x_shift, Math.ceil(qube_pos_y / height_coef) + .5, qube_pos_z + z_shift)
+                    qube_pos.setScalar(qube_pos_x + x_shift, Math.floor(qube_pos_y / height_coef) + .5, qube_pos_z + z_shift)
                     const dist = qube_center.distanceSqr(qube_pos)
                     if (dist > radius_sqr || dist < radius_sqr * 0.7) {
                         continue;
