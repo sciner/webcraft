@@ -82,7 +82,7 @@ export class Window extends PIXI.Container {
 
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
-    constructor(x, y, w, h, id, title? : string, text? : string) {
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
         super()
 
@@ -1016,7 +1016,7 @@ export class Icon extends Window {
 // Button
 export class Button extends Window {
 
-    constructor(x, y, w, h, id : string, title? : string, text? : string) {
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
         super(x, y, w, h, id, title, title)
         this.style.border.hidden = false
@@ -1060,16 +1060,7 @@ export class Button extends Window {
 // Label
 export class Label extends Window {
 
-    /**
-     * @param {int} x
-     * @param {int} y
-     * @param {?int} w
-     * @param {?int} h
-     * @param {string} id
-     * @param {?string} title
-     * @param {?string} text
-     */
-    constructor(x, y, w, h, id, title? : string, text? : string) {
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, title)
         this.style.background.color = '#00000000'
         this.style.border.hidden = true
@@ -1082,7 +1073,7 @@ export class Label extends Window {
 // TextEdit
 export class TextEdit extends Window {
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
         super(x, y, w, h, id, title, text)
 
@@ -1650,7 +1641,7 @@ export class WindowManager extends Window {
 
 export class VerticalLayout extends Window {
 
-    constructor(x, y, w, id) {
+    constructor(x : number, y : number, w : number, id : string) {
         super(x, y, w, 0, id, null, null);
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;

@@ -1,7 +1,7 @@
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
-import { isMobileBrowser, Mth, Vector } from "./helpers.js";
+import { isMobileBrowser, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
@@ -12,6 +12,34 @@ import type { Player } from "./player.js";
 import type { Renderer } from "./render.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import type { World } from "./world.js";
+
+declare type ICompasMark = {
+    angle: number,
+    title: string,
+    color?: string,
+}
+
+const compass_id = 'wndCompass'
+
+const compas_marks : ICompasMark[] = [
+    {
+        'angle': 0,
+        'title': 'N',
+        // 'color': '#F56F6F'
+    },
+    {
+        'angle': Math.PI / 2,
+        'title': 'E'
+    },
+    {
+        'angle': Math.PI,
+        'title': 'S'
+    },
+    {
+        'angle': (3 * Math.PI / 2),
+        'title': 'W'
+    }
+]
 
 // QuestActionType
 export enum QuestActionType {
@@ -187,12 +215,12 @@ export class HUD {
     [key: string]: any;
 
     FPS = new FPSCounter()
+    active : boolean = true
 
     constructor(canvas) {
 
         this.canvas = canvas
 
-        this.active                     = true
         this.draw_info                  = DRAW_HUD_INFO_DEFAULT
         this.draw_block_info            = !isMobileBrowser()
         this.texture                    = null
@@ -227,11 +255,11 @@ export class HUD {
 
     }
 
-    get width() {
+    get width() : float {
         return this.canvas.width
     }
 
-    get height() {
+    get height() : float {
         return this.canvas.height
     }
 
@@ -239,30 +267,30 @@ export class HUD {
         return this.active && this.draw_info && this.draw_block_info;
     }
 
-    get zoom() {
+    get zoom() : float {
         return UI_ZOOM * Qubatch.settings.window_size / 100
     }
 
-    add(item, zIndex) {
+    add(item, zIndex : int) {
         if(!this.items[zIndex]) {
             this.items[zIndex] = [];
         }
         this.items[zIndex].push({item: item});
     }
 
-    refresh() {
+    refresh() : void {
         this.need_refresh = true
         this.prepareText()
     }
 
     //
-    toggleActive() {
+    toggleActive() : void {
         this.active = !this.active;
         this.refresh();
     }
 
     //
-    isActive() {
+    isActive() : boolean {
         return this.active;
     }
 
@@ -301,7 +329,7 @@ export class HUD {
             // Draw game technical info
             this.drawInfo()
             this.drawAverageFPS()
-            this.drawCompas(this.wm.w / 2, 20 * this.zoom, 400 * this.zoom)
+            this.drawCompas(this.wm.w / 2, 20 * this.zoom, 1850/4 * this.zoom, 80/4 * this.zoom)
         }
 
         for(const item of this.items) {
@@ -322,10 +350,10 @@ export class HUD {
     }
 
     /**
-     * @param {int} width In pixels
-     * @param {int} height In pixels
+     * @param width In pixels
+     * @param height In pixels
      */
-    resize(width, height) {
+    resize(width : float, height : float) {
 
         // const dpr = window.devicePixelRatio
         // width /= dpr
@@ -348,7 +376,7 @@ export class HUD {
     }
 
     //
-    prepareText() {
+    prepareText() : boolean {
 
         // If render not inited
         if(!Qubatch.render || !Qubatch.world || !Qubatch.player) {
@@ -624,13 +652,6 @@ export class HUD {
             fs.stroke = '#00000099'
             fs.strokeThickness = 4
             fs.lineHeight = 20
-            // fs.dropShadow = true
-            // fs.dropShadowAlpha = 1
-            // fs.dropShadowBlur = 20
-            // fs.dropShadowAngle = 0 // Math.PI / 6
-            // fs.dropShadowColor = 0x0
-            // fs.dropShadowDistance = 0
-
             switch(align) {
                 case 'right': {
                     text_block.style.font.anchor.x = 1
@@ -641,56 +662,29 @@ export class HUD {
             text_block.style.font.color = '#ffffff'
             this.wm.hud_window.addChild(text_block)
         }
-
-        //if(fillStyle) {
-        //    text_block.style.background.color = fillStyle
-        //}
-
         text_block.visible = true
         text_block. position.set(x, y)
         text_block.text = str
-
     }
 
-    drawCompas(x, y, w) {
+    drawCompas(x : float, y : float, w : float, h : float) {
         if (!Qubatch.settings.show_compass) {
             return
         }
         const rot = Qubatch.player.rotate.z
-        const marks = [
-            {
-                'angle': 0,
-                'title': 'N',
-                'color': '#F56F6F'
-            },
-            {
-                'angle': Math.PI / 2,
-                'title': 'E'
-            },
-            {
-                'angle': Math.PI,
-                'title': 'S'
-            },
-            {
-                'angle': (3 * Math.PI / 2),
-                'title': 'W'
-            }
-        ]
         const hud_window = this.wm.hud_window
-        const compass_background_id = 'compass_background'
-        let compas : Label = hud_window[compass_background_id]
+        let compas : Label = hud_window[compass_id]
         if (!compas) {
-            compas = hud_window[compass_background_id] = new Label(x - w / 2, y, w + 20 * this.zoom, 22 * this.zoom, compass_background_id, '', '|')
-            compas.style.background.color = '#FFFFFF33'
+            const hud_atlas = Resources.atlas.get('hud')
+            compas = hud_window[compass_id] = new Label(x - w / 2, y, w + 20 * this.zoom, h, compass_id, '', '|')
+            compas.setBackground(hud_atlas.getSpriteFromMap('compas_back'))
+            compas.style.font.color = '#a4e8f1'
             compas.style.textAlign.horizontal = 'center'
-            compas.style.border.hidden = false
-            compas.style.border.style = 'fixed_single'
-            compas.style.border.color = '#00000077'
             hud_window.addChild(compas)
         }
         compas.visible = true
         compas.x = x - w / 2
-        for (const mark of marks) {
+        for (const mark of compas_marks) {
             let angle = rot - mark.angle
             if (angle < -Math.PI || angle > Math.PI) {
                 angle = -angle
@@ -706,6 +700,7 @@ export class HUD {
             let mark_label = hud_window[id]
             if (!mark_label) {
                 mark_label = hud_window[id] = new Label((x - w / 2), y, 20 * this.zoom, 20 * this.zoom, id, mark.title, mark.title)
+                mark_label.style.font.size = 12
                 hud_window.addChild(mark_label)
                 mark_label.style.textAlign.horizontal = 'center'
             }
@@ -714,7 +709,7 @@ export class HUD {
             if (mark?.color) {
                 mark_label.style.font.color = mark.color + '' + alpha
             } else {
-                mark_label.style.font.color = '#FFFFFF' + '' + alpha
+                mark_label.style.font.color = '#a4e8f1' + '' + alpha
             }
         }
     }
