@@ -36,7 +36,7 @@ const NETHER_BUILDINGS = {
     others: [
         {class: 'BuildingBlocks', max_count: 3, chance: .1, block_templates: ['waterwell', 'waterwell2']},
         // {class: 'Farmland',       max_count: Infinity, chance: .2},
-        {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['nether_house']},
+        {class: 'BuildingBlocks', max_count: Infinity, chance: 0.6, block_templates: ['nether_house', 'nether_manor', 'tiny_nether_house']},
         {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_nether_house']},
     ]
 }

@@ -1628,6 +1628,29 @@
                 "draw_natural_basement": false,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "nether_manor",
+            "pos1": {
+                "x": -601,
+                "y": 0,
+                "z": 0
+            },
+            "pos2": {
+                "x": -612,
+                "y": 8,
+                "z": -8
+            },
+            "entrance": {
+                "x": -606,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-03-27T21:39:45.854Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
         }
     ]
 }

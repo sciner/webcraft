@@ -52,8 +52,8 @@ export class TREES {
         if(TREES.BIRCH) {
             return false;
         }
-        TREES.BIRCH             = new BiomeTree('BIRCH_LOG', 'BIRCH_LEAVES', 'wood', {min: 4, max: 8}, undefined, true)
-        TREES.OAK               = new BiomeTree('OAK_LOG', 'OAK_LEAVES', 'wood', {min: 4, max: 8}, undefined, true)
+        TREES.BIRCH             = new BiomeTree('BIRCH_LOG', 'BIRCH_LEAVES', 'birch', {min: 4, max: 8}, undefined, true, undefined)
+        TREES.OAK               = new BiomeTree('OAK_LOG', 'OAK_LEAVES', 'oak', {min: 4, max: 8}, undefined, true)
         TREES.ACACIA            = new BiomeTree('ACACIA_LOG', 'ACACIA_LEAVES', 'acacia', {min: 5, max: 12}, undefined, true)
         TREES.SPRUCE            = new BiomeTree('SPRUCE_LOG', 'SPRUCE_LEAVES', 'spruce', {min: 6, max: 22}, undefined, true)
         TREES.JUNGLE            = new BiomeTree('JUNGLE_LOG', 'JUNGLE_LEAVES', 'jungle', {min: 1, max: 22}, undefined, true)

@@ -1,17 +1,20 @@
 import { IndexedColor } from '../../helpers.js';
-import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
+import { Default_Terrain_Generator, Default_Terrain_Map, alea } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
-
-const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
-const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
+import { Biomes } from '../biome3/biomes.js';
+import { createNoise2D } from '../../../vendors/simplex-noise.js';
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
     [key: string]: any;
 
-    constructor(seed, world_id, options) {
+    constructor(seed : string, world_id : string, options) {
         super(seed, world_id, options);
-        this.setSeed(seed);
+        this.setSeed(seed)
+        const noiseRandom = new alea(seed)
+        const noise2d = createNoise2D(noiseRandom.double)
+        this.biomes = new Biomes(noise2d)
+        this.biome = this.biomes.byName.get('Березняк')
     }
 
     async init() {
@@ -44,11 +47,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         const cell = {
-            dirt_color: DEFAULT_DIRT_COLOR,
-            water_color: DEFAULT_WATER_COLOR,
-            biome: new Default_Terrain_Map_Cell({
-            code: 'flat'
-        })};
+            dirt_color: this.biome.dirt_color,
+            water_color: this.biome.water_color,
+            biome: this.biome
+        };
 
         return new Default_Terrain_Map(
             chunk.addr,
