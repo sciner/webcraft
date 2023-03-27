@@ -28,7 +28,7 @@ export const GRASS_PALETTE_OFFSET           = {x : 128, y : 0}; // (in px) offse
 export const DEFAULT_DIRT_PALETTE           = {x: 0, y : 256, w: 128, h : 128, noise_range: 10} as DirtPalette // noise_range is mix dirt colors on every block with random value
 export const DEFAULT_GRASS_PALETTE          = {x: 128, y : 256, w: 128, h : 128, noise_range: 0} as DirtPalette
 export const DIRT_PALETTE_SIZE              = 128
-export const GRASS_COLOR_SHIFT_FACTOR       = 0 // 6
+export const GRASS_COLOR_SHIFT_FACTOR       = 6
 
 export const DEFAULT_TX_CNT                 = 64;
 export const DEFAULT_TX_SIZE                = 32;

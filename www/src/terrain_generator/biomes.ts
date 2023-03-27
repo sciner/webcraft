@@ -1,5 +1,6 @@
 import {Color, IndexedColor} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
+import { DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET } from '../constant.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
@@ -95,7 +96,7 @@ export class  BIOMES {
             block:      BLOCK.STILL_WATER.id,
             code:       'OCEAN',
             color:      '#017bbb',
-            dirt_color: new IndexedColor(132, 400, 0),
+            dirt_color: new IndexedColor(33, 292, 0),
             water_color: new IndexedColor(129, 194, 0),
             title:      'ОКЕАН',
             max_height: 64,
@@ -118,7 +119,7 @@ export class  BIOMES {
             block:      BLOCK.STILL_WATER.id,
             code:       'OCEAN',
             color:      '#017bbb',
-            dirt_color: new IndexedColor(132, 400, 0),
+            dirt_color: new IndexedColor(33, 292, 0),
             water_color: new IndexedColor(129, 194, 0),
             title:      'ОКЕАН',
             max_height: 64,
@@ -138,7 +139,7 @@ export class  BIOMES {
             block: BLOCK.SAND.id,
             code:       'BEACH',
             color:      '#ffdc7f',
-            dirt_color: new IndexedColor(2, 510, 0),
+            dirt_color: new IndexedColor(1, 383, 0),
             water_color: new IndexedColor(12, 36, 0),
             title:      'ПЛЯЖ',
             max_height: 64,
@@ -160,7 +161,7 @@ export class  BIOMES {
             block:      BLOCK.GRAVEL.id,
             code:       'TEMPERATE_DESERT',
             color:      '#f4a460',
-            dirt_color: new IndexedColor(72, 500, 0),
+            dirt_color: new IndexedColor(36, 378, 0),
             water_color: new IndexedColor(0, 255, 0),
             title:      'УМЕРЕННАЯ ПУСТЫНЯ',
             dirt_block: [BLOCK.SAND.id],
@@ -184,7 +185,7 @@ export class  BIOMES {
             block:      BLOCK.OAK_PLANKS.id,
             code:       'JUNGLE',
             color:      '#4eb41c',
-            dirt_color: new IndexedColor(32, 345, 0),
+            dirt_color: new IndexedColor(16, 300.5, 0),
             water_color: new IndexedColor(12, 36, 0),
             title:      'ДЖУНГЛИ',
             max_height: 48,
@@ -218,7 +219,7 @@ export class  BIOMES {
             block:      BLOCK.OAK_PLANKS.id,
             code:       'SUBTROPICAL_DESERT',
             color:      '#c19a6b',
-            dirt_color: new IndexedColor(77, 510, 0),
+            dirt_color: new IndexedColor(38.5, 383, 0),
             water_color: new IndexedColor(0, 255, 0),
             title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
             max_height: 6,
@@ -246,7 +247,7 @@ export class  BIOMES {
             block:      BLOCK.STONE.id,
             code:       'SCORCHED',
             color:      '#ff5500',
-            dirt_color: new IndexedColor(2, 510, 0),
+            dirt_color: new IndexedColor(1, 383, 0),
             water_color: new IndexedColor(12, 36, 0),
             title:      'ОБОГРЕВАЮЩИЙ',
             max_height: 12,
@@ -270,7 +271,7 @@ export class  BIOMES {
             block: BLOCK.OAK_LOG.id,
             code:       'BARE',
             color:      '#CCCCCC',
-            dirt_color: new IndexedColor(192, 470, 0),
+            dirt_color: new IndexedColor(96, 363, 0),
             water_color: new IndexedColor(0, 255, 0),
             title:      'ПУСТОШЬ',
             max_height: 64,
@@ -287,7 +288,7 @@ export class  BIOMES {
             block: BLOCK.SPRUCE_LOG.id,
             code:       'TUNDRA',
             color:      '#74883c',
-            dirt_color: new IndexedColor(212, 500, 0),
+            dirt_color: new IndexedColor(106, 378, 0),
             water_color: new IndexedColor(255, 255, 0),
             title:      'ТУНДРА',
             max_height: 48,
@@ -319,7 +320,7 @@ export class  BIOMES {
         BIOMES.TAIGA = {
             block: BLOCK.OAK_LOG.id,
             code:       'TAIGA',
-            dirt_color: new IndexedColor(232, 510, 0),
+            dirt_color: new IndexedColor(116, 383, 0),
             water_color: new IndexedColor(255, 255, 0),
             color:      '#879b89',
             title:      'ТАЙГА',
@@ -343,7 +344,7 @@ export class  BIOMES {
             block:      BLOCK.POWDER_SNOW.id,
             code:       'SNOW',
             color:      '#f5f5ff',
-            dirt_color: new IndexedColor(252, 510, 0),
+            dirt_color: new IndexedColor(126, 383, 0),
             water_color: new IndexedColor(255, 255, 0),
             title:      'СНЕГ',
             max_height: 35,
@@ -366,7 +367,7 @@ export class  BIOMES {
             block: BLOCK.DIAMOND_ORE.id,
             code:       'SHRUBLAND',
             color:      '#316033',
-            dirt_color: new IndexedColor(112, 390, 0),
+            dirt_color: new IndexedColor(56, 323, 0),
             water_color: new IndexedColor(60, 220, 0),
             title:      'КУСТАРНИКИ',
             dirt_block: [BLOCK.GRASS_BLOCK.id],
@@ -424,7 +425,7 @@ export class  BIOMES {
             block:      BLOCK.GLASS.id,
             code:       'TEMPERATE_DECIDUOUS_FOREST',
             color:      '#228b22',
-            dirt_color: new IndexedColor(32, 400, 0),
+            dirt_color: new IndexedColor(16, 328, 0),
             water_color: new IndexedColor(129, 194, 0),
             title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
             max_height: 48,
@@ -451,7 +452,7 @@ export class  BIOMES {
             block: BLOCK.COBBLESTONE.id,
             code:       'TEMPERATE_RAIN_FOREST',
             color:      '#00755e',
-            dirt_color: new IndexedColor(132, 400, 0),
+            dirt_color: new IndexedColor(66, 328, 0),
             water_color: new IndexedColor(129, 194, 0),
             title:      'УМЕРЕННЫЙ ДОЖДЬ ЛЕС',
             max_height: 15,
@@ -474,7 +475,7 @@ export class  BIOMES {
             block:      BLOCK.BRICKS.id,
             code:       'TROPICAL_SEASONAL_FOREST',
             color:      '#008456',
-            dirt_color: new IndexedColor(132, 420, 0),
+            dirt_color: new IndexedColor(66, 338, 0),
             water_color: new IndexedColor(37, 121, 0),
             title:      'ТРОПИЧЕСКИЙ СЕЗОННЫЙ ЛЕС',
             max_height: 32,
@@ -500,7 +501,7 @@ export class  BIOMES {
             block:      BLOCK.GLOWSTONE.id,
             code:       'TROPICAL_RAIN_FOREST',
             color:      '#16994f',
-            dirt_color: new IndexedColor(92, 430, 0),
+            dirt_color: new IndexedColor(46, 343, 0),
             water_color: new IndexedColor(22, 58, 0),
             title:      'ГРИБНОЙ',
             max_height: 64,
@@ -537,6 +538,14 @@ export class  BIOMES {
                 if(!trunk_block) throw 'invalid_trunk_block';
                 tree.transparent_trunk = trunk_block.transparent;
             }
+            biome.dirt_palette = DEFAULT_DIRT_PALETTE
+            biome.grass_palette = {
+                x:              biome.dirt_palette.x + GRASS_PALETTE_OFFSET.x,
+                y:              biome.dirt_palette.y + GRASS_PALETTE_OFFSET.y,
+                w:              biome.dirt_palette.w,
+                h:              biome.dirt_palette.h,
+                noise_range:    biome.dirt_palette.noise_range,
+            } as DirtPalette
         }
 
         return true;
