@@ -729,7 +729,7 @@ export class Biomes {
             {
                 frequency: .4,
                 list: [
-                    {percent: .2, trunk: BLOCK.ANCIENT_DEBRIS.id, leaves: null, basis: BLOCK.NETHERRACK.id, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT * 2, max: CACTUS_MAX_HEIGHT * 3}},
+                    {percent: .2, trunk: BLOCK.ANCIENT_DEBRIS.id, leaves: BLOCK.WARPED_FENCE.id, basis: BLOCK.NETHERRACK.id, style: 'peak', height: {min: CACTUS_MIN_HEIGHT * 2, max: CACTUS_MAX_HEIGHT * 3}},
                     // {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     // {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
                     {percent: .3, trunk: BLOCK.GLOWSTONE.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
@@ -744,7 +744,7 @@ export class Biomes {
                 frequency: PLANTS_FREQUENCY / 1,
                 list: [
                     {percent: .1, blocks: [{name: 'PEBBLES'}]},
-                    {percent: .1, blocks: [{name: 'FIRE', extra_data: {up: true, age: .5}}]}
+                    // {percent: .1, blocks: [{name: 'FIRE', extra_data: {up: true, age: .5}}]}
                 ]
             },
             {
