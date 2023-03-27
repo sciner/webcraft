@@ -243,7 +243,7 @@ export class Chunk {
         return true;
     }
 
-    applyVertices(inputId, bufferPool, argsVertices: Dict<IChunkVertexBuffer>) {
+     applyVertices(inputId, bufferPool, argsVertices: Dict<IChunkVertexBuffer>) {
         let chunkManager = this.getChunkManager();
         chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length = 0;
