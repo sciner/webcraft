@@ -31,7 +31,7 @@ export class Biome3LayerBase {
 
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lower? : boolean, is_highest? : boolean) : Default_Terrain_Map {
         return this.generator.generateDefaultMap(chunk)
     }
 

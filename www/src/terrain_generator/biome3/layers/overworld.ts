@@ -60,7 +60,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : TerrainMap2 {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) : TerrainMap2 {
 
         // Generate maps around chunk
         chunk.timers.start('generate_maps')

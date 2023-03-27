@@ -40,8 +40,32 @@ export default class Biome3LayerUnderworld extends Biome3LayerOverworld {
         map_manager.layer = this
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : TerrainMap2 {
-        return super.generate(chunk, seed, rnd)
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest?: boolean, is_highest ?: boolean) : TerrainMap2 {
+        const resp = super.generate(chunk, seed, rnd, is_lowest, is_highest)
+        
+        if(is_highest) {
+
+            const stone_block_id = 9
+            const block_id = 87
+            const sz = chunk.size.y
+
+            for(let x = 0; x < chunk.size.x; x++) {
+                for(let z = 0; z < chunk.size.z; z++) {
+                    const hx = (chunk.coord.x + x)
+                    const hz = (chunk.coord.z + z)
+                    let n = this.noise2d(hx/32, hz/32) * .667
+                    let n2 = Math.ceil((n / .667 + 1) * 3)
+                    n += this.noise2d(hx/16, hz/16) * 0.333
+                    n += 1
+                    const h = Math.round(n * 10 + 3)
+                    for(let y = chunk.size.y - h; y < chunk.size.y; y++) {
+                        chunk.setBlockIndirect(x, y, z, y > sz - n2 ? stone_block_id : block_id)
+                    }
+                }
+            }
+        }
+
+        return resp
     }
 
 }

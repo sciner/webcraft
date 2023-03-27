@@ -75,7 +75,10 @@ export class Biome3LayerManager {
         chunk.aabb.translate(0, -layer.bottom * CHUNK_SIZE_Y, 0)
         chunk.coord.y -= layer.bottom * CHUNK_SIZE_Y
 
-        const map = layer.obj.generate(chunk, chunk_seed, rnd)
+        const is_lowest = chunk.addr.y == 0
+        const is_highest = chunk.addr.y == (layer.up - layer.bottom) - 1
+
+        const map = layer.obj.generate(chunk, chunk_seed, rnd, is_lowest, is_highest)
 
         chunk.addr.y += layer.bottom
         chunk.aabb.translate(0, layer.bottom * CHUNK_SIZE_Y, 0)
