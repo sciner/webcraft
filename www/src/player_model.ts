@@ -63,11 +63,12 @@ const setFromUnitVectors = (q, vFrom, vTo ) => {
 }
 
 export class ModelSlot {
-    [key: string]: any;
-    constructor(name = '', parent = null) {
-        /**
-         * @type { SceneNode }
-         */
+    holder: SceneNode;
+    id: number;
+    name: string;
+
+    constructor(name : string = '', parent = null) {
+
         this.holder = new SceneNode(parent);
         this.holder.position.set(parent.pivot);
 
@@ -182,7 +183,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    changeSlotEntry(name, props) {
+    changeSlotEntry(name : string, props) {
         if (!name || !props) {
             return;
         }
@@ -252,13 +253,17 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         if (block.diagonal) {
             scale *= 1.2;
-            quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+            // quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+            // quat.fromEuler(slot.holder.quat, globalThis.xyz.x * orient, globalThis.xyz.y, 90 + globalThis.xyz.z * orient);
+            quat.fromEuler(slot.holder.quat, 0 * orient, -50, 90 + 0 * orient);
+            slot.holder.pivot.set([.035, -.07, .35]);
         } else {
             quat.fromEuler(slot.holder.quat, 20, 0, -20);
+            slot.holder.pivot.set([0, 0, scale / 2]);
         }
 
         slot.holder.scale.set([scale, scale, scale]);
-        slot.holder.pivot.set([0, 0, scale / 2]);
+        // slot.holder.pivot.set([0, 0, scale / 2]);
         slot.holder.updateMatrix();
     }
 

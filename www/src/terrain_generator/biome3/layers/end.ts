@@ -6,6 +6,7 @@ import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import { ClusterEndCity } from "../../cluster/end_city.js";
 import { ClusterManager } from "../../cluster/manager.js";
 import { TerrainMapCell } from "../../terrain_map.js";
+import type { Biome } from "../biomes.js";
 import type Terrain_Generator from "../index.js";
 import { TerrainMapManagerBase } from "../terrain/manager_base.js";
 import { TerrainMap2 } from "../terrain/map.js";
@@ -14,9 +15,11 @@ import { Biome3LayerBase } from "./base.js";
 class EndTerrainMapManager extends TerrainMapManagerBase {
 
     declare layer : Biome3LayerEnd
+    _biome : Biome
 
     constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerEnd) {
         super(seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
+        this._biome = this.biomes.byName.get('Летающие острова')
     }
 
     // generate map
@@ -24,7 +27,7 @@ class EndTerrainMapManager extends TerrainMapManagerBase {
 
         // Result map
         const map = new TerrainMap2(chunk, this.generator_options, this.noise2d)
-        const biome = this.biomes.byID.get(500)
+        const biome = this._biome
 
         const cell = new TerrainMapCell(80, 0, 0, null, 0)
         cell.biome = biome
