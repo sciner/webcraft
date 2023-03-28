@@ -54,7 +54,6 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
 
     createVao() {
         const {attribs, gl} = this;
-        const stride = this.stride / this.vertexPerInstance;
         this.vao = gl.createVertexArray();
         gl.bindVertexArray(this.vao);
 
@@ -65,10 +64,7 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
 
         this.buffer.bind();
 
-        gl.vertexAttribIPointer(attribs.a_blockId, 1, gl.UNSIGNED_INT, stride, 0 * 4);
-        gl.vertexAttribIPointer(attribs.a_fluidId, 1, gl.UNSIGNED_INT, stride, 1 * 4);
-        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 2 * 4);
-        gl.vertexAttribPointer(attribs.a_height, 1, gl.FLOAT, false, stride, 3 * 4);
+        this.attribBufferPointers();
 
         this.indexBuffer = this.context.createBuffer({
             data: this.indexData,
@@ -77,4 +73,14 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
         });
         this.indexBuffer.bind();
     }
+
+    attribBufferPointers() {
+        const {attribs, gl} = this;
+        const stride = this.stride / this.vertexPerInstance;
+        gl.vertexAttribIPointer(attribs.a_blockId, 1, gl.UNSIGNED_INT, stride, 0 * 4);
+        gl.vertexAttribIPointer(attribs.a_fluidId, 1, gl.UNSIGNED_INT, stride, 1 * 4);
+        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 2 * 4);
+        gl.vertexAttribPointer(attribs.a_height, 1, gl.FLOAT, false, stride, 3 * 4);
+    }
+
 }

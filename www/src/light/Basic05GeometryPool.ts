@@ -77,7 +77,7 @@ export class Basic05GeometryPool extends GeometryPool {
      */
     checkHeuristicSize(instances) {
         const {pos, heuristicSize} = this.baseGeometry.batch;
-        return pos <= heuristicSize / 10 || pos + this.instances <= heuristicSize;
+        return pos <= heuristicSize / 10 || pos + instances <= heuristicSize;
     }
 
     prepareMem(instances: number) {

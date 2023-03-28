@@ -149,6 +149,10 @@ export class BaseBuffer {
     options: BufferOptions;
     bigLength: number;
     dirty: boolean;
+    /**
+     * notify VAO of big resize
+     */
+    bigResize = false;
 
     constructor(context, options: BufferOptions= {}) {
         this.context = context;

@@ -37,6 +37,9 @@ export class BaseMultiGeometry {
     createVao() {
         // override!
     }
+    attribBufferPointers() {
+        // override!
+    }
 
     bind(shader) {
         if (shader) {
@@ -89,6 +92,10 @@ export class BaseMultiGeometry {
             this.batch.reset();
         } else {
             this.buffer.bind();
+        }
+        if (this.buffer.bigResize) {
+            this.buffer.bigResize = false;
+            this.attribBufferPointers();
         }
         if (this.indexBuffer) {
             this.indexBuffer.bind();
