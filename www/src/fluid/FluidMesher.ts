@@ -2,6 +2,7 @@ import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
 import {FluidGeometryPool} from "./FluidGeometryPool.js";
 import {FluidInstanceBuffer} from "./FluidInstanceBuffer.js";
 import {buildFluidVertices} from "./FluidBuildVertices.js";
+import {GeometryPool} from "../light/GeometryPool";
 
 export class FluidMesher {
     [key: string]: any;
@@ -61,7 +62,7 @@ export class FluidMesher {
     }
 
     buildDirtyChunks(maxApplyVertexCount = 10) {
-        const {dirtyChunks} = this;
+        const {dirtyChunks, renderPool} = this;
         let limit = maxApplyVertexCount;
         let waitForChunk = [];
         while (dirtyChunks.length > 0 && limit > 0) {
@@ -81,6 +82,8 @@ export class FluidMesher {
                 limit--;
                 serialized = this.serializeInstanceBuffers(fluidChunk);
             }
+            const instances = GeometryPool.getVerticesMapSize(serialized);
+            renderPool.prepareMem(instances);
             parentChunk.applyVertices('fluid', this.renderPool, serialized);
         }
     }

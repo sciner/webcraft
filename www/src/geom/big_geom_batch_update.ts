@@ -25,7 +25,7 @@ export class BigGeomBatchUpdate {
     pos: number = 0;
     copyPos: number = 0;
 
-    constructor(heuristicSize = (1 << 18)) {
+    constructor(heuristicSize = (1 << 13)) {
         this.heuristicSize = heuristicSize;
         this.ensureSize(heuristicSize);
     }

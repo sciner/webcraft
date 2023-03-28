@@ -1,5 +1,6 @@
 import GeometryTerrain from "../geometry_terrain.js";
-import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
+import type {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
+import type {IChunkVertexBuffer} from "../chunk";
 
 export class BaseMultiGeometry {
     [key: string]: any;
@@ -7,6 +8,8 @@ export class BaseMultiGeometry {
     static sortAss = (a, b) => {
         return a - b;
     };
+
+    batch: BigGeomBatchUpdate = null;
 
     constructor({context = null, size = 128, strideFloats = 0} = {}) {
         this.updateID = 0;
@@ -39,7 +42,6 @@ export class BaseMultiGeometry {
 
         this.hasInstance = false;
 
-        this.batch = new BigGeomBatchUpdate();
     }
 
     createVao() {
@@ -94,7 +96,7 @@ export class BaseMultiGeometry {
         this.uploadID = this.updateID;
         this.buffer.bind();
         if (this.batch.pos > 0) {
-            const batchBuf = this.batch.buf;
+            const batchBuf = this.batch.buffer;
             batchBuf.updatePartial(this.batch.pos * this.strideFloats);
             this.buffer.batchUpdate(batchBuf, this.batch.copies);
             this.batch.reset();

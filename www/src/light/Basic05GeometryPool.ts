@@ -34,7 +34,7 @@ export class Basic05GeometryPool extends GeometryPool {
         const newSize = this.pageCount = Math.ceil(prevSize * growCoeff);
         this.baseGeometry.resize(newSize * pageSize);
         for (let i = newSize - 1; i >= prevSize; i--) {
-            this.freePages.push(i);
+            freePages.push(i);
         }
     }
 

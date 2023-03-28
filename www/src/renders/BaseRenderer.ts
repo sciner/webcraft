@@ -177,6 +177,10 @@ export class BaseBuffer {
         this.dirty = false;
     }
 
+    updatePartial(len: number) {
+
+    }
+
     multiUpdate(updates) {
 
     }

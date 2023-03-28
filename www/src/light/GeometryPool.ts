@@ -1,4 +1,5 @@
 import { GeometryTerrain16 } from "../geom/TerrainGeometry16.js";
+import type {IChunkVertexBuffer} from "../chunk";
 
 export class GeometryPool {
     [key: string]: any;
@@ -18,6 +19,16 @@ export class GeometryPool {
     }
 
     checkHeuristicSize(instances: number) {
+    }
+
+    static getVerticesMapSize(vertices: Dict<IChunkVertexBuffer>) {
+        let res = 0;
+        for (let v of Object.values(vertices)) {
+            if (v.list.length > 1) {
+                res += v.list[0];
+            }
+        }
+        return res;
     }
 }
 
