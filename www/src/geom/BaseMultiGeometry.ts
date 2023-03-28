@@ -1,9 +1,9 @@
 import GeometryTerrain from "../geometry_terrain.js";
 import type {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
-import type {IChunkVertexBuffer} from "../chunk";
+import type {BaseBuffer} from "../renders/BaseRenderer.js";
+import type WebGLRenderer from "../renders/webgl";
 
 export class BaseMultiGeometry {
-    [key: string]: any;
     static strideFloats = 10;
     static sortAss = (a, b) => {
         return a - b;
@@ -11,37 +11,27 @@ export class BaseMultiGeometry {
 
     batch: BigGeomBatchUpdate = null;
 
+    updateID = 0;
+    uploadID = -1;
+    strideFloats: number;
+    stride: number;
+    context: WebGLRenderer;
+    size: number;
+    indexData: Int32Array;
+    buffer: BaseBuffer = null;
+    indexBuffer: BaseBuffer = null;
+    quad: BaseBuffer = null;
+    vao: WebGLVertexArrayObject = null;
+    buffers: BaseBuffer[] = [];
+    hasInstance = false;
+    gl: WebGL2RenderingContext;
+    attribs: any;
+
     constructor({context = null, size = 128, strideFloats = 0} = {}) {
-        this.updateID = 0;
-        this.uploadID = -1;
         this.strideFloats = strideFloats;
         this.stride = this.strideFloats * 4;
-
         this.context = context;
         this.size = size;
-        this.indexData = null;
-        /**
-         *
-         * @type {BaseBuffer}
-         */
-        this.buffer = null;
-        this.indexBuffer = null;
-        /**
-         *
-         * @type {BaseBuffer}
-         */
-        this.quad = null;
-        this.vao = null;
-        /**
-         *
-         * @type {BaseRenderer}
-         */
-        this.buffers = [];
-
-        this.updates = [];
-
-        this.hasInstance = false;
-
     }
 
     createVao() {
@@ -58,7 +48,6 @@ export class BaseMultiGeometry {
 
         if (!this.buffer) {
             this.buffer = this.context.createBuffer({
-                data: this.data,
                 usage: 'static',
                 bigLength: this.size * this.stride,
             });
@@ -81,7 +70,6 @@ export class BaseMultiGeometry {
         if (gl) {
             if (!this.vao) {
                 this.createVao();
-                this.updates.length = 0;
                 this.uploadID = this.updateID;
                 return;
             }
@@ -94,12 +82,13 @@ export class BaseMultiGeometry {
             return;
         }
         this.uploadID = this.updateID;
-        this.buffer.bind();
-        if (this.batch.pos > 0) {
+        if (this.batch.copyPos > 0) {
             const batchBuf = this.batch.getBuf(this.context);
-            batchBuf.updatePartial(this.batch.pos * this.stride);
-            this.buffer.batchUpdate(batchBuf, this.batch.copies);
+            batchBuf.updatePartial(this.batch.pos * this.strideFloats);
+            this.buffer.batchUpdate(batchBuf, this.batch.copies, this.batch.copyPos, this.stride);
             this.batch.reset();
+        } else {
+            this.buffer.bind();
         }
         if (this.indexBuffer) {
             this.indexBuffer.bind();
@@ -110,6 +99,7 @@ export class BaseMultiGeometry {
         this.size = newSize;
         this.updateID++;
         if (this.buffer) {
+            this.buffer.dirty = true;
             this.buffer.bigLength = this.size * this.stride;
         }
         console.debug(`multigeometry resize ${newSize}`);

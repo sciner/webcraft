@@ -504,9 +504,11 @@ export class ChunkManager {
             if(!chunk.updateInFrustum(render)) {
                 continue;
             }
-            if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
-                this.bufferPool.prepareMem(chunk.vertices_args_size);
-                chunk.applyChunkWorkerVertices();
+            if (chunk.need_apply_vertices) {
+                if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
+                    this.bufferPool.prepareMem(chunk.vertices_args_size);
+                    chunk.applyChunkWorkerVertices();
+                }
             }
             // actualize light
             chunk.prepareRender(render.renderBackend);

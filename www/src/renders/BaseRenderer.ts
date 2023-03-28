@@ -144,7 +144,7 @@ interface BufferOptions {data?: ArrayBufferLike, index?: boolean, bigLength?: nu
 
 export class BaseBuffer {
     index: boolean;
-    _data: Float32Array | Uint16Array;
+    _data: Float32Array | Uint16Array | Int32Array;
     context: BaseRenderer;
     options: BufferOptions;
     bigLength: number;
@@ -159,7 +159,6 @@ export class BaseBuffer {
 
         this.dirty = true;
     }
-
     /**
      *
      * @param {Float32Array | Uint16Array} v
@@ -171,6 +170,9 @@ export class BaseBuffer {
 
     get data() {
         return this._data;
+    }
+
+    bind() {
     }
 
     update() {

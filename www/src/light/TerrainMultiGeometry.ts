@@ -2,7 +2,6 @@ import {BaseMultiGeometry} from "../geom/BaseMultiGeometry.js";
 import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update.js";
 
 export class TerrainMultiGeometry extends BaseMultiGeometry {
-    [key: string]: any;
     static strideFloats = 16;
     static sortAss = (a, b) => {
         return a - b;

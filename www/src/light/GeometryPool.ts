@@ -19,6 +19,10 @@ export class GeometryPool {
     }
 
     checkHeuristicSize(instances: number) {
+        return true;
+    }
+
+    prepareMem(instances: number) {
     }
 
     static getVerticesMapSize(vertices: Dict<IChunkVertexBuffer>) {
