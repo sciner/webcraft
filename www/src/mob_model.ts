@@ -1,6 +1,6 @@
 import { Resources } from "./resources.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector, chunkAddrToCoord, IndexedColor } from "./helpers.js";
+import { Color, Helpers, Vector, chunkAddrToCoord } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
@@ -10,14 +10,13 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { SceneNode } from "./SceneNode.js";
 import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import GeometryTerrain from "./geometry_terrain.js";
-import type { BBModel_Group } from "./bbmodel/group.js";
+// import GeometryTerrain from "./geometry_terrain.js";
+// import type { BBModel_Group } from "./bbmodel/group.js";
 
 const { quat, mat4 } = glMatrix;
 
 const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
 const MAX_DETONATION_TIME           = 2000; // ms
-const OLD_SKIN                      = false;
 
 export class Traversable {
     [key: string]: any;

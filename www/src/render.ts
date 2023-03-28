@@ -1096,7 +1096,7 @@ export class Renderer {
     }
 
     // drawPlayers
-    drawPlayers(delta) {
+    drawPlayers(delta : float) {
         if(this.world.players.count < 1) {
             return;
         }
@@ -1112,6 +1112,9 @@ export class Renderer {
                 if(!shader_binded) {
                     shader_binded = true
                     this.defaultShader.bind()
+                }
+                if(player.nametag && player.itsMe()) {
+                    player.nametag.visible = false
                 }
                 player.draw(this, this.camPos, delta);
             }
