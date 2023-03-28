@@ -1733,6 +1733,7 @@ export class Slider extends Window {
         this.max = 100
         this.value = 0
     }
+
     set value(value) {
         if (value > this._max) {
             this._value = this._max
@@ -1750,6 +1751,7 @@ export class Slider extends Window {
             cursor.y = Math.ceil(pr * (this.h - size))
         }
     }
+
     set max(value) {
         this._max = value > 1 ? value : 1
         if (this.horizontal) {
@@ -1761,6 +1763,7 @@ export class Slider extends Window {
         }
         this.value = 0
     }
+
     set min(value) {
         this._min = value
         if (this.horizontal) {
@@ -1771,12 +1774,15 @@ export class Slider extends Window {
             this._wmicon.height = (size > 50) ? size : 50
         }
     }
+
     onMouseDown(e) {
         this.grab = true
     }
+
     onMouseUp(e) {
         this.grab = false
     }
+
     onMouseMove(e) {
         if (this.grab) {
             const cursor = this._wmicon
@@ -1802,6 +1808,7 @@ export class Slider extends Window {
             this.onScroll(this._value)
         }
     }
+    
     onScroll(e) {
     }
 }

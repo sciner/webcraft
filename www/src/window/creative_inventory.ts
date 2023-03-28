@@ -318,7 +318,7 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         txtSearch.onChange = (text) => {
             this.collection.init(text)
-            this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - 8
+            this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - 9
         }
 
     }
