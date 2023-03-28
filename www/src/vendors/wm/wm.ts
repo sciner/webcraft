@@ -1731,9 +1731,8 @@ export class Slider extends Window {
         } 
         this.min = 0
         this.max = 100
-        this.value = 100
+        this.value = 0
     }
-
     set value(value) {
         if (value > this._max) {
             this._value = this._max
@@ -1742,15 +1741,15 @@ export class Slider extends Window {
         } else {
             this._value = value
         }
-        const pr = this._value / (11 + this._max - this._min)
         const cursor = this._wmicon
+        const size = ((this.horizontal) ? cursor.w : cursor.h)
+        const pr = this._value / (this._max - this._min)
         if (this.horizontal) {
-            cursor.x = Math.floor(pr * this.w)
+            cursor.x = Math.ceil(pr * (this.w - size))
         } else {
-            cursor.y = Math.floor(pr * this.h)
+            cursor.y = Math.ceil(pr * (this.h - size))
         }
     }
-
     set max(value) {
         this._max = value > 1 ? value : 1
         if (this.horizontal) {
@@ -1762,7 +1761,6 @@ export class Slider extends Window {
         }
         this.value = 0
     }
-
     set min(value) {
         this._min = value
         if (this.horizontal) {
@@ -1773,114 +1771,38 @@ export class Slider extends Window {
             this._wmicon.height = (size > 50) ? size : 50
         }
     }
-
-   /* constructor(x, y, w, h, id) {
-        super(x, y, w, h, id, null, null)
-        this.min = 0
-        this.max = 100
-        this.value = 50
-        this.grab = false
-        this._wmicon.style.background.color = '#000000'
-        this._wmicon.style.border.style = 'normal'
-        this._wmicon.style.border.color = '#ffffff55'
-        if (w > h) {
-            this.horizontal = true
-        } else {
-            this.horizontal = false
-        }
-        this.update(this.value)
-    }
-
-    set value(val) {
-
-    }
-
-    setValue(value) {
-        if (value > this.max) {
-            this.value = this.max
-        } else if (value < this.min) {
-            this.value = this.min
-        } else {
-            this.value = value
-        }
-        const pr = this.value / (this.max - this.min)
-        const cursor = this._wmicon
-        if (this.horizontal) {
-            cursor.x = Math.floor(pr * this.w)
-        } else {
-            cursor.y = Math.floor(pr * this.h)
-        }
-    }
-
-    setMaxMin(max, min = 0) {
-        const len = max - min
-        if (this.horizontal) {
-            const size = this.w / len
-            this._wmicon.width = (size > 50) ? size : 50
-        } else {
-            const size = this.h / len
-            this._wmicon.height = (size > 50) ? size : 50
-        }
-        this.max = max
-        this.min = min
-
-        
-    }
-
-    update(val) {
-        const cursor = this._wmicon
-        const size = ((this.horizontal) ? cursor.w : cursor.h)
-        let pos = val - ((this.horizontal) ? this.x : this.y) - size /2
-        if (pos < 0.1) {
-            pos = 0
-        }
-        const max_pos = ((this.horizontal) ? this.w : this.h) - size
-        if (pos > max_pos) {
-            pos = max_pos
-        }
-        if (this.horizontal) {
-            cursor.x = Math.round(pos)
-        } else {
-            cursor.y = Math.round(pos)
-        }
-        this.value = Math.floor(pos * (this.max - this.min) / ((this.horizontal ? this.w : this.h) - size) + this.min)
-        this.onScroll(this.value)
-    }
-*/
-    onMouseEnter() {
-        console.log('onMouseEnter')
-    }
-
-    onMouseLeave() {
-        console.log('onMouseLeave')
-       // this.grab = false
-    }
-
-    toggle() {
-        console.log('toggle')
-    }
-
     onMouseDown(e) {
-        console.log('onMouseDown')
         this.grab = true
     }
     onMouseUp(e) {
-        console.log('onMouseUP')
         this.grab = false
     }
     onMouseMove(e) {
         if (this.grab) {
-          //  this.update(this.horizontal ? e.x : e.y)
+            const cursor = this._wmicon
+            const size = ((this.horizontal) ? cursor.w : cursor.h)
+            let pos = ((this.horizontal) ? e.x - this.x : e.y - this.y) - size / 2
+            const max_pos = ((this.horizontal) ? this.w : this.h) - size
+            if (pos < 0.1 || max_pos == 0) {
+                pos = 0
+                this.onScroll(0)
+                return
+            }
+            if (pos > max_pos) {
+                pos = max_pos
+                this.onScroll(this._max)
+                return
+            }
+            if (this.horizontal) {
+                cursor.x = Math.round(pos)
+            } else {
+                cursor.y = Math.round(pos)
+            }
+            this._value = Math.floor(((pos * (this._max - this._min)) / max_pos) + this._min)
+            this.onScroll(this._value)
         }
     }
-    onDrop(e) {
-        console.log('onDrop')
-    }
-    onWheel(e) {
-        console.log('onWheel')
-    }
-    onHide() {
-        console.log('onHide')
+    onScroll(e) {
     }
 }
 

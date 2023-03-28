@@ -46,7 +46,7 @@ class CreativeInventoryCollection extends Window {
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.container.y = this.scrollY
-        //this.ctx.scrollbar.setValue(-this.scrollY / szm)
+        this.ctx.scrollbar.value = -this.scrollY / szm
         this.updateVisibleSlots()
     }
 
@@ -262,15 +262,10 @@ export class CreativeInventoryWindow extends BlankWindow {
         // скроллбар
         this.scrollbar = new Slider((this.w - 26 * this.zoom), 44 * this.zoom, 22 * this.zoom, this.h - 108 * this.zoom, 'scroll')
         this.scrollbar.min = 0
-        this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - 8
-        /*this.scrollbar.min = 0
-        this.scrollbar.max = Math.ceil(this.collection.slots_count / this.collection.xcnt) 
+        this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - 9
         this.scrollbar.onScroll = (value) => {
-            console.log("count: " + this.collection.slots_count + ' rows: ' + this.collection.slots_count + ' value: ' + value + ' max: ' + this.scrollbar.max)
-            const max = (this.collection.slots_count / this.collection.xcnt) - 8
-            this.scrollbar.setMaxMin(max > 1 ? max : 1)
             this.collection.updateScroll(-value)
-        }*/
+        }
         this.add(this.scrollbar)
     }
 
