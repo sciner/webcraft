@@ -260,9 +260,9 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.createInventorySlots()
 
         // скроллбар
-        this.scrollbar = new Slider((this.w - 26 * this.zoom), 44 * this.zoom, 22 * this.zoom, this.h - 108 * this.zoom, 'scroll')
+        this.scrollbar = new Slider((this.w - 22 * this.zoom), 44 * this.zoom, 18 * this.zoom, this.h - 108 * this.zoom, 'scroll')
         this.scrollbar.min = 0
-        this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - 9
+        this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - this.collection.ycnt
         this.scrollbar.onScroll = (value) => {
             this.collection.updateScroll(-value)
         }
@@ -318,7 +318,7 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         txtSearch.onChange = (text) => {
             this.collection.init(text)
-            this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - 9
+            this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - this.collection.ycnt
         }
 
     }

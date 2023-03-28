@@ -1717,6 +1717,8 @@ export class ToggleButton extends Button {
 
 export class Slider extends Window {
 
+    min_size_scroll = 50
+
     constructor(x, y, w, h, id) {
         super(x, y, w, h, id, null, null)
         this._min = 0
@@ -1728,10 +1730,7 @@ export class Slider extends Window {
             this.horizontal = true
         } else {
             this.horizontal = false
-        } 
-        this.min = 0
-        this.max = 100
-        this.value = 0
+        }
     }
 
     set value(value) {
@@ -1756,10 +1755,10 @@ export class Slider extends Window {
         this._max = value > 1 ? value : 1
         if (this.horizontal) {
             const size = this.w / (this._max - this._min)
-            this._wmicon.width = (size > 50) ? size : 50
+            this._wmicon.width = (size > this.min_size_scroll) ? size : this.min_size_scroll
         } else {
             const size = this.h / (this._max - this._min)
-            this._wmicon.height = (size > 50) ? size : 50
+            this._wmicon.height = (size > this.min_size_scroll) ? size : this.min_size_scroll
         }
         this.value = 0
     }
@@ -1768,10 +1767,10 @@ export class Slider extends Window {
         this._min = value
         if (this.horizontal) {
             const size = this.w / (this._max - this._min)
-            this._wmicon.width = (size > 50) ? size : 50
+            this._wmicon.width = (size > this.min_size_scroll) ? size : this.min_size_scroll
         } else {
             const size = this.h / (this._max - this._min)
-            this._wmicon.height = (size > 50) ? size : 50
+            this._wmicon.height = (size > this.min_size_scroll) ? size : this.min_size_scroll
         }
     }
 
@@ -1789,22 +1788,19 @@ export class Slider extends Window {
             const size = ((this.horizontal) ? cursor.w : cursor.h)
             let pos = ((this.horizontal) ? e.x - this.x : e.y - this.y) - size / 2
             const max_pos = ((this.horizontal) ? this.w : this.h) - size
-            if (pos < 0.1 || max_pos == 0) {
+            if (pos < 0) {
                 pos = 0
-                this.onScroll(0)
-                return
             }
             if (pos > max_pos) {
                 pos = max_pos
-                this.onScroll(this._max)
-                return
             }
             if (this.horizontal) {
-                cursor.x = Math.round(pos)
+                cursor.x = pos
             } else {
-                cursor.y = Math.round(pos)
+                cursor.y = pos
             }
             this._value = Math.floor(((pos * (this._max - this._min)) / max_pos) + this._min)
+            this._value = this._value || 0
             this.onScroll(this._value)
         }
     }
