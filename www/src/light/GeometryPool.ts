@@ -16,6 +16,9 @@ export class GeometryPool {
     dealloc(buffer) {
 
     }
+
+    checkHeuristicSize(instances: number) {
+    }
 }
 
 export class TrivialGeometryPool extends GeometryPool {

@@ -1,23 +1,12 @@
 import {BaseBuffer} from "../BaseRenderer.js";
-import type {GeomCopyOperation} from "../../geom/big_geom_batch_update";
+import type {GeomCopyOperation} from "../../geom/big_geom_batch_update.js";
 
 export class WebGLBuffer extends BaseBuffer {
-    [key: string]: any;
-
     /**
-     *
-     * @param { WebGLRenderer } context
-     * @param { {data : Float32Array} } options
+     * length of last uploaded buffer to webgl, in bytes
      */
-    constructor(context, options) {
-        super(context, options);
-
-        this.buffer = null;
-        /**
-         * length of last uploaded buffer to webgl, in bytes
-         */
-        this.glLength = 0;
-    }
+    glLength = 0;
+    buffer: WebGLBuffer = null;
 
     update() {
         if (this.bigLength > 0) {
@@ -104,10 +93,10 @@ export class WebGLBuffer extends BaseBuffer {
         gl.bindBuffer(this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER, this.buffer);
     }
 
-    batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, stride: number) {
+    batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, count: number, stride: number) {
         const {gl} = this.context;
 
-        for (let i = 0; i < copies.length; i++) {
+        for (let i = 0; i < count; i++) {
             const op = copies[i];
             gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER,
                 op.srcInstance * stride, op.destInstance * stride, op.size * stride);

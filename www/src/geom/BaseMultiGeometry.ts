@@ -1,4 +1,5 @@
 import GeometryTerrain from "../geometry_terrain.js";
+import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 
 export class BaseMultiGeometry {
     [key: string]: any;
@@ -15,7 +16,6 @@ export class BaseMultiGeometry {
 
         this.context = context;
         this.size = size;
-        this.data = new Float32Array(size * this.strideFloats);
         this.indexData = null;
         /**
          *
@@ -38,6 +38,8 @@ export class BaseMultiGeometry {
         this.updates = [];
 
         this.hasInstance = false;
+
+        this.batch = new BigGeomBatchUpdate();
     }
 
     createVao() {
@@ -55,7 +57,8 @@ export class BaseMultiGeometry {
         if (!this.buffer) {
             this.buffer = this.context.createBuffer({
                 data: this.data,
-                usage: 'static'
+                usage: 'static',
+                bigLength: this.size * this.stride,
             });
             // this.data = null;
 
@@ -89,12 +92,12 @@ export class BaseMultiGeometry {
             return;
         }
         this.uploadID = this.updateID;
-        const {updates} = this;
         this.buffer.bind();
-        if (updates.length > 0) {
-            this.optimizeUpdates();
-            this.buffer.multiUpdate(updates);
-            updates.length = 0;
+        if (this.batch.pos > 0) {
+            const batchBuf = this.batch.buf;
+            batchBuf.updatePartial(this.batch.pos * this.strideFloats);
+            this.buffer.batchUpdate(batchBuf, this.batch.copies);
+            this.batch.reset();
         }
         if (this.indexBuffer) {
             this.indexBuffer.bind();
@@ -103,48 +106,11 @@ export class BaseMultiGeometry {
 
     resize(newSize) {
         this.size = newSize;
-        this.updates.length = 0;
         this.updateID++;
-        const oldData = this.data;
-        this.data = new Float32Array(newSize * this.strideFloats);
-        this.data.set(oldData, 0);
         if (this.buffer) {
-            this.buffer.data = this.data;
+            this.buffer.bigLength = this.size * this.stride;
         }
         console.debug(`multigeometry resize ${newSize}`);
-    }
-
-    optimizeUpdates() {
-        const {updates} = this;
-        for (let i = 0; i < updates.length; i += 2) {
-            updates[i] = (updates[i] << 1);
-            updates[i + 1] = (updates[i + 1] << 1) + 1;
-        }
-        updates.sort(BaseMultiGeometry.sortAss);
-        let balance = 0, j = 0;
-        for (let i = 0; i < updates.length; i++) {
-            if (updates[i] % 2 === 0) {
-                if (balance === 0) {
-                    updates[j++] = updates[i] >> 1;
-                    //TODO: check previous to merge?
-                }
-                balance++;
-            } else {
-                balance--;
-                if (balance === 0) {
-                    updates[j++] = updates[i] >> 1;
-                }
-            }
-        }
-        updates.length = j;
-    }
-
-    updatePage(dstOffset, floatBuffer) {
-        const {data} = this;
-        dstOffset *= this.strideFloats;
-        data.set(floatBuffer, dstOffset);
-        this.updates.push(dstOffset, dstOffset + floatBuffer.length);
-        this.updateID++;
     }
 
     destroy() {

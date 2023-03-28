@@ -21,12 +21,13 @@ export class BigGeomBatchUpdate {
     data: Float32Array = null;
     buffer: BaseBuffer = null;
     copies: Array<GeomCopyOperation> = null; // from, to, dest
-    maxSize: number = 0;
+    heuristicSize: number = 0;
     pos: number = 0;
+    copyPos: number = 0;
 
-    constructor(maxSize = (1 << 18)) {
-        this.maxSize = maxSize;
-        this.ensureSize(maxSize);
+    constructor(heuristicSize = (1 << 18)) {
+        this.heuristicSize = heuristicSize;
+        this.ensureSize(heuristicSize);
     }
 
     ensureSize(instances: number) {
@@ -49,6 +50,24 @@ export class BigGeomBatchUpdate {
         const {strideFloats} = this.baseGeom;
         this.data.set(f32, this.pos * strideFloats);
         this.pos += f32.length / strideFloats;
+    }
+
+    addCopy(srcInstance, destInstance, size: number) {
+        let op = GeomCopyOperation.pool.alloc();
+        op.srcInstance = srcInstance;
+        op.destInstance = destInstance;
+        op.size = size;
+        this.copies[this.copyPos++] = op;
+    }
+
+    reset() {
+        this.pos = 0;
+        const {copies, copyPos} = this;
+        this.copyPos = 0;
+        for (let i = 0; i < copyPos; i++) {
+            GeomCopyOperation.pool.free(copies[i]);
+            copies[i] = null;
+        }
     }
 
     getBuf(context: BaseRenderer) {

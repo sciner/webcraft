@@ -2,7 +2,7 @@ import {Color, Mth, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
-import type {GeomCopyOperation} from "../geom/big_geom_batch_update";
+import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
 
 const {mat4} = glMatrix;
 
@@ -144,7 +144,7 @@ interface BufferOptions {data?: ArrayBufferLike, index?: boolean, bigLength?: nu
 
 export class BaseBuffer {
     index: boolean;
-    _data: ArrayBufferLike;
+    _data: Float32Array | Uint16Array;
     context: BaseRenderer;
     options: BufferOptions;
     bigLength: number;
@@ -153,7 +153,7 @@ export class BaseBuffer {
     constructor(context, options: BufferOptions= {}) {
         this.context = context;
         this.options = options;
-        this._data = options.data;
+        this._data = options.data as any;
         this.index = !!options.index;
         this.bigLength = options.bigLength || 0;
 
@@ -181,7 +181,7 @@ export class BaseBuffer {
 
     }
 
-    batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, stride: number) {
+    batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, count: number, stride: number) {
     }
 
     destroy() {
