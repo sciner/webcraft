@@ -96,8 +96,8 @@ export class BaseMultiGeometry {
         this.uploadID = this.updateID;
         this.buffer.bind();
         if (this.batch.pos > 0) {
-            const batchBuf = this.batch.buffer;
-            batchBuf.updatePartial(this.batch.pos * this.strideFloats);
+            const batchBuf = this.batch.getBuf(this.context);
+            batchBuf.updatePartial(this.batch.pos * this.stride);
             this.buffer.batchUpdate(batchBuf, this.batch.copies);
             this.batch.reset();
         }

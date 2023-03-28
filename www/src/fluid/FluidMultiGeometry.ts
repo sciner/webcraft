@@ -1,5 +1,5 @@
 import {BaseMultiGeometry} from "../geom/BaseMultiGeometry.js";
-import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update";
+import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update.js";
 
 export class FluidMultiGeometry extends BaseMultiGeometry {
     [key: string]: any;
@@ -17,7 +17,7 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
         this.indexPerInstance = FluidMultiGeometry.indexPerInstance;
         this.stride /= this.vertexPerInstance;
         this.hasInstance = false;
-        this.batch = new BigGeomBatchUpdate(1 << 11);
+        this.batch = new BigGeomBatchUpdate(this.strideFloats, 1 << 11);
         this.createIndex();
     }
 

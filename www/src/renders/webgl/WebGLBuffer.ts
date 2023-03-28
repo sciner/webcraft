@@ -54,7 +54,7 @@ export class WebGLBuffer extends BaseBuffer {
         super.update();
     }
 
-    updatePartial(len) {
+    updatePartial(lenBytes) {
         const {
             gl
         } = this.context;
@@ -71,7 +71,7 @@ export class WebGLBuffer extends BaseBuffer {
             gl.bufferData(type, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
             this.glLength = this.data.byteLength
         } else {
-            gl.bufferSubData(type, 0, this.data, 0, len);
+            gl.bufferSubData(type, 0, this.data, 0, lenBytes);
         }
 
         super.update();
@@ -96,30 +96,13 @@ export class WebGLBuffer extends BaseBuffer {
     batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, count: number, stride: number) {
         const {gl} = this.context;
 
+        gl.bindBuffer(gl.COPY_READ_BUFFER, (updateBuffer as WebGLBuffer).buffer);
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, this.buffer);
         for (let i = 0; i < count; i++) {
             const op = copies[i];
             gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER,
                 op.srcInstance * stride, op.destInstance * stride, op.size * stride);
         }
-    }
-
-    multiUpdate(segments, perBuffer = 4096) {
-        const {gl} = this.context;
-        let size = 0;
-        let start = 0;
-        let cnt = 0;
-        while (start < segments.length) {
-            let finish = start + 2;
-            while (finish < segments.length && segments[finish] - segments[finish - 1] <= perBuffer) {
-                finish += 2;
-            }
-            let len = segments[finish - 1] - segments[start];
-            gl.bufferSubData(gl.ARRAY_BUFFER, segments[start] * 4, this.data, segments[start], len);
-            size += len;
-            cnt++;
-            start = finish;
-        }
-        console.debug(`multiupdate ${cnt} ${size}`)
     }
 
     destroy() {

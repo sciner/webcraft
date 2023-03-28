@@ -17,26 +17,26 @@ export class GeomCopyOperation {
 }
 
 export class BigGeomBatchUpdate {
-    baseGeom: BaseMultiGeometry = null;
     data: Float32Array = null;
     buffer: BaseBuffer = null;
-    copies: Array<GeomCopyOperation> = null; // from, to, dest
+    copies: Array<GeomCopyOperation> = []; // from, to, dest
     heuristicSize: number = 0;
     pos: number = 0;
     copyPos: number = 0;
+    strideFloats: number;
 
-    constructor(heuristicSize = (1 << 13)) {
+    constructor(strideFloats, heuristicSize = (1 << 13)) {
         this.heuristicSize = heuristicSize;
+        this.strideFloats = strideFloats;
         this.ensureSize(heuristicSize);
     }
 
     ensureSize(instances: number) {
-        const {strideFloats} = this.baseGeom;
-        if (instances * strideFloats <= this.data.length) {
+        if (this.data && instances * this.strideFloats <= this.data.length) {
             return;
         }
         const oldData = this.data;
-        this.data = new Float32Array(instances * strideFloats);
+        this.data = new Float32Array(instances * this.strideFloats);
         if (oldData) {
             this.data.set(oldData, 0);
         }
@@ -47,9 +47,8 @@ export class BigGeomBatchUpdate {
 
     addArrayBuffer(ab: ArrayBuffer) {
         const f32 = new Float32Array(ab);
-        const {strideFloats} = this.baseGeom;
-        this.data.set(f32, this.pos * strideFloats);
-        this.pos += f32.length / strideFloats;
+        this.data.set(f32, this.pos * this.strideFloats);
+        this.pos += f32.length / this.strideFloats;
     }
 
     addCopy(srcInstance, destInstance, size: number) {
@@ -77,5 +76,6 @@ export class BigGeomBatchUpdate {
         if (this.pos > 0) {
             this.buffer.dirty = true;
         }
+        return this.buffer;
     }
 }

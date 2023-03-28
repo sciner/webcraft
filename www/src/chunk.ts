@@ -11,7 +11,7 @@ import type { BaseResourcePack } from "./base_resource_pack.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
-import {GeometryPool} from "./light/GeometryPool";
+import {GeometryPool} from "./light/GeometryPool.js";
 
 let global_uniqId = 0;
 

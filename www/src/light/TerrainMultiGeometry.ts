@@ -1,5 +1,5 @@
 import {BaseMultiGeometry} from "../geom/BaseMultiGeometry.js";
-import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update";
+import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update.js";
 
 export class TerrainMultiGeometry extends BaseMultiGeometry {
     [key: string]: any;
@@ -10,13 +10,11 @@ export class TerrainMultiGeometry extends BaseMultiGeometry {
 
     constructor({context = null, size = 128} = {}) {
         super({context, size, strideFloats: TerrainMultiGeometry.strideFloats});
-        this.batch = new BigGeomBatchUpdate();
+        this.batch = new BigGeomBatchUpdate(this.strideFloats);
         this.hasInstance = true;
     }
 
     createVao() {
-        this.batch = new BigGeomBatchUpdate();
-
         const {attribs, gl, stride} = this;
         this.vao = gl.createVertexArray();
         gl.bindVertexArray(this.vao);

@@ -3,7 +3,7 @@ export interface PoolElement {
 }
 
 export class SimplePool<T extends PoolElement = any> {
-    arr: T[];
+    arr: T[] = [];
     sz = 0;
     clazz: new () => T;
 
@@ -13,9 +13,9 @@ export class SimplePool<T extends PoolElement = any> {
 
     alloc() {
         if (this.sz > 0) {
+            this.sz--;
             const elem = this.arr[this.sz];
             this.arr[this.sz] = null;
-            this.sz--;
             return elem;
         }
         return new this.clazz();
