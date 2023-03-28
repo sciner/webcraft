@@ -54,7 +54,7 @@ const DEFAULT_BIG_STONE_BLOCKS = [
 ]
 
 const DEFAULT_PLANTS = {
-    frequency: .5,
+    frequency: PLANTS_FREQUENCY * 33.333,
     list: [
         {percent: .01, blocks: [{name: 'RED_TULIP'}]},
         {percent: .02, blocks: [{name: 'DANDELION'}]}
@@ -62,7 +62,7 @@ const DEFAULT_PLANTS = {
 }
 
 const DEFAULT_GRASS = {
-    frequency: .5,
+    frequency: GRASS_FREQUENCY * 33.333,
     list: [
         {percent: .0125, blocks: [{name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .1, max: .15}}},
         {percent: .0125, blocks: [{name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .15, max: .2}}},

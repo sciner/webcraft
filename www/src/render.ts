@@ -1113,6 +1113,9 @@ export class Renderer {
                     shader_binded = true
                     this.defaultShader.bind()
                 }
+                if(player.itsMe() && player.nametag) {
+                    player.nametag.visible = false
+                }
                 player.draw(this, this.camPos, delta);
             }
         }
