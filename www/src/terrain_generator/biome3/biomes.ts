@@ -286,22 +286,24 @@ export class Biome {
 declare type IRiverBottomBlocks = {value: float, block_name: string, block ?: IBlockMaterial}[]
 
 export class Biomes {
-    noise2d:        any
-    scale:          number
-    octaves:        number
-    max_pow:        number
-    pows:           any[]
-    list:           any
-    byName:         Map<string, Biome>
-    byID:           any
-    biomes_palette: any
+    noise2d:            any
+    scale:              number
+    octaves:            number
+    max_pow:            number
+    pows:               any[]
+    list:               any
+    byName:             Map<string, Biome>
+    byID:               any
+    biomes_palette:     any
+    filter_biome_list:  int[]
 
-    constructor(noise2d) {
+    constructor(noise2d : Function, filter_biome_list : int[] = []) {
+        this.filter_biome_list = filter_biome_list
         this.noise2d = noise2d;
         this.scale = 512;
         TREES.init();
-        this.initBiomes();
-        this.calcPalette();
+        this.initBiomes()
+        this.calcPalette()
         //
         this.octaves = 6;
         this.max_pow = Math.pow(2, this.octaves);
@@ -325,22 +327,27 @@ export class Biomes {
     }
 
     addBiome(
-        id: int,
-        title : string,
-        temperature : float,
-        humidity: float,
-        dirt_layers? : any[],
-        trees? : any,
-        plants? : any,
-        grass? : any,
-        dirt_color? : IndexedColor,
-        water_color? : IndexedColor,
-        building_options? : any,
-        ground_block_generators? : any,
-        river_bottom_blocks? : IRiverBottomBlocks,
-        blocks ?: { [key: string]: string; },
-        dirt_palette? : DirtPalette,
-        big_stone_blocks? : IRiverBottomBlocks) : Biome {
+        id:                         int,
+        title:                      string,
+        temperature:                float,
+        humidity:                   float,
+        dirt_layers? :              any[],
+        trees?:                     any,
+        plants?:                    any,
+        grass?:                     any,
+        dirt_color?:                IndexedColor,
+        water_color?:               IndexedColor,
+        building_options?:          any,
+        ground_block_generators?:   any,
+        river_bottom_blocks?:       IRiverBottomBlocks,
+        blocks?:                    { [key: string]: string; },
+        dirt_palette?:              DirtPalette,
+        big_stone_blocks?:          IRiverBottomBlocks) : Biome | null {
+        
+        if(this.filter_biome_list.length > 0 && !this.filter_biome_list.includes(id)) {
+            return null
+        }
+
         // const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [
@@ -349,6 +356,7 @@ export class Biomes {
                 new BiomeDirtLayer([BLOCK.MOSS_BLOCK.id], BLOCK.STONE.id)
             ];
         }
+
         // trees
         if(!trees) {
             trees = {

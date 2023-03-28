@@ -9,9 +9,10 @@ export default class Biome3LayerLava extends Biome3LayerBase {
 
     declare maps: Map<any, any> | any
 
-    constructor(generator : any) {
-        super(generator)
+    init(generator : any) : Biome3LayerLava {
+        super.init(generator)
         this.maps = new Map()
+        return this
     }
 
     generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {

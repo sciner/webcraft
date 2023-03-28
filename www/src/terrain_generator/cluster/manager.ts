@@ -5,6 +5,7 @@ import {ClusterEmpty} from "./empty.js";
 import type { ClusterBase } from "./base.js";
 import type { WorkerWorld } from "../../worker/world.js";
 import type { Biome3LayerBase } from "../biome3/layers/base.js";
+import type { IClusterList } from "../biome3/layers/underworld.js";
 
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
@@ -25,13 +26,13 @@ export class ClusterManager {
     /**
      * All clusters
      */
-    constructor(world : WorkerWorld, seed : string, layer? : Biome3LayerBase | null, cluster_sets? : {chance: float, class: any}[]) {
+    constructor(world : WorkerWorld, seed : string, layer? : Biome3LayerBase | null, cluster_list? : IClusterList) {
         this.seed = seed
         this.layer = layer
         this.world = world
         this.chunkManager = world.chunkManager
         this.size = new Vector(layer ? CLUSTER_SIZE_V2 : CLUSTER_SIZE)
-        for(let structure of cluster_sets) {
+        for(let structure of cluster_list) {
             this.registerCluster(structure.chance, structure.class)
         }
     }

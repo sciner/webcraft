@@ -506,6 +506,9 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
                 // Create map cell
                 const preset = this.getPreset(xyz);
                 const biome = this.calcBiome(xyz, preset);
+                if(!biome) {
+                    debugger
+                }
                 const dirt_block_id = biome.dirt_layers[0];
                 const cell = new TerrainMapCell(value, biome.humidity, biome.temperature, biome, dirt_block_id);
                 cell.river_point = this.makeRiverPoint(xyz.x, xyz.z);

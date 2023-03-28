@@ -1,3 +1,4 @@
+import type { BLOCK } from "../../../blocks";
 import type { Vector } from "../../../helpers";
 import type { ChunkWorkerChunk } from "../../../worker/chunk";
 import type { ClusterBase } from "../../cluster/base";
@@ -11,16 +12,17 @@ import type { TerrainMap2 } from "../terrain/map";
  * Generate underworld infinity air
  */
 export class Biome3LayerBase {
-    noise2d:            any
-    noise3d:            any
-    block_manager:      any
+    noise2d:            Function
+    noise3d:            Function
+    block_manager:      BLOCK
     maps:               TerrainMapManagerBase // | Map<any, any>
     generator:          any
     clusterManager:     ClusterManager
     seed:               string
     world:              any
+    filter_biome_list:  int[] = []
 
-    constructor(generator : any) {
+    init(generator : any) : Biome3LayerBase {
 
         this.generator = generator
 
@@ -28,6 +30,8 @@ export class Biome3LayerBase {
         this.noise3d = generator.noise3d
         this.block_manager = generator.block_manager
         // this.maps = new Map()
+
+        return this
 
     }
 

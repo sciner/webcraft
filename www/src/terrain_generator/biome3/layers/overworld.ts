@@ -22,7 +22,7 @@ import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
-const DEFAULT_CLUSTER_SETS = [
+const DEFAULT_CLUSTER_LIST = [
     {chance: .2, class: ClusterVilage},
     {chance: 1, class: ClusterStructures},
 ]
@@ -40,14 +40,16 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     slab_candidates:        any[]
     onground_place_index:   any
 
-    constructor(generator : Terrain_Generator, map_manager ?: any, cluster_sets? : {chance: float, class: any}[]) {
+    filter_biome_list:      int[] = [13, 140, 12, 30, 31, 158, 26, 1, 129, 4, 18, 132, 27, 28, 155, 156, 29, 159, 6, 134, 16, 21, 149, 22, 23, 151, 168, 169, 14, 15, 2, 17, 130, 35, 36, 163, 164, 37, 165, 39, 167, 38, 166]
 
-        super(generator)
+    init(generator : Terrain_Generator, map_manager ?: any, cluster_list? : {chance: float, class: any}[]) : Biome3LayerOverworld {
+
+        super.init(generator)
 
         const seed = generator.seed
         const world_id = generator.world_id
 
-        this.clusterManager = new ClusterManager(generator.world, generator.seed, this, cluster_sets ?? DEFAULT_CLUSTER_SETS)
+        this.clusterManager = new ClusterManager(generator.world, generator.seed, this, cluster_list ?? DEFAULT_CLUSTER_LIST)
 
         if(!map_manager) {
             map_manager = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
@@ -57,6 +59,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         this.ore_generator = new WorldClientOreGenerator(world_id)
         this.dungeon = new DungeonGenerator(seed)
         // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {})
+
+        return this
 
     }
 
