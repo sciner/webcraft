@@ -11,6 +11,7 @@ import type { BaseResourcePack } from "./base_resource_pack.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
+import {GeometryPool} from "./light/GeometryPool.js";
 
 let global_uniqId = 0;
 
@@ -49,6 +50,9 @@ export class Chunk {
 
     light : ChunkLight
     tblocks: TypedBlocks3
+
+    vertices_args: any = null;
+    vertices_args_size: number = 0;
 
     getChunkManager() : ChunkManager {
         return this.chunkManager;
@@ -156,6 +160,7 @@ export class Chunk {
     // onVerticesGenerated ... Webworker callback method
     onVerticesGenerated(args) {
         this.vertices_args = args;
+        this.vertices_args_size = GeometryPool.getVerticesMapSize(args.vertices);
         this.need_apply_vertices = true;
 
         if (!this.firstTimeBuilt && this.fluid) {
@@ -243,7 +248,7 @@ export class Chunk {
         return true;
     }
 
-    applyVertices(inputId, bufferPool, argsVertices: Dict<IChunkVertexBuffer>) {
+     applyVertices(inputId, bufferPool, argsVertices: Dict<IChunkVertexBuffer>) {
         let chunkManager = this.getChunkManager();
         chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length = 0;

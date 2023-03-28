@@ -2,6 +2,7 @@ import {Color, Mth, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
+import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
 
 const {mat4} = glMatrix;
 
@@ -139,18 +140,29 @@ export class BaseRenderTarget {
     }
 }
 
-export class BaseBuffer {
-    [key: string]: any;
+interface BufferOptions {data?: ArrayBufferLike, index?: boolean, bigLength?: number, usage?: 'static' | 'dynamic' }
 
-    constructor(context, options: {data?: ArrayBufferLike, index?: boolean} = {}) {
+export class BaseBuffer {
+    index: boolean;
+    _data: Float32Array | Uint16Array | Int32Array;
+    context: BaseRenderer;
+    options: BufferOptions;
+    bigLength: number;
+    dirty: boolean;
+    /**
+     * notify VAO of big resize
+     */
+    bigResize = false;
+
+    constructor(context, options: BufferOptions= {}) {
         this.context = context;
         this.options = options;
-        this._data = options.data;
-        this.index = options.index;
+        this._data = options.data as any;
+        this.index = !!options.index;
+        this.bigLength = options.bigLength || 0;
 
         this.dirty = true;
     }
-
     /**
      *
      * @param {Float32Array | Uint16Array} v
@@ -164,16 +176,22 @@ export class BaseBuffer {
         return this._data;
     }
 
+    bind() {
+    }
+
     update() {
         this.dirty = false;
+    }
+
+    updatePartial(len: number) {
+
     }
 
     multiUpdate(updates) {
 
     }
 
-    bind() {
-
+    batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, count: number, stride: number) {
     }
 
     destroy() {
@@ -724,7 +742,7 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
-    createBuffer(options) {
+    createBuffer(options): BaseBuffer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
