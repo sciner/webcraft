@@ -494,7 +494,6 @@ export class ChunkManager {
             }
         }
         //
-        let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
 
         for(let i = 0; i < this.poses.length; i++) {
             const chunk = this.poses[i] as Chunk
@@ -505,8 +504,9 @@ export class ChunkManager {
             if(!chunk.updateInFrustum(render)) {
                 continue;
             }
-            if(chunk.need_apply_vertices) {
-                if(applyVerticesCan-- > 0) {
+            if (chunk.need_apply_vertices) {
+                if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
+                    this.bufferPool.prepareMem(chunk.vertices_args_size);
                     chunk.applyChunkWorkerVertices();
                 }
             }

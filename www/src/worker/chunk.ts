@@ -805,7 +805,10 @@ export class ChunkWorkerChunk {
             const vb = entry[1];
             if (vb.touched && (vb.vertices.filled + vb.cacheCopy > 0)) {
                 vb.skipCache(0);
+
+                // TODO: different serialization
                 serializedVertices[vb.material_key] = vb.getSerialized();
+
                 vb.markClear();
 
                 this.totalPages += vb.vertices.pages.length;
