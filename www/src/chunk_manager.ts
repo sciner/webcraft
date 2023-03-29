@@ -1,12 +1,9 @@
-import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat, Mth} from "./helpers.js";
+import {Helpers, getChunkAddr, Vector, VectorCollector, VectorCollectorFlat, Mth} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
-import {TrivialGeometryPool} from "./light/GeometryPool.js";
-import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld, TBlock} from "./typed_blocks3.js";
-import { CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby, NEARBY_FLAGS } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
@@ -14,12 +11,10 @@ import { FluidMesher } from "./fluid/FluidMesher.js";
 import { LIGHT_TYPE } from "./constant.js";
 import {ChunkExporter} from "./geom/ChunkExporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
+import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";
-import type { Renderer } from "./render.js";
-import type { BaseResourcePack } from "./base_resource_pack.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
-const MAX_APPLY_VERTICES_COUNT  = 20;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
 
@@ -108,6 +103,7 @@ export class ChunkManager {
 
     //
     chunks_state = new ChunkManagerState()
+    renderList = new ChunkRenderList(this);
 
     constructor(world: World) {
 
@@ -125,15 +121,10 @@ export class ChunkManager {
             depthMul: 1,
         }
 
-        this.bufferPool             = null;
         this.chunkDataTexture       = new ChunkDataTexture();
 
         // rendering
-        this.poses                  = [];
-        this.poses_need_update      = false;
-        this.poses_chunkPos         = new Vector(0, 0, 0);
         this.rendered_chunks        = {fact: 0, total: 0};
-        this.renderList             = new Map();
 
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
@@ -441,184 +432,6 @@ export class ChunkManager {
     }
 
     /**
-     * highly optimized
-     * @param { import("./render.js").Renderer } render
-     */
-    prepareRenderList(render) {
-
-        if (!this.bufferPool) {
-            if (render.renderBackend.multidrawBaseExt) {
-                 this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
-            } else {
-                this.bufferPool = new TrivialGeometryPool(render.renderBackend);
-            }
-            this.fluidWorld.mesher.initRenderPool(render.renderBackend);
-        }
-
-        const player = render.player;
-        const chunk_render_dist = player.state.chunk_render_dist;
-        const player_chunk_addr = player.chunkAddr;
-
-        // if(!globalThis.dfdf)globalThis.dfdf=0
-        // if(Math.random() < .01)console.log(globalThis.dfdf)
-
-        const player_chunk_addr_changed = !player_chunk_addr.equal(this.poses_chunkPos)
-
-        if (this.poses_need_update || player_chunk_addr_changed) {
-            this.poses_need_update = false;
-
-            let margin = Math.max(chunk_render_dist + 1, 1);
-            let spiral_moves_3d = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
-
-            if(player_chunk_addr_changed) {
-                for (let i = 0; i < spiral_moves_3d.length; i++) {
-                    const item = spiral_moves_3d[i];
-                    item._chunk = null
-                }
-            }
-
-            const msg = {
-                pos: player.pos,
-                chunk_render_dist: player.state.chunk_render_dist
-            };
-            this.postWorkerMessage(['setPotentialCenter', msg]);
-            this.postLightWorkerMessage(['setPotentialCenter', msg]);
-
-            this.poses_chunkPos.copyFrom(player_chunk_addr);
-            const pos               = this.poses_chunkPos;
-            const pos_temp          = pos.clone();
-            
-            this.poses.length = 0;
-            for (let i = 0; i < spiral_moves_3d.length; i++) {
-                // globalThis.dfdf++
-                const item = spiral_moves_3d[i];
-                pos_temp.set(pos.x + item.pos.x, pos.y + item.pos.y, pos.z + item.pos.z);
-                const chunk = item._chunk || (item._chunk = this.chunks.get(pos_temp))
-                if (chunk) {
-                    this.poses.push(chunk);
-                }
-            }
-        }
-
-        this.fluidWorld.mesher.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
-
-        /**
-         * please dont re-assign renderList entries
-         */
-        const {renderList} = this;
-        for (let v of renderList.values()) {
-            for (let v2 of v.values()) {
-                for (let v3 of v2.values()) {
-                    v3.clear();
-                }
-            }
-        }
-        //
-
-        for(let i = 0; i < this.poses.length; i++) {
-            const chunk = this.poses[i] as Chunk
-            if (!chunk.chunkManager) {
-                // destroyed!
-                continue;
-            }
-            if(chunk.vertices_length === 0 && chunk.vertices_args_size === 0) {
-                continue;
-            }
-            if(!chunk.updateInFrustum(render)) {
-                continue;
-            }
-            if (chunk.need_apply_vertices) {
-                if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
-                    this.bufferPool.prepareMem(chunk.vertices_args_size);
-                    chunk.vertices_args_size = 0;
-                    chunk.applyChunkWorkerVertices();
-                }
-            }
-            // actualize light
-            chunk.prepareRender(render.renderBackend);
-            if(chunk.vertices_length === 0) {
-                continue;
-            }
-            for(let i = 0; i < chunk.verticesList.length; i++) {
-                let v = chunk.verticesList[i];
-                let rpl = v.rpl;
-                if (!rpl) {
-                    let key1 = v.resource_pack_id;
-                    let key2 = v.material_group;
-                    let key3 = v.material_shader;
-                    if (!v.buffer) {
-                        continue;
-                    }
-                    let rpList = renderList.get(key1);
-                    if (!rpList) {
-                        renderList.set(key1, rpList = new Map());
-                    }
-                    let groupList = rpList.get(key2);
-                    if (!groupList) {
-                        rpList.set(key2, groupList = new Map());
-                    }
-                    if (!groupList.get(key3)) {
-                        groupList.set(key3, new IvanArray());
-                    }
-                    rpl = v.rpl = groupList.get(key3);
-                }
-                rpl.push(chunk);
-                rpl.push(v);
-                chunk.rendered = 0;
-            }
-        }
-    }
-
-    /**
-     * Draw level chunks
-     */
-    draw(render : Renderer, resource_pack : BaseResourcePack, transparent : boolean) {
-        if(!this.worker_inited || !this.nearby) {
-            return;
-        }
-        const rpList = this.renderList.get(resource_pack.id);
-        if (!rpList) {
-            return true;
-        }
-        let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;
-        for(let group of groups) {
-            const groupList = rpList.get(group);
-            if (!groupList) {
-                continue;
-            }
-            for (let [mat_shader, list] of groupList.entries()) {
-                const {arr, count} = list;
-                const shaderName = mat_shader === 'fluid' ? 'fluidShader' : 'shader';
-                const mat = resource_pack[shaderName].materials[group];
-
-                if (!mat.opaque && mat.shader.fluidFlags) {
-                    // REVERSED!!!
-                    for (let i = count - 2; i >= 0; i -= 2) {
-                        const chunk = arr[i] as Chunk;
-                        const vertices = arr[i + 1];
-                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                        if (!chunk.rendered) {
-                            this.rendered_chunks.fact++;
-                        }
-                        chunk.rendered++;
-                    }
-                } else {
-                    for (let i = 0; i < count; i += 2) {
-                        const chunk = arr[i];
-                        const vertices = arr[i + 1];
-                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                        if (!chunk.rendered) {
-                            this.rendered_chunks.fact++;
-                        }
-                        chunk.rendered++;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
      * Return chunk by address
      * @param {Vector} addr
      * @returns Chunk
@@ -663,7 +476,7 @@ export class ChunkManager {
             if (state.fluid) {
                 chunk.setFluid(state.fluid);
             }
-            this.poses_need_update = true;
+            this.renderList.poses_need_update = true;
             return true;
         }
         return false;
@@ -740,7 +553,10 @@ export class ChunkManager {
 
         // Prepare render list
         this.rendered_chunks.fact = 0;
-        this.prepareRenderList(Qubatch.render);
+        if (!this.renderList.render) {
+            this.renderList.init(Qubatch.render);
+        }
+        this.renderList.prepareRenderList();
         // stat['Prepare render list'] = (performance.now() - p); p = performance.now();
 
         /*

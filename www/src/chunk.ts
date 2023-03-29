@@ -315,7 +315,7 @@ export class Chunk {
         chunkManager.chunks_state.applyVertices(this, args.timers)
         this.timers = args.timers
         this.gravity_blocks = args.gravity_blocks
-        this.applyVertices('worker', chunkManager.bufferPool, args.vertices)
+        this.applyVertices('worker', chunkManager.renderList.bufferPool, args.vertices)
         this.dirty = false
     }
 

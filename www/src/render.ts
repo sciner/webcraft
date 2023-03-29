@@ -909,7 +909,7 @@ export class Renderer {
             }
             for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 // 2. Draw chunks
-                this.world.chunkManager.draw(this, rp, transparent);
+                this.world.chunkManager.renderList.draw(this, rp, transparent);
             }
             renderBackend.batch.flush();
             if(!transparent) {
