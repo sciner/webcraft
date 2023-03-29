@@ -1397,6 +1397,26 @@ export class BLOCK {
 
     }
 
+    static autoTags() {
+        for(let b of BLOCK.list.values()) {
+            // if(b.item) {
+            //     b.tags.push('#item')
+            // }
+            if(b.item?.name == 'instrument') {
+                b.tags.push('#instrument')
+            }
+            if(b.material.id == 'plant') {
+                b.tags.push('#plant')
+            }
+            if(b.material.id == 'food') {
+                b.tags.push('#food')
+            }
+            if(b.layering?.slab || b.is_solid) {
+                b.tags.push('#block')
+            }
+        }
+    }
+
     //
     static sortBlocks() {
         //
@@ -1528,6 +1548,7 @@ export class BLOCK {
             BLOCK.resource_pack_manager.init(settings)
         ]).then(([block_styles, _]) => {
             BLOCK.sortBlocks();
+            BLOCK.autoTags();
             BLOCK.addHardcodedFlags();
             BLOCK.checkGeneratorOptions()
             // Block styles

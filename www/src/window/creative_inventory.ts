@@ -334,7 +334,7 @@ export class CreativeInventoryWindow extends BlankWindow {
             }
         }
         // add special tag to end
-        tags.push(ITEMS_WITHOUT_TAG);
+        // tags.push(ITEMS_WITHOUT_TAG);
         let i = 0;
         let tx = x;
         const buttonVerticalMargin = 10;
