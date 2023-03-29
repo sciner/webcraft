@@ -5,7 +5,7 @@ import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { StringHelpers } from "./helpers.js";
 import { Lang } from "./lang.js";
-import { BLOCK_FLAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./constant.js";
+import { BLOCK_FLAG, BLOCK_GROUP_TAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
@@ -1398,23 +1398,69 @@ export class BLOCK {
     }
 
     static autoTags() {
+
+        function isItem(b, item_names : string[]) : boolean {
+            return item_names.includes(b.item?.name)
+        }
+
+        function isStyle(b, style_names : string[]) : boolean {
+            return style_names.includes(b.style_name)
+        }
+
+        function hasTag(b, tags: string[]) : boolean {
+            for(let t of tags) {
+                if(b.tags.includes(t)) {
+                    return true
+                }
+            }
+            return false
+        }
+
         for(let b of BLOCK.list.values()) {
-            // if(b.item) {
-            //     b.tags.push('#item')
-            // }
-            if(b.item?.name == 'instrument') {
-                b.tags.push('#instrument')
+            if(isItem(b, ['instrument', 'tool']) && !hasTag(b, [BLOCK_GROUP_TAG.COMBAT])) {
+                b.tags.push(BLOCK_GROUP_TAG.TOOLS)
             }
             if(b.material.id == 'plant') {
-                b.tags.push('#plant')
+                b.tags.push(BLOCK_GROUP_TAG.PLANT)
             }
             if(b.material.id == 'food') {
-                b.tags.push('#food')
+                b.tags.push(BLOCK_GROUP_TAG.FOOD)
             }
-            if(b.layering?.slab || b.is_solid) {
-                b.tags.push('#block')
+            if(b.layering?.slab || b.is_solid || hasTag(b, ['stairs'])) {
+                b.tags.push(BLOCK_GROUP_TAG.BLOCK)
+            }
+            // decore
+            if(hasTag(b, ['ladder', 'door', 'item_frame', 'lattice', 'trapdoor', 'carpet', 'banner', 'sign']) || isStyle(b, ['fence', 'torch', 'fence', 'painting', 'chain', 'lantern', 'enchanting_table', 'pane', 'wall', 'candle'])) {
+                b.tags.push(BLOCK_GROUP_TAG.DECORE)
+            }
+            // lightning
+            if(isStyle(b, ['torch', 'lantern', 'candle'])) {
+                b.tags.push(BLOCK_GROUP_TAG.LIGHTNING)
+            }
+            // brewing
+            if(b.effects || hasTag(b, ['magic_ingridient']) || isStyle(b, ['enchanting_table', 'cauldron']) || isItem(b, ['book'])) {
+                b.tags.push(BLOCK_GROUP_TAG.BREWING)
+            }
+            // combat
+            if(b.armor) {
+                b.tags.push(BLOCK_GROUP_TAG.COMBAT)
             }
         }
+
+        // misc
+        for(let b of BLOCK.list.values()) {
+            let is_misc = true
+            for(let t of b.tags) {
+                if(t.startsWith('#')) {
+                    is_misc = false
+                    break
+                }
+            }
+            if(is_misc) {
+                b.tags.push(BLOCK_GROUP_TAG.MISC)
+            }
+        }
+
     }
 
     //

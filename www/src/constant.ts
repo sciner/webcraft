@@ -61,6 +61,20 @@ export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
 
+export const BLOCK_GROUP_TAG = {
+    ALL:        "#all",
+    BLOCK:      "#block",
+    BREWING:    "#brewing",
+    COMBAT:     "#combat",
+    DECORE:     "#decore",
+    FOOD:       "#food",
+    FURNITURE:  "#furniture",
+    LIGHTNING:  "#lightning",
+    MISC:       "#misc",
+    PLANT:      "#plant",
+    TOOLS:      "#tools",
+}
+
 export const UI_THEME = {
     base_font: {
         color: '#5bc4da',

@@ -1377,10 +1377,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1201,
@@ -1400,10 +1397,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1202,
@@ -1423,10 +1417,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1203,
@@ -1446,10 +1437,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1204,
@@ -1469,10 +1457,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1205,
@@ -1492,10 +1477,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1206,
@@ -1515,10 +1497,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1207,
@@ -1538,10 +1517,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1208,
@@ -1561,10 +1537,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1209,
@@ -1584,10 +1557,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1210,
@@ -1607,10 +1577,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1211,
@@ -1630,10 +1597,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1212,
@@ -1653,10 +1617,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1213,
@@ -1676,10 +1637,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1214,
@@ -1699,10 +1657,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 1215,
@@ -1722,10 +1677,7 @@
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#bed"
-            ]
+            }
         },
         {
             "id": 300,
@@ -1876,10 +1828,7 @@
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#stool"
-            ]
+            }
         },
         {
             "id": 321,
@@ -1898,10 +1847,7 @@
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#stool"
-            ]
+            }
         },
         {
             "id": 322,
@@ -1920,10 +1866,7 @@
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#stool"
-            ]
+            }
         },
         {
             "id": 323,
@@ -1942,10 +1885,7 @@
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#stool"
-            ]
+            }
         },
         {
             "id": 324,
@@ -1964,10 +1904,7 @@
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#stool"
-            ]
+            }
         },
         {
             "id": 325,
@@ -1986,10 +1923,7 @@
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#stool"
-            ]
+            }
         },
         {
             "id": 326,
@@ -2008,10 +1942,7 @@
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#stool"
-            ]
+            }
         },
         {
             "id": 327,
@@ -2030,10 +1961,7 @@
                     {"name": "%block_name%", "group": "frame"},
                     {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
                 ]
-            },
-            "tags": [
-                "#stool"
-            ]
+            }
         },
         {
             "id": 81,
