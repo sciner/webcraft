@@ -11,13 +11,15 @@ const tempQuat = quat.create();
 oneArr[0] = oneArr[1] = oneArr[2] = 1;
 
 export class BBModel_Child {
-    [key: string]: any;
+    model:              BBModel_Model
+    json:               any
+    pivot:              Vector
+    rot:                Vector
+    matrix:             any
+    visibility:         boolean
+    orig_visibility:    boolean
 
-    /**
-     * @param { import("./model.js").BBModel_Model } model
-     * @param {object} json
-     */
-    constructor(model? : BBModel_Model, json?) {
+    constructor(model? : BBModel_Model, json? : any) {
         this.model = model
         this.json = json
         this.pivot = new Vector()
