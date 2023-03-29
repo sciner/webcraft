@@ -1062,32 +1062,5 @@ export class ServerPlayer extends Player {
     isAdmin() : boolean {
         return this.world.admins.checkIsAdmin(this)
     }
-
-    findFreePosition() {
-        const pos = new Vector(this.state.pos).floored()
-        let block = this.world.getBlock(pos.offset(0, 2, 0))
-        if (block.id == 0) {
-            this.state.pos = pos.offset(.5, 1, .5)
-            return true
-        }
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                if (i == 0 && j == 0) {
-                    continue
-                }
-                block = this.world.getBlock(pos.offset(i, -1, j))
-                if (block.material.is_solid) {
-                    block = this.world.getBlock(pos.offset(i, 0, j))
-                    if (block.id == 0 || block?.material?.height < .5) {
-                        block = this.world.getBlock(pos.offset(i, 1, j))
-                        if (block.id == 0) {
-                            this.state.pos = pos.offset(i + .5, .5, j + .5)
-                            return true
-                        }
-                    }
-                }
-            }
-        }
-        return false
-    }
+    
 }

@@ -30,6 +30,7 @@ import { CubeSym } from "./core/CubeSym.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
+import type { World } from "./world.js";
 
 const {mat4, quat} = glMatrix;
 
@@ -391,6 +392,38 @@ export class IvanArray {
     push(elem) {
         this.arr[this.count++] = elem;
     }
+}
+
+// 
+/**
+ * выдает позицию, на которой можно стоять вокруг точки pos
+ * @param pos - позиция
+ * @param world - ссылка на world
+ * @returns 
+ */
+export function getValidPosition(pos : Vector, world: World) {
+    let block = world.getBlock(pos.offset(0, 2, 0))
+    if (block.id == 0) {
+        return pos.offset(.5, 1, .5)
+    }
+    for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+            if (j == 0 && i == 0) {
+                continue
+            }
+            block = world.getBlock(pos.offset(i, -1, j))
+            if (block.material.is_solid) {
+                block = world.getBlock(pos.offset(i, 0, j))
+                if (block.id == 0 || block?.material?.height < .5) {
+                    block = world.getBlock(pos.offset(i, 1, j))
+                    if (block.id == 0) {
+                        return pos.offset(i + .5, .5, j + .5)
+                    }
+                } 
+            }
+        }
+    }
+    return false
 }
 
 //

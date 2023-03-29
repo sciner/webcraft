@@ -1,3 +1,4 @@
+import { getValidPosition, Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 
 export default class packet_reader {
@@ -14,7 +15,9 @@ export default class packet_reader {
 
     // 
     static async read(player, packet) {
-        if (player.findFreePosition()) {
+        const pos = getValidPosition(new Vector(player.state.pos).floored(), player.world)
+        if (pos) {
+            player.state.pos = pos
             player.state.sitting = false
             player.state.sleep = false
             player.sendNearPlayers()

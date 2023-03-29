@@ -1,5 +1,5 @@
 import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
-    SpatialDeterministicRandom, ObjectHelpers } from "./helpers.js";
+    SpatialDeterministicRandom, ObjectHelpers, getValidPosition } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CD_ROT, CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
@@ -1636,30 +1636,6 @@ function sitDown(e, world, pos, player, world_block, world_material, mat_block, 
     if(e.shiftKey) {
         return false
     }
-    const isValidPosition = (pos) => {
-        let block = world.getBlock(pos.offset(0, 2, 0))
-        if (block.id == 0) {
-            return true
-        }
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                if (j == 0 && i == 0) {
-                    continue
-                }
-                block = world.getBlock(pos.offset(i, -1, j))
-                if (block.material.is_solid) {
-                    block = world.getBlock(pos.offset(i, 0, j))
-                    if (block.id == 0 || block?.material?.height < .5) {
-                        block = world.getBlock(pos.offset(i, 1, j))
-                        if (block.id == 0) {
-                            return true
-                        }
-                    } 
-                }
-            }
-        }
-        return false
-    }
     const is_chair = world_material.style_name == 'chair'
     const is_stool = world_material.style_name == 'stool'
     const is_slab   = world_material.layering && world_material.height == .5
@@ -1686,7 +1662,7 @@ function sitDown(e, world, pos, player, world_block, world_material, mat_block, 
         }
     }
     const is_head = world_material?.has_head && world_block.extra_data.is_head
-    if(!isValidPosition(world_block.posworld.offset(0, is_head ? -1 : 0, 0))) {
+    if(!getValidPosition(world_block.posworld.offset(0, is_head ? -1 : 0, 0), world)) {
         if (!Qubatch.is_server) {
             Qubatch.hotbar.strings.setText(1, Lang.pos_not_valid, 4000)
         }
