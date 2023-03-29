@@ -751,6 +751,13 @@ export class Player implements IPlayer {
                         return false
                     }
                 }
+                // Действие с удочкой
+                if (cur_mat_id == BLOCK.FISHING_ROD.id) {
+                    this.inMiningProcess = true
+                    this.inhand_animation_duration = 2.5 * RENDER_DEFAULT_ARM_HIT_PERIOD
+                    this.world.server.Send({name: ServerClient.CMD_USE_ITEM})
+                    return false
+                }
             } else {
                 this.stopItemUse();
             }

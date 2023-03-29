@@ -23,6 +23,8 @@ export default class emitter extends BaseEmitter {
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);
         this.material       = resource_pack.getMaterial(this.material_key);
         this.ticks          = 0;
+        this.count          = (args?.count) ? args.count : 10
+        this.size           = (args?.size) ? args.size : new Vector(1, 1, 1)
     }
 
     /**
@@ -45,7 +47,7 @@ export default class emitter extends BaseEmitter {
 
         const resp = [];
         const {texture, texture_index} = getEffectTexture(emitter.textures);
-        for(let i = 0; i < 10; i++) {
+        for(let i = 0; i < this.count; i++) {
             // новая частица
             const particle = new Mesh_Effect_Particle({
                 life:           1,
@@ -58,7 +60,11 @@ export default class emitter extends BaseEmitter {
                 material_key:   this.material_key,
                 material:       this.material,
                 velocity:       new Vector(0, 0.05, 0),
-                pos:            this.pos.offset(Math.random() - Math.random(), -Math.random(), Math.random() - Math.random())
+                pos:            this.pos.offset(
+                    (Math.random() - Math.random()) * this.size.x, 
+                    -Math.random() * this.size.y, 
+                    (Math.random() - Math.random()) * this.size.z
+                    )
             });
 
             resp.push(particle);

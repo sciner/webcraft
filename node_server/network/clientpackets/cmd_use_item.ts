@@ -41,6 +41,23 @@ export default class packet_reader {
             player.inventory.decrement()
             return true
         }
+
+        if (item.id == bm.FISHING_ROD.id) {
+            if (!player.fishing) {
+                const params = {
+                    type: "hook",
+                    skin: "base",
+                    pos: player.getEyePos(),
+                    pos_spawn: player.getEyePos(),
+                    rotate: player.state.rotate
+                }
+                player.fishing = player.world.mobs.create(params)
+                player.fishing.parent = player // @todo мб лучше передавать id
+            } else {
+                player.fishing.getBrain().onFishing()
+            }
+            return true
+        }
         if (packet?.data?.cancel) {
             player.cast.id = -1;
             player.cast.time = 0;

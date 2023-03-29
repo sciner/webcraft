@@ -1,4 +1,6 @@
 {
+        "skeleton",
+        "hook"
     "mobs": {
         "mob/combat_dummy": {
             "physics": {
