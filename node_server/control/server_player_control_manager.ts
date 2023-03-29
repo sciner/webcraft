@@ -340,7 +340,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             accepted = false
         }
         if (accepted) {
-            this.onSimulation(prevData.outPos ?? pc.getPos(), newData)
+            this.onSimulation(prevData?.outPos ?? pc.getPos(), newData)
             this.updateLastData()
         } else {
             // Either cheating or a bug detected. The previous output remains unchanged.
