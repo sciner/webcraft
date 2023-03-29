@@ -1,9 +1,11 @@
-import { TextEdit, Window } from "../ui/wm.js";
+import {Button, TextEdit, Window} from "../ui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
+
+const ITEMS_WITHOUT_TAG = '#others';
 
 class CreativeInventoryCollection extends Window {
     [key: string]: any;
@@ -59,7 +61,7 @@ class CreativeInventoryCollection extends Window {
     }
 
     // Init
-    init(filter_text = null) {
+    init(filter_text = null, tag = null) {
         //
         const all_blocks = [];
         if(filter_text) {
@@ -68,6 +70,7 @@ class CreativeInventoryCollection extends Window {
                 .replaceAll('_', ' ')
                 .replace(/\s\s+/g, ' ')
         }
+        console.log(filter_text, tag);
         for(let b of BLOCK.getAll()) {
             if(b.id < 1 || !b.spawnable) {
                 continue
@@ -78,12 +81,12 @@ class CreativeInventoryCollection extends Window {
             if('power' in b && (b.power !== 0)) {
                 (block as any).power = b.power
             }
-            if(!this.matchesFilter(b, filter_text)) {
+            if(!this.matchesFilter(b, filter_text) || !this.matchesTag(b, tag)) {
                 continue
             }
             all_blocks.push(block)
         }
-        this.addEnchantedBooks(all_blocks, filter_text)
+        this.addEnchantedBooks(all_blocks, filter_text, tag)
         // Create slots
         // let p = performance.now()
         this.initCollection(all_blocks)
@@ -94,9 +97,19 @@ class CreativeInventoryCollection extends Window {
         return !filter_text || block.name.replaceAll('_', ' ').indexOf(filter_text) >= 0 || block.id == filter_text
     }
 
-    addEnchantedBooks(all_blocks, filter_text) {
+    matchesTag(block, tag) {
+        if (!tag) return true;
+        // if special tag was chosen then return all blocks without tags
+        if (tag == ITEMS_WITHOUT_TAG) {
+            return block.tags.length == 0 || block.tags.findIndex(t => t.slice(0, 1) == '#') == -1;
+        } else {
+            return block.tags.indexOf(tag) > -1;
+        }
+    }
+
+    addEnchantedBooks(all_blocks, filter_text, tag) {
         const EB = BLOCK.ENCHANTED_BOOK;
-        if(!EB || !this.matchesFilter(EB, filter_text)) {
+        if(!EB || !this.matchesFilter(EB, filter_text) || !this.matchesTag(EB,tag)) {
             return;
         }
         for(const e of Enchantments.list) {
@@ -218,6 +231,9 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     collection : CreativeInventoryCollection
 
+    tagLevels : number = 0;
+    selectedTag: string = '';
+
     constructor(inventory) {
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
         this.x *= this.zoom 
@@ -256,9 +272,11 @@ export class CreativeInventoryWindow extends BlankWindow {
         }
         const szm = this.cell_size + this.slot_margin
         const w = this.txtSearch.w
-        const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h) / szm) - 1) * szm
+        const tagsMargin = this.tagLevels * 25 * this.zoom + 10 * this.tagLevels;
+        const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h - tagsMargin) / szm) - 1) * szm
+        // calculate height of tags area
         this.ycnt = Math.floor(h / szm)
-        this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin)
+        this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom + tagsMargin, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin)
         this.add(this.collection)
         this.collection.init()
         return this.collection
@@ -296,9 +314,68 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.txtSearch = txtSearch
 
         txtSearch.onChange = (text) => {
-            this.collection.init(text)
+            this.collection.init(text, this.selectedTag)
         }
 
+        let tags = [];
+        for (let b of BLOCK.getAll()) {
+            if (b.id < 1 || !b.spawnable || b.tags.length == 0) {
+                continue;
+            }
+            for (let t of b.tags) {
+                if (t.slice(0,1) != '#') continue;
+
+                if (tags.indexOf(t) == -1) {
+                    tags.push(t);
+                }
+            }
+        }
+        // add special tag to end
+        tags.push(ITEMS_WITHOUT_TAG);
+        let i = 0;
+        let tx = x;
+        const buttonVerticalMargin = 10;
+        // manually chosen 'optimal' coefficient to add horizontal spaces to buttons
+        // too high value will lead to big spaces on long words
+        // without this coefficient there are no gaps between borders and letters
+        const buttonWidthCoef = 8;
+        let ty = 10 * this.zoom + txtSearch.h + buttonVerticalMargin;
+        const buttonHeight = 25 * this.zoom;
+        if (tags.length > 0) {
+            this.tagLevels = 1;
+        }
+        for (let t of tags) {
+            const width = t.length * this.zoom * buttonWidthCoef;
+            // if next button with be outside container, move to next line and start from left again
+            if (tx + width > this.txtSearch.w) {
+                tx = x;
+                ty += buttonHeight + buttonVerticalMargin;
+                this.tagLevels++;
+            }
+            const button = new Button(
+                tx,
+                ty,
+                width,
+                buttonHeight,
+                `tag${i}`,
+                t,
+                t
+            );
+            this.add(button);
+            button.onMouseUp = e => {
+                const selectedTag = this.getWindow(e.target.id);
+                if (selectedTag.text == this.selectedTag) {
+                    selectedTag.style.border.style = 'fixed_single'
+                    this.selectedTag = '';
+                } else {
+                    this.selectedTag = selectedTag.text;
+                    selectedTag.style.border.style = 'normal'
+                }
+                this.collection.init(this.txtSearch.text, this.selectedTag);
+            };
+            i++;
+            tx += button.w + 10;
+        }
     }
 
     // Обработчик открытия формы
