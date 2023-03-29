@@ -141,7 +141,7 @@ export abstract class PlayerControl {
      * Override it to reset something specific to that control.
      */
     resetState(): void {
-        this.player_state.vel.set(0, 0, 0)
+        this.player_state.vel.zero()
     }
 
     /**

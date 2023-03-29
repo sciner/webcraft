@@ -7,13 +7,13 @@ import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
 import {SPECTATOR_SPEED_CHANGE_MAX, SPECTATOR_SPEED_CHANGE_MIN, SPECTATOR_SPEED_CHANGE_MULTIPLIER, SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
-    PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_MAX_MS_PROCESS, DEBUG_LOG_PLAYER_CONTROL_DETAIL
+    PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_MAX_TICKS_PROCESSED, DEBUG_LOG_PLAYER_CONTROL_DETAIL
 } from "../constant.js";
 import {SimpleQueue} from "../helpers/simple_queue.js";
 import type {PlayerControl} from "./player_control.js";
 import {GameMode} from "../game_mode.js";
 import {MonotonicUTCDate} from "../helpers.js";
-import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PlayerTickData} from "./player_tick_data.js";
+import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PLAYER_TICK_MODE, PlayerTickData} from "./player_tick_data.js";
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
 import {CHUNK_STATE} from "../chunk_const.js";
@@ -113,8 +113,19 @@ export abstract class PlayerControlManager {
      */
     getPos(): Vector { return this.current.player_state.pos }
 
-    setPos(pos: IVector): void {
+    /**
+     * @param worldActionId - id of the associated WorldAction. If it's not null, has the following effect:
+     * - on the client: data for this physics tick is created that is based on external change, not simulation.
+     *   It's sent to the server, and the server's physics will have to wait for this action to complete on the server.
+     * - on the server: the controller is notified that the action completed, so if the physics was waiting for it,
+     *   it may continue
+     */
+    setPos(pos: IVector, worldActionId?: string | int | null): void {
         this.current.setPos(pos)
+    }
+
+    setVelocity(x: IVector | number[] | number, y: number, z: number): void {
+        this.current.player_state.vel.set(x, y, z)
     }
 
     /**
@@ -140,8 +151,13 @@ export abstract class PlayerControlManager {
 
         // apply input
         data.applyInputTo(this, pc)
-        // special input adjustments
+
+        // special state adjustments
         player_state.flying &&= gameMode.can_fly // a hack-fix to ensure the player isn't flying when it shouldn't
+        // if a player was running before sitting, remove that speed, so it doesn't move after sitting
+        if (data.contextTickMode === PLAYER_TICK_MODE.SITTING_OR_LYING) {
+            player_state.vel.zero()
+        }
 
         // remember the state before the simulation
         const prevPos = this.tmpPos.copyFrom(player_state.pos)
@@ -213,6 +229,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
      */
     private dataQueue = new SimpleQueue<ClientPlayerTickData>()
 
+    private appliedWorldActionIds: (string | int)[] = []
+    private posChangedExternally = false
+
     private sedASAP = false // if it's true, the next physics tick data should be sent ASAP (not merged with previous)
     private controlPacketWriter = new PlayerControlPacketWriter()
     private hasCorrection = false
@@ -236,16 +255,36 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
     startNewPhysicsSession(pos: IVector): void {
         super.startNewPhysicsSession(pos)
-        this.prevPhysicsTickPos?.copyFrom(pos) // it's null in the constructor
         if (this.dataQueue) { // if the subclass constructor finished
+            this.prevPhysicsTickPos.copyFrom(pos) // it's null in the constructor
             this.dataQueue.length = 0
+            this.appliedWorldActionIds.length = 0
         }
         this.hasCorrection = false
+        this.posChangedExternally = false
     }
 
     protected resetState(pos: IVector): void {
         super.resetState(pos)
         this.speedLogger?.reset()
+    }
+
+    setPos(pos: IVector, worldActionId?: string | int | null): void {
+        super.setPos(pos, worldActionId)
+        this.posChangedExternally = true
+        if (worldActionId != null) {
+            this.appliedWorldActionIds.push(worldActionId)
+        }
+        const lastData = this.dataQueue?.getLast()
+        if (lastData?.status === PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED) {
+            lastData.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP
+            this.sendUpdate()
+        }
+    }
+
+    /** Call it after changing the position if you want the change to be instant, e.g. placing the player on the bed. */
+    suppressLerpPos() {
+        this.prevPhysicsTickPos.copyFrom(this.current.player_state.pos)
     }
 
     lerpPos(dst: Vector, prevPos: Vector = this.prevPhysicsTickPos, pc: PlayerControl = this.current): void {
@@ -299,7 +338,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         // if the initial step of the current physics session
         if (!this.physicsSessionInitialized) {
             this.initializePhysicsSession()
-            this.sendUpdate()
+            return
         }
 
         this.knownInputTime = MonotonicUTCDate.now()
@@ -318,7 +357,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
             let prevData = dataQueue.get(ind)
 
-            if (prevData?.endPhysicsTick !== this.knownPhysicsTicks) {
+            if (DEBUG_LOG_PLAYER_CONTROL && prevData?.endPhysicsTick !== this.knownPhysicsTicks) {
                 console.error(`Control: prevData?.endPhysicsTick !== this.knownPhysicsTicks`, prevData.endPhysicsTick)
             }
             if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
@@ -327,7 +366,13 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
             while (++ind < dataQueue.length) {
                 const data = dataQueue.get(ind)
-                this.simulate(prevData, data)
+                if (data.inputWorldActionIds) {
+                    // It was a result of WorldAction. We can't repeat the action. Just apply its result again.
+                    // If it's wrong, the server will correct us again.
+                    data.applyOutputToControl(this.controlByType[data.contextControlType])
+                } else {
+                    this.simulate(prevData, data)
+                }
                 this.knownPhysicsTicks += data.physicsTicks
                 data.invalidated = false
                 prevData = data
@@ -341,30 +386,49 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             if (physicsTicks < 0) {
                 throw new Error('physicsTicks < 0') // this should not happen
             }
+            if (this.posChangedExternally) {
+                if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
+                    console.log(`pos changed externally t${this.knownPhysicsTicks} ${this.appliedWorldActionIds.join()}`)
+                }
+                const data = new ClientPlayerTickData()
+                data.initInputFrom(this, this.knownPhysicsTicks++, 1)
+                data.initContextFrom(this)
+                data.initOutputFrom(this.current)
+                if (this.appliedWorldActionIds.length) {
+                    data.inputWorldActionIds = this.appliedWorldActionIds
+                    this.appliedWorldActionIds = []
+                }
+                dataQueue.push(data)
+                this.posChangedExternally = false
+                if (--physicsTicks === 0) {
+                    return
+                }
+            }
 
-            // Don't process more than PHYSICS_MAX_MS_PROCESS. The server will correct us if we're wrong.
-            const maxPhysicsTicksProcess = Math.floor(PHYSICS_MAX_MS_PROCESS / PHYSICS_INTERVAL_MS)
-            const skipPhysicsTicks = physicsTicks - maxPhysicsTicksProcess
+            // Don't process more than PHYSICS_MAX_TICKS_PROCESSED. The server will correct us if we're wrong.
+            const skipPhysicsTicks = physicsTicks - PHYSICS_MAX_TICKS_PROCESSED
             if (skipPhysicsTicks > 0) {
-                console.error(`Control: skipping ${skipPhysicsTicks} ticks`)
-                const skippedTicksData = new ClientPlayerTickData(this.knownPhysicsTicks)
-                skippedTicksData.initInputFrom(this.player, skipPhysicsTicks)
-                skippedTicksData.initContextFrom(this.player)
+                if (DEBUG_LOG_PLAYER_CONTROL) {
+                    console.error(`Control: skipping ${skipPhysicsTicks} ticks`)
+                }
+                const skippedTicksData = new ClientPlayerTickData()
+                skippedTicksData.initInputFrom(this, this.knownPhysicsTicks, skipPhysicsTicks)
+                skippedTicksData.initContextFrom(this)
                 skippedTicksData.initOutputFrom(this.current)
                 dataQueue.push(skippedTicksData)
                 this.knownPhysicsTicks += skipPhysicsTicks
-                physicsTicks = maxPhysicsTicksProcess
+                physicsTicks = PHYSICS_MAX_TICKS_PROCESSED
             }
 
-            const data = new ClientPlayerTickData(this.knownPhysicsTicks)
-            data.initInputFrom(this.player, physicsTicks)
-            data.initContextFrom(this.player)
+            const data = new ClientPlayerTickData()
+            data.initInputFrom(this, this.knownPhysicsTicks, physicsTicks)
+            data.initContextFrom(this)
             this.knownPhysicsTicks += physicsTicks
 
             // Simulate freeCam in addition to the normal simulation. Clear the input to the normal simulation
             if (this.#isFreeCam) {
                 this.simulateFreeCam(data)
-                data.initInputEmpty(data, data.physicsTicks)
+                data.initInputEmpty(data, data.startingPhysicsTick, data.physicsTicks)
             }
 
             const prevData = dataQueue.getLast()
@@ -407,7 +471,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         }
     }
 
-    applyCorrection(packetData: PacketBuffer) {
+    onCorrection(packetData: PacketBuffer) {
         const packet = this.correctionPacket
         packet.read(packetData)
         if (packet.physicsSessionId !== this.physicsSessionId) {
@@ -433,9 +497,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                 console.warn('Control: applying correction without existing data')
             }
             // put the date into the data queue
-            const data = new ClientPlayerTickData(correctedPhysicsTick - 1)
+            const data = new ClientPlayerTickData()
             data.status = PLAYER_TICK_DATA_STATUS.SENT
-            data.initInputEmpty(null, 1)
+            data.initInputEmpty(null, correctedPhysicsTick - 1, 1)
             data.copyContextFrom(correctedData)
             data.copyOutputFrom(correctedData)
             dataQueue.push(data)
@@ -451,16 +515,16 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
         // If the correction isn't aligned with the data end, e.g. because of ServerPlayerControlManager.doLaggingServerTicks
         if (exData.endPhysicsTick > correctedPhysicsTick) {
-            if (DEBUG_LOG_PLAYER_CONTROL) {
+            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                 console.log('Control: applying correction, end tick is not aligned')
             }
             // Split exData into corrected and uncorrected parts
             exData.physicsTicks = exData.endPhysicsTick - correctedPhysicsTick
             exData.startingPhysicsTick = correctedPhysicsTick
             // Insert fake data to be corrected
-            exData = new ClientPlayerTickData(correctedPhysicsTick - 1)
+            exData = new ClientPlayerTickData()
             exData.status = PLAYER_TICK_DATA_STATUS.SENT
-            exData.initInputEmpty(null, 1)
+            exData.initInputEmpty(null, correctedPhysicsTick - 1, 1)
             dataQueue.unshift(exData)
         }
 
