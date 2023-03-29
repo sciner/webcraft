@@ -43,6 +43,7 @@ export interface IPlayerControls {
     jump ?      : boolean
     sprint ?    : boolean
     sneak ?     : boolean
+    pitch ?     : boolean
 }
 
 /** It stores and processes player's input on the client. */
@@ -131,7 +132,7 @@ export abstract class PlayerControl {
         controls.forward = params.forward
         controls.jump = params.jump
         controls.sneak = params.sneak
-
+        controls.pitch = params.pitch
         // TODO do something with MobControlParams.pitch, or don't accept it
     }
 
