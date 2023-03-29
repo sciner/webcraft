@@ -114,6 +114,7 @@ export class ServerPlayer extends Player {
     conn: any;
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
+    fishing: any; // ссылка на сущность поплывка
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;

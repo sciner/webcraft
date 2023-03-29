@@ -623,6 +623,11 @@ export class Player implements IPlayer {
                         return false;
                     }
                 }
+                // Действие с удочкой
+                if (cur_mat_id == BLOCK.FISHING_ROD.id) {
+                    this.world.server.Send({name: ServerClient.CMD_USE_ITEM})
+                    return false
+                }
             } else {
                 this.stopItemUse();
             }

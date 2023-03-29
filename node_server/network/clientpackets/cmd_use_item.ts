@@ -16,12 +16,22 @@ export default class packet_reader {
 
     // use item
     static async read(player, packet) {
+        const item = player.inventory.items[player.inventory.current.index]
+        if (!item) {
+            return true
+        }
+        const bm = player.world.block_manager
+        if (item.id == bm.FISHING_ROD.id) {
+            if (!player.fishing) {
+                console.log('create fishing hook')
+            }
+            return true
+        }
         if (packet?.data?.cancel) {
             player.cast.id = -1;
             player.cast.time = 0;
             return false;
         }
-        const item = player.inventory.items[player.inventory.current.index];
         if (item && item.count > 0 && player.cast.time == 0) {
             player.cast.id = item.id;
             player.cast.time = TIME_CAST;

@@ -10149,6 +10149,22 @@
                 "slots": 5
             },
             "is_entity": true
+        },
+        {
+            "id": 1049,
+            "name": "FISHING_ROD",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "item": {"name": "instrument", "instrument_id": "fishing_rod"},
+            "power": 200,
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "item/fishing_rod.png"
+            }
         }
     ]
 }
