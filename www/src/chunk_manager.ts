@@ -101,6 +101,11 @@ export class ChunkManager {
 
     #world: World;
 
+    nearby = {
+        added:      [] as {flags: int, addr: IVector}[],
+        deleted:    new VectorCollector()
+    }
+
     //
     chunks_state = new ChunkManagerState()
 
@@ -454,8 +459,23 @@ export class ChunkManager {
         const chunk_render_dist = player.state.chunk_render_dist;
         const player_chunk_addr = player.chunkAddr;
 
-        if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
+        // if(!globalThis.dfdf)globalThis.dfdf=0
+        // if(Math.random() < .01)console.log(globalThis.dfdf)
+
+        const player_chunk_addr_changed = !player_chunk_addr.equal(this.poses_chunkPos)
+
+        if (this.poses_need_update || player_chunk_addr_changed) {
             this.poses_need_update = false;
+
+            let margin = Math.max(chunk_render_dist + 1, 1);
+            let spiral_moves_3d = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+
+            if(player_chunk_addr_changed) {
+                for (let i = 0; i < spiral_moves_3d.length; i++) {
+                    const item = spiral_moves_3d[i];
+                    item._chunk = null
+                }
+            }
 
             const msg = {
                 pos: player.pos,
@@ -467,13 +487,13 @@ export class ChunkManager {
             this.poses_chunkPos.copyFrom(player_chunk_addr);
             const pos               = this.poses_chunkPos;
             const pos_temp          = pos.clone();
-            let margin              = Math.max(chunk_render_dist + 1, 1);
-            let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+            
             this.poses.length = 0;
             for (let i = 0; i < spiral_moves_3d.length; i++) {
+                // globalThis.dfdf++
                 const item = spiral_moves_3d[i];
                 pos_temp.set(pos.x + item.pos.x, pos.y + item.pos.y, pos.z + item.pos.z);
-                const chunk = this.chunks.get(pos_temp);
+                const chunk = item._chunk || (item._chunk = this.chunks.get(pos_temp))
                 if (chunk) {
                     this.poses.push(chunk);
                 }
@@ -501,12 +521,16 @@ export class ChunkManager {
                 // destroyed!
                 continue;
             }
+            if(chunk.vertices_length === 0 && chunk.vertices_args_size === 0) {
+                continue;
+            }
             if(!chunk.updateInFrustum(render)) {
                 continue;
             }
             if (chunk.need_apply_vertices) {
                 if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
                     this.bufferPool.prepareMem(chunk.vertices_args_size);
+                    chunk.vertices_args_size = 0;
                     chunk.applyChunkWorkerVertices();
                 }
             }
@@ -702,7 +726,7 @@ export class ChunkManager {
         // stat['Load chunks'] = (performance.now() - p); p = performance.now();
 
         // Delete chunks
-        const deleted_size = this.nearby.deleted.size;
+        // const deleted_size = this.nearby.deleted.size;
         for(let addr of this.nearby.deleted) {
             this.removeChunk(addr);
         }
@@ -812,12 +836,6 @@ export class ChunkManager {
 
     // Set nearby chunks
     updateNearby(data) {
-        if(!this.nearby) {
-            this.nearby = {
-                added:      [],
-                deleted:    new VectorCollector()
-            };
-        }
         // if (this.nearby.deleted.length > 0) {
         if(this.nearby.deleted.list.size > 0) {
             this.update();
