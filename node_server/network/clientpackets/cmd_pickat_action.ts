@@ -5,6 +5,7 @@ import { MOUSE } from "@client/constant.js";
 import { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "../../server_player.js";
 import type { ServerChunk } from "../../server_chunk.js";
+import type {ICmdPickatData} from "@client/pickat.js";
 
 const tmpBlock = new TBlock()
 
@@ -21,7 +22,7 @@ export default class packet_reader {
     }
 
     // Pickat action
-    static async read(player: ServerPlayer, packet: INetworkMessage) {
+    static async read(player: ServerPlayer, packet: INetworkMessage<ICmdPickatData>) {
         if(!player.game_mode.canBlockAction()) {
             return true;
         }

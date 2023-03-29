@@ -544,6 +544,15 @@ export class WorldAction {
     [key: string]: any;
 
     #world : any;
+    /**
+     * This id may not be unique.
+     * It's assumed that for a non-malicious client, it's unique within one player session.
+     *
+     * Why isn't it globally unique?
+     * A client needs to provide it, to identify its actions on the server. We can't trust the client.
+     * So the server assumes it's not globally unique. So the client doesn't have to generate it globally unique.
+     */
+    id ? : string | int | null
     play_sound: PlaySoundParams[]
     drop_items: DropItemParams[]
     blocks: ActionBlocks
@@ -554,7 +563,7 @@ export class WorldAction {
     sitting? : TSittingState
     sleep? : TSleepState
 
-    constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
+    constructor(id ? : string | int | null, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
         //
         Object.assign(this, {
