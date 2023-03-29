@@ -19,6 +19,15 @@
                 "netherite_layer_1": "textures/armor/netherite_layer_1.png"
             }
         },
+        
+        "hook": {
+            "type": "json",
+            "geom": "json/hook.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/hook.png"
+            }
+        },
 
         "goat": {
             "type": "json",
