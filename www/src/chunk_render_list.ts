@@ -2,7 +2,8 @@ import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {SpiralGenerator} from "./helpers/spiral_generator.js";
 import {IvanArray, Vector} from "./helpers.js";
-import {CHUNK_GENERATE_MARGIN_Y} from "./chunk_const.js";
+import {CubeTexturePool} from "./light/CubeTexturePool.js";
+import {CHUNK_GENERATE_MARGIN_Y, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {GROUPS_NO_TRANSPARENT, GROUPS_TRANSPARENT} from "./chunk_manager.js";
 
 import type {GeometryPool} from "./light/GeometryPool.js";
@@ -36,6 +37,15 @@ export class ChunkRenderList {
             this.bufferPool = new TrivialGeometryPool(render.renderBackend);
         }
         chunkManager.fluidWorld.mesher.initRenderPool(render.renderBackend);
+
+        const {lightProps} = this;
+        this.lightPool = new CubeTexturePool(render.renderBackend, {
+            defWidth: CHUNK_SIZE_X + 2,
+            defHeight: CHUNK_SIZE_Z + 2,
+            defDepth: (CHUNK_SIZE_Y + 2) * lightProps.depthMul,
+            type: lightProps.texFormat,
+            filter: 'linear',
+        });
     }
 
     /**
@@ -206,5 +216,30 @@ export class ChunkRenderList {
             }
         }
         return true;
+    }
+
+    lightPool: CubeTexturePool = null;
+
+    lightProps = {
+        texFormat: 'rgba8unorm',
+        hasTexture: true,
+        depthMul: 1,
+    }
+
+    get lightmap_count() {
+        return this.lightPool ? this.lightPool.totalRegions : 0;
+    }
+
+    get lightmap_bytes() {
+        return this.lightPool ? this.lightPool.totalBytes : 0;
+    }
+
+    setLightTexFormat(hasNormals) {
+        const {chunkManager} = this;
+        this.lightProps.depthMul = hasNormals ? 2 : 1;
+        chunkManager.lightWorker.postMessage([chunkManager.worldId, 'initRender', {
+            hasTexture: true,
+            hasNormals
+        }])
     }
 }

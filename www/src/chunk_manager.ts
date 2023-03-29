@@ -86,8 +86,6 @@ export class ChunkManagerState {
 
 //
 export class ChunkManager {
-    [key: string]: any;
-    poses: any[]
 
     static instance: ChunkManager;
 
@@ -104,40 +102,47 @@ export class ChunkManager {
     //
     chunks_state = new ChunkManagerState()
     renderList = new ChunkRenderList(this);
+    dataWorld: DataWorld = null;
+    fluidWorld: FluidWorld = null;
+    biomes: Biomes = null;
+    chunkDataTexture = new ChunkDataTexture();
+    export = new ChunkExporter(this);
+
+    block_sets: number = 0;
+    draw_debug_grid = false;
+    cluster_draw_debug_grid = false;
+
+    update_chunks = true;
+    vertices_length_total = 0;
+    worker_inited = false;
+    timer60fps = 0;
+
+    chunk_modifiers = new VectorCollector();
+    groundLevelEastimtion: number | null = null;
+    rendered_chunks        = {fact: 0, total: 0};
+    DUMMY: any;
+    AIR: any;
+
+    worker: Worker;
+    lightWorker: Worker;
+    worker_counter = 0;
+    worldId = 'CLIENT';
+    destruct_chunks_queue: any = null;
+    use_light = false;
 
     constructor(world: World) {
 
         ChunkManager.instance = this;
 
         this.#world                     = world;
-        this.block_sets                 = 0;
         this.draw_debug_grid            = world.settings.chunks_draw_debug_grid;
         this.cluster_draw_debug_grid    = world.settings.cluster_draw_debug_grid;
 
-        this.lightPool              = null;
-        this.lightProps = {
-            texFormat: 'rgba8unorm',
-            hasTexture: true,
-            depthMul: 1,
-        }
-
-        this.chunkDataTexture       = new ChunkDataTexture();
-
         // rendering
-        this.rendered_chunks        = {fact: 0, total: 0};
-
-        this.update_chunks          = true;
-        this.vertices_length_total  = 0;
-        this.worker_inited          = false;
-        this.timer60fps             = 0;
         this.dataWorld              = new DataWorld(this);
         this.fluidWorld             = new FluidWorld(this);
         this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
         this.biomes                 = new Biomes(null);
-
-        this.chunk_modifiers        = new VectorCollector();
-
-        this.groundLevelEastimtion  = null;
 
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
             this.worker = new Worker('./js-bundles/chunk_worker_bundle.js');
@@ -152,8 +157,6 @@ export class ChunkManager {
                 debugger;
             };
         }
-
-        this.worldId = 'CLIENT';
 
         const that = this;
 
@@ -183,16 +186,6 @@ export class ChunkManager {
                 }
             }
         };
-
-        this.export = new ChunkExporter(this);
-    }
-
-    get lightmap_count() {
-        return this.lightPool ? this.lightPool.totalRegions : 0;
-    }
-
-    get lightmap_bytes() {
-        return this.lightPool ? this.lightPool.totalBytes : 0;
     }
 
     init() {
@@ -423,14 +416,6 @@ export class ChunkManager {
         this.update_chunks = !this.update_chunks;
     }
 
-    setLightTexFormat(hasNormals) {
-        this.lightProps.depthMul = hasNormals ? 2 : 1;
-        this.lightWorker.postMessage([this.worldId, 'initRender', {
-            hasTexture: true,
-            hasNormals
-        }])
-    }
-
     /**
      * Return chunk by address
      * @param {Vector} addr
@@ -470,7 +455,6 @@ export class ChunkManager {
             const chunk = new Chunk(state.addr, state.modify_list, this);
             chunk.load_time = performance.now() - prepare.start_time;
             this.chunks.add(state.addr, chunk);
-            this.chunk_added = true;
             this.rendered_chunks.total++;
             this.chunks_prepare.delete(state.addr);
             if (state.fluid) {
@@ -547,10 +531,6 @@ export class ChunkManager {
         this.nearby.deleted.clear();
         // stat['Delete chunks'] = [(performance.now() - p), deleted_size]; p = performance.now();
 
-        // Build dirty chunks
-        // this.buildDirtyChunks();
-        // stat['Build dirty chunks'] = (performance.now() - p); p = performance.now();
-
         // Prepare render list
         this.rendered_chunks.fact = 0;
         if (!this.renderList.render) {
@@ -578,41 +558,7 @@ export class ChunkManager {
 
     }
 
-    /**
-     * Build dirty chunks
-     * @deprecated
-     */
-    buildDirtyChunks() {
-        // if(!this.chunk_added) {
-        //     return;
-        // }
-        // this.chunk_added = false;
-        // for(let chunk of this.chunks) {
-        //     if(chunk.dirty && !chunk.buildVerticesInProgress) {
-        //         let ok = true;
-        //         if(!chunk.addr_neighbors) {
-        //             chunk.addr_neighbors = [];
-        //             for(let i = 0; i < CC.length; i++) {
-        //                 const c = CC[i];
-        //                 chunk.addr_neighbors.push(chunk.addr.add(c));
-        //             }
-        //         }
-        //         for(let i = 0; i < chunk.addr_neighbors.length; i++) {
-        //             const neighbour_addr = chunk.addr_neighbors[i];
-        //             if(ALLOW_NEGATIVE_Y || neighbour_addr.y >= 0) {
-        //                 if(!this.getChunk(neighbour_addr)) {
-        //                     ok = false;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         if(ok) {
-        //             chunk.buildVertices();
-        //         }
-        //     }
-        // }
-    }
-
+    get_block_chunk_addr: Vector = null;
     // Возвращает блок по абслютным координатам
     getBlock(x : int | IVector, y? : int, z? : int, v? : any): TBlock {
         if(x instanceof Vector || typeof x == 'object') {

@@ -453,8 +453,8 @@ export class HUD {
             let quads_length_total = cm.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
                 + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb';
-            this.text += '\nLightmap: ' + Math.round(cm.lightmap_count)
-                + ' / ' + Math.round(cm.lightmap_bytes / 1024 / 1024) + 'Mb';
+            this.text += '\nLightmap: ' + Math.round(cm.renderList.lightmap_count)
+                + ' / ' + Math.round(cm.renderList.lightmap_bytes / 1024 / 1024) + 'Mb';
 
             // Draw tech info
             if(draw_tech_info) {
