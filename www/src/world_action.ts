@@ -1690,10 +1690,10 @@ function sitDown(e, world, pos, player, world_block, world_material, mat_block, 
     }
     // sit down
     actions.reset_mouse_actions = true;
-    actions.setSitting(
-        sit_pos,
-        new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
-    )
+    const yaw = rotate
+        ? Helpers.deg2rad(rotate.x)
+        : player.sharedProps.rotate.z
+    actions.setSitting(sit_pos, new Vector(0, 0, yaw))
     return true;
 }
 

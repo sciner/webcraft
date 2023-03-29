@@ -132,6 +132,7 @@ export class PlayerSharedProps implements IPlayerSharedProps {
     get isAlive() : boolean { return this.p.state.indicators.live != 0; }
     get user_id() : int     { return this.p.session.user_id; }
     get pos()     : Vector  { return this.p.pos; }
+    get rotate()  : Vector  { return this.p.rotate; }
     get sitting() : boolean { return !!this.p.state.sitting; }
     get sleep()   : boolean { return !!this.p.state.sleep; }
 }

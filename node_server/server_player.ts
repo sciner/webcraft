@@ -71,6 +71,7 @@ class ServerPlayerSharedProps extends PlayerSharedProps {
 
     get isAlive() : boolean { return this.p.live_level > 0; }
     get pos()     : Vector  { return this.p.state.pos; }
+    get rotate()  : Vector  { return this.p.state.rotate; }
 }
 
 export class ServerPlayer extends Player {

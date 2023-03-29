@@ -348,7 +348,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
 
     /**
      * Detects external changes to the player.
-     * If they happen, adds a new tick data containing them, so it can be sent to the cient.
+     * If they happen, it adds a new tick data containing them, so it can be sent to the client.
      * @return true if the changed
      */
     private detectExternalChanges(): boolean {
