@@ -8,25 +8,61 @@ import { MOUSE } from "./constant.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
 import {AABB} from "./core/AABB.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import type { Player } from "./player.js";
 
 const {mat4} = glMatrix;
 
 const half = new Vector(0.5, 0.5, 0.5);
 
 export class PickAt {
-    [key: string]: any;
+    
+    raycaster:          Raycaster
+    chunk_addr:         Vector
+    _temp_pos :         Vector = new Vector(0, 0, 0)
+    world:              any
+    render:             any
+    targetDescription:  any = null
+    visibleBlockHUD:    any = null
+    onTarget:           Function
+    onInteractEntity:   any
+    onInteractFluid:    any
+    modelMatrix:        any
+    empty_matrix:       any
+    material_target:    any
+    chunk:              any
+    material_damage:    any
 
-    constructor(world, render, onTarget, onInteractEntity, onInteractFluid) {
-        this.world              = world;
-        this.render             = render;
+    target_block: {
+        pos:        any
+        visible:    boolean
+        geom:       LineGeometry
+    }
+
+    damage_block: {
+        pos:        any
+        mesh:       any
+        event:      any
+        frame:      number
+        number:     number
+        times:      number // количество миллисекунд, в течение которого на блок было воздействие
+        prev_time:  any // точное время, когда в последний раз было воздействие на блок
+        start:      any
+    }
+
+    constructor(world, render, onTarget : Function, onInteractEntity : Function, onInteractFluid : Function) {
+        this.world              = world
+        this.render             = render
+        this.onTarget           = onTarget // (block, target_event, elapsed_time) => {...};
+        this.onInteractEntity   = onInteractEntity
+        this.onInteractFluid    = onInteractFluid
         //
-        this.target_block       = {
+        this.target_block = {
             pos:                null,
             visible:            false,
             geom:               new LineGeometry()
         }
         //
-        this.damage_block       = {
+        this.damage_block = {
             pos:        null,
             mesh:       null,
             event:      null,
@@ -36,20 +72,13 @@ export class PickAt {
             prev_time:  null, // точное время, когда в последний раз было воздействие на блок
             start:      null
         }
-        this.targetDescription  = null;
-        this.visibleBlockHUD    = null;
-        this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
-        this.onInteractEntity   = onInteractEntity;
-        this.onInteractFluid    = onInteractFluid;
         //
         const modelMatrix = this.modelMatrix = mat4.create();
         mat4.scale(modelMatrix, modelMatrix, [1.002, 1.002, 1.002]);
         //
-        this.empty_matrix = mat4.create();
-        this.raycaster = new Raycaster(this.world);
-        this._temp_pos = new Vector(0, 0, 0);
-
-        this.target_block.geom.defColor = 0xFF000000;
+        this.empty_matrix = mat4.create()
+        this.raycaster = new Raycaster(this.world)
+        this.target_block.geom.defColor = 0xFF000000
     }
 
     get(pos : IVector, callback : Function, pickat_distance : number, view_vector?, ignore_transparent? : boolean, return_fluid? : boolean) {
@@ -64,13 +93,13 @@ export class PickAt {
     }
 
     // Used by other classes
-    getTargetBlock(player) {
+    getTargetBlock(player : Player) {
         if (!player.game_mode.canBlockAction()) {
             return null;
         }
         // Get actual pick-at block
         const pos = this.get(player.getEyePos(), null, player.game_mode.getPickatDistance(), player.forward, true);
-        return pos ? this.world.getBlock(new Vector(pos)) : null;
+        return pos ? this.world.getBlock(new Vector(pos as any)) : null;
     }
 
     // setEvent...
