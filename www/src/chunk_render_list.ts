@@ -67,7 +67,7 @@ export class ChunkRenderList {
             this.poses_need_update = false;
 
             let margin = Math.max(chunk_render_dist + 1, 1);
-            let spiral_moves_3d = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+            let spiral_moves_3d = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin)).entries;
 
             if(player_chunk_addr_changed) {
                 for (let i = 0; i < spiral_moves_3d.length; i++) {
