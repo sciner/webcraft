@@ -23,7 +23,17 @@ export default class packet_reader {
         const bm = player.world.block_manager
         if (item.id == bm.FISHING_ROD.id) {
             if (!player.fishing) {
-                console.log('create fishing hook')
+                const params = {
+                    type: "hook",
+                    skin: "base",
+                    pos: player.state.pos,
+                    pos_spawn: player.state.pos,
+                    rotate: player.state.rotate
+                }
+                player.fishing = player.world.mobs.create(params);
+            } else {
+                player.fishing.kill()
+                player.fishing = null 
             }
             return true
         }

@@ -13,23 +13,25 @@ export class Brain extends FSMBrain {
         this.prevPos        = new Vector(mob.pos);
         this.lerpPos        = new Vector(mob.pos);
         this.pc             = this.createPlayerControl(this, {
-            baseSpeed: 1/4,
+            baseSpeed: 500,
             playerHeight: 1.3,
             stepHeight: 1,
             playerHalfWidth: .45
         });
         this.stack.pushState(this.doStand);
         this.health = 1; // максимальное здоровье
+        //this.pc.player_state.vel.addSelf(new Vector(5,0,0))
+        //this.pc.tick(0)
     }
 
-   
-    // просто стоит и кушает траву, если голодная
     doStand(delta) {
-        const mob = this.mob
+        const mob = this.mob;
+        const world = mob.getWorld()
+        const block = world.getBlock(mob.pos.floored())
         this.updateControl({
             yaw: mob.rotate.z,
-            forward: false,
-            jump: true,
+            forward: (block.id == 0 && block.fluid == 0),
+            jump: false,
             sneak: false,
         });
         this.applyControl(delta);
