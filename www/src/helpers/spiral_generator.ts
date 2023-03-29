@@ -134,7 +134,7 @@ export class SpiralSize {
         this.cx = this.marginVec.y * 2 + 1;
         this.cy = 1;
         this.cz = this.cx * (this.marginVec.x * 2 + 1);
-        this.cw = -(this.cx * this.marginVec.x + this.cy * this.marginVec.y + this.cz * this.marginVec.z);
+        this.cw = (this.cx * this.marginVec.x + this.cy * this.marginVec.y + this.cz * this.marginVec.z);
         this.outerLen = this.cz * (this.marginVec.z * 2 + 1);
     }
 
@@ -205,8 +205,10 @@ export class SpiralGrid {
             if (ind < 0) {
                 continue;
             }
-            entry.translated = true;
-            entry.newValue = entries[ind].chunk;
+            if (entries[ind]) {
+                entry.translated = true;
+                entry.newValue = entries[ind].chunk;
+            }
         }
         //TODO: events on add/remove here
         for (let i = 0; i < entries.length; i++) {
@@ -235,6 +237,8 @@ export class SpiralGrid {
             return;
         }
         //TODO: events on add/remove here
-        this.entries[ind].chunk = chunk;
+        if (this.entries[ind]) {
+            this.entries[ind].chunk = chunk;
+        }
     }
 }

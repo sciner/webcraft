@@ -1,6 +1,6 @@
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
-import {IvanArray, Vector} from "./helpers.js";
+import {IvanArray, Vector, SpiralGrid} from "./helpers.js";
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_GENERATE_MARGIN_Y, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {GROUPS_NO_TRANSPARENT, GROUPS_TRANSPARENT} from "./chunk_manager.js";
@@ -99,7 +99,7 @@ export class ChunkRenderList {
         //
 
         for(let i = 0; i < spiral.entries.length; i++) {
-            const chunk = spiral.entries[i] as Chunk
+            const chunk = spiral.entries[i].chunk as Chunk
             if (!chunk || !chunk.chunkManager) {
                 // destroyed!
                 continue;
@@ -155,7 +155,7 @@ export class ChunkRenderList {
     }
 
     chunkAlive(chunk: Chunk) {
-        this.renderList.spiral.setChunk(chunk.addr, chunk);
+        this.spiral.setChunk(chunk.addr, chunk);
     }
 
     /**
