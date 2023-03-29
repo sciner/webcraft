@@ -1,6 +1,5 @@
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
-import {SpiralGenerator} from "./helpers/spiral_generator.js";
 import {IvanArray, Vector} from "./helpers.js";
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_GENERATE_MARGIN_Y, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
@@ -19,9 +18,8 @@ export class ChunkRenderList {
     chunkManager: ChunkManager;
 
     listByResourcePack: Map<string, Map<string, Map<string, IvanArray>>> = new Map();
-    poses_chunkPos = new Vector(0, 0, 0);
-    poses                  = [];
-    poses_need_update      = false;
+    prev_render_dist = -1;
+    spiral = new SpiralGrid();
 
     constructor(chunkManager: ChunkManager) {
         this.chunkManager = chunkManager;
@@ -48,11 +46,14 @@ export class ChunkRenderList {
         });
     }
 
+    get centerChunkAddr() {
+        return this.spiral.center;
+    }
     /**
      * highly optimized
      */
     prepareRenderList() {
-        const {chunkManager, render} = this;
+        const {chunkManager, render, spiral} = this;
 
         const player = render.player;
         const chunk_render_dist = player.state.chunk_render_dist;
@@ -61,18 +62,16 @@ export class ChunkRenderList {
         // if(!globalThis.dfdf)globalThis.dfdf=0
         // if(Math.random() < .01)console.log(globalThis.dfdf)
 
-        const player_chunk_addr_changed = !player_chunk_addr.equal(this.poses_chunkPos)
-
-        if (this.poses_need_update || player_chunk_addr_changed) {
-            this.poses_need_update = false;
+        if (!player_chunk_addr.equal(spiral.center) || this.prev_render_dist !== chunk_render_dist) {
+            this.prev_render_dist = chunk_render_dist;
 
             let margin = Math.max(chunk_render_dist + 1, 1);
-            let spiral_moves_3d = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin)).entries;
+            spiral.makeOrTranslate(player_chunk_addr, new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
 
-            if(player_chunk_addr_changed) {
-                for (let i = 0; i < spiral_moves_3d.length; i++) {
-                    const item = spiral_moves_3d[i];
-                    item._chunk = null
+            for (let i = 0; i < spiral.entries.length; i++) {
+                const entry = spiral.entries[i];
+                if (!entry.translated && !entry.chunk) {
+                    entry.chunk = chunkManager.chunks.get(entry.pos);
                 }
             }
 
@@ -82,21 +81,6 @@ export class ChunkRenderList {
             };
             chunkManager.postWorkerMessage(['setPotentialCenter', msg]);
             chunkManager.postLightWorkerMessage(['setPotentialCenter', msg]);
-
-            this.poses_chunkPos.copyFrom(player_chunk_addr);
-            const pos               = this.poses_chunkPos;
-            const pos_temp          = pos.clone();
-
-            this.poses.length = 0;
-            for (let i = 0; i < spiral_moves_3d.length; i++) {
-                // globalThis.dfdf++
-                const item = spiral_moves_3d[i];
-                pos_temp.set(pos.x + item.pos.x, pos.y + item.pos.y, pos.z + item.pos.z);
-                const chunk = item._chunk || (item._chunk = chunkManager.chunks.get(pos_temp))
-                if (chunk) {
-                    this.poses.push(chunk);
-                }
-            }
         }
 
         chunkManager.fluidWorld.mesher.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
@@ -114,11 +98,15 @@ export class ChunkRenderList {
         }
         //
 
-        for(let i = 0; i < this.poses.length; i++) {
-            const chunk = this.poses[i] as Chunk
-            if (!chunk.chunkManager) {
+        for(let i = 0; i < spiral.entries.length; i++) {
+            const chunk = spiral.entries[i] as Chunk
+            if (!chunk || !chunk.chunkManager) {
                 // destroyed!
                 continue;
+            }
+            // actualize light
+            if (!chunk.dirty || chunk.need_apply_vertices) {
+                chunk.prepareRender(render.renderBackend);
             }
             if(chunk.vertices_length === 0 && !chunk.need_apply_vertices) {
                 continue;
@@ -133,8 +121,6 @@ export class ChunkRenderList {
                     chunk.applyChunkWorkerVertices();
                 }
             }
-            // actualize light
-            chunk.prepareRender(render.renderBackend);
             if(chunk.vertices_length === 0) {
                 continue;
             }
@@ -166,6 +152,10 @@ export class ChunkRenderList {
                 chunk.rendered = 0;
             }
         }
+    }
+
+    chunkAlive(chunk: Chunk) {
+        this.renderList.spiral.setChunk(chunk.addr, chunk);
     }
 
     /**

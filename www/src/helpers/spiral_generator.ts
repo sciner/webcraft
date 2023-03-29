@@ -6,6 +6,7 @@ export class SpiralEntry {
     pos: Vector;
     chunk: any;
     newValue: any;
+    translated = false;
     constructor() {
         this.pos = new Vector();
         this.dist = 0;
@@ -18,6 +19,7 @@ export class SpiralEntry {
         this.pos.addSelf(translation);
         this.dist = se.dist;
         this.chunk = null;
+        this.translated = false;
         return this;
     }
 }
@@ -191,9 +193,10 @@ export class SpiralGrid {
         const {entries, size, sortedNumByIndex} = this;
         deltaVec.copyFrom(newCenter).subSelf(this.center);
         for (let i = 0; i < entries.length; i++) {
-            const {pos} = entries[i];
-            pos.addSelf(deltaVec);
-            tempVec.copyFrom(pos).subSelf(this.center);
+            const entry = entries[i];
+            entry.pos.addSelf(deltaVec);
+            tempVec.copyFrom(entry.pos).subSelf(this.center);
+            entry.translated = false;
             let ind = size.arrayIndByVec(tempVec);
             if (ind < 0) {
                 continue;
@@ -202,7 +205,8 @@ export class SpiralGrid {
             if (ind < 0) {
                 continue;
             }
-            entries[i].newValue = entries[ind].chunk;
+            entry.translated = true;
+            entry.newValue = entries[ind].chunk;
         }
         //TODO: events on add/remove here
         for (let i = 0; i < entries.length; i++) {

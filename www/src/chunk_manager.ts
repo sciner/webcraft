@@ -460,7 +460,7 @@ export class ChunkManager {
             if (state.fluid) {
                 chunk.setFluid(state.fluid);
             }
-            this.renderList.poses_need_update = true;
+            this.renderList.chunkAlive(chunk);
             return true;
         }
         return false;
