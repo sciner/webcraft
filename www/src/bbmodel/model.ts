@@ -1,9 +1,10 @@
-import { IndexedColor, isScalar, Vector } from "../helpers.js";
+import { isScalar, Vector } from "../helpers.js";
 import { EasingType } from "./easing_type.js";
 import { BBModel_Cube } from "./cube.js";
-import { BBModel_Child } from "./child.js";
 import { BBModel_Group } from "./group.js";
 import { BBModel_Locator } from "./locator.js";
+import { BLOCK } from "../blocks.js";
+import { DEFAULT_ATLAS_SIZE } from "../constant.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
@@ -15,6 +16,8 @@ export class BBModel_Model {
     root : BBModel_Group
 
     constructor(json) {
+        // TODO: need to read from bbmodel texture pack options
+        this.tx_size = DEFAULT_ATLAS_SIZE
         this.json = json
         this.elements = new Map()
         this.groups = new Map()
@@ -27,10 +30,10 @@ export class BBModel_Model {
 
     /**
      * Select texture
-     * @param {string} group_name If empty then texture will be selected for all groups
-     * @param {string} texture_name 
+     * @param group_name If empty then texture will be selected for all groups
+     * @param texture_name 
      */
-    selectTextureFromPalette(group_name, texture_name) {
+    selectTextureFromPalette(group_name : string, texture_name : string) {
         //
         if(!this.all_textures) {
             this.makeTexturePalette()

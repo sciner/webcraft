@@ -2,6 +2,7 @@ import { default as default_style } from '../block_style/default.js';
 import { BBModel_Child } from "./child.js";
 import { IndexedColor, QUAD_FLAGS, Vector } from "../helpers.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import type { BBModel_Model } from './model.js';
 
 const {mat4} = glMatrix;
 const tempMat = mat4.create();
@@ -9,15 +10,13 @@ const zeroVec = new Vector();
 
 //
 export class BBModel_Cube extends BBModel_Child {
-    [key: string]: any;
+    selected_texture_name: any;
+    size: Vector;
+    translate: Vector;
+    faces: {};
+    faces_palette: any;
 
-    /**
-     * @param { import("./model.js").BBModel_Model } model
-     * @param {object} json
-     * @param {Vector} size
-     * @param {Vector} translate
-     */
-    constructor(model, json, size, translate) {
+    constructor(model : BBModel_Model, json : any, size : Vector, translate : Vector) {
         super(model, json)
         this.size = size
         this.translate = translate
@@ -47,7 +46,7 @@ export class BBModel_Cube extends BBModel_Child {
                 }
                 this.faces[f] = {
                     tx_cnt:     1,
-                    tx_size:    1024,
+                    tx_size:    this.model.tx_size,
                     autoUV:     false,
                     texture_id: face.texture,
                     uv:         face.uv,

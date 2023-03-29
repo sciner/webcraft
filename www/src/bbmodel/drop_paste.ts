@@ -1,3 +1,4 @@
+import type { BaseResourcePack } from "../base_resource_pack.js";
 import { DEFAULT_TX_SIZE } from "../constant.js";
 import type { GameClass } from "../game.js";
 import { Vector } from "../helpers.js";
@@ -53,11 +54,6 @@ export class BBModel_DropPaste {
             e.dataTransfer.dropEffect = 'copy';
         });
 
-        const options = {
-            resolution: 32,
-            tx_cnt: 32
-        }
-
         // Get file data on drop
         dropZone.addEventListener('drop', function(e) {
 
@@ -84,13 +80,14 @@ export class BBModel_DropPaste {
                             shift: new Vector(0, 0, 0)
                         }
 
+                        const resource_pack : BaseResourcePack = game.render.world.block_manager.resource_pack_manager.get('bbmodel')
+                        const options = {
+                            // TODO: need to read from bbmodel texture pack options
+                            resolution: DEFAULT_TX_SIZE,
+                            tx_cnt: resource_pack.conf.textures.bbmodel_texture_1.tx_cnt
+                        }
                         const compiler = new FastCompiller(options)
                         const {spritesheet} = await compiler.prepareModel(json, json.name, options)
-
-                        /**
-                         * @type {BaseResourcePack}
-                         */
-                        const resource_pack = game.render.world.block_manager.resource_pack_manager.get('bbmodel')
                         const renderBackend = game.render.renderBackend
 
                         // Register model
