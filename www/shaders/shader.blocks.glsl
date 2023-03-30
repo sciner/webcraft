@@ -885,7 +885,8 @@ v_axisV *= sign(a_uvSize.y);
     float iTime = ((u_time /*+ add_time */) / 1000.);
 
     float flame_frame = .6;
-    float tex_scale = 128.;
+    // TODO: depends on bbmodel texture size
+    float tex_scale = 256.;
     vec2 uv = v_texcoord0;
     vec2 flame_pixelate = vec2(5., 1.) * 96.;
     uv = vec2(mod(uv.x * tex_scale, 1.) / 5. + flame_frame, mod(uv.y * -tex_scale, 1.));

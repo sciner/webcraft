@@ -8,9 +8,7 @@ export class StatsWindow extends BlankWindow {
 
     constructor(player) {
 
-        super(10, 10, 352, 332, "frmStats", null, null)
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, 352, 332, "frmStats", null, null)
         this.w *= this.zoom
         this.h *= this.zoom
         this.player = player
@@ -72,8 +70,8 @@ export class StatsWindow extends BlankWindow {
 
             setValue('label_death', cmd.data.death)
             setValue('label_time', times)
-            setValue('label_pickat', cmd.data.pickat)
-            setValue('label_distance', cmd.data.distance_formatted)
+            setValue('label_pickat', cmd.data.pickat_formated)
+            setValue('label_distance', cmd.data.distance_formatted.replace('m', Lang.short_meters))
 
         })
 

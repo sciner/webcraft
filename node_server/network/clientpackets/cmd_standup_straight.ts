@@ -13,14 +13,14 @@ export default class packet_reader {
         return ServerClient.CMD_STANDUP_STRAIGHT;
     }
 
-    // 
+    //
     static async read(player, packet) {
         const pos = getValidPosition(new Vector(player.state.pos).floored(), player.world)
         if (pos) {
             player.state.pos = pos
+            player.state.lies = false
             player.state.sitting = false
             player.state.sleep = false
-            player.sendNearPlayers()
             const packets_for_player = [
                 {
                     name: ServerClient.CMD_PLAY_SOUND,
@@ -31,7 +31,7 @@ export default class packet_reader {
                     data: null
                 }
             ]
-            player.world.sendSelected(packets_for_player, player)
+            player.sendPackets(packets_for_player)
         }
         return true
     }

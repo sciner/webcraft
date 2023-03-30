@@ -526,9 +526,8 @@ export class Inventory {
 
     /**
      * Возвращает прочность надетого премета
-     * @returns {int}
      */
-    getArmorPower(slot_index) {
+    getArmorPower(slot_index : int) : int {
         if (this.items[slot_index]) {
             return 90
         }

@@ -345,7 +345,7 @@ export default class GeometryTerrain {
      * @param @deprecated
      */
     static convertFrom12(vertices) {
-        throw 'error_old_method'
+        // throw 'error_old_method'
         const oldStride = 12;
         const len = vertices.length / oldStride / 6;
         const newArr = new Float32Array(len * GeometryTerrain.strideFloats);

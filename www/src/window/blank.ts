@@ -62,4 +62,11 @@ export class BlankWindow extends Window {
         })
     }
 
+    addLabel(x : float, y : float, w : float, h : float, text : string) {
+        const lbl = new Label(x, y, w, h, 'lblBackpack', null, text)
+        lbl.style.font.color = UI_THEME.label_text_color
+        lbl.style.textAlign.horizontal = 'left'
+        this.add(lbl)
+    }
+
 }

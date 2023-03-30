@@ -8,7 +8,7 @@ export class BrewingWindow extends BaseChestWindow {
 
     constructor(inventory) {
 
-        super(10, 10, 352, 332, 'frmBrewing', null, null, inventory, {
+        super(0, 0, 352, 332, 'frmBrewing', null, null, inventory, {
             title: Lang.brewing,
             sound: {
                 open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},

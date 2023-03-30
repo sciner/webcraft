@@ -16,6 +16,7 @@ import {
 import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
+import type {TSittingState, TSleepState} from "./player.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
@@ -543,6 +544,15 @@ export class WorldAction {
     [key: string]: any;
 
     #world : any;
+    /**
+     * This id may not be unique.
+     * It's assumed that for a non-malicious client, it's unique within one player session.
+     *
+     * Why isn't it globally unique?
+     * A client needs to provide it, to identify its actions on the server. We can't trust the client.
+     * So the server assumes it's not globally unique. So the client doesn't have to generate it globally unique.
+     */
+    id ? : string | int | null
     play_sound: PlaySoundParams[]
     drop_items: DropItemParams[]
     blocks: ActionBlocks
@@ -550,8 +560,10 @@ export class WorldAction {
         activate: any[]
         spawn: any[]    // it should be MobSpawnParams, but it's server class
     }
+    sitting? : TSittingState
+    sleep? : TSleepState
 
-    constructor(id ? : any, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
+    constructor(id ? : string | int | null, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
         //
         Object.assign(this, {
@@ -1682,9 +1694,12 @@ function sitDown(e, world, pos, player, world_block, world_material, mat_block, 
             return true
         }
     }
+    // sit down
     actions.reset_mouse_actions = true
-    const sit_rot = new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
-    actions.setSitting(sit_pos, sit_rot)
+    const yaw = rotate
+        ? Helpers.deg2rad(rotate.x)
+        : player.sharedProps.rotate.z
+    actions.setSitting(sit_pos, new Vector(0, 0, yaw))
     return true
 }
 
@@ -2607,7 +2622,7 @@ function useBoneMeal(e, world, pos, player, world_block, world_material, mat_blo
         return false;
     }
     const position = new Vector(pos);
-    if(world_material.id == BLOCK.GRASS_BLOCK.id) {
+    if(world_material.id == BLOCK.GRASS_BLOCK.id || world_material.id == BLOCK.GRASS_BLOCK_SLAB.id) {
         const tblock_pos = new Vector(0, 0, 0);
         const tblock_pos_over = new Vector(0, 0, 0);
         const tblock_pos_over2 = new Vector(0, 0, 0);

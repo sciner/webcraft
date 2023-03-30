@@ -1075,19 +1075,24 @@ export class ServerWorld implements IWorld {
         }
         // Sitting
         if(actions.sitting) {
+            // It's possible that there is no bock to sit on, the player will sit on the air
+            // TODO validate actions.sitting.pos, it can be exploited
+            server_player.state.sleep = false
             server_player.state.sitting = actions.sitting;
             server_player.state.lies = false;
-            server_player.state.rotate = actions.sitting.rotate;
-            server_player.state.pos = actions.sitting.pos;
-            server_player.sendNearPlayers();
+            server_player.state.rotate = Vector.vectorify(actions.sitting.rotate)
+            server_player.controlManager.setPos(actions.sitting.pos, actions.id)
+            server_player.controlManager.setVelocity(0, 0, 0)
         }
         // Sleep
         if(actions.sleep) {
+            // It's possible that there is no bock to lie on, the player will lie on the air
+            // TODO validate actions.sleep.pos, it can be exploited
             server_player.state.sleep = actions.sleep
             server_player.state.sitting = false
             server_player.state.lies = false
-            server_player.state.pos = actions.sleep.pos
-            server_player.sendNearPlayers()
+            server_player.controlManager.setPos(actions.sleep.pos, actions.id)
+            server_player.controlManager.setVelocity(0, 0, 0)
         }
         // Spawn mobs
         if(actions.mobs.spawn.length > 0) {

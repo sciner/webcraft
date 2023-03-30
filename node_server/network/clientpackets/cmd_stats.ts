@@ -26,8 +26,9 @@ export default class packet_reader {
                 "time":                 time,
 				"time_formatted":       packet_reader.secToStr(time),
                 "pickat":               pickat,
+                "pickat_formated":      pickat.toLocaleString('en-EN'),
                 "distance":             distance,
-				"distance_formatted":   distance + " м"
+				"distance_formatted":   distance.toLocaleString('en-EN') + ' m'
             }
         }];
 

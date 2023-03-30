@@ -502,13 +502,13 @@ export default class style {
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
             let replace_side_tex = false;
-            // if(material.is_dirt && ('height' in material)) {
-            //     const up_mat = neighbours.UP?.material;
-            //     if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == bm.DIRT_PATH.id))) {
-            //         replace_side_tex = true;
-            //     }
-            // }
-            if(material.name == 'SANDSTONE') {
+            if(material.is_dirt && ('height' in material)) {
+                // если поставить блок над земляной тропинкой, то земляная тропинка превратится в визуально блок DIRT
+                const up_mat = neighbours.UP?.material;
+                if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == bm.DIRT_PATH.id))) {
+                    replace_side_tex = true;
+                }
+            } else if(material.name == 'SANDSTONE') {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && up_mat.name == 'SANDSTONE') {
                     replace_side_tex = true;
@@ -545,41 +545,6 @@ export default class style {
             autoUV = false;
         }
 
-        //
-        const calcSideParams = (side : string, dir : int | string, width? : float, height? : float) : TCalcSideParamsResult => {
-            const is_side = side != 'up' && side != 'down'
-            if(is_side && cavity_id === dir) {
-                dir = 'cavity'
-            }
-            // force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
-            _sideParams.anim_frames = no_anim ? 0 : bm.getAnimations(material, side);
-            const animFlag = _sideParams.anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            if(material.name == 'FURNACE' && dir == DIRECTION.NORTH) {
-                const fuel_time = block?.extra_data?.state?.fuel_time ?? 0;
-                if(fuel_time > 0) {
-                    dir = 'north_on';
-                }
-            }
-            _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block);
-            if(is_side) {
-                if(block.id == BLOCK.GRASS_BLOCK_SLAB.id || block.id == BLOCK.SNOW_DIRT_SLAB.id) {
-                    _sideParams.t[1] -= .5 / material.tx_cnt
-                } else if(block.id == BLOCK.DIRT_PATH_SLAB.id) {
-                    _sideParams.t[1] -= .45 / material.tx_cnt
-                }
-            }
-            _sideParams.f = flags | animFlag;
-            if(side == 'up') {
-                _sideParams.f |= upFlags
-            } else if (side != 'down') {
-                _sideParams.f |= sideFlags
-            }
-            if((_sideParams.f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
-                lm.b = _sideParams.t[3] * TX_CNT;
-            }
-            return _sideParams
-        };
-
         // AABB
         _aabb.set(
             x + .5 - width/2,
@@ -592,33 +557,32 @@ export default class style {
 
         // Push vertices
         if(canDrawUP) {
-            const {anim_frames, t, f} = calcSideParams('up', DIRECTION_UP, null, null);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
             sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
             // overlay textures
             if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
                 emmited_blocks = []
                 style.pushOverlayTextures(material, emmited_blocks, bm, chunk, x, y, z, neighbours, dirt_color, matrix, pivot)
             }
-
         }
         if(canDrawDOWN) {
-            const {anim_frames, t, f} = calcSideParams('down', DIRECTION_DOWN, null, null);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'down', DIRECTION_DOWN, null, null);
             sides.down = _sides.down.set(t, f, anim_frames, lm, axes_down, true);
         }
         if(canDrawSOUTH) {
-            const {anim_frames, t, f} = calcSideParams('south', DIRECTION_BACK, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'south', DIRECTION_BACK, width, height);
             sides.south = _sides.south.set(t, f, anim_frames, lm, null, false);
         }
         if(canDrawNORTH) {
-            const {anim_frames, t, f} = calcSideParams('north', DIRECTION_FORWARD, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'north', DIRECTION_FORWARD, width, height);
             sides.north = _sides.north.set(t, f, anim_frames, lm, null, false);
         }
         if(canDrawWEST) {
-            const {anim_frames, t, f} = calcSideParams('west', DIRECTION_LEFT, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'west', DIRECTION_LEFT, width, height);
             sides.west = _sides.west.set(t,  f, anim_frames, lm, null, false);
         }
         if(canDrawEAST) {
-            const {anim_frames, t, f} = calcSideParams('east', DIRECTION_RIGHT, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'east', DIRECTION_RIGHT, width, height);
             sides.east = _sides.east.set(t, f, anim_frames, lm, null, false);
         }
 
@@ -645,6 +609,41 @@ export default class style {
 
         return emmited_blocks
 
+    }
+
+    //
+    static calcSideParams(block : TBlock | FakeTBlock, material : IBlockMaterial, bm : BLOCK, no_anim : boolean, cavity_id : int, force_tex : any, lm : IndexedColor, flags : int, sideFlags : int, upFlags : int, side : string, dir : int | string, width? : float, height? : float) : TCalcSideParamsResult {
+        const is_side = side != 'up' && side != 'down'
+        if(is_side && cavity_id === dir) {
+            dir = 'cavity'
+        }
+        // force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
+        _sideParams.anim_frames = no_anim ? 0 : bm.getAnimations(material, side);
+        const animFlag = _sideParams.anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+        if(material.name == 'FURNACE' && dir == DIRECTION.NORTH) {
+            const fuel_time = block?.extra_data?.state?.fuel_time ?? 0;
+            if(fuel_time > 0) {
+                dir = 'north_on';
+            }
+        }
+        _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block);
+        if(is_side) {
+            if(block.id == BLOCK.GRASS_BLOCK_SLAB.id || block.id == BLOCK.SNOW_DIRT_SLAB.id) {
+                _sideParams.t[1] -= .5 / material.tx_cnt
+            } else if(block.id == BLOCK.DIRT_PATH_SLAB.id) {
+                _sideParams.t[1] -= .45 / material.tx_cnt
+            }
+        }
+        _sideParams.f = flags | animFlag;
+        if(side == 'up') {
+            _sideParams.f |= upFlags
+        } else if (side != 'down') {
+            _sideParams.f |= sideFlags
+        }
+        if((_sideParams.f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
+            lm.b = _sideParams.t[3] * TX_CNT;
+        }
+        return _sideParams
     }
 
     static playJukeboxDisc(chunk : ChunkWorkerChunk, tblock : TBlock | FakeTBlock, x : int, y : int, z : int) : boolean {

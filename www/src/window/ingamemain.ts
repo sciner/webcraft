@@ -8,6 +8,8 @@ import { QuestWindow } from "./quest.js";
 import { StatsWindow } from "./stats.js";
 import { Label, Window } from "../ui/wm.js";
 import { BlankWindow } from "./blank.js";
+import { Graphics } from "../vendors/wm/wm.js";
+import { parseColorAndAlpha } from "../vendors/wm/styles.js";
 
 export class InGameMain extends BlankWindow {
 
@@ -29,6 +31,11 @@ export class InGameMain extends BlankWindow {
         // // Add close button
         this.addCloseButton()
 
+        const tab_borders = new Graphics()
+        tab_borders.catchEvents = false
+        const border_width = 1 * this.zoom
+        const color1 = parseColorAndAlpha(UI_THEME.tabs.active.font.color)
+
         // const windows = []
         const tabs = this.tabs = [
             {title: Lang.btn_character,      form: new CharacterWindow(player, inventory),  button: null, fix_pos: new Vector(2, 0, 0)},
@@ -38,9 +45,12 @@ export class InGameMain extends BlankWindow {
             {title: Lang.btn_statistics,     form: new StatsWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)}
         ]
 
+        const that = this
         const btn_margin = 5 * this.zoom
         const btn_width = 150 * this.zoom
         const btn_height = 30 * this.zoom
+        const btn_corner = 5 * this.zoom
+        const btn_color = '#00000011'
         let bx = 0
 
         // Each all tabs and make menu
@@ -79,13 +89,29 @@ export class InGameMain extends BlankWindow {
                     } else if(tab.form.visible) {
                         tab.form.hide()
                     }
-                    tab.button.style.background.color = active ? '#00000011' : '#00000000'
+                    tab.button.style.background.color = active ? btn_color : '#00000000'
                     tab.button.style.font.color = active ? UI_THEME.tabs.active.font.color : UI_THEME.tabs.inactive.font.color
-                    tab.form.style.background.color = '#00000011'
+                    tab.form.style.background.color = btn_color
+                    if(active) {
+                        const y1 = tab.button.y
+                        const y2 = y1 + tab.button.h
+                        tab_borders.clear()
+                        tab_borders.lineStyle(border_width, color1.color, 1.)
+                        tab_borders.moveTo(0, y2)
+                                   .lineTo(tab.button.x, y2)
+                                   .lineTo(tab.button.x, y1 + btn_corner)
+                                   .lineTo(tab.button.x + btn_corner, y1)
+                                   .lineTo(tab.button.x + tab.button.w - btn_corner, y1)
+                                   .lineTo(tab.button.x + tab.button.w, y1 + btn_corner)
+                                   .lineTo(tab.button.x + tab.button.w, y2)
+                                   .lineTo(that.w, y2)
+                    }
                 }
             }
             this.add(tab.button)
         }
+
+        this.addChild(tab_borders)
 
     }
 

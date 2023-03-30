@@ -7,8 +7,12 @@ export class EnderChestWindow extends BaseChestWindow {
 
     constructor(inventory) {
 
+        const w = 352
+        const h = 332
+
         const BLOCK = inventory.player.world.block_manager
-        super(10, 10, 352, 332, 'frmEnderChest', null, null, inventory, {
+
+        super(0, 0, w, h, 'frmEnderChest', null, null, inventory, {
             title: Lang.ender_chest,
             sound: {
                 open: {tag: BLOCK.ENDER_CHEST.sound, action: 'open'},
@@ -19,7 +23,7 @@ export class EnderChestWindow extends BaseChestWindow {
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
         this.atlas.fromFile('./media/gui/form-chest.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
+            this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'none', this.zoom / 2.0)
         })
 
     }

@@ -35,6 +35,7 @@ import type { World } from "./world.js";
 import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
+import type WebGLRenderer from "./renders/webgl/index.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -82,7 +83,7 @@ export class Renderer {
     env: Environment;
     camera_mode: CAMERA_MODE;
     rain: any;
-    renderBackend: any;
+    renderBackend: WebGLRenderer;
     meshes: MeshManager;
     camera: Camera;
     inHandOverlay: any;
@@ -196,17 +197,18 @@ export class Renderer {
 
         const {renderBackend} = this;
 
+        const renderList = world.chunkManager.renderList;
         if (renderBackend.gl) {
-            // world.chunkManager.setLightTexFormat('rgba4unorm', false);
+            // world.chunkManager.renderList.setLightTexFormat('rgba4unorm', false);
             if (settings.use_light === LIGHT_TYPE.RTX) {
-                world.chunkManager.setLightTexFormat(true);
+                renderList.setLightTexFormat(true);
                 renderBackend.preprocessor.useNormalMap = true;
                 renderBackend.globalUniforms.useNormalMap = true;
             } else {
-                world.chunkManager.setLightTexFormat(false);
+                renderList.setLightTexFormat(false);
             }
         } else {
-            world.chunkManager.setLightTexFormat(false);
+            renderList.setLightTexFormat(false);
         }
 
 
@@ -531,7 +533,7 @@ export class Renderer {
         return new Promise((resolve, reject) => {
 
             // render target to Canvas
-            target.toImage('canvas').then((data) => {
+            target.toImage('canvas').then((data : any) => {
                 /**
                  * @type {CanvasRenderingContext2D}
                  */
@@ -661,7 +663,7 @@ export class Renderer {
                 tmpCanvas.width = tmpCanvas.height = 0
                 Resources.inventory.image = data
 
-                data.toBlob(async (blob) => {
+                data.toBlob(async (blob : Blob) => {
                     Resources.inventory.atlas = await SpriteAtlas.fromJSON(await blobToImage(blob) as HTMLImageElement, atlas_map)
                     if(callback instanceof Function) {
                         callback(blob)
@@ -852,7 +854,7 @@ export class Renderer {
         const cm = this.world.chunkManager;
         // TODO: move to batcher
         cm.chunkDataTexture.getTexture(renderBackend).bind(3);
-        const lp = cm.lightPool;
+        const lp = cm.renderList.lightPool;
 
         // webgl bind all texture-3d-s
         if (lp) {
@@ -908,7 +910,7 @@ export class Renderer {
             }
             for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 // 2. Draw chunks
-                this.world.chunkManager.draw(this, rp, transparent);
+                this.world.chunkManager.renderList.draw(this, rp, transparent);
             }
             renderBackend.batch.flush();
             if(!transparent) {

@@ -1,5 +1,5 @@
 import {InDeltaCompressor, OutDeltaCompressor, PacketBuffer} from "../packet_compressor.js";
-import {PlayerTickData} from "./player_tick_data.js";
+import {ClientPlayerTickData, PlayerTickData} from "./player_tick_data.js";
 
 const DEBUG_USE_HASH = true
 
@@ -41,9 +41,7 @@ export class PlayerControlPacketWriter {
 }
 
 /** It reads what {@link PlayerControlPacketWriter} writes */
-export class PlayerControlPacketReader {
-
-    private static dummyData = new PlayerTickData()
+export class PlayerControlPacketReader<PlayerTickDataT extends PlayerTickData> {
 
     private dc = new InDeltaCompressor(null, DEBUG_USE_HASH)
 
@@ -52,33 +50,32 @@ export class PlayerControlPacketReader {
         physicsTick: 0
     }
 
-    startGetHeader(data: PacketBuffer): PlayerControlPacketHeader {
-        const dc = this.dc.start(data)
+    /** This is a shared file, so to read a server class without importing it, we must supply its constructor */
+    private playerTickDataClass: new () => PlayerTickDataT
+
+    constructor(playerTickDataClass: new () => PlayerTickDataT) {
+        this.playerTickDataClass = playerTickDataClass
+    }
+
+    readPacket(buf: PacketBuffer): [PlayerControlPacketHeader, PlayerTickDataT[]] {
+        const dc = this.dc.start(buf)
+        // read header
         const header = this.header
         header.physicsSessionId = dc.getInt()
-        header.physicsTick = dc.getInt()
-        return header
-    }
-
-    /**
-     * Reads one more {@link PlayerTickData}, if there are still records in the packet.
-     * @param dst - the data that will be read
-     * @returns true if the data has been read
-     */
-    readTickData(dst: PlayerTickData): boolean {
-        if (this.dc.remaining <= 1) {
-            return false
+        let physicsTick = header.physicsTick = dc.getInt()
+        // read data for each tick
+        const data: PlayerTickDataT[] = []
+        while (dc.remaining > 1) {
+            const dst = new this.playerTickDataClass()
+            dst.readInput(this.dc)
+            dst.readContextAndOutput(this.dc)
+            dst.startingPhysicsTick = physicsTick
+            physicsTick += dst.physicsTicks
+            dst.physicsSessionId = header.physicsSessionId
+            data.push(dst)
         }
-        dst.readInput(this.dc)
-        dst.readContextAndOutput(this.dc)
-        return true
-    }
-
-    finish(): void {
-        while(this.readTickData(PlayerControlPacketReader.dummyData)) {
-            // skip the remaining ticks data, if any
-        }
-        this.dc.checkHash()
+        dc.checkHash()
+        return [header, data]
     }
 }
 

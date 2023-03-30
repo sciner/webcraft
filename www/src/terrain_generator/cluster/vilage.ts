@@ -13,7 +13,6 @@ const USE_ROAD_AS_GANGWAY   = 0;
 
 // Vilage cluster
 export class ClusterVilage extends ClusterBuildingBase {
-    [key: string]: any;
 
     //
     constructor(clusterManager, addr, biome) {
@@ -81,7 +80,7 @@ export class ClusterVilage extends ClusterBuildingBase {
         let building_palette_options = {};
 
         // If generator version == 2
-        if(clusterManager.version == 2) {
+        if(this.clusterManager.layer) {
 
             // ширина ячеек между улицами под дома
             schema_options.quant = 19;

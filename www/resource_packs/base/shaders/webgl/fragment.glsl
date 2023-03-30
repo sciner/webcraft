@@ -154,6 +154,27 @@ vec3 colorCorrection(vec3 color) {
     return color;
 }
 
+float hash(vec3 p)  // replace this by something better
+{
+    p  = fract( p*0.3183099+.1 );
+	p *= 17.0;
+    return fract( p.x*p.y*p.z*(p.x+p.y+p.z) );
+}
+
+float noise( in vec3 x ) {
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    return mix(mix(mix( hash(i+vec3(0,0,0)), 
+                        hash(i+vec3(1,0,0)),f.x),
+                   mix( hash(i+vec3(0,1,0)), 
+                        hash(i+vec3(1,1,0)),f.x),f.y),
+               mix(mix( hash(i+vec3(0,0,1)), 
+                        hash(i+vec3(1,0,1)),f.x),
+                   mix( hash(i+vec3(0,1,1)), 
+                        hash(i+vec3(1,1,1)),f.x),f.y),f.z);
+}
+
 void main() {
     #include_post<flat_decode>
     #include<terrain_read_flags_frag>
@@ -270,7 +291,20 @@ void main() {
 
     // _include<swamp_fog>
 
-    // float dist = distance(vec3(0., 0., 1.4), v_world_pos) / 64.;
+    // float dist = distance(vec3(0., 0., 1.4), v_world_pos);
+
+    // float fog = 0.;
+    // float STEPS = 50.;
+    // vec3 cam_period = getCamPeriod();
+    // vec3 end_pos = v_world_pos;
+    // for (float i = 0.; i < STEPS; i++) {
+    //     float s = i / STEPS;
+    //     vec3 p = vec3(end_pos.x * s, end_pos.y * s, end_pos.z * s);
+    //     fog += noise(cam_period + p) / STEPS;
+    // }
+
+    // // color.rgb += vec3((noise((v_world_pos + getCamPeriod()) / 2.) - .5) / 1.);
+    // color.rgb += vec3(fog * 0.2, fog * 0.6, fog * .2);
     outColor = color;
     // outColor.rgb = colorCorrection(outColor.rgb);
 
@@ -287,5 +321,5 @@ void main() {
     if(u_crosshairOn) {
         #include<crosshair_call_func>
     }
-    #include<vignetting_call_func>
+    // #include<vignetting_call_func>
 }

@@ -1,6 +1,6 @@
-import {Helpers, getChunkAddr, Vector} from "./helpers.js";
+import {Helpers, getChunkAddr, Vector, ObjectHelpers} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
-import {PickAt} from "./pickat.js";
+import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS } from "./constant.js";
@@ -69,14 +69,24 @@ export type ArmorState = {
     boot ? : int
 }
 
+export type TSleepState = {
+    pos: IVector
+    rotate: IVector // possible values for rotate.z: 0, 0.25, 0.5, 0.75
+}
+
+export type TSittingState = {
+    pos: IVector
+    rotate: IVector // rotate.z is in radians
+}
+
 /** A part of {@link PlayerState} that is also sent in {@link PlayerStateUpdate} */
 type PlayerStateDynamicPart = {
     pos         : Vector
     rotate      : Vector
     lies ?      : boolean
-    sitting ?   : boolean
+    sitting ?   : false | TSittingState
     sneak ?     : boolean
-    sleep ?     : boolean
+    sleep ?     : false | TSleepState
     hands       : PlayerHands
 }
 
@@ -97,7 +107,7 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     skin        : PlayerSkin
     /** it's never set. It's just checked, and if it's not defined, 'player' type is used. */
     type ?
-    dist ?      : number
+    dist ?      : number // null means that the player is too far, and it stopped receiving updates
 }
 
 export type PlayerConnectData = {
@@ -122,8 +132,9 @@ export class PlayerSharedProps implements IPlayerSharedProps {
     get isAlive() : boolean { return this.p.state.indicators.live != 0; }
     get user_id() : int     { return this.p.session.user_id; }
     get pos()     : Vector  { return this.p.pos; }
-    get sitting() : boolean { return this.p.state.sitting; }
-    get sleep()   : boolean { return this.p.state.sleep; }
+    get rotate()  : Vector  { return this.p.rotate; }
+    get sitting() : boolean { return !!this.p.state.sitting; }
+    get sleep()   : boolean { return !!this.p.state.sleep; }
 }
 
 // Creates a new local player manager.
@@ -344,7 +355,7 @@ export class Player implements IPlayer {
         });
         server.AddCmdListener([ServerClient.CMD_TELEPORT], cmd => this.onTeleported(cmd.data.pos))
         server.AddCmdListener([ServerClient.CMD_PLAYER_CONTROL_CORRECTION], cmd => {
-            this.controlManager.applyCorrection(cmd.data)
+            this.controlManager.onCorrection(cmd.data)
         }, null, true)
         server.AddCmdListener([ServerClient.CMD_PLAYER_CONTROL_ACCEPTED], cmd => {
             this.controlManager.onServerAccepted(cmd.data)
@@ -365,7 +376,7 @@ export class Player implements IPlayer {
         });
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             this.game_mode.applyMode(cmd.data.id, true);
-            let pos = this.controlManager.current.getPos();
+            let pos = this.controlManager.getPos();
             this.lerpPos                        = new Vector(pos);
             this.pos                            = new Vector(pos);
         });
@@ -423,7 +434,7 @@ export class Player implements IPlayer {
                 if(hand_item_mat && hand_item_mat.tags.includes('set_on_water')) {
                     if(e.number++ == 0) {
                         e.pos = bPos;
-                        const e_orig = JSON.parse(JSON.stringify(e));
+                        const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
                         e_orig.actions = new WorldAction(randomUUID());
                         // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
                         this.world.server.Send({
@@ -699,7 +710,7 @@ export class Player implements IPlayer {
                 return false;
             }
             this.mineTime = 0;
-            const e_orig = JSON.parse(JSON.stringify(e));
+            const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
             const player: ActionPlayerInfo = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
@@ -763,7 +774,7 @@ export class Player implements IPlayer {
     }
 
     // Returns the position of the eyes of the player for rendering.
-    getEyePos() {
+    getEyePos(): Vector {
         let subY = 0;
         if(this.state.sitting) {
             subY = this.height * 1/3;
@@ -785,11 +796,11 @@ export class Player implements IPlayer {
     }
 
     //
-    setPosition(vec: IVector): void {
+    setPosition(vec: IVector, worldActionId?: string | int | null): void {
         //
         const pc = this.getPlayerControl();
         pc.player_state.onGround = false;
-        this.controlManager.current.setPos(vec);
+        this.controlManager.setPos(vec, worldActionId);
         //
         if (!Qubatch.is_server) {
             this.stopAllActivity();
@@ -828,7 +839,7 @@ export class Player implements IPlayer {
     updateControl(): void {
         const cm = this.controlManager
         cm.doClientTicks()
-        this.pos.copyFrom(cm.current.getPos())
+        this.pos.copyFrom(cm.getPos())
         cm.lerpPos(this.lerpPos)
     }
 

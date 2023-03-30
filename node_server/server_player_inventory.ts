@@ -34,8 +34,6 @@ export class ServerPlayerInventory extends Inventory {
         this.player.updateHands();
         // Marks that it needs to be saved in DB
         this.markDirty();
-        // Send for all except player
-        this.player.sendNearPlayers();
         // Send to player
         if(send_state) {
             this.send();

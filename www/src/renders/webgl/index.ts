@@ -574,7 +574,7 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.framebuffer : null);
     }
 
-    createCubeMap(options) {
+    createCubeMap(options) : CubeMesh {
         return new CubeMesh(new WebGLCubeShader(this, options), new WebGLCubeGeometry(this, options));
     }
 

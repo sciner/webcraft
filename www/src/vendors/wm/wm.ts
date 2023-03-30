@@ -12,6 +12,11 @@ import { BLOCK } from "../../blocks.js";
 import { Lang } from "../../lang.js";
 import { Resources } from "../../resources.js";
 import { KEY } from "../../constant.js";
+import type { SpriteAtlas } from "../../core/sprite_atlas.js";
+
+/**
+ * catchEvents = true
+ */
 
 globalThis.visible_change_count = 0
 
@@ -73,10 +78,11 @@ export class Window extends PIXI.Container {
     #_tooltip = null
     #_bgicon = null
     #_wmclip = null
+    style : Style
 
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
-    constructor(x, y, w, h, id, title? : string, text? : string) {
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
         super()
 
@@ -154,10 +160,7 @@ export class Window extends PIXI.Container {
 
     }
 
-    /**
-     * @return {float}
-     */
-    get w() {
+    get w() : number {
         return this._w
     }
 
@@ -165,40 +168,37 @@ export class Window extends PIXI.Container {
      * @params {float} value
      */
     set w(value) {
+        if(this._w == value) return
         this._w = value
-        if(this.style) {
-            this.style.background.resize()
-        }
+        this._resized()
     }
 
-    /**
-     * @return {float}
-     */
-    get h() {
+    get h() : number {
         return this._h
     }
 
-    /**
-     * @params {float} value
-     */
-    set h(value) {
+    set h(value : number) {
+        if(this._h == value) return
         this._h = value
+        this._resized()
+    }
+
+    _resized() {
         if(this.style) {
             this.style.background.resize()
-        }
-        if(this.text_container) {
-            this.style.padding.resize()
-        }
-        if(this.text_container) {
-            this.style.border.resize()
+            if(this.text_container) {
+                this.style.padding.resize()
+            }
+            if(this.text_container) {
+                this.style.border.resize()
+            }
         }
     }
 
     /**
      * Return width with padding
-     * @return {float}
      */
-    get ww() {
+    get ww() : number {
         if(!this.style.padding) debugger
         return this.w + this.style.padding.left + this.style.padding.right
     }
@@ -282,49 +282,36 @@ export class Window extends PIXI.Container {
         return fired
     }
 
-    /**
-     * @type {int}
-     */
-    get ax() {
+    get ax() : number {
         return this.transform.position._x
     }
 
-    /**
-     * @type {int}
-     */
-    get ay() {
+    get ay() : number {
         return this.transform.position._y
     }
 
-    /**
-     * @param {int} value
-     */
-    set width(value) {
+    set width(value : number) {
         if(value == undefined) return
         this.w = value
         super.width = value
     }
 
-    /**
-     * @param {int} value
-     */
-    set height(value) {
+    set height(value : number) {
         if(value == undefined) return
         this.h = value
         super.height = value
     }
 
-    get text() {
+    get text() : string {
         return this.text_container?.text ?? null
     }
 
-    /**
-     * @param {?string} value
-     */
-    set text(value) {
+    set text(value : string) {
+        //
         if(!isScalar(value)) {
             throw 'error_invalid_text_value'
         }
+        //
         if(value) {
             value = '' + value
             if(value.startsWith('Lang.')) {
@@ -332,9 +319,10 @@ export class Window extends PIXI.Container {
             }
             value = value.replaceAll('\r\n', '\r')
         }
+        //
         if(!this.text_container) {
             if (value === undefined) {
-                return;
+                return
             }
             if (this.style._font.useBitmapFont) {
                 this.text_container = new PIXI.BitmapText(value, this.style.font._bitmap_font_style)
@@ -343,17 +331,22 @@ export class Window extends PIXI.Container {
             }
             this.addChild(this.text_container)
         }
-        this.text_container.text = value
+        //
+        if(this.text_container.text != value) {
+            this.text_container.text = value
+        }
     }
 
     //
-    get tooltip() {return this.#_tooltip}
-    set tooltip(value) {this.#_tooltip = value;}
+    get tooltip() : string {
+        return this.#_tooltip
+    }
 
-    /**
-     * @returns {Label}
-     */
-    get _wmicon() {
+    set tooltip(value : string) {
+        this.#_tooltip = value
+    }
+
+    get _wmicon() : Label {
         if(!this.#_bgicon) {
             this.#_bgicon = new Label(0, 0, this.w, this.h, `${this.id}_bgicon`)
             this.#_bgicon.catchEvents = false
@@ -363,42 +356,35 @@ export class Window extends PIXI.Container {
     }
 
     //
-    get visible() {
+    get visible() : boolean {
         return super.visible
     }
 
-    set visible(value) {
+    set visible(value : boolean) {
         if (super.visible != value) {
             globalThis.visible_change_count++
         }
         super.visible = value
     }
 
-    getRoot() {
+    getRoot() : Window {
         return globalThis.wmGlobal
     }
 
-    /**
-     * @param {Window} w
-     */
-    add(w) {
+    add(w : Window) {
         if(!w.id) {
             throw 'Control does not have valid ID';
         }
         return this.addChild(w)
     }
 
-    delete(id) {
+    delete(id : string) {
         if(this.list.has(id)) {
             this.list.delete(id)
         }
     }
 
-    /**
-     * @param {string} id
-     * @returns {Window}
-     */
-    getWindow(id, throw_exception = true) {
+    getWindow(id : string, throw_exception : boolean = true) : Window | null {
         if(!this.list.has(id)) {
             if(throw_exception) throw `error_window_not_found_by_id|${id}`
             return null
@@ -406,23 +392,24 @@ export class Window extends PIXI.Container {
         return this.list.get(id)
     }
 
-    getVisibleWindowOrNull(id) {
+    getVisibleWindowOrNull(id : string) : Window | null {
         const w = this.list.get(id);
         return w && w.visible ? w : null;
     }
 
-    move(x, y) {
+    move(x : number, y : number) {
         this.x = x
         this.y = y
     }
 
-    resize(w, h) {
+    resize(width : number, height : number) {
         this.getRoot()._wm_setTooltipText(null);
-        this.width = w
-        this.height = h
+        this.width = width
+        this.height = height
+        this._resized()
     }
 
-    center(w) {
+    center(w : Window) {
         w.move(this.w / 2 - w.w / 2, this.h / 2 - w.h / 2)
     }
 
@@ -954,16 +941,6 @@ export class Window extends PIXI.Container {
         }
     }
 
-    // fill background color
-    fillBackground(ctx, ax, ay, color) {
-        ctx.fillStyle = color
-        let x = ax + this.x;
-        let y = ay + this.y;
-        let w = this.width;
-        let h = this.height;
-        ctx.fillRect(x, y, w, h);
-    }
-
     onUpdate() {
         // It's called every interation of the game loop for visible windows. Override it in the subclasses.
     }
@@ -1039,7 +1016,7 @@ export class Icon extends Window {
 // Button
 export class Button extends Window {
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
         super(x, y, w, h, id, title, title)
         this.style.border.hidden = false
@@ -1083,16 +1060,7 @@ export class Button extends Window {
 // Label
 export class Label extends Window {
 
-    /**
-     * @param {int} x
-     * @param {int} y
-     * @param {?int} w
-     * @param {?int} h
-     * @param {string} id
-     * @param {?string} title
-     * @param {?string} text
-     */
-    constructor(x, y, w, h, id, title? : string, text? : string) {
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, title)
         this.style.background.color = '#00000000'
         this.style.border.hidden = true
@@ -1105,7 +1073,7 @@ export class Label extends Window {
 // TextEdit
 export class TextEdit extends Window {
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
         super(x, y, w, h, id, title, text)
 
@@ -1268,16 +1236,9 @@ class Tooltip extends Label {
 
 export class SimpleBlockSlot extends Window {
 
-    /**
-     * @type Label
-     */
-    bar = null // : Label
-
-    /**
-     * @type Label
-     */
-    bar_value = null // : Label
-    hud_atlas = null
+    bar :       Label           = null
+    bar_value : Label           = null
+    hud_atlas : SpriteAtlas     = null
 
     slot_empty  = 'window_slot' // 'slot_empty'
     slot_full   = 'window_slot' // 'slot_full'
@@ -1476,7 +1437,7 @@ export class WindowManager extends Window {
 
         this.cariageTimer = setInterval(() => {
             const fc = this._focused_control
-            if(fc && fc instanceof TextEdit) {
+            if(fc && fc instanceof TextEdit && fc.parent.visible) {
                 if(fc.draw_cariage) {
                     const vis = (performance.now() % (this._cariage_speed * 2)) < this._cariage_speed
                     if(vis) {
@@ -1680,7 +1641,7 @@ export class WindowManager extends Window {
 
 export class VerticalLayout extends Window {
 
-    constructor(x, y, w, id) {
+    constructor(x : number, y : number, w : number, id : string) {
         super(x, y, w, 0, id, null, null);
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
@@ -1832,7 +1793,7 @@ export class HTMLText extends Window {
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
         this.#_wmhtmltext = new PIXI.HTMLText("Hello <b>World</b>", {
-            fontSize: 16 * this.zoom,
+            fontSize: 14 * this.zoom,
             wordWrap: true,
             breakWords: true,
             whiteSpace: 'pre-line',

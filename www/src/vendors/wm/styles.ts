@@ -44,34 +44,35 @@ export function parseColorAndAlpha(value) {
 
 // Text align
 export class TextAlignStyle {
-    [key: string]: any;
 
     #window
+    #_horizontal: string;
+    #_vertical: string;
 
     /**
      * @param { import("./wm.js").Window } window
      */
     constructor(window) {
         this.#window = window
-        this._horizontal = null
-        this._vertical = null
+        this.#_horizontal = null
+        this.#_vertical = null
     }
 
-    get horizontal() {
-        return this._horizontal
+    get horizontal() : string {
+        return this.#_horizontal
     }
 
-    set horizontal(value) {
-        this._horizontal = value
+    set horizontal(value : string) {
+        this.#_horizontal = value
         this.#window.style.padding._changed()
     }
 
-    get vertical() {
-        return this._vertical
+    get vertical() : string {
+        return this.#_vertical
     }
 
-    set vertical(value) {
-        this._vertical = value
+    set vertical(value : string) {
+        this.#_vertical = value
         this.#window.style.padding._changed()
     }
 
@@ -393,23 +394,14 @@ export class PaddingStyle {
         this.#window = window
     }
 
-    /**
-     * @returns {float}
-     */
-    get left() {return this.#_values.left}
+    get left() : number {return this.#_values.left}
 
-    /**
-     * @param {float} value
-     */
-    set left(value) {
+    set left(value : number) {
         this.#_values.left = value
         this._changed()
     }
 
-    /**
-     * @returns {float}
-     */
-    get top() {return this.#_values.top}
+    get top() : number {return this.#_values.top}
 
     /**
      * @param {float} value
@@ -419,40 +411,24 @@ export class PaddingStyle {
         this._changed()
     }
 
-    /**
-     * @returns {float}
-     */
-    get right() {return this.#_values.right}
+    get right() : number {return this.#_values.right}
 
-    /**
-     * @param {float} value
-     */
-    set right(value) {
+    set right(value : number) {
         this.#_values.right = value
         this._changed()
     }
 
-    /**
-     * @returns {float}
-     */
-    get bottom() {return this.#_values.bottom}
+    get bottom() : number {return this.#_values.bottom}
 
-    /**
-     * @param {float} value
-     */
-    set bottom(value) {
+    set bottom(value : number) {
         this.#_values.bottom = value
         this._changed()
     }
 
     /**
      * Smart set padding
-     * @param {float} left 
-     * @param {float} top 
-     * @param {float} right 
-     * @param {float} bottom 
      */
-    set(left, top, right, bottom) {
+    set(left : number, top? : number, right? : number, bottom? : number) {
         if(left != undefined && top == undefined && right == undefined && bottom == undefined) {
             top = right = bottom = left
         } else if (left != undefined && top != undefined && right == undefined && bottom == undefined) {
@@ -680,19 +656,16 @@ export class Style {
         this._textAlign     = new TextAlignStyle(window)
     }
 
-    /**
-     * @returns {PaddingStyle}
-     */
-    get padding() {
+    get padding() : PaddingStyle {
         return this._padding
     }
 
     /**
      * @param {PaddingStyle} value
      */
-    set padding(value) {
-        if(isNaN(value)) {
-            for(let k in value) {
+    set padding(value : PaddingStyle | number) {
+        if(isNaN((value as any))) {
+            for(let k in (value as any)) {
                 this._padding[k] = value[k]
             }
         } else {
@@ -701,24 +674,15 @@ export class Style {
         this._padding._changed()
     }
 
-    /**
-     * @return {BackgroundStyle}
-     */
-    get background() {
+    get background() : BackgroundStyle {
         return this._background
     }
 
-    /**
-     * @return {BorderStyle}
-     */
-    get border() {
+    get border() : BorderStyle {
         return this._border
     }
 
-    /**
-     * @return {FontStyle}
-     */
-    get font() {
+    get font() : FontStyle {
         return this._font
     }
 

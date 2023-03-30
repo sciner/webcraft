@@ -13,31 +13,13 @@ export class QuestWindow extends BlankWindow {
 
     constructor(player) {
 
-        super(10, 10, 1700/2, 1200/2, 'frmQuests', null, null);
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, 1700/2, 1200/2, 'frmQuests', null, null)
         this.w *= this.zoom
         this.h *= this.zoom
         this.player = player
 
-        // this.setBackground('./media/gui/form-quest.png') 
-
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
-
-        // // Add labels to window
-        // const lblTitle = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
-        // this.add(lblTitle)
-
-        // // Add close button
-        // this.loadCloseButtonImage((image) => {
-        //     // Close button
-        //     const btnClose = new Button(this.w - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose')
-        //     btnClose.style.background.image = image;
-        //     btnClose.style.background.image_size_mode = 'stretch';
-        //     btnClose.onMouseDown = this.hide.bind(this)
-        //     this.add(btnClose)
-        // })
 
         // Quests updated
         player.world.server.AddCmdListener([ServerClient.CMD_QUEST_ALL], (cmd) => {

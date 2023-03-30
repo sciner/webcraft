@@ -7,7 +7,7 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
-import type { ArmorState, PlayerHands, PlayerStateUpdate } from "./player.js";
+import type {ArmorState, PlayerHands, PlayerStateUpdate, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 
 const { quat } = glMatrix;
@@ -116,8 +116,8 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
     get isAlive()   : boolean   { return true; }
     get pos()       : Vector    { return this.p.pos; }
     get user_id()   : int       { return this.p.id; }
-    get sitting()   : boolean   { return this.p.sitting; }
-    get sleep()     : boolean   { return this.p.sleep; }
+    get sitting()   : boolean   { return !!this.p.sitting; }
+    get sleep()     : boolean   { return !!this.p.sleep; }
 }
 
 export class PlayerModel extends MobModel implements IPlayerOrModel {
@@ -126,6 +126,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     sharedProps: PlayerModelSharedProps
     armor: ArmorState
     height: number
+    distance: number | null
+    sitting?: false | TSittingState
+    sleep?: false | TSleepState
 
     constructor(props) {
         super({type: 'player', skin: '1', ...props});
@@ -330,7 +333,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         this.nametag.visible = !this.sneak && !this.hide_nametag
 
-        if (!this.nametag.visible) {
+        if (!this.nametag.visible || this.distance == null) {
             return;
         }
 
@@ -350,7 +353,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         const dz = camPos.z - this.pos.z - this.nametag.position[0];
         const d2 = Math.hypot(dz, dx)
         const pitch = Math.PI / 2 - Math.atan2(d2, dy);
-        const yaw = ((this.sleep) ? angleToYaw(this.sleep.rotate.z) : this.yaw) + Math.PI/2 + Math.atan2(dz, dx);
+        const yaw = (this.sleep ? angleToYaw(this.sleep.rotate.z) : this.yaw) + Math.PI/2 + Math.atan2(dz, dx);
 
         const zoom = 0.005 * (d / 6);
 
@@ -447,7 +450,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     setProps(pos: Vector, rotate: Vector, sneak: boolean, moving: boolean, running: boolean,
-        hands: PlayerHands, lies: boolean, sitting: boolean, sleep: boolean, health?: number): void {
+        hands: PlayerHands, lies: boolean, sitting: false | TSittingState, sleep: false | TSleepState, health?: number): void {
         this.pos.copyFrom(pos);
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate

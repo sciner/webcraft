@@ -42,7 +42,7 @@
         "enter_your_name": {"en": "Enter your name", "ru": "Ваше имя","fr": "Entrez votre nom","es":"Introduzca su nombre","man":"输入你的名字","hind":"अपना नाम दर्ज करें"},
         "enter_your_password": {"en": "Enter password", "ru": "Введите пароль","fr": "Entrez mot de passe","es":"Introducir la contraseña","man":"输入密码","hind":"पास वर्ड दर्ज करें"},
         "enter_world_login": {"en": "To enter the world <b>{0}</b>, please, authorize", "ru": "Для входа в мир <b>{0}</b> авторизуйтесь","fr": "Pour entrer dans le monde <b>{0}</b> connectez-vous","es":"Para entrar en el mundo <b>{0}</b> inicie sesión","man":"要进入这个世界<b>{0}</b>，请登录","hind":"विश्व में प्रवेश करने के लिए <b>{0}</b>, कृपया अधिकृत करें"},
-        "no_world_by_link": {"en": "The world at the specified link was not found", "ru" : "Мир по указанной ссылке не найден", "fr": "Le monde au lien spécifié est introuvable","es": "No se encontró el mundo en el enlace especificado", "man": "未找到指定链接的世界","hind":"निर्दिष्ट लिंक पर दुनिया नहीं मिली"}, 
+        "no_world_by_link": {"en": "The world at the specified link was not found", "ru" : "Мир по указанной ссылке не найден", "fr": "Le monde au lien spécifié est introuvable","es": "No se encontró el mundo en el enlace especificado", "man": "未找到指定链接的世界","hind":"निर्दिष्ट लिंक पर दुनिया नहीं मिली"},
         "accept_join_to_world_message": {"en": "You have not yet been to the world <b>{0}</b>. Join?", "ru": "Вы ещё не были в мире <b>{0}</b>. Приооединиться?", "fr": "Vous n'êtes pas encore allé dans le monde <b>{0}</b>. Rejoindre?", "es": "Aún no has estado en el mundo <b>{0}</b>. ¿Unirse?", "man": "您还没有去过 <b>{0}</b> 世界。 加入","hind":"आप अभी तक दुनिया में नहीं गए हैं <b>{0}</b>. जोड़ना?"},
         "join": {"en": "Join", "ru": "Присоединиться", "fr": "Rejoindre","es": "Unirse", "man": "加入","hind":"जोड़ना"},
         "ok" : {"en": "OK", "ru": "ОК", "fr": "d'accord", "es": "OK", "man": "好的","hind":"ठीक है"},
@@ -143,7 +143,7 @@
         "weather_clear": {"en": "clear", "ru": "ясная", "fr": "", "es": "", "man": ""},
         "weather_rain": {"en": "rainy", "ru": "дождливая", "fr": "", "es": "", "man": ""},
         "weather_snow": {"en": "snowy", "ru": "снежная", "fr": "", "es": "", "man": ""},
-        "error_invalid_command": {"en": "Error: invalid comand", "ru": "Ошибка: неверная команда", "fr": "", "es": "", "man": ""},
+        "error_invalid_command": {"en": "Error: invalid command", "ru": "Ошибка: неверная команда", "fr": "", "es": "", "man": ""},
         "open_file": {"en": "Open file", "ru": "Открыть файл", "fr": "", "es": "", "man": ""},
         "new_skin": {"en": "Upload skin", "ru": "Загрузить скин", "fr": "", "es": "", "man": ""},
         "slim": {"en": "Slim", "ru": "Узкий", "fr": "", "es": "", "man": ""},
@@ -202,6 +202,7 @@
         "only_can": {"en": "I can", "ru": "Я могу", "fr": "", "es": "", "man": ""},
         "crafting_table": {"en": "WORKBENCH", "ru": "ВЕРСТАК", "fr": "", "es": "", "man": ""},
         "pos_not_valid": {"en": "The place missing or obstructed", "ru": "Доступ к этому месту заблокирован", "fr": "", "es": "", "man": ""},
-        "pos_occupied": {"en": "This place is occupied", "ru": "Это место занято", "fr": "", "es": "", "man": ""}
+        "pos_occupied": {"en": "This place is occupied", "ru": "Это место занято", "fr": "", "es": "", "man": ""},
+        "short_meters": {"en": "m", "ru": "м", "fr": "", "es": "", "man": ""}
     }
 }
