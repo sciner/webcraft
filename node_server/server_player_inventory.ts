@@ -94,9 +94,10 @@ export class ServerPlayerInventory extends Inventory {
                 const changeIsValid = this.sanitizeAndValidateClientItemsChange(new_items, !dontCheckEqual, used_recipes, recipeMan, params.thrown_items);
                 if(changeIsValid) {
                     if (params.thrown_items) {
+                        const yaw = params.throw_yaw
                         const mergedThrownItems = InventoryComparator.groupToSimpleItems(params.thrown_items).values()
                         for(const item of mergedThrownItems) {
-                            this.createDropItem([item], false)
+                            this.createDropItem([item], yaw != null, yaw)
                         }
                     }
                     // apply new
@@ -121,9 +122,9 @@ export class ServerPlayerInventory extends Inventory {
         this.send();
     }
 
-    private createDropItem(items: IInventoryItem[], thrown: boolean): void {
+    private createDropItem(items: IInventoryItem[], thrown: boolean, yaw?: float): void {
         const player = this.player
-        const yaw = player.state.rotate.z
+        yaw ??= player.state.rotate.z
         const pos = player.state.pos.clone()
         const velocity = this.temp_vec
 

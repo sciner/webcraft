@@ -29,6 +29,7 @@ export type TInventoryStateChangeMessage = {
     used_recipes?: TUsedRecipe[]
     recipe_manager_type?: string
     thrown_items?: (IInventoryItem | null)[] | null
+    throw_yaw?: float
     dont_check_equal?: boolean
 }
 

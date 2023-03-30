@@ -22,6 +22,14 @@ globalThis.visible_change_count = 0
 
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
+export type TMouseEvent = {
+    shiftKey    : boolean
+    button_id   : int
+    drag        : Pointer
+    x           : number
+    y           : number
+}
+
 export class Graphics extends PIXI.Graphics {
     [key: string]: any;
 
@@ -497,10 +505,14 @@ export class Window extends PIXI.Container {
         */
     }
 
-    *visibleWindows() {
+    *visibleWindows(): IterableIterator<Window> {
         for(let w of this.list.values()) {
             if(w.visible) {
-                yield w;
+                yield w
+                // if the window itself has nested visible windows, e.g. InGameMain
+                if (w.visibleSubWindows) {
+                    yield *w.visibleSubWindows()
+                }
             }
         }
     }

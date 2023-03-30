@@ -2,9 +2,10 @@ import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "../cons
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
 import type {PlayerInventory} from "../player_inventory.js";
-import type {Pointer} from "../vendors/wm/wm.js";
+import type {Pointer, TMouseEvent} from "../vendors/wm/wm.js";
 import type {World} from "../world.js";
 import type {ServerClient} from "../server_client.js";
+import type {GameClass} from "../game.js";
 
 export class BaseInventoryWindow extends BlankWindow {
     [key: string]: any;
@@ -76,6 +77,27 @@ export class BaseInventoryWindow extends BlankWindow {
             console.error(str)
             window.alert(str)
         }
+    }
+
+    onDropOutside(e: TMouseEvent): boolean {
+        const item = this.inventory.clearDragItem(false)
+        if (item) {
+            // determine the angle
+            const FOV_MULTIPLIER = 0.85 // determined experimentally for better usability
+            const game = Qubatch as GameClass
+            const fov = game.render.camera.horizontalFovRad * FOV_MULTIPLIER
+            const screenWidth = game.hud.wm.w
+            const mouseYaw = (e.x - screenWidth * 0.5) / screenWidth * fov
+            const playerYaw = this.inventory.player.rotate.z
+            // tell the server to throw the item from the inventory
+            this.world.server.InventoryNewState({
+                state: this.inventory.exportItems(),
+                thrown_items: [item],
+                throw_yaw: playerYaw + mouseYaw
+            })
+            return true
+        }
+        return false
     }
 
     // TODO move more shared code from BaseChestWindow and BaseCraftWindow here.

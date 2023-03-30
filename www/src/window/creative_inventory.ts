@@ -6,6 +6,7 @@ import { BLOCK_GROUP_TAG, INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from
 import { BlankWindow } from "./blank.js";
 import type {PlayerInventory} from "../player_inventory.js";
 import type {World} from "../world.js";
+import type {TMouseEvent} from "../vendors/wm/wm.js";
 
 const ITEMS_WITHOUT_TAG = '#others';
 const ITEMS_ALL_TAG = BLOCK_GROUP_TAG.ALL;
@@ -465,7 +466,11 @@ export class CreativeInventoryWindow extends BlankWindow {
     }
 
     fixAndValidateSlots(context) {
-        // Do nothing. It's called by slots and used to vlidate in other windows.
+        // Do nothing. It's called by slots and used to validate in other windows.
     }
 
+    onDropOutside(e: TMouseEvent): boolean {
+        // just clear the drag without creating a drop item
+        return this.inventory.clearDragItem(false) != null
+    }
 }
