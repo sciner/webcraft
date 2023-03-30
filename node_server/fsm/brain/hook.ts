@@ -6,6 +6,23 @@ import { EnumDamage } from "@client/enums/enum_damage.js";
 import { ServerClient } from "@client/server_client.js";
 import { PLAYER_STATUS } from "@client/constant.js";
 
+const FISH = [
+    {
+        'name': 'SEA_LANTERN',
+        'weight': 60
+    },{
+        'name': 'SEAGRASS',
+        'weight': 25
+    },{
+        'name': 'ITEM_FRAME',
+        'weight': 2
+    },
+    {
+        'name': 'PUFFERFISH',
+        'weight': 13
+    }
+]
+
 export class Brain extends FSMBrain {
 
     parent: any;
@@ -95,6 +112,9 @@ export class Brain extends FSMBrain {
                 if (this.timer_catchable_delay <= 0) {
                     this.velocity.y -= 0.2
                     this.timer_catchable = (Math.random() * 20) | 0 + 10 
+                    const actions = new WorldAction()
+                    actions.addParticles([{type: 'bubble_column', pos: mob.pos.offset(0, -1, 0)}])
+                    world.actions_queue.add(player, actions)
                     // тянем рыбу
                 } else {
                     // рыба близка пузыри с позицией
@@ -168,10 +188,24 @@ export class Brain extends FSMBrain {
             if (base < chance_two) {
                 console.log('TREASURE')
             } else {
-                console.log('FISH')
+                console.log(this.getRandomItem(FISH))
             }
         }
         this.mob.kill()
+    }
+
+    getRandomItem(list) {
+        let all = 0
+        for (const el of list) {
+            all += el.weight
+        }
+        let chance = (Math.random() * all) | 0
+        for (const el of list) {
+            chance -= el.weight
+            if (chance < 0) {
+                return el.name
+            } 
+        }
     }
     
 }
