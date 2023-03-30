@@ -338,7 +338,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         // Add 'all' tag as first element
         tags.unshift(Lang['tag_' + tagAll]);
 
-        const btnMarginX = 8 * this.zoom;
+        const btnMarginX = 10 * this.zoom;
         const btnMarginY = 10 * this.zoom;
         const btnMargin = 5 * this.zoom;
         let ty = 10 * this.zoom + txtSearch.h + btnMarginY;
