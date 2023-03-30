@@ -113,6 +113,15 @@ interface IBlockItem {
     tag?: any,
 }
 
+interface IInventoryItem {
+    id: int
+    count: number
+    extra_data?: any
+    power?: number
+    entity_id?: string
+    texture?    // used only on client
+}
+
 interface Dict<ValueType=any> {
     [key: string]: ValueType
 }

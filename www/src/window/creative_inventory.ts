@@ -4,9 +4,12 @@ import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
 import { BLOCK_GROUP_TAG, INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
+import {Lang} from "../lang.js";
+import type {PlayerInventory} from "../player_inventory.js";
+import type {World} from "../world.js";
+import type {TMouseEvent} from "../vendors/wm/wm.js";
 
-const ITEMS_WITHOUT_TAG = '#others';
-const ITEMS_ALL_TAG = BLOCK_GROUP_TAG.ALL;
+let tagsTranslationMap = {};
 
 class CreativeInventoryCollection extends Window {
     [key: string]: any;
@@ -17,7 +20,7 @@ class CreativeInventoryCollection extends Window {
 
     //
     constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float) {
-        
+
         super(x, y, w, h, id)
 
         // Ширина / высота слота
@@ -99,14 +102,10 @@ class CreativeInventoryCollection extends Window {
 
     matchesTag(block, tag) {
         if (!tag) return true;
-        tag = '#' + tag;
-        if (tag == ITEMS_ALL_TAG) return true;
-        // if special tag was chosen then return all blocks without tags
-        if (tag == ITEMS_WITHOUT_TAG) {
-            return block.tags.length == 0 || block.tags.findIndex(t => t.slice(0, 1) == '#') == -1;
-        } else {
-            return block.tags.indexOf(tag) > -1;
-        }
+        const tagCode = tagsTranslationMap[tag];
+        if (tagCode == BLOCK_GROUP_TAG.ALL) return true;
+
+        return block.tags.indexOf(tagCode) > -1;
     }
 
     addEnchantedBooks(all_blocks, filter_text, tag) {
@@ -232,18 +231,19 @@ export class CreativeInventoryWindow extends BlankWindow {
     [key: string]: any;
 
     collection : CreativeInventoryCollection
+    world       : World
+    inventory   : PlayerInventory
 
     tagLevels : number = 0;
     selectedTag: string = '';
     tagButtons: Button[] = [];
 
-    constructor(inventory) {
+    constructor(inventory: PlayerInventory) {
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
-        this.x *= this.zoom 
-        this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
         this.inventory = inventory
+        this.world = inventory.player.world
     }
 
     initControls() {
@@ -320,7 +320,9 @@ export class CreativeInventoryWindow extends BlankWindow {
             this.collection.init(text, this.selectedTag)
         }
 
-        const tags = [ITEMS_ALL_TAG];
+        const tagAll = BLOCK_GROUP_TAG.ALL.slice(1);
+        tagsTranslationMap[Lang['tag_'+tagAll]] = BLOCK_GROUP_TAG.ALL;
+        const tags = [];
         for (let b of BLOCK.getAll()) {
             if (b.id < 1 || !b.spawnable || b.tags.length == 0) {
                 continue;
@@ -328,21 +330,20 @@ export class CreativeInventoryWindow extends BlankWindow {
             for (let t of b.tags) {
                 if (t.slice(0, 1) != '#') continue;
 
-                if (tags.indexOf(t) == -1) {
-                    tags.push(t);
+                let tagTranslated = Lang['tag_'+t.slice(1)];
+                tagsTranslationMap[tagTranslated] = t;
+                if (tags.indexOf(tagTranslated) == -1) {
+                    tags.push(tagTranslated);
                 }
             }
         }
 
-        tags.sort()
+        tags.sort();
+        // Add 'all' tag as first element
+        tags.unshift(Lang['tag_' + tagAll]);
 
-        // add special tag to end
-        // tags.push(ITEMS_WITHOUT_TAG);
         const btnMarginX = 10 * this.zoom;
         const btnMarginY = 10 * this.zoom;
-        // manually chosen 'optimal' coefficient to add horizontal spaces to buttons
-        // too high value will lead to big spaces on long words
-        // without this coefficient there are no gaps between borders and letters
         const btnMargin = 5 * this.zoom;
         let ty = 10 * this.zoom + txtSearch.h + btnMarginY;
         const buttonHeight = 25 * this.zoom;
@@ -352,9 +353,9 @@ export class CreativeInventoryWindow extends BlankWindow {
         const tmpLabel = new Label(0, 0, 0, 0, 'tmpLabel');
         let btnX = x;
         for (let i = 0; i < tags.length; i++) {
-            let t = tags[i].slice(1);
+            const tag = tags[i];
+            tmpLabel.text = tag;
             // if next button with be outside container, move to next line and start from left again
-            tmpLabel.text = t;
             const buttonWidth = tmpLabel.getTextMetrics(null).width + 4 * btnMargin;
             if (btnX + buttonWidth > this.txtSearch.w) {
                 btnX = x;
@@ -367,10 +368,9 @@ export class CreativeInventoryWindow extends BlankWindow {
                 buttonWidth,
                 buttonHeight,
                 `tag${i}`,
-                t,
-                t
+                tag,
+                tag
             );
-            button.w = button.getTextMetrics(null).width + 4 * btnMargin;
 
             button.setInactive = () => {
                 button.style.border.hidden = true;
@@ -380,7 +380,7 @@ export class CreativeInventoryWindow extends BlankWindow {
                 button.style.border.hidden = false;
                 button.style.background.color = UI_THEME.button.background.color;
             }
-            if ('#' + t == ITEMS_ALL_TAG) {
+            if (tagsTranslationMap[tags[i]] == BLOCK_GROUP_TAG.ALL) {
                 button.setActive();
             } else {
                 button.setInactive();
@@ -391,8 +391,8 @@ export class CreativeInventoryWindow extends BlankWindow {
                 const selectedTag = this.getWindow(e.target.id);
                 if (selectedTag.text == this.selectedTag) {
                     button.setInactive();
-                    this.selectedTag = ITEMS_ALL_TAG.slice(1);
-                    this.tagButtons.find(b => '#' + b.text == ITEMS_ALL_TAG)?.setActive();
+                    this.selectedTag = Lang['tag_' + tagAll];
+                    this.tagButtons.find(b => b.text == this.selectedTag)?.setActive();
                 } else {
                     this.tagButtons.forEach(b => b.setInactive())
                     selectedTag.setActive();
@@ -422,9 +422,13 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     // Обработчик закрытия формы
     onHide() {
-        this.inventory.clearDragItem();
+        const thrown_item = this.inventory.clearDragItem()
         // Save inventory
-        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [], null, true);
+        this.world.server.InventoryNewState({
+            state: this.inventory.exportItems(),
+            thrown_items: [thrown_item],
+            dont_check_equal: true
+        })
     }
 
     /**
@@ -456,7 +460,11 @@ export class CreativeInventoryWindow extends BlankWindow {
     }
 
     fixAndValidateSlots(context) {
-        // Do nothing. It's called by slots and used to vlidate in other windows.
+        // Do nothing. It's called by slots and used to validate in other windows.
     }
 
+    onDropOutside(e: TMouseEvent): boolean {
+        // just clear the drag without creating a drop item
+        return this.inventory.clearDragItem(false) != null
+    }
 }
