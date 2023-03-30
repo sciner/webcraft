@@ -244,8 +244,6 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     constructor(inventory: PlayerInventory) {
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
-        this.x *= this.zoom
-        this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
         this.inventory = inventory

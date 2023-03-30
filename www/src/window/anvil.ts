@@ -67,8 +67,6 @@ export class AnvilWindow extends BaseCraftWindow {
         const h = 400
 
         super(0, 0, w, h, 'frmAnvil', null, null, inventory)
-        this.x *= this.zoom
-        this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
 

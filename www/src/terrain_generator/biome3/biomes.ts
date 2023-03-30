@@ -1,5 +1,5 @@
 import { BLOCK } from '../../blocks.js';
-import { BLOCK_FLAG } from '../../constant.js';
+import { BLOCK_FLAG, FAST } from '../../constant.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { BiomeTree, TREES } from '../biomes.js';
@@ -9,9 +9,9 @@ const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
 const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
-const TREE_FREQUENCY        = 0.015 * 32; // 0.48
-const PLANTS_FREQUENCY      = 0.015;
-const GRASS_FREQUENCY       = 0.015;
+const TREE_FREQUENCY        = 0.015 * 32 * (FAST ? 1/4 : 1); // 0.48
+const PLANTS_FREQUENCY      = 0.015 * (FAST ? 1/8 : 1);
+const GRASS_FREQUENCY       = 0.015 * (FAST ? 1/8 : 1);
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS; // new IndexedColor(82, 450, 0);
 const DEFAULT_WATER_COLOR = IndexedColor.WATER;
@@ -248,7 +248,7 @@ export class Biomes {
         // plants
         if(typeof plants == 'undefined') {
             plants = {
-                frequency: .5,
+                frequency: PLANTS_FREQUENCY * 33.333,
                 list: [
                     {percent: .01, blocks: [{name: 'RED_TULIP'}]},
                     {percent: .02, blocks: [{name: 'DANDELION'}]}
@@ -258,7 +258,7 @@ export class Biomes {
         // grass
         if(typeof grass == 'undefined') {
             grass = {
-                frequency: .5,
+                frequency: GRASS_FREQUENCY * 33.333,
                 list: [
                     {percent: .0125, blocks: [{name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .1, max: .15}}},
                     {percent: .0125, blocks: [{name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .15, max: .2}}},
