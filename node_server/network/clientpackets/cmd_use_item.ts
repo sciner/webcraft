@@ -26,13 +26,14 @@ export default class packet_reader {
                 const params = {
                     type: "hook",
                     skin: "base",
-                    pos: player.state.pos.offset(0, 1, 0),
-                    pos_spawn: player.state.pos.offset(0, 1, 0),
+                    pos: player.getEyePos(),
+                    pos_spawn: player.getEyePos(),
                     rotate: player.state.rotate
                 }
-                player.fishing = player.world.mobs.create(params);
+                player.fishing = player.world.mobs.create(params)
+                player.fishing.parent = player // @todo мб лучше передавать id
             } else {
-                player.fishing.kill()
+                player.fishing.getBrain().onFishing()
                 player.fishing = null 
             }
             return true

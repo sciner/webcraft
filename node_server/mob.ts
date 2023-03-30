@@ -118,6 +118,7 @@ export class Mob {
     _aabb: AABB;
     already_killed?: boolean | int;
     death_time?: number;
+    parent: any;
 
     constructor(world : ServerWorld, params: MobSpawnParams, existsInDB: boolean) {
 
