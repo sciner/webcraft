@@ -372,7 +372,7 @@ function isDeepObject(obj) {
 }
 
 export class IvanArray {
-    [key: string]: any;
+
     arr: any[];
     count: number;
     constructor() {
