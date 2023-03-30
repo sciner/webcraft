@@ -421,11 +421,8 @@ export class HUD {
                     }
                 }
                 this.text += `${mat.id} / ${this.mat_name}`;
-
-                if((mat as any).is_fluid) { // this probably never happens
-
-
-
+                // it seems this condition is never true (e.g., it's not true for the water bucket):
+                if((mat as any).is_fluid) {
                     this.text += ' ' + '(FLUID!)';
                 }
             } else {
