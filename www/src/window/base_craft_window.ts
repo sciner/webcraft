@@ -116,7 +116,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
     }
 
     //@ts-ignore
-    setItem(item: IInventoryItem | null, update_inventory : boolean = true): void {
+    setItem(item: IInventoryItem | null, update_inventory : boolean = true): boolean {
         if (item && item.count <= 0) {
             if (item.count < 0) {
                 window.alert('item.count < 0')
@@ -124,11 +124,11 @@ export class CraftTableSlot extends SimpleBlockSlot {
             item = null
         }
         if(!super.setItem(item)) {
-            return
+            return false
         }
 
         if(!update_inventory) {
-            return
+            return false
         }
 
         // Update inventory
@@ -141,7 +141,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 this.ct.setHelperSlots(null)
             }
         }
-
+        return true
     }
 
     getIndex() {
@@ -620,11 +620,12 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
     /**
      * Вызывается после изменения любой из её ячеек
      */
-    setItem(item? : object, update_inventory : boolean = true) {
-        super.setItem(item, update_inventory)
+    setItem(item? : IInventoryItem, update_inventory : boolean = true): boolean {
+        const res = super.setItem(item, update_inventory)
         if(update_inventory) {
             this.parent.checkRecipe()
         }
+        return res
     }
 
 }
@@ -674,9 +675,9 @@ export class ArmorSlot extends CraftTableInventorySlot {
     //     }
     // }
 
-    setItem(item) {
+    setItem(item: IInventoryItem | null): boolean {
         // this.style.background.color = item ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#00000000'
-        super.setItem(item)
+        return super.setItem(item)
     }
 
     isValidDragItem(dragItem) {
@@ -695,8 +696,9 @@ export class ArmorSlot extends CraftTableInventorySlot {
 
 export class BaseCraftWindow extends BaseInventoryWindow {
 
-    inventory_slots: CraftTableInventorySlot[]
-    lblResultSlot: CraftTableResultSlot
+    inventory_slots : CraftTableInventorySlot[]
+    lblResultSlot   : CraftTableResultSlot
+    craft ?         : { slots: CraftTableSlot[] }
 
     /**
     * Итоговый слот (то, что мы получим)
@@ -781,7 +783,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
                 const y = sy + Math.floor(i / xcnt) * (sz + margin)
                 const lblSlot = new Label(x, y, sz, sz, `lblPotentialSlot${i}`)
                 lblSlot.setBackground(hud_atlas.getSpriteFromMap('window_slot_locked'))
-                ct.add(lblSlot)
+                this.add(lblSlot)
             }
         }
 

@@ -1295,7 +1295,7 @@ export class SimpleBlockSlot extends Window {
         return this.item
     }
 
-    setItem(item : any, slot? : any) {
+    setItem(item : any, slot? : any): boolean {
         this.item = item
         this.slot = slot
         return this.refresh()

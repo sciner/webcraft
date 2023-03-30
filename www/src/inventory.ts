@@ -5,7 +5,7 @@ import { BLOCK } from "./blocks.js"
 import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
 import type { CraftTableSlot } from "./window/base_craft_window.js";
-import type {SimpleBlockSlot} from "../tools/gui/wm.js"
+import type {SimpleBlockSlot} from "./vendors/wm/wm.js"
 import type {PlayerInventory} from "./player_inventory.js";
 
 export const INVENTORY_CHANGE_NONE = 0;

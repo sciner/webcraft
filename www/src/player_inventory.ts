@@ -1,11 +1,10 @@
 import {RecipeManager} from "./recipes.js";
 import {Inventory, TInventoryState} from "./inventory.js";
 import {INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT} from "./constant.js";
-import type {WindowManager} from "../tools/gui/wm.js";
+import type {WindowManager, Pointer} from "./vendors/wm/wm.js";
 import type {Player} from "./player.js";
 import type {HUD} from "./hud.js";
 import type {InventoryWindow} from "./window/index.js";
-import type {Pointer} from "../tools/gui/wm.js";
 import type {CraftTableSlot} from "./window/base_craft_window.js";
 import {InventoryComparator} from "./inventory_comparator.js";
 

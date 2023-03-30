@@ -421,7 +421,11 @@ export class HUD {
                     }
                 }
                 this.text += `${mat.id} / ${this.mat_name}`;
-                if(mat.is_fluid) {
+
+                if((mat as any).is_fluid) { // this probably never happens
+
+
+
                     this.text += ' ' + '(FLUID!)';
                 }
             } else {
