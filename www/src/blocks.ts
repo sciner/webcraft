@@ -383,10 +383,10 @@ export class BLOCK {
      *   item is expected to have an entity, and doesn't have it.
      * - it assumes malicios intent, and does extra validation.
      *
-     * @param { object } an inventory item that came from client
+     * @param item an inventory item that came from client
      * @return a new valid inventory item, or null.
      */
-    static sanitizeAndValidateInventoryItem(item) {
+    static sanitizeAndValidateInventoryItem(item: any): IInventoryItem | null {
         // id
         if (!item || typeof item !== 'object' || typeof item.id !== 'number') {
             return null;
@@ -395,8 +395,9 @@ export class BLOCK {
         if (!b) {
             return null;
         }
-        const resp: IBlockItem = {
-            id: item.id
+        const resp: IInventoryItem = {
+            id: item.id,
+            count: 1
         };
         // entity
         // Allow it to be defined even if (b.is_entity == true), e.g. for a stack of chests
@@ -407,9 +408,7 @@ export class BLOCK {
             resp.entity_id = item.entity_id;
         }
         // count - after entity is validated
-        if (typeof item.count !== 'number') {
-            resp.count = 1;
-        } else {
+        if (typeof item.count === 'number') {
             const max_stack = this.getItemMaxStack(resp);
             resp.count = Math.floor(item.count);
             if (resp.count < 1 || resp.count > max_stack) {
@@ -475,12 +474,13 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item, b, no_copy_extra_data : boolean = false) : IBlockItem {
+    static convertItemToInventoryItem(item, b, no_copy_extra_data : boolean = false) : IInventoryItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
-        const resp = {
-            id: item.id
+        const resp: IInventoryItem = {
+            id: item.id,
+            count: 1
         };
         if('count' in item) {
             item.count = Math.floor(item.count);

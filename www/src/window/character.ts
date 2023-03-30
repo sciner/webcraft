@@ -84,7 +84,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         // Update player mob model
         this.inventory.player.updateArmor()
         // Save inventory
-        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [])
+        this.world.server.InventoryNewState({ state: this.inventory.exportItems() })
         if(this.skinViewer) {
             this.skinViewer.renderPaused = true
         }
