@@ -203,7 +203,7 @@
         "crafting_table": {"en": "WORKBENCH", "ru": "ВЕРСТАК", "fr": "", "es": "", "man": ""},
         "short_meters": {"en": "m", "ru": "м", "fr": "", "es": "", "man": ""},
         "tag_all": {"en": "all", "ru": "все", "fr": "", "es": "", "man": ""},
-        "tag_block": {"en": "block", "ru": "блоки", "fr": "", "es": "", "man": ""},
+        "tag_block": {"en": "block", "ru": "блок", "fr": "", "es": "", "man": ""},
         "tag_brewing": {"en": "brewing", "ru": "варка", "fr": "", "es": "", "man": ""},
         "tag_combat": {"en": "combat", "ru": "бой", "fr": "", "es": "", "man": ""},
         "tag_decore": {"en": "decore", "ru": "декор", "fr": "", "es": "", "man": ""},
@@ -211,7 +211,7 @@
         "tag_furniture": {"en": "furniture", "ru": "мебель", "fr": "", "es": "", "man": ""},
         "tag_lightning": {"en": "lightning", "ru": "освещение", "fr": "", "es": "", "man": ""},
         "tag_misc": {"en": "misc", "ru": "разное", "fr": "", "es": "", "man": ""},
-        "tag_plant": {"en": "plant", "ru": "растения", "fr": "", "es": "", "man": ""},
-        "tag_tools": {"en": "tools", "ru": "инструменты", "fr": "", "es": "", "man": ""}
+        "tag_plant": {"en": "plant", "ru": "растение", "fr": "", "es": "", "man": ""},
+        "tag_tools": {"en": "tools", "ru": "инструмент", "fr": "", "es": "", "man": ""}
     }
 }
