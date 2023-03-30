@@ -19,9 +19,7 @@ export class CraftTable extends BaseCraftWindow {
 
     constructor(inventory : Inventory, recipes : RecipeManager) {
 
-        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCraft', null, null, inventory);
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCraft', null, null, inventory)
         this.w *= this.zoom
         this.h *= this.zoom
 

@@ -1,3 +1,5 @@
+import { FAST } from "./constant.js";
+
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 40;
 export const CHUNK_SIZE_Z                   = 16;
@@ -5,7 +7,7 @@ export const CHUNK_SIZE_X_M1                = CHUNK_SIZE_X - 1;
 export const CHUNK_SIZE_Y_M1                = CHUNK_SIZE_Y - 1;
 export const CHUNK_SIZE_Z_M1                = CHUNK_SIZE_Z - 1;
 export const CHUNK_SIZE                     = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
-export const CHUNK_GENERATE_MARGIN_Y        = 3;
+export const CHUNK_GENERATE_MARGIN_Y        = FAST ? 1 : 3;
 export const CHUNK_SIZE_Y_MAX               = 4096;
 export const MAX_CAVES_LEVEL                = 256;
 export const ALLOW_NEGATIVE_Y               = true;

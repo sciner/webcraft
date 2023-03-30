@@ -5,6 +5,8 @@ export enum LIGHT_TYPE {
     RTX     = 2,
 }
 
+export const FAST = false
+
 export const INGAME_MAIN_WIDTH              = 772
 export const INGAME_MAIN_HEIGHT             = 514
 export const GAME_ONE_SECOND                = 72;
