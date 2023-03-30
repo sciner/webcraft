@@ -50,6 +50,7 @@ export class Vector implements IVector {
     static ZERO = new Vector(0.0, 0.0, 0.0);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
+    static DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP]
 
     static SHAPE_PIVOT = new Vector(.5, .5, .5);
 

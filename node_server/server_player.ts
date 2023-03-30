@@ -1064,5 +1064,5 @@ export class ServerPlayer extends Player {
     isAdmin() : boolean {
         return this.world.admins.checkIsAdmin(this)
     }
-
+    
 }

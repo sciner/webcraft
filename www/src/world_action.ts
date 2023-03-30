@@ -1,5 +1,5 @@
 import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
-    SpatialDeterministicRandom, ObjectHelpers } from "./helpers.js";
+    SpatialDeterministicRandom, ObjectHelpers, getValidPosition } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CD_ROT, CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
@@ -1646,55 +1646,61 @@ function pressToButton(e, world, pos, player, world_block, world_material, mat_b
  */
 function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(e.shiftKey) {
-        return false;
+        return false
     }
-    if(mat_block && mat_block.tags.includes('wool')) {
-        return false;
+    const is_chair = world_material.style_name == 'chair'
+    const is_stool = world_material.style_name == 'stool'
+    const is_slab   = world_material.layering && world_material.height == .5
+    const is_stairs = world_material.tags.includes('stairs')
+    if (!is_chair && !is_stool && !is_slab && !is_stairs) {
+        return false
     }
-    const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const is_stool = world_material.style_name == 'stool';
-    const is_chair = world_material.style_name == 'chair';
-    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair || is_stool;
-    if(!block_for_sittings || (mat_block && !is_chair && !is_stool)) {
-        return false;
+    // проверям это верхняя или нмжняя половинка полублока
+    if ((is_slab || is_stairs) && (world_block.extra_data?.point?.y > .5)) {
+        return false
     }
-    const is_head = world_material?.has_head && world_block.extra_data.is_head;
-    // check over block if not empty for head
-    const overBlock = world.getBlock(new Vector(pos.x, pos.y + (is_head ? 1 : 2), pos.z));
-    if(overBlock && !overBlock.material.transparent) {
-        return false;
+    // выходим из обработки, если клеим шерсть
+    if ((is_stool || is_chair) && mat_block?.tags.includes('wool')) {
+        return false
     }
-    //
-    const sit_height = (is_chair || is_stool) ? 11/16 : 1/2;
+    // проверяем что сверху нет блока
+    if (is_slab || is_stairs || is_stool) {
+        const block = world.getBlock(world_block.posworld.offset(0, 1, 0))
+        if (block.id != 0 || block.fluid != 0) {
+            if (!Qubatch.is_server) {
+                Qubatch.hotbar.strings.setText(1, Lang.pos_not_valid, 4000)
+            }
+            return true
+        }
+    }
+    const is_head = world_material?.has_head && world_block.extra_data.is_head
+    if(!getValidPosition(world_block.posworld.offset(0, is_head ? -1 : 0, 0), world)) {
+        if (!Qubatch.is_server) {
+            Qubatch.hotbar.strings.setText(1, Lang.pos_not_valid, 4000)
+        }
+        return true
+    }
+    const sit_height = (is_chair || is_stool) ? 11/16 : 1/2
     const sit_pos = new Vector(
         pos.x + .5,
         pos.y + sit_height - (is_head ? 1 : 0),
         pos.z + .5
     )
-    // if slab on ceil
-    if(world_block_is_slab) {
-        const on_ceil = world_block.extra_data?.point?.y >= .5;
-        if(on_ceil) sit_pos.y += .5;
-    }
-    //
-    if(!(is_chair || is_stool || player.pos.distance(sit_pos) < 3.0)) {
-        return false;
-    }
-    // check if someone else is sitting
-    const above_sit_pos = sit_pos.clone();
-    above_sit_pos.y += 0.5; // the actual sitting player pos may be slightly above sit_pos
-    for(const p of world.players.eachContainingVec(above_sit_pos)) {
-        if (p.sharedProps.user_id !== player.session.user_id && p.sharedProps.sitting) {
-            return false;
+    for (const player of world.players.eachContainingVec(sit_pos)) {
+        if (player.sharedProps.sitting) {
+            if (!Qubatch.is_server) {
+                Qubatch.hotbar.strings.setText(1, Lang.pos_occupied, 4000)
+            }
+            return true
         }
     }
     // sit down
-    actions.reset_mouse_actions = true;
+    actions.reset_mouse_actions = true
     const yaw = rotate
         ? Helpers.deg2rad(rotate.x)
         : player.sharedProps.rotate.z
     actions.setSitting(sit_pos, new Vector(0, 0, yaw))
-    return true;
+    return true
 }
 
 // Нельзя ничего ставить поверх этого блока
