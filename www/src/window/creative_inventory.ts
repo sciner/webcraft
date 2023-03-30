@@ -5,6 +5,9 @@ import { Enchantments } from "../enchantments.js";
 import { BLOCK_GROUP_TAG, INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 import {Lang} from "../lang.js";
+import type {PlayerInventory} from "../player_inventory.js";
+import type {World} from "../world.js";
+import type {TMouseEvent} from "../vendors/wm/wm.js";
 
 let tagsTranslationMap = {};
 
@@ -17,7 +20,7 @@ class CreativeInventoryCollection extends Window {
 
     //
     constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float) {
-        
+
         super(x, y, w, h, id)
 
         // Ширина / высота слота
@@ -228,18 +231,19 @@ export class CreativeInventoryWindow extends BlankWindow {
     [key: string]: any;
 
     collection : CreativeInventoryCollection
+    world       : World
+    inventory   : PlayerInventory
 
     tagLevels : number = 0;
     selectedTag: string = '';
     tagButtons: Button[] = [];
 
-    constructor(inventory) {
+    constructor(inventory: PlayerInventory) {
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
-        this.x *= this.zoom 
-        this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
         this.inventory = inventory
+        this.world = inventory.player.world
     }
 
     initControls() {
@@ -418,9 +422,13 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     // Обработчик закрытия формы
     onHide() {
-        this.inventory.clearDragItem();
+        const thrown_item = this.inventory.clearDragItem()
         // Save inventory
-        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), [], null, true);
+        this.world.server.InventoryNewState({
+            state: this.inventory.exportItems(),
+            thrown_items: [thrown_item],
+            dont_check_equal: true
+        })
     }
 
     /**
@@ -452,7 +460,11 @@ export class CreativeInventoryWindow extends BlankWindow {
     }
 
     fixAndValidateSlots(context) {
-        // Do nothing. It's called by slots and used to vlidate in other windows.
+        // Do nothing. It's called by slots and used to validate in other windows.
     }
 
+    onDropOutside(e: TMouseEvent): boolean {
+        // just clear the drag without creating a drop item
+        return this.inventory.clearDragItem(false) != null
+    }
 }

@@ -749,7 +749,7 @@ export class Player implements IPlayer {
     }
 
     //
-    get currentInventoryItem() {
+    get currentInventoryItem(): IInventoryItem | null {
         return this.inventory.current_item;
     }
 
@@ -757,9 +757,11 @@ export class Player implements IPlayer {
     getCurrentInstrument() {
         const currentInventoryItem = this.currentInventoryItem;
         const instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
+        /* Old incorrect code that did nothing:
         if(currentInventoryItem && currentInventoryItem.item?.instrument_id) {
             // instrument = new Instrument_Hand();
         }
+        */
         return instrument;
     }
 

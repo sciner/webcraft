@@ -2,11 +2,11 @@ import { BLOCK } from "./blocks.js";
 import { ItemHelpers } from "./block_helpers.js";
 import { ObjectHelpers } from "./helpers.js";
 import { Enchantments } from "./enchantments.js"
-import type { InventoryComparator } from "./inventory_comparator.js";
+import type {InventoryComparator, IRecipeManager} from "./inventory_comparator.js";
 
 const REPAIR_PER_INGREDIENT = 0.25;
 const REPAIR_PER_COMBINE_BONUS = 0.12;
-// First, the we try to find the exact match by th 1st block name
+// First, we try to find the exact match by th 1st block name
 const REPAIR_BY_NAMES = {
     'SHIELD':           { suffixes: ['_PLANKS'] },
     // These are not present in the game yet
@@ -29,14 +29,29 @@ const REPAIR_BY_MATERIALS = {
     'netherite':{ names: ['NETHERITE_INGOT'] }
 };
 
-export class AnvilRecipeManager {
-    [key: string]: any;
+export type TUsedAnvilRecipe = {
+    recipe_id       : string
+    used_items_keys : string[]
+    count           : int[]
+    label           : string | null | false // if (label === false), it's not being changed
+}
+
+type TAnvilGetResultFn = (first_item: IInventoryItem | null, second_item: IInventoryItem | null,
+                label: string | null | false, outUsedCount: [int, int]) => IInventoryItem | null
+
+type TAnvilRecipe = {
+    id: string
+    getResult: TAnvilGetResultFn
+}
+
+export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
+    private recipes = new Map<string, TAnvilRecipe>()
 
     constructor() {
-        this.recipes = new Map();
-
         this.addRecipe('rename',
-            function(first_item, second_item, label, outCount) {
+            function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
+                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
+            {
                 if (first_item == null || second_item != null || label === false) {
                     return null;
                 }
@@ -46,7 +61,7 @@ export class AnvilRecipeManager {
                 // We must not compare label with ItemHelpers.getLabel(first_item) here, because it depends
                 // on the user's locale. The result should be the same on the server.
 
-                outCount[0] = first_item.count;
+                outUsedCount[0] = first_item.count;
 
                 const result = ObjectHelpers.deepClone(first_item);
                 ItemHelpers.setLabel(result, label);
@@ -55,7 +70,9 @@ export class AnvilRecipeManager {
         );
 
         this.addRecipe('repair', // repair by ingredients; repair by combining is 'combine'
-            function(first_item, second_item, label, outCount) {
+            function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
+                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
+            {
                 if (first_item == null || second_item == null) {
                     return null;
                 }
@@ -96,8 +113,8 @@ export class AnvilRecipeManager {
                     return null; // it's possible for very small maxPower and/or REPAIR_PER_INGREDIENT
                 }
 
-                outCount[0] = 1;
-                outCount[1] = usedIngredientsCount;
+                outUsedCount[0] = 1;
+                outUsedCount[1] = usedIngredientsCount;
 
                 const result = ObjectHelpers.deepClone(first_item);
                 result.count = 1;
@@ -112,7 +129,9 @@ export class AnvilRecipeManager {
 
         // combines an item with the same item or a book, merges enchantments
         this.addRecipe('combine',
-            function(first_item, second_item, label, outCount) {
+            function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
+                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
+            {
                 if (first_item == null || second_item == null) {
                     return null;
                 }
@@ -178,8 +197,8 @@ export class AnvilRecipeManager {
                     return null;
                 }
 
-                outCount[0] = 1;
-                outCount[1] = 1;
+                outUsedCount[0] = 1;
+                outUsedCount[1] = 1;
                 
                 result.count = 1;
                 if (label !== false) {
@@ -191,11 +210,11 @@ export class AnvilRecipeManager {
         );
     }
 
-    addRecipe(id, getResult) {
+    private addRecipe(id: string, getResult: TAnvilGetResultFn): void {
         this.recipes.set(id, {id, getResult});
     }
 
-    getRecipe(id) {
+    getRecipe(id: string): TAnvilRecipe | undefined {
         if(typeof id !== 'string') {
             throw 'error_invalid_recipe_id';
         }
@@ -203,13 +222,15 @@ export class AnvilRecipeManager {
     }
 
     /**
-     * @returns { object } {recipe, result} - the recipe that can be applied to the given
+     * @returns the recipe that can be applied to the given
      * arguments, and the resulting item. If no recipe is applicable, returns null.
      */
-    findRecipeAndResult(first_item, second_item, label, outCount) {
+    findRecipeAndResult(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
+        label: string | null | false, outUsedCount: [int, int]
+    ): { recipe: TAnvilRecipe, result: IInventoryItem } | null {
         for(const recipe of this.recipes.values()) {
             try {
-                const result = recipe.getResult(first_item, second_item, label, outCount);
+                const result = recipe.getResult(first_item, second_item, label, outUsedCount);
                 if (result) {
                     return {recipe, result};
                 }
@@ -221,19 +242,12 @@ export class AnvilRecipeManager {
     }
 
     /**
-     * @param { object } used_recipe - see {@link InventoryComparator.checkEqual}, fields:
-     *   recipe_id: Int
-     *   used_items_keys: Array of String
-     *   count: Array of Int
-     *   label: (String|false) - if (label === false), it's not being changed
-     * @param {Function} recipe
-     * @param {Array of Item} used_items
-     * @throws if it's imposible
+     * @throws if it's impossible
      */
-    applyUsedRecipe(used_recipe, recipe, used_items) {
-        const outCount = [];
-        const result = recipe.getResult(used_items[0], used_items[1], used_recipe.label, outCount);
-        if (outCount[0] != used_items[0]?.count || outCount[1] != used_items[1]?.count) {
+    applyUsedRecipe(used_recipe: TUsedAnvilRecipe, recipe: TAnvilRecipe, used_items: IInventoryItem[]): IInventoryItem {
+        const outUsedCount: [int, int] = [0, 0];
+        const result = recipe.getResult(used_items[0], used_items[1], used_recipe.label, outUsedCount);
+        if (outUsedCount[0] != used_items[0]?.count || outUsedCount[1] != used_items[1]?.count) {
             throw 'error_recipe_does_not_match_used_items_count';
         }
         return result;
