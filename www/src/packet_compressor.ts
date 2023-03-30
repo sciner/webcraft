@@ -307,6 +307,17 @@ export class OutPacketBuffer implements IOutPacketBuffer {
         return this
     }
 
+    /**
+     * Puts a value of any type that can be null.
+     * If it's null, a single bit is added to the boolean values; null itself isn't added.
+     */
+    putAnyOrNull(v: any | null | undefined): this {
+        if (this.putBoolean(v != null)) {
+            this.data.push(v)
+        }
+        return this
+    }
+
     putInt(v: int): this {
         if (Math.round(v) !== v || !isFinite(v)) {
             throw `incorrect int ${v}`
@@ -355,7 +366,7 @@ export class OutPacketBuffer implements IOutPacketBuffer {
             if (this.bitsIndex >= 0) {
                 this.data[this.bitsIndex] = this.bitsValue
             }
-            this.bitsIndex = this.data.length - 1
+            this.bitsIndex = this.data.length
             this.data.push(0)
             bitsCount = this.bitsCount = 0
             this.bitsValue = 0 | 0
@@ -390,6 +401,14 @@ export class InPacketBuffer implements IInPacketBuffer {
     get<T = any>(): T {
         this.checkRemaining()
         return this.data[this.index++]
+    }
+
+    getAnyOrNull<T = any>(): T | null {
+        if (this.getBoolean()) {
+            this.checkRemaining()
+            return this.data[this.index++]
+        }
+        return null
     }
 
     getInt(): int {

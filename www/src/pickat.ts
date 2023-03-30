@@ -13,8 +13,18 @@ const {mat4} = glMatrix;
 
 const half = new Vector(0.5, 0.5, 0.5);
 
+export interface ICmdPickatData extends IPickatEvent {
+    actions ?           : any // POJO of WorldAction
+    eye_pos ?           : IVector
+    snapshotId ?        : int // id of the blocks history snapshot on the client that should be restored if this action afails on server
+    changeExtraData ?   : boolean
+    extra_data ?        : any
+}
+
 export class PickAt {
     [key: string]: any;
+
+    private nextId = 0  // id of the next pickAt event, and the associated WorldAction
 
     constructor(world, render, onTarget, onInteractEntity, onInteractFluid) {
         this.world              = world;
@@ -75,6 +85,8 @@ export class PickAt {
 
     // setEvent...
     setEvent(player, e) {
+        this.nextId         = (this.nextId + 1) & 0x7FFFFFFF
+        e.id                = this.nextId
         e.start_time        = performance.now();
         e.destroyBlock      = e.button_id == MOUSE.BUTTON_LEFT;
         e.cloneBlock        = e.button_id == MOUSE.BUTTON_WHEEL;
@@ -197,7 +209,6 @@ export class PickAt {
         if(this.onTarget instanceof Function) {
             // полное копирование, во избежания модификации
             let event = {...damage_block.event};
-            event.id = unixTime();
             event.pos = {...damage_block.pos};
             event.pos.n = event.pos.n.clone();
             event.pos.point = event.pos.point.clone();
