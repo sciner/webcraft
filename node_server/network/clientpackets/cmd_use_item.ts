@@ -26,8 +26,8 @@ export default class packet_reader {
                 const params = {
                     type: "hook",
                     skin: "base",
-                    pos: player.state.pos,
-                    pos_spawn: player.state.pos,
+                    pos: player.state.pos.offset(0, 1, 0),
+                    pos_spawn: player.state.pos.offset(0, 1, 0),
                     rotate: player.state.rotate
                 }
                 player.fishing = player.world.mobs.create(params);
