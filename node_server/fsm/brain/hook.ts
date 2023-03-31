@@ -6,20 +6,59 @@ import { Weather } from "@client/block_type/weather.js";
 
 const FISH = [
     {
-        'name': 'SEA_LANTERN',
+        'name': 'COD',
         'weight': 60
     },
     {
-        'name': 'SEAGRASS',
+        'name': 'SALMON',
         'weight': 25
     },
     {
-        'name': 'ITEM_FRAME',
+        'name': 'ROPICAL_FISH',
         'weight': 2
     },
     {
         'name': 'PUFFERFISH',
         'weight': 13
+    }
+]
+
+const JUNK = [
+    {
+        'name': 'LILY_PAD',
+        'weight': 17
+    },
+    {
+        'name': 'FISHING_ROD',
+        'weight': 2
+    },
+    {
+        'name': 'LEATHER',
+        'weight': 2
+    },
+    {
+        'name': 'LEATHER_BOOTS',
+        'weight': 10
+    },
+    {
+        'name': 'ROTTEN_FLESH',
+        'weight': 10
+    },
+    {
+        'name': 'STICK',
+        'weight': 5
+    },
+    {
+        'name': 'STRING',
+        'weight': 5
+    },
+    {
+        'name': 'AWKWARD',
+        'weight': 10
+    },
+    {
+        'name': 'BONE',
+        'weight': 10
     }
 ]
 
@@ -171,6 +210,10 @@ export class Brain extends FSMBrain {
     }
 
     onFishing() {
+        this.mob.kill()
+        if (this.timer_catchable <= 0) {
+            return
+        }
         // @todo добавить чары удачи и удачи в море
         let  base = Math.random()
         const luck_of_sea = 0
@@ -179,10 +222,8 @@ export class Brain extends FSMBrain {
         let chance_two = .05 + luck_of_sea * .01 - lure * .01
         chance_one = Math.min(Math.max(0, chance_one), 1)
         chance_two = Math.min(Math.max(0, chance_two), 1)
-
-        const item = null
         if (base < chance_one) {
-            console.log('JUNK')
+            this.createDrop(this.getRandomItem(JUNK))
         } else {
             base -= chance_one
             if (base < chance_two) {
@@ -191,8 +232,6 @@ export class Brain extends FSMBrain {
                 this.createDrop(this.getRandomItem(FISH))
             }
         }
-        
-        this.mob.kill()
     }
 
     createDrop(title) {

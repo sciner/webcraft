@@ -10215,6 +10215,98 @@
             "texture": {
                 "side": "item/fishing_rod.png"
             }
+        },
+        {
+            "id": 1050,
+            "name": "COOKED_COD",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "food": {
+                "amount": 6,
+                "saturation": 0.3
+            },
+            "texture": "item/cooked_cod.png"
+        },
+        {
+            "id": 1051,
+            "name": "COD",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ],
+            "food": {
+                "amount": 2,
+                "saturation": 0.3
+            },
+            "coocked_item": {
+                "name": "COOKED_COD", 
+                "count": 1
+            },
+            "texture": "item/cod.png"
+        },
+        {
+            "id": 1052,
+            "name": "COOKED_SALMON",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "food": {
+                "amount": 6,
+                "saturation": 0.3
+            },
+            "texture": "item/cooked_salmon.png"
+        },
+        {
+            "id": 1053,
+            "name": "SALMON",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ],
+            "food": {
+                "amount": 2,
+                "saturation": 0.3
+            },
+            "coocked_item": {
+                "name": "COOKED_SALMON", 
+                "count": 1
+            },
+            "texture": "item/salmon.png"
+        },
+        {
+            "id": 1054,
+            "name": "TROPICAL_FISH",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ],
+            "food": {
+                "amount": 2,
+                "saturation": 0.3
+            },
+            "texture": "item/tropical_fish.png"
         }
     ]
 }
