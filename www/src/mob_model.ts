@@ -787,7 +787,6 @@ export class MobModel extends NetworkPhysicObject {
             mesh.draw(render, delta)
 
         } else {
-
             // If mob die
             if(this.isAlive === false) {
                 // first enter to this code
@@ -798,6 +797,9 @@ export class MobModel extends NetworkPhysicObject {
                         scale: Array.from(this.sceneTree[0].scale)
                     };
                     this.sneak = 1;
+                    if(this.extra_data.play_death_animation) {
+                        render.addParticles({type: 'cloud', pos: this.pos})
+                    }
                 }
                 const elapsed = performance.now() - this.die_info.time;
                 const max_die_animation_time = 1000;
@@ -809,7 +811,7 @@ export class MobModel extends NetworkPhysicObject {
                         if(!this.extra_data.play_death_animation) {
                             elapsed_percent = 1;
                         }
-                        for(let st of this.sceneTree) {
+                        for(const st of this.sceneTree) {
                             st.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
                             st.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
                             st.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);

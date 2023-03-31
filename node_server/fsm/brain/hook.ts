@@ -1,19 +1,19 @@
 import { FSMBrain } from "../brain.js";
-import { BLOCK } from "@client/blocks.js";
 import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
-import { EnumDamage } from "@client/enums/enum_damage.js";
-import { ServerClient } from "@client/server_client.js";
 import { PLAYER_STATUS } from "@client/constant.js";
+import { Weather } from "@client/block_type/weather.js";
 
 const FISH = [
     {
         'name': 'SEA_LANTERN',
         'weight': 60
-    },{
+    },
+    {
         'name': 'SEAGRASS',
         'weight': 25
-    },{
+    },
+    {
         'name': 'ITEM_FRAME',
         'weight': 2
     },
@@ -26,13 +26,11 @@ const FISH = [
 export class Brain extends FSMBrain {
 
     parent: any;
-
     timer_in_ground: number;
     timer_shake: number;
     timer_catchable: number;
     timer_caught_delay: number;
     timer_catchable_delay: number;
-    vel_y: number;
     velocity: Vector;
 
     constructor(mob) {
@@ -40,12 +38,13 @@ export class Brain extends FSMBrain {
         this.prevPos        = new Vector(mob.pos);
         this.lerpPos        = new Vector(mob.pos);
         this.pc             = this.createPlayerControl(this, {
-            baseSpeed: 0,
-            playerHeight: .4,
+            baseSpeed: 500,
+            playerHeight: .2,
             stepHeight: 0,
             playerHalfWidth: .08
         });
         this.pc.player_state.flying = true
+        mob.extra_data.play_death_animation = false
         
         this.health = 1; // максимальное здоровье
         
@@ -54,11 +53,11 @@ export class Brain extends FSMBrain {
         this.timer_caught_delay = 0
         this.timer_catchable_delay = 0
 
-        const power = .2
-        const mZ = Math.cos(mob.rotate.z) * Math.cos(mob.rotate.x) * power
-        const mX = Math.sin(mob.rotate.z) * Math.cos(mob.rotate.x) * power
-        const mY = Math.sin(mob.rotate.x) * 2 * power
-        this.velocity = new Vector(mX, mY, mZ)
+        const power = .4
+        const Z = Math.cos(mob.rotate.z) * Math.cos(mob.rotate.x) * power
+        const X = Math.sin(mob.rotate.z) * Math.cos(mob.rotate.x) * power
+        const Y = Math.sin(mob.rotate.x) * 2 * power
+        this.velocity = new Vector(X, Y, Z)
         this.stack.pushState(this.doStand)
     }
 
@@ -69,7 +68,6 @@ export class Brain extends FSMBrain {
     doStand(delta) {
         const mob = this.mob
         const player = this.mob.parent
-
         if (!player) {
             mob.kill()
             return
@@ -81,7 +79,6 @@ export class Brain extends FSMBrain {
             mob.kill()
             return
         }
-
         const ground = world.getBlock(mob.pos.floored())
         if (ground.id != 0) {
             if (this.timer_in_ground++ > 1200) {
@@ -89,18 +86,20 @@ export class Brain extends FSMBrain {
             }
             return
         }
-
-        let acceleration = 0.92
+        let acceleration = .8
         let force = 0
         // находим глубину погружения
         for (let i = 0; i < 10; i++) {
-            const water = world.getBlock(mob.pos.offset(0, i / 8, 0).floored())
+            const water = world.getBlock(mob.pos.offset(0, i / 10, 0).floored())
             if (water?.id == 0 && water.fluid != 0) {
-                force += .28
+                force += .27
             }
         }
         if (force > 0) {
             let bonus = 1
+            if (Math.random() < .25 && world.weather == Weather.RAIN) {
+                bonus = 2
+            }
             if (this.timer_catchable > 0) {
                 this.timer_catchable--
                 if (this.timer_catchable <= 0) {
@@ -113,7 +112,7 @@ export class Brain extends FSMBrain {
                     this.velocity.y -= 0.2
                     this.timer_catchable = (Math.random() * 20) | 0 + 10 
                     const actions = new WorldAction()
-                    actions.addParticles([{type: 'bubble_column', pos: mob.pos.offset(0, -1, 0)}])
+                    actions.addParticles([{type: 'bubble', pos: mob.pos}])
                     world.actions_queue.add(player, actions)
                     // тянем рыбу
                 } else {
@@ -181,6 +180,7 @@ export class Brain extends FSMBrain {
         chance_one = Math.min(Math.max(0, chance_one), 1)
         chance_two = Math.min(Math.max(0, chance_two), 1)
 
+        const item = null
         if (base < chance_one) {
             console.log('JUNK')
         } else {
@@ -188,10 +188,26 @@ export class Brain extends FSMBrain {
             if (base < chance_two) {
                 console.log('TREASURE')
             } else {
-                console.log(this.getRandomItem(FISH))
+                this.createDrop(this.getRandomItem(FISH))
             }
         }
+        
         this.mob.kill()
+    }
+
+    createDrop(title) {
+        const mob = this.mob
+        const player = this.mob.parent
+        const world = mob.getWorld()
+        const bm = world.block_manager
+        const block = bm.fromName(title)
+        if (!block) {
+            return
+        }
+        const actions = new WorldAction()
+        const pos = player.state.pos.add(player.forward)
+        actions.addDropItem({ pos: pos, items: [{ id: block.id, count: 1 }], force: true })
+        world.actions_queue.add(player, actions)
     }
 
     getRandomItem(list) {
@@ -207,5 +223,5 @@ export class Brain extends FSMBrain {
             } 
         }
     }
-    
+
 }

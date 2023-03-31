@@ -81,10 +81,6 @@ export class MobManager {
                                     time: cmd.time
                                 };
                                 mob.applyNetState(new_state);
-                                // частицы смерти
-                                if (new_state.extra_data && !new_state.extra_data.is_alive) {
-                                    Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
-                                }
                             } else {
                                 // Mob not found
                             }
