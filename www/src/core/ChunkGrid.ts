@@ -3,14 +3,13 @@ import { VectorCollector, Vector } from "../helpers.js";
 import {
     CHUNK_SIZE_X,
     CHUNK_SIZE_Y,
-    CHUNK_SIZE_Z
+    CHUNK_SIZE_Z,
+    NEIB_DX,
+    NEIB_DY,
+    NEIB_DZ,
 } from "../chunk_const.js";
 import {AABB} from "./AABB.js";
 import {Portal} from "./BaseChunk.js";
-
-export const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
-export const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
-export const dz = [0, 0, 1, -1, 0, 0, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
 
 /*
  * May contain a topology and not actual data
@@ -87,8 +86,8 @@ export class ChunkGrid {
     addSub(sub: DataChunk) {
         let addr = this.toChunkAddr(sub.pos);
         this.innerMap.add(addr, sub);
-        for (let i = 0; i < 26; i++) {
-            const neib = this.getXYZ(addr.x + dx[i], addr.y + dy[i], addr.z + dz[i]);
+        for (let i = 1; i < 27; i++) {
+            const neib = this.getXYZ(addr.x + NEIB_DX[i], addr.y + NEIB_DY[i], addr.z + NEIB_DZ[i]);
             if (!neib) {
                 continue;
             }

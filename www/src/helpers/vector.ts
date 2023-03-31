@@ -164,6 +164,10 @@ export class Vector implements IVector {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
     }
 
+    signIndex(): number {
+        return Math.sign(this.z) * 9 + Math.sign(this.x) * 3 + Math.sign(this.y) + 13;
+    }
+
     applyCubeSymSelf(cubeSym, origin : IVector = Vector.ZERO) {
         this.x -= origin.x;
         this.y -= origin.y;

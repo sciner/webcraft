@@ -50,6 +50,10 @@ export class ChunkRenderList {
     get centerChunkAddr() {
         return this.spiral.center;
     }
+
+    sortChunks() {
+
+    }
     /**
      * highly optimized
      */
