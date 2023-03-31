@@ -17,7 +17,7 @@ export default class packet_reader {
         if(!player.game_mode.canDropItems()) {
             return true;
         }
-        player.inventory.dropItem();
+        player.inventory.dropCurrentItem();
         return true;
     }
 

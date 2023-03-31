@@ -1,20 +1,20 @@
 import { BLOCK } from '../../blocks.js';
-import { BLOCK_FLAG } from '../../constant.js';
+import { BLOCK_FLAG, DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET, FAST } from '../../constant.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { BiomeTree, TREES } from '../biomes.js';
-import { WATER_LEVEL } from './terrain/manager_vars.js';
+import { DensityParams, WATER_LEVEL } from './terrain/manager_vars.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
 const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
-const TREE_FREQUENCY        = 0.015 * 32; // 0.48
-const PLANTS_FREQUENCY      = 0.015;
-const GRASS_FREQUENCY       = 0.015;
+const TREE_FREQUENCY        = 0.015 * 32 * (FAST ? 1/4 : 1); // 0.48
+const PLANTS_FREQUENCY      = 0.015 * (FAST ? 1/8 : 1);
+const GRASS_FREQUENCY       = 0.015 * (FAST ? 1/8 : 1);
 
-const DEFAULT_DIRT_COLOR = IndexedColor.GRASS; // new IndexedColor(82, 450, 0);
-const DEFAULT_WATER_COLOR = IndexedColor.WATER;
+const DEFAULT_DIRT_COLOR = IndexedColor.GRASS
+const DEFAULT_WATER_COLOR = IndexedColor.WATER
 
 const DESERT_BUILDINGS = {others: [
     {class: 'BuildingBlocks', max_count: 3, chance: .1, block_templates: ['waterwell', 'waterwell2']},
@@ -28,6 +28,55 @@ const TAIGA_BUILDINGS = {others: [
     {class: 'BuildingBlocks', max_count: Infinity, chance: .7, block_templates: ['farmer_house']},
     {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_house2']},
 ]}
+
+const NETHER_BUILDINGS = {
+    crossroad: [
+        {class: 'BuildingBlocks', max_count: Infinity, chance: 1, block_templates: ['nether_streetlight', 'nether_streetlight2']}
+    ],
+    others: [
+        {class: 'BuildingBlocks', max_count: 3, chance: .1, block_templates: ['waterwell', 'waterwell2']},
+        // {class: 'Farmland',       max_count: Infinity, chance: .2},
+        {class: 'BuildingBlocks', max_count: Infinity, chance: 0.6, block_templates: ['nether_house', 'nether_manor', 'tiny_nether_house']},
+        {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_nether_house']},
+    ]
+}
+
+const DEFAULT_RIVER_BOTTOM_BLOCKS = [
+    {value: 0, block_name: 'DIRT'},
+    {value: 0.3, block_name: 'GRAVEL'},
+    {value: 1, block_name: 'SAND'}
+]
+
+const DEFAULT_BIG_STONE_BLOCKS = [
+    {value: 0, block_name: 'TUFF'},
+    {value: .5, block_name: 'STONE'},
+    {value: 1, block_name: 'MOSSY_COBBLESTONE'}
+]
+
+const DEFAULT_PLANTS = {
+    frequency: PLANTS_FREQUENCY * 33.333,
+    list: [
+        {percent: .01, blocks: [{name: 'RED_TULIP'}]},
+        {percent: .02, blocks: [{name: 'DANDELION'}]}
+    ]
+}
+
+const DEFAULT_GRASS = {
+    frequency: GRASS_FREQUENCY * 33.333,
+    list: [
+        {percent: .0125, blocks: [{name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .1, max: .15}}},
+        {percent: .0125, blocks: [{name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .15, max: .2}}},
+        {percent: .725, blocks: [{name: 'GRASS'}]},
+        {percent: .05, blocks: [{name: 'WINDFLOWERS'}]},
+        {percent: .05, blocks: [{name: 'BURDOCK'}]},
+        {percent: .005, blocks: [{name: 'PEBBLES'}]},
+        {percent: .005, blocks: [{name: 'PINK_PETALS'}]},
+        {percent: .13, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]},
+        {percent: .005, blocks: [{name: 'PEONY'}, {name: 'PEONY', extra_data: {is_head: true}}]},
+        {percent: .005, blocks: [{name: 'LILAC'}, {name: 'LILAC', extra_data: {is_head: true}}]},
+        // {percent: .01, blocks: [{name: 'ROSE_BUSH'}, {name: 'ROSE_BUSH', extra_data: {is_head: true}}]},
+    ]
+}
 
 export class BiomeDirtLayer {
     blocks : int[] = []
@@ -109,12 +158,17 @@ export class Biome {
     temp:                       float
     humidity:                   float
     dirt_layers:                any[]
+    river_bottom_blocks:        IRiverBottomBlocks
+    big_stone_blocks:           IRiverBottomBlocks
+    blocks?:                    { [key: string]: IBlockMaterial; } = {}
 
     trees:                      any
     plants:                     any
     grass:                      any
     ground_block_generators:    ChunkGroundBlockGenerator[]
 
+    dirt_palette:               DirtPalette
+    grass_palette:              DirtPalette
     dirt_color:                 IndexedColor
     water_color:                IndexedColor
     no_smooth_heightmap:        boolean
@@ -126,14 +180,18 @@ export class Biome {
     is_swamp:                   boolean
     is_snowy:                   boolean
     is_grassy_surface:          boolean
+    is_underworld:              boolean
+    hanging_foliage_block_id:   any
 
-    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, ground_block_generators? : ChunkGroundBlockGenerator[], dirt_color? : IndexedColor, water_color? : IndexedColor, no_smooth_heightmap : boolean = false, building_options? : any) {
+    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, dirt_color : IndexedColor, water_color : IndexedColor, ground_block_generators? : ChunkGroundBlockGenerator[], no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks, big_stone_blocks ?: IRiverBottomBlocks, blocks ?: { [key: string]: string; }, dirt_palette? : DirtPalette) {
         this.id                         = id
         this.title                      = title
         this.temperature                = temperature
         this.temp                       = temperature
         this.humidity                   = humidity
         this.dirt_layers                = dirt_layers
+        this.river_bottom_blocks        = river_bottom_blocks
+        this.big_stone_blocks           = big_stone_blocks
         //
         this.trees                      = trees
         this.plants                     = plants
@@ -161,29 +219,91 @@ export class Biome {
                 if([BLOCK.GRASS_BLOCK.id].includes(block_id)) {
                     this.is_grassy_surface = true
                 }
+                if([BLOCK.NETHERRACK.id].includes(block_id)) {
+                    this.is_underworld = true
+                }
             }
         }
+        //
+        for(let block_set of [river_bottom_blocks, big_stone_blocks]) {
+            for(let item of block_set) {
+                if(!item.block) {
+                    item.block = BLOCK.fromName(item.block_name)
+                    if(!item.block) throw 'invalid_river_bottom_block'
+                }
+            }
+        }
+
+        this.blocks.hanging_foliage = this.is_snowy ? BLOCK.ICE : BLOCK.OAK_LEAVES
+
+        //
+        if(typeof dirt_palette == 'undefined') {
+            dirt_palette = DEFAULT_DIRT_PALETTE
+        }
+        this.dirt_palette = dirt_palette
+        this.grass_palette = {
+            x:              dirt_palette.x + GRASS_PALETTE_OFFSET.x,
+            y:              dirt_palette.y + GRASS_PALETTE_OFFSET.y,
+            w:              dirt_palette.w,
+            h:              dirt_palette.h,
+            noise_range:    dirt_palette.noise_range,
+        } as DirtPalette
+
+        if(blocks) {
+            for(let k in blocks) {
+                const block = BLOCK.fromName(blocks[k])
+                if(!block) throw 'invalid_river_bottom_block'
+                this.blocks[k] = block
+            }
+        }
+
+    }
+
+    getRiverBottomBlock(density_params : DensityParams, blocks? : IRiverBottomBlocks) : int {
+        let block_id = 0
+        if(!blocks) {
+            blocks = this.river_bottom_blocks
+        }
+        const d4 = density_params.d4
+        for(let i = 0; i < blocks.length; i++) {
+            const item = blocks[i]
+            if(d4 <= item.value) {
+                block_id = item.block.id
+            }
+        }
+        if(block_id == 0) {
+            throw 'error_river_bottom_block_not_selected'
+        }
+        return block_id
+    }
+
+    getBigStoneBlock(density_params : DensityParams) : int {
+        return this.getRiverBottomBlock(density_params, this.big_stone_blocks)
     }
 
 }
 
-export class Biomes {
-    noise2d:        any
-    scale:          number
-    octaves:        number
-    max_pow:        number
-    pows:           any[]
-    list:           any
-    byName:         any
-    byID:           any
-    biomes_palette: any
+declare type IRiverBottomBlocks = {value: float, block_name: string, block ?: IBlockMaterial}[]
 
-    constructor(noise2d) {
+export class Biomes {
+    noise2d:            any
+    scale:              number
+    octaves:            number
+    max_pow:            number
+    pows:               any[]
+    list:               any
+    byName:             Map<string, Biome>
+    byID:               any
+    biomes_palette:     any
+    filter_biome_list:  int[]
+
+    constructor(noise2d : Function, filter_biome_list : int[] = []) {
+        this.filter_biome_list = filter_biome_list
         this.noise2d = noise2d;
         this.scale = 512;
         TREES.init();
-        this.initBiomes();
-        this.calcPalette();
+        this.initBiomes()
+        this.calcPalette()
         //
         this.octaves = 6;
         this.max_pow = Math.pow(2, this.octaves);
@@ -207,18 +327,27 @@ export class Biomes {
     }
 
     addBiome(
-        id: int,
-        title : string,
-        temperature : float,
-        humidity: float,
-        dirt_layers? : any[],
-        trees? : any,
-        plants? : any,
-        grass? : any,
-        dirt_color? : IndexedColor,
-        water_color? : IndexedColor,
-        building_options? : any,
-        ground_block_generators? : any) {
+        id:                         int,
+        title:                      string,
+        temperature:                float,
+        humidity:                   float,
+        dirt_layers? :              any[],
+        trees?:                     any,
+        plants?:                    any,
+        grass?:                     any,
+        dirt_color?:                IndexedColor,
+        water_color?:               IndexedColor,
+        building_options?:          any,
+        ground_block_generators?:   any,
+        river_bottom_blocks?:       IRiverBottomBlocks,
+        blocks?:                    { [key: string]: string; },
+        dirt_palette?:              DirtPalette,
+        big_stone_blocks?:          IRiverBottomBlocks) : Biome | null {
+        
+        if(this.filter_biome_list.length > 0 && !this.filter_biome_list.includes(id)) {
+            return null
+        }
+
         // const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [
@@ -227,6 +356,7 @@ export class Biomes {
                 new BiomeDirtLayer([BLOCK.MOSS_BLOCK.id], BLOCK.STONE.id)
             ];
         }
+
         // trees
         if(!trees) {
             trees = {
@@ -247,32 +377,11 @@ export class Biomes {
         }
         // plants
         if(typeof plants == 'undefined') {
-            plants = {
-                frequency: .5,
-                list: [
-                    {percent: .01, blocks: [{name: 'RED_TULIP'}]},
-                    {percent: .02, blocks: [{name: 'DANDELION'}]}
-                ]
-            };
+            plants = DEFAULT_PLANTS
         }
         // grass
         if(typeof grass == 'undefined') {
-            grass = {
-                frequency: .5,
-                list: [
-                    {percent: .0125, blocks: [{name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .1, max: .15}}},
-                    {percent: .0125, blocks: [{name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}, {name: 'SUGAR_CANE'}], when: {y: {min: WATER_LEVEL, max: WATER_LEVEL + 2}, d3: {min: .15, max: .2}}},
-                    {percent: .725, blocks: [{name: 'GRASS'}]},
-                    {percent: .05, blocks: [{name: 'WINDFLOWERS'}]},
-                    {percent: .05, blocks: [{name: 'BURDOCK'}]},
-                    {percent: .005, blocks: [{name: 'PEBBLES'}]},
-                    {percent: .005, blocks: [{name: 'PINK_PETALS'}]},
-                    {percent: .13, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]},
-                    {percent: .005, blocks: [{name: 'PEONY'}, {name: 'PEONY', extra_data: {is_head: true}}]},
-                    {percent: .005, blocks: [{name: 'LILAC'}, {name: 'LILAC', extra_data: {is_head: true}}]},
-                    // {percent: .01, blocks: [{name: 'ROSE_BUSH'}, {name: 'ROSE_BUSH', extra_data: {is_head: true}}]},
-                ]
-            };
+            grass = DEFAULT_GRASS;
         }
         //
         for(let pack of [grass, plants, ground_block_generators]) {
@@ -290,7 +399,7 @@ export class Biomes {
                         b.id = block.id
                         b.is_petals = block.tags.includes('is_petals')
                         b.is_grass = block.is_grass
-                        b.is_flower = pack === plants
+                        b.is_flower = block.is_flower
                     }
                 }
             }
@@ -306,13 +415,22 @@ export class Biomes {
             }
         }
         //
-        dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
-        water_color = water_color ?? DEFAULT_WATER_COLOR;
+        if(typeof river_bottom_blocks == 'undefined') {
+            river_bottom_blocks = DEFAULT_RIVER_BOTTOM_BLOCKS
+        }
+        //
+        if(typeof big_stone_blocks == 'undefined') {
+            big_stone_blocks = DEFAULT_BIG_STONE_BLOCKS
+        }
+        //
+        dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR
+        water_color = water_color ?? DEFAULT_WATER_COLOR
         const no_smooth_heightmap = true;
-        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, ground_block_generators, dirt_color, water_color, no_smooth_heightmap, building_options);
+        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, ground_block_generators, no_smooth_heightmap, building_options, river_bottom_blocks, big_stone_blocks, blocks, dirt_palette)
         this.list.push(biome);
         this.byName.set(title, biome);
         this.byID.set(biome.id, biome);
+        return biome
     }
 
     initBiomes() {
@@ -347,7 +465,6 @@ export class Biomes {
         this.addBiome(30, 'Заснеженная тайга', -0.8, 0.4,            snow_dirt_layers, {
             frequency: TREE_FREQUENCY * 2,
             list: [
-                // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                 {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
                 {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
@@ -369,18 +486,18 @@ export class Biomes {
                 {percent: .0025, blocks: [{name: 'PEBBLES'}]},
                 {percent: .011, blocks: [{name: 'LARGE_FERN'}, {name: 'LARGE_FERN', extra_data: {is_head: true}}]},
             ]
-        }, new IndexedColor(200, 510, 0), new IndexedColor(255, 255, 0), TAIGA_BUILDINGS);
+        }, new IndexedColor(100, 383, 0), new IndexedColor(255, 255, 0), TAIGA_BUILDINGS);
         this.addBiome(31, 'Заснеженная холмистая тайга', -0.5, 0.4,  snow_dirt_layers, {
             frequency: TREE_FREQUENCY / 4,
             list: [
-                // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
+                // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, basis: BLOCK.SAND.id, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                 {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
                 {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
                 {...TREES.SPRUCE, percent: 0.681 + 0.150, height: {min: 6, max: 11}}
             ]
-        }, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
-        this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4, snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
+        }, null, snow_grass, new IndexedColor(116, 383, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
+        this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4, snow_dirt_layers, null, null, snow_grass, new IndexedColor(116, 383, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
         this.addBiome(26, 'Заснеженный пляж', -0.05, 0.3, [new BiomeDirtLayer([BLOCK.SANDSTONE.id, BLOCK.STONE.id], BLOCK.SNOW.id), new BiomeDirtLayer([BLOCK.STONE.id], BLOCK.SNOW.id)], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
         // this.addBiome('Замерзшая река', 0. -0.2);
         // this.addBiome('Замерзший океан', 0. -0.1);
@@ -393,7 +510,7 @@ export class Biomes {
                 {...TREES.OAK, percent: .95, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
                 {...TREES.BIG_OAK, percent: .05}
             ]
-        }, undefined, undefined, new IndexedColor(75, 435, 0));
+        }, undefined, undefined, new IndexedColor(37, 345, 0));
         this.addBiome(129, 'Подсолнечниковые равнины', 0.8, 0.4);
         this.addBiome(4, 'Лес', 0.7, 0.8, null, {
             frequency: TREE_FREQUENCY * 3,
@@ -415,7 +532,7 @@ export class Biomes {
                 {...TREES.BIG_OAK, percent: .008, trunk: TREES.BIRCH.trunk, leaves: TREES.BIRCH.leaves},
                 {...TREES.RED_MUSHROOM, percent: .002, height: {min: 8, max: 12}},
             ]
-        }, undefined, undefined, new IndexedColor(70, 370, 0));
+        }, undefined, undefined, new IndexedColor(35, 313, 0));
         this.addBiome(28, 'Холмистый березняк', 0.6, 0.6);
         this.addBiome(155, 'Крупномерный березняк', 0.6, 0.6);
         this.addBiome(156, 'Крупномерный холмистый березняк', 0.6, 0.6);
@@ -444,7 +561,7 @@ export class Biomes {
                 {percent: .005, blocks: [{name: 'PINK_PETALS'}]},
                 {percent: .14, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]}
             ]
-        }, new IndexedColor(140, 480, 0), new IndexedColor(1, 254, 0));
+        }, new IndexedColor(70, 368, 0), new IndexedColor(1, 254, 0));
         this.addBiome(134, 'Холмистое болото', 0.8, 0.9);
         this.addBiome(16, 'Пляж', 0.8, 0.4, [new BiomeDirtLayer([BLOCK.SANDSTONE.id, BLOCK.SAND.id]), new BiomeDirtLayer([BLOCK.STONE.id])]);
         // this.addBiome('Река', 0.5, 0.5);
@@ -484,7 +601,7 @@ export class Biomes {
                     {percent: .005, blocks: [{name: 'MELON', not_transparent: true}]},
                     {percent: .005, blocks: [{name: 'DANDELION'}]}
                 ]
-            }, new IndexedColor(32, 345, 0), new IndexedColor(20, 140, 0));
+            }, new IndexedColor(16, 300, 0), new IndexedColor(20, 140, 0));
         this.addBiome(149, 'Рельефные джунгли', 0.95, 0.9);
         this.addBiome(22, 'Холмистые джунгли', 0.95, 0.9);
         this.addBiome(23, 'Окраина джунглей', 0.95, 0.8, undefined, {
@@ -511,7 +628,7 @@ export class Biomes {
                     {percent: .3, blocks: [{name: 'GRASS'}]},
                     {percent: .5, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]},
                 ]
-            }, new IndexedColor(32, 345, 0), new IndexedColor(20, 140, 0), undefined, {
+            }, new IndexedColor(16, 300, 0), new IndexedColor(20, 140, 0), undefined, {
                 frequency: GRASS_FREQUENCY * 10,
                 list: [
                     new BambooGenerator(1)
@@ -542,7 +659,7 @@ export class Biomes {
             {
                 frequency: TREE_FREQUENCY / 10,
                 list: [
-                    new BiomeTree(BLOCK.CACTUS.id, null, 'cactus', {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
+                    new BiomeTree('CACTUS', null, 'cactus', {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1, false, BLOCK.SAND.id)
                 ]
             },
             {
@@ -561,7 +678,7 @@ export class Biomes {
             {
                 frequency: TREE_FREQUENCY / 2,
                 list: [
-                    new BiomeTree(BLOCK.CACTUS.id, null, 'cactus', {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
+                    new BiomeTree('CACTUS', null, 'cactus', {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}, 1)
                 ]
             },
             {
@@ -580,7 +697,7 @@ export class Biomes {
                 {...TREES.ACACIA, percent: .9, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
                 {...TREES.ACACIA, percent: .1, height: {min: TREE_MIN_HEIGHT, max: 1}},
             ]
-        }, null, undefined, new IndexedColor(0, 510, 0), new IndexedColor(128, 194, 0));
+        }, null, undefined, new IndexedColor(0, 383, 0), new IndexedColor(128, 194, 0));
         this.addBiome(36, 'Плато саванны', 1, 0, undefined, {
             frequency: TREE_FREQUENCY,
             list: [
@@ -589,9 +706,9 @@ export class Biomes {
                 // {percent: .05, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
                 // {percent: .05, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
             ]
-        }, null, undefined, new IndexedColor(0, 510, 0), new IndexedColor(128, 194, 0));
-        this.addBiome(163, 'Выветренная саванна', 1.1, 0, undefined, undefined, undefined, undefined, new IndexedColor(0, 510, 0), new IndexedColor(128, 194, 0));
-        this.addBiome(164, 'Плато выветренной саванны', 1, 0, undefined, undefined, undefined, undefined, new IndexedColor(0, 510, 0), new IndexedColor(128, 194, 0));
+        }, null, undefined, new IndexedColor(0, 383, 0), new IndexedColor(128, 194, 0));
+        this.addBiome(163, 'Выветренная саванна', 1.1, 0, undefined, undefined, undefined, undefined, new IndexedColor(0, 383, 0), new IndexedColor(128, 194, 0));
+        this.addBiome(164, 'Плато выветренной саванны', 1, 0, undefined, undefined, undefined, undefined, new IndexedColor(0, 383, 0), new IndexedColor(128, 194, 0));
         this.addBiome(37, 'Пустошь', 2, 0);
         this.addBiome(165, 'Выветренная пустошь', 2, 0);
         this.addBiome(39, 'Плато пустоши', 2, 0);
@@ -609,6 +726,61 @@ export class Biomes {
         */
 
         this.addBiome(500, 'Летающие острова', .911, .911);
+        this.addBiome(
+            501,
+            'Эреб',
+            .912,
+            .912,
+            [
+                new BiomeDirtLayer([BLOCK.NETHERRACK.id])
+            ],
+            {
+                frequency: .4,
+                list: [
+                    {percent: .2, trunk: BLOCK.ANCIENT_DEBRIS.id, leaves: BLOCK.WARPED_FENCE.id, basis: BLOCK.NETHERRACK.id, style: 'peak', height: {min: CACTUS_MIN_HEIGHT * 2, max: CACTUS_MAX_HEIGHT * 3}},
+                    // {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    // {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
+                    {percent: .3, trunk: BLOCK.GLOWSTONE.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    // {percent: .333, trunk: BLOCK.MAGMA_BLOCK.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    {...TREES.RED_MUSHROOM, percent: .2, height: {min: 8, max: 12}, basis: null},
+                    {...TREES.OAK, percent: .1, trunk: BLOCK.CRIMSON_STEM.id, leaves: BLOCK.SHROOMLIGHT.id, basis: null},
+                    {percent: .2, trunk: BLOCK.SHROOMLIGHT.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    // {...TREES.SPRUCE, percent: 0.681 + 0.150, height: {min: 6, max: 11}}
+                ]
+            },
+            {
+                frequency: PLANTS_FREQUENCY / 1,
+                list: [
+                    {percent: .1, blocks: [{name: 'PEBBLES'}]},
+                    // {percent: .1, blocks: [{name: 'FIRE', extra_data: {up: true, age: .5}}]}
+                ]
+            },
+            {
+                frequency: .1,
+                list: [
+                    {percent: .1, blocks: [{name: 'GRASS'}]},
+                ]
+            },
+            new IndexedColor(0, 511, 0),
+            new IndexedColor(12, 268, 0),
+            NETHER_BUILDINGS,
+            undefined,
+            [
+                {value: 1, block_name: 'BEDROCK'}
+            ],
+            {
+                hanging_foliage:    'ANCIENT_DEBRIS',
+                basement:           'NETHERRACK',
+                dirt_path:          'NETHER_BRICKS',
+                caves_second:       'NETHER_BRICKS',
+            },
+            {x: 0, y : 384, w: 128, h : 128, noise_range: 10} as DirtPalette,
+            [
+                {value: 0, block_name: 'SMOOTH_BASALT'},
+                {value: .5, block_name: 'NETHER_BRICKS'},
+                {value: 1, block_name: 'SOUL_SAND'}
+            ]
+        );
 
     }
 

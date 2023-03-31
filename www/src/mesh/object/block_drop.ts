@@ -17,6 +17,8 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
     static mesh_groups_cache = new Map();
 
+    mesh_group : MeshGroup
+
     // Constructor
     constructor(gl, entity_id, items, pos, matrix?, pivot?, use_cache = false) {
 
@@ -59,14 +61,14 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             }
 
             // MeshGroup
-            this.mesh_group = new MeshGroup();
+            this.mesh_group = new MeshGroup()
 
             // 1. First main block
-            this.mesh_group.addBlock(new Vector(0, 0, 0), this.block);
+            this.mesh_group.addBlock(Vector.ZERO, this.block)
 
             // 2. Add couples block
             if(['fence', 'wall'].includes(block.style_name)) {
-                this.mesh_group.addBlock(new Vector(1, 0, 0), new FakeTBlock(block.id));
+                this.mesh_group.addBlock(Vector.XP, new FakeTBlock(block.id));
             }
 
             // 3. Add all block parts
@@ -96,7 +98,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
             // 6. Draw all blocks
             matrix = matrix || mat4.create();
-            this.mesh_group.buildVertices(x, y, z, true, matrix, pivot);
+            this.mesh_group.buildVertices(x, y, z, true, matrix, pivot)
 
             if(block?.extra_data?.enchantments) {
                 for(const mesh of this.mesh_group.meshes.values()) {

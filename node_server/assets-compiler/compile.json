@@ -319,6 +319,12 @@
                 "side": null,
                 "up": 0,
                 "down": 0
+            },
+            "light_power": {
+                "r": 255,
+                "g": 32,
+                "b": 35,
+                "a": 64
             }
         },
         {
@@ -341,6 +347,8 @@
                 "id": "wood"
             },
             "tags": [
+                "#decore",
+                "#lightning",
                 "no_drop_ao"
             ],
             "light_power": {
@@ -2777,6 +2785,7 @@
             },
             "texture": "block/brewing_stand.png",
             "tags": [
+                "#brewing",
                 "no_drop_ao"
             ],
             "chest": {
@@ -4433,6 +4442,9 @@
             "texture": {
                 "side": "item/wooden_sword.png"
             },
+            "tags": [
+                "#combat"
+            ],
             "light": null
         },
         {
@@ -4452,6 +4464,9 @@
             "texture": {
                 "side": "item/stone_sword.png"
             },
+            "tags": [
+                "#combat"
+            ],
             "light": null
         },
         {
@@ -4471,6 +4486,9 @@
             "texture": {
                 "side": "item/iron_sword.png"
             },
+            "tags": [
+                "#combat"
+            ],
             "light": null
         },
         {
@@ -4490,6 +4508,9 @@
             "texture": {
                 "side": "item/golden_sword.png"
             },
+            "tags": [
+                "#combat"
+            ],
             "light": null
         },
         {
@@ -4509,6 +4530,9 @@
             "texture": {
                 "side": "item/diamond_sword.png"
             },
+            "tags": [
+                "#combat"
+            ],
             "light": null
         },
         {
@@ -4528,6 +4552,9 @@
             "texture": {
                 "side": "item/netherite_sword.png"
             },
+            "tags": [
+                "#combat"
+            ],
             "light": null
         },
         {
@@ -4772,6 +4799,7 @@
             "texture": "block/iron_bars.png",
             "can_rotate": true,
             "tags": [
+                "lattice",
                 "alpha",
                 "no_drop_ao"
             ]
@@ -4996,6 +5024,7 @@
                 "id": "dust"
             },
             "tags": [
+                "magic_ingridient",
                 "set_only_fullface",
                 "no_drop_ao"
             ]
@@ -5853,6 +5882,9 @@
             "style": "extruder",
             "texture": "item/rabbit_foot.png",
             "item": {"name": "leather"},
+            "tags": [
+                "magic_ingridient"
+            ],
             "material": {
                 "id": "leather"
             }
@@ -6048,6 +6080,9 @@
             "style": "extruder",
             "texture": "item/gunpowder.png",
             "item": {"name": "powder"},
+            "tags": [
+                "magic_ingridient"
+            ],
             "material": {
                 "id": "powder"
             }
@@ -7159,6 +7194,7 @@
             "can_rotate": true,
             "style": "end_rod",
             "tags": [
+                "#decore",
                 "rotate_by_pos_n_6",
                 "no_drop_ao"
             ],
@@ -7949,6 +7985,7 @@
             "transparent": true,
             "texture": "item/armor_stand.png",
             "tags":[
+                "#decore",
                 "rotate_x16",
                 "no_drop_ao"
             ]
@@ -8720,6 +8757,9 @@
             "texture": "item/blaze_powder.png",
             "item": {"name": "blaze_powder"},
             "fuel_time": 80,
+            "tags": [
+                "magic_ingridient"
+            ],
             "material": {
                 "id": "wood"
             }
@@ -8800,6 +8840,9 @@
             "style": "extruder",
             "texture": "item/fermented_spider_eye.png",
             "item": {"name": "powder"},
+            "tags": [
+                "magic_ingridient"
+            ],
             "material": {
                 "id": "powder"
             }
@@ -8810,6 +8853,9 @@
             "style": "extruder",
             "texture": "item/glistering_melon_slice.png",
             "item": {"name": "powder"},
+            "tags": [
+                "magic_ingridient"
+            ],
             "material": {
                 "id": "powder"
             }
@@ -8851,6 +8897,9 @@
             "style": "extruder",
             "texture": "item/magma_cream.png",
             "item": {"name": "powder"},
+            "tags": [
+                "magic_ingridient"
+            ],
             "material": {
                 "id": "powder"
             }
@@ -8888,6 +8937,7 @@
                 "id": "food"
             },
             "tags": [
+                "magic_ingridient",
                 "can_put_into_pot"
             ],
             "food": {

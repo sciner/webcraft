@@ -63,11 +63,12 @@ const setFromUnitVectors = (q, vFrom, vTo ) => {
 }
 
 export class ModelSlot {
-    [key: string]: any;
-    constructor(name = '', parent = null) {
-        /**
-         * @type { SceneNode }
-         */
+    holder: SceneNode;
+    id: number;
+    name: string;
+
+    constructor(name : string = '', parent = null) {
+
         this.holder = new SceneNode(parent);
         this.holder.position.set(parent.pivot);
 
@@ -182,7 +183,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    changeSlotEntry(name, props) {
+    changeSlotEntry(name : string, props) {
         if (!name || !props) {
             return;
         }
@@ -258,7 +259,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         slot.holder.scale.set([scale, scale, scale]);
-        slot.holder.pivot.set([0, 0, scale / 2]);
+        // slot.holder.pivot.set([0, 0, scale / 2]);
         slot.holder.updateMatrix();
     }
 
@@ -323,7 +324,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         this.updateArmSwingProgress(delta);
-        if (!this.isRenderable || this.distance == null) {
+        if (!this.isRenderable) {
             return;
         }
 
@@ -333,7 +334,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         this.nametag.visible = !this.sneak && !this.hide_nametag
 
-        if (!this.nametag.visible) {
+        if (!this.nametag.visible || this.distance == null) {
             return;
         }
 

@@ -12,6 +12,7 @@ const CALC_SET_DX_WHERE_LIST = ['d1', 'd2', 'd3', 'd4']
 export class TerrainMapCell extends Default_Terrain_Map_Cell {
 
     blocks_good_for_plants : int[]
+    blocks_good_for_grass : int[]
 
     constructor(value : int, humidity : float, temperature : float, biome : Biome, dirt_block_id : int) {
         super(biome);
@@ -22,7 +23,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         this.equator                = Math.round(temperature * 100000) / 100000;
         this.dirt_block_id          = dirt_block_id;
         this.blocks_good_for_plants = [BLOCK.GRASS_BLOCK.id, BLOCK.SNOW_DIRT.id, BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.MOSS_BLOCK.id]
-        this.blocks_good_for_grass  = [BLOCK.GRASS_BLOCK.id, BLOCK.MOSS_BLOCK.id]
+        this.blocks_good_for_grass  = [BLOCK.GRASS_BLOCK.id, BLOCK.MOSS_BLOCK.id, BLOCK.NETHERRACK.id]
     }
 
     genPlantOrGrass(x : int, y : int, z : int, xyz : Vector, size : Vector, block_id : int, rnd, density_params : DensityParams, chunk? : ChunkWorkerChunk) {
@@ -32,7 +33,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
 
         let plant_blocks = null
 
-        if((biome.plants || biome.grass) && this.blocks_good_for_plants.includes(block_id)) {
+        // if((biome.plants || biome.grass) && this.blocks_good_for_plants.includes(block_id)) {
 
             let r = rnd.double()
             let r2 = rnd.double()
@@ -49,10 +50,11 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
                 plant_blocks = this.calcSet(r, y, size, biome.grass, xyz, density_params, r2, chunk)
             }
 
-        }
+        // }
 
         if(plant_blocks) {
-            if(plant_blocks[0].is_grass || plant_blocks[0].is_flower || plant_blocks[0].is_petals) {
+            const first_block = plant_blocks[0]
+            if(first_block.is_grass || first_block.is_flower || first_block.is_petals) {
                 if(!this.blocks_good_for_grass.includes(block_id)) {
                     return null
                 }

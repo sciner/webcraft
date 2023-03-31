@@ -2,9 +2,11 @@ import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
     INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS } from "./constant.js";
 import { BLOCK } from "./blocks.js"
-import { InventoryComparator } from "./inventory_comparator.js";
+import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
 import type { CraftTableSlot } from "./window/base_craft_window.js";
+import type {SimpleBlockSlot} from "./vendors/wm/wm.js"
+import type {PlayerInventory} from "./player_inventory.js";
 
 export const INVENTORY_CHANGE_NONE = 0;
 // it may be adding or subtracting drag item from a slot, if slotIndex >= 0
@@ -13,28 +15,56 @@ export const INVENTORY_CHANGE_MERGE_SMALL_STACKS = 2;
 export const INVENTORY_CHANGE_CLOSE_WINDOW = 3;
 export const INVENTORY_CHANGE_SHIFT_SPREAD = 4;
 
-export class Inventory {
-    [key: string]: any;
+/** A parameter used in the inventory constructors */
+export type TInventoryState = {
+    current: {
+        index: int
+        index2: int
+    }
+    items: (IInventoryItem | null)[]
+}
+
+export type TInventoryStateChangeMessage = {
+    state: TInventoryState
+    used_recipes?: TUsedRecipe[]
+    recipe_manager_type?: string
+    thrown_items?: (IInventoryItem | null)[] | null
+    throw_yaw?: float
+    dont_check_equal?: boolean
+}
+
+/** A base class for ServerPlayerInventory and the client inventory {@link PlayerInventory} */
+export abstract class Inventory {
+
+    private static tmpMapUpdated = new Map<int, int>()
+    private static tmpMapAdded = new Map<int, IInventoryItem>()
+
+    block_manager: BLOCK
     player: Player
+    current: {
+        index: int
+        index2: int
+    }
+    items: (IInventoryItem | null)[]
 
-    temp_vec = new Vector();
+    private readonly count      : int
+    protected temp_vec            = new Vector();
+    private _update_number      = 0
+    onSelect                    = (item: IInventoryItem) => {}
+    private inventory_ui_slots : SimpleBlockSlot[] = []
 
-    constructor(player : Player, state : any) {
+    // TODO maybe remove these fields; they are redundant
+    readonly max_count          = INVENTORY_SLOT_COUNT
+    readonly max_visible_count  = INVENTORY_VISIBLE_SLOT_COUNT
+    readonly hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT
+
+    constructor(player : Player, state : TInventoryState) {
         this.count              = state.items.length;
         this.player             = player;
         this.block_manager      = player.world.block_manager;
         this.current            = state.current;
         this.items              = new Array(this.count); // state.items;
-        this.max_count          = INVENTORY_SLOT_COUNT;
-        this.max_visible_count  = INVENTORY_VISIBLE_SLOT_COUNT;
-        this.hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT;
-        this._update_number     = 0
-        this.onSelect           = (item) => {};
         this.applyNewItems(state.items, false)
-        /**
-         * @type { import("ui/wm.js").SimpleBlockSlot[] } slot
-         */
-        this.inventory_ui_slots = []
     }
 
     get update_number() {
@@ -86,7 +116,7 @@ export class Inventory {
     }
 
     // Return current active item in hotbar
-    get current_item() {
+    get current_item(): IInventoryItem | null {
         return this.items[this.current.index];
     }
 
@@ -104,45 +134,47 @@ export class Inventory {
         this.update_number++
     }
 
-    // Increment
-    increment(mat, no_update_if_remains?: boolean): boolean {
-        if(!mat.id) {
+    /**
+     * Adds {@link src} to an existing slot, or to a new slot.
+     * @param no_update_if_remains - if it's true, and the item can be added only partially, then nothing changes
+     * @param updateSource - if it's true, and there is a change, src.count will be updated (decremented)
+     * @returns true if anything changed
+     */
+    increment(src: IInventoryItem, no_update_if_remains?: boolean, updateSource?: boolean): boolean {
+        if(!src.id) {
             throw 'error_empty_block_id';
         }
-        mat.id = parseInt(mat.id);
-        mat.count = parseInt(mat.count);
-        if(mat.count < 1) {
+
+        // is it necessary? can it ever be a string?
+        src.id = parseInt(src.id as any);
+        src.count = parseInt(src.count as any);
+
+        if(src.count < 1) {
             throw 'error_increment_value_less_then_one';
         }
-        const block = this.block_manager.fromId(mat.id);
-        if(!block) {
+        if(!this.block_manager.fromId(src.id)) {
             throw 'error_invalid_block_id';
         }
         no_update_if_remains = !!no_update_if_remains;
-        mat = this.block_manager.convertItemToInventoryItem(mat);
+        const mat = this.block_manager.convertItemToInventoryItem(src);
         //
-        const updated = new Map();
-        const added = new Map();
-        const item_max_count = block.max_in_stack;
+        const updated = Inventory.tmpMapUpdated
+        updated.clear()
+        const added = Inventory.tmpMapAdded
+        added.clear()
+        const item_max_count = this.block_manager.getItemMaxStack(mat)
         // 1. update cell if exists
         let need_refresh = false;
-        if(!mat.entity_id) {
+        if(item_max_count > 1) {
             for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; i++) {
                 const item = this.items[i];
-                if(item) {
-                    if(InventoryComparator.itemsEqualExceptCount(item, mat)) {
-                        if(item.count < item_max_count) {
-                            if(item.count + mat.count <= item_max_count) {
-                                updated.set(i, Math.min(item.count + mat.count, item_max_count));
-                                mat.count = 0;
-                                need_refresh = true;
-                                break;
-                            } else {
-                                mat.count = (item.count + mat.count) - item_max_count;
-                                updated.set(i, item_max_count);
-                                need_refresh = true;
-                            }
-                        }
+                if(item && item.count < item_max_count && InventoryComparator.itemsEqualExceptCount(item, mat)) {
+                    need_refresh = true
+                    const delta = Math.min(mat.count, item_max_count - item.count)
+                    updated.set(i, item.count + delta)
+                    mat.count -= delta
+                    if (mat.count === 0) {
+                        break
                     }
                 }
             }
@@ -169,15 +201,16 @@ export class Inventory {
             return false;
         }
         if(need_refresh) {
+            if (updateSource) {
+                src.count = mat.count
+            }
             // updated
             for(let [i, count] of updated.entries()) {
-                i = parseInt(i);
-                this.items[i | 0].count = count;
+                this.items[i].count = count;
             }
             // added
             let select_index = -1;
             for(let [i, item] of added.entries()) {
-                i = parseInt(i);
                 this.items[i] = item;
                 if(i == this.current.index) {
                     select_index = i;
@@ -372,7 +405,7 @@ export class Inventory {
     }
 
     // Return items from inventory
-    exportItems() {
+    exportItems(): TInventoryState {
         const resp = {
             current: {
                 index: this.current.index,
@@ -407,7 +440,7 @@ export class Inventory {
     }
 
     // Refresh
-    refresh(resend : boolean) {
+    refresh(resend : boolean): true {
         return true;
     }
 
@@ -474,7 +507,7 @@ export class Inventory {
             if(!this.items[k]) {
                 this.items[k] = Object.assign({count: 1}, cloned_block);
                 delete(this.items[k].texture);
-                this.select(parseInt(k));
+                this.select(k);
                 return this.refresh(true);
             }
         }
@@ -495,7 +528,7 @@ export class Inventory {
             let k = this.current.index;
             this.items[k] = Object.assign({count: 1}, cloned_block);
             delete(this.items[k].texture);
-            this.select(parseInt(k));
+            this.select(k);
             return this.refresh(true);
         }
     }
@@ -536,10 +569,9 @@ export class Inventory {
 
     /**
      * Deletes items with count = 0.
-     * @param {Array|Object} items
-     * @reurn null if nothing is deleted, or an error String
+     * @return null if nothing is deleted, or an error string
      */
-    static fixZeroCount(items) {
+    static fixZeroCount(items: (IInventoryItem | null)[] | Dict<IInventoryItem>): null | string {
         let res = null;
         for(let i in items) {
             const item = items[i];
@@ -551,7 +583,7 @@ export class Inventory {
         return res;
     }
 
-    fixZeroCount() {
+    fixZeroCount(): null | string {
         return Inventory.fixZeroCount(this.items);
     }
 

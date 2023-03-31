@@ -1,15 +1,33 @@
 import {BLOCK} from "./blocks.js";
-import {RecipeManager} from "./recipes.js";
+import {RecipeManager, TUsedCraftingRecipe} from "./recipes.js";
 import {ObjectHelpers, ArrayOrMap, ArrayOrScalar} from "./helpers.js"
-import { AnvilRecipeManager } from "./recipes_anvil.js";
+import {AnvilRecipeManager, TUsedAnvilRecipe} from "./recipes_anvil.js";
+
+/**
+ * Describes one recipe applied to the inventory.
+ * The exact fields differ slight depending on the recipe manager used,
+ * see {@link AnvilRecipeManager.applyUsedRecipe}, {@link RecipeManager.applyUsedRecipe}
+ */
+export type TUsedRecipe = (TUsedCraftingRecipe | TUsedAnvilRecipe) & {
+    onCraftedData ? : {             // the result of the recipe, server-only
+        block_id: int
+        count: int
+    }
+}
+
+export interface IRecipeManager<RecipeT = any> {
+    getRecipe(recipe_id: int | string): RecipeT | null | undefined
+    applyUsedRecipe(used_recipe: TUsedRecipe, recipe: RecipeT, used_items: IInventoryItem[]): IInventoryItem | null
+}
+
+/** Describes requirements for an item (e.g. used in recipes) */
+export type TItemNeeds = int[] | int | IInventoryItem
 
 export class InventoryComparator {
-    [key: string]: any;
 
-    // The values can be either classes, of async functions that return classes (for lazy initialization)
-    static recipeManagers = {
+    static recipeManagers: { [key: string]: (() => Promise<IRecipeManager>) | IRecipeManager } = {
         'crafting':
-            async function() {
+            async function(): Promise<IRecipeManager> {
                 const rm = new RecipeManager();
                 await rm.load(() => {});
                 return rm;
@@ -17,11 +35,11 @@ export class InventoryComparator {
         'anvil': new AnvilRecipeManager()
     };
 
-    static itemsEqual(itemA, itemB) {
+    static itemsEqual(itemA: IInventoryItem, itemB: IInventoryItem): boolean {
         return ObjectHelpers.deepEqual(itemA, itemB);
     }
 
-    static itemsEqualExceptCount(itemA, itemB) {
+    static itemsEqualExceptCount(itemA: IInventoryItem, itemB: IInventoryItem): boolean {
         if (itemA == null) {
             return itemB == null;
         }
@@ -32,11 +50,7 @@ export class InventoryComparator {
             ObjectHelpers.deepEqual(itemA.extra_data, itemB.extra_data);
     }
 
-    /**
-     * @param { object } item
-     * @param {(Array of Int)|Int|Object} needs - array of item ids, an item id, or an item
-     */
-    static itemMatchesNeeds(item, needs) {
+    static itemMatchesNeeds(item: IInventoryItem, needs: TItemNeeds): boolean {
         if (item == null) {
             return false;
         }
@@ -49,7 +63,7 @@ export class InventoryComparator {
         }
         return Array.isArray(needs)
             ? needs.includes(item.id)
-            : this.itemsEqualExceptCount(item, needs);
+            : this.itemsEqualExceptCount(item, needs as IInventoryItem);
     }
 
     /**
@@ -57,7 +71,7 @@ export class InventoryComparator {
      * if it's equal for 2 items, then these items are the identical for all pratical
      * purposes, and could be in the same stack (if their stack size were > 1).
      */
-    static makeItemCompareKey(item) {
+    static makeItemCompareKey(item: IInventoryItem): string {
         if('entity_id' in item && item.entity_id) {
             // если есть entity id, то нужно брать только это поле
             return item.entity_id;
@@ -75,19 +89,21 @@ export class InventoryComparator {
     }
 
     /** Compares lists exactly - item stacks must match. */
-    static listsExactEqual(listA, listB) {
+    static listsExactEqual(listA: (IInventoryItem | null)[] | Dict<IInventoryItem>,
+                           listB: (IInventoryItem | null)[] | Dict<IInventoryItem>): boolean {
         return ObjectHelpers.deepEqual(listA, listB);
     }
 
     /**
      * Sanitizes (see {@link BLOCK.sanitizeAndValidateInventoryItem}) and validates
-     * the items from the client.
-     * @param {Array or Object} list - the items
-     * @param { object } keysObject - optional - provides keys that are being processed.
+     * the items from the client. Invalid items are removed from the list.
+     * @param keysObject - optional - provides keys that are being processed.
      *   The values are boolean, indicating whether the key is non-optional.
-     * @return null if success, or the first invlid item or error message
+     * @return null if success, or an error message. It's messy, but good enough for debug.
      */
-    static sanitizeAndValidateItems(list, keysObject = null, mustCheckEqual? : any, player = null) {
+    static sanitizeAndValidateItems(list: (IInventoryItem | null)[] | Dict<IInventoryItem>,
+                                    keysObject?: Dict | null): null | string {
+        const errors = []
         if (!list || typeof list !== 'object') {
             return 'not a list';
         }
@@ -97,24 +113,20 @@ export class InventoryComparator {
             const item = list[key];
             if (item != null) {
                 const new_item = BLOCK.sanitizeAndValidateInventoryItem(item)
-                if(!new_item && mustCheckEqual === false) {
-                    list[key] = null
-                    // don't silently fix bugged items, report them
-                    player?.sendError(`!alertError: invalid item ${key} ${item} mustCheckEqual === false`)
+                if (!new_item) {
+                    ArrayOrMap.delete(list, key, null)
+                    errors.push(`invalid item ${JSON.stringify(item)}`)
                 } else {
-                    if (!new_item) {
-                        return list[key];
-                    }
-                    list[key] = new_item;
+                    list[key] = new_item
                 }
             } else {
                 const isMandatory = keysObject ? keysObject[key] : !isArray;
                 if (isMandatory) {
-                    return 'null value';
+                    errors.push('null value')
                 }
             }
         }
-        return null;
+        return errors.length ? errors.join() : null;
     }
 
     // static sanitizeAndValidatePropertyItems(obj, arrayOfKeys) {
@@ -133,19 +145,19 @@ export class InventoryComparator {
 
     /**
      * Applies recipes, if they are passed. Then compares total quantities of each item,
-     * regardless of their invetory positions and split between stacks.
-     * @param {Array or Object} old_items - the server items, assumed to be correct
-     * @param {Array or Object} new_items - new, suspicious items
-     * @param {Array of Object} used_recipes - the exact fields differ slight dependeing on
-     *   the recipe mamanger used, see {@link AnvilRecipeManager.applyUsedRecipe}, {@link RecipeManager.applyUsedRecipe}
-     *   recipe_id: Int
-     *   used_items_keys: Array of String   // item comparison keys
-     *   count: (Int|Array of Int)          // the number of used items
-     *   label: String                      // for anvil only
-     * @param {RecipeManager} recipeManager - optional, used only if recipes are not null
-     * @return { boolean } true if equal
+     * regardless of their inventory positions and split between stacks.
+     * @param old_items - the server items, assumed to be correct
+     * @param new_items - new, suspicious items
+     * @param recipeManager - optional, used only if recipes are not null
+     * @return true if equal
      */
-    static checkEqual(old_items, new_items, used_recipes, recipeManager) {
+    static checkEqual(
+        old_items: (IInventoryItem | null)[],
+        new_items: (IInventoryItem | null)[],
+        used_recipes?: TUsedRecipe[],
+        recipeManager?: IRecipeManager,
+        thrownItems?: IInventoryItem[]
+    ): boolean {
         let old_simple = InventoryComparator.groupToSimpleItems(old_items);
         let new_simple = InventoryComparator.groupToSimpleItems(new_items);
 
@@ -159,7 +171,7 @@ export class InventoryComparator {
                     if(!recipe) {
                         throw 'error_recipe_not_found|' + recipe_id;
                     }
-                    // proeprocess and validate count
+                    // preprocess and validate count
                     ArrayOrScalar.setArrayLength(used_recipe.count, used_recipe.used_items_keys.length);
                     used_recipe.count = ArrayOrScalar.mapSelf(used_recipe.count, c => {
                         c = Math.floor(c);
@@ -169,7 +181,7 @@ export class InventoryComparator {
                         return c;
                     });
                     // validate and get the used items
-                    const used_items = [];
+                    const used_items: IInventoryItem[] = [];
                     for(const [i, key] of used_recipe.used_items_keys.entries()) {
                         // check the item, remove it them from the simple inventory
                         let item = old_simple.get(key);
@@ -187,7 +199,7 @@ export class InventoryComparator {
                         }
                         used_items.push(item);
                     }
-                    const result = recipeManager.applyUsedRecipe(used_recipe, recipe, used_items, old_simple);
+                    const result = recipeManager.applyUsedRecipe(used_recipe, recipe, used_items);
                     if (!result) {
                         throw 'error_recipe_does_not_match_used_items';
                     }
@@ -203,12 +215,24 @@ export class InventoryComparator {
                 return false;
             }
         }
+        if (Array.isArray(thrownItems)) {
+            for(let thrownItem of thrownItems) {
+                if (typeof thrownItem.count !== 'number' || thrownItem.count <= 0) {
+                    console.log('incorrect thrownItem')
+                    return false
+                }
+                if (!this.subtractFromSimpleItems(old_simple, thrownItem)) {
+                    console.log("thrownItem isn't found, or not enough count")
+                    return false
+                }
+            }
+        }
         // Note: "extra_data" and "entity_id" are compared in compareSimpleItems()
         return InventoryComparator.compareSimpleItems(old_simple, new_simple);
     }
 
-    // Returns true if two maps of simple items are equal.
-    static compareSimpleItems(old_simple, new_simple) {
+    /** @returns true if two maps of simple items are equal */
+    static compareSimpleItems(old_simple: Map<string, IInventoryItem>, new_simple: Map<string, IInventoryItem>): boolean {
         if (new_simple.size != old_simple.size) {
             return false;
         }
@@ -232,8 +256,7 @@ export class InventoryComparator {
         return true;
     }
 
-    // Supported types: 'crafting', 'anvil'
-    static async getRecipeManager(type) {
+    static async getRecipeManager(type: string | null): Promise<IRecipeManager | undefined> {
         type = type ?? 'crafting';
         let rm = this.recipeManagers[type];
         if(typeof rm === 'function') {
@@ -244,10 +267,10 @@ export class InventoryComparator {
     }
 
     /**
-     * @param {Array or Object} - items
-     * @return {Map} of shallow copies of items, grouped by {@link makeItemCompareKey}.
+     * @return shallow copies of items, grouped by {@link makeItemCompareKey}.
      */
-    static groupToSimpleItems(items, additionalItems = null) {
+    static groupToSimpleItems(items: (IInventoryItem | null)[] | Dict<IInventoryItem>, additionalItems?: (IInventoryItem | null)[] | Dict<IInventoryItem>
+    ): Map<string, IInventoryItem> {
         const resp = new Map();
         for(let item of ArrayOrMap.values(items, null)) {
             this.addToSimpleItems(resp, item);
@@ -260,8 +283,8 @@ export class InventoryComparator {
         return resp;
     }
 
-    static addToSimpleItems(simple_items, item) {
-        const key = InventoryComparator.makeItemCompareKey(item);
+    static addToSimpleItems(simple_items: Map<string, IInventoryItem>, item: IInventoryItem): void {
+        const key = this.makeItemCompareKey(item);
         const existing_item = simple_items.get(key);
         if(existing_item) {
             existing_item.count += item.count;
@@ -270,7 +293,16 @@ export class InventoryComparator {
         }
     }
 
-    static decrementSimpleItemsKey(simple_items, key, count) {
+    static subtractFromSimpleItems(simple_items: Map<string, IInventoryItem>, item: IInventoryItem): boolean {
+        const key = this.makeItemCompareKey(item)
+        return this.decrementSimpleItemsKey(simple_items, key, item.count)
+    }
+
+    /**
+     * Subtracts {@link count} from the simple item with the given key. Deletes the item if its count becomes 0 or less.
+     * @returns true if there was at least {@link count} of that item.
+     */
+    static decrementSimpleItemsKey(simple_items: Map<string, IInventoryItem>, key: string, count: int): boolean {
         const existing_item = simple_items.get(key);
         if (existing_item === null) {
             return false;

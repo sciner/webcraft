@@ -2,9 +2,15 @@ import {COLOR_PALETTE, Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { md5, ObjectHelpers, ArrayOrScalar } from "./helpers.js";
 import {default as runes} from "../vendors/runes.js";
-import { InventoryComparator } from "./inventory_comparator.js";
+import {InventoryComparator, IRecipeManager, TUsedRecipe} from "./inventory_comparator.js";
 
 const MAX_SIZE = 3;
+
+export type TUsedCraftingRecipe = {
+    recipe_id       : string
+    used_items_keys : string[]      // item comparison keys
+    count           : int           // the number of used items
+}
 
 export class Recipe {
     [key: string]: any;
@@ -277,7 +283,7 @@ export class Recipe {
 
 }
 
-export class RecipeManager {
+export class RecipeManager implements IRecipeManager<Recipe> {
     [key: string]: any;
     bm: BLOCK
 
@@ -316,7 +322,7 @@ export class RecipeManager {
     }
 
     // Return recipe by ID
-    getRecipe(recipe_id) {
+    getRecipe(recipe_id: string): Recipe | undefined {
         if(typeof recipe_id != 'string') {
             throw 'error_invalid_recipe_id';
         }
@@ -839,17 +845,12 @@ export class RecipeManager {
     }
 
     /**
-     * Subtracts the used resurces from the simple items, and adds the result to them.
-     * Returns teh resulting item.
-     * @param { object } used_recipe - see {@link InventoryComparator.checkEqual}, fields:
-     *   recipe_id: Int
-     *   used_items_keys: Array of String
-     *   count: Int
-     * @param { object } recipe
-     * @param {Array of Item} used_items - the item.count is ignored, and used_recipe.count is for all items
-     * @throws if it's imposible
+     * Subtracts the used resources from the simple items, and adds the result to them.
+     * @param used_items - the item.count is ignored, and used_recipe.count is for all items
+     * @returns the resulting item.
+     * @throws if it's impossible
      */
-    applyUsedRecipe(used_recipe, recipe, used_items) {
+    applyUsedRecipe(used_recipe: TUsedCraftingRecipe, recipe: Recipe, used_items: IInventoryItem[]): IInventoryItem {
         if (typeof used_recipe.count !== 'number') {
             throw 'error_incorrect_value|used_recipe.count=' + used_recipe.count;
         }
@@ -871,7 +872,7 @@ export class RecipeManager {
         return this.createResultItem(recipe, used_recipe.count);
     }
 
-    createResultItem(recipe, recipe_count = 1) : IBlockItem {
+    createResultItem(recipe, recipe_count = 1) : IInventoryItem {
         const b = BLOCK.fromId(recipe.result.item_id);
         const result_item = BLOCK.convertItemToInventoryItem({...b}, b, true);
         result_item.count = recipe.result.count * recipe_count;

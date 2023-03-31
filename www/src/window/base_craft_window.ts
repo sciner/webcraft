@@ -107,7 +107,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
         return this.slot_index !== null && this.slot_index !== undefined
     }
 
-    getItem() {
+    getItem(): IInventoryItem | null {
         if(this.isInventorySlot()) {
             return this.ct.inventory.items[this.slot_index]
         } else {
@@ -116,7 +116,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
     }
 
     //@ts-ignore
-    setItem(item: any, update_inventory : any = true) {
+    setItem(item: IInventoryItem | null, update_inventory : boolean = true): boolean {
         if (item && item.count <= 0) {
             if (item.count < 0) {
                 window.alert('item.count < 0')
@@ -124,11 +124,11 @@ export class CraftTableSlot extends SimpleBlockSlot {
             item = null
         }
         if(!super.setItem(item)) {
-            return
+            return false
         }
 
         if(!update_inventory) {
-            return
+            return false
         }
 
         // Update inventory
@@ -141,7 +141,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 this.ct.setHelperSlots(null)
             }
         }
-
+        return true
     }
 
     getIndex() {
@@ -620,11 +620,12 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
     /**
      * Вызывается после изменения любой из её ячеек
      */
-    setItem(item? : object, update_inventory : boolean = true) {
-        super.setItem(item, update_inventory)
+    setItem(item? : IInventoryItem, update_inventory : boolean = true): boolean {
+        const res = super.setItem(item, update_inventory)
         if(update_inventory) {
             this.parent.checkRecipe()
         }
+        return res
     }
 
 }
@@ -674,9 +675,9 @@ export class ArmorSlot extends CraftTableInventorySlot {
     //     }
     // }
 
-    setItem(item) {
+    setItem(item: IInventoryItem | null): boolean {
         // this.style.background.color = item ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#00000000'
-        super.setItem(item)
+        return super.setItem(item)
     }
 
     isValidDragItem(dragItem) {
@@ -695,7 +696,9 @@ export class ArmorSlot extends CraftTableInventorySlot {
 
 export class BaseCraftWindow extends BaseInventoryWindow {
 
-    lblResultSlot: CraftTableResultSlot
+    inventory_slots : CraftTableInventorySlot[]
+    lblResultSlot   : CraftTableResultSlot
+    craft ?         : { slots: CraftTableSlot[] }
 
     /**
     * Итоговый слот (то, что мы получим)
@@ -722,13 +725,12 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     */
     createInventorySlots(sz, sx = UI_THEME.window_padding, sy = 166, belt_x? : float, belt_y? : float, draw_potential_slots : boolean = false) {
 
-        const ct = this;
-        if(ct.inventory_slots) {
+        if(this.inventory_slots) {
             console.error('createInventorySlots() already created')
             return
         }
 
-        ct.inventory_slots  = []
+        this.inventory_slots  = []
         const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
         sx *= this.zoom
         sy *= this.zoom
@@ -751,8 +753,8 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         //
         const createSlot = (x : float, y : float) => {
             const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
-            ct.add(lblSlot)
-            ct.inventory_slots.push(lblSlot)
+            this.add(lblSlot);
+            this.inventory_slots.push(lblSlot)
             index++
         }
 
@@ -781,39 +783,36 @@ export class BaseCraftWindow extends BaseInventoryWindow {
                 const y = sy + Math.floor(i / xcnt) * (sz + margin)
                 const lblSlot = new Label(x, y, sz, sz, `lblPotentialSlot${i}`)
                 lblSlot.setBackground(hud_atlas.getSpriteFromMap('window_slot_locked'))
-                ct.add(lblSlot)
+                this.add(lblSlot)
             }
         }
 
     }
 
-    clearCraftSlotIfPosible(slot) {
-        const item = slot.getItem()
-        if(item) {
-            if(!this.inventory.increment(slot.item)) {
-                return false
-            }
-            slot.setItem(null)
-        }
-        return true
-    }
-
-    clearCraft() {
+    /** @return the list of items from drag and craft slots that couldn't be cleared */
+    clearCraft(): IInventoryItem[] | null {
+        const remainingItems: IInventoryItem[] = []
         // Drag
-        this.inventory.clearDragItem(true);
+        const remainingDragItem = this.inventory.clearDragItem(true)
+        if (remainingDragItem) {
+            remainingItems.push(remainingDragItem)
+        }
         // Clear result
         this.lblResultSlot.setItem(null);
         //
         for(let slot of this.craft.slots) {
-            if(slot) {
-                this.clearCraftSlotIfPosible(slot);
+            const item = slot?.getItem()
+            if (item) {
+                if (!this.inventory.incrementAndReorganize(item, true)) {
+                    remainingItems.push(item)
+                }
+                slot.setItem(null)
             }
         }
         // Redraw inventory slots
-        if(this.inventory_slots) {
-            this.inventory_slots.map(slot => slot.setItem(slot.getItem()))
-        }
+        this.inventory_slots?.forEach(slot => slot.refresh())
         this.fixAndValidateSlots('clearCraft')
+        return remainingItems.length ? remainingItems : null
     }
 
     getCraftSlotItemsArray() {

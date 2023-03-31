@@ -6,6 +6,7 @@ import {impl as alea} from '../../vendors/alea.js';
 import { WorldAction } from "../world_action.js";
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
 import type { TerrainMapCell } from "./terrain_map.js";
+import { CD_ROT } from "../core/CubeSym.js";
 
 declare type ISetTreeBlock = (tree : any, x : int, y : int, z : int, block_type : any, force_replace : boolean, rotate? : IVector, extra_data? : any) => any
 
@@ -94,6 +95,7 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('jungle', this.plantJungle.bind(this)) // тропическое дерево
         this.tree_styles.set('big_oak', this.plantBigOak.bind(this)) // большой дуб
         this.tree_styles.set('chorus', this.plantChorus.bind(this)) // растение хоруса
+        this.tree_styles.set('peak', this.plantPeak.bind(this)) // пика
     }
 
     async init() : Promise<boolean> {
@@ -260,8 +262,10 @@ export class Default_Terrain_Generator {
         const z = 0
         const ystart = y + tree.height;
         // ствол
-        this.temp_block.id = 11
-        setTreeBlock(tree, x, y - 1, z, this.temp_block, true)
+        if(tree.type.basis) {
+            this.temp_block.id = tree.type.basis
+            setTreeBlock(tree, x, y - 1, z, this.temp_block, true)
+        }
         this.temp_block.id = tree.type.trunk;
         for(let p = y; p < ystart; p++) {
             setTreeBlock(tree, x, p, z, this.temp_block, true);
@@ -1225,6 +1229,70 @@ export class Default_Terrain_Generator {
         }
 
         setChorus(new Vector(x, y + 1, z))
+
+    }
+
+    // Пика
+    plantPeak(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
+        const x = 0
+        const y = 0
+        const z = 0
+        const ystart = y + tree.height
+
+        this.temp_block.id = tree.type.trunk
+        for(let p = y; p < ystart; p++) {
+            setTreeBlock(tree, x, p, z, this.temp_block, true);
+        }
+
+        const random = new alea('tree_' + xyz.toHash())
+
+        const dirs = [CD_ROT.NORTH, CD_ROT.WEST, CD_ROT.SOUTH, CD_ROT.EAST]
+        for(let i = 0; i < dirs.length; i++) {
+
+            const d = dirs[i]
+            let h = tree.height
+            let xadd = 0
+            let zadd = 0
+            switch(d) {
+                case CD_ROT.NORTH: {
+                    zadd++
+                    break
+                }
+                case CD_ROT.WEST: {
+                    xadd--
+                    break
+                }
+                case CD_ROT.SOUTH: {
+                    zadd--
+                    break
+                }
+                case CD_ROT.EAST: {
+                    xadd++
+                    break
+                }
+            }
+
+            const plant = (x : int, z : int, prev_h : int) => {
+                let r = random.double()
+                if(r < .5) r = .5
+                h *= r
+                if(h > 2) {
+                    let hh = Math.ceil(h)
+                    if(hh == prev_h) {
+                        return
+                    }
+                    for(let j = -3; j < hh; j++) {
+                        this.temp_block.id = random.double() < .85 ? tree.type.trunk : tree.type.leaves
+                        setTreeBlock(tree, x + xadd, y + j, z + zadd, this.temp_block, true)
+                    }
+                    plant(x + xadd, z + zadd, hh)
+                }
+            }
+
+            plant(0, 0, 0)
+
+        }
+
 
     }
     

@@ -1,6 +1,6 @@
-import {Helpers, getChunkAddr, Vector} from "./helpers.js";
+import {Helpers, getChunkAddr, Vector, ObjectHelpers} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
-import {PickAt} from "./pickat.js";
+import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS } from "./constant.js";
@@ -132,6 +132,7 @@ export class PlayerSharedProps implements IPlayerSharedProps {
     get isAlive() : boolean { return this.p.state.indicators.live != 0; }
     get user_id() : int     { return this.p.session.user_id; }
     get pos()     : Vector  { return this.p.pos; }
+    get rotate()  : Vector  { return this.p.rotate; }
     get sitting() : boolean { return !!this.p.state.sitting; }
     get sleep()   : boolean { return !!this.p.state.sleep; }
 }
@@ -354,7 +355,7 @@ export class Player implements IPlayer {
         });
         server.AddCmdListener([ServerClient.CMD_TELEPORT], cmd => this.onTeleported(cmd.data.pos))
         server.AddCmdListener([ServerClient.CMD_PLAYER_CONTROL_CORRECTION], cmd => {
-            this.controlManager.applyCorrection(cmd.data)
+            this.controlManager.onCorrection(cmd.data)
         }, null, true)
         server.AddCmdListener([ServerClient.CMD_PLAYER_CONTROL_ACCEPTED], cmd => {
             this.controlManager.onServerAccepted(cmd.data)
@@ -433,7 +434,7 @@ export class Player implements IPlayer {
                 if(hand_item_mat && hand_item_mat.tags.includes('set_on_water')) {
                     if(e.number++ == 0) {
                         e.pos = bPos;
-                        const e_orig = JSON.parse(JSON.stringify(e));
+                        const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
                         e_orig.actions = new WorldAction(randomUUID());
                         // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
                         this.world.server.Send({
@@ -716,7 +717,7 @@ export class Player implements IPlayer {
                 return false;
             }
             this.mineTime = 0;
-            const e_orig = JSON.parse(JSON.stringify(e));
+            const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
             const player: ActionPlayerInfo = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
@@ -755,7 +756,7 @@ export class Player implements IPlayer {
     }
 
     //
-    get currentInventoryItem() {
+    get currentInventoryItem(): IInventoryItem | null {
         return this.inventory.current_item;
     }
 
@@ -763,9 +764,11 @@ export class Player implements IPlayer {
     getCurrentInstrument() {
         const currentInventoryItem = this.currentInventoryItem;
         const instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
+        /* Old incorrect code that did nothing:
         if(currentInventoryItem && currentInventoryItem.item?.instrument_id) {
             // instrument = new Instrument_Hand();
         }
+        */
         return instrument;
     }
 
@@ -780,7 +783,7 @@ export class Player implements IPlayer {
     }
 
     // Returns the position of the eyes of the player for rendering.
-    getEyePos() {
+    getEyePos(): Vector {
         let subY = 0;
         if(this.state.sitting) {
             subY = this.height * 1/3;
@@ -802,11 +805,11 @@ export class Player implements IPlayer {
     }
 
     //
-    setPosition(vec: IVector): void {
+    setPosition(vec: IVector, worldActionId?: string | int | null): void {
         //
         const pc = this.getPlayerControl();
         pc.player_state.onGround = false;
-        this.controlManager.setPos(vec);
+        this.controlManager.setPos(vec, worldActionId);
         //
         if (!Qubatch.is_server) {
             this.stopAllActivity();

@@ -5,6 +5,8 @@ export enum LIGHT_TYPE {
     RTX     = 2,
 }
 
+export const FAST = false
+
 export const INGAME_MAIN_WIDTH              = 772
 export const INGAME_MAIN_HEIGHT             = 514
 export const GAME_ONE_SECOND                = 72;
@@ -22,11 +24,17 @@ export const PICKUP_OWN_DELAY_SECONDS       = 2;
 export const NO_TICK_BLOCKS                 = false;
 export const BODY_ROTATE_SPEED              = 7;
 export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
-export const GRASS_PALETTE_OFFSET           = 256; // (in px) offset in mask_color.png for grass palette
+
+// Dirt and grass
+export const GRASS_PALETTE_OFFSET           = {x : 128, y : 0}; // (in px) offset in mask_color.png for grass palette
+export const DEFAULT_DIRT_PALETTE           = {x: 0, y : 256, w: 128, h : 128, noise_range: 10} as DirtPalette // noise_range is mix dirt colors on every block with random value
+export const DEFAULT_GRASS_PALETTE          = {x: 128, y : 256, w: 128, h : 128, noise_range: 0} as DirtPalette
+export const DIRT_PALETTE_SIZE              = 128
+export const GRASS_COLOR_SHIFT_FACTOR       = 6
+
 export const DEFAULT_TX_CNT                 = 64;
 export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
-export const DIRT_COLOR_NOISE_RANGE         = 20; // mix dirt colors on every block with random value
 export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', 'west', 'east'];
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= ['BEDROCK'];
 export const ITEM_LABEL_MAX_LENGTH          = 19;
@@ -60,6 +68,20 @@ export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 export const RENDER_EAT_FOOD_DURATION       = 1800;
+
+export const BLOCK_GROUP_TAG = {
+    ALL:        "#all",
+    BLOCK:      "#block",
+    BREWING:    "#brewing",
+    COMBAT:     "#combat",
+    DECORE:     "#decore",
+    FOOD:       "#food",
+    FURNITURE:  "#furniture",
+    LIGHTNING:  "#lightning",
+    MISC:       "#misc",
+    PLANT:      "#plant",
+    TOOLS:      "#tools",
+}
 
 export const UI_THEME = {
     base_font: {
@@ -206,7 +228,8 @@ export const PHYSICS_POS_DECIMALS           = 4
 export const PHYSICS_VELOCITY_DECIMALS      = 4
 export const PHYSICS_ROTATION_DECIMALS      = 4 // It's applied to the input before physics calculations
 export const PHYSICS_INTERVAL_MS            = 50
-export const PHYSICS_MAX_MS_PROCESS         = 2000
+// The maximum number of physics ticks simulated at once. If we need to simulated more, the simulation its skipped.
+export const PHYSICS_MAX_TICKS_PROCESSED    = 10 * 1000 / PHYSICS_INTERVAL_MS | 0
 export const DEBUG_LOG_PLAYER_CONTROL       = true  // log moderately detailed debug info about the player controls
 export const DEBUG_LOG_PLAYER_CONTROL_DETAIL= false // log very detailed debug info about the player controls
 

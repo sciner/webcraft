@@ -37,7 +37,7 @@ export class MeshGroup {
     }
 
     // Add block
-    addBlock(pos, block) {
+    addBlock(pos : Vector, block) {
         this.vc.set(pos, {
             block: block,
             neighbours: null
@@ -89,13 +89,9 @@ export class MeshGroup {
 
     /**
      * Build vertices
-     * @param {*} tx
-     * @param {*} ty
-     * @param {*} tz
-     * @param {bool} force_inventory_style
      */
-    buildVertices(tx, ty, tz, force_inventory_style, matrix, pivot) {
-        const dirt_color = new IndexedColor(82, 450, 0);
+    buildVertices(tx : number, ty : number, tz : number, force_inventory_style : boolean = false, matrix? : imat4, pivot? : IVector) {
+        const dirt_color = IndexedColor.GRASS
         const biome = {
             code:       'GRASSLAND',
             color:      '#98a136'

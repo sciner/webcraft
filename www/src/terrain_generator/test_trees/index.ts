@@ -1,13 +1,11 @@
-import { IndexedColor, Vector } from '../../helpers.js';
-import { Default_Terrain_Generator, alea, Default_Terrain_Map_Cell, Default_Terrain_Map } from '../default.js';
+import type { Vector } from '../../helpers.js';
+import { Default_Terrain_Generator, alea, Default_Terrain_Map } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { TREES } from '../../terrain_generator/biomes.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
-
-const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
-const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
+import { Biomes } from '../biome3/biomes.js';
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
     [key: string]: any;
@@ -17,6 +15,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         super(seed, world_id, options);
         this.world = world;
         this.setSeed(seed);
+        const noiseRandom = new alea(seed)
+        const noise2d = createNoise2D(noiseRandom.double)
+        this.biomes = new Biomes(noise2d)
+        this.biome = this.biomes.byName.get('Равнины')
         TREES.init();
     }
 
@@ -67,6 +69,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         //
         const current_chunk_has_tree = chunk.addr.x % 2 == 0 && chunk.addr.z % 2 == 0
         const block_id = current_chunk_has_tree ? BLOCK.GRASS_BLOCK.id : null;
+
+        const cell = {
+            dirt_color: this.biome.dirt_color,
+            water_color: this.biome.water_color,
+            biome: this.biome
+        };
 
         if(chunk.addr.y == 0) {
 
@@ -145,13 +153,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
 
         }
-
-        const cell = {
-            dirt_color: DEFAULT_DIRT_COLOR,
-            water_color: DEFAULT_WATER_COLOR,
-            biome: new Default_Terrain_Map_Cell({
-            code: 'flat'
-        })};
 
         return new Default_Terrain_Map(
             chunk.addr,

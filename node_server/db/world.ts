@@ -17,6 +17,7 @@ import type { ServerWorld } from "../server_world.js";
 import type { ServerPlayer } from "../server_player.js";
 import type { Indicators, PlayerState } from "@client/player.js";
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
+import { teleport_title_regexp } from "plugins/chat_teleport.js";
 
 export type BulkDropItemsRow = [
     string,     // entity_id
@@ -552,7 +553,7 @@ export class DBWorld {
      * @param title имя точки
      */
     async getTeleportPoint(id : number, title : string) {
-        const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substring(0, 50);
+        const clear_title = title.replace(teleport_title_regexp, '').substring(0, 50);
         const row = await this.conn.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title = :title", {
             ":id" : id,
             ":title": clear_title
@@ -572,7 +573,7 @@ export class DBWorld {
      * @param z z точки
      */
     async addTeleportPoint(user_id : number, title : string, x : number, y : number, z : number) {
-        const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substring(0, 50);
+        const clear_title = title.replace(teleport_title_regexp, '').substring(0, 50);
         await this.conn.run("INSERT INTO teleport_points(user_id, title, x, y, z) VALUES (:user_id, :title, :x, :y, :z)", {
             ":user_id": user_id,
             ":title":   clear_title,

@@ -1,17 +1,16 @@
-import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix, Mth} from '../helpers.js';
+import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix } from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { GRASS_PALETTE_OFFSET } from '../constant.js';
+import { DEFAULT_DIRT_PALETTE, DEFAULT_GRASS_PALETTE, GRASS_COLOR_SHIFT_FACTOR, GRASS_PALETTE_OFFSET } from '../constant.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 const {mat4} = glMatrix;
-const GRASS_COLOR_SHIFT_FACTOR = 24
 
 const MELON_ATTACHED_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0, "y": 0, "z": 0}},
@@ -109,7 +108,6 @@ export default class style {
 
         const material = block.material;
         const is_tall_grass = block.hasTag('is_tall_grass')
-        const is_tall_grass_3 = block.hasTag('is_tall_grass_3')
 
         // Get texture
         let texture_dir = DIRECTION.DOWN;
@@ -185,17 +183,22 @@ export default class style {
 
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
-            style.lm.copyFrom(dirt_color);            
+            style.lm.copyFrom(dirt_color)
             if(GRASS_COLOR_SHIFT_FACTOR > 0) {
-                style.lm.r = Mth.clamp(style.lm.r - Math.random() * GRASS_COLOR_SHIFT_FACTOR, 0, 255)
-                style.lm.g = Mth.clamp(style.lm.g + Math.random() * GRASS_COLOR_SHIFT_FACTOR, 256, 511)
+                style.lm.r -= Math.random() * GRASS_COLOR_SHIFT_FACTOR
+                style.lm.g += Math.random() * GRASS_COLOR_SHIFT_FACTOR
             }
-            style.lm.r += GRASS_PALETTE_OFFSET;
+            style.lm.r += GRASS_PALETTE_OFFSET.x
+            style.lm.g += GRASS_PALETTE_OFFSET.y
+            const palette = biome.grass_palette
+            style.lm.r = style.lm.r - DEFAULT_GRASS_PALETTE.x + palette.x
+            style.lm.g = style.lm.g - DEFAULT_GRASS_PALETTE.y + palette.y
+            IndexedColor.clampPalette(style.lm, palette)
             flag |= QUAD_FLAGS.MASK_BIOME;
         }
 
         // Planes
-        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? (is_tall_grass_3 ? TALL_GRASS_3_PLANES : TALL_GRASS_PLANES) : DEFAULT_PLANES));
+        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? (block.hasTag('is_tall_grass_3') ? TALL_GRASS_3_PLANES : TALL_GRASS_PLANES) : DEFAULT_PLANES));
 
         // Sunflower
         if (material.name == 'SUNFLOWER') {
