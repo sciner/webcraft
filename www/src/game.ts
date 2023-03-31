@@ -52,7 +52,7 @@ export class GameSettings implements TWorldSettings {
     // resources
     texture_pack:            string = 'base'
     // camera
-    fov:                     float = DEFAULT_FOV_NORMAL
+    fov:                     float = DEFAULT_FOV_NORMAL     // in degrees
     render_distance:         int = DEFAULT_RENDER_DISTANCE
     base_ambient_light_level:float = 100
     // quality

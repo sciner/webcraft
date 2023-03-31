@@ -1,5 +1,5 @@
 import { BLOCK } from '../../blocks.js';
-import { BLOCK_FLAG, DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET } from '../../constant.js';
+import { BLOCK_FLAG, DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET, FAST } from '../../constant.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { BiomeTree, TREES } from '../biomes.js';
@@ -9,9 +9,9 @@ const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
 const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
-const TREE_FREQUENCY        = 0.015 * 32; // 0.48
-const PLANTS_FREQUENCY      = 0.015;
-const GRASS_FREQUENCY       = 0.015;
+const TREE_FREQUENCY        = 0.015 * 32 * (FAST ? 1/4 : 1); // 0.48
+const PLANTS_FREQUENCY      = 0.015 * (FAST ? 1/8 : 1);
+const GRASS_FREQUENCY       = 0.015 * (FAST ? 1/8 : 1);
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS
 const DEFAULT_WATER_COLOR = IndexedColor.WATER

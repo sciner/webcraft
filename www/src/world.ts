@@ -13,6 +13,7 @@ import type { TBlock } from "./typed_blocks3.js";
 import { WorldHistory } from "./history.js";
 import type { WorldAction } from "./world_action.js";
 import type { Player } from "./player.js";
+import type {ICmdPickatData} from "./pickat.js";
 
 // World container
 export class World implements IWorld {
@@ -206,7 +207,7 @@ export class World implements IWorld {
 
     // Change block extra_data
     changeBlockExtraData(pos, extra_data) {
-        const e = {
+        const e: ICmdPickatData = {
             id: +new Date(),
             pos: pos, // {x: pos.x, y: pos.y, z: pos.z, n: Vector.ZERO, point: Vector.ZERO},
             createBlock: false,
@@ -214,7 +215,7 @@ export class World implements IWorld {
             cloneBlock: false,
             changeExtraData: true,
             start_time: performance.now(),
-            shift_key: false,
+            shiftKey: false,
             button_id: MOUSE.BUTTON_RIGHT,
             number: 1,
             extra_data: extra_data
@@ -291,15 +292,19 @@ export class World implements IWorld {
         // Sitting
         if(actions.sitting) {
             player.state.sitting = actions.sitting;
-            player.setPosition(actions.sitting.pos);
+            player.setPosition(actions.sitting.pos, actions.id);
             player.setRotate(actions.sitting.rotate);
+            player.controlManager.setVelocity(0, 0, 0)
+            player.controlManager.suppressLerpPos()
             Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
         }
         // Sleep
         if(actions.sleep) {
             player.state.sleep = actions.sleep
-            player.setPosition(actions.sleep.pos)
+            player.setPosition(actions.sleep.pos, actions.id)
             player.setRotate(actions.sleep.rotate)
+            player.controlManager.setVelocity(0, 0, 0)
+            player.controlManager.suppressLerpPos()
             Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000)
         }
     }

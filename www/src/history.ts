@@ -72,18 +72,13 @@ export class WorldHistory {
     rollback(snapshotId: int): void {
         const pos = this.posById.get(snapshotId)
         if (pos == null) {
-            return // IDK how it's posible, but let's check it
+            return // IDK how it's possible, but let's check it
         }
         const blockHistory = this.historiesByPos.get(pos)
         const snapshots = blockHistory.snapshots
-        // find the snapshot y id
-        let index = 0
-        while (index < snapshots.length) {
-            if (snapshots[index].id === snapshotId) {
-                break
-            }
-        }
-        if (index === snapshots.length) {
+        // find the snapshot by id
+        const index = snapshots.findIndex(v => v.id === snapshotId)
+        if (index < 0) {
             return  // IKD how it's possible, but let's check it
         }
 

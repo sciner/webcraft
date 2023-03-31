@@ -29,10 +29,14 @@ export class ArrayHelpers {
         --arr.length;
     }
 
-    // elements order is not preserved
-    static fastDeleteValue(arr: any[], value: any): void {
-        var i = 0;
-        var len = arr.length;
+    /**
+     * Deletes all values equal to {@link value}. Order of elements is not preserved.
+     * @return true if anything was deleted
+     */
+    static fastDeleteValue<T = any>(arr: T[], value: T): boolean {
+        let i = 0
+        let len = arr.length
+        const prevLen = len
         while (i < len) {
             if (arr[i] == value) {
                 arr[i] = arr[--len];
@@ -41,11 +45,12 @@ export class ArrayHelpers {
             }
         }
         arr.length = len;
+        return prevLen !== len
     }
 
-    static filterSelf(arr : any[], predicate: Function): void {
+    static filterSelf<T = any>(arr : T[], predicate: (T) => boolean): void {
         // fast skip elements that don't change
-        var src = 0;
+        let src = 0;
         while (src < arr.length && predicate(arr[src])) {
             src++;
         }
@@ -53,7 +58,7 @@ export class ArrayHelpers {
             return;
         }
         // move elements
-        var dst = src;
+        let dst = src;
         src++;
         while (src < arr.length) {
             if (predicate(arr[src])) {

@@ -16,6 +16,7 @@ import type { BLOCK } from "../../../blocks.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import { TerrainMapManagerBase } from "./manager_base.js";
 import type { Biome3LayerBase } from "../layers/base.js";
+import { FAST } from "../../../constant.js";
 
 // Water
 const WATER_START                       = 0;
@@ -351,13 +352,15 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         }
 
         // Если это твердый камень, то попробуем превратить его в пещеру
-        if(density > DENSITY_AIR_THRESHOLD) {
-            const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
-            if(density > cave_density_threshold) {
-                const caveDensity = map.caves.getPoint(xyz, cell, false, res);
-                if(caveDensity !== null) {
-                    density = caveDensity
-                    res.dcaves = density
+        if(!FAST) {
+            if(density > DENSITY_AIR_THRESHOLD) {
+                const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
+                if(density > cave_density_threshold) {
+                    const caveDensity = map.caves.getPoint(xyz, cell, false, res);
+                    if(caveDensity !== null) {
+                        density = caveDensity
+                        res.dcaves = density
+                    }
                 }
             }
         }

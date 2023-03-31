@@ -200,7 +200,7 @@ export class ServerPlayerVision {
         const chunk_addr = Vector.toChunkAddr(pos);
         chunk_render_dist = chunk_render_dist || player.safeTeleportMargin;
         const margin            = Math.max(chunk_render_dist + 1, 1);
-        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, player.safeTeleportMarginY, margin));
+        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, player.safeTeleportMarginY, margin)).entries;
         // Find new chunks
         for(let i = 0; i < spiral_moves_3d.length; i++) {
             const entry = new SpiralEntry().copyTranslate(spiral_moves_3d[i], chunk_addr);
@@ -220,7 +220,7 @@ export class ServerPlayerVision {
         const chunk_render_dist = player.state.chunk_render_dist;
         const margin            = this.spiralRadius = Math.max(chunk_render_dist + 1, 1);
         const centerAddr        = this.spiralCenter = player.chunk_addr;
-        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin)).entries;
         this.flushSpiral();
         while (spiralEntries.length < spiral_moves_3d.length) {
             spiralEntries.push(new SpiralEntry());

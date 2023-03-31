@@ -324,7 +324,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         this.updateArmSwingProgress(delta);
-        if (!this.isRenderable || this.distance == null) {
+        if (!this.isRenderable) {
             return;
         }
 
@@ -334,7 +334,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         this.nametag.visible = !this.sneak && !this.hide_nametag
 
-        if (!this.nametag.visible) {
+        if (!this.nametag.visible || this.distance == null) {
             return;
         }
 

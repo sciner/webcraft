@@ -113,6 +113,15 @@ interface IBlockItem {
     tag?: any,
 }
 
+interface IInventoryItem {
+    id: int
+    count: number
+    extra_data?: any
+    power?: number
+    entity_id?: string
+    texture?    // used only on client
+}
+
 interface Dict<ValueType=any> {
     [key: string]: ValueType
 }
@@ -368,13 +377,13 @@ interface ITerrainMapManager {
 }
 
 interface IPickatEvent {
-    button_id:          3
+    button_id:          number  // always MOUSE.BUTTON_RIGHT === 3
     cloneBlock:         boolean
     createBlock:        boolean
     destroyBlock:       boolean
     id:                 any
-    interactMobID:      any
-    interactPlayerID:   any
+    interactMobID?:     int
+    interactPlayerID?:  int
     number:             int
     pos:                {x : float, y : float, z: float, mob: any, player: any, aabb?: any, n: IVector, block_id: int}
     shiftKey:           boolean

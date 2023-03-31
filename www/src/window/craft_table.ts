@@ -3,7 +3,7 @@ import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import type { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Lang } from "../lang.js";
-import type { Inventory } from "../inventory.js";
+import type {PlayerInventory} from "../player_inventory.js";
 import type { RecipeManager } from "../recipes.js";
 import type { RecipeWindow } from "./recipe.js";
 import { Resources } from "../resources.js";
@@ -17,11 +17,9 @@ export class CraftTable extends BaseCraftWindow {
     frmRecipe : RecipeWindow
     hud_atlas : SpriteAtlas
 
-    constructor(inventory : Inventory, recipes : RecipeManager) {
+    constructor(inventory : PlayerInventory, recipes : RecipeManager) {
 
-        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCraft', null, null, inventory);
-        this.x *= this.zoom 
-        this.y *= this.zoom
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCraft', null, null, inventory)
         this.w *= this.zoom
         this.h *= this.zoom
 
@@ -51,7 +49,7 @@ export class CraftTable extends BaseCraftWindow {
         const szm           = sz + UI_THEME.slot_margin * this.zoom
         const sx            = UI_THEME.window_padding * this.zoom * 3.5 + szm
         const sy            = (34 + SHIFT_Y) * this.zoom
-        
+
         // слоты (лабел) для подсказок
         this.addHelpSlots(sx, sy, sz, szm)
 
@@ -117,9 +115,13 @@ export class CraftTable extends BaseCraftWindow {
 
     // Обработчик закрытия формы
     onHide() {
-        this.clearCraft()
+        const thrown_items = this.clearCraft()
         // Save inventory
-        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
+        this.world.server.InventoryNewState({
+            state: this.inventory.exportItems(),
+            used_recipes: this.lblResultSlot.getUsedRecipes(),
+            thrown_items
+        })
         super.onHide()
     }
 
