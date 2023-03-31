@@ -13,11 +13,11 @@ class CreativeInventoryCollection extends Window {
     ycnt : int = 13
 
     //
-    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float, ctx: Window) {
+    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float, parent: Window) {
         
         super(x, y, w, h, id)
 
-        this.ctx = ctx
+        this.parent = parent
 
         // Ширина / высота слота
         this.cell_size = cell_size
@@ -46,7 +46,7 @@ class CreativeInventoryCollection extends Window {
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.container.y = this.scrollY
-        this.ctx.scrollbar.value = -this.scrollY / szm
+        this.parent.scrollbar.value = -this.scrollY / szm
         this.updateVisibleSlots()
     }
 
