@@ -6,6 +6,7 @@ import Biome3LayerOverworld from "./layers/overworld.js";
 import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Default_Terrain_Map } from "../default.js";
+import Biome3LayerUnderworld from "./layers/underworld.js";
 
 export class Biome3LayerManager {
     [key: string]: any;
@@ -16,6 +17,7 @@ export class Biome3LayerManager {
         this.generator_options = generator.world.generator.options
 
         this.layer_types = new Map()
+        this.layer_types.set('underworld', Biome3LayerUnderworld)
         this.layer_types.set('overworld', Biome3LayerOverworld)
         this.layer_types.set('stone', Biome3LayerStone)
         this.layer_types.set('lava', Biome3LayerLava)
@@ -41,11 +43,15 @@ export class Biome3LayerManager {
             if(item.up > this.max_y) this.max_y = item.up
             const cls = this.layer_types.get(item.type)
             if(!cls) throw `error_invalid_biome3_layer_type|${item.type}`
-            this.layers.push({bottom: item.bottom, up: item.up, obj: new cls(this.generator)})
+            const layer = new cls()
+            layer.init(this.generator)
+            this.layers.push({bottom: item.bottom, up: item.up, obj: layer})
         }
 
-        this.opaque_layer = {bottom: 0, up: 0, obj: this.generator_options.generate_big_caves ? new Biome3LayerLava(this.generator) : new Biome3LayerStone(this.generator)}
-        this.transparent_layer = {bottom: 0, up: 0, obj: new Biome3LayerAir(this.generator)}
+        const opaque_layer = this.generator_options.generate_big_caves ? new Biome3LayerLava() : new Biome3LayerStone()
+
+        this.opaque_layer = {bottom: 0, up: 0, obj: opaque_layer.init(this.generator)}
+        this.transparent_layer = {bottom: 0, up: 0, obj: new Biome3LayerAir().init(this.generator)}
 
     }
 
@@ -73,7 +79,10 @@ export class Biome3LayerManager {
         chunk.aabb.translate(0, -layer.bottom * CHUNK_SIZE_Y, 0)
         chunk.coord.y -= layer.bottom * CHUNK_SIZE_Y
 
-        const map = layer.obj.generate(chunk, chunk_seed, rnd)
+        const is_lowest = chunk.addr.y == 0
+        const is_highest = chunk.addr.y == (layer.up - layer.bottom) - 1
+
+        const map = layer.obj.generate(chunk, chunk_seed, rnd, is_lowest, is_highest)
 
         chunk.addr.y += layer.bottom
         chunk.aabb.translate(0, layer.bottom * CHUNK_SIZE_Y, 0)

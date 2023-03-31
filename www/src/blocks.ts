@@ -807,6 +807,13 @@ export class BLOCK {
             !('height' in block);
     }
 
+    static isFlower(block) : boolean {
+        if(block.id == 0) {
+            return false
+        }
+        return (block.style_name == 'planting' && block.material.id == 'plant')
+    }
+
     /**
      * @param {int} block_id
      * @returns {number} non-zero if it's solid, 0 otherwise
@@ -954,12 +961,13 @@ export class BLOCK {
         block.can_rotate        = block.can_rotate ?? ArrayHelpers.includesAny(block.tags, 'trapdoor', 'stairs', 'door', 'rotate_by_pos_n');
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block);
-        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style_name == 'planting') || block.style_name == 'ladder' || block?.material?.id == 'glass';
+        block.invisible_for_cam = BLOCK.invisibleForCam(block)
         block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style_name == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         block.random_rotate_up  = block.tags.includes('random_rotate_up');
         block.is_log            = block.tags.includes('log')
         block.is_solid          = this.isSolid(block);
+        block.is_flower         = this.isFlower(block);
         block.is_solid_for_fluid= ArrayHelpers.includesAny(block.tags, 'is_solid_for_fluid', 'stairs', 'log') ||
                                     ['wall', 'pane'].includes(block.style_name);
 
@@ -1073,6 +1081,14 @@ export class BLOCK {
         if(block.id > this.max_id) {
             this.max_id = block.id;
         }
+    }
+
+    static invisibleForCam(block) : boolean {
+        return  block.is_portal ||
+                (block.passable > 0) ||
+                (block.material.id == 'plant' && (block.style_name == 'planting' || block.planting)) ||
+                (block.style_name == 'ladder') ||
+                (block?.material?.id == 'glass')
     }
 
     // Return true if block can intaract with hand

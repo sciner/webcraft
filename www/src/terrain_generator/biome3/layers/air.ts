@@ -9,9 +9,10 @@ export default class Biome3LayerAir extends Biome3LayerBase {
 
     declare maps: Map<any, any> | any
 
-    constructor(generator : any) {
-        super(generator)
+    init(generator : any) : Biome3LayerAir {
+        super.init(generator)
         this.maps = new Map()
+        return this
     }
 
     generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {

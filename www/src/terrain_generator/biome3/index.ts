@@ -59,6 +59,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // this.n3d = createNoise3D(new alea(seed))
 
         this.layers = new Biome3LayerManager(this, [
+            {type: 'lava', bottom: -5, up: -4},
+            {type: 'underworld', bottom: -4, up: 0},
             {type: 'overworld', bottom: 0, up: 7},
             {type: 'end', bottom: 17, up: 22}
         ])
@@ -107,7 +109,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const layers = this.layers.layers
         let cnt_destroyed = 0
         for(let i = 0; i < layers.length; i++) {
-            cnt_destroyed += layers[0].obj.maps.destroyAroundPlayers(players)
+            if(layers[i].obj.maps.destroyAroundPlayers) {
+                cnt_destroyed += layers[i].obj.maps.destroyAroundPlayers(players)
+            }
         }
         return cnt_destroyed
     }
