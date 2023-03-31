@@ -58,6 +58,7 @@ class CreativeInventoryCollection extends Window {
         const szm           = sz + this.slot_margin
         const start_index   = Math.floor((-this.scrollY / szm) * this.xcnt)
         const end_index     = start_index + (this.xcnt * this.ycnt)
+        console.log(start_index, -this.scrollY, szm)
         for(let i = 0; i < this.slots_count; i++) {
             const child = this.slots[i]
             child.visible = i >= start_index && i < end_index
