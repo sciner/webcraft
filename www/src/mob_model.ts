@@ -334,7 +334,7 @@ export class MobAnimation {
         }
         const x             = index % 2;
         const y             = index / 2 | 0;
-        let sign          = isArm ? (index == 0 || index == 2) ? -1 : 1 : x ^ y ? 1 : -1;
+        let sign            = isArm ? (index == 0 || index == 2) ? -1 : 1 : x ^ y ? -1 : 1;
         const ageInTicks    = performance.now() / 50;
         const isLeftArm     = isArm && index % 2 != 0;
         const isLeftLeg     = !isArm && index % 2 == 0;

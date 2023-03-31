@@ -1,4 +1,6 @@
 import { getChunkAddr, Vector } from "./helpers.js";
+import type {TUsedRecipe} from "./inventory_comparator.js";
+import type {TInventoryState, TInventoryStateChangeMessage} from "./inventory.js";
 
 type CmdListener = (INetworkMessage) => void
 type CmdListenersSet = Set<CmdListener>
@@ -386,10 +388,8 @@ export class ServerClient {
     }
 
     // Save inventory
-    InventoryNewState(state, used_recipes, recipe_manager_type = null, dont_check_equal = false) {
-        this.Send({name: ServerClient.CMD_INVENTORY_NEW_STATE,
-            data: {state, used_recipes, recipe_manager_type, dont_check_equal}
-        });
+    InventoryNewState(data: TInventoryStateChangeMessage) {
+        this.Send({name: ServerClient.CMD_INVENTORY_NEW_STATE, data})
     }
 
     // Switch to next game mode

@@ -4,13 +4,13 @@ import type { TypedBlocks3 } from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK, DBItemBlock, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
-import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {ChunkLight} from "./light/ChunkLight.js";
 import type { BaseResourcePack } from "./base_resource_pack.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
+import {GeometryPool} from "./light/GeometryPool.js";
 
 let global_uniqId = 0;
 
@@ -49,6 +49,9 @@ export class Chunk {
 
     light : ChunkLight
     tblocks: TypedBlocks3
+
+    vertices_args: any = null;
+    vertices_args_size: number = 0;
 
     getChunkManager() : ChunkManager {
         return this.chunkManager;
@@ -156,6 +159,7 @@ export class Chunk {
     // onVerticesGenerated ... Webworker callback method
     onVerticesGenerated(args) {
         this.vertices_args = args;
+        this.vertices_args_size = GeometryPool.getVerticesMapSize(args.vertices);
         this.need_apply_vertices = true;
 
         if (!this.firstTimeBuilt && this.fluid) {
@@ -179,19 +183,10 @@ export class Chunk {
         if (!this.light.hasTexture || !cm) {
             return null;
         }
-        const {lightProps} = cm;
-        if (!cm.lightPool) {
-            cm.lightPool = new CubeTexturePool(render, {
-                defWidth: CHUNK_SIZE_X + 2,
-                defHeight: CHUNK_SIZE_Z + 2,
-                defDepth: (CHUNK_SIZE_Y + 2) * lightProps.depthMul,
-                type: lightProps.texFormat,
-                filter: 'linear',
-            });
-        }
+        const {lightProps, lightPool} = cm.renderList;
 
         if (!this.light.lightTex) {
-            this.light.lightTex = cm.lightPool.alloc({
+            this.light.lightTex = lightPool.alloc({
                 width: this.size.x + 2,
                 height: this.size.z + 2,
                 depth: (this.size.y + 2) * lightProps.depthMul,
@@ -243,7 +238,7 @@ export class Chunk {
         return true;
     }
 
-    applyVertices(inputId, bufferPool, argsVertices: Dict<IChunkVertexBuffer>) {
+     applyVertices(inputId, bufferPool, argsVertices: Dict<IChunkVertexBuffer>) {
         let chunkManager = this.getChunkManager();
         chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length = 0;
@@ -310,7 +305,7 @@ export class Chunk {
         chunkManager.chunks_state.applyVertices(this, args.timers)
         this.timers = args.timers
         this.gravity_blocks = args.gravity_blocks
-        this.applyVertices('worker', chunkManager.bufferPool, args.vertices)
+        this.applyVertices('worker', chunkManager.renderList.bufferPool, args.vertices)
         this.dirty = false
     }
 
@@ -334,7 +329,7 @@ export class Chunk {
         }
         const {lightTex} = this.light;
         if (lightTex) {
-            chunkManager.lightPool.dealloc(lightTex);
+            chunkManager.renderList.lightPool.dealloc(lightTex);
         }
         this.light.lightTex = null;
         // run webworker method

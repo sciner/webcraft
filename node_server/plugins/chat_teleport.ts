@@ -1,7 +1,7 @@
 import {ServerClient} from "@client/server_client.js";
 import {Vector} from "@client/helpers.js";
 
-const reg = /[^a-z0-9\s]/gi;
+export const teleport_title_regexp = /[^a-z_0-9\s]/gi;
 
 export default class TeleportPlugin {
     
@@ -24,8 +24,8 @@ export default class TeleportPlugin {
         player.sendPackets(packets, [player], []);
     }
     
-    chTitle(title){
-        return (!title.match(reg) && title.length < 50);
+    chTitle(title : string) {
+        return (!title.match(teleport_title_regexp) && title.length < 50);
     }
 
     onChat(chat) {

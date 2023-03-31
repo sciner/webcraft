@@ -20,6 +20,8 @@ export class Camera {
     static PERSP_CAMERA = 'perspective';
     static ORTHO_CAMERA = 'ortho';
 
+    private _horizontalFovRad: float
+
     constructor (options: ICameraOptions = {
         type: 'perspective', // | 'ortho',
         min: 2/16,
@@ -64,6 +66,8 @@ export class Camera {
             bob: null
         };
     }
+
+    get horizontalFovRad(): float { return this._horizontalFovRad }
 
     // save camera state
     save() {
@@ -137,12 +141,15 @@ export class Camera {
 
         if (type === Camera.PERSP_CAMERA) {
             const func = renderType === 'webgl' ? mat4.perspectiveNO : mat4.perspectiveZO;
-            func(projMatrix, fov * Math.PI / 180.0, width / height, min, max);
+            const fovRad = fov * (Math.PI / 180.0)
+            func(projMatrix, fovRad, width / height, min, max);
+            this._horizontalFovRad = fovRad * width / height
 
             return;
         } else if(type === Camera.ORTHO_CAMERA) {
             const func = renderType === 'webgl' ? mat4.orthoNO : mat4.orthoZO;
             func(projMatrix, - scale * width / 2, scale * width / 2, -scale * height / 2, scale * height / 2, min, max);
+            this._horizontalFovRad = Math.PI / 2 // it's incorrect, but convenient: the callers don't have to make exceptions for ortho
 
             return;
         }

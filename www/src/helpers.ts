@@ -30,6 +30,7 @@ import { CubeSym } from "./core/CubeSym.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
+import type { World } from "./world.js";
 
 const {mat4, quat} = glMatrix;
 
@@ -276,6 +277,7 @@ export class Helpers {
     static calcSpeed(pos1 : Vector, pos2 : IVector, delta : float) : float {
         return Math.round(pos1.distance(pos2) / delta * 360) / 100;
     }
+
 }
 
 // Make fetch functions
@@ -372,7 +374,7 @@ function isDeepObject(obj) {
 }
 
 export class IvanArray {
-    [key: string]: any;
+
     arr: any[];
     count: number;
     constructor() {
@@ -393,7 +395,37 @@ export class IvanArray {
     }
 }
 
-//
+
+
+    /**
+     * Возвращает позицию, на которой можно стоять вокруг точки pos или null
+     * @param pos - позиция
+     * @param world - ссылка на world
+     */
+    export function getValidPosition(pos : Vector, world: World) : Vector | null {
+        let block = world.getBlock(pos.offset(0, 2, 0))
+        if (block.id == 0) {
+            return pos.offset(.5, 1, .5)
+        }
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                if (j == 0 && i == 0) {
+                    continue
+                }
+                block = world.getBlock(pos.offset(i, -1, j))
+                if (block.material.is_solid) {
+                    block = world.getBlock(pos.offset(i, 0, j))
+                    if (block.id == 0 || block?.material?.height < .5) {
+                        block = world.getBlock(pos.offset(i, 1, j))
+                        if (block.id == 0) {
+                            return pos.offset(i + .5, .5, j + .5)
+                        }
+                    } 
+                }
+            }
+        }
+        return null
+    }//
 export function makeChunkEffectID(chunk_addr : Vector, material_key : string) : string {
     let resp = `particles_effects/${chunk_addr.toHash()}/`;
     if(material_key) {

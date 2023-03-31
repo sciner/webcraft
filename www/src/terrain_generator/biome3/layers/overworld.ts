@@ -22,6 +22,11 @@ import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
+const DEFAULT_CLUSTER_LIST = [
+    {chance: .2, class: ClusterVilage},
+    {chance: 1, class: ClusterStructures},
+]
+
 const BIG_STONE_DESNSITY = 0.6;
 const GROUND_PLACE_SIZE = 3
 const _ground_places = new Array(CHUNK_SIZE * GROUND_PLACE_SIZE)
@@ -35,26 +40,31 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     slab_candidates:        any[]
     onground_place_index:   any
 
-    constructor(generator : Terrain_Generator) {
+    filter_biome_list:      int[] = [13, 140, 12, 30, 31, 158, 26, 1, 129, 4, 18, 132, 27, 28, 155, 156, 29, 159, 6, 134, 16, 21, 149, 22, 23, 151, 168, 169, 14, 15, 2, 17, 130, 35, 36, 163, 164, 37, 165, 39, 167, 38, 166]
 
-        super(generator)
+    init(generator : Terrain_Generator, map_manager ?: any, cluster_list? : {chance: float, class: any}[]) : Biome3LayerOverworld {
+
+        super.init(generator)
 
         const seed = generator.seed
         const world_id = generator.world_id
-        this.clusterManager = new ClusterManager(generator.world, generator.seed, this)
-        this.clusterManager.registerCluster(.2, ClusterVilage)
-        this.clusterManager.registerCluster(1, ClusterStructures)
 
-        this.maps = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
+        this.clusterManager = new ClusterManager(generator.world, generator.seed, this, cluster_list ?? DEFAULT_CLUSTER_LIST)
 
+        if(!map_manager) {
+            map_manager = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
+        }
+
+        this.maps = map_manager
         this.ore_generator = new WorldClientOreGenerator(world_id)
-        // this.clusterManager = generator.clusterManager
         this.dungeon = new DungeonGenerator(seed)
         // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {})
 
+        return this
+
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : TerrainMap2 {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) : TerrainMap2 {
 
         // Generate maps around chunk
         chunk.timers.start('generate_maps')
@@ -333,7 +343,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);
 
                 const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
-                const hanging_foliage_block_id = cell.biome.is_snowy ? bm.ICE.id : bm.OAK_LEAVES.id
+                const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
 
                 let cluster_drawed = false;
                 let not_air_count = 0;
@@ -484,15 +494,10 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                             chunk.setBlockIndirect(x, y, z, dirt_block_id)
                                         }
                                         // chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, bm.MOSSY_COBBLESTONE.id);
-                                        let big_stone_block_id = bm.MOSSY_COBBLESTONE.id
-                                        if(d4 < 0) {
-                                            big_stone_block_id = bm.TUFF.id
-                                        } else if (d4 > .5) {
-                                            big_stone_block_id = bm.STONE.id
-                                        }
+                                        let big_stone_block_id = cell.biome.getBigStoneBlock(density_params)
                                         chunk.setBlockIndirect(x, y + 1, z, big_stone_block_id)
                                         if(big_stone_density > BIG_STONE_DESNSITY) {
-                                            // chunk.setGroundInColumIndirect(columnIndex, x, y + 2, z, bm.MOSSY_COBBLESTONE.id);
+                                            // chunk.setGroundInColumIndirect(columnIndex, x, y + 2, z, big_stone_block_id);
                                             chunk.setBlockIndirect(x, y + 2, z, big_stone_block_id)
                                         }
                                     }
@@ -504,18 +509,11 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                 // первый слой поверхности под водой (дно)
 
                                 if(dcaves == 0) {
- 
-                                    // поверхность дна водоемов
-                                    if(d4 < 0) {
-                                        block_id = dirt_block_id
-                                    } else if(d4 < .3) {
-                                        block_id = gravel_id
-                                    } else {
-                                        block_id = sand_block_id
-                                    }
+
+                                    block_id = cell.biome.getRiverBottomBlock(density_params)
 
                                     // ламинария | kelp
-                                    if((chunk.size.y - y == air_height + 1) && !cell.biome.is_snowy) {
+                                    if((chunk.size.y - y == air_height + 1) && !cell.biome.is_snowy && !cell.biome.is_underworld) {
                                         if((block_id != gravel_id) && (rnd.double() < .15)) {
                                             if((d3 > 0)) {
                                                 for(let i = 0; i <= air_height - d3 * 2; i++) {
@@ -628,7 +626,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             }
 
                             // чтобы на самом нижнем уровне блоков чанка тоже росла трава
-                            if(y == 0) {
+                            if(y == 0 && !cell.biome.is_underworld) {
                                 xyz.y--
                                 map_manager.calcDensity(xyz, cell, over_density_params, map)
                                 xyz.y++
@@ -664,7 +662,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                     if(d1 > .25) {
                                         if(d3 > .25) {
                                             // chunk.setInitialGroundInColumnIndirect(columnIndex, y, bm.MOSS_BLOCK.id)
-                                            chunk.setBlockIndirect(x, y, z, bm.MOSS_BLOCK.id);
+                                            chunk.setBlockIndirect(x, y, z, (cell.biome.blocks.caves_second ?? bm.MOSS_BLOCK).id);
                                             continue
                                         }
                                     }

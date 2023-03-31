@@ -124,6 +124,16 @@ export class WindowManager extends wm {
         super(x, y, w, h, id)
     }
 
+    /** Redirects the drop event to a visible window that can process drop events outside its borders. */
+    onDrop(e?) {
+        if (e) {
+            for(const window of this.visibleWindows()) {
+                if (window.onDropOutside && window.onDropOutside(e)) {
+                    break
+                }
+            }
+        }
+    }
 }
 
 export class Label extends lbl {

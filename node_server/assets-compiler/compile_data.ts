@@ -1,3 +1,4 @@
+import { BLOCK_GROUP_TAG } from "@client/constant.js";
 import {Color} from "@client/helpers.js";
 import { COLOR_PALETTE, Resources } from "@client/resources.js";
 
@@ -189,6 +190,7 @@ export class CompileData {
                 "mask_color": mask_color,
                 "has_head": {"pos": {"x": 0, "y": 0, "z": 1}},
                 "tags": [
+                    BLOCK_GROUP_TAG.FURNITURE,
                     "bed",
                     "rotate_by_pos_n",
                     "mask_color"
@@ -294,6 +296,7 @@ export class CompileData {
                 },
                 "can_rotate": true,
                 "tags": [
+                    BLOCK_GROUP_TAG.DECORE,
                     "can_put_into_pot"
                 ]
             };
@@ -448,6 +451,9 @@ export class CompileData {
                 "name": color.toUpperCase() + '_STAINED_GLASS',
                 "material": {"id": "glass"},
                 "transparent": true,
+                "tags": [
+                    BLOCK_GROUP_TAG.BLOCK
+                ],
                 "sound": "madcraft:block.glass",
                 "texture": `block/${color}_stained_glass.png`
             };
@@ -818,6 +824,7 @@ export class CompileData {
                     "id": "wood"
                 },
                 "tags": [
+                    BLOCK_GROUP_TAG.FURNITURE,
                     "no_drop_ao",
                     "rotate_x8"
                 ],
@@ -841,6 +848,7 @@ export class CompileData {
                     "id": "wood"
                 },
                 "tags": [
+                    BLOCK_GROUP_TAG.FURNITURE,
                     "no_drop_ao",
                     "rotate_x8"
                 ],

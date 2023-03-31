@@ -5,7 +5,7 @@ import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { StringHelpers } from "./helpers.js";
 import { Lang } from "./lang.js";
-import { BLOCK_FLAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./constant.js";
+import { BLOCK_FLAG, BLOCK_GROUP_TAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
@@ -383,10 +383,10 @@ export class BLOCK {
      *   item is expected to have an entity, and doesn't have it.
      * - it assumes malicios intent, and does extra validation.
      *
-     * @param { object } an inventory item that came from client
+     * @param item an inventory item that came from client
      * @return a new valid inventory item, or null.
      */
-    static sanitizeAndValidateInventoryItem(item) {
+    static sanitizeAndValidateInventoryItem(item: any): IInventoryItem | null {
         // id
         if (!item || typeof item !== 'object' || typeof item.id !== 'number') {
             return null;
@@ -395,8 +395,9 @@ export class BLOCK {
         if (!b) {
             return null;
         }
-        const resp: IBlockItem = {
-            id: item.id
+        const resp: IInventoryItem = {
+            id: item.id,
+            count: 1
         };
         // entity
         // Allow it to be defined even if (b.is_entity == true), e.g. for a stack of chests
@@ -407,9 +408,7 @@ export class BLOCK {
             resp.entity_id = item.entity_id;
         }
         // count - after entity is validated
-        if (typeof item.count !== 'number') {
-            resp.count = 1;
-        } else {
+        if (typeof item.count === 'number') {
             const max_stack = this.getItemMaxStack(resp);
             resp.count = Math.floor(item.count);
             if (resp.count < 1 || resp.count > max_stack) {
@@ -475,12 +474,13 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item, b, no_copy_extra_data : boolean = false) : IBlockItem {
+    static convertItemToInventoryItem(item, b, no_copy_extra_data : boolean = false) : IInventoryItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
-        const resp = {
-            id: item.id
+        const resp: IInventoryItem = {
+            id: item.id,
+            count: 1
         };
         if('count' in item) {
             item.count = Math.floor(item.count);
@@ -807,6 +807,13 @@ export class BLOCK {
             !('height' in block);
     }
 
+    static isFlower(block) : boolean {
+        if(block.id == 0) {
+            return false
+        }
+        return (block.style_name == 'planting' && block.material.id == 'plant')
+    }
+
     /**
      * @param {int} block_id
      * @returns {number} non-zero if it's solid, 0 otherwise
@@ -954,12 +961,13 @@ export class BLOCK {
         block.can_rotate        = block.can_rotate ?? ArrayHelpers.includesAny(block.tags, 'trapdoor', 'stairs', 'door', 'rotate_by_pos_n');
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block);
-        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style_name == 'planting') || block.style_name == 'ladder' || block?.material?.id == 'glass';
+        block.invisible_for_cam = BLOCK.invisibleForCam(block)
         block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style_name == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         block.random_rotate_up  = block.tags.includes('random_rotate_up');
         block.is_log            = block.tags.includes('log')
         block.is_solid          = this.isSolid(block);
+        block.is_flower         = this.isFlower(block);
         block.is_solid_for_fluid= ArrayHelpers.includesAny(block.tags, 'is_solid_for_fluid', 'stairs', 'log') ||
                                     ['wall', 'pane'].includes(block.style_name);
 
@@ -1073,6 +1081,14 @@ export class BLOCK {
         if(block.id > this.max_id) {
             this.max_id = block.id;
         }
+    }
+
+    static invisibleForCam(block) : boolean {
+        return  block.is_portal ||
+                (block.passable > 0) ||
+                (block.material.id == 'plant' && (block.style_name == 'planting' || block.planting)) ||
+                (block.style_name == 'ladder') ||
+                (block?.material?.id == 'glass')
     }
 
     // Return true if block can intaract with hand
@@ -1397,6 +1413,72 @@ export class BLOCK {
 
     }
 
+    static autoTags() {
+
+        function isItem(b, item_names : string[]) : boolean {
+            return item_names.includes(b.item?.name)
+        }
+
+        function isStyle(b, style_names : string[]) : boolean {
+            return style_names.includes(b.style_name)
+        }
+
+        function hasTag(b, tags: string[]) : boolean {
+            for(let t of tags) {
+                if(b.tags.includes(t)) {
+                    return true
+                }
+            }
+            return false
+        }
+
+        for(let b of BLOCK.list.values()) {
+            if(isItem(b, ['instrument', 'tool']) && !hasTag(b, [BLOCK_GROUP_TAG.COMBAT])) {
+                b.tags.push(BLOCK_GROUP_TAG.TOOLS)
+            }
+            if(b.material.id == 'plant') {
+                b.tags.push(BLOCK_GROUP_TAG.PLANT)
+            }
+            if(b.material.id == 'food') {
+                b.tags.push(BLOCK_GROUP_TAG.FOOD)
+            }
+            if(b.layering?.slab || b.is_solid || hasTag(b, ['stairs'])) {
+                b.tags.push(BLOCK_GROUP_TAG.BLOCK)
+            }
+            // decore
+            if(hasTag(b, ['ladder', 'door', 'item_frame', 'lattice', 'trapdoor', 'carpet', 'banner', 'sign']) || isStyle(b, ['fence', 'torch', 'fence', 'painting', 'chain', 'lantern', 'enchanting_table', 'pane', 'wall', 'candle'])) {
+                b.tags.push(BLOCK_GROUP_TAG.DECORE)
+            }
+            // lightning
+            if(isStyle(b, ['torch', 'lantern', 'candle'])) {
+                b.tags.push(BLOCK_GROUP_TAG.LIGHTNING)
+            }
+            // brewing
+            if(b.effects || hasTag(b, ['magic_ingridient']) || isStyle(b, ['enchanting_table', 'cauldron']) || isItem(b, ['book'])) {
+                b.tags.push(BLOCK_GROUP_TAG.BREWING)
+            }
+            // combat
+            if(b.armor) {
+                b.tags.push(BLOCK_GROUP_TAG.COMBAT)
+            }
+        }
+
+        // misc
+        for(let b of BLOCK.list.values()) {
+            let is_misc = true
+            for(let t of b.tags) {
+                if(t.startsWith('#')) {
+                    is_misc = false
+                    break
+                }
+            }
+            if(is_misc) {
+                b.tags.push(BLOCK_GROUP_TAG.MISC)
+            }
+        }
+
+    }
+
     //
     static sortBlocks() {
         //
@@ -1528,6 +1610,7 @@ export class BLOCK {
             BLOCK.resource_pack_manager.init(settings)
         ]).then(([block_styles, _]) => {
             BLOCK.sortBlocks();
+            BLOCK.autoTags();
             BLOCK.addHardcodedFlags();
             BLOCK.checkGeneratorOptions()
             // Block styles

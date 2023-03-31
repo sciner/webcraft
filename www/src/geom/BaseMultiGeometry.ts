@@ -1,46 +1,43 @@
 import GeometryTerrain from "../geometry_terrain.js";
+import type {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
+import type {BaseBuffer} from "../renders/BaseRenderer.js";
+import type WebGLRenderer from "../renders/webgl";
 
 export class BaseMultiGeometry {
-    [key: string]: any;
     static strideFloats = 10;
     static sortAss = (a, b) => {
         return a - b;
     };
 
+    batch: BigGeomBatchUpdate = null;
+
+    updateID = 0;
+    uploadID = -1;
+    strideFloats: number;
+    stride: number;
+    context: WebGLRenderer;
+    size: number;
+    indexData: Int32Array;
+    buffer: BaseBuffer = null;
+    indexBuffer: BaseBuffer = null;
+    quad: BaseBuffer = null;
+    vao: WebGLVertexArrayObject = null;
+    buffers: BaseBuffer[] = [];
+    hasInstance = false;
+    gl: WebGL2RenderingContext;
+    attribs: any;
+
     constructor({context = null, size = 128, strideFloats = 0} = {}) {
-        this.updateID = 0;
-        this.uploadID = -1;
         this.strideFloats = strideFloats;
         this.stride = this.strideFloats * 4;
-
         this.context = context;
         this.size = size;
-        this.data = new Float32Array(size * this.strideFloats);
-        this.indexData = null;
-        /**
-         *
-         * @type {BaseBuffer}
-         */
-        this.buffer = null;
-        this.indexBuffer = null;
-        /**
-         *
-         * @type {BaseBuffer}
-         */
-        this.quad = null;
-        this.vao = null;
-        /**
-         *
-         * @type {BaseRenderer}
-         */
-        this.buffers = [];
-
-        this.updates = [];
-
-        this.hasInstance = false;
     }
 
     createVao() {
+        // override!
+    }
+    attribBufferPointers() {
         // override!
     }
 
@@ -54,8 +51,8 @@ export class BaseMultiGeometry {
 
         if (!this.buffer) {
             this.buffer = this.context.createBuffer({
-                data: this.data,
-                usage: 'static'
+                usage: 'static',
+                bigLength: this.size * this.stride,
             });
             // this.data = null;
 
@@ -76,7 +73,6 @@ export class BaseMultiGeometry {
         if (gl) {
             if (!this.vao) {
                 this.createVao();
-                this.updates.length = 0;
                 this.uploadID = this.updateID;
                 return;
             }
@@ -89,12 +85,17 @@ export class BaseMultiGeometry {
             return;
         }
         this.uploadID = this.updateID;
-        const {updates} = this;
-        this.buffer.bind();
-        if (updates.length > 0) {
-            this.optimizeUpdates();
-            this.buffer.multiUpdate(updates);
-            updates.length = 0;
+        if (this.batch.copyPos > 0) {
+            const batchBuf = this.batch.getBuf(this.context);
+            batchBuf.updatePartial(this.batch.pos * this.strideFloats);
+            this.buffer.batchUpdate(batchBuf, this.batch.copies, this.batch.copyPos, this.stride);
+            this.batch.reset();
+        } else {
+            this.buffer.bind();
+        }
+        if (this.buffer.bigResize) {
+            this.buffer.bigResize = false;
+            this.attribBufferPointers();
         }
         if (this.indexBuffer) {
             this.indexBuffer.bind();
@@ -103,47 +104,12 @@ export class BaseMultiGeometry {
 
     resize(newSize) {
         this.size = newSize;
-        this.updates.length = 0;
         this.updateID++;
-        const oldData = this.data;
-        this.data = new Float32Array(newSize * this.strideFloats);
-        this.data.set(oldData, 0);
         if (this.buffer) {
-            this.buffer.data = this.data;
+            this.buffer.dirty = true;
+            this.buffer.bigLength = this.size * this.stride;
         }
-    }
-
-    optimizeUpdates() {
-        const {updates} = this;
-        for (let i = 0; i < updates.length; i += 2) {
-            updates[i] = (updates[i] << 1);
-            updates[i + 1] = (updates[i + 1] << 1) + 1;
-        }
-        updates.sort(BaseMultiGeometry.sortAss);
-        let balance = 0, j = 0;
-        for (let i = 0; i < updates.length; i++) {
-            if (updates[i] % 2 === 0) {
-                if (balance === 0) {
-                    updates[j++] = updates[i] >> 1;
-                    //TODO: check previous to merge?
-                }
-                balance++;
-            } else {
-                balance--;
-                if (balance === 0) {
-                    updates[j++] = updates[i] >> 1;
-                }
-            }
-        }
-        updates.length = j;
-    }
-
-    updatePage(dstOffset, floatBuffer) {
-        const {data} = this;
-        dstOffset *= this.strideFloats;
-        data.set(floatBuffer, dstOffset);
-        this.updates.push(dstOffset, dstOffset + floatBuffer.length);
-        this.updateID++;
+        console.debug(`multigeometry resize ${newSize}`);
     }
 
     destroy() {

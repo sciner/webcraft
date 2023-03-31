@@ -10,9 +10,10 @@ export default class Biome3LayerStone extends Biome3LayerBase {
 
     declare maps: Map<any, any> | any
 
-    constructor(generator : Terrain_Generator) {
-        super(generator)
+    init(generator : Terrain_Generator) : Biome3LayerStone {
+        super.init(generator)
         this.maps = new Map()
+        return this
     }
 
     generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {

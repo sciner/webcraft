@@ -9,10 +9,12 @@ import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
 import { Resources } from "../resources.js";
 import type { SpriteAtlas } from "../core/sprite_atlas.js";
+import type {RecipeManager} from "../recipes.js";
 
 export class InventoryWindow extends BaseCraftWindow {
 
     frmInventoryRecipe : InventoryRecipeWindow
+    recipes: RecipeManager
 
     slot_empty = 'slot_empty'
     slot_full = 'slot_full'
@@ -22,7 +24,7 @@ export class InventoryWindow extends BaseCraftWindow {
     slots_y : float
     hud_atlas : SpriteAtlas
 
-    constructor(inventory : PlayerInventory, recipes) {
+    constructor(inventory: PlayerInventory, recipes: RecipeManager) {
 
         super(0, 0, 700, 332, 'frmInventory', null, null, inventory)
         this.w *= this.zoom
@@ -118,22 +120,19 @@ export class InventoryWindow extends BaseCraftWindow {
     // Обработчик закрытия формы
     onHide() {
 
-        // Drag
-        this.inventory.clearDragItem(true)
+        const thrown_items = this.clearCraft()
 
-        // Clear result
-        this.lblResultSlot.setItem(null)
-
-        for(let slot of this.craft.slots) {
-            if(slot && slot.item) {
-                this.inventory.increment(slot.item)
-                slot.setItem(null)
-            }
-        }
+        // // Update player mob model
+        // this.inventory.player.updateArmor()
 
         // Save inventory
-        Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes())
+        this.world.server.InventoryNewState({
+            state: this.inventory.exportItems(),
+            used_recipes: this.lblResultSlot.getUsedRecipes(),
+            thrown_items
+        })
 
+//        this.skinViewer.renderPaused = true
     }
 
     async previewSkin() {

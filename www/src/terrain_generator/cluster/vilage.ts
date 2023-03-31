@@ -15,7 +15,7 @@ const USE_ROAD_AS_GANGWAY   = 0;
 export class ClusterVilage extends ClusterBuildingBase {
 
     //
-    constructor(clusterManager, addr, biome) {
+    constructor(clusterManager, addr : Vector, biome) {
 
         super(clusterManager, addr);
 
@@ -29,10 +29,10 @@ export class ClusterVilage extends ClusterBuildingBase {
 
             this.flat               = this.randoms.double() >= .8;
             this.max_height         = this.flat ? 1 : 30;
-            this.wall_block         = this.flat ? bm.STONE_BRICKS.id : bm.OAK_PLANKS.id;
-            this.road_block         = this.createBlockPalette([{value: bm.DIRT_PATH, chance: 1}]);
+            // this.wall_block         = this.flat ? bm.STONE_BRICKS.id : bm.OAK_PLANKS.id;
+            this.road_block         = this.createBlockPalette([{value: (biome?.blocks?.dirt_path ?? bm.DIRT_PATH), chance: 1}]);
             this.road_block.reset();
-            this.basement_block     = this.flat ? bm.POLISHED_ANDESITE.id : bm.COBBLESTONE.id;
+            this.basement_block     = this.flat ? bm.POLISHED_ANDESITE.id : (biome?.blocks?.basement?.id ?? bm.COBBLESTONE.id);
 
             const {schema_options, building_palette_options} = this.initVilageOptions(biome)
 

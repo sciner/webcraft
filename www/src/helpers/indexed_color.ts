@@ -1,8 +1,10 @@
+import { Mth } from "./mth.js";
+
 export class IndexedColor implements IColor {
     [key: string]: any;
 
     static WHITE = new IndexedColor(48, 528, 0);
-    static GRASS = new IndexedColor(132, 485, 0);
+    static GRASS = new IndexedColor(66, 370.5, 0);
     static WATER = new IndexedColor(132, 194, 0);
 
     r: number;
@@ -31,7 +33,7 @@ export class IndexedColor implements IColor {
         this.packed = IndexedColor.packArg(this.r, this.g, this.b);
     }
 
-    set(r, g, b) {
+    set(r : number | IndexedColor, g : number, b : number) {
         if(r instanceof IndexedColor) {
             g = r.g;
             b = r.b;
@@ -57,9 +59,6 @@ export class IndexedColor implements IColor {
         return new IndexedColor(this.r, this.g, this.b);
     }
 
-    /**
-     * @param {IndexedColor} ic
-     */
     copyFrom(ic : IColor) {
         this.r = ic.r;
         this.g = ic.g;
@@ -74,8 +73,13 @@ export class IndexedColor implements IColor {
         return this;
     }
 
-    pack() {
+    pack() : int {
         return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
+    }
+
+    static clampPalette(ic : IndexedColor, palette : DirtPalette) : void {
+        ic.r = Mth.clamp(ic.r, palette.x, palette.x + palette.w - 1)
+        ic.g = Mth.clamp(ic.g, palette.y, palette.y + palette.h - 1)
     }
 
 }

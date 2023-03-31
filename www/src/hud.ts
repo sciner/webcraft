@@ -421,7 +421,8 @@ export class HUD {
                     }
                 }
                 this.text += `${mat.id} / ${this.mat_name}`;
-                if(mat.is_fluid) {
+                // it seems this condition is never true (e.g., it's not true for the water bucket):
+                if((mat as any).is_fluid) {
                     this.text += ' ' + '(FLUID!)';
                 }
             } else {
@@ -453,8 +454,8 @@ export class HUD {
             let quads_length_total = cm.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
                 + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb';
-            this.text += '\nLightmap: ' + Math.round(cm.lightmap_count)
-                + ' / ' + Math.round(cm.lightmap_bytes / 1024 / 1024) + 'Mb';
+            this.text += '\nLightmap: ' + Math.round(cm.renderList.lightmap_count)
+                + ' / ' + Math.round(cm.renderList.lightmap_bytes / 1024 / 1024) + 'Mb';
 
             // Draw tech info
             if(draw_tech_info) {

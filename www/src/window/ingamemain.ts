@@ -8,10 +8,19 @@ import { QuestWindow } from "./quest.js";
 import { StatsWindow } from "./stats.js";
 import { Label, Window } from "../ui/wm.js";
 import { BlankWindow } from "./blank.js";
-import { Graphics } from "../vendors/wm/wm.js";
+import {Graphics, TMouseEvent} from "../vendors/wm/wm.js";
 import { parseColorAndAlpha } from "../vendors/wm/styles.js";
 
+type TMainTab = {
+    title   : string
+    form    : Window
+    button
+    fix_pos : Vector
+}
+
 export class InGameMain extends BlankWindow {
+
+    tabs: TMainTab[]
 
     constructor(player, inventory, recipes) {
 
@@ -163,7 +172,7 @@ export class InGameMain extends BlankWindow {
         super.onHide()
     }
 
-    getTab(id : string) : Window | null {
+    getTab(id : string) : TMainTab | null {
         for(let i = 0; i < this.tabs.length; i++) {
             const tab = this.tabs[i]
             if(tab.form.id == id) {
@@ -173,4 +182,11 @@ export class InGameMain extends BlankWindow {
         return null
     }
 
+    *visibleSubWindows(): IterableIterator<Window> {
+        for(const tab of this.tabs) {
+            if(tab.form.visible) {
+                yield tab.form
+            }
+        }
+    }
 }
