@@ -340,9 +340,8 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.txtSearch = txtSearch
 
         txtSearch.onChange = (text) => {
-            this.collection.init(text)
-            this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - this.collection.ycnt
             this.collection.init(text, this.selectedTag)
+            this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - this.collection.ycnt
         }
 
         const tagAll = BLOCK_GROUP_TAG.ALL.slice(1);
@@ -423,7 +422,8 @@ export class CreativeInventoryWindow extends BlankWindow {
                     selectedTag.setActive();
                     this.selectedTag = selectedTag.text;
                 }
-                this.collection.init(this.txtSearch.text, this.selectedTag);
+                this.collection.init(this.txtSearch.text, this.selectedTag)
+                this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - this.collection.ycnt
             };
             button.onMouseEnter = () => super.onMouseEnter();
             button.onMouseLeave = () => super.onMouseLeave();

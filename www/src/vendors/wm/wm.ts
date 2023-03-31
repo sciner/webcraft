@@ -1757,19 +1757,19 @@ export class Slider extends Window {
         const size = ((this.horizontal) ? cursor.w : cursor.h)
         const pr = this._value / (this._max - this._min)
         if (this.horizontal) {
-            cursor.x = Math.ceil(pr * (this.w - size))
+            cursor.x = Math.floor(pr * (this.w - size))
         } else {
-            cursor.y = Math.ceil(pr * (this.h - size))
+            cursor.y = Math.floor(pr * (this.h - size))
         }
     }
 
     set max(value) {
-        this._max = value > 1 ? value : 1
+        this._max = value > 0 ? Math.ceil(value) : 0
         if (this.horizontal) {
-            const size = this.w / (this._max - this._min)
+            const size = this.w / (2 *(this._max - this._min))
             this._wmicon.width = (size > this.min_size_scroll) ? size : this.min_size_scroll
         } else {
-            const size = this.h / (this._max - this._min)
+            const size = this.h / (2 *(this._max - this._min))
             this._wmicon.height = (size > this.min_size_scroll) ? size : this.min_size_scroll
         }
         this.value = 0
