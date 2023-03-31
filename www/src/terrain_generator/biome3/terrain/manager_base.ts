@@ -30,7 +30,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
     static _temp_vec3 = Vector.ZERO.clone()
     static _temp_vec3_delete = Vector.ZERO.clone()
 
-    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
+    constructor(seed : string, world_id : string, noise2d : Function, noise3d : Function, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
         this.seed = seed;
         this.world_id = world_id;
         this.noise2d = noise2d;
@@ -38,7 +38,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         this.block_manager = block_manager;
         this.layer = layer;
         this.maps_cache = new VectorCollector();
-        this.biomes = new Biomes(noise2d);
+        this.biomes = new Biomes(noise2d, layer.filter_biome_list)
         this.generator_options = generator_options
     }
 

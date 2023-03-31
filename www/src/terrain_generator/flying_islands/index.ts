@@ -119,14 +119,14 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Trees
         if(tree_pos && tree_pos.y < 32) {
-            let type = new BiomeTree(3, 233, 'wood', { "min": 4, "max": 8 }, .99);
+            let type = new BiomeTree('OAK_LOG', 'OAK_LEAVES', 'wood', { "min": 4, "max": 8 }, .99);
             const r = rnd.double();
             if(r < .05) {
-                type = new BiomeTree(BLOCK.MUSHROOM_STEM.id, BLOCK.RED_MUSHROOM_BLOCK.id, 'red_mushroom', {"min": 5, "max": 12});
+                type = new BiomeTree('MUSHROOM_STEM', 'RED_MUSHROOM_BLOCK', 'red_mushroom', {"min": 5, "max": 12});
             } else if(r < .5) {
-                type = new BiomeTree(BLOCK.BIRCH_LOG.id, BLOCK.BIRCH_LEAVES.id, 'wood', {"min": 4, "max": 8});
+                type = new BiomeTree('BIRCH_LOG', 'BIRCH_LEAVES', 'wood', {"min": 4, "max": 8});
             } else if(r < .55) {
-                type = new BiomeTree(BLOCK.PRISMARINE.id, null, 'tundra_stone', {"min": 2, "max": 2});
+                type = new BiomeTree('PRISMARINE', null, 'tundra_stone', {"min": 2, "max": 2});
             }
             const tree_height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
             this.plantTree(this.world,

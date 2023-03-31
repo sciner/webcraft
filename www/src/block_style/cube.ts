@@ -33,7 +33,7 @@ const _vec = new Vector(0, 0, 0);
 const _sideParams = new TCalcSideParamsResult()
 
 // overlay texture temp objects
-class OverlayTextureItem{
+class OverlayTextureItem {
     list: boolean[] = [false, false, false, false]
     count: int
     material: IBlockMaterial
@@ -49,6 +49,7 @@ class OverlayTextureItem{
         this.material = null
     }
 }
+
 const _overlay = {
     materials: new Map(),
     neightbours: [null, null, null, null] as TBlock[],
@@ -58,7 +59,7 @@ const _overlay = {
     }
 }
 
-export const LEAVES_COLOR_FLAGS = [
+export const LEAVES_COLORS = [
     new IndexedColor(28, 540, 0), // pink
     new IndexedColor(20, 524, 0), // orange
     new IndexedColor(28, 524, 0), // yellow
@@ -323,7 +324,7 @@ export default class style {
         let flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES | QUAD_FLAGS.NORMAL_UP
         if(block.extra_data) {
             if(block.extra_data && block.extra_data.v != undefined) {
-                const color = LEAVES_COLOR_FLAGS[block.extra_data.v % LEAVES_COLOR_FLAGS.length]
+                const color = LEAVES_COLORS[block.extra_data.v % LEAVES_COLORS.length]
                 _lm_leaves.r = color.r
                 _lm_leaves.g = color.g
             }
@@ -434,7 +435,8 @@ export default class style {
             if(block.hasTag('mask_biome')) {
                 lm.copyFrom(dirt_color)
                 if(block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id) {
-                    lm.r += GRASS_PALETTE_OFFSET;
+                    lm.r += GRASS_PALETTE_OFFSET.x
+                    lm.g += GRASS_PALETTE_OFFSET.y
                 }
                 if(!material.is_dirt) {
                     flags = QUAD_FLAGS.MASK_BIOME;
@@ -442,7 +444,7 @@ export default class style {
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
                 if(block.extra_data && block.extra_data.v != undefined) {
-                    const color = LEAVES_COLOR_FLAGS[block.extra_data.v % LEAVES_COLOR_FLAGS.length]
+                    const color = LEAVES_COLORS[block.extra_data.v % LEAVES_COLORS.length]
                     lm.r = color.r
                     lm.g = color.g
                 }
@@ -743,7 +745,8 @@ export default class style {
                 const overlay_vertices = []
                 let flags = 0
                 if(mat.tags.includes('mask_biome')) {
-                    lm.r += GRASS_PALETTE_OFFSET;
+                    lm.r += GRASS_PALETTE_OFFSET.x;
+                    lm.g += GRASS_PALETTE_OFFSET.y;
                     flags |= QUAD_FLAGS.MASK_BIOME;
                 }
                 const t = bm.calcMaterialTexture(mat, DIRECTION.UP, 1, 1, undefined, undefined, undefined, overlay_name);

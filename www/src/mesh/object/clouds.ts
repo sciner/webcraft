@@ -119,6 +119,10 @@ export default class Mesh_Object_Clouds {
     draw(render, delta) {
         const cam_pos = Qubatch.render.camPos.clone();
 
+        if(cam_pos.y < 0) {
+            return false
+        }
+
         cam_pos.y = cam_pos.y > 512 ? 1024.1 : this.y_pos; // this.pos.y
 
         const size = CLOUDS_TEX_SIZE * CLOUDS_TEX_SCALE.x;

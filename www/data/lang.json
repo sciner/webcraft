@@ -42,7 +42,7 @@
         "enter_your_name": {"en": "Enter your name", "ru": "Ваше имя","fr": "Entrez votre nom","es":"Introduzca su nombre","man":"输入你的名字","hind":"अपना नाम दर्ज करें"},
         "enter_your_password": {"en": "Enter password", "ru": "Введите пароль","fr": "Entrez mot de passe","es":"Introducir la contraseña","man":"输入密码","hind":"पास वर्ड दर्ज करें"},
         "enter_world_login": {"en": "To enter the world <b>{0}</b>, please, authorize", "ru": "Для входа в мир <b>{0}</b> авторизуйтесь","fr": "Pour entrer dans le monde <b>{0}</b> connectez-vous","es":"Para entrar en el mundo <b>{0}</b> inicie sesión","man":"要进入这个世界<b>{0}</b>，请登录","hind":"विश्व में प्रवेश करने के लिए <b>{0}</b>, कृपया अधिकृत करें"},
-        "no_world_by_link": {"en": "The world at the specified link was not found", "ru" : "Мир по указанной ссылке не найден", "fr": "Le monde au lien spécifié est introuvable","es": "No se encontró el mundo en el enlace especificado", "man": "未找到指定链接的世界","hind":"निर्दिष्ट लिंक पर दुनिया नहीं मिली"}, 
+        "no_world_by_link": {"en": "The world at the specified link was not found", "ru" : "Мир по указанной ссылке не найден", "fr": "Le monde au lien spécifié est introuvable","es": "No se encontró el mundo en el enlace especificado", "man": "未找到指定链接的世界","hind":"निर्दिष्ट लिंक पर दुनिया नहीं मिली"},
         "accept_join_to_world_message": {"en": "You have not yet been to the world <b>{0}</b>. Join?", "ru": "Вы ещё не были в мире <b>{0}</b>. Приооединиться?", "fr": "Vous n'êtes pas encore allé dans le monde <b>{0}</b>. Rejoindre?", "es": "Aún no has estado en el mundo <b>{0}</b>. ¿Unirse?", "man": "您还没有去过 <b>{0}</b> 世界。 加入","hind":"आप अभी तक दुनिया में नहीं गए हैं <b>{0}</b>. जोड़ना?"},
         "join": {"en": "Join", "ru": "Присоединиться", "fr": "Rejoindre","es": "Unirse", "man": "加入","hind":"जोड़ना"},
         "ok" : {"en": "OK", "ru": "ОК", "fr": "d'accord", "es": "OK", "man": "好的","hind":"ठीक है"},
@@ -201,6 +201,19 @@
         "recipes": {"en": "RECIPES", "ru": "РЕЦЕПТЫ", "fr": "", "es": "", "man": ""},
         "only_can": {"en": "I can", "ru": "Я могу", "fr": "", "es": "", "man": ""},
         "crafting_table": {"en": "WORKBENCH", "ru": "ВЕРСТАК", "fr": "", "es": "", "man": ""},
-        "short_meters": {"en": "m", "ru": "м", "fr": "", "es": "", "man": ""}
+        "pos_not_valid": {"en": "The place missing or obstructed", "ru": "Доступ к этому месту заблокирован", "fr": "", "es": "", "man": ""},
+        "pos_occupied": {"en": "This place is occupied", "ru": "Это место занято", "fr": "", "es": "", "man": ""},
+        "short_meters": {"en": "m", "ru": "м", "fr": "", "es": "", "man": ""},
+        "tag_all": {"en": "all", "ru": "все", "fr": "", "es": "", "man": ""},
+        "tag_block": {"en": "block", "ru": "блоки", "fr": "", "es": "", "man": ""},
+        "tag_brewing": {"en": "brewing", "ru": "зельеварение", "fr": "", "es": "", "man": ""},
+        "tag_combat": {"en": "combat", "ru": "бой", "fr": "", "es": "", "man": ""},
+        "tag_decore": {"en": "decore", "ru": "декор", "fr": "", "es": "", "man": ""},
+        "tag_food": {"en": "food", "ru": "еда", "fr": "", "es": "", "man": ""},
+        "tag_furniture": {"en": "furniture", "ru": "мебель", "fr": "", "es": "", "man": ""},
+        "tag_lightning": {"en": "lightning", "ru": "освещение", "fr": "", "es": "", "man": ""},
+        "tag_misc": {"en": "misc", "ru": "разное", "fr": "", "es": "", "man": ""},
+        "tag_plant": {"en": "plant", "ru": "растения", "fr": "", "es": "", "man": ""},
+        "tag_tools": {"en": "tools", "ru": "инструменты", "fr": "", "es": "", "man": ""}
     }
 }

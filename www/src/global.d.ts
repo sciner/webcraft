@@ -113,6 +113,15 @@ interface IBlockItem {
     tag?: any,
 }
 
+interface IInventoryItem {
+    id: int
+    count: number
+    extra_data?: any
+    power?: number
+    entity_id?: string
+    texture?    // used only on client
+}
+
 interface Dict<ValueType=any> {
     [key: string]: ValueType
 }
@@ -313,6 +322,7 @@ interface IBlockMaterial {
     is_portal: boolean
     is_glass: boolean
     is_grass: boolean
+    is_flower: boolean
     is_battery: boolean
     is_log: boolean
     // boolean values that are automatically calculated by BLOCK, not from JSON
@@ -378,4 +388,27 @@ interface IPickatEvent {
     pos:                {x : float, y : float, z: float, mob: any, player: any, aabb?: any, n: IVector, block_id: int}
     shiftKey:           boolean
     start_time:         float
+}
+
+// class DirtPalette {
+//     x:              int
+//     y:              int
+//     w:              int
+//     h:              int
+//     noise_range:    int
+
+//     constructor(x, y, w, h, noise_range) {
+//         this.x = x
+//         this.y = y
+//         this.w = w
+//         this.h = h
+//         this.noise_range = noise_range
+//     }
+// }
+declare type DirtPalette = {
+    x:              int
+    y:              int
+    w:              int
+    h:              int
+    noise_range:    int
 }

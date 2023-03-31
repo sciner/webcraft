@@ -5,6 +5,8 @@ export enum LIGHT_TYPE {
     RTX     = 2,
 }
 
+export const FAST = false
+
 export const INGAME_MAIN_WIDTH              = 772
 export const INGAME_MAIN_HEIGHT             = 514
 export const GAME_ONE_SECOND                = 72;
@@ -22,11 +24,17 @@ export const PICKUP_OWN_DELAY_SECONDS       = 2;
 export const NO_TICK_BLOCKS                 = false;
 export const BODY_ROTATE_SPEED              = 7;
 export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
-export const GRASS_PALETTE_OFFSET           = 256; // (in px) offset in mask_color.png for grass palette
+
+// Dirt and grass
+export const GRASS_PALETTE_OFFSET           = {x : 128, y : 0}; // (in px) offset in mask_color.png for grass palette
+export const DEFAULT_DIRT_PALETTE           = {x: 0, y : 256, w: 128, h : 128, noise_range: 10} as DirtPalette // noise_range is mix dirt colors on every block with random value
+export const DEFAULT_GRASS_PALETTE          = {x: 128, y : 256, w: 128, h : 128, noise_range: 0} as DirtPalette
+export const DIRT_PALETTE_SIZE              = 128
+export const GRASS_COLOR_SHIFT_FACTOR       = 6
+
 export const DEFAULT_TX_CNT                 = 64;
 export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
-export const DIRT_COLOR_NOISE_RANGE         = 20; // mix dirt colors on every block with random value
 export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', 'west', 'east'];
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= ['BEDROCK'];
 export const ITEM_LABEL_MAX_LENGTH          = 19;

@@ -1,3 +1,4 @@
+import type { BLOCK } from "../../../blocks";
 import type { Vector } from "../../../helpers";
 import type { ChunkWorkerChunk } from "../../../worker/chunk";
 import type { ClusterBase } from "../../cluster/base";
@@ -11,16 +12,17 @@ import type { TerrainMap2 } from "../terrain/map";
  * Generate underworld infinity air
  */
 export class Biome3LayerBase {
-    noise2d:            any
-    noise3d:            any
-    block_manager:      any
+    noise2d:            Function
+    noise3d:            Function
+    block_manager:      BLOCK
     maps:               TerrainMapManagerBase // | Map<any, any>
     generator:          any
     clusterManager:     ClusterManager
     seed:               string
     world:              any
+    filter_biome_list:  int[] = []
 
-    constructor(generator : any) {
+    init(generator : any) : Biome3LayerBase {
 
         this.generator = generator
 
@@ -29,9 +31,11 @@ export class Biome3LayerBase {
         this.block_manager = generator.block_manager
         // this.maps = new Map()
 
+        return this
+
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any) : Default_Terrain_Map {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lower? : boolean, is_highest? : boolean) : Default_Terrain_Map {
         return this.generator.generateDefaultMap(chunk)
     }
 
@@ -51,12 +55,15 @@ export class Biome3LayerBase {
                 const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
 
                 // Replace grass_block with dirt under trees
-                if(chunk.addr.x == m.chunk.addr.x && chunk.addr.z == m.chunk.addr.z) {
-                    const yu = y - 1
-                    if(yu >= 0 && yu < chunk.size.y) {
-                        const cell = m.getCell(tree.pos.x, tree.pos.z)
-                        if(!cell.is_sand && !tree.type.transparent_trunk) {
-                            chunk.setGroundIndirect(x, yu, z, bm.DIRT.id)
+                const basis_block = tree.type.basis === undefined ? bm.DIRT.id : tree.type.basis
+                if(basis_block !== null) {
+                    if(chunk.addr.x == m.chunk.addr.x && chunk.addr.z == m.chunk.addr.z) {
+                        const yu = y - 1
+                        if(yu >= 0 && yu < chunk.size.y) {
+                            const cell = m.getCell(tree.pos.x, tree.pos.z)
+                            if(!cell.is_sand && !tree.type.transparent_trunk) {
+                                chunk.setGroundIndirect(x, yu, z, basis_block)
+                            }
                         }
                     }
                 }

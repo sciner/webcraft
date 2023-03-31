@@ -43,11 +43,14 @@ export default class Terrain_Generator extends Demo_Map {
     constructor(world : WorkerWorld, seed : string, world_id : string, options : object) {
         super(seed, world_id, options);
         this.world = world;
-        this.clusterManager = new ClusterManager(world, seed, null)
 
-        this.clusterManager.registerCluster(.1, ClusterPyramid)
-        this.clusterManager.registerCluster(.6, null)
-        this.clusterManager.registerCluster(1, ClusterVilage)
+        // Set cluster manager and register cluster classes
+        // TODO: setClusterManager
+        this.clusterManager = new ClusterManager(world, seed, null, [
+            {chance: .1, class : ClusterPyramid},
+            {chance: .6, class : null},
+            {chance: 1, class : ClusterVilage},
+        ])
 
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();

@@ -198,7 +198,7 @@ export class Raycaster {
         return resp;
     }
 
-    get(origin : Vector, dir : Vector, pickat_distance : number, callback? : Function, ignore_transparent : boolean = false, return_fluid : boolean = false) : RaycasterResult | null {
+    get(origin : Vector | IVector, dir : Vector, pickat_distance : number, callback? : Function, ignore_transparent : boolean = false, return_fluid : boolean = false) : RaycasterResult | null {
 
         // const origin_block_pos = new Vector(origin).flooredSelf();
 
