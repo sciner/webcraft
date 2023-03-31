@@ -4,6 +4,7 @@ import { WorldAction } from "@client/world_action.js";
 import { PLAYER_STATUS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 
+// рыба
 const FISH = [
     {
         'name': 'COD',
@@ -14,7 +15,7 @@ const FISH = [
         'weight': 25
     },
     {
-        'name': 'ROPICAL_FISH',
+        'name': 'TROPICAL_FISH',
         'weight': 2
     },
     {
@@ -22,7 +23,7 @@ const FISH = [
         'weight': 13
     }
 ]
-
+// мусор
 const JUNK = [
     {
         'name': 'LILY_PAD',
@@ -59,6 +60,14 @@ const JUNK = [
     {
         'name': 'BONE',
         'weight': 10
+    },
+    {
+        'name': 'BOWL',
+        'weight': 10
+    },
+    {
+        'name': 'INK_SAC',
+        'weight': 1
     }
 ]
 
@@ -70,6 +79,7 @@ export class Brain extends FSMBrain {
     timer_catchable: number;
     timer_caught_delay: number;
     timer_catchable_delay: number;
+    fish_approach_angle: number;
     velocity: Vector;
 
     constructor(mob) {
@@ -77,9 +87,7 @@ export class Brain extends FSMBrain {
         this.prevPos        = new Vector(mob.pos);
         this.lerpPos        = new Vector(mob.pos);
         this.pc             = this.createPlayerControl(this, {
-            baseSpeed: 500,
-            playerHeight: .2,
-            stepHeight: 0,
+            playerHeight: .16,
             playerHalfWidth: .08
         });
         this.pc.player_state.flying = true
@@ -93,10 +101,10 @@ export class Brain extends FSMBrain {
         this.timer_catchable_delay = 0
 
         const power = .4
-        const Z = Math.cos(mob.rotate.z) * Math.cos(mob.rotate.x) * power
-        const X = Math.sin(mob.rotate.z) * Math.cos(mob.rotate.x) * power
-        const Y = Math.sin(mob.rotate.x) * 2 * power
-        this.velocity = new Vector(X, Y, Z)
+        const z = Math.cos(mob.rotate.z) * Math.cos(mob.rotate.x) * power
+        const x = Math.sin(mob.rotate.z) * Math.cos(mob.rotate.x) * power
+        const y = Math.sin(mob.rotate.x) * 2 * power
+        this.velocity = new Vector(x, y, z)
         this.stack.pushState(this.doStand)
     }
 
@@ -113,7 +121,7 @@ export class Brain extends FSMBrain {
         }
         const world = mob.getWorld()
         const item = player.inventory.items[player.inventory.current.index]
-        if (player.status == PLAYER_STATUS.DEAD || !item || item.id != world.block_manager.FISHING_ROD.id || mob.pos.distance(player.state.pos) > 1024) {
+        if (player.status == PLAYER_STATUS.DEAD || !item || item.id != world.block_manager.FISHING_ROD.id || mob.pos.distance(player.state.pos) > 32) {
             player.fishing = null
             mob.kill()
             return
@@ -131,7 +139,7 @@ export class Brain extends FSMBrain {
         for (let i = 0; i < 10; i++) {
             const water = world.getBlock(mob.pos.offset(0, i / 10, 0).floored())
             if (water?.id == 0 && water.fluid != 0) {
-                force += .27
+                force += .2625
             }
         }
         if (force > 0) {
@@ -156,6 +164,17 @@ export class Brain extends FSMBrain {
                     // тянем рыбу
                 } else {
                     // рыба близка пузыри с позицией
+                    // показать косяк рыб
+                    const x = mob.pos.x + Math.sin(this.fish_approach_angle) * this.timer_catchable_delay * .1
+                    const y = mob.pos.y
+                    const z = mob.pos.z + Math.cos(this.fish_approach_angle) * this.timer_catchable_delay * .1
+                    const pos = new Vector(x, y, z)
+                    const block = world.getBlock(pos)
+                    if (block && block.id == 0 && block.fluid != 0 && Math.random() < .15) {
+                        const actions = new WorldAction()
+                        actions.addParticles([{type: 'bubble', pos: pos}])
+                        world.actions_queue.add(player, actions)
+                    }
                 }
             } else if (this.timer_caught_delay > 0) {
                 this.timer_caught_delay -= bonus
@@ -171,6 +190,7 @@ export class Brain extends FSMBrain {
                     // брызги
                 }
                 if (this.timer_caught_delay <= 0) {
+                    this.fish_approach_angle = (Math.random() * 6.28) | 0
                     this.timer_catchable_delay = (Math.random() * 60) | 0 + 20 
                 }
             } else {

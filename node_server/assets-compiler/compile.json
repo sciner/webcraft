@@ -10307,6 +10307,31 @@
                 "saturation": 0.3
             },
             "texture": "item/tropical_fish.png"
+        },
+        {
+            "id": 1055,
+            "name": "BOWL",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bowl"},
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "item/bowl.png"
+            }
+        },
+        {
+            "id": 1056,
+            "name": "INK_SAC",
+            "style": "extruder",
+            "texture": "item/ink_sac.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
         }
     ]
 }
