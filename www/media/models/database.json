@@ -101,7 +101,7 @@
 
         "player:steve": {
             "type": "json",
-            "geom": "json/humanoid.geo.json",
+            "geom": "json/steve.geo.json",
             "baseSkin": "1",
             "skins": {
             }
