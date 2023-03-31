@@ -18,7 +18,7 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
         this.vertexPerInstance = FluidMultiGeometry.vertexPerInstance;
         this.indexPerInstance = FluidMultiGeometry.indexPerInstance;
         this.hasInstance = false;
-        this.batch = new BigGeomBatchUpdate(this.strideFloats, 1 << 11);
+        this.batch = new BigGeomBatchUpdate(this.strideFloats);
         this.createIndex();
     }
 

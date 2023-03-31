@@ -25,10 +25,10 @@ export class BigGeomBatchUpdate {
     copyPos: number = 0;
     strideFloats: number;
 
-    constructor(strideFloats, heuristicSize = (1 << 13)) {
-        this.heuristicSize = heuristicSize;
+    constructor(strideFloats, heuristicFloatSize = (1 << 16)) {
+        this.heuristicSize = Math.ceil(heuristicFloatSize / strideFloats);
         this.strideFloats = strideFloats;
-        this.ensureSize(heuristicSize);
+        this.ensureSize(this.heuristicSize);
     }
 
     ensureSize(instances: number) {

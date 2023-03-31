@@ -22,16 +22,24 @@ export class SpiralCulling27 {
         this.chunkCenter.copyFrom(chunkSize).divScalarSelf(2);
 
         const rad = Math.max(margin.x * chunkSize.x, margin.y * chunkSize.y, margin.z * chunkSize.z);
+        const rad2 = rad / 8;
         const vecRad = new Vector(rad, rad, rad);
+        const vecRad2 = new Vector(rad2, rad2, rad2);
 
         // corners
         const cs = this.cornerSpheres = [];
         for (let dir = 0; dir < 27; dir++) {
-            cs[dir] = new Sphere(this.chunkCenter
+            const s1 = new Sphere(this.chunkCenter
                     .add(vecRad)
                     .multiplyVecSelf(new Vector(NEIB_DX[dir], NEIB_DY[dir], NEIB_DZ[dir])),
                 rad
             );
+            const s2 = new Sphere(this.chunkCenter
+                    .add(vecRad2)
+                    .multiplyVecSelf(new Vector(NEIB_DX[dir], NEIB_DY[dir], NEIB_DZ[dir])),
+                rad2
+            );
+            cs.push(s1, s2);
         }
     }
 
@@ -39,7 +47,8 @@ export class SpiralCulling27 {
         let mask = 1 << 0;
         tempVec.copyFrom(chunkAddr).multiplyVecSelf(this.chunkSize).addSelf(this.chunkCenter);
         for (let i = 1; i < 27; i++) {
-            if (frustum.intersectsObjSphere(tempVec, this.cornerSpheres[i])) {
+            if (frustum.intersectsObjSphere(tempVec, this.cornerSpheres[i * 2])
+                || frustum.intersectsObjSphere(tempVec, this.cornerSpheres[i * 2 + 1])) {
                 mask |= (1 << i);
             }
         }
