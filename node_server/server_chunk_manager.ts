@@ -550,7 +550,7 @@ export class ServerChunkManager {
     getAround(pos, chunk_render_dist) {
         const world             = this.world;
         const margin            = Math.max(chunk_render_dist + 1, 1);
-        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin)).entries;
         const chunk_addr        = Vector.toChunkAddr(pos);
         const _addr             = new Vector(0, 0, 0);
         // array like iterator
