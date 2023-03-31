@@ -250,12 +250,25 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         const orient = name === 'LeftArm' ? -1 : 1;
-
+        
+        // mc steve model
         if (block.diagonal) {
             scale *= 1.2;
             quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
         } else {
             quat.fromEuler(slot.holder.quat, 20, 0, -20);
+        }
+
+        // new model
+        if (block.diagonal) {
+            scale *= 1.2;
+            // quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+            // quat.fromEuler(slot.holder.quat, globalThis.xyz.x * orient, globalThis.xyz.y, 90 + globalThis.xyz.z * orient);
+            quat.fromEuler(slot.holder.quat, 0 * orient, -50, 90 + 0 * orient);
+            slot.holder.pivot.set([.035, -.07, .35]);
+        } else {
+            quat.fromEuler(slot.holder.quat, 20, 0, -20);
+            slot.holder.pivot.set([0, 0, scale / 2]);
         }
 
         slot.holder.scale.set([scale, scale, scale]);

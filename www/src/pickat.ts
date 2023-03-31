@@ -60,6 +60,8 @@ export class PickAt {
     private nextId = 0  // id of the next pickAt event, and the associated WorldAction
 
     constructor(world, render, onTarget : Function, onInteractEntity : Function, onInteractFluid : Function) {
+        this.world = world
+        this.render = render
         this.onTarget           = onTarget // (block, target_event, elapsed_time) => {...};
         this.onInteractEntity   = onInteractEntity
         this.onInteractFluid    = onInteractFluid

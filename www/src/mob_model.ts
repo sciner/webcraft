@@ -364,7 +364,10 @@ export class MobAnimation {
             }
         } else {
             // размахивание конечностями
-            rotate.x = aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0));
+            // mc steve model
+            // rotate.x = aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0));
+            // new model
+            rotate.x = aniangle * sign - ((isArm && animable.sneak) || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0));
         }
 
         // shake arms
