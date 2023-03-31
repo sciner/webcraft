@@ -6,11 +6,11 @@ import {BLOCK, DBItemBlock, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {ChunkLight} from "./light/ChunkLight.js";
-import type { BaseResourcePack } from "./base_resource_pack.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import {GeometryPool} from "./light/GeometryPool.js";
+import {ChunkMesh} from "./chunk_mesh.js";
 
 let global_uniqId = 0;
 
@@ -24,16 +24,6 @@ export interface ClientModifyList {
 
 export interface IChunkVertexBuffer {
     list: Array<any>
-    instanceCount?: number
-    resource_pack_id?: string
-    material_group?: string
-    texture_id?: string
-    key?: string
-    material_shader?: string,
-    inputId?: number
-    buffer?: any
-    customFlag?: boolean
-    rpl?: any
 }
 
 // v.resource_pack_id = temp[0];/*
@@ -52,6 +42,8 @@ export class Chunk {
 
     vertices_args: any = null;
     vertices_args_size: number = 0;
+    vertices: Map<string, ChunkMesh>;
+    verticesList: Array<ChunkMesh>;
 
     getChunkManager() : ChunkManager {
         return this.chunkManager;
@@ -210,34 +202,6 @@ export class Chunk {
         this.light.prepareRender();
     }
 
-    drawBufferVertices(render : any, resource_pack : BaseResourcePack, group, mat, vertices) {
-        const v = vertices, key = v.key;
-        let texMat = resource_pack.materials.get(key);
-        if (!texMat) {
-            texMat = mat.getSubMat(resource_pack.getTexture(v.texture_id).texture);
-            resource_pack.materials.set(key, texMat);
-        }
-        mat = texMat;
-        let dist = Qubatch.player.lerpPos.distance(this.coord);
-        render.batch.setObjectDrawer(render.chunk);
-        if (this.light.lightData && dist < 108) {
-            // in case light of chunk is SPECIAL
-            this.getLightTexture(render);
-            if (this.light.lightTex) {
-                const base = this.light.lightTex.baseTexture || this.light.lightTex;
-                if (base._poolLocation <= 0) {
-                    mat = this.lightMats.get(key);
-                    if (!mat) {
-                        mat = texMat.getLightMat(this.light.lightTex);
-                        this.lightMats.set(key, mat);
-                    }
-                }
-            }
-        }
-        render.chunk.draw(v.buffer, mat, this);
-        return true;
-    }
-
      applyVertices(inputId, bufferPool, argsVertices: Dict<IChunkVertexBuffer>) {
         let chunkManager = this.getChunkManager();
         chunkManager.vertices_length_total -= this.vertices_length;
@@ -251,33 +215,30 @@ export class Chunk {
         }
         const chunkLightId = this.getDataTextureOffset();
         for (let [key, v] of Object.entries(argsVertices)) {
-            if (v.list.length > 1) {
-                let temp = key.split('/');
-                let lastBuffer = this.vertices.get(key);
-                if (lastBuffer) {
-                    lastBuffer = lastBuffer.buffer
-                }
-                v.instanceCount = v.list[0];
-                v.resource_pack_id = temp[0];
-                v.material_group = temp[1];
-                v.material_shader = temp[2];
-                v.texture_id = temp[3];
-                v.key = key;
-                v.buffer = bufferPool.alloc({
-                    lastBuffer,
-                    vertices: v.list,
-                    chunkId: chunkLightId
-                });
-                if (lastBuffer && v.buffer !== lastBuffer) {
-                    lastBuffer.destroy();
-                }
-                v.inputId = inputId;
-                v.customFlag = false;
-                v.rpl = null;
-                this.vertices.set(key, v);
-                this.verticesList.push(v);
-                delete (v.list);
+            if (v.list.length < 2) {
+                continue;
             }
+            let chunkMesh = this.vertices.get(key);
+            if (!chunkMesh) {
+                chunkMesh = new ChunkMesh(key, inputId, v.list);
+                chunkMesh.chunk = this;
+                this.vertices.set(key, chunkMesh);
+                chunkManager.renderList.addChunkMesh(chunkMesh);
+            } else {
+                chunkMesh.setList(v.list);
+            }
+            const lastBuffer = chunkMesh.buffer;
+            chunkMesh.buffer = bufferPool.alloc({
+                lastBuffer,
+                vertices: chunkMesh.list,
+                chunkId: chunkLightId
+            });
+            if (lastBuffer && chunkMesh.buffer !== lastBuffer) {
+                lastBuffer.destroy();
+            }
+            chunkMesh.customFlag = false;
+            this.verticesList.push(chunkMesh);
+            delete (chunkMesh.list);
         }
         for (let [key, v] of this.vertices) {
             if (v.inputId === inputId) {
