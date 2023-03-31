@@ -31,7 +31,7 @@ function spiralDistSort(a: SpiralEntry, b: SpiralEntry) {
 
 function spiralDirSort(a: SpiralEntry, b: SpiralEntry) {
     if (a.dir27 !== b.dir27) {
-        return a.dir27 = b.dir27;
+        return a.dir27 - b.dir27;
     }
     return a.index - b.index;
 }
@@ -272,6 +272,9 @@ export class SpiralGrid {
     }
 
     setChunk(absAddr: Vector, chunk: any) {
+        if (!this.numGrid) {
+            return;
+        }
         tempVec.copyFrom(absAddr).subSelf(this.center);
         let ind = this.size.arrayIndByVec(tempVec);
         if (ind < 0) {

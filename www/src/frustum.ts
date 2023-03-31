@@ -272,6 +272,17 @@ export class FrustumProxy extends Frustum {
 		return super.intersectsSphere(sphere._temp);
 	}
 
+	intersectsObjSphere(objPosition: Vector, sphere: Sphere) {
+		if(!sphere._temp) {
+			sphere._temp = new Sphere(new Vector(0, 0, 0), sphere.radius);
+		}
+		sphere._temp.center.x = sphere.center.x + (objPosition.x - this.camPos.x);
+		// !!!swapYZ
+		sphere._temp.center.y = sphere.center.z + (objPosition.z - this.camPos.z);
+		sphere._temp.center.z = sphere.center.y + (objPosition.y - this.camPos.y);
+		return super.intersectsSphere(sphere._temp);
+	}
+
 	//
 	intersectsGeometryArray(geometry_array) : boolean {
 		let in_frustum = false;
@@ -289,5 +300,4 @@ export class FrustumProxy extends Frustum {
 		}
 		return in_frustum;
 	}
-
 }
