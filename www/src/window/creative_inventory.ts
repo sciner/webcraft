@@ -58,6 +58,7 @@ class CreativeInventoryCollection extends Window {
         const szm           = sz + this.slot_margin
         const start_index   = Math.floor((-this.scrollY / szm) * this.xcnt)
         const end_index     = start_index + (this.xcnt * this.ycnt)
+        // console.log(start_index, -this.scrollY, szm)
         for(let i = 0; i < this.slots_count; i++) {
             const child = this.slots[i]
             child.visible = i >= start_index && i < end_index
@@ -274,11 +275,13 @@ export class CreativeInventoryWindow extends BlankWindow {
             return
         }
         const szm = this.cell_size + this.slot_margin
-        const w = this.txtSearch.w
-        const tagsMargin = this.tagLevels * 25 * this.zoom + 10 * this.tagLevels;
+        const w = this.txtSearch.w;
+        const btnH = 25;
+        const btnMargin = 10;
+        const tagsMargin = (btnH + btnMargin) * this.tagLevels * this.zoom;
         const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h - tagsMargin) / szm) - 1) * szm
         // calculate height of tags area
-        this.ycnt = Math.floor(h / szm)
+        this.ycnt = Math.ceil(h / szm)
         this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom + tagsMargin, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin)
         this.add(this.collection)
         this.collection.init()
