@@ -212,7 +212,9 @@ export class MineGenerator {
         this.genBox(chunk, node, 0, 0, 1, 1, 0, 3, dir, BLOCK.OAK_PLANKS, 1, true);
 
         let interval = Math.round(node.random.double()) + 4;
-
+        const sign = dir % 2 == 1 ? -1 : 1;
+        let torch_dir = dir + 1 * sign;
+    
         for (let n = 0; n < 16; n += interval) {
 
             if(n == 0) {
@@ -228,8 +230,6 @@ export class MineGenerator {
             this.genBox(chunk, node, n, 1, 12, n, 2, 12, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, n, 3, 12, n, 3, 14, dir, BLOCK.OAK_PLANKS);
 
-            const sign = dir % 2 == 1 ? -1 : 1;
-            let torch_dir = dir + 1 * sign;
             this.genBox(chunk, node, n + 1, 3, 13, n + 1, 3, 13, dir, BLOCK.TORCH, .3, false, {x: torch_dir % 4, y: 0, z: 0});
             this.genBox(chunk, node, n - 1, 3, 13, n - 1, 3, 13, dir, BLOCK.TORCH, .3, false, {x: (torch_dir + 2) % 4, y: 0, z: 0});
 
@@ -247,6 +247,12 @@ export class MineGenerator {
             this.genBoxAir(chunk, node, n - 3, 3, 14, n + 3, 3, 14, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
             this.genBoxAir(chunk, node, n - 3, 3, 12, n + 3, 3, 12, dir, BLOCK.LANTERN, LANTERN_CHANCE * 2, LANTERN_ROT_UP);
         }
+
+        // рельсы
+        const shape = dir % 2
+        this.genBoxAir(chunk, node, 2, 1, 0, 2, 1, 0 + 15, dir, BLOCK.RAIL, 0.7, undefined, {shape}, false)
+
+
     }
 
     // Generate hal node
@@ -386,7 +392,7 @@ export class MineGenerator {
      * @param {float} chance вероятность замены
      * @param {Vector} block_rotate поворот блока
      */
-    genBoxAir(chunk, node, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION_BIT.NORTH, block = {id : 0}, chance = 1, block_rotate = null) {
+    genBoxAir(chunk, node, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION_BIT.NORTH, block = {id : 0}, chance = 1, block_rotate = null, extra_data? : any, check_air : boolean = true) {
         for (let x = minX; x <= maxX; ++x) {
             for (let y = minY; y <= maxY; ++y) {
                 for (let z = minZ; z <= maxZ; ++z) {
@@ -394,10 +400,10 @@ export class MineGenerator {
                     let temp_block = this.getBlock(chunk, node, vec.x, vec.y, vec.z);
                     let temp_block_over = this.getBlock(chunk, node, vec.x, vec.y + 1, vec.z);
                     // block must connected to other block (not air)
-                    if(temp_block_over && temp_block_over.id != 0) {
+                    if(!check_air || (temp_block_over && temp_block_over.id != 0)) {
                         let is_chance = (chance == 1) ?  true : node.random.double() < chance;
-                        if (is_chance == true && temp_block != null && temp_block.id == 0) {
-                            this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true, block_rotate);
+                        if (is_chance && (temp_block != null && temp_block.id == 0)) {
+                            this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true, block_rotate, extra_data);
                         }
                     }
                 }
