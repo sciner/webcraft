@@ -226,7 +226,7 @@ export class Brain extends FSMBrain {
 
         if (force > 0) {
             acceleration *= .9
-            this.velocity.y *= .9
+            this.velocity.y *= .8
         }
 
         this.velocity.x *= acceleration
