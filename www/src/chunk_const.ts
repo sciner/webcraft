@@ -20,6 +20,7 @@ export const CHUNK_OUTER_SIZE_Z = CHUNK_SIZE_Z + 2 * CHUNK_PADDING;
 export const CHUNK_CX = 1;
 export const CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z;
 export const CHUNK_CZ = CHUNK_OUTER_SIZE_X;
+export const CHUNK_SIZE_OUTER = CHUNK_CY * CHUNK_OUTER_SIZE_Y;
 /* It's faster for generating chunks, but currently breaks meshing
 export const CHUNK_CY = 1;
 export const CHUNK_CZ = CHUNK_OUTER_SIZE_Y;
