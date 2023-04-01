@@ -7746,7 +7746,6 @@
             "transparent": true,
             "max_in_stack": 1,
             "style": "extruder",
-            "diagonal": true,
             "item": {"name": "tool", "instrument_id": "flint_and_steel"},
             "material": {
                 "id": "iron"
@@ -8909,7 +8908,6 @@
             "name": "PUFFERFISH",
             "item": {"name": "food"},
             "style": "extruder",
-            "diagonal": true,
             "material": {
                 "id": "food"
             },

@@ -255,7 +255,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             scale *= 1.2;
             quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
         } else {
-            quat.fromEuler(slot.holder.quat, 20, 0, -20);
+            quat.fromEuler(slot.holder.quat, 0, 0, 180);
         }
 
         slot.holder.scale.set([scale, scale, scale]);
