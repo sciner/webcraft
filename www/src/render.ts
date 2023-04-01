@@ -1097,7 +1097,7 @@ export class Renderer {
     }
 
     // drawPlayers
-    drawPlayers(delta : float) {
+    drawPlayers(delta) {
         if(this.world.players.count < 1) {
             return;
         }

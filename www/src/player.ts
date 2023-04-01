@@ -20,7 +20,6 @@ import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
 import type { PLAYER_SKIN_TYPES } from "./constant.js"
-import type { PlayerModel } from "./player_model.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -1054,12 +1053,15 @@ export class Player implements IPlayer {
         }
     }
 
-    getModel() : PlayerModel {
+    /**
+     * @returns { import("./player_model.js").PlayerModel }
+     */
+    getModel() {
         return this.world.players.get(this.session.user_id);
     }
 
     // Emulate user keyboard control
-    walk(direction : string, duration : number) {
+    walk(direction, duration) {
         this.controls.forward = direction == 'forward';
         this.controls.back = direction == 'back';
         this.controls.left = direction == 'left';
