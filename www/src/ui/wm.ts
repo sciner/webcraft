@@ -108,11 +108,13 @@ export class Slider extends sld {
 
     constructor(x : number, y : number, w : number, h : number, id : string) {
         super(x, y, w, h, id)
-        this.style.border.style = 'fixed_single'
-        this.style.font.color = UI_THEME.button.font.color
-        this.style.border.color = UI_THEME.base_font.color
-        this.style.background.color = UI_THEME.button.background.color
-        this.style.font.size = UI_THEME.button.font.size
+        this.style.border.hidden = true
+        this.style.background.color = '#00000000'
+        const thumb = this.wScrollThumb
+        thumb.style.background.color = UI_THEME.button.background.color
+        thumb.style.border.hidden = false
+        thumb.style.border.style = 'fixed_single'
+        thumb.style.border.color = UI_THEME.base_font.color
     }
     
 }

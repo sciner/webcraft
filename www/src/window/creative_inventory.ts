@@ -12,7 +12,6 @@ import type {TMouseEvent} from "../vendors/wm/wm.js";
 let tagsTranslationMap = {};
 
 class CreativeInventoryCollection extends Window {
-    [key: string]: any;
 
     slots : CraftTableInventorySlot[] = []
     xcnt : int = 0
@@ -52,7 +51,7 @@ class CreativeInventoryCollection extends Window {
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.container.y = this.scrollY
-        this.parent.scrollbar.value = -this.scrollY / szm
+        this.parent.scrollbar.value = -this.scrollY
         this.updateVisibleSlots()
     }
 
@@ -62,6 +61,7 @@ class CreativeInventoryCollection extends Window {
         this.scrollY = val * szm
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
+        this.scrollY = Math.round(this.scrollY / szm) * szm
         this.container.y = this.scrollY
         this.updateVisibleSlots() 
     }
@@ -241,15 +241,14 @@ class CreativeInventoryCollection extends Window {
 
 // CreativeInventoryWindow...
 export class CreativeInventoryWindow extends BlankWindow {
-    [key: string]: any;
 
-    collection : CreativeInventoryCollection
-    world       : World
-    inventory   : PlayerInventory
-
-    tagLevels : number = 0;
-    selectedTag: string = '';
-    tagButtons: Button[] = [];
+    collection:     CreativeInventoryCollection
+    world:          World
+    inventory:      PlayerInventory
+    scrollbar:      Slider
+    tagButtons:     Button[] = []
+    tagLevels:      number = 0
+    selectedTag:    string = ''
 
     constructor(inventory: PlayerInventory) {
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
@@ -271,6 +270,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         const sz = szm / 1.1
         this.cell_size = sz
         this.slot_margin = szm - sz
+        this.szm = this.cell_size + this.slot_margin
 
         // Создание слотов для блоков коллекций
         this.createCollectionSlots()
@@ -279,13 +279,17 @@ export class CreativeInventoryWindow extends BlankWindow {
         this.createInventorySlots()
 
         // скроллбар
-        this.scrollbar = new Slider((this.w - 22 * this.zoom), 44 * this.zoom, 18 * this.zoom, this.h - 108 * this.zoom, 'scroll')
+        this.scrollbar = new Slider((this.w - 22 * this.zoom), this.collection.y, 18 * this.zoom, this.collection.h, 'scroll')
         this.scrollbar.min = 0
-        this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - this.collection.ycnt
+        this.updateScrollbarMax()
         this.scrollbar.onScroll = (value) => {
-            this.collection.updateScroll(-value)
+            this.collection.updateScroll(-value/this.szm)
         }
         this.add(this.scrollbar)
+    }
+
+    updateScrollbarMax() {
+        this.scrollbar.max = this.collection.max_height - this.collection.h
     }
 
     //
@@ -331,9 +335,6 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         // style
         txtSearch.style.border.hidden       = false
-        // txtSearch.style.border.style     = 'inset'
-        // txtSearch.style.font.color          = '#ffffff'
-        // txtSearch.style.background.color = '#706f6c'
         txtSearch.style.padding.left        = 5 * this.zoom
         txtSearch.style.textAlign.vertical  = 'middle'
         this.add(txtSearch)
@@ -341,7 +342,7 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         txtSearch.onChange = (text) => {
             this.collection.init(text, this.selectedTag)
-            this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - this.collection.ycnt
+            this.updateScrollbarMax()
         }
 
         const tagAll = BLOCK_GROUP_TAG.ALL.slice(1);
@@ -423,7 +424,7 @@ export class CreativeInventoryWindow extends BlankWindow {
                     this.selectedTag = selectedTag.text;
                 }
                 this.collection.init(this.txtSearch.text, this.selectedTag)
-                this.scrollbar.max = (this.collection.slots_count / this.collection.xcnt) - this.collection.ycnt
+                this.updateScrollbarMax()
             };
             button.onMouseEnter = () => super.onMouseEnter();
             button.onMouseLeave = () => super.onMouseLeave();
