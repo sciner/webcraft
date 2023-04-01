@@ -101,7 +101,7 @@ export class Brain extends FSMBrain {
         this.timer_catchable_delay = 0
         this.fish_approach_angle = 0
 
-        const power = 0.4
+        const power = .4
         const z = Math.cos(mob.rotate.z) * Math.cos(mob.rotate.x) * power
         const x = Math.sin(mob.rotate.z) * Math.cos(mob.rotate.x) * power
         const y = Math.sin(mob.rotate.x) * power
@@ -146,9 +146,9 @@ export class Brain extends FSMBrain {
         }
         let force = 0
         // находим глубину погружения
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
             const water = world.getBlock(mob.pos.offset(0, i / 10, 0).floored())
-            if (water?.id == 0 && (water.fluid & FLUID_TYPE_MASK ) === FLUID_WATER_ID) {
+            if (water?.id == 0 && (water.fluid & FLUID_TYPE_MASK) == FLUID_WATER_ID && (ground.fluid & FLUID_TYPE_MASK) == FLUID_WATER_ID) {
                 force += .2625
             }
         }
@@ -234,7 +234,6 @@ export class Brain extends FSMBrain {
         this.velocity.z *= acceleration
 
         this.pc.player_state.vel.addSelf(this.velocity)
-
         this.applyControl(delta)
         this.sendState()
     }

@@ -10205,6 +10205,7 @@
             "max_in_stack": 1,
             "style": "extruder",
             "diagonal": true,
+            "rotate": true,
             "item": {"name": "instrument", "instrument_id": "fishing_rod"},
             "power": 64,
             "material": {

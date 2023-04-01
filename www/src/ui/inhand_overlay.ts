@@ -354,17 +354,21 @@ export class InHandOverlay {
         let q = quat.create();
         let m = mat4.create();
 
-        let translation = new Vector(0.5, 0, 0);
-        let rotate = new Vector(0, -45 - 180, 0);
-
+        let translation = new Vector(.5, 0, 0);
+        let rotate = new Vector(0, -225, 0);
 
         if (this.inHandItemMesh?.block_material?.diagonal) {
-            rotate.y = -65 - 180;
-            rotate.z = 30;
+            if (this.inHandItemMesh?.block_material?.rotate){
+                translation.x = -.5
+                rotate.y = -60
+                rotate.x = -45
+            } else {
+                rotate.y = -235
+            }
         }
 
         mat4.multiply(modelMatrix, modelMatrix,
-            mat4.fromQuat(m, quat.fromEuler(q, rotate.x, rotate.y, rotate.z, "xyz")));
+        mat4.fromQuat(m, quat.fromEuler(q, rotate.x, rotate.y, rotate.z, "xyz")));
         mat4.translate(modelMatrix, modelMatrix, translation.toArray());
 
         swapMatrixYZ(modelMatrix);
