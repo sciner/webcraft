@@ -74,24 +74,21 @@ export const SPECTATOR_SPEED_CHANGE_MAX = 16
 const SPEEDS: Dict<TFreeSpeedConfig> = {
     HORIZONTAL: {
         max                     : 11.5,
-        acceleration            : 2.35,
-        // начиная с половины макс. скорости, ускорение начинает падать. Похожий эффект бы в старом коде (не в точности такой)
-        diminishingAccelerationThreshold : 0.33,
-        diminishingAcceleration : 1.0,
-        // не 0, а маленькое значение: в основном торможение экспоненцильное, но в конце достигается полная остановка
-        deceleration            : 0.01,
+        acceleration            : 4.0,
+        deceleration            : 2.0,
         exponentialDeceleration : 0.035
     },
     UP: {
         max                     : 5.7,
-        acceleration            : Infinity, // сразу макс. скорось
-        deceleration            : 2.0       // примерно 0.5 секунды до остановки
+        acceleration            : 4.0,
+        deceleration            : 2.0,
+        exponentialDeceleration : 0.035
     },
     DOWN: {
         max                     : 5.7,
-        acceleration            : Infinity, // сразу макс. скорось
-        deceleration            : 2.0
-        // exponentialDeceleration : 0         // мгновенная остановка
+        acceleration            : 4.0,
+        deceleration            : 2.0,
+        exponentialDeceleration : 0.035
     }
 }
 
@@ -143,7 +140,7 @@ export class SpectatorPlayerControl extends PlayerControl {
             vel.y = this.decelerate(vel.y, vel.y > 0 ? UP : DOWN, mul)
         } else {
             if (Math.sign(vel.y) !== forceUp) {
-                vel.y *= UP.exponentialDeceleration
+                vel.y = 0
             }
             const mulY = mul > 1
                 ? 1 + (mul - 1) * Y_SPEED_SCALING
