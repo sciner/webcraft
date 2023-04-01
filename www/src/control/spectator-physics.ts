@@ -65,7 +65,7 @@ type TFreeSpeedConfig = {
  * How much effect {@link SpectatorPlayerControl.speedMultiplier} has on the vertical speed.
  * 1 means it has full effect (the same as on horizontal speed).
  */
-const Y_SPEED_SCALING = 1
+const Y_SPEED_SCALING = 0.8
 
 export const SPECTATOR_SPEED_CHANGE_MULTIPLIER = 1.05
 export const SPECTATOR_SPEED_CHANGE_MIN = 0.05
@@ -74,19 +74,19 @@ export const SPECTATOR_SPEED_CHANGE_MAX = 16
 const SPEEDS: Dict<TFreeSpeedConfig> = {
     HORIZONTAL: {
         max                     : 11.5,
-        acceleration            : 4.0,
-        deceleration            : 2.0,
+        acceleration            : 2.7,
+        deceleration            : 0.5,
         exponentialDeceleration : 0.035
     },
     UP: {
         max                     : 5.7,
-        acceleration            : 4.0,
+        acceleration            : 3.5,
         deceleration            : 2.0,
         exponentialDeceleration : 0.035
     },
     DOWN: {
-        max                     : 5.7,
-        acceleration            : 4.0,
+        max                     : 7.1,
+        acceleration            : 3.5,
         deceleration            : 2.0,
         exponentialDeceleration : 0.035
     }
