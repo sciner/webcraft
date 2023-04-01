@@ -10,6 +10,7 @@ import type {Chunk} from "./chunk.js";
 import type {ChunkManager} from "./chunk_manager.js";
 import type {Renderer} from "./render.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
+import type {ChunkMesh} from "./chunk_mesh.js";
 
 const MAX_APPLY_VERTICES_COUNT  = 20;
 
@@ -17,7 +18,7 @@ export class ChunkRenderList {
     bufferPool : GeometryPool = null;
     chunkManager: ChunkManager;
 
-    listByResourcePack: Map<string, Map<string, Map<string, IvanArray>>> = new Map();
+    listByResourcePack: Map<string, Map<string, Map<string, IvanArray<ChunkMesh>>>> = new Map();
     prev_render_dist = -1;
     spiral = new SpiralGrid();
 
@@ -126,29 +127,7 @@ export class ChunkRenderList {
             }
             for(let i = 0; i < chunk.verticesList.length; i++) {
                 let v = chunk.verticesList[i];
-                let rpl = v.rpl;
-                if (!rpl) {
-                    let key1 = v.resource_pack_id;
-                    let key2 = v.material_group;
-                    let key3 = v.material_shader;
-                    if (!v.buffer) {
-                        continue;
-                    }
-                    let rpList = listByResourcePack.get(key1);
-                    if (!rpList) {
-                        listByResourcePack.set(key1, rpList = new Map());
-                    }
-                    let groupList = rpList.get(key2);
-                    if (!groupList) {
-                        rpList.set(key2, groupList = new Map());
-                    }
-                    if (!groupList.get(key3)) {
-                        groupList.set(key3, new IvanArray());
-                    }
-                    rpl = v.rpl = groupList.get(key3);
-                }
-                rpl.push(chunk);
-                rpl.push(v);
+                v.rpl.push(v);
                 chunk.rendered = 0;
             }
         }
@@ -156,6 +135,24 @@ export class ChunkRenderList {
 
     chunkAlive(chunk: Chunk) {
         this.spiral.setChunk(chunk.addr, chunk);
+    }
+
+    addChunkMesh(v: ChunkMesh) {
+        let key1 = v.resource_pack_id;
+        let key2 = v.material_group;
+        let key3 = v.material_shader;
+        let rpList = this.listByResourcePack.get(key1);
+        if (!rpList) {
+            this.listByResourcePack.set(key1, rpList = new Map());
+        }
+        let groupList = rpList.get(key2);
+        if (!groupList) {
+            rpList.set(key2, groupList = new Map());
+        }
+        if (!groupList.get(key3)) {
+            groupList.set(key3, new IvanArray());
+        }
+        v.rpl = groupList.get(key3);
     }
 
     /**
@@ -183,21 +180,19 @@ export class ChunkRenderList {
 
                 if (!mat.opaque && mat.shader.fluidFlags) {
                     // REVERSED!!!
-                    for (let i = count - 2; i >= 0; i -= 2) {
-                        const chunk = arr[i] as Chunk;
-                        const vertices = arr[i + 1];
-                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                        if (!chunk.rendered) {
+                    for (let i = count - 1; i >= 0; i --) {
+                        arr[i].draw(render.renderBackend, resource_pack, group, mat);
+                        const chunk = arr[i].chunk;
+                        if (chunk.rendered === 0) {
                             chunkManager.rendered_chunks.fact++;
                         }
                         chunk.rendered++;
                     }
                 } else {
-                    for (let i = 0; i < count; i += 2) {
-                        const chunk = arr[i];
-                        const vertices = arr[i + 1];
-                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                        if (!chunk.rendered) {
+                    for (let i = 0; i < count; i ++) {
+                        arr[i].draw(render.renderBackend, resource_pack, group, mat);
+                        const chunk = arr[i].chunk;
+                        if (chunk.rendered === 0) {
                             chunkManager.rendered_chunks.fact++;
                         }
                         chunk.rendered++;
