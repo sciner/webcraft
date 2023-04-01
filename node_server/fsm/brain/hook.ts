@@ -3,6 +3,7 @@ import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
 import { PLAYER_STATUS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
+import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 
 // рыба
 const FISH = [
@@ -75,7 +76,6 @@ export class Brain extends FSMBrain {
 
     parent: any;
     timer_in_ground: number;
-    timer_shake: number;
     timer_catchable: number;
     timer_caught_delay: number;
     timer_catchable_delay: number;
@@ -99,11 +99,12 @@ export class Brain extends FSMBrain {
         this.timer_catchable = 0
         this.timer_caught_delay = 0
         this.timer_catchable_delay = 0
+        this.fish_approach_angle = 0
 
-        const power = .4
+        const power = 0.4
         const z = Math.cos(mob.rotate.z) * Math.cos(mob.rotate.x) * power
         const x = Math.sin(mob.rotate.z) * Math.cos(mob.rotate.x) * power
-        const y = Math.sin(mob.rotate.x) * 2 * power
+        const y = Math.sin(mob.rotate.x) * power
         this.velocity = new Vector(x, y, z)
         this.stack.pushState(this.doStand)
     }
@@ -114,7 +115,7 @@ export class Brain extends FSMBrain {
 
     doStand(delta) {
         const mob = this.mob
-        const player = this.mob.parent
+        const player = mob.parent
         if (!player) {
             mob.kill()
             return
@@ -127,18 +128,27 @@ export class Brain extends FSMBrain {
             return
         }
         const ground = world.getBlock(mob.pos.floored())
+        if (!ground || (ground.fluid & FLUID_TYPE_MASK ) === FLUID_LAVA_ID) {
+            player.fishing = null
+            mob.kill()
+            return
+        }
         if (ground.id != 0) {
             if (this.timer_in_ground++ > 1200) {
+                player.fishing = null
                 mob.kill()
             }
             return
         }
-        let acceleration = .8
+        let acceleration = .92
+        if (ground.id == 0 && ground.fluid != 0) {
+            this.pc.player_state.vel = new Vector(0, 0, 0)
+        }
         let force = 0
         // находим глубину погружения
         for (let i = 0; i < 10; i++) {
             const water = world.getBlock(mob.pos.offset(0, i / 10, 0).floored())
-            if (water?.id == 0 && water.fluid != 0) {
+            if (water?.id == 0 && (water.fluid & FLUID_TYPE_MASK ) === FLUID_WATER_ID) {
                 force += .2625
             }
         }
@@ -207,7 +217,7 @@ export class Brain extends FSMBrain {
 
         if (force > 0) {
             acceleration *= .9
-            this.velocity.y *= .8
+            this.velocity.y *= .9
         }
 
         this.velocity.x *= acceleration
@@ -230,11 +240,14 @@ export class Brain extends FSMBrain {
     }
 
     onFishing() {
-        this.mob.kill()
+        const mob = this.mob
+        const player = mob.parent
+        player.fishing = null
+        mob.kill()
         if (this.timer_catchable <= 0) {
             return
         }
-        // @todo добавить чары удачи и удачи в море
+        // @todo добавить чары удачи и удачи в море и наверное биомы
         let  base = Math.random()
         const luck_of_sea = 0
         const lure = 0
@@ -266,6 +279,7 @@ export class Brain extends FSMBrain {
         const actions = new WorldAction()
         const pos = player.state.pos.add(player.forward)
         actions.addDropItem({ pos: pos, items: [{ id: block.id, count: 1 }], force: true })
+        actions.decrement_instrument = {id: 0}
         world.actions_queue.add(player, actions)
     }
 

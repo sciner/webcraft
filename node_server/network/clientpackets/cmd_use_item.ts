@@ -34,7 +34,6 @@ export default class packet_reader {
                 player.fishing.parent = player // @todo мб лучше передавать id
             } else {
                 player.fishing.getBrain().onFishing()
-                player.fishing = null 
             }
             return true
         }
