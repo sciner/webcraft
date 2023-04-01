@@ -171,7 +171,8 @@ export class SpectatorPlayerControl extends PlayerControl {
                 .normalizeSelf(max)
                 .rotateYawSelf(this.player_state.yaw)
             // the difference between the desired speed and the current speed
-            tmpVec.subSelf(vel)
+            tmpVec.x -= vel.x
+            tmpVec.z -= vel.z
             const deltaVelScalar = tmpVec.horizontalLength()
             // when the speed is closing to the desired, acceleration is reduced
             const diminishedAcceleration = Mth.lerpAny(deltaVelScalar,
