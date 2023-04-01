@@ -122,24 +122,21 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
 }
 
 export class PlayerModel extends MobModel implements IPlayerOrModel {
+    [key: string]: any;
 
-    sharedProps:        PlayerModelSharedProps
-    armor:              ArmorState
-    height:             number
-    scale:              number = 1
-    distance:           number | null
-    sitting?:           false | TSittingState
-    sleep?:             false | TSleepState
-    slots:              {[key: string]: any} = {};
-    hide_nametag:       boolean = false
+    sharedProps: PlayerModelSharedProps
+    armor: ArmorState
+    height: number
+    distance: number | null
+    sitting?: false | TSittingState
+    sleep?: false | TSleepState
 
     constructor(props) {
-
         super({type: 'player', skin: '1', ...props});
 
         this.height = PLAYER_HEIGHT;
         this.width = PLAYER_WIDTH;
-        this.scale = 1 * PLAYER_ZOOM;
+        this.scale = 0.9 * PLAYER_ZOOM;
 
         /**
          * @type {HTMLCanvasElement}
@@ -153,6 +150,11 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.health = props.health;
 
         this.animationScript = new PlayerAnimation(this)
+
+        /**
+         * @type {Map<string, ModelSlot>}
+         */
+        this.slots = {};
 
         // for lazy state generation
         this.activeSlotsData = props.hands;
@@ -320,8 +322,6 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
                 return 3 * Math.PI / 2
             }
         }
-        
-        // this.nametag.visible = this.hide_nametag
 
         this.updateArmSwingProgress(delta);
         if (!this.isRenderable) {
@@ -340,7 +340,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         const head_y =  (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head')).pivot[2];
         if (this.sleep) {
-            // Если игрок лежит подвинем ник игрока
+            // Еесли игрок лежит подвинем ник игрока
             this.nametag.position[1] = 0.2
             this.nametag.position[2] = head_y + 0.4 
         } else {
@@ -371,16 +371,17 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     /**
      * Returns the texture and vertex buffer for drawing the name
      * tag of the specified player over head.
+     * @param {string} username
+     * @param render
+     * @return {{texture: BaseTexture, model: GeometryTerrain}}
      */
-    buildPlayerName(username : string, render : Renderer) : SceneNode {
-
+    buildPlayerName(username, render) {
         username        = username.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
 
         let canvas      = this.textCanvas;
         let ctx         = this.textContext;
         let w           = ctx.measureText(username).width + 16;
         let h           = 45;
-
         // Draw text box
         ctx.fillStyle   = '#00000055';
         ctx.fillRect(0, 0, w, 45);
