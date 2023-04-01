@@ -299,7 +299,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         const btnH = 25;
         const btnMargin = 10;
         const tagsMargin = (btnH + btnMargin) * this.tagLevels * this.zoom;
-        const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h - tagsMargin) / szm) - 1) * szm
+        const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h - tagsMargin - 5) / szm) - 1) * szm
         // calculate height of tags area
         this.ycnt = Math.ceil(h / szm)
         this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom + tagsMargin, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin, this)
@@ -316,7 +316,7 @@ export class CreativeInventoryWindow extends BlankWindow {
             x,
             10 * this.zoom,
             // this.cell_size * 9,
-            this.w - x * 2 - 20,
+            this.w - x / 2 - 34 * this.zoom,
             25 * this.zoom,
             'txtSearch1',
             null,
@@ -471,7 +471,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         const sx          = 16 * this.zoom
         const sy          = this.collection.y + this.collection.h + 10 * this.zoom
         const xcnt        = 9
-        const init_x        = (this.w / 2 - sx) - (xcnt * szm) / 2
+        const init_x      = (this.w / 2 - sx) - (xcnt * szm) / 2
         for(let i = 0; i < xcnt; i++) {
             const lblSlot = new CraftTableInventorySlot(init_x + sx + (i % xcnt) * (szm), sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
             this.add(lblSlot)
