@@ -330,6 +330,7 @@ export default class style {
             }
         }
         for(let i = 0; i < leaves_planes.length; i++) {
+            if(block instanceof FakeTBlock && i == 0) continue
             const plane = leaves_planes[i];
             // fill object
             _pl.size     = plane.size;
