@@ -157,6 +157,9 @@ export class Brain extends FSMBrain {
             if (Math.random() < .25 && world.weather == Weather.RAIN) {
                 bonus = 2
             }
+            if (Math.random() < .5 && (ground.lightValue >> 8) == 0xFF) {
+                bonus--
+            }
             if (this.timer_catchable > 0) {
                 this.timer_catchable--
                 if (this.timer_catchable <= 0) {
@@ -175,14 +178,20 @@ export class Brain extends FSMBrain {
                 } else {
                     // рыба близка пузыри с позицией
                     // показать косяк рыб
-                    const x = mob.pos.x + Math.sin(this.fish_approach_angle) * this.timer_catchable_delay * .1
+                    const size = new Vector(Math.sin(this.fish_approach_angle), .1, Math.cos(this.fish_approach_angle))
+                    const x = mob.pos.x + size.x * this.timer_catchable_delay * .1
                     const y = mob.pos.y
-                    const z = mob.pos.z + Math.cos(this.fish_approach_angle) * this.timer_catchable_delay * .1
+                    const z = mob.pos.z + size.z * this.timer_catchable_delay * .1
                     const pos = new Vector(x, y, z)
                     const block = world.getBlock(pos)
                     if (block && block.id == 0 && block.fluid != 0 && Math.random() < .15) {
                         const actions = new WorldAction()
-                        actions.addParticles([{type: 'bubble', pos: pos}])
+                        actions.addParticles([{
+                            type: 'bubble', 
+                            pos: pos,
+                            count: 1,
+                            size: size
+                        }])
                         world.actions_queue.add(player, actions)
                     }
                 }
