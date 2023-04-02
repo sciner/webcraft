@@ -766,7 +766,7 @@ export class Biomes {
             NETHER_BUILDINGS,
             undefined,
             [
-                {value: 1, block_name: 'BEDROCK'}
+                {value: 1, block_name: 'DEEPSLATE'}
             ],
             {
                 hanging_foliage:    'ANCIENT_DEBRIS',
