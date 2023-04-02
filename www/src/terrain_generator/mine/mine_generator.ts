@@ -255,10 +255,13 @@ export class MineGenerator {
         this.genBoxAir(chunk, node, 4, 1, 13, 15, 1, 13, dir, BLOCK.RAIL, 0.7, undefined, {shape: (dir + 1) % 2}, false)
 
         //грибы
-        this.genBoxAir(chunk, node, 0, 1, 0, 1, 1, 15, dir, BLOCK.RED_MUSHROOM, 0.01)
-        this.genBoxAir(chunk, node, 3, 1, 0, 4, 1, 15, dir, BLOCK.RED_MUSHROOM, 0.01)
-        this.genBoxAir(chunk, node, 0, 1, 0, 1, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01)
-        this.genBoxAir(chunk, node, 3, 1, 0, 4, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01)
+        this.genBoxAir(chunk, node, 0, 1, 0, 1, 1, 15, dir, BLOCK.RED_MUSHROOM, 0.01, undefined, null, false)
+        this.genBoxAir(chunk, node, 3, 1, 0, 4, 1, 15, dir, BLOCK.RED_MUSHROOM, 0.01, undefined, null, false)
+        this.genBoxAir(chunk, node, 0, 1, 0, 1, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01, undefined, null, false)
+        this.genBoxAir(chunk, node, 3, 1, 0, 4, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01, undefined, null, false)
+
+        // динамит 
+        this.genBoxAir(chunk, node, 4, 1, 12, 5, 1, 14, dir, BLOCK.TNT, 0.04, undefined, null, false)
 
     }
 
@@ -305,10 +308,10 @@ export class MineGenerator {
         this.genBoxAir(chunk, node, 2, 1, 0, 2, 1, 0 + 15, dir, BLOCK.RAIL, 0.7, undefined, {shape}, false)
 
         //грибы
-        this.genBoxAir(chunk, node, 0, 1, 0, 1, 1, 15, dir, BLOCK.RED_MUSHROOM, 0.01)
-        this.genBoxAir(chunk, node, 3, 1, 0, 4, 1, 15, dir, BLOCK.RED_MUSHROOM, 0.01)
-        this.genBoxAir(chunk, node, 0, 1, 0, 1, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01)
-        this.genBoxAir(chunk, node, 3, 1, 0, 4, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01)
+        this.genBoxAir(chunk, node, 0, 1, 0, 1, 1, 15, dir, BLOCK.RED_MUSHROOM, 0.01, undefined, null, false)
+        this.genBoxAir(chunk, node, 3, 1, 0, 4, 1, 15, dir, BLOCK.RED_MUSHROOM, 0.01, undefined, null, false)
+        this.genBoxAir(chunk, node, 0, 1, 0, 1, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01, undefined, null, false)
+        this.genBoxAir(chunk, node, 3, 1, 0, 4, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01, undefined, null, false)
 
     }
 
