@@ -43,7 +43,7 @@ export class MineGenerator {
         this.size_cluster       = options?.size_cluster ?? 8
         this.chance_hal         = options?.chance_hal ?? 0.75
         this.chance_cross       = options?.chance_cross ?? 0.6
-        this.chance_side_room   = options?.chance_side_room ?? 0.5
+        this.chance_side_room   = options?.chance_side_room ?? 0
         //
         this._get_vec           = new Vector(0, 0, 0);
         this.voxel_buildings    = [];
@@ -57,7 +57,6 @@ export class MineGenerator {
         this.is_empty = this.nodes.size == 0;
         const ms = Math.round((performance.now() - pn) * 1000) / 1000;
         //console.log("[INFO]MineGenerator: generation " + this.nodes.size + " nodes for " + ms + ' ms on height ' + bottom_y + ' hash: ' + this.addr.toHash());
-
         this.xyz_temp_coord = new Vector(0, 0, 0);
     }
 
@@ -102,7 +101,7 @@ export class MineGenerator {
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.WEST, dir));
         }
 
-        let node = this.findNodeMine(new_x, new_y, new_z);
+        const node = this.findNodeMine(new_x, new_y, new_z);
         if (node != null) {
             return;
         }
@@ -167,21 +166,30 @@ export class MineGenerator {
         this.genBox(chunk, node, random, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICKS);
         this.genBox(chunk, node, random, 1, 1, 1, 8, 3, 4, dir);
 
-        let vec = new Vector(0, 0, 0);
+        const vec = new Vector(0, 0, 0);
         vec.set(8, 3, 4).rotY(dir);
         this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, LANTERN_ROT_UP);
 
         vec.set(1, 1, 1).rotY(dir);
         const chest_rot = CHEST_ROT;
         this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.CHEST, true, chest_rot, {generate: true, params: {source: 'cave_mines'}});
+
+        //Спавнер
+        vec.set(4, 1, 2).rotY(dir);
+        const mob = random.double() < 0.75 ? 'zombie' : 'skeleton';
+        this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.MOB_SPAWN, true, {x: 0, y: 0, z: 0}, {
+            type: mob,
+            skin: 'base',
+            max_ticks: 800
+        })
     }
 
     // Generate cross node
     genNodeCross(chunk, node) {
         const random = new alea(chunk.addr.toHash())
         const dir = node.dir;
-        this.genBox(chunk, node, random, 0, 1, 0, 4, 4, 15, dir, BLOCK.AIR, 0.2)
-        this.genBox(chunk, node, random, 4, 1, 11, 15, 4, 15, dir, BLOCK.AIR, 0.2)
+        this.genBox(chunk, node, random, 0, 1, 0, 4, 4, 15, dir, BLOCK.AIR, 0.02)
+        this.genBox(chunk, node, random, 4, 1, 11, 15, 4, 15, dir, BLOCK.AIR, 0.02)
 
         this.genBox(chunk, node, random, 0, 1, 1, 1, 3, 3, dir);
         this.genBox(chunk, node, random, 1, 1, 0, 3, 3, 15, dir);
@@ -192,12 +200,12 @@ export class MineGenerator {
         this.genBox(chunk, node, random, 1, 0, 12, 15, 0, 14, dir, BLOCK.OAK_PLANKS, 1, true);
         this.genBox(chunk, node, random, 0, 0, 1, 1, 0, 3, dir, BLOCK.OAK_PLANKS, 1, true);
 
-        let interval = Math.round(random.double()) + 4;
+        const interval = Math.round(random.double()) + 4;
         const sign = dir % 2 == 1 ? -1 : 1;
-        let torch_dir = dir + 1 * sign;
+        const torch_dir = dir + 1 * sign;
         for (let n = 0; n <= 15; n += interval) {
 
-            if (n == 0) {
+            if (n == 0 || n == 15) {
                 continue
             }
 
@@ -253,6 +261,7 @@ export class MineGenerator {
         this.genGroundDecor(chunk, node, random, 3, 1, 0, 3, 1, 15, dir, BLOCK.PEBBLES, 0.04)
         this.genGroundDecor(chunk, node, random, 0, 1, 12, 15, 1, 12, dir, BLOCK.PEBBLES, 0.04)
         this.genGroundDecor(chunk, node, random, 0, 1, 14, 15, 1, 14, dir, BLOCK.PEBBLES, 0.04)
+
     }
 
     // Generate hal node
@@ -260,16 +269,16 @@ export class MineGenerator {
         const random = new alea(chunk.addr.toHash())
         const dir = node.dir;
 
-        this.genBox(chunk, node, random, 0, 1, 0, 4, 4, 15, dir, BLOCK.AIR, 0.2);
+        this.genBox(chunk, node, random, 0, 1, 0, 4, 4, 15, dir, BLOCK.AIR, 0.04);
         this.genBox(chunk, node, random, 1, 1, 0, 3, 3, 15, dir);
 
         // floor
         this.genBox(chunk, node, random, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLANKS, 1, true);
 
-        let interval = Math.round(random.double()) + 4;
+        const interval = Math.round(random.double()) + 4;
         for (let n = 0; n <= 15; n += interval) {
 
-            if (n == 0) {
+            if (n == 0 || n == 15) {
                 continue
             }
 
@@ -306,8 +315,8 @@ export class MineGenerator {
         this.genGroundDecor(chunk, node, random, 3, 1, 0, 3, 1, 15, dir, BLOCK.PEBBLES, 0.04)
 
         // бочки
-        this.genGroundDecor(chunk, node, random, 1, 1, 0, 1, 1, 2, dir, BLOCK.BARREL, 0.1)
-        this.genGroundDecor(chunk, node, random, 3, 1, 0, 3, 1, 2, dir, BLOCK.BARREL, 0.1)
+        this.genGroundDecor(chunk, node, random, 1, 1, 0, 1, 1, 15, dir, BLOCK.BARREL, 0.1)
+        this.genGroundDecor(chunk, node, random, 3, 1, 0, 3, 1, 15, dir, BLOCK.BARREL, 0.1)
 
     }
 
@@ -316,9 +325,10 @@ export class MineGenerator {
         if (this.nodes.has(new Vector(x, y, z))) {
             return
         }
-        let add_bottom_y = this.random.double() >= .5 ? 1 : 0;
+        const shift = this.random.double() >= .5 ? true : false
+        let add_bottom_y = shift ? 1 : 0;
         const bottom_y = y * NODE_SIZE.y + add_bottom_y;
-        this.nodes.set(new Vector(x, y, z), {dir, type, bottom_y});
+        this.nodes.set(new Vector(x, y, z), {dir, type, bottom_y, shift});
     }
 
     findNodeMine(x, y, z) {
