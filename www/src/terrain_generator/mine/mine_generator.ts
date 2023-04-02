@@ -43,7 +43,7 @@ export class MineGenerator {
         this.size_cluster       = options?.size_cluster ?? 8
         this.chance_hal         = options?.chance_hal ?? 0.75
         this.chance_cross       = options?.chance_cross ?? 0.6
-        this.chance_side_room   = options?.chance_side_room ?? 0.5
+        this.chance_side_room   = options?.chance_side_room ?? 0
         //
         this._get_vec           = new Vector(0, 0, 0);
         this.voxel_buildings    = [];
