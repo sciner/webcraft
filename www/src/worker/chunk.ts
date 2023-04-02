@@ -31,10 +31,15 @@ class MaterialBuf {
 
 // ChunkManager
 export class ChunkWorkerChunkManager {
-    [key: string]: any;
 
-    block_manager: BLOCK
-    world: WorkerWorld
+    DUMMY:          { id: any; shapes: any[]; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
+    block_manager:  BLOCK
+    world:          WorkerWorld
+    destroyed:      boolean
+    dataWorld:      DataWorld
+    fluidWorld:     FluidWorld
+    verticesPool:   Worker05GeometryPool
+    materialToId:   Map<any, any>
 
     constructor(world: WorkerWorld) {
         this.world = world;
@@ -87,13 +92,46 @@ export class ChunkWorkerChunkManager {
 
 // Chunk
 export class ChunkWorkerChunk {
-    [key: string]: any;
 
-    fluid : FluidChunk
-    timers : PerformanceTimer = new PerformanceTimer()
-    chunkManager: ChunkWorkerChunkManager
-    tblocks: TypedBlocks3
-    coord: Vector
+    fluid:                      FluidChunk
+    timers:                     PerformanceTimer = new PerformanceTimer()
+    chunkManager:               ChunkWorkerChunkManager
+    tblocks:                    TypedBlocks3
+    coord:                      Vector
+    addr:                       Vector
+    size:                       Vector
+    id:                         any
+
+    layer?:                     any
+    cluster?:                   any
+    dataChunk?:                 any
+    dataId?:                    any
+    uniqId?:                    any
+
+    emitted_blocks:             Map<any, any>
+    temp_vec:                   Vector
+    aabb:                       AABB
+    vertexBuffers:              Map<any, any>
+    serializedVertices:         any
+    inited:                     boolean
+    buildVerticesInProgress:    boolean
+    totalPages:                 number
+    inQueue:                    boolean
+    queueDist:                  number
+    genValue:                   number
+    vertices_length:            number
+    vertices:                   Map<any, any>
+    dirty:                      boolean
+    fluid_blocks:               any[]
+    gravity_blocks:             any[]
+    map:                        any
+    key:                        any
+    modify_list:                any
+    tm:                         number
+    destroyed:                  boolean
+
+    static neibMat = [null, null, null, null, null, null];
+    static removedEntries = [];
 
     constructor(chunkManager : ChunkWorkerChunkManager, args) {
         this.chunkManager   = chunkManager;
@@ -527,12 +565,9 @@ export class ChunkWorkerChunk {
         }
     }
 
-    isWater(id) {
+    isWater(id : int) : boolean {
         return id == 200 || id == 202;
     }
-
-    static neibMat = [null, null, null, null, null, null];
-    static removedEntries = [];
 
     // buildVertices
     buildVertices({ enableCache }) {

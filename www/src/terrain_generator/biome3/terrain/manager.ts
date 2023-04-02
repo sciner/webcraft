@@ -270,6 +270,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
         let {relief, mid_level, dist_percent, op, density_coeff} = cell.preset;
 
+        // make rivers deeper
         if(xyz.y <= WATER_LEVEL) {
             relief *= 20
             mid_level *= 20

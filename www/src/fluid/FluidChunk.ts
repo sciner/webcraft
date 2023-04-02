@@ -379,10 +379,10 @@ export class FluidChunk {
         this.updateID++;
     }
 
-    syncBlockProps(index, blockId, isPortal) {
+    syncBlockProps(index : int, block_id : int, is_portal : boolean) {
         const ind = index * FLUID_STRIDE + OFFSET_BLOCK_PROPS;
         const old = this.uint8View[ind];
-        const props = blockId ? this.world.blockPropsById[blockId] : 0;
+        const props = block_id ? this.world.blockPropsById[block_id] : 0;
         if (props === old) {
             return;
         }
@@ -420,14 +420,14 @@ export class FluidChunk {
         if (wasFluid) {
             if (isSolid) {
                 this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
-                if (!isPortal) {
+                if (!is_portal) {
                     this.updateID++;
                     this.markDirtyMesh();
                     this.markDirtyDatabase();
                 }
             }
         }
-        if (!isPortal && this.queue) {
+        if (!is_portal && this.queue) {
             //TODO: remove this
             const {cw, outerSize} = this.dataChunk;
             let tmp = index - cw;

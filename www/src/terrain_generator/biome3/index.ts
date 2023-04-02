@@ -54,7 +54,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const noiseFactory = new NoiseFactory();
         await super.init();
         await noiseFactory.init({outputSize: CHUNK_SIZE_OUTER * 4});
-        console.log(CHUNK_SIZE_OUTER * 4)
         this.noise3d = noiseFactory.createNoise3D({seed: this.seed, randomFunc: this.tempAlea.double });
         this.options = {...GENERATOR_OPTIONS, ...this.options};
 

@@ -3,6 +3,7 @@ import {Vector, DIRECTION} from "../helpers.js";
 import {BLOCK} from '../blocks.js';
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import { BLOCK_FLAG } from '../constant.js';
 
 const _pos = new Vector(0, 0, 0);
 const _vec = new Vector(0, 0, 0);
@@ -10,9 +11,9 @@ const _vec = new Vector(0, 0, 0);
 const HIDE_DUNGEON = false;
 
 export class DungeonGenerator {
-    [key: string]: any;
+    seed: any;
 
-    constructor(seed) {
+    constructor(seed? : string) {
         this.seed = typeof seed != 'undefined' ? seed : 'default_seed'; // unique world seed
     }
 
@@ -37,7 +38,7 @@ export class DungeonGenerator {
     */
     genDungeonHole(chunk, alea, x, y, z) {
         const biome = chunk.map.cells[z * CHUNK_SIZE_X + x].biome;
-        const up = this.getBlock(chunk, x, y, z);
+        // const up = this.getBlock(chunk, x, y, z);
         // console.debug('genDungeonHole: ' + up.posworld + ' ' + biome.title + ' ' + biome.id)
         // стандартные блоки
         let block_wall_1 = BLOCK.STONE_BRICKS;
@@ -123,7 +124,7 @@ export class DungeonGenerator {
         // Сундук
         this.setBlock(chunk, x + 3, y + 1, z + 3, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: 'treasure_room'}});
 
-        //Спавнер
+        // Спавнер
         const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
         this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
             type: mob,
@@ -139,6 +140,7 @@ export class DungeonGenerator {
             this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 1, 7, 1, BLOCK.AIR);
         }
     }
+
     // Проверка места установки данжа колодец
     checkPositionHole(chunk, x, y, z) {
         if ( x > 8 || x < 1 || z > 8 || z < 1) {
@@ -161,7 +163,7 @@ export class DungeonGenerator {
                 }
             }
         }
-         // Под основнием нет пустот
+         // Под основанием нет пустот
         for (let i = 2; i <= 7; i++) {
             for (let j = 2; j <= 7; j++) {
                 const air = this.getBlock(chunk, i + x, y + 9, j + z);
@@ -186,7 +188,7 @@ export class DungeonGenerator {
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 5, 7, BLOCK.MOSSY_STONE_BRICKS, 0.5);
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 5, 7, BLOCK.MOSS_BLOCK, 0.3);
         this.genBoxNoAir(chunk, alea, x, y + 1, z, 7, 1, 7, BLOCK.LODESTONE);
-        this.genBoxNoAir(chunk, alea, x, y, z, 7, 1, 7, BLOCK.AIR, 0.1);
+        this.genBoxNoAir(chunk, alea, x, y, z, 7, 1, 7, BLOCK.STILL_WATER, 0.1);
         this.genBox(chunk, alea, x + 1, y + 1, z + 1, 5, 3, 5, BLOCK.AIR);
 
         this.genBox(chunk, alea, x + 6, y + 1, z + 3, 1, 3, 1, BLOCK.AIR);
@@ -298,7 +300,7 @@ export class DungeonGenerator {
 
     }
 
-    genBox(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id : 0}, chance = 1, rotate = null, extra_data = null) {
+    genBox(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id: 0}, chance = 1, rotate = null, extra_data = null) {
         for (let x = minX; x < nX + minX; ++x) {
             for (let y = minY; y < nY + minY; ++y) {
                 for (let z = minZ; z < nZ + minZ; ++z) {
@@ -313,16 +315,16 @@ export class DungeonGenerator {
         }
     }
 
-    genBoxAir(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id : 0}, chance = 1) {
+    genBoxAir(chunk, alea, minX, minY, minZ, nX, nY, nZ, block = {id : 0}, chance = 1) {
         for (let x = minX; x < nX + minX; ++x) {
             for (let y = minY; y < nY + minY; ++y) {
                 for (let z = minZ; z < nZ + minZ; ++z) {
                     if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
                         const is_chance = (chance == 1) ? true : alea.double() < chance;
                         if (is_chance) {
-                            const block = this.getBlock(chunk, x, y, z);
-                            if (block.id == 0) {
-                                chunk.tblocks.setBlockId(x, y, z, blocks.id);
+                            const existing_block = this.getBlock(chunk, x, y, z);
+                            if (existing_block.id == 0) {
+                                chunk.tblocks.setBlockId(x, y, z, block.id);
                             }
                         }
                     }
@@ -331,18 +333,23 @@ export class DungeonGenerator {
         }
     }
 
-    genBoxNoAir(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id : 0}, chance = 1) {
+    genBoxNoAir(chunk : ChunkWorkerChunk, alea, minX, minY, minZ, nX, nY, nZ, block = {id: 0}, chance = 1) {
         for (let x = minX; x < nX + minX; ++x) {
             for (let y = minY; y < nY + minY; ++y) {
                 for (let z = minZ; z < nZ + minZ; ++z) {
                     if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
-                        const is_chance = (chance == 1) ? true : alea.double() < chance;
-                        const block = this.getBlock(chunk, x, y, z);
+                        const existing_block = this.getBlock(chunk, x, y, z)
+                        const is_chance = (chance == 1) ? true : alea.double() < chance
                         if (is_chance) {
-                            if (block.id != 0) {
-                                chunk.tblocks.setBlockId(x, y, z, blocks.id);
+                            if (existing_block.id != 0) {
+                                if(BLOCK.flags[block.id] & BLOCK_FLAG.FLUID) {
+                                    chunk.tblocks.setBlockId(x, y, z, 0)
+                                    chunk.setBlockIndirect(x, y, z, block.id)
+                                } else {
+                                    chunk.tblocks.setBlockId(x, y, z, block.id)
+                                }
                             }
-                        } else if (block.id == BLOCK.GRASS_BLOCK.id || block.id == BLOCK.SNOW_DIRT.id) {
+                        } else if (existing_block.id == BLOCK.GRASS_BLOCK.id || existing_block.id == BLOCK.SNOW_DIRT.id) {
                             chunk.tblocks.setBlockId(x, y, z, BLOCK.DIRT.id);
                         }
                     }

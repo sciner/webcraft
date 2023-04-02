@@ -508,7 +508,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                                 // первый слой поверхности под водой (дно)
 
-                                if(dcaves == 0) {
+                                // если это не пещера
+                                if(dcaves_over === 0) {
 
                                     block_id = cell.biome.getRiverBottomBlock(density_params)
 
@@ -516,12 +517,12 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                     if((chunk.size.y - y == air_height + 1) && !cell.biome.is_snowy && !cell.biome.is_underworld) {
                                         if((block_id != gravel_id) && (rnd.double() < .15)) {
                                             if((d3 > 0)) {
-                                                for(let i = 0; i <= air_height - d3 * 2; i++) {
-                                                    chunk.setBlockIndirect(x, y + i, z, bm.KELP.id)
+                                                for(let i = 0; i < air_height - d3 * 2; i++) {
+                                                    chunk.setBlockIndirect(x, y + 1 + i, z, bm.KELP.id)
                                                 }
                                             } else {
-                                                for(let i = 0; i <= 2; i++) {
-                                                    chunk.setBlockIndirect(x, y + i, z, bm.SEAGRASS.id)
+                                                for(let i = 0; i < 2; i++) {
+                                                    chunk.setBlockIndirect(x, y + 1 + i, z, bm.SEAGRASS.id)
                                                 }
                                             }
                                         }
