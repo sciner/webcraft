@@ -266,8 +266,8 @@ export class MineGenerator {
         this.genGroundDecor(chunk, node, random, 0, 1, 14, 15, 1, 14, dir, BLOCK.PEBBLES, 0.04)
 
         // бочки
-        this.genGroundDecor(chunk, node, random, 1, 1, 0, 1, 1, 15, dir, BLOCK.BARREL, BARREL_CHANCE)
-        this.genGroundDecor(chunk, node, random, 3, 1, 0, 3, 1, 15, dir, BLOCK.BARREL, BARREL_CHANCE)
+        this.genWallDecor(chunk, node, random, 1, 1, 0, 1, 1, 15, dir, true, BLOCK.BARREL, BARREL_CHANCE)
+        this.genWallDecor(chunk, node, random, 3, 1, 0, 3, 1, 15, dir, true, BLOCK.BARREL, BARREL_CHANCE)
         this.genGroundDecor(chunk, node, random, 0, 1, 12, 15, 1, 12, dir, BLOCK.BARREL, BARREL_CHANCE)
         this.genGroundDecor(chunk, node, random, 0, 1, 14, 15, 1, 14, dir, BLOCK.BARREL, BARREL_CHANCE)
     }

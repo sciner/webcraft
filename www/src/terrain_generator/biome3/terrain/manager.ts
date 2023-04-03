@@ -401,26 +401,31 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         } else {
             // 2. select block in dirt layer
             const dirt_layer_blocks = dirt_layer.blocks;
-            const dirt_layer_blocks_count = dirt_layer_blocks.length;
+            const dirt_layer_blocks_count = dirt_layer_blocks.length
+            const local_water_line = WATER_LEVEL // density_params.local_water_line
             
             if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
-                switch(dirt_layer_blocks_count) {
-                    case 2: {
-                        block_id = dirt_layer_blocks[1];
-                        break;
-                    }
-                    default: {
-                        /* Ранее здесь было "case 3:".
-                        Похоже, больше чем 3 блока не используется.
-                        Если мы сделаем тут "default", то это гарантирует что какой-то id будет присвоен,
-                        и тогда можно код, выполнявшийся пред этим, перенести в ветку else - оптимизация.
-                        В любом случае, для 4-х блоков нужно будет добавлять другой код. */
-                        block_id = not_air_count <= cell.dirt_level ? dirt_layer_blocks[1] : dirt_layer_blocks[2];
-                        break;
+                if(xyz.y <= local_water_line) {
+                    block_id = dirt_layer_blocks[dirt_layer_blocks_count - 1]
+                } else {
+                    switch(dirt_layer_blocks_count) {
+                        case 2: {
+                            block_id = dirt_layer_blocks[1]
+                            break
+                        }
+                        default: {
+                            /* Ранее здесь было "case 3:".
+                            Похоже, больше чем 3 блока не используется.
+                            Если мы сделаем тут "default", то это гарантирует что какой-то id будет присвоен,
+                            и тогда можно код, выполнявшийся пред этим, перенести в ветку else - оптимизация.
+                            В любом случае, для 4-х блоков нужно будет добавлять другой код. */
+                            // block_id = not_air_count <= cell.dirt_level ? dirt_layer_blocks[1] : dirt_layer_blocks[2];
+                            block_id = not_air_count <= cell.dirt_level ? dirt_layer_blocks[1] : dirt_layer_blocks[dirt_layer_blocks_count - 1]
+                            break
+                        }
                     }
                 }
             } else {
-                const local_water_line = WATER_LEVEL // density_params.local_water_line
                 if(xyz.y < local_water_line && dirt_layer_blocks_count > 1) {
                     block_id = dirt_layer_blocks[dirt_layer_blocks_count - 1];
                 } else {
