@@ -8,6 +8,7 @@ class ChunkWorkerRoot {
     RAF_MS = 20
     blockManager = null
     Helpers = null
+    WORKER_MESSAGE = null
     WorkerWorldManager = null
     BuildingTemplate = null
     worlds = null
@@ -55,6 +56,9 @@ class ChunkWorkerRoot {
             await import('./helpers.js').then(module => {
                 this.Helpers = module.Helpers;
             });
+            await import('./constant.js').then(module => {
+                this.WORKER_MESSAGE = module.WORKER_MESSAGE;
+            });
 
             await import('./terrain_generator/cluster/building_template.js').then(module => {
                 this.BuildingTemplate = module.BuildingTemplate;
@@ -88,7 +92,8 @@ class ChunkWorkerRoot {
     }
 
     async initWorld(generator: TGeneratorInfo, world_seed: string, world_guid: string,
-                    settings: TBlocksSettings, cache: Map<any, any>, is_server: boolean
+                    settings: TBlocksSettings, cache: Map<any, any>, is_server: boolean,
+                    tech_info: TWorldTechInfo
     ) {
         if (cache) {
             this.Helpers.setCache(cache);
@@ -116,7 +121,7 @@ class ChunkWorkerRoot {
                 }
             }
 
-            this.world = await this.worlds.add(generator, world_seed, world_guid, settings);
+            this.world = await this.worlds.add(generator, world_seed, world_guid, settings, tech_info)
             // Worker inited
             this.postMessage(['world_inited', null]);
 
@@ -145,7 +150,7 @@ class ChunkWorkerRoot {
         const cmd = data[0];
         /** Its type is {@link } */
         const args = data[1];
-        if (cmd == 'init') {
+        if (cmd == this.WORKER_MESSAGE.INIT_CHUNK_WORKER) {
             // Init modules
             const msg: TChunkWorkerMessageInit = args
             return await this.initWorld(
@@ -154,7 +159,8 @@ class ChunkWorkerRoot {
                 msg.world_guid,
                 msg.settings,
                 msg.resource_cache,
-                msg.is_server
+                msg.is_server,
+                msg.world_tech_info
             );
         }
         const world = this.world;

@@ -11,7 +11,7 @@ import {DataWorld} from "@client/typed_blocks3.js";
 import { WorldPortal } from "@client/portal.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import type { ServerWorld } from "./server_world.js";
-import { PLAYER_STATUS } from "@client/constant.js";
+import { PLAYER_STATUS, WORKER_MESSAGE } from "@client/constant.js";
 
 /**
  * Each tick (unloaded_chunks_total * UNLOADED_CHUNKS_SUBSETS) is unloaded
@@ -54,6 +54,7 @@ export class ServerChunkManager {
     random_chunks: ServerChunk[];
     random_tickers: Map<string, TRandomTickerFunction>;
     block_random_tickers: TRandomTickerFunction[]; // TRandomTickerFunction by block id
+    tech_info: TWorldTechInfo
 
     static STAT_NAMES = ['unload', 'load', 'generate_mobs', 'ticking_chunks', 'delayed_calls', 'dispose']
 
@@ -72,6 +73,7 @@ export class ServerChunkManager {
         this.unloading_subset_index = 0 // the index of the subset of unloading_chunks that is checked in this tick
         this.unloading_state_count  = 0 // the number of chunks with CHUNK_STATE.UNLOADING
         this.ticks_stat             = new WorldTickStat(ServerChunkManager.STAT_NAMES)
+        this.tech_info              = world.info.tech_info
         //
         this.DUMMY = {
             id:         world.block_manager.DUMMY.id,
@@ -146,13 +148,14 @@ export class ServerChunkManager {
         // Init webworkers
         const world_info = this.world.info;
         const msg: TChunkWorkerMessageInit = {
-            generator: world_info.generator,
-            world_seed: world_info.seed,
-            world_guid: world_info.guid,
-            settings: {texture_pack: null},
-            is_server: true
+            generator:          world_info.generator,
+            world_seed:         world_info.seed,
+            world_guid:         world_info.guid,
+            settings:           {texture_pack: null},
+            is_server:          true,
+            world_tech_info:    world_info.tech_info, 
         }
-        this.postWorkerMessage(['init', msg]);
+        this.postWorkerMessage([WORKER_MESSAGE.INIT_CHUNK_WORKER, msg]);
         return promise;
     }
 

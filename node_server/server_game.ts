@@ -9,6 +9,7 @@ import {GameLog} from './game_log.js';
 import { BLOCK } from '@client/blocks.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
+import { WORKER_MESSAGE } from '@client/constant.js';
 
 class FakeHUD {
     add() {}
@@ -143,7 +144,7 @@ export class ServerGame {
             let workerCounter = 1;
 
             this.lightWorker = new Worker(globalThis.__dirname + '/../www/js/light_worker.js');
-            this.lightWorker.postMessage(['SERVER', 'init', null]);
+            this.lightWorker.postMessage(['SERVER', WORKER_MESSAGE.INIT_LIGHT_WORKER, null]);
 
             this.lightWorker.on('message', (data) => {
                 if (data instanceof MessageEvent) {

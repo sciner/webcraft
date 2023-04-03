@@ -43,14 +43,14 @@ export class WorkerWorldManager {
         return terrainGenerators;
     }
 
-    async add(g, seed, world_id, settings : TBlocksSettings) {
+    async add(g, seed, world_id, settings : TBlocksSettings, tech_info: TWorldTechInfo) {
         const generator_options = g?.options || {};
         const generator_id = g.id;
         const key = generator_id + '/' + seed;
         if(this.all.has(key)) {
             return this.all.get(key);
         }
-        const world = new WorkerWorld(this.block_manager, settings, this.is_server);
+        const world = new WorkerWorld(this.block_manager, settings, this.is_server, tech_info)
         const generator_class = this.terrainGenerators.get(generator_id);
         await world.init(seed, world_id, generator_class, generator_options)
         this.all.set(key, world);
@@ -96,17 +96,15 @@ export class WorkerWorld {
     settings : TBlocksSettings = null
     totalChunkTimers = DEBUG_CHUNK_GEN_TIMERS ? new PerformanceTimer() : null
     is_server: boolean
+    tech_info: TWorldTechInfo
 
-    constructor(block_manager: BLOCK, settings: TBlocksSettings, is_server: boolean) {
+    constructor(block_manager: BLOCK, settings: TBlocksSettings, is_server: boolean, tech_info: TWorldTechInfo) {
         this.block_manager = block_manager
         this.settings = settings
         this.is_server = is_server
         this.chunks = new VectorCollector();
         this.genQueue = new ChunkWorkQueue(this);
-        this.buildQueue = null;
-        this.chunkManager = new ChunkWorkerChunkManager(this);
-        this.generator = null;
-        this.activePotentialCenter = null;
+        this.chunkManager = new ChunkWorkerChunkManager(this)
     }
 
     async init(seed, world_id, generator_class, generator_options) {

@@ -5,6 +5,7 @@
 class LightWorkerRoot {
     modulesReady = false;
     LightWorkerWorldManager = null;
+    WORKER_MESSAGE = null
     worlds = null;
 
     RAF_MS = 16; //ms per one world update
@@ -47,6 +48,9 @@ class LightWorkerRoot {
             await import('./worker-light/LightWorkerWorldManager.js').then(module => {
                 this.LightWorkerWorldManager = module.LightWorkerWorldManager;
             });
+            await import('./constant.js').then(module => {
+                this.WORKER_MESSAGE = module.WORKER_MESSAGE;
+            });
             this.modulesReady = true;
         } catch (e) {
             console.error('LightWorker failed init', e);
@@ -78,7 +82,7 @@ class LightWorkerRoot {
         const world_id = data[0];
         const cmd = data[1];
         const args = data[2];
-        if (cmd === 'init') {
+        if (cmd === this.WORKER_MESSAGE.INIT_LIGHT_WORKER) {
             await this.initWorlds();
             return;
         }

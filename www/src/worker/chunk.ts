@@ -39,12 +39,14 @@ export class ChunkWorkerChunkManager {
     dataWorld:      DataWorld
     fluidWorld:     FluidWorld
     verticesPool:   Worker05GeometryPool
-    materialToId:   Map<any, any>
+    materialToId:   Map<any, any> = new Map()
+    tech_info:      TWorldTechInfo
 
     constructor(world: WorkerWorld) {
         this.world = world;
         this.destroyed = false;
         this.block_manager = BLOCK
+        this.tech_info = world.tech_info
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],
@@ -60,8 +62,6 @@ export class ChunkWorkerChunkManager {
         this.dataWorld = new DataWorld(this);
         this.fluidWorld = new FluidWorld(this);
         this.verticesPool = new Worker05GeometryPool(null, {});
-
-        this.materialToId = new Map();
     }
 
     // For compatibility with the client API

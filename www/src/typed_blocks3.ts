@@ -743,10 +743,14 @@ export class TypedBlocks3 {
 export class DataWorld {
     [key: string]: any;
     grid: ChunkGrid;
+
     constructor(chunkManager) {
         const INF = 1000000000;
         this.chunkManager = chunkManager;
-        this.grid = new ChunkGrid({});
+        if(!chunkManager.tech_info.chunk_size) {
+            throw 'error_undefined_chunnk_size'
+        }
+        this.grid = new ChunkGrid({chunkSize: chunkManager.tech_info.chunk_size});
         this.base = new BaseChunk({grid: this.grid, size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }

@@ -157,7 +157,8 @@ export class DBWorld {
                 state:          null,
                 add_time:       row.add_time,
                 world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
-                recovery:       row.recovery
+                recovery:       row.recovery,
+                tech_info:      {chunk_size: new Vector(JSON.parse(row.tech_info.chunk_size)) as IVector} as TWorldTechInfo
             } as TWorldInfo
             resp.generator = WorldGenerators.validateAndFixOptions(resp.generator);
             return resp;

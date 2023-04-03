@@ -8,7 +8,7 @@ import { decompressNearby, NEARBY_FLAGS } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
-import { LIGHT_TYPE } from "./constant.js";
+import { LIGHT_TYPE, WORKER_MESSAGE } from "./constant.js";
 import {ChunkExporter} from "./geom/ChunkExporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import {ChunkRenderList} from "./chunk_render_list.js";
@@ -129,6 +129,7 @@ export class ChunkManager {
     worldId = 'CLIENT';
     destruct_chunks_queue: any = null;
     use_light = false;
+    tech_info: TWorldTechInfo
 
     constructor(world: World) {
 
@@ -137,12 +138,6 @@ export class ChunkManager {
         this.#world                     = world;
         this.draw_debug_grid            = world.settings.chunks_draw_debug_grid;
         this.cluster_draw_debug_grid    = world.settings.cluster_draw_debug_grid;
-
-        // rendering
-        this.dataWorld              = new DataWorld(this);
-        this.fluidWorld             = new FluidWorld(this);
-        this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
-        this.biomes                 = new Biomes(null);
 
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
             this.worker = new Worker('./js-bundles/chunk_worker_bundle.js');
@@ -190,8 +185,14 @@ export class ChunkManager {
 
     init() {
 
-        const world                   = this.#world;
-        const that                    = this;
+        const world                 = this.#world;
+        const that                  = this;
+
+        this.tech_info              = world.info.tech_info
+        this.dataWorld              = new DataWorld(this);
+        this.fluidWorld             = new FluidWorld(this);
+        this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
+        this.biomes                 = new Biomes(null);
 
         // Add listeners for server commands
         world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
@@ -336,17 +337,17 @@ export class ChunkManager {
         this.worker_counter           = this.use_light ? 2 : 1;
 
         const msg: TChunkWorkerMessageInit = {
-            generator: world_info.generator,
-            world_seed: world_info.seed,
-            world_guid: world_info.guid,
-            settings,
-            is_server: false,
-            // bbmodels,
-            resource_cache: Helpers.getCache()
+            generator:          world_info.generator,
+            world_seed:         world_info.seed,
+            world_guid:         world_info.guid,
+            is_server:          false,
+            settings:           settings,
+            resource_cache:     Helpers.getCache(),
+            world_tech_info:    world_info.tech_info
         }
-        this.postWorkerMessage(['init', msg]);
+        this.postWorkerMessage([WORKER_MESSAGE.INIT_CHUNK_WORKER, msg]);
 
-        this.postLightWorkerMessage(['init', null]);
+        this.postLightWorkerMessage([WORKER_MESSAGE.INIT_LIGHT_WORKER, null]);
         this.postLightWorkerMessage([
             'genLayerParams',
             {

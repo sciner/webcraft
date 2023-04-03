@@ -213,6 +213,11 @@ export enum BLOCK_FLAG {
     RANDOM_TICKER                   = 0x1000 | 0,
 }
 
+export enum WORKER_MESSAGE {
+    INIT_CHUNK_WORKER = 'init',
+    INIT_LIGHT_WORKER = 'init_light',
+}
+
 // ======================== Network options =========================
 
 // If we receive packets older than this, terminate the connection
