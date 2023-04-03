@@ -151,7 +151,6 @@ export class ServerPlayer extends Player {
             time: 0
         };
         this.vision                 = new ServerPlayerVision(this);
-        this.effects                = new ServerPlayerEffects(this);
         this.damage                 = new ServerPlayerDamage(this);
         this.mining_time_old        = 0; // время последнего разрушения блока
         // null, or an array of POJO postitions of 1 or 2 chests that this player is currently working with
@@ -186,6 +185,7 @@ export class ServerPlayer extends Player {
             await this.world.db.changeGameMode(this, mode.id);
         };
         this.controlManager = new ServerPlayerControlManager(this as any)
+        this.effects = new ServerPlayerEffects(this);
     }
 
     /** Closes the player's session after encountering an unrecoverable error. */

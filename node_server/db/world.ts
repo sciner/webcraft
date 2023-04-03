@@ -318,6 +318,7 @@ export class DBWorld {
             });
 
             // postprocess state
+            state.effects ??= []
             state.pos       = new Vector(state.pos)
             state.pos_spawn = new Vector(state.pos_spawn)
             state.rotate    = new Vector(state.rotate)
