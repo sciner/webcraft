@@ -1,7 +1,7 @@
 import {Vector} from "../helpers/vector.js";
 import type {PlayerControl} from "./player_control.js";
 import {DataValidator, InDeltaCompressor, OutDeltaCompressor, packBooleans, unpackBooleans} from "../packet_compressor.js";
-import {GameMode} from "../game_mode.js";
+import {GAME_MODE, GameMode} from "../game_mode.js";
 import {PHYSICS_ROTATION_DECIMALS} from "../constant.js";
 import type {ClientPlayerControlManager, PlayerControlManager} from "./player_control_manager.js";
 import type {PLAYER_CONTROL_TYPE} from "./player_control.js";
@@ -106,7 +106,7 @@ export class PlayerTickData {
         player_state.yaw = this.inputRotation.z
 
         const game_mode = GameMode.byIndex[this.contextGameModeIndex]
-        if (controlsEnabled && switchFlying && game_mode.can_fly) {
+        if (controlsEnabled && switchFlying && game_mode.id === GAME_MODE.CREATIVE) {
             player_state.flying = !player_state.flying
         }
     }
