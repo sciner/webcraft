@@ -53,10 +53,10 @@ export enum DIRECTION {
     FORWARD   = CubeSym.ID,
     BACK      = CubeSym.ROT_Y2,
     // Aliases
-    WEST      = CubeSym.ROT_Y, // left
-    EAST      = CubeSym.ROT_Y3, // right
-    NORTH     = CubeSym.ID, // forward
-    SOUTH     = CubeSym.ROT_Y2, // back
+    NORTH     = CubeSym.ID,     // forward = 0
+    WEST      = CubeSym.ROT_Y,  // left    = 1
+    SOUTH     = CubeSym.ROT_Y2, // back    = 2
+    EAST      = CubeSym.ROT_Y3, // right   = 3
 }
 
 export enum DIRECTION_BIT {

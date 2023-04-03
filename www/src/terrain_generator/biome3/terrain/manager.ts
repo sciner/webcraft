@@ -431,16 +431,19 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         }
 
         if(block_id == bm.STONE.id) {
-            /* Old equivalent code
-            if(d1 > .5) block_id = bm.ANDESITE.id
-            if(d4 > .5) block_id = bm.DIORITE.id
-            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = bm.GRANITE.id
-            */
-            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = bm.GRANITE.id
-            else if(d4 > .5) block_id = bm.DIORITE.id
-            else if(d1 > .5) block_id = bm.ANDESITE.id
+            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) {
+                block_id = bm.GRANITE.id
+            } else if(d4 > .65) {
+                block_id = bm.DIORITE.id
+            } else if(d4 > .5) {
+                block_id = bm.DEEPSLATE.id
+            } else if(d1 > .5) {
+                block_id = bm.ANDESITE.id
+            } else {
+                block_id = bm.UNCERTAIN_STONE.id
+            }
         }
-        
+
         if(!block_result) {
             return new MapsBlockResult(dirt_layer, block_id)
         }

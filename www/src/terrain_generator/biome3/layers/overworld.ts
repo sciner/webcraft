@@ -282,6 +282,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = bm.DIRT.id
+        const stone_block_id            = bm.STONE.id
         const grass_block_id            = bm.GRASS_BLOCK.id
         const sand_block_id             = bm.SAND.id
         const podzol_block_id           = bm.PODZOL.id
@@ -396,11 +397,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         }
 
                         if(blockFlags[block_id] & BLOCK_FLAG.STONE) {
+                            // generating a small amount of ore on the surface of the walls
                             if(density < DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
-                                // generating a small amount of ore on the surface of the walls
                                 block_id = this.ore_generator.generate(xyz, block_id);
-                            } else {
-                                block_id = bm.UNCERTAIN_STONE.id
                             }
                         }
 

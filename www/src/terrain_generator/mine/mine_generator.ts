@@ -270,15 +270,62 @@ export class MineGenerator {
     // Generate hal node
     genNodeHal(chunk : ChunkWorkerChunk, node) {
         const random = new alea(chunk.addr.toHash())
-        const dir = node.dir;
+        const dir = node.dir
+        const interval = Math.round(random.double()) + 4
+        const interval_half = Math.round(interval / 2)
 
-        this.genBox(chunk, node, random, 0, 1, 0, 4, 4, 15, dir, BLOCK.POOR_COAL_ORE, 0.04);
-        this.genBox(chunk, node, random, 1, 1, 0, 3, 3, 15, dir, BLOCK.AIR);
+        for(let block of [BLOCK.POOR_COAL_ORE, BLOCK.POOR_IRON_ORE]) {
+            this.genBox(chunk, node, random, 0, 1, 0, 4, 4, 15, dir, block, 0.02)
+        }
+
+        this.genBox(chunk, node, random, 1, 1, 0, 3, 3, 15, dir, BLOCK.AIR)
+
+        for (let n = 1; n < 15; n++) {
+            // vines on walls
+            let ex1 = null
+            let ex2 = null
+            const vine_chance = .35
+            if(dir == DIRECTION.EAST) {
+                ex1 = {rotate: false, south: true}
+                ex2 = {rotate: false, north: true}
+            } else if(dir == DIRECTION.WEST) {
+                ex1 = {rotate: false, north: true}
+                ex2 = {rotate: false, south: true}
+            } else if(dir == DIRECTION.NORTH) {
+                ex1 = {rotate: false, west: true}
+                ex2 = {rotate: false, east: true}
+            } else if(dir == DIRECTION.SOUTH) {
+                ex1 = {rotate: false, east: true}
+                ex2 = {rotate: false, west: true}
+            }
+            this.genWallDecor(chunk, node, random, 1, 1, n, 1, 3, n, dir, true, BLOCK.VINE, vine_chance, undefined, ex1)
+            this.genWallDecor(chunk, node, random, 3, 1, n, 3, 3, n, dir, false, BLOCK.VINE, vine_chance, undefined, ex2)
+            // torches on walls
+            if(n % interval == interval_half) {
+                let torch_rotate1 = null
+                let torch_rotate2 = null
+                const torch_chance = .5
+                if(dir == DIRECTION.NORTH) {
+                    torch_rotate1 = new Vector(DIRECTION.WEST, 0, 0)
+                    torch_rotate2 = new Vector(DIRECTION.EAST, 0, 0)
+                } else if(dir == DIRECTION.SOUTH) {
+                    torch_rotate1 = new Vector(DIRECTION.EAST, 0, 0)
+                    torch_rotate2 = new Vector(DIRECTION.WEST, 0, 0)
+                } else if(dir == DIRECTION.WEST) {
+                    torch_rotate1 = new Vector(DIRECTION.NORTH, 0, 0)
+                    torch_rotate2 = new Vector(DIRECTION.SOUTH, 0, 0)
+                } else if(dir == DIRECTION.EAST) {
+                    torch_rotate1 = new Vector(DIRECTION.SOUTH, 0, 0)
+                    torch_rotate2 = new Vector(DIRECTION.NORTH, 0, 0)
+                }
+                this.genWallDecor(chunk, node, random, 1, 2, n, 1, 2, n, dir, true, BLOCK.TORCH, torch_chance, torch_rotate1)
+                this.genWallDecor(chunk, node, random, 3, 2, n, 3, 2, n, dir, false, BLOCK.TORCH, torch_chance, torch_rotate2)
+            }
+        }
 
         // floor
         this.genBox(chunk, node, random, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLANKS, 1, true);
 
-        const interval = Math.round(random.double()) + 4;
         for (let n = 0; n <= 15; n += interval) {
 
             if (n == 0 || n == 15) {
@@ -298,7 +345,7 @@ export class MineGenerator {
             this.genBoxAir(chunk, node, random, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
             this.genBoxAir(chunk, node, random, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
 
-            // факел
+            // лампа
             this.genBoxAir(chunk, node, random, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
             this.genBoxAir(chunk, node, random, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
         }
@@ -313,7 +360,7 @@ export class MineGenerator {
         this.genGroundDecor(chunk, node, random, 0, 1, 0, 1, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01)
         this.genGroundDecor(chunk, node, random, 3, 1, 0, 4, 1, 15, dir, BLOCK.BROWN_MUSHROOM, 0.01)
 
-        // куски камней
+        // булыжники
         this.genGroundDecor(chunk, node, random, 1, 1, 0, 1, 1, 15, dir, BLOCK.PEBBLES, 0.04)
         this.genGroundDecor(chunk, node, random, 3, 1, 0, 3, 1, 15, dir, BLOCK.PEBBLES, 0.04)
 
@@ -436,6 +483,33 @@ export class MineGenerator {
                         let is_chance = (chance == 1) ?  true : random.double() < chance;
                         if (is_chance && temp_block?.id == 0 && temp_block?.fluid == 0) {
                             this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true, block_rotate, extra_data);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    genWallDecor(chunk : ChunkWorkerChunk, node, random, minX : number, minY : number, minZ : number, maxX : number, maxY : number, maxZ : number, dir = DIRECTION.NORTH, left_wall: boolean = true, block = {id : 0}, chance : float = 1.0, block_rotate = null, extra_data? : any) {
+        let wall_dir = 0
+        if(dir == DIRECTION.EAST) {
+            wall_dir = left_wall ? 1 : 3
+        } else if(dir == DIRECTION.WEST) {
+            wall_dir = left_wall ? 3 : 1
+        } else if(dir == DIRECTION.NORTH) {
+            wall_dir = left_wall ? 0 : 2
+        } else if(dir == DIRECTION.SOUTH) {
+            wall_dir = left_wall ? 2 : 0
+        }
+        for (let x = minX; x <= maxX; ++x) {
+            for (let y = minY; y <= maxY; ++y) {
+                for (let z = minZ; z <= maxZ; ++z) {
+                    const vec = (new Vector(x, y, z)).rotY(dir)
+                    const check_vec = vec.clone().addByCardinalDirectionSelf(Vector.XP, wall_dir)
+                    const wall_block = this.getBlock(chunk, node, check_vec.x, check_vec.y, check_vec.z)
+                    if(wall_block && wall_block.id != 0) {
+                        if((chance == 1) || random.double() < chance) {
+                            this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true, block_rotate, extra_data)
                         }
                     }
                 }
