@@ -144,7 +144,7 @@ export class ServerGame {
             let workerCounter = 1;
 
             this.lightWorker = new Worker(globalThis.__dirname + '/../www/js/light_worker.js');
-            this.lightWorker.postMessage(['SERVER', WORKER_MESSAGE.INIT_LIGHT_WORKER, null]);
+            this.lightWorker.postMessage(['SERVER', WORKER_MESSAGE.LIGHT_WORKER_INIT, null]);
 
             this.lightWorker.on('message', (data) => {
                 if (data instanceof MessageEvent) {

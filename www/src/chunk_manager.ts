@@ -345,9 +345,10 @@ export class ChunkManager {
             resource_cache:     Helpers.getCache(),
             world_tech_info:    world_info.tech_info
         }
-        this.postWorkerMessage([WORKER_MESSAGE.INIT_CHUNK_WORKER, msg]);
+        this.postWorkerMessage([WORKER_MESSAGE.CHUNK_WORKER_INIT, msg]);
 
-        this.postLightWorkerMessage([WORKER_MESSAGE.INIT_LIGHT_WORKER, null]);
+        this.postLightWorkerMessage([WORKER_MESSAGE.LIGHT_WORKER_INIT, null])
+        this.postLightWorkerMessage([WORKER_MESSAGE.LIGHT_WORKER_INIT_WORLD, world_info])
         this.postLightWorkerMessage([
             'genLayerParams',
             {

@@ -1,7 +1,7 @@
 import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
-import { getChunkAddr, PerformanceTimer, Vector, VectorCollector } from "../helpers.js";
+import { getChunkAddr, PerformanceTimer, Vector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_X_M1, CHUNK_SIZE_Y_M1, CHUNK_SIZE_Z_M1 } from "../chunk_const.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_X_M1, CHUNK_SIZE_Z_M1 } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";

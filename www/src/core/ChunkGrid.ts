@@ -1,16 +1,16 @@
 import type {DataChunk} from "./DataChunk.js";
 import { VectorCollector, Vector } from "../helpers.js";
-import {
-    CHUNK_SIZE_X,
-    CHUNK_SIZE_Y,
-    CHUNK_SIZE_Z
-} from "../chunk_const.js";
 import {AABB} from "./AABB.js";
 import {Portal} from "./BaseChunk.js";
 
 export const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 export const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
 export const dz = [0, 0, 1, -1, 0, 0, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
+
+declare type ChunkGridOptions = {
+    chunkSize: Vector,
+    chunkPadding? : int
+}
 
 /*
  * May contain a topology and not actual data
@@ -24,10 +24,15 @@ export class ChunkGrid {
     chunkSize: Vector;
     chunkPadding: number;
 
-    constructor({chunkSize = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z), chunkPadding = 1}) {
-        this.chunkSize = chunkSize;
-        this.chunkPadding = chunkPadding;
-        //TODO: index function should be baked in special cache!
+    constructor(options : ChunkGridOptions) {
+        let {chunkSize, chunkPadding} = options
+        if(!chunkSize) {
+            // chunkSize = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
+            throw 'error_invalid_chunk_size'
+        }
+        this.chunkSize = chunkSize
+        this.chunkPadding = chunkPadding ?? 1
+        // TODO: index function should be baked in special cache!
     }
 
     get(vec: Vector): DataChunk | null {

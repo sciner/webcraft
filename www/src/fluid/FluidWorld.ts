@@ -13,10 +13,11 @@ import {
 } from "./FluidConst.js";
 import {AABB} from "../core/AABB.js";
 import {BaseChunk} from "../core/BaseChunk.js";
-import {ChunkGrid} from "../core/ChunkGrid.js";
+import type {ChunkGrid} from "../core/ChunkGrid.js";
 
 export class FluidWorld {
     [key: string]: any;
+
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
         this.world = chunkManager.getWorld();
@@ -144,8 +145,8 @@ export class FluidWorld {
         return fluidByChunk;
     }
 
-    static getOfflineFluidChunk(grid = new ChunkGrid({}), chunk_addr: Vector, buf: Uint8Array, fluids: int[]) {
-        //TODO: GRID!
+    static getOfflineFluidChunk(grid: ChunkGrid, chunk_addr: Vector, buf: Uint8Array, fluids: int[]) {
+        // TODO: GRID!
         const coord = grid.chunkAddrToCoord(chunk_addr);
 
         const fakeChunk = {

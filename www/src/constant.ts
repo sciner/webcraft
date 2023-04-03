@@ -214,8 +214,9 @@ export enum BLOCK_FLAG {
 }
 
 export enum WORKER_MESSAGE {
-    INIT_CHUNK_WORKER = 'init',
-    INIT_LIGHT_WORKER = 'init',
+    CHUNK_WORKER_INIT = 'init',
+    LIGHT_WORKER_INIT = 'init',
+    LIGHT_WORKER_INIT_WORLD = 'initWorld',
 }
 
 // ======================== Network options =========================

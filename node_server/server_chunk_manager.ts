@@ -155,7 +155,7 @@ export class ServerChunkManager {
             is_server:          true,
             world_tech_info:    world_info.tech_info, 
         }
-        this.postWorkerMessage([WORKER_MESSAGE.INIT_CHUNK_WORKER, msg]);
+        this.postWorkerMessage([WORKER_MESSAGE.CHUNK_WORKER_INIT, msg]);
         return promise;
     }
 
@@ -188,9 +188,16 @@ export class ServerChunkManager {
         }
     }
 
-    async initWorkers(worldId) {
-        this.worldId = worldId;
+    async initWorkers(world_id : string, tech_info: TWorldTechInfo) {
+        this.worldId = world_id;
         this.lightWorker = Qubatch.lightWorker;
+        this.postLightWorkerMessage([
+            'initWorld',
+            {
+                world_id,
+                tech_info
+            }
+        ])
         this.postLightWorkerMessage([
             'genLayerParams',
             {

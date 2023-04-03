@@ -7,6 +7,8 @@ class LightWorkerRoot {
     LightWorkerWorldManager = null;
     WORKER_MESSAGE = null
     worlds = null;
+    msgQueue = [];
+    parentPort = null;
 
     RAF_MS = 16; //ms per one world update
 
@@ -21,9 +23,6 @@ class LightWorkerRoot {
         setTimeout(this.run, Math.max(0, this.RAF_MS - passed));
     }
 
-    msgQueue = [];
-    parentPort = null;
-
     init() {
         if (typeof process !== 'undefined') {
             import('worker_threads').then(module => {
@@ -34,6 +33,7 @@ class LightWorkerRoot {
             onmessage = this.onMessageFunc
         }
     }
+
     postMessage(message) {
         if (this.parentPort) {
             this.parentPort.postMessage(message);
@@ -90,20 +90,23 @@ class LightWorkerRoot {
         if (!worlds) {
             return this.msgQueue.push(data);
         }
-        //do stuff
-        const world = worlds.getOrCreate(world_id);
 
-        switch (cmd) {
+        switch(cmd) {
+            case 'initWorld': {
+                worlds.create(world_id, args.tech_info)
+                break
+            }
             case 'destructWorld': {
-                worlds.dispose(world_id);
-                break;
+                worlds.dispose(world_id)
+                break
             }
             case 'initRender': {
-                worlds.setRenderOptions(args);
-                break;
+                worlds.setRenderOptions(args)
+                break
             }
             default: {
-                world.onMessage([cmd, args]);
+                const world = worlds.get(world_id)
+                world.onMessage([cmd, args])
             }
         }
     }

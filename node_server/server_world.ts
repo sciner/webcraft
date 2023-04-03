@@ -189,7 +189,7 @@ export class ServerWorld implements IWorld {
         await this.db.mobs.initChunksWithMobs();
         console.log(`Restored ${this.worldChunkFlags.size} chunks, ${this.db.mobs._addrByMobId.size} mobs, elapsed: ${performance.now() - t | 0} ms`)
         await this.chunks.initWorker();
-        await this.chunks.initWorkers(world_guid);
+        await this.chunks.initWorkers(world_guid, this.info.tech_info);
 
         //
         if(this.isBuildingWorld()) {
@@ -275,7 +275,7 @@ export class ServerWorld implements IWorld {
                     fluids[i + 1] = schema.world.pos1.y + fluids[i + 1] - y
                     fluids[i + 2] = schema.world.entrance.z - fluids[i + 2]
                 }
-                await this.db.fluid.flushWorldFluidsList(fluids)
+                await this.db.fluid.flushWorldFluidsList(fluids, this)
             }
             // fill blocks
             for(let b of schema.blocks) {
@@ -969,7 +969,7 @@ export class ServerWorld implements IWorld {
         if (actions.fluids.length > 0) {
             if (actions.fluidFlush) {
                 // TODO: for schemas - make separate action after everything!
-                await this.db.fluid.flushWorldFluidsList(actions.fluids);
+                await this.db.fluid.flushWorldFluidsList(actions.fluids, this);
                 // assume same chunk for all cells
             } else {
                 this.chunks.fluidWorld.applyWorldFluidsList(actions.fluids);
