@@ -13,6 +13,7 @@ export class SpiralEntry {
         this.pos.copyFrom(se.pos);
         this.pos.addSelf(translation);
         this.dist = se.dist;
+        this.index = se.index;
         this.chunk = null;
         this.translated = false;
         this.cullID = -1;
