@@ -102,8 +102,9 @@ export class WorkerWorld {
         this.block_manager = block_manager
         this.settings = settings
         this.is_server = is_server
-        this.chunks = new VectorCollector();
-        this.genQueue = new ChunkWorkQueue(this);
+        this.tech_info = tech_info
+        this.chunks = new VectorCollector()
+        this.genQueue = new ChunkWorkQueue(this)
         this.chunkManager = new ChunkWorkerChunkManager(this)
     }
 

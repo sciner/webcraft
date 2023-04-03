@@ -150,7 +150,7 @@ class ChunkWorkerRoot {
         const cmd = data[0];
         /** Its type is {@link } */
         const args = data[1];
-        if (cmd == this.WORKER_MESSAGE.INIT_CHUNK_WORKER) {
+        if (cmd == 'init') { // this.WORKER_MESSAGE.INIT_CHUNK_WORKER
             // Init modules
             const msg: TChunkWorkerMessageInit = args
             return await this.initWorld(

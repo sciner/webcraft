@@ -82,7 +82,7 @@ class LightWorkerRoot {
         const world_id = data[0];
         const cmd = data[1];
         const args = data[2];
-        if (cmd === this.WORKER_MESSAGE.INIT_LIGHT_WORKER) {
+        if (cmd === 'init') { // this.WORKER_MESSAGE.INIT_LIGHT_WORKER
             await this.initWorlds();
             return;
         }
