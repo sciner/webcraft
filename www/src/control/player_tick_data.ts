@@ -215,7 +215,8 @@ export class PlayerTickData {
 
     toString(): string {
         const ids = this.inputWorldActionIds ? `ids=[${this.inputWorldActionIds.join()}] ` : ''
-        return `t${this.startingPhysicsTick}+${this.physicsTicks}=t${this.endPhysicsTick} m${this.contextTickMode} i${this.inputFlags} ${ids}${this.outPos}`
+        return `t${this.startingPhysicsTick}+${this.physicsTicks}=t${this.endPhysicsTick} g${this.contextGameModeIndex} m${
+            this.contextTickMode} i${this.inputFlags} ${ids}${this.outPos}`
     }
 }
 

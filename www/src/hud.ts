@@ -72,7 +72,7 @@ class HUDWindow extends Window {
 
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
-        this.x *= this.zoom 
+        this.x *= this.zoom
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
@@ -122,13 +122,17 @@ class HUDWindow extends Window {
             this.progressbar.visible = false
             this.kb_tips.visible = false
             //
-            const sinceLastPacket = performance.now() - Qubatch.world.server.lastPacketReceivedTime
-            if (sinceLastPacket > HUD_CONNECTION_WARNING_INTERVAL) {
+            const game = Qubatch as GameClass
+            const sinceLastPacket = performance.now() - game.world.server.lastPacketReceivedTime
+            const serverQueueLag = game.world.serverQueueLag
+            if (Math.max(sinceLastPacket, serverQueueLag) > HUD_CONNECTION_WARNING_INTERVAL) {
                 this.noConnectionWarning.visible = true
                 if(this.noConnectionWarning.w != width) {
                     this.noConnectionWarning.w = width
                 }
-                this.noConnectionWarning.text = Lang[`no_connection|${sinceLastPacket * 0.001 | 0}`]
+                this.noConnectionWarning.text = sinceLastPacket > HUD_CONNECTION_WARNING_INTERVAL
+                    ? Lang[`no_connection|${(sinceLastPacket * 0.001).toFixed(1)}`]
+                    : Lang[`high_server_queue_lag|${(serverQueueLag * 0.001).toFixed(1)}`]
             }
         }
         if(this.lbl_loading.w != width || this.lbl_loading.h != height) {
@@ -434,7 +438,7 @@ export class HUD {
             }
 
             // LAG
-            this.text += '\nLAG: ' + Math.round(player.world.latency) + 'ms';
+            this.text += `\nLAG: ${Math.round(world.latency)}ms / ${world.serverQueueLag}ms`;
 
             // Day time
             const time = world.getTime();
@@ -691,7 +695,7 @@ export class HUD {
                 angle = -angle
             }
             if (angle < -3 * Math.PI / 2) {
-                angle = -2 * Math.PI - angle 
+                angle = -2 * Math.PI - angle
             }
             let alpha = Math.round((1.37 - Math.abs(Math.atan(angle))) * 190).toString(16)
             if (alpha.length == 1) {

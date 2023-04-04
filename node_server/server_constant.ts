@@ -1,3 +1,5 @@
+import { MAX_PACKET_LAG_SECONDS } from "@client/constant.js"
+
 // ========================= network =============================
 
 /** The server sends a command to each player at least once per this interval of time. */
@@ -22,7 +24,7 @@ export const DONT_VALIDATE_AFTER_MODE_CHANGE_MS = 2000
  * at that time was empty, and simulates the physics with this input. If the client later sends this input later,
  * it'll be ignored. It's to prevent the client from delaying packets for too long, then "teleporting".
  */
-export const SERVER_UNCERTAINTY_MS = 10000
+export const SERVER_UNCERTAINTY_SECONDS = MAX_PACKET_LAG_SECONDS
 
 // database
 
