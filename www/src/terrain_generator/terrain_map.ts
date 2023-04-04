@@ -1,8 +1,10 @@
 import { impl as alea } from '../../vendors/alea.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { DEFAULT_DIRT_PALETTE } from '../constant.js';
+import type { ChunkGrid } from '../core/ChunkGrid.js';
 import { IndexedColor, Vector, Helpers, VectorCollector, getChunkAddr } from '../helpers.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { WorkerWorld } from '../worker/world.js';
 import { BIOMES } from "./biomes.js";
 import { CaveGenerator } from './cave_generator.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
@@ -62,6 +64,7 @@ export class TerrainMapManager implements ITerrainMapManager {
     noisefn:        Function
     noisefn3d:      Function
     maps_cache:     VectorCollector
+    world:          WorkerWorld
 
     //static maps_in_memory = 0;
     //static registry = new FinalizationRegistry(heldValue => {
@@ -71,7 +74,8 @@ export class TerrainMapManager implements ITerrainMapManager {
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
 
-    constructor(seed : string, world_id : string, noisefn? : Function, noisefn3d? : Function) {
+    constructor(world: WorkerWorld, seed : string, world_id : string, noisefn? : Function, noisefn3d? : Function) {
+        this.world = world;
         this.seed = seed;
         this.world_id = world_id;
         this.noisefn = noisefn;
@@ -381,7 +385,9 @@ export class TerrainMap extends Default_Terrain_Map {
     }
 
     // Сглаживание карты высот
-    smooth(generator : TerrainMapManager) {
+    smooth(map_manager : TerrainMapManager) {
+
+        const grid : ChunkGrid = map_manager.world.chunkManager.grid
 
         // 1. Кеширование ячеек
         let map             = null;
@@ -393,9 +399,9 @@ export class TerrainMap extends Default_Terrain_Map {
                 // absolute cell coord
                 let px          = this.chunk.coord.x + x;
                 let pz          = this.chunk.coord.z + z;
-                addr            = getChunkAddr(px, 0, pz, addr); // calc chunk addr for this cell
+                addr            = grid.getChunkAddr(px, 0, pz, addr); // calc chunk addr for this cell
                 if(!map || map.chunk.addr.x != addr.x || map.chunk.addr.z != addr.z) {
-                    map = generator.maps_cache.get(addr); // get chunk map from cache
+                    map = map_manager.maps_cache.get(addr); // get chunk map from cache
                 }
                 bi = BLOCK.getBlockIndex(px, 0, pz, bi)
                 const cell = map.getCell(bi.x, bi.z)

@@ -797,10 +797,11 @@ export class ServerWorld implements IWorld {
         }
         // @Warning Must be check before actions.blocks
         if(actions.generate_tree.length > 0) {
+            const grid = this.chunkManager.grid
             for(let i = 0; i < actions.generate_tree.length; i++) {
                 const params = actions.generate_tree[i];
                 const treeGenerator = await TreeGenerator.getInstance(this.info.seed);
-                const chunk = this.chunks.get(getChunkAddr(params.pos.x, params.pos.y, params.pos.z));
+                const chunk = this.chunks.get(grid.getChunkAddr(params.pos.x, params.pos.y, params.pos.z));
                 if(chunk) {
                     const new_tree_blocks = await treeGenerator.generateTree(this, chunk, params.pos, params.block);
                     if(new_tree_blocks) {

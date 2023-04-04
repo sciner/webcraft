@@ -1,7 +1,7 @@
+import type Terrain_Generator from "../index";
 import type { BLOCK } from "../../../blocks";
 import type { Vector } from "../../../helpers";
 import type { ChunkWorkerChunk } from "../../../worker/chunk";
-import type { WorkerWorld } from "../../../worker/world";
 import type { ClusterManager } from "../../cluster/manager";
 import type { Default_Terrain_Map } from "../../default";
 import type { Biome } from "../biomes";
@@ -16,10 +16,9 @@ export class Biome3LayerBase {
     noise3d:            Function
     block_manager:      BLOCK
     maps:               TerrainMapManagerBase // | Map<any, any>
-    generator:          any
+    generator:          Terrain_Generator
     clusterManager:     ClusterManager
     seed:               string
-    world:              WorkerWorld
     filter_biome_list:  int[] = []
 
     init(generator : any) : Biome3LayerBase {
@@ -69,7 +68,7 @@ export class Biome3LayerBase {
                 }
 
                 // Draw tree blocks into chunk
-                this.generator.plantTree(this.world, tree, chunk, x, y, z, true);
+                this.generator.plantTree(this.generator.world, tree, chunk, x, y, z, true);
 
             }
         }

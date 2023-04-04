@@ -67,7 +67,7 @@ export default class Terrain_Generator extends Demo_Map {
         this.temp_vec       = new Vector(0, 0, 0);
         this.noisefn        = noise.perlin2;
         this.noisefn3d      = noise.perlin3;
-        this.maps           = new TerrainMapManager(this.seed, this.world_id, this.noisefn, this.noisefn3d);
+        this.maps           = new TerrainMapManager(this.world, this.seed, this.world_id, this.noisefn, this.noisefn3d);
         return true
     }
 

@@ -5,6 +5,7 @@ import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "@client
 import { WorldEditBuilding } from "@client/plugins/worldedit/building.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import type { ServerWorld } from "server_world";
+import type { ChunkGrid } from "@client/core/ChunkGrid";
 
 const MAX_SET_BLOCK         = 250000 * 4;
 const MAX_BLOCKS_PER_PASTE  = 10000;
@@ -449,12 +450,13 @@ export default class WorldEdit {
         // fluids
         if (data.fluids && data.fluids.length > 0) {
             const fluids = data.fluids;
+            const grid : ChunkGrid = this.world.chunkManager.grid
             for (let i = 0; i < fluids.length; i += 4) {
                 const x = fluids[i] + player_pos.x,
                       y = fluids[i + 1] + player_pos.y,
                       z = fluids[i + 2] + player_pos.z,
                       val = fluids[i + 3];
-                chunk_addr = this.world.chunkManager.grid.getChunkAddr(x, y, z, chunk_addr);
+                chunk_addr = grid.getChunkAddr(x, y, z, chunk_addr);
                 actions = getChunkActions(chunk_addr)
                 actions.addFluids([x, y, z, val]);
                 actions.fluidFlush = true

@@ -4,6 +4,7 @@ import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
 import type { DataChunk } from "../core/DataChunk";
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
 const DEBUG_CHUNK_GEN_TIMERS = false
@@ -129,10 +130,11 @@ export class WorkerWorld {
     workerSetBlock(args) {
         const chunk_addr = new Vector(0, 0, 0);
         const pos_world = new Vector(0, 0, 0);
+        const grid : ChunkGrid = this.chunkManager.grid
         for(let i = 0; i < args.length; i++) {
             const m = args[i];
             // 1. Get chunk
-            this.chunkManager.grid.getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
+            grid.getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
             const chunk = this.getChunk(chunk_addr);
             if(chunk) {
                 // 2. Set block

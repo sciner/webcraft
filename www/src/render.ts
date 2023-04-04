@@ -140,7 +140,6 @@ export class Renderer {
                 premultipliedAlpha: false,
                 powerPreference: "high-performance"
             });
-        this.meshes = new MeshManager();
 
         this.camera = new Camera({
             type: Camera.PERSP_CAMERA,
@@ -194,6 +193,7 @@ export class Renderer {
     async init(world, settings) {
         this.setWorld(world);
         this.settings = settings;
+        this.meshes = new MeshManager(world);
 
         const {renderBackend} = this;
 

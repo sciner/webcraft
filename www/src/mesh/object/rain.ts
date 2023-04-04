@@ -9,6 +9,7 @@ import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../..
 import { Weather } from '../../block_type/weather.js';
 import type { Renderer } from '../../render.js';
 import type { ChunkManager } from '../../chunk_manager.js';
+import type { ChunkGrid } from '../../core/ChunkGrid.js';
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -252,15 +253,17 @@ export default class Mesh_Object_Rain {
 
         // check chunks available
         const chunk_y_max = Math.floor(RAIN_START_Y / CHUNK_SIZE_Y);
+        const chunkManager = this.chunkManager
+        const grid : ChunkGrid = chunkManager.grid
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
                 for(let chunk_addr_y = 0; chunk_addr_y <= chunk_y_max; chunk_addr_y++) {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, chunk_addr_y * CHUNK_SIZE_Y, pos.z + j);
-                    this.chunkManager.grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk || !chunk.addr.equal(chunk_addr)) {
-                        chunk = this.chunkManager.getChunk(chunk_addr)
+                        chunk = chunkManager.getChunk(chunk_addr)
                     }
                     if(!chunk || !chunk.tblocks) {
                         return false;
@@ -281,7 +284,7 @@ export default class Mesh_Object_Rain {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, RAIN_START_Y - k, pos.z + j);
-                    this.chunkManager.grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk || !chunk.addr.equal(chunk_addr)) {
                         chunk = this.chunkManager.getChunk(chunk_addr);
                         const dc = chunk.tblocks.dataChunk;
