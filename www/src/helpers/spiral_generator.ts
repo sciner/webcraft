@@ -6,17 +6,15 @@ export class SpiralEntry {
     newValue: any = null;
     translated = false;
     dist = 0;
-    index = 0;
-    cullID = -1;
+    indexYZ = 0;
 
     copyTranslate(se, translation) {
         this.pos.copyFrom(se.pos);
         this.pos.addSelf(translation);
         this.dist = se.dist;
-        this.index = se.index;
+        this.indexYZ = se.indexYZ;
         this.chunk = null;
         this.translated = false;
-        this.cullID = -1;
         return this;
     }
 }
@@ -91,7 +89,7 @@ export class SpiralGenerator {
                 }
                 for(let x = -d; x <= d; x++) {
                     const entry = new SpiralEntry();
-                    entry.index = cnt++;
+                    entry.indexYZ = cnt++;
                     entry.pos.set(x, y, z);
                     entry.dist = Math.round(entry.pos.distance(center) * 1000) / 1000;
                     resp.entries.push(entry);
@@ -105,7 +103,7 @@ export class SpiralGenerator {
             return a.dist - b.dist;
         });
         for (let i = 0; i < resp.entries.length; i++) {
-            indexByYZ[resp.entries[i].index] = i;
+            indexByYZ[resp.entries[i].indexYZ] = i;
         }
         SpiralGenerator.cache3D[cache_key] = resp;
         return resp;
@@ -160,13 +158,14 @@ export class SpiralGrid {
     entriesByYZ: SpiralEntry[];
     center = new Vector();
     size: SpiralSize = null;
+    cullIDs: number[] = [];
 
     constructor(marginVec: IVector = new Vector()) {
         this.size = new SpiralSize(marginVec);
     }
 
     make(center: Vector, marginVec: IVector) {
-        const {entries, entriesByYZ} = this;
+        const {entries, entriesByYZ, cullIDs} = this;
 
         const template = SpiralGenerator.generate3D(marginVec);
         const spiral_moves_3d = template.entries;
@@ -176,8 +175,9 @@ export class SpiralGrid {
 
         while (entries.length < spiral_moves_3d.length) {
             entries.push(new SpiralEntry());
+            cullIDs.push(-1);
         }
-        let n = entries.length = entriesByYZ.length = spiral_moves_3d.length;
+        let n = entries.length = entriesByYZ.length = cullIDs.length = spiral_moves_3d.length;
         for (let i = 0; i < n; i++) {
             entries[i].copyTranslate(spiral_moves_3d[i], center);
             entriesByYZ[i] = entries[size.indexByYZ[i]];

@@ -166,7 +166,8 @@ export class SpiralCulling {
     update(frustum: FrustumProxy, chunkSize: Vector) {
         this.updateID++;
         const {grid, paddingBlocks} = this;
-        const {marginVec, depth, dw, startByYZ, radByYZ} = grid.size;
+        const {cullIDs} = grid;
+        const {marginVec, depth, dw, startByYZ, radByYZ, indexByYZ} = grid.size;
 
         const {planes, camPos} = frustum;
 
@@ -236,9 +237,10 @@ export class SpiralCulling {
                 let leftChunkX = Math.max(-rad, Math.floor(X_seg.left / chunkSize.x));
                 let rightChunkX = Math.min(rad + 1, Math.ceil(X_seg.right / chunkSize.x));
 
-                const yz = grid.size.startByYZ[Y0 * depth + Z0 + dw];
+                const yz = startByYZ[Y0 * depth + Z0 + dw];
                 for (let X0 = leftChunkX; X0 < rightChunkX; X0++) {
-                    grid.entriesByYZ[yz + X0 + rad].cullID = this.updateID;
+                    cullIDs[indexByYZ[yz + X0 + rad]] =  this.updateID;
+                    //TODO: maybe process the chunk meshes inside
                 }
             }
         }
