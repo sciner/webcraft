@@ -45,6 +45,11 @@ const SUNFLOWER_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 8], "move": {"x": 0.098, "y": 0, "z": 0}, "dir": DIRECTION.SOUTH}
 ];
 
+const ANGLE_FACET = [
+    {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0.5, "y": 0, "z": 0}, "dir": DIRECTION.UP},
+    {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0, "y": 0, "z": 0}, "dir": DIRECTION.UP}
+]
+
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
 
 const aabb = new AABB();
@@ -244,6 +249,10 @@ export default class style {
                     y -= .5
                 }
             }
+        }
+
+        if(block.hasTag('angle_facet')) {
+            planes = ANGLE_FACET
         }
 
         for(let j = 0; j < loops; j++) {
