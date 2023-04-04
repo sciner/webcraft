@@ -10199,6 +10199,152 @@
                 "slots": 5
             },
             "is_entity": true
+        }, 
+        {
+            "id": 1057,
+            "name": "TUBE_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/tube_coral_block.png",
+            "drop_item": [ 
+                {
+                    "name": "DEAD_TUBE_CORAL_BLOCK"
+                }
+            ]
+        }, 
+        {
+            "id": 1058,
+            "name": "DEAD_TUBE_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/dead_tube_coral_block.png"
+        }, 
+        {
+            "id": 1059,
+            "name": "BUBBLE_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/bubble_coral_block.png",
+            "drop_item": [ 
+                {
+                    "name": "DEAD_BUBBLE_CORAL_BLOCK"
+                }
+            ]
+        }, 
+        {
+            "id": 1060,
+            "name": "DEAD_BUBBLE_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/dead_bubble_coral_block.png"
+        }, 
+        {
+            "id": 1061,
+            "name": "BRAIN_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/brain_coral_block.png",
+            "drop_item": [ 
+                {
+                    "name": "DEAD_BRAIN_CORAL_BLOCK"
+                }
+            ]
+        }, 
+        {
+            "id": 1062,
+            "name": "DEAD_BRAIN_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/dead_brain_coral_block.png"
+        }, 
+        {
+            "id": 1063,
+            "name": "FIRE_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/fire_coral_block.png",
+            "drop_item": [ 
+                {
+                    "name": "DEAD_FIRE_CORAL_BLOCK"
+                }
+            ]
+        }, 
+        {
+            "id": 1064,
+            "name": "DEAD_FIRE_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/dead_fire_coral_block.png"
+        }, 
+        {
+            "id": 1065,
+            "name": "HORN_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/horn_coral_block.png",
+            "drop_item": [ 
+                {
+                    "name": "DEAD_HORN_CORAL_BLOCK"
+                }
+            ]
+        }, 
+        {
+            "id": 1066,
+            "name": "DEAD_HORN_CORAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/dead_horn_coral_block.png"
+        }, 
+        {
+            "id": 1067,
+            "name": "TUBE_CORAL",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "tags":[
+                "doubleface",
+                "in_water_plant"
+            ],
+            "texture": "block/tube_coral.png"
+        }, 
+        {
+            "id": 1068,
+            "name": "DEAD_TUBE_CORAL",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "tags":[
+                "doubleface"
+            ],
+            "texture": "block/dead_tube_coral.png"
         }
     ]
 }
