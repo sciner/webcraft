@@ -65,7 +65,7 @@ type TFreeSpeedConfig = {
  * How much effect {@link SpectatorPlayerControl.speedMultiplier} has on the vertical speed.
  * 1 means it has full effect (the same as on horizontal speed).
  */
-const Y_SPEED_SCALING = 1
+const Y_SPEED_SCALING = 0.8
 
 export const SPECTATOR_SPEED_CHANGE_MULTIPLIER = 1.05
 export const SPECTATOR_SPEED_CHANGE_MIN = 0.05
@@ -74,24 +74,21 @@ export const SPECTATOR_SPEED_CHANGE_MAX = 16
 const SPEEDS: Dict<TFreeSpeedConfig> = {
     HORIZONTAL: {
         max                     : 11.5,
-        acceleration            : 2.35,
-        // начиная с половины макс. скорости, ускорение начинает падать. Похожий эффект бы в старом коде (не в точности такой)
-        diminishingAccelerationThreshold : 0.33,
-        diminishingAcceleration : 1.0,
-        // не 0, а маленькое значение: в основном торможение экспоненцильное, но в конце достигается полная остановка
-        deceleration            : 0.01,
+        acceleration            : 2.7,
+        deceleration            : 0.5,
         exponentialDeceleration : 0.035
     },
     UP: {
         max                     : 5.7,
-        acceleration            : Infinity, // сразу макс. скорось
-        deceleration            : 2.0       // примерно 0.5 секунды до остановки
+        acceleration            : 3.5,
+        deceleration            : 2.0,
+        exponentialDeceleration : 0.035
     },
     DOWN: {
-        max                     : 5.7,
-        acceleration            : Infinity, // сразу макс. скорось
-        deceleration            : 2.0
-        // exponentialDeceleration : 0         // мгновенная остановка
+        max                     : 7.1,
+        acceleration            : 3.5,
+        deceleration            : 2.0,
+        exponentialDeceleration : 0.035
     }
 }
 
@@ -143,7 +140,7 @@ export class SpectatorPlayerControl extends PlayerControl {
             vel.y = this.decelerate(vel.y, vel.y > 0 ? UP : DOWN, mul)
         } else {
             if (Math.sign(vel.y) !== forceUp) {
-                vel.y *= UP.exponentialDeceleration
+                vel.y = 0
             }
             const mulY = mul > 1
                 ? 1 + (mul - 1) * Y_SPEED_SCALING
@@ -171,7 +168,8 @@ export class SpectatorPlayerControl extends PlayerControl {
                 .normalizeSelf(max)
                 .rotateYawSelf(this.player_state.yaw)
             // the difference between the desired speed and the current speed
-            tmpVec.subSelf(vel)
+            tmpVec.x -= vel.x
+            tmpVec.z -= vel.z
             const deltaVelScalar = tmpVec.horizontalLength()
             // when the speed is closing to the desired, acceleration is reduced
             const diminishedAcceleration = Mth.lerpAny(deltaVelScalar,

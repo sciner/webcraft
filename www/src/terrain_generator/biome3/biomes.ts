@@ -43,7 +43,7 @@ const NETHER_BUILDINGS = {
 
 const DEFAULT_RIVER_BOTTOM_BLOCKS = [
     {value: 0, block_name: 'DIRT'},
-    {value: 0.3, block_name: 'GRAVEL'},
+    {value: .3, block_name: 'GRAVEL'},
     {value: 1, block_name: 'SAND'}
 ]
 
@@ -269,6 +269,7 @@ export class Biome {
             const item = blocks[i]
             if(d4 <= item.value) {
                 block_id = item.block.id
+                break
             }
         }
         if(block_id == 0) {
@@ -766,7 +767,7 @@ export class Biomes {
             NETHER_BUILDINGS,
             undefined,
             [
-                {value: 1, block_name: 'BEDROCK'}
+                {value: 1, block_name: 'DEEPSLATE'}
             ],
             {
                 hanging_foliage:    'ANCIENT_DEBRIS',
