@@ -2,9 +2,11 @@ import type {Plane, FrustumProxy} from "../frustum.js";
 import type {SpiralGrid} from "../helpers/spiral_generator.js";
 import {Vector} from "../helpers/vector.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+
 const {mat3, vec3} = glMatrix;
 
 const EPS = 1e-6;
+const EDGE_COUNT = 12;
 
 class CalcLine {
     A = 0;
@@ -29,6 +31,8 @@ class CalcLine {
 class CalcSegment {
     left = 0;
     right = 0;
+    ord1 = 0;
+    ord2 = 0;
 }
 
 function numberSort(a, b) {
@@ -131,7 +135,7 @@ function scanLine(result: CalcSegment, lines: CalcLine[], inter: number[], seg: 
         i_start++;
     }
     while (inter[i_start] < seg.right) {
-        lineSegment(result, lines, inter_Z_top[i_start]);
+        lineSegment(result, lines, inter[i_start]);
         i_start++;
     }
     if (i_start > 0) {
@@ -144,7 +148,7 @@ function scanLine(result: CalcSegment, lines: CalcLine[], inter: number[], seg: 
 let tempMat3 = mat3.create();
 let tempVec3 = vec3.create();
 
-function frustumCorners(result: Vector[], lines: CalcLine[]) {
+function frustumCorners(result: Vector[], resultEdges: CalcLine[], lines: CalcLine[]) {
     const mat = tempMat3;
     const vec = tempVec3;
     let cnt = 0;
@@ -165,17 +169,102 @@ function frustumCorners(result: Vector[], lines: CalcLine[]) {
                 vec[1] = -lines[j].D;
                 vec[2] = -lines[k].D;
                 vec3.transformMat3(vec, vec, mat);
-                result[cnt++].set(vec[0], vec[1], vec[2]);
+                result[cnt++].set(vec[0], vec[2], vec[1]);
+            }
+        }
+    }
+    let cntLines = 0;
+    for (let i = 0; i < 8; i++) {
+        for (let j1 = 0; j1 < 3; j1++) {
+            let j = i ^ (1 << j1);
+            if (j < i) {
+                continue;
+            }
+            let p1 = result[i], p2 = result[j];
+            if (p1.z > p2.z) {
+                let t = p1;
+                p1 = p2;
+                p2 = t;
+            }
+
+            const dx = p2.x - p1.x;
+            const dz = p2.z - p1.z;
+            const dy = p2.y - p1.y;
+
+            const edge = resultEdges[cntLines++];
+            if (Math.abs(dz) < EPS) {
+                edge.error = 1;
+                continue;
+            }
+            edge.error = 0;
+            // A * x + B
+            // C * y + D
+            // F * z + G
+            // F > 0
+            edge.A = dx;
+            edge.C = dy;
+            edge.F = dz;
+            edge.B = p1.x;
+            edge.D = p1.y;
+            edge.G = p1.z;
+        }
+    }
+}
+
+function intersectEdges(result: CalcSegment[], edges: CalcLine[], chunkSize: Vector, marginZ: number, padding: number) {
+    while (result.length < (marginZ * 2 + 1) * 12) {
+        result.push(new CalcSegment());
+    }
+    for (let Z0 = -marginZ; Z0 <= marginZ; Z0++) {
+        const lf = Z0 * chunkSize.z - padding;
+        const rt = (Z0 + 1) * chunkSize.z + padding;
+        for (let i = 0; i < 12; i++) {
+            const res = result[(Z0 + marginZ) * 12 + i];
+            res.left = Infinity;
+            res.right = Infinity;
+            res.ord1 = Infinity;
+            res.ord2 = Infinity;
+            const edge = edges[i];
+            if (edge.error > 0) {
+                continue;
+            }
+            let p1 = (lf - edge.G) / edge.F;
+            let p2 = (rt - edge.G) / edge.F;
+            if (p1 < 0) p1 = 0;
+            if (p2 > 1) p2 = 1;
+            if (p1 - EPS > p2) {
+                continue;
+            }
+            let y1 = edge.C * p1 + edge.D;
+            let y2 = edge.C * p2 + edge.D;
+            let ord1 = Math.floor((y1 + padding) / chunkSize.y);
+            let ord2 = Math.floor((y2 + padding) / chunkSize.y);
+            if (ord1 === ord2) {
+                res.ord1 = ord1;
+            }
+            ord1 = Math.floor((y1 - padding) / chunkSize.y);
+            ord2 = Math.floor((y2 - padding) / chunkSize.y);
+            if (ord1 === ord2) {
+                res.ord2 = ord1;
+            }
+            let x1 = edge.A * p1 + edge.B;
+            let x2 = edge.A * p2 + edge.B;
+            if (x1 < x2) {
+                res.left = x1;
+                res.right = x2;
+            } else {
+                res.left = x2;
+                res.right = x1;
             }
         }
     }
 }
 
-let linesTop = [];
+let linesTop: CalcLine[] = [];
 for (let i = 0; i < 6; i++) {
     linesTop[i] = new CalcLine();
 }
-let linesBottom = [];
+let linesBottom: CalcLine[] = [];
 for (let i = 0; i < 6; i++) {
     linesBottom[i] = new CalcLine();
 }
@@ -183,7 +272,7 @@ for (let i = 0; i < 6; i++) {
 let inter_Z_top = [];
 let inter_Z_bottom = [];
 
-let Y_segment = new CalcSegment();
+let Y_big_segment = new CalcSegment();
 let Z_top = new CalcSegment();
 let Z_bottom = new CalcSegment();
 let X_seg = new CalcSegment();
@@ -194,6 +283,16 @@ let frustPoints = [];
 let frustSegPoints = [];
 for (let i = 0; i < 8; i++) {
     frustPoints.push(new Vector());
+}
+
+let edgeLines: CalcLine[] = [];
+for (let i = 0; i < EDGE_COUNT; i++) {
+    edgeLines.push(new CalcLine());
+}
+
+let edgeXSegByZ: CalcSegment[] = [];
+for (let i = 0; i < 33 * 8; i++) {
+    edgeXSegByZ.push(new CalcSegment());
 }
 
 export class SpiralCulling {
@@ -217,12 +316,13 @@ export class SpiralCulling {
 
         let Y_min = -Infinity, Y_max = Infinity;
 
-        initLines(linesTop, planes, tempVec, Y_segment);
+        initLines(linesTop, planes, tempVec, Y_big_segment);
         for (let i = 0; i < 6; i++) {
             linesBottom[i].copyFrom(linesTop[i]);
         }
 
-        frustumCorners(frustPoints, linesTop);
+        frustumCorners(frustPoints, edgeLines, linesTop);
+        intersectEdges(edgeXSegByZ, edgeLines, chunkSize, marginVec.z, paddingBlocks);
 
         for (let Y0 = -marginVec.y; Y0 <= marginVec.y; Y0++) {
             let Y_bottom = Math.max(Y_min, Y0 * chunkSize.y - paddingBlocks);
@@ -260,8 +360,8 @@ export class SpiralCulling {
             inter_Z_top.push(Infinity);
             inter_Z_bottom.push(Infinity);
 
-            const leftChunkZ = Math.floor(left / marginVec.z);
-            const rightChunkZ = Math.ceil(right / marginVec.z);
+            const leftChunkZ = Math.max(-marginVec.z, Math.floor(left / chunkSize.z));
+            const rightChunkZ = Math.min(marginVec.z + 1, Math.ceil(right / chunkSize.z));
 
             let i_top = 0, i_bottom = 0;
             for (let Z0 = leftChunkZ; Z0 < rightChunkZ; Z0++) {
@@ -283,6 +383,15 @@ export class SpiralCulling {
                 if (Z_seg.left <= Z_seg.right) {
                     i_bottom = scanLine(X_seg, linesBottom, inter_Z_bottom, Z_seg, i_bottom);
                 }
+
+                for (let i = 0; i < EDGE_COUNT; i++) {
+                    let res = edgeXSegByZ[(Z0 + marginVec.z) * EDGE_COUNT + i];
+                    if (res.ord1 === Y0 || res.ord2 === Y0) {
+                        X_seg.left = Math.min(X_seg.left, res.left);
+                        X_seg.right = Math.max(X_seg.right, res.right);
+                    }
+                }
+
                 if (cornerCnt > 0) {
                     for (let i = 0; i < cornerCnt; i++) {
                         if (frustSegPoints[i].z > lf - EPS && frustSegPoints[i].z < rt + EPS) {
