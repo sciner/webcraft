@@ -117,6 +117,9 @@ function lineSegment(addTo: CalcSegment, lines: CalcLine[], arg: number) {
 function scanLine(result: CalcSegment, lines: CalcLine[], inter: number[], lf: number, rt: number, i_start: number) {
     lineSegment(result, lines, lf);
     lineSegment(result, lines, rt);
+    while (i_start > 0 && inter[i_start - 1] > lf) {
+        i_start--;
+    }
     while (inter[i_start] <= lf) {
         i_start++;
     }
@@ -174,7 +177,6 @@ export class SpiralCulling {
         for (let i = 0; i < 6; i++) {
             linesBottom[i].copyFrom(linesTop[i]);
         }
-
 
         for (let Y0 = -marginVec.y; Y0 <= marginVec.y; Y0++) {
             let Y_bottom = Math.max(Y_min, Y0 * chunkSize.y - paddingBlocks);
