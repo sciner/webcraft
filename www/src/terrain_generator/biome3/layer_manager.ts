@@ -8,11 +8,13 @@ import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Default_Terrain_Map } from "../default.js";
 import Biome3LayerUnderworld from "./layers/underworld.js";
 
+declare type ILayerList = {type: string, bottom: int, up: int}[]
+
 export class Biome3LayerManager {
     [key: string]: any;
 
-    constructor(generator, list) {
-        
+    constructor(generator, list : ILayerList) {
+
         this.generator = generator
         this.generator_options = generator.world.generator.options
 

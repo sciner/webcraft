@@ -1,4 +1,4 @@
-import { Helpers, getChunkAddr, Vector, DIRECTION, QUAD_FLAGS, makeChunkEffectID, IndexedColor } from "./helpers.js";
+import { Helpers, Vector, DIRECTION, QUAD_FLAGS, makeChunkEffectID, IndexedColor, getChunkAddr } from "./helpers.js";
 // import { Particles_Effects } from "./particles/effects.js";
 import type { Renderer } from "./render.js";
 

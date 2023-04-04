@@ -1,7 +1,7 @@
 import {ServerChunk, TRandomTickerFunction} from "./server_chunk.js";
 import { WorldTickStat } from "./world/tick_stat.js";
 import {CHUNK_STATE, ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "@client/chunk_const.js";
-import {getChunkAddr, SpiralGenerator, Vector, VectorCollector, SimpleQueue} from "@client/helpers.js";
+import {SpiralGenerator, Vector, VectorCollector, SimpleQueue} from "@client/helpers.js";
 import {FluidWorld} from "@client/fluid/FluidWorld.js";
 import {FluidWorldQueue} from "@client/fluid/FluidWorldQueue.js";
 import {ChunkDataTexture} from "@client/light/ChunkDataTexture.js";
@@ -12,6 +12,7 @@ import { WorldPortal } from "@client/portal.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import type { ServerWorld } from "./server_world.js";
 import { PLAYER_STATUS, WORKER_MESSAGE } from "@client/constant.js";
+import type { ChunkGrid } from "@client/core/ChunkGrid.js";
 
 /**
  * Each tick (unloaded_chunks_total * UNLOADED_CHUNKS_SUBSETS) is unloaded
@@ -57,6 +58,7 @@ export class ServerChunkManager {
     tech_info: TWorldTechInfo
 
     static STAT_NAMES = ['unload', 'load', 'generate_mobs', 'ticking_chunks', 'delayed_calls', 'dispose']
+    grid: ChunkGrid
 
     constructor(world : ServerWorld, random_tickers: Map<string, TRandomTickerFunction>) {
         this.world                  = world;
@@ -86,6 +88,7 @@ export class ServerChunkManager {
             }
         };
         this.dataWorld = new DataWorld(this);
+        this.grid = this.dataWorld.grid
         this.fluidWorld = new FluidWorld(this);
         this.fluidWorld.database = world.db.fluid;
         this.fluidWorld.queue = new FluidWorldQueue(this.fluidWorld);
@@ -474,7 +477,7 @@ export class ServerChunkManager {
             z = x.z;
             x = x.x;
         }
-        let addr = getChunkAddr(x, y, z);
+        let addr = this.grid.getChunkAddr(x, y, z);
         let chunk = this.all.get(addr);
         if(chunk) {
             return chunk.getBlock(x, y, z);
@@ -484,8 +487,8 @@ export class ServerChunkManager {
 
     // Return chunks inside AABB
     getInAABB(aabb : AABB) {
-        const pos1 = getChunkAddr(aabb.x_min, aabb.y_min, aabb.z_min);
-        const pos2 = getChunkAddr(aabb.x_max, aabb.y_max, aabb.z_max);
+        const pos1 = this.grid.getChunkAddr(aabb.x_min, aabb.y_min, aabb.z_min);
+        const pos2 = this.grid.getChunkAddr(aabb.x_max, aabb.y_max, aabb.z_max);
         const aabb2 = new AABB().set(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z).expand(.1, .1, .1);
         const resp = [];
         for(let [chunk_addr, chunk] of this.all.entries(aabb2)) {
@@ -513,7 +516,7 @@ export class ServerChunkManager {
         for(const p of world.players.values()) {
             players.push({
                 pos:                p.state.pos,
-                chunk_addr:         getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
+                chunk_addr:         this.grid.getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
                 chunk_render_dist:  p.state.chunk_render_dist
             });
         }

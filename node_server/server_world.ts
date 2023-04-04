@@ -16,7 +16,7 @@ import { WorldDBActor } from "./db/world/WorldDBActor.js";
 import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
 import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
-import { ArrayHelpers, getChunkAddr, Vector, VectorCollector, PerformanceTimer } from "@client/helpers.js";
+import { ArrayHelpers, Vector, VectorCollector, PerformanceTimer } from "@client/helpers.js";
 import { AABB } from "@client/core/AABB.js";
 import { BLOCK, DBItemBlock } from "@client/blocks.js";
 import { ServerClient } from "@client/server_client.js";

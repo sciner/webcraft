@@ -1,7 +1,7 @@
 import type { BLOCK } from "../../../blocks";
 import type { Vector } from "../../../helpers";
 import type { ChunkWorkerChunk } from "../../../worker/chunk";
-import type { ClusterBase } from "../../cluster/base";
+import type { WorkerWorld } from "../../../worker/world";
 import type { ClusterManager } from "../../cluster/manager";
 import type { Default_Terrain_Map } from "../../default";
 import type { Biome } from "../biomes";
@@ -19,7 +19,7 @@ export class Biome3LayerBase {
     generator:          any
     clusterManager:     ClusterManager
     seed:               string
-    world:              any
+    world:              WorkerWorld
     filter_biome_list:  int[] = []
 
     init(generator : any) : Biome3LayerBase {

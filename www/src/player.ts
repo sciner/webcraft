@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, Vector, ObjectHelpers} from "./helpers.js";
+import {Helpers, Vector, ObjectHelpers} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -466,7 +466,7 @@ export class Player implements IPlayer {
         if (!overChunk) {
             // some kind of race F8+R
             const blockPos = this.getBlockPos();
-            this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
+            this.chunkAddr = this.world.chunkManager.grid.getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
             overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
         }
 
@@ -816,7 +816,7 @@ export class Player implements IPlayer {
         this.lerpPos = new Vector(vec);
         //
         this.blockPos = this.getBlockPos();
-        this.chunkAddr = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+        this.chunkAddr = this.world.chunkManager.grid.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
     }
 
     getFlying() {
@@ -924,7 +924,7 @@ export class Player implements IPlayer {
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
-                this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                this.chunkAddr          = this.world.chunkManager.grid.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится глаза

@@ -1,4 +1,4 @@
-import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector, Mth, ArrayHelpers } from '../../helpers.js';
+import { IndexedColor, QUAD_FLAGS, Vector, VectorCollector, Mth, ArrayHelpers } from '../../helpers.js';
 import GeometryTerrain from "../../geometry_terrain.js";
 import { BLEND_MODES } from '../../renders/BaseRenderer.js';
 import { AABB } from '../../core/AABB.js';
@@ -7,6 +7,8 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import {impl as alea} from "../../../vendors/alea.js";
 import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../../fluid/FluidConst.js";
 import { Weather } from '../../block_type/weather.js';
+import type { Renderer } from '../../render.js';
+import type { ChunkManager } from '../../chunk_manager.js';
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -46,12 +48,11 @@ export default class Mesh_Object_Rain {
     type                = null
 
     /**
-     * 
-     * @param {*} render 
-     * @param {string} type rain|snow 
-     * @param { import("../../chunk_manager.js").ChunkManager } chunkManager 
+     * @param render 
+     * @param type rain|snow 
+     * @param chunkManager 
      */
-    constructor(render, type, chunkManager) {
+    constructor(render : Renderer, type : string, chunkManager : ChunkManager) {
 
         this.life           = 1;
         this.type           = type;
@@ -83,12 +84,6 @@ export default class Mesh_Object_Rain {
 
     }
 
-    /**
-     * 
-     * @param {AABB} aabb 
-     * @param {*} c 
-     * @returns 
-     */
     createBuffer(c) {
 
         const vertices  = [];
@@ -172,11 +167,11 @@ export default class Mesh_Object_Rain {
 
     /**
      * Draw particles
-     * @param { import("../../render.js").Renderer } render Renderer
-     * @param {float} delta Delta time from previous call
+     * @param render Renderer
+     * @param delta Delta time from previous call
      * @memberOf Mesh_Object_Raindrop
      */
-    draw(render, delta) {
+    draw(render : Renderer, delta : float) {
 
         if(!this.enabled || !this.prepare() || !this.buffer) {
             return false;
@@ -197,10 +192,7 @@ export default class Mesh_Object_Rain {
 
     }
 
-    /**
-     * @returns {boolean}
-     */
-    prepare() {
+    prepare() : boolean {
 
         const player = this.player;
 
@@ -266,7 +258,7 @@ export default class Mesh_Object_Rain {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, chunk_addr_y * CHUNK_SIZE_Y, pos.z + j);
-                    getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    this.chunkManager.grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk || !chunk.addr.equal(chunk_addr)) {
                         chunk = this.chunkManager.getChunk(chunk_addr)
                     }
@@ -289,7 +281,7 @@ export default class Mesh_Object_Rain {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, RAIN_START_Y - k, pos.z + j);
-                    getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    this.chunkManager.grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk || !chunk.addr.equal(chunk_addr)) {
                         chunk = this.chunkManager.getChunk(chunk_addr);
                         const dc = chunk.tblocks.dataChunk;
@@ -368,12 +360,10 @@ export default class Mesh_Object_Rain {
 
     /**
      * Снежная ячейка или нет
-     * @params { Vector } xz
-     * @returns { boolean }
      */
-    isSnowCell(xz) {
+    isSnowCell(xz : Vector) : boolean {
         const pos = xz.floored();
-        getChunkAddr(pos.x, pos.y, pos.z, _chunk_addr);
+        this.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z, _chunk_addr);
         if(!_chunk || !_chunk.addr.equal(_chunk_addr)) {
             _chunk = this.chunkManager.getChunk(_chunk_addr)
         }

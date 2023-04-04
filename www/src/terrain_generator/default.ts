@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
-import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, getChunkAddr, IndexedColor } from '../helpers.js';
+import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, IndexedColor, getChunkAddr } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 import { WorldAction } from "../world_action.js";
@@ -155,6 +155,8 @@ export class Default_Terrain_Generator {
 
     // plantTree...
     plantTree(world, tree, chunk, x, y, z, check_chunk_size = true) {
+
+        debugger
         
         const type = tree.type;
         const style_func = this.tree_styles.get(type.style)

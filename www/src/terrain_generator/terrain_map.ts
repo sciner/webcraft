@@ -1,7 +1,7 @@
 import { impl as alea } from '../../vendors/alea.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { DEFAULT_DIRT_PALETTE } from '../constant.js';
-import { IndexedColor, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
+import { IndexedColor, Vector, Helpers, VectorCollector, getChunkAddr } from '../helpers.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { BIOMES } from "./biomes.js";
 import { CaveGenerator } from './cave_generator.js';

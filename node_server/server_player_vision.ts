@@ -1,4 +1,4 @@
-import {getChunkAddr, SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "@client/helpers.js";
+import {SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "@client/helpers.js";
 import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "@client/chunk_const.js";
 import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import { NEARBY_FLAGS } from "@client/packet_compressor.js";

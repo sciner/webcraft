@@ -1,9 +1,10 @@
-import { getChunkAddr, Vector, VectorCollector } from "@client/helpers.js";
+import { Vector, VectorCollector } from "@client/helpers.js";
 import {WorldAction} from "@client/world_action.js";
 import { ServerClient } from "@client/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "@client/fluid/FluidConst.js";
 import { WorldEditBuilding } from "@client/plugins/worldedit/building.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
+import type { ServerWorld } from "server_world";
 
 const MAX_SET_BLOCK         = 250000 * 4;
 const MAX_BLOCKS_PER_PASTE  = 10000;
@@ -11,7 +12,7 @@ const MAX_BLOCKS_PER_PASTE  = 10000;
 export default class WorldEdit {
     id: number;
     worker: Worker;
-    world: any;
+    world: ServerWorld;
     chat: any;
     building: WorldEditBuilding;
     commands: Map<any, any>;
@@ -453,7 +454,7 @@ export default class WorldEdit {
                       y = fluids[i + 1] + player_pos.y,
                       z = fluids[i + 2] + player_pos.z,
                       val = fluids[i + 3];
-                chunk_addr = getChunkAddr(x, y, z, chunk_addr);
+                chunk_addr = this.world.chunkManager.grid.getChunkAddr(x, y, z, chunk_addr);
                 actions = getChunkActions(chunk_addr)
                 actions.addFluids([x, y, z, val]);
                 actions.fluidFlush = true

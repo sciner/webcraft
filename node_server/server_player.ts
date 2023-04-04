@@ -115,6 +115,7 @@ export class ServerPlayer extends Player {
     conn: any;
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
+    _world_edit_copy: any
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;

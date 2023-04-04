@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X } from "../../chunk_const.js";
-import { DIRECTION, getChunkAddr, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
+import { DIRECTION, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
 import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';

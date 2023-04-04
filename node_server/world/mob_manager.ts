@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector } from "@client/helpers.js";
+import { Vector } from "@client/helpers.js";
 import { Mob, MobSpawnParams } from "../mob.js";
 import { DEAD_MOB_TTL } from "../server_constant.js";
 import type { ServerPlayer } from "../server_player.js";

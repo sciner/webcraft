@@ -51,8 +51,12 @@ export class ChunkGrid {
         return this.getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
     }
 
+    /**
+     * Возвращает адрес чанка по глобальным абсолютным координатам
+     */
     getChunkAddr(x: number, y: number, z: number, out_vec = new Vector()) {
         const {chunkSize} = this;
+        out_vec = out_vec || new Vector();
         out_vec.x = Math.floor(x / chunkSize.x);
         out_vec.y = Math.floor(y / chunkSize.y);
         out_vec.z = Math.floor(z / chunkSize.z);

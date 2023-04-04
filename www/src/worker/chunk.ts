@@ -1,5 +1,5 @@
 import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
-import { getChunkAddr, PerformanceTimer, Vector } from "../helpers.js";
+import { PerformanceTimer, Vector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_X_M1, CHUNK_SIZE_Z_M1 } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
@@ -15,6 +15,7 @@ import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
 import type { WorkerWorld } from "./world.js";
 import type { FluidChunk } from "../fluid/FluidChunk.js";
 import {BLOCK_FLAG, NO_TICK_BLOCKS} from "../constant.js";
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -41,6 +42,7 @@ export class ChunkWorkerChunkManager {
     verticesPool:   Worker05GeometryPool
     materialToId:   Map<any, any> = new Map()
     tech_info:      TWorldTechInfo
+    grid:           ChunkGrid
 
     constructor(world: WorkerWorld) {
         this.world = world;
@@ -60,6 +62,7 @@ export class ChunkWorkerChunkManager {
             }
         };
         this.dataWorld = new DataWorld(this);
+        this.grid = this.dataWorld.grid
         this.fluidWorld = new FluidWorld(this);
         this.verticesPool = new Worker05GeometryPool(null, {});
     }
@@ -77,7 +80,7 @@ export class ChunkWorkerChunkManager {
     // Возвращает блок по абсолютным координатам
     getBlock(x, y, z) {
         // определяем относительные координаты чанка
-        const chunkAddr = getChunkAddr(x, y, z);
+        const chunkAddr = this.world.chunkManager.grid.getChunkAddr(x, y, z);
         // обращаемся к чанку
         const chunk = this.getChunk(chunkAddr);
         // если чанк найден

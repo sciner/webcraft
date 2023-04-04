@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, Vector, VectorCollector, VectorCollectorFlat, Mth} from "./helpers.js";
+import {Helpers, Vector, VectorCollector, VectorCollectorFlat, Mth} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -13,6 +13,7 @@ import {ChunkExporter} from "./geom/ChunkExporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";
+import type { ChunkGrid } from "./core/ChunkGrid.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
@@ -130,6 +131,7 @@ export class ChunkManager {
     destruct_chunks_queue: any = null;
     use_light = false;
     tech_info: TWorldTechInfo
+    grid: ChunkGrid
 
     constructor(world: World) {
 
@@ -193,6 +195,7 @@ export class ChunkManager {
         this.fluidWorld             = new FluidWorld(this);
         this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
         this.biomes                 = new Biomes(null);
+        this.grid                   = this.dataWorld.grid
 
         // Add listeners for server commands
         world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
@@ -568,7 +571,7 @@ export class ChunkManager {
             z = x.z;
             x = x.x;
         }
-        this.get_block_chunk_addr = getChunkAddr(x as any, y, z, this.get_block_chunk_addr);
+        this.get_block_chunk_addr = this.grid.getChunkAddr(x as any, y, z, this.get_block_chunk_addr);
         let chunk = this.chunks.get(this.get_block_chunk_addr);
         if(chunk) {
             return chunk.getBlock(x, y, z, v);
@@ -577,9 +580,9 @@ export class ChunkManager {
     }
 
     // setBlock
-    setBlock(x, y, z, block, is_modify, power, rotate, entity_id, extra_data, action_id) {
+    setBlock(x : int, y : int, z : int, block, is_modify, power, rotate, entity_id, extra_data, action_id) {
         // определяем относительные координаты чанка
-        let chunkAddr = getChunkAddr(x, y, z);
+        let chunkAddr = this.grid.getChunkAddr(x, y, z);
         // обращаемся к чанку
         let chunk = this.getChunk(chunkAddr);
         // если чанк найден

@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector } from "./helpers.js";
+import { Vector } from "./helpers.js";
 import type {TUsedRecipe} from "./inventory_comparator.js";
 import type {TInventoryState, TInventoryStateChangeMessage} from "./inventory.js";
 
