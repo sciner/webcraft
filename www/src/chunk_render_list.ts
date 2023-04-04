@@ -133,9 +133,9 @@ export class ChunkRenderList {
                 chunk.rendered = 0;
             }
         }
-        if (performance.now() % 1000 < 10) {
+        /*if (performance.now() % 1000 < 10) {
             console.log(`culling found ${cnt} chunks`);
-        }
+        }*/
     }
 
     chunkAlive(chunk: Chunk) {

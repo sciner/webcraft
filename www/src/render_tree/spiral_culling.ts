@@ -1,6 +1,8 @@
 import type {Plane, FrustumProxy} from "../frustum.js";
 import type {SpiralGrid} from "../helpers/spiral_generator.js";
 import {Vector} from "../helpers/vector.js";
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+const {mat3, vec3} = glMatrix;
 
 const EPS = 1e-6;
 
@@ -139,6 +141,36 @@ function scanLine(result: CalcSegment, lines: CalcLine[], inter: number[], seg: 
     return i_start;
 }
 
+let tempMat3 = mat3.create();
+let tempVec3 = vec3.create();
+
+function frustumCorners(result: Vector[], lines: CalcLine[]) {
+    const mat = tempMat3;
+    const vec = tempVec3;
+    let cnt = 0;
+    for (let i = 0; i < 2; i++) {
+        for (let j = 2; j < 4; j++) {
+            for (let k = 4; k < 6; k++) {
+                mat[0] = lines[i].A;
+                mat[1] = lines[j].A;
+                mat[2] = lines[k].A;
+                mat[3] = lines[i].B;
+                mat[4] = lines[j].B;
+                mat[5] = lines[k].B;
+                mat[6] = lines[i].C;
+                mat[7] = lines[j].C;
+                mat[8] = lines[k].C;
+                mat3.invert(mat, mat);
+                vec[0] = -lines[i].D;
+                vec[1] = -lines[j].D;
+                vec[2] = -lines[k].D;
+                vec3.transformMat3(vec, vec, mat);
+                result[cnt++].set(vec[0], vec[1], vec[2]);
+            }
+        }
+    }
+}
+
 let linesTop = [];
 for (let i = 0; i < 6; i++) {
     linesTop[i] = new CalcLine();
@@ -158,6 +190,11 @@ let X_seg = new CalcSegment();
 let Z_seg = new CalcSegment();
 
 let tempVec = new Vector();
+let frustPoints = [];
+let frustSegPoints = [];
+for (let i = 0; i < 8; i++) {
+    frustPoints.push(new Vector());
+}
 
 export class SpiralCulling {
     grid: SpiralGrid;
@@ -185,6 +222,8 @@ export class SpiralCulling {
             linesBottom[i].copyFrom(linesTop[i]);
         }
 
+        frustumCorners(frustPoints, linesTop);
+
         for (let Y0 = -marginVec.y; Y0 <= marginVec.y; Y0++) {
             let Y_bottom = Math.max(Y_min, Y0 * chunkSize.y - paddingBlocks);
             let Y_top = Math.min(Y_max, (Y0 + 1) * chunkSize.y + paddingBlocks);
@@ -202,6 +241,14 @@ export class SpiralCulling {
                 // no intersection at all
                 continue;
             }
+
+            frustSegPoints.length = 0;
+            for (let i = 0; i < 8; i++) {
+                if (frustPoints[i].y > Y_bottom - EPS && frustPoints[i].y < Y_top + EPS) {
+                    frustSegPoints.push(frustPoints[i]);
+                }
+            }
+            let cornerCnt = frustSegPoints.length;
 
             inter_Z_top.length = inter_Z_bottom.length = 0;
             intersectLines(linesTop, inter_Z_top, Z_top, paddingBlocks);
@@ -236,7 +283,14 @@ export class SpiralCulling {
                 if (Z_seg.left <= Z_seg.right) {
                     i_bottom = scanLine(X_seg, linesBottom, inter_Z_bottom, Z_seg, i_bottom);
                 }
-
+                if (cornerCnt > 0) {
+                    for (let i = 0; i < cornerCnt; i++) {
+                        if (frustSegPoints[i].z > lf - EPS && frustSegPoints[i].z < rt + EPS) {
+                            X_seg.left = Math.min(X_seg.left, frustSegPoints[i].x);
+                            X_seg.right = Math.max(X_seg.right, frustSegPoints[i].x);
+                        }
+                    }
+                }
                 if (X_seg.left > X_seg.right) {
                     continue;
                 }
