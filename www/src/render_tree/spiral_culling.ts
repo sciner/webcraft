@@ -37,11 +37,13 @@ function initLines(lines: CalcLine[], planes: Plane[], offset: Vector, result: C
     for (let i = 0; i < 6; i++) {
         const line = lines[i];
         const plane = planes[i];
-        line.D = plane.constant + plane.normal.x * tempVec.x
-            + plane.normal.y * tempVec.y + plane.normal.z * tempVec.z;
         line.A = plane.normal.x;
-        line.B = plane.normal.z;
-        line.C = plane.normal.y;
+        // YZ are swapped in planes render data
+        line.B = plane.normal.y;
+        line.C = plane.normal.z;
+        //
+        line.D = plane.constant + line.A * tempVec.x
+            + line.B * tempVec.z + line.C * tempVec.y;
         line.error = 0;
         if (Math.abs(line.A) < EPS) {
             if (Math.abs(line.B) < EPS) {

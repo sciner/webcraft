@@ -13,14 +13,14 @@ import type {BaseResourcePack} from "./base_resource_pack.js";
 import type {ChunkMesh} from "./chunk_mesh.js";
 import {SpiralCulling} from "./render_tree/spiral_culling.js";
 
-const MAX_APPLY_VERTICES_COUNT  = 20;
+const MAX_APPLY_VERTICES_COUNT = 20;
 
 export class ChunkRenderList {
-    bufferPool : GeometryPool = null;
+    bufferPool: GeometryPool = null;
     chunkManager: ChunkManager;
 
     listByResourcePack: Map<string, Map<string, Map<string, IvanArray<ChunkMesh>>>> = new Map();
-    meshLists:  IvanArray<ChunkMesh>[] = [];
+    meshLists: IvanArray<ChunkMesh>[] = [];
     prev_render_dist = -1;
     spiral = new SpiralGrid();
     culling = new SpiralCulling(this.spiral);
@@ -30,6 +30,7 @@ export class ChunkRenderList {
     }
 
     render: Renderer;
+
     init(render: Renderer) {
         const {chunkManager} = this;
         this.render = render;
@@ -53,6 +54,7 @@ export class ChunkRenderList {
     get centerChunkAddr() {
         return this.spiral.center;
     }
+
     /**
      * highly optimized
      */
@@ -93,7 +95,7 @@ export class ChunkRenderList {
          * please dont re-assign renderList entries
          */
         const {meshLists} = this;
-        for (let i =0;i < meshLists.length; i++) {
+        for (let i = 0; i < meshLists.length; i++) {
             meshLists[i].clear();
         }
 
@@ -101,11 +103,13 @@ export class ChunkRenderList {
 
         const {cullIDs, entries} = spiral;
         const cullID = culling.updateID;
+        let cnt = 0;
 
-        for(let i = 0; i < entries.length; i++) {
+        for (let i = 0; i < entries.length; i++) {
             if (cullIDs[i] !== cullID) {
                 continue;
             }
+            cnt++;
             const chunk = entries[i].chunk as Chunk
             if (!chunk || !chunk.chunkManager) {
                 // destroyed!
@@ -120,14 +124,17 @@ export class ChunkRenderList {
                     chunk.applyChunkWorkerVertices();
                 }
             }
-            if(chunk.vertices_length === 0) {
+            if (chunk.vertices_length === 0) {
                 continue;
             }
-            for(let i = 0; i < chunk.verticesList.length; i++) {
+            for (let i = 0; i < chunk.verticesList.length; i++) {
                 let v = chunk.verticesList[i];
                 v.rpl.push(v);
                 chunk.rendered = 0;
             }
+        }
+        if (performance.now() % 1000 < 10) {
+            console.log(`culling found ${cnt} chunks`);
         }
     }
 
@@ -158,9 +165,9 @@ export class ChunkRenderList {
     /**
      * Draw level chunks
      */
-    draw(render : Renderer, resource_pack : BaseResourcePack, transparent : boolean) {
+    draw(render: Renderer, resource_pack: BaseResourcePack, transparent: boolean) {
         const {chunkManager} = this;
-        if(!chunkManager.worker_inited || !chunkManager.nearby) {
+        if (!chunkManager.worker_inited || !chunkManager.nearby) {
             return;
         }
         const rpList = this.listByResourcePack.get(resource_pack.id);
@@ -168,7 +175,7 @@ export class ChunkRenderList {
             return true;
         }
         let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;
-        for(let group of groups) {
+        for (let group of groups) {
             const groupList = rpList.get(group);
             if (!groupList) {
                 continue;
@@ -180,7 +187,7 @@ export class ChunkRenderList {
 
                 if (!mat.opaque && mat.shader.fluidFlags) {
                     // REVERSED!!!
-                    for (let i = count - 1; i >= 0; i --) {
+                    for (let i = count - 1; i >= 0; i--) {
                         arr[i].draw(render.renderBackend, resource_pack, group, mat);
                         const chunk = arr[i].chunk;
                         if (chunk.rendered === 0) {
@@ -189,7 +196,7 @@ export class ChunkRenderList {
                         chunk.rendered++;
                     }
                 } else {
-                    for (let i = 0; i < count; i ++) {
+                    for (let i = 0; i < count; i++) {
                         arr[i].draw(render.renderBackend, resource_pack, group, mat);
                         const chunk = arr[i].chunk;
                         if (chunk.rendered === 0) {
