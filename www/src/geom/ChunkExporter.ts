@@ -1,7 +1,7 @@
 import {ExportGeometry16} from "./ExportGeometry.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
-import {chunkAddrToCoord, Helpers, Vector} from "../helpers.js";
+import { Helpers, Vector} from "../helpers.js";
 import {ExportFluidHelper} from "../fluid/ExportFluidHelper.js";
 import type { ChunkManager } from "../chunk_manager.js";
 
@@ -275,7 +275,8 @@ export class ChunkExporter {
         terrain.innerConvertFluid = this.fluidExporter.innerConvertFluid.bind(terrain);
 
         let localPos = new Vector();
-        chunkAddrToCoord(this.chunkManager.grid.toChunkAddr(camPos), localPos);
+        const grid = this.chunkManager.grid
+        grid.chunkAddrToCoord(grid.toChunkAddr(camPos), localPos);
 
         this.reset();
 

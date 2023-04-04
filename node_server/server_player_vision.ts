@@ -1,5 +1,5 @@
 import {SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "@client/helpers.js";
-import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "@client/chunk_const.js";
+import { CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "@client/chunk_const.js";
 import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import { NEARBY_FLAGS } from "@client/packet_compressor.js";
 import {ServerChunk} from "./server_chunk.js";
@@ -323,8 +323,9 @@ export class ServerPlayerVision {
 
     preTick(force: boolean = false) : void {
         const {player, tempVec} = this;
-        player.chunk_addr = player.world.chunkManager.grid.toChunkAddr(player.state.pos);
-        Vector.getChunkCenterByAddr(this.spiralCenter, tempVec).subSelf(player.state.pos);
+        const grid = player.world.chunkManager.grid
+        player.chunk_addr = grid.toChunkAddr(player.state.pos);
+        grid.getChunkCenterByAddr(this.spiralCenter, tempVec).subSelf(player.state.pos);
         if (force || !player.chunk_addr.equal(this.spiralCenter)
             && (Math.abs(tempVec.x) >= 16 || Math.abs(tempVec.z) >= 16 || Math.abs(tempVec.y) >= 30)) {
             this.genSpiral();

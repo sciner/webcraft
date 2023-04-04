@@ -1,4 +1,4 @@
-import { Vector, ObjectHelpers, chunkAddrToCoord } from "./helpers.js";
+import { Vector, ObjectHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { ChunkGrid } from "./core/ChunkGrid.js";
@@ -1488,7 +1488,8 @@ export class BlockAccessor {
     }
 
     _rebase(x: int, y: int, z: int) {
-        const addr = this.chunkManager.grid.getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
+        const grid = this.chunkManager.grid
+        const addr = grid.getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
         const cliSrvCompatbility = this.chunkManager.chunks || this.chunkManager;
         // This accounts both for missing chunks, and for blocks not generated
         let tb = cliSrvCompatbility.get(addr)?.tblocks;
@@ -1498,7 +1499,7 @@ export class BlockAccessor {
             this.tblockOrNull = this._tmpTBlock;
             this.tblockOrNull.tb = tb;
         } else {
-            chunkAddrToCoord(addr, this._tmpTbCoord);
+            grid.chunkAddrToCoord(addr, this._tmpTbCoord)
             this._tbCoord = this._tmpTbCoord;
             this.tblockOrNull = null;
         }

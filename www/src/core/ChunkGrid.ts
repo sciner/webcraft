@@ -50,7 +50,7 @@ export class ChunkGrid {
     /**
      * Возвращает адрес чанка по глобальным абсолютным координатам
      */
-    getChunkAddr(x: number, y: number, z: number, out_vec = new Vector()) {
+    getChunkAddr(x: number, y: number, z: number, out_vec ? : Vector) {
         const {chunkSize} = this;
         out_vec = out_vec || new Vector();
         out_vec.x = Math.floor(x / chunkSize.x);
@@ -69,21 +69,23 @@ export class ChunkGrid {
         return out_vec;
     }
 
-    toChunkAddr(in_vec: IVector, out_vec?: Vector): Vector {
+    toChunkAddr(in_vec: IVector, out_vec ? : Vector): Vector {
         out_vec = out_vec || new Vector()
         return this.getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
     }
 
-    chunkAddrToCoord(addr: IVector, out_vec = new Vector()) {
+    chunkAddrToCoord(addr: IVector, out_vec? : Vector) : Vector {
         const {chunkSize} = this;
+        out_vec = out_vec || new Vector();
         out_vec.x = addr.x * chunkSize.x;
         out_vec.y = addr.y * chunkSize.y;
         out_vec.z = addr.z * chunkSize.z;
         return out_vec;
     }
 
-    getChunkCenterByAddr(in_vec: IVector, out_vec = new Vector()) {
+    getChunkCenterByAddr(in_vec: IVector, out_vec? : Vector) : Vector {
         const {chunkSize} = this;
+        out_vec = out_vec || new Vector();
         out_vec.x = (in_vec.x * chunkSize.x) + (chunkSize.x >> 1);
         out_vec.y = (in_vec.y * chunkSize.y) + (chunkSize.y >> 1);
         out_vec.z = (in_vec.z * chunkSize.z) + (chunkSize.z >> 1);

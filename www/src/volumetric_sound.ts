@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { chunkAddrToCoord, Vector, SimpleShifted3DArray, ArrayHelpers, Mth } from "./helpers.js";
+import { Vector, SimpleShifted3DArray, ArrayHelpers, Mth } from "./helpers.js";
 import { VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_TYPE_WATER, VOLUMETRIC_SOUND_TYPE_LAVA,
     VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
     VOLUMETRIC_SOUND_REF_DISTANCE, VOLUMETRIC_SOUND_MAX_DISTANCE,
@@ -227,15 +227,15 @@ class SoundChunk {
     [key: string]: any;
 
     /**
-     * @param {Vector} addr
-     * @param { int } queryId it stays the same for {@link SoundChunkPlaceholder} and the chunk
+     * @param addr
+     * @param queryId it stays the same for {@link SoundChunkPlaceholder} and the chunk
      *   created on its place. But it'll be diferent after the chunk is forgotten aand a new
      *   placeholder is created. It's used to skip diffs that come to a previous instance of this chunk.
      */
-    constructor(addr, queryId) {
+    constructor(grid : ChunkGrid, addr : Vector, queryId : int) {
         this.queryId = queryId
         this.coord = new Vector()
-        chunkAddrToCoord(addr, this.coord)
+        grid.chunkAddrToCoord(addr, this.coord)
 
         // for each block index (non-flat), type of the sound block
         this.byIndex = new Map()
@@ -645,7 +645,7 @@ export class SoundMap {
                 this.onChunkAcquired()
                 return
             }
-            chunk = new SoundChunk(msg.addr, msg.queryId)
+            chunk = new SoundChunk(this.grid, msg.addr, msg.queryId)
             this.chunks.setByInd(chunkInd, chunk)
             this.onChunkAcquired()
         }

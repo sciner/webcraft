@@ -12,12 +12,6 @@ import {CubeSym} from "../core/CubeSym.js";
 import {Mth} from "./mth.js";
 import { DIRECTION } from "./helper_const.js";
 
-export function chunkAddrToCoord(addr : IVector, result : IVector) {
-    result.x = addr.x * CHUNK_SIZE_X;
-    result.y = addr.y * CHUNK_SIZE_Y;
-    result.z = addr.z * CHUNK_SIZE_Z;
-}
-
 export class Vector implements IVector {
     // static cnt = 0;
     // static traces = new Map();
@@ -46,14 +40,6 @@ export class Vector implements IVector {
 
     static ZERO_AND_SIX_DIRECTIONS = [this.ZERO].concat(this.SIX_DIRECTIONS);
     static ZERO_AND_SIX_DIRECTIONS_CUMULATIVE = [this.ZERO].concat(this.SIX_DIRECTIONS_CUMULATIVE);
-
-    static getChunkCenterByAddr(in_vec: IVector, out_vec?: Vector) : Vector {
-        out_vec = out_vec || new Vector();
-        out_vec.x = (in_vec.x * CHUNK_SIZE_X) + (CHUNK_SIZE_X >> 1);
-        out_vec.y = (in_vec.y * CHUNK_SIZE_Y) + (CHUNK_SIZE_Y >> 1);
-        out_vec.z = (in_vec.z * CHUNK_SIZE_Z) + (CHUNK_SIZE_Z >> 1);
-        return out_vec;
-    }
 
     static yFromChunkIndex: (index: number) => number
 
