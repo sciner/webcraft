@@ -30,32 +30,34 @@ export class SpiralGenerator {
 
     // generate ...
     static generate(margin: int) {
-        let size : number = margin * 2;
-        if(SpiralGenerator.cache.has(margin)) {
+        let size: number = margin * 2;
+        if (SpiralGenerator.cache.has(margin)) {
             return SpiralGenerator.cache.get[margin];
         }
         var resp = [];
-        function rPush(vec : IVector) {
+
+        function rPush(vec: IVector) {
             // Если позиция на расстояние видимости (считаем честно, по кругу)
             let x = vec.x - size / 2;
             let z = vec.z - size / 2;
             let dist = Math.sqrt(x * x + z * z);
-            if(dist < margin) {
+            if (dist < margin) {
                 resp.push(vec);
             }
         }
+
         let iInd = Math.trunc(size / 2);
         let jInd = Math.trunc(size / 2);
         let iStep = 1;
         let jStep = 1;
         rPush(new Vector(iInd, 0, jInd));
-        for(let i = 0; i < size; i++) {
+        for (let i = 0; i < size; i++) {
             for (let h = 0; h < i; h++) rPush(new Vector(iInd, 0, jInd += jStep));
             for (let v = 0; v < i; v++) rPush(new Vector(iInd += iStep, 0, jInd));
             jStep = -jStep;
             iStep = -iStep;
         }
-        for(let h = 0; h < size - 1; h++) {
+        for (let h = 0; h < size - 1; h++) {
             rPush(new Vector(iInd, 0, jInd += jStep));
         }
         SpiralGenerator.cache.set(margin, resp);
@@ -67,27 +69,27 @@ export class SpiralGenerator {
      * @param {Vector} vec_margin
      * @returns
      */
-    static generate3D(vec_margin : IVector) : SpiralGrid {
+    static generate3D(vec_margin: IVector): SpiralGrid {
         const cache_key = vec_margin.toString();
-        if(SpiralGenerator.cache3D.hasOwnProperty(cache_key)) {
+        if (SpiralGenerator.cache3D.hasOwnProperty(cache_key)) {
             return SpiralGenerator.cache3D[cache_key];
         }
         const resp = new SpiralGrid(vec_margin);
         const center = new Vector(0, 0, 0);
-        const MAX_DIST  = vec_margin.x;
+        const MAX_DIST = vec_margin.x;
         const indexByYZ = resp.size.indexByYZ = [];
         const radByYZ = resp.size.radByYZ = [];
         const startByYZ = resp.size.startByYZ = [];
         let cnt = 0;
-        for(let y = -vec_margin.y; y <= vec_margin.y; y++) {
-            for(let z = -vec_margin.z; z <= vec_margin.z; z++) {
+        for (let y = -vec_margin.y; y <= vec_margin.y; y++) {
+            for (let z = -vec_margin.z; z <= vec_margin.z; z++) {
                 const d = Math.min(vec_margin.x, Math.floor(Math.sqrt(MAX_DIST * MAX_DIST - y * y - z * z)));
-                radByYZ.push(d >= 0? d : -1);
+                radByYZ.push(d >= 0 ? d : -1);
                 startByYZ.push(cnt);
                 if (d < 0) {
                     continue;
                 }
-                for(let x = -d; x <= d; x++) {
+                for (let x = -d; x <= d; x++) {
                     const entry = new SpiralEntry();
                     entry.indexYZ = cnt++;
                     entry.pos.set(x, y, z);
@@ -99,7 +101,7 @@ export class SpiralGenerator {
         startByYZ.push(cnt);
         resp.entriesByYZ = resp.entries.slice(0);
         resp.size.len = radByYZ.length;
-        resp.entries.sort(function(a : SpiralEntry, b : SpiralEntry) {
+        resp.entries.sort(function (a: SpiralEntry, b: SpiralEntry) {
             return a.dist - b.dist;
         });
         for (let i = 0; i < resp.entries.length; i++) {
@@ -122,6 +124,7 @@ export class SpiralSize {
     depth: number;
     dw: number;
     len: number;
+
     /**
      * number of coord indices for spiral of this size
      */
@@ -155,7 +158,7 @@ const deltaVec = new Vector();
 
 export class SpiralGrid {
     entries: Array<SpiralEntry> = [];
-    entriesByYZ: SpiralEntry[];
+    entriesByYZ: SpiralEntry[] = [];
     center = new Vector();
     size: SpiralSize = null;
     cullIDs: number[] = [];

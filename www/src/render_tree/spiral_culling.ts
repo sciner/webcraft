@@ -98,9 +98,12 @@ function intersectLines(lines: CalcLine[], result: number[], clamp: CalcSegment,
 const tempSeg = new CalcSegment();
 
 function lineSegment(addTo: CalcSegment, lines: CalcLine[], arg: number) {
-    tempSeg.right = -Infinity;
-    tempSeg.left = Infinity;
+    tempSeg.right = Infinity;
+    tempSeg.left = -Infinity;
     for (let i = 0; i < 6; i++) {
+        if (lines[i].error > 0) {
+            continue;
+        }
         let val = lines[i].F * arg + lines[i].G;
         if (lines[i].sign > 0) {
             tempSeg.left = Math.max(tempSeg.left, val);
@@ -110,7 +113,7 @@ function lineSegment(addTo: CalcSegment, lines: CalcLine[], arg: number) {
     }
     if (tempSeg.left - EPS <= tempSeg.right) {
         addTo.left = Math.min(addTo.left, tempSeg.left);
-        addTo.right = Math.min(addTo.right, tempSeg.right);
+        addTo.right = Math.max(addTo.right, tempSeg.right);
     }
 }
 
@@ -198,6 +201,7 @@ export class SpiralCulling {
                 continue;
             }
 
+            inter_Z_top.length = inter_Z_bottom.length = 0;
             intersectLines(linesTop, inter_Z_top, Z_top, paddingBlocks);
             intersectLines(linesBottom, inter_Z_bottom, Z_bottom, paddingBlocks);
 
@@ -219,7 +223,7 @@ export class SpiralCulling {
                 X_seg.left = Infinity;
                 X_seg.right = -Infinity;
                 const lf = Z0 * chunkSize.z - paddingBlocks;
-                const rt = Z0 * chunkSize.z + paddingBlocks;
+                const rt = (Z0 + 1) * chunkSize.z + paddingBlocks;
                 Z_seg.left = Math.max(Z_top.left, lf);
                 Z_seg.right = Math.min(Z_top.right, rt);
                 if (Z_seg.left <= Z_seg.right) {
@@ -239,7 +243,7 @@ export class SpiralCulling {
 
                 const yz = startByYZ[Y0 * depth + Z0 + dw];
                 for (let X0 = leftChunkX; X0 < rightChunkX; X0++) {
-                    cullIDs[indexByYZ[yz + X0 + rad]] =  this.updateID;
+                    cullIDs[indexByYZ[yz + X0 + rad]] = this.updateID;
                     //TODO: maybe process the chunk meshes inside
                 }
             }

@@ -11,6 +11,7 @@ import type {ChunkManager} from "./chunk_manager.js";
 import type {Renderer} from "./render.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
 import type {ChunkMesh} from "./chunk_mesh.js";
+import {SpiralCulling} from "./render_tree/spiral_culling.js";
 
 const MAX_APPLY_VERTICES_COUNT  = 20;
 
@@ -19,8 +20,10 @@ export class ChunkRenderList {
     chunkManager: ChunkManager;
 
     listByResourcePack: Map<string, Map<string, Map<string, IvanArray<ChunkMesh>>>> = new Map();
+    meshLists:  IvanArray<ChunkMesh>[] = [];
     prev_render_dist = -1;
     spiral = new SpiralGrid();
+    culling = new SpiralCulling(this.spiral);
 
     constructor(chunkManager: ChunkManager) {
         this.chunkManager = chunkManager;
@@ -54,7 +57,7 @@ export class ChunkRenderList {
      * highly optimized
      */
     prepareRenderList() {
-        const {chunkManager, render, spiral} = this;
+        const {chunkManager, render, spiral, culling} = this;
 
         const player = render.player;
         const chunk_render_dist = player.state.chunk_render_dist;
@@ -89,32 +92,27 @@ export class ChunkRenderList {
         /**
          * please dont re-assign renderList entries
          */
-        const {listByResourcePack} = this;
-        for (let v of listByResourcePack.values()) {
-            for (let v2 of v.values()) {
-                for (let v3 of v2.values()) {
-                    v3.clear();
-                }
-            }
+        const {meshLists} = this;
+        for (let i =0;i < meshLists.length; i++) {
+            meshLists[i].clear();
         }
-        //
 
-        for(let i = 0; i < spiral.entries.length; i++) {
-            const chunk = spiral.entries[i].chunk as Chunk
+        culling.update(render.frustum, chunkManager.dataWorld.grid.chunkSize);
+
+        const {cullIDs, entries} = spiral;
+        const cullID = culling.updateID;
+
+        for(let i = 0; i < entries.length; i++) {
+            if (cullIDs[i] !== cullID) {
+                continue;
+            }
+            const chunk = entries[i].chunk as Chunk
             if (!chunk || !chunk.chunkManager) {
                 // destroyed!
                 continue;
             }
             // actualize light
-            if (!chunk.dirty || chunk.need_apply_vertices) {
-                chunk.prepareRender(render.renderBackend);
-            }
-            if(chunk.vertices_length === 0 && !chunk.need_apply_vertices) {
-                continue;
-            }
-            if(!chunk.updateInFrustum(render)) {
-                continue;
-            }
+            chunk.prepareRender(render.renderBackend);
             if (chunk.need_apply_vertices) {
                 if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
                     this.bufferPool.prepareMem(chunk.vertices_args_size);
@@ -150,7 +148,9 @@ export class ChunkRenderList {
             rpList.set(key2, groupList = new Map());
         }
         if (!groupList.get(key3)) {
-            groupList.set(key3, new IvanArray());
+            const ia = new IvanArray();
+            groupList.set(key3, ia);
+            this.meshLists.push(ia);
         }
         v.rpl = groupList.get(key3);
     }
