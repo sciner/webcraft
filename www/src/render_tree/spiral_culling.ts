@@ -114,16 +114,16 @@ function lineSegment(addTo: CalcSegment, lines: CalcLine[], arg: number) {
     }
 }
 
-function scanLine(result: CalcSegment, lines: CalcLine[], inter: number[], lf: number, rt: number, i_start: number) {
-    lineSegment(result, lines, lf);
-    lineSegment(result, lines, rt);
-    while (i_start > 0 && inter[i_start - 1] > lf) {
+function scanLine(result: CalcSegment, lines: CalcLine[], inter: number[], seg: CalcSegment, i_start: number) {
+    lineSegment(result, lines, seg.left);
+    lineSegment(result, lines, seg.right);
+    while (i_start > 0 && inter[i_start - 1] > seg.left) {
         i_start--;
     }
-    while (inter[i_start] <= lf) {
+    while (inter[i_start] <= seg.left) {
         i_start++;
     }
-    while (inter[i_start] < rt) {
+    while (inter[i_start] < seg.right) {
         lineSegment(result, lines, inter_Z_top[i_start]);
         i_start++;
     }
@@ -150,6 +150,7 @@ let Y_segment = new CalcSegment();
 let Z_top = new CalcSegment();
 let Z_bottom = new CalcSegment();
 let X_seg = new CalcSegment();
+let Z_seg = new CalcSegment();
 
 let tempVec = new Vector();
 
@@ -165,7 +166,7 @@ export class SpiralCulling {
     update(frustum: FrustumProxy, chunkSize: Vector) {
         this.updateID++;
         const {grid, paddingBlocks} = this;
-        const {marginVec} = grid.size;
+        const {marginVec, depth, dw, startByYZ, radByYZ} = grid.size;
 
         const {planes, camPos} = frustum;
 
@@ -209,15 +210,36 @@ export class SpiralCulling {
             const rightChunkZ = Math.ceil(right / marginVec.z);
 
             let i_top = 0, i_bottom = 0;
-            for (let z = leftChunkZ; z < rightChunkZ; z++) {
+            for (let Z0 = leftChunkZ; Z0 < rightChunkZ; Z0++) {
+                let rad = radByYZ[Y0 * depth + Z0 + dw];
+                if (rad < 0) {
+                    continue;
+                }
                 X_seg.left = Infinity;
                 X_seg.right = -Infinity;
-                const lf = z * chunkSize.z - paddingBlocks;
-                const rt = z * chunkSize.z + paddingBlocks;
-                i_top = scanLine(X_seg, linesTop, inter_Z_top, lf, rt, i_top);
-                i_bottom = scanLine(X_seg, linesBottom, inter_Z_bottom, lf, rt, i_bottom);
+                const lf = Z0 * chunkSize.z - paddingBlocks;
+                const rt = Z0 * chunkSize.z + paddingBlocks;
+                Z_seg.left = Math.max(Z_top.left, lf);
+                Z_seg.right = Math.min(Z_top.right, rt);
+                if (Z_seg.left <= Z_seg.right) {
+                    i_top = scanLine(X_seg, linesTop, inter_Z_top, Z_seg, i_top);
+                }
+                Z_seg.left = Math.max(Z_bottom.left, lf);
+                Z_seg.right = Math.min(Z_bottom.right, rt);
+                if (Z_seg.left <= Z_seg.right) {
+                    i_bottom = scanLine(X_seg, linesBottom, inter_Z_bottom, Z_seg, i_bottom);
+                }
 
-                //TODO: finally, add the chunks!
+                if (X_seg.left > X_seg.right) {
+                    continue;
+                }
+                let leftChunkX = Math.max(-rad, Math.floor(X_seg.left / chunkSize.x));
+                let rightChunkX = Math.min(rad + 1, Math.ceil(X_seg.right / chunkSize.x));
+
+                const yz = grid.size.startByYZ[Y0 * depth + Z0 + dw];
+                for (let X0 = leftChunkX; X0 < rightChunkX; X0++) {
+                    grid.entriesByYZ[yz + X0 + rad].cullID = this.updateID;
+                }
             }
         }
     }
