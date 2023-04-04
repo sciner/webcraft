@@ -14,6 +14,7 @@ export const CHUNK_SIZE_X_M1                = CHUNK_SIZE_X - 1;
 export const CHUNK_SIZE_Y_M1                = CHUNK_SIZE_Y - 1;
 export const CHUNK_SIZE_Z_M1                = CHUNK_SIZE_Z - 1;
 export const CHUNK_SIZE                     = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+
 export const CHUNK_OUTER_SIZE_X = CHUNK_SIZE_X + 2 * CHUNK_PADDING;
 export const CHUNK_OUTER_SIZE_Y = CHUNK_SIZE_Y + 2 * CHUNK_PADDING;
 export const CHUNK_OUTER_SIZE_Z = CHUNK_SIZE_Z + 2 * CHUNK_PADDING;
