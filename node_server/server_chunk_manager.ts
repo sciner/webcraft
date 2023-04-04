@@ -45,9 +45,9 @@ export class ServerChunkManager {
     DUMMY: { id: any; name: any; shapes: any[]; properties: any; material: any; getProperties: () => any; };
     dataWorld: DataWorld;
     itemWorld: ItemWorld;
-    use_light: boolean;
+    use_light: boolean = true;
     chunkDataTexture: ChunkDataTexture;
-    genQueueSize: number;
+    genQueueSize: number = 0;
     lightProps: { texFormat: string; depthMul: number; };
     worker_inited: boolean;
     worker: any;
@@ -61,46 +61,45 @@ export class ServerChunkManager {
     grid: ChunkGrid
 
     constructor(world : ServerWorld, random_tickers: Map<string, TRandomTickerFunction>) {
-        this.world                  = world;
-        this.worldId                = 'SERVER';
-        this.all                    = new VectorCollector();
-        this.chunk_queue_load       = new VectorCollector();
-        this.chunk_queue_gen_mobs   = new VectorCollector();
-        this.ticking_chunks         = new VectorCollector();
-        this.chunks_with_delayed_calls = new Set();
-        this.invalid_chunks_queue   = [];
-        this.disposed_chunk_addrs   = [];
-        this.unloaded_chunks_queue  = new SimpleQueue();
-        this.unloading_chunks       = new VectorCollector(); // conatins both CHUNK_STATE.UNLOADING and CHUNK_STATE.UNLOADED
-        this.unloading_subset_index = 0 // the index of the subset of unloading_chunks that is checked in this tick
-        this.unloading_state_count  = 0 // the number of chunks with CHUNK_STATE.UNLOADING
-        this.ticks_stat             = new WorldTickStat(ServerChunkManager.STAT_NAMES)
-        this.tech_info              = world.info.tech_info
+        this.world                      = world;
+        this.worldId                    = 'SERVER';
+        this.all                        = new VectorCollector();
+        this.chunk_queue_load           = new VectorCollector();
+        this.chunk_queue_gen_mobs       = new VectorCollector();
+        this.ticking_chunks             = new VectorCollector();
+        this.chunks_with_delayed_calls  = new Set();
+        this.invalid_chunks_queue       = [];
+        this.disposed_chunk_addrs       = [];
+        this.unloaded_chunks_queue      = new SimpleQueue();
+        this.unloading_chunks           = new VectorCollector(); // conatins both CHUNK_STATE.UNLOADING and CHUNK_STATE.UNLOADED
+        this.unloading_subset_index     = 0 // the index of the subset of unloading_chunks that is checked in this tick
+        this.unloading_state_count      = 0 // the number of chunks with CHUNK_STATE.UNLOADING
+        this.ticks_stat                 = new WorldTickStat(ServerChunkManager.STAT_NAMES)
+        this.tech_info                  = world.info.tech_info
         //
+        const dummy = world.block_manager.DUMMY
         this.DUMMY = {
-            id:         world.block_manager.DUMMY.id,
-            name:       world.block_manager.DUMMY.name,
+            id:         dummy.id,
+            name:       dummy.name,
+            properties: dummy,
+            material:   dummy,
             shapes:     [],
-            properties: world.block_manager.DUMMY,
-            material:   world.block_manager.DUMMY,
             getProperties: function() {
-                return this.material;
+                return this.material
             }
         };
-        this.dataWorld = new DataWorld(this);
-        this.grid = this.dataWorld.grid
-        this.fluidWorld = new FluidWorld(this);
-        this.fluidWorld.database = world.db.fluid;
-        this.fluidWorld.queue = new FluidWorldQueue(this.fluidWorld);
-        this.itemWorld = new ItemWorld(this);
-        this.initRandomTickers(random_tickers);
-        this.use_light              = true;
-        this.chunkDataTexture       = new ChunkDataTexture();
-        this.genQueueSize          = 0;
         this.lightProps = {
             texFormat: 'rgba8unorm',
             depthMul: 1,
         }
+        this.dataWorld                  = new DataWorld(this);
+        this.grid                       = this.dataWorld.grid
+        this.fluidWorld                 = new FluidWorld(this);
+        this.fluidWorld.database        = world.db.fluid;
+        this.fluidWorld.queue           = new FluidWorldQueue(this.fluidWorld);
+        this.itemWorld                  = new ItemWorld(this);
+        this.chunkDataTexture           = new ChunkDataTexture();
+        this.initRandomTickers(random_tickers);
     }
 
     // Init worker
@@ -457,11 +456,11 @@ export class ServerChunkManager {
     }
 
     getByPos(pos) : ServerChunk {
-        return this.get(Vector.toChunkAddr(pos, tmp_getByPos_addrVector));
+        return this.get(this.grid.toChunkAddr(pos, tmp_getByPos_addrVector));
     }
 
     getReadyByPos(pos : IVector) : ServerChunk | null {
-        return this.getReady(Vector.toChunkAddr(pos, tmp_getByPos_addrVector));
+        return this.getReady(this.grid.toChunkAddr(pos, tmp_getByPos_addrVector));
     }
 
     remove(addr : IVector) {
@@ -560,11 +559,11 @@ export class ServerChunkManager {
     }
 
     //
-    getAround(pos, chunk_render_dist) {
+    getAround(pos : Vector, chunk_render_dist : int) {
         const world             = this.world;
         const margin            = Math.max(chunk_render_dist + 1, 1);
         const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin)).entries;
-        const chunk_addr        = Vector.toChunkAddr(pos);
+        const chunk_addr        = this.world.chunkManager.grid.toChunkAddr(pos);
         const _addr             = new Vector(0, 0, 0);
         // array like iterator
         return (function* () {
@@ -593,18 +592,18 @@ export class ServerChunkManager {
 
     // Returns the horizontally closest safe position for a player.
     // If there are no such positions, returns initialPos.
-    findSafePos(initialPos, chunkRenderDist) {
+    findSafePos(initialPos : Vector, chunk_render_dist : int) : Vector {
         let startTime = performance.now();
         var bestPos = initialPos;
         var bestDistSqr = Infinity;
         const _this = this;
         const pos = initialPos.floored();
-        const initialChunk = this.getReady(Vector.toChunkAddr(pos));
+        const initialChunk = this.getReady(this.world.chunkManager.grid.toChunkAddr(pos));
         if (initialChunk == null) {
             return initialPos;
         }
         const chunks = [];
-        for(let chunk of this.getAround(pos, chunkRenderDist)) {
+        for(let chunk of this.getAround(pos, chunk_render_dist)) {
             chunks.push(chunk);
         }
         // Gathers chunks with the same (x, z) together.

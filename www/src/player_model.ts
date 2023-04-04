@@ -9,6 +9,7 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type {ArmorState, PlayerHands, PlayerStateUpdate, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
+import type { World } from "./world.js";
 
 const { quat } = glMatrix;
 const SWING_DURATION = 6;
@@ -131,8 +132,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     sitting?: false | TSittingState
     sleep?: false | TSleepState
 
-    constructor(props) {
-        super({type: 'player', skin: '1', ...props});
+    constructor(props, world : World) {
+        super({type: 'player', skin: '1', ...props}, world);
 
         this.height = PLAYER_HEIGHT;
         this.width = PLAYER_WIDTH;

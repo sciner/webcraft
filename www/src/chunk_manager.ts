@@ -167,14 +167,16 @@ export class ChunkManager {
                 this.list = [];
             },
             send: function() {
+                const player_state = Qubatch.player.state
+                const grid = that.grid
                 if(this.list.length > 0) {
                     //
                     that.postWorkerMessage(['destructChunk', this.list]);
                     //
                     that.postWorkerMessage(['destroyMap', {
                         players: [{
-                            chunk_render_dist: Qubatch.player.state.chunk_render_dist,
-                            chunk_addr: Vector.toChunkAddr(Qubatch.player.state.pos)
+                            chunk_render_dist: player_state.chunk_render_dist,
+                            chunk_addr: grid.toChunkAddr(player_state.pos)
                         }]
                     }]);
                     //
@@ -222,20 +224,26 @@ export class ChunkManager {
         world.server.AddCmdListener([ServerClient.CMD_FLUID_DELTA], (cmd) => {
             this.setChunkFluidDelta(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
         });
+
         //
+        const dummy = BLOCK.DUMMY
         this.DUMMY = {
-            id: BLOCK.DUMMY.id,
-            shapes: [],
-            properties: BLOCK.DUMMY,
-            material: BLOCK.DUMMY,
+            id:             dummy.id,
+            properties:     dummy,
+            material:       dummy,
+            shapes:         [],
             getProperties: function() {
                 return this.material;
             }
-        };
+        }
+
         this.AIR = {
             id: BLOCK.AIR.id,
             properties: BLOCK.AIR
-        };
+        }
+
+        const grid = this.grid
+
         // Message received from worker
         this.worker.onmessage = function(e) {
             let cmd = e.data[0];
@@ -288,7 +296,7 @@ export class ChunkManager {
                 case 'add_beacon_ray': {
                     const meshes = Qubatch.render.meshes;
                     args.pos = new Vector(args.pos);
-                    meshes.addForChunk(Vector.toChunkAddr(args.pos), new Mesh_Object_BeaconRay(args), 'beacon/' + args.pos.toHash());
+                    meshes.addForChunk(grid.toChunkAddr(args.pos), new Mesh_Object_BeaconRay(args, world), 'beacon/' + args.pos.toHash());
                     break;
                 }
                 case 'del_beacon_ray': {

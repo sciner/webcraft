@@ -24,8 +24,8 @@ export class BuildingBlocks extends Building {
         const chunk_addr        = new Vector(0, 0, 0)
         const prev_chunk_addr   = new Vector(Infinity, Infinity, Infinity)
         const actual_aabb       = new AABB().reset()
-
-        const blocks = this.building_template.rot[(dir + 2) % 4]
+        const grid              = (cluster || this.cluster).clusterManager.world.chunkManager.grid
+        const blocks            = this.building_template.rot[(dir + 2) % 4]
 
         let chunk_build_blocks: any[]
         let chunk_blocks: any[]
@@ -43,7 +43,7 @@ export class BuildingBlocks extends Building {
 
             actual_aabb.addPoint(pos.x, pos.y, pos.z)
             actual_aabb.addPoint(pos.x + 1, pos.y + 1, pos.z + 1)
-            Vector.toChunkAddr(pos, chunk_addr)
+            grid.toChunkAddr(pos, chunk_addr)
             if(!chunk_addr.equal(prev_chunk_addr)) {
                 prev_chunk_addr.copyFrom(chunk_addr)
                 chunk_build_blocks = chunks.get(chunk_addr)
@@ -55,8 +55,6 @@ export class BuildingBlocks extends Building {
                 }
                 chunk_blocks = chunk_build_blocks[chunk_build_blocks.length - 1]
             }
-
-            // if(item.move.x== -6 && item.move.y == -18 && item.move.z == 24) debugger
 
             chunk_blocks.push(block)
         }

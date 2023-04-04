@@ -229,6 +229,7 @@ export class ServerWorld implements IWorld {
         // flush database
         await this.db.flushWorld()
 
+        const grid = this.chunkManager.grid
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
@@ -239,7 +240,7 @@ export class ServerWorld implements IWorld {
 
         const addBlock = (pos, item) => {
             blocks.push({pos, item})
-            chunks_addr.set(Vector.toChunkAddr(pos), true);
+            chunks_addr.set(grid.toChunkAddr(pos), true);
         }
 
         // make road
@@ -728,10 +729,11 @@ export class ServerWorld implements IWorld {
     async applyActions(server_player : ServerPlayer | undefined, actions : WorldAction) {
         const chunks_packets = new VectorCollector();
         const bm = this.block_manager
+        const grid = this.chunkManager.grid
         //
         const getChunkPackets = (pos : Vector, chunk_addr? : Vector) => {
             if(!chunk_addr) {
-                chunk_addr = Vector.toChunkAddr(pos)
+                chunk_addr = grid.toChunkAddr(pos)
             }
             let cps = chunks_packets.get(chunk_addr);
             if (!cps) {
@@ -836,7 +838,7 @@ export class ServerWorld implements IWorld {
                         params.item = this.block_manager.convertBlockToDBItem(params.item)
                     }
                     //
-                    Vector.toChunkAddr(params.pos, chunk_addr);
+                    grid.toChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
                         cps = getChunkPackets(null, chunk_addr);
                         chunk?.light?.flushDelta();

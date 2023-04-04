@@ -12,6 +12,7 @@ import type { SceneNode } from "./SceneNode.js";
 import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import type { BBModel_Group } from "./bbmodel/group.js";
+import type { World } from "./world.js";
 
 const { quat, mat4 } = glMatrix;
 
@@ -515,13 +516,16 @@ export class MobAnimation {
 
 export class MobModel extends NetworkPhysicObject {
     [key: string]: any;
+    #world : World
 
-    constructor(props) {
+    constructor(props, world : World) {
 
         super(
             new Vector(0, 0, 0),
             new Vector(0, 0, 0)
-        );
+        )
+
+        this.#world                     = world
 
         this.fix_z_fighting             = Math.random() / 100;
         this.sceneTree                  = null;
@@ -861,17 +865,13 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
-    /**
-     * @param {Renderer} render
-     */
-    drawInFire(render, delta) {
+    drawInFire(render : Renderer, delta : float) {
         if(this.fire_mesh) {
             this.fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
             this.fire_mesh.apos.copyFrom(this.pos);
             this.fire_mesh.draw(render, delta);
         } else {
-            this.fire_mesh = new Mesh_Object_MobFire(this);
-            // render.meshes.add(this.fire_mesh);
+            this.fire_mesh = new Mesh_Object_MobFire(this, this.#world)
         }
     }
 

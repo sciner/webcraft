@@ -80,7 +80,7 @@ export class FSMBrain {
 
     tick(delta) {
         const world = this.mob.getWorld();
-        this.#chunk_addr = Vector.toChunkAddr(this.mob.pos, this.#chunk_addr);
+        this.#chunk_addr = world.chunkManager.grid.toChunkAddr(this.mob.pos, this.#chunk_addr);
         const chunk = world.chunks.get(this.#chunk_addr);
         if (chunk && chunk.isReady()) {
             this.onLive();

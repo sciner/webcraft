@@ -221,18 +221,18 @@ export class ServerGame {
             const skin          = Array.isArray(query.skin) ? query.skin[0] : query.skin;
             // Get loaded world
             let world = this.getLoadedWorld(world_guid);
-            const onWorld = async () => {
+            const onWorld = async (world) => {
                 if (this.shutdownPromise) {
                     return // don't join players when shutting down
                 }
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
-                player.onJoin(query.session_id, parseFloat(skin), conn, world);
+                player.onJoin(query.session_id as string, parseInt(skin), conn, world);
                 const game_world = await this.db.getWorld(world_guid);
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
             };
             if(world) {
-                onWorld();
+                onWorld(world);
             } else {
                 new Promise(resolve => {
                     const hInterval = setInterval(() => {

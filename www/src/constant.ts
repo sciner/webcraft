@@ -214,9 +214,15 @@ export enum BLOCK_FLAG {
 }
 
 export enum WORKER_MESSAGE {
+    // chunk
     CHUNK_WORKER_INIT = 'init',
+    // light
     LIGHT_WORKER_INIT = 'init',
     LIGHT_WORKER_INIT_WORLD = 'initWorld',
+    // sound
+    SOUND_WORKER_INIT = 'init',
+    SOUND_WORKER_PLAYER_POS = 'player_pos',
+    SOUND_WORKER_FLOWING_DIFF = 'flowing_diff',
 }
 
 // ======================== Network options =========================

@@ -12,6 +12,7 @@ import type { Indicators } from "@client/player.js";
 import type { ServerPlayer } from "./server_player.js";
 import { upgradeToNewIndicators } from "./db/world.js";
 import type { ServerChunk } from "./server_chunk.js";
+import type { ChunkGrid } from "@client/core/ChunkGrid.js";
 
 export class MobSpawnParams {
 
@@ -118,10 +119,12 @@ export class Mob {
     _aabb: AABB;
     already_killed?: boolean | int;
     death_time?: number;
+    #grid: ChunkGrid
 
     constructor(world : ServerWorld, params: MobSpawnParams, existsInDB: boolean) {
 
         this.#world         = world;
+        this.#grid          = world.chunkManager.grid
 
         // Read params
         this.id             = params.id,
@@ -142,7 +145,7 @@ export class Mob {
         this.dirtyFlags     = existsInDB ? 0 : Mob.DIRTY_FLAG_NEW;
         // Private properties
         this.#chunk_addr    = new Vector();
-        this.chunk_addr_o   = Vector.toChunkAddr(this.pos);
+        this.chunk_addr_o   = world.chunkManager.grid.toChunkAddr(this.pos);
         this.#forward       = new Vector(0, 1, 0);
         this.#brain         = world.brains.get(this.type, this);
         this.width          = this.#brain.pc.physics.playerHalfWidth * 2;
@@ -170,7 +173,7 @@ export class Mob {
     }
 
     get chunk_addr() : Vector {
-        return Vector.toChunkAddr(this.pos, this.#chunk_addr);
+        return this.#grid.toChunkAddr(this.pos, this.#chunk_addr);
     }
 
     get forward() : Vector {

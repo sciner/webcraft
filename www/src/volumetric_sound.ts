@@ -6,6 +6,7 @@ import { VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_TYPE_WATER, VOLUMETRIC_SOUND_T
     VOLUMETRIC_SOUND_DIRTY_BLOCKS_TTL, VOLUMETRIC_SOUND_SUMMARY_VALID_DISTANCE,
     VOLUMETRIC_SOUND_HEIGHT_AFFECTS_STEREO, VOLUMETRIC_SOUND_ELLIPSOID_Y_RADIUS } from "./constant.js";
 import { FLUID_WATER_ID, FLUID_LAVA_ID, FLUID_TYPE_MASK } from "./fluid/FluidConst.js";
+import { ChunkGrid } from "./core/ChunkGrid.js";
 
 // How often does it ask FluidWorld for the mising chunks
 const PERIODIC_QUERY_MILLIS = 2000
@@ -467,9 +468,20 @@ class SoundSummary {
  */
 export class SoundMap {
     [key: string]: any;
-    constructor() {
-        this.playerPos  = null          // the current world position of the player's head
-        this.playerAddr = new Vector()  // the address of the current player's head chunk
+
+    grid:           ChunkGrid
+    playerAddr:     Vector = new Vector() // the address of the current player's head chunk
+    playerPos:      Vector = null // the current world position of the player's head
+
+    worker : any
+
+    constructor(worker) {
+        this.worker = worker
+    }
+
+    init(args : {chunk_size: IVector}) {
+        // TODO: read real chunk size from init message to worker
+        this.grid = new ChunkGrid({chunkSize: new Vector(args.chunk_size)})
 
         const chunksXZ  = 2 * (1 + SOUND_MAP_CHUNKS_RADIUS_XZ)
         const chunksY   = 2 * (1 + SOUND_MAP_CHUNKS_RADIUS_Y)
@@ -526,8 +538,14 @@ export class SoundMap {
             }
         })
 
-        this.sendQueryFn = null
-        this.sendResultFn = null
+    }
+
+    sendQueryFn(query : any) {
+        this.worker.postMessage(['query_chunks', query])
+    }
+
+    sendResultFn(result : any) {
+        this.worker.postMessage(['result', result])
     }
 
     *chunksAroundPlayer() {
@@ -538,10 +556,10 @@ export class SoundMap {
             addr.z - SOUND_MAP_CHUNKS_RADIUS_XZ, addr.z + SOUND_MAP_CHUNKS_RADIUS_XZ)
     }
 
-    onPlayerPos(playerPos) {
+    onPlayerPos(playerPos : Vector) {
         const queriedChunks = []
         this.playerPos = playerPos
-        const addr = Vector.toChunkAddr(playerPos, this.playerAddr)
+        const addr = this.grid.toChunkAddr(playerPos, this.playerAddr)
 
         // coordinates of the "lower-left" of the central chunks
         const x = this.chunks.minX + SOUND_MAP_CHUNKS_RADIUS_XZ

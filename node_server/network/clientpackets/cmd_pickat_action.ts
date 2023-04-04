@@ -41,7 +41,7 @@ export default class packet_reader {
             }
         } else {
             const correct_destroy = player.isMiningComplete(packet.data);
-            const player_info: ActionPlayerInfo = {
+            const action_player_info: ActionPlayerInfo = {
                 radius:     0.7,
                 height:     player.height,
                 username:   player.session.username,
@@ -51,7 +51,7 @@ export default class packet_reader {
                     user_id: player.session.user_id
                 }
             };
-            const [actions, pos] = await doBlockAction(packet.data, world, player_info, currentInventoryItem)
+            const [actions, pos] = await doBlockAction(packet.data, world, action_player_info, currentInventoryItem)
             const canDo = correct_destroy && actions != null
             if (!canDo) { // if can't do the actions - tell the client to rollback its actions
                 if (pos) {

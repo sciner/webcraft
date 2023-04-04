@@ -6,6 +6,7 @@ import { WorldEditBuilding } from "@client/plugins/worldedit/building.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import type { ServerWorld } from "server_world";
 import type { ChunkGrid } from "@client/core/ChunkGrid";
+import type { ServerChat } from "server_chat";
 
 const MAX_SET_BLOCK         = 250000 * 4;
 const MAX_BLOCKS_PER_PASTE  = 10000;
@@ -270,11 +271,7 @@ export default class WorldEdit {
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
     }
 
-    /**
-     * @param {*} quboid 
-     * @param {Vector} pos
-     */
-    async copy(quboid, pos, world) {
+    async copy(quboid, pos : Vector, world : ServerWorld) {
         let blocks = new VectorCollector();
         let chunk_addr = new Vector(0, 0, 0);
         let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
@@ -289,7 +286,7 @@ export default class WorldEdit {
                         quboid.pos1.y + y * quboid.signy,
                         quboid.pos1.z + z * quboid.signz
                     );
-                    chunk_addr = Vector.toChunkAddr(bpos, chunk_addr);
+                    chunk_addr = world.chunkManager.grid.toChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
                         chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                         chunk = world.chunks.get(chunk_addr);
@@ -399,13 +396,8 @@ export default class WorldEdit {
 
     /**
      * Paste copied blocks
-     * @param {*} chat
-     * @param {*} player
-     * @param {*} cmd
-     * @param {*} args
-     * @param {*} copy_data
      */
-    async cmd_paste(chat, player, cmd, args, copy_data = null) {
+    async cmd_paste(chat : ServerChat, player, cmd, args, copy_data = null) {
         if(!player._world_edit_copy && !copy_data) {
             throw 'error_not_copied_blocks';
         }
@@ -417,6 +409,7 @@ export default class WorldEdit {
             return resp;
         };
         //
+        const grid = chat.world.chunkManager.grid
         const player_pos = player.state.pos.floored();
         let affected_count = 0;
         //
@@ -442,7 +435,7 @@ export default class WorldEdit {
         // blocks
         for(const [bpos, item] of data.blocks.entries()) {
             const pos = player_pos.add(bpos)
-            chunk_addr = Vector.toChunkAddr(pos, chunk_addr)
+            chunk_addr = grid.toChunkAddr(pos, chunk_addr)
             actions = getChunkActions(chunk_addr)
             actions.addBlock({pos, item, action_id})
             affected_count++
@@ -489,12 +482,9 @@ export default class WorldEdit {
 
     /**
      * Replace blocks in region to another
-     * @param {*} chat
-     * @param {*} player
-     * @param {*} cmd
-     * @param {*} args
      */
-    async cmd_replace(chat, player, cmd, args) {
+    async cmd_replace(chat : ServerChat, player, cmd, args) {
+        const grid          = chat.world.chunkManager.grid
         const qi            = this.getCuboidInfo(player);
         const repl_blocks   = this.createBlocksPalette(args[1]);
         const palette       = this.createBlocksPalette(args[2]);
@@ -513,7 +503,7 @@ export default class WorldEdit {
                         qi.pos1.y + y * qi.signy,
                         qi.pos1.z + z * qi.signz
                     );
-                    chunk_addr = Vector.toChunkAddr(bpos, chunk_addr);
+                    chunk_addr = grid.toChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
                         chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                         chunk = chat.world.chunks.get(chunk_addr);

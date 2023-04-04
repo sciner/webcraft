@@ -47,10 +47,6 @@ export class ChunkGrid {
         return this.innerMap.delete(vec);
     }
 
-    toChunkAddr(in_vec: IVector, out_vec?: Vector): Vector {
-        return this.getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
-    }
-
     /**
      * Возвращает адрес чанка по глобальным абсолютным координатам
      */
@@ -71,6 +67,11 @@ export class ChunkGrid {
             out_vec.z = 0;
         }
         return out_vec;
+    }
+
+    toChunkAddr(in_vec: IVector, out_vec?: Vector): Vector {
+        out_vec = out_vec || new Vector()
+        return this.getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
     }
 
     chunkAddrToCoord(addr: IVector, out_vec = new Vector()) {

@@ -36,7 +36,7 @@ export default class emitter extends BaseEmitter {
 
         this.max_distance   = 64;
         this.pp             = new IndexedColor(20, 540, 0).pack();
-        this.chunk_addr     = Vector.toChunkAddr(this.pos);
+        this.chunk_addr     = mesh_manager.world.chunkManager.grid.toChunkAddr(this.pos);
         this.material_key   = DEFAULT_EFFECT_MATERIAL_KEY;
         const m             = this.material_key.split('/');
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);

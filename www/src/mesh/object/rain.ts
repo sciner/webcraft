@@ -45,6 +45,8 @@ export default class Mesh_Object_Rain {
     #_player_pos        = new Vector();
     #_blocks_sets       = 0;
 
+    chunkManager: ChunkManager
+    grid: ChunkGrid
     sound_id            = null
     type                = null
 
@@ -58,6 +60,7 @@ export default class Mesh_Object_Rain {
         this.life           = 1;
         this.type           = type;
         this.chunkManager   = chunkManager;
+        this.grid           = chunkManager.grid
         this.player         = render.player;
         this.render         = render;
 
@@ -104,7 +107,7 @@ export default class Mesh_Object_Rain {
 
         for (let [xz, height] of this.#_map.entries()) {
 
-            chunk_addr = Vector.toChunkAddr(xz, chunk_addr).multiplyVecSelf(chunk_size);
+            chunk_addr = this.grid.toChunkAddr(xz, chunk_addr).multiplyVecSelf(chunk_size);
 
             const rx = xz.x - chunk_addr.x;
             const rz = xz.z - chunk_addr.z;
