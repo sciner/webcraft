@@ -402,26 +402,31 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         } else {
             // 2. select block in dirt layer
             const dirt_layer_blocks = dirt_layer.blocks;
-            const dirt_layer_blocks_count = dirt_layer_blocks.length;
+            const dirt_layer_blocks_count = dirt_layer_blocks.length
+            const local_water_line = WATER_LEVEL // density_params.local_water_line
             
             if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
-                switch(dirt_layer_blocks_count) {
-                    case 2: {
-                        block_id = dirt_layer_blocks[1];
-                        break;
-                    }
-                    default: {
-                        /* Ранее здесь было "case 3:".
-                        Похоже, больше чем 3 блока не используется.
-                        Если мы сделаем тут "default", то это гарантирует что какой-то id будет присвоен,
-                        и тогда можно код, выполнявшийся пред этим, перенести в ветку else - оптимизация.
-                        В любом случае, для 4-х блоков нужно будет добавлять другой код. */
-                        block_id = not_air_count <= cell.dirt_level ? dirt_layer_blocks[1] : dirt_layer_blocks[2];
-                        break;
+                if(xyz.y <= local_water_line) {
+                    block_id = dirt_layer_blocks[dirt_layer_blocks_count - 1]
+                } else {
+                    switch(dirt_layer_blocks_count) {
+                        case 2: {
+                            block_id = dirt_layer_blocks[1]
+                            break
+                        }
+                        default: {
+                            /* Ранее здесь было "case 3:".
+                            Похоже, больше чем 3 блока не используется.
+                            Если мы сделаем тут "default", то это гарантирует что какой-то id будет присвоен,
+                            и тогда можно код, выполнявшийся пред этим, перенести в ветку else - оптимизация.
+                            В любом случае, для 4-х блоков нужно будет добавлять другой код. */
+                            // block_id = not_air_count <= cell.dirt_level ? dirt_layer_blocks[1] : dirt_layer_blocks[2];
+                            block_id = not_air_count <= cell.dirt_level ? dirt_layer_blocks[1] : dirt_layer_blocks[dirt_layer_blocks_count - 1]
+                            break
+                        }
                     }
                 }
             } else {
-                const local_water_line = WATER_LEVEL // density_params.local_water_line
                 if(xyz.y < local_water_line && dirt_layer_blocks_count > 1) {
                     block_id = dirt_layer_blocks[dirt_layer_blocks_count - 1];
                 } else {
@@ -432,16 +437,19 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         }
 
         if(block_id == bm.STONE.id) {
-            /* Old equivalent code
-            if(d1 > .5) block_id = bm.ANDESITE.id
-            if(d4 > .5) block_id = bm.DIORITE.id
-            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = bm.GRANITE.id
-            */
-            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = bm.GRANITE.id
-            else if(d4 > .5) block_id = bm.DIORITE.id
-            else if(d1 > .5) block_id = bm.ANDESITE.id
+            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) {
+                block_id = bm.GRANITE.id
+            } else if(d4 > .65) {
+                block_id = bm.DIORITE.id
+            } else if(d4 > .5) {
+                block_id = bm.DEEPSLATE.id
+            } else if(d1 > .5) {
+                block_id = bm.ANDESITE.id
+            } else {
+                block_id = bm.UNCERTAIN_STONE.id
+            }
         }
-        
+
         if(!block_result) {
             return new MapsBlockResult(dirt_layer, block_id)
         }

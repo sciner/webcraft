@@ -254,7 +254,14 @@ export default class style {
                         return dir != DIRECTION.UP
                     }
                 }
-                return true
+                return dir != DIRECTION.DOWN
+            }
+        }
+
+        if(bmat.is_solid && nmat.is_layering && (dir == DIRECTION.UP)) {
+            const point = block.extra_data?.point
+            if(!point || point.y < .5) {
+                return dir != DIRECTION.UP
             }
         }
 
@@ -368,6 +375,7 @@ export default class style {
         const bm                    = style.block_manager
         const no_anim               = material.is_simple_qube || !material.texture_animations;
         const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
+        const sides                 = {} as IBlockSides;
 
         let emmited_blocks
         let width                   = 1;
@@ -380,7 +388,6 @@ export default class style {
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
         let upFlags                 = flags;
-        const sides                 = {} as IBlockSides;
 
         let DIRECTION_UP            = DIRECTION.UP
         let DIRECTION_DOWN          = DIRECTION.DOWN
