@@ -233,7 +233,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         let item;
 
         try {
-            item = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO);
+            item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO);
         } catch(e) {
             console.error(e)
         }

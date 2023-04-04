@@ -516,16 +516,14 @@ export class MobAnimation {
 
 export class MobModel extends NetworkPhysicObject {
     [key: string]: any;
-    #world : World
 
     constructor(props, world : World) {
 
         super(
+            world,
             new Vector(0, 0, 0),
             new Vector(0, 0, 0)
         )
-
-        this.#world                     = world
 
         this.fix_z_fighting             = Math.random() / 100;
         this.sceneTree                  = null;
@@ -871,7 +869,7 @@ export class MobModel extends NetworkPhysicObject {
             this.fire_mesh.apos.copyFrom(this.pos);
             this.fire_mesh.draw(render, delta);
         } else {
-            this.fire_mesh = new Mesh_Object_MobFire(this, this.#world)
+            this.fire_mesh = new Mesh_Object_MobFire(this, this.world)
         }
     }
 

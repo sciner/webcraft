@@ -2,7 +2,7 @@ import { impl as alea } from '../../vendors/alea.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { DEFAULT_DIRT_PALETTE } from '../constant.js';
 import type { ChunkGrid } from '../core/ChunkGrid.js';
-import { IndexedColor, Vector, Helpers, VectorCollector, getChunkAddr } from '../helpers.js';
+import { IndexedColor, Vector, Helpers, VectorCollector } from '../helpers.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { WorkerWorld } from '../worker/world.js';
 import { BIOMES } from "./biomes.js";

@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
-import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, IndexedColor, getChunkAddr } from '../helpers.js';
+import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, IndexedColor } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 import { WorldAction } from "../world_action.js";

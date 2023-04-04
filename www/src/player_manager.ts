@@ -44,8 +44,6 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
             health:         data.health
         }, this.world);
 
-        player.world = this.world;
-
         this.list.set(data.id, player);
         this.setState(cmd);
         player.netBuffer.length = 0;

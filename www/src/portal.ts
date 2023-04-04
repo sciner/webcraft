@@ -3,6 +3,7 @@ import { ServerClient } from "./server_client.js";
 import { Color, DIRECTION, Vector } from "./helpers.js";
 import { WorldAction } from "./world_action.js";
 import { DEFAULT_STYLE_NAME, PORTAL_SIZE } from "./constant.js";
+import type { ChunkGrid } from "./core/ChunkGrid.js";
 
 //
 export const PORTAL_TYPES = [
@@ -15,10 +16,10 @@ export const PORTAL_TYPES = [
 export class WorldPortalWait {
     [key: string]: any;
 
-    constructor(old_pos, new_pos, params) {
+    constructor(grid : ChunkGrid, old_pos, new_pos, params) {
         this.params         = params;
         this.attempt        = 0;
-        this.chunk_addr     = Vector.toChunkAddr(new_pos);
+        this.chunk_addr     = grid.toChunkAddr(new_pos);
         this.old_pos        = old_pos;
         this.pos            = new_pos;
     }

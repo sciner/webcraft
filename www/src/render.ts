@@ -17,7 +17,6 @@ import { Mesh_Object_Stars } from "./mesh/object/stars.js";
 import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
-// import { InHandOverlay } from "./ui/inhand_overlay_old.js";
 import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
@@ -350,7 +349,7 @@ export class Renderer {
             let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
             mat3.fromMat4(mx, mx4);
             //
-            const drop = new Mesh_Object_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
+            const drop = new Mesh_Object_Block_Drop(this.world, null, null, [b], Vector.ZERO, frame_matrix, null);
             drop.mesh_group.meshes.forEach((mesh, _, map) => {
                 this.addDropItemMesh(drop.block.id, _, mesh.vertices);
             });
@@ -416,7 +415,7 @@ export class Renderer {
                 if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
                     return null;
                 }
-                const drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
+                const drop = new Mesh_Object_Block_Drop(this.world, this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 addAtlasSprite(drop.block_material)
                 return drop;
@@ -1024,7 +1023,7 @@ export class Renderer {
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {
-            this.inHandOverlay = new InHandOverlay(this.player.skin, this);
+            this.inHandOverlay = new InHandOverlay(this.world, this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
@@ -1049,7 +1048,7 @@ export class Renderer {
 
     // addAsteroid
     addAsteroid(pos, rad) {
-        this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
+        this.meshes.add(new Mesh_Object_Asteroid(this.world, this, pos, rad));
     }
 
     addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string, doubleface : boolean = false) {

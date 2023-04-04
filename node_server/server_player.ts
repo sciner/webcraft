@@ -873,6 +873,7 @@ export class ServerPlayer extends Player {
                 this.vision.teleportSafePos(new_pos);
             } else {
                 teleported_player.wait_portal = new WorldPortalWait(
+                    world.chunkManager.grid,
                     teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
                     new_pos,
                     params
