@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector } from "@client/helpers.js";
+import { Vector } from "@client/helpers.js";
 import { Mob, MobSpawnParams } from "../mob.js";
 import { DEAD_MOB_TTL } from "../server_constant.js";
 import type { ServerPlayer } from "../server_player.js";
@@ -8,14 +8,15 @@ import { WorldTickStat } from "./tick_stat.js";
 // Store refs to all loaded mobs in the world
 export class WorldMobManager {
 
+    world:                          ServerWorld
+    list:                           Map<int, Mob>
+    ticks_stat:                     WorldTickStat
+    ticks_stat_by_mob_type:         Map<string, WorldTickStat> = new Map()
+    inactiveByEntityId:             Map<string, Mob>
+    inactiveByEntityIdBeingWritten: Map<string, Mob> | null
+
     static STAT_NAMES = ['update_chunks', 'unload', 'other', 'onLive', 'onFind']
     static MOB_STAT_NAMES = ['onLive', 'onFind']
-    world: ServerWorld;
-    list: Map<int, Mob>;
-    ticks_stat: WorldTickStat;
-    ticks_stat_by_mob_type: Map<string, WorldTickStat> = new Map();
-    inactiveByEntityId: Map<string, Mob>;
-    inactiveByEntityIdBeingWritten: Map<string, Mob> | null;
 
     constructor(world: ServerWorld) {
 
@@ -119,12 +120,12 @@ export class WorldMobManager {
      */
     create(params: MobSpawnParams): Mob | null {
         const world = this.world;
-        const chunk_addr = Vector.toChunkAddr(params.pos);
+        const chunk_addr = world.chunkManager.grid.toChunkAddr(params.pos);
         const chunk = world.chunks.get(chunk_addr);
         if(chunk) {
             try {
                 // fill some cration params
-                params.id = this.world.db.mobs.getNextId();
+                params.id = world.db.mobs.getNextId();
                 params.entity_id = randomUUID();
                 if(!('pos' in params)) {
                     throw 'error_no_mob_pos';
@@ -162,7 +163,7 @@ export class WorldMobManager {
     async activate(entity_id: string, pos_spawn: Vector, rotate: Vector): Promise<Mob | null> {
         const world = this.world;
         //
-        const chunk = world.chunkManager.get(Vector.toChunkAddr(pos_spawn));
+        const chunk = world.chunkManager.get(world.chunkManager.grid.toChunkAddr(pos_spawn));
         if(!chunk) {
             console.error('error_chunk_not_loaded');
             return null;

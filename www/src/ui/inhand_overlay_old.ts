@@ -86,7 +86,7 @@ export class InHandOverlay {
             if(block.inventory?.scale) {
                 mat4.scale(m, m, [block.inventory?.scale, block.inventory?.scale, block.inventory?.scale]);
             }
-            this.inHandItemMesh = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO, m);
+            this.inHandItemMesh = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO, m);
         } catch(e) {
             console.log(e);
             //

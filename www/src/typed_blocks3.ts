@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector, ObjectHelpers, chunkAddrToCoord } from "./helpers.js";
+import { Vector, ObjectHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { ChunkGrid } from "./core/ChunkGrid.js";
@@ -743,10 +743,14 @@ export class TypedBlocks3 {
 export class DataWorld {
     [key: string]: any;
     grid: ChunkGrid;
+
     constructor(chunkManager) {
         const INF = 1000000000;
         this.chunkManager = chunkManager;
-        this.grid = new ChunkGrid({});
+        if(!chunkManager.tech_info.chunk_size) {
+            throw 'error_undefined_chunnk_size'
+        }
+        this.grid = new ChunkGrid({chunkSize: chunkManager.tech_info.chunk_size});
         this.base = new BaseChunk({grid: this.grid, size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
@@ -1483,8 +1487,9 @@ export class BlockAccessor {
         this._tmpTBlock.index = rx * CHUNK_CX + ry * CHUNK_CY + rz * CHUNK_CZ + CHUNK_CW;
     }
 
-    _rebase(x, y, z) {
-        const addr = getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
+    _rebase(x: int, y: int, z: int) {
+        const grid = this.chunkManager.grid
+        const addr = grid.getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
         const cliSrvCompatbility = this.chunkManager.chunks || this.chunkManager;
         // This accounts both for missing chunks, and for blocks not generated
         let tb = cliSrvCompatbility.get(addr)?.tblocks;
@@ -1494,7 +1499,7 @@ export class BlockAccessor {
             this.tblockOrNull = this._tmpTBlock;
             this.tblockOrNull.tb = tb;
         } else {
-            chunkAddrToCoord(addr, this._tmpTbCoord);
+            grid.chunkAddrToCoord(addr, this._tmpTbCoord)
             this._tbCoord = this._tmpTbCoord;
             this.tblockOrNull = null;
         }

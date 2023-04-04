@@ -1,9 +1,10 @@
-import {SimpleQueue} from "@client/helpers.js";
+import {SimpleQueue, Vector} from "@client/helpers.js";
 import {WorldChunkFlags} from "./WorldChunkFlags.js";
 import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js";
 import { FluidWorld } from "@client/fluid/FluidWorld.js";
 import type { ServerWorld } from "../../server_world.js";
 import { WorldTickStat } from "../../world/tick_stat.js";
+import { ChunkGrid } from "@client/core/ChunkGrid.js";
 
 export class DBWorldFluid {
     conn: DBConnection;
@@ -148,7 +149,7 @@ export class DBWorldFluid {
         }
     }
 
-    async flushWorldFluidsList(fluids) {
+    async flushWorldFluidsList(fluids, world : ServerWorld) {
         const chunkManager = this.world.chunks;
         const fluidWorld = chunkManager?.fluidWorld;
         const fluidByChunk = FluidWorld.separateWorldFluidByChunks(fluids);
@@ -162,7 +163,8 @@ export class DBWorldFluid {
                 fluidChunk.databaseID = fluidChunk.updateID;
             } else {
                 //TODO: bulk read
-                fluidChunk = FluidWorld.getOfflineFluidChunk(chunkManager?.dataWorld?.grid, chunk_addr,
+                const grid = chunkManager?.dataWorld?.grid ?? new ChunkGrid({chunkSize: new Vector(world.info.tech_info.chunk_size)})
+                fluidChunk = FluidWorld.getOfflineFluidChunk(grid, chunk_addr,
                     await this.loadChunkFluid(chunk_addr), fluids);
             }
             saveRows.push({

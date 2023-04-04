@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X } from "../../chunk_const.js";
-import { DIRECTION, getChunkAddr, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
+import { DIRECTION, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
 import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
@@ -164,6 +164,7 @@ export class ClusterBuildingBase extends ClusterBase {
 
         const START_X = chunk.coord.x - this.coord.x;
         const START_Z = chunk.coord.z - this.coord.z;
+        const grid = this.clusterManager.world.chunkManager.grid
 
         for(let i = 0; i < building.size.x; i++) {
             const bx = building.coord.x + i
@@ -181,7 +182,7 @@ export class ClusterBuildingBase extends ClusterBase {
                     if(mask_point && mask_point.height && !mask_point.height_fixed) {
                         // забираем карту того участка, где дверь, чтобы определить точный уровень пола
                         const vec = new Vector(building.coord.x + i, 0, building.coord.z + j)
-                        const map_addr = Vector.toChunkAddr(vec)
+                        const map_addr = grid.toChunkAddr(vec)
                         let bi = maps.get(map_addr)
                         if(bi) {
                             // if map not smoothed

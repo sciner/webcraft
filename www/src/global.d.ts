@@ -58,6 +58,10 @@ type TGeneratorInfo = {
     options: any
 }
 
+declare interface TWorldTechInfo {
+    chunk_size: IVector
+}
+
 declare interface TWorldInfo {
 
     id:             int
@@ -75,6 +79,7 @@ declare interface TWorldInfo {
     add_time:       int
     world_type_id:  int
     recovery:       binary
+    tech_info:      TWorldTechInfo
     calendar: {
         day_time: any,
         age: any

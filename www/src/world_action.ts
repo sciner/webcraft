@@ -940,10 +940,10 @@ function simplifyPos(world : any, pos : IVectorPoint, mat : IBlockMaterial, to_t
  * - the position of an existing block that should have been affected by these actions, if they were successful.
  * This position may be used to create a history snapsoht, or get the correct block state for a failed action.
  */
-export async function doBlockAction(e, world, player: ActionPlayerInfo, current_inventory_item): Promise<[WorldAction | null, Vector | null]> {
+export async function doBlockAction(e, world, action_player_info: ActionPlayerInfo, current_inventory_item): Promise<[WorldAction | null, Vector | null]> {
 
     const actions = new WorldAction(e.id);
-    const destroyBlocks = new DestroyBlocks(world, player, actions, current_inventory_item);
+    const destroyBlocks = new DestroyBlocks(world, action_player_info, actions, current_inventory_item);
     const blockFlags = BLOCK.flags
 
     if(!e.pos) {
@@ -975,7 +975,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
     // 1. Change extra data
     if(e.changeExtraData) {
         for(let func of FUNCS.changeExtraData ??= [editSign, editBeacon]) {
-            if(func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+            if(func(e, world, pos, action_player_info, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
         }
@@ -985,7 +985,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
     if(e.destroyBlock) {
         // 1. Проверка выполняемых действий с блоками в мире
         for(let func of FUNCS.destroyBlock ??= [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
-            if(func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+            if(func(e, world, pos, action_player_info, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
         }
@@ -1036,7 +1036,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
 
         // Проверка выполняемых действий с блоками в мире
         for(let func of FUNCS.createBlock ??= [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addFewCount, openFenceGate, useTorch, setOnWater, putKelp, putInComposter]) {
-            if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+            if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
         }
@@ -1049,12 +1049,12 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
 
         // Проверка выполняемых действий с блоками в мире
         for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
-            if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+            if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
         }
         for(let func of FUNCS.useItem1async ??= [putDiscIntoJukebox]) {
-            if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+            if(await func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
         }
@@ -1063,12 +1063,12 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
         if(mat_block.item && mat_block.style_name != 'planting') {
             // Use intruments
             for(let func of FUNCS.useItem2 ??= [useShovel, useHoe, useAxe, useBoneMeal]) {
-                if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return [actions, pos];
                 }
             }
             for(let func of FUNCS.useItem2async ??= [useFlintAndSteel]) {
-                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                if(await func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return [actions, pos];
                 }
             }
@@ -1091,7 +1091,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
             actions.decrement = true;
             actions.ignore_creative_game_mode = !!current_inventory_item.entity_id;
             if(mat_block.sound) {
-                actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+                actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [action_player_info.session.user_id]});
             }
         } else {
 
@@ -1103,7 +1103,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
             }
 
             // Calc orientation
-            let orientation = calcBlockOrientation(mat_block, player.rotate, pos.n)
+            let orientation = calcBlockOrientation(mat_block, action_player_info.rotate, pos.n)
 
             // Check if replace
             if(replaceBlock) {
@@ -1113,9 +1113,9 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
                 pos.n.x = 0;
                 pos.n.y = 1;
                 pos.n.z = 0;
-                orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
+                orientation = calcBlockOrientation(mat_block, action_player_info.rotate, pos.n);
             } else {
-                if(increaseLayering(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                if(increaseLayering(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return [actions, pos];
                 }
                 pos.x += pos.n.x;
@@ -1139,12 +1139,12 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
                     // player.radius = player's diameter
-                    x_min: player.pos.x - player.radius / 2,
-                    x_max: player.pos.x - player.radius / 2 + player.radius,
-                    y_min: player.pos.y,
-                    y_max: player.pos.y + player.height,
-                    z_min: player.pos.z - player.radius / 2,
-                    z_max: player.pos.z - player.radius / 2 + player.radius
+                    x_min: action_player_info.pos.x - action_player_info.radius / 2,
+                    x_max: action_player_info.pos.x - action_player_info.radius / 2 + action_player_info.radius,
+                    y_min: action_player_info.pos.y,
+                    y_max: action_player_info.pos.y + action_player_info.height,
+                    z_min: action_player_info.pos.z - action_player_info.radius / 2,
+                    z_max: action_player_info.pos.z - action_player_info.radius / 2 + action_player_info.radius
                 })) {
                     console.error('intersect with player');
                     return [null, pos];
@@ -1227,20 +1227,20 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
             }
             // Material restrictions
             for(let func of FUNCS.restrict ??= [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {
-                if(func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions, orientation)) {
+                if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions, orientation)) {
                     return [actions, pos];
                 }
             }
             // Rotate block one of 8 poses
             if(mat_block.tags.includes('rotate_x8')) {
                 if(new_item.rotate.y != 0) {
-                    new_item.rotate.x = Math.round(player.rotate.z / 45) * 45;
+                    new_item.rotate.x = Math.round(action_player_info.rotate.z / 45) * 45;
                 }
             }
             // Rotate block one of 16 poses
             if(mat_block.tags.includes('rotate_x16')) {
                 if(new_item.rotate.y != 0) {
-                    new_item.rotate.x = player.rotate.z / 90;
+                    new_item.rotate.x = action_player_info.rotate.z / 90;
                 }
             }
             // Auto open edit window if sign
@@ -1259,7 +1259,7 @@ export async function doBlockAction(e, world, player: ActionPlayerInfo, current_
             //
             if(setActionBlock(actions, world, new Vector(pos), new_item.rotate, mat_block, new_item)) {
                 if(mat_block.sound) {
-                    actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+                    actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [action_player_info.session.user_id]});
                 }
                 actions.decrement = true;
                 actions.ignore_creative_game_mode = !!current_inventory_item.entity_id;
@@ -1630,21 +1630,8 @@ function pressToButton(e, world, pos, player, world_block, world_material, mat_b
 
 /**
  * Sit down
- * @param {*} e
- * @param {*} world
- * @param {Vector} pos
- * @param {*} player
- * @param {*} world_block
- * @param {*} world_material
- * @param {*} mat_block
- * @param {*} current_inventory_item
- * @param {*} extra_data
- * @param {Vector} rotate
- * @param {*} replace_block
- * @param {WorldAction} actions
- * @returns
  */
-function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function sitDown(e, world, pos : Vector, player : ActionPlayerInfo, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate : Vector, replace_block, actions : WorldAction): boolean {
     if(e.shiftKey) {
         return false
     }
@@ -1686,7 +1673,7 @@ function sitDown(e, world, pos, player, world_block, world_material, mat_block, 
         pos.y + sit_height - (is_head ? 1 : 0),
         pos.z + .5
     )
-    for (const player of world.players.eachContainingVec(sit_pos)) {
+    for(const player of world.players.eachContainingVec(sit_pos)) {
         if (player.sharedProps.sitting) {
             if (!Qubatch.is_server) {
                 Qubatch.hotbar.strings.setText(1, Lang.pos_occupied, 4000)
@@ -1698,7 +1685,7 @@ function sitDown(e, world, pos, player, world_block, world_material, mat_block, 
     actions.reset_mouse_actions = true
     const yaw = rotate
         ? Helpers.deg2rad(rotate.x)
-        : player.sharedProps.rotate.z
+        : player.rotate.z
     actions.setSitting(sit_pos, new Vector(0, 0, yaw))
     return true
 }

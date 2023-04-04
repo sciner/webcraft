@@ -3,6 +3,7 @@ import { BLOCK, FakeTBlock } from '../../blocks.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import type { World } from '../../world.js';
 
 const {mat4} = glMatrix;
 
@@ -13,9 +14,10 @@ export class Mesh_Object_Asteroid extends NetworkPhysicObject {
     static neighbours = null;
 
     // Constructor
-    constructor(render, pos, radius) {
+    constructor(world : World, render, pos, radius) {
 
         super(
+            world,
             new Vector(pos.x, pos.y, pos.z),
             new Vector(0, 0, 0)
         );

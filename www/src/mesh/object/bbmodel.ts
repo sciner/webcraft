@@ -3,6 +3,7 @@ import GeometryTerrain from '../../geometry_terrain.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import type { Renderer } from '../../render.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import type { BBModel_Model } from '../../bbmodel/model.js';
 
 const {mat4}    = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -12,18 +13,7 @@ const vecZero   = Vector.ZERO.clone();
 export class Mesh_Object_BBModel {
     [key: string]: any;
 
-    /**
-     * 
-     * @param {*} render 
-     * @param {Vector} pos 
-     * @param {Vector} rotate 
-     * @param {BBModel_Model} model 
-     * @param {string} animation_name 
-     * @param {boolean} doubleface 
-     * 
-     * @returns 
-     */
-    constructor(render, pos, rotate, model, animation_name = null, doubleface = false) {
+    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
 
         this.model = model;
         if(!this.model) {
@@ -35,7 +25,7 @@ export class Mesh_Object_BBModel {
         this.life           = 1.0;
         this.chunk          = null;
         this.apos           = new Vector(pos) // absolute coord
-        this.chunk_addr     = Vector.toChunkAddr(this.apos);
+        this.chunk_addr     = render.world.chunkManager.grid.toChunkAddr(this.apos);
         this.chunk_coord    = this.chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
@@ -52,7 +42,7 @@ export class Mesh_Object_BBModel {
     }
 
     //
-    setAnimation(name) {
+    setAnimation(name : string) {
         this.animation_name = name;
     }
 

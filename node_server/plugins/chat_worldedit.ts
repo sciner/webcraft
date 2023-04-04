@@ -1,9 +1,12 @@
-import { getChunkAddr, Vector, VectorCollector } from "@client/helpers.js";
+import { Vector, VectorCollector } from "@client/helpers.js";
 import {WorldAction} from "@client/world_action.js";
 import { ServerClient } from "@client/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "@client/fluid/FluidConst.js";
 import { WorldEditBuilding } from "@client/plugins/worldedit/building.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
+import type { ServerWorld } from "server_world";
+import type { ChunkGrid } from "@client/core/ChunkGrid";
+import type { ServerChat } from "server_chat";
 
 const MAX_SET_BLOCK         = 250000 * 4;
 const MAX_BLOCKS_PER_PASTE  = 10000;
@@ -11,7 +14,7 @@ const MAX_BLOCKS_PER_PASTE  = 10000;
 export default class WorldEdit {
     id: number;
     worker: Worker;
-    world: any;
+    world: ServerWorld;
     chat: any;
     building: WorldEditBuilding;
     commands: Map<any, any>;
@@ -268,11 +271,7 @@ export default class WorldEdit {
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
     }
 
-    /**
-     * @param {*} quboid 
-     * @param {Vector} pos
-     */
-    async copy(quboid, pos, world) {
+    async copy(quboid, pos : Vector, world : ServerWorld) {
         let blocks = new VectorCollector();
         let chunk_addr = new Vector(0, 0, 0);
         let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
@@ -287,7 +286,7 @@ export default class WorldEdit {
                         quboid.pos1.y + y * quboid.signy,
                         quboid.pos1.z + z * quboid.signz
                     );
-                    chunk_addr = Vector.toChunkAddr(bpos, chunk_addr);
+                    chunk_addr = world.chunkManager.grid.toChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
                         chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                         chunk = world.chunks.get(chunk_addr);
@@ -397,13 +396,8 @@ export default class WorldEdit {
 
     /**
      * Paste copied blocks
-     * @param {*} chat
-     * @param {*} player
-     * @param {*} cmd
-     * @param {*} args
-     * @param {*} copy_data
      */
-    async cmd_paste(chat, player, cmd, args, copy_data = null) {
+    async cmd_paste(chat : ServerChat, player, cmd, args, copy_data = null) {
         if(!player._world_edit_copy && !copy_data) {
             throw 'error_not_copied_blocks';
         }
@@ -415,6 +409,7 @@ export default class WorldEdit {
             return resp;
         };
         //
+        const grid = chat.world.chunkManager.grid
         const player_pos = player.state.pos.floored();
         let affected_count = 0;
         //
@@ -440,7 +435,7 @@ export default class WorldEdit {
         // blocks
         for(const [bpos, item] of data.blocks.entries()) {
             const pos = player_pos.add(bpos)
-            chunk_addr = Vector.toChunkAddr(pos, chunk_addr)
+            chunk_addr = grid.toChunkAddr(pos, chunk_addr)
             actions = getChunkActions(chunk_addr)
             actions.addBlock({pos, item, action_id})
             affected_count++
@@ -448,12 +443,13 @@ export default class WorldEdit {
         // fluids
         if (data.fluids && data.fluids.length > 0) {
             const fluids = data.fluids;
+            const grid : ChunkGrid = this.world.chunkManager.grid
             for (let i = 0; i < fluids.length; i += 4) {
                 const x = fluids[i] + player_pos.x,
                       y = fluids[i + 1] + player_pos.y,
                       z = fluids[i + 2] + player_pos.z,
                       val = fluids[i + 3];
-                chunk_addr = getChunkAddr(x, y, z, chunk_addr);
+                chunk_addr = grid.getChunkAddr(x, y, z, chunk_addr);
                 actions = getChunkActions(chunk_addr)
                 actions.addFluids([x, y, z, val]);
                 actions.fluidFlush = true
@@ -486,12 +482,9 @@ export default class WorldEdit {
 
     /**
      * Replace blocks in region to another
-     * @param {*} chat
-     * @param {*} player
-     * @param {*} cmd
-     * @param {*} args
      */
-    async cmd_replace(chat, player, cmd, args) {
+    async cmd_replace(chat : ServerChat, player, cmd, args) {
+        const grid          = chat.world.chunkManager.grid
         const qi            = this.getCuboidInfo(player);
         const repl_blocks   = this.createBlocksPalette(args[1]);
         const palette       = this.createBlocksPalette(args[2]);
@@ -510,7 +503,7 @@ export default class WorldEdit {
                         qi.pos1.y + y * qi.signy,
                         qi.pos1.z + z * qi.signz
                     );
-                    chunk_addr = Vector.toChunkAddr(bpos, chunk_addr);
+                    chunk_addr = grid.toChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
                         chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                         chunk = chat.world.chunks.get(chunk_addr);

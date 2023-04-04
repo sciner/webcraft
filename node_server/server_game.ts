@@ -9,6 +9,7 @@ import {GameLog} from './game_log.js';
 import { BLOCK } from '@client/blocks.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
+import { WORKER_MESSAGE } from '@client/constant.js';
 
 class FakeHUD {
     add() {}
@@ -143,7 +144,7 @@ export class ServerGame {
             let workerCounter = 1;
 
             this.lightWorker = new Worker(globalThis.__dirname + '/../www/js/light_worker.js');
-            this.lightWorker.postMessage(['SERVER', 'init', null]);
+            this.lightWorker.postMessage(['SERVER', WORKER_MESSAGE.LIGHT_WORKER_INIT, null]);
 
             this.lightWorker.on('message', (data) => {
                 if (data instanceof MessageEvent) {
@@ -220,18 +221,18 @@ export class ServerGame {
             const skin          = Array.isArray(query.skin) ? query.skin[0] : query.skin;
             // Get loaded world
             let world = this.getLoadedWorld(world_guid);
-            const onWorld = async () => {
+            const onWorld = async (world) => {
                 if (this.shutdownPromise) {
                     return // don't join players when shutting down
                 }
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
-                player.onJoin(query.session_id, parseFloat(skin), conn, world);
+                player.onJoin(query.session_id as string, parseInt(skin), conn, world);
                 const game_world = await this.db.getWorld(world_guid);
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
             };
             if(world) {
-                onWorld();
+                onWorld(world);
             } else {
                 new Promise(resolve => {
                     const hInterval = setInterval(() => {

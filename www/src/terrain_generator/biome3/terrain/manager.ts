@@ -17,6 +17,7 @@ import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import { TerrainMapManagerBase } from "./manager_base.js";
 import type { Biome3LayerBase } from "../layers/base.js";
 import { FAST } from "../../../constant.js";
+import type { WorkerWorld } from "../../../worker/world.js";
 
 // Water
 const WATER_START                       = 0;
@@ -123,8 +124,8 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
     static _climateParams = new ClimateParams();
 
-    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer? : Biome3LayerBase) {
-        super(seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
+    constructor(world: WorkerWorld, seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer? : Biome3LayerBase) {
+        super(world, seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
         this.makePresetsList(seed)
         this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
         this.initMats();

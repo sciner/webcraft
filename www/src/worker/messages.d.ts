@@ -2,12 +2,13 @@
 // see the TS bug https://github.com/microsoft/TypeScript/issues/44040
 
 type TChunkWorkerMessageInit = {
-    generator   : TGeneratorInfo
-    world_seed  : string
-    world_guid  : string
-    settings    : TBlocksSettings
-    resource_cache?: Map<any, any>
-    is_server   : boolean
+    generator           : TGeneratorInfo
+    world_seed          : string
+    world_guid          : string
+    settings            : TBlocksSettings
+    resource_cache?     : Map<any, any>
+    is_server           : boolean
+    world_tech_info     : TWorldTechInfo
 }
 
 type TScannedTickers = {

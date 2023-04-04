@@ -9,6 +9,7 @@ import type { BLOCK } from "../../../blocks.js";
 import type { Biome3LayerBase } from "./base.js";
 import { ClusterVilage } from "../../cluster/vilage.js";
 import { NetherClusterStructures } from "../../cluster/nether_structures.js";
+import type { WorkerWorld } from "../../../worker/world.js";
 
 export declare type IClusterList = {chance: float, class: any}[]
 
@@ -21,10 +22,10 @@ class UnderworldTerrainMapManager extends TerrainMapManager3 {
 
     _biome : Biome
 
-    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
+    constructor(world: WorkerWorld, seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
         generator_options = JSON.parse(JSON.stringify(generator_options))
         generator_options.generate_big_caves = true
-        super(seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
+        super(world, seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
         this._biome = this.biomes.byName.get('Эреб')
     }
 
@@ -40,7 +41,7 @@ export default class Biome3LayerUnderworld extends Biome3LayerOverworld {
 
     init(generator : Terrain_Generator) : Biome3LayerUnderworld {
         const {seed, world_id, noise2d, noise3d, block_manager, options} = generator
-        const map_manager = new UnderworldTerrainMapManager(`${seed}underworld`, world_id, noise2d, noise3d, block_manager, options, this)
+        const map_manager = new UnderworldTerrainMapManager(generator.world, `${seed}underworld`, world_id, noise2d, noise3d, block_manager, options, this)
         super.init(generator, map_manager, UNDERWORLD_CLUSTER_LIST)
         return this
     }

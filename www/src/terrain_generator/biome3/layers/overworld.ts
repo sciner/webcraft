@@ -40,7 +40,11 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     slab_candidates:        any[]
     onground_place_index:   any
 
-    filter_biome_list:      int[] = [13, 140, 12, 30, 31, 158, 26, 1, 129, 4, 18, 132, 27, 28, 155, 156, 29, 159, 6, 134, 16, 21, 149, 22, 23, 151, 168, 169, 14, 15, 2, 17, 130, 35, 36, 163, 164, 37, 165, 39, 167, 38, 166]
+    filter_biome_list:      int[] = [
+        1, 2, 4, 6, 12, 13, 14, 15, 16, 17, 18, 21, 22, 23, 26, 27,
+        28, 29, 30, 31, 35, 36, 37, 38, 39, 129, 130, 132, 134, 140,
+        149, 151, 155, 156, 158, 159, 163, 164, 165, 166, 167, 168, 169
+    ]
 
     init(generator : Terrain_Generator, map_manager ?: any, cluster_list? : {chance: float, class: any}[]) : Biome3LayerOverworld {
 
@@ -52,7 +56,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         this.clusterManager = new ClusterManager(generator.world, generator.seed, this, cluster_list ?? DEFAULT_CLUSTER_LIST)
 
         if(!map_manager) {
-            map_manager = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
+            map_manager = new TerrainMapManager3(generator.world, seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
         }
 
         this.maps = map_manager

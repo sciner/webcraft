@@ -239,7 +239,7 @@ export class ServerChunk {
     constructor(world : ServerWorld, addr : Vector) {
         this.world                      = world;
         this.chunkManager               = world.chunks;
-        this.size                       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        this.size                       = new Vector(world.info.tech_info.chunk_size)
         this.addr                       = new Vector(addr);
         this.coord                      = this.addr.mul(this.size);
         this.uniqId                     = ++global_uniqId;

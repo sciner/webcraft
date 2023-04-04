@@ -16,7 +16,7 @@ import { WorldDBActor } from "./db/world/WorldDBActor.js";
 import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
 import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
-import { ArrayHelpers, getChunkAddr, Vector, VectorCollector, PerformanceTimer } from "@client/helpers.js";
+import { ArrayHelpers, Vector, VectorCollector, PerformanceTimer } from "@client/helpers.js";
 import { AABB } from "@client/core/AABB.js";
 import { BLOCK, DBItemBlock } from "@client/blocks.js";
 import { ServerClient } from "@client/server_client.js";
@@ -189,7 +189,7 @@ export class ServerWorld implements IWorld {
         await this.db.mobs.initChunksWithMobs();
         console.log(`Restored ${this.worldChunkFlags.size} chunks, ${this.db.mobs._addrByMobId.size} mobs, elapsed: ${performance.now() - t | 0} ms`)
         await this.chunks.initWorker();
-        await this.chunks.initWorkers(world_guid);
+        await this.chunks.initWorkers(world_guid, this.info.tech_info);
 
         //
         if(this.isBuildingWorld()) {
@@ -229,6 +229,7 @@ export class ServerWorld implements IWorld {
         // flush database
         await this.db.flushWorld()
 
+        const grid = this.chunkManager.grid
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
@@ -239,7 +240,7 @@ export class ServerWorld implements IWorld {
 
         const addBlock = (pos, item) => {
             blocks.push({pos, item})
-            chunks_addr.set(Vector.toChunkAddr(pos), true);
+            chunks_addr.set(grid.toChunkAddr(pos), true);
         }
 
         // make road
@@ -275,7 +276,7 @@ export class ServerWorld implements IWorld {
                     fluids[i + 1] = schema.world.pos1.y + fluids[i + 1] - y
                     fluids[i + 2] = schema.world.entrance.z - fluids[i + 2]
                 }
-                await this.db.fluid.flushWorldFluidsList(fluids)
+                await this.db.fluid.flushWorldFluidsList(fluids, this)
             }
             // fill blocks
             for(let b of schema.blocks) {
@@ -728,10 +729,11 @@ export class ServerWorld implements IWorld {
     async applyActions(server_player : ServerPlayer | undefined, actions : WorldAction) {
         const chunks_packets = new VectorCollector();
         const bm = this.block_manager
+        const grid = this.chunkManager.grid
         //
         const getChunkPackets = (pos : Vector, chunk_addr? : Vector) => {
             if(!chunk_addr) {
-                chunk_addr = Vector.toChunkAddr(pos)
+                chunk_addr = grid.toChunkAddr(pos)
             }
             let cps = chunks_packets.get(chunk_addr);
             if (!cps) {
@@ -797,10 +799,11 @@ export class ServerWorld implements IWorld {
         }
         // @Warning Must be check before actions.blocks
         if(actions.generate_tree.length > 0) {
+            const grid = this.chunkManager.grid
             for(let i = 0; i < actions.generate_tree.length; i++) {
                 const params = actions.generate_tree[i];
                 const treeGenerator = await TreeGenerator.getInstance(this.info.seed);
-                const chunk = this.chunks.get(getChunkAddr(params.pos.x, params.pos.y, params.pos.z));
+                const chunk = this.chunks.get(grid.getChunkAddr(params.pos.x, params.pos.y, params.pos.z));
                 if(chunk) {
                     const new_tree_blocks = await treeGenerator.generateTree(this, chunk, params.pos, params.block);
                     if(new_tree_blocks) {
@@ -835,7 +838,7 @@ export class ServerWorld implements IWorld {
                         params.item = this.block_manager.convertBlockToDBItem(params.item)
                     }
                     //
-                    Vector.toChunkAddr(params.pos, chunk_addr);
+                    grid.toChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
                         cps = getChunkPackets(null, chunk_addr);
                         chunk?.light?.flushDelta();
@@ -969,7 +972,7 @@ export class ServerWorld implements IWorld {
         if (actions.fluids.length > 0) {
             if (actions.fluidFlush) {
                 // TODO: for schemas - make separate action after everything!
-                await this.db.fluid.flushWorldFluidsList(actions.fluids);
+                await this.db.fluid.flushWorldFluidsList(actions.fluids, this);
                 // assume same chunk for all cells
             } else {
                 this.chunks.fluidWorld.applyWorldFluidsList(actions.fluids);
