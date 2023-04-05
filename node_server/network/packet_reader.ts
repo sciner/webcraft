@@ -1,14 +1,15 @@
 import { PLAYER_STATUS } from "@client/constant.js";
+import { SimpleQueue } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import type {ServerPlayer} from "../server_player.js";
 
 class PacketRequerQueue {
     packet_reader: PacketReader;
-    list: {reader: ICommandReader, player: ServerPlayer, packet: INetworkMessage}[];
+    private list: SimpleQueue<{reader: ICommandReader, player: ServerPlayer, packet: INetworkMessage}>
 
     constructor(packet_reader: PacketReader) {
         this.packet_reader = packet_reader;
-        this.list = [];
+        this.list = new SimpleQueue();
     }
 
     add(reader: ICommandReader, player: ServerPlayer, packet: INetworkMessage) {
@@ -26,7 +27,7 @@ class PacketRequerQueue {
                     this.list.push(item);
                 }
             } catch(e) {
-                await this.packet_reader.sendErrorToPlayer(player, e);
+                this.packet_reader.sendErrorToPlayer(player, e);
                 if (reader.terminateOnException) {
                     player.terminate(e)
                 }
@@ -89,7 +90,7 @@ export class PacketReader {
                 try {
                     await reader.read(player, packet);
                 } catch(e) {
-                    await this.sendErrorToPlayer(player, e);
+                    this.sendErrorToPlayer(player, e);
                     if (reader.terminateOnException) {
                         player.terminate(e)
                     }
@@ -102,7 +103,7 @@ export class PacketReader {
     }
 
     //
-    async sendErrorToPlayer(player: ServerPlayer, e) {
+    sendErrorToPlayer(player: ServerPlayer, e) {
         console.log(e);
         player.sendError(e);
     }

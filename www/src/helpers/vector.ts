@@ -37,6 +37,8 @@ export function chunkAddrToCoord(addr : IVector, result : IVector) {
     result.z = addr.z * CHUNK_SIZE_Z;
 }
 
+const CHUNK_SIZE_X_MUL_CHUNK_SIZE_Z = CHUNK_SIZE_X * CHUNK_SIZE_Z
+
 export class Vector implements IVector {
     // static cnt = 0;
     // static traces = new Map();
@@ -724,7 +726,7 @@ export class Vector implements IVector {
         let x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
         let y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
         let z = this.z - Math.floor(this.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-        return (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+        return CHUNK_SIZE_X_MUL_CHUNK_SIZE_Z * y + (z * CHUNK_SIZE_X) + x;
     }
 
     relativePosToFlatIndexInChunk() : int {
@@ -733,10 +735,11 @@ export class Vector implements IVector {
 
     //
     fromFlatChunkIndex(index : int) : Vector {
-        this.x = index % CHUNK_SIZE_X;
-        this.y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
-        this.z = (index % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - this.x) / CHUNK_SIZE_X;
-        return this;
+        this.y = index / CHUNK_SIZE_X_MUL_CHUNK_SIZE_Z | 0
+        index -= this.y * CHUNK_SIZE_X_MUL_CHUNK_SIZE_Z
+        this.z = index / CHUNK_SIZE_X | 0
+        this.x = index - this.z * CHUNK_SIZE_X
+        return this
     }
 
     fromChunkIndex(index) {
