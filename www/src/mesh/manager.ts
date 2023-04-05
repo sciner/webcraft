@@ -1,6 +1,7 @@
-import { AABB } from "../core/AABB.js";
+import type { AABB } from "../core/AABB.js";
 import { Helpers, makeChunkEffectID, Vector } from "../helpers.js";
 import type { Renderer } from "../render.js";
+import type { World } from "../world.js";
 import { Mesh_Effect_Manager } from "./effect/manager.js";
 
 // MeshManager
@@ -8,14 +9,16 @@ export class MeshManager {
     chunks: Map<any, any>;
     list: Map<any, any>;
     effects: Mesh_Effect_Manager;
+    world: World;
 
-    constructor() {
+    constructor(world : World) {
+        this.world = world
         this.chunks = new Map();
         this.list = new Map();
         this.effects = new Mesh_Effect_Manager(this);
     }
 
-    get(id) {
+    get(id : string) {
         return this.list.get(id);
     }
 
@@ -56,13 +59,7 @@ export class MeshManager {
         return mesh;
     }
 
-    /**
-     * 
-     * @param {Vector} addr 
-     * @param {AABB} aabb 
-     * @returns 
-     */
-    removeForChunk(addr, aabb) {
+    removeForChunk(addr : Vector, aabb : AABB) {
 
         // 1.
         const PARTICLE_EFFECTS_ID = makeChunkEffectID(addr, null);
@@ -82,7 +79,7 @@ export class MeshManager {
         return true;
     }
 
-    draw(render, delta, player_pos) {
+    draw(render : Renderer, delta : float, player_pos : Vector) {
         this.effects.tick(delta, player_pos);
         for(let [key, mesh] of this.list.entries()) {
             if(mesh.isAlive) {

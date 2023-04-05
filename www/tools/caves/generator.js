@@ -1,6 +1,6 @@
 import {BLOCK} from '../../js/blocks.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from '../../js/chunk_const.js';
-import { Color, getChunkAddr, Vector, VectorCollector } from '../../js/helpers.js';
+import { Color, Vector, VectorCollector } from '../../js/helpers.js';
 import { ClusterManager } from '../../js/terrain_generator/cluster/manager.js';
 await BLOCK.init({
     texture_pack: 'base',

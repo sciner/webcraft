@@ -5,19 +5,22 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 
+import type { World } from '../../world.js';
+import type { Renderer } from '../../render.js';
+
 const {mat4} = glMatrix;
 
-// Mesh_Object_BeaconRay
+// BeaconRay mesh
 export class Mesh_Object_BeaconRay {
     [key: string]: any;
 
     // Constructor
-    constructor(args) {
+    constructor(args, world : World) {
 
         this.apos           = args.pos.clone().addScalarSelf(.5, .5, .5); // absolute coord
         this.life           = 1.0;
         this.chunk          = null;
-        this.chunk_addr     = Vector.toChunkAddr(this.apos);
+        this.chunk_addr     = world.chunkManager.grid.toChunkAddr(this.apos);
         this.chunk_coord    = this.chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
@@ -56,7 +59,7 @@ export class Mesh_Object_BeaconRay {
     }
 
     // Draw
-    draw(render, delta) {
+    draw(render : Renderer, delta : float) {
 
         if(!this.buffer) {
             return false;

@@ -946,6 +946,10 @@ export class DBWorldMigration {
             'ALTER TABLE user ADD COLUMN world_data TEXT DEFAULT NULL'
         ]});
 
+        migrations.push({version: 97, queries: [
+            `ALTER TABLE world ADD COLUMN "tech_info" TEXT DEFAULT '{"chunk_size": {"x":16,"y":40,"z":16}}'`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

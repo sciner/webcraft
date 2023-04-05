@@ -1,5 +1,5 @@
 import { BLOCK } from "../blocks.js";
-import {getChunkAddr, Vector, VectorCollector} from "../helpers.js";
+import { Vector, VectorCollector} from "../helpers.js";
 import {FluidChunk} from "./FluidChunk.js";
 import {
     FLUID_BLOCK_RESTRICT,
@@ -13,10 +13,12 @@ import {
 } from "./FluidConst.js";
 import {AABB} from "../core/AABB.js";
 import {BaseChunk} from "../core/BaseChunk.js";
-import {ChunkGrid} from "../core/ChunkGrid.js";
+import type {ChunkGrid} from "../core/ChunkGrid.js";
 
 export class FluidWorld {
     [key: string]: any;
+    world: any
+
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
         this.world = chunkManager.getWorld();
@@ -110,7 +112,7 @@ export class FluidWorld {
     }
 
     applyWorldFluidsList(fluids) {
-        const chunks = FluidWorld.separateWorldFluidByChunks(fluids);
+        const chunks = FluidWorld.separateWorldFluidByChunks(fluids, this.world.chunkManager.grid);
         for (let [chunk_addr, fluids] of chunks) {
             const chunk = this.chunkManager.getChunk(chunk_addr);
             if (chunk) {
@@ -119,7 +121,7 @@ export class FluidWorld {
         }
     }
 
-    static separateWorldFluidByChunks(fluids) {
+    static separateWorldFluidByChunks(fluids, grid : ChunkGrid) {
         let fluidByChunk = new VectorCollector();
         if (!fluids || fluids.length === 0) {
             return fluidByChunk;
@@ -130,7 +132,7 @@ export class FluidWorld {
         let chunkFluids = null;
         for (let i = 0; i < fluids.length; i += 4) {
             let x = fluids[i], y = fluids[i + 1], z = fluids[i + 2], val = fluids[i + 3];
-            getChunkAddr(x, y, z, chunk_addr);
+            grid.getChunkAddr(x, y, z, chunk_addr);
             if (i === 0 || !prev_chunk_addr.equal(chunk_addr)) {
                 prev_chunk_addr.copyFrom(chunk_addr);
                 let rec = fluidByChunk.get(chunk_addr);
@@ -144,8 +146,8 @@ export class FluidWorld {
         return fluidByChunk;
     }
 
-    static getOfflineFluidChunk(grid = new ChunkGrid({}), chunk_addr: Vector, buf: Uint8Array, fluids: int[]) {
-        //TODO: GRID!
+    static getOfflineFluidChunk(grid: ChunkGrid, chunk_addr: Vector, buf: Uint8Array, fluids: int[]) {
+        // TODO: GRID!
         const coord = grid.chunkAddrToCoord(chunk_addr);
 
         const fakeChunk = {
@@ -178,8 +180,8 @@ export class FluidWorld {
     /**
      * utility functions
      */
-    getValue(x, y, z) {
-        let chunk_addr = getChunkAddr(x, y, z);
+    getValue(x : number, y : number, z : number) {
+        let chunk_addr = this.world.chunkManager.grid.getChunkAddr(x, y, z);
         let chunk = this.chunkManager.getChunk(chunk_addr);
         if (!chunk) {
             return 0;
@@ -189,14 +191,10 @@ export class FluidWorld {
 
     /**
      * used by physics
-     * @param x
-     * @param y
-     * @param z
-     * @returns {number|number}
      */
-    getFluidLevel(x, y, z) {
+    getFluidLevel(x : number, y : number, z : number) : number {
         //TODO: Make TFLuid for all those operations!
-        let chunk_addr = getChunkAddr(x, y, z);
+        let chunk_addr = this.world.chunkManager.grid.getChunkAddr(x, y, z);
         let chunk = this.chunkManager.getChunk(chunk_addr);
         if (!chunk) {
             return 0;
@@ -217,27 +215,27 @@ export class FluidWorld {
         return lvl + y;
     }
 
-    isLava(x, y, z) {
+    isLava(x : number, y : number, z : number) : boolean {
         return (this.getValue(x, y, z) & FLUID_TYPE_MASK) === FLUID_LAVA_ID;
     }
 
-    isWater(x, y, z) {
+    isWater(x : number, y : number, z : number) : boolean {
         return (this.getValue(x, y, z) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
     }
 
-    isFluid(x, y, z) {
+    isFluid(x : number, y : number, z : number) : boolean {
         return (this.getValue(x, y, z) & FLUID_TYPE_MASK) !== 0;
     }
 
-    isPosLava(pos) {
+    isPosLava(pos : Vector) : boolean {
         return this.isLava(pos.x, pos.y, pos.z);
     }
 
-    isPosWater(pos) {
+    isPosWater(pos : Vector) : boolean {
         return this.isWater(pos.x, pos.y, pos.z);
     }
 
-    isPosFluid(pos) {
+    isPosFluid(pos : Vector) : boolean {
         return this.isFluid(pos.x, pos.y, pos.z);
     }
 

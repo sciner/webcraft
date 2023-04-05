@@ -128,9 +128,8 @@ export class MobManager {
             yaw:            data.rotate.z,
             skin:           data.skin || 'base',
             extra_data:     data.extra_data || null
-        });
+        }, this.#world);
 
-        mob.world = this.#world;
         mob.pos.y += 1/200;
 
         this.list.set(data.id, mob);

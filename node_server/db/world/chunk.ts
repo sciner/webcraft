@@ -1,4 +1,4 @@
-import { Vector, unixTime, getChunkAddr } from "@client/helpers.js";
+import { Vector, unixTime } from "@client/helpers.js";
 import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { decompressModifiresList } from "@client/compress/world_modify_chunk.js";
 import { BulkSelectQuery, preprocessSQL, runBulkQuery, all, get, run } from "../db_helpers.js";
@@ -170,7 +170,7 @@ export class DBWorldChunk {
      */
     async bulkInsertWorldModify(rows, dt = unixTime(), user_id = null) {
         const jsonRows = rows.map(row => {
-            const chunk_addr = row.chunk_addr ?? Vector.toChunkAddr(row.pos, tmpAddr);
+            const chunk_addr = row.chunk_addr ?? this.world.chunkManager.grid.toChunkAddr(row.pos, tmpAddr);
             const index = tmpVector.copyFrom(row.pos).getFlatIndexInChunk();
             return [
                 row.user_id ?? user_id,

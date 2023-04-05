@@ -2,7 +2,8 @@ import { Resources } from "./resources.js";
 import { CLIENT_MUSIC_ROOT, MUSIC_FADE_DURATION, MUSIC_PAUSE_SECONDS,
     VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
     VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_MAX_VOLUME_CHANGE_PER_SECOND, VOLUMETRIC_SOUND_MAX_STEREO_CHANGE_PER_SECOND,
-    DEFAULT_SOUND_MAX_DIST }  from "./constant.js";
+    DEFAULT_SOUND_MAX_DIST, 
+    WORKER_MESSAGE}  from "./constant.js";
 import { Mth, Vector, ArrayHelpers } from "./helpers.js";
 import type { Player } from "./player.js";
 import type { World } from "./world.js";
@@ -205,6 +206,8 @@ class Music {
 class VolumetricSound {
     [key: string]: any;
 
+    world : World
+
     static TELEPORT_DISTANCE = 20
 
     /**
@@ -224,7 +227,7 @@ class VolumetricSound {
         }
     ]
 
-    constructor(sounds) {
+    constructor(sounds : Sounds) {
         if (VolumetricSound.SOUNDS.length !== VOLUMETRIC_SOUND_TYPES) {
             throw new Error()
         }
@@ -266,7 +269,7 @@ class VolumetricSound {
         }
 
         const that = this
-        this.worker.onmessage = function(msg) {
+        this.worker.onmessage = function(msg : any) {
             msg = msg.data ?? msg
             const cmd = msg[0]
             const args = msg[1]
@@ -279,13 +282,16 @@ class VolumetricSound {
                     break
             }
         }
+
+        this.worker.postMessage([WORKER_MESSAGE.SOUND_WORKER_INIT, {chunk_size: new Vector(this.world.info.tech_info.chunk_size)}])
+
     }
 
     setPosOrientation(pos, forward) {
         if (this._disabled) {
             return
         }
-        this.worker?.postMessage(['player_pos', pos])
+        this.worker?.postMessage([WORKER_MESSAGE.SOUND_WORKER_PLAYER_POS, pos])
         if (this.pos.distance(pos) > VolumetricSound.TELEPORT_DISTANCE) {
             // far teleport detected - stop the sound at the new place immediately
             for(const t of this.types) {
@@ -314,7 +320,7 @@ class VolumetricSound {
     }
 
     onFlowingDiff(msg) {
-        this.worker.postMessage(['flowing_diff', msg])
+        this.worker.postMessage([WORKER_MESSAGE.SOUND_WORKER_FLOWING_DIFF, msg])
     }
 
     _update() {

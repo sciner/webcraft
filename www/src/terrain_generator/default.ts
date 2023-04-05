@@ -1,12 +1,13 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
-import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, getChunkAddr, IndexedColor } from '../helpers.js';
+import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, IndexedColor } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 import { WorldAction } from "../world_action.js";
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
 import type { TerrainMapCell } from "./terrain_map.js";
 import { CD_ROT } from "../core/CubeSym.js";
+import type { WorkerWorld } from "../worker/world.js";
 
 declare type ISetTreeBlock = (tree : any, x : int, y : int, z : int, block_type : any, force_replace : boolean, rotate? : IVector, extra_data? : any) => any
 
@@ -154,8 +155,8 @@ export class Default_Terrain_Generator {
     }
 
     // plantTree...
-    plantTree(world, tree, chunk, x, y, z, check_chunk_size = true) {
-        
+    plantTree(world : WorkerWorld, tree, chunk, x: int, y: int, z: int, check_chunk_size = true) {
+
         const type = tree.type;
         const style_func = this.tree_styles.get(type.style)
 
@@ -194,7 +195,7 @@ export class Default_Terrain_Generator {
                 x += orig_xyz.x
                 y += orig_xyz.y
                 z += orig_xyz.z
-                this.setTreeBlock(tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data)
+                this.setTreeBlock(world, tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data)
             });
         }
 
@@ -215,13 +216,13 @@ export class Default_Terrain_Generator {
     }
 
     //
-    setTreeBlock(tree, chunk, x : int, y : int, z : int, block_type : any, force_replace : boolean = false, rotate : Vector, extra_data : any) {
+    setTreeBlock(world : WorkerWorld, tree, chunk, x : int, y : int, z : int, block_type : any, force_replace : boolean = false, rotate : Vector, extra_data : any) {
 
         const ax = chunk.coord.x + x
         const ay = chunk.coord.y + y
         const az = chunk.coord.z + z
 
-        this._chunk_addr = getChunkAddr(ax, ay, az, this._chunk_addr)
+        this._chunk_addr = world.chunkManager.grid.getChunkAddr(ax, ay, az, this._chunk_addr)
         let c = tree.chunks.get(this._chunk_addr)
         if(!c) {
             c = {blocks: new SimpleQueue()}

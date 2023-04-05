@@ -1,6 +1,5 @@
 // Color
 export class Color {
-    [key: string]: any;
 
     r: number;
     g: number;

@@ -272,7 +272,7 @@ export class BLOCK {
         // See also isFluidId()
         this.addFlag(BLOCK_FLAG.FLUID, this.FLOWING_WATER.id, this.STILL_WATER.id, this.FLOWING_LAVA.id, this.STILL_LAVA.id, this.FLOOD_WATER.id, this.FLOOD_LAVA.id)
         // Taken from overworld.ts
-        this.addFlag(BLOCK_FLAG.STONE, this.STONE?.id, this.ANDESITE?.id, this.DIORITE?.id, this.GRANITE?.id)
+        this.addFlag(BLOCK_FLAG.STONE, this.STONE.id, this.ANDESITE.id, this.DIORITE.id, this.GRANITE.id, this.DEEPSLATE.id)
         //
         this.addFlag(BLOCK_FLAG.OPAQUE_FOR_NATURAL_SLAB, this.DIRT_PATH.id)
         //

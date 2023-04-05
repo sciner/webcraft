@@ -56,7 +56,7 @@ export class Building {
     _autoBasementAABB:  AABB
 
     randoms:            any
-    cluster:            any
+    cluster:            ClusterBase
     seed:               any
     building_template:  any
     materials:          any
@@ -411,15 +411,16 @@ export class Building {
      * For old style generators
      * @deprecated
      */
-    findYOld(chunk, maps) : boolean {
+    findYOld(chunk : ChunkWorkerChunk, maps : any) : boolean {
         if(this.entrance.y != Infinity) {
             return false;
         }
         // забираем карту того участка, где дверь, чтобы определить точный уровень пола
         let value2 = 0
         let value2_changed = false
+        const grid = this.cluster.clusterManager.chunkManager.grid
         for(let entrance of [this.entrance, this.ahead_entrance]) {
-            const map_addr = Vector.toChunkAddr(entrance);
+            const map_addr = grid.toChunkAddr(entrance);
             map_addr.y = 0;
             let entrance_map = maps.get(map_addr);
             if(entrance_map) {

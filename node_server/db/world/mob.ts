@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '@client/chunk_const.js';
-import { getChunkAddr, Vector, VectorCollector } from '@client/helpers.js';
+import { Vector, VectorCollector } from '@client/helpers.js';
 import { Mob } from "../../mob.js";
 import type { ServerChunk } from '../../server_chunk.js';
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from '../../server_constant.js';
@@ -96,7 +96,7 @@ export class DBWorldMob {
     _cacheMob(id: int, is_active: int | boolean, x: float = null, y: float = null, z: float = null): void {
 
         const old_chunk_addr = this._addrByMobId.get(id);
-        const new_chunk_addr = is_active && getChunkAddr(x, y, z, tmpAddr);
+        const new_chunk_addr = is_active && this.world.chunkManager.grid.getChunkAddr(x, y, z, tmpAddr);
 
         if(old_chunk_addr) {
             if(new_chunk_addr && old_chunk_addr.equal(new_chunk_addr)) {

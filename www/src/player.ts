@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, Vector, ObjectHelpers} from "./helpers.js";
+import {Helpers, Vector, ObjectHelpers} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -266,11 +266,7 @@ export class Player implements IPlayer {
         return 0;
     }
 
-    /**
-     * @param { import("./world.js").World } world
-     * @param {*} cb
-     */
-    JoinToWorld(world, cb) {
+    JoinToWorld(world : World, cb : any) {
         this.world = world;
         //
         this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
@@ -310,7 +306,7 @@ export class Player implements IPlayer {
         this.#forward               = new Vector(0, 0, 0);
         this.blockPos               = this.getBlockPos().clone();
         this.blockPosO              = this.blockPos.clone();
-        this.chunkAddr              = Vector.toChunkAddr(this.pos);
+        this.chunkAddr              = this.world.chunkManager.grid.toChunkAddr(this.pos);
         // Rotate
         this.rotate                 = new Vector(0, 0, 0);
         this.#_rotateDegree         = new Vector(0, 0, 0);
@@ -473,7 +469,7 @@ export class Player implements IPlayer {
         if (!overChunk) {
             // some kind of race F8+R
             const blockPos = this.getBlockPos();
-            this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
+            this.chunkAddr = this.world.chunkManager.grid.getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
             overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
         }
 
@@ -718,7 +714,7 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
-            const player: ActionPlayerInfo = {
+            const action_player_info: ActionPlayerInfo = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
                 pos: this.lerpPos,
@@ -727,7 +723,7 @@ export class Player implements IPlayer {
                     user_id: this.session.user_id
                 }
             };
-            const [actions, pos] = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
                 e_orig.snapshotId = this.world.history.makeSnapshot(pos);
                 if(e.createBlock && actions.blocks.list.length > 0) {
@@ -823,7 +819,7 @@ export class Player implements IPlayer {
         this.lerpPos = new Vector(vec);
         //
         this.blockPos = this.getBlockPos();
-        this.chunkAddr = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+        this.chunkAddr = this.world.chunkManager.grid.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
     }
 
     getFlying() {
@@ -931,7 +927,7 @@ export class Player implements IPlayer {
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
-                this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                this.chunkAddr          = this.world.chunkManager.grid.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится глаза

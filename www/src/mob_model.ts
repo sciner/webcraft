@@ -1,6 +1,6 @@
 import { Resources } from "./resources.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector, chunkAddrToCoord, IndexedColor } from "./helpers.js";
+import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
@@ -10,8 +10,7 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { SceneNode } from "./SceneNode.js";
 import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import GeometryTerrain from "./geometry_terrain.js";
-import type { BBModel_Group } from "./bbmodel/group.js";
+import type { World } from "./world.js";
 
 const { quat, mat4 } = glMatrix;
 
@@ -516,12 +515,13 @@ export class MobAnimation {
 export class MobModel extends NetworkPhysicObject {
     [key: string]: any;
 
-    constructor(props) {
+    constructor(props, world : World) {
 
         super(
+            world,
             new Vector(0, 0, 0),
             new Vector(0, 0, 0)
-        );
+        )
 
         this.fix_z_fighting             = Math.random() / 100;
         this.sceneTree                  = null;
@@ -656,7 +656,7 @@ export class MobModel extends NetworkPhysicObject {
         } else {
             this.tmpDrawPos = this.tmpDrawPos ?? new Vector();
             this.drawPos = this.tmpDrawPos;
-            chunkAddrToCoord(this.chunk_addr, this.drawPos);
+            this.world.chunkManager.grid.chunkAddrToCoord(this.chunk_addr, this.drawPos);
         }
 
         const yaw = this.yaw;
@@ -861,17 +861,13 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
-    /**
-     * @param {Renderer} render
-     */
-    drawInFire(render, delta) {
+    drawInFire(render : Renderer, delta : float) {
         if(this.fire_mesh) {
             this.fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
             this.fire_mesh.apos.copyFrom(this.pos);
             this.fire_mesh.draw(render, delta);
         } else {
-            this.fire_mesh = new Mesh_Object_MobFire(this);
-            // render.meshes.add(this.fire_mesh);
+            this.fire_mesh = new Mesh_Object_MobFire(this, this.world)
         }
     }
 

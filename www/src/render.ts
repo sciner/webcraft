@@ -17,7 +17,6 @@ import { Mesh_Object_Stars } from "./mesh/object/stars.js";
 import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
-// import { InHandOverlay } from "./ui/inhand_overlay_old.js";
 import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
@@ -140,7 +139,6 @@ export class Renderer {
                 premultipliedAlpha: false,
                 powerPreference: "high-performance"
             });
-        this.meshes = new MeshManager();
 
         this.camera = new Camera({
             type: Camera.PERSP_CAMERA,
@@ -194,6 +192,7 @@ export class Renderer {
     async init(world, settings) {
         this.setWorld(world);
         this.settings = settings;
+        this.meshes = new MeshManager(world);
 
         const {renderBackend} = this;
 
@@ -350,7 +349,7 @@ export class Renderer {
             let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
             mat3.fromMat4(mx, mx4);
             //
-            const drop = new Mesh_Object_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
+            const drop = new Mesh_Object_Block_Drop(this.world, null, null, [b], Vector.ZERO, frame_matrix, null);
             drop.mesh_group.meshes.forEach((mesh, _, map) => {
                 this.addDropItemMesh(drop.block.id, _, mesh.vertices);
             });
@@ -416,7 +415,7 @@ export class Renderer {
                 if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
                     return null;
                 }
-                const drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
+                const drop = new Mesh_Object_Block_Drop(this.world, this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 addAtlasSprite(drop.block_material)
                 return drop;
@@ -717,7 +716,7 @@ export class Renderer {
         this.rain?.update(this.getWeather(), delta)
         globalUniforms.rainStrength = this.rain?.strength_val ?? 0
 
-        let chunkBlockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+        let chunkBlockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X;
         let nightshift = 1.;
         let preset = PRESET_NAMES.NORMAL;
 
@@ -749,19 +748,8 @@ export class Renderer {
                 preset = PRESET_NAMES.WATER;
                 chunkBlockDist = 8;
 
-                const p = FOG_PRESETS[preset]
-                const color = getPlayerBlockColor()
-                if(color) {
-                    color.divideScalarSelf(255)
-                    p.color[0] = color.r
-                    p.color[1] = color.g
-                    p.color[2] = color.b
-                    p.addColor[0] = color.r
-                    p.addColor[1] = color.g
-                    p.addColor[2] = color.b
-                    this.env.presets[preset] = new FogPreset(p)
-                    this.env._fogDirty = true
-                }
+                Environment.replacePresetColor(preset, getPlayerBlockColor())
+
 
             } else if(player.eyes_in_block.name == 'NETHER_PORTAL') {
                 preset = PRESET_NAMES.NETHER_PORTAL;
@@ -770,22 +758,13 @@ export class Renderer {
                 preset = PRESET_NAMES.LAVA;
                 chunkBlockDist = 4; //
             }
-        } /*else {
-            preset = PRESET_NAMES.WATER;
-            const p = FOG_PRESETS[preset]
-            const color = getPlayerBlockColor()
-            if(color) {
-                color.divideScalarSelf(255)
-                p.color[0] = color.r
-                p.color[1] = color.g
-                p.color[2] = color.b
-                p.addColor[0] = color.r
-                p.addColor[1] = color.g
-                p.addColor[2] = color.b
-                this.env.presets[preset] = new FogPreset(p)
-                this.env._fogDirty = true
+        } else {
+            const biome_id = player.getOverChunkBiomeId()
+            const biome = biome_id > 0 ? this.world.chunkManager.biomes.byID.get(biome_id) : null;
+            if(biome?.fog_preset_name) {
+                preset = biome.fog_preset_name;
             }
-        }*/
+        }
 
         this.env.setEnvState({
             chunkBlockDist,
@@ -1024,7 +1003,7 @@ export class Renderer {
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {
-            this.inHandOverlay = new InHandOverlay(this.player.skin, this);
+            this.inHandOverlay = new InHandOverlay(this.world, this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
@@ -1049,7 +1028,7 @@ export class Renderer {
 
     // addAsteroid
     addAsteroid(pos, rad) {
-        this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
+        this.meshes.add(new Mesh_Object_Asteroid(this.world, this, pos, rad));
     }
 
     addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string, doubleface : boolean = false) {

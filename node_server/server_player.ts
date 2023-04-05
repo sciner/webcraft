@@ -115,6 +115,7 @@ export class ServerPlayer extends Player {
     conn: any;
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
+    _world_edit_copy: any
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -150,15 +151,16 @@ export class ServerPlayer extends Player {
             id: 0,
             time: 0
         };
+
         this.vision                 = new ServerPlayerVision(this);
         this.damage                 = new ServerPlayerDamage(this);
         this.mining_time_old        = 0; // время последнего разрушения блока
         // null, or an array of POJO postitions of 1 or 2 chests that this player is currently working with
-        this.currentChests          = null;
+        this.currentChests          = null
 
-        this.timer_reload = performance.now();
-
+        this.timer_reload = performance.now()
         this._aabb = new AABB()
+
     }
 
     init(init_info: PlayerInitInfo): void {
@@ -229,14 +231,7 @@ export class ServerPlayer extends Player {
         });
     }
 
-    /**
-     *
-     * @param {string} session_id
-     * @param {string} skin
-     * @param {WebSocket} conn
-     * @param {ServerWorld} world
-     */
-    async onJoin(session_id, skin_id, conn, world) {
+    async onJoin(session_id : string, skin_id : int, conn : any, world : ServerWorld) {
 
         if (EMULATED_PING) {
             console.log('Connect user with emulated ping:', EMULATED_PING);
@@ -247,15 +242,18 @@ export class ServerPlayer extends Player {
 
         this.conn               = conn;
         this.world              = world;
-        this.raycaster          = new Raycaster(world);
-        this.session_id         = session_id;
-        this.skin               = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id);
+        this.raycaster          = new Raycaster(world)
+        this.vision             = new ServerPlayerVision(this)
+        this.effects            = new ServerPlayerEffects(this)
+        this.damage             = new ServerPlayerDamage(this)
+        this.session_id         = session_id
+        this.skin               = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id)
         //
         conn.player = this;
         conn.on('message', this.onMessage.bind(this));
         //
         conn.on('close', async (e) => {
-            this.world.onLeave(this);
+            this.world.onLeave(this)
         });
         //
         this.sendPackets([{
@@ -317,12 +315,12 @@ export class ServerPlayer extends Player {
         if(!this.conn) {
             return false;
         }
-        this.vision.leave();
+        this.vision?.leave()
         // remove events handler
-        PlayerEvent.removeHandler(this.session.user_id);
+        PlayerEvent.removeHandler(this.session.user_id)
         // close previous connection
-        this.conn.close(1000, 'error_multiconnection');
-        delete(this.conn);
+        this.conn.close(1000, 'error_multiconnection')
+        delete(this.conn)
     }
 
     // Нанесение урона игроку
@@ -877,6 +875,7 @@ export class ServerPlayer extends Player {
                 this.vision.teleportSafePos(new_pos);
             } else {
                 teleported_player.wait_portal = new WorldPortalWait(
+                    world.chunkManager.grid,
                     teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
                     new_pos,
                     params

@@ -2,24 +2,26 @@ import { LEAVES_COLORS } from "../../../block_style/cube.js";
 import { CHUNK_SIZE_X } from "../../../chunk_const.js";
 import { ChunkManager } from "../../../chunk_manager.js";
 import { BLOCK_FLAG, GRASS_PALETTE_OFFSET } from "../../../constant.js";
-import { DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from "../../../helpers.js";
+import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector } from "../../../helpers.js";
+import type { MeshManager } from "../../manager.js";
 import { Mesh_Effect_Particle, PARTICLE_FLAG_BOUNCE_CEILING } from "../particle.js";
+import { BaseEmitter } from "./base.js";
 
 const _pos_floored = new Vector(0, 0, 0);
 const _lm_grass = new IndexedColor(0, 0, 0);
 
-export default class emitter {
+export default class emitter extends BaseEmitter {
     [key: string]: any;
 
-    constructor(pos, args) {
+    constructor(mesh_manager : MeshManager, pos, args) {
 
-        this.args           = args;
-        this.pos            = pos;
+        super(mesh_manager, pos, args)
+
         this.block_manager  = args.block_manager;
         this.max_distance   = 32;
 
         // get chunk
-        this.chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
+        this.chunk_addr = mesh_manager.world.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z);
         const chunk = ChunkManager.instance.getChunk(this.chunk_addr);
         if(!chunk || !chunk.dirt_colors) {
             this.life = 0;

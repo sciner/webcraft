@@ -17,6 +17,7 @@ import {impl as alea} from "../../vendors/alea.js";
 import type { BBModel_Model } from '../bbmodel/model.js';
 import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import { BLOCK_FLAG } from '../constant.js';
 
 
 const { mat4, vec3 } = glMatrix;
@@ -296,10 +297,22 @@ export default class style {
     static applyBehavior(model : BBModel_Model, chunk : ChunkWorkerChunk, tblock : TBlock | FakeTBlock, neighbours : any, matrix : imat4, biome : any, dirt_color : IndexedColor, vertices : float[], xyz : Vector) {
 
         const bm = style.block_manager
+        const blockFlags = bm.flags
         const emmited_blocks = []
         const mat = tblock.material
         const bb = mat.bb
         const behavior = bb.behavior || bb.model.name
+
+        if(!(tblock instanceof FakeTBlock) && behavior.endsWith('_ore')) {
+            const hide_groups = []
+            if(neighbours.NORTH && (blockFlags[neighbours.NORTH.id] & BLOCK_FLAG.SOLID)) hide_groups.push('north')
+            if(neighbours.SOUTH && (blockFlags[neighbours.SOUTH.id] & BLOCK_FLAG.SOLID)) hide_groups.push('south')
+            if(neighbours.WEST && (blockFlags[neighbours.WEST.id] & BLOCK_FLAG.SOLID)) hide_groups.push('west')
+            if(neighbours.EAST && (blockFlags[neighbours.EAST.id] & BLOCK_FLAG.SOLID)) hide_groups.push('east')
+            if(neighbours.UP && (blockFlags[neighbours.UP.id] & BLOCK_FLAG.SOLID)) hide_groups.push('up')
+            if(neighbours.DOWN && (blockFlags[neighbours.DOWN.id] & BLOCK_FLAG.SOLID)) hide_groups.push('down')
+            model.hideGroups(hide_groups)
+        }
 
         // 1.
         if(bb.set_state /* && !(tblock instanceof FakeTBlock) */) {

@@ -142,6 +142,7 @@ export class DBWorld {
     async getWorld(world_guid : string) : Promise<TWorldInfo> {
         const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(row) {
+            const tech_info = JSON.parse(row.tech_info)
             const resp = {
                 id:             row.id,
                 user_id:        row.user_id,
@@ -157,7 +158,8 @@ export class DBWorld {
                 state:          null,
                 add_time:       row.add_time,
                 world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
-                recovery:       row.recovery
+                recovery:       row.recovery,
+                tech_info:      {...tech_info, chunk_size: new Vector(tech_info.chunk_size) as IVector} as TWorldTechInfo
             } as TWorldInfo
             resp.generator = WorldGenerators.validateAndFixOptions(resp.generator);
             return resp;

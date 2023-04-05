@@ -3,6 +3,7 @@ import type { BLOCK } from "../../../blocks.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { Vector } from "../../../helpers.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
+import type { WorkerWorld } from "../../../worker/world.js";
 import { ClusterEndCity } from "../../cluster/end_city.js";
 import { ClusterManager } from "../../cluster/manager.js";
 import { TerrainMapCell } from "../../terrain_map.js";
@@ -17,8 +18,8 @@ class EndTerrainMapManager extends TerrainMapManagerBase {
     declare layer : Biome3LayerEnd
     _biome : Biome
 
-    constructor(seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerEnd) {
-        super(seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
+    constructor(world: WorkerWorld, seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerEnd) {
+        super(world, seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
         this._biome = this.biomes.byName.get('Летающие острова')
     }
 
@@ -92,7 +93,7 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
     init(generator : Terrain_Generator) : Biome3LayerEnd {
         super.init(generator)
         this.clusterManager = new ClusterManager(generator.world, generator.seed, this, [{chance: .6, class: ClusterEndCity}])
-        this.maps = new EndTerrainMapManager(generator.seed, generator.world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
+        this.maps = new EndTerrainMapManager(generator.world, generator.seed, generator.world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
         return this
     }
 
