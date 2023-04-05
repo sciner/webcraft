@@ -337,12 +337,13 @@ export class TerrainMap extends Default_Terrain_Map {
         // TerrainMapManager.registry.register(this, chunk.addr.toHash());
     }
 
-    static ensureSize(sz) {
-        if (TerrainMap._cells.length < sz) {
-            TerrainMap._cells = new Array(sz);
-            TerrainMap._vals = new Array(sz * VAL_COUNT);
-            TerrainMap._sums = new Array(sz * VAL_COUNT);
+    static ensureSize(sz: number) {
+        if (TerrainMap._cells && TerrainMap._cells.length >= sz) {
+            return;
         }
+        TerrainMap._cells = new Array(sz);
+        TerrainMap._vals = new Array(sz * VAL_COUNT);
+        TerrainMap._sums = new Array(sz * VAL_COUNT);
     }
 
     static setPartial(SMOOTH_ROW_COUNT: number, x : number, z : number, cell) {
@@ -418,12 +419,12 @@ export class TerrainMap extends Default_Terrain_Map {
                 }
                 bi = BLOCK.getBlockIndex(grid.chunkSize, px, 0, pz, bi)
                 const cell = map.getCell(bi.x, bi.z)
-                this.setPartial(SMOOTH_ROW_COUNT, x, z, cell);
+                TerrainMap.setPartial(SMOOTH_ROW_COUNT, x, z, cell);
             }
         }
 
         // 2. Smoothing | Сглаживание
-        this.calcSum(SMOOTH_ROW_COUNT);
+        TerrainMap.calcSum(SMOOTH_ROW_COUNT);
         const sums = TerrainMap._sums, cells = TerrainMap._cells;
         for(let x = 0; x < CHUNK_SIZE_X; x++) {
             for(let z = 0; z < CHUNK_SIZE_Z; z++) {

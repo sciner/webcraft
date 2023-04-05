@@ -131,7 +131,7 @@ export class WorldGroundLevel {
     constructor(world) {
         this.world = world;
         this.chunkManager = world.chunkManager;
-        const CHUNK_SIZE_X = world.chunkManager.grid.CHUNK_SIZE_X;
+        const CHUNK_SIZE_X = world.chunkManager.grid.chunkSize.x;
 
         this.groundLevelSkipCounter = 0;
         this.prevGroundLevelPlayerPos = null;
