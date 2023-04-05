@@ -60,7 +60,8 @@ export abstract class PlayerControlManager {
         this.player = player
         const pos = new Vector(player.sharedProps.pos)
         this.prismarine = new PrismarinePlayerControl(player.world, pos, {effects: player.effects})
-        this.spectator = new SpectatorPlayerControl(player.world, pos)
+        const useOldSpectator = Qubatch.settings?.old_spectator_controls ?? false
+        this.spectator = new SpectatorPlayerControl(player.world, pos, useOldSpectator)
         this.controlByType = [this.prismarine, this.spectator]
         this.current = this.prismarine // it doesn't matter what we choose here, it'll be corrected in the next line
         this.updateCurrentControlType(false)
@@ -240,7 +241,8 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     constructor(player: Player) {
         super(player)
         const pos = new Vector(player.sharedProps.pos)
-        this.freeCamSpectator = new SpectatorPlayerControl(player.world, pos)
+        const useOldSpectator = Qubatch.settings?.old_spectator_controls ?? false
+        this.freeCamSpectator = new SpectatorPlayerControl(player.world, pos, useOldSpectator)
         this.prevPhysicsTickPos.copyFrom(player.sharedProps.pos)
     }
 
@@ -626,7 +628,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         }
         this.player.world.server.Send({name: ServerClient.CMD_PLAYER_CONTROL_SESSION, data})
     }
-    
+
     protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData,
                        outPosBeforeLastTick?: Vector): boolean {
         const pc = this.controlByType[data.contextControlType]

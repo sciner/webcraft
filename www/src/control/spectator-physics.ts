@@ -1,6 +1,6 @@
 "use strict";
 
-import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, SPECTATOR_SPEED_MUL} from "../constant.js";
+import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, PLAYER_ZOOM, SPECTATOR_SPEED_MUL} from "../constant.js";
 import {Mth, Vector} from "../helpers.js";
 import {PlayerControl} from "./player_control.js";
 import type {World} from "../world.js";
@@ -8,6 +8,7 @@ import {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import type {PlayerTickData} from "./player_tick_data.js";
 import {ClientPlayerTickData} from "./player_tick_data.js";
 import type {ClientPlayerControlManager} from "./player_control_manager.js";
+import {OldSpectatorPlayerControl} from "./spectator-physics-old.js"
 
 /**
  * Описание конфига скорости для одного типа движения.
@@ -55,9 +56,9 @@ type TFreeSpeedConfig = {
 const SPEED_CONFIGS: Dict<TFreeSpeedConfig> = {
     HORIZONTAL: {
         max                                         : 11.5,
-        exponential_acceleration_half_time          : 170,
-        opposite_exponential_acceleration_half_time : 100,
-        deceleration_time                           : 2000,
+        exponential_acceleration_half_time          : 200,
+        opposite_exponential_acceleration_half_time : null,
+        deceleration_time                           : 3000,
         exponential_deceleration_half_time          : 200
     },
     VERTICAL: {
@@ -117,7 +118,9 @@ export class SpectatorPlayerControl extends PlayerControl {
     private prevTime: number
     private tmpTickData = new ClientPlayerTickData()
 
-    constructor(world: World, start_position: Vector) {
+    private oldSpectator: OldSpectatorPlayerControl | null = null
+
+    constructor(world: World, start_position: Vector, useOldSpectator: Boolean = false) {
         super()
         this.world = world
         this.player_state = {
@@ -127,6 +130,12 @@ export class SpectatorPlayerControl extends PlayerControl {
             onGround: true,
             flying: true,
             isInWater: false
+        }
+
+        if (useOldSpectator) {
+            const os = this.oldSpectator = new OldSpectatorPlayerControl(world, start_position)
+            os.controls = this.controls
+            os.player_state.vel = this.currentVelocity
         }
     }
 
@@ -156,6 +165,17 @@ export class SpectatorPlayerControl extends PlayerControl {
         // copy player's input to this control
         this.tmpTickData.initInputFrom(controlManager, 1, 1)
         this.tmpTickData.applyInputTo(controlManager, this)
+
+        // Use the old spectator, if it's enabled
+        const os = this.oldSpectator
+        if (os) {
+            this.getCurrentPos(os.player.entity.position)
+            os.mul = this.speedMultiplier
+            os.player_state.yaw = this.player_state.yaw
+            os.tick(deltaSeconds, PLAYER_ZOOM)
+            this.accumulatedDeltaPos.copyFrom(os.player.entity.position).subSelf(this.player_state.pos)
+            return
+        }
 
         const VERTICAL      = SPEEDS.VERTICAL
         const HORIZONTAL    = SPEEDS.HORIZONTAL
