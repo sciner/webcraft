@@ -101,7 +101,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         // Mines
         chunk.timers.start('generate_mines')
         if(chunk.addr.y == 0) {
-            const mine = MineGenerator.getForCoord(this, chunk.coord)
+            const mine = MineGenerator.getForCoord(this, chunk.coord, chunk.size)
             mine.fillBlocks(chunk);
         }
         chunk.timers.stop()

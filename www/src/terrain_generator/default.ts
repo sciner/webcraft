@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
+import { CH_SZ_Y, MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
 import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, IndexedColor } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
@@ -50,40 +50,32 @@ export class Default_Terrain_Map {
 export class Default_Terrain_Generator {
 
     seed:               string
-    voxel_buildings:    any[]
+    voxel_buildings:    any[] = []
+    x:                  number = 0
     noise2d:            any
     noise3d:            any
     world_id:           string
     options:            any
-    x:                  number
-    xyz_temp:           Vector
-    xyz_temp_find:      Vector
-    xyz_temp_coord:     Vector
-    _chunk_addr:        Vector
-    _block_pos:         Vector
-    temp_block:         { id: number; }
-    temp_tblock:        any
-    tree_styles:        Map<any, any>
+
+    xyz_temp:           Vector = new Vector(0, 0, 0);
+    xyz_temp_find:      Vector = new Vector(0, 0, 0);
+    xyz_temp_coord:     Vector = new Vector(0, 0, 0);
+    _chunk_addr:        Vector = new Vector(0, 0, 0);
+    _block_pos:         Vector = new Vector(0, 0, 0);
+
+    temp_block:         { id: number } = {id: 0}
+    temp_tblock:        any = null
+    tree_styles:        Map<any, any> = new Map()
     seed_int:           number
     fastRandoms:        FastRandom
 
     constructor(seed : string, world_id? : string, options?, noise2d? : any, noise3d? : any) {
-        this.voxel_buildings = [];
         this.noise2d        = noise2d ?? noise.simplex2;
         this.noise3d        = noise3d ?? noise.simplex3;
         this.world_id       = world_id;
         this.options        = options;
-        this.x              = 0;
-        this.xyz_temp       = new Vector(0, 0, 0);
-        this.xyz_temp_find  = new Vector(0, 0, 0);
-        this.xyz_temp_coord = new Vector(0, 0, 0);
-        this._chunk_addr    = new Vector(0, 0, 0);
-        this._block_pos     = new Vector(0, 0, 0);
-        this.temp_block     = {id: 0};
-        this.temp_tblock    = null;
         this.setSeed(seed);
         // Tree styles
-        this.tree_styles = new Map()
         this.tree_styles.set('cactus', this.plantCactus.bind(this)) // кактус
         this.tree_styles.set('bamboo', this.plantBamboo.bind(this)) // бамбук
         this.tree_styles.set('stump', this.plantStump.bind(this)) // пенёк
@@ -102,14 +94,14 @@ export class Default_Terrain_Generator {
     }
 
     async init() : Promise<boolean> {
-        return true;
+        return true
     }
 
     async setSeed(seed : string) {
-        this.seed = seed;
-        this.seed_int = parseInt(this.seed);
-        noise.seed(this.seed);
-        this.fastRandoms = new FastRandom(this.seed, CHUNK_SIZE_X * CHUNK_SIZE_Z);
+        this.seed = seed
+        this.seed_int = parseInt(this.seed)
+        noise.seed(this.seed)
+        this.fastRandoms = new FastRandom(this.seed, MAX_CHUNK_SQUARE)
     }
 
     //
@@ -223,17 +215,19 @@ export class Default_Terrain_Generator {
         const ax = chunk.coord.x + x
         const ay = chunk.coord.y + y
         const az = chunk.coord.z + z
+        const grid = world.chunkManager.grid
+        const chunk_size = chunk.size
 
-        this._chunk_addr = world.chunkManager.grid.getChunkAddr(ax, ay, az, this._chunk_addr)
+        this._chunk_addr = grid.getChunkAddr(ax, ay, az, this._chunk_addr)
         let c = tree.chunks.get(this._chunk_addr)
         if(!c) {
             c = {blocks: new SimpleQueue()}
             tree.chunks.set(this._chunk_addr, c)
         }
 
-        const cx = ax - Math.floor(ax / CHUNK_SIZE_X) * CHUNK_SIZE_X;
-        const cy = ay - Math.floor(ay / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
-        const cz = az - Math.floor(az / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
+        const cx = ax - Math.floor(ax / chunk_size.x) * chunk_size.x
+        const cy = ay - Math.floor(ay / chunk_size.y) * chunk_size.y
+        const cz = az - Math.floor(az / chunk_size.z) * chunk_size.z
         const block_id = block_type.id
 
         const block = {cx, cy, cz, block_id, force_replace, rotate, extra_data}
@@ -1026,7 +1020,7 @@ export class Default_Terrain_Generator {
         const z = 0
 
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
-        const height = Math.min(CHUNK_SIZE_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
+        const height = Math.min(CH_SZ_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
         const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
         // рисуем корни

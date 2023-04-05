@@ -1,4 +1,4 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { CH_SZ_X, CH_SZ_Y, CH_SZ_Z } from "./chunk_const.js";
 import { Vector, SimpleShifted3DArray, ArrayHelpers, Mth } from "./helpers.js";
 import { VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_TYPE_WATER, VOLUMETRIC_SOUND_TYPE_LAVA,
     VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
@@ -25,14 +25,14 @@ let SOUND_MAP_CHUNKS_RADIUS_XZ: number
 const SOUND_MAP_CHUNKS_RADIUS_Y = 1 // it's the minimum
 
 // Define fine-tuned constants for different chunk sizes
-if (CHUNK_SIZE_X === 16 && CHUNK_SIZE_Y === 40 && CHUNK_SIZE_Z === CHUNK_SIZE_Z) {
+if (CH_SZ_X === 16 && CH_SZ_Y === 40 && CH_SZ_Z === CH_SZ_Z) {
     MAX_LEVEL           = 3
     CELL_SIZE_Y         = [8, 8, 8, 8]
     SOUND_MAP_CHUNKS_RADIUS_XZ  = 2
 } else {
     throw Error() // choose good values for other sizes manually
 }
-if (VOLUMETRIC_SOUND_MAX_DISTANCE > (SOUND_MAP_CHUNKS_RADIUS_XZ + 0.5) * CHUNK_SIZE_X * 1.1) {
+if (VOLUMETRIC_SOUND_MAX_DISTANCE > (SOUND_MAP_CHUNKS_RADIUS_XZ + 0.5) * CH_SZ_X * 1.1) {
     throw Error('VOLUMETRIC_SOUND_MAX_DISTANCE is too big')
 }
 
@@ -111,17 +111,17 @@ function toSector(x, z) {
 function createMIPS() {
     const mips = new Array(MAX_LEVEL + 1)
     let cellXZ = 1
-    let sizeXZ = CHUNK_SIZE_X
+    let sizeXZ = CH_SZ_X
     let strideZ = 2 // [volume, 2 * SUM(y + 0.5)]
     let prevCellY = 1
     for(let level = 0; level <= MAX_LEVEL; level++) {
         const cellY = CELL_SIZE_Y[level]
-        const sizeY = CHUNK_SIZE_Y / cellY
+        const sizeY = CH_SZ_Y / cellY
 
         const strideY = strideZ * sizeXZ
         const strideX = strideY * sizeY
         // the upper bounds of the maximum possible element value: sum coordinates (CHUNK_SIZE_Y - 1) multiplied by volume
-        const maxValue = cellXZ * cellY * cellXZ * (2 * (CHUNK_SIZE_Y - 1) + 1)
+        const maxValue = cellXZ * cellY * cellXZ * (2 * (CH_SZ_Y - 1) + 1)
 
         mips[level] = {
             level,

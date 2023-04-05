@@ -1,7 +1,9 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "@client/chunk_const.js";
 import { DEFAULT_RENDER_DISTANCE } from "@client/constant.js";
+import { Vector } from "@client/helpers.js";
 import type { Indicators } from "@client/player.js";
 import type { ServerWorld } from "../../server_world.js";
+
+const OLD_CHUNK_SIZE = new Vector(16, 40, 16)
 
 // Migrations
 export class DBWorldMigration {
@@ -19,7 +21,9 @@ export class DBWorldMigration {
 
     //
     async apply() {
-        let version = 0;
+
+        let version = 0
+
         // Read options
         const table_exists = await this.db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='options'`);
         if(table_exists) {
@@ -31,18 +35,40 @@ export class DBWorldMigration {
             await this.db.get('INSERT INTO options(version) values(0)');
             await this.db.get('COMMIT');
         }
+
         //
-        const update_world_modify_chunks = [`
+        const update_world_modify_chunks = async () : Promise<string[]> => {
+
+            // check worlds count in database
+            const row_worlds = await this.db.get(`SELECT count(*) cnt FROM world`)
+            if(!row_worlds || row_worlds.cnt > 1) {
+                throw 'error_allow_only_one_world_per_database'
+            }
+  
+            // get actual chunk size
+            const csz = OLD_CHUNK_SIZE.clone()
+            const field_exists = await this.db.get(`SELECT * FROM pragma_table_info('world') WHERE name='tech_info'`)
+            if(field_exists) {
+                const row = await this.db.get('SELECT tech_info FROM world')
+                if(row) {
+                    const tech_info = JSON.parse(row.tech_info)
+                    if(tech_info?.chunk_size) {
+                        csz.copyFrom(tech_info.chunk_size)
+                    }
+                }
+            }
+
+            return [`
             UPDATE world_modify
             SET
-            chunk_x = cast(floor(cast(x as float) / ${CHUNK_SIZE_X}.) as integer),
-            chunk_y = cast(floor(cast(y as float) / ${CHUNK_SIZE_Y}.) as integer),
-            chunk_z = cast(floor(cast(z as float) / ${CHUNK_SIZE_Z}.) as integer),
+            chunk_x = cast(floor(cast(x as float) / ${csz.x}.) as integer),
+            chunk_y = cast(floor(cast(y as float) / ${csz.y}.) as integer),
+            chunk_z = cast(floor(cast(z as float) / ${csz.z}.) as integer),
                 "index" =
-                    (${CHUNK_SIZE_X}. * ${CHUNK_SIZE_Z}.) *
-                        ((y - floor(cast(y as float) / ${CHUNK_SIZE_Y}.) * ${CHUNK_SIZE_Y}.) % ${CHUNK_SIZE_Y}.) +
-                        (((z - floor(cast(z as float) / ${CHUNK_SIZE_Z}.) * ${CHUNK_SIZE_Z}.) % ${CHUNK_SIZE_Z}.) * ${CHUNK_SIZE_X}.) +
-                        ((x - floor(cast(x as float) / ${CHUNK_SIZE_X}.) * ${CHUNK_SIZE_X}.) % ${CHUNK_SIZE_X}.);`,
+                    (${csz.x}. * ${csz.z}.) *
+                        ((y - floor(cast(y as float) / ${csz.y}.) * ${csz.y}.) % ${csz.y}.) +
+                        (((z - floor(cast(z as float) / ${csz.z}.) * ${csz.z}.) % ${csz.z}.) * ${csz.x}.) +
+                        ((x - floor(cast(x as float) / ${csz.x}.) * ${csz.x}.) % ${csz.x}.);`,
 
             `DELETE FROM world_modify_chunks;`,
 
@@ -63,6 +89,8 @@ export class DBWorldMigration {
             FROM world_modify m WHERE m.chunk_x = o.chunk_x AND m.chunk_y = o.chunk_y AND m.chunk_z = o.chunk_z
             ORDER BY m.id ASC)
             FROM chunks o`];
+        }
+
         //
         const migrations = [];
         migrations.push({version: 1, queries: [
@@ -607,9 +635,9 @@ export class DBWorldMigration {
             `ALTER TABLE world_modify ADD COLUMN "chunk_z" integer NOT NULL DEFAULT 0`,
 
             `UPDATE world_modify
-            SET chunk_x = floor(cast(x as real) / ${CHUNK_SIZE_X}.),
-            chunk_y = floor(cast(y as real) / ${CHUNK_SIZE_Y}.),
-            chunk_z = floor(cast(z as real) / ${CHUNK_SIZE_Z}.)`,
+            SET chunk_x = floor(cast(x as real) / ${OLD_CHUNK_SIZE.x}.),
+            chunk_y = floor(cast(y as real) / ${OLD_CHUNK_SIZE.y}.),
+            chunk_z = floor(cast(z as real) / ${OLD_CHUNK_SIZE.z}.)`,
 
             `CREATE INDEX "main"."world_modify_chunk_xyz"
             ON "world_modify" (
@@ -649,9 +677,9 @@ export class DBWorldMigration {
         // @important This need if change chunk size
         migrations.push({version: 67, queries: [
             `ALTER TABLE world_modify ADD COLUMN "index" INTEGER`,
-            `UPDATE world_modify SET "index" = (${CHUNK_SIZE_X} * ${CHUNK_SIZE_Z}) * ((y - chunk_y * ${CHUNK_SIZE_Y}) % ${CHUNK_SIZE_Y}) +
-            (((z - chunk_z * ${CHUNK_SIZE_Z}) % ${CHUNK_SIZE_Z}) * ${CHUNK_SIZE_X}) +
-            ((x - chunk_x * ${CHUNK_SIZE_X}) % ${CHUNK_SIZE_X})`
+            `UPDATE world_modify SET "index" = (${OLD_CHUNK_SIZE.x} * ${OLD_CHUNK_SIZE.z}) * ((y - chunk_y * ${OLD_CHUNK_SIZE.y}) % ${OLD_CHUNK_SIZE.y}) +
+            (((z - chunk_z * ${OLD_CHUNK_SIZE.z}) % ${OLD_CHUNK_SIZE.z}) * ${OLD_CHUNK_SIZE.x}) +
+            ((x - chunk_x * ${OLD_CHUNK_SIZE.x}) % ${OLD_CHUNK_SIZE.x})`
         ]});
 
         migrations.push({version: 68, queries: [
@@ -668,7 +696,7 @@ export class DBWorldMigration {
                 "data" TEXT,
             PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE);`,
 
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
 
             `CREATE INDEX IF NOT EXISTS "main"."world_modify_chunks_xyz"
                 ON "world_modify_chunks" (
@@ -689,36 +717,36 @@ export class DBWorldMigration {
         migrations.push({version: 71, queries: [
             `UPDATE world_modify SET extra_data = NULL WHERE extra_data = '{}';`,
             `UPDATE world_modify SET extra_data = NULL WHERE block_id = 18 AND extra_data IS NOT NULL AND json_extract(extra_data, '$.max_ticks') IS NULL`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 72, queries: [
             `DELETE FROM world_modify WHERE block_id = 34`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":34,', '"id":911,');`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 73, queries: [
             `DELETE FROM world_modify WHERE block_id = 142`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":142,', '"id":196,');`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 74, queries: [
             `UPDATE world_modify SET block_id = 593, extra_data = '{"stage": 1}' WHERE block_id = 594;`,
             `UPDATE world_modify SET block_id = 593, extra_data = '{"stage": 2}' WHERE block_id = 595;`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 75, queries: [
             `DELETE FROM world_modify WHERE block_id = 142`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":142,', '"id":196,');`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 76, queries: [
             `DELETE FROM world_modify WHERE block_id = 593`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 77, queries: [
@@ -735,7 +763,7 @@ export class DBWorldMigration {
                 "portal_block_id" INTEGER
             );`,
             `CREATE INDEX "portal_xyz" ON "portal" ("x", "y", "z");`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 78, queries: [
@@ -743,7 +771,7 @@ export class DBWorldMigration {
             `DELETE FROM portal`,
             `ALTER TABLE portal ADD COLUMN "type" TEXT NOT NULL`,
             `ALTER TABLE portal ADD COLUMN "pair" TEXT`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 79, queries: [
@@ -784,13 +812,13 @@ export class DBWorldMigration {
             `UPDATE world_modify SET block_id = 320 WHERE block_id = 348;`,
             `UPDATE world_modify SET block_id = 300 WHERE block_id = 349;`,
             `DELETE FROM world_modify_chunks`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
         migrations.push({version: 85, queries: [
             `UPDATE world_modify SET block_id = 61 WHERE block_id = 62;`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":61,', '"id":62,');`,
             `DELETE FROM world_modify_chunks`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
         migrations.push({version: 86, queries: [
             `alter table user add column "ender_chest" TEXT DEFAULT '{"slots":{}}'`,
@@ -875,7 +903,7 @@ export class DBWorldMigration {
                 extra_data = REPLACE(REPLACE(REPLACE(extra_data, '"id":114,', '"id":9,'), '"id":155,', '"id":9,'), '"id":520,', '"id":9,')
                 WHERE extra_data IS NOT NULL`,
             `UPDATE user SET inventory = REPLACE(REPLACE(REPLACE(inventory, '"id":114,', '"id":9,'), '"id":155,', '"id":9,'), '"id":520,', '"id":9,');`,
-            ...update_world_modify_chunks,
+            ...await update_world_modify_chunks(),
         ]});
 
         migrations.push({version: 92, queries: [

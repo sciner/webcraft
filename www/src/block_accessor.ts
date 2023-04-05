@@ -1,7 +1,7 @@
 import {Vector} from "./helpers/vector.js";
 import {BLOCK} from "./blocks.js";
 import {TBlock} from "./typed_blocks3.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const";
+import {CH_SZ_X, CH_SZ_Y, CH_SZ_Z} from "./chunk_const";
 
 //TODO: find a use for it
 //TODO: remove CHUNK_SIZE
@@ -9,14 +9,14 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const";
 
 const CHUNK_PADDING = 1;
 // See also BaseChunk.initSize(), Vector.fromChunkIndex(), Vector.yFromChunkIndex()
-const CHUNK_SIZE_X_M1                = CHUNK_SIZE_X - 1;
-const CHUNK_SIZE_Y_M1                = CHUNK_SIZE_Y - 1;
-const CHUNK_SIZE_Z_M1                = CHUNK_SIZE_Z - 1;
-const CHUNK_SIZE                     = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+const CHUNK_SIZE_X_M1                = CH_SZ_X - 1;
+const CHUNK_SIZE_Y_M1                = CH_SZ_Y - 1;
+const CHUNK_SIZE_Z_M1                = CH_SZ_Z - 1;
+const CHUNK_SIZE                     = CH_SZ_X * CH_SZ_Y * CH_SZ_Z;
 
-const CHUNK_OUTER_SIZE_X = CHUNK_SIZE_X + 2 * CHUNK_PADDING;
-const CHUNK_OUTER_SIZE_Y = CHUNK_SIZE_Y + 2 * CHUNK_PADDING;
-const CHUNK_OUTER_SIZE_Z = CHUNK_SIZE_Z + 2 * CHUNK_PADDING;
+const CHUNK_OUTER_SIZE_X = CH_SZ_X + 2 * CHUNK_PADDING;
+const CHUNK_OUTER_SIZE_Y = CH_SZ_Y + 2 * CHUNK_PADDING;
+const CHUNK_OUTER_SIZE_Z = CH_SZ_Z + 2 * CHUNK_PADDING;
 const CHUNK_CX = 1;
 const CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z;
 const CHUNK_CZ = CHUNK_OUTER_SIZE_X;

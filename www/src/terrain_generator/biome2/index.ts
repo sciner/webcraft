@@ -313,7 +313,7 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Mines
         if(chunk.addr.y == 0) {
-            const mine = MineGenerator.getForCoord(this, chunk.coord);
+            const mine = MineGenerator.getForCoord(this, chunk.coord, chunk.size)
             mine.fillBlocks(chunk);
         }
 

@@ -5,6 +5,7 @@ import { CubeSym } from '../../core/CubeSym.js';
 import { noise, alea } from "../default.js";
 import type { WorkerWorld } from '../../worker/world.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
+import { BLOCK_FLAG } from '../../constant.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -54,13 +55,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const {CHUNK_SIZE}          = chunk.chunkManager.grid.math;
         const options               = chunk.chunkManager.world.generator.options;
         const noise3d               = noise.simplex3;
+        const blockFlags            = BLOCK.flags
         let xyz                     = new Vector(0, 0, 0);
         let xyz_stone_density       = new Vector(0, 0, 0);
         let DENSITY_COEFF           = 1;
         let fill_count              = 0;
 
         //
-        const getBlock = (x : int, y : int, z : int) => {
+        const getBlockId = (x : int, y : int, z : int) : int => {
             return chunk.tblocks.getBlockId(x, y, z);
         };
 
@@ -126,9 +128,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     } else if(dripstone_allow) {
                                         // Dripstone
                                         if(aleaRandom.double() < .3) {
-                                            chunk.setBlockIndirect(x, y_start - 0, z, BLOCK.POINTED_DRIPSTONE.id, null, {dir: -1, stage: 2});
-                                            chunk.setBlockIndirect(x, y_start - 1, z, BLOCK.POINTED_DRIPSTONE.id, null, {dir: -1, stage: 1});
-                                            chunk.setBlockIndirect(x, y_start - 2, z, BLOCK.POINTED_DRIPSTONE.id, null, {dir: -1, stage: 0});
+                                            chunk.setBlockIndirect(x, y_start - 0, z, BLOCK.POINTED_DRIPSTONE.id, null, {up: true});
+                                            chunk.setBlockIndirect(x, y_start - 1, z, BLOCK.POINTED_DRIPSTONE.id, null, {up: true});
+                                            chunk.setBlockIndirect(x, y_start - 2, z, BLOCK.POINTED_DRIPSTONE.id, null, {up: true});
                                         }
                                         // reset stalactite
                                         y_start = Infinity;
@@ -163,7 +165,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 stone_block_id = BLOCK.DIAMOND_ORE.id;
                                 if(y < 2 && options.generate_bottom_caves_lava) {
                                     debugger
-                                    const over_block = getBlock(x, y + 1, z);
+                                    const over_block = getBlockId(x, y + 1, z);
                                     if(over_block == 0) {
                                         stone_block_id = BLOCK.FLOWING_LAVA.id;
                                     }
@@ -196,7 +198,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         // Amethyst room
         if(fill_count > CHUNK_SIZE * .7) {
-            let chance = aleaRandom.double();
+            const chance = aleaRandom.double();
             if(chance < .25) {
                 const room_pos = new Vector(chunk.size).divScalarSelf(2);
                 let temp_vec_amethyst = new Vector(0, 0, 0);
@@ -210,8 +212,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             let dist = Math.round(room_pos.distance(temp_vec_amethyst));
                             if(dist <= AMETHYST_ROOM_RADIUS) {
                                 if(dist > AMETHYST_ROOM_RADIUS - 1.5) {
-                                    let b = getBlock(x, y, z);
-                                    if(b == 0) {
+                                    let b = getBlockId(x, y, z);
+                                    if(b == 0 || !(blockFlags[b] & BLOCK_FLAG.SOLID)) {
                                         // air
                                         continue;
                                     } else if (dist >= AMETHYST_ROOM_RADIUS - 1.42) {
@@ -237,7 +239,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             temp_vec_amethyst.set(x, y, z);
                             let dist = Math.round(room_pos.distance(temp_vec_amethyst));
                             if(dist < AMETHYST_ROOM_RADIUS - 1.5) {
-                                const block = getBlock(x, y, z);
+                                const block = getBlockId(x, y, z);
                                 if(block == 0) {
                                     let set_vec     = null;
                                     let attempts    = 0;
@@ -245,7 +247,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     while(!set_vec && ++attempts < 5) {
                                         let i = Math.round(rnd * 10 * 5 + attempts) % 5;
                                         temp_ar_vec.set(x + sides[i].x, y + sides[i].y, z + sides[i].z);
-                                        let b = getBlock(temp_ar_vec.x, temp_ar_vec.y, temp_ar_vec.z);
+                                        let b = getBlockId(temp_ar_vec.x, temp_ar_vec.y, temp_ar_vec.z);
                                         if(b != 0 && b != BLOCK.AMETHYST_CLUSTER.id) {
                                             set_vec = sides[i];
                                             rotate = rotates[i];
