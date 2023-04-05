@@ -242,7 +242,6 @@ export class ServerPlayer extends Player {
         this.world              = world;
         this.raycaster          = new Raycaster(world)
         this.vision             = new ServerPlayerVision(this)
-        this.effects            = new ServerPlayerEffects(this)
         this.damage             = new ServerPlayerDamage(this)
         this.session_id         = session_id
         this.skin               = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id)
