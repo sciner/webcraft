@@ -36,7 +36,6 @@ export class MineGenerator {
     constructor(generator : Biome3LayerBase, addr : Vector, options : MineOptions) {
         this.generator          = generator
         this.addr               = addr.clone()
-        debugger
 
         const {chunkSize} = generator.clusterManager.chunkManager.grid
 

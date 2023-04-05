@@ -1,4 +1,4 @@
-import { CH_SZ_Y, MAX_CHUNK_SQUARE} from "../chunk_const.js";
+import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
 import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, IndexedColor } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
@@ -1013,14 +1013,18 @@ export class Default_Terrain_Generator {
     }
 
     // Большой дуб
-    plantBigOak(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
-
+    plantBigOak(world : WorkerWorld, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
         const x = 0
         const y = 0
         const z = 0
 
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
-        const height = Math.min(CH_SZ_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
+        const height = Math.min(Math.max(world.chunkManager.grid.chunkSize.y - 12, 0), tree.height) // рандомная высота дерева, переданная из генератора
+        if(height < 1) {
+            console.warn('error_to_low_chunk_size')
+            return
+        }
+
         const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
         // рисуем корни
