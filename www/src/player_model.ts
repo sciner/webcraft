@@ -471,7 +471,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    draw(render, camPos, delta) {
+    draw(render : Renderer, camPos : Vector, delta : float) {
         if(this.isAlive == false) {
             return;
         }

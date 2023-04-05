@@ -103,12 +103,7 @@ export class TraversableRenderer {
         return true;
     }
 
-    /**
-     * @param {} render
-     * @param {Traversable} traversable
-     * @returns
-     */
-    drawLayer(render, traversable, ignore_roots = []) {
+    drawLayer(render, traversable : Traversable, ignore_roots = []) {
         if (!traversable || !traversable.sceneTree) {
             return;
         }
@@ -584,7 +579,7 @@ export class MobModel extends NetworkPhysicObject {
     get isRenderable() {
         return this.sceneTree && (
              this.currentChunk &&
-             this.currentChunk.in_frustum ||
+             true ||
              !this.currentChunk);
     }
 
