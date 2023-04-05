@@ -6,7 +6,7 @@ import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_M
 import { Biome3LayerManager } from "./layer_manager.js";
 
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
-import type { TerrainMap2 } from "./terrain/map.js";
+import type { Biome3TerrainMap } from "./terrain/map.js";
 import type { WorkerWorld } from "../../worker/world.js";
 import type { ClusterManager } from "../cluster/manager.js";
 
@@ -71,7 +71,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     /**
      */
-    generate(chunk : ChunkWorkerChunk) : TerrainMap2 | Default_Terrain_Map {
+    generate(chunk : ChunkWorkerChunk) : Biome3TerrainMap | Default_Terrain_Map {
 
         this.noise3d.scoreCounter = 0
 

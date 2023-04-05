@@ -27,19 +27,21 @@ const _cache = {} as {[key: string] : any}
 
 //
 export class Default_Terrain_Map {
-    [key: string]: any;
+    chunk: IChunk;
+    options: any;
+    cells: any;
 
     constructor(addr : Vector, size : Vector, coord : Vector, options : any, cells) {
-        this.chunk = {addr, size, coord};
-        this.options = options;
-        this.cells = cells;
+        this.chunk = {addr, size, coord} as IChunk
+        this.options = options
+        this.cells = cells
     }
 
     /**
      * Return map cell
      */
     getCell(x : int, z : int) : TerrainMapCell {
-        return this.cells[z * CHUNK_SIZE_X + x]
+        return this.cells[z * this.chunk.size.x + x]
     }
 
 }
@@ -47,27 +49,26 @@ export class Default_Terrain_Map {
 //
 export class Default_Terrain_Generator {
 
-    seed: string
-    voxel_buildings: any[];
-    noise2d: any;
-    noise3d: any;
-    world_id: string;
-    options: any;
-    x: number;
-    xyz_temp: Vector;
-    xyz_temp_find: Vector;
-    xyz_temp_coord: Vector;
-    _chunk_addr: Vector;
-    _block_pos: Vector;
-    temp_block: { id: number; };
-    temp_tblock: any;
-    tree_styles: Map<any, any>;
-    seed_int: number;
-    fastRandoms: FastRandom;
+    seed:               string
+    voxel_buildings:    any[]
+    noise2d:            any
+    noise3d:            any
+    world_id:           string
+    options:            any
+    x:                  number
+    xyz_temp:           Vector
+    xyz_temp_find:      Vector
+    xyz_temp_coord:     Vector
+    _chunk_addr:        Vector
+    _block_pos:         Vector
+    temp_block:         { id: number; }
+    temp_tblock:        any
+    tree_styles:        Map<any, any>
+    seed_int:           number
+    fastRandoms:        FastRandom
 
     constructor(seed : string, world_id? : string, options?, noise2d? : any, noise3d? : any) {
         this.voxel_buildings = [];
-        this.setSeed(seed);
         this.noise2d        = noise2d ?? noise.simplex2;
         this.noise3d        = noise3d ?? noise.simplex3;
         this.world_id       = world_id;
@@ -80,6 +81,7 @@ export class Default_Terrain_Generator {
         this._block_pos     = new Vector(0, 0, 0);
         this.temp_block     = {id: 0};
         this.temp_tblock    = null;
+        this.setSeed(seed);
         // Tree styles
         this.tree_styles = new Map()
         this.tree_styles.set('cactus', this.plantCactus.bind(this)) // кактус

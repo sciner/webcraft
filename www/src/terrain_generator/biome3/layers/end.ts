@@ -10,7 +10,7 @@ import { TerrainMapCell } from "../../terrain_map.js";
 import type { Biome } from "../biomes.js";
 import type Terrain_Generator from "../index.js";
 import { TerrainMapManagerBase } from "../terrain/manager_base.js";
-import { TerrainMap2 } from "../terrain/map.js";
+import { Biome3TerrainMap } from "../terrain/map.js";
 import { Biome3LayerBase } from "./base.js";
 
 class EndTerrainMapManager extends TerrainMapManagerBase {
@@ -27,7 +27,7 @@ class EndTerrainMapManager extends TerrainMapManagerBase {
     generateMap(real_chunk : any, chunk : ChunkWorkerChunk, noisefn) {
 
         // Result map
-        const map = new TerrainMap2(chunk, this.generator_options, this.noise2d)
+        const map = new Biome3TerrainMap(chunk, this.generator_options, this.noise2d)
         const biome = this._biome
 
         const cell = new TerrainMapCell(80, 0, 0, null, 0)

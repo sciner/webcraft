@@ -31,12 +31,11 @@ const easeInOutExp = Mth.createBasicLUTFunction(-1, 1, 100, false,
     (y_perc: number) => easeInOut(1 - Math.abs(y_perc), exp)
 )
 
-export class CaveGenerator {
-
-    chunk_coord : any
-    noisefn : any
-    cave_layers : any
-    grid: ChunkGrid;
+export class Biome3CaveGenerator {
+    grid:           ChunkGrid
+    chunk_coord:    any
+    noisefn:        any
+    cave_layers:    any
 
     constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : any, cave_layers : any) {
         this.grid = grid;
@@ -52,7 +51,7 @@ export class CaveGenerator {
 
 }
 
-export class CaveGeneratorRegular extends CaveGenerator {
+export class CaveGeneratorRegular extends Biome3CaveGenerator {
     [key: string]: any;
 
     constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : Function, cave_layers : any) {
@@ -133,7 +132,7 @@ export class CaveGeneratorRegular extends CaveGenerator {
 
 }
 
-export class CaveGeneratorBigCaves extends CaveGenerator {
+export class CaveGeneratorBigCaves extends Biome3CaveGenerator {
     [key: string]: any;
 
     constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : any, cave_layers : any) {

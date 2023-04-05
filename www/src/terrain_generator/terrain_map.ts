@@ -4,8 +4,9 @@ import type { ChunkGrid } from '../core/ChunkGrid.js';
 import { IndexedColor, Vector, Helpers, VectorCollector } from '../helpers.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { WorkerWorld } from '../worker/world.js';
+import type { Biome3CaveGenerator } from './biome3/cave_generator.js';
 import { BIOMES } from "./biomes.js";
-import { CaveGenerator } from './cave_generator.js';
+import { Biome2CaveGenerator } from './cave_generator.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
 import { OreGenerator } from './ore_generator.js';
 
@@ -14,13 +15,11 @@ export const SMOOTH_RAD_CNT     = Math.pow(SMOOTH_RAD * 2 + 1, 2);
 
 const VAL_COUNT                 = 5;
 const COLOR_COMPUTER            = new IndexedColor(SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT);
-
-//
-const WATER_START           = 0;
-const WATER_STOP            = 1.5;
-const WATERFRONT_STOP       = 24.0;
-const WATER_PERCENT         = WATER_STOP / (WATERFRONT_STOP - WATER_START);
-const RIVER_FULL_WIDTH      = WATERFRONT_STOP - WATER_START;
+const WATER_START               = 0;
+const WATER_STOP                = 1.5;
+const WATERFRONT_STOP           = 24.0;
+const WATER_PERCENT             = WATER_STOP / (WATERFRONT_STOP - WATER_START);
+const RIVER_FULL_WIDTH          = WATERFRONT_STOP - WATER_START;
 
 // for clusters
 export const PLANT_MARGIN       = 0;
@@ -37,14 +36,13 @@ export const GENERATOR_OPTIONS = {
     SCALE_VALUE:            250  * MAP_SCALE // Масштаб шума для карты высот
 };
 
-//
 // Rivers
-const RIVER_SCALE = .5;
-const RIVER_NOISE_SCALE = 4.5;
-const RIVER_WIDTH = 0.008 * RIVER_SCALE;
-const RIVER_OCTAVE_1 = 512 / RIVER_SCALE;
-const RIVER_OCTAVE_2 = RIVER_OCTAVE_1 / RIVER_NOISE_SCALE;
-const RIVER_OCTAVE_3 = 48 / RIVER_SCALE;
+const RIVER_SCALE               = .5
+const RIVER_NOISE_SCALE         = 4.5
+const RIVER_WIDTH               = 0.008 * RIVER_SCALE
+const RIVER_OCTAVE_1            = 512 / RIVER_SCALE
+const RIVER_OCTAVE_2            = RIVER_OCTAVE_1 / RIVER_NOISE_SCALE
+const RIVER_OCTAVE_3            = 48 / RIVER_SCALE
 
 //
 const temp_chunk = {
@@ -54,7 +52,7 @@ const temp_chunk = {
     chunkManager: {
         grid: null
     }
-};
+}
 
 
 // Map manager
@@ -69,7 +67,7 @@ export class TerrainMapManager implements ITerrainMapManager {
     //static maps_in_memory = 0;
     //static registry = new FinalizationRegistry(heldValue => {
     //    TerrainMapManager.maps_in_memory--;
-    //});;
+    //});
 
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
@@ -238,8 +236,8 @@ export class TerrainMapManager implements ITerrainMapManager {
     }
 
     /**
-     * @deprecated
-     */
+    * @deprecated
+    */
     makeRiverPoint2(x : int, z : int) : any | null {
         const value1 = this.noisefn(x / RIVER_OCTAVE_1, z / RIVER_OCTAVE_1) * 0.7;
         const value2 = this.noisefn(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2;
@@ -289,7 +287,7 @@ export class TerrainMapManager implements ITerrainMapManager {
             }
         }
         this.maps_cache.set(chunk.addr, map);
-        map.caves = new CaveGenerator(this.world.chunkManager.grid, chunk.coord, noisefn);
+        map.caves = new Biome2CaveGenerator(this.world.chunkManager.grid, chunk.coord, noisefn);
         map.ores = new OreGenerator(this.world.chunkManager.grid, this.seed, noisefn, this.noisefn3d, map);
 
         // console.log(`Actual maps count: ${this.maps_cache.size}`);
@@ -319,31 +317,37 @@ export class TerrainMapManager implements ITerrainMapManager {
 
 // Map
 export class TerrainMap extends Default_Terrain_Map {
+    SMOOTH_ROW_COUNT:       int = 0
+    caves:                  any // Biome2CaveGenerator | Biome3CaveGenerator
+    ores:                   OreGenerator
+    trees:                  any[]
+    plants:                 VectorCollector<any>
+    smoothed:               boolean
+    vegetable_generated:    boolean
 
-    static _cells: any[];
-    static _vals: any[];
-    static _sums: any[];
-    SMOOTH_ROW_COUNT = 0;
+    static _cells: any[]
+    static _vals: any[]
+    static _sums: any[]
 
     // Constructor
     constructor(chunk, options) {
         super(chunk.addr.clone(), chunk.size, chunk.coord.clone(), options, Array(chunk.size.x * chunk.size.z))
-        this.SMOOTH_ROW_COUNT       = chunk.size.x + SMOOTH_RAD * 4 + 1;
-        this.trees                  = [];
-        this.plants                 = new VectorCollector();
-        this.smoothed               = false;
-        this.vegetable_generated    = false;
-        // TerrainMapManager.maps_in_memory++;
-        // TerrainMapManager.registry.register(this, chunk.addr.toHash());
+        this.SMOOTH_ROW_COUNT       = chunk.size.x + SMOOTH_RAD * 4 + 1
+        this.trees                  = []
+        this.plants                 = new VectorCollector()
+        this.smoothed               = false
+        this.vegetable_generated    = false
+        // TerrainMapManager.maps_in_memory++
+        // TerrainMapManager.registry.register(this, chunk.addr.toHash())
     }
 
     static ensureSize(sz: number) {
-        if (TerrainMap._cells && TerrainMap._cells.length >= sz) {
-            return;
+        if(TerrainMap._cells && TerrainMap._cells.length >= sz) {
+            return
         }
-        TerrainMap._cells = new Array(sz);
-        TerrainMap._vals = new Array(sz * VAL_COUNT);
-        TerrainMap._sums = new Array(sz * VAL_COUNT);
+        TerrainMap._cells = new Array(sz)
+        TerrainMap._vals = new Array(sz * VAL_COUNT)
+        TerrainMap._sums = new Array(sz * VAL_COUNT)
     }
 
     static setPartial(SMOOTH_ROW_COUNT: number, x : number, z : number, cell) {
@@ -398,16 +402,17 @@ export class TerrainMap extends Default_Terrain_Map {
     smooth(map_manager : TerrainMapManager) {
 
         const grid : ChunkGrid = map_manager.world.chunkManager.grid
-        const CHUNK_SIZE_X = grid.chunkSize.x;
-        const CHUNK_SIZE_Z = grid.chunkSize.z;
-        const {SMOOTH_ROW_COUNT} = this;
+        const CHUNK_SIZE_X = grid.chunkSize.x
+        const CHUNK_SIZE_Z = grid.chunkSize.z
+        const {SMOOTH_ROW_COUNT} = this
 
         // 1. Кеширование ячеек
-        let map             = null;
-        let addr            = new Vector(0, 0, 0);
-        let bi              = new Vector(0, 0, 0);
+        let map  = null
+        let addr = new Vector(0, 0, 0)
+        let bi   = new Vector(0, 0, 0)
 
-        TerrainMap.ensureSize(SMOOTH_ROW_COUNT);
+        TerrainMap.ensureSize(SMOOTH_ROW_COUNT)
+
         for(let x = -SMOOTH_RAD * 2; x < CHUNK_SIZE_X + SMOOTH_RAD * 2; x++) {
             for(let z = -SMOOTH_RAD * 2; z < CHUNK_SIZE_Z + SMOOTH_RAD * 2; z++) {
                 // absolute cell coord
@@ -471,7 +476,7 @@ export class TerrainMap extends Default_Terrain_Map {
             }
         }
 
-        this.smoothed = true;
+        this.smoothed = true
 
     }
 

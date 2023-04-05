@@ -31,7 +31,6 @@ export class ChunkGrid {
     constructor(options : ChunkGridOptions) {
         let {chunkSize, chunkPadding} = options
         if(!chunkSize) {
-            // chunkSize = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
             throw 'error_invalid_chunk_size'
         }
         this.chunkSize = new Vector().copyFrom(chunkSize)

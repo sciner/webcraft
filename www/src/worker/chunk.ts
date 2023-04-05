@@ -93,7 +93,7 @@ export class ChunkWorkerChunkManager {
 }
 
 // Chunk
-export class ChunkWorkerChunk {
+export class ChunkWorkerChunk implements IChunk {
 
     fluid:                      FluidChunk
     timers:                     PerformanceTimer = new PerformanceTimer()

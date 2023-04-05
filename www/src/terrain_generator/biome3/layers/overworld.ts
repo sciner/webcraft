@@ -13,7 +13,7 @@ import { ClusterManager } from "../../cluster/manager.js";
 import { ClusterVilage } from "../../cluster/vilage.js";
 import { ClusterStructures } from "../../cluster/structures.js";
 
-import type { TerrainMap2 } from "../terrain/map.js";
+import type { Biome3TerrainMap } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type Terrain_Generator from "../index.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
@@ -74,7 +74,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) : TerrainMap2 {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) : Biome3TerrainMap {
 
         // Generate maps around chunk
         chunk.timers.start('generate_maps')
@@ -136,12 +136,12 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         }
     }
 
-    generateOnGroundBlocks(maps : TerrainMap2[], chunk : ChunkWorkerChunk, rnd : alea) {
+    generateOnGroundBlocks(maps : Biome3TerrainMap[], chunk : ChunkWorkerChunk, rnd : alea) {
         const {fromFlatChunkIndex, relativePosToChunkIndex, CHUNK_SIZE} = chunk.chunkManager.grid.math;
         const ids = chunk.tblocks.id
         const _vec = new Vector(0, 0, 0)
         const xyz = new Vector(0, 0, 0)
-        const map = chunk.map as TerrainMap2
+        const map = chunk.map as Biome3TerrainMap
         const bm = chunk.chunkManager.block_manager
         const blockFlags = bm.flags
         ensureSize(CHUNK_SIZE)
@@ -287,7 +287,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     generateChunkData(chunk : ChunkWorkerChunk, seed : string, rnd : any) {
 
         const bm                        = chunk.chunkManager.block_manager
-        const map                       = chunk.map as TerrainMap2;
+        const map                       = chunk.map as Biome3TerrainMap;
         const xyz                       = new Vector(0, 0, 0);
         const xyz_temp                  = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);

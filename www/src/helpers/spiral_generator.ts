@@ -157,11 +157,11 @@ const tempVec = new Vector();
 const deltaVec = new Vector();
 
 export class SpiralGrid {
-    entries: Array<SpiralEntry> = [];
-    entriesByYZ: SpiralEntry[] = [];
-    center = new Vector();
-    size: SpiralSize = null;
-    cullIDs: number[] = [];
+    entries:        Array<SpiralEntry> = []
+    entriesByYZ:    SpiralEntry[] = []
+    center:         Vector = new Vector()
+    size:           SpiralSize = null
+    cullIDs:        number[] = []
 
     constructor(marginVec: IVector = new Vector()) {
         this.size = new SpiralSize(marginVec);
@@ -227,4 +227,5 @@ export class SpiralGrid {
         //TODO: events on add/remove here
         this.entriesByYZ[ind].chunk = chunk;
     }
+
 }

@@ -1,6 +1,6 @@
 import { Vector, VectorCollector } from "../../../helpers.js";
 import { Biomes } from "./../biomes.js";
-import { TerrainMap2 } from "./map.js";
+import { Biome3TerrainMap } from "./map.js";
 
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
@@ -63,7 +63,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         return this.maps_cache.get(addr);
     }
 
-    generateMapOrReturnFromCache(real_chunk, chunk, noisefn) : TerrainMap2 {
+    generateMapOrReturnFromCache(real_chunk, chunk, noisefn) : Biome3TerrainMap {
 
         const cached = this.maps_cache.get(chunk.addr);
         if(cached) {
@@ -81,7 +81,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
     generateMap(real_chunk : any, chunk : ChunkWorkerChunk, noisefn) {
 
         // Result map
-        const map = new TerrainMap2(chunk, this.generator_options, this.noise2d)
+        const map = new Biome3TerrainMap(chunk, this.generator_options, this.noise2d)
         // const biome = this.biomes.byID.get(500)
 
         // const cell = new TerrainMapCell(80, 0, 0, null, 0)

@@ -1,7 +1,7 @@
 import { alea } from "../../default.js";
 import { ArrayHelpers, Helpers, Vector } from "../../../helpers.js";
 import type { Biome, BiomeDirtLayer } from "./../biomes.js";
-import { TerrainMap2 } from "./map.js";
+import { Biome3TerrainMap } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 import { Aquifera, AquiferaParams } from "../aquifera.js";
 import { WATER_LEVEL, DensityParams, MapCellPreset, ClimateParams, DENSITY_AIR_THRESHOLD, BUILDING_MIN_Y_SPACE } from "./manager_vars.js";
@@ -163,7 +163,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
         const maps = super.generateAround(chunk, chunk_addr, smooth, generate_trees)
 
-        let center_map: TerrainMap2 = maps[4]
+        let center_map: Biome3TerrainMap = maps[4]
 
         // Smooth (for central and part of neighbours)
         if(smooth && !center_map.smoothed) {
@@ -266,7 +266,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
     /**
      * Calculate totsl density in block and return all variables
      */
-    calcDensity(xyz : Vector, cell, out_density_params : DensityParams | null, map : TerrainMap2) : DensityParams {
+    calcDensity(xyz : Vector, cell, out_density_params : DensityParams | null, map : Biome3TerrainMap) : DensityParams {
 
         let {relief, mid_level, dist_percent, op, density_coeff} = cell.preset;
 
@@ -507,7 +507,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         const _density_params = new DensityParams(0, 0, 0, 0, 0, 0);
 
         // Result map
-        const map = new TerrainMap2(chunk, this.generator_options, this.noise2d);
+        const map = new Biome3TerrainMap(chunk, this.generator_options, this.noise2d);
 
         const doorSearchSize = new Vector(1, 2 * CHUNK_SIZE_Y, 1);
 

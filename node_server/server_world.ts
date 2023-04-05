@@ -186,7 +186,7 @@ export class ServerWorld implements IWorld {
         await this.admins.load();
         t = performance.now();
         await this.worldChunkFlags.restore();
-        await this.db.mobs.initChunksWithMobs();
+        await this.db.mobs.initChunksWithMobs(this.chunks.grid.chunkSize);
         console.log(`Restored ${this.worldChunkFlags.size} chunks, ${this.db.mobs._addrByMobId.size} mobs, elapsed: ${performance.now() - t | 0} ms`)
         await this.chunks.initWorker();
         await this.chunks.initWorkers(world_guid, this.info.tech_info);

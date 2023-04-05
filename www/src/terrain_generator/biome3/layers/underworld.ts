@@ -1,4 +1,4 @@
-import type { TerrainMap2 } from "../terrain/map.js";
+import type { Biome3TerrainMap } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type Terrain_Generator from "../index.js";
 import Biome3LayerOverworld from "./overworld.js";
@@ -46,7 +46,7 @@ export default class Biome3LayerUnderworld extends Biome3LayerOverworld {
         return this
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest?: boolean, is_highest ?: boolean) : TerrainMap2 {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest?: boolean, is_highest ?: boolean) : Biome3TerrainMap {
         const resp = super.generate(chunk, seed, rnd, is_lowest, is_highest)
         
         if(is_highest) {

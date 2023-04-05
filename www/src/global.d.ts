@@ -50,6 +50,12 @@ interface IVectorPoint extends IVector {
     point : IVector
 }
 
+interface IChunk {
+    addr: IVector
+    coord: IVector
+    size: IVector
+}
+
 interface TSideSet {}
 
 type TGeneratorInfo = {
