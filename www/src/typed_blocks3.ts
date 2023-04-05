@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector, ObjectHelpers, chunkAddrToCoord } from "./helpers.js";
+import { Vector, ObjectHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { ChunkGrid } from "./core/ChunkGrid.js";
@@ -184,6 +184,10 @@ export class TypedBlocks3 {
     chunk           : any
 
     static _prt = [];
+    static tempAABB = new AABB();
+    static tempAABB2 = new AABB();
+    static tempVec = new Vector();
+    static _tmp = new Vector();
 
     constructor(coord : Vector, grid: ChunkGrid) {
         this.addr       = grid.toChunkAddr(coord);
@@ -332,14 +336,8 @@ export class TypedBlocks3 {
 
     /**
      * Return solid neighbours count
-     *
-     * @param {int} x
-     * @param {int} y
-     * @param {int} z
-     *
-     * @returns {int}
      */
-    blockSolidNeighboursCount(x, y, z) {
+    blockSolidNeighboursCount(x : int, y : int, z : int) : int {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         const i_up = index + cy;
@@ -361,10 +359,8 @@ export class TypedBlocks3 {
     /**
      * Creating iterator that fill target block to reduce allocations
      * NOTE! This unsafe because returned block will be re-filled in iteration process
-     * @param {TBlock} target
-     * @returns
      */
-    createUnsafeIterator(target = null, ignore_filled = false) {
+    createUnsafeIterator(target : TBlock = null, ignore_filled : boolean = false) {
         const b = target || new TBlock(this, new Vector());
         const { size, uint16View, cx, cy, cz, cw } = this.dataChunk;
         const contex = b.tb = this;
@@ -443,7 +439,7 @@ export class TypedBlocks3 {
             : new TBlock(this, vec, index);
     }
 
-    getMaterial(vec : IVector) {
+    getMaterial(vec : IVector) : IBlockMaterial {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * vec.x + cy * vec.y + cz * vec.z + cw;
         return BLOCK.BLOCK_BY_ID[this.id[index]] || null;
@@ -455,7 +451,7 @@ export class TypedBlocks3 {
         return this.id[index] > 0;
     }
 
-    getNeighbours(tblock, world, cache) {
+    getNeighbours(tblock, world, cache) : BlockNeighbours {
         const { portals, safeAABB, pos, outerSize } = this.dataChunk;
         const cx = 1, cy = outerSize.x * outerSize.z, cz = outerSize.x;
         const localPos = tblock.vec;
@@ -528,8 +524,6 @@ export class TypedBlocks3 {
         return neighbours;
     }
 
-    static _tmp = new Vector();
-
     getBlockId(x, y, z) {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
@@ -584,10 +578,6 @@ export class TypedBlocks3 {
 
         return pcnt;
     }
-
-    static tempAABB = new AABB();
-    static tempAABB2 = new AABB();
-    static tempVec = new Vector();
 
     setDirtyBlocks(x, y, z) {
         const { vertices } = this;
@@ -656,12 +646,14 @@ export class TypedBlocks3 {
     setDirtyAABB(aabb : AABB) {
         const { cx, cy, cz, shiftCoord} = this.dataChunk;
         const {vertices} = this;
-        for (let x = aabb.x_min; x < aabb.x_max; x++)
-            for (let y = aabb.y_min; y < aabb.y_max; y++)
-                for (let z = aabb.z_min; z < aabb.z_max; z++) {
+        for(let x = aabb.x_min; x < aabb.x_max; x++) {
+            for(let y = aabb.y_min; y < aabb.y_max; y++) {
+                for(let z = aabb.z_min; z < aabb.z_max; z++) {
                     let index2 = cx * x + cy * y + cz * z + shiftCoord;
                     vertices[index2 * 2 + 1] |= MASK_VERTEX_MOD;
                 }
+            }
+        }
     }
 
     makeBedrockEdge() {
@@ -751,10 +743,14 @@ export class TypedBlocks3 {
 export class DataWorld {
     [key: string]: any;
     grid: ChunkGrid;
+
     constructor(chunkManager) {
         const INF = 1000000000;
         this.chunkManager = chunkManager;
-        this.grid = new ChunkGrid({});
+        if(!chunkManager.tech_info.chunk_size) {
+            throw 'error_undefined_chunnk_size'
+        }
+        this.grid = new ChunkGrid({chunkSize: chunkManager.tech_info.chunk_size});
         this.base = new BaseChunk({grid: this.grid, size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
@@ -1491,8 +1487,9 @@ export class BlockAccessor {
         this._tmpTBlock.index = rx * CHUNK_CX + ry * CHUNK_CY + rz * CHUNK_CZ + CHUNK_CW;
     }
 
-    _rebase(x, y, z) {
-        const addr = getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
+    _rebase(x: int, y: int, z: int) {
+        const grid = this.chunkManager.grid
+        const addr = grid.getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
         const cliSrvCompatbility = this.chunkManager.chunks || this.chunkManager;
         // This accounts both for missing chunks, and for blocks not generated
         let tb = cliSrvCompatbility.get(addr)?.tblocks;
@@ -1502,7 +1499,7 @@ export class BlockAccessor {
             this.tblockOrNull = this._tmpTBlock;
             this.tblockOrNull.tb = tb;
         } else {
-            chunkAddrToCoord(addr, this._tmpTbCoord);
+            grid.chunkAddrToCoord(addr, this._tmpTbCoord)
             this._tbCoord = this._tmpTbCoord;
             this.tblockOrNull = null;
         }

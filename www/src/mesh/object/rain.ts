@@ -1,4 +1,4 @@
-import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector, Mth, ArrayHelpers } from '../../helpers.js';
+import { IndexedColor, QUAD_FLAGS, Vector, VectorCollector, Mth, ArrayHelpers } from '../../helpers.js';
 import GeometryTerrain from "../../geometry_terrain.js";
 import { BLEND_MODES } from '../../renders/BaseRenderer.js';
 import { AABB } from '../../core/AABB.js';
@@ -7,6 +7,9 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import {impl as alea} from "../../../vendors/alea.js";
 import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../../fluid/FluidConst.js";
 import { Weather } from '../../block_type/weather.js';
+import type { Renderer } from '../../render.js';
+import type { ChunkManager } from '../../chunk_manager.js';
+import type { ChunkGrid } from '../../core/ChunkGrid.js';
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -42,20 +45,22 @@ export default class Mesh_Object_Rain {
     #_player_pos        = new Vector();
     #_blocks_sets       = 0;
 
+    chunkManager: ChunkManager
+    grid: ChunkGrid
     sound_id            = null
     type                = null
 
     /**
-     * 
-     * @param {*} render 
-     * @param {string} type rain|snow 
-     * @param { import("../../chunk_manager.js").ChunkManager } chunkManager 
+     * @param render 
+     * @param type rain|snow 
+     * @param chunkManager 
      */
-    constructor(render, type, chunkManager) {
+    constructor(render : Renderer, type : string, chunkManager : ChunkManager) {
 
         this.life           = 1;
         this.type           = type;
         this.chunkManager   = chunkManager;
+        this.grid           = chunkManager.grid
         this.player         = render.player;
         this.render         = render;
 
@@ -83,12 +88,6 @@ export default class Mesh_Object_Rain {
 
     }
 
-    /**
-     * 
-     * @param {AABB} aabb 
-     * @param {*} c 
-     * @returns 
-     */
     createBuffer(c) {
 
         const vertices  = [];
@@ -108,7 +107,7 @@ export default class Mesh_Object_Rain {
 
         for (let [xz, height] of this.#_map.entries()) {
 
-            chunk_addr = Vector.toChunkAddr(xz, chunk_addr).multiplyVecSelf(chunk_size);
+            chunk_addr = this.grid.toChunkAddr(xz, chunk_addr).multiplyVecSelf(chunk_size);
 
             const rx = xz.x - chunk_addr.x;
             const rz = xz.z - chunk_addr.z;
@@ -172,11 +171,11 @@ export default class Mesh_Object_Rain {
 
     /**
      * Draw particles
-     * @param { import("../../render.js").Renderer } render Renderer
-     * @param {float} delta Delta time from previous call
+     * @param render Renderer
+     * @param delta Delta time from previous call
      * @memberOf Mesh_Object_Raindrop
      */
-    draw(render, delta) {
+    draw(render : Renderer, delta : float) {
 
         if(!this.enabled || !this.prepare() || !this.buffer) {
             return false;
@@ -197,10 +196,7 @@ export default class Mesh_Object_Rain {
 
     }
 
-    /**
-     * @returns {boolean}
-     */
-    prepare() {
+    prepare() : boolean {
 
         const player = this.player;
 
@@ -260,15 +256,17 @@ export default class Mesh_Object_Rain {
 
         // check chunks available
         const chunk_y_max = Math.floor(RAIN_START_Y / CHUNK_SIZE_Y);
+        const chunkManager = this.chunkManager
+        const grid : ChunkGrid = chunkManager.grid
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
                 for(let chunk_addr_y = 0; chunk_addr_y <= chunk_y_max; chunk_addr_y++) {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, chunk_addr_y * CHUNK_SIZE_Y, pos.z + j);
-                    getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk || !chunk.addr.equal(chunk_addr)) {
-                        chunk = this.chunkManager.getChunk(chunk_addr)
+                        chunk = chunkManager.getChunk(chunk_addr)
                     }
                     if(!chunk || !chunk.tblocks) {
                         return false;
@@ -289,7 +287,7 @@ export default class Mesh_Object_Rain {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, RAIN_START_Y - k, pos.z + j);
-                    getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk || !chunk.addr.equal(chunk_addr)) {
                         chunk = this.chunkManager.getChunk(chunk_addr);
                         const dc = chunk.tblocks.dataChunk;
@@ -368,12 +366,10 @@ export default class Mesh_Object_Rain {
 
     /**
      * Снежная ячейка или нет
-     * @params { Vector } xz
-     * @returns { boolean }
      */
-    isSnowCell(xz) {
+    isSnowCell(xz : Vector) : boolean {
         const pos = xz.floored();
-        getChunkAddr(pos.x, pos.y, pos.z, _chunk_addr);
+        this.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z, _chunk_addr);
         if(!_chunk || !_chunk.addr.equal(_chunk_addr)) {
             _chunk = this.chunkManager.getChunk(_chunk_addr)
         }

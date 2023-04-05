@@ -1,5 +1,6 @@
 import { BLOCK } from '../../blocks.js';
 import { BLOCK_FLAG, DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET, FAST } from '../../constant.js';
+import { Environment, IFogPreset } from '../../environment.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { BiomeTree, TREES } from '../biomes.js';
@@ -43,7 +44,7 @@ const NETHER_BUILDINGS = {
 
 const DEFAULT_RIVER_BOTTOM_BLOCKS = [
     {value: 0, block_name: 'DIRT'},
-    {value: 0.3, block_name: 'GRAVEL'},
+    {value: .3, block_name: 'GRAVEL'},
     {value: 1, block_name: 'SAND'}
 ]
 
@@ -182,8 +183,9 @@ export class Biome {
     is_grassy_surface:          boolean
     is_underworld:              boolean
     hanging_foliage_block_id:   any
+    fog_preset_name?:           string
 
-    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, dirt_color : IndexedColor, water_color : IndexedColor, ground_block_generators? : ChunkGroundBlockGenerator[], no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks, big_stone_blocks ?: IRiverBottomBlocks, blocks ?: { [key: string]: string; }, dirt_palette? : DirtPalette) {
+    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, dirt_color : IndexedColor, water_color : IndexedColor, ground_block_generators? : ChunkGroundBlockGenerator[], no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks, big_stone_blocks ?: IRiverBottomBlocks, blocks ?: { [key: string]: string; }, dirt_palette? : DirtPalette, fog_preset? : IFogPreset) {
         this.id                         = id
         this.title                      = title
         this.temperature                = temperature
@@ -236,6 +238,12 @@ export class Biome {
 
         this.blocks.hanging_foliage = this.is_snowy ? BLOCK.ICE : BLOCK.OAK_LEAVES
 
+        // register fog preset
+        if(typeof fog_preset != 'undefined') {
+            this.fog_preset_name = `biomeFog${id}`
+            Environment.registerFogPreset(this.fog_preset_name, fog_preset)
+        }
+
         //
         if(typeof dirt_palette == 'undefined') {
             dirt_palette = DEFAULT_DIRT_PALETTE
@@ -269,6 +277,7 @@ export class Biome {
             const item = blocks[i]
             if(d4 <= item.value) {
                 block_id = item.block.id
+                break
             }
         }
         if(block_id == 0) {
@@ -293,7 +302,7 @@ export class Biomes {
     pows:               any[]
     list:               any
     byName:             Map<string, Biome>
-    byID:               any
+    byID:               Map<int, Biome>
     biomes_palette:     any
     filter_biome_list:  int[]
 
@@ -342,7 +351,8 @@ export class Biomes {
         river_bottom_blocks?:       IRiverBottomBlocks,
         blocks?:                    { [key: string]: string; },
         dirt_palette?:              DirtPalette,
-        big_stone_blocks?:          IRiverBottomBlocks) : Biome | null {
+        big_stone_blocks?:          IRiverBottomBlocks,
+        fog_preset?:                IFogPreset) : Biome | null {
         
         if(this.filter_biome_list.length > 0 && !this.filter_biome_list.includes(id)) {
             return null
@@ -426,7 +436,7 @@ export class Biomes {
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR
         water_color = water_color ?? DEFAULT_WATER_COLOR
         const no_smooth_heightmap = true;
-        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, ground_block_generators, no_smooth_heightmap, building_options, river_bottom_blocks, big_stone_blocks, blocks, dirt_palette)
+        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, ground_block_generators, no_smooth_heightmap, building_options, river_bottom_blocks, big_stone_blocks, blocks, dirt_palette, fog_preset)
         this.list.push(biome);
         this.byName.set(title, biome);
         this.byID.set(biome.id, biome);
@@ -561,7 +571,12 @@ export class Biomes {
                 {percent: .005, blocks: [{name: 'PINK_PETALS'}]},
                 {percent: .14, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]}
             ]
-        }, new IndexedColor(70, 368, 0), new IndexedColor(1, 254, 0));
+        }, new IndexedColor(70, 368, 0), new IndexedColor(1, 254, 0), undefined, undefined, undefined, undefined, undefined, undefined, {
+            color: [94 / 255, 113 / 255, 75 / 255, 0.1],
+            addColor: [94 / 255, 113 / 255, 75 / 255, 0.1],
+            density: 0.05,
+            illuminate: 0.15,
+        });
         this.addBiome(134, 'Холмистое болото', 0.8, 0.9);
         this.addBiome(16, 'Пляж', 0.8, 0.4, [new BiomeDirtLayer([BLOCK.SANDSTONE.id, BLOCK.SAND.id]), new BiomeDirtLayer([BLOCK.STONE.id])]);
         // this.addBiome('Река', 0.5, 0.5);

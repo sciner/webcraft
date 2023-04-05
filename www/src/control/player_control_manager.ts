@@ -1,6 +1,6 @@
 "use strict";
 
-import {getChunkAddr, Vector} from "../helpers/vector.js";
+import {Vector} from "../helpers/vector.js";
 import type {Player} from "../player.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
@@ -18,6 +18,7 @@ import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
 import {CHUNK_STATE} from "../chunk_const.js";
 import {PlayerSpeedLoggerMode, PlayerSpeedLogger} from "./player_speed_logger.js";
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 
 const tmpAddr = new Vector()
 const DEBUG_LOG_SPEED = false
@@ -166,10 +167,11 @@ export abstract class PlayerControlManager {
         pc.backupPartialState()
 
         // simulate the steps
+        const grid : ChunkGrid = this.player.world.chunkManager.grid
         for(let i = 0; i < data.physicsTicks; i++) {
             if (pc.requiresChunk) {
                 const pos = player_state.pos
-                getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
+                grid.getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
                 const chunk = this.player.world.chunkManager.getChunk(tmpAddr)
                 if (!chunk || (chunk.load_state != null && chunk.load_state !== CHUNK_STATE.READY)) {
                     pc.restorePartialState(prevPos)

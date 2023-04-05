@@ -6,6 +6,7 @@ import { TerrainMap2 } from "./map.js";
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { Biome3LayerBase } from "../layers/base.js";
+import type { WorkerWorld } from "../../../worker/world.js";
 
 //
 const _temp_chunk = {
@@ -26,11 +27,13 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
     generator_options:      any
     float_seed:             any
     layer:                  Biome3LayerBase
+    world:                  WorkerWorld
 
     static _temp_vec3 = Vector.ZERO.clone()
     static _temp_vec3_delete = Vector.ZERO.clone()
 
-    constructor(seed : string, world_id : string, noise2d : Function, noise3d : Function, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
+    constructor(world: WorkerWorld, seed : string, world_id : string, noise2d : Function, noise3d : Function, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
+        this.world = world;
         this.seed = seed;
         this.world_id = world_id;
         this.noise2d = noise2d;

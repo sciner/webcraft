@@ -1,9 +1,10 @@
 import { ChunkWorkerChunkManager, ChunkWorkerChunk } from "./chunk.js";
-import { VectorCollector, Vector, getChunkAddr, PerformanceTimer } from "../helpers.js";
+import { VectorCollector, Vector, PerformanceTimer } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
 import type { DataChunk } from "../core/DataChunk";
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
 const DEBUG_CHUNK_GEN_TIMERS = false
@@ -43,14 +44,14 @@ export class WorkerWorldManager {
         return terrainGenerators;
     }
 
-    async add(g, seed, world_id, settings : TBlocksSettings) {
+    async add(g, seed, world_id, settings : TBlocksSettings, tech_info: TWorldTechInfo) {
         const generator_options = g?.options || {};
         const generator_id = g.id;
         const key = generator_id + '/' + seed;
         if(this.all.has(key)) {
             return this.all.get(key);
         }
-        const world = new WorkerWorld(this.block_manager, settings, this.is_server);
+        const world = new WorkerWorld(this.block_manager, settings, this.is_server, tech_info)
         const generator_class = this.terrainGenerators.get(generator_id);
         await world.init(seed, world_id, generator_class, generator_options)
         this.all.set(key, world);
@@ -96,17 +97,16 @@ export class WorkerWorld {
     settings : TBlocksSettings = null
     totalChunkTimers = DEBUG_CHUNK_GEN_TIMERS ? new PerformanceTimer() : null
     is_server: boolean
+    tech_info: TWorldTechInfo
 
-    constructor(block_manager: BLOCK, settings: TBlocksSettings, is_server: boolean) {
+    constructor(block_manager: BLOCK, settings: TBlocksSettings, is_server: boolean, tech_info: TWorldTechInfo) {
         this.block_manager = block_manager
         this.settings = settings
         this.is_server = is_server
-        this.chunks = new VectorCollector();
-        this.genQueue = new ChunkWorkQueue(this);
-        this.buildQueue = null;
-        this.chunkManager = new ChunkWorkerChunkManager(this);
-        this.generator = null;
-        this.activePotentialCenter = null;
+        this.tech_info = tech_info
+        this.chunks = new VectorCollector()
+        this.genQueue = new ChunkWorkQueue(this)
+        this.chunkManager = new ChunkWorkerChunkManager(this)
     }
 
     async init(seed, world_id, generator_class, generator_options) {
@@ -130,10 +130,11 @@ export class WorkerWorld {
     workerSetBlock(args) {
         const chunk_addr = new Vector(0, 0, 0);
         const pos_world = new Vector(0, 0, 0);
+        const grid : ChunkGrid = this.chunkManager.grid
         for(let i = 0; i < args.length; i++) {
             const m = args[i];
             // 1. Get chunk
-            getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
+            grid.getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
             const chunk = this.getChunk(chunk_addr);
             if(chunk) {
                 // 2. Set block

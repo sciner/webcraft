@@ -18,13 +18,12 @@ import {ChunkGrid} from "../core/ChunkGrid.js";
 export class LightWorkerChunkManager {
     [key: string]: any;
 
-    constructor(world) {
+    constructor(world : LightWorld) {
         this.chunks = new VectorCollector();
         this.list = [];
-
         this.world = world;
         const INF = 1000000000;
-        this.lightBase = new BaseChunk({grid: new ChunkGrid({}), size: new Vector(INF, INF, INF)})
+        this.lightBase = new BaseChunk({grid: new ChunkGrid({chunkSize: new Vector(world.tech_info.chunk_size)}), size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
         this.chunkById = [null];
         this.activePotentialCenter = null;
@@ -89,7 +88,10 @@ export class LightWorkerChunkManager {
 
 export class LightWorld {
     [key: string]: any;
-    constructor(worker, worldId) {
+    tech_info: TWorldTechInfo
+
+    constructor(worker, world_id : string, tech_info: TWorldTechInfo) {
+        this.tech_info = tech_info
         this.chunkManager = new LightWorkerChunkManager(this);
         this.light = new LightQueue(this, {offset: 0, dirCount: 6});
         this.dayLight = new LightQueue(this,
@@ -115,7 +117,7 @@ export class LightWorld {
         }
 
         this.worker = worker;
-        this.worldId = worldId;
+        this.worldId = world_id;
 
         this.curChunkIndex = 0;
     }

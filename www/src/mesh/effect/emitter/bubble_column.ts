@@ -1,23 +1,27 @@
-import { getChunkAddr, IndexedColor, Vector, Mth } from "../../../helpers.js";
+import { IndexedColor, Vector, Mth } from "../../../helpers.js";
 import { getEffectTexture } from "../../effect.js";
+import type { MeshManager } from "../../manager.js";
 import { Mesh_Effect_Particle } from "../particle.js";
+import { BaseEmitter } from "./base.js";
 
 const MATERIAL_KEY = 'extend/regular/terrain/effects';
 const living_blocks = [88, 415]; // [BLOCK.SOUL_SAND.id, BLOCK.BUBBLE_COLUMN.id]
 const CHANCE = 0.03;
 
-export default class emitter {
+export default class emitter extends BaseEmitter {
     [key: string]: any;
 
     static textures = [
         [0, 5]
     ];
 
-    constructor(pos, args) {
+    constructor(mesh_manager : MeshManager, pos, args) {
+
+        super(mesh_manager, pos, args)
+
         this.max_distance   = 24;
         this.pp             = IndexedColor.WHITE.clone().pack();
-        this.pos            = pos;
-        this.chunk_addr     = Vector.toChunkAddr(this.pos);
+        this.chunk_addr     = mesh_manager.world.chunkManager.grid.toChunkAddr(this.pos);
         this.material_key   = MATERIAL_KEY;
         const m             = this.material_key.split('/');
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);

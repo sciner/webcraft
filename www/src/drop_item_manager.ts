@@ -64,8 +64,7 @@ export class DropItemManager {
     // add
     add(data: DropItemPacket, time: number) {
         if(data.items[0].id < 1) return;
-        const drop_item = new Mesh_Object_Block_Drop(null, data.entity_id, data.items, data.pos);
-        drop_item.world = this.#world;
+        const drop_item = new Mesh_Object_Block_Drop(this.#world, null, data.entity_id, data.items, data.pos);
         drop_item.dt = data.delayUserId === Qubatch.player.session.user_id
             ? data.dt
             : -Infinity
