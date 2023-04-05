@@ -9,7 +9,6 @@ import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { TerrainMap2 } from "./terrain/map.js";
 import type { WorkerWorld } from "../../worker/world.js";
 import type { ClusterManager } from "../cluster/manager.js";
-import { CHUNK_SIZE_OUTER } from "../../chunk_const.js";
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -53,7 +52,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         const noiseFactory = new NoiseFactory();
         await super.init();
-        await noiseFactory.init({outputSize: CHUNK_SIZE_OUTER * 4});
+        await noiseFactory.init({outputSize: this.world.chunkManager.grid.math.CHUNK_SIZE_OUTER * 4});
         this.noise3d = noiseFactory.createNoise3D({seed: this.seed, randomFunc: this.tempAlea.double });
         this.options = {...GENERATOR_OPTIONS, ...this.options};
 
@@ -86,7 +85,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     }
 
-    generateDefaultMap(chunk : ChunkWorkerChunk) : Default_Terrain_Map {        
+    generateDefaultMap(chunk : ChunkWorkerChunk) : Default_Terrain_Map {
         // chunk.timers.stop().start('generateDefaultMap')
         const resp = new Default_Terrain_Map(
             chunk.addr,

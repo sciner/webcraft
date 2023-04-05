@@ -1,7 +1,6 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {Vector, DIRECTION} from "../helpers.js";
 import {BLOCK} from '../blocks.js';
-import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { BLOCK_FLAG } from '../constant.js';
 
@@ -20,9 +19,10 @@ export class DungeonGenerator {
 
     add(chunk) {
         const random = new alea(this.seed + chunk.addr.toString());
+        const {fromFlatChunkIndex, CHUNK_SIZE} = chunk.chunkManager.grid.math;
         // 8 попыток установки
         for(let n = 0; n < 8; n++) {
-            _pos.fromFlatChunkIndex(Math.floor(random.double() * CHUNK_SIZE));
+            fromFlatChunkIndex(_pos, Math.floor(random.double() * CHUNK_SIZE));
             if(this.checkPosition(chunk, _pos.x, _pos.y, _pos.z)) {
                this.genDung(chunk, random, _pos.x, _pos.y, _pos.z);
                break;
@@ -38,7 +38,7 @@ export class DungeonGenerator {
     * Данж заброшенный колодец
     */
     genDungeonHole(chunk, alea, x, y, z) {
-        const biome = chunk.map.cells[z * CHUNK_SIZE_X + x].biome;
+        const biome = chunk.map.cells[z * chunk.chunkManager.grid.chunkSize.x + x].biome;
         // const up = this.getBlock(chunk, x, y, z);
         // console.debug('genDungeonHole: ' + up.posworld + ' ' + biome.title + ' ' + biome.id)
         // стандартные блоки
@@ -202,7 +202,7 @@ export class DungeonGenerator {
         // Декор
         this.deleteWall(chunk, alea, x, y, z);
         this.setBlock(chunk, x + 6, y + 3, z + 3, BLOCK.IRON_BARS);
-        
+
         this.genIfOpaqueNeighbors(chunk, alea, x, y, z, 7, 1, 7, BLOCK.STILL_WATER, 0.1)
 
         const rotate = new Vector(DIRECTION.NORTH, 0, 0);

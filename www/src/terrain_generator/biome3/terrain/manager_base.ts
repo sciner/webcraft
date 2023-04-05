@@ -12,7 +12,10 @@ import type { WorkerWorld } from "../../../worker/world.js";
 const _temp_chunk = {
     addr: new Vector(),
     coord: new Vector(),
-    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
+    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z),
+    chunkManager: {
+        grid: null
+    }
 };
 
 export class TerrainMapManagerBase implements ITerrainMapManager {
@@ -91,7 +94,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         // map.cells = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z).fill(cell)
 
         return map
-    
+
     }
 
     generateAround(chunk : ChunkWorkerChunk, chunk_addr : Vector, smooth : boolean = false, generate_trees : boolean = false) : any[] {
@@ -99,7 +102,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         const rad        = generate_trees ? 2 : 1
         const noisefn    = this.noise2d
         const maps       = []
-
+        _temp_chunk.chunkManager.grid = chunk.chunkManager.grid;
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
                 TerrainMapManagerBase._temp_vec3.set(x, -chunk_addr.y, z);

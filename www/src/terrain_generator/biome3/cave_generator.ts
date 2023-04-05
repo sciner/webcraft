@@ -2,6 +2,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { Mth, Vector } from "../../helpers.js";
 import { DensityParams, DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager_vars.js";
 import type { TerrainMapCell } from "../terrain_map.js";
+import type { ChunkGrid } from "../../core/ChunkGrid.js";
 
 export const BIOME3_CAVE_LAYERS = [
     {y: 76, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 16, shift: 64000},
@@ -36,8 +37,10 @@ export class CaveGenerator {
     chunk_coord : any
     noisefn : any
     cave_layers : any
+    grid: ChunkGrid;
 
-    constructor(chunk_coord : Vector, noisefn : any, cave_layers : any) {
+    constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : any, cave_layers : any) {
+        this.grid = grid;
         this.chunk_coord = new Vector(chunk_coord.x, 0, chunk_coord.z);
         this.noisefn = noisefn
         this.cave_layers = cave_layers
@@ -53,9 +56,9 @@ export class CaveGenerator {
 export class CaveGeneratorRegular extends CaveGenerator {
     [key: string]: any;
 
-    constructor(chunk_coord : Vector, noisefn : Function, cave_layers : any) {
+    constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : Function, cave_layers : any) {
 
-        super(chunk_coord, noisefn, cave_layers)
+        super(grid, chunk_coord, noisefn, cave_layers)
         this.layers = [];
 
         for(let i = 0; i < cave_layers.length; i++) {
@@ -132,9 +135,9 @@ export class CaveGeneratorRegular extends CaveGenerator {
 export class CaveGeneratorBigCaves extends CaveGenerator {
     [key: string]: any;
 
-    constructor(chunk_coord : Vector, noisefn : any, cave_layers : any) {
+    constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : any, cave_layers : any) {
 
-        super(chunk_coord, noisefn, cave_layers)
+        super(grid, chunk_coord, noisefn, cave_layers)
 
         this.layers = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z)
 

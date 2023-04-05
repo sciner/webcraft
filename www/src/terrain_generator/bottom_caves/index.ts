@@ -1,7 +1,6 @@
 import { IndexedColor, Vector } from '../../helpers.js';
 import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import { BLOCK } from '../../blocks.js';
-import { CHUNK_SIZE } from "../../chunk_const.js";
 import { CubeSym } from '../../core/CubeSym.js';
 import { noise, alea } from "../default.js";
 import type { WorkerWorld } from '../../worker/world.js';
@@ -53,6 +52,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             aleaRandom = new alea(`${this.seed}/${chunk.id}`);
         }
 
+        const {CHUNK_SIZE}          = chunk.chunkManager.grid.math;
         const options               = chunk.chunkManager.world.generator.options;
         const noise3d               = noise.simplex3;
         let xyz                     = new Vector(0, 0, 0);

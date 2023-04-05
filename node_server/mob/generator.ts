@@ -1,4 +1,3 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "@client/chunk_const.js";
 import {Vector, VectorCollector} from "@client/helpers.js";
 import {BLOCK} from "@client/blocks.js";
 import { TBlock } from "@client/typed_blocks3.js";
@@ -55,7 +54,7 @@ export class MobGenerator {
                     }
                 }
                 //
-                if(vc.size > CHUNK_SIZE_X * CHUNK_SIZE_Z / 2) {
+                if(vc.size > this.chunk.size.x * this.chunk.size.z / 2) {
                     let cnt = 0;
                     const poses = [];
                     const pos_up = new Vector(0, 0, 0);

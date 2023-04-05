@@ -1,6 +1,5 @@
 import {AABB} from './AABB.js'
 import {Vector} from "../helpers.js";
-import {CHUNK_CX, CHUNK_CY} from "../chunk_const.js"
 import type {ChunkGrid} from "./ChunkGrid.js";
 import type {DataChunk} from "./DataChunk";
 
@@ -62,19 +61,10 @@ export class BaseChunk {
         this.safeAABB = new AABB();
         this.shiftCoord = 0;
 
-        // See also CHUNK_PADDING and similar constants in "../typed_blocks3.js"
-        if (CHUNK_CX === 1) {
-            this.cx = 1;
-            this.cy = outerSize.x * outerSize.z;
-            this.cz = outerSize.x;
-        } else if (CHUNK_CY === 1) {
-            this.cy = 1;
-            this.cz = outerSize.y;
-            this.cx = outerSize.y * outerSize.z;
-        } else {
-            throw 'not_implemented'
-        }
-        this.cw = padding * (this.cx + this.cy + this.cz);
+        this.cx = this.grid.math.cx;
+        this.cy = this.grid.math.cy;
+        this.cz = this.grid.math.cz;
+        this.cw = this.grid.math.cw;
     }
 
     getStrides(): TBlockStrides {

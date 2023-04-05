@@ -98,6 +98,7 @@ export class ChunkDBActor {
         // (if it wasn't saving, it won't start until the chunk loads, see this.writeToWorldTransaction)
         // By the time the chunk load obsolete modifers, the actor flushes the new ones.
         await this.savingUnsavedBlocksPromise;
+        const {fromChunkIndex, relativePosToFlatIndexInChunk} = this.world.chunks.grid.math;
 
         let ml;
         if (this.world_modify_chunk_hasRowId) {
@@ -131,7 +132,7 @@ export class ChunkDBActor {
         // if the actor was created before the chunk, and accumulated some changes, apply them to the loaded modifiers
         if (this.unsavedBlocks.size) {
             for(const [index, item] of this.unsavedBlocks) {
-                const flatIndex = tmpVector.fromChunkIndex(index).relativePosToFlatIndexInChunk();
+                const flatIndex = relativePosToFlatIndexInChunk(fromChunkIndex(tmpVector, index));
                 ml.obj[flatIndex] = item;
             }
             // invalidate the compressed modifers
@@ -159,7 +160,7 @@ export class ChunkDBActor {
             throw "data.item == null";
         }
         // process params
-        index = index ?? tmpVector.copyFrom(data.pos).worldPosToChunkIndex();
+        index = index ?? this.world.chunks.grid.math.worldPosToChunkIndex(tmpVector.copyFrom(data.pos));
         state = state ?? (data.action_id === ServerClient.BLOCK_ACTION_MODIFY
             ? BLOCK_DIRTY.UPDATE : BLOCK_DIRTY.INSERT);
 
@@ -261,11 +262,12 @@ export class ChunkDBActor {
 
     writeToWorldTransaction_world_modify_chunks(underConstruction: WorldTransactionUnderConstruction) {
         const world = this.world;
+        const {fromChunkIndex, relativePosToFlatIndexInChunk} = world.chunks.grid.math;
 
         // build a JSON patch
         const patch = {};
         for(const [index, item] of this.unsavedBlocks.entries()) {
-            const flatIndex = tmpVector.fromChunkIndex(index).relativePosToFlatIndexInChunk();
+            const flatIndex = relativePosToFlatIndexInChunk(fromChunkIndex(tmpVector, index));
             patch[flatIndex] = item;
         }
 

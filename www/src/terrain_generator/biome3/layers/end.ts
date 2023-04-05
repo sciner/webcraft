@@ -39,7 +39,7 @@ class EndTerrainMapManager extends TerrainMapManagerBase {
         map.cells = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z).fill(cell)
 
         return map
-    
+
     }
 
     generateAround(chunk : ChunkWorkerChunk, chunk_addr : Vector, smooth : boolean = false, generate_trees : boolean = false) : any[] {
@@ -150,7 +150,7 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
     /**
      */
     generateChunkData(chunk : ChunkWorkerChunk, maps : any[], seed : string, rnd : any) {
-
+        const {worldPosToChunkIndex} = chunk.chunkManager.grid.math;
         const map = chunk.map = maps[4]
         const { uint16View } = chunk.tblocks.dataChunk
         const xyz = new Vector(0, 0, 0)
@@ -162,7 +162,7 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
                         xyz.copyFrom(chunk.coord).addScalarSelf(x, y, z)
                         const block_id = this.getBlock(xyz)
                         if(block_id > 0) {
-                            const index = xyz.worldPosToChunkIndex()
+                            const index = worldPosToChunkIndex(xyz)
                             uint16View[index] = block_id
                         }
                     }

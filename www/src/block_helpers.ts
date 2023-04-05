@@ -104,14 +104,14 @@ export class ItemHelpers {
         ) {
             throw `error_incorrect_value|label=${label}`
         }
-        label = label.trim(); 
+        label = label.trim();
         return label !== '' ? label : null;
     }
 
     static getLabel(item) {
         return item.extra_data?.label ?? BLOCK.fromId(item.id).title;
     }
-    
+
     static setLabel(item, label) {
         this.setExtraDataField(item, 'label', label);
     }
@@ -176,6 +176,7 @@ export class ItemHelpers {
  */
 export function findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, clampedAABB, outYMatrix = null, setpXZ = 2, stepY = 2) {
     const bm = chunk.chunkManager.block_manager
+    const {relativePosToChunkIndex_s} = chunk.chunkManager.grid.math;
     if (outYMatrix) {
         setpXZ = 1
     }
@@ -188,7 +189,7 @@ export function findLowestNonSolidYFromAboveInChunkAABBRelative(chunk, clampedAA
     const y_max_incl = yMin - 1
     for(let x = clampedAABB.x_min; x < clampedAABB.x_max; x += setpXZ) {
         for(let z = clampedAABB.z_min; z < clampedAABB.z_max; z += setpXZ) {
-            let ind = Vector.relativePosToChunkIndex(x, y_max_incl, z)
+            let ind = relativePosToChunkIndex_s(x, y_max_incl, z)
             let y = y_max_incl
             let currentStepY = stepY
             // find the highest solid block

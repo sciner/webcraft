@@ -10,8 +10,11 @@ const CAVE_LAYERS = [
 export class CaveGenerator {
     [key: string]: any;
 
-    constructor(chunk_coord, noisefn) {
+    constructor(grid, chunk_coord, noisefn) {
 
+        this.grid = grid;
+        const CHUNK_SIZE_X = grid.chunkSize.x;
+        const CHUNK_SIZE_Z = grid.chunkSize.z;
         this.chunk_coord = new Vector(chunk_coord.x, 0, chunk_coord.z);
         this.layers = [];
 

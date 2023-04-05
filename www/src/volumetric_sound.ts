@@ -235,6 +235,7 @@ class SoundChunk {
     constructor(grid : ChunkGrid, addr : Vector, queryId : int) {
         this.queryId = queryId
         this.coord = new Vector()
+        this.grid = grid;
         grid.chunkAddrToCoord(addr, this.coord)
 
         // for each block index (non-flat), type of the sound block
@@ -278,7 +279,7 @@ class SoundChunk {
     }
 
     setByInd(ind, type) {
-        tmpVec.fromChunkIndex(ind)
+        this.grid.math.fromChunkIndex(tmpVec, ind)
         const exType = this.byIndex.get(ind) ?? null
         if (exType !== type) {
             if (exType !== null) {
