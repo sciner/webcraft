@@ -96,6 +96,7 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('big_oak', this.plantBigOak.bind(this)) // большой дуб
         this.tree_styles.set('chorus', this.plantChorus.bind(this)) // растение хоруса
         this.tree_styles.set('peak', this.plantPeak.bind(this)) // пика
+        this.tree_styles.set('coral', this.plantCoral.bind(this)) // корал
     }
 
     async init() : Promise<boolean> {
@@ -250,9 +251,11 @@ export class Default_Terrain_Generator {
                     if(rotate || extra_data) {
                         tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)
                     }
+                    return true
                 }
             }
         }
+        return false
     }
 
     // Кактус
@@ -1293,7 +1296,21 @@ export class Default_Terrain_Generator {
 
         }
 
+    }
 
+    // Дерево коралл
+    plantCoral(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
+        //tree.height
+        const random = new alea('coral' + xyz.toHash())
+        const height = random.nextInt(3) + 1
+        const pos = xyz.clone()
+        for (let i = 0; i < height; i++) {
+            setTreeBlock(tree, pos.x, pos.y, pos.z, {id: 199}, false)
+            //if (!setTreeBlock(tree, pos.x, pos.y, pos.z, {id: 199}, false)) {
+
+           // }
+           pos.addSelf(new Vector(0, 1, 0))
+        }
     }
     
     makeLeavesExtraData(xyz : Vector) {

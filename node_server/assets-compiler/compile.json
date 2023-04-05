@@ -10513,7 +10513,8 @@
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "angle_facet"
             ],
             "drop_item": [ 
                 {
@@ -10536,7 +10537,8 @@
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "angle_facet"
             ],
             "texture": "block/dead_tube_coral_fan.png"
         }, 
@@ -10554,7 +10556,8 @@
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "angle_facet"
             ],
             "drop_item": [ 
                 {
@@ -10577,7 +10580,8 @@
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "angle_facet"
             ],
             "texture": "block/dead_brain_coral_fan.png"
         }, 
@@ -10595,7 +10599,8 @@
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "angle_facet"
             ],
             "drop_item": [ 
                 {
@@ -10618,7 +10623,8 @@
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "angle_facet"
             ],
             "texture": "block/dead_bubble_coral_fan.png"
         }, 
@@ -10636,7 +10642,8 @@
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "angle_facet"
             ],
             "drop_item": [ 
                 {
@@ -10659,7 +10666,8 @@
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "angle_facet"
             ],
             "texture": "block/dead_fire_coral_fan.png"
         }, 
@@ -10676,6 +10684,7 @@
             "tags":[
                 "doubleface",
                 "no_set_on_top",
+                "in_water_plant",
                 "rotate_by_pos_n",
                 "angle_facet"
             ],
@@ -10684,7 +10693,7 @@
                     "name": "DEAD_HORN_CORAL_FAN"
                 }
             ],
-            "texture": "./textures/test_top.png"
+            "texture": "block/horn_coral_fan.png"
         }, 
         {
             "id": 1086,

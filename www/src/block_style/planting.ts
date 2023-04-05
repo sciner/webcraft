@@ -46,8 +46,10 @@ const SUNFLOWER_PLANES = [
 ];
 
 const ANGLE_FACET = [
-    {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0.5, "y": 0, "z": 0}, "dir": DIRECTION.UP},
-    {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0, "y": 0, "z": 0}, "dir": DIRECTION.UP}
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 3], "move": {"x": 0, "y": 0, "z": 0}, "translate": {"x": -6.7, "y": 4, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, -Math.PI / 3], "move": {"x": 0, "y": 0, "z": 0}, "translate": {"x": 6.7, "y": 4, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [Math.PI / 2, Math.PI / 6, Math.PI / 2],  "translate": {"x": -6.7, "y": 4, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [-Math.PI / 2, Math.PI / 6, -Math.PI / 2],  "translate": {"x": 6.7, "y": 4, "z": 0}}
 ]
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
@@ -203,7 +205,10 @@ export default class style {
         }
 
         // Planes
-        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? (block.hasTag('is_tall_grass_3') ? TALL_GRASS_3_PLANES : TALL_GRASS_PLANES) : DEFAULT_PLANES));
+        let planes = null
+        planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? (block.hasTag('is_tall_grass_3') ? TALL_GRASS_3_PLANES : TALL_GRASS_PLANES) : DEFAULT_PLANES));
+
+        
 
         // Sunflower
         if (material.name == 'SUNFLOWER') {
@@ -253,6 +258,7 @@ export default class style {
 
         if(block.hasTag('angle_facet')) {
             planes = ANGLE_FACET
+            console.log(planes)
         }
 
         for(let j = 0; j < loops; j++) {
@@ -262,6 +268,8 @@ export default class style {
                 if (!isNaN((plane as any).dir)) {
                     texture = bm.calcMaterialTexture(material, (plane as any).dir);
                 }
+
+                _pl.translate = plane.translate
                 _pl.size     = plane.size;
                 _pl.uv       = plane.uv as tupleFloat2;
                 _pl.rot      = plane.rot as Vector;
