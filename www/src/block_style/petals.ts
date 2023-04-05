@@ -1,6 +1,4 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector} from '../helpers.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {impl as alea} from "../../vendors/alea.js";
 import { AABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
@@ -10,15 +8,8 @@ import { BlockStyleRegInfo, default as default_style, TX_SIZE } from './default.
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
 const {mat4} = glMatrix;
-
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
-
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
 
 const _petals_parts = [
     {height: 1.5, stems: [{mx: 11.5, mz: 14.5}, {mx: 9.5, mz: 9.5}, {mx: 14.5, mz: 10.5}]},

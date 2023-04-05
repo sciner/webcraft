@@ -6,7 +6,6 @@ import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
-
 Resources.loadPainting();
 
 // Картина

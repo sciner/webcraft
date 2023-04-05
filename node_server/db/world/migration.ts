@@ -2,7 +2,6 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "@client/chunk_const.js
 import { DEFAULT_RENDER_DISTANCE } from "@client/constant.js";
 import type { Indicators } from "@client/player.js";
 import type { ServerWorld } from "../../server_world.js";
-import type { DBWorld } from "../world.js";
 
 // Migrations
 export class DBWorldMigration {

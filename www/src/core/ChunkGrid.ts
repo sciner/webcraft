@@ -34,7 +34,7 @@ export class ChunkGrid {
             // chunkSize = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
             throw 'error_invalid_chunk_size'
         }
-        this.chunkSize = chunkSize
+        this.chunkSize = new Vector().copyFrom(chunkSize)
         const padding = this.chunkPadding = chunkPadding ?? 1
         this.outerSize = this.outerSize = new Vector(chunkSize.x + padding * 2, chunkSize.y + padding * 2, chunkSize.z + padding * 2);
         this.chunkDefaultAABB = new AABB(0, 0, 0, chunkSize.x, chunkSize.y, chunkSize.z);

@@ -1,14 +1,13 @@
-import { IndexedColor, QUAD_FLAGS, Vector, VectorCollector, Mth, ArrayHelpers } from '../../helpers.js';
+import { IndexedColor, QUAD_FLAGS, Vector, VectorCollector, Mth, FastRandom } from '../../helpers.js';
 import GeometryTerrain from "../../geometry_terrain.js";
 import { BLEND_MODES } from '../../renders/BaseRenderer.js';
-import { AABB } from '../../core/AABB.js';
 import { Resources } from '../../resources.js';
-import {impl as alea} from "../../../vendors/alea.js";
 import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../../fluid/FluidConst.js";
 import { Weather } from '../../block_type/weather.js';
 import type { Renderer } from '../../render.js';
 import type { ChunkManager } from '../../chunk_manager.js';
 import type { ChunkGrid } from '../../core/ChunkGrid.js';
+import { MAX_CHUNK_SQUARE } from '../../chunk_const.js';
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -19,24 +18,9 @@ const RAIN_START_Y      = 128;
 const RAIN_HEIGHT       = 128;
 const RAIN_HEARING_DIST = 10; // maximum hearing distance for player
 
-let randoms = new Array(1);
-const a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
-
-function ensureSize(chunkSize: Vector) {
-    let sz = chunkSize.x * chunkSize.z;
-    if (randoms.length >= chunkSize.x * chunkSize.z) {
-        return;
-    }
-    randoms = new Array(sz);
-    for(let i = 0; i < randoms.length; i++) {
-        randoms[i] = a.double();
-    }
-}
-
+const randoms = new FastRandom('rain', MAX_CHUNK_SQUARE)
 const _chunk_addr = new Vector(Infinity, Infinity, Infinity)
+
 let _chunk = null;
 
 /**
@@ -109,9 +93,8 @@ export default class Mesh_Object_Rain {
 
         this.pos = new Vector(this.player.lerpPos.x, RAIN_START_Y, this.player.lerpPos.z).flooredSelf();
         let chunk_addr = null;
-        const chunk_size = this.render.world.chunkManager.grid.chunkSize;
-        ensureSize(chunk_size);
 
+        const chunk_size = this.render.world.chunkManager.grid.chunkSize;
         const pp_rain = new IndexedColor(0, RAIN_SPEED, 0).pack()
         const pp_snow = new IndexedColor(SNOW_SPEED_X, SNOW_SPEED, 0).pack()
 
@@ -123,9 +106,7 @@ export default class Mesh_Object_Rain {
             const rz = xz.z - chunk_addr.z;
             const is_snow = this.isSnowCell(xz);
             const pp = is_snow ? pp_snow : pp_rain;
-
-            const rnd_index = Math.abs(Math.round(rx * chunk_size.z + rz)) % randoms.length;
-            const rnd = randoms[rnd_index];
+            const rnd = randoms.double(rz * chunk_size.x + rx);
 
             const add = rnd;
             height += add;

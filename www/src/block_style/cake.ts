@@ -7,7 +7,6 @@ import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
-
 const {mat4} = glMatrix;
 
 const TX_CNT    = DEFAULT_TX_CNT;

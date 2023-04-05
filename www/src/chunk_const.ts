@@ -1,5 +1,6 @@
 import { FAST } from "./constant.js";
 
+export const MAX_CHUNK_SQUARE               = 32 * 32
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 40;
 export const CHUNK_SIZE_Z                   = 16;

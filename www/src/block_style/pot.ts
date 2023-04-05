@@ -1,7 +1,5 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import {BlockManager, FakeTBlock} from "../blocks.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from '../constant.js';
@@ -9,20 +7,11 @@ import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
-
 const {mat4} = glMatrix;
-
 const WIDTH =  6 / 16;
 const HEIGHT = 6 / 16;
-
 const WIDTH_INNER = 4/16;
 const HEIGHT_INNER = 1/16;
-
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
 
 // Горшок
 export default class style {

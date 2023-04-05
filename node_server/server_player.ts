@@ -6,7 +6,7 @@ import { Raycaster } from "@client/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
-import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "@client/chunk_const.js";
+import { ALLOW_NEGATIVE_Y } from "@client/chunk_const.js";
 import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS } from "@client/constant.js";
 import { WorldPortal, WorldPortalWait } from "@client/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
@@ -849,7 +849,7 @@ export class ServerPlayer extends Player {
             const portal_type = WorldPortal.getPortalTypeByID(params.portal.type);
             if(portal_type) {
                 const y_diff = Math.abs(this.state.pos.y - portal_type.y);
-                if(y_diff < CHUNK_SIZE_Y * 2) {
+                if(y_diff < this.world.chunkManager.grid.chunkSize.y * 2) {
                     // @todo what can i do if player make portal to current level?
                 }
                 new_pos = new Vector(this.state.pos).flooredSelf();

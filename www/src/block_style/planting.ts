@@ -1,11 +1,10 @@
-import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix } from '../helpers.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {impl as alea} from "../../vendors/alea.js";
+import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix, FastRandom } from '../helpers.js';
+import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { DEFAULT_DIRT_PALETTE, DEFAULT_GRASS_PALETTE, GRASS_COLOR_SHIFT_FACTOR, GRASS_PALETTE_OFFSET } from '../constant.js';
+import { DEFAULT_GRASS_PALETTE, GRASS_COLOR_SHIFT_FACTOR, GRASS_PALETTE_OFFSET } from '../constant.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
@@ -46,18 +45,9 @@ const SUNFLOWER_PLANES = [
 ];
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
-
 const aabb = new AABB();
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
-
-const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
-const randoms = new Array(RANDOMS_COUNT);
-const a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
-
-//
+const randoms = new FastRandom('planting', MAX_CHUNK_SQUARE)
 const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
 
@@ -135,9 +125,9 @@ export default class style {
         const is_flower = block.hasTag('flower');
         const is_agriculture = block.hasTag('agriculture');
         const is_grass = material.is_grass;
-        const random_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
+        const random_index = (z * chunk.size.x + x) % randoms.length
 
-        let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms[random_index]);
+        let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms.double(random_index));
 
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
@@ -171,13 +161,13 @@ export default class style {
         matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
         if(material.planting && !block.hasTag('no_random_pos')) {
             if(is_grass || is_flower) {
-                dx = randoms[random_index] * 12/16 - 6/16;
-                dz = randoms[RANDOMS_COUNT - random_index] * 12/16 - 6/16;
-                // dy -= .2 * randoms[random_index];
+                dx = randoms.double(random_index) * 12/16 - 6/16;
+                dz = randoms.double(randoms.length - random_index) * 12/16 - 6/16;
+                // dy -= .2 * randoms.double(random_index)
                 if(!matrix) {
                     matrix = mat4.create();
                 }
-                mat4.rotateY(matrix, matrix, Math.PI*2 * randoms[random_index]);
+                mat4.rotateY(matrix, matrix, Math.PI*2 * randoms.double(random_index));
             }
         }
 

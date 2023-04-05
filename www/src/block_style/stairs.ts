@@ -6,7 +6,6 @@ import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
-
 const width = 1;
 const height = .5;
 const depth = 1;

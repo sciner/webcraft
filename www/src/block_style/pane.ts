@@ -5,7 +5,6 @@ import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
-
 // Панель
 export default class style {
     [key: string]: any;
