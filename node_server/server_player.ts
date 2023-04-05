@@ -152,8 +152,6 @@ export class ServerPlayer extends Player {
             time: 0
         };
 
-        this.vision                 = new ServerPlayerVision(this);
-        this.damage                 = new ServerPlayerDamage(this);
         this.mining_time_old        = 0; // время последнего разрушения блока
         // null, or an array of POJO postitions of 1 or 2 chests that this player is currently working with
         this.currentChests          = null
