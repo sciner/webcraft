@@ -149,7 +149,6 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         for(let i = 0; i < this.onground_place_index; i += GROUND_PLACE_SIZE) {
             const flat_index = _ground_places[i]
             fromFlatChunkIndex(_vec, flat_index)
-            // const index = _vec.relativePosToChunkIndex()
             if(_vec.y < 1) continue
             _vec.y--
             const under_index = relativePosToChunkIndex(_vec)

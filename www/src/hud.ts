@@ -473,13 +473,14 @@ export class HUD {
             }
 
             const desc = Qubatch.player.pickAt.targetDescription;
+            const {relativePosToFlatIndexInChunk, relativePosToChunkIndex} = world.chunkManager.grid.math
             this.block_text = null;
             if (this.draw_block_info && desc) {
                 this.block_text = 'Targeted block Id: ' + desc.block.id +
                     '\nName: ' + desc.material.name +
                     '\nStyle: ' + desc.material.style_name +
                     '\nWorld pos.: ' + desc.worldPos.toString() +
-                    `\nPos. in chunk: ${desc.posInChunk.toString()}, flat=${desc.posInChunk.relativePosToFlatIndexInChunk()},\n               ind=${desc.posInChunk.relativePosToChunkIndex()}` +
+                    `\nPos. in chunk: ${desc.posInChunk.toString()}, flat=${relativePosToFlatIndexInChunk(desc.posInChunk)},\n               ind=${relativePosToChunkIndex(desc.posInChunk)}` +
                     '\nChunk addr.: ' + desc.chunkAddr.toString();
                 if (desc.material.ticking) {
                     this.block_text += '\nTicking: ' + desc.material.ticking.type;

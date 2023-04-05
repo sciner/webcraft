@@ -140,7 +140,7 @@ export class ChunkWorkerChunk {
         Object.assign(this, args);
         this.addr           = new Vector(this.addr.x, this.addr.y, this.addr.z);
         this.size           = new Vector().copyFrom(chunkManager.grid.chunkSize);
-        this.coord          = this.addr.multiplyVecSelf(chunkManager.grid.chunkSize);
+        this.coord          = this.addr.mul(chunkManager.grid.chunkSize);
         this.id             = this.addr.toHash();
         this.emitted_blocks = new Map();
         this.temp_vec       = new Vector(0, 0, 0);

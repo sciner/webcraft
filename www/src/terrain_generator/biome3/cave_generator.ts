@@ -190,7 +190,7 @@ export class CaveGeneratorBigCaves extends CaveGenerator {
     // Return cave point
     getPoint(xyz : Vector, map_cell, in_ocean : boolean, density_params : DensityParams) : float {
         const CHUNK_SIZE_X = this.grid.chunkSize.x;
-        const CHUNK_SIZE_Z = this.grid.chunkSize.x;
+        const CHUNK_SIZE_Z = this.grid.chunkSize.z;
         // Sponge caves
         const y_perc = (xyz.y - 20) / 60
         if(y_perc > -1 && y_perc < 1) {
