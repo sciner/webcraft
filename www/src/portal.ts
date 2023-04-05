@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { ServerClient } from "./server_client.js";
 import { Color, DIRECTION, Vector } from "./helpers.js";
 import { WorldAction } from "./world_action.js";
@@ -158,6 +157,10 @@ export class WorldPortal {
     static async foundPortalFloorAndBuild(user_id, world, chunk, type) {
         // const tb = chunk.tblocks;
         // @todo tb.non_zero always zero =(
+        const CHUNK_SIZE_X = chunk.size.x;
+        const CHUNK_SIZE_Y = chunk.size.y;
+        const CHUNK_SIZE_Z = chunk.size.z;
+
         const pos = new Vector(0, 0, 0);
         for(pos.y = CHUNK_SIZE_Y - PORTAL_SIZE.height; pos.y >= 0; pos.y--) {
             for(pos.x = 0; pos.x < CHUNK_SIZE_X - PORTAL_SIZE.width + 1; pos.x++) {

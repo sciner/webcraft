@@ -387,7 +387,7 @@ export class ChunkWorkerChunk {
             };
             this.modify_list[getFlatIndexInChunk(this.temp_vec)] = modify_item;
         }
-        BLOCK.getBlockIndex(this.temp_vec, null, null, this.temp_vec);
+        BLOCK.getBlockIndex(this.size, this.temp_vec, null, null, this.temp_vec);
         x = this.temp_vec.x;
         y = this.temp_vec.y;
         z = this.temp_vec.z;

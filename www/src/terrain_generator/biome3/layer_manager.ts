@@ -3,7 +3,6 @@ import Biome3LayerLava from "./layers/lava.js";
 import Biome3LayerAir from "./layers/air.js";
 import Biome3LayerEnd from "./layers/end.js";
 import Biome3LayerOverworld from "./layers/overworld.js";
-import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Default_Terrain_Map } from "../default.js";
 import Biome3LayerUnderworld from "./layers/underworld.js";
@@ -82,7 +81,8 @@ export class Biome3LayerManager {
     }
 
     generateChunk(chunk : ChunkWorkerChunk, chunk_seed : string, rnd : any) : Default_Terrain_Map {
-        
+        const CHUNK_SIZE_Y = chunk.size.y;
+
         const layer = this.getLayer(chunk)
         chunk.layer = layer.obj
 

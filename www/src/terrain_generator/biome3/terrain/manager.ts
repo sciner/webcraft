@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
 import { ArrayHelpers, Helpers, Vector } from "../../../helpers.js";
 import type { Biome, BiomeDirtLayer } from "./../biomes.js";
@@ -404,7 +403,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
             const dirt_layer_blocks = dirt_layer.blocks;
             const dirt_layer_blocks_count = dirt_layer_blocks.length
             const local_water_line = WATER_LEVEL // density_params.local_water_line
-            
+
             if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
                 if(xyz.y <= local_water_line) {
                     block_id = dirt_layer_blocks[dirt_layer_blocks_count - 1]
@@ -470,7 +469,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         }
         return null
     }
-    
+
     /**
      * Return biome for coords and modify by preset
      */
@@ -496,6 +495,8 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
     // generate map
     generateMap(real_chunk, chunk, noisefn) {
+        const CHUNK_SIZE_X = chunk.size.x;
+        const CHUNK_SIZE_Y = chunk.size.y;
 
         if(!real_chunk.chunkManager) {
             throw 'error_no_chunk_manager'

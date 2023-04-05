@@ -1,5 +1,4 @@
 import { impl as alea } from '../../../vendors/alea.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { AABB } from '../../core/AABB.js';
 import { ShiftedMatrix, Vector, VectorCardinalTransformer } from "../../helpers.js";
 import { findLowestNonSolidYFromAboveInChunkAABBRelative } from "../../block_helpers.js";
@@ -36,7 +35,6 @@ const BASEMENT_NOISE_HARSHNESS = 1.3 // from 1. Higher values make it more prono
 const BASEMENT_NOISE_SCALE = 1 / 12
 const BASEMENT_NOISE_AMPLITUDE = 2.0
 
-const CHUNK_AABB = new AABB(0, 0, 0, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
 const tmpTransformer = new VectorCardinalTransformer()
 const tmpYMatrix = new ShiftedMatrix(0, 0, 1, 1)
 
@@ -154,7 +152,7 @@ export class Building {
         const objToChunk = new VectorCardinalTransformer()
         this.initTransformerToChunk(objToChunk, chunk.coord)
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
-        const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
+        const chunkAabbInObj = chunkToObj.tranformAABB(chunk.chunkManager.grid.chunkDefaultAABB, new AABB())
         // AABB of the part of the basement in this chunk, clamped to chunk
         const aabbInObj = basement.aabb.clone().setIntersect(chunkAabbInObj)
         const aabbInChunk = objToChunk.tranformAABB(aabbInObj, new AABB())
@@ -263,7 +261,7 @@ export class Building {
         const objToChunk = new VectorCardinalTransformer()
         this.initTransformerToChunk(objToChunk, chunk.coord)
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
-        const chunkAabbInObj = chunkToObj.tranformAABB(CHUNK_AABB, new AABB())
+        const chunkAabbInObj = chunkToObj.tranformAABB(chunk.chunkManager.grid.chunkDefaultAABB, new AABB())
         const vec = new Vector()
         for(const [x, z, y] of minFloorYbyXZ.entries(
             chunkAabbInObj.x_min, chunkAabbInObj.z_min,

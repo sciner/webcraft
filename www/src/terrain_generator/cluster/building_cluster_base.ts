@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X } from "../../chunk_const.js";
 import { DIRECTION, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
 import { ClusterBase, ClusterPoint } from "./base.js";
 import { BUILDING_AABB_MARGIN } from "./building.js";
@@ -133,7 +132,7 @@ export class ClusterBuildingBase extends ClusterBase {
      * Draw part of building into chunk
      */
     drawBulding(chunk : ChunkWorkerChunk, maps : TerrainMapManager, building : any, map : any) {
-        
+
         if(building.hidden) {
             return
         }
@@ -165,6 +164,7 @@ export class ClusterBuildingBase extends ClusterBase {
         const START_X = chunk.coord.x - this.coord.x;
         const START_Z = chunk.coord.z - this.coord.z;
         const grid = this.clusterManager.world.chunkManager.grid
+        const CHUNK_SIZE_X = chunk.size.x;
 
         for(let i = 0; i < building.size.x; i++) {
             const bx = building.coord.x + i

@@ -3,7 +3,6 @@ import GeometryTerrain from "../../geometry_terrain.js";
 import { BLEND_MODES } from '../../renders/BaseRenderer.js';
 import { AABB } from '../../core/AABB.js';
 import { Resources } from '../../resources.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import {impl as alea} from "../../../vendors/alea.js";
 import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../../fluid/FluidConst.js";
 import { Weather } from '../../block_type/weather.js';
@@ -20,11 +19,21 @@ const RAIN_START_Y      = 128;
 const RAIN_HEIGHT       = 128;
 const RAIN_HEARING_DIST = 10; // maximum hearing distance for player
 
-const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
-const randoms = new Array(RANDOMS_COUNT);
+let randoms = new Array(1);
 const a = new alea('random_plants_position');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
+}
+
+function ensureSize(chunkSize: Vector) {
+    let sz = chunkSize.x * chunkSize.z;
+    if (randoms.length >= chunkSize.x * chunkSize.z) {
+        return;
+    }
+    randoms = new Array(sz);
+    for(let i = 0; i < randoms.length; i++) {
+        randoms[i] = a.double();
+    }
 }
 
 const _chunk_addr = new Vector(Infinity, Infinity, Infinity)
@@ -51,9 +60,9 @@ export default class Mesh_Object_Rain {
     type                = null
 
     /**
-     * @param render 
-     * @param type rain|snow 
-     * @param chunkManager 
+     * @param render
+     * @param type rain|snow
+     * @param chunkManager
      */
     constructor(render : Renderer, type : string, chunkManager : ChunkManager) {
 
@@ -100,7 +109,8 @@ export default class Mesh_Object_Rain {
 
         this.pos = new Vector(this.player.lerpPos.x, RAIN_START_Y, this.player.lerpPos.z).flooredSelf();
         let chunk_addr = null;
-        const chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        const chunk_size = this.render.world.chunkManager.grid.chunkSize;
+        ensureSize(chunk_size);
 
         const pp_rain = new IndexedColor(0, RAIN_SPEED, 0).pack()
         const pp_snow = new IndexedColor(SNOW_SPEED_X, SNOW_SPEED, 0).pack()
@@ -114,7 +124,7 @@ export default class Mesh_Object_Rain {
             const is_snow = this.isSnowCell(xz);
             const pp = is_snow ? pp_snow : pp_rain;
 
-            const rnd_index = Math.abs(Math.round(rx * CHUNK_SIZE_Z + rz)) % randoms.length;
+            const rnd_index = Math.abs(Math.round(rx * chunk_size.z + rz)) % randoms.length;
             const rnd = randoms[rnd_index];
 
             const add = rnd;
@@ -249,13 +259,13 @@ export default class Mesh_Object_Rain {
         const pos           = this.#_player_block_pos;
         const vec           = new Vector();
         const block_pos     = new Vector();
-        const chunk_size    = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        const chunk_size    = this.world.chunkManager.grid.chunkSize;
         const chunk_addr    = new Vector();
 
         this.contact_blocks = []
 
         // check chunks available
-        const chunk_y_max = Math.floor(RAIN_START_Y / CHUNK_SIZE_Y);
+        const chunk_y_max = Math.floor(RAIN_START_Y / chunk_size.y);
         const chunkManager = this.chunkManager
         const grid : ChunkGrid = chunkManager.grid
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
@@ -263,7 +273,7 @@ export default class Mesh_Object_Rain {
                 for(let chunk_addr_y = 0; chunk_addr_y <= chunk_y_max; chunk_addr_y++) {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
-                    block_pos.set(pos.x + i, chunk_addr_y * CHUNK_SIZE_Y, pos.z + j);
+                    block_pos.set(pos.x + i, chunk_addr_y * chunk_size.y, pos.z + j);
                     grid.getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk || !chunk.addr.equal(chunk_addr)) {
                         chunk = chunkManager.getChunk(chunk_addr)
@@ -331,7 +341,7 @@ export default class Mesh_Object_Rain {
         this.createBuffer(TARGET_TEXTURES);
         // console.log('tm', checked_blocks, Mth.round(performance.now() - p, 3));
         return true;
-        
+
     }
 
     get enabled() {
@@ -376,9 +386,9 @@ export default class Mesh_Object_Rain {
         if(!_chunk?.packedCells) {
             return false;
         }
-        const x = pos.x - _chunk_addr.x * CHUNK_SIZE_X;
-        const z = pos.z - _chunk_addr.z * CHUNK_SIZE_Z;
-        const cell_index = z * CHUNK_SIZE_X + x;
+        const x = pos.x - _chunk_addr.x * _chunk.size.x;
+        const z = pos.z - _chunk_addr.z * _chunk.size.z;
+        const cell_index = z * _chunk.size.x + x;
         const biome_id = _chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_BIOME_ID]
         const biome = this.chunkManager.biomes.byID.get(biome_id)
         return biome?.is_snowy ?? false

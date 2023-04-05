@@ -1,6 +1,6 @@
 import { impl as alea } from "../../../../vendors/alea.js";
 import type { BLOCK } from "../../../blocks.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
+import type { ChunkGrid } from "../../../core/ChunkGrid.js";
 import { Vector } from "../../../helpers.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { WorkerWorld } from "../../../worker/world.js";
@@ -36,7 +36,7 @@ class EndTerrainMapManager extends TerrainMapManagerBase {
         cell.water_color = biome.water_color
 
         // create empty cells
-        map.cells = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z).fill(cell)
+        map.cells = new Array(chunk.size.x * chunk.size.z).fill(cell)
 
         return map
 
@@ -52,9 +52,9 @@ class EndTerrainMapManager extends TerrainMapManagerBase {
             if(!map.rnd) {
                 map.rnd = new alea('end_trees_' + map.chunk.addr.toHash())
                 for(let j = 0; j < 2; j++) {
-                    const x = Math.floor(map.rnd.double() * CHUNK_SIZE_X)
+                    const x = Math.floor(map.rnd.double() * chunk.size.x)
                     const y = 39
-                    const z = Math.floor(map.rnd.double() * CHUNK_SIZE_Z)
+                    const z = Math.floor(map.rnd.double() * chunk.size.z)
                     xyz.copyFrom(map.chunk.coord).addScalarSelf(x, y, z)
                     const block_id = this.layer.getBlock(xyz)
                     if(block_id > 0) {
@@ -89,9 +89,11 @@ class EndTerrainMapManager extends TerrainMapManagerBase {
 export default class Biome3LayerEnd extends Biome3LayerBase {
 
     filter_biome_list: int[] = [500]
+    grid: ChunkGrid;
 
     init(generator : Terrain_Generator) : Biome3LayerEnd {
         super.init(generator)
+        this.grid = generator.world.chunkManager.grid;
         this.clusterManager = new ClusterManager(generator.world, generator.seed, this, [{chance: .6, class: ClusterEndCity}])
         this.maps = new EndTerrainMapManager(generator.world, generator.seed, generator.world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
         return this
@@ -128,7 +130,7 @@ export default class Biome3LayerEnd extends Biome3LayerBase {
     }
 
     getBlock(xyz : Vector) : int {
-
+        const CHUNK_SIZE_Y = this.grid.chunkSize.y;
         const BLOCK = this.generator.block_manager
         const block_id = BLOCK.END_STONE.id
 

@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { Vector, VectorCollector } from "../../../helpers.js";
 import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
@@ -12,7 +11,7 @@ import type { WorkerWorld } from "../../../worker/world.js";
 const _temp_chunk = {
     addr: new Vector(),
     coord: new Vector(),
-    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z),
+    size: new Vector(),
     chunkManager: {
         grid: null
     }
@@ -102,7 +101,8 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         const rad        = generate_trees ? 2 : 1
         const noisefn    = this.noise2d
         const maps       = []
-        _temp_chunk.chunkManager.grid = chunk.chunkManager.grid;
+        const grid = _temp_chunk.chunkManager.grid = chunk.chunkManager.grid;
+        _temp_chunk.size.copyFrom(grid.chunkSize);
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
                 TerrainMapManagerBase._temp_vec3.set(x, -chunk_addr.y, z);

@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { Vector } from "../helpers.js";
 
 const CAVE_LAYERS = [
@@ -11,9 +10,8 @@ export class CaveGenerator {
     [key: string]: any;
 
     constructor(grid, chunk_coord, noisefn) {
-
         this.grid = grid;
-        const CHUNK_SIZE_X = grid.chunkSize.x;
+        const CHUNK_SIZE_X = this.CHUNK_SIZE_X = grid.chunkSize.x;
         const CHUNK_SIZE_Z = grid.chunkSize.z;
         this.chunk_coord = new Vector(chunk_coord.x, 0, chunk_coord.z);
         this.layers = [];
@@ -47,6 +45,7 @@ export class CaveGenerator {
 
     // Return cave point
     getPoint(xyz, map_cell, in_ocean) {
+        const CHUNK_SIZE_X = this.grid.chunkSize.x;
         const x = xyz.x - this.chunk_coord.x;
         const z = xyz.z - this.chunk_coord.z;
         for(let i = 0; i < CAVE_LAYERS.length; i++) {

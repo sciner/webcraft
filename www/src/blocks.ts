@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
@@ -513,7 +512,8 @@ export class BLOCK {
     }
 
     //
-    static getBlockIndex(x : int | Vector, y : int, z : int, v : Vector = null) : Vector {
+    static getBlockIndex(chunkSize: Vector = null, x : int | Vector, y : int, z : int, v : Vector = null) : Vector {
+        //TODO: speed it up!
         if (x instanceof Vector) {
           y = x.y;
           z = x.z;
@@ -524,11 +524,11 @@ export class BLOCK {
         const f = (n, m) => ((n % m) + m) % m;
 
         if (v) {
-          v.x = f(x, CHUNK_SIZE_X);
-          v.y = f(y, CHUNK_SIZE_Y);
-          v.z = f(z, CHUNK_SIZE_Z);
+          v.x = f(x, chunkSize.x);
+          v.y = f(y, chunkSize.y);
+          v.z = f(z, chunkSize.z);
         } else {
-          v = new Vector(f(x, CHUNK_SIZE_X), f(y, CHUNK_SIZE_Y), f(z, CHUNK_SIZE_Z));
+          v = new Vector(f(x, chunkSize.x), f(y, chunkSize.y), f(z, chunkSize.z));
         }
 
         return v;

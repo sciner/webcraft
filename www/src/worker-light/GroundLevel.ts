@@ -1,5 +1,4 @@
 import { ArrayHelpers } from '../helpers.js';
-import { CHUNK_SIZE_X } from "../chunk_const.js";
 import { MASK_SRC_BLOCK, OFFSET_SOURCE } from "./LightConst.js";
 
 const GROUND_SKIP_CHUNKS = 10; // If queue is not empty, update ground level once per N chunks
@@ -15,10 +14,6 @@ const GROUND_ESTIMATION_FAR_BIAS_MIN_DIST = 40;
 
 const GROUND_BUCKET_MIN_PERCENT = 0.05;
 const GROUND_BUCKET_MAX_PERCENT = 0.15;
-
-// derived consts
-const GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR =
-    (GROUND_ESTIMATION_MAX_DIST + CHUNK_SIZE_X / 2) * (GROUND_ESTIMATION_MAX_DIST + CHUNK_SIZE_X / 2);
 
 export class ChunkGroundLevel {
     [key: string]: any;
@@ -130,14 +125,21 @@ export class ChunkGroundLevel {
 export class WorldGroundLevel {
     [key: string]: any;
 
+    // derived consts
+    GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR = 0;
+
     constructor(world) {
         this.world = world;
         this.chunkManager = world.chunkManager;
+        const CHUNK_SIZE_X = world.chunkManager.grid.CHUNK_SIZE_X;
 
         this.groundLevelSkipCounter = 0;
         this.prevGroundLevelPlayerPos = null;
         this.columns = new Map();
         this.minLightYDirty = false;
+
+        this.GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR =
+            (GROUND_ESTIMATION_MAX_DIST + CHUNK_SIZE_X / 2) * (GROUND_ESTIMATION_MAX_DIST + CHUNK_SIZE_X / 2);
     }
 
     onAddChunk(chunk) {
@@ -202,7 +204,7 @@ export class WorldGroundLevel {
         }
         return (column.centerX - playerPos.x) * (column.centerX - playerPos.x) +
             (column.centerZ - playerPos.z) * (column.centerZ - playerPos.z) >
-            GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR;
+            this.GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR;
     }
 
     onCheckPotential() {
