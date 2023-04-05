@@ -86,7 +86,7 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('stump', this.plantStump.bind(this)) // пенёк
         this.tree_styles.set('tundra_stone', this.plantTundraStone.bind(this)) // камень тундры
         this.tree_styles.set('birch', this.plantOak.bind(this)) // берёза
-        this.tree_styles.set('oak', this.plantOak.bind(this)) // дуб
+        this.tree_styles.set('oak', this.plantCoral.bind(this)) // корал//this.plantOak.bind(this)) // дуб
         this.tree_styles.set('wood', this.plantOak.bind(this)) // просто дерево
         this.tree_styles.set('red_mushroom', this.plantRedMushroom.bind(this)) // красный гриб
         this.tree_styles.set('brown_mushroom', this.plantBrownMushroom.bind(this)) // коричневый (плоский) гриб
@@ -1301,15 +1301,42 @@ export class Default_Terrain_Generator {
     // Дерево коралл
     plantCoral(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
         //tree.height
+        const faces = []
+        const x = 0
+        const y = 0
+        const z = 0
         const random = new alea('coral' + xyz.toHash())
+        const pos = new Vector(x, y, z)
+        if (random.nextBool()) {
+            faces.push(Vector.XN)
+        }
+        if (random.nextBool()) {
+            faces.push(Vector.XP)
+        }
+        if (random.nextBool()) {
+            faces.push(Vector.ZN)
+        }
+        if (random.nextBool()) {
+            faces.push(Vector.ZP)
+        }
         const height = random.nextInt(3) + 1
-        const pos = xyz.clone()
         for (let i = 0; i < height; i++) {
             setTreeBlock(tree, pos.x, pos.y, pos.z, {id: 199}, false)
-            //if (!setTreeBlock(tree, pos.x, pos.y, pos.z, {id: 199}, false)) {
-
-           // }
-           pos.addSelf(new Vector(0, 1, 0))
+            pos.addSelf(new Vector(0, 1, 0))
+        }
+        for (const face of faces) {
+            const position = pos.clone().addSelf(face)
+            const size = random.nextInt(5) + 2
+            let n = 0
+            for (let i = 0; i < size; i++) {
+                setTreeBlock(tree, position.x, position.y, position.z, {id: 199}, false)
+                n++
+                position.addSelf(new Vector(0, 1, 0))
+                if (i == 0 || n >= 2 && random.double() < .25) {
+                    position.addSelf(face)
+                    n = 0
+                }
+            }
         }
     }
     
