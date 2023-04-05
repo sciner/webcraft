@@ -716,7 +716,7 @@ export class Renderer {
         this.rain?.update(this.getWeather(), delta)
         globalUniforms.rainStrength = this.rain?.strength_val ?? 0
 
-        let chunkBlockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+        let chunkBlockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X;
         let nightshift = 1.;
         let preset = PRESET_NAMES.NORMAL;
 
@@ -748,19 +748,8 @@ export class Renderer {
                 preset = PRESET_NAMES.WATER;
                 chunkBlockDist = 8;
 
-                const p = FOG_PRESETS[preset]
-                const color = getPlayerBlockColor()
-                if(color) {
-                    color.divideScalarSelf(255)
-                    p.color[0] = color.r
-                    p.color[1] = color.g
-                    p.color[2] = color.b
-                    p.addColor[0] = color.r
-                    p.addColor[1] = color.g
-                    p.addColor[2] = color.b
-                    this.env.presets[preset] = new FogPreset(p)
-                    this.env._fogDirty = true
-                }
+                Environment.replacePresetColor(preset, getPlayerBlockColor())
+
 
             } else if(player.eyes_in_block.name == 'NETHER_PORTAL') {
                 preset = PRESET_NAMES.NETHER_PORTAL;
@@ -769,22 +758,13 @@ export class Renderer {
                 preset = PRESET_NAMES.LAVA;
                 chunkBlockDist = 4; //
             }
-        } /*else {
-            preset = PRESET_NAMES.WATER;
-            const p = FOG_PRESETS[preset]
-            const color = getPlayerBlockColor()
-            if(color) {
-                color.divideScalarSelf(255)
-                p.color[0] = color.r
-                p.color[1] = color.g
-                p.color[2] = color.b
-                p.addColor[0] = color.r
-                p.addColor[1] = color.g
-                p.addColor[2] = color.b
-                this.env.presets[preset] = new FogPreset(p)
-                this.env._fogDirty = true
+        } else {
+            const biome_id = player.getOverChunkBiomeId()
+            const biome = biome_id > 0 ? this.world.chunkManager.biomes.byID.get(biome_id) : null;
+            if(biome?.fog_preset_name) {
+                preset = biome.fog_preset_name;
             }
-        }*/
+        }
 
         this.env.setEnvState({
             chunkBlockDist,
