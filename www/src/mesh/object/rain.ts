@@ -65,7 +65,7 @@ export default class Mesh_Object_Rain {
     constructor(world : World, render : Renderer, type : string, chunkManager : ChunkManager) {
 
         this.life           = 1;
-        this.type           = type;
+        this.type           = 'rain';
         this.world          = world
         this.chunkManager   = chunkManager;
         this.grid           = chunkManager.grid
@@ -161,9 +161,9 @@ export default class Mesh_Object_Rain {
 
     //
     update(weather, delta) {
+        this.strength_val = Mth.clamp(this.strength_val + delta / 1000 * (weather ? 1 : -1), 0, 1)
         if (this.sound_id) {
             const old_volume = this.volume
-            this.strength_val = Mth.clamp(this.strength_val + delta / 1000 * (weather ? 1 : -1), 0, 1)
             const hearing_dist_volume = Mth.clamp(1 - this.player_dist / RAIN_HEARING_DIST, 0, 1)
             this.volume = Mth.round(this.defaultVolume * Math.min(this.strength_val, hearing_dist_volume), 3)
             if(old_volume != this.volume) {
