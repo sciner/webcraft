@@ -28,16 +28,14 @@ export class Traversable {
          */
         this.sceneTree;
 
-        /**
-         * @type {boolean}
-         */
-        this.isRenderable;
-
         this.material;
 
         this.drawPos;
     }
 
+    isRenderable(render: Renderer) {
+        return false;
+    }
 }
 
 export class Animable {
@@ -108,7 +106,7 @@ export class TraversableRenderer {
             return;
         }
 
-        if (!traversable.isRenderable) {
+        if (!traversable.isRenderable(render)) {
             return;
         }
 
@@ -536,7 +534,7 @@ export class MobModel extends NetworkPhysicObject {
 
         this.type = props.type;
         this.skin = props.skin_id || props.skin;
-        
+
         /**
          * @type {SceneNode[]}
          */
@@ -576,11 +574,11 @@ export class MobModel extends NetworkPhysicObject {
         };
     }
 
-    get isRenderable() {
+    isRenderable(render: Renderer) {
         return this.sceneTree && (
-             this.currentChunk &&
-             true ||
-             !this.currentChunk);
+             !this.currentChunk ||
+             (this.currentChunk.cullID === render.cullID)
+         )
     }
 
     get isAlive() : boolean {
@@ -678,7 +676,7 @@ export class MobModel extends NetworkPhysicObject {
             const draw_yaw = this.draw_yaw;
             const add_angle = this.body_rotate * Math.PI * (HEAD_MAX_ROTATE_ANGLE / 180);
             quat.fromEuler(st.quat, 0, 0, (this.sleep) ? 360 * this.sleep.rotate.z : 180 * (Math.PI - (draw_yaw + add_angle)) / Math.PI);
-            
+
             //
             let subY = 0;
             if(this.sitting) {
@@ -709,7 +707,7 @@ export class MobModel extends NetworkPhysicObject {
 
         this.computeLocalPosAndLight(render, delta);
 
-        if (!this.isRenderable) {
+        if (!this.isRenderable(render)) {
             return;
         }
 
