@@ -31,8 +31,6 @@ class CalcLine {
 class CalcSegment {
     left = 0;
     right = 0;
-    ord1 = 0;
-    ord2 = 0;
 }
 
 function numberSort(a, b) {
@@ -211,19 +209,26 @@ function frustumCorners(result: Vector[], resultEdges: CalcLine[], lines: CalcLi
     }
 }
 
-function intersectEdges(result: CalcSegment[], edges: CalcLine[], chunkSize: Vector, marginZ: number, padding: number) {
-    while (result.length < (marginZ * 2 + 1) * 12) {
+/**
+ * also initializes result arrays
+ */
+function intersectEdges(result: CalcSegment[], edges: CalcLine[], chunkSize: Vector, marginVec: Vector, padding: number) {
+    const marginZ = marginVec.z;
+    const marginY = marginVec.y;
+    const depth = (marginZ * 2 + 1);
+    while (result.length < depth * (marginY * 2 + 1)) {
         result.push(new CalcSegment());
     }
     for (let Z0 = -marginZ; Z0 <= marginZ; Z0++) {
         const lf = Z0 * chunkSize.z - padding;
         const rt = (Z0 + 1) * chunkSize.z + padding;
-        for (let i = 0; i < 12; i++) {
-            const res = result[(Z0 + marginZ) * 12 + i];
+        for (let Y0 = -marginY ; Y0 <= marginY; Y0++) {
+            const res = result[((Z0 + marginZ) + (Y0 + marginY) * depth)];
             res.left = Infinity;
-            res.right = Infinity;
-            res.ord1 = Infinity;
-            res.ord2 = Infinity;
+            res.right = -Infinity;
+        }
+
+        for (let i = 0; i < 12; i++) {
             const edge = edges[i];
             if (edge.error > 0) {
                 continue;
@@ -237,24 +242,54 @@ function intersectEdges(result: CalcSegment[], edges: CalcLine[], chunkSize: Vec
             }
             let y1 = edge.C * p1 + edge.D;
             let y2 = edge.C * p2 + edge.D;
-            let ord1 = Math.floor((y1 + padding) / chunkSize.y);
-            let ord2 = Math.floor((y2 + padding) / chunkSize.y);
-            if (ord1 === ord2) {
-                res.ord1 = ord1;
+
+            if (Math.abs(edge.C) < EPS) {
+                let ord1 = Math.floor((y1 - padding) / chunkSize.y);
+                let ord2 = Math.floor((y1 + padding) / chunkSize.y);
+                let x1 = edge.A * p1 + edge.B;
+                let x2 = edge.A * p2 + edge.B;
+                if (x1 > x2) {
+                    let t = x1; x1 = x2; x2 = t;
+                }
+                for (let Y0 = ord1; Y0 <= ord2; Y0++) {
+                    if (Math.abs(Y0) <= marginY) {
+                        const res = result[(Z0 + marginZ) + (Y0 + marginY) * depth];
+                        res.left = Math.min(res.left, x1);
+                        res.right = Math.max(res.right, x2);
+                    }
+                }
+                continue;
             }
-            ord1 = Math.floor((y1 - padding) / chunkSize.y);
-            ord2 = Math.floor((y2 - padding) / chunkSize.y);
-            if (ord1 === ord2) {
-                res.ord2 = ord1;
+
+            if (y1 > y2) {
+                let t = y1; y1 = y2; y2 = t;
             }
-            let x1 = edge.A * p1 + edge.B;
-            let x2 = edge.A * p2 + edge.B;
-            if (x1 < x2) {
-                res.left = x1;
-                res.right = x2;
-            } else {
-                res.left = x2;
-                res.right = x1;
+            if (y2 < -marginY * chunkSize.y - padding
+                || y1 > marginY * chunkSize.y + padding) {
+                continue;
+            }
+            let bottomChunkY = Math.max(-marginY, Math.floor((y1 - padding) / chunkSize.y));
+            let topChunkY = Math.min(marginY, Math.floor((y2 + padding) / chunkSize.y));
+
+            for (let Y0 = bottomChunkY; Y0 <= topChunkY; Y0++) {
+                let bottom = Y0 * chunkSize.y - padding;
+                let top = (Y0 + 1) * chunkSize.y + padding;
+                let s1 = (bottom - edge.D) / edge.C;
+                let s2 = (top - edge.D) / edge.C;
+                if (s1 > s2) {
+                    let t = s1; s1 = s2; s2 = t;
+                }
+                s1 = Math.max(s1, p1);
+                s2 = Math.min(s2, p2);
+
+                let x1 = edge.A * s1 + edge.B;
+                let x2 = edge.A * s2 + edge.B;
+                if (x1 > x2) {
+                    let t = x1; x1 = x2; x2 = t;
+                }
+                const res = result[(Z0 + marginZ) + (Y0 + marginY) * depth];
+                res.left = Math.min(res.left, x1);
+                res.right = Math.max(res.right, x2);
             }
         }
     }
@@ -291,7 +326,7 @@ for (let i = 0; i < EDGE_COUNT; i++) {
 }
 
 let edgeXSegByZ: CalcSegment[] = [];
-for (let i = 0; i < 33 * 8; i++) {
+for (let i = 0; i < 33 * 7; i++) {
     edgeXSegByZ.push(new CalcSegment());
 }
 
@@ -322,7 +357,7 @@ export class SpiralCulling {
         }
 
         frustumCorners(frustPoints, edgeLines, linesTop);
-        intersectEdges(edgeXSegByZ, edgeLines, chunkSize, marginVec.z, paddingBlocks);
+        intersectEdges(edgeXSegByZ, edgeLines, chunkSize, marginVec, paddingBlocks);
 
         for (let Y0 = -marginVec.y; Y0 <= marginVec.y; Y0++) {
             let Y_bottom = Math.max(Y_min, Y0 * chunkSize.y - paddingBlocks);
@@ -369,8 +404,9 @@ export class SpiralCulling {
                 if (rad < 0) {
                     continue;
                 }
-                X_seg.left = Infinity;
-                X_seg.right = -Infinity;
+                const edgeRes = edgeXSegByZ[Y0 * depth + Z0 + dw];
+                X_seg.left = edgeRes.left;
+                X_seg.right = edgeRes.right;
                 const lf = Z0 * chunkSize.z - paddingBlocks;
                 const rt = (Z0 + 1) * chunkSize.z + paddingBlocks;
                 Z_seg.left = Math.max(Z_top.left, lf);
@@ -383,15 +419,6 @@ export class SpiralCulling {
                 if (Z_seg.left <= Z_seg.right) {
                     i_bottom = scanLine(X_seg, linesBottom, inter_Z_bottom, Z_seg, i_bottom);
                 }
-
-                for (let i = 0; i < EDGE_COUNT; i++) {
-                    let res = edgeXSegByZ[(Z0 + marginVec.z) * EDGE_COUNT + i];
-                    if (res.ord1 === Y0 || res.ord2 === Y0) {
-                        X_seg.left = Math.min(X_seg.left, res.left);
-                        X_seg.right = Math.max(X_seg.right, res.right);
-                    }
-                }
-
                 if (cornerCnt > 0) {
                     for (let i = 0; i < cornerCnt; i++) {
                         if (frustSegPoints[i].z > lf - EPS && frustSegPoints[i].z < rt + EPS) {
