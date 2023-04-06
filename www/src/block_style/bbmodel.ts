@@ -225,7 +225,7 @@ export default class style {
                             for(let axe of rot.axes) {
                                 switch(axe) {
                                     case 'y': {
-                                        mat4.rotateY(matrix, matrix, randoms.double(z * chunk.size.x + x) * (2 * Math.PI))
+                                        mat4.rotateY(matrix, matrix, randoms.double(Math.round(z * chunk.size.x + x)) * (2 * Math.PI))
                                         break
                                     }
                                     default: {

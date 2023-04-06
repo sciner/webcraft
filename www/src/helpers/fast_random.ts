@@ -28,12 +28,12 @@ export class FastRandom {
         }
     }
 
-    double(offset : number) : float {
+    double(offset : int) : float {
         offset = Math.abs(offset) % this.cnt;
         return this.doubles[offset];
     }
 
-    int32(offset : number) : int {
+    int32(offset : int) : int {
         offset = Math.abs(offset) % this.cnt;
         return this.int32s[offset];
     }
