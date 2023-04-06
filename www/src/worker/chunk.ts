@@ -362,7 +362,7 @@ export class ChunkWorkerChunk implements IChunk {
 
     // setBlock
     setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
-        const {getFlatIndexInChunk} = this.chunkManager.grid.math;
+        const {getFlatIndexInChunk, getBlockIndex} = this.chunkManager.grid.math;
         //TODO: take liquid into account
         // fix rotate
         if(rotate && typeof rotate === 'object') {
@@ -387,7 +387,7 @@ export class ChunkWorkerChunk implements IChunk {
             };
             this.modify_list[getFlatIndexInChunk(this.temp_vec)] = modify_item;
         }
-        BLOCK.getBlockIndex(this.size, this.temp_vec, null, null, this.temp_vec);
+        getBlockIndex(this.temp_vec.x, this.temp_vec.y, this.temp_vec.z, this.temp_vec);
         x = this.temp_vec.x;
         y = this.temp_vec.y;
         z = this.temp_vec.z;

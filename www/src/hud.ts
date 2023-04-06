@@ -448,7 +448,8 @@ export class HUD {
             }
 
             // Chunks inited
-            this.text += `\nChunks drawn: ${Math.round(cm.rendered_chunks.fact)} / ${cm.rendered_chunks.total} (${player.state.chunk_render_dist}) ${splash?.generate_terrain_time} ${splash?.loaded_chunks_count}`
+            const chunk_size_xz = world.info.tech_info.chunk_size.x
+            this.text += `\nChunks drawn: ${Math.round(cm.rendered_chunks.fact)} / ${cm.rendered_chunks.total} (${player.state.chunk_render_dist}x${chunk_size_xz}=${player.state.chunk_render_dist*chunk_size_xz}) ${splash?.generate_terrain_time}`
 
             // Quads and Lightmap
             let quads_length_total = cm.vertices_length_total;

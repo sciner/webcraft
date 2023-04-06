@@ -402,6 +402,7 @@ export class TerrainMap extends Default_Terrain_Map {
     smooth(map_manager : TerrainMapManager) {
 
         const grid : ChunkGrid = map_manager.world.chunkManager.grid
+        const grid_math = grid.math
         const CHUNK_SIZE_X = grid.chunkSize.x
         const CHUNK_SIZE_Z = grid.chunkSize.z
         const {SMOOTH_ROW_COUNT} = this
@@ -422,7 +423,7 @@ export class TerrainMap extends Default_Terrain_Map {
                 if(!map || map.chunk.addr.x != addr.x || map.chunk.addr.z != addr.z) {
                     map = map_manager.maps_cache.get(addr); // get chunk map from cache
                 }
-                bi = BLOCK.getBlockIndex(grid.chunkSize, px, 0, pz, bi)
+                bi = grid_math.getBlockIndex(px, 0, pz, bi)
                 const cell = map.getCell(bi.x, bi.z)
                 TerrainMap.setPartial(SMOOTH_ROW_COUNT, x, z, cell);
             }

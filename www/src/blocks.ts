@@ -498,29 +498,6 @@ export class BLOCK {
         return resp;
     }
 
-    //
-    static getBlockIndex(chunkSize: Vector = null, x : int | Vector, y : int, z : int, v : Vector = null) : Vector {
-        //TODO: speed it up!
-        if (x instanceof Vector) {
-          y = x.y;
-          z = x.z;
-          x = x.x;
-        }
-
-        // функция евклидового модуля
-        const f = (n, m) => ((n % m) + m) % m;
-
-        if (v) {
-          v.x = f(x, chunkSize.x);
-          v.y = f(y, chunkSize.y);
-          v.z = f(z, chunkSize.z);
-        } else {
-          v = new Vector(f(x, chunkSize.x), f(y, chunkSize.y), f(z, chunkSize.z));
-        }
-
-        return v;
-    }
-
     // Call before setBlock
     static makeExtraData(block, pos : IVectorPoint, orientation : IVector, world) {
         block = BLOCK.BLOCK_BY_ID[block.id];

@@ -357,9 +357,6 @@ export class Vector implements IVector {
         return this
     }
 
-    /**
-     * @return {Vector}
-     */
     toInt() : Vector {
         return new Vector(
             this.x | 0,
@@ -368,9 +365,6 @@ export class Vector implements IVector {
         );
     }
 
-    /**
-     * @return {Vector}
-     */
     clone() : Vector {
         return new Vector(
             this.x,
@@ -379,28 +373,14 @@ export class Vector implements IVector {
         );
     }
 
-    /**
-     * @return {number[]}
-     */
     toArray() : number[] {
         return [this.x, this.y, this.z];
     }
 
-    /**
-     * @return {string}
-     */
-    toString() {
+    toString() : string {
         return '(' + this.x + ',' + this.y + ',' + this.z + ')';
     }
 
-    /**
-     */
-    toChunkKey() : string {
-        return 'c_' + this.x + '_' + this.y + '_' + this.z;
-    }
-
-    /**
-     */
     toHash() : string {
         return this.x + ',' + this.y + ',' + this.z;
     }
@@ -416,16 +396,10 @@ export class Vector implements IVector {
         return Vector.toIntHash(this.x, this.y, this.z);
     }
 
-    /**
-     * @return {number}
-     */
-    norm() {
+    norm() : number {
         return this.length();
     }
 
-    /**
-     * @return {Vector}
-     */
     normalize() : Vector {
         return this.normal();
     }
@@ -445,9 +419,6 @@ export class Vector implements IVector {
         return new Vector(this.x + x, this.y + y, this.z + z);
     }
 
-    /**
-     * @return {Vector}
-     */
     floored() : Vector {
         return new Vector(
             Math.floor(this.x),
@@ -554,8 +525,6 @@ export class Vector implements IVector {
         return volx * voly * volz;
     }
 
-    /**
-     */
     copy(from: Vector | number[] | IVector) {
         if (from == null) {
             return this;
@@ -679,11 +648,8 @@ export class Vector implements IVector {
 
     /**
      * Return quaternion
-     * @param {float} angle
-     * @param {boolean} hz
-     * @returns
      */
-    rotationDegrees(angle, hz = true) {
+    rotationDegrees(angle : float, hz : boolean = true) : tupleFloat4 {
         if(hz) {
             angle *= (Math.PI / 180);
         }
@@ -719,11 +685,7 @@ export let NORMALS = {
 };
 
 export class Vec3 extends Vector {
-    [key: string]: any;
 
-    /**
-     * @param vec
-     */
     add(vec: IVector) : Vec3 {
         this.x += vec.x;
         this.y += vec.y;
@@ -738,7 +700,6 @@ export class Vec3 extends Vector {
 }
 
 export class Vector4 {
-    [key: string]: any;
     x: number;
     y: number;
     height: number;

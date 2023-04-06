@@ -55,6 +55,11 @@ export class ChunkGridMath {
     fromChunkIndex(vec: Vector, index: number): Vector {
         return vec;
     }
+
+    getBlockIndex(x : int, y : int, z : int, vec : Vector) : Vector {
+        return vec
+    }
+
 }
 
 export function generateChunkGridMath(chunkSize): ChunkGridMath {
@@ -79,6 +84,16 @@ export function generateChunkGridMath(chunkSize): ChunkGridMath {
 
 
     const advancedFunctions = `
+
+    // функция евклидового модуля
+    // res = (n, m) => ((n % m) + m) % m
+    getBlockIndex(x, y, z, vec) {
+        vec.x = ((x % ${CHUNK_SIZE_X}) + ${CHUNK_SIZE_X}) % ${CHUNK_SIZE_X}
+        vec.y = ((y % ${CHUNK_SIZE_Y}) + ${CHUNK_SIZE_Y}) % ${CHUNK_SIZE_Y}
+        vec.z = ((z % ${CHUNK_SIZE_Z}) + ${CHUNK_SIZE_Z}) % ${CHUNK_SIZE_Z}
+        return vec
+    }
+
     // Return flat index of chunk block
     getFlatIndexInChunk(vec) {
         let x = vec.x - Math.floor(vec.x / ${CHUNK_SIZE_X}) * ${CHUNK_SIZE_X};
