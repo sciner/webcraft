@@ -1,7 +1,7 @@
 /**
 * Window Manager based on PIXI.js
 */
-import { RuneStrings, deepAssign, isScalar } from "../../helpers.js";
+import { RuneStrings, deepAssign, isScalar, Mth, Vector } from "../../helpers.js";
 import { getBlockImage } from "../../window/tools/blocks.js";
 import { PIXI } from '../../../tools/gui/pixi.js';
 import {Style} from "./styles.js";
@@ -699,12 +699,11 @@ export class Window extends PIXI.Container {
         let {window, event} = this._clarifyMouseEvent(e)
         if(window) {
             if(window.draggable) {
+                const e2 = {...e}
+                e2.x = e2.x - (this.ax + window.x)
+                e2.y = e2.y - (this.ay + window.y)
+                event = e2
                 current_drag_window = window
-                // const e2 = {...e}
-                // const y = e2.y - (this.ay + window.y)
-                // e2.y = window.ay + y
-                // event = e2
-                // console.log(e.y, event.y, this.ay, window.ay)
             }
             return window._mousedown(event)
         }
@@ -742,12 +741,12 @@ export class Window extends PIXI.Container {
         let leaved = []
 
         if(current_drag_window && this != current_drag_window) {
-            const w = current_drag_window
-            // const e2 = {...e}
-            // const y = e2.y - (current_drag_window.parent.ay + w.y)
-            // e2.y = w.ay + y
-            // e = e2
-            w._mousemove(e)
+            const window = current_drag_window
+            const e2 = {...e}
+            e2.x = e.x - window.worldTransform.tx
+            e2.y = e.y - window.worldTransform.ty
+            // window._mousemove(e2)
+            window.onMouseMove(e2)
             return
         }
 
@@ -1762,12 +1761,14 @@ export class Slider extends Window {
 
     min_size_scroll:    number = 50
     grab:               boolean = false
+    horizontal:         boolean = false
     _min:               number = 0
     _max:               number = 0
     _value:             number = 0
     wScrollTrack:       Label = null
     wScrollThumb:       Label = null
-    start_drag_y:       number = 0
+    start_drag_pos:     Vector = new Vector(0, 0, 0)
+    thumb_start_pos:    Vector = new Vector(0, 0, 0)
 
     constructor(x : number, y : number, w : number, h : number, id : string) {
         super(x, y, w, h, id, null, null)
@@ -1834,40 +1835,56 @@ export class Slider extends Window {
         }
     }
 
-    onMouseDown(e) {
+    onMouseDown(event) {
         this.grab = true
-        this.start_drag_y = e.y - this.wScrollThumb.y - this.wScrollThumb.h/2
+        const x = event.x
+        const y = event.y
+        this.start_drag_pos.set(x, y, 0)
+        const thumb = this.wScrollThumb
+        if(this.horizontal) {
+            if(x < thumb.x || x > thumb.x + thumb.w) {
+                thumb.x = x - thumb.w / 2
+            }
+        } else {
+            if(y < thumb.y || y > thumb.y + thumb.h) {
+                thumb.y = y - thumb.h / 2
+            }
+        }
+        this.applyThumbPosition()
+        this.thumb_start_pos.set(thumb.x, thumb.y, 0)
+    }
+
+    applyThumbPosition() {
+        const thumb = this.wScrollThumb
+        const size = ((this.horizontal) ? thumb.w : thumb.h)
+        const max_pos = ((this.horizontal) ? this.w : this.h) - size
+        if(this.horizontal) {
+            thumb.x = Mth.clamp(thumb.x, 0, max_pos)
+            this._value = Math.floor(((thumb.x * (this._max - this._min)) / max_pos) + this._min) || 0
+        } else {
+            thumb.y = Mth.clamp(thumb.y, 0, max_pos)
+            this._value = Math.floor(((thumb.y * (this._max - this._min)) / max_pos) + this._min) || 0
+        }
+        this.onScroll(this._value)
     }
 
     onMouseUp(e) {
         this.grab = false
     }
 
-    onMouseMove(e) {
+    onMouseMove(event) {
         if (this.grab) {
-            e.y -= this.start_drag_y
             const thumb = this.wScrollThumb
-            const size = ((this.horizontal) ? thumb.w : thumb.h)
-            let pos = ((this.horizontal) ? e.x - this.x : e.y - this.y) - size / 2
-            const max_pos = ((this.horizontal) ? this.w : this.h) - size
-            if (pos < 0) {
-                pos = 0
-            }
-            if (pos > max_pos) {
-                pos = max_pos
-            }
-            if (this.horizontal) {
-                thumb.x = pos
+            if(this.horizontal) {
+                thumb.x = this.thumb_start_pos.x + (event.x - this.start_drag_pos.x)
             } else {
-                thumb.y = pos
+                thumb.y = this.thumb_start_pos.y + (event.y - this.start_drag_pos.y)
             }
-            this._value = Math.floor(((pos * (this._max - this._min)) / max_pos) + this._min)
-            this._value = this._value || 0
-            this.onScroll(this._value)
+            this.applyThumbPosition()
         }
     }
 
-    onScroll(e : any) {}
+    onScroll(value : float) {}
 
 }
 
