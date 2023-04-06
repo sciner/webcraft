@@ -1,8 +1,13 @@
-import {API_Client} from './api.js';
-import {Helpers} from '../helpers.js';
+import {API_Client, API_Client_Callback} from './api.js';
+import {Helpers, MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} from '../helpers.js';
 
 export class UIApp {
-    [key: string]: any;
+
+    api: API_Client
+    session: any
+    onLogin: (any) => void
+    onLogout: (any) => void
+    onError: (any) => void
 
     constructor() {
         this.api = Qubatch.local_server_client?.getAPIClient() || new API_Client();
@@ -51,7 +56,7 @@ export class UIApp {
         this.onLogout(result);
     }
 
-    showError(message) {
+    showError(message: string, unused_argument?: int): void {
         this.onError(message);
     }
 
@@ -84,6 +89,13 @@ export class UIApp {
             }
         }, callback_error, callback_progress, callback_final);
         return result;
+    }
+
+    async SyncTime(callback: API_Client_Callback<TApiSyncTimeResponse>, callback_error: API_Client_Callback) {
+        const req: TApiSyncTimeRequest = {
+            clientUTCDate: MonotonicUTCDate.nowWithoutExternalCorrection()
+        }
+        return this.api.call(this, '/api/SyncTime', req, callback, callback_error)
     }
 
     async GetWorldPublicInfo(form, callback, callback_error, callback_progress, callback_final) {

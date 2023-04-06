@@ -3,6 +3,7 @@ import { BuildingTemplate } from "@client/terrain_generator/cluster/building_tem
 import { WorldGenerators } from "./world/generators.js";
 import type { DBGame } from "db/game.js";
 import { Vector } from "@client/helpers.js";
+import {MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} from "@client/helpers/monotonic_utc_date.js";
 
 const FLAG_SYSTEM_ADMIN = 256;
 
@@ -72,7 +73,7 @@ export class ServerAPI {
                         break
                     }
                 }
-  
+
                 const title       = params.title;
                 const seed        = params.seed;
                 const game_mode   = params.game_mode ?? 'survival';
@@ -173,6 +174,14 @@ export class ServerAPI {
                     list.push({id: gm.id, title: gm.title});
                 }
                 return list;
+            }
+            case '/api/SyncTime': { // the initial request to sync clocks, before a game begins
+                const req = params as TApiSyncTimeRequest
+                const resp: TApiSyncTimeResponse = {
+                    clientUTCDate: req.clientUTCDate,
+                    serverUTCDate: MonotonicUTCDate.now()
+                }
+                return resp
             }
             case '/api/Skin/Upload': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
