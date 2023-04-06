@@ -256,7 +256,7 @@ export class Renderer {
         // Prepare base resource pack shader
         const rp                = BLOCK.resource_pack_manager.get('base');
         this.defaultShader      = rp.shader;
-        this.defaultFluidShader = rp.shader;
+        this.defaultFluidShader = rp.fluidShader;
 
         this.camera.renderType  = this.renderBackend.gl ? 'webgl' : 'webgpu';
         this.camera.width       = this.viewportWidth;
