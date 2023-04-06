@@ -1301,9 +1301,23 @@ export class Default_Terrain_Generator {
     // Дерево коралл
     plantCoral(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
         //tree.height
+        const setCoral = (position, sh = 0)=> {
+            const top = random.nextInt(6)
+            if (top == 0) {
+                setTreeBlock(tree, position.x, position.y + sh, position.z,  leaves, false)
+            } else if (top == 1) {
+                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.SEAGRASS.id}, false)
+            } else if (top == 2) {
+                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.BUBBLE_CORAL.id}, false)
+            } else if (top == 3) {
+                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.FIRE_CORAL.id}, false)
+            }
+        }
+        const trunk = {id: BLOCK.HORN_CORAL_BLOCK.id}
+        const leaves = {id: BLOCK.BRAIN_CORAL.id}
         const faces = []
         const x = 0
-        const y = 0
+        const y = -1
         const z = 0
         const random = new alea('coral' + xyz.toHash())
         const pos = new Vector(x, y, z)
@@ -1321,22 +1335,26 @@ export class Default_Terrain_Generator {
         }
         const height = random.nextInt(3) + 1
         for (let i = 0; i < height; i++) {
-            setTreeBlock(tree, pos.x, pos.y, pos.z, {id: 199}, false)
-            pos.addSelf(new Vector(0, 1, 0))
+            pos.addSelf(Vector.YP)
+            setTreeBlock(tree, pos.x, pos.y, pos.z, trunk, true)
         }
         for (const face of faces) {
             const position = pos.clone().addSelf(face)
             const size = random.nextInt(5) + 2
             let n = 0
             for (let i = 0; i < size; i++) {
-                setTreeBlock(tree, position.x, position.y, position.z, {id: 199}, false)
+                setTreeBlock(tree, position.x, position.y, position.z, trunk, true)
                 n++
-                position.addSelf(new Vector(0, 1, 0))
+                position.addSelf(Vector.YP)
                 if (i == 0 || n >= 2 && random.double() < .25) {
+                    //setTreeBlock(tree, position.x, position.y, position.z,  trunk, false)
+                    setCoral(position)
                     position.addSelf(face)
                     n = 0
                 }
             }
+            setTreeBlock(tree, position.x, position.y, position.z,  trunk, true)
+            setCoral(position, 1)
         }
     }
     
