@@ -7,11 +7,13 @@ export class Basic05GeometryPool extends GeometryPool {
     constructor(context, {
         pageSize = 256,
         pageCount = 1000,
-        growCoeff = 1.5
+        growCoeff = 2.0,
+        growMaxPageInc = 8000,
     }) {
         super(context)
 
         this.growCoeff = growCoeff;
+        this.growMaxPageInc = growMaxPageInc;
         this.pageCount = pageCount;
         this.pageSize = pageSize;
         this.freePages = [];
@@ -31,7 +33,7 @@ export class Basic05GeometryPool extends GeometryPool {
     grow() {
         const {pageSize, growCoeff, freePages} = this;
         const prevSize = this.pageCount;
-        const newSize = this.pageCount = Math.ceil(prevSize * growCoeff);
+        const newSize = this.pageCount = Math.min(prevSize + this.growMaxPageInc, Math.ceil(prevSize * growCoeff));
         this.baseGeometry.resize(newSize * pageSize);
         for (let i = newSize - 1; i >= prevSize; i--) {
             freePages.push(i);
