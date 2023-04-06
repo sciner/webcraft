@@ -1,4 +1,3 @@
-import { CH_SZ_X, CH_SZ_Y, CH_SZ_Z } from "./chunk_const.js";
 import { Vector, SimpleShifted3DArray, ArrayHelpers, Mth, UintArrayConstructor } from "./helpers.js";
 import { VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_TYPE_WATER, VOLUMETRIC_SOUND_TYPE_LAVA,
     VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
@@ -37,7 +36,7 @@ function initChunkSize(size: IVector): void {
     if (VOLUMETRIC_SOUND_MAX_DISTANCE > (SOUND_MAP_CHUNKS_RADIUS_XZ + 0.5) * size.x * 1.1) {
         throw Error('VOLUMETRIC_SOUND_MAX_DISTANCE is too big')
     }
-    initMIPS()
+    initMIPS(size)
 }
 
 const MAX_SUMMARY_LEVEL     = 2     // (value <= MAX_LEVEL)
@@ -133,20 +132,20 @@ let MIPS: TMipDescriptor[]
 let MIP0: TMipDescriptor
 let MIP_MAX: TMipDescriptor
 
-function initMIPS() {
+function initMIPS(size: IVector) {
     MIPS = new Array(MAX_LEVEL + 1)
     let cellXZ = 1
-    let sizeXZ = CH_SZ_X
+    let sizeXZ = size.x
     let strideZ = 2 // [volume, 2 * SUM(y + 0.5)]
     let prevCellY = 1
     for(let level = 0; level <= MAX_LEVEL; level++) {
         const cellY = CELL_SIZE_Y[level]
-        const sizeY = CH_SZ_Y / cellY
+        const sizeY = size.y / cellY
 
         const strideY = strideZ * sizeXZ
         const strideX = strideY * sizeY
         // the upper bounds of the maximum possible element value: sum coordinates (CHUNK_SIZE_Y - 1) multiplied by volume
-        const maxValue = cellXZ * cellY * cellXZ * (2 * (CH_SZ_Y - 1) + 1)
+        const maxValue = cellXZ * cellY * cellXZ * (2 * (size.y - 1) + 1)
 
         MIPS[level] = {
             level,
