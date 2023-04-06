@@ -1,9 +1,8 @@
-import { getChunkAddr, Vector, ObjectHelpers, chunkAddrToCoord } from "./helpers.js";
+import { Vector, ObjectHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from './core/AABB.js';
-import {CHUNK_SIZE_X_M1, CHUNK_SIZE_Y_M1, CHUNK_SIZE_Z_M1, CHUNK_CX, CHUNK_CY, CHUNK_CZ, CHUNK_CW} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
@@ -41,9 +40,6 @@ export class BlockNeighbours {
     }
 
 }
-
-const tmp_BlockAccessor_Vector = new Vector();
-const tmp_VectorCollector1D_Vector = new Vector();
 
 // VectorCollector...
 export class VectorCollector1D<T = any> {
@@ -184,6 +180,10 @@ export class TypedBlocks3 {
     chunk           : any
 
     static _prt = [];
+    static tempAABB = new AABB();
+    static tempAABB2 = new AABB();
+    static tempVec = new Vector();
+    static _tmp = new Vector();
 
     constructor(coord : Vector, grid: ChunkGrid) {
         this.addr       = grid.toChunkAddr(coord);
@@ -332,14 +332,8 @@ export class TypedBlocks3 {
 
     /**
      * Return solid neighbours count
-     *
-     * @param {int} x
-     * @param {int} y
-     * @param {int} z
-     *
-     * @returns {int}
      */
-    blockSolidNeighboursCount(x, y, z) {
+    blockSolidNeighboursCount(x : int, y : int, z : int) : int {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         const i_up = index + cy;
@@ -361,10 +355,8 @@ export class TypedBlocks3 {
     /**
      * Creating iterator that fill target block to reduce allocations
      * NOTE! This unsafe because returned block will be re-filled in iteration process
-     * @param {TBlock} target
-     * @returns
      */
-    createUnsafeIterator(target = null, ignore_filled = false) {
+    createUnsafeIterator(target : TBlock = null, ignore_filled : boolean = false) {
         const b = target || new TBlock(this, new Vector());
         const { size, uint16View, cx, cy, cz, cw } = this.dataChunk;
         const contex = b.tb = this;
@@ -443,7 +435,7 @@ export class TypedBlocks3 {
             : new TBlock(this, vec, index);
     }
 
-    getMaterial(vec : IVector) {
+    getMaterial(vec : IVector) : IBlockMaterial {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * vec.x + cy * vec.y + cz * vec.z + cw;
         return BLOCK.BLOCK_BY_ID[this.id[index]] || null;
@@ -455,7 +447,7 @@ export class TypedBlocks3 {
         return this.id[index] > 0;
     }
 
-    getNeighbours(tblock, world, cache) {
+    getNeighbours(tblock, world, cache) : BlockNeighbours {
         const { portals, safeAABB, pos, outerSize } = this.dataChunk;
         const cx = 1, cy = outerSize.x * outerSize.z, cz = outerSize.x;
         const localPos = tblock.vec;
@@ -528,8 +520,6 @@ export class TypedBlocks3 {
         return neighbours;
     }
 
-    static _tmp = new Vector();
-
     getBlockId(x, y, z) {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
@@ -584,10 +574,6 @@ export class TypedBlocks3 {
 
         return pcnt;
     }
-
-    static tempAABB = new AABB();
-    static tempAABB2 = new AABB();
-    static tempVec = new Vector();
 
     setDirtyBlocks(x, y, z) {
         const { vertices } = this;
@@ -656,12 +642,14 @@ export class TypedBlocks3 {
     setDirtyAABB(aabb : AABB) {
         const { cx, cy, cz, shiftCoord} = this.dataChunk;
         const {vertices} = this;
-        for (let x = aabb.x_min; x < aabb.x_max; x++)
-            for (let y = aabb.y_min; y < aabb.y_max; y++)
-                for (let z = aabb.z_min; z < aabb.z_max; z++) {
+        for(let x = aabb.x_min; x < aabb.x_max; x++) {
+            for(let y = aabb.y_min; y < aabb.y_max; y++) {
+                for(let z = aabb.z_min; z < aabb.z_max; z++) {
                     let index2 = cx * x + cy * y + cz * z + shiftCoord;
                     vertices[index2 * 2 + 1] |= MASK_VERTEX_MOD;
                 }
+            }
+        }
     }
 
     makeBedrockEdge() {
@@ -751,10 +739,14 @@ export class TypedBlocks3 {
 export class DataWorld {
     [key: string]: any;
     grid: ChunkGrid;
+
     constructor(chunkManager) {
         const INF = 1000000000;
         this.chunkManager = chunkManager;
-        this.grid = new ChunkGrid({});
+        if(!chunkManager.tech_info.chunk_size) {
+            throw 'error_undefined_chunnk_size'
+        }
+        this.grid = new ChunkGrid({chunkSize: chunkManager.tech_info.chunk_size});
         this.base = new BaseChunk({grid: this.grid, size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
@@ -1266,246 +1258,3 @@ export class TBlock {
 
 // It's declared here because it ca'be be declared befpre TBlock
 const tmpTBlock_delete = new TBlock()
-
-/**
- * A class that provides access to the world blocks in the same area
- * on average as fast as the chunk does to its own blocks.
- *
- * It caches the current chunk, so its instances can't be stored and reused
- * for any prolonged time; it must be re-created, or reset by calling init().
- */
-export class BlockAccessor {
-    [key: string]: any;
-
-    /**
-     * @param {World} world
-     * @param {Vector, TBlock or BlockAccessor} initial - optional. Some point near the area
-     *   where the class will be used. If it's provided, it slightly speeds up initialization.
-     *   Passing {@link TBlock} or {@link BlockAccessor} is preferable.
-     */
-    constructor(world, initial = null) {
-        this.chunkManager = world.chunkManager || world.chunks;
-        if (initial instanceof BlockAccessor) {
-            this._tmpTbCoord = initial._tmpTbCoord.clone();
-            this._vec = initial._vec.clone();
-            this._tmpTBlock = new TBlock(initial._tmpTBlock._tb, this._vec, initial._tmpTBlock.index);
-            this._tbCoord = initial._tbCoord ? this._tmpTbCoord : null;
-            this.tblockOrNull = initial.tblockOrNull ? this._tmpTBlock : null;
-        } else {
-            this._tmpTbCoord = new Vector(); // used for this._tbCoord when this._tb is absent
-            if (initial instanceof TBlock) {
-                this._vec = initial.vec.clone();
-                this._tmpTBlock = new TBlock(initial.tb, this._vec, initial.index);
-                this._tbCoord = initial.tb.coord; // TypedBlocks3.coord taht is present even if _tb == null
-                this.tblockOrNull = this._tmpTBlock; // either this._tmpTBlock or null
-            } else {
-                this._vec = new Vector(); // relative to this._tbCoord
-                this._tmpTBlock = new TBlock(null, this._vec, 1);
-                if (initial) { // assume it to be a Vector-like object
-                    this._rebase(initial.x, initial.y, initial.z);
-                } else {
-                    this._rebase(0, 0, 0);
-                }
-            }
-        }
-    }
-
-    /**
-     * Allows a persistent refernce to the class to be used again.
-     * It solves the problem of the remembered chunk being unloaded.
-     *
-     * @param {Vector, TBlock or BlockAccessor} initial - optional. Some point near the area
-     *   where the class will be used. If it's provided, it slightly speeds up initialization.
-     *   Passing {@link TBlock} or {@link BlockAccessor} is preferable.
-     */
-    init(initial = null) {
-        if (initial instanceof BlockAccessor) {
-            this._tmpTbCoord.copyFrom(initial._tmpTbCoord);
-            this._vec.copyFrom(initial._vec);
-            this._tmpTBlock.tb = initial._tb;
-            this._tbCoord = initial._tbCoord ? this._tmpTbCoord : null;
-            this.tblockOrNull = initial.tblockOrNull ? this._tmpTBlock : null;
-        } else if (initial instanceof TBlock) {
-            this._vec.copyFrom(initial.vec);
-            this._tmpTBlock.tb = initial.tb;
-            this._tbCoord = initial.tb.coord;
-            this.tblockOrNull = this._tmpTBlock;
-        } else if (initial) { // assume it to be a Vector-like object
-            this._rebase(initial.x, initial.y, initial.z);
-        } else {
-            this._rebase(0, 0, 0);
-        }
-    }
-
-    /**
-     * @returns { int } world coordinate X of the current point.
-     */
-    get x() {
-        return this._tbCoord.x + this._vec.x;
-    }
-
-    get y() {
-        return this._tbCoord.y + this._vec.y;
-    }
-
-    get z() {
-        return this._tbCoord.z + this._vec.z;
-    }
-
-    /**
-     * @returns {Vector} a clone of the current world position.
-     */
-    posClone() {
-        return this._vec.clone().addSelf(this._tbCoord);
-    }
-
-    /**
-     * Sets the world coordinat X of the current position.
-     * @param { int } x
-     */
-    set x(x) {
-        const rx = x - this._tbCoord.x;
-        if ((rx | CHUNK_SIZE_X_M1 - rx) >= 0) { // if (rx >= 0 && rx <= CHUNK_SIZE_X_M1)
-            this._tmpTBlock.index += CHUNK_CX * (rx - this._vec.x);
-            this._vec.x = rx;
-            return;
-        }
-        this._rebase(x, this.y, this.z);
-    }
-
-    set y(y) {
-        const ry = y - this._tbCoord.y;
-        if ((ry | CHUNK_SIZE_Y_M1 - ry) >= 0) { // if (ry >= 0 && ry <= CHUNK_SIZE_Y_M1)
-            this._tmpTBlock.index += CHUNK_CY * (ry - this._vec.y);
-            this._vec.y = ry;
-            return;
-        }
-        this._rebase(this.x, y, this.z);
-    }
-
-    set z(z) {
-        const rz = z - this._tbCoord.z;
-        if ((rz | CHUNK_SIZE_Z_M1 - rz) >= 0) { // if (rz >= 0 && rz <= CHUNK_SIZE_Z_M1)
-            this._tmpTBlock.index += CHUNK_CZ * (rz - this._vec.z);
-            this._vec.z = rz;
-            return;
-        }
-        this._rebase(this.x, this.y, z);
-    }
-
-    /**
-     * Sets the current world position.
-     * @param { int } x
-     * @param { int } y
-     * @param { int } z
-     * @returns {BlockAccessor} this
-     */
-    setXYZ(x, y, z) {
-        let c = this.tblocksCoord;
-        if (c !== null) {
-            // x and y are more likely to be outside the range, so check them together and first
-            const rx = x - this._tbCoord.x;
-            const rz = z - this._tbCoord.z;
-            if ((rx | rz | CHUNK_SIZE_X_M1 - rx | CHUNK_SIZE_Z_M1 - rz) >= 0) {
-                const ry = y - this._tbCoord.y;
-                if ((ry | CHUNK_SIZE_Y_M1 - ry) >= 0) {
-                    this._setRelPos(rx, ry, rz);
-                    return this;
-                }
-            }
-        }
-        this._rebase(x, y, z);
-        return this;
-    }
-
-    /**
-     * Sets the current world position.
-     * @param {Vector} vec
-     * @returns {BlockAccessor} this
-     */
-    setVec(vec) {
-        return this.setXYZ(vec.x, vec.y, vec.z);
-    }
-
-    /**
-     * Adds to the coordinates of the current world position.
-     * @param { int } dx
-     * @param { int } dy
-     * @param { int } dz
-     * @returns {BlockAccessor} this
-     */
-    addXYZ(dx, dy, dz) {
-        return this.setXYZ(this.x + dx, this.y + dy, this.z + dz);
-    }
-
-    /**
-     * @returns { int } id of the current block, or null if the chunk is not generated.
-     */
-    get idOrNull() {
-        return this.tblockOrNull?.id;
-    }
-
-    /**
-     * @param {Any} def - the default value
-     * @returns { int } id of the current block, or the default value if the chunk is not generated.
-     */
-    idOr(def) {
-        return this.tblockOrNull ? this.tblockOrNull.id : def;
-    }
-
-    /**
-     * @returns { object } the properties of the current block, or null if the chunk is not generated.
-     */
-    get materialOrNull() {
-        return this.tblockOrNull?.material;
-    }
-
-    /**
-     * @returns { object } the properties of the current block, or {@link BLOCK.DUMMY}
-     *      if the chunk is not generated.
-     */
-    get materialOrDUMMY() {
-        return this.tblockOrNull?.material ?? BLOCK.DUMMY;
-    }
-
-    /**
-     * @param {Any} def - the default value
-     * @returns { object } the properties of the current block, or the default value
-     *      if the chunk is not generated.
-     */
-    materialOr(def) {
-        return this.tblockOrNull?.material ?? def;
-    }
-
-    /**
-     * @returns {TBlock} vurrent tblock, or chunkManager.DUMMY if the chunk is not generated.
-     *      Note: the same instance is reused and it can't rememberd for any prolonged time.
-     *      It's valid only unil the position changes.
-     */
-    get tblockOrDummy() {
-        return this.tblockOrNull ?? this.chunkManager.DUMMY;
-    }
-
-    _setRelPos(rx, ry, rz) {
-        this._vec.setScalar(rx, ry, rz);
-        this._tmpTBlock.index = rx * CHUNK_CX + ry * CHUNK_CY + rz * CHUNK_CZ + CHUNK_CW;
-    }
-
-    _rebase(x, y, z) {
-        const addr = getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
-        const cliSrvCompatbility = this.chunkManager.chunks || this.chunkManager;
-        // This accounts both for missing chunks, and for blocks not generated
-        let tb = cliSrvCompatbility.get(addr)?.tblocks;
-
-        if (tb) {
-            this._tbCoord = tb.coord;
-            this.tblockOrNull = this._tmpTBlock;
-            this.tblockOrNull.tb = tb;
-        } else {
-            chunkAddrToCoord(addr, this._tmpTbCoord);
-            this._tbCoord = this._tmpTbCoord;
-            this.tblockOrNull = null;
-        }
-        this._setRelPos(x - this._tbCoord.x, y - this._tbCoord.y, z - this._tbCoord.z);
-    }
-}

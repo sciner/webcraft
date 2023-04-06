@@ -29,18 +29,24 @@ export class LightWorkerWorldManager {
         }
     }
 
-    getOrCreate(world_id) {
+    create(world_id : string, tech_info: TWorldTechInfo) {
         if(this.all.has(world_id)) {
-            return this.all.get(world_id);
+            throw 'error_world_already_created'
         }
-        const world = new LightWorld(this.worker, world_id);
+        const world = new LightWorld(this.worker, world_id, tech_info)
         world.setRenderOptions(this.renderOptions);
         this.all.set(world_id, world);
-        this.list.push(world);
-        return world;
+        this.list.push(world)
     }
 
-    dispose(world_id) {
+    get(world_id : string) : LightWorld {
+        if(this.all.has(world_id)) {
+            return this.all.get(world_id)
+        }
+        throw `error_world_not_created|${world_id}`
+    }
+
+    dispose(world_id : string) {
         const world = this.all.remove(world_id);
         if (world) {
             this.list.splice(this.list.indexOf(world), 1);

@@ -368,24 +368,12 @@ export class DBGame {
     }
 
     // Создание нового мира (сервера)
-    async InsertNewWorld(user_id, generator, seed, title, game_mode) {
+    async InsertNewWorld(user_id : int, generator, seed : string, title : string, game_mode : string, pos_spawn : Vector) {
         // let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE title = :title', { ':title': title});
         // if (worldWithSameTitle != null) {
         //     throw 'error_world_with_same_title_already_exist';
         // }
         const guid = randomUUID();
-        let default_pos_spawn = generator.pos_spawn;
-        switch(generator?.id) {
-            case 'city':
-            case 'flat': {
-                default_pos_spawn = new Vector(0, 2, 0);
-                break;
-            }
-            case 'city2': {
-                default_pos_spawn = new Vector(3000, 8, 3000);
-                break;
-            }
-        }
         const result = await this.conn.run('INSERT OR IGNORE INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
             ':dt':          unixTime(),
             ':guid':        guid,
@@ -394,7 +382,7 @@ export class DBGame {
             ':seed':        seed,
             ':game_mode':   game_mode,
             ':generator':   JSON.stringify(generator),
-            ':pos_spawn':   JSON.stringify(default_pos_spawn)
+            ':pos_spawn':   JSON.stringify(pos_spawn),
         });
         // lastID
         let lastID = result.lastID;

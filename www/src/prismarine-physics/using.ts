@@ -67,17 +67,14 @@ class FakeWorld {
 
     /**
      * Return block from real world
-     * @param {Vector} pos
-     * @param {?TBlock} tblock
-     *
-     * @returns {FakeBlock}
      */
-    getBlock(pos, tblock = null) {
+    getBlock(pos : Vector, tblock? : TBlock) : FakeBlock | null {
         const return_tblock = !!tblock
         const { _pos, _localPos } = this;
         tblock = tblock || this.tblock
         _pos.copyFrom(pos).flooredSelf();
-        const chunk = this.world.chunkManager.getChunk(Vector.toChunkAddr(_pos, this.chunkAddr));
+        const cnunk_manager = this.world.chunkManager
+        const chunk = cnunk_manager.getChunk(cnunk_manager.grid.toChunkAddr(_pos, this.chunkAddr));
         if (!chunk) {
             return new FakeBlock(null, -1, 0, shapesEmpty);
         }

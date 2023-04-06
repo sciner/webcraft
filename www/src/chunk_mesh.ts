@@ -15,6 +15,7 @@ export class ChunkMesh {
     buffer: any = null
     customFlag = false
     rpl: IvanArray<ChunkMesh> = null;
+    texMat: any = null;
 
     constructor(key: string, inputId: string, list: Array<any> = [0]) {
         let temp = key.split('/');
@@ -35,10 +36,14 @@ export class ChunkMesh {
     draw(render : any, resource_pack : BaseResourcePack, group, mat) {
         const {key, chunk, texture_id, buffer} = this;
         const {light} = chunk;
-        let texMat = resource_pack.materials.get(key);
+        let texMat = this.texMat;
         if (!texMat) {
-            texMat = mat.getSubMat(resource_pack.getTexture(texture_id).texture);
-            resource_pack.materials.set(key, texMat);
+            texMat = resource_pack.materials.get(key);
+            if (!texMat) {
+                texMat = mat.getSubMat(resource_pack.getTexture(texture_id).texture);
+                resource_pack.materials.set(key, texMat);
+            }
+            this.texMat = texMat;
         }
         mat = texMat;
         let dist = Qubatch.player.lerpPos.distance(chunk.coord);

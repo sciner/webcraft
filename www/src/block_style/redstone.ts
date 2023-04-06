@@ -1,8 +1,7 @@
 "use strict";
 
-import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../helpers.js';
-import {impl as alea} from "../../vendors/alea.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
+import { DIRECTION, FastRandom, IndexedColor, QUAD_FLAGS } from '../helpers.js';
+import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_ATLAS_SIZE } from '../constant.js';
@@ -10,19 +9,14 @@ import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-
+import type { World } from '../world.js';
 
 const {mat3} = glMatrix;
 
 const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
 const aabb = new AABB();
-
-const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-const a = new alea('random_redstone_texture');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = Math.round(a.double() * 100);
-}
+const randoms = new FastRandom('random_redstone_texture', MAX_CHUNK_SQUARE, 100, true)
 
 export function pushTransformed(
     vertices, mat, pivot,
@@ -74,7 +68,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let hw = 1 / 2;
         let sign_height = .05;
         aabb.set(
@@ -88,8 +82,7 @@ export default class style {
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         const bm                = style.block_manager
-        let index               = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
-        const r                 = randoms[index];
+        const r                 = randoms.double(z * chunk.size.x + x)
         const H                 = 1;
         const flags             = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
 

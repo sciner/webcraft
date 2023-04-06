@@ -2,7 +2,7 @@
 
 import type {Vector} from "../helpers/vector.js";
 import type {PlayerTickData} from "./player_tick_data.js";
-import {PHYSICS_POS_DECIMALS} from "../constant.js";
+import {PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS} from "../constant.js";
 
 export enum PLAYER_CONTROL_TYPE {
     PRISMARINE,
@@ -15,7 +15,7 @@ export type MobControlParams = {
     forward     : boolean
     jump        : boolean
     sneak ?     : boolean
-    pitch ?     : boolean   // It's not used by the controller. TODO use it or don't pass it
+    pitch ?     : boolean
 }
 
 /** A common interface for {@link PlayerControl.player_state} for all subclasses of {@link PlayerControl} */
@@ -43,7 +43,7 @@ export interface IPlayerControls {
     jump ?      : boolean
     sprint ?    : boolean
     sneak ?     : boolean
-    pitch ?     : boolean
+    pitch ?     : boolean   // only for mob
 }
 
 /** It stores and processes player's input on the client. */
@@ -119,7 +119,7 @@ export abstract class PlayerControl {
     getPos(): Vector { return this.player_state.pos }
 
     /**
-     * Do not modify {@link IPlayerControlState.pos} outside the control directly.
+     * Do not modify IPlayerControlState.pos outside the control directly.
      * Use this method instead.
      */
     setPos(pos: IVector): void {
@@ -133,7 +133,6 @@ export abstract class PlayerControl {
         controls.jump = params.jump
         controls.sneak = params.sneak
         controls.pitch = params.pitch
-        // TODO do something with MobControlParams.pitch, or don't accept it
     }
 
     /**

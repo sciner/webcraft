@@ -1,6 +1,7 @@
-import { getChunkAddr, Vector } from "./helpers.js";
+import { Vector } from "./helpers.js";
 import type {TUsedRecipe} from "./inventory_comparator.js";
 import type {TInventoryState, TInventoryStateChangeMessage} from "./inventory.js";
+import type { ChunkManager } from "./chunk_manager.js";
 
 type CmdListener = (INetworkMessage) => void
 type CmdListenersSet = Set<CmdListener>
@@ -225,7 +226,8 @@ export class ServerClient {
         const cmds              = JSON.parse(event.data);
         // time is the same for all commands, so it's saved once in the 1st of them
         const cmdsTime          = cmds[0]?.time;
-        const chunkManager      = Qubatch.world.chunkManager;
+        const chunkManager      = Qubatch.world.chunkManager as ChunkManager;
+        const grid              = chunkManager.grid
         const chunk_modifiers   = chunkManager.chunk_modifiers;
         const prev_chunk_addr   = new Vector(Infinity, Infinity, Infinity);
         const set_block_list    = [];
@@ -240,7 +242,7 @@ export class ServerClient {
             if(cmd.name == ServerClient.CMD_BLOCK_SET) {
                 chunkManager.block_sets++;
                 const pos = cmd.data.pos;
-                chunk_addr = Vector.toChunkAddr(pos, chunk_addr);
+                chunk_addr = grid.toChunkAddr(pos, chunk_addr);
                 if(!prev_chunk_addr.equal(chunk_addr)) {
                     prev_chunk_addr.copyFrom(chunk_addr);
                     arr = chunk_modifiers.get(chunk_addr);

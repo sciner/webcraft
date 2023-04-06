@@ -3,16 +3,27 @@ import Biome3LayerLava from "./layers/lava.js";
 import Biome3LayerAir from "./layers/air.js";
 import Biome3LayerEnd from "./layers/end.js";
 import Biome3LayerOverworld from "./layers/overworld.js";
-import { CHUNK_SIZE_Y } from "../../chunk_const.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Default_Terrain_Map } from "../default.js";
 import Biome3LayerUnderworld from "./layers/underworld.js";
+import type { Biome3LayerBase } from "./layers/base.js";
+import type Terrain_Generator from "./index.js";
+
+declare type ILayerList = {type: string, bottom: int, up: int}[]
+declare type ILayerItem = {obj: Biome3LayerBase, bottom: int, up: int}
 
 export class Biome3LayerManager {
-    [key: string]: any;
+    layer_types:        Map<any, any>
+    layers:             any[]
+    generator:          Terrain_Generator
+    generator_options:  any
+    min_y:              number
+    max_y:              number
+    opaque_layer:       ILayerItem
+    transparent_layer:  ILayerItem
 
-    constructor(generator, list) {
-        
+    constructor(generator : Terrain_Generator, list : ILayerList) {
+
         this.generator = generator
         this.generator_options = generator.world.generator.options
 
@@ -30,9 +41,8 @@ export class Biome3LayerManager {
 
     /**
      * Make layers
-     * @param {*} list 
      */
-    makeLayers(list) {
+    makeLayers(list : ILayerList) {
 
         this.layers = []
         this.min_y = Infinity
@@ -43,7 +53,7 @@ export class Biome3LayerManager {
             if(item.up > this.max_y) this.max_y = item.up
             const cls = this.layer_types.get(item.type)
             if(!cls) throw `error_invalid_biome3_layer_type|${item.type}`
-            const layer = new cls()
+            const layer = new cls() as Biome3LayerBase
             layer.init(this.generator)
             this.layers.push({bottom: item.bottom, up: item.up, obj: layer})
         }
@@ -55,7 +65,7 @@ export class Biome3LayerManager {
 
     }
 
-    getLayer(chunk : ChunkWorkerChunk) {
+    getLayer(chunk : ChunkWorkerChunk) : ILayerItem {
 
         if(chunk.addr.y < this.min_y) return this.opaque_layer
         if(chunk.addr.y > this.max_y) return this.transparent_layer
@@ -71,7 +81,8 @@ export class Biome3LayerManager {
     }
 
     generateChunk(chunk : ChunkWorkerChunk, chunk_seed : string, rnd : any) : Default_Terrain_Map {
-        
+        const CHUNK_SIZE_Y = chunk.size.y;
+
         const layer = this.getLayer(chunk)
         chunk.layer = layer.obj
 

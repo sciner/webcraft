@@ -1,11 +1,10 @@
 import { QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { LIGHT_TYPE } from '../constant.js';
+import type { Mesh_Effect_Manager } from './effect/manager.js';
 
 const STRIDE_FLOATS                         = GeometryTerrain.strideFloats;
-const chunk_size                            = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 export const pos_offset                     = 0;
 export const axisx_offset                   = 3;
@@ -33,7 +32,7 @@ export class Mesh_Effect {
     static current_count = 0;
 
     // Constructor
-    constructor(render, chunk_addr, material_key) {
+    constructor(mesh_effect_manager : Mesh_Effect_Manager, chunk_addr, material_key) {
 
         this.pn = performance.now();
 
@@ -47,7 +46,7 @@ export class Mesh_Effect {
 
         this.pos            = Vector.ZERO.clone();
         this.chunk_addr     = chunk_addr.clone();
-        this.chunk_coord    = chunk_addr.mul(chunk_size);
+        this.chunk_coord    = chunk_addr.mul(mesh_effect_manager.mesh_manager.world.chunkManager.grid.chunkSize);
 
         this.max_count      = 8192;
         this.add_index      = 0;

@@ -121,6 +121,7 @@
         "error_player_exists": {"en": "A player with the same name aready exists", "ru": "Игрок с таким именем уже зарегистрирован", "fr": "", "es": "", "man": ""},
         "players_online": {"en": "Players online", "ru": "Игроков онлайн", "fr": "", "es": "", "man": ""},
         "forced_joystick_control": {"en": "Forced Joystick control", "ru": "Принудительное использование джойстиков управления", "fr": "", "es": "", "man": ""},
+        "old_spectator_controls": {"en": "Old spectator mode controls", "ru": "Старое управление в режиме наблюдателя", "fr": "", "es": "", "man": ""},
         "draw_improved_blocks": {"en": "Draw improved blocks", "ru": "Рисовать улучшенные блоки", "fr": "", "es": "", "man": ""},
         "apply" : {"en": "OK", "ru": "ОК", "fr": "d'accord", "es": "OK", "man": "好的","hind":"ठीक है"},
         "confirm_action" : {"en": "Confirm action", "ru": "Подтверждение действия", "fr": "", "es": "", "man": ""},

@@ -1,16 +1,17 @@
 import type {DataChunk} from "./DataChunk.js";
 import { VectorCollector, Vector } from "../helpers.js";
-import {
-    CHUNK_SIZE_X,
-    CHUNK_SIZE_Y,
-    CHUNK_SIZE_Z
-} from "../chunk_const.js";
 import {AABB} from "./AABB.js";
 import {Portal} from "./BaseChunk.js";
+import {ChunkGridMath, getCachedChunkGridMath} from "./ChunkGridMath.js";
 
 export const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 export const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
 export const dz = [0, 0, 1, -1, 0, 0, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
+
+declare type ChunkGridOptions = {
+    chunkSize: Vector,
+    chunkPadding? : int
+}
 
 /*
  * May contain a topology and not actual data
@@ -23,11 +24,26 @@ export class ChunkGrid {
     innerMap = new VectorCollector<DataChunk>();
     chunkSize: Vector;
     chunkPadding: number;
+    math: ChunkGridMath;
+    outerSize: Vector;
+    chunkDefaultAABB: AABB;
 
-    constructor({chunkSize = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z), chunkPadding = 1}) {
-        this.chunkSize = chunkSize;
-        this.chunkPadding = chunkPadding;
-        //TODO: index function should be baked in special cache!
+    constructor(options : ChunkGridOptions) {
+        let {chunkSize, chunkPadding} = options
+        if(!chunkSize) {
+            throw 'error_invalid_chunk_size'
+        }
+        this.chunkSize = new Vector().copyFrom(chunkSize)
+        const padding = this.chunkPadding = chunkPadding ?? 1
+        this.outerSize = this.outerSize = new Vector(chunkSize.x + padding * 2, chunkSize.y + padding * 2, chunkSize.z + padding * 2);
+        this.chunkDefaultAABB = new AABB(0, 0, 0, chunkSize.x, chunkSize.y, chunkSize.z);
+
+        // TODO: index function should be baked in special cache!
+        this.math = getCachedChunkGridMath(chunkSize);
+    }
+
+    initSize(chunkSize) {
+
     }
 
     get(vec: Vector): DataChunk | null {
@@ -42,12 +58,12 @@ export class ChunkGrid {
         return this.innerMap.delete(vec);
     }
 
-    toChunkAddr(in_vec: IVector, out_vec?: Vector): Vector {
-        return this.getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
-    }
-
-    getChunkAddr(x: number, y: number, z: number, out_vec = new Vector()) {
+    /**
+     * Возвращает адрес чанка по глобальным абсолютным координатам
+     */
+    getChunkAddr(x: number, y: number, z: number, out_vec ? : Vector) {
         const {chunkSize} = this;
+        out_vec = out_vec || new Vector();
         out_vec.x = Math.floor(x / chunkSize.x);
         out_vec.y = Math.floor(y / chunkSize.y);
         out_vec.z = Math.floor(z / chunkSize.z);
@@ -64,16 +80,23 @@ export class ChunkGrid {
         return out_vec;
     }
 
-    chunkAddrToCoord(addr: IVector, out_vec = new Vector()) {
+    toChunkAddr(in_vec: IVector, out_vec ? : Vector): Vector {
+        out_vec = out_vec || new Vector()
+        return this.getChunkAddr(in_vec.x, in_vec.y, in_vec.z, out_vec)
+    }
+
+    chunkAddrToCoord(addr: IVector, out_vec? : Vector) : Vector {
         const {chunkSize} = this;
+        out_vec = out_vec || new Vector();
         out_vec.x = addr.x * chunkSize.x;
         out_vec.y = addr.y * chunkSize.y;
         out_vec.z = addr.z * chunkSize.z;
         return out_vec;
     }
 
-    getChunkCenterByAddr(in_vec: IVector, out_vec = new Vector()) {
+    getChunkCenterByAddr(in_vec: IVector, out_vec? : Vector) : Vector {
         const {chunkSize} = this;
+        out_vec = out_vec || new Vector();
         out_vec.x = (in_vec.x * chunkSize.x) + (chunkSize.x >> 1);
         out_vec.y = (in_vec.y * chunkSize.y) + (chunkSize.y >> 1);
         out_vec.z = (in_vec.z * chunkSize.z) + (chunkSize.z >> 1);

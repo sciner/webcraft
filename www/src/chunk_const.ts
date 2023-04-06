@@ -1,31 +1,15 @@
 import { FAST } from "./constant.js";
 
-export const CHUNK_SIZE_X                   = 16;
-export const CHUNK_SIZE_Y                   = 40;
-export const CHUNK_SIZE_Z                   = 16;
-export const CHUNK_SIZE_X_M1                = CHUNK_SIZE_X - 1;
-export const CHUNK_SIZE_Y_M1                = CHUNK_SIZE_Y - 1;
-export const CHUNK_SIZE_Z_M1                = CHUNK_SIZE_Z - 1;
-export const CHUNK_SIZE                     = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
-export const CHUNK_GENERATE_MARGIN_Y        = FAST ? 1 : 3;
-export const CHUNK_SIZE_Y_MAX               = 4096;
-export const MAX_CAVES_LEVEL                = 256;
-export const ALLOW_NEGATIVE_Y               = true;
-
-// See also BaseChunk.initSize(), Vector.fromChunkIndex(), Vector.yFromChunkIndex()
-export const CHUNK_PADDING = 1;
-export const CHUNK_OUTER_SIZE_X = CHUNK_SIZE_X + 2 * CHUNK_PADDING;
-export const CHUNK_OUTER_SIZE_Y = CHUNK_SIZE_Y + 2 * CHUNK_PADDING;
-export const CHUNK_OUTER_SIZE_Z = CHUNK_SIZE_Z + 2 * CHUNK_PADDING;
-export const CHUNK_CX = 1;
-export const CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z;
-export const CHUNK_CZ = CHUNK_OUTER_SIZE_X;
-/* It's faster for generating chunks, but currently breaks meshing
-export const CHUNK_CY = 1;
-export const CHUNK_CZ = CHUNK_OUTER_SIZE_Y;
-export const CHUNK_CX = CHUNK_OUTER_SIZE_Y * CHUNK_OUTER_SIZE_Z;
-*/
-export const CHUNK_CW = CHUNK_PADDING * (CHUNK_CX + CHUNK_CY + CHUNK_CZ);
+export const MAX_CHUNK_SQUARE               = 32 * 32
+export const OLD_CHUNK_SIZE                 = {x: 16, y: 40, z: 16}
+export const CH_SZ_X                        = OLD_CHUNK_SIZE.x
+export const CH_SZ_Y                        = OLD_CHUNK_SIZE.y
+export const CH_SZ_Z                        = OLD_CHUNK_SIZE.z
+export const CHUNK_GENERATE_MARGIN_Y        = FAST ? 1 : 3
+export const CHUNK_SIZE_Y_MAX               = 4096
+export const MAX_CAVES_LEVEL                = 256
+export const MAX_RENDER_DIST_IN_BLOCKS      = 256
+export const ALLOW_NEGATIVE_Y               = true
 
 export const INVENTORY_ICON_COUNT_PER_TEX   = 32;
 export const INVENTORY_ICON_TEX_WIDTH       = 3200

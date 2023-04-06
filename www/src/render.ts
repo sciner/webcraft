@@ -1,7 +1,7 @@
 "use strict";
 
 import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color, blobToImage} from "./helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
+import { INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
@@ -17,8 +17,7 @@ import { Mesh_Object_Stars } from "./mesh/object/stars.js";
 import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
-// import { InHandOverlay } from "./ui/inhand_overlay_old.js";
-import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment.js";
+import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -112,6 +111,7 @@ export class Renderer {
     timeKillRain:           any
     weather_name:           string
     material_shadow:        any
+    cullID = 0;
 
     constructor(qubatchRenderSurfaceId : string) {
         this.xrMode             = false;
@@ -140,7 +140,6 @@ export class Renderer {
                 premultipliedAlpha: false,
                 powerPreference: "high-performance"
             });
-        this.meshes = new MeshManager();
 
         this.camera = new Camera({
             type: Camera.PERSP_CAMERA,
@@ -194,6 +193,7 @@ export class Renderer {
     async init(world, settings) {
         this.setWorld(world);
         this.settings = settings;
+        this.meshes = new MeshManager(world);
 
         const {renderBackend} = this;
 
@@ -350,7 +350,7 @@ export class Renderer {
             let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
             mat3.fromMat4(mx, mx4);
             //
-            const drop = new Mesh_Object_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
+            const drop = new Mesh_Object_Block_Drop(this.world, null, null, [b], Vector.ZERO, frame_matrix, null);
             drop.mesh_group.meshes.forEach((mesh, _, map) => {
                 this.addDropItemMesh(drop.block.id, _, mesh.vertices);
             });
@@ -416,7 +416,7 @@ export class Renderer {
                 if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
                     return null;
                 }
-                const drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
+                const drop = new Mesh_Object_Block_Drop(this.world, this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 addAtlasSprite(drop.block_material)
                 return drop;
@@ -709,6 +709,7 @@ export class Renderer {
 
         const { renderBackend, player } = this;
         const { size, globalUniforms } = renderBackend;
+        const { chunkSize } = this.world.chunkManager.grid
 
         globalUniforms.resolution = [size.width, size.height];
         globalUniforms.localLigthRadius = 0;
@@ -717,7 +718,7 @@ export class Renderer {
         this.rain?.update(this.getWeather(), delta)
         globalUniforms.rainStrength = this.rain?.strength_val ?? 0
 
-        let chunkBlockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+        let chunkBlockDist = player.state.chunk_render_dist * chunkSize.x - chunkSize.x;
         let nightshift = 1.;
         let preset = PRESET_NAMES.NORMAL;
 
@@ -729,14 +730,14 @@ export class Renderer {
             const cm = this.world.chunkManager;
             const chunk = cm.getChunk(player.chunkAddr);
             if(chunk?.inited) {
-                const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X
-                const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z
+                const x = player.blockPos.x - player.chunkAddr.x * chunkSize.x
+                const z = player.blockPos.z - player.chunkAddr.z * chunkSize.z
                 // const biome_id = player.getOverChunkBiomeId()
                 // const biome = biome_id > 0 ? player.world.chunkManager.biomes.byID.get(biome_id) : null
                 // if(biome.is_sand) {
                 //     return new Color(255, 255, 0, 1)
                 // }
-                const cell_index = z * CHUNK_SIZE_X + x;
+                const cell_index = z * chunkSize.x + x;
                 const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R];
                 const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G];
                 return this.maskColorTex.getColorAt(x_pos, y_pos)
@@ -749,19 +750,8 @@ export class Renderer {
                 preset = PRESET_NAMES.WATER;
                 chunkBlockDist = 8;
 
-                const p = FOG_PRESETS[preset]
-                const color = getPlayerBlockColor()
-                if(color) {
-                    color.divideScalarSelf(255)
-                    p.color[0] = color.r
-                    p.color[1] = color.g
-                    p.color[2] = color.b
-                    p.addColor[0] = color.r
-                    p.addColor[1] = color.g
-                    p.addColor[2] = color.b
-                    this.env.presets[preset] = new FogPreset(p)
-                    this.env._fogDirty = true
-                }
+                Environment.replacePresetColor(preset, getPlayerBlockColor())
+
 
             } else if(player.eyes_in_block.name == 'NETHER_PORTAL') {
                 preset = PRESET_NAMES.NETHER_PORTAL;
@@ -770,22 +760,13 @@ export class Renderer {
                 preset = PRESET_NAMES.LAVA;
                 chunkBlockDist = 4; //
             }
-        } /*else {
-            preset = PRESET_NAMES.WATER;
-            const p = FOG_PRESETS[preset]
-            const color = getPlayerBlockColor()
-            if(color) {
-                color.divideScalarSelf(255)
-                p.color[0] = color.r
-                p.color[1] = color.g
-                p.color[2] = color.b
-                p.addColor[0] = color.r
-                p.addColor[1] = color.g
-                p.addColor[2] = color.b
-                this.env.presets[preset] = new FogPreset(p)
-                this.env._fogDirty = true
+        } else {
+            const biome_id = player.getOverChunkBiomeId()
+            const biome = biome_id > 0 ? this.world.chunkManager.biomes.byID.get(biome_id) : null;
+            if(biome?.fog_preset_name) {
+                preset = biome.fog_preset_name;
             }
-        }*/
+        }
 
         this.env.setEnvState({
             chunkBlockDist,
@@ -1024,7 +1005,7 @@ export class Renderer {
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {
-            this.inHandOverlay = new InHandOverlay(this.player.skin, this);
+            this.inHandOverlay = new InHandOverlay(this.world, this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
@@ -1049,7 +1030,7 @@ export class Renderer {
 
     // addAsteroid
     addAsteroid(pos, rad) {
-        this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
+        this.meshes.add(new Mesh_Object_Asteroid(this.world, this, pos, rad));
     }
 
     addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string, doubleface : boolean = false) {
@@ -1078,7 +1059,7 @@ export class Renderer {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, this.weather_name, chunkManager);
+            rain = new Mesh_Object_Rain(this.world, this, this.weather_name, chunkManager);
             this.meshes.add(rain, 'weather');
             this.rain = rain
         }
@@ -1142,7 +1123,7 @@ export class Renderer {
                 prev_chunk_addr.copyFrom(ca);
                 prev_chunk = this.world.chunkManager.getChunk(ca);
             }
-            if(prev_chunk && prev_chunk.in_frustum) {
+            if(prev_chunk && prev_chunk.cullID === this.cullID) {
                 mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
                 this.draw_mobs_stat.count++
             }

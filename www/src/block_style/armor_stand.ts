@@ -1,21 +1,16 @@
-import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
-import {impl as alea} from "../../vendors/alea.js";
+import {DIRECTION, FastRandom, IndexedColor, Vector} from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
+import { MAX_CHUNK_SQUARE } from '../chunk_const.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
 
-const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
-const randoms = new Array(RANDOMS_COUNT);
-const a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
+const randoms = new FastRandom('armor_stand', MAX_CHUNK_SQUARE)
 
 // стойка для доспехов
 export default class style {
@@ -32,7 +27,7 @@ export default class style {
         );
     }
 
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         if (for_physic) {
             return [];
         }
@@ -47,8 +42,9 @@ export default class style {
         }
         const bm = style.block_manager
         const rot = Math.round((((block.rotate.x - 2) / 4) * (Math.PI * 2)) / 0.5233) * 0.5233;
-        const head_rot_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
-        const head_rot = randoms[head_rot_index] * .2 - .1;
+        // const head_rot_index = Math.abs(Math.round()) % randoms.length;
+        // const head_rot = randoms[head_rot_index] * .2 - .1;
+        const head_rot = randoms.double(z * chunk.size.x + x) * .2 - .1;
         const planks = bm.calcTexture(bm.OAK_LOG.texture, DIRECTION.UP);
         const stone = bm.calcTexture(bm.STONE.texture, DIRECTION.UP);
         const flag = 0;

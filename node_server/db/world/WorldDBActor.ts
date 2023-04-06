@@ -191,6 +191,7 @@ export class WorldDBActor {
     async saveWorld(shutdown = false) {
         const that = this;
         const world = this.world;
+        const { getFlatIndexInChunk } = world.chunks.grid.math;
         const db = world.db;
         // It may be different from shutdown. Its main effect is to cause chunkless changes to be saved ASAP.
         const speedup = shutdown || world.shuttingDown;
@@ -250,7 +251,7 @@ export class WorldDBActor {
             const slectBlocksRowIdPromise =
                 this.db.chunks.bulkSelectWorldModifyRowId(
                     uc.updateBlocksWithUnknownRowId.map(
-                        e => [e.chunk_addr.x, e.chunk_addr.y, e.chunk_addr.z, tmpVector.copyFrom(e.pos).getFlatIndexInChunk()]
+                        e => [e.chunk_addr.x, e.chunk_addr.y, e.chunk_addr.z, getFlatIndexInChunk(tmpVector.copyFrom(e.pos))]
                     )
                 ).then( correspondingRows => {
                     // the returned rows have the same indices as underConstruction.updateBlocksWithUnknownRowId

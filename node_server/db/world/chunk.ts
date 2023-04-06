@@ -1,4 +1,4 @@
-import { Vector, unixTime, getChunkAddr } from "@client/helpers.js";
+import { Vector, unixTime } from "@client/helpers.js";
 import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { decompressModifiresList } from "@client/compress/world_modify_chunk.js";
 import { BulkSelectQuery, preprocessSQL, runBulkQuery, all, get, run } from "../db_helpers.js";
@@ -169,9 +169,10 @@ export class DBWorldChunk {
      * @param {Number} user_id - used if rows[i].user_id is null.
      */
     async bulkInsertWorldModify(rows, dt = unixTime(), user_id = null) {
+        const {getFlatIndexInChunk} = this.world.chunks.grid.math;
         const jsonRows = rows.map(row => {
-            const chunk_addr = row.chunk_addr ?? Vector.toChunkAddr(row.pos, tmpAddr);
-            const index = tmpVector.copyFrom(row.pos).getFlatIndexInChunk();
+            const chunk_addr = row.chunk_addr ?? this.world.chunks.grid.toChunkAddr(row.pos, tmpAddr);
+            const index = getFlatIndexInChunk(tmpVector.copyFrom(row.pos));
             return [
                 row.user_id ?? user_id,
                 row.pos.x, row.pos.y, row.pos.z,
@@ -358,6 +359,7 @@ export class DBWorldChunk {
      *  - drop the table indices, insert, then create indices
      */
     async unpackAllChunkModifiers() {
+        const {fromFlatChunkIndex} = this.world.chunks.grid.math;
 
         const BATCH_SIZE = 1000; // load limited number of chunks a once to not run out of memory
 
@@ -386,7 +388,7 @@ export class DBWorldChunk {
                 for(const key in modifiers) {
                     const index = parseInt(key);
                     blocks.push({
-                        pos: new Vector().fromFlatChunkIndex(index),
+                        pos: fromFlatChunkIndex(new Vector(), index),
                         addr,
                         index,
                         item: modifiers[key]

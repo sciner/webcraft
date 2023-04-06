@@ -1,27 +1,27 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
 import GeometryTerrain from '../../geometry_terrain.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import type { MobModel } from '../../mob_model.js';
+import type { World } from '../../world.js';
 
 const {mat4} = glMatrix;
 
-// Mesh_Object_BeaconRay
+// MobFire mesh
 export class Mesh_Object_MobFire {
     [key: string]: any;
 
     /**
-     * 
-     * @param {MobModel} mob 
+     * @param {MobModel} mob
      */
-    constructor(mob) {
+    constructor(mob : MobModel, world : World) {
 
         this.apos           = mob.pos.clone().addScalarSelf(.5, .5, .5); // absolute coord
         this.life           = 1.0;
         this.chunk          = null;
-        this.chunk_addr     = Vector.toChunkAddr(this.apos);
-        this.chunk_coord    = this.chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
+        this.chunk_addr     = world.chunkManager.grid.toChunkAddr(this.apos);
+        this.chunk_coord    = this.chunk_addr.mul(world.chunkManager.grid.chunkSize);
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
         this.yaw            = 0;

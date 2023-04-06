@@ -1,13 +1,13 @@
 "use strict";
 
-import {getChunkAddr, Vector} from "../helpers/vector.js";
+import {Vector} from "../helpers/vector.js";
 import type {Player} from "../player.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
 import {SPECTATOR_SPEED_CHANGE_MAX, SPECTATOR_SPEED_CHANGE_MIN, SPECTATOR_SPEED_CHANGE_MULTIPLIER, SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
-    PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS, PHYSICS_MAX_TICKS_PROCESSED, DEBUG_LOG_PLAYER_CONTROL_DETAIL
+    PHYSICS_MAX_TICKS_PROCESSED, DEBUG_LOG_PLAYER_CONTROL_DETAIL, PHYSICS_VELOCITY_DECIMALS, PHYSICS_POS_DECIMALS
 } from "../constant.js";
 import {SimpleQueue} from "../helpers/simple_queue.js";
 import type {PlayerControl} from "./player_control.js";
@@ -17,10 +17,12 @@ import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PLAYER_TICK_MODE, PlayerT
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
 import {CHUNK_STATE} from "../chunk_const.js";
-import {PlayerSpeedLogger} from "./player_speed_logger.js";
+import {PlayerSpeedLoggerMode, PlayerSpeedLogger} from "./player_speed_logger.js";
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 
 const tmpAddr = new Vector()
 const DEBUG_LOG_SPEED = false
+const DEBUG_LOG_SPEED_MODE = PlayerSpeedLoggerMode.SCALAR
 
 /**
  * It contains multiple controllers (subclasses of {@link PlayerControl}), switches between them,
@@ -59,7 +61,8 @@ export abstract class PlayerControlManager {
         this.player = player
         const pos = new Vector(player.sharedProps.pos)
         this.prismarine = new PrismarinePlayerControl(player.world, pos, {effects: player.effects})
-        this.spectator = new SpectatorPlayerControl(player.world, pos)
+        const useOldSpectator = Qubatch.settings?.old_spectator_controls ?? false
+        this.spectator = new SpectatorPlayerControl(player.world, pos, useOldSpectator)
         this.controlByType = [this.prismarine, this.spectator]
         this.current = this.prismarine // it doesn't matter what we choose here, it'll be corrected in the next line
         this.updateCurrentControlType(false)
@@ -164,10 +167,11 @@ export abstract class PlayerControlManager {
         pc.backupPartialState()
 
         // simulate the steps
+        const grid : ChunkGrid = this.player.world.chunkManager.grid
         for(let i = 0; i < data.physicsTicks; i++) {
             if (pc.requiresChunk) {
                 const pos = player_state.pos
-                getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
+                grid.getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
                 const chunk = this.player.world.chunkManager.getChunk(tmpAddr)
                 if (!chunk || (chunk.load_state != null && chunk.load_state !== CHUNK_STATE.READY)) {
                     pc.restorePartialState(prevPos)
@@ -219,10 +223,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
     private knownInputTime: float = 0
     private prevPhysicsTickPos = new Vector() // used to interpolate pos within the tick
-    private prevPhysicsTickFreeCamPos = new Vector()
     private skipFreeCamSneakInput = false // used to skip pressing SHIFT after switching to freeCamp
     private freeCamPos = new Vector()
-    private speedLogger = DEBUG_LOG_SPEED ? new PlayerSpeedLogger() : null
+    private speedLogger = DEBUG_LOG_SPEED ? new PlayerSpeedLogger(DEBUG_LOG_SPEED_MODE) : null
     /**
      * It contains data for all recent physics ticks (at least, those that are possibly not known to the server).
      * If a server sends a correction to an earlier tick, it's used to repeat the movement in the later ticks.
@@ -240,7 +243,8 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     constructor(player: Player) {
         super(player)
         const pos = new Vector(player.sharedProps.pos)
-        this.freeCamSpectator = new SpectatorPlayerControl(player.world, pos)
+        const useOldSpectator = Qubatch.settings?.old_spectator_controls ?? false
+        this.freeCamSpectator = new SpectatorPlayerControl(player.world, pos, useOldSpectator)
         this.prevPhysicsTickPos.copyFrom(player.sharedProps.pos)
     }
 
@@ -288,11 +292,15 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     }
 
     lerpPos(dst: Vector, prevPos: Vector = this.prevPhysicsTickPos, pc: PlayerControl = this.current): void {
-        const pos = pc.player_state.pos
-        if (pos.distance(prevPos) > 10.0) {
-            dst.copyFrom(pos)
+        if (pc === this.spectator) {
+            this.spectator.getCurrentPos(dst)
         } else {
-            dst.lerpFrom(prevPos, pos, this.getCurrentTickFraction())
+            const pos = pc.player_state.pos
+            if (pos.distance(prevPos) > 10.0) {
+                dst.copyFrom(pos)
+            } else {
+                dst.lerpFrom(prevPos, pos, this.getCurrentTickFraction())
+            }
         }
         dst.roundSelf(8)
         this.speedLogger?.add(dst)
@@ -306,14 +314,13 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             const pos = this.player.getEyePos()
             this.freeCamSpectator.resetState()
             this.freeCamSpectator.setPos(pos)
-            this.prevPhysicsTickFreeCamPos.copyFrom(pos)
             this.skipFreeCamSneakInput = true
         }
         this.speedLogger?.reset()
     }
 
     getFreeCampPos(): Vector {
-        this.lerpPos(this.freeCamPos, this.prevPhysicsTickFreeCamPos, this.freeCamSpectator)
+        this.freeCamSpectator.getCurrentPos(this.freeCamPos)
         this.speedLogger?.add(this.freeCamPos)
         return this.freeCamPos
     }
@@ -334,11 +341,18 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         return true
     }
 
-    doClientTicks(): void {
+    update(): void {
         // if the initial step of the current physics session
         if (!this.physicsSessionInitialized) {
             this.initializePhysicsSession()
             return
+        }
+
+        if (this.current === this.spectator) {
+            this.spectator.updateFrame(this)
+        }
+        if (this.#isFreeCam) {
+            this.updateFreeCamFrame()
         }
 
         this.knownInputTime = MonotonicUTCDate.now()
@@ -425,9 +439,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             data.initContextFrom(this)
             this.knownPhysicsTicks += physicsTicks
 
-            // Simulate freeCam in addition to the normal simulation. Clear the input to the normal simulation
             if (this.#isFreeCam) {
-                this.simulateFreeCam(data)
                 data.initInputEmpty(data, data.startingPhysicsTick, data.physicsTicks)
             }
 
@@ -618,7 +630,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         }
         this.player.world.server.Send({name: ServerClient.CMD_PLAYER_CONTROL_SESSION, data})
     }
-    
+
     protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData,
                        outPosBeforeLastTick?: Vector): boolean {
         const pc = this.controlByType[data.contextControlType]
@@ -630,18 +642,13 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         return false
     }
 
-    private simulateFreeCam(data: PlayerTickData) {
+    private updateFreeCamFrame() {
         const pc = this.freeCamSpectator
-        data.applyInputTo(this, pc)
-        // skip pressing SHIFT after switching to freeCamp
+        // skip pressing SHIFT after switching to freeCam
         if (this.skipFreeCamSneakInput) {
             this.skipFreeCamSneakInput &&= pc.controls.sneak
             pc.controls.sneak = false
         }
-        // simulate the steps
-        for(let i = 0; i < data.physicsTicks; i++) {
-            this.prevPhysicsTickFreeCamPos.copyFrom(pc.getPos())
-            pc.simulatePhysicsTick()
-        }
+        pc.updateFrame(this)
     }
 }
