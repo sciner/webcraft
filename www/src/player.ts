@@ -842,7 +842,7 @@ export class Player implements IPlayer {
      */
     updateControl(): void {
         const cm = this.controlManager
-        cm.doClientTicks()
+        cm.update()
         this.pos.copyFrom(cm.getPos())
         cm.lerpPos(this.lerpPos)
     }

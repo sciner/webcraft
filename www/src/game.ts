@@ -47,6 +47,7 @@ export class GameSettings implements TWorldSettings {
     // control
     mouse_sensitivity:       float = 100
     forced_joystick_control: boolean = false
+    old_spectator_controls:  boolean = false
     // sound
     music_volume:            float = DEFAULT_MUSIC_VOLUME
     // resources

@@ -516,7 +516,11 @@ export class HUD {
         const playerBlockPos = player.getBlockPos();
         const biome_id = player.getOverChunkBiomeId()
         const biome = biome_id > 0 ? world.chunkManager.biomes.byID.get(biome_id) : null;
-        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h / ' + (biome?.title ?? biome_id);
+        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h'
+        if (player.game_mode.isSpectator()) {
+            this.text += ' (x'+ player.controlManager.spectator.speedMultiplier.toFixed(2) + ')'
+        }
+        this.text += ' / ' + (biome?.title ?? biome_id);
 
         if(!short_info) {
             const chunk = player.getOverChunk();

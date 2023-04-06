@@ -1,58 +1,72 @@
 "use strict";
 
-import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, SPECTATOR_SPEED_MUL} from "../constant.js";
+import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, PLAYER_ZOOM, SPECTATOR_SPEED_MUL} from "../constant.js";
 import {Mth, Vector} from "../helpers.js";
 import {PlayerControl} from "./player_control.js";
 import type {World} from "../world.js";
 import {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import type {PlayerTickData} from "./player_tick_data.js";
+import {ClientPlayerTickData} from "./player_tick_data.js";
+import type {ClientPlayerControlManager} from "./player_control_manager.js";
+import {OldSpectatorPlayerControl} from "./spectator-physics-old.js"
 
 /**
- * Конфиг скорости для одного типа движения.
- * Все значения даны за 1 секунду, но препроцессинг конфига автоматически пересчитывает их в
- * значения за {@link PHYSICS_INTERVAL_MS}.
+ * Описание конфига скорости для одного типа движения.
  */
 type TFreeSpeedConfig = {
     /** Макс. скорость. Измеряется в блоках/секунду. */
     max                     : float
     /**
-     * Линейное ускорение.
-     * Измеряется в (доля макс. скорости)/секунду.
-     * Например, acceleration = 2 означает: к скорости добавляется 2 макс. скорости в секунду,
-     * в результате чего разгон от 0 до (макс. скорость) займет 0.5 секунды.
+     * Время (в миллисекундах), в течение которго линейно разгоняется от 0 до макс. скорости.
+     * Реализовано только для вертикального движения.
      */
-    acceleration            ? : float
+    acceleration_time ? : float
     /**
-     * Задает начиная с какой скорости включается эффект снижения ускорения при приближении
-     * к максимальной скорости. Чем ближе к макс. скорости, тем меньше ускорение
-     * Такое поведение было в старом коде, и эта настройка достигает похожего (хотя не строго таких же значений).
-     * Значение от 0 до 1 - в долях от максимальной скорости.
-     * 1 - выключено (т.е. эффект включается не раньше чем достигнута макс. скорость)
-     * 0.5 - начиная с достижения половины макс. скорости
-     * 0 - с начала движения
+     * Время в миллисекундах, за которое скорость экспоненциально приблизится на 50% к своему конечному значению.
+     * Реализовано только для горионтального движения.
+     * Например, если это значение 100, начальная скорость 0, а конечная 10, то
+     * через     100 мс скорость станет равна (0 + 10) / 2 = 5,
+     * еще через 100 мс скорость станет равна (5 + 10) / 2 = 7.5, и т.п.
+     */
+    exponential_acceleration_half_time ? : float
+    /**
+     * Аналогично {@link exponential_acceleration_half_time}, но может быть меньше чем это значение,
+     * и служит для более быстрого изменения скорости на противоположную.
      *
-     * Используется только для горизонтального движения (так было в старом коде).
+     * Если разница между текущей и желаемой скоростью (дина вектора) меньше, чем {@link max},
+     * то применяется {@link exponential_acceleration_half_time}.
+     * Если больше, чем ({@link OPPOSITE_ACCELERATION_THRESHOLD} * {@link max}), то это время.
+     * Между этими значениями, настройка линейно  нтерполируется.
+     * Примеры:
+     * - при разгоне с нуля, в началае скорости отличаются на 100%
+     * - если на макс. скорости измененить направление на противоположное, скорости отличаются на 200%
+     * - при изменении направления на 90 градусов на макс. скорости, длина вектора-разницы скоростей sqrt(2) = 141%
+     * См. также
      */
-    diminishingAccelerationThreshold ? : float
-    /**
-     * Минимальное значение ускорения при приближении у макс. скорости.
-     * Используется только если задано {@link diminishingAccelerationThreshold}
-     * В тех же единицах, что и {@link acceleration}
-     */
-    diminishingAcceleration          ? : float
-    /**
-     * Линейное ускорение торможения. Применяется когда игрок отпустил кнопки.
-     * В тех же единицах, что и {@link acceleration}
-     */
-    deceleration            ? : float
-    /**
-     * Экспоненциальное торможение. Применяется когда игрок отпустил кнопки.
-     * В каждый равный промежуток времени скорость уменьшается в одно и то же число раз.
-     * Значение 0 до 1. Это значение задается в конфиге за 1 секунду.
-     * Например, 0.25 означает что через скунду останется 0.25 первоначальной скорости
-     * (а за 0.5 секунды останется sqrt(0.25) = 0.5 первоначальной скорости)
-     */
-    exponentialDeceleration ? : float
+    opposite_exponential_acceleration_half_time ? : float
+    /** Время (в миллисекундах), в течение которго линейно тормозит от макс. скорости до 0 если отпустить клавиши. */
+    deceleration_time ? : float
+    /** Время в миллисекундах, за которое скорость экспоненциально снижается вдвое если отпустить клавиши. */
+    exponential_deceleration_half_time ? : float,
+}
+
+/**
+ * Конфиги движения.
+ */
+const SPEED_CONFIGS: Dict<TFreeSpeedConfig> = {
+    HORIZONTAL: {
+        max                                         : 11.5,
+        exponential_acceleration_half_time          : 200,
+        opposite_exponential_acceleration_half_time : null,
+        deceleration_time                           : 3000,
+        exponential_deceleration_half_time          : 200
+    },
+    VERTICAL: {
+        max                                         : 7.1,
+        acceleration_time                           : 280,
+        deceleration_time                           : 500,
+        exponential_deceleration_half_time          : 200
+    }
 }
 
 /**
@@ -67,40 +81,46 @@ type TFreeSpeedConfig = {
  */
 const Y_SPEED_SCALING = 0.8
 
+/**
+ * От 1 до 2. Это минимальная относительная разница в скоростях, начиная с которой
+ * полностью используется {@link TFreeSpeedConfig.opposite_exponential_acceleration_half_time}
+ */
+const OPPOSITE_ACCELERATION_THRESHOLD = 1.35
+
 export const SPECTATOR_SPEED_CHANGE_MULTIPLIER = 1.05
 export const SPECTATOR_SPEED_CHANGE_MIN = 0.05
 export const SPECTATOR_SPEED_CHANGE_MAX = 16
 
-const SPEEDS: Dict<TFreeSpeedConfig> = {
-    HORIZONTAL: {
-        max                     : 11.5,
-        acceleration            : 2.7,
-        deceleration            : 0.5,
-        exponentialDeceleration : 0.035
-    },
-    UP: {
-        max                     : 5.7,
-        acceleration            : 3.5,
-        deceleration            : 2.0,
-        exponentialDeceleration : 0.035
-    },
-    DOWN: {
-        max                     : 7.1,
-        acceleration            : 3.5,
-        deceleration            : 2.0,
-        exponentialDeceleration : 0.035
-    }
+const MAX_DELTA_TIME = 500
+
+type TFreeSpeed = {
+    max                             : float
+    acceleration                    : float
+    exponential_acceleration_half_time  : float
+    opposite_exponential_acceleration_half_time : float
+    deceleration                    : float
+    exponentialDeceleration         : float
 }
+
+const SPEEDS: Dict<TFreeSpeed> = {}
 
 export class SpectatorPlayerControl extends PlayerControl {
 
     world: World
     speedMultiplier = 1
+    /** Accumulated difference between player_state.pos and the position in the current tick */
+    private accumulatedDeltaPos = new Vector()
+    private currentVelocity = new Vector()
+    private prevTickVelocity = new Vector()
 
-    private tmpVec = new Vector()
+    private tmpDesiredVel = new Vector()
     private backupVel = new Vector()
+    private prevTime: number
+    private tmpTickData = new ClientPlayerTickData()
 
-    constructor(world: World, start_position: Vector) {
+    private oldSpectator: OldSpectatorPlayerControl | null = null
+
+    constructor(world: World, start_position: Vector, useOldSpectator: Boolean = false) {
         super()
         this.world = world
         this.player_state = {
@@ -111,6 +131,16 @@ export class SpectatorPlayerControl extends PlayerControl {
             flying: true,
             isInWater: false
         }
+
+        if (useOldSpectator) {
+            const os = this.oldSpectator = new OldSpectatorPlayerControl(world, start_position)
+            os.controls = this.controls
+            os.player_state.vel = this.currentVelocity
+        }
+    }
+
+    getCurrentPos(dst: Vector): void {
+        dst.copyFrom(this.player_state.pos).addSelf(this.accumulatedDeltaPos)
     }
 
     get type()                  { return PLAYER_CONTROL_TYPE.SPECTATOR }
@@ -121,14 +151,36 @@ export class SpectatorPlayerControl extends PlayerControl {
     resetState(): void {
         super.resetState()
         this.speedMultiplier = 1
+        this.accumulatedDeltaPos.zero()
+        this.prevTickVelocity.zero()
+        this.currentVelocity.zero()
+        this.prevTime = performance.now()
     }
 
-    simulatePhysicsTick(): void {
-        const UP            = SPEEDS.UP
-        const DOWN          = SPEEDS.DOWN
+    updateFrame(controlManager: ClientPlayerControlManager) {
+        const now = performance.now()
+        const deltaSeconds = 0.001 * Math.min(now - this.prevTime, MAX_DELTA_TIME)
+        this.prevTime = now
+
+        // copy player's input to this control
+        this.tmpTickData.initInputFrom(controlManager, 1, 1)
+        this.tmpTickData.applyInputTo(controlManager, this)
+
+        // Use the old spectator, if it's enabled
+        const os = this.oldSpectator
+        if (os) {
+            this.getCurrentPos(os.player.entity.position)
+            os.mul = this.speedMultiplier
+            os.player_state.yaw = this.player_state.yaw
+            os.tick(deltaSeconds, PLAYER_ZOOM)
+            this.accumulatedDeltaPos.copyFrom(os.player.entity.position).subSelf(this.player_state.pos)
+            return
+        }
+
+        const VERTICAL      = SPEEDS.VERTICAL
         const HORIZONTAL    = SPEEDS.HORIZONTAL
         const controls      = this.controls
-        const vel           = this.player_state.vel
+        const vel           = this.currentVelocity
         const mul           = this.speedMultiplier * (this.controls.sprint ? 1.5 : 1) * SPECTATOR_SPEED_MUL
 
         const forceUp       = to01(controls.jump)       - to01(controls.sneak)
@@ -137,17 +189,18 @@ export class SpectatorPlayerControl extends PlayerControl {
 
         // change Y velocity
         if (forceUp === 0) {
-            vel.y = this.decelerate(vel.y, vel.y > 0 ? UP : DOWN, mul)
+            vel.y = this.decelerate(vel.y, VERTICAL, mul, deltaSeconds)
         } else {
-            if (Math.sign(vel.y) !== forceUp) {
+            if (Math.sign(vel.y) !== forceUp) { // reverse direction without inertia
                 vel.y = 0
             }
             const mulY = mul > 1
                 ? 1 + (mul - 1) * Y_SPEED_SCALING
                 : mul
-            vel.y = forceUp > 0
-                ? Math.min(vel.y + UP.acceleration * mulY, UP.max * mulY)
-                : Math.max(vel.y - DOWN.acceleration * mulY, -DOWN.max * mulY)
+            vel.y = Mth.clampModule(
+                vel.y + forceUp * VERTICAL.acceleration * mulY * deltaSeconds,
+                VERTICAL.max * mulY
+            )
         }
 
         // change XZ speed
@@ -155,37 +208,47 @@ export class SpectatorPlayerControl extends PlayerControl {
             // decelerate
             const oldVelScalar = vel.horizontalLength()
             if (oldVelScalar) {
-                const newVelScalar = this.decelerate(oldVelScalar, HORIZONTAL, mul)
-                vel.mulScalarSelf(newVelScalar / oldVelScalar)
+                const newVelScalar = this.decelerate(oldVelScalar, HORIZONTAL, mul, deltaSeconds)
+                vel.x *= newVelScalar / oldVelScalar
+                vel.z *= newVelScalar / oldVelScalar
             }
         } else {
-            const conf = HORIZONTAL
-            const max = conf.max * mul
-
+            const max = HORIZONTAL.max * mul
             // calculate the desired speed
-            const tmpVec = this.tmpVec
+            const desiredVel = this.tmpDesiredVel
                 .setScalar(-forceLeft, 0, forceForward)
                 .normalizeSelf(max)
                 .rotateYawSelf(this.player_state.yaw)
-            // the difference between the desired speed and the current speed
-            tmpVec.x -= vel.x
-            tmpVec.z -= vel.z
-            const deltaVelScalar = tmpVec.horizontalLength()
-            // when the speed is closing to the desired, acceleration is reduced
-            const diminishedAcceleration = Mth.lerpAny(deltaVelScalar,
-                0, conf.diminishingAcceleration,
-                max * (1 - conf.diminishingAccelerationThreshold), conf.acceleration
+
+            // make big changes (e.g. reverse direction) with higher acceleration
+            const exponentialAccelerationHalfTime = Mth.lerpAny(
+                desiredVel.distance(vel) / max,
+                1,
+                HORIZONTAL.exponential_acceleration_half_time,
+                OPPOSITE_ACCELERATION_THRESHOLD,
+                HORIZONTAL.opposite_exponential_acceleration_half_time
             )
-            // acceleration in this tick, to make speed closer to desired
-            let accelerationScalar = Math.min(deltaVelScalar, diminishedAcceleration * mul)
-            if (accelerationScalar) {
-                tmpVec.normalizeSelf(accelerationScalar) // delta velocity vector
-                vel.addSelf(tmpVec)
-            }
+
+            // exponentially approach the desired velocity
+            const k = Math.pow(0.5, 1000 / exponentialAccelerationHalfTime * deltaSeconds)
+            vel.x = Mth.lerp(k, desiredVel.x, vel.x)
+            vel.z = Mth.lerp(k, desiredVel.z, vel.z)
         }
 
         // change the position
-        this.player_state.pos.addScalarSelf(vel.x, vel.y, vel.z)
+        const deltaTicks = deltaSeconds * 1000 / PHYSICS_INTERVAL_MS
+        this.accumulatedDeltaPos.addScalarSelf(vel.x * deltaTicks, vel.y * deltaTicks, vel.z * deltaTicks)
+    }
+
+    simulatePhysicsTick(): void {
+        const ps = this.player_state
+        ps.pos.addSelf(this.accumulatedDeltaPos)
+        this.accumulatedDeltaPos.zero()
+
+        const deltaVel = this.currentVelocity.subSelf(this.prevTickVelocity)
+        ps.vel.addSelf(deltaVel)
+        this.prevTickVelocity.copyFrom(ps.vel)
+        this.currentVelocity.copyFrom(ps.vel)
     }
 
     backupPartialState(): void {
@@ -201,11 +264,11 @@ export class SpectatorPlayerControl extends PlayerControl {
         return true
     }
 
-    private decelerate(v: float, conf: TFreeSpeedConfig, mul: float): float {
-        v *= conf.exponentialDeceleration
+    private decelerate(v: float, conf: TFreeSpeed, mul: float, deltaSeconds: float): float {
+        v *= Math.pow(conf.exponentialDeceleration, deltaSeconds)
         return v > 0
-            ? Math.max(v - conf.deceleration * mul, 0)
-            : Math.min(v + conf.deceleration * mul, 0)
+            ? Math.max(v - conf.deceleration * mul * deltaSeconds, 0)
+            : Math.min(v + conf.deceleration * mul * deltaSeconds, 0)
     }
 }
 
@@ -213,17 +276,30 @@ function to01(v?: boolean): int {
     return (v as any) * 1
 }
 
-/** Adjusts values in {@link SPEEDS} to be independent of {@link PHYSICS_INTERVAL_MS} */
 function initStatics() {
-    const k = PHYSICS_INTERVAL_MS / 1000
-    for(const conf of Object.values(SPEEDS)) {
-        conf.diminishingAccelerationThreshold ??= 1
-        conf.exponentialDeceleration = Math.pow(conf.exponentialDeceleration ?? 1, k)
-        conf.max *= k // from blocks per second to blocks per 100 ms; adjust by the tick length
+    if (SPEED_CONFIGS.VERTICAL.exponential_acceleration_half_time || SPEED_CONFIGS.VERTICAL.opposite_exponential_acceleration_half_time) {
+        throw "SPEED_CONFIGS.VERTICAL.exponential_acceleration_half_time and opposite_exponential_acceleration_half_time are not implemented, use acceleration_time instead"
+    }
+    if (SPEED_CONFIGS.HORIZONTAL.acceleration_time) {
+        throw "SPEED_CONFIGS.HORIZONTAL.acceleration_time is not implemented, use exponential_acceleration_half_time instead"
+    }
+    for(const key in SPEED_CONFIGS) {
+        const conf = SPEED_CONFIGS[key]
+        const value: TFreeSpeed = SPEEDS[key] = {} as any
+        value.exponential_acceleration_half_time = conf.exponential_acceleration_half_time
+        value.opposite_exponential_acceleration_half_time = conf.opposite_exponential_acceleration_half_time
+            ?? conf.exponential_acceleration_half_time
+        value.exponentialDeceleration = conf.exponential_deceleration_half_time
+            ? Math.pow(0.5, 1000 / conf.exponential_deceleration_half_time)
+            : 1
+        value.max = conf.max * PHYSICS_INTERVAL_MS / 1000 // from blocks per second to blocks per PHYSICS_INTERVAL_MS ms
         // adjust by the tick length (.max in acceleration/deceleration is multiplied by k twice - it's correct)
-        conf.acceleration = (conf.acceleration ?? 0) * conf.max * k
-        conf.deceleration = (conf.deceleration ?? 0) * conf.max * k
-        conf.diminishingAcceleration = (conf.diminishingAcceleration ?? 0) * conf.max * k
+        value.acceleration = conf.acceleration_time
+            ? 1000 / conf.acceleration_time * value.max
+            : 0
+        value.deceleration = conf.deceleration_time
+            ? 1000 / conf.deceleration_time * value.max
+            : 0
     }
 }
 
