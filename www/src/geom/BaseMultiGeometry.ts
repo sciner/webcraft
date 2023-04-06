@@ -41,6 +41,10 @@ export class BaseMultiGeometry {
         // override!
     }
 
+
+    hasAction = false;
+    copyReady = false;
+
     bind(shader) {
         if (shader) {
             this.attribs = shader;
@@ -84,21 +88,35 @@ export class BaseMultiGeometry {
         if (this.uploadID === this.updateID) {
             return;
         }
-        this.uploadID = this.updateID;
-        if (this.batch.copyPos > 0) {
-            const batchBuf = this.batch.getBuf(this.context);
-            batchBuf.updatePartial(this.batch.pos * this.strideFloats);
-            this.buffer.batchUpdate(batchBuf, this.batch.copies, this.batch.copyPos, this.stride);
-            this.batch.reset();
+
+        if (!this.hasAction) {
+            return;
+        }
+        this.hasAction = false;
+        if (!this.copyReady) {
+            if (this.batch.copyPos > 0) {
+                const batchBuf = this.batch.getBuf(this.context);
+                batchBuf.updatePartial(this.batch.pos * this.strideFloats);
+            }
+            this.copyReady = true;
         } else {
-            this.buffer.bind();
-        }
-        if (this.buffer.bigResize) {
-            this.buffer.bigResize = false;
-            this.attribBufferPointers();
-        }
-        if (this.indexBuffer) {
-            this.indexBuffer.bind();
+            this.uploadID = this.updateID;
+            if (this.batch.copyPos > 0) {
+                const batchBuf = this.batch.getBuf(this.context);
+                batchBuf.bind();
+                this.buffer.batchUpdate(batchBuf, this.batch.copies, this.batch.copyPos, this.stride);
+                this.batch.reset();
+            } else {
+                this.buffer.bind();
+            }
+            if (this.buffer.bigResize) {
+                this.buffer.bigResize = false;
+                this.attribBufferPointers();
+            }
+            if (this.indexBuffer) {
+                this.indexBuffer.bind();
+            }
+            this.copyReady = false;
         }
     }
 
