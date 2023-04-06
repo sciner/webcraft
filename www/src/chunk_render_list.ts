@@ -102,7 +102,7 @@ export class ChunkRenderList {
         culling.update(render.frustum, chunkManager.dataWorld.grid.chunkSize);
 
         const {cullIDs, entries} = spiral;
-        const cullID = culling.updateID;
+        const cullID = render.cullID = culling.updateID;
         let cnt = 0;
 
         for (let i = 0; i < entries.length; i++) {
@@ -115,6 +115,7 @@ export class ChunkRenderList {
                 // destroyed!
                 continue;
             }
+            chunk.cullID = cullID;
             // actualize light
             chunk.prepareRender(render.renderBackend);
             if (chunk.need_apply_vertices) {

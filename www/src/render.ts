@@ -111,6 +111,7 @@ export class Renderer {
     timeKillRain:           any
     weather_name:           string
     material_shadow:        any
+    cullID = 0;
 
     constructor(qubatchRenderSurfaceId : string) {
         this.xrMode             = false;
@@ -1121,7 +1122,7 @@ export class Renderer {
                 prev_chunk_addr.copyFrom(ca);
                 prev_chunk = this.world.chunkManager.getChunk(ca);
             }
-            if(prev_chunk && prev_chunk.in_frustum) {
+            if(prev_chunk && prev_chunk.cullID === this.cullID) {
                 mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
                 this.draw_mobs_stat.count++
             }

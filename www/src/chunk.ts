@@ -44,6 +44,10 @@ export class Chunk {
     vertices_args_size: number = 0;
     vertices: Map<string, ChunkMesh>;
     verticesList: Array<ChunkMesh>;
+    /**
+     * в данный момент отрисован на экране
+      */
+    cullID = -1;
 
     getChunkManager() : ChunkManager {
         return this.chunkManager;
@@ -77,7 +81,6 @@ export class Chunk {
         this.verticesList = [];
         this.fluid_blocks = [];
         this.gravity_blocks = [];
-        this.in_frustum = false; // в данный момент отрисован на экране
         this.rendered = 0;
         // save ref on chunk manager
         // strictly after post message, for avoid crash
@@ -410,25 +413,6 @@ export class Chunk {
             });
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
-    }
-
-    //
-    updateInFrustum(render : Renderer) : boolean {
-        if (!this.frustum_geometry) {
-            this.frustum_geometry = Chunk.createFrustumGeometry(this.coord, this.size);
-        }
-        this.in_frustum = render.frustum.intersectsGeometryArray(this.frustum_geometry);
-        return this.in_frustum;
-    }
-
-    //
-    static createFrustumGeometry(coord : Vector, size : Vector) {
-        let frustum_geometry = [];
-        let box_radius = size.x;
-        let sphere_radius = (Math.sqrt(3) * box_radius / 2) * 1.05;
-        frustum_geometry.push(new Sphere(coord.clone().addScalarSelf(size.x / 2, size.y / 4, size.z / 2), sphere_radius))
-        frustum_geometry.push(new Sphere(coord.clone().addScalarSelf(size.x / 2, size.y - size.y / 4, size.z / 2), sphere_radius))
-        return frustum_geometry;
     }
 
     //
