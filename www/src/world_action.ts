@@ -1642,8 +1642,8 @@ function sitDown(e, world, pos : Vector, player : ActionPlayerInfo, world_block,
     if (!is_chair && !is_stool && !is_slab && !is_stairs) {
         return false
     }
-    // проверям это верхняя или нмжняя половинка полублока
-    if ((is_slab || is_stairs) && (world_block.extra_data?.point?.y > .5)) {
+    // проверям это верхняя или нижняя половинка полублока
+    if ((is_slab || is_stairs) && ((world_block.extra_data?.point?.y > .5) || current_inventory_item != null)) {
         return false
     }
     // выходим из обработки, если клеим шерсть
