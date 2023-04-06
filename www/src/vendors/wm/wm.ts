@@ -20,6 +20,8 @@ import type { SpriteAtlas } from "../../core/sprite_atlas.js";
 
 globalThis.visible_change_count = 0
 
+let current_drag_window : Window = null
+
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
 export type TMouseEvent = {
@@ -83,10 +85,11 @@ export class GradientGraphics {
 export class Window extends PIXI.Container {
     [key: string]: any;
 
-    #_tooltip = null
-    #_bgicon = null
-    #_wmclip = null
-    style : Style
+    #_tooltip:              any = null
+    #_bgicon:               any = null
+    #_wmclip:               any = null
+    style:                  Style
+    draggable:              boolean = false
 
     canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
@@ -197,9 +200,10 @@ export class Window extends PIXI.Container {
             if(this.text_container) {
                 this.style.padding.resize()
             }
-            if(this.text_container) {
-                this.style.border.resize()
-            }
+            // if(this.text_container) {
+            //     this.style.border.resize()
+            // }
+            this.style.border.resize()
         }
     }
 
@@ -637,47 +641,6 @@ export class Window extends PIXI.Container {
         return this.show()
     }
 
-    _mousemove(e) {
-
-        this.hover = true
-        this.onMouseMove(e)
-        let entered = []
-        let leaved = []
-
-        const {window, event, visible_windows} = this._clarifyMouseEvent(e)
-
-        for(let w of visible_windows) {
-            let old_hover = w.hover
-            w.hover = false
-            if(w === window) {
-                w._mousemove(event)
-                w.hover = true
-            }
-            if(w.hover != old_hover) {
-                if(w.hover) {
-                    entered.push(w)
-                } else {
-                    leaved.push(w)
-                }
-            }
-        }
-
-        if(entered.length + leaved.length > 0) {
-            if(entered.length > 0) {
-                this.getRoot()._wm_setTooltipText(entered[0].tooltip)
-                entered[0].onMouseEnter();
-                this.getRoot().rootMouseEnter(entered[0])
-            } else {
-                this.getRoot()._wm_setTooltipText(null);
-            }
-            if(leaved.length > 0) {
-                leaved[0].onMouseLeave();
-                this.getRoot().rootMouseLeave(leaved[0])
-            }
-        }
-
-    }
-
     /**
      * По событию мыши на контексте определяет и возвращает точное окно,
      * к которому относится событие, а также создает и возвращает новое событие для него
@@ -733,8 +696,16 @@ export class Window extends PIXI.Container {
     }
 
     _mousedown(e) {
-        const {window, event} = this._clarifyMouseEvent(e)
+        let {window, event} = this._clarifyMouseEvent(e)
         if(window) {
+            if(window.draggable) {
+                current_drag_window = window
+                // const e2 = {...e}
+                // const y = e2.y - (this.ay + window.y)
+                // e2.y = window.ay + y
+                // event = e2
+                // console.log(e.y, event.y, this.ay, window.ay)
+            }
             return window._mousedown(event)
         }
         if(this instanceof Button) {
@@ -744,7 +715,16 @@ export class Window extends PIXI.Container {
     }
 
     _mouseup(e) {
-        const {window, event} = this._clarifyMouseEvent(e)
+        let window = null
+        let event = e
+        if(current_drag_window) {
+            window = current_drag_window
+            current_drag_window = null
+        } else {
+            const resp = this._clarifyMouseEvent(e)
+            window = resp.window
+            event = resp.event
+        }
         if(window) {
             return window._mouseup(event)
         }
@@ -752,6 +732,57 @@ export class Window extends PIXI.Container {
             this.onMouseLeave()
         }
         this.onMouseUp(e)
+    }
+
+    _mousemove(e) {
+
+        this.hover = true
+        this.onMouseMove(e)
+        let entered = []
+        let leaved = []
+
+        if(current_drag_window && this != current_drag_window) {
+            const w = current_drag_window
+            // const e2 = {...e}
+            // const y = e2.y - (current_drag_window.parent.ay + w.y)
+            // e2.y = w.ay + y
+            // e = e2
+            w._mousemove(e)
+            return
+        }
+
+        const {window, event, visible_windows} = this._clarifyMouseEvent(e)
+
+        for(let w of visible_windows) {
+            let old_hover = w.hover
+            w.hover = false
+            if(w === window) {
+                w._mousemove(event)
+                w.hover = true
+            }
+            if(w.hover != old_hover) {
+                if(w.hover) {
+                    entered.push(w)
+                } else {
+                    leaved.push(w)
+                }
+            }
+        }
+
+        if(entered.length + leaved.length > 0) {
+            if(entered.length > 0) {
+                this.getRoot()._wm_setTooltipText(entered[0].tooltip)
+                entered[0].onMouseEnter();
+                this.getRoot().rootMouseEnter(entered[0])
+            } else {
+                this.getRoot()._wm_setTooltipText(null);
+            }
+            if(leaved.length > 0) {
+                leaved[0].onMouseLeave();
+                this.getRoot().rootMouseLeave(leaved[0])
+            }
+        }
+
     }
 
     // measureMultilineText(ctx, text, lineHeightMultiply = 1.05, lineHeightAdd = 2) {
@@ -1729,73 +1760,115 @@ export class ToggleButton extends Button {
 
 export class Slider extends Window {
 
-    constructor(x, y, w, h, id, value) {
+    min_size_scroll:    number = 50
+    grab:               boolean = false
+    _min:               number = 0
+    _max:               number = 0
+    _value:             number = 0
+    wScrollTrack:       Label = null
+    wScrollThumb:       Label = null
+    start_drag_y:       number = 0
+
+    constructor(x : number, y : number, w : number, h : number, id : string) {
         super(x, y, w, h, id, null, null)
-        this.style.background.color = '#8892c9'
-        this.min = -300
-        this.max = 300
-        this.value = value
-        this.step = 1
-        this.grab = false
-        this.setIcon('./media/gui/scroll.png')
-        if (w > h) {
-            this.horizontal = true
-            this._wmicon.width = 30 * this._wmicon.h / 24
-        } else {
-            this.horizontal = false
-            this._wmicon.height = 24 * this._wmicon.w / 30
-        }
-
-        this.updete(this.value)
+        // Thumb
+        this.wScrollThumb = new Label(0, 0, this.w, this.h / 2, 'lblScrollbarThumb')
+        this.wScrollThumb.style.background.color = '#000000'
+        this.wScrollThumb.interactiveChildren = false
+        this.add(this.wScrollThumb)
+        // Track
+        this.wScrollTrack = new Label(0, 0, this.w, this.h / 2, 'lblScrollbarTrack')
+        this.wScrollTrack.style.background.color = '#00000033'
+        this.wScrollTrack.w = this.w * .15
+        const track_margin = (this.w - this.wScrollTrack.w) / 2
+        this.wScrollTrack.h = this.h - track_margin * 2
+        this.wScrollTrack.x = this.w / 2 - this.wScrollTrack.w / 2
+        this.wScrollTrack.y = track_margin
+        this.wScrollTrack.interactiveChildren = false
+        this.add(this.wScrollTrack)
+        //
+        this.interactiveChildren = false
+        this.draggable = true
+        this.horizontal = w > h
     }
 
-    updete(val) {
-        const cursor = this._wmicon
-        const half = ((this.horizontal) ? cursor.w : cursor.h) / 2
-        let pos = val - ((this.horizontal) ? this.x : this.y) - half
-        if (pos < 0.1) {
-            pos = 0
+    set value(value : number) {
+        if (value > this._max) {
+            this._value = this._max
+        } else if (value < this._min) {
+            this._value = this._min
+        } else {
+            this._value = value
         }
+        const thumb = this.wScrollThumb
+        const size = ((this.horizontal) ? thumb.w : thumb.h)
+        const pr = this._value / (this._max - this._min)
         if (this.horizontal) {
-            cursor.x = Math.round(pos / this.step) * this.step
+            thumb.x = Math.ceil(pr * (this.w - size))
         } else {
-            cursor.y = Math.round(pos / this.step) * this.step
+            thumb.y = Math.ceil(pr * (this.h - size))
         }
-        this.value = Math.floor(pos * (this.max - this.min) / (this.horizontal ? this.w : this.h) + this.min)
     }
 
-    onMouseEnter() {
-        console.log('onMouseEnter')
+    set max(value : number) {
+        this._max = value > 0 ? Math.ceil(value) : 0
+        if (this.horizontal) {
+            const size = this.w / (2 *(this._max - this._min))
+            this.wScrollThumb.w = Math.max(size, this.min_size_scroll)
+        } else {
+            const size = (this.h / (this.h + value)) * this.h
+            this.wScrollThumb.h = Math.max(size, this.min_size_scroll)
+        }
+        this.value = 0
+        this.style.background.resize()
     }
 
-    onMouseLeave() {
-       // this.grab = false
-    }
-
-    toggle() {
-        console.log('toggle')
+    set min(value : number) {
+        this._min = value
+        if (this.horizontal) {
+            const size = this.w / (this._max - this._min)
+            this.wScrollThumb.w = (size > this.min_size_scroll) ? size : this.min_size_scroll
+        } else {
+            const size = this.h / (this._max - this._min)
+            this.wScrollThumb.h = (size > this.min_size_scroll) ? size : this.min_size_scroll
+        }
     }
 
     onMouseDown(e) {
         this.grab = true
+        this.start_drag_y = e.y - this.wScrollThumb.y - this.wScrollThumb.h/2
     }
+
     onMouseUp(e) {
         this.grab = false
     }
+
     onMouseMove(e) {
         if (this.grab) {
-            this.updete(this.horizontal ? e.x : e.y)
+            e.y -= this.start_drag_y
+            const thumb = this.wScrollThumb
+            const size = ((this.horizontal) ? thumb.w : thumb.h)
+            let pos = ((this.horizontal) ? e.x - this.x : e.y - this.y) - size / 2
+            const max_pos = ((this.horizontal) ? this.w : this.h) - size
+            if (pos < 0) {
+                pos = 0
+            }
+            if (pos > max_pos) {
+                pos = max_pos
+            }
+            if (this.horizontal) {
+                thumb.x = pos
+            } else {
+                thumb.y = pos
+            }
+            this._value = Math.floor(((pos * (this._max - this._min)) / max_pos) + this._min)
+            this._value = this._value || 0
+            this.onScroll(this._value)
         }
     }
-    onDrop(e) {
-        console.log('onDrop')
-    }
-    onWheel(e) {
-        console.log('onWheel')
-    }
-    onHide() {
-        console.log('onHide')
-    }
+
+    onScroll(e : any) {}
+
 }
 
 export class HTMLText extends Window {
