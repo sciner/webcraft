@@ -72,7 +72,7 @@ class HUDWindow extends Window {
 
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
-        this.x *= this.zoom 
+        this.x *= this.zoom
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
@@ -454,7 +454,8 @@ export class HUD {
             // Quads and Lightmap
             let quads_length_total = cm.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
-                + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb';
+                + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb'
+                + ' / ' + Math.round( cm.renderList.bufferSizeBytes / 1024 / 1024) + 'Mb';
             this.text += '\nLightmap: ' + Math.round(cm.renderList.lightmap_count)
                 + ' / ' + Math.round(cm.renderList.lightmap_bytes / 1024 / 1024) + 'Mb';
 
@@ -693,7 +694,7 @@ export class HUD {
                 angle = -angle
             }
             if (angle < -3 * Math.PI / 2) {
-                angle = -2 * Math.PI - angle 
+                angle = -2 * Math.PI - angle
             }
             let alpha = Math.round((1.37 - Math.abs(Math.atan(angle))) * 190).toString(16)
             if (alpha.length == 1) {
