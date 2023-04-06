@@ -147,6 +147,9 @@ export class Compiler {
             block.style = DEFAULT_STYLE_NAME
         }
         block.style_name = block.bb?.model ?? block.style
+        if (!block.bb) {
+            block.physics_style = block.style
+        }
     }
 
     //

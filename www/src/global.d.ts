@@ -227,6 +227,7 @@ interface IBlockMaterial {
     title: string
     style: string
     style_name: string
+    physics_style: string | undefined
     support_style: string
     sham_block_name: string
     inventory_style: any
