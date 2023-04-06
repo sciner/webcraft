@@ -21,8 +21,9 @@ declare type tupleFloat3 = [number, number, number, number]
 declare type tupleFloat2 = [number, number]
 type ConcatTuple<T1 extends unknown[], T2 extends unknown[]> = [...T1, ...T2]
 
-declare type TypedArray = Uint8Array | Uint16Array | Uint32Array | Int8Array
-    | Int16Array | Int32Array | Uint8ClampedArray | Float32Array | Float64Array
+declare type TypedIntArray = Uint8Array | Uint16Array | Uint32Array | Int8Array
+    | Int16Array | Int32Array | Uint8ClampedArray
+declare type TypedArray = TypedIntArray | Float32Array | Float64Array
 declare type AnyArray = any[] | TypedArray
 
 /**

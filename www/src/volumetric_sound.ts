@@ -1,5 +1,5 @@
 import { CH_SZ_X, CH_SZ_Y, CH_SZ_Z } from "./chunk_const.js";
-import { Vector, SimpleShifted3DArray, ArrayHelpers, Mth } from "./helpers.js";
+import { Vector, SimpleShifted3DArray, ArrayHelpers, Mth, UintArrayConstructor } from "./helpers.js";
 import { VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_TYPE_WATER, VOLUMETRIC_SOUND_TYPE_LAVA,
     VOLUMETRIC_SOUND_SECTORS, VOLUMETRIC_SOUND_SECTOR_INDEX_MASK, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR,
     VOLUMETRIC_SOUND_REF_DISTANCE, VOLUMETRIC_SOUND_MAX_DISTANCE,
@@ -8,32 +8,36 @@ import { VOLUMETRIC_SOUND_TYPES, VOLUMETRIC_SOUND_TYPE_WATER, VOLUMETRIC_SOUND_T
 import { FLUID_WATER_ID, FLUID_LAVA_ID, FLUID_TYPE_MASK } from "./fluid/FluidConst.js";
 import { ChunkGrid } from "./core/ChunkGrid.js";
 
-// How often does it ask FluidWorld for the mising chunks
+// How often does it ask FluidWorld for the missing chunks
 const PERIODIC_QUERY_MILLIS = 2000
 
-let MAX_LEVEL: number
+let MAX_LEVEL: int
 // Cell sizes by Y (and only by Y) may start from size bigger than 1.
-// Cell size by Y in each next level must be same size size as in the previous, or 2 times bigger.
-let CELL_SIZE_Y: number[]
+// Cell size by Y in each next level must be same size as in the previous, or 2 times bigger.
+let CELL_SIZE_Y: int[]
 /**
  * The size of sound map in chunks.
  *
  * It must be even. The player always is in one of the 2x2x2 central chunks.
  * It's to handle when a player walks between two neighbouring chunks often.
  */
-let SOUND_MAP_CHUNKS_RADIUS_XZ: number
+let SOUND_MAP_CHUNKS_RADIUS_XZ: int
 const SOUND_MAP_CHUNKS_RADIUS_Y = 1 // it's the minimum
 
-// Define fine-tuned constants for different chunk sizes
-if (CH_SZ_X === 16 && CH_SZ_Y === 40 && CH_SZ_Z === CH_SZ_Z) {
-    MAX_LEVEL           = 3
-    CELL_SIZE_Y         = [8, 8, 8, 8]
-    SOUND_MAP_CHUNKS_RADIUS_XZ  = 2
-} else {
-    throw Error() // choose good values for other sizes manually
-}
-if (VOLUMETRIC_SOUND_MAX_DISTANCE > (SOUND_MAP_CHUNKS_RADIUS_XZ + 0.5) * CH_SZ_X * 1.1) {
-    throw Error('VOLUMETRIC_SOUND_MAX_DISTANCE is too big')
+function initChunkSize(size: IVector): void {
+    // Define fine-tuned constants for different chunk sizes
+    if (size.z === size.x && size.x % 8 === 0 && size.y % 8 === 0) {
+        MAX_LEVEL           = 3
+        CELL_SIZE_Y         = [8, 8, 8, 8]
+        SOUND_MAP_CHUNKS_RADIUS_XZ = size.x < 32 ? 2 : 1
+    } else {
+        // choose good values for other sizes manually
+        throw Error("Unsupported chunk size")
+    }
+    if (VOLUMETRIC_SOUND_MAX_DISTANCE > (SOUND_MAP_CHUNKS_RADIUS_XZ + 0.5) * size.x * 1.1) {
+        throw Error('VOLUMETRIC_SOUND_MAX_DISTANCE is too big')
+    }
+    initMIPS()
 }
 
 const MAX_SUMMARY_LEVEL     = 2     // (value <= MAX_LEVEL)
@@ -57,9 +61,9 @@ const tmpVec = new Vector()
 
 /**
  * Here the volume falls off with the distance squared.
- * But after the final adjustemnts, the volume will fall off inversely to the distance.
+ * But after the final adjustments, the volume will fall off inversely to the distance.
  *
- * The genral idea:
+ * The general idea:
  * - at the end, {@link toVolume} applies sqrt() from the sum of volumes of blocks as a range compresson, so 100 blocks
  *   sound only 10 times louder than 1.
  * - it also turns the previously applied quadratic distance adjustment to linear.
@@ -72,26 +76,26 @@ const tmpVec = new Vector()
  * altough the formula is simplified for this particular case.
  * see {@link https://developer.mozilla.org/en-US/docs/Web/API/PannerNode/distanceModel}
  *
- * @param {Float} distanceSqr - distance^2 to the sound source
+ * @param distanceSqr - distance^2 to the sound source
  * @return volume multiplier
  */
-function falloffByDistanceSqr(distanceSqr) {
+function falloffByDistanceSqr(distanceSqr: float): float {
     return REF_DISTANCE_SQR / Math.max(distanceSqr, REF_DISTANCE_SQR)
 }
 
 /**
- * @return {Float} falloffByDistanceSqr(distanceSqrFar) / falloffByDistanceSqr(distanceSqrNear),
+ * @return falloffByDistanceSqr(distanceSqrFar) / falloffByDistanceSqr(distanceSqrNear),
  *   but it's faster than computing by that formula.
  */
-function relativeFalloffByDistanceSqr(distanceSqrNear, distanceSqrFar) {
+function relativeFalloffByDistanceSqr(distanceSqrNear: float, distanceSqrFar: float): float {
     return Math.max(distanceSqrNear, REF_DISTANCE_SQR) / Math.max(distanceSqrFar, REF_DISTANCE_SQR)
 }
 
 /**
- * The final adjustment to the volume, whih oes dynamic range compression, and changes the
+ * The final adjustment to the volume, which does dynamic range compression, and changes
  * how the volume falls off with distance.
  */
-function toVolume(sum) {
+function toVolume(sum: float): float {
     return Math.sqrt(sum)
 }
 
@@ -99,17 +103,38 @@ function toVolume(sum) {
  * Starting from some distance, an additional falloff is applied, down to 0 at the max distance.
  * It's to remove "popping" effect when the sounds enter and exit the maximum range.
  */
-function falloffExtraFar(distanceSqr) {
+function falloffExtraFar(distanceSqr: float): float {
     return Mth.lerpAny(distanceSqr, MID_DISTANCE_SQR, 1, MAX_DISTANCE_SQR, 0)
 }
 
 // See the comment to VOLUMETRIC_SOUND_SECTOR_BITS
-function toSector(x, z) {
+function toSector(x: float, z: float): int {
     return Math.round(Math.atan2(z, x) * VOLUMETRIC_SOUND_ANGLE_TO_SECTOR) & VOLUMETRIC_SOUND_SECTOR_INDEX_MASK
 }
 
-function createMIPS() {
-    const mips = new Array(MAX_LEVEL + 1)
+type TMipDescriptor = {
+    level       : int
+    smaller     : TMipDescriptor
+    cellXZ      : int
+    cellY       : int
+    cellYinv    : float // we don't compute cellXZinv, because we can use >> level
+    dividerY    : float // we don't compute divisorXZ, it's known to be 1 or 2
+    sizeXZ      : int
+    sizeY       : int
+    strideX     : int
+    strideY     : int
+    strideZ     : int
+    size        : int
+    arrayClass  : UintArrayConstructor
+}
+
+// descriptions of MIP levels
+let MIPS: TMipDescriptor[]
+let MIP0: TMipDescriptor
+let MIP_MAX: TMipDescriptor
+
+function initMIPS() {
+    MIPS = new Array(MAX_LEVEL + 1)
     let cellXZ = 1
     let sizeXZ = CH_SZ_X
     let strideZ = 2 // [volume, 2 * SUM(y + 0.5)]
@@ -123,9 +148,9 @@ function createMIPS() {
         // the upper bounds of the maximum possible element value: sum coordinates (CHUNK_SIZE_Y - 1) multiplied by volume
         const maxValue = cellXZ * cellY * cellXZ * (2 * (CH_SZ_Y - 1) + 1)
 
-        mips[level] = {
+        MIPS[level] = {
             level,
-            smaller: mips[level - 1],
+            smaller: MIPS[level - 1],
             cellXZ,
             cellY,
             cellYinv:   1 / cellY,          // we don't compute cellXZinv, because we can use >> level
@@ -141,23 +166,18 @@ function createMIPS() {
         cellXZ *= 2
         strideZ = 4 // [volume, 2 * SUM(x + 0.5), 2 * SUM(y + 0.5), 2 * SUM(z + 0.5)]
     }
-    return mips
+    MIP0 = MIPS[0]
+    MIP_MAX = MIPS[MAX_LEVEL]
 }
 
-// descriptions of MIP levels
-const MIPS = createMIPS()
-const MIP0 = MIPS[0]
-const MIP_MAX = MIPS[MAX_LEVEL]
-
 class StereoHeightCompensator {
-    [key: string]: any;
     static SIZE = 16
     /**
      * For each elevation (angle from the earth surface), we calculate the volume in channels
-     * as if the sound source was in the plane separating forward and rear hemispeheres.
+     * as if the sound source was in the plane separating forward and rear hemispheres.
      * This is the maximum possible stereo separation for a source with this elevation.
      *
-     * Then we calcualte and remember the fraction of the volume that is the same in both ears.
+     * Then we calculate and remember the fraction of the volume that is the same in both ears.
      * This fraction won't be affected by the horizontal positioning. The rest if the sound is fully affected.
      *
      * Instead of actual elevations, the LUT is by (dy^2)/(distance^2).
@@ -195,24 +215,29 @@ class StereoHeightCompensator {
     }
 }
 
-/** Used insetad of {@link SoundChunk} until we get the data. */
+type TChunkQuery = { x: int, y: int, z: int, queryId: int }
+
+/** Used instead of {@link SoundChunk} until we get the data. */
 class SoundChunkPlaceholder {
-    [key: string]: any;
 
     static queryId = 0
 
-    constructor(x, y, z) {
+    query: TChunkQuery
+    private lastQueryTime: number
+
+    // If it's true, we don't know the chunk data yet.
+    // If it's false, we know that this chunk has no sound data.
+    waitignForData = true
+
+    constructor(x: int, y: int, z: int) {
         this.lastQueryTime = performance.now()
         this.query = {
             x, y, z,
             queryId: ++SoundChunkPlaceholder.queryId
         }
-        // If it's true, we don't know the chunk data yet.
-        // If it's false, we know that this chunk has no sound data.
-        this.waitignForData = true
     }
 
-    addToPeriodicQueiry(queriedChunks) {
+    addToPeriodicQueiry(queriedChunks: TChunkQuery[]): void {
         if (this.waitignForData &&
             this.lastQueryTime + PERIODIC_QUERY_MILLIS < performance.now()
         ) {
@@ -222,9 +247,29 @@ class SoundChunkPlaceholder {
     }
 }
 
+/** All data for of one type of sound in a chunk */
+type TSoundTypeMips = {
+    arr: TypedIntArray[]
+    // Min/max coordinates in the smalest mip map level that have any content.
+    // We never decrease these limits when the blocks are removed, but it's still a useful optimization
+    maxLevelMinX: number
+    maxLevelMinY: number
+    maxLevelMinZ: number
+    maxLevelMaxX: number
+    maxLevelMaxY: number
+    maxLevelMaxZ: number
+}
+
 /** Contains hierarchical data of sound blocks in one chunk */
 class SoundChunk {
-    [key: string]: any;
+
+    private queryId : int
+    private grid    : ChunkGrid
+    coord   = new Vector()
+    // for each block index (non-flat), type of the sound block
+    byIndex = new Map<int, int>()
+    // for each mip level, 3D array. Each cell is described by a groups of comsecutive elements
+    mipsByType  : TSoundTypeMips[] = new Array(VOLUMETRIC_SOUND_TYPES)
 
     /**
      * @param addr
@@ -234,17 +279,11 @@ class SoundChunk {
      */
     constructor(grid : ChunkGrid, addr : Vector, queryId : int) {
         this.queryId = queryId
-        this.coord = new Vector()
         this.grid = grid;
         grid.chunkAddrToCoord(addr, this.coord)
-
-        // for each block index (non-flat), type of the sound block
-        this.byIndex = new Map()
-        // for each mip level, 3D array. Each cell is described by a groups of comsecutive elements
-        this.mipsByType = new Array(VOLUMETRIC_SOUND_TYPES)
     }
 
-    _getOrCreateMips(type) {
+    private getOrCreateMips(type: int): TSoundTypeMips {
         let res = this.mipsByType[type]
         if (res == null) {
             res = {
@@ -266,7 +305,7 @@ class SoundChunk {
         return res
     }
 
-    onFlowingDiff(flowingDiff) {
+    onFlowingDiff(flowingDiff: Map<int, int>): void {
         for(let [ind, diff] of flowingDiff) {
             diff &= FLUID_TYPE_MASK
             const type = diff === FLUID_WATER_ID
@@ -278,7 +317,7 @@ class SoundChunk {
         }
     }
 
-    setByInd(ind, type) {
+    setByInd(ind: int, type: int): void {
         this.grid.math.fromChunkIndex(tmpVec, ind)
         const exType = this.byIndex.get(ind) ?? null
         if (exType !== type) {
@@ -296,13 +335,10 @@ class SoundChunk {
 
     /**
      * Adds or subtracts a sound block from all mip levels.
-     * @param { int } x0 - the x coordinate relative to the chunk
-     * @param { int } y0
-     * @param { int } z0
-     * @param { int } type from 0 to ({@link VOLUMETRIC_SOUND_TYPES} - 1)
-     * @param { int } delta -1 or 1
+     * @param x0 - the x coordinate relative to the chunk
+     * @param type from 0 to ({@link VOLUMETRIC_SOUND_TYPES} - 1)
      */
-    addToMips(x0, y0, z0, type, delta) {
+    private addToMips(x0: int, y0: int, z0: int, type: int, delta: -1 | 1): void {
         // Add 0.5 to coordinates to make the sound come from the center of the block.
         // dx = 2 * (x0 + 0.5) * delta,
         // but in integer arithmetic, so it can be stored in Uint8 or Uint16 array
@@ -314,7 +350,7 @@ class SoundChunk {
         let y = Math.floor(y0 * MIP0.cellYinv)
         let z = z0 | 0
         let ind = x * MIP0.strideX + y * MIP0.strideY + z * MIP0.strideZ
-        const mips = this._getOrCreateMips(type)
+        const mips = this.getOrCreateMips(type)
         let arr = mips.arr[0]
         arr[ind] += delta
         arr[ind + 1] += dy
@@ -340,6 +376,19 @@ class SoundChunk {
     }
 }
 
+type TSoundSource = {
+    x       : float
+    y       : float
+    z       : float
+    volume  : float
+    dySqr?  : float
+}
+
+type TSoundTypeSummary = {
+    volume  : float  // 0..1
+    stereo  : float[] // size: VOLUMETRIC_SOUND_SECTORS, values are in -1..1 - lookup table of stereo for each player heading angle
+}
+
 /**
  * Data that describes one type of sounds around the player.
  * It's much smaller than SoundMap, and can be used to quickly compute the resulting volume and stereo.
@@ -347,7 +396,6 @@ class SoundChunk {
  * When a player moves farther away, the summary must be re-calculated.
  */
 class SoundSummary {
-    [key: string]: any;
 
     /**
      * Pre-calculate LUT.
@@ -379,34 +427,23 @@ class SoundSummary {
         }
     }
 
-    constructor() {
-        // ========== The summary's data. It's computed by SoundMap ==========
+    // ========== The summary's data. It's computed by SoundMap ==========
 
-        // volume with no stereo sepation
-        this.uniform = 0
-        // the list of nearby sources: { x, z, volume }
-        this.near = []
-        // Volumes of faraway sources in the sectors of 360 degree arc.
-        this.far = new Array(VOLUMETRIC_SOUND_SECTORS)
+    // volume with no stereo sepation
+    uniform     = 0
+    // the list of nearby sources
+    near        : TSoundSource[] = []
+    // Volumes of faraway sources in the sectors of 360 degree arc
+    far         : float[] = new Array(VOLUMETRIC_SOUND_SECTORS)
 
-        // ========== Temporary values used to compute the final sound properties ==========
+    // ========== Temporary values used to compute the final sound properties ==========
 
-        // distant sources by sector. They get full stereo sepration, depending on the player's rotation
-        this.sumBySector    = new Array(VOLUMETRIC_SOUND_SECTORS)
-        // volume with no stereo sepation
-        this.sumUniform     = 0 // volume with no stereo sepation
-    }
+    // distant sources by sector. They get full stereo sepration, depending on the player's rotation
+    private sumBySector     : float[] = new Array(VOLUMETRIC_SOUND_SECTORS)
+    // volume with no stereo sepation
+    private sumUniform      = 0
 
-    /**
-     * @param {Vector} playerPos
-     * @returns {Array of ?Object} {
-     *  volume: 0..1,
-     *  stereo: Array[VOLUMETRIC_SOUND_SECTORS] of -1..1 - lookup table of stereo for each player heading angle
-     * }
-     * If i-th element of the resul is null, it means there is no sound of i-th type (its volume === 0).
-     * Otherwise, its volume is > 0.
-     */
-    toResult(playerPos) {
+    toResult(playerPos: Vector): TSoundTypeSummary | null {
         // add uniform sources
         this.sumUniform = this.uniform
         // add far sources to the sum by sector
@@ -418,7 +455,7 @@ class SoundSummary {
         if (!sum) {
             return null
         }
-        const stereo = new Array(VOLUMETRIC_SOUND_SECTORS) // LUT by player's heading angle
+        const stereo: float[] = new Array(VOLUMETRIC_SOUND_SECTORS) // LUT by player's heading angle
 
         // for each player heading, estimate the stereo sound
         for(let playerHeadingSector = 0; playerHeadingSector < VOLUMETRIC_SOUND_SECTORS; playerHeadingSector++) {
@@ -473,7 +510,7 @@ export class SoundMap {
     grid:           ChunkGrid
     playerAddr:     Vector = new Vector() // the address of the current player's head chunk
     playerPos:      Vector = null // the current world position of the player's head
-
+    chunks:         SimpleShifted3DArray
     worker : any
 
     constructor(worker) {
@@ -483,6 +520,7 @@ export class SoundMap {
     init(args : {chunk_size: IVector}) {
         // TODO: read real chunk size from init message to worker
         this.grid = new ChunkGrid({chunkSize: new Vector(args.chunk_size)})
+        initChunkSize(this.grid.chunkSize)
 
         const chunksXZ  = 2 * (1 + SOUND_MAP_CHUNKS_RADIUS_XZ)
         const chunksY   = 2 * (1 + SOUND_MAP_CHUNKS_RADIUS_Y)
@@ -492,7 +530,7 @@ export class SoundMap {
         this.summaryPlayerPos       = new Vector(Infinity, Infinity, Infinity)
         this.resultPlayerPos        = new Vector()
 
-        // the last time we made a periodic query about the mising chunks
+        // the last time we made a periodic query about the missing chunks
         this.lastPeriodicQueryTime = performance.now()
         // Contains objects {x, y, z, queryId}
         this.chunksQuery = []
