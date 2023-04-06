@@ -325,7 +325,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         this.updateArmSwingProgress(delta);
-        if (!this.isRenderable) {
+        if (!this.isRenderable(render)) {
             return;
         }
 
@@ -343,10 +343,10 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         if (this.sleep) {
             // Еесли игрок лежит подвинем ник игрока
             this.nametag.position[1] = 0.2
-            this.nametag.position[2] = head_y + 0.4 
+            this.nametag.position[2] = head_y + 0.4
         } else {
             this.nametag.position[2] = head_y + ((!this.armor.head) ? 0.6 : 0.8);
-            this.nametag.position[1] = 0  
+            this.nametag.position[1] = 0
         }
 
         const d = camPos.distance(this.pos);
