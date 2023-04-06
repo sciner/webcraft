@@ -7,6 +7,7 @@ import type {BlockManager, FakeTBlock} from "../blocks.js";
 import type { TBlock } from "../typed_blocks3.js";
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
+import type { World } from "../world.js";
 
 const {mat4} = glMatrix;
 
@@ -33,7 +34,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         let x = 0;
         let y = 0;
@@ -43,7 +44,7 @@ export default class style {
         _temp_shift_pos.copyFrom(tblock.posworld).subSelf(tblock.tb.coord);
 
         // Random shift
-        const r = randoms.double(_temp_shift_pos.z * world.chunkManager.grid.chunk_size.x + _temp_shift_pos.x) * 4/16 - 2/16;
+        const r = randoms.double(_temp_shift_pos.z * world.chunkManager.grid.chunkSize.x + _temp_shift_pos.x) * 4/16 - 2/16;
         x += 0.5 - 0.5 + r;
         z += 0.5 - 0.5 + r;
 

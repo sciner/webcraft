@@ -8,6 +8,7 @@ import { DEFAULT_GRASS_PALETTE, GRASS_COLOR_SHIFT_FACTOR, GRASS_PALETTE_OFFSET }
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
 
@@ -68,7 +69,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE;
         aabb.set(0, 0, 0, 0, 0, 0)

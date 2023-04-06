@@ -5,6 +5,7 @@ import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 const width = 1;
 const height = .5;
@@ -25,7 +26,7 @@ export default class style {
         );
     }
 
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const f = !!expanded ? .001 : 0;
         return style
             .calculate(tblock, tblock.posworld, neighbours, world.chunkManager)

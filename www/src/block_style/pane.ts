@@ -4,6 +4,7 @@ import { AABB } from '../core/AABB.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 // Панель
 export default class style {
@@ -27,7 +28,7 @@ export default class style {
      * @param {*} neighbours 
      * @param {boolean} expanded 
      */
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const bm = style.block_manager
         const shapes = []
         const height = 1

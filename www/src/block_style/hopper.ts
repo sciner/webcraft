@@ -5,6 +5,7 @@ import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { CD_ROT } from '../core/CubeSym.js';
+import type { World } from '../world.js';
 
 
 // Hopper
@@ -23,7 +24,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         return [
             new AABB(0, 10/16, 0, 1, 1, 1),
             new AABB(4/16, 4/16, 4/16, 12/16, 10/16, 12/16),

@@ -15,6 +15,7 @@ import { BLOCK_FLAG } from '../constant.js';
 import type { BBModel_Model } from '../bbmodel/model.js';
 import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
@@ -59,7 +60,7 @@ export default class style {
 
     /**
      */
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const bb = tblock.material.bb
         const behavior = bb.behavior || bb.model.name
