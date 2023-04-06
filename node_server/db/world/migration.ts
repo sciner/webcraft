@@ -1,9 +1,8 @@
 import { DEFAULT_RENDER_DISTANCE } from "@client/constant.js";
-import { Vector } from "@client/helpers.js";
 import type { Indicators } from "@client/player.js";
 import type { ServerWorld } from "../../server_world.js";
-
-const OLD_CHUNK_SIZE = new Vector(16, 40, 16)
+import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
+import { Vector } from "@client/helpers.js";
 
 // Migrations
 export class DBWorldMigration {
@@ -46,7 +45,7 @@ export class DBWorldMigration {
             }
   
             // get actual chunk size
-            const csz = OLD_CHUNK_SIZE.clone()
+            const csz = new Vector().copyFrom(OLD_CHUNK_SIZE)
             const field_exists = await this.db.get(`SELECT * FROM pragma_table_info('world') WHERE name='tech_info'`)
             if(field_exists) {
                 const row = await this.db.get('SELECT tech_info FROM world')
@@ -696,7 +695,7 @@ export class DBWorldMigration {
                 "data" TEXT,
             PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE);`,
 
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
 
             `CREATE INDEX IF NOT EXISTS "main"."world_modify_chunks_xyz"
                 ON "world_modify_chunks" (
@@ -717,36 +716,36 @@ export class DBWorldMigration {
         migrations.push({version: 71, queries: [
             `UPDATE world_modify SET extra_data = NULL WHERE extra_data = '{}';`,
             `UPDATE world_modify SET extra_data = NULL WHERE block_id = 18 AND extra_data IS NOT NULL AND json_extract(extra_data, '$.max_ticks') IS NULL`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 72, queries: [
             `DELETE FROM world_modify WHERE block_id = 34`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":34,', '"id":911,');`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 73, queries: [
             `DELETE FROM world_modify WHERE block_id = 142`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":142,', '"id":196,');`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 74, queries: [
             `UPDATE world_modify SET block_id = 593, extra_data = '{"stage": 1}' WHERE block_id = 594;`,
             `UPDATE world_modify SET block_id = 593, extra_data = '{"stage": 2}' WHERE block_id = 595;`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 75, queries: [
             `DELETE FROM world_modify WHERE block_id = 142`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":142,', '"id":196,');`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 76, queries: [
             `DELETE FROM world_modify WHERE block_id = 593`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 77, queries: [
@@ -763,7 +762,7 @@ export class DBWorldMigration {
                 "portal_block_id" INTEGER
             );`,
             `CREATE INDEX "portal_xyz" ON "portal" ("x", "y", "z");`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 78, queries: [
@@ -771,7 +770,7 @@ export class DBWorldMigration {
             `DELETE FROM portal`,
             `ALTER TABLE portal ADD COLUMN "type" TEXT NOT NULL`,
             `ALTER TABLE portal ADD COLUMN "pair" TEXT`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 79, queries: [
@@ -812,13 +811,13 @@ export class DBWorldMigration {
             `UPDATE world_modify SET block_id = 320 WHERE block_id = 348;`,
             `UPDATE world_modify SET block_id = 300 WHERE block_id = 349;`,
             `DELETE FROM world_modify_chunks`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
         migrations.push({version: 85, queries: [
             `UPDATE world_modify SET block_id = 61 WHERE block_id = 62;`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":61,', '"id":62,');`,
             `DELETE FROM world_modify_chunks`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
         migrations.push({version: 86, queries: [
             `alter table user add column "ender_chest" TEXT DEFAULT '{"slots":{}}'`,
@@ -903,7 +902,7 @@ export class DBWorldMigration {
                 extra_data = REPLACE(REPLACE(REPLACE(extra_data, '"id":114,', '"id":9,'), '"id":155,', '"id":9,'), '"id":520,', '"id":9,')
                 WHERE extra_data IS NOT NULL`,
             `UPDATE user SET inventory = REPLACE(REPLACE(REPLACE(inventory, '"id":114,', '"id":9,'), '"id":155,', '"id":9,'), '"id":520,', '"id":9,');`,
-            ...await update_world_modify_chunks(),
+            update_world_modify_chunks,
         ]});
 
         migrations.push({version: 92, queries: [
@@ -983,6 +982,10 @@ export class DBWorldMigration {
                 for(let query of m.queries) {
                     if (typeof query === 'string') {
                         await this.db.get(query);
+                    } else if(query instanceof Function) {
+                        for(let sub_query of await query()) {
+                            await this.db.run(sub_query)
+                        }
                     } else {
                         await this.db.run(query.sql, query.placeholders);
                     }

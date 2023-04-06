@@ -6,8 +6,8 @@ import { Raycaster } from "@client/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
-import { ALLOW_NEGATIVE_Y } from "@client/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS } from "@client/constant.js";
+import { ALLOW_NEGATIVE_Y, MAX_RENDER_DIST_IN_BLOCKS } from "@client/chunk_const.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS, DEFAULT_RENDER_DISTANCE } from "@client/constant.js";
 import { WorldPortal, WorldPortalWait } from "@client/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { ServerPlayerEffects } from "./player/effects.js";
@@ -392,13 +392,14 @@ export class ServerPlayer extends Player {
      * Change render dist
      * 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109),
      * 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
-     * @param {int} value
      */
-    changeRenderDist(value) {
+    changeRenderDist(value : int) {
         if(Number.isNaN(value)) {
-            value = 4;
+            value = DEFAULT_RENDER_DISTANCE;
         }
-        value = Mth.clamp(value, 2, this.isAdmin() ? 32 : 16)
+        // TODO: if server admin allow set big values
+        const max_render_dist = Math.round(MAX_RENDER_DIST_IN_BLOCKS / this.world.chunkManager.grid.chunkSize.x)
+        value = Mth.clamp(value, 2, max_render_dist)
         if (this.state.chunk_render_dist != value) {
             this.state.chunk_render_dist = value;
             this.netDirtyFlags |= ServerPlayer.NET_DIRTY_FLAG_RENDER_DISTANCE;
@@ -409,20 +410,20 @@ export class ServerPlayer extends Player {
 
     // Update hands material
     updateHands() {
-        let inventory = this.inventory;
+        const inventory = this.inventory;
         if(!this.state.hands) {
             // it's ok to typecast here, because we set left and right below
             this.state.hands = {} as PlayerHands;
         }
         //
-        let makeHand = (material) => {
+        const makeHand = (material) => {
             return {
                 id: material ? material.id : null
             };
         };
         // Get materials
-        let left_hand_material = inventory.current.index2 >= 0 ? inventory.items[inventory.current.index2] : null;
-        let right_hand_material = inventory.items[inventory.current.index];
+        const left_hand_material = inventory.current.index2 >= 0 ? inventory.items[inventory.current.index2] : null;
+        const right_hand_material = inventory.items[inventory.current.index];
         this.state.hands.left = makeHand(left_hand_material);
         this.state.hands.right = makeHand(right_hand_material);
     }

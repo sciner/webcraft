@@ -59,9 +59,11 @@ interface IChunk {
 interface TSideSet {}
 
 type TGeneratorInfo = {
-    id: string
-    cluster_size?: IVector
-    options: any
+    id:             string
+    cluster_size?:  IVector
+    options:        any
+    pos_spawn:      any
+    rules:          any
 }
 
 declare interface TWorldTechInfo {

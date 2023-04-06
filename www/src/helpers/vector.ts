@@ -101,7 +101,6 @@ export class Vector implements IVector {
 
     /**
      * Much faster than set() if we know the soure type.
-     * @param {Vector} vec
      */
     copyFrom(vec : IVector) : Vector {
         this.x = vec.x;
@@ -110,8 +109,6 @@ export class Vector implements IVector {
         return this;
     }
 
-    /**
-     */
     equal(vec: IVector) : boolean {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
     }

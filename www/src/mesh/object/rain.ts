@@ -8,6 +8,8 @@ import type { Renderer } from '../../render.js';
 import type { ChunkManager } from '../../chunk_manager.js';
 import type { ChunkGrid } from '../../core/ChunkGrid.js';
 import { MAX_CHUNK_SQUARE } from '../../chunk_const.js';
+import type { World } from '../../world.js';
+import type { Player } from '../../player.js';
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -30,7 +32,6 @@ let _chunk = null;
  * @param {Vector} pos Player position
  */
 export default class Mesh_Object_Rain {
-    [key: string]: any;
 
     #_enabled           = false;
     #_map               = new VectorCollector();
@@ -38,20 +39,34 @@ export default class Mesh_Object_Rain {
     #_player_pos        = new Vector();
     #_blocks_sets       = 0;
 
-    chunkManager: ChunkManager
-    grid: ChunkGrid
+    world:              World
+    chunkManager:       ChunkManager
+    grid:               ChunkGrid
     sound_id            = null
     type                = null
+    life:               number
+    player:             Player
+    render:             Renderer
+    strength_val:       number
+    weather:            any
+    player_dist:        number
+    contact_blocks:     any[]
+    material:           any
+    defaultVolume:      any
+    buffer:             any
+    pos:                Vector
+    volume:             any
 
     /**
      * @param render
      * @param type rain|snow
      * @param chunkManager
      */
-    constructor(render : Renderer, type : string, chunkManager : ChunkManager) {
+    constructor(world : World, render : Renderer, type : string, chunkManager : ChunkManager) {
 
         this.life           = 1;
         this.type           = type;
+        this.world          = world
         this.chunkManager   = chunkManager;
         this.grid           = chunkManager.grid
         this.player         = render.player;
@@ -233,14 +248,14 @@ export default class Mesh_Object_Rain {
     // Update height map
     updateHeightMap() {
 
-        let p = performance.now();
+        // let p = performance.now();
         let checked_blocks = 0;
         let chunk = null;
 
         const pos           = this.#_player_block_pos;
         const vec           = new Vector();
         const block_pos     = new Vector();
-        const chunk_size    = this.world.chunkManager.grid.chunkSize;
+        const chunk_size    = this.grid.chunkSize;
         const chunk_addr    = new Vector();
 
         this.contact_blocks = []

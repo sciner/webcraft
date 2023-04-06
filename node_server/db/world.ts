@@ -18,6 +18,7 @@ import type { ServerPlayer } from "../server_player.js";
 import type { Indicators, PlayerState } from "@client/player.js";
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
 import { teleport_title_regexp } from "plugins/chat_teleport.js";
+import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
 
 export type BulkDropItemsRow = [
     string,     // entity_id
@@ -101,10 +102,7 @@ export class DBWorld {
         this.world = world;
     }
 
-    /**
-     * @returns {DBWorld}
-     */
-    async init() {
+    async init() : Promise<DBWorld> {
         this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
         this.mobs = new DBWorldMob(this.conn, this.world);
@@ -166,7 +164,12 @@ export class DBWorld {
         }
         // Insert new world to Db
         const world = await Qubatch.db.getWorld(world_guid);
-        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode, ore_seed) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode, :ore_seed)', {
+
+        // tech info
+        const xz = world.generator.options?.chunk_size_xz ?? OLD_CHUNK_SIZE.x
+        const tech_info = {chunk_size: new Vector(xz, 40, xz)}
+
+        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode, ore_seed, tech_info) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode, :ore_seed, :tech_info)', {
             ':dt':          unixTime(),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
@@ -175,7 +178,8 @@ export class DBWorld {
             ':ore_seed':    randomUUID(),
             ':generator':   JSON.stringify(world.generator),
             ':pos_spawn':   JSON.stringify(world.pos_spawn),
-            ':game_mode':   world.game_mode
+            ':game_mode':   world.game_mode,
+            ':tech_info':   JSON.stringify(tech_info),
         });
         return this.getWorld(world_guid);
     }

@@ -1058,7 +1058,7 @@ export class Renderer {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, this.weather_name, chunkManager);
+            rain = new Mesh_Object_Rain(this.world, this, this.weather_name, chunkManager);
             this.meshes.add(rain, 'weather');
             this.rain = rain
         }
