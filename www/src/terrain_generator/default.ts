@@ -86,7 +86,7 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('stump', this.plantStump.bind(this)) // пенёк
         this.tree_styles.set('tundra_stone', this.plantTundraStone.bind(this)) // камень тундры
         this.tree_styles.set('birch', this.plantOak.bind(this)) // берёза
-        this.tree_styles.set('oak', this.plantCoral.bind(this)) // корал//this.plantOak.bind(this)) // дуб
+        this.tree_styles.set('oak', this.plantCoralMushroom.bind(this)) // корал//this.plantOak.bind(this)) // дуб
         this.tree_styles.set('wood', this.plantOak.bind(this)) // просто дерево
         this.tree_styles.set('red_mushroom', this.plantRedMushroom.bind(this)) // красный гриб
         this.tree_styles.set('brown_mushroom', this.plantBrownMushroom.bind(this)) // коричневый (плоский) гриб
@@ -1355,6 +1355,26 @@ export class Default_Terrain_Generator {
             }
             setTreeBlock(tree, position.x, position.y, position.z,  trunk, true)
             setCoral(position, 1)
+        }
+    }
+
+    // Дерево коралл
+    plantCoralMushroom(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
+
+        const trunk = {id: BLOCK.HORN_CORAL_BLOCK.id}
+        const random = new alea('coral' + xyz.toHash())
+        const max_x = random.nextInt(3) + 3
+        const max_y = random.nextInt(3) + 3
+        const max_z = random.nextInt(3) + 3
+        const shift = random.nextInt(1) + 1
+        for (let x = 0; x <= max_x; ++x) {
+            for (let y = 0; y <= max_y; y++) {
+                for (let z = 0; z <= max_z; z++) {
+                    if ((x != 0 && x != max_x || y != 0 && y != max_y) && (z != 0 && z != max_z || y != 0 && y != max_y) && (x != 0 && x != max_x || z != 0 && z != max_z) && (x == 0 || x == max_x || y == 0 || y == max_y || z == 0 || z == max_z) && random.double() >= .1) {
+                        setTreeBlock(tree, x, y - shift, z,  trunk, true)
+                    }
+                }
+            }
         }
     }
     
