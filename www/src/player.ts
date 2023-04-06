@@ -37,6 +37,12 @@ export type Indicators = {
     oxygen: number
 }
 
+export type Effects = {
+    id: number
+    time: number
+    level: number
+}
+
 export type PlayerStats = {
     death: int
     time: number
@@ -96,6 +102,7 @@ export type PlayerState = PlayerStateDynamicPart & {
     chunk_render_dist   : int
     game_mode ?         : string
     stats               : PlayerStats
+    effects             : Effects[]
 }
 
 export type PlayerStateUpdate = PlayerStateDynamicPart & {
